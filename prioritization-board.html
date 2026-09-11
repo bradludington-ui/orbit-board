@@ -1083,7 +1083,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.26 (11 Sep 2026)';
+const BUILD='v1.27 (11 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -13375,21 +13375,37 @@ function tiers(ord, scen){
 //   NEED  — how far that total runs past the DISCRETIONARY BA in each service lane, counted
 //           only in lanes whose discretionary is actually spent out. A lane with discretionary
 //           still on the table cannot generate a need, however large its must-pay total.
+// THE TWO MISSION CRITICAL RULES, IN ONE PLACE. Everything that reports the star -- the board's
+// own cutline banner, the Excel workbook and the PowerPoint deck -- reads this, so they cannot
+// disagree about what a must-pay requirement costs.
+//
+//   MC Total    = sum of MC-designated requirement/ask values
+//   MC shortage = requirement/ask value - discretionary allocated   (mandatory ignored)
+//
+// TOTAL IS THE ASK, NOT THE ALLOCATION. It used to sum d+m+u, which is the BASIS the lane engine
+// worked from -- the board's allocation for an ordinary requirement. A must-pay requirement trimmed
+// on the board therefore reported its trim as the must-pay figure: one asking 75 and trimmed to 32
+// printed 32, understating the commitment by the whole trim.
+//
+// SHORTAGE IS MEASURED PER SERVICE AGAINST WHAT DISCRETIONARY ACTUALLY PAID. It used to compare the
+// MC total against the service's whole discretionary BA, which answered a different question -- how
+// far the starred portfolio runs past the topline if it had first call on it -- and read "none"
+// whenever it fit, even when ordinary requirements ahead of it had already spent the lane and left
+// the must-pays short. Mandatory is never netted off: it does not cover the commitment. Floored per
+// service because money is not fungible across services.
 function mcCalc(T){
   const nS=SVC.length;
   const tot=new Array(nS).fill(0), need=new Array(nS).fill(0);
   let n=0;
   S.order.forEach(id=>{
-    const t=T[id]; if(!t||!S.mc[id]) return;
+    const t=T[id], it=itemById(id); if(!t||!it||!S.mc[id]) return;
     n++;
-    for(let i=0;i<nS;i++) tot[i]+=(t.d[i]||0)+(t.m[i]||0)+(t.u[i]||0);
+    for(let i=0;i<nS;i++){
+      const ask=it.ask[i]||0;
+      tot[i]  += ask;
+      need[i] += Math.max(0, ask-(t.d[i]||0));
+    }
   });
-  const dRem=(T.__rem&&T.__rem.dRem)||[];
-  for(let i=0;i<nS;i++){
-    const ba=(S.discSvc||[])[i]||0;
-    const spentOut=(dRem[i]||0)<=0.005;
-    need[i] = (spentOut && tot[i]>ba+0.005)? tot[i]-ba : 0;
-  }
   return {tot, need, n, total:tot.reduce((a,b)=>a+b,0), needTot:need.reduce((a,b)=>a+b,0),
           bySvc:SVC.map((s,i)=>({s, tot:tot[i], need:need[i], ba:(S.discSvc||[])[i]||0}))};
 }
@@ -15675,8 +15691,8 @@ function exportPPT(){
     const kpi=[
       ['Discretionary BA', fSM(dBA), _PPT.GREEN], ['Discretionary funded', fSM(TT.dUsed), _PPT.GREEN],
       ['★ Mission Critical total (must-pay)', fSM(TT.mcTot), _PPT.AMBER],
-      ['★ MC need above discretionary BA', TT.mcNeed>0.5? fSM(TT.mcNeed):'none', TT.mcNeed>0.5?_PPT.RED:_PPT.DIM],
-      ['PROGRAM FLOOR (Disc BA + MC need)', fSM(dBA+TT.mcNeed), _PPT.AMBER],
+      ['★ MC short vs discretionary', TT.mcNeed>0.5? fSM(TT.mcNeed):'none', TT.mcNeed>0.5?_PPT.RED:_PPT.DIM],
+      ['PROGRAM FLOOR (Disc BA + MC short)', fSM(dBA+TT.mcNeed), _PPT.AMBER],
       ['Mandatory BA', fSM(mBA), _PPT.PURP], ['Mandatory drawn', fSM(TT.mUsed), _PPT.PURP],
       ['Whole budget', fSM(dBA+mBA), _PPT.NAVY], ['Unfunded (incl allocation deltas)', fSM(TT.uAmt+totDelta), _PPT.RED]];
     const rows=[[{t:'Measure',...H,align:'l'},{t:'Amount',...H}]];
@@ -15701,18 +15717,23 @@ function exportPPT(){
   // ---- 3: PMO rollup ----
   // ---- 5+: Mission Critical ----
   {
-    // every must-pay, not just the ones that spilled — the total IS the mission-critical figure
-    const mcIts=S.order.map(itemById).filter(it=>it&&S.mc[it.id]&&(T[it.id].dT+T[it.id].mT+T[it.id].uT)>0.5);
+    // EVERY must-pay, listed against its REQUIREMENT value so the rows add to the printed total.
+    // The old filter kept rows with a non-zero allocation, so a starred requirement zeroed out on
+    // the board dropped off the slide while still counting in the total beneath it.
+    const mcIts=S.order.map(itemById).filter(it=>it&&S.mc[it.id]&&askTot(it)>0.5);
     const PAGE=11;
     for(let pg=0; pg*PAGE<mcIts.length && pg<3; pg++){
       const chunk=mcIts.slice(pg*PAGE,(pg+1)*PAGE);
-      const rows=[[{t:'Rank',...H},{t:'PMO',...H,align:'l'},{t:'Requirement',...H,align:'l'},{t:'CCaR',...H,align:'l'},{t:'Allocated (must-pay)',...H}]];
-      chunk.forEach(it=>rows.push([{t:''+MR[it.id],c:_PPT.DIM},{t:grpOf(it),c:_PPT.INK,align:'l'},{t:dispTitle(it).slice(0,64),c:_PPT.INK,align:'l'},{t:ccarOf(it)||'—',c:_PPT.AMBER,align:'l'},{t:fSM(T[it.id].dT+T[it.id].mT+T[it.id].uT),b:1,c:_PPT.AMBER}]));
+      const rows=[[{t:'Rank',...H},{t:'PMO',...H,align:'l'},{t:'Requirement',...H,align:'l'},{t:'CCaR',...H,align:'l'},{t:'Requirement (must-pay)',...H},{t:'Short vs Disc',...H}]];
+      chunk.forEach(it=>{
+        const short=SVC.reduce((a,s2,i)=>a+Math.max(0,it.ask[i]-(T[it.id].d[i]||0)),0);
+        rows.push([{t:''+MR[it.id],c:_PPT.DIM},{t:grpOf(it),c:_PPT.INK,align:'l'},{t:dispTitle(it).slice(0,56),c:_PPT.INK,align:'l'},{t:ccarOf(it)||'—',c:_PPT.AMBER,align:'l'},{t:fSM(askTot(it)),b:1,c:_PPT.AMBER},{t:short>0.5? fSM(short):'—',b:1,c:short>0.5?_PPT.RED:_PPT.DIM}]);
+      });
       if(pg===Math.min(2,Math.ceil(mcIts.length/PAGE)-1)){
-        rows.push([{t:'',...TOTF},{t:'',...TOTF},{t:'TOTAL ★ MISSION CRITICAL'+(mcIts.length>3*PAGE?'  ('+(mcIts.length-3*PAGE)+' more items in Excel)':''),b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:'',...TOTF},{t:fSM(TT.mcTot),b:1,c:_PPT.GOLD,...TOTF}]);
-        rows.push([{t:'',...TOTF},{t:'',...TOTF},{t:'\u2605 MC NEED above the Discretionary BA',b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:'',...TOTF},{t:TT.mcNeed>0.5? fSM(TT.mcNeed):'none',b:1,c:TT.mcNeed>0.5?_PPT.RED:_PPT.DIM,...TOTF}]);
+        rows.push([{t:'',...TOTF},{t:'',...TOTF},{t:'TOTAL \u2605 MISSION CRITICAL'+(mcIts.length>3*PAGE?'  ('+(mcIts.length-3*PAGE)+' more items in Excel)':''),b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:'',...TOTF},{t:fSM(TT.mcTot),b:1,c:_PPT.GOLD,...TOTF},{t:TT.mcNeed>0.5? fSM(TT.mcNeed):'\u2014',b:1,c:TT.mcNeed>0.5?_PPT.RED:_PPT.GOLD,...TOTF}]);
+        rows.push([{t:'',...TOTF},{t:'',...TOTF},{t:'\u2605 MC SHORT of the discretionary lane \u2014 mandatory is not netted off',b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:'',...TOTF},{t:'',...TOTF},{t:TT.mcNeed>0.5? fSM(TT.mcNeed):'none',b:1,c:TT.mcNeed>0.5?_PPT.RED:_PPT.DIM,...TOTF}]);
       }
-      slides.push(_pSlide(hdr('Mission Critical — Must-Pay Requirements'+(mcIts.length>PAGE?' ('+(pg+1)+' of '+Math.min(3,Math.ceil(mcIts.length/PAGE))+')':''),'★ Mission Critical means this must be paid this year. The need is whatever of that total runs past the Discretionary BA.')+_pTbl(4,MX,1500000,CW,[1,1.6,6,1.8,2],rows)));
+      slides.push(_pSlide(hdr('Mission Critical — Must-Pay Requirements'+(mcIts.length>PAGE?' ('+(pg+1)+' of '+Math.min(3,Math.ceil(mcIts.length/PAGE))+')':''),'\u2605 Mission Critical means this must be paid this year. Requirement is the full ask; Short vs Disc is that ask less what the DISCRETIONARY lane paid. Mandatory is not netted off \u2014 it does not cover the commitment.')+_pTbl(4,MX,1500000,CW,[1,1.4,5,1.6,1.9,1.8],rows)));
     }
   }
   // ---- 6+: Unfunded requirements ----
@@ -16034,7 +16055,7 @@ function render(){
       if((t.natM+t.natU)>0.005 && !discCut){
         discCut=true;
         h+=`<div class="cutline cut-disc"><span class="l"></span>▼ DISCRETIONARY LANES BEGIN EXHAUSTING — ${fM(discTot())} BA — rows below draw MANDATORY for spent-out services<span class="l"></span></div>`;
-        if(TT.mcNeed>0.5) h+=`<div class="cutline cut-mc"><span class="l"></span>★ MISSION CRITICAL NEED — ${fM(TT.mcNeed)} of the ${fM(TT.mcTot)} must-pay total is above the discretionary BA — PROGRAM FLOOR ${fM(discTot()+TT.mcNeed)}<span class="l"></span></div>`;
+        if(TT.mcNeed>0.5) h+=`<div class="cutline cut-mc"><span class="l"></span>★ MISSION CRITICAL SHORT — ${fM(TT.mcNeed)} of the ${fM(TT.mcTot)} must-pay total is not covered by the discretionary lane — PROGRAM FLOOR ${fM(discTot()+TT.mcNeed)}<span class="l"></span></div>`;
       }
       if(t.natU>0.005 && !unfCut){
         unfCut=true;

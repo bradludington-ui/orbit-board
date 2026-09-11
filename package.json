@@ -4,7 +4,9 @@
   "description": "Tooling for the SPMT prioritization board. The board itself has no dependencies; these are for checks only.",
   "scripts": {
     "check": "node tools/check.mjs",
-    "audit:export": "node tools/export-audit/audit.mjs"
+    "audit:export": "node tools/export-audit/audit.mjs",
+    "audit:ppt": "node tools/export-audit/audit-ppt.mjs",
+    "audit": "npm run audit:export && npm run audit:ppt"
   },
   "devDependencies": { "jsdom": "^27.0.0" }
 }

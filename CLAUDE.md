@@ -62,6 +62,10 @@ MC Total     =  sum of MC-designated requirement/ask values
 MC shortage  =  requirement/ask value  -  discretionary allocated     (mandatory ignored)
 ```
 
+`mcCalc()` is the single implementation of both rules. The board's own cutline banner, the Excel
+workbook and the PowerPoint deck all read it, so they cannot disagree about what a must-pay
+requirement costs. Do not recompute the star anywhere else.
+
 These two are the stated rules and are asserted verbatim in the audit under the `RULE` label.
 Change them only on an explicit instruction, and update those checks in the same commit.
 
@@ -88,15 +92,17 @@ from a CLIN suffix, and a PMO removed from the list leaves its requirements behi
 `GROUPS` alone to emit rows — use `pmoKeys()` in the export (configured order first, anything else
 appended) or the same shape as `ppbePmoKeys()`.
 
-### Auditing the Excel export
+### Auditing the exports
 
 ```
 npm install        # jsdom, for the audit only
-npm run audit:export
+npm run audit          # both exports
+npm run audit:export   # the Excel workbook
+npm run audit:ppt      # the PowerPoint deck
 ```
 
 `tools/export-audit/` boots the real board in jsdom, seeds boards with deliberately uneven
-per-service numbers, runs the real `exportExcel()`, and checks every tab's printed figures against
+per-service numbers, runs the real `exportExcel()` and `exportPPT()`, and checks every printed figure against
 `tiers()`. Add a scenario there before changing export math. The board itself still has **no**
 dependencies — jsdom is dev tooling and never ships in the HTML.
 
@@ -128,7 +134,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 
 ## Hand-edit points
 
-These were templated per board by the build script. Line numbers are as of `v1.26`; find them
+These were templated per board by the build script. Line numbers are as of `v1.27`; find them
 by symbol name, not by number.
 
 | What | Symbol | ~Line |
