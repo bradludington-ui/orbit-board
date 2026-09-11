@@ -144,6 +144,30 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       p.d[i] + p.m[i] + p.u[i], basis[i]));
   });
 
+  // ---- 1b. INDEPENDENT ORACLE: re-derive the greedy walk and compare draw for draw ----
+  // Each service draws its own discretionary lane until dry, then mandatory, then unfunded.
+  {
+    const dRem = sc.disc.slice(), mRem = sc.mand.slice();
+    ids.forEach(id => {
+      const basis = JSON.parse(ev(`JSON.stringify((S.fsrc['${id}'] ? itemById('${id}').ask : svcAlloc(itemById('${id}'))))`));
+      if (sc.fsrc && sc.fsrc[id]) {          // directed sources have their own rules; drawn down so
+        SVC.forEach((s, i) => {              // later requirements still see the right lane balances
+          dRem[i] -= T[id].d[i]; mRem[i] -= T[id].m[i];
+        });
+        return;
+      }
+      SVC.forEach((s, i) => {
+        const want = basis[i];
+        const d = Math.min(want, Math.max(0, dRem[i])); dRem[i] -= d;
+        const m = Math.min(want - d, Math.max(0, mRem[i])); mRem[i] -= m;
+        const u = want - d - m;
+        chk(name, 'lane oracle', `${id} discretionary draw [${s}]`, T[id].d[i], d);
+        chk(name, 'lane oracle', `${id} mandatory draw [${s}]`, T[id].m[i], m);
+        chk(name, 'lane oracle', `${id} unfunded [${s}]`, T[id].u[i], u);
+      });
+    });
+  }
+
   // ---- 2. lane draws never exceed budget authority ----
   SVC.forEach((s, i) => {
     if (allD[i] > sc.disc[i] + EPS) failures.push({ scenario: name, sheet: 'tiers()', what: `disc drawn > BA [${s}]`, got: allD[i], want: sc.disc[i], delta: allD[i] - sc.disc[i] });
@@ -304,6 +328,27 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 
   // every requirement dollar appears exactly once across the PMO sheets' lane sections
   chk(name, 'PMO sheets', 'Disc+Mand+Unf across all PMO sheets == total ask', pmoLaneTotal, askAll);
+
+  // ---- 6f. Cost Element Matrix: same MC memo rules as every other matrix tab ----
+  {
+    const cem = sheetOf(sheets, 'Cost Element Matrix');
+    if (cem) {
+      const rows = cem.rows.filter(r => {
+        const k = rowKey(r);
+        return k && !['TOTAL', 'Cost Element', 'BUDGET AUTHORITY', 'REMAINING (lanes)',
+          'UNFUNDED (beyond both lanes)', 'ASK NOT ALLOCATED (trim deltas)',
+          'TOTAL UNFUNDED (deltas + beyond lanes)'].includes(k) && !isNaN(num(r[1]));
+      });
+      chk(name, 'Cost Element Matrix', 'MC memo == sum of MC requirement/ask values',
+        sum(rows.map(r => num(r[r.length - 2]))), mcMemo);
+      chk(name, 'Cost Element Matrix', 'MC short == ask - discretionary allocated',
+        sum(rows.map(r => num(r[r.length - 1]))),
+        mcIds.reduce((a, id) => a + sum(SVC.map((s, i) =>
+          Math.max(0, sc.items.find(x => x.id === id).ask[i] - T[id].d[i]))), 0));
+      SVC.forEach((s, i) => chk(name, 'Cost Element Matrix', `Disc [${s}]`,
+        sum(rows.map(r => num(r[1 + i * 2]))), allD[i]));
+    }
+  }
 
   // ---- 7. CE by PMO (when cost elements exist) must agree with PMO Matrix ----
   const pmce = sheetOf(sheets, 'CE by PMO');

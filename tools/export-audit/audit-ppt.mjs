@@ -66,6 +66,24 @@ const SCENARIOS = {
     disc: [60, 25, 12], mand: [50, 40, 10],
     order: ['A', 'B'], mc: { B: true },
   },
+  // Over-allocated in one service, short in another: the only shape where flooring the MC
+  // shortage per service differs from flooring it once on the totals.
+  'mc over-allocated one service': {
+    services: ['STOVL', 'CV'],
+    items: [mk('A', 'ATL', [40, 30])],
+    disc: [100, 50], mand: [0, 0],
+    order: ['A'], mc: { A: true },
+    alloc: { A: { m: 's', v: [60, 5] } },
+  },
+  // A starred requirement zeroed out on the board. Its allocation is nothing, but it is still
+  // must-pay and its full ask belongs in the total — so it has to stay on the slide.
+  'mc zeroed out': {
+    services: SVC3,
+    items: [mk('A', 'ATL', [50, 20, 10]), mk('B', 'PSM', [40, 30, 5])],
+    disc: [60, 25, 12], mand: [40, 20, 10],
+    order: ['A', 'B'], mc: { B: true },
+    alloc: { B: { m: 't', v: 0 } },
+  },
   'cost elements': {
     services: SVC3,
     items: [mk('A', 'ATL', [50, 20, 10]), mk('B', 'PSM', [40, 30, 5]), mk('C', 'AV', [30, 10, 20])],
@@ -160,10 +178,33 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   if (uTbl) {
     const tr = findRow(uTbl, 'TOTAL UNFUNDED');
     const unfRule = ids.reduce((a, id) => {
-      const d = sum(SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i])));
-      return a + d;
+      const askT = askOf(id), fundedT = T[id].dT + T[id].mT;
+      return a + T[id].uT + Math.max(0, askT - sum(SVC.map((s, i) => T[id].d[i] + T[id].m[i] + T[id].u[i])));
     }, 0);
     chk(name, 'Unfunded', 'TOTAL == sum of (ask - disc - mand)', cellText(tr[5]), fSM(unfRule));
+  }
+
+  // ---- the Cost Element rollup slide ----
+  if (sc.costElems) {
+    const ce = tables.find(t => t && t.some(r => String(cellText(r[0])) === 'Cost Element'));
+    if (!ce) {
+      failures.push({ scenario: name, slide: 'CE rollup', what: 'slide missing', got: 'none', want: 'a slide' });
+    } else {
+      const rows = ce.filter(r => String(cellText(r[0])) !== 'Cost Element');
+      // cells are already fSM strings in the board's own units; parse the suffix, don't rescale
+      const parse = t => {
+        const x = String(t).replace(/[$,]/g, '').trim();
+        if (x === '—' || x === '') return 0;
+        const mul = /M$/i.test(x) ? 1e6 : /K$/i.test(x) ? 1e3 : 1;
+        return parseFloat(x) * mul;
+      };
+      chk(name, 'CE rollup', 'discretionary column == board discretionary',
+        fSM(sum(rows.map(r => parse(cellText(r[2]))))), fSM(sum(allD)));
+      chk(name, 'CE rollup', 'mandatory column == board mandatory',
+        fSM(sum(rows.map(r => parse(cellText(r[3]))))), fSM(sum(allM)));
+      chk(name, 'CE rollup', 'requirement count == requirements on the board',
+        sum(rows.map(r => Number(cellText(r[1])))), ids.length);
+    }
   }
 
   // NOTE: exportPPT carries a '---- 3: PMO rollup ----' comment with no code beneath it, so the

@@ -1,0 +1,155 @@
+// Mutation sweep: break the export math on purpose, one edit at a time, and check that the audit
+// suites notice. A suite that passes a mutated board is not protecting that line.
+//
+//   npm run mutate            all mutations
+//   npm run mutate -- lane    only mutations whose id or area contains "lane"
+//
+// Every mutation must match its target EXACTLY ONCE. A mutation that fails to apply is reported as
+// NOT APPLIED, never as caught or survived — otherwise a stale search string would masquerade as
+// proof that a line is covered.
+import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const BOARD = join(HERE, '..', '..', 'prioritization-board.html');
+const SUITES = [
+  ['excel', join(HERE, 'audit.mjs')],
+  ['ppt', join(HERE, 'audit-ppt.mjs')],
+];
+
+// area: which surface the line belongs to. find/replace: the deliberate break.
+const MUTATIONS = [
+  // ---- the lane engine: the basis for every printed figure ------------------------------------
+  { id: 'lane-disc-draw', area: 'tiers', what: 'discretionary draw short-changed by 10%',
+    find: 'const dd=Math.min(v, Math.max(0,dRem[i])); dRem[i]-=dd; d[i]=dd;',
+    repl: 'const dd=Math.min(v*0.9, Math.max(0,dRem[i])); dRem[i]-=dd; d[i]=dd;' },
+  { id: 'lane-mand-draw', area: 'tiers', what: 'mandatory draw ignores the remaining lane',
+    find: 'const mm=Math.min(rem, Math.max(0,mRem[i])); mRem[i]-=mm; m[i]=mm;',
+    repl: 'const mm=rem; mRem[i]-=mm; m[i]=mm;' },
+
+  // ---- Mission Critical: the two stated rules --------------------------------------------------
+  { id: 'mc-total-basis', area: 'mcCalc', what: 'MC Total reverts to the allocation basis',
+    find: '      tot[i]  += ask;', repl: '      tot[i]  += (t.d[i]||0)+(t.m[i]||0)+(t.u[i]||0);' },
+  { id: 'mc-short-nets-mand', area: 'mcCalc', what: 'MC shortage nets off mandatory',
+    find: '      need[i] += Math.max(0, ask-(t.d[i]||0));',
+    repl: '      need[i] += Math.max(0, ask-(t.d[i]||0)-(t.m[i]||0));' },
+  { id: 'mc-short-unfloored', area: 'mcCalc', what: 'MC shortage not floored per service',
+    find: '      need[i] += Math.max(0, ask-(t.d[i]||0));',
+    repl: '      need[i] += (ask-(t.d[i]||0));' },
+  { id: 'mc-excel-total', area: 'excel', what: 'Excel MC memo reverts to mandatory+unfunded',
+    find: '    mc:  [(p,it)=>mcShortOf(it)>0.005, (p,it)=>askTot(it), (p,it)=>it.ask.slice()],',
+    repl: '    mc:  [(p,it)=>p.spill>0.005, (p,it)=>p.spill, (p,it)=>SVC.map((s,i)=>p.m[i]+p.u[i])],' },
+  { id: 'mc-excel-short-svc', area: 'excel', what: 'Excel MC shortage floored on totals, not per service',
+    find: '    return SVC.map((s,i)=>Math.max(0, it.ask[i]-(p? p.d[i]:0))); };',
+    repl: '    return SVC.map((s,i)=>(it.ask[i]-(p? p.d[i]:0))); };' },
+  { id: 'mc-matrix-weight', area: 'excel', what: 'PMO Matrix MC ignores the per-service share',
+    find: '        a.mcs+=SVC.reduce((x,s,i)=>x+mcShortSvc(it)[i]*(frac? frac[i]:1),0);',
+    repl: '        a.mcs+=mcShortOf(it);' },
+  { id: 'mc-ce-matrix', area: 'excel', what: 'Cost Element Matrix MC reverts to spill',
+    find: '      if(S.mc[id]){ a.mc+=askTot(it); a.mcs+=mcShortOf(it); }',
+    repl: '      if(S.mc[id]){ a.mc+=p.spill; a.mcs+=mcShortOf(it); }' },
+  { id: 'mc-ppt-row', area: 'ppt', what: 'MC slide rows print the allocation, not the ask',
+    find: '{t:fSM(askTot(it)),b:1,c:_PPT.AMBER}',
+    repl: '{t:fSM(T[it.id].dT+T[it.id].mT+T[it.id].uT),b:1,c:_PPT.AMBER}' },
+  { id: 'mc-ppt-filter', area: 'ppt', what: 'MC slide drops zero-allocation starred requirements',
+    find: 'const mcIts=S.order.map(itemById).filter(it=>it&&S.mc[it.id]&&askTot(it)>0.5);',
+    repl: 'const mcIts=S.order.map(itemById).filter(it=>it&&S.mc[it.id]&&(T[it.id].dT+T[it.id].mT+T[it.id].uT)>0.5);' },
+
+  // ---- by-PMO attribution -----------------------------------------------------------------------
+  { id: 'pmo-residual', area: 'shares', what: 'uncovered-service residual dropped again',
+    find: '    const gap = tot.map(v=>v>0? 0 : 1);', repl: '    const gap = tot.map(v=>0);' },
+  { id: 'pmo-frac', area: 'shares', what: 'CLIN shares computed against the wrong denominator',
+    find: 'Object.keys(bag).forEach(g=>out.push([g, bag[g].map((v,i)=>tot[i]>0? v/tot[i]:0)]));',
+    repl: 'Object.keys(bag).forEach(g=>out.push([g, bag[g].map((v,i)=>tot[i]>0? v/(tot[i]*1.1):0)]));' },
+  { id: 'pmo-keys', area: 'excel', what: 'unknown PMOs dropped from the row list again',
+    find: '  const pmoKeys=obj=>GROUPS.filter(g=>obj[g]).concat(Object.keys(obj).filter(k=>GROUPS.indexOf(k)<0).sort());',
+    repl: '  const pmoKeys=obj=>GROUPS.filter(g=>obj[g]);' },
+  { id: 'pmo-matrix-disc', area: 'excel', what: 'PMO Matrix disc unweighted by share',
+    find: '      SVC.forEach((s,i)=>{ const f=frac? frac[i]:1; a.disc[i]+=p.d[i]*f; a.mand[i]+=p.m[i]*f; });',
+    repl: '      SVC.forEach((s,i)=>{ a.disc[i]+=p.d[i]; a.mand[i]+=p.m[i]; });' },
+  { id: 'ce-by-pmo-share', area: 'excel', what: 'CE by PMO reverts to whole-requirement attribution',
+    find: '        const dv =SVC.reduce((x,sv,i)=>x+p.d[i]*w(i),0);',
+    repl: '        const dv =p.dT;' },
+
+  // ---- Excel portions ---------------------------------------------------------------------------
+  { id: 'excel-disc-vec', area: 'excel', what: 'Discretionary sheet prints the mandatory vector',
+    find: '    disc:[p=>p.dT>0.005, p=>p.dT, p=>p.d],', repl: '    disc:[p=>p.dT>0.005, p=>p.dT, p=>p.m],' },
+  { id: 'excel-unf-vec', area: 'excel', what: 'Unfunded vector forgets the mandatory draw',
+    find: '    unf: [(p,it)=>p.uT>0.005||dlt(it)>0.005, (p,it)=>p.uT+dlt(it), (p,it)=>SVC.map((s,i)=>it.ask[i]-p.d[i]-p.m[i])]};',
+    repl: '    unf: [(p,it)=>p.uT>0.005||dlt(it)>0.005, (p,it)=>p.uT+dlt(it), (p,it)=>SVC.map((s,i)=>it.ask[i]-p.d[i])]};' },
+  { id: 'excel-dlt', area: 'excel', what: 'trim delta ignored for every requirement',
+    find: '  const dlt=it=> S.fsrc[it.id]? 0 : Math.max(0, askTot(it)-eff(it));',
+    repl: '  const dlt=it=> 0;' },
+  { id: 'excel-aof', area: 'excel', what: '"Allocated" reverts to the funded total for overrides',
+    find: '  const aOf=it=> S.fsrc[it.id]? askTot(it) : eff(it);',
+    repl: '  const aOf=it=> S.fsrc[it.id]? (T[it.id].dT+T[it.id].mT) : eff(it);' },
+
+  // ---- PowerPoint aggregates --------------------------------------------------------------------
+  { id: 'ppt-streams-disc', area: 'ppt', what: 'Funding-by-stream discretionary double counts',
+    find: 'SVC.forEach((s,i)=>{allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]; aM[i]+=p.m[i]; aU[i]+=p.u[i]; if(!ov) aDl[i]+=it.ask[i]-sv[i];});});',
+    repl: 'SVC.forEach((s,i)=>{allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]*1.05; aM[i]+=p.m[i]; aU[i]+=p.u[i]; if(!ov) aDl[i]+=it.ask[i]-sv[i];});});' },
+  { id: 'ppt-unfunded-total', area: 'ppt', what: 'UFR slide total drops the trim deltas',
+    find: '    const totalU=uIts.reduce((a,it)=>a+T[it.id].uT+dlt2(it),0);',
+    repl: '    const totalU=uIts.reduce((a,it)=>a+T[it.id].uT,0);' },
+  { id: 'ppt-ce-rollup', area: 'ppt', what: 'CE rollup swaps discretionary and mandatory',
+    find: '      const a=byCE[ce]; a.n++; a.d+=p.dT; a.m+=p.mT; a.u+=p.uT+dlt2(it);});',
+    repl: '      const a=byCE[ce]; a.n++; a.d+=p.mT; a.m+=p.dT; a.u+=p.uT+dlt2(it);});' },
+  { id: 'ppt-kpi-disc', area: 'ppt', what: 'KPI "Discretionary funded" reads the mandatory total',
+    find: "['Discretionary BA', fSM(dBA), _PPT.GREEN], ['Discretionary funded', fSM(TT.dUsed), _PPT.GREEN],",
+    repl: "['Discretionary BA', fSM(dBA), _PPT.GREEN], ['Discretionary funded', fSM(TT.mUsed), _PPT.GREEN]," },
+];
+
+const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
+const picked = only.length
+  ? MUTATIONS.filter(m => only.some(q => m.id.includes(q) || m.area.includes(q)))
+  : MUTATIONS;
+
+const src = readFileSync(BOARD, 'utf8');
+const dir = mkdtempSync(join(tmpdir(), 'spmt-mut-'));
+const results = [];
+
+console.log(`\nmutation sweep — ${picked.length} mutation(s), ${SUITES.length} suite(s)\n`);
+
+for (const m of picked) {
+  const hits = src.split(m.find).length - 1;
+  if (hits !== 1) {
+    results.push({ ...m, status: 'NOT APPLIED', by: `target matched ${hits} times, expected 1` });
+    console.log(`  NOT APPLIED  ${m.id.padEnd(22)} target matched ${hits}x`);
+    continue;
+  }
+  const file = join(dir, m.id + '.html');
+  writeFileSync(file, src.replace(m.find, m.repl));
+
+  let caughtBy = null;
+  for (const [suite, path] of SUITES) {
+    try {
+      execFileSync(process.execPath, [path], { env: { ...process.env, BOARD: file }, stdio: 'pipe' });
+    } catch {
+      caughtBy = suite;                 // non-zero exit == the suite failed == mutation caught
+      break;
+    }
+  }
+  results.push({ ...m, status: caughtBy ? 'caught' : 'SURVIVED', by: caughtBy || '' });
+  console.log(`  ${(caughtBy ? 'caught  ' : 'SURVIVED').padEnd(12)} ${m.id.padEnd(22)} ${caughtBy ? '(' + caughtBy + ')' : '<- NOT COVERED: ' + m.what}`);
+}
+
+const caught = results.filter(r => r.status === 'caught');
+const survived = results.filter(r => r.status === 'SURVIVED');
+const skipped = results.filter(r => r.status === 'NOT APPLIED');
+
+console.log('\n' + '='.repeat(96));
+console.log(`caught ${caught.length}/${picked.length - skipped.length}` +
+  (skipped.length ? `   (${skipped.length} could not be applied)` : ''));
+if (survived.length) {
+  console.log(`\n${survived.length} SURVIVING MUTATION(S) — these lines are not protected:\n`);
+  survived.forEach(r => console.log(`  ${r.area}/${r.id}\n      ${r.what}`));
+}
+if (skipped.length) {
+  console.log(`\n${skipped.length} NOT APPLIED — the search string no longer matches, so nothing was proven:\n`);
+  skipped.forEach(r => console.log(`  ${r.area}/${r.id}\n      ${r.by}`));
+}
+console.log('');
+process.exit(survived.length || skipped.length ? 1 : 0);

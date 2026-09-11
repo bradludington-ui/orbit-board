@@ -102,9 +102,30 @@ npm run audit:ppt      # the PowerPoint deck
 ```
 
 `tools/export-audit/` boots the real board in jsdom, seeds boards with deliberately uneven
-per-service numbers, runs the real `exportExcel()` and `exportPPT()`, and checks every printed figure against
-`tiers()`. Add a scenario there before changing export math. The board itself still has **no**
-dependencies — jsdom is dev tooling and never ships in the HTML.
+per-service numbers, runs the real `exportExcel()` and `exportPPT()`, and checks every printed
+figure against `tiers()`. Add a scenario there before changing export math. The board itself still
+has **no** dependencies — jsdom is dev tooling and never ships in the HTML.
+
+### Measuring the suites — run this after adding checks
+
+```
+npm run mutate            # all mutations
+npm run mutate -- mc      # just the Mission Critical ones
+```
+
+Green suites prove nothing on their own: a check that never runs looks exactly like a passing one.
+`mutate.mjs` breaks one line of export math at a time and requires a suite to fail. A mutation whose
+search string no longer matches is reported **NOT APPLIED**, never as caught — a stale target must
+not masquerade as coverage.
+
+Every surviving mutation is a line nothing protects. Add the check, do not delete the mutation.
+Currently 24/24 caught. Two kinds of gap it has already found and which the checks alone missed:
+
+- **Conservation is not enough.** `d + m + u == basis` still holds when a draw is merely mis-split —
+  short-change the discretionary draw and the shortfall moves into mandatory, every total ties. The
+  suite now re-derives the greedy walk independently (the "lane oracle") and compares draw for draw.
+- **A check that cannot run reads as a pass.** Assertions matched on a title the slide never renders,
+  and a figure was computed but never asserted. Both looked green for as long as they existed.
 
 ## Never commit a populated board
 
