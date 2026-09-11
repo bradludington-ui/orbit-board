@@ -60,7 +60,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 
 ## Hand-edit points
 
-These were templated per board by the build script. Line numbers are as of `v1.22-dev`; find them
+These were templated per board by the build script. Line numbers are as of `v1.23`; find them
 by symbol name, not by number.
 
 | What | Symbol | ~Line |
