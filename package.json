@@ -6,7 +6,8 @@
     "check": "node tools/check.mjs",
     "audit:export": "node tools/export-audit/audit.mjs",
     "audit:ppt": "node tools/export-audit/audit-ppt.mjs",
-    "audit": "npm run audit:export && npm run audit:ppt",
+    "audit:other": "node tools/export-audit/audit-other.mjs",
+    "audit": "npm run audit:export && npm run audit:ppt && npm run audit:other",
     "mutate": "node tools/export-audit/mutate.mjs"
   },
   "devDependencies": { "jsdom": "^27.0.0" }

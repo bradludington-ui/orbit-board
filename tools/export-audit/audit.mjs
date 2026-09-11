@@ -386,6 +386,32 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     }
   }
 
+  // ---- 6g. Spend Forecast: the ROLLUP and BY PMO blocks are two views of one plan ----
+  {
+    const fc = sheets.find(x => /Spend Forecast/.test(x.name));
+    if (fc) {
+      // each plan block prints ROLLUP ... TOTAL then BY PMO ... TOTAL; the two totals must agree
+      const totals = [];
+      let section = null;
+      fc.rows.forEach(r => {
+        const k = rowKey(r);
+        if (/^ROLLUP/.test(k)) section = 'rollup';
+        else if (/^BY PMO/.test(k)) section = 'bypmo';
+        else if (k === 'TOTAL' && section) { totals.push([section, num(r[r.length - 1])]); section = null; }
+      });
+      for (let i = 0; i + 1 < totals.length; i += 2) {
+        const [aName, a] = totals[i], [bName, b] = totals[i + 1];
+        // THIS TAB IS PRINTED IN $M. The suite's absolute epsilon (0.005) is meant for dollars and
+        // is enormous at this scale -- a whole dropped office came to 0.000012 and sailed through
+        // it. Compare in dollars so the tolerance means what it does everywhere else.
+        if (aName === 'rollup' && bName === 'bypmo')
+          chk(name, 'Spend Forecast', `plan ${i / 2 + 1}: BY PMO total == ROLLUP total`, b * 1e6, a * 1e6);
+      }
+      if (totals.length < 2)
+        failures.push({ scenario: name, sheet: 'Spend Forecast', what: 'could not read both plan totals', got: totals.length, want: '>= 2', delta: 0 });
+    }
+  }
+
   // ---- 7. CE by PMO (when cost elements exist) must agree with PMO Matrix ----
   const pmce = sheetOf(sheets, 'CE by PMO');
   if (pmce) {

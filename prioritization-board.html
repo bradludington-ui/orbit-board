@@ -1083,7 +1083,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.29 (11 Sep 2026)';
+const BUILD='v1.30 (11 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -18123,9 +18123,12 @@ function exportCSV(){
     (g||unb).its.push(it);
   });
   const all=groups.concat(unb.its.length? [unb] : []);
-  const mOf=it=>{ const p=T[it.id]||{dT:0,mT:0,uT:0};
+  const mOf=it=>{ const p=T[it.id]||{dT:0,mT:0,uT:0,d:SVC.map(_=>0),m:SVC.map(_=>0)};
     const ask=askTot(it), fn=p.dT+p.mT;
-    return {ask, d:p.dT, m:p.mT, fn, u:Math.max(0,ask-fn), p}; };
+    // Unfunded is floored PER SERVICE: a service is a service AND ITS VARIANT and money never nets
+    // across them, so max(0, ask - funded) on the totals would let an over-allocated service cancel
+    // a shortage in another.
+    return {ask, d:p.dT, m:p.mT, fn, u:unfTotOf(it,p), p}; };
   const agg=its=>its.reduce((a2,it)=>{ const x=mOf(it);
     a2.n++; a2.ask+=x.ask; a2.d+=x.d; a2.m+=x.m; a2.fn+=x.fn; a2.u+=x.u; return a2; },
     {n:0,ask:0,d:0,m:0,fn:0,u:0});
@@ -18221,7 +18224,13 @@ function exportCSV(){
   sum.rows.push([]);
 
   // PMO x Band, funded dollars
-  const PMOS=GROUPS.filter(g=>S.order.some(id=>{const it=itemById(id); return it&&grpOf(it)===g;}));
+  // EVERY OFFICE ON THE BOARD, not just the configured ones. GROUPS.filter dropped any PMO not on
+  // the list -- PRIMES, derived from a CLIN suffix, or an office since removed -- so its
+  // requirements had no tab at all and its dollars were missing from the summary, which then did
+  // not add up to its own TOTAL row.
+  const _pmoSeen={};
+  S.order.forEach(id=>{ const it=itemById(id); if(it&&grpOf(it)) _pmoSeen[grpOf(it)]=1; });
+  const PMOS=pmoKeys(_pmoSeen);
   sum.rows.push([{v:'FUNDED BY PMO AND BAND',s:SEC}]);
   sum.rows.push([{v:'PMO',s:H}, ...all.map(g=>({v:(g.i===null?'unbanded':'Band '+BAND_LBL_AT(g.i)),s:H})), {v:'TOTAL',s:H}]);
   PMOS.forEach(pm=>{
@@ -18299,16 +18308,26 @@ function execSynopsis(){
   let dN=0, dTot=0, dSvc=SVC.map(_=>0);
   let fN=0, fTot=0, fSvc=SVC.map(_=>0), mTot=0, mSvc=SVC.map(_=>0);
   let uN=0, uTot=0;
-  const mcItems=[]; let mcTot=0, mcSvc=SVC.map(_=>0);
+  // MISSION CRITICAL, on the same two rules as every other surface: the total is the starred
+  // requirements' own value, and the shortage is that value less what DISCRETIONARY paid. This
+  // export still summed p.spill (mandatory drawn + unfunded), which double-counts dollars the
+  // mandatory and unfunded lines above already report, and understates the commitment by whatever
+  // discretionary had already covered.
+  const mcItems=[]; let mcN=0, mcTot=0, mcSvc=SVC.map(_=>0), mcShortTot=0, mcShortSvc=SVC.map(_=>0);
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const p=T[id];
     if(p.dT>0.005){ dN++; dTot+=p.dT; p.d.forEach((v,i)=>dSvc[i]+=v); }
     if(p.dT+p.mT>0.005){ fN++; fTot+=p.dT+p.mT; SVC.forEach((s,i)=>fSvc[i]+=p.d[i]+p.m[i]); mTot+=p.mT; p.m.forEach((v,i)=>mSvc[i]+=v); }
-    if(p.uT>0.005){ uN++; uTot+=p.uT; }
-    if(S.mc[id] && p.spill>0.005){
-      mcTot+=p.spill; SVC.forEach((s,i)=>mcSvc[i]+=p.m[i]+p.u[i]);
-      mcItems.push({rank:MR[id], grp:grpOf(it), title:dispTitle(it), amt:p.spill, svc:SVC.map((s,i)=>p.m[i]+p.u[i])});
+    const uv=unfTotOf(it,p);
+    if(uv>0.005){ uN++; uTot+=uv; }
+    if(S.mc[id]){
+      const sh=mcShortSvcOf(it,p), sT=sh.reduce((a,b)=>a+b,0);
+      mcN++;
+      mcTot+=askTot(it); SVC.forEach((s,i)=>mcSvc[i]+=it.ask[i]);
+      mcShortTot+=sT;    SVC.forEach((s,i)=>mcShortSvc[i]+=sh[i]);
+      if(sT>0.005) mcItems.push({rank:MR[id], grp:grpOf(it), title:dispTitle(it),
+                                 amt:askTot(it), short:sT, svc:sh});
     }
   });
   const dLeft=T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0);
@@ -18330,13 +18349,16 @@ function execSynopsis(){
   line('','   of which drawn from MANDATORY lanes (spillover)',fD(mTot),...mSvc.map(fD));
   line('','Mandatory remaining across lanes',fD(mLeft));
   line();
-  line('3 — BARE MINIMUM NEEDED ABOVE DISCRETIONARY  (the congressional ask = ★ Mission Critical need)');
-  line('','★ MC requirements with above-disc need',mcItems.length,'','Need',fD(mcTot));
-  line('','PROGRAM FLOOR (Discretionary funded + MC need)','',fD(dTot+mcTot));
-  line('','Rank','PMO','Requirement','Above-Disc Need',...SVC);
-  mcItems.forEach(x=>line('',x.rank,x.grp,x.title,fD(x.amt),...x.svc.map(fD)));
+  line('3 — ★ MISSION CRITICAL  (must-pay next year, measured against the DISCRETIONARY lane alone)');
+  line('MEMO, NOT A THIRD POT: these requirements\u2019 dollars are already inside the discretionary, mandatory and unfunded lines above. Mandatory is not netted off the shortage — it does not cover the commitment.');
+  line('','★ MC requirements',mcN,'','Requirement value',fD(mcTot),...mcSvc.map(fD));
+  line('','   short of the discretionary lane','','',   '',fD(mcShortTot),...mcShortSvc.map(fD));
+  line('','PROGRAM FLOOR (Discretionary BA + MC short)','',fD(dBA+mcShortTot));
+  line('','Rank','PMO','Requirement','Requirement value','Short vs Disc',...SVC);
+  mcItems.forEach(x=>line('',x.rank,x.grp,x.title,fD(x.amt),fD(x.short),...x.svc.map(fD)));
+  line('',(mcN-mcItems.length)+' of the '+mcN+' are fully covered by discretionary and are not listed.');
   line();
-  line('4 — UNFUNDED EVEN WHEN WHOLE  (portions beyond both lanes)');
+  line('4 — UNFUNDED EVEN WHEN WHOLE  (requirement less both lanes, floored per service)');
   line('','Requirements with unfunded portions',uN,'','Total',fD(uTot));
   const csv='\ufeff'+rows.map(r=>(r||[]).map(c=>'"'+(''+(c??'')).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const a=document.createElement('a');
@@ -18877,7 +18899,10 @@ function exportExcel(){
     sheet.rows.push([]);
     sheet.rows.push([{v:'BY PMO',s:SEC}]);
     sheet.rows.push(fcHdr);
-    const ks=GROUPS.filter(g=>FF.byPMO[g]);
+    // forecast() builds byPMO through pmoSharesOf, which can name an office that is not on the
+    // configured GROUPS list (PRIMES, from a CLIN suffix). Filtering by GROUPS dropped that office's
+    // rows, and the BY PMO total then quietly came out below the ROLLUP total on the same tab.
+    const ks=pmoKeys(FF.byPMO);
     ks.forEach(g=>sheet.rows.push(fcRow(g,FF.byPMO[g])));
     sheet.rows.push(fcRow('TOTAL',sumBags(ks.map(g=>FF.byPMO[g])),true));
     sheet.rows.push([]);

@@ -18,6 +18,7 @@ const BOARD = join(HERE, '..', '..', 'prioritization-board.html');
 const SUITES = [
   ['excel', join(HERE, 'audit.mjs')],
   ['ppt', join(HERE, 'audit-ppt.mjs')],
+  ['other', join(HERE, 'audit-other.mjs')],
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
@@ -91,6 +92,28 @@ const MUTATIONS = [
   { id: 'ppt-pmo-count', area: 'ppt', what: 'PMO rollup TOTAL counts a split requirement more than once',
     find: "{t:''+Object.keys(seenIds).length,b:1,c:'FFFFFF',...TOTF},",
     repl: "{t:''+tt.n,b:1,c:'FFFFFF',...TOTF}," },
+
+  // ---- the Priority Drill and the Executive Synopsis ---------------------------------------------
+  { id: 'synopsis-mc-spill', area: 'other', what: 'Exec Synopsis MC reverts to mandatory+unfunded',
+    find: '      mcTot+=askTot(it); SVC.forEach((s,i)=>mcSvc[i]+=it.ask[i]);',
+    repl: '      mcTot+=p.spill; SVC.forEach((s,i)=>mcSvc[i]+=p.m[i]+p.u[i]);' },
+  { id: 'synopsis-mc-short-mand', area: 'other', what: 'Exec Synopsis MC shortage nets off mandatory',
+    find: '      const sh=mcShortSvcOf(it,p), sT=sh.reduce((a,b)=>a+b,0);',
+    repl: '      const sh=SVC.map((s,i)=>Math.max(0,it.ask[i]-p.d[i]-p.m[i])), sT=sh.reduce((a,b)=>a+b,0);' },
+  { id: 'synopsis-unf', area: 'other', what: 'Exec Synopsis unfunded reverts to the lane shortfall only',
+    find: '    const uv=unfTotOf(it,p);\n    if(uv>0.005){ uN++; uTot+=uv; }',
+    repl: '    const uv=p.uT;\n    if(uv>0.005){ uN++; uTot+=uv; }' },
+  { id: 'synopsis-floor', area: 'other', what: 'Exec Synopsis PROGRAM FLOOR built on funded, not BA',
+    find: "  line('','PROGRAM FLOOR (Discretionary BA + MC short)','',fD(dBA+mcShortTot));",
+    repl: "  line('','PROGRAM FLOOR (Discretionary BA + MC short)','',fD(dTot+mcShortTot));" },
+  { id: 'drill-pmo-keys', area: 'other', what: 'Priority Drill drops offices not on the configured list',
+    find: '  const PMOS=pmoKeys(_pmoSeen);', repl: '  const PMOS=GROUPS.filter(g=>_pmoSeen[g]);' },
+  { id: 'drill-unf', area: 'other', what: 'Priority Drill unfunded netted across services again',
+    find: '    return {ask, d:p.dT, m:p.mT, fn, u:unfTotOf(it,p), p}; };',
+    repl: '    return {ask, d:p.dT, m:p.mT, fn, u:Math.max(0,ask-fn), p}; };' },
+
+  { id: 'excel-forecast-pmo', area: 'excel', what: 'Spend Forecast BY PMO drops offices not on the list',
+    find: '    const ks=pmoKeys(FF.byPMO);', repl: '    const ks=GROUPS.filter(g=>FF.byPMO[g]);' },
 
   // ---- Excel portions ---------------------------------------------------------------------------
   { id: 'excel-disc-vec', area: 'excel', what: 'Discretionary sheet prints the mandatory vector',

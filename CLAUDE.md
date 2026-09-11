@@ -114,10 +114,20 @@ cannot diverge: `pmoKeys()`, `mcShortSvcOf()`, `unfSvcOf()`, `beyondSvcOf()`, `t
 
 ```
 npm install        # jsdom, for the audit only
-npm run audit          # both exports
-npm run audit:export   # the Excel workbook
-npm run audit:ppt      # the PowerPoint deck
+npm run audit          # every export that does lane math
+npm run audit:export   # the Excel workbook (exportExcel)
+npm run audit:ppt      # the PowerPoint deck (exportPPT)
+npm run audit:other    # the Priority Drill (exportCSV) and Exec Synopsis (execSynopsis)
 ```
+
+**Which exports do lane math at all.** Only four: `exportExcel`, `exportPPT`, `exportCSV` and
+`execSynopsis`. The rest — ACE Tie-Out, Chart of Accounts, ATR/BTR Log, Spend Plan Source, CR Cash
+Return — reconcile against imported sources and never touch `tiers()`, the star or unfunded, so
+they are outside these suites. Check that before assuming an export needs auditing.
+
+**The suite's epsilon is 0.005 DOLLARS.** The Spend Forecast tab prints in $M, where that tolerance
+is enormous: a whole dropped PMO came to 0.000012 and passed. Scale to dollars before comparing
+anything printed in millions.
 
 `tools/export-audit/` boots the real board in jsdom, seeds boards with deliberately uneven
 per-service numbers, runs the real `exportExcel()` and `exportPPT()`, and checks every printed
@@ -173,7 +183,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 
 ## Hand-edit points
 
-These were templated per board by the build script. Line numbers are as of `v1.29`; find them
+These were templated per board by the build script. Line numbers are as of `v1.30`; find them
 by symbol name, not by number.
 
 | What | Symbol | ~Line |
