@@ -9,7 +9,7 @@ any kind — not a single script, stylesheet, or font is loaded from anywhere. O
 `prioritization-board.html` in a browser and it runs, including from a shared drive or a `file://`
 path on a machine with no route to the internet.
 
-Current build: **v1.24 (11 Sep 2026)** · ~19,500 lines · 2.8 MB.
+Current build: **v1.25 (11 Sep 2026)** · ~19,500 lines · 2.8 MB.
 
 ## Getting started
 

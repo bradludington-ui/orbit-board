@@ -1,0 +1,10 @@
+{
+  "name": "spmt-prioritization-board",
+  "private": true,
+  "description": "Tooling for the SPMT prioritization board. The board itself has no dependencies; these are for checks only.",
+  "scripts": {
+    "check": "node tools/check.mjs",
+    "audit:export": "node tools/export-audit/audit.mjs"
+  },
+  "devDependencies": { "jsdom": "^27.0.0" }
+}

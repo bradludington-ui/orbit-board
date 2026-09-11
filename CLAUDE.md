@@ -32,6 +32,52 @@ referenced. It exits non-zero on failure.
 There is no browser in the web session, so `check.mjs` plus reading is the whole verification story
 for changes made here. Anything touching layout or interaction needs a human to open the file.
 
+## The funding model — get this right before touching any export
+
+**There are exactly two funding lanes: discretionary and mandatory.** `tiers()` is the only
+authority on how a requirement's money splits. Walking the priority order, each service draws its
+own discretionary lane until it is dry, then spills into that service's mandatory lane, then into
+unfunded. It returns per-requirement per-service arrays `d`, `m`, `u`. Everything printed anywhere
+must be derived from those, never recomputed.
+
+The identity that must hold on every row of every tab:
+
+```
+d + m + u  ==  the requirement      (per service, and in total)
+```
+
+**Mission Critical is NOT a third lane.** It is a designation meaning "this has to be funded next
+year". Its figure is the starred requirement's **own value**, and it is a **memo**: reported beside
+the lanes, never added into them, and never counted toward a requirement total. It used to be
+`spill` (mandatory + unfunded), which was a re-cut of dollars the Mand and Unfunded columns had
+already counted — adding across the columns double-counted every starred requirement. If you find
+yourself summing a Disc, a Mand and an MC column together, the model has been misunderstood.
+
+"Short" for a starred requirement means **unfunded**. A starred requirement drawing on the mandatory
+lane is funded.
+
+**"By PMO" means one thing everywhere.** `pmoSharesOf()` returns `[group, fracPerService]`; a
+CLIN-backed prime is split across the offices owning its CLINs. Weight **per service**
+(`x[i] * frac[i]`) — never by an average across services. Every by-PMO view in the workbook uses
+this, so the tabs reconcile against each other.
+
+`GROUPS` is the *configured* PMO list and is not the whole truth: `pmoSharesOf` can derive `PRIMES`
+from a CLIN suffix, and a PMO removed from the list leaves its requirements behind. Never iterate
+`GROUPS` alone to emit rows — use `pmoKeys()` in the export (configured order first, anything else
+appended) or the same shape as `ppbePmoKeys()`.
+
+### Auditing the Excel export
+
+```
+npm install        # jsdom, for the audit only
+npm run audit:export
+```
+
+`tools/export-audit/` boots the real board in jsdom, seeds boards with deliberately uneven
+per-service numbers, runs the real `exportExcel()`, and checks every tab's printed figures against
+`tiers()`. Add a scenario there before changing export math. The board itself still has **no**
+dependencies — jsdom is dev tooling and never ships in the HTML.
+
 ## Never commit a populated board
 
 The repo holds the **program**. A working board is program and data fused into one file (see
@@ -60,7 +106,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 
 ## Hand-edit points
 
-These were templated per board by the build script. Line numbers are as of `v1.24`; find them
+These were templated per board by the build script. Line numbers are as of `v1.25`; find them
 by symbol name, not by number.
 
 | What | Symbol | ~Line |

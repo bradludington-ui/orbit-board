@@ -1,0 +1,287 @@
+// Audit the Excel Workbook export against tiers(), which is the board's own per-requirement
+// discretionary / mandatory / unfunded truth. Every check compares a number the workbook prints
+// against the same number recomputed from tiers().
+import { boot, seed, capture, num, cv } from './boot.mjs';
+
+const EPS = 0.005;
+let failures = [];
+const chk = (scenario, sheet, what, got, want) => {
+  const ok = Math.abs(got - want) <= EPS;
+  if (!ok) failures.push({ scenario, sheet, what, got, want, delta: got - want });
+  return ok;
+};
+
+const sum = a => a.reduce((x, y) => x + y, 0);
+const rowKey = r => String(cv(r[0]) ?? '');
+const findRow = (sh, k) => sh.rows.find(r => rowKey(r).trim() === k);
+const sheetOf = (sheets, n) => sheets.find(s => s.name === n);
+
+// ---------------------------------------------------------------------------------------------
+// Scenarios. Per-service asks are deliberately uneven so anything that averages across services
+// instead of weighting by service shows up as a mismatch.
+// ---------------------------------------------------------------------------------------------
+const SVC3 = ['STOVL', 'CV', 'CTOL'];
+const it = (id, grp, ask, extra = {}) => ({
+  id, grp, team: grp, sect: '', custom: false, title: id + ' title', event: id + ' event',
+  ccar: '', fy26: ask.map(() => 0), ask, alloc: null, ...extra,
+});
+
+const SCENARIOS = {
+  // Plain lane walk: discretionary runs dry partway, rest spills to mandatory, then unfunded.
+  'auto lanes': {
+    services: SVC3,
+    items: [it('A', 'ATL', [50, 20, 10]), it('B', 'PSM', [40, 30, 5]), it('C', 'AV', [30, 10, 20])],
+    disc: [60, 25, 12], mand: [40, 20, 10],
+    order: ['A', 'B', 'C'], mc: { C: true },
+  },
+  // Every override flavour, plus a trim.
+  'overrides + trims': {
+    services: SVC3,
+    items: [it('A', 'ATL', [50, 20, 10]), it('B', 'PSM', [40, 30, 5]),
+            it('C', 'AV', [30, 10, 20]), it('D', 'MxS', [25, 15, 5])],
+    disc: [70, 30, 15], mand: [50, 25, 12],
+    order: ['A', 'B', 'C', 'D'],
+    mc: { C: true },
+    fsrc: { A: { m: 'mand' }, B: { m: 'ufr' }, C: { m: 'split', d: 30, mnd: 20 } },
+    alloc: { D: { m: 's', v: [20, 10, 2] } },      // trimmed below ask -> delta
+  },
+  // PRIME-3 CLIN split, with one service carrying ask that NO clin covers.
+  'prime clin split': {
+    services: SVC3,
+    items: [it('PRIME-3', 'PRIMES', [90, 10, 20]), it('A', 'ATL', [20, 10, 5])],
+    disc: [0, 0, 0], mand: [90, 10, 20],
+    order: ['PRIME-3', 'A'], mc: { 'PRIME-3': true },
+    clins: { 'PRIME-3': [{ clin: '0010', ask: [90, 0, 0] }, { clin: '0002', ask: [0, 10, 0] }] },
+  },
+  // Cost elements present -> the two CE tabs are built. Also mixes MC with a trim.
+  'cost elements': {
+    services: SVC3,
+    items: [it('A','ATL',[50,20,10]), it('B','PSM',[40,30,5]), it('C','AV',[30,10,20]), it('D','MxS',[25,15,5])],
+    disc:[60,25,12], mand:[40,20,10],
+    order:['A','B','C','D'], mc:{C:true, D:true},
+    alloc:{ B:{m:'s', v:[30,20,3]} },
+    costElems: true,
+    costElem: { A:'Airframe PGSE', B:'Engine PGSE', C:'Airframe PGSE', D:'Avionics PGSE' },
+  },
+  // Prime CLIN split AND cost elements: pits 'PMO Matrix' against 'CE by PMO' and the per-PMO sheets.
+  'prime + cost elements': {
+    services: SVC3,
+    items: [it('PRIME-3','PRIMES',[90,10,20]), it('A','ATL',[20,10,5])],
+    disc:[50,10,10], mand:[60,15,20],
+    order:['PRIME-3','A'], mc:{'PRIME-3':true},
+    clins:{ 'PRIME-3':[{clin:'0010',ask:[90,0,0]},{clin:'0002',ask:[0,10,0]}] },
+    costElems:true, costElem:{ 'PRIME-3':'Airframe PGSE', A:'Engine PGSE' },
+  },
+  // One starred requirement fully covered by discretionary (no shortfall) and one short.
+  'mc fully funded': {
+    services: SVC3,
+    items: [it('A','ATL',[30,10,5]), it('B','PSM',[40,30,5]), it('C','AV',[20,10,10])],
+    disc:[35,15,8], mand:[20,10,5],
+    order:['A','B','C'], mc:{A:true, C:true},
+  },
+  // Nothing funded at all: every dollar must land in unfunded.
+  'zero budget': {
+    services: SVC3,
+    items: [it('A', 'ATL', [50, 20, 10]), it('B', 'PSM', [40, 30, 5])],
+    disc: [0, 0, 0], mand: [0, 0, 0],
+    order: ['A', 'B'], mc: { B: true },
+  },
+};
+
+for (const [name, sc] of Object.entries(SCENARIOS)) {
+  const { ev, errors } = boot();
+  if (sc.clins) ev(`DATA.clins = ${JSON.stringify(sc.clins)};`);
+  if (sc.costElems) ev(`DATA.costElems = true;`);
+  seed(ev, sc);
+  if (sc.costElem) ev(`S.costElem = ${JSON.stringify(sc.costElem)};`);
+
+  const T = JSON.parse(ev('JSON.stringify(tiers())'));
+  const sheets = JSON.parse(capture(ev));
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const SVC = sc.services, n = SVC.length;
+  const ids = sc.order;
+  const vecSum = f => { const v = SVC.map(() => 0); ids.forEach(id => f(T[id]).forEach((x, i) => v[i] += x)); return v; };
+  const allD = vecSum(p => p.d), allM = vecSum(p => p.m), allU = vecSum(p => p.u);
+  const askOf = id => sum(sc.items.find(x => x.id === id).ask);
+  // MC is a memo over REQUIREMENTS now: the starred requirements' own value.
+  const mcIds = ids.filter(id => sc.mc && sc.mc[id]);
+  const mcMemo = mcIds.reduce((a, id) => a + askOf(id), 0);
+  // "short" means UNFUNDED: a starred requirement drawing on the mandatory lane is funded.
+  const unfOf = JSON.parse(ev('JSON.stringify((function(){var o={};var TT=tiers();S.order.forEach(function(id){var t=itemById(id);if(!t)return;var d=S.fsrc[id]?0:Math.max(0,askTot(t)-eff(t));o[id]=TT[id].uT+d;});return o;})())'));
+  const mcShortMemo = mcIds.filter(id => unfOf[id] > 0.005).reduce((a, id) => a + askOf(id), 0);
+  const askAll = ids.reduce((a, id) => a + askOf(id), 0);
+
+  // ---- 1. conservation inside tiers() itself (the basis for everything else) ----
+  ids.forEach(id => {
+    const p = T[id];
+    const basis = JSON.parse(ev(`JSON.stringify((S.fsrc['${id}'] ? itemById('${id}').ask : svcAlloc(itemById('${id}'))))`));
+    SVC.forEach((s, i) => chk(name, 'tiers()', `${id} d+m+u == basis [${s}]`,
+      p.d[i] + p.m[i] + p.u[i], basis[i]));
+  });
+
+  // ---- 2. lane draws never exceed budget authority ----
+  SVC.forEach((s, i) => {
+    if (allD[i] > sc.disc[i] + EPS) failures.push({ scenario: name, sheet: 'tiers()', what: `disc drawn > BA [${s}]`, got: allD[i], want: sc.disc[i], delta: allD[i] - sc.disc[i] });
+    if (allM[i] > sc.mand[i] + EPS) failures.push({ scenario: name, sheet: 'tiers()', what: `mand drawn > BA [${s}]`, got: allM[i], want: sc.mand[i], delta: allM[i] - sc.mand[i] });
+  });
+
+  // ---- 3. Funding Streams: the board-wide roll-up ----
+  const fs = sheetOf(sheets, 'Funding Streams');
+  SVC.forEach((s, i) => {
+    const r = findRow(fs, s); if (!r) return;
+    chk(name, 'Funding Streams', `${s} Disc Funded`, num(r[3]), allD[i]);
+    chk(name, 'Funding Streams', `${s} Mand Funded`, num(r[6]), allM[i]);
+    chk(name, 'Funding Streams', `${s} Funded Total`, num(r[8]), allD[i] + allM[i]);
+    chk(name, 'Funding Streams', `${s} Beyond Both Lanes`, num(r[10]), allU[i]);
+  });
+
+  // ---- 4. PMO Matrix: per-PMO shares must add back to the board totals ----
+  const gmx = sheetOf(sheets, 'PMO Matrix');
+  const pmoRows = gmx.rows.filter(r => {
+    const k = rowKey(r);
+    return k && !['TOTAL', 'PMO', 'BUDGET AUTHORITY', 'REMAINING (lanes)', 'UNFUNDED (beyond both lanes)',
+      'ASK NOT ALLOCATED (trim deltas)', 'TOTAL UNFUNDED (deltas + beyond lanes)'].includes(k)
+      && !k.includes('—') && typeof num(r[1]) === 'number' && !isNaN(num(r[1]));
+  });
+  SVC.forEach((s, i) => {
+    chk(name, 'PMO Matrix', `sum of PMO rows == board Disc [${s}]`,
+      sum(pmoRows.map(r => num(r[1 + i * 2]))), allD[i]);
+    chk(name, 'PMO Matrix', `sum of PMO rows == board Mand [${s}]`,
+      sum(pmoRows.map(r => num(r[2 + i * 2]))), allM[i]);
+  });
+  chk(name, 'PMO Matrix', 'sum of PMO rows == MC memo (requirement value)',
+    sum(pmoRows.map(r => num(r[r.length - 1]))), mcMemo);
+  // THE ANTI-DOUBLE-COUNT CHECK: the lanes alone must account for every requirement dollar,
+  // with MC sitting outside them.
+  chk(name, 'PMO Matrix', 'Disc + Mand across PMO rows == funded dollars',
+    sum(pmoRows.map(r => sum(SVC.map((s, i) => num(r[1 + i * 2]) + num(r[2 + i * 2]))))),
+    sum(allD) + sum(allM));
+
+  // ---- 5. tier list sheets tie to the same totals ----
+  const tierTot = (sheetName, want, col = 7) => {
+    const sh = sheetOf(sheets, sheetName); if (!sh) return;
+    const tr = sh.rows.find(r => rowKey(r) === 'TOTAL'); if (!tr) return;
+    chk(name, sheetName, 'TOTAL amount', num(tr[col]), want);
+    SVC.forEach((s, i) => chk(name, sheetName, `TOTAL [${s}]`, num(tr[8 + i]),
+      want === sum(allD) ? allD[i] : want === sum(allM) ? allM[i] : NaN));
+  };
+  tierTot('Funded - Discretionary', sum(allD));
+  tierTot('Funded - Mandatory', sum(allM));
+  {
+    const sh = sheetOf(sheets, 'Mission Critical');
+    const tr = sh && sh.rows.find(r => rowKey(r) === 'TOTAL');
+    if (tr) chk(name, 'Mission Critical', 'TOTAL == requirement value of SHORTFALL MC items', num(tr[7]), mcShortMemo);
+  }
+
+  // ---- 6. Unfunded sheet: each row's total must equal its per-service columns ----
+  const us = sheetOf(sheets, 'Unfunded Requirements');
+  us.rows.forEach(r => {
+    const k = rowKey(r);
+    if (!k || k === 'TOTAL' || !ids.includes(String(cv(r[3])).replace(' title', ''))) return;
+  });
+  {
+    const tr = us.rows.find(r => rowKey(r) === 'TOTAL');
+    if (tr) {
+      const rowTotal = num(tr[11]);
+      const svcTotal = sum(SVC.map((s, i) => num(tr[12 + i])));
+      chk(name, 'Unfunded Requirements', 'TOTAL unfunded == sum of per-service columns', svcTotal, rowTotal);
+    }
+  }
+
+  // ---- 6b. Unfunded sheet, PER ROW: printed total must equal its own per-service columns ----
+  const titleToId = {}; ids.forEach(id => titleToId[id + ' title'] = id);
+  us.rows.forEach(r => {
+    const id = titleToId[String(cv(r[3]))]; if (!id) return;
+    chk(name, 'Unfunded Requirements', `${id}: TOTAL Unfunded == sum of per-service cols`,
+      sum(SVC.map((s, i) => num(r[12 + i]))), num(r[11]));
+    chk(name, 'Unfunded Requirements', `${id}: Ask - Allocated == Delta`,
+      num(r[7]) - num(r[8]), num(r[9]));
+  });
+
+  // ---- 6c. tier list sheets, PER ROW: printed amount must equal its per-service vector ----
+  [['Funded - Discretionary','d'],['Funded - Mandatory','m'],['Mission Critical','mc']].forEach(([sn,kind]) => {
+    const sh = sheetOf(sheets, sn); if (!sh) return;
+    sh.rows.forEach(r => {
+      const id = titleToId[String(cv(r[4]))]; if (!id) return;
+      chk(name, sn, `${id}: amount == sum of per-service cols`,
+        sum(SVC.map((s, i) => num(r[8 + i]))), num(r[7]));
+      const want = kind === 'd' ? T[id].dT : kind === 'm' ? T[id].mT : askOf(id);
+      chk(name, sn, `${id}: amount == tiers() truth`, num(r[7]), want);
+    });
+  });
+
+  // ---- 6d. Decision Bands: ALL BANDS row must tie to the board ----
+  {
+    const bs = sheetOf(sheets, 'Decision Bands');
+    const gr = bs && bs.rows.find(r => rowKey(r) === 'ALL BANDS');
+    if (gr) {
+      chk(name, 'Decision Bands', 'ALL BANDS Disc == board Disc', num(gr[7]), sum(allD));
+      chk(name, 'Decision Bands', 'ALL BANDS Mand == board Mand', num(gr[8]), sum(allM));
+      chk(name, 'Decision Bands', 'ALL BANDS Funded == Disc+Mand', num(gr[9]), sum(allD) + sum(allM));
+      const askTot = ids.reduce((a, id) => a + sum(sc.items.find(x => x.id === id).ask), 0);
+      chk(name, 'Decision Bands', 'ALL BANDS Requirement == total ask', num(gr[6]), askTot);
+      chk(name, 'Decision Bands', 'ALL BANDS Funded + Unfunded == Requirement',
+        num(gr[9]) + num(gr[10]), num(gr[6]));
+    }
+  }
+
+  // ---- 6e. per-PMO detail sheets must reconcile with the PMO Matrix ----
+  const sharesOf = JSON.parse(ev(`JSON.stringify((function(){const o={};S.order.forEach(function(id){const t=itemById(id);if(t)o[id]=pmoSharesOf(t);});return o;})())`));
+  let pmoLaneTotal = 0;
+  {
+    const mxRow = g => gmx.rows.find(r => rowKey(r) === g);
+    const pmoSheets = sheets.filter(s => s.name.startsWith('PMO ') && s.name !== 'PMO Matrix');
+    pmoSheets.forEach(sh => {
+      const g = sh.name.slice(4);
+      const mr = mxRow(g); if (!mr) return;
+      const sub = lbl => sh.rows.filter(r => String(cv(r[0])).startsWith('Subtotal — ' + lbl));
+      const d = sum(sub('Discretionary').map(r => num(r[7])));
+      const m = sum(sub('Mandatory').map(r => num(r[7])));
+      chk(name, `PMO sheets vs Matrix`, `${g}: Disc subtotal == Matrix Disc`, d,
+        sum(SVC.map((s, i) => num(mr[1 + i * 2]))));
+      chk(name, `PMO sheets vs Matrix`, `${g}: Mand subtotal == Matrix Mand`, m,
+        sum(SVC.map((s, i) => num(mr[2 + i * 2]))));
+      const u = sum(sub('Unfunded').map(r => num(r[7])));
+      const mc = sum(sub('Mission Critical').map(r => num(r[7])));
+      // the office's share of each starred-and-short requirement, computed independently here
+      const shortMcShare = ids.filter(x => sc.mc && sc.mc[x] && unfOf[x] > 0.005)
+        .reduce((acc, x) => {
+          const sh = (sharesOf[x] || []).find(r => r[0] === g); if (!sh) return acc;
+          const ask = sc.items.find(y => y.id === x).ask;
+          return acc + sum(SVC.map((s, i) => ask[i] * (sh[1] ? sh[1][i] : 1)));
+        }, 0);
+      chk(name, 'PMO sheets', `${g}: MC subtotal == share of starred-and-short requirement value`, mc, shortMcShare);
+      pmoLaneTotal += d + m + u;
+    });
+  }
+
+  // every requirement dollar appears exactly once across the PMO sheets' lane sections
+  chk(name, 'PMO sheets', 'Disc+Mand+Unf across all PMO sheets == total ask', pmoLaneTotal, askAll);
+
+  // ---- 7. CE by PMO (when cost elements exist) must agree with PMO Matrix ----
+  const pmce = sheetOf(sheets, 'CE by PMO');
+  if (pmce) {
+    const tot = pmce.rows.filter(r => cv(r[0]) && !String(cv(r[0])).startsWith('    ') && !isNaN(num(r[2])));
+    chk(name, 'CE by PMO', 'sum of PMO Disc == board Disc', sum(tot.map(r => num(r[3]))), sum(allD));
+    chk(name, 'CE by PMO', 'sum of PMO Mand == board Mand', sum(tot.map(r => num(r[5]))), sum(allM));
+    chk(name, 'CE by PMO', 'sum of PMO MC == MC memo (requirement value)', sum(tot.map(r => num(r[4]))), mcMemo);
+    chk(name, 'CE by PMO', 'sum of Ask == total ask', sum(tot.map(r => num(r[2]))), askAll);
+    chk(name, 'CE by PMO', 'Disc + Mand + Unfunded == Ask (MC excluded)',
+      sum(tot.map(r => num(r[3]) + num(r[5]) + num(r[6]))), askAll);
+    tot.forEach(r => chk(name, 'CE by PMO', `${cv(r[0])}: Disc+Mand+Unf == Ask`,
+      num(r[3]) + num(r[5]) + num(r[6]), num(r[2])));
+  }
+}
+
+// ---------------------------------------------------------------------------------------------
+console.log('\n' + '='.repeat(96));
+if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
+const byKey = {};
+failures.forEach(f => { const k = f.scenario + ' | ' + f.sheet; (byKey[k] ||= []).push(f); });
+console.log(`${failures.length} FAILING CHECK(S)\n`);
+for (const [k, fs] of Object.entries(byKey)) {
+  console.log(`--- ${k}`);
+  fs.forEach(f => console.log(`    ${f.what}\n        workbook ${f.got.toFixed(4)}   truth ${f.want.toFixed(4)}   off by ${f.delta.toFixed(4)}`));
+}
+process.exit(1);

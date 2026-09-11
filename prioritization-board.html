@@ -1083,7 +1083,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.24 (11 Sep 2026)';
+const BUILD='v1.25 (11 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -5800,6 +5800,17 @@ function pmoSharesOf(it){
     });
     const out=[];
     Object.keys(bag).forEach(g=>out.push([g, bag[g].map((v,i)=>tot[i]>0? v/tot[i]:0)]));
+    // A SERVICE NO CLIN COVERS STILL HAS MONEY IN IT. tot[i]===0 makes every group's share of
+    // that service 0, so the requirement's dollars there summed to nothing and simply left the
+    // by-PMO views -- the roll-up reconciled against itself and quietly disagreed with the board.
+    // The CLIN table cannot speak for a service it does not mention, so those dollars stay with
+    // the requirement's own PMO. Every frac column now sums to 1 across the returned groups.
+    const gap = tot.map(v=>v>0? 0 : 1);
+    if(gap.some(v=>v>0)){
+      const own=grpOf(it), row=out.find(r=>r[0]===own);
+      if(row) gap.forEach((v,i)=>{ if(v) row[1][i]=1; });
+      else out.push([own, gap]);
+    }
     return out.length? out : [[grpOf(it),null]];
   }
   return [[grpOf(it),null]];
@@ -18516,21 +18527,61 @@ function exportExcel(){
   const itemRowP=(it,amt,svcv)=>[{v:MR[it.id],s:0},grpOf(it),ceOf(it.id),recName(it)||dispTitle(it),dispTitle(it),{v:ccarOf(it),s:1},{v:pidOf(it),s:0},{v:amt,s:N},...svcv.map(v=>({v,s:N}))];
   // portion selectors: [filter, amount, per-svc vector]
   const dlt=it=> S.fsrc[it.id]? 0 : Math.max(0, askTot(it)-eff(it));   // trims are unfunded too (overridden items: unfunded lives entirely in the UFR part)
-  const aOf=it=> S.fsrc[it.id]? (T[it.id].dT+T[it.id].mT) : eff(it);   // overridden: allocation = Disc + Mand drawn
+  // WHAT THE LANE ENGINE ACTUALLY WORKED FROM. An override runs off the ASK and ignores the
+  // board's allocation entirely (see tiers()), so the ask IS the basis for those rows. This column
+  // used to show the FUNDED total for overridden rows instead, which made Ask - Allocated
+  // disagree with the Delta printed beside it on every overridden line.
+  const aOf=it=> S.fsrc[it.id]? askTot(it) : eff(it);
+  // MISSION CRITICAL IS NOT A LANE. There are two pots -- discretionary and mandatory -- and a
+  // requirement's dollars are already wholly inside them (or unfunded). The star is a separate
+  // designation meaning "this has to be funded next year", so its figure is the REQUIREMENT'S OWN
+  // VALUE and it is a MEMO: it is reported beside the lanes and never added to them.
+  //
+  // It used to be p.spill (mandatory drawn + unfunded), which was a re-cut of dollars the Mand and
+  // Unfunded columns had already counted -- adding the columns across double-counted every starred
+  // requirement -- and it also under-stated the requirement, since anything the discretionary lane
+  // had already covered was dropped out of it.
+  //
+  // disc, mand and unf still partition the requirement exactly once each; only mc sits outside.
   const PICK={
     disc:[p=>p.dT>0.005, p=>p.dT, p=>p.d],
-    mc:  [(p,it)=>S.mc[it.id]&&p.spill>0.005, p=>p.spill, p=>SVC.map((s,i)=>p.m[i]+p.u[i])],
+    mc:  [(p,it)=>S.mc[it.id]&&(p.uT+dlt(it))>0.005, (p,it)=>askTot(it), (p,it)=>it.ask.slice()],
     mand:[p=>p.mT>0.005, p=>p.mT, p=>p.m],
     unf: [(p,it)=>p.uT>0.005||dlt(it)>0.005, (p,it)=>p.uT+dlt(it), (p,it)=>SVC.map((s,i)=>it.ask[i]-p.d[i]-p.m[i])]};
-  const AMTLBL={disc:'Disc portion',mc:'Above-Disc need',mand:'Mand portion',unf:'Total Unfunded (delta + beyond lanes)'};
+  const AMTLBL={disc:'Disc portion',mc:'MC requirement (memo — not additive)',mand:'Mand portion',unf:'Total Unfunded (delta + beyond lanes)'};
+  // The star's board-wide memo: every flagged requirement, whether or not it is short.
+  const MCIDS=S.order.filter(id=>S.mc[id]&&itemById(id));
+  const mcMemo=(()=>{ let req=0,fund=0,short=0;
+    MCIDS.forEach(id=>{ const it=itemById(id), q=T[id];
+      req+=askTot(it); fund+=q.dT+q.mT; short+=askTot(it)-q.dT-q.mT; });
+    return {n:MCIDS.length, req, fund, short,
+            nShort:MCIDS.filter(id=>(T[id].uT+dlt(itemById(id)))>0.005).length}; })();
   const listSheet=(name,tier)=>{
     const [f,amt,vec]=PICK[tier];
     const its=S.order.map(itemById).filter(it=>it&&f(T[it.id],it));
-    const rows=[[{v:name+'  —  '+its.length+' requirements (portion drawn — a requirement can appear on several sheets)',s:TI}],[],listHdr(AMTLBL[tier])];
+    const rows=[[{v:name+'  \u2014  '+its.length+(tier==='mc'
+      ? ' starred requirements with a shortfall (memo \u2014 their dollars are already in the lane sheets)'
+      : ' requirements (portion drawn \u2014 a requirement can appear on several sheets)'),s:TI}],[],listHdr(AMTLBL[tier])];
     its.forEach(it=>rows.push(itemRowP(it,amt(T[it.id],it),vec(T[it.id],it))));
     const tot=its.reduce((a,it)=>a+amt(T[it.id],it),0);
     const svT=SVC.map((s,i)=>its.reduce((a,it)=>a+vec(T[it.id],it)[i],0));
     rows.push([{v:'TOTAL',s:B},'','','','','','',{v:tot,s:NB},...svT.map(v=>({v,s:NB}))]);
+    if(tier==='mc'){
+      // The board-wide memo covers EVERY starred requirement; this sheet lists only the ones that
+      // are short. Saying so is the difference between a filtered view and a number that looks
+      // wrong next to the matrix tabs.
+      rows.push([]);
+      rows.push([{v:'\u2605 MISSION CRITICAL IS A MEMO, NOT A THIRD FUNDING POT',s:SEC}]);
+      rows.push(['There are two lanes, discretionary and mandatory. Every dollar above is already '
+        +'counted in the Disc, Mand and Unfunded figures on the other tabs; this sheet re-cuts the '
+        +'same requirements by designation. Do not add it to the lane totals.']);
+      rows.push(['Board-wide: '+mcMemo.n+' starred requirement'+(mcMemo.n===1?'':'s')+', '
+        +fM(mcMemo.req)+' of requirement value \u2014 '+fM(mcMemo.fund)+' funded, '
+        +fM(mcMemo.short)+' short.']);
+      rows.push(['This sheet lists the '+mcMemo.nShort+' with a shortfall. The other '
+        +(mcMemo.n-mcMemo.nShort)+' are fully covered by the discretionary lane and are not listed, '
+        +'so the TOTAL above is less than the board-wide value.']);
+    }
     return {name, cols:listCols, rows};
   };
   // board-wide lane totals
@@ -18559,7 +18610,7 @@ function exportExcel(){
   const matrixSheet=(name,title,keyLbl,byK,keys,keyStyle)=>{
     const sh={name, cols:[26,...SVC.flatMap(_=>[13,13]),14,14,14],
       rows:[[{v:title,s:TI}],[],
-        [{v:keyLbl,s:H},...SVC.flatMap(s=>[{v:s+' Disc',s:H},{v:s+' Mand',s:H}]),{v:'TOTAL Disc',s:H},{v:'TOTAL Mand',s:H},{v:'★MC need',s:H}]]};
+        [{v:keyLbl,s:H},...SVC.flatMap(s=>[{v:s+' Disc',s:H},{v:s+' Mand',s:H}]),{v:'TOTAL Disc',s:H},{v:'TOTAL Mand',s:H},{v:'★ MC requirement (memo)',s:H}]]};
     const tot={disc:SVC.map(_=>0),mand:SVC.map(_=>0),mc:0};
     keys.forEach(k=>{
       const a=byK[k]; if(!a) return;
@@ -18570,9 +18621,20 @@ function exportExcel(){
     sh.rows.push([{v:'TOTAL',s:SEC},...SVC.flatMap((s,i)=>[{v:tot.disc[i],s:NB},{v:tot.mand[i],s:NB}]),
       {v:tot.disc.reduce((x,y)=>x+y,0),s:NB},{v:tot.mand.reduce((x,y)=>x+y,0),s:NB},{v:tot.mc,s:NB}]);
     baBlock(sh.rows);
+    sh.rows.push([]);
+    sh.rows.push(['★ MC REQUIREMENT IS A MEMO COLUMN, NOT A THIRD POT. There are two funding lanes, '
+      +'discretionary and mandatory, and every requirement\u2019s dollars sit wholly inside them or '
+      +'in unfunded. The star marks requirements that must be funded next year; its column shows '
+      +'those requirements\u2019 own value, which is already counted in the Disc, Mand and Unfunded '
+      +'figures beside it. Do not add it to the lane totals.']);
     return sh;
   };
   // PMO x service matrix (all boards)
+  // GROUPS is the CONFIGURED PMO list, and it is not the whole truth: pmoSharesOf derives PRIMES
+  // from a CLIN suffix and never adds it, and a PMO removed from the list leaves its requirements
+  // behind. Iterating GROUPS alone dropped those rows and their dollars with them. Same shape as
+  // the roll-up at ppbePmoKeys(): configured order first, anything else appended rather than lost.
+  const pmoKeys=obj=>GROUPS.filter(g=>obj[g]).concat(Object.keys(obj).filter(k=>GROUPS.indexOf(k)<0).sort());
   const mkA=()=>({disc:SVC.map(_=>0),mand:SVC.map(_=>0),mc:0});
   const byGX={};
   S.order.forEach(id=>{
@@ -18582,10 +18644,16 @@ function exportExcel(){
       if(!byGX[g]) byGX[g]=mkA();
       const a=byGX[g];
       SVC.forEach((s,i)=>{ const f=frac? frac[i]:1; a.disc[i]+=p.d[i]*f; a.mand[i]+=p.m[i]*f; });
-      if(S.mc[id]) a.mc+=p.spill*(frac? frac.reduce((x,y)=>x+y,0)/SVC.length:1);
+      // MC need is apportioned PER SERVICE, exactly like disc and mand one line above. It used to
+      // scale the whole spill by the MEAN of frac across services, which is only right when the
+      // spill happens to be spread evenly -- and when a service carried no prime content at all
+      // the mean pulled the total DOWN, so the ★MC column added up to less than the board's own
+      // mission-critical need.
+      // MEMO, apportioned per service exactly like disc and mand above -- never added into them.
+      if(S.mc[id]) a.mc+=SVC.reduce((x,s,i)=>x+it.ask[i]*(frac? frac[i]:1),0);
     });
   });
-  const gmx=matrixSheet('PMO Matrix', document.title+' — PMO Funding by service (Disc lane | Mand spillover)','PMO',byGX,GROUPS.filter(g=>byGX[g]));
+  const gmx=matrixSheet('PMO Matrix', document.title+' — PMO Funding by service (Disc lane | Mand spillover)','PMO',byGX,pmoKeys(byGX));
   // --- Funding Streams: what each stream funds, by service ---
   const fs={name:'Funding Streams', cols:[16,15,15,15,15,15,15,15,15,16,16,16],
     rows:[[{v:document.title+' — Funding by stream and service (lane model)',s:TI}],[],
@@ -19128,7 +19196,7 @@ function exportExcel(){
       if(!byCE[ce]) byCE[ce]=mkA();
       const a=byCE[ce];
       SVC.forEach((s,i)=>{ a.disc[i]+=p.d[i]; a.mand[i]+=p.m[i]; });
-      if(S.mc[id]) a.mc+=p.spill;
+      if(S.mc[id]) a.mc+=askTot(it);
     });
     const ceKeys=[...COST_ELEMS.filter(c=>byCE[c]), ...(byCE['— Unassigned —']? ['— Unassigned —']:[])];
     sheets.push(matrixSheet('Cost Element Matrix', document.title+' — Cost Element funding (Disc lane | Mand spillover)','Cost Element',byCE,ceKeys));
@@ -19137,18 +19205,27 @@ function exportExcel(){
     S.order.forEach(id=>{
       const it=itemById(id); if(!it) return;
       const p=T[id], ce=ceOf(id);
-      if(!byP[grpOf(it)]) byP[grpOf(it)]={tot:{n:0,ask:0,disc:0,mc:0,mand:0,unf:0},ce:{}};
-      if(!byP[grpOf(it)].ce[ce]) byP[grpOf(it)].ce[ce]={n:0,ask:0,disc:0,mc:0,mand:0,unf:0};
-      [byP[grpOf(it)].tot,byP[grpOf(it)].ce[ce]].forEach(a=>{
-        a.n++; a.ask+=askTot(it);
-        a.disc+=p.dT; a.mand+=p.mT; a.unf+=p.uT+dlt(it);
-        if(S.mc[id]) a.mc+=p.spill;
+      // "BY PMO" MEANS THE SAME THING ON EVERY TAB. The PMO Matrix splits a CLIN-backed prime
+      // across the offices that own its CLINs; this tab put the whole requirement under the
+      // requirement's own PMO, so two by-PMO tabs in one workbook did not reconcile.
+      pmoSharesOf(it).forEach(([g,frac])=>{
+        const w=i=>frac? frac[i]:1;
+        const ask=SVC.reduce((x,sv,i)=>x+it.ask[i]*w(i),0);
+        const dv =SVC.reduce((x,sv,i)=>x+p.d[i]*w(i),0);
+        const mv =SVC.reduce((x,sv,i)=>x+p.m[i]*w(i),0);
+        const uv =SVC.reduce((x,sv,i)=>x+(it.ask[i]-p.d[i]-p.m[i])*w(i),0);
+        if(!byP[g]) byP[g]={tot:{n:0,ask:0,disc:0,mc:0,mand:0,unf:0},ce:{}};
+        if(!byP[g].ce[ce]) byP[g].ce[ce]={n:0,ask:0,disc:0,mc:0,mand:0,unf:0};
+        [byP[g].tot,byP[g].ce[ce]].forEach(a=>{
+          a.n++; a.ask+=ask; a.disc+=dv; a.mand+=mv; a.unf+=uv;
+          if(S.mc[id]) a.mc+=ask;   // memo: the requirement's own value, never added to the lanes
+        });
       });
     });
     const pm={name:'CE by PMO', cols:[30,8,15,15,15,15,15],
       rows:[[{v:document.title+' — Cost Elements by PMO (Disc / Mand portions)',s:TI}],[],
-        [{v:'PMO / Cost Element',s:H},{v:'Reqs',s:H},{v:'FY27 Ask',s:H},{v:'Disc portion',s:H},{v:'★ MC need',s:H},{v:'Mand portion',s:H},{v:'Unfunded (incl delta)',s:H}]]};
-    GROUPS.forEach(g=>{
+        [{v:'PMO / Cost Element',s:H},{v:'Reqs',s:H},{v:FYL()+' Ask',s:H},{v:'Disc portion',s:H},{v:'★ MC requirement (memo)',s:H},{v:'Mand portion',s:H},{v:'Unfunded (incl delta)',s:H}]]};
+    pmoKeys(byP).forEach(g=>{
       const p=byP[g]; if(!p) return;
       const c=a=>[{v:a.n,s:0},{v:a.ask,s:N},{v:a.disc,s:N},{v:a.mc,s:N},{v:a.mand,s:N},{v:a.unf,s:N}];
       pm.rows.push([{v:g,s:SEC},...c(p.tot).map(x=>({v:x.v,s:x.s===N?NB:x.s}))]);
@@ -19156,6 +19233,9 @@ function exportExcel(){
         pm.rows.push(['    '+ce,...c(p.ce[ce])]);
       });
     });
+    pm.rows.push([]);
+    pm.rows.push(['Disc + Mand + Unfunded = Ask on every row. ★ MC requirement is a MEMO of the '
+      +'starred requirements\u2019 own value and is already inside those three \u2014 do not add it in.']);
     sheets.push(pm);
   }
   sheets.push(
@@ -19165,22 +19245,51 @@ function exportExcel(){
     uSheet);
   const tierName={disc:'Discretionary',mc:'Mission Critical',mand:'Mandatory',unf:'Unfunded'};
   // (unfunded sections include allocation-trim deltas — see AMTLBL)
-  GROUPS.forEach(g=>{
-    if(!DATA.items.some(i=>grpOf(i)===g)&&!S.order.some(id=>{const it=itemById(id);return it&&grpOf(it)===g;})) return;
+  // ONE SHARE MODEL FOR EVERY BY-PMO VIEW. These sheets keyed off grpOf alone, so a CLIN-backed
+  // prime sat entirely on its own office's sheet while the PMO Matrix had already split it across
+  // the offices that own its CLINs -- a reader reconciling one against the other found a gap that
+  // was not in the board. Each portion is scaled per service, so the subtotals here add back to
+  // that PMO's row in the matrix. A requirement spanning offices appears on each with its share,
+  // which is what the sheet titles have always said ("a requirement can appear on several sheets").
+  const SHARES={}, seenG={};
+  S.order.forEach(id=>{ const it=itemById(id); if(!it) return;
+    SHARES[id]=pmoSharesOf(it); SHARES[id].forEach(([g])=>{ if(g) seenG[g]=1; }); });
+  pmoKeys(seenG).forEach(g=>{
     const rows=[[{v:g+' — funding by portion (lane model)',s:TI}],[]];
     let any=false;
     ['disc','mc','mand','unf'].forEach(t=>{
-      const [f,amt,vec]=PICK[t];
-      const its=S.order.map(itemById).filter(it=>it&&grpOf(it)===g&&f(T[it.id],it));
-      if(!its.length) return;
+      const [f,,vec]=PICK[t];
+      // The amount IS the sum of the per-service vector for every portion, so scaling the vector
+      // by this office's share scales the amount with it and the two can never disagree.
+      const picked=[];
+      S.order.forEach(id=>{
+        const it=itemById(id); if(!it) return;
+        const sh=(SHARES[id]||[]).find(r=>r[0]===g); if(!sh) return;
+        if(!f(T[id],it)) return;
+        const frac=sh[1];
+        const v=vec(T[id],it).map((x,i)=>x*(frac? frac[i]:1));
+        const a=v.reduce((x,y)=>x+y,0);
+        if(Math.abs(a)<=0.005) return;
+        picked.push([it,a,v]);
+      });
+      if(!picked.length) return;
       any=true;
-      rows.push([{v:(t==='unf'?'':'FUNDED — ')+tierName[t].toUpperCase()+(t==='unf'?' (incl ask-vs-alloc deltas)':'')+'  ('+its.length+')',s:SEC}]);
+      rows.push([{v:(t==='mc'?'★ ':(t==='unf'?'':'FUNDED — '))+tierName[t].toUpperCase()
+        +(t==='mc'?' (memo — also counted in the lane sections)':(t==='unf'?' (incl ask-vs-alloc deltas)':''))
+        +'  ('+picked.length+')',s:SEC}]);
       rows.push(listHdr(AMTLBL[t]));
-      its.forEach(it=>rows.push(itemRowP(it,amt(T[it.id],it),vec(T[it.id],it))));
-      rows.push([{v:'Subtotal — '+tierName[t],s:B},'','','','','','',{v:its.reduce((a,it)=>a+amt(T[it.id],it),0),s:NB},...SVC.map((s,i)=>({v:its.reduce((a,it)=>a+vec(T[it.id],it)[i],0),s:NB}))]);
+      picked.forEach(r=>rows.push(itemRowP(r[0],r[1],r[2])));
+      rows.push([{v:'Subtotal — '+tierName[t],s:B},'','','','','','',
+        {v:picked.reduce((x,r)=>x+r[1],0),s:NB},
+        ...SVC.map((sv,i)=>({v:picked.reduce((x,r)=>x+r[2][i],0),s:NB}))]);
       rows.push([]);
     });
-    if(any) sheets.push({name:('PMO '+g).slice(0,31), cols:listCols, rows});
+    if(any){
+      rows.push(['Discretionary + Mandatory + Unfunded = this office\u2019s share of the requirement. '
+        +'★ Mission Critical is a MEMO of the starred requirements\u2019 own value and is already '
+        +'inside those three — do not add it in.']);
+      sheets.push({name:('PMO '+g).slice(0,31), cols:listCols, rows});
+    }
   });
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
