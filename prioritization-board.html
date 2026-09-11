@@ -1083,7 +1083,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.25 (11 Sep 2026)';
+const BUILD='v1.26 (11 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -18545,17 +18545,27 @@ function exportExcel(){
   // disc, mand and unf still partition the requirement exactly once each; only mc sits outside.
   const PICK={
     disc:[p=>p.dT>0.005, p=>p.dT, p=>p.d],
-    mc:  [(p,it)=>S.mc[it.id]&&(p.uT+dlt(it))>0.005, (p,it)=>askTot(it), (p,it)=>it.ask.slice()],
+    mc:  [(p,it)=>mcShortOf(it)>0.005, (p,it)=>askTot(it), (p,it)=>it.ask.slice()],
     mand:[p=>p.mT>0.005, p=>p.mT, p=>p.m],
     unf: [(p,it)=>p.uT>0.005||dlt(it)>0.005, (p,it)=>p.uT+dlt(it), (p,it)=>SVC.map((s,i)=>it.ask[i]-p.d[i]-p.m[i])]};
   const AMTLBL={disc:'Disc portion',mc:'MC requirement (memo — not additive)',mand:'Mand portion',unf:'Total Unfunded (delta + beyond lanes)'};
+  // MISSION CRITICAL IS MEASURED AGAINST THE DISCRETIONARY LANE ALONE.
+  // Discretionary is the money that is actually coming; mandatory does not offset a must-fund
+  // requirement and is not counted here. So a starred requirement's shortfall is its own value
+  // less what DISCRETIONARY covered -- a requirement carried by the mandatory lane is still short.
+  // tiers() draws discretionary before it touches mandatory, so p.d is already the discretionary
+  // -only answer and no second walk is needed (that is what {noMand:true} exists for elsewhere).
+  const mcShortSvc=it=>{ const p=T[it.id];
+    return SVC.map((s,i)=>Math.max(0, it.ask[i]-(p? p.d[i]:0))); };
+  const mcShortOf=it=> S.mc[it.id]? mcShortSvc(it).reduce((a,b)=>a+b,0) : 0;
   // The star's board-wide memo: every flagged requirement, whether or not it is short.
   const MCIDS=S.order.filter(id=>S.mc[id]&&itemById(id));
-  const mcMemo=(()=>{ let req=0,fund=0,short=0;
+  const mcMemo=(()=>{ let req=0,disc=0,short=0;
     MCIDS.forEach(id=>{ const it=itemById(id), q=T[id];
-      req+=askTot(it); fund+=q.dT+q.mT; short+=askTot(it)-q.dT-q.mT; });
-    return {n:MCIDS.length, req, fund, short,
-            nShort:MCIDS.filter(id=>(T[id].uT+dlt(itemById(id)))>0.005).length}; })();
+      req+=askTot(it); disc+=q.dT; short+=mcShortOf(it); });
+    return {n:MCIDS.length, req, disc, short,
+            nShort:MCIDS.filter(id=>mcShortOf(itemById(id))>0.005).length,
+            discBA:discTot(), over:Math.max(0, req-discTot())}; })();
   const listSheet=(name,tier)=>{
     const [f,amt,vec]=PICK[tier];
     const its=S.order.map(itemById).filter(it=>it&&f(T[it.id],it));
@@ -18575,12 +18585,21 @@ function exportExcel(){
       rows.push(['There are two lanes, discretionary and mandatory. Every dollar above is already '
         +'counted in the Disc, Mand and Unfunded figures on the other tabs; this sheet re-cuts the '
         +'same requirements by designation. Do not add it to the lane totals.']);
+      rows.push(['MEASURED AGAINST DISCRETIONARY ONLY. Discretionary is the money that is coming; '
+        +'a must-fund requirement carried by the MANDATORY lane is still counted as short here, '
+        +'because mandatory does not cover the commitment.']);
       rows.push(['Board-wide: '+mcMemo.n+' starred requirement'+(mcMemo.n===1?'':'s')+', '
-        +fM(mcMemo.req)+' of requirement value \u2014 '+fM(mcMemo.fund)+' funded, '
-        +fM(mcMemo.short)+' short.']);
-      rows.push(['This sheet lists the '+mcMemo.nShort+' with a shortfall. The other '
-        +(mcMemo.n-mcMemo.nShort)+' are fully covered by the discretionary lane and are not listed, '
-        +'so the TOTAL above is less than the board-wide value.']);
+        +fM(mcMemo.req)+' of requirement value \u2014 '+fM(mcMemo.disc)+' covered by discretionary, '
+        +fM(mcMemo.short)+' short of it.']);
+      rows.push(['Against the discretionary topline of '+fM(mcMemo.discBA)+': the starred '
+        +'requirements alone come to '+fM(mcMemo.req)
+        +(mcMemo.over>0.005? ', which is '+fM(mcMemo.over)+' MORE than the whole discretionary '
+          +'topline \u2014 they cannot all be covered by it.'
+         : ', which the discretionary topline could cover in total (order and per-service splits '
+          +'decide whether it actually does).')]);
+      rows.push(['This sheet lists the '+mcMemo.nShort+' not fully covered by discretionary. The '
+        +'other '+(mcMemo.n-mcMemo.nShort)+' are, and are not listed, so the TOTAL above is less '
+        +'than the board-wide value.']);
     }
     return {name, cols:listCols, rows};
   };
@@ -18608,25 +18627,29 @@ function exportExcel(){
       {v:unfSvc.reduce((a,b)=>a+b,0),s:unfSvc.some(v=>v>0.5)?NR:NB},'','']);
   };
   const matrixSheet=(name,title,keyLbl,byK,keys,keyStyle)=>{
-    const sh={name, cols:[26,...SVC.flatMap(_=>[13,13]),14,14,14],
+    const sh={name, cols:[26,...SVC.flatMap(_=>[13,13]),14,14,16,16],
       rows:[[{v:title,s:TI}],[],
-        [{v:keyLbl,s:H},...SVC.flatMap(s=>[{v:s+' Disc',s:H},{v:s+' Mand',s:H}]),{v:'TOTAL Disc',s:H},{v:'TOTAL Mand',s:H},{v:'★ MC requirement (memo)',s:H}]]};
-    const tot={disc:SVC.map(_=>0),mand:SVC.map(_=>0),mc:0};
+        [{v:keyLbl,s:H},...SVC.flatMap(s=>[{v:s+' Disc',s:H},{v:s+' Mand',s:H}]),{v:'TOTAL Disc',s:H},{v:'TOTAL Mand',s:H},{v:'★ MC requirement (memo)',s:H},{v:'★ MC short vs Disc',s:H}]]};
+    const tot={disc:SVC.map(_=>0),mand:SVC.map(_=>0),mc:0,mcs:0};
     keys.forEach(k=>{
       const a=byK[k]; if(!a) return;
-      a.disc.forEach((v,i)=>tot.disc[i]+=v); a.mand.forEach((v,i)=>tot.mand[i]+=v); tot.mc+=a.mc;
+      a.disc.forEach((v,i)=>tot.disc[i]+=v); a.mand.forEach((v,i)=>tot.mand[i]+=v); tot.mc+=a.mc; tot.mcs+=a.mcs||0;
       sh.rows.push([{v:k,s:keyStyle||0},...SVC.flatMap((s,i)=>[{v:a.disc[i],s:N},{v:a.mand[i],s:N}]),
-        {v:a.disc.reduce((x,y)=>x+y,0),s:NB},{v:a.mand.reduce((x,y)=>x+y,0),s:NB},{v:a.mc,s:N}]);
+        {v:a.disc.reduce((x,y)=>x+y,0),s:NB},{v:a.mand.reduce((x,y)=>x+y,0),s:NB},{v:a.mc,s:N},{v:a.mcs||0,s:(a.mcs||0)>0.5?NR:N}]);
     });
     sh.rows.push([{v:'TOTAL',s:SEC},...SVC.flatMap((s,i)=>[{v:tot.disc[i],s:NB},{v:tot.mand[i],s:NB}]),
-      {v:tot.disc.reduce((x,y)=>x+y,0),s:NB},{v:tot.mand.reduce((x,y)=>x+y,0),s:NB},{v:tot.mc,s:NB}]);
+      {v:tot.disc.reduce((x,y)=>x+y,0),s:NB},{v:tot.mand.reduce((x,y)=>x+y,0),s:NB},{v:tot.mc,s:NB},{v:tot.mcs,s:tot.mcs>0.5?NR:NB}]);
     baBlock(sh.rows);
     sh.rows.push([]);
-    sh.rows.push(['★ MC REQUIREMENT IS A MEMO COLUMN, NOT A THIRD POT. There are two funding lanes, '
-      +'discretionary and mandatory, and every requirement\u2019s dollars sit wholly inside them or '
-      +'in unfunded. The star marks requirements that must be funded next year; its column shows '
-      +'those requirements\u2019 own value, which is already counted in the Disc, Mand and Unfunded '
+    sh.rows.push(['\u2605 MC REQUIREMENT IS A MEMO COLUMN, NOT A THIRD POT. There are two funding '
+      +'lanes, discretionary and mandatory, and every requirement\u2019s dollars sit wholly inside '
+      +'them or in unfunded. The star marks requirements that must be funded next year; its column '
+      +'shows those requirements\u2019 own value, already counted in the Disc, Mand and Unfunded '
       +'figures beside it. Do not add it to the lane totals.']);
+    sh.rows.push(['\u2605 MC SHORT VS DISC is the number that drives the ask: the starred '
+      +'requirements\u2019 value less what the DISCRETIONARY lane covered. Mandatory is deliberately '
+      +'not netted off it \u2014 a must-fund requirement carried by the mandatory lane is still short '
+      +'against the discretionary topline.']);
     return sh;
   };
   // PMO x service matrix (all boards)
@@ -18635,7 +18658,7 @@ function exportExcel(){
   // behind. Iterating GROUPS alone dropped those rows and their dollars with them. Same shape as
   // the roll-up at ppbePmoKeys(): configured order first, anything else appended rather than lost.
   const pmoKeys=obj=>GROUPS.filter(g=>obj[g]).concat(Object.keys(obj).filter(k=>GROUPS.indexOf(k)<0).sort());
-  const mkA=()=>({disc:SVC.map(_=>0),mand:SVC.map(_=>0),mc:0});
+  const mkA=()=>({disc:SVC.map(_=>0),mand:SVC.map(_=>0),mc:0,mcs:0});
   const byGX={};
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
@@ -18650,7 +18673,10 @@ function exportExcel(){
       // the mean pulled the total DOWN, so the ★MC column added up to less than the board's own
       // mission-critical need.
       // MEMO, apportioned per service exactly like disc and mand above -- never added into them.
-      if(S.mc[id]) a.mc+=SVC.reduce((x,s,i)=>x+it.ask[i]*(frac? frac[i]:1),0);
+      if(S.mc[id]){
+        a.mc +=SVC.reduce((x,s,i)=>x+it.ask[i]*(frac? frac[i]:1),0);
+        a.mcs+=SVC.reduce((x,s,i)=>x+mcShortSvc(it)[i]*(frac? frac[i]:1),0);
+      }
     });
   });
   const gmx=matrixSheet('PMO Matrix', document.title+' — PMO Funding by service (Disc lane | Mand spillover)','PMO',byGX,pmoKeys(byGX));
@@ -18669,6 +18695,19 @@ function exportExcel(){
     {v:sum(allD)+sum(allM),s:NB},{v:sum(dltSvc),s:NB},{v:sum(allU),s:sum(allU)>0.5?NR:NB},{v:sum(unfSvc),s:sum(unfSvc)>0.5?NR:NB}]);
   fs.rows.push([]);
   fs.rows.push(['LANE MODEL: each service draws its own discretionary lane first, then spills into its mandatory lane. Deltas (Ask − Allocation) are trims made on the board — they are unfunded requirements too and are included in TOTAL UNFUNDED.']);
+  fs.rows.push([]);
+  fs.rows.push([{v:'\u2605 MISSION CRITICAL AGAINST THE DISCRETIONARY TOPLINE',s:SEC}]);
+  fs.rows.push([{v:'Starred requirements',s:B},{v:mcMemo.n,s:0},
+    {v:'requirement value',s:0},{v:mcMemo.req,s:NB},
+    {v:'covered by discretionary',s:0},{v:mcMemo.disc,s:N},
+    {v:'short of discretionary',s:0},{v:mcMemo.short,s:mcMemo.short>0.5?NR:N}]);
+  fs.rows.push([{v:'Discretionary topline',s:B},'',{v:'budget authority',s:0},{v:mcMemo.discBA,s:NB},
+    {v:(mcMemo.over>0.005? 'MC value OVER the topline':'topline covers MC value in total'),s:0},
+    {v:mcMemo.over,s:mcMemo.over>0.5?NR:N},'','']);
+  fs.rows.push(['\u2605 Mission Critical is measured against DISCRETIONARY ALONE. Mandatory is not '
+    +'netted off it: a must-fund requirement carried by the mandatory lane is still short against '
+    +'the topline you are counting on. These figures are a memo over requirements and are already '
+    +'inside the lane columns above \u2014 do not add them to a lane total.']);
   // --- Unfunded Requirements listing (lane shortfalls + ask-vs-alloc deltas) ---
   const uIts=S.order.map(itemById).filter(it=>it&&(T[it.id].uT>0.005||dlt(it)>0.005));
   const uSheet={name:'Unfunded Requirements', cols:[8,10,22,44,44,13,17,14,14,14,14,14,...SVC.map(_=>13)],
@@ -19196,7 +19235,7 @@ function exportExcel(){
       if(!byCE[ce]) byCE[ce]=mkA();
       const a=byCE[ce];
       SVC.forEach((s,i)=>{ a.disc[i]+=p.d[i]; a.mand[i]+=p.m[i]; });
-      if(S.mc[id]) a.mc+=askTot(it);
+      if(S.mc[id]){ a.mc+=askTot(it); a.mcs+=mcShortOf(it); }
     });
     const ceKeys=[...COST_ELEMS.filter(c=>byCE[c]), ...(byCE['— Unassigned —']? ['— Unassigned —']:[])];
     sheets.push(matrixSheet('Cost Element Matrix', document.title+' — Cost Element funding (Disc lane | Mand spillover)','Cost Element',byCE,ceKeys));
@@ -19214,28 +19253,33 @@ function exportExcel(){
         const dv =SVC.reduce((x,sv,i)=>x+p.d[i]*w(i),0);
         const mv =SVC.reduce((x,sv,i)=>x+p.m[i]*w(i),0);
         const uv =SVC.reduce((x,sv,i)=>x+(it.ask[i]-p.d[i]-p.m[i])*w(i),0);
-        if(!byP[g]) byP[g]={tot:{n:0,ask:0,disc:0,mc:0,mand:0,unf:0},ce:{}};
-        if(!byP[g].ce[ce]) byP[g].ce[ce]={n:0,ask:0,disc:0,mc:0,mand:0,unf:0};
+        const mcs=S.mc[id]? SVC.reduce((x,sv,i)=>x+mcShortSvc(it)[i]*w(i),0) : 0;
+        if(!byP[g]) byP[g]={tot:{n:0,ask:0,disc:0,mc:0,mcs:0,mand:0,unf:0},ce:{}};
+        if(!byP[g].ce[ce]) byP[g].ce[ce]={n:0,ask:0,disc:0,mc:0,mcs:0,mand:0,unf:0};
         [byP[g].tot,byP[g].ce[ce]].forEach(a=>{
           a.n++; a.ask+=ask; a.disc+=dv; a.mand+=mv; a.unf+=uv;
-          if(S.mc[id]) a.mc+=ask;   // memo: the requirement's own value, never added to the lanes
+          // memo: the requirement's own value, and the gap against DISCRETIONARY. Neither is
+          // added into the lanes.
+          if(S.mc[id]){ a.mc+=ask; a.mcs+=mcs; }
         });
       });
     });
-    const pm={name:'CE by PMO', cols:[30,8,15,15,15,15,15],
+    const pm={name:'CE by PMO', cols:[30,8,15,15,16,16,15,15],
       rows:[[{v:document.title+' — Cost Elements by PMO (Disc / Mand portions)',s:TI}],[],
-        [{v:'PMO / Cost Element',s:H},{v:'Reqs',s:H},{v:FYL()+' Ask',s:H},{v:'Disc portion',s:H},{v:'★ MC requirement (memo)',s:H},{v:'Mand portion',s:H},{v:'Unfunded (incl delta)',s:H}]]};
+        [{v:'PMO / Cost Element',s:H},{v:'Reqs',s:H},{v:FYL()+' Ask',s:H},{v:'Disc portion',s:H},{v:'★ MC requirement (memo)',s:H},{v:'★ MC short vs Disc',s:H},{v:'Mand portion',s:H},{v:'Unfunded (incl delta)',s:H}]]};
     pmoKeys(byP).forEach(g=>{
       const p=byP[g]; if(!p) return;
-      const c=a=>[{v:a.n,s:0},{v:a.ask,s:N},{v:a.disc,s:N},{v:a.mc,s:N},{v:a.mand,s:N},{v:a.unf,s:N}];
+      const c=a=>[{v:a.n,s:0},{v:a.ask,s:N},{v:a.disc,s:N},{v:a.mc,s:N},{v:a.mcs||0,s:(a.mcs||0)>0.5?NR:N},{v:a.mand,s:N},{v:a.unf,s:N}];
       pm.rows.push([{v:g,s:SEC},...c(p.tot).map(x=>({v:x.v,s:x.s===N?NB:x.s}))]);
       [...COST_ELEMS.filter(x=>p.ce[x]),...(p.ce['— Unassigned —']?['— Unassigned —']:[])].forEach(ce=>{
         pm.rows.push(['    '+ce,...c(p.ce[ce])]);
       });
     });
     pm.rows.push([]);
-    pm.rows.push(['Disc + Mand + Unfunded = Ask on every row. ★ MC requirement is a MEMO of the '
-      +'starred requirements\u2019 own value and is already inside those three \u2014 do not add it in.']);
+    pm.rows.push(['Disc + Mand + Unfunded = Ask on every row. \u2605 MC requirement is a MEMO of the '
+      +'starred requirements\u2019 own value and is already inside those three \u2014 do not add it in. '
+      +'\u2605 MC short vs Disc is that value less what the DISCRETIONARY lane covered; mandatory is '
+      +'not netted off it.']);
     sheets.push(pm);
   }
   sheets.push(

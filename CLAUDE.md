@@ -53,8 +53,22 @@ the lanes, never added into them, and never counted toward a requirement total. 
 already counted — adding across the columns double-counted every starred requirement. If you find
 yourself summing a Disc, a Mand and an MC column together, the model has been misunderstood.
 
-"Short" for a starred requirement means **unfunded**. A starred requirement drawing on the mandatory
-lane is funded.
+**Mission Critical is measured against the DISCRETIONARY lane alone.** Discretionary is the money
+that is actually coming; mandatory does not cover a must-fund commitment and is never netted off
+it. So:
+
+```
+MC shortfall  =  requirement value  -  discretionary drawn      (mandatory ignored)
+```
+
+A starred requirement carried entirely by the mandatory lane is **fully short**. A starred
+requirement trimmed on the board is short by the trim, even if discretionary covered the trimmed
+amount in full. `tiers()` draws discretionary before it touches mandatory, so `p.d` is already the
+discretionary-only answer — there is no need for a second walk (that is what `{noMand:true}` and
+`scenView==='disc'` exist for elsewhere).
+
+Exports carry two MC memo figures: **★ MC requirement** (the starred requirements' own value) and
+**★ MC short vs Disc** (the gap that drives the ask). Neither is ever added into a lane total.
 
 **"By PMO" means one thing everywhere.** `pmoSharesOf()` returns `[group, fracPerService]`; a
 CLIN-backed prime is split across the offices owning its CLINs. Weight **per service**
@@ -106,7 +120,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 
 ## Hand-edit points
 
-These were templated per board by the build script. Line numbers are as of `v1.25`; find them
+These were templated per board by the build script. Line numbers are as of `v1.26`; find them
 by symbol name, not by number.
 
 | What | Symbol | ~Line |

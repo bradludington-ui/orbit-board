@@ -79,6 +79,16 @@ const SCENARIOS = {
     disc:[35,15,8], mand:[20,10,5],
     order:['A','B','C'], mc:{A:true, C:true},
   },
+  // A starred requirement TRIMMED on the board and then fully covered by discretionary within
+  // that trim. Its spill is zero, so a spill-based test would call it whole -- but 30 of the
+  // requirement is not covered by the money that is coming, so it is short by the trim.
+  'mc trimmed but disc-covered': {
+    services: ['STOVL', 'CV'],
+    items: [it('A', 'ATL', [50, 20])],
+    disc: [40, 20], mand: [30, 30],
+    order: ['A'], mc: { A: true },
+    alloc: { A: { m: 's', v: [30, 10] } },
+  },
   // Nothing funded at all: every dollar must land in unfunded.
   'zero budget': {
     services: SVC3,
@@ -107,8 +117,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // MC is a memo over REQUIREMENTS now: the starred requirements' own value.
   const mcIds = ids.filter(id => sc.mc && sc.mc[id]);
   const mcMemo = mcIds.reduce((a, id) => a + askOf(id), 0);
-  // "short" means UNFUNDED: a starred requirement drawing on the mandatory lane is funded.
-  const unfOf = JSON.parse(ev('JSON.stringify((function(){var o={};var TT=tiers();S.order.forEach(function(id){var t=itemById(id);if(!t)return;var d=S.fsrc[id]?0:Math.max(0,askTot(t)-eff(t));o[id]=TT[id].uT+d;});return o;})())'));
+  // "short" is measured against DISCRETIONARY ONLY: a starred requirement carried by the
+  // mandatory lane is still short, because mandatory does not cover the commitment.
+  const mcShortOf = {};
+  ids.forEach(id => { const ask = sc.items.find(x => x.id === id).ask;
+    mcShortOf[id] = sum(SVC.map((s, i) => Math.max(0, ask[i] - T[id].d[i]))); });
+  const unfOf = mcShortOf;   // the MC basis: value less what discretionary covered
   const mcShortMemo = mcIds.filter(id => unfOf[id] > 0.005).reduce((a, id) => a + askOf(id), 0);
   const askAll = ids.reduce((a, id) => a + askOf(id), 0);
 
@@ -151,7 +165,13 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       sum(pmoRows.map(r => num(r[2 + i * 2]))), allM[i]);
   });
   chk(name, 'PMO Matrix', 'sum of PMO rows == MC memo (requirement value)',
-    sum(pmoRows.map(r => num(r[r.length - 1]))), mcMemo);
+    sum(pmoRows.map(r => num(r[r.length - 2]))), mcMemo);
+  const mcShortAll = mcIds.reduce((a, id) => a + mcShortOf[id], 0);
+  chk(name, 'PMO Matrix', 'sum of PMO rows == MC short vs discretionary',
+    sum(pmoRows.map(r => num(r[r.length - 1]))), mcShortAll);
+  // the gap must ignore mandatory entirely
+  chk(name, 'PMO Matrix', 'MC short == value - discretionary drawn (mandatory ignored)',
+    mcShortAll, mcIds.reduce((a, id) => a + Math.max(0, askOf(id) - T[id].dT), 0));
   // THE ANTI-DOUBLE-COUNT CHECK: the lanes alone must account for every requirement dollar,
   // with MC sitting outside them.
   chk(name, 'PMO Matrix', 'Disc + Mand across PMO rows == funded dollars',
@@ -252,6 +272,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
           return acc + sum(SVC.map((s, i) => ask[i] * (sh[1] ? sh[1][i] : 1)));
         }, 0);
       chk(name, 'PMO sheets', `${g}: MC subtotal == share of starred-and-short requirement value`, mc, shortMcShare);
+      chk(name, 'PMO sheets vs Matrix', `${g}: MC memo == Matrix MC requirement column`,
+        num(mr[mr.length - 2]), num(mr[mr.length - 2]));
       pmoLaneTotal += d + m + u;
     });
   }
@@ -264,13 +286,16 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   if (pmce) {
     const tot = pmce.rows.filter(r => cv(r[0]) && !String(cv(r[0])).startsWith('    ') && !isNaN(num(r[2])));
     chk(name, 'CE by PMO', 'sum of PMO Disc == board Disc', sum(tot.map(r => num(r[3]))), sum(allD));
-    chk(name, 'CE by PMO', 'sum of PMO Mand == board Mand', sum(tot.map(r => num(r[5]))), sum(allM));
+    // cols: 0 key | 1 Reqs | 2 Ask | 3 Disc | 4 MC memo | 5 MC short | 6 Mand | 7 Unfunded
+    chk(name, 'CE by PMO', 'sum of PMO Mand == board Mand', sum(tot.map(r => num(r[6]))), sum(allM));
     chk(name, 'CE by PMO', 'sum of PMO MC == MC memo (requirement value)', sum(tot.map(r => num(r[4]))), mcMemo);
+    chk(name, 'CE by PMO', 'sum of PMO MC short == MC short vs discretionary',
+      sum(tot.map(r => num(r[5]))), mcIds.reduce((a, id) => a + mcShortOf[id], 0));
     chk(name, 'CE by PMO', 'sum of Ask == total ask', sum(tot.map(r => num(r[2]))), askAll);
     chk(name, 'CE by PMO', 'Disc + Mand + Unfunded == Ask (MC excluded)',
-      sum(tot.map(r => num(r[3]) + num(r[5]) + num(r[6]))), askAll);
+      sum(tot.map(r => num(r[3]) + num(r[6]) + num(r[7]))), askAll);
     tot.forEach(r => chk(name, 'CE by PMO', `${cv(r[0])}: Disc+Mand+Unf == Ask`,
-      num(r[3]) + num(r[5]) + num(r[6]), num(r[2])));
+      num(r[3]) + num(r[6]) + num(r[7]), num(r[2])));
   }
 }
 
