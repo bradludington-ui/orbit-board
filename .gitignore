@@ -1,0 +1,9 @@
+# The repo holds the PROGRAM, never a working board. A saved board is the program and the budget
+# data fused into one file, so a stray copy dropped in here must not be stageable by accident.
+*.html
+!prioritization-board.html
+
+# Working files
+*.xlsx
+*.pptx
+*.json
