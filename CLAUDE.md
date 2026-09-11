@@ -69,9 +69,20 @@ requirement costs. Do not recompute the star anywhere else.
 These two are the stated rules and are asserted verbatim in the audit under the `RULE` label.
 Change them only on an explicit instruction, and update those checks in the same commit.
 
-The shortage is floored **per service**, not once on the totals: money is not fungible across
-services, so being over-allocated on one service cannot pay down a shortage on another. The two
-readings agree on any board with no over-allocation.
+**EVERY per-service figure is floored PER SERVICE, not once on the totals.** A "service" is a
+service AND ITS VARIANT — STOVL, USMC CV and USN are each their own pot — and money never moves
+between them, so an over-allocation in one can never pay down a shortage in another. This governs
+the MC shortage and unfunded alike. The two readings agree on any board with no over-allocation,
+which is why only a deliberately over-allocated scenario pins it down.
+
+`unfSvcOf()`, `beyondSvcOf()` and `trimSvcOf()` are the single implementation, defined next to
+`mcCalc()`. Both exports and the Decision Bands sheet read them. Defined so that, per service and
+in total, `beyond + trim == unfunded` always — including an over-allocated service, where the trim
+is nothing and the lane shortfall is capped at the ask.
+
+One consequence worth knowing: where a service is funded beyond its ask, `funded + unfunded`
+exceeds the requirement. That excess is real money and does not vanish. The identity that holds is
+`funded + unfunded == max(ask, funded)`, per service.
 
 A starred requirement carried entirely by the mandatory lane is **fully short**. A starred
 requirement trimmed on the board is short by the trim, even if discretionary covered the trimmed
@@ -155,7 +166,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 
 ## Hand-edit points
 
-These were templated per board by the build script. Line numbers are as of `v1.27`; find them
+These were templated per board by the build script. Line numbers are as of `v1.28`; find them
 by symbol name, not by number.
 
 | What | Symbol | ~Line |

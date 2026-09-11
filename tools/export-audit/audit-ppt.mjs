@@ -143,6 +143,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       chk(name, 'Funding by Stream', `${s} Ask`, cellText(r[1]), fSM(allAsk[i]));
       chk(name, 'Funding by Stream', `${s} Disc Funded`, cellText(r[3]), fSM(allD[i]));
       chk(name, 'Funding by Stream', `${s} Mand Drawn`, cellText(r[5]), fSM(allM[i]));
+      chk(name, 'Funding by Stream', `${s} Unfunded floored per service`, cellText(r[6]),
+        fSM(ids.reduce((a, id) => a + Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]), 0)));
     });
   }
 
@@ -177,10 +179,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const uTbl = tables.find(t => t && t.some(r => r.some(c => String(cellText(c)).includes('TOTAL UNFUNDED'))));
   if (uTbl) {
     const tr = findRow(uTbl, 'TOTAL UNFUNDED');
-    const unfRule = ids.reduce((a, id) => {
-      const askT = askOf(id), fundedT = T[id].dT + T[id].mT;
-      return a + T[id].uT + Math.max(0, askT - sum(SVC.map((s, i) => T[id].d[i] + T[id].m[i] + T[id].u[i])));
-    }, 0);
+    // Unfunded is floored PER SERVICE: a service is a service AND ITS VARIANT and money never nets
+    // across them, so an over-allocation on one cannot cancel a shortage on another.
+    const unfRule = ids.reduce((a, id) => a + sum(SVC.map((s, i) =>
+      Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]))), 0);
     chk(name, 'Unfunded', 'TOTAL == sum of (ask - disc - mand)', cellText(tr[5]), fSM(unfRule));
   }
 

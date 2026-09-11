@@ -99,6 +99,15 @@ const SCENARIOS = {
     order: ['A'], mc: { A: true },
     alloc: { A: { m: 's', v: [60, 5] } },
   },
+  // Over-allocated in one service AND the lane cannot cover it: the only shape where capping
+  // 'beyond both lanes' at the ask differs from not capping it.
+  'over-allocated and short of the lane': {
+    services: ['STOVL', 'CV'],
+    items: [it('A', 'ATL', [40, 30])],
+    disc: [30, 50], mand: [0, 0],
+    order: ['A'], mc: { A: true },
+    alloc: { A: { m: 's', v: [60, 5] } },
+  },
   // Nothing funded at all: every dollar must land in unfunded.
   'zero budget': {
     services: SVC3,
@@ -135,6 +144,21 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const unfOf = mcShortOf;   // the MC basis: value less what discretionary covered
   const mcShortMemo = mcIds.filter(id => unfOf[id] > 0.005).reduce((a, id) => a + askOf(id), 0);
   const askAll = ids.reduce((a, id) => a + askOf(id), 0);
+
+  // UNFUNDED IS PER SERVICE. A service is a service AND ITS VARIANT; money never nets across them.
+  const basisOf = {};
+  ids.forEach(id => { basisOf[id] = JSON.parse(ev(`JSON.stringify((S.fsrc['${id}'] ? itemById('${id}').ask : svcAlloc(itemById('${id}'))))`)); });
+  const askArr = id => sc.items.find(x => x.id === id).ask;
+  const unfSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]));
+  const beyondSvcExp = id => SVC.map((s, i) => Math.max(0, Math.min(askArr(id)[i], basisOf[id][i]) - T[id].d[i] - T[id].m[i]));
+  const trimSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - basisOf[id][i]));
+  const svcTot = f => SVC.map((s, i) => ids.reduce((a, id) => a + f(id)[i], 0));
+  const unfSvcAll = svcTot(unfSvcExp), beyondSvcAll = svcTot(beyondSvcExp), trimSvcAll = svcTot(trimSvcExp);
+  // With unfunded floored per service, funded + unfunded exceeds the ask exactly where a service was
+  // funded BEYOND what it asked for -- that excess is real money and does not vanish. Per service the
+  // identity is funded + unfunded == max(ask, funded); this is its board-wide form.
+  const coverAll = ids.reduce((a, id) => a + sum(SVC.map((s, i) =>
+    Math.max(askArr(id)[i], T[id].d[i] + T[id].m[i]))), 0);
 
   // ---- 1. conservation inside tiers() itself (the basis for everything else) ----
   ids.forEach(id => {
@@ -181,7 +205,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'Funding Streams', `${s} Disc Funded`, num(r[3]), allD[i]);
     chk(name, 'Funding Streams', `${s} Mand Funded`, num(r[6]), allM[i]);
     chk(name, 'Funding Streams', `${s} Funded Total`, num(r[8]), allD[i] + allM[i]);
-    chk(name, 'Funding Streams', `${s} Beyond Both Lanes`, num(r[10]), allU[i]);
+    chk(name, 'Funding Streams', `${s} Beyond Both Lanes`, num(r[10]), beyondSvcAll[i]);
+    chk(name, 'Funding Streams', `${s} TOTAL UNFUNDED (floored per service)`, num(r[11]), unfSvcAll[i]);
+    chk(name, 'Funding Streams', `${s} Trim`, num(r[9]), trimSvcAll[i]);
+    // the three must close: beyond + trim == unfunded, per service
+    chk(name, 'Funding Streams', `${s} beyond + trim == unfunded`,
+      num(r[10]) + num(r[9]), num(r[11]));
   });
 
   // ---- 4. PMO Matrix: per-PMO shares must add back to the board totals ----
@@ -263,8 +292,14 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     const id = titleToId[String(cv(r[3]))]; if (!id) return;
     chk(name, 'Unfunded Requirements', `${id}: TOTAL Unfunded == sum of per-service cols`,
       sum(SVC.map((s, i) => num(r[12 + i]))), num(r[11]));
-    chk(name, 'Unfunded Requirements', `${id}: Ask - Allocated == Delta`,
-      num(r[7]) - num(r[8]), num(r[9]));
+    chk(name, 'Unfunded Requirements', `${id}: per-service cols floored per service`,
+      sum(SVC.map((s, i) => num(r[12 + i]))), sum(unfSvcExp(id)));
+    chk(name, 'Unfunded Requirements', `${id}: Trim + Beyond == TOTAL Unfunded`,
+      num(r[9]) + num(r[10]), num(r[11]));
+    // 'Allocated' is the basis the lane engine worked from: the ask for a directed source,
+    // the board's allocation otherwise. Never the funded total.
+    chk(name, 'Unfunded Requirements', `${id}: Allocated == the basis used`,
+      num(r[8]), sum(basisOf[id]));
   });
 
   // ---- 6c. tier list sheets, PER ROW: printed amount must equal its per-service vector ----
@@ -289,8 +324,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       chk(name, 'Decision Bands', 'ALL BANDS Funded == Disc+Mand', num(gr[9]), sum(allD) + sum(allM));
       const askTot = ids.reduce((a, id) => a + sum(sc.items.find(x => x.id === id).ask), 0);
       chk(name, 'Decision Bands', 'ALL BANDS Requirement == total ask', num(gr[6]), askTot);
-      chk(name, 'Decision Bands', 'ALL BANDS Funded + Unfunded == Requirement',
-        num(gr[9]) + num(gr[10]), num(gr[6]));
+      chk(name, 'Decision Bands', 'ALL BANDS Funded + Unfunded == max(ask, funded) per service',
+        num(gr[9]) + num(gr[10]), coverAll);
     }
   }
 
@@ -327,7 +362,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 
   // every requirement dollar appears exactly once across the PMO sheets' lane sections
-  chk(name, 'PMO sheets', 'Disc+Mand+Unf across all PMO sheets == total ask', pmoLaneTotal, askAll);
+  chk(name, 'PMO sheets', 'Disc+Mand+Unf across all PMO sheets == max(ask, funded) per service',
+    pmoLaneTotal, coverAll);
 
   // ---- 6f. Cost Element Matrix: same MC memo rules as every other matrix tab ----
   {
@@ -361,10 +397,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'CE by PMO', 'sum of PMO MC short == MC short vs discretionary',
       sum(tot.map(r => num(r[5]))), mcIds.reduce((a, id) => a + mcShortOf[id], 0));
     chk(name, 'CE by PMO', 'sum of Ask == total ask', sum(tot.map(r => num(r[2]))), askAll);
-    chk(name, 'CE by PMO', 'Disc + Mand + Unfunded == Ask (MC excluded)',
-      sum(tot.map(r => num(r[3]) + num(r[6]) + num(r[7]))), askAll);
-    tot.forEach(r => chk(name, 'CE by PMO', `${cv(r[0])}: Disc+Mand+Unf == Ask`,
-      num(r[3]) + num(r[6]) + num(r[7]), num(r[2])));
+    chk(name, 'CE by PMO', 'Unfunded column == per-service floored unfunded',
+      sum(tot.map(r => num(r[7]))), sum(unfSvcAll));
+    // Unfunded is max(0, Ask - Disc - Mand) per service, so Disc+Mand+Unf exceeds Ask exactly when
+    // a service was funded beyond what it asked for. The rule below holds in both cases.
+    tot.forEach(r => chk(name, 'CE by PMO', `${cv(r[0])}: Disc+Mand+Unf == max(Ask, Disc+Mand)`,
+      num(r[3]) + num(r[6]) + num(r[7]), Math.max(num(r[2]), num(r[3]) + num(r[6]))));
   }
 }
 

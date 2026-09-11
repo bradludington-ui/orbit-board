@@ -1083,7 +1083,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.27 (11 Sep 2026)';
+const BUILD='v1.28 (11 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -13409,6 +13409,40 @@ function mcCalc(T){
   return {tot, need, n, total:tot.reduce((a,b)=>a+b,0), needTot:need.reduce((a,b)=>a+b,0),
           bySvc:SVC.map((s,i)=>({s, tot:tot[i], need:need[i], ba:(S.discSvc||[])[i]||0}))};
 }
+// UNFUNDED, PER SERVICE, FLOORED PER SERVICE.
+//
+// A "service" here is a service AND ITS VARIANT -- STOVL, USMC CV and USN are each their own pot --
+// and money never moves between them. So an over-allocation in one service can never pay down a
+// shortage in another, exactly as the Mission Critical shortage is measured. Summing across the
+// services first and flooring once nets them against each other: on a requirement asking 40 STOVL /
+// 30 CV and allocated 60 / 5, that reported 5 unfunded where the truth is 25.
+//
+// THE BASIS is what the lane engine actually worked from: the board's allocation for an ordinary
+// requirement, and the ask for one with a directed funding source (see tiers()).
+//
+// The three figures below are defined so that, per service and in total,
+//
+//     beyond + trim  ==  unfunded
+//
+// in every case, including an over-allocated service, where the trim is nothing and the lane
+// shortfall is capped at the ask.
+function basisSvcOf(it){ return S.fsrc[it.id]? it.ask.slice() : svcAlloc(it); }
+function unfSvcOf(it, p){
+  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));
+}
+function beyondSvcOf(it, p){            // short of both lanes, never beyond what was asked for
+  const b=basisSvcOf(it);
+  return SVC.map((s,i)=>Math.max(0, Math.min(it.ask[i]||0, b[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));
+}
+function trimSvcOf(it){                 // asked for but never allocated
+  const b=basisSvcOf(it);
+  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - (b[i]||0)));
+}
+const _vsum = a => a.reduce((x,y)=>x+y,0);
+function unfTotOf(it,p){ return _vsum(unfSvcOf(it,p)); }
+function beyondTotOf(it,p){ return _vsum(beyondSvcOf(it,p)); }
+function trimTotOf(it){ return _vsum(trimSvcOf(it)); }
+
 function tierTotals(T){
   let dUsed=0,mUsed=0,uAmt=0,dN=0,splitN=0,mN=0,uN=0;
   const MC=mcCalc(T);
@@ -15675,10 +15709,13 @@ function buildPptx(slideXmls){
 }
 function exportPPT(){
   const T=tiers(), MR=masterRanks();
-  const dlt2=it=> S.fsrc[it.id]? 0 : Math.max(0, askTot(it)-eff(it));
+  // Per service, like every other unfunded figure: services are service AND variant and money
+  // never nets across them.
+  const unf2=it=> unfTotOf(it, T[it.id]);
   const dBA=discTot(), mBA=mandTot();
   const TT=tierTotals(T);
-  let totDelta=0; S.order.forEach(id=>{const it=itemById(id); if(it) totDelta+=dlt2(it);});
+  let totUnf=0;
+  S.order.forEach(id=>{const it=itemById(id); if(it) totUnf+=unf2(it);});
   const MX=457200, CW=8229600;
   const hdr=(title,sub)=> _pTitle(title)
     +(sub? _pText(97,MX,1100000,CW,270000,_pPara(_pRun(sub,{sz:1150,i:1,c:_PPT.NAVY}))):'')
@@ -15694,7 +15731,7 @@ function exportPPT(){
       ['★ MC short vs discretionary', TT.mcNeed>0.5? fSM(TT.mcNeed):'none', TT.mcNeed>0.5?_PPT.RED:_PPT.DIM],
       ['PROGRAM FLOOR (Disc BA + MC short)', fSM(dBA+TT.mcNeed), _PPT.AMBER],
       ['Mandatory BA', fSM(mBA), _PPT.PURP], ['Mandatory drawn', fSM(TT.mUsed), _PPT.PURP],
-      ['Whole budget', fSM(dBA+mBA), _PPT.NAVY], ['Unfunded (incl allocation deltas)', fSM(TT.uAmt+totDelta), _PPT.RED]];
+      ['Whole budget', fSM(dBA+mBA), _PPT.NAVY], ['Unfunded (incl allocation trims)', fSM(totUnf), _PPT.RED]];
     const rows=[[{t:'Measure',...H,align:'l'},{t:'Amount',...H}]];
     kpi.forEach(k=>rows.push([{t:k[0],sz:1200,c:_PPT.INK,align:'l'},{t:k[1],sz:1200,b:1,c:k[2]}]));
     slides.push(_pSlide(_pTitle(document.title.replace(/FY\d\d/,FYL()))
@@ -15706,12 +15743,13 @@ function exportPPT(){
   // ---- 2: funding streams by service ----
   {
     const rows=[[{t:'Service',...H,align:'l'},{t:FYL()+' Ask',...H},{t:'Disc BA',...H},{t:'Disc Funded',...H},{t:'Mand BA',...H},{t:'Mand Drawn',...H},{t:'Unfunded (incl delta)',...H}]];
-    const allAsk=SVC.map(_=>0), aD=SVC.map(_=>0), aM=SVC.map(_=>0), aU=SVC.map(_=>0), aDl=SVC.map(_=>0);
-    S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return; const sv=svcAlloc(it); const ov=!!S.fsrc[id];
-      SVC.forEach((s,i)=>{allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]; aM[i]+=p.m[i]; aU[i]+=p.u[i]; if(!ov) aDl[i]+=it.ask[i]-sv[i];});});
-    SVC.forEach((s,i)=>rows.push([{t:s,b:1,c:_PPT.INK,align:'l'},{t:fSM(allAsk[i]),c:_PPT.INK},{t:fSM(S.discSvc[i]),c:_PPT.GREEN},{t:fSM(aD[i]),c:_PPT.GREEN},{t:fSM(S.mandSvc[i]),c:_PPT.PURP},{t:fSM(aM[i]),c:_PPT.PURP},{t:fSM(aU[i]+Math.max(0,aDl[i])),c:(aU[i]+aDl[i])>0.5?_PPT.RED:_PPT.DIM}]));
+    const allAsk=SVC.map(_=>0), aD=SVC.map(_=>0), aM=SVC.map(_=>0), aU=SVC.map(_=>0);
+    S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return;
+      const uv=unfSvcOf(it,p);
+      SVC.forEach((s,i)=>{allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]; aM[i]+=p.m[i]; aU[i]+=uv[i];});});
+    SVC.forEach((s,i)=>rows.push([{t:s,b:1,c:_PPT.INK,align:'l'},{t:fSM(allAsk[i]),c:_PPT.INK},{t:fSM(S.discSvc[i]),c:_PPT.GREEN},{t:fSM(aD[i]),c:_PPT.GREEN},{t:fSM(S.mandSvc[i]),c:_PPT.PURP},{t:fSM(aM[i]),c:_PPT.PURP},{t:fSM(aU[i]),c:aU[i]>0.5?_PPT.RED:_PPT.DIM}]));
     const sum=a=>a.reduce((x,y)=>x+y,0);
-    rows.push([{t:'TOTAL',b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:fSM(sum(allAsk)),b:1,c:'FFFFFF',...TOTF},{t:fSM(dBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aD)),b:1,c:'FFFFFF',...TOTF},{t:fSM(mBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aM)),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aU)+Math.max(0,sum(aDl))),b:1,c:_PPT.GOLD,...TOTF}]);
+    rows.push([{t:'TOTAL',b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:fSM(sum(allAsk)),b:1,c:'FFFFFF',...TOTF},{t:fSM(dBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aD)),b:1,c:'FFFFFF',...TOTF},{t:fSM(mBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aM)),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aU)),b:1,c:_PPT.GOLD,...TOTF}]);
     slides.push(_pSlide(hdr('Funding by Stream and Service','Lane model: each service exhausts its discretionary lane, then spills to its mandatory lane; trims and beyond-lane amounts are unfunded')+_pTbl(4,MX,1500000,CW,[3,2,2,2,2,2,2.4],rows)));
   }
   // ---- 3: PMO rollup ----
@@ -15738,14 +15776,14 @@ function exportPPT(){
   }
   // ---- 6+: Unfunded requirements ----
   {
-    const uIts=S.order.map(itemById).filter(it=>it&&(T[it.id].uT>0.005||dlt2(it)>0.005))
-      .sort((a,b)=>(T[b.id].uT+dlt2(b))-(T[a.id].uT+dlt2(a)));
-    const totalU=uIts.reduce((a,it)=>a+T[it.id].uT+dlt2(it),0);
+    const uIts=S.order.map(itemById).filter(it=>it&&unf2(it)>0.005)
+      .sort((a,b)=>unf2(b)-unf2(a));
+    const totalU=uIts.reduce((a,it)=>a+unf2(it),0);
     const PAGE=11;
     for(let pg=0; pg*PAGE<uIts.length && pg<3; pg++){
       const chunk=uIts.slice(pg*PAGE,(pg+1)*PAGE);
       const rows=[[{t:'Rank',...H},{t:'PMO',...H,align:'l'},{t:'Requirement',...H,align:'l'},{t:'CCaR',...H,align:'l'},{t:FYL()+' Ask',...H},{t:'Unfunded',...H}]];
-      chunk.forEach(it=>rows.push([{t:''+MR[it.id],c:_PPT.DIM},{t:grpOf(it),c:_PPT.INK,align:'l'},{t:dispTitle(it).slice(0,56),c:_PPT.INK,align:'l'},{t:ccarOf(it)||'—',c:_PPT.AMBER,align:'l'},{t:fSM(askTot(it)),c:_PPT.DIM},{t:fSM(T[it.id].uT+dlt2(it)),b:1,c:_PPT.RED}]));
+      chunk.forEach(it=>rows.push([{t:''+MR[it.id],c:_PPT.DIM},{t:grpOf(it),c:_PPT.INK,align:'l'},{t:dispTitle(it).slice(0,56),c:_PPT.INK,align:'l'},{t:ccarOf(it)||'—',c:_PPT.AMBER,align:'l'},{t:fSM(askTot(it)),c:_PPT.DIM},{t:fSM(unf2(it)),b:1,c:_PPT.RED}]));
       if(pg===Math.min(2,Math.ceil(uIts.length/PAGE)-1)){
         rows.push([{t:'',...TOTF},{t:'',...TOTF},{t:'TOTAL UNFUNDED ('+uIts.length+' items'+(uIts.length>3*PAGE?' — full list in Excel':'')+')',b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:'',...TOTF},{t:'',...TOTF},{t:fSM(totalU),b:1,c:_PPT.GOLD,...TOTF}]);
       }
@@ -15758,7 +15796,7 @@ function exportPPT(){
     S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return;
       const ce=(S.costElem||{})[id]||'— Unassigned —';
       if(!byCE[ce]) byCE[ce]={d:0,m:0,u:0,n:0};
-      const a=byCE[ce]; a.n++; a.d+=p.dT; a.m+=p.mT; a.u+=p.uT+dlt2(it);});
+      const a=byCE[ce]; a.n++; a.d+=p.dT; a.m+=p.mT; a.u+=unf2(it);});
     const keys=[...COST_ELEMS.filter(c=>byCE[c]), ...(byCE['— Unassigned —']?['— Unassigned —']:[])];
     const rows=[[{t:'Cost Element',...H,align:'l'},{t:'Reqs',...H},{t:'Discretionary',...H},{t:'Mandatory',...H},{t:'Unfunded (incl delta)',...H}]];
     keys.forEach(k=>{const a=byCE[k];
@@ -18547,7 +18585,6 @@ function exportExcel(){
   // leaving the column blank
   const itemRowP=(it,amt,svcv)=>[{v:MR[it.id],s:0},grpOf(it),ceOf(it.id),recName(it)||dispTitle(it),dispTitle(it),{v:ccarOf(it),s:1},{v:pidOf(it),s:0},{v:amt,s:N},...svcv.map(v=>({v,s:N}))];
   // portion selectors: [filter, amount, per-svc vector]
-  const dlt=it=> S.fsrc[it.id]? 0 : Math.max(0, askTot(it)-eff(it));   // trims are unfunded too (overridden items: unfunded lives entirely in the UFR part)
   // WHAT THE LANE ENGINE ACTUALLY WORKED FROM. An override runs off the ASK and ignores the
   // board's allocation entirely (see tiers()), so the ask IS the basis for those rows. This column
   // used to show the FUNDED total for overridden rows instead, which made Ask - Allocated
@@ -18568,7 +18605,7 @@ function exportExcel(){
     disc:[p=>p.dT>0.005, p=>p.dT, p=>p.d],
     mc:  [(p,it)=>mcShortOf(it)>0.005, (p,it)=>askTot(it), (p,it)=>it.ask.slice()],
     mand:[p=>p.mT>0.005, p=>p.mT, p=>p.m],
-    unf: [(p,it)=>p.uT>0.005||dlt(it)>0.005, (p,it)=>p.uT+dlt(it), (p,it)=>SVC.map((s,i)=>it.ask[i]-p.d[i]-p.m[i])]};
+    unf: [(p,it)=>unfTotOf(it,p)>0.005, (p,it)=>unfTotOf(it,p), (p,it)=>unfSvcOf(it,p)]};
   const AMTLBL={disc:'Disc portion',mc:'MC requirement (memo — not additive)',mand:'Mand portion',unf:'Total Unfunded (delta + beyond lanes)'};
   // MISSION CRITICAL IS MEASURED AGAINST THE DISCRETIONARY LANE ALONE.
   // Discretionary is the money that is actually coming; mandatory does not offset a must-fund
@@ -18633,15 +18670,22 @@ function exportExcel(){
     SVC.forEach((s,i)=>{allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=p.u[i]; allAsk[i]+=it.ask[i]; allSv[i]+= ov? (p.d[i]+p.m[i]) : sv[i];});
   });
   const dltSvc=(()=>{ const v=SVC.map(_=>0);
-    S.order.forEach(id=>{ const it=itemById(id); if(!it||S.fsrc[id]) return; const sv=svcAlloc(it); SVC.forEach((s,i)=>v[i]+=it.ask[i]-sv[i]); });
+    S.order.forEach(id=>{ const it=itemById(id); if(!it) return; trimSvcOf(it).forEach((x,i)=>v[i]+=x); });
     return v; })();                                          // ask not allocated (overridden items excluded — their gap is already UFR)
-  const unfSvc=SVC.map((s,i)=>allU[i]+dltSvc[i]);            // total unfunded incl deltas
+  // Summed from the per-service figures, not from allU + the trim: those two net an over-allocated
+  // service against a short one. beyondSvc + dltSvc == unfSvc per service, by construction.
+  const beyondSvc=(()=>{ const v=SVC.map(_=>0);
+    S.order.forEach(id=>{ const it=itemById(id); if(!it) return; beyondSvcOf(it,T[id]).forEach((x,i)=>v[i]+=x); });
+    return v; })();
+  const unfSvc=(()=>{ const v=SVC.map(_=>0);
+    S.order.forEach(id=>{ const it=itemById(id); if(!it) return; unfSvcOf(it,T[id]).forEach((x,i)=>v[i]+=x); });
+    return v; })();
   const baBlock=rows=>{
     rows.push([{v:'BUDGET AUTHORITY',s:SEC},...SVC.flatMap((s,i)=>[{v:S.discSvc[i],s:NB},{v:S.mandSvc[i],s:NB}]),{v:discTot(),s:NB},{v:mandTot(),s:NB},'']);
     rows.push([{v:'REMAINING (lanes)',s:B},...SVC.flatMap((s,i)=>[{v:Math.max(0,T.__rem.dRem[i]),s:N},{v:Math.max(0,T.__rem.mRem[i]),s:N}]),
       {v:T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},{v:T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},'']);
-    rows.push([{v:'UNFUNDED (beyond both lanes)',s:B},...SVC.flatMap((s,i)=>[{v:allU[i],s:allU[i]>0.5?NR:N},'']),
-      {v:allU.reduce((a,b)=>a+b,0),s:allU.some(v=>v>0.5)?NR:NB},'','']);
+    rows.push([{v:'UNFUNDED (beyond both lanes)',s:B},...SVC.flatMap((s,i)=>[{v:beyondSvc[i],s:beyondSvc[i]>0.5?NR:N},'']),
+      {v:beyondSvc.reduce((a,b)=>a+b,0),s:beyondSvc.some(v=>v>0.5)?NR:NB},'','']);
     rows.push([{v:'ASK NOT ALLOCATED (trim deltas)',s:B},...SVC.flatMap((s,i)=>[{v:dltSvc[i],s:N},'']),
       {v:dltSvc.reduce((a,b)=>a+b,0),s:NB},'','']);
     rows.push([{v:'TOTAL UNFUNDED (deltas + beyond lanes)',s:B},...SVC.flatMap((s,i)=>[{v:unfSvc[i],s:unfSvc[i]>0.5?NR:N},'']),
@@ -18708,12 +18752,12 @@ function exportExcel(){
   SVC.forEach((s,i)=>{
     fs.rows.push([s,{v:allAsk[i],s:N},{v:S.discSvc[i],s:N},{v:allD[i],s:N},{v:Math.max(0,T.__rem.dRem[i]),s:N},
       {v:S.mandSvc[i],s:N},{v:allM[i],s:N},{v:Math.max(0,T.__rem.mRem[i]),s:N},
-      {v:allD[i]+allM[i],s:NB},{v:dltSvc[i],s:N},{v:allU[i],s:allU[i]>0.5?NR:N},{v:unfSvc[i],s:unfSvc[i]>0.5?NR:N}]);
+      {v:allD[i]+allM[i],s:NB},{v:dltSvc[i],s:N},{v:beyondSvc[i],s:beyondSvc[i]>0.5?NR:N},{v:unfSvc[i],s:unfSvc[i]>0.5?NR:N}]);
   });
   const sum=a=>a.reduce((x,y)=>x+y,0);
   fs.rows.push([{v:'TOTAL',s:SEC},{v:sum(allAsk),s:NB},{v:discTot(),s:NB},{v:sum(allD),s:NB},{v:T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},
     {v:mandTot(),s:NB},{v:sum(allM),s:NB},{v:T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},
-    {v:sum(allD)+sum(allM),s:NB},{v:sum(dltSvc),s:NB},{v:sum(allU),s:sum(allU)>0.5?NR:NB},{v:sum(unfSvc),s:sum(unfSvc)>0.5?NR:NB}]);
+    {v:sum(allD)+sum(allM),s:NB},{v:sum(dltSvc),s:NB},{v:sum(beyondSvc),s:sum(beyondSvc)>0.5?NR:NB},{v:sum(unfSvc),s:sum(unfSvc)>0.5?NR:NB}]);
   fs.rows.push([]);
   fs.rows.push(['LANE MODEL: each service draws its own discretionary lane first, then spills into its mandatory lane. Deltas (Ask − Allocation) are trims made on the board — they are unfunded requirements too and are included in TOTAL UNFUNDED.']);
   fs.rows.push([]);
@@ -18730,21 +18774,22 @@ function exportExcel(){
     +'the topline you are counting on. These figures are a memo over requirements and are already '
     +'inside the lane columns above \u2014 do not add them to a lane total.']);
   // --- Unfunded Requirements listing (lane shortfalls + ask-vs-alloc deltas) ---
-  const uIts=S.order.map(itemById).filter(it=>it&&(T[it.id].uT>0.005||dlt(it)>0.005));
+  const uIts=S.order.map(itemById).filter(it=>it&&unfTotOf(it,T[it.id])>0.005);
   const uSheet={name:'Unfunded Requirements', cols:[8,10,22,44,44,13,17,14,14,14,14,14,...SVC.map(_=>13)],
     rows:[[{v:'Unfunded requirements  —  '+uIts.length+' items (allocation trims count as unfunded)',s:TI}],[],
-      [{v:'Rank',s:H},{v:'PMO',s:H},{v:'Cost Element',s:H},{v:'Requirement (CCaR Record Name)',s:H},{v:'Plan Event',s:H},{v:'CCaR',s:H},{v:'PID',s:H},{v:FYL()+' Ask',s:H},{v:'Allocated',s:H},{v:'Delta (Ask−Alloc)',s:H},{v:'Beyond Both Lanes',s:H},{v:'TOTAL Unfunded',s:H},...SVC.map(s=>({v:'Unf '+s,s:H}))]]};
+      [{v:'Rank',s:H},{v:'PMO',s:H},{v:'Cost Element',s:H},{v:'Requirement (CCaR Record Name)',s:H},{v:'Plan Event',s:H},{v:'CCaR',s:H},{v:'PID',s:H},{v:FYL()+' Ask',s:H},{v:'Allocated',s:H},{v:'Trim, by service',s:H},{v:'Beyond Both Lanes',s:H},{v:'TOTAL Unfunded',s:H},...SVC.map(s=>({v:'Unf '+s,s:H}))]]};
   uIts.forEach(it=>{
-    const p=T[it.id], d=S.fsrc[it.id]? 0 : askTot(it)-eff(it), tu=p.uT+Math.max(0,d);
+    // Trim + Beyond == TOTAL Unfunded on every row, and the per-service columns add to that total.
+    const p=T[it.id], d=trimTotOf(it), by=beyondTotOf(it,p), tu=unfTotOf(it,p);
     uSheet.rows.push([{v:MR[it.id],s:0},grpOf(it),ceOf(it.id),recName(it)||dispTitle(it),dispTitle(it),{v:ccarOf(it),s:1},{v:pidOf(it),s:0},
-      {v:askTot(it),s:N},{v:aOf(it),s:N},{v:d,s:d>0.5?NR:N},{v:p.uT,s:p.uT>0.5?NR:N},{v:tu,s:NB},
-      ...SVC.map((s,i)=>({v:it.ask[i]-p.d[i]-p.m[i],s:N}))]);
+      {v:askTot(it),s:N},{v:aOf(it),s:N},{v:d,s:d>0.5?NR:N},{v:by,s:by>0.5?NR:N},{v:tu,s:NB},
+      ...unfSvcOf(it,p).map(v=>({v,s:N}))]);
   });
   uSheet.rows.push([{v:'TOTAL',s:B},'','','','','','',
     {v:uIts.reduce((a,it)=>a+askTot(it),0),s:NB},{v:uIts.reduce((a,it)=>a+aOf(it),0),s:NB},
-    {v:uIts.reduce((a,it)=>a+dlt(it),0),s:NB},{v:uIts.reduce((a,it)=>a+T[it.id].uT,0),s:NB},
-    {v:uIts.reduce((a,it)=>a+T[it.id].uT+dlt(it),0),s:NB},
-    ...SVC.map((s,i)=>({v:uIts.reduce((a,it)=>a+it.ask[i]-T[it.id].d[i]-T[it.id].m[i],0),s:NB}))]);
+    {v:uIts.reduce((a,it)=>a+trimTotOf(it),0),s:NB},{v:uIts.reduce((a,it)=>a+beyondTotOf(it,T[it.id]),0),s:NB},
+    {v:uIts.reduce((a,it)=>a+unfTotOf(it,T[it.id]),0),s:NB},
+    ...SVC.map((s,i)=>({v:uIts.reduce((a,it)=>a+unfSvcOf(it,T[it.id])[i],0),s:NB}))]);
   // --- FY27 Spend Plan Forecast ($M, 2dp) ---
   const N2=10, NB2=11;
   const fcHdr=[{v:'',s:H},...FYMON.map(([k,l])=>({v:l,s:H})),{v:'UNSCH',s:H},{v:'TOTAL',s:H}];
@@ -18837,9 +18882,11 @@ function exportExcel(){
       const p=T[it.id];
       const d=SVC.map((x,i)=>p.d[i]), m=SVC.map((x,i)=>p.m[i]);
       const fn=SVC.map((x,i)=>p.d[i]+p.m[i]);
-      const uf=SVC.map((x,i)=>Math.max(0,it.ask[i]-p.d[i]-p.m[i]));
+      const uf=unfSvcOf(it,p);
       const ask=askTot(it), fT=p.dT+p.mT;
-      return {d,m,fn,uf,ask,dT:p.dT,mT:p.mT,fT,uT:Math.max(0,ask-fT)};
+      // The total is the SUM of the per-service figures, not the totals differenced: those net an
+      // over-allocated service against a short one.
+      return {d,m,fn,uf,ask,dT:p.dT,mT:p.mT,fT,uT:uf.reduce((a,b)=>a+b,0)};
     };
     const zero=()=>({d:SVC.map(_=>0),m:SVC.map(_=>0),fn:SVC.map(_=>0),uf:SVC.map(_=>0),ask:0,dT:0,mT:0,fT:0,uT:0});
     const add=(a,b)=>{ SVC.forEach((x,i)=>{a.d[i]+=b.d[i];a.m[i]+=b.m[i];a.fn[i]+=b.fn[i];a.uf[i]+=b.uf[i];});
@@ -19273,7 +19320,7 @@ function exportExcel(){
         const ask=SVC.reduce((x,sv,i)=>x+it.ask[i]*w(i),0);
         const dv =SVC.reduce((x,sv,i)=>x+p.d[i]*w(i),0);
         const mv =SVC.reduce((x,sv,i)=>x+p.m[i]*w(i),0);
-        const uv =SVC.reduce((x,sv,i)=>x+(it.ask[i]-p.d[i]-p.m[i])*w(i),0);
+        const uv =SVC.reduce((x,sv,i)=>x+unfSvcOf(it,p)[i]*w(i),0);
         const mcs=S.mc[id]? SVC.reduce((x,sv,i)=>x+mcShortSvc(it)[i]*w(i),0) : 0;
         if(!byP[g]) byP[g]={tot:{n:0,ask:0,disc:0,mc:0,mcs:0,mand:0,unf:0},ce:{}};
         if(!byP[g].ce[ce]) byP[g].ce[ce]={n:0,ask:0,disc:0,mc:0,mcs:0,mand:0,unf:0};
