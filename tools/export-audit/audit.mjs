@@ -89,6 +89,16 @@ const SCENARIOS = {
     order: ['A'], mc: { A: true },
     alloc: { A: { m: 's', v: [30, 10] } },
   },
+  // Over-allocated in one service, short in another. The two readings of the shortage formula
+  // diverge only here: money is not fungible across services, so an over-allocation on STOVL
+  // must not mask a shortage on CV.
+  'mc over-allocated one service': {
+    services: ['STOVL', 'CV'],
+    items: [it('A', 'ATL', [40, 30])],
+    disc: [100, 50], mand: [0, 0],
+    order: ['A'], mc: { A: true },
+    alloc: { A: { m: 's', v: [60, 5] } },
+  },
   // Nothing funded at all: every dollar must land in unfunded.
   'zero budget': {
     services: SVC3,
@@ -164,14 +174,28 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'PMO Matrix', `sum of PMO rows == board Mand [${s}]`,
       sum(pmoRows.map(r => num(r[2 + i * 2]))), allM[i]);
   });
+  // ---- THE TWO STATED RULES, asserted verbatim ------------------------------------------------
+  //   MC Total    = sum of MC-designated requirement/ask values
+  //   MC shortage = requirement/ask value - discretionary allocated   (per service; mandatory
+  //                 is never netted off, and an over-allocation in one service cannot mask a
+  //                 shortage in another)
+  chk(name, 'RULE', 'MC Total == sum of MC requirement/ask values',
+    sum(pmoRows.map(r => num(r[r.length - 2]))), mcIds.reduce((a, id) => a + askOf(id), 0));
+  chk(name, 'RULE', 'MC shortage == ask value - discretionary allocated',
+    sum(pmoRows.map(r => num(r[r.length - 1]))),
+    mcIds.reduce((a, id) => a + sum(SVC.map((s, i) =>
+      Math.max(0, sc.items.find(x => x.id === id).ask[i] - T[id].d[i]))), 0));
   chk(name, 'PMO Matrix', 'sum of PMO rows == MC memo (requirement value)',
     sum(pmoRows.map(r => num(r[r.length - 2]))), mcMemo);
   const mcShortAll = mcIds.reduce((a, id) => a + mcShortOf[id], 0);
   chk(name, 'PMO Matrix', 'sum of PMO rows == MC short vs discretionary',
     sum(pmoRows.map(r => num(r[r.length - 1]))), mcShortAll);
-  // the gap must ignore mandatory entirely
+  // The gap must ignore mandatory entirely. Floored PER SERVICE, not once on the totals:
+  // money is not fungible across services, so being over-allocated on one cannot pay down a
+  // shortage on another. The two readings agree on any board without an over-allocation.
   chk(name, 'PMO Matrix', 'MC short == value - discretionary drawn (mandatory ignored)',
-    mcShortAll, mcIds.reduce((a, id) => a + Math.max(0, askOf(id) - T[id].dT), 0));
+    mcShortAll, mcIds.reduce((a, id) => a + sum(SVC.map((s, i) =>
+      Math.max(0, sc.items.find(x => x.id === id).ask[i] - T[id].d[i]))), 0));
   // THE ANTI-DOUBLE-COUNT CHECK: the lanes alone must account for every requirement dollar,
   // with MC sitting outside them.
   chk(name, 'PMO Matrix', 'Disc + Mand across PMO rows == funded dollars',

@@ -58,8 +58,16 @@ that is actually coming; mandatory does not cover a must-fund commitment and is 
 it. So:
 
 ```
-MC shortfall  =  requirement value  -  discretionary drawn      (mandatory ignored)
+MC Total     =  sum of MC-designated requirement/ask values
+MC shortage  =  requirement/ask value  -  discretionary allocated     (mandatory ignored)
 ```
+
+These two are the stated rules and are asserted verbatim in the audit under the `RULE` label.
+Change them only on an explicit instruction, and update those checks in the same commit.
+
+The shortage is floored **per service**, not once on the totals: money is not fungible across
+services, so being over-allocated on one service cannot pay down a shortage on another. The two
+readings agree on any board with no over-allocation.
 
 A starred requirement carried entirely by the mandatory lane is **fully short**. A starred
 requirement trimmed on the board is short by the trim, even if discretionary covered the trimmed
