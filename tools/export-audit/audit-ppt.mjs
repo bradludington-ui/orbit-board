@@ -84,6 +84,15 @@ const SCENARIOS = {
     order: ['A', 'B'], mc: { B: true },
     alloc: { B: { m: 't', v: 0 } },
   },
+  // A CLIN-backed prime split across offices, including a service no CLIN covers (whose residual
+  // goes to PRIMES -- an office that is NOT on the configured GROUPS list).
+  'prime clin split': {
+    services: ['STOVL', 'USMC CV', 'CTOL'],
+    items: [mk('PRIME-3', 'PRIMES', [90, 10, 20]), mk('A', 'ATL', [40, 20, 10]), mk('B', 'PSM', [30, 25, 5])],
+    disc: [100, 25, 15], mand: [40, 20, 10],
+    order: ['PRIME-3', 'A', 'B'], mc: { B: true, 'PRIME-3': true },
+    clins: { 'PRIME-3': [{ clin: '0010', ask: [90, 0, 0] }, { clin: '0002', ask: [0, 10, 0] }] },
+  },
   'cost elements': {
     services: SVC3,
     items: [mk('A', 'ATL', [50, 20, 10]), mk('B', 'PSM', [40, 30, 5]), mk('C', 'AV', [30, 10, 20])],
@@ -96,6 +105,7 @@ const SCENARIOS = {
 
 for (const [name, sc] of Object.entries(SCENARIOS)) {
   const { ev, errors } = boot();
+  if (sc.clins) ev(`DATA.clins = ${JSON.stringify(sc.clins)};`);
   if (sc.costElems) ev(`DATA.costElems = true;`);
   seed(ev, sc);
   if (sc.costElem) ev(`S.costElem = ${JSON.stringify(sc.costElem)};`);
@@ -146,6 +156,36 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       chk(name, 'Funding by Stream', `${s} Unfunded floored per service`, cellText(r[6]),
         fSM(ids.reduce((a, id) => a + Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]), 0)));
     });
+  }
+
+  // ---- the PMO rollup slide: must reconcile with the workbook's PMO Matrix ----
+  {
+    const pmo = tables.find(t => t && t.some(r => String(cellText(r[0])) === 'PMO'));
+    if (!pmo) {
+      failures.push({ scenario: name, slide: 'PMO rollup', what: 'slide missing', got: 'none', want: 'a slide' });
+    } else {
+      const tr = pmo.find(r => String(cellText(r[0])) === 'TOTAL');
+      const rows = pmo.filter(r => !['PMO', 'TOTAL'].includes(String(cellText(r[0]))));
+      chk(name, 'PMO rollup', 'TOTAL ask == board ask', cellText(tr[2]), fSM(sum(allAsk)));
+      chk(name, 'PMO rollup', 'TOTAL discretionary == board discretionary', cellText(tr[3]), fSM(sum(allD)));
+      chk(name, 'PMO rollup', 'TOTAL mandatory == board mandatory', cellText(tr[4]), fSM(sum(allM)));
+      const unfAll = ids.reduce((a, id) => a + sum(SVC.map((s, i) =>
+        Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]))), 0);
+      chk(name, 'PMO rollup', 'TOTAL unfunded == per-service floored unfunded', cellText(tr[5]), fSM(unfAll));
+      chk(name, 'PMO rollup', 'TOTAL ★ MC req == sum of MC ask values', cellText(tr[6]), fSM(mcTotalRule));
+      chk(name, 'PMO rollup', 'TOTAL ★ MC short == ask - discretionary allocated', cellText(tr[7]), fSM(mcShortRule));
+      // a requirement split across offices must not inflate the count
+      chk(name, 'PMO rollup', 'TOTAL Reqs == requirements on the board, not the sum of rows',
+        cellText(tr[1]), String(ids.length));
+      // and every office's dollars must be in the table: the rows have to add to the total
+      const parseM = t => { const x = String(t).replace(/[$,]/g, '').trim();
+        if (x === '—' || x === '') return 0;
+        return parseFloat(x) * (/M$/i.test(x) ? 1e6 : /K$/i.test(x) ? 1e3 : 1); };
+      chk(name, 'PMO rollup', 'rows add to the TOTAL discretionary',
+        fSM(sum(rows.map(r => parseM(cellText(r[3]))))), cellText(tr[3]));
+      chk(name, 'PMO rollup', 'rows add to the TOTAL ask',
+        fSM(sum(rows.map(r => parseM(cellText(r[2]))))), cellText(tr[2]));
+    }
   }
 
   // ---- the Mission Critical slide ----

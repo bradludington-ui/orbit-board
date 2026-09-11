@@ -100,8 +100,15 @@ this, so the tabs reconcile against each other.
 
 `GROUPS` is the *configured* PMO list and is not the whole truth: `pmoSharesOf` can derive `PRIMES`
 from a CLIN suffix, and a PMO removed from the list leaves its requirements behind. Never iterate
-`GROUPS` alone to emit rows — use `pmoKeys()` in the export (configured order first, anything else
-appended) or the same shape as `ppbePmoKeys()`.
+`GROUPS` alone to emit rows — use `pmoKeys()`, which puts the configured offices first and appends
+anything else rather than losing it.
+
+A requirement split across offices is counted in **each** row it touches, so a by-PMO count column
+must total the requirements on the board, not the sum of its own rows — otherwise a prime split
+three ways reads as three requirements.
+
+One implementation each, all hoisted beside `mcCalc()` so the workbook, the deck and the board
+cannot diverge: `pmoKeys()`, `mcShortSvcOf()`, `unfSvcOf()`, `beyondSvcOf()`, `trimSvcOf()`.
 
 ### Auditing the exports
 
@@ -166,7 +173,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 
 ## Hand-edit points
 
-These were templated per board by the build script. Line numbers are as of `v1.28`; find them
+These were templated per board by the build script. Line numbers are as of `v1.29`; find them
 by symbol name, not by number.
 
 | What | Symbol | ~Line |
