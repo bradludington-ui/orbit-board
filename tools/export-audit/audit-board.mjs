@@ -404,6 +404,37 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'unscheduled', `${svc}: discretionary not on a date shows as UNSCHEDULED`,
       Math.round(r.unsch[i]), Math.round(r.d[i] - wsum));
   });
+
+  // THE BOARD'S OWN SPREAD IS LITERAL; A MODELLED PLAN'S IS NOT. forecast() bare spreads what the
+  // board actually funds, so an increment is the dollars typed. forecast(fundOf) spreads a
+  // hypothetical plan whose dollars are NOT the ones the increments were sized against, so there
+  // they can only carry the SHAPE. Treating both the same stranded most of Plan B in UNSCHEDULED.
+  const f = JSON.parse(ev(`
+    (function(){
+      var bare = forecast();
+      var T = tiers();
+      // a modelled plan: the same order funded against a larger topline
+      var modelled = forecast(function(id){
+        var r = T[id]; if(!r) return null;
+        var got = SVC.map(function(s,i){ return (r.d[i]||0)+(r.m[i]||0); });
+        return {d:got, m:SVC.map(function(){return 0;}),
+                dT:got.reduce(function(a,b){return a+b;},0), mT:0};
+      });
+      var pick = function(f2){ var k = Object.keys(f2.byPMO)[0]; var b = f2.byPMO[k];
+        return {m:b.m.filter(function(v){return v>0.5;}), unsch:b.unsch, tot:b.tot}; };
+      return JSON.stringify({bare:pick(bare), modelled:pick(modelled)});
+    })()`));
+
+  chk(name, 'literal vs modelled', 'the board\'s own spread holds back unscheduled discretionary',
+    f.bare.unsch > 0.5 ? 'held' : 'none', 'held');
+  chk(name, 'literal vs modelled', 'a modelled plan schedules all of its topline',
+    Math.round(f.modelled.unsch), 0);
+  chk(name, 'literal vs modelled', 'a modelled plan keeps the increments\' SHAPE',
+    +(f.modelled.m[0] / (f.modelled.m[0] + f.modelled.m[1])).toFixed(4),
+    +(r.inc[0].reduce((a, b) => a + b, 0)
+      / (r.inc[0].reduce((a, b) => a + b, 0) + r.inc[1].reduce((a, b) => a + b, 0))).toFixed(4));
+  chk(name, 'literal vs modelled', 'both conserve their own total',
+    Math.round(f.modelled.m.reduce((a, b) => a + b, 0) + f.modelled.unsch), Math.round(f.modelled.tot));
 }
 
 console.log('\n' + '='.repeat(96));

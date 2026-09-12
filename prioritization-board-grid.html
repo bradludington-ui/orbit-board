@@ -1212,7 +1212,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.37 (12 Sep 2026)';
+const BUILD='v1.38 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -5910,6 +5910,13 @@ function forecast(fundOf){
   // when a dollar lands. Called with nothing it is exactly what it always was.
   const T=tiers();
   const fund = fundOf || function(id){ return T[id]; };
+  // AN INCREMENT IS DOLLARS ONLY AGAINST THE BOARD'S OWN ALLOCATION. Called bare, this spreads what
+  // the board actually funds, so the increments are the discretionary dollars the user typed and
+  // land as typed. Called with a fundOf override it is spreading a MODELLED plan — a different,
+  // hypothetical set of dollars — and the increments can only describe the SHAPE of that schedule,
+  // not its amounts. Treating them as dollars there stranded most of Plan B in UNSCHEDULED, because
+  // increments sized to discretionary cannot fill a topline that also includes mandatory.
+  const literal = !fundOf;
   const mi={}; FYMON.forEach(([k],i)=>mi[k]=i);
   const mk=()=>({m:FYMON.map(_=>0), unsch:0, tot:0});
   const byPMO={}, roll={};
@@ -5922,12 +5929,26 @@ function forecast(fundOf){
         // PER-SERVICE: each service's funded dollars spread by that service's own increment amounts
         let placed=false;
         SVC.forEach((s,i)=>{
-          const fsv=p.d[i]+p.m[i];
+          const dsv=p.d[i]||0, msv=p.m[i]||0, fsv=dsv+msv;
           if(fsv<=0) return;
           const w=aw.inc.map(x=>Array.isArray(x.sv)? (x.sv[i]||0) : ((x.v||0)/SVC.length));
           const wsum=w.reduce((a,b)=>a+b,0);
           if(wsum>0){
-            aw.inc.forEach((x,j)=>{ const k=mi[x.d]; const amt=fsv*w[j]/wsum; if(k===undefined) bag.unsch+=amt; else bag.m[k]+=amt; });
+            // SAME RULE AS monSpreadOf, and it has to stay that way: an increment is DISCRETIONARY
+            // dollars placed as typed, mandatory rides the same dates in the same proportions, and
+            // discretionary not yet on a date is UNSCHEDULED rather than inflated into the months.
+            // Two copies of this spread exist on purpose (this one takes a fundOf override); the
+            // moment they disagree the workbook disagrees with itself about when a dollar lands.
+            const dScale = literal? (wsum>dsv? (dsv/wsum) : 1) : (dsv/wsum);
+            let dPlaced=0;
+            aw.inc.forEach((x,j)=>{
+              const k=mi[x.d];
+              const dAmt=w[j]*dScale, mAmt=msv*w[j]/wsum;
+              dPlaced+=dAmt;
+              if(k===undefined) bag.unsch+=dAmt+mAmt; else bag.m[k]+=dAmt+mAmt;
+            });
+            // Only a literal spread can leave a remainder; a weighted one has placed all of it.
+            if(literal) bag.unsch+=Math.max(0, dsv-dPlaced);
             placed=true;
           } else bag.unsch+=fsv;
         });
