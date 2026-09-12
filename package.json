@@ -3,13 +3,17 @@
   "private": true,
   "description": "Tooling for the SPMT prioritization board. The board itself has no dependencies; these are for checks only.",
   "scripts": {
-    "check": "node tools/check.mjs",
+    "check": "npm run check:card --silent && npm run check:grid --silent && npm run parity --silent",
     "audit:export": "node tools/export-audit/audit.mjs",
     "audit:ppt": "node tools/export-audit/audit-ppt.mjs",
     "audit:other": "node tools/export-audit/audit-other.mjs",
     "audit": "npm run audit:export && npm run audit:ppt && npm run audit:other",
     "mutate": "node tools/export-audit/mutate.mjs",
-    "shoot": "node tools/export-audit/shoot.mjs"
+    "shoot": "node tools/export-audit/shoot.mjs",
+    "check:card": "node tools/check.mjs prioritization-board.html",
+    "check:grid": "node tools/check.mjs prioritization-board-grid.html",
+    "parity": "node tools/parity.mjs",
+    "audit:grid": "BOARD=prioritization-board-grid.html npm run audit --silent"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"
