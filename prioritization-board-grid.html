@@ -258,7 +258,7 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 /* The inspector is a second view of the SELECTED row, not a second copy of the data: everything in
    it calls the same accessors the row does, so there is no path by which the two can disagree.
    Below 1400px there is no room for both, and the row already carries every control, so it goes. */
-.gridsplit{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:10px;align-items:start}
+.gridsplit{display:grid;grid-template-columns:minmax(0,1fr) clamp(360px,25vw,470px);gap:10px;align-items:start}
 .inspector{background:var(--panelA);border:1px solid var(--line);border-radius:9px;position:sticky;top:calc(var(--hdrH,56px) + var(--tbarH,32px) + var(--scsH,0px) + 8px);max-height:calc(100vh - var(--hdrH,56px) - var(--tbarH,32px) - var(--scsH,0px) - 16px);overflow:auto;font-size:11px}
 .insp-hd{display:flex;align-items:center;gap:8px;padding:7px 11px;border-bottom:1px solid var(--line2);background:var(--panel2);position:sticky;top:0}
 .insp-hd b{font-size:10px;letter-spacing:.13em}
@@ -271,8 +271,11 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-f.big .fv{font-size:16px;font-weight:800}
 .insp-f.empty{border-style:dashed;color:var(--dim)}
 .insp-lbl{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);font-weight:800;margin:10px 0 4px}
-.insp-svc{display:flex;gap:6px}
-.insp-svc>div{flex:1;background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:5px 7px;min-width:0}
+.insp-svc{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
+.insp-svc>div{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:5px 7px;min-width:0}
+.insp-svc .fl{overflow-wrap:anywhere}
+.insp-svc .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.insp-f .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .insp-empty{padding:26px 16px;text-align:center;color:var(--dim);font-size:11px;line-height:1.6}
 .insp-kbd{font:10px ui-monospace,Menlo,monospace;background:var(--panel);border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--mut)}
 @media (max-width:1400px){.gridsplit{grid-template-columns:1fr}.inspector{display:none}}
@@ -1192,7 +1195,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.32 (12 Sep 2026)';
+const BUILD='v1.33 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14388,10 +14391,11 @@ function rowChipsHtml(it){
   const FLBL={disc:'\u2699 DISCRETIONARY', mand:'\u2699 MANDATORY', ufr:'\u2699 UFR',
               split:'\u2699 SPLIT D/M/UFR'};
   h+=chipPick('fund', id, fs? (FLBL[fs.m]||'\u2699 set') : '+ funding', fs? fs.m : '',
+      // Force DISCRETIONARY / MANDATORY / UFR were removed on request: sending a whole requirement
+      // to one lane is the blunt version of what Split does properly, and the split is how the
+      // money is actually decided. tiers() still HONOURS a legacy force setting so no existing
+      // board changes its numbers, and the chip still shows one — it just cannot be chosen again.
       [{v:'', n:'\u2014 funding: auto (lanes) \u2014'},
-       {v:'disc', n:'Force DISCRETIONARY'},
-       {v:'mand', n:'Force MANDATORY'},
-       {v:'ufr',  n:'Force UFR (unfunded)'},
        {v:'split',n:'Split D / M / UFR\u2026'}],
       'setFsrc', 'funding source \u2014 override the automatic lane draw for this requirement',
       'var(--gold)');
@@ -19720,7 +19724,8 @@ function inspectorBody(){
         + (S.mc[id] ? '\u2605 MC' : '\u2606 not MC') + '</span>'
       + '<span class="rchip">' + esc(grpOf(it)) + '</span>'
       + '</div>'
-    + rowChipsHtml(it)
+    + (function(){ const keep = rowChipId; rowChipId = null;
+         const html = rowChipsHtml(it); rowChipId = keep; return html; })()
     + '<div class="insp-g">'
       + inspField(FYL() + ' requirement', fM(askTot(it)), 'big')
       + inspField('Allocated', fM(dT + mT), 'big')

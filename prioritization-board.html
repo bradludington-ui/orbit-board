@@ -1131,7 +1131,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.32 (12 Sep 2026)';
+const BUILD='v1.33 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14324,10 +14324,11 @@ function rowChipsHtml(it){
   const FLBL={disc:'\u2699 DISCRETIONARY', mand:'\u2699 MANDATORY', ufr:'\u2699 UFR',
               split:'\u2699 SPLIT D/M/UFR'};
   h+=chipPick('fund', id, fs? (FLBL[fs.m]||'\u2699 set') : '+ funding', fs? fs.m : '',
+      // Force DISCRETIONARY / MANDATORY / UFR were removed on request: sending a whole requirement
+      // to one lane is the blunt version of what Split does properly, and the split is how the
+      // money is actually decided. tiers() still HONOURS a legacy force setting so no existing
+      // board changes its numbers, and the chip still shows one — it just cannot be chosen again.
       [{v:'', n:'\u2014 funding: auto (lanes) \u2014'},
-       {v:'disc', n:'Force DISCRETIONARY'},
-       {v:'mand', n:'Force MANDATORY'},
-       {v:'ufr',  n:'Force UFR (unfunded)'},
        {v:'split',n:'Split D / M / UFR\u2026'}],
       'setFsrc', 'funding source \u2014 override the automatic lane draw for this requirement',
       'var(--gold)');
