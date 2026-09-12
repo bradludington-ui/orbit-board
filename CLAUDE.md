@@ -1,8 +1,40 @@
 # SPMT — Sustainment Portfolio Management Tool
 
-`prioritization-board.html` is a single self-contained HTML application: the FY27 Consolidated
-Prioritization Board. One file, ~19,500 lines, 2.79 MB, no dependencies of any kind. It runs from a
-shared drive or a `file://` URL on machines with no internet route.
+A single self-contained HTML application: the FY27 Consolidated Prioritization Board. One file,
+~19,500 lines, 2.8 MB, no dependencies of any kind. It runs from a shared drive or a `file://` URL
+on machines with no internet route.
+
+## There are TWO builds, and they must not diverge
+
+| File | Look | Default theme |
+|---|---|---|
+| `prioritization-board.html` | cards — one panel per requirement | Midnight |
+| `prioritization-board-grid.html` | grid + docked inspector | Harbor |
+
+They are the same application. Everything except presentation — lanes, Mission Critical,
+per-service flooring, every export — **must stay byte-identical**, because two copies of a
+19,500-line file will otherwise drift and someone will brief the wrong number.
+
+`tools/parity.mjs` enforces that. It extracts every top-level function from both files and diffs
+them by name; anything that differs has to be named in `tools/parity-allow.json` with a reason.
+`npm run check` runs it. **If you change one build, change the other** — or if the difference is
+genuinely presentational, allowlist it and say why.
+
+The grid build's additions are all *appended*, never *edited in*. In particular the inspector hangs
+off `render()` by wrapping it:
+
+```js
+const _renderCards = render;
+render = function(){ _renderCards.apply(this, arguments); gridAfterRender(); };
+```
+
+That is on purpose. `render()` stays byte-identical in both builds, so a change to the card build's
+row template copies straight across with no merge. Keep it that way — the moment you edit
+`render()` in the grid build, every future change costs a hand-merge.
+
+Moving data between the two is the existing **File → Import**, which already reads another board's
+`.html` and lifts its state out. They also share their `localStorage` key, so a draft shows up in
+whichever one you open.
 
 ## This file is the source of truth
 
@@ -22,6 +54,7 @@ Two consequences:
 ## Before every commit
 
 ```
+npm run check          # invariants over BOTH builds, then parity between them
 node tools/check.mjs
 ```
 
@@ -229,7 +262,7 @@ evaluating, and a `const` declared below its reader is a dead-zone throw that ki
 
 | Region | Lines | Contents |
 |---|---|---|
-| CSS | 6–518 | Four themes as CSS token sets: default, `navy`, `parchment`, `blueprint` |
+| CSS | 6–545 | Five themes as CSS token sets: default, `navy`, `parchment`, `blueprint`, `harbor` |
 | Theme bootstrap | 519–530 | Applies the saved theme before the body paints, to avoid a flash |
 | Body | 532–878 | 153 IDs — header, toolbars, panels, drawers |
 | `pubState` | 878 | Saved state. `null` in this repo, always |
@@ -252,6 +285,31 @@ Two embedded Office templates, both base64, both generated-code regions — do n
 - **15412–15576** — a minimal XLSX writer with its own stylesheet.
 
 The XLSX reader uses the browser's native `DecompressionStream`; there is no zip library.
+
+## Colour: one token, one job
+
+Two tokens were each doing two jobs, and both only showed up when a light theme arrived:
+
+- `--red` was the unfunded **data** lane *and* the alarm **status**. Unfunded is now `--unf`/`--unfD`.
+- `--onGold` was text on the gold accent fill *and* text on the fixed `GCOLOR` pastel PMO chips.
+  Chip text is now `--onChip`, set once in `:root` and deliberately never overridden — those
+  pastels are theme-independent and always light, so the text on them is dark in every theme.
+
+If you find yourself tuning a token for one context and breaking another, that is the signal to
+split it rather than compromise.
+
+`Harbor` is the first palette built for colour-deficient reading rather than tinted for it after
+the fact. Its lanes leave the green/red axis entirely — blue discretionary, ochre mandatory,
+**neutral** unfunded. Unfunded is colourless because a sweep of the whole hue wheel showed no
+colour beats a neutral once the third lane must stay readable as text *and* stay apart from the
+other two for a red-green reader. Nothing in it is colour-alone: lanes carry their word, unfunded
+is a dashed outline, Mission Critical is the star glyph.
+
+Check colour with numbers, never by eye:
+`node <dataviz-skill>/scripts/validate_palette.js "#hex,#hex,#hex" --mode light --surface "#panel"`
+— its lightness-band and chroma-floor checks are calibrated for chart **fills**, so text tokens
+and deliberate neutrals will FAIL those two legitimately; CVD separation, normal-vision floor and
+contrast are the ones that matter here.
 
 ## House style
 

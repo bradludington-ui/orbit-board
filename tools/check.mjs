@@ -165,6 +165,20 @@ console.log('\noffline');
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);
+
+// .gitignore is an allowlist (*.html, *.json with named exceptions), so a file added to this repo
+// is ignored unless someone remembers to except it — and a commit can then silently omit the very
+// thing it says it adds. That has happened once. Check it rather than trust it.
+console.log('\ntracked by git');
+for (const f of ['prioritization-board.html', 'prioritization-board-grid.html', 'tools/parity-allow.json']) {
+  try {
+    execFileSync('git', ['check-ignore', '-q', f], { cwd: new URL('..', import.meta.url).pathname });
+    fail(`${f} is git-ignored — it will not be committed`);
+  } catch (e) {
+    if (e.status === 1) pass(`${f}`);            // exit 1 from check-ignore means NOT ignored
+    else fail(`${f} — could not ask git (${e.message.split('\n')[0]})`);
+  }
+}
 if (!build) failed++;
 
 console.log(failed ? `\n${failed} check(s) failed\n` : '\nall checks passed\n');

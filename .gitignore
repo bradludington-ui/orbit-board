@@ -2,12 +2,16 @@
 # data fused into one file, so a stray copy dropped in here must not be stageable by accident.
 *.html
 !prioritization-board.html
+!prioritization-board-grid.html
 
 # Working files
 *.xlsx
 *.pptx
 *.json
 !package.json
+# Named one by one on purpose, like the boards above: a stray state file dropped in tools/
+# must still be unstageable by accident.
+!tools/parity-allow.json
 
 # tooling only — the board itself has no dependencies
 node_modules/

@@ -5,15 +5,28 @@ the money covers, move funding between services and years, reconcile against exe
 produce the workbooks and briefing slides the review boards expect.
 
 The whole application is **one HTML file**. No install, no server, no build step, no dependencies of
-any kind — not a single script, stylesheet, or font is loaded from anywhere. Open
-`prioritization-board.html` in a browser and it runs, including from a shared drive or a `file://`
-path on a machine with no route to the internet.
+any kind — not a single script, stylesheet, or font is loaded from anywhere. Open it in a browser
+and it runs, including from a shared drive or a `file://` path on a machine with no route to the
+internet.
 
-Current build: **v1.31 (12 Sep 2026)** · ~19,500 lines · 2.8 MB.
+Current build: **v1.32 (12 Sep 2026)** · ~19,500 lines · 2.8 MB.
+
+## Two looks, one application
+
+| File | Look |
+|---|---|
+| `prioritization-board.html` | **Cards** — one panel per requirement. The original. |
+| `prioritization-board-grid.html` | **Grid** — a dense table with a docked record inspector. |
+
+Same application, same numbers, same exports; only the presentation differs, and a parity check in
+CI-style tooling keeps it that way. Pick whichever reads better for you. To move a board between
+them, use **📁 File → ⬅ Import a previous board…** and select the other file — import already reads
+another board's `.html` and lifts its state out. They also share browser storage, so an unsaved
+draft shows up in whichever one you open.
 
 ## Getting started
 
-1. Open `prioritization-board.html`.
+1. Open `prioritization-board.html` (cards) or `prioritization-board-grid.html` (grid).
 2. It opens as an empty **shell** — the program with no data in it.
 3. Use **📁 File → ⬅ Import a previous board…** and pick your saved board file. Requirements,
    budgets, every fiscal year, PPBE positions and logs all load from it.
@@ -57,17 +70,31 @@ and a timestamp, and a save that would clobber newer work stops and says so firs
 
 | | |
 |---|---|
-| `prioritization-board.html` | The application. This is the source of truth. |
+| `prioritization-board.html` | The application, card layout. Source of truth. |
+| `prioritization-board-grid.html` | The same application, grid layout. |
 | `CLAUDE.md` | How to work on it — read this before editing. |
-| `tools/check.mjs` | Invariant checks. Run before every commit. |
+| `tools/check.mjs` | Invariant checks for one build. |
+| `tools/parity.mjs` | Proves the two builds have not diverged. |
+| `tools/row-controls.mjs` | Lists every control on a requirement row; diffs two builds. |
 
 ```
-node tools/check.mjs
+npm run check
 ```
 
-Verifies that the script parses, the appropriation tables agree across all six places they are
-declared, the save path still works, no board data has been committed, and nothing external is
-referenced.
+Runs the invariant checks over **both** builds and then the parity check. The invariants verify that
+the script parses, the appropriation tables agree across all six places they are declared, the save
+path still works, no board data has been committed, and nothing external is referenced.
+
+Parity extracts every top-level function from both files and diffs them by name. Anything that
+differs must be listed in `tools/parity-allow.json` with a reason, so divergence between the two
+looks is a deliberate, reviewed act rather than something discovered months later in a briefing.
+
+```
+node tools/row-controls.mjs --diff prioritization-board.html prioritization-board-grid.html
+```
+
+Enumerates every interactive control on a requirement row from the rendered page and compares the
+two builds, so "the grid keeps everything the cards had" is measured rather than assumed.
 
 ## The HTML is the source
 
