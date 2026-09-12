@@ -19013,7 +19013,9 @@ function exportExcel(){
     {v:uIts.reduce((a,it)=>a+trimTotOf(it),0),s:NB},{v:uIts.reduce((a,it)=>a+beyondTotOf(it,T[it.id]),0),s:NB},
     {v:uIts.reduce((a,it)=>a+unfTotOf(it,T[it.id]),0),s:NB},
     ...SVC.map((s,i)=>({v:uIts.reduce((a,it)=>a+unfSvcOf(it,T[it.id])[i],0),s:NB}))]);
-  // --- FY27 Spend Plan Forecast ($M, 2dp) ---
+  // --- Two-plan spend forecast ($M, 2dp): Plan A and Plan B, both MODELLED through fundOf.
+  // Named apart from the board's own on-screen forecast tab on purpose -- they are different
+  // objects, and a shared name had readers comparing a two-plan model against one allocation. ---
   const N2=10, NB2=11;
   const fcHdr=[{v:'',s:H},...FYMON.map(([k,l])=>({v:l,s:H})),{v:'UNSCH',s:H},{v:'TOTAL',s:H}];
   const fcRow=(label,b,bold)=>[{v:label,s:bold?SEC:1},...b.m.map(v=>({v:v/1e6,s:bold?NB2:N2})),{v:b.unsch/1e6,s:bold?NB2:N2},{v:b.tot/1e6,s:NB2}];
@@ -19050,8 +19052,8 @@ function exportExcel(){
     sheet.rows.push(fcRow('TOTAL',sumBags(ks.map(g=>FF.byPMO[g])),true));
     sheet.rows.push([]);
   };
-  const fcSheet={name:FYL()+' Spend Forecast', cols:[34,...FYMON.map(_=>9),9,11],
-    rows:[[{v:document.title.replace(/FY\d\d/,FYL())+' \u2014 '+FYL()+' Projected Spend Plan Forecast (OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur+') \u2014 $M, spread by award/obligation schedule',s:TI}],[]]};
+  const fcSheet={name:FYL()+' Two-Plan Forecast', cols:[34,...FYMON.map(_=>9),9,11],
+    rows:[[{v:document.title.replace(/FY\d\d/,FYL())+' \u2014 '+FYL()+' Two-Plan Spend Forecast \u2014 PLAN A (discretionary only) vs PLAN B (discretionary + mandatory), two modelled walks, NOT this board\u2019s allocations (OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur+') \u2014 $M, spread by award/obligation schedule',s:TI}],[]]};
   fcBlock(fcSheet, 'PLAN A \u2014 DISCRETIONARY ONLY',
     'The priority order funded against the discretionary topline alone, as if there were no '
     +'mandatory pot at all.', forecast(fcFrom(planFc.A)), planFc.aTop);
@@ -19347,10 +19349,12 @@ function exportExcel(){
     });
     rows.push(line('ALL SERVICES \u2014 TOTAL BY MONTH', grand, SEC));
     rows.push([]);
-    rows.push([{v:'Funded dollars (discretionary + mandatory), placed in the month of each '
+    rows.push([{v:'Funded dollars ('+(scenOn()? 'DISCRETIONARY ONLY \u2014 mandatory withheld'
+        : 'discretionary + mandatory')+'), placed in the month of each '
       +'requirement\u2019s obligation date. NO DATE is money on a requirement that has no award '
       +'date set \u2014 it is shown rather than dropped or placed in a month nobody chose. '
-      +'Same spread as the '+FYL()+' Spend Forecast tab.',s:0}]);
+      +'The same month-placement rules as the '+FYL()+' Two-Plan Forecast sheet, though that sheet '
+      +'models two plans rather than this board\u2019s own allocations.',s:0}]);
 
     /* ---- WHICH REQUIREMENTS SIT UNDER EACH COMBINATION ------------------------------------
        The rollup says how much money rides each line of accounting. It cannot say WHICH

@@ -433,9 +433,16 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     }
   }
 
-  // ---- 6g. Spend Forecast: the ROLLUP and BY PMO blocks are two views of one plan ----
+  // ---- 6g. Two-Plan Forecast: the ROLLUP and BY PMO blocks are two views of one plan ----
+  // Matched on "Forecast" alone: this sheet was renamed from "<FY> Spend Forecast" to
+  // "<FY> Two-Plan Forecast" because it was being confused with the board's own forecast tab, and
+  // a matcher pinned to the old words would have silently skipped this whole block afterwards.
   {
-    const fc = sheets.find(x => /Spend Forecast/.test(x.name));
+    const fc = sheets.find(x => /Forecast/.test(x.name));
+    // A MISSING SHEET IS A FAILURE, NOT A SKIP. `if (fc)` alone meant a rename disabled every
+    // check below it while the suite still read green.
+    chk(name, 'Two-Plan Forecast', 'the forecast sheet is in the workbook',
+      fc ? 'present' : 'missing', 'present');
     if (fc) {
       // each plan block prints ROLLUP ... TOTAL then BY PMO ... TOTAL; the two totals must agree
       const totals = [];
@@ -452,10 +459,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
         // is enormous at this scale -- a whole dropped office came to 0.000012 and sailed through
         // it. Compare in dollars so the tolerance means what it does everywhere else.
         if (aName === 'rollup' && bName === 'bypmo')
-          chk(name, 'Spend Forecast', `plan ${i / 2 + 1}: BY PMO total == ROLLUP total`, b * 1e6, a * 1e6);
+          chk(name, 'Two-Plan Forecast', `plan ${i / 2 + 1}: BY PMO total == ROLLUP total`, b * 1e6, a * 1e6);
       }
       if (totals.length < 2)
-        failures.push({ scenario: name, sheet: 'Spend Forecast', what: 'could not read both plan totals', got: totals.length, want: '>= 2', delta: 0 });
+        failures.push({ scenario: name, sheet: 'Two-Plan Forecast', what: 'could not read both plan totals', got: totals.length, want: '>= 2', delta: null });
     }
   }
 
@@ -632,10 +639,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // that leaked into the shared truth walk would corrupt only the sheets built AFTER them --
   // Unfunded Requirements is computed earlier and would sail through. Compare every sheet.
   //
-  // "<FY> Spend Forecast" is deliberately on the invariant side: it is not the board's own
+  // "<FY> Two-Plan Forecast" is deliberately on the invariant side: it is not the board's own
   // forecast but PLAN A (discretionary only) and PLAN B (disc + mandatory) side by side, both
   // modelled through fundOf. It already shows both answers at once, so the toggle must not move
-  // it. The board's on-screen forecast tab is the one that follows the view; it is checked above.
+  // it. The board's on-screen forecast tab is the one that follows the view; it is checked below.
+  // The sheet carries its own name for exactly this reason -- it used to be "<FY> Spend Forecast",
+  // one word away from the tab, and the two were read as the same thing.
   const FAMILY = ['RCN-EEIC by Month', 'SI Codes by Month'];
   const names = Object.keys(both.body);
   chk(name, 'scope', 'the two views build the same sheets',
@@ -652,7 +661,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       both.body[n] === disc.body[n] ? 'same' : 'differs', 'differs');
   });
 
-  // The board's own FY27 Spend Forecast tab is the other half of the family. It is computed, not
+  // The board's own on-screen spend forecast TAB is the other half of the family. It is computed, not
   // exported, so no sheet check can see it — read forecast() directly and hold it to the same rule.
   const fc = () => JSON.parse(ev(`(function(){ const F=forecast(); let m=0,u=0;
     Object.keys(F.byPMO).forEach(function(k){ m+=F.byPMO[k].m.reduce(function(a,v){return a+v;},0);
@@ -673,6 +682,18 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     fcDisc.roll, fcDisc.months + fcDisc.unsch);
   chk(name, 'spend forecast', 'roll-up reconciles to the months, Discretionary + Mandatory',
     fcBoth.roll, fcBoth.months + fcBoth.unsch);
+
+  // The month-sheet footer names the lane mix in prose. It used to say "discretionary + mandatory"
+  // unconditionally, which the toggle made into a lie on the sheet it described -- a caption that
+  // contradicts the column it sits under is worse than no caption.
+  const foot = b => { const rows = JSON.parse(b['RCN-EEIC by Month']);
+    const t = rows.map(r => String((r[0] && typeof r[0] === 'object' && 'v' in r[0]) ? r[0].v : (r[0] ?? '')))
+                  .find(x => /^Funded dollars/.test(x));
+    return t || ''; };
+  chk(name, 'marker', 'month-sheet footer names the lane mix, Discretionary only',
+    /DISCRETIONARY ONLY/.test(foot(disc.body)) ? 'names it' : 'stale', 'names it');
+  chk(name, 'marker', 'month-sheet footer names the lane mix, Discretionary + Mandatory',
+    /discretionary \+ mandatory/.test(foot(both.body)) ? 'names it' : 'stale', 'names it');
 
   // The marker travels on the sheet titles and the file name, and is absent when it should be.
   [['RCN sheet title', disc.rcnTitle, both.rcnTitle],

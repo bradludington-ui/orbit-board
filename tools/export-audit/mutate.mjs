@@ -224,7 +224,7 @@ const MUTATIONS = [
     find: '    return {ask, d:p.dT, m:p.mT, fn, u:unfTotOf(it,p), p}; };',
     repl: '    return {ask, d:p.dT, m:p.mT, fn, u:Math.max(0,ask-fn), p}; };' },
 
-  { id: 'excel-forecast-pmo', area: 'excel', what: 'Spend Forecast BY PMO drops offices not on the list',
+  { id: 'excel-forecast-pmo', area: 'excel', what: 'Two-Plan Forecast BY PMO drops offices not on the list',
     find: '    const ks=pmoKeys(FF.byPMO);', repl: '    const ks=GROUPS.filter(g=>FF.byPMO[g]);' },
 
   // ---- Excel portions ---------------------------------------------------------------------------
@@ -271,6 +271,12 @@ const MUTATIONS = [
   { id: 'scen-marker-file', area: 'marker', what: 'a what-if workbook saves under the ordinary file name',
     find: "function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }",
     repl: 'function scenFile(n){ return n; }' },
+  { id: 'scen-footer-stale', area: 'marker', what: 'the month-sheet footer claims mandatory money the view withheld',
+    find: "    rows.push([{v:'Funded dollars ('+(scenOn()? 'DISCRETIONARY ONLY \\u2014 mandatory withheld'",
+    repl: "    rows.push([{v:'Funded dollars ('+(false? 'DISCRETIONARY ONLY \\u2014 mandatory withheld'" },
+  { id: 'fc-sheet-renamed', area: 'excel', what: 'the forecast sheet is renamed, which used to silently skip every check on it',
+    find: "  const fcSheet={name:FYL()+' Two-Plan Forecast', cols:[34,...FYMON.map(_=>9),9,11],",
+    repl: "  const fcSheet={name:FYL()+' Something Else', cols:[34,...FYMON.map(_=>9),9,11]," },
   { id: 'scen-marker-panel', area: 'marker', what: 'the on-screen forecast panel drops its what-if marker',
     find: "      + (scenOn()? ' <span style=\"color:var(--amber);font-weight:800\">\\u25e8 '+esc(SCEN_TAG)+'</span>' : ''); }",
     repl: "      + ''; }" },

@@ -169,7 +169,7 @@ second engine: it is `tiers()` with one option.
 |---|---|
 | RCN-EEIC by Month (sheet) | `const Tv = scenOn()? tiers(null, scenOpt()) : T` |
 | SI Codes by Month (sheet) | the same `Tv` |
-| FY27 Spend Forecast **tab** (on screen) | `forecast()` bare: `const T = fundOf ? null : tiers(null, scenOpt())` |
+| Spend forecast **tab** (on screen) | `forecast()` bare: `const T = fundOf ? null : tiers(null, scenOpt())` |
 
 **What must NOT follow it:** every other sheet in the workbook, the deck, and the board's own
 totals. Unfunded Requirements is ask-versus-allocation rather than a lane shortfall, so the toggle
@@ -177,11 +177,17 @@ would misstate it. The audit compares **every sheet** between the two views, not
 month sheets are built partway through `exportExcel`, so a view leaking into the shared `T` would
 corrupt only the sheets built *after* them and a single-sheet check sails straight past it.
 
-**The `<FY> Spend Forecast` SHEET is deliberately on the invariant side, despite the name.** It is
-not the board's forecast: it is PLAN A (discretionary only) and PLAN B (disc + mandatory) printed
-side by side, both modelled through `fundOf`. It already shows both answers at once, so the toggle
-must not move it. The on-screen tab of nearly the same name is the one that follows the view. These
-are different objects — do not "fix" the sheet to match the tab.
+**The `<FY> Two-Plan Forecast` SHEET is deliberately on the invariant side.** It is not the board's
+forecast: it is PLAN A (discretionary only) and PLAN B (disc + mandatory) printed side by side, both
+modelled through `fundOf`. It already shows both answers at once, so the toggle must not move it.
+The on-screen forecast tab is the one that follows the view. These are different objects — do not
+"fix" the sheet to match the tab.
+
+The sheet was called `<FY> Spend Forecast` until it was renamed for exactly that reason: one word
+away from the tab, and readers compared a two-plan model against one set of allocations. The audit
+matches it on `/Forecast/` and **fails when it is missing** rather than skipping — the old
+`if (fc)` meant a rename would have quietly disabled every check on the sheet while the suite still
+read green.
 
 **The marker is part of the behaviour, not decoration.** A workbook built under "Discretionary
 only" is a WHAT-IF, and stops being obviously one the moment it is emailed. `scenTitle()` stamps
@@ -213,7 +219,7 @@ an IMPORTED workbook, not an export — do not go looking for it here. What spre
 across months is:
 
 - `monSpreadOf` → the **RCN-EEIC by Month** and **SI Codes by Month** sheets
-- `forecast()` → the **FY27 Spend Forecast** tab (two modelled plans)
+- `forecast()` → the on-screen spend forecast tab, and the **<FY> Two-Plan Forecast** sheet (two modelled plans)
 
 **Those are two copies of the same spread and they must not drift.** `forecast()`'s own comment says
 so, and they drifted anyway the moment one was changed alone. Change one, change the other.
@@ -228,7 +234,7 @@ Both carry a conservation property: every funded dollar lands in a month or in U
 dropped and never invented. All of it is asserted in `audit-board.mjs` rather than the export
 suites, because this is board logic that exports happen to consume.
 
-**The suite's epsilon is 0.005 DOLLARS.** The Spend Forecast tab prints in $M, where that tolerance
+**The suite's epsilon is 0.005 DOLLARS.** The Two-Plan Forecast sheet prints in $M, where that tolerance
 is enormous: a whole dropped PMO came to 0.000012 and passed. Scale to dollars before comparing
 anything printed in millions.
 
