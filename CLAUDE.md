@@ -172,11 +172,25 @@ Point any of them at the grid build with `BOARD=$PWD/prioritization-board-grid.h
 and `execSynopsis`. ACE Tie-Out, Chart of Accounts, ATR/BTR Log and CR Cash Return reconcile against
 imported sources and never touch `tiers()`, the star or unfunded, so they stay outside these suites.
 
-**Spend Plan Source is the exception, and it is easy to miss.** It does no lane *decisions*, but it
-spreads `tiers()` output across months through `monSpreadOf` — so it carries real money arithmetic
-and a conservation property: every funded dollar lands in a month or in UNSCHEDULED, never dropped
-and never invented. That is asserted in `audit-board.mjs`, not in the export suites, because the
-function is board logic that an export happens to consume.
+**The month-by-month sheets are the exception, and they are easy to miss.** *Spend Plan Source* is
+an IMPORTED workbook, not an export — do not go looking for it here. What spreads `tiers()` output
+across months is:
+
+- `monSpreadOf` → the **RCN-EEIC by Month** and **SI Codes by Month** sheets
+- `forecast()` → the **FY27 Spend Forecast** tab (two modelled plans)
+
+**Those are two copies of the same spread and they must not drift.** `forecast()`'s own comment says
+so, and they drifted anyway the moment one was changed alone. Change one, change the other.
+
+They differ in exactly one respect, and it is deliberate. An increment is DOLLARS only against the
+board's own allocation: `forecast()` bare and `monSpreadOf` spread what the board actually funds, so
+what was typed is what lands. `forecast(fundOf)` spreads a MODELLED plan whose dollars are not the
+ones the increments were sized against, so there the increments carry only the SHAPE of the
+schedule. Spreading a model literally strands most of it in UNSCHEDULED.
+
+Both carry a conservation property: every funded dollar lands in a month or in UNSCHEDULED, never
+dropped and never invented. All of it is asserted in `audit-board.mjs` rather than the export
+suites, because this is board logic that exports happen to consume.
 
 **The suite's epsilon is 0.005 DOLLARS.** The Spend Forecast tab prints in $M, where that tolerance
 is enormous: a whole dropped PMO came to 0.000012 and passed. Scale to dollars before comparing
