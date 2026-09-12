@@ -68,6 +68,28 @@ const MUTATIONS = [
     find: '    last.sv[i]=Math.max(0, Math.round(alloc-others));',
     repl: '    last.sv[i]=Math.max(0, Math.round(alloc));' },
 
+  // ---- the cutline banners: where the board says the money runs out ----------------------------
+  // natM/natU gate them, and the rule is subtle: they only count a draw where that service's lane
+  // was ALREADY dry. Drop the guard and a requirement forced to MANDATORY high in the order drags
+  // the discretionary cutline up the list with it, telling everyone the money ran out sooner than
+  // it did.
+  { id: 'cut-natm-unguarded', area: 'tiers', what: 'discretionary cutline fires on a forced draw, not an exhausted lane',
+    find: '      if(dryA[i]) natM+=m[i];', repl: '      natM+=m[i];' },
+  { id: 'cut-natu-half-guarded', area: 'tiers', what: 'full-budget cutline fires while the mandatory lane still has money',
+    find: '      if(dryA[i]&&mDryA[i]) natU+=u[i];', repl: '      if(dryA[i]) natU+=u[i];' },
+
+  // ---- the absorb line: what the nominated contract would be giving up --------------------------
+  { id: 'abs-take-netted', area: 'absorbCalc', what: 'absorbed netted across services instead of capped per service',
+    find: '    const take=Math.min(sf.bySvc[i]||0, room);',
+    repl: '    const take=Math.min(sf.total/SVC.length, room);' },
+  { id: 'abs-room-unfloored', area: 'absorbCalc', equivalent: 'the floor is clamped to the allocation total before it is spread, so a service\'s share of it can never exceed that service\'s own allocation — audit-board.mjs asserts that invariant',
+    what: 'room to absorb allowed to go negative',
+    find: '    const room=Math.max(0, (alloc[i]||0) - (aTot>0? floor*(alloc[i]||0)/aTot : 0));',
+    repl: '    const room=(alloc[i]||0) - (aTot>0? floor*(alloc[i]||0)/aTot : 0);' },
+  { id: 'abs-floor-not-spread', area: 'absorbCalc', what: 'the floor lands wholly on each service instead of in the shape of the allocation',
+    find: '    const room=Math.max(0, (alloc[i]||0) - (aTot>0? floor*(alloc[i]||0)/aTot : 0));',
+    repl: '    const room=Math.max(0, (alloc[i]||0) - floor);' },
+
   // ---- the scoreboard tiles and the discretionary fit strip ------------------------------------
   // Board-only figures: nothing here reaches an export, so only audit-board.mjs can see them. They
   // are what someone reads before deciding where the cutline falls, which makes them worth as much

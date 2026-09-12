@@ -437,6 +437,128 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     Math.round(f.modelled.m.reduce((a, b) => a + b, 0) + f.modelled.unsch), Math.round(f.modelled.tot));
 }
 
+
+// ═══ the cutline banners ════════════════════════════════════════════════════════════════════════
+// natM and natU decide where the board draws its cutlines — the lines that say "the money runs out
+// here". The rule is deliberately narrow: a draw only counts where that service's lane was ALREADY
+// dry. Without that, a requirement directed to MANDATORY high in the order drags the discretionary
+// cutline up the list with it and tells the room the money ran out sooner than it did.
+//
+// The oracle needs no replay of the draw logic: the lane remaining after row k is simply the BA
+// less what rows 1..k drew, per service.
+{
+  const name = 'cutlines';
+  const sc = {
+    services: ['STOVL', 'CV', 'CTOL'],
+    // B is directed to MANDATORY while its discretionary lane is still flush — the exact case the
+    // guard exists for. C is large enough to actually exhaust the lane.
+    items: [it('A', 'ATL', [1000, 500, 200]), it('B', 'PSM', [2000, 800, 300]),
+            it('C', 'AV', [9000, 4000, 2000]), it('D', 'MxS', [3000, 1500, 800])],
+    disc: [10000, 5000, 2500], mand: [8000, 4000, 2000],
+    order: ['A', 'B', 'C', 'D'],
+    fsrc: { B: { m: 'split', dv: [0, 0, 0], mv: [2000, 800, 300] },
+            // D asks for far less mandatory than it needs, so it strands UFR while the mandatory
+            // lane is still flush — the only shape that tells a one-guard natU from a two-guard one.
+            D: { m: 'split', dv: [0, 0, 0], mv: [500, 200, 100] } },
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev('render()');
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  const T = JSON.parse(ev('JSON.stringify(tiers())'));
+  const SVC = sc.services;
+
+  const dRem = sc.disc.slice(), mRem = sc.mand.slice();
+  let firstNat = null;
+  sc.order.forEach(id => {
+    const p = T[id];
+    SVC.forEach((s, i) => { dRem[i] -= p.d[i] || 0; mRem[i] -= p.m[i] || 0; });
+    const wantM = SVC.reduce((a, s, i) => a + (dRem[i] <= 0.005 ? (p.m[i] || 0) : 0), 0);
+    const wantU = SVC.reduce((a, s, i) =>
+      a + ((dRem[i] <= 0.005 && mRem[i] <= 0.005) ? (p.u[i] || 0) : 0), 0);
+    chk(name, 'natM', `${id}: mandatory counted only off an ALREADY-dry discretionary lane`, p.natM, wantM);
+    chk(name, 'natU', `${id}: unfunded counted only where BOTH lanes are already gone`, p.natU, wantU);
+    if (firstNat === null && (wantM + wantU) > 0.005) firstNat = id;
+  });
+
+  // B draws mandatory with its lane flush, so it must NOT be where the cutline lands. Without this
+  // the scenario cannot tell a guarded natM from an unguarded one.
+  chk(name, 'natM', 'a directed mandatory draw on a flush lane does not trigger the cutline',
+    T.B.natM, 0);
+  chk(name, 'cutline', 'the scenario does reach a cutline somewhere', firstNat ? 'yes' : 'no', 'yes');
+  // The guard that the one-guard mutation removes: D strands unfunded dollars while its mandatory
+  // lane still holds money, so they must NOT count toward the full-budget cutline.
+  chk(name, 'natU', 'unfunded stranded while mandatory is still flush does not trigger the cutline',
+    T.D.natU, 0);
+  chk(name, 'natU', 'the scenario really does strand unfunded dollars on D',
+    SVC.reduce((a, s, i) => a + (T.D.u[i] || 0), 0) > 0.5 ? 'yes' : 'no', 'yes');
+
+  // And the banner is rendered immediately above that row, not somewhere else in the list.
+  const placed = ev(`(function(){
+    var el = document.querySelector('#list .cutline.cut-disc');
+    if(!el) return 'absent';
+    var n = el.nextElementSibling;
+    while(n && !n.classList.contains('row')) n = n.nextElementSibling;
+    return n ? n.id.replace(/^row-/, '') : 'nothing after it';
+  })()`);
+  chk(name, 'cutline', 'the discretionary banner sits immediately above the first row that crosses',
+    placed, firstNat);
+}
+
+// ═══ the absorb line ════════════════════════════════════════════════════════════════════════════
+// What the nominated contract would give up if the portfolio does not close. Per service, capped by
+// what that service actually holds above the floor — and the floor is spread in the SHAPE of the
+// allocation, not applied whole to every service.
+{
+  const name = 'absorb';
+  const sc = {
+    services: ['STOVL', 'CV', 'CTOL'],
+    // A is the absorber and is fully funded; B and C strand money on different services, so the
+    // shortfall is uneven and a netted "take" cannot pass by coincidence.
+    items: [it('A', 'ATL', [6000, 3000, 1500]), it('B', 'PSM', [5000, 500, 200]),
+            it('C', 'AV', [500, 4000, 2000])],
+    disc: [6000, 3000, 1500], mand: [2000, 400, 300],
+    order: ['A', 'B', 'C'],
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  const FLOOR = 2000;
+  const r = JSON.parse(ev(`
+    (function(){
+      S.absorb='A'; S.absorbFloor=${FLOOR}; save();
+      var T=tiers(), AB=absorbCalc(T);
+      return JSON.stringify({ab:AB, alloc:svcAlloc(itemById('A')),
+        u:SVC.map(function(s,i){ return S.order.reduce(function(a,id){ return a+((T[id].u[i])||0); },0); })});
+    })()`));
+  const SVC = sc.services;
+
+  const aTot = r.alloc.reduce((a, b) => a + b, 0);
+  const floor = Math.max(0, Math.min(FLOOR, aTot));
+  chk(name, 'setup', 'the scenario strands money on more than one service',
+    r.u.filter(v => v > 0.5).length >= 2 ? 'yes' : 'no', 'yes');
+
+  SVC.forEach((svc, i) => {
+    // The floor is spread in the shape of the allocation — a service holding a tenth of the
+    // allocation reserves a tenth of the floor, not all of it.
+    const room = Math.max(0, r.alloc[i] - (aTot > 0 ? floor * r.alloc[i] / aTot : 0));
+    const take = Math.min(r.u[i] || 0, room);
+    chk(name, 'absorbed', `${svc}: capped by what this service holds above its share of the floor`,
+      Math.round(r.ab.absorbed[i]), Math.round(take));
+    chk(name, 'unabsorbed', `${svc}: what the absorber cannot cover stays on that service`,
+      Math.round(r.ab.unabsorbed[i]), Math.round((r.u[i] || 0) - take));
+  });
+  SVC.forEach((svc, i) => {
+    const share = aTot > 0 ? floor * r.alloc[i] / aTot : 0;
+    chk(name, 'invariant', `${svc}: a service's share of the floor never exceeds its own allocation`,
+      share <= r.alloc[i] + 0.005 ? 'ok' : `share ${share} > alloc ${r.alloc[i]}`, 'ok');
+  });
+  chk(name, 'invariant', 'the floor is clamped to the allocation total before it is spread',
+    floor <= aTot + 0.005 ? 'ok' : `floor ${floor} > aTot ${aTot}`, 'ok');
+  chk(name, 'absorbed', 'absorbed + unabsorbed is the whole portfolio shortfall',
+    Math.round(r.ab.absorbedTot + r.ab.unabsorbedTot), Math.round(sum(r.u)));
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};
