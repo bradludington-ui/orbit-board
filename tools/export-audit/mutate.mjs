@@ -29,6 +29,14 @@ const SUITES = [
 // area: which surface the line belongs to. find/replace: the deliberate break.
 const MUTATIONS = [
   // ---- the lane engine: the basis for every printed figure ------------------------------------
+  // ---- the incremental-funding residual: the number that goes on a contract mod ----------------
+  { id: 'inc-residual-netted', area: 'fillLastAwd', what: 'residual netted across services instead of computed per service',
+    find: '    const alloc=(p.d[i]||0)+(p.m[i]||0);',
+    repl: '    const alloc=SVC.reduce((q,s2,j)=>q+(p.d[j]||0)+(p.m[j]||0),0)/SVC.length;' },
+  { id: 'inc-residual-ignores-prior', area: 'fillLastAwd', what: 'last increment set to the whole allocation, ignoring earlier increments',
+    find: '    last.sv[i]=Math.max(0, Math.round(alloc-others));',
+    repl: '    last.sv[i]=Math.max(0, Math.round(alloc));' },
+
   // ---- the scoreboard tiles and the discretionary fit strip ------------------------------------
   // Board-only figures: nothing here reaches an export, so only audit-board.mjs can see them. They
   // are what someone reads before deciding where the cutline falls, which makes them worth as much

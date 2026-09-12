@@ -1212,7 +1212,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.34 (12 Sep 2026)';
+const BUILD='v1.35 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -5813,6 +5813,27 @@ function setAwdIncDate(id,i,val){
 const fyMin=()=> (MS.cur-1)+'-10-01';
 const fyMax=()=> MS.cur+'-09-30';
 const awDateVal=(ym,day)=> ym? ym+'-'+String(day||1).padStart(2,'0') : '';
+function fillLastAwd(id){
+  // THE RESIDUAL MOD. Everything allocated but not yet scheduled goes onto the last increment, per
+  // service — because money is not fungible across services, so each one has to clear its own
+  // balance. This is the figure that was being worked out by hand: allocated less what the earlier
+  // increments already obligate.
+  const aw=S.awards[id];
+  if(!aw||aw.mode!=='inc'||!aw.inc||!aw.inc.length) return;
+  const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
+  const last=aw.inc[aw.inc.length-1];
+  if(!Array.isArray(last.sv)) last.sv=SVC.map(_=>0);
+  SVC.forEach((s,i)=>{
+    const alloc=(p.d[i]||0)+(p.m[i]||0);
+    const others=aw.inc.reduce((a,x,j)=> a + (j===aw.inc.length-1? 0 : (((x.sv||[])[i])||0)), 0);
+    // Clamped at zero: earlier increments already over-obligating this service is a real state, and
+    // a negative increment is not a thing anyone can put on a contract.
+    last.sv[i]=Math.max(0, Math.round(alloc-others));
+  });
+  save(); render(); flash(id);
+  setStat('\u21b5 Last increment set to the remaining balance, per service \u2014 '
+    +esc(dispTitle(itemById(id))||id)+'.');
+}
 function toggleAwdInc(id, funded){
   const aw=S.awards[id];
   if(aw&&aw.mode==='inc'){
@@ -14265,15 +14286,21 @@ function svcTable(it){
         const svTots=SVC.map((s,i)=>(aw.inc||[]).reduce((a,x)=>a+((x.sv||[])[i]||0),0));
         const fSv=SVC.map((s,i)=>pw.d[i]+pw.m[i]);
         return `<div style="margin-top:4px;overflow-x:auto"><table style="border-collapse:collapse;font-size:10px">
-        <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${s}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th></th></tr>
-        ${(aw.inc||[]).map((a,i)=>`<tr>
+        <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${s}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--blue);padding:2px 6px" title="allocated dollars still unscheduled after this increment — the last one has to clear it">Remaining</th><th></th></tr>
+        ${(()=>{ let run=funded; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); return `<tr>
           <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" onchange="setAwdIncDate('${it.id}',${i},this.value)" title="click for the calendar — this increment's obligation date (day sets the CR half-month window)"></td>
           ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc('${it.id}',${i},${si},this.value)" onfocus="this.select()" title="${s} increment for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}"></td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:var(--gold);white-space:nowrap">${fM(incTot(a))}</td>
-          <td><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd('${it.id}',${i})" title="remove increment">✕</button></td></tr>`).join('')}
+          <td style="padding:2px 6px;font-weight:800;white-space:nowrap;color:${Math.abs(run)<1?'var(--green)':(run<0?'var(--red)':'var(--blue)')}" title="${Math.abs(run)<1?'fully scheduled at this increment':(run<0? fM(-run)+' MORE has been scheduled than is allocated':fM(run)+' of the allocation is still unscheduled after this increment')}">${Math.abs(run)<1?'\u2713 $0':fM(run)}</td>
+          <td><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd('${it.id}',${i})" title="remove increment">✕</button></td></tr>`; }).join(''); })()}
         <tr><td style="padding:2px 6px;color:var(--dim);font-weight:700">Σ by service</td>
           ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${s}: increments ${fM(svTots[i])} vs funded ${fM(fSv[i])}">${fM(svTots[i])}</td>`).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(incSum-funded)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td></tr>
+          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(incSum-funded)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td><td></td></tr>
+        <tr><td style="padding:2px 6px;color:var(--blue);font-weight:800" title="what the final mod still has to obligate, per service">Balance to schedule</td>
+          ${SVC.map((s,i)=>{ const r=fSv[i]-svTots[i];
+            return `<td style="padding:2px 6px;text-align:right;font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${s}: allocated ${fM(fSv[i])} less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'\u2014':fM(r)}</td>`; }).join('')}
+          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(funded-incSum)<1?'var(--green)':(funded-incSum<0?'var(--red)':'var(--blue)')}">${Math.abs(funded-incSum)<1?'\u2713 $0':fM(funded-incSum)}</td>
+          <td colspan="2" style="padding:2px 6px">${(Math.abs(funded-incSum)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd('${it.id}')" title="put the whole remaining balance on the last increment, per service — the residual mod">\u21b5 put on last</button>`:''}</td></tr>
         </table>
         <span style="display:inline-block;margin-top:4px">
           <input type="date" id="awdM-${it.id}" min="${fyMin()}" max="${fyMax()}" title="pick the new increment's date from the calendar">

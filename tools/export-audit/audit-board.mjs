@@ -284,6 +284,58 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   });
 }
 
+
+// ═══ the incremental-funding residual ═══════════════════════════════════════════════════════════
+// The last increment is the figure that goes on a contract modification. It is allocated dollars
+// less what the earlier increments already obligate, PER SERVICE — netting it across services would
+// produce a total that ties while every individual mod is wrong.
+{
+  const name = 'incremental funding residual';
+  const sc = {
+    services: ['STOVL', 'CV', 'CTOL'],
+    items: [it('A', 'ATL', [12000000, 4200000, 2361859])],
+    disc: [14000000, 5000000, 3000000], mand: [1000000, 500000, 300000],
+    order: ['A'],
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const r = JSON.parse(ev(`
+    (function(){
+      toggleAwdInc('A', 0);
+      var T = tiers(), p = T['A'];
+      // Three dates; the first two take deliberately uneven shares so no service's residual equals
+      // any other's, and an even split cannot pass by coincidence.
+      S.awards['A'].inc = [
+        {d:'2026-11', day:1, sv: SVC.map(function(s,i){ return Math.round(((p.d[i]||0)+(p.m[i]||0))*0.40); })},
+        {d:'2027-02', day:1, sv: SVC.map(function(s,i){ return Math.round(((p.d[i]||0)+(p.m[i]||0))*0.25); })},
+        {d:'2027-06', day:1, sv: SVC.map(function(){ return 0; })}
+      ];
+      save();
+      fillLastAwd('A');
+      var T2 = tiers(), p2 = T2['A'], inc = S.awards['A'].inc;
+      return JSON.stringify({
+        alloc: SVC.map(function(s,i){ return (p2.d[i]||0)+(p2.m[i]||0); }),
+        sched: SVC.map(function(s,i){ return inc.reduce(function(a,x){ return a+((x.sv||[])[i]||0); }, 0); }),
+        last:  inc[inc.length-1].sv.slice(),
+        first: inc[0].sv.slice(), second: inc[1].sv.slice()
+      });
+    })()`));
+
+  sc.services.forEach((svc, i) => {
+    chk(name, 'residual', `${svc}: every allocated dollar is scheduled once the last increment is filled`,
+      Math.round(r.sched[i]), Math.round(r.alloc[i]));
+    // Stated independently of what fillLastAwd did: the last increment IS the remainder.
+    chk(name, 'residual', `${svc}: last increment == allocated less the earlier increments`,
+      Math.round(r.last[i]), Math.round(r.alloc[i] - r.first[i] - r.second[i]));
+  });
+  // A total that ties while the per-service splits are wrong is the failure this guards against,
+  // so the totals are checked too — but they are not the point, and they are checked last.
+  chk(name, 'residual', 'total scheduled equals total allocated',
+    Math.round(sum(r.sched)), Math.round(sum(r.alloc)));
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};
