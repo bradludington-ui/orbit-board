@@ -595,6 +595,60 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     String(back).includes(tag) ? 'marked' : 'clean', 'clean');
 }
 
+// ═══ converting the whole board to an explicit Split ═══════════════════════════════════
+// convertAllToSplit() freezes each requirement's current lane draw as directed per-service dollars.
+// THE WHOLE POINT IS THAT NO FIGURE MOVES. It is a one-way bulk edit with no undo, so the property
+// worth protecting is losslessness, not the mechanics -- if conversion shifts a dollar, it does so
+// across every requirement at once and quietly.
+//
+// The fixture uses a SCALAR trim, which prorates to fractional per-service dollars, because
+// seedSplit() rounds each service to whole dollars on the way in. Whole numbers everywhere would
+// make the rounding step invisible and prove nothing about it.
+for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
+                               ['fractional trim', {m:'t', v:5000001}]]) {
+  const name = 'convert to split — ' + label;
+  const sc = {
+    services: ['USAF', 'ANG', 'CTOL'],
+    items: [it('A', 'ATL', [5000000, 2000000, 1000000]),
+            it('B', 'ATL', [6000000, 1000000, 2000000]),
+            it('C', 'PSM', [4000000, 3000000, 1000000])],
+    disc: [7000000, 2500000, 1500000], mand: [3000000, 1000000, 800000],
+    order: ['A', 'B', 'C'], alloc: { B: allocB },
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const shot = () => JSON.parse(ev(`(function(){
+    const T=tiers(); const o={}; let d=0,m=0,du=0,u=0;
+    S.order.forEach(function(id){ const p=T[id], x=itemById(id); if(!p||!x) return;
+      o[id]={d:p.dT, m:p.mT, du:discUnfTotOf(x,p), u:unfTotOf(x,p)};
+      d+=p.dT; m+=p.mT; du+=discUnfTotOf(x,p); u+=unfTotOf(x,p); });
+    o.__tot={d:d, m:m, du:du, u:u}; return JSON.stringify(o); })()`));
+
+  const before = shot();
+  ev('window.confirm=function(){return true;}; window.alert=function(){}; convertAllToSplit(); "ok"');
+  const after = shot();
+
+  chk(name, 'convert', 'every requirement now carries a split',
+    ev(`S.order.map(function(id){ return (S.fsrc[id]||{}).m||'auto'; }).join(',')`), 'split,split,split');
+  ['A', 'B', 'C', '__tot'].forEach(k => {
+    ['d', 'm', 'du', 'u'].forEach(f => {
+      const what = { d: 'discretionary', m: 'mandatory', du: 'unfunded vs DISC', u: 'total unfunded' }[f];
+      chk(name, 'lossless', `${k}: ${what} is unchanged by the conversion`, after[k][f], before[k][f]);
+    });
+  });
+
+  // Converting twice must be a no-op: the second pass finds nothing left on the lane walk.
+  const again = (ev('convertAllToSplit(); "ok"'), shot());
+  chk(name, 'lossless', 'converting again changes nothing', again.__tot.u, after.__tot.u);
+
+  // The two readings, stated as the rule they came from.
+  ['A', 'B', 'C'].forEach(id => chk(name, 'readings',
+    `${id}: mandatory can only narrow the gap between the two readings`,
+    after[id].du >= after[id].u - 0.005 ? 'ok' : 'total exceeds vs-DISC', 'ok'));
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

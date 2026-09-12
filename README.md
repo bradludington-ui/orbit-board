@@ -57,6 +57,18 @@ charts in four layouts.
 cost estimate mapping and tie-out, dated snapshots you can return to and diff, and a continuing
 resolution cash view over Oct 1 – Mar 31.
 
+**See how short you are twice over.** Every requirement reports **Unfunded vs DISC** (the FY ask
+minus what discretionary covered) beside **TOTAL Unfunded** (the ask minus discretionary *and*
+mandatory). The gap between the two columns is what the mandatory pot is carrying. Both are
+measured against the ask, never a trimmed allocation — money you asked for and did not get is
+short however the cut was made — and both are floored per service, so a service funded beyond its
+ask can never pay down another service's shortage.
+
+**Every requirement carries an explicit split.** Funding is set per requirement as Split D / M / UFR
+rather than left to an automatic lane walk. *Views › Convert all to Split* moves a whole board over
+in one action, keeping every dollar exactly where it is — what changes is that the dollars stop
+moving on their own when you reorder the list or change a topline.
+
 **Ask "what if the mandatory money never shows?"** → *Views › Spend plan basis*. **◨ Discretionary
 only** re-runs the spend plan with every mandatory lane empty, so what would have spilled into
 mandatory reads as unfunded and never reaches a month. It moves the two by-month sheets and the

@@ -1212,7 +1212,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.39 (12 Sep 2026)';
+const BUILD='v1.40 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -13606,9 +13606,19 @@ function pmoKeys(obj){
 }
 // The star's shortage, per service: the requirement's own value less what DISCRETIONARY paid.
 // Hoisted beside mcCalc so the workbook, the deck and the board all read one implementation.
-function mcShortSvcOf(it, p){
+// TWO UNFUNDED READINGS, BOTH MEASURED AGAINST THE FY ASK -- never against a trimmed allocation,
+// so money asked for and not received counts as short however the allocation was cut:
+//   DISCRETIONARY unfunded  =  ask - discretionary allocated             (what one pot leaves short)
+//   TOTAL unfunded          =  ask - discretionary - mandatory allocated (what both pots leave short)
+// The gap between them is exactly what the mandatory pot is carrying. Floored PER SERVICE, because
+// an over-allocation in one service can never pay down a shortage in another.
+function discUnfSvcOf(it, p){
   return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0)));
 }
+function discUnfTotOf(it,p){ return discUnfSvcOf(it,p).reduce((a,b)=>a+b,0); }
+// Mission Critical's shortage is this same reading, gated to starred requirements. One
+// implementation, so the star and the portfolio can never disagree about what a dollar is.
+function mcShortSvcOf(it, p){ return discUnfSvcOf(it, p); }
 function mcCalc(T){
   const nS=SVC.length;
   const tot=new Array(nS).fill(0), need=new Array(nS).fill(0);
@@ -14496,8 +14506,11 @@ function rowChipsHtml(it){
       // to one lane is the blunt version of what Split does properly, and the split is how the
       // money is actually decided. tiers() still HONOURS a legacy force setting so no existing
       // board changes its numbers, and the chip still shows one — it just cannot be chosen again.
-      [{v:'', n:'\u2014 funding: auto (lanes) \u2014'},
-       {v:'split',n:'Split D / M / UFR\u2026'}],
+      // AUTO (LANES) was removed the same way and for the same reason: every requirement now
+      // carries an explicit split. tiers() still walks the lanes for a requirement that has no
+      // override -- an older saved board, or one mid-migration -- so nothing breaks; it simply
+      // cannot be chosen, and convertAllToSplit() is how a board moves over wholesale.
+      [{v:'split',n:'Split D / M / UFR\u2026'}],
       'setFsrc', 'funding source \u2014 override the automatic lane draw for this requirement',
       'var(--gold)');
   { const ce=(S.costElem||{})[id];   // the store does not exist on a board without cost elements
@@ -16554,6 +16567,9 @@ function syncBtns(){
     '<div class="msep"></div><div class="mlbl">Requirements — '+FYL()+'</div>'+
     mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'value by service + CCaR')+
     mi('💰 Budget Management…',"mRun(toggleBm)",bmOpen,'budget authority · funding sources')+
+    (function(){ const n=S.order.filter(id=>!S.fsrc[id]).length;
+      return mi('⚙ Convert all to Split…',"mRun(convertAllToSplit)",false,
+        n? n+' still on the automatic lane walk' : 'all requirements carry an explicit split'); })()+
     mi('📋 Two Spend Plans…',"mRun(togglePlans)",planOpen,'discretionary only vs the whole top line')+
     '<div class="msep"></div><div class="mlbl">Spend plan basis</div>'+
     mi('◨ Discretionary only',"setScen('disc')",scenView==='disc',
@@ -18243,16 +18259,39 @@ function setAlloc(id,val){
 function flash(id){ const el=document.getElementById('row-'+id); if(el){el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),500);} }
 function esc(s){return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
 
+// Freeze ONE requirement's current lane draw as an explicit per-service split. The dollars do not
+// move: tiers() re-reads exactly what it just produced. Nor does any unfunded reading, because both
+// are measured against the ASK either way -- a trim stays a trim, funded or not.
+// Single implementation, shared by the chip, the bulk convert and a newly added requirement, so
+// the three cannot seed a split three different ways.
+function seedSplit(id, T){
+  const p=(T||tiers())[id]; if(!p) return false;
+  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(v=>Math.round(v))};
+  return true;
+}
 function setFsrc(id,val){
   if(!val){ delete S.fsrc[id]; save(); render(); flash(id); return; }
   if(val==='split'){
-    const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
-    S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(v=>Math.round(v))};
+    if(!seedSplit(id)) S.fsrc[id]={m:'split', dv:SVC.map(_=>0), mv:SVC.map(_=>0)};
     open[id]=true;                    // open the detail so the per-service amounts can be edited
   } else {
     S.fsrc[id]={m:val};
   }
   save(); render(); flash(id);
+}
+// Move a whole board off the automatic lane walk in one action. Every requirement keeps the exact
+// dollars it has at that moment; what it gives up is having them move on their own.
+function convertAllToSplit(){
+  const T=tiers();
+  const ids=S.order.filter(id=>!S.fsrc[id] && T[id]);
+  if(!ids.length){ alert('Every requirement already carries an explicit funding setting \u2014 nothing to convert.'); return; }
+  if(!confirm('Convert '+ids.length+' requirement'+(ids.length===1?'':'s')+' from the automatic lane walk to an explicit Split D / M / UFR?\n\n'
+    +'EVERY DOLLAR STAYS WHERE IT IS. What changes is that the dollars stop moving on their own: reordering '
+    +'the list or changing a topline will no longer reallocate them \u2014 you set each split yourself from here on.\n\n'
+    +'THERE IS NO UNDO. Take a snapshot first (Views \u203a Snapshots) if you want a way back.')) return;
+  let n=0; ids.forEach(id=>{ if(seedSplit(id,T)) n++; });
+  save(); render();
+  alert(n+' requirement'+(n===1?'':'s')+' converted to Split. The board\u2019s figures are unchanged.');
 }
 function setFsrcSvc(id, kind, i, val){
   const fo=S.fsrc[id];
@@ -18289,6 +18328,10 @@ function addReq(){
   const it={id:'NEW-'+n, grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined), title:t, event:ev||'(added at drill)',
             ccar:'', fy26:SVC.map(_=>0), ask:ask, alloc:null};
   S.custom.push(it); DATA.items.push(it); S.order.push(it.id);
+  // A new requirement is born on Split, seeded from the lane walk that now includes it. The menu
+  // no longer offers auto (lanes), so landing there would leave a requirement in a mode the user
+  // can see the effects of but never choose again.
+  seedSplit(it.id);
   if(cc) S.ccar[it.id]=cc;
   if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];
   S.pmoOrder[g].push(it.id);
@@ -19082,19 +19125,24 @@ function exportExcel(){
     +'inside the lane columns above \u2014 do not add them to a lane total.']);
   // --- Unfunded Requirements listing (lane shortfalls + ask-vs-alloc deltas) ---
   const uIts=S.order.map(itemById).filter(it=>it&&unfTotOf(it,T[it.id])>0.005);
-  const uSheet={name:'Unfunded Requirements', cols:[8,10,22,44,44,13,17,14,14,14,14,14,...SVC.map(_=>13)],
+  const uSheet={name:'Unfunded Requirements', cols:[8,10,22,44,44,13,17,14,14,14,14,16,14,...SVC.map(_=>13)],
     rows:[[{v:'Unfunded requirements  —  '+uIts.length+' items (allocation trims count as unfunded)',s:TI}],[],
-      [{v:'Rank',s:H},{v:'PMO',s:H},{v:'Cost Element',s:H},{v:'Requirement (CCaR Record Name)',s:H},{v:'Plan Event',s:H},{v:'CCaR',s:H},{v:'PID',s:H},{v:FYL()+' Ask',s:H},{v:'Allocated',s:H},{v:'Trim, by service',s:H},{v:'Beyond Both Lanes',s:H},{v:'TOTAL Unfunded',s:H},...SVC.map(s=>({v:'Unf '+s,s:H}))]]};
+      [{v:'Rank',s:H},{v:'PMO',s:H},{v:'Cost Element',s:H},{v:'Requirement (CCaR Record Name)',s:H},{v:'Plan Event',s:H},{v:'CCaR',s:H},{v:'PID',s:H},{v:FYL()+' Ask',s:H},{v:'Allocated',s:H},{v:'Trim, by service',s:H},{v:'Beyond Both Lanes',s:H},
+       // TWO READINGS OF SHORT, side by side: what discretionary alone leaves, and what both pots
+       // leave. The gap between the columns is what the mandatory pot is carrying.
+       {v:'Unfunded vs DISC',s:H},{v:'TOTAL Unfunded',s:H},...SVC.map(s=>({v:'Unf '+s,s:H}))]]};
   uIts.forEach(it=>{
     // Trim + Beyond == TOTAL Unfunded on every row, and the per-service columns add to that total.
     const p=T[it.id], d=trimTotOf(it), by=beyondTotOf(it,p), tu=unfTotOf(it,p);
     uSheet.rows.push([{v:MR[it.id],s:0},grpOf(it),ceOf(it.id),recName(it)||dispTitle(it),dispTitle(it),{v:ccarOf(it),s:1},{v:pidOf(it),s:0},
-      {v:askTot(it),s:N},{v:aOf(it),s:N},{v:d,s:d>0.5?NR:N},{v:by,s:by>0.5?NR:N},{v:tu,s:NB},
+      {v:askTot(it),s:N},{v:aOf(it),s:N},{v:d,s:d>0.5?NR:N},{v:by,s:by>0.5?NR:N},
+      {v:discUnfTotOf(it,p),s:N},{v:tu,s:NB},
       ...unfSvcOf(it,p).map(v=>({v,s:N}))]);
   });
   uSheet.rows.push([{v:'TOTAL',s:B},'','','','','','',
     {v:uIts.reduce((a,it)=>a+askTot(it),0),s:NB},{v:uIts.reduce((a,it)=>a+aOf(it),0),s:NB},
     {v:uIts.reduce((a,it)=>a+trimTotOf(it),0),s:NB},{v:uIts.reduce((a,it)=>a+beyondTotOf(it,T[it.id]),0),s:NB},
+    {v:uIts.reduce((a,it)=>a+discUnfTotOf(it,T[it.id]),0),s:NB},
     {v:uIts.reduce((a,it)=>a+unfTotOf(it,T[it.id]),0),s:NB},
     ...SVC.map((s,i)=>({v:uIts.reduce((a,it)=>a+unfSvcOf(it,T[it.id])[i],0),s:NB}))]);
   // --- Two-plan spend forecast ($M, 2dp): Plan A and Plan B, both MODELLED through fundOf.

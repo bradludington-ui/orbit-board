@@ -114,6 +114,40 @@ requirement costs. Do not recompute the star anywhere else.
 These two are the stated rules and are asserted verbatim in the audit under the `RULE` label.
 Change them only on an explicit instruction, and update those checks in the same commit.
 
+### Two unfunded readings, both measured against the ASK
+
+Unfunded is **never** measured against a trimmed allocation. Money asked for and not received is
+short however the allocation was cut, so both readings run off `it.ask`:
+
+```
+Unfunded vs DISC  =  ask  -  discretionary allocated              (what one pot leaves short)
+TOTAL unfunded    =  ask  -  discretionary  -  mandatory          (what both pots leave short)
+```
+
+The gap between them is exactly what the mandatory pot is carrying. `discUnfSvcOf()` is the single
+implementation and `mcShortSvcOf()` delegates to it — Mission Critical's shortage is this same
+reading gated to starred requirements, so the star and the portfolio cannot disagree about what a
+dollar is. Both are floored **per service**.
+
+### Every requirement carries an explicit Split
+
+`auto (lanes)` is gone from the funding menu, as Force DISC/MAND/UFR were before it. `tiers()`
+still walks the lanes for a requirement with no override — an older saved board, or one
+mid-migration — so nothing breaks on load; it simply cannot be chosen.
+
+- `seedSplit(id, T)` freezes ONE requirement's current lane draw as directed per-service dollars.
+  One implementation, shared by the chip, the bulk convert and a newly added requirement.
+- `convertAllToSplit()` moves a whole board over. It is a one-way bulk edit with **no undo** (the
+  board has no undo stack), so it confirms with a count and points at Snapshots.
+- `addReq()` seeds a new requirement on Split, because the menu can no longer offer auto.
+
+**Conversion is lossless, and that is the property to protect.** Every dollar and both unfunded
+readings are identical before and after — `tiers()` re-reads exactly what it just produced, and
+unfunded is ask-based either way. `audit-board.mjs` asserts this across two fixtures, one with a
+SCALAR trim so the per-service values are fractional: `seedSplit` rounds each service to whole
+dollars, and whole-number fixtures would make that rounding invisible. If conversion ever shifts a
+dollar it will do so across every requirement at once and silently.
+
 **EVERY per-service figure is floored PER SERVICE, not once on the totals.** A "service" is a
 service AND ITS VARIANT — STOVL, USMC CV and USN are each their own pot — and money never moves
 between them, so an over-allocation in one can never pay down a shortage in another. This governs

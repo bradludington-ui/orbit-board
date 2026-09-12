@@ -320,16 +320,25 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 
   // ---- 6. Unfunded sheet: each row's total must equal its per-service columns ----
   const us = sheetOf(sheets, 'Unfunded Requirements');
-  us.rows.forEach(r => {
-    const k = rowKey(r);
-    if (!k || k === 'TOTAL' || !ids.includes(String(cv(r[3])).replace(' title', ''))) return;
-  });
+  // COLUMNS ARE FOUND BY HEADER, NOT BY POSITION. Reading them positionally meant that inserting
+  // one column silently slid every later check onto the wrong column -- they kept comparing real
+  // numbers and failing for a reason that had nothing to do with the figures.
+  const uHdr = us.rows.find(r => String(cv(r[0])).trim() === 'Rank') || [];
+  // Matched on a pattern, so the fiscal-year prefix on "<FY> Ask" does not have to be restated here.
+  const uCol = (label, re) => {
+    const i = uHdr.findIndex(c => re.test(String(cv(c)).trim()));
+    if (i < 0) chk(name, 'Unfunded Requirements', `column "${label}" is present`, 'missing', 'present');
+    return i; };
+  const C = { ask: uCol('Ask', /^FY\d\d Ask$/), alloc: uCol('Allocated', /^Allocated$/),
+              trim: uCol('Trim', /^Trim, by service$/), beyond: uCol('Beyond', /^Beyond Both Lanes$/),
+              discUnf: uCol('Unfunded vs DISC', /^Unfunded vs DISC$/),
+              tot: uCol('TOTAL Unfunded', /^TOTAL Unfunded$/) };
+  const uSvc = SVC.map(s => uCol('Unf ' + s, new RegExp('^Unf ' + s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$')));
   {
     const tr = us.rows.find(r => rowKey(r) === 'TOTAL');
     if (tr) {
-      const rowTotal = num(tr[11]);
-      const svcTotal = sum(SVC.map((s, i) => num(tr[12 + i])));
-      chk(name, 'Unfunded Requirements', 'TOTAL unfunded == sum of per-service columns', svcTotal, rowTotal);
+      chk(name, 'Unfunded Requirements', 'TOTAL unfunded == sum of per-service columns',
+        sum(uSvc.map(i => num(tr[i]))), num(tr[C.tot]));
     }
   }
 
@@ -338,15 +347,23 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   us.rows.forEach(r => {
     const id = titleToId[String(cv(r[3]))]; if (!id) return;
     chk(name, 'Unfunded Requirements', `${id}: TOTAL Unfunded == sum of per-service cols`,
-      sum(SVC.map((s, i) => num(r[12 + i]))), num(r[11]));
+      sum(uSvc.map(i => num(r[i]))), num(r[C.tot]));
     chk(name, 'Unfunded Requirements', `${id}: per-service cols floored per service`,
-      sum(SVC.map((s, i) => num(r[12 + i]))), sum(unfSvcExp(id)));
+      sum(uSvc.map(i => num(r[i]))), sum(unfSvcExp(id)));
     chk(name, 'Unfunded Requirements', `${id}: Trim + Beyond == TOTAL Unfunded`,
-      num(r[9]) + num(r[10]), num(r[11]));
+      num(r[C.trim]) + num(r[C.beyond]), num(r[C.tot]));
     // 'Allocated' is the basis the lane engine worked from: the ask for a directed source,
     // the board's allocation otherwise. Never the funded total.
     chk(name, 'Unfunded Requirements', `${id}: Allocated == the basis used`,
-      num(r[8]), sum(basisOf(id)));
+      num(r[C.alloc]), sum(basisOf(id)));
+    // THE TWO READINGS OF SHORT. "vs DISC" is ask - discretionary; TOTAL is ask - disc - mand.
+    // Recomputed here from the scenario's own ask and the lane oracle, never read back from the
+    // sheet that is under test.
+    const dU = sum(SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i])));
+    chk(name, 'Unfunded Requirements', `${id}: Unfunded vs DISC == ask - discretionary`,
+      num(r[C.discUnf]), dU);
+    chk(name, 'Unfunded Requirements', `${id}: mandatory can only narrow the gap, never widen it`,
+      num(r[C.discUnf]) >= num(r[C.tot]) - EPS ? 'ok' : 'TOTAL exceeds vs-DISC', 'ok');
   });
 
   // ---- 6c. tier list sheets, PER ROW: printed amount must equal its per-service vector ----
