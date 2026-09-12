@@ -302,6 +302,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     sum(pmoRows.map(r => sum(SVC.map((s, i) => num(r[1 + i * 2]) + num(r[2 + i * 2]))))),
     sum(allD) + sum(allM));
 
+  const titleToIdMC = {}; ids.forEach(id => titleToIdMC[id + ' title'] = id);
+
   // ---- 5. tier list sheets tie to the same totals ----
   const tierTot = (sheetName, want, col = 7) => {
     const sh = sheetOf(sheets, sheetName); if (!sh) return;
@@ -316,6 +318,36 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     const sh = sheetOf(sheets, 'Mission Critical');
     const tr = sh && sh.rows.find(r => rowKey(r) === 'TOTAL');
     if (tr) chk(name, 'Mission Critical', 'TOTAL == requirement value of SHORTFALL MC items', num(tr[7]), mcShortMemo);
+
+    // THE SHORTAGE ITSELF, per requirement. The sheet used to say WHICH starred requirements were
+    // short and print their full value, but never by how much -- so the one figure the star is
+    // about existed in no export, and the only place to read it per requirement was a panel that
+    // was reporting "covered" for every row. Columns are appended after the per-service block.
+    const hdr = sh && sh.rows.find(r => String(cv(r[0])).trim() === 'Rank');
+    const shCol = hdr ? hdr.findIndex(c => /Short vs DISC/.test(String(cv(c)))) : -1;
+    chk(name, 'Mission Critical', 'the shortage column is present',
+      shCol > 0 ? 'present' : 'missing', 'present');
+    if (sh && shCol > 0) {
+      const svcCol = SVC.map(x => hdr.findIndex(c => String(cv(c)).trim() === 'Short ' + x));
+      let listed = 0, shTot = 0;
+      sh.rows.forEach(r => {
+        const id = titleToIdMC[String(cv(r[3]))]; if (!id) return;
+        listed++;
+        const want = sum(SVC.map((x, i) => Math.max(0, askArr(id)[i] - T[id].d[i])));
+        shTot += want;
+        chk(name, 'Mission Critical', `${id}: \u2605 short == ask - discretionary`, num(r[shCol]), want);
+        chk(name, 'Mission Critical', `${id}: \u2605 short == its own per-service columns`,
+          sum(svcCol.map(i => num(r[i]))), num(r[shCol]));
+      });
+      // Only starred requirements that are actually short are listed; the filter and the column
+      // have to agree, or a row appears with nothing to show or a shortage goes unlisted.
+      const shouldList = ids.filter(id => mcIds.includes(id)
+        && sum(SVC.map((x, i) => Math.max(0, askArr(id)[i] - T[id].d[i]))) > 0.005).length;
+      chk(name, 'Mission Critical', 'every short starred requirement is listed, and only those',
+        listed, shouldList);
+      const trS = sh.rows.find(r => rowKey(r) === 'TOTAL');
+      if (trS) chk(name, 'Mission Critical', 'TOTAL \u2605 short == the rows above it', num(trS[shCol]), shTot);
+    }
   }
 
   // ---- 6. Unfunded sheet: each row's total must equal its per-service columns ----

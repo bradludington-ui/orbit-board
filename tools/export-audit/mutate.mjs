@@ -271,6 +271,17 @@ const MUTATIONS = [
   { id: 'scen-marker-file', area: 'marker', what: 'a what-if workbook saves under the ordinary file name',
     find: "function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }",
     repl: 'function scenFile(n){ return n; }' },
+  // ---- the MC shortage, per requirement, on the Mission Critical sheet -------------------------
+  { id: 'mc-short-col-nets-mand', area: 'excel', what: 'the per-requirement MC shortage nets off mandatory, against the stated rule',
+    find: "      if(isMC){ const sh=mcShortSvcOf(it,T[it.id]);",
+    repl: "      if(isMC){ const sh=unfSvcOf(it,T[it.id]);" },
+  { id: 'mc-short-col-prints-ask', area: 'excel', what: 'the shortage column prints the requirement value instead of the shortfall',
+    find: "        row.push({v:sh.reduce((a,b)=>a+b,0),s:NB}, ...sh.map(v=>({v,s:N}))); }",
+    repl: "        row.push({v:askTot(it),s:NB}, ...sh.map(v=>({v,s:N}))); }" },
+  { id: 'mc-short-total-drifts', area: 'excel', what: 'the MC shortage TOTAL stops matching the rows above it',
+    find: "      const shT=SVC.map((s,i)=>its.reduce((a,it)=>a+mcShortSvcOf(it,T[it.id])[i],0));",
+    repl: "      const shT=SVC.map((s,i)=>its.reduce((a,it)=>a+unfSvcOf(it,T[it.id])[i],0));" },
+
   // ---- converting to an explicit Split, and the two ask-based unfunded readings ---------------
   { id: 'split-seed-drops-mand', area: 'seedSplit', what: 'conversion freezes discretionary but forgets the mandatory draw',
     find: "  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(v=>Math.round(v))};",

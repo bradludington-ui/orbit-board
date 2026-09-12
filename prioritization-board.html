@@ -1131,7 +1131,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.41 (12 Sep 2026)';
+const BUILD='v1.42 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -18909,13 +18909,30 @@ function exportExcel(){
   const listSheet=(name,tier)=>{
     const [f,amt,vec]=PICK[tier];
     const its=S.order.map(itemById).filter(it=>it&&f(T[it.id],it));
+    // THE MC SHEET SAID WHICH REQUIREMENTS WERE SHORT BUT NEVER BY HOW MUCH: it filters on
+    // mcShortOf>0 and then prints askTot, the requirement's own value. The shortage itself -- the
+    // figure the star is actually about -- was in no export at all, so checking it meant opening
+    // rows one at a time. Appended at the END so no existing column moves.
+    const isMC = tier==='mc';
     const rows=[[{v:name+'  \u2014  '+its.length+(tier==='mc'
       ? ' starred requirements with a shortfall (memo \u2014 their dollars are already in the lane sheets)'
-      : ' requirements (portion drawn \u2014 a requirement can appear on several sheets)'),s:TI}],[],listHdr(AMTLBL[tier])];
-    its.forEach(it=>rows.push(itemRowP(it,amt(T[it.id],it),vec(T[it.id],it))));
+      : ' requirements (portion drawn \u2014 a requirement can appear on several sheets)'),s:TI}],[],
+      isMC? listHdr(AMTLBL[tier]).concat([{v:'\u2605 Short vs DISC',s:H}],SVC.map(s=>({v:'Short '+s,s:H})))
+          : listHdr(AMTLBL[tier])];
+    its.forEach(it=>{
+      const row=itemRowP(it,amt(T[it.id],it),vec(T[it.id],it));
+      if(isMC){ const sh=mcShortSvcOf(it,T[it.id]);
+        row.push({v:sh.reduce((a,b)=>a+b,0),s:NB}, ...sh.map(v=>({v,s:N}))); }
+      rows.push(row);
+    });
     const tot=its.reduce((a,it)=>a+amt(T[it.id],it),0);
     const svT=SVC.map((s,i)=>its.reduce((a,it)=>a+vec(T[it.id],it)[i],0));
-    rows.push([{v:'TOTAL',s:B},'','','','','','',{v:tot,s:NB},...svT.map(v=>({v,s:NB}))]);
+    const totRow=[{v:'TOTAL',s:B},'','','','','','',{v:tot,s:NB},...svT.map(v=>({v,s:NB}))];
+    if(isMC){
+      const shT=SVC.map((s,i)=>its.reduce((a,it)=>a+mcShortSvcOf(it,T[it.id])[i],0));
+      totRow.push({v:shT.reduce((a,b)=>a+b,0),s:NB}, ...shT.map(v=>({v,s:NB})));
+    }
+    rows.push(totRow);
     if(tier==='mc'){
       // The board-wide memo covers EVERY starred requirement; this sheet lists only the ones that
       // are short. Saying so is the difference between a filtered view and a number that looks
