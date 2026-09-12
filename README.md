@@ -57,6 +57,14 @@ charts in four layouts.
 cost estimate mapping and tie-out, dated snapshots you can return to and diff, and a continuing
 resolution cash view over Oct 1 – Mar 31.
 
+**Ask "what if the mandatory money never shows?"** → *Views › Spend plan basis*. **◨ Discretionary
+only** re-runs the spend plan with every mandatory lane empty, so what would have spilled into
+mandatory reads as unfunded and never reaches a month. It moves the two by-month sheets and the
+spend forecast — the board's own totals are unchanged — and every figure it moves is stamped
+*DISCRETIONARY ONLY — mandatory withheld*, on screen, in the sheet titles and in the file name, so
+a what-if cannot be mistaken for the funded plan once it has been emailed. **◧ Discretionary +
+Mandatory** is the board's actual plan and the default.
+
 **Get it out.** Excel workbooks (full breakouts, ACE tie-out, chart of accounts, ATR/BTR log, spend
 plan source, CR cash return), CSV priority drills by band and per PMO, and a PowerPoint deck built
 *inside* the real SFCB template so slides land on-brand. The XLSX reader and writer and the PPTX

@@ -1212,7 +1212,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.38 (12 Sep 2026)';
+const BUILD='v1.39 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -5908,7 +5908,10 @@ function forecast(fundOf){
   // itself: the increment weighting, the single-date default and the UNSCHEDULED rule are subtle
   // enough that a second copy would drift, and then the workbook would disagree with itself about
   // when a dollar lands. Called with nothing it is exactly what it always was.
-  const T=tiers();
+  // The board's own forecast follows the ◨/◧ view toggle: under "Discretionary only" the mandatory
+  // lanes are empty, so what would have spilled into them shows as unfunded and never reaches a
+  // month. A modelled plan brings its own dollars through fundOf and T is not read at all.
+  const T = fundOf ? null : tiers(null, scenOpt());
   const fund = fundOf || function(id){ return T[id]; };
   // AN INCREMENT IS DOLLARS ONLY AGAINST THE BOARD'S OWN ALLOCATION. Called bare, this spreads what
   // the board actually funds, so the increments are the discretionary dollars the user typed and
@@ -11396,6 +11399,12 @@ function planCompute(){
 // plan, and the only thing saying so would be a banner the reader has no reason to distrust.
 let scenView='';                        // '' | 'disc'
 function scenOpt(){ return scenView==='disc'? {noMand:true} : null; }
+// A workbook built under "Discretionary only" is a WHAT-IF, and it stops being obviously one the
+// moment it is emailed. One marker, defined once and used by the sheet titles, the board panel and
+// the file name, so they cannot describe the same workbook differently.
+const SCEN_TAG='DISCRETIONARY ONLY — mandatory withheld';
+function scenTitle(t){ return scenOn()? (t+'   \u2014   \u25e8 '+SCEN_TAG+' (WHAT-IF, not the funded plan)') : t; }
+function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }
 function scenOn(){ return scenView==='disc'; }
 // the mandatory BA as the CURRENT VIEW sees it -- zero when the pot is withheld
 function scenMand(i){ return scenOn()? 0 : (S.mandSvc[i]||0); }
@@ -13415,6 +13424,9 @@ function fcBody(){
   const el=document.getElementById('fcBody');
   if(!fcOpen){ if(el) el.innerHTML=''; return; }
   const F=forecast();
+  { const ttl=document.getElementById('fcTitle');
+    if(ttl) ttl.innerHTML='\ud83d\udcc5 '+FYL()+' PROJECTED SPEND PLAN FORECAST \u2014 OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur
+      + (scenOn()? ' <span style="color:var(--amber);font-weight:800">\u25e8 '+esc(SCEN_TAG)+'</span>' : ''); }
   const FG=fcGrid(FYMON.length);
   const TBL='<div style="overflow-x:auto"><table class="fctab" style="min-width:'+FG.minW+'px">'+FG.cols;
   const hd='<tr><th style="text-align:left">&nbsp;</th>'+FYMON.map(([k,l])=>'<th>'+l+'</th>').join('')+'<th>UNSCH</th><th style="border-left:1px solid var(--gold)">TOTAL</th></tr>';
@@ -16543,9 +16555,9 @@ function syncBtns(){
     mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'value by service + CCaR')+
     mi('💰 Budget Management…',"mRun(toggleBm)",bmOpen,'budget authority · funding sources')+
     mi('📋 Two Spend Plans…',"mRun(togglePlans)",planOpen,'discretionary only vs the whole top line')+
-    '<div class="msep"></div><div class="mlbl">Show the board under</div>'+
+    '<div class="msep"></div><div class="mlbl">Spend plan basis</div>'+
     mi('◨ Discretionary only',"setScen('disc')",scenView==='disc',
-       'mandatory withheld — what one pot funds, by service, down your priority order')+
+       'spend plan + forecast only — mandatory withheld; board totals unchanged')+
     mi('◧ Discretionary + Mandatory',"setScen('')",scenView==='',
        'both pots — this board’s actual plan')+
     mi('📌 Baseline this Spend Plan…',"mRun(toggleBl)",blOpen,blList().length? blList().length+' locked baseline'+(blList().length===1?'':'s') : 'freeze it under a PPBE cycle')+
@@ -19303,6 +19315,8 @@ function exportExcel(){
      Rows are the classification's values; columns are the fiscal-year months, then NO DATE, then a
      row total. Every group carries its own subtotal so a service reconciles on its own, and the
      sheet ends with a grand total BY MONTH across all three. */
+  // The month sheets follow the ◨/◧ view toggle; every other sheet here reads the truth walk T.
+  const Tv = scenOn()? tiers(null, scenOpt()) : T;
   const monSheet=function(name, title, svcNames, keysOf, labelOf, keyOfReq, noneLbl, dispSvc, opts){
     // SVC.indexOf needs the board's OWN service codes; a reader must never see one. crSvcName is
     // what turns USMC-C into USMC CV, exactly as the CR return and the SI snapshot already do.
@@ -19325,7 +19339,7 @@ function exportExcel(){
     const prime=svcNames.map(function(){ return []; });
     const mk=function(){ return {m:FYMON.map(function(){ return 0; }), nod:0, its:[]}; };
     S.order.forEach(function(id){
-      const it=itemById(id), pt=T[id];
+      const it=itemById(id), pt=Tv[id];
       if(!it||!pt) return;
       const sp=monSpreadOf(id, pt);
       idx.forEach(function(si,g){
@@ -19381,7 +19395,7 @@ function exportExcel(){
     // record name, neither of which fits the 34 the rollup alone needed.
     const cols=[O.detail? 52 : 34].concat(FYMON.map(function(){ return 13; })).concat([13,15])
       .concat(O.detail? [14,15,18,12] : []).concat(O.clinOf? [34] : []);
-    const rows=[[{v:title,s:TI}],[]];
+    const rows=[[{v:scenTitle(title),s:TI}],[]];
     const hdr=function(extra,lead){ return [{v:lead||'',s:H}]
       .concat(FYMON.map(function(x){ return {v:x[1],s:H}; }))
       .concat([{v:'NO DATE',s:H},{v:'TOTAL',s:H}])
@@ -19704,7 +19718,7 @@ function exportExcel(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=document.title.replace(/FY\d\d/,FYL())+' — Breakouts '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=scenFile(document.title.replace(/FY\d\d/,FYL())+' — Breakouts')+' '+new Date().toISOString().slice(0,10)+'.xlsx';
   a.click();
 }
 // THE ONE PLACE THAT CAPTURED THE LIST. Boot code, run once, so a PMO added later never

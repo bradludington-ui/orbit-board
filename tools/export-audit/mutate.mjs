@@ -250,6 +250,33 @@ const MUTATIONS = [
   { id: 'ppt-kpi-disc', area: 'ppt', what: 'KPI "Discretionary funded" reads the mandatory total',
     find: "['Discretionary BA', fSM(dBA), _PPT.GREEN], ['Discretionary funded', fSM(TT.dUsed), _PPT.GREEN],",
     repl: "['Discretionary BA', fSM(dBA), _PPT.GREEN], ['Discretionary funded', fSM(TT.mUsed), _PPT.GREEN]," },
+  // ---- the ◨/◧ view toggle, and the marker that has to travel with it -------------------------
+  // The toggle changes what the spend-plan family prints. A build that ignores it, or that lets it
+  // leak into the rest of the workbook, is wrong in a way that looks like a normal export.
+  { id: 'scen-forecast-ignores', area: 'forecast', what: "the board's forecast ignores the view toggle",
+    find: '  const T = fundOf ? null : tiers(null, scenOpt());',
+    repl: '  const T = fundOf ? null : tiers(null, null);' },
+  { id: 'scen-months-ignore', area: 'monSheet', what: 'the month sheets read the truth walk instead of the view',
+    find: '  const Tv = scenOn()? tiers(null, scenOpt()) : T;',
+    repl: '  const Tv = T;' },
+  { id: 'scen-leaks-everywhere', area: 'excel', what: 'the view leaks past the spend-plan family into the whole workbook',
+    find: '      const it=itemById(id), pt=Tv[id];',
+    repl: '      const it=itemById(id), pt=Tv[id]; T[id]=pt;' },
+  { id: 'scen-opt-inert', area: 'scenOpt', what: 'the toggle is wired up but withholds nothing',
+    find: "function scenOpt(){ return scenView==='disc'? {noMand:true} : null; }",
+    repl: 'function scenOpt(){ return null; }' },
+  { id: 'scen-marker-sheet', area: 'marker', what: 'a what-if workbook prints sheet titles that look like the funded plan',
+    find: String.raw`function scenTitle(t){ return scenOn()? (t+'   \u2014   \u25e8 '+SCEN_TAG+' (WHAT-IF, not the funded plan)') : t; }`,
+    repl: 'function scenTitle(t){ return t; }' },
+  { id: 'scen-marker-file', area: 'marker', what: 'a what-if workbook saves under the ordinary file name',
+    find: "function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }",
+    repl: 'function scenFile(n){ return n; }' },
+  { id: 'scen-marker-panel', area: 'marker', what: 'the on-screen forecast panel drops its what-if marker',
+    find: "      + (scenOn()? ' <span style=\"color:var(--amber);font-weight:800\">\\u25e8 '+esc(SCEN_TAG)+'</span>' : ''); }",
+    repl: "      + ''; }" },
+  { id: 'scen-marker-always', area: 'marker', what: 'the marker is stamped on the funded plan too',
+    find: 'function scenOn(){ return scenView===\'disc\'; }',
+    repl: 'function scenOn(){ return true; }' },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

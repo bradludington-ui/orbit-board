@@ -155,6 +155,42 @@ three ways reads as three requirements.
 One implementation each, all hoisted beside `mcCalc()` so the workbook, the deck and the board
 cannot diverge: `pmoKeys()`, `mcShortSvcOf()`, `unfSvcOf()`, `beyondSvcOf()`, `trimSvcOf()`.
 
+### The ◨/◧ view toggle — discretionary only vs discretionary + mandatory
+
+The board can be read two ways, and the toggle switches between them **for the spend-plan family
+only**. `scenView` is the state (`''` or `'disc'`); `scenOpt()` returns `{noMand:true}` under
+"Discretionary only", which runs the ordinary lane walk with **every mandatory lane empty** — so
+what would have spilled into mandatory shows as unfunded and never reaches a month. There is no
+second engine: it is `tiers()` with one option.
+
+**What follows the toggle** — exactly three things, and nothing else:
+
+| Surface | How |
+|---|---|
+| RCN-EEIC by Month (sheet) | `const Tv = scenOn()? tiers(null, scenOpt()) : T` |
+| SI Codes by Month (sheet) | the same `Tv` |
+| FY27 Spend Forecast **tab** (on screen) | `forecast()` bare: `const T = fundOf ? null : tiers(null, scenOpt())` |
+
+**What must NOT follow it:** every other sheet in the workbook, the deck, and the board's own
+totals. Unfunded Requirements is ask-versus-allocation rather than a lane shortfall, so the toggle
+would misstate it. The audit compares **every sheet** between the two views, not just one — the
+month sheets are built partway through `exportExcel`, so a view leaking into the shared `T` would
+corrupt only the sheets built *after* them and a single-sheet check sails straight past it.
+
+**The `<FY> Spend Forecast` SHEET is deliberately on the invariant side, despite the name.** It is
+not the board's forecast: it is PLAN A (discretionary only) and PLAN B (disc + mandatory) printed
+side by side, both modelled through `fundOf`. It already shows both answers at once, so the toggle
+must not move it. The on-screen tab of nearly the same name is the one that follows the view. These
+are different objects — do not "fix" the sheet to match the tab.
+
+**The marker is part of the behaviour, not decoration.** A workbook built under "Discretionary
+only" is a WHAT-IF, and stops being obviously one the moment it is emailed. `scenTitle()` stamps
+the month-sheet titles, `scenFile()` appends `[DISC-ONLY]` to the file name, and `fcBody()` marks
+the on-screen forecast panel. Each is asserted in **both** directions — present under the toggle,
+absent without it — the two exported ones in `audit.mjs`, the on-screen one in `audit-board.mjs`,
+because it is rendered and never exported and no export suite can reach it. Never ship a figure
+that moves with the view without a marker saying so.
+
 ### Auditing the exports
 
 ```
@@ -246,6 +282,18 @@ Four kinds of gap it has already found, none of which the checks alone would hav
   Mission Critical tile figures were being compared against zero and agreed. Adding MC scenarios also
   exposed a bug in the harness's own tier oracle, which had missed the line that makes a must-pay read
   `mc` only once mandatory or unfunded touches it.
+- **"Nothing else moved" has to be checked on everything, not on one example.** The view toggle's
+  scope check asserted that Unfunded Requirements was unaffected — and a mutation that leaked the
+  view into the shared truth walk survived it, because that sheet's rows are computed *before* the
+  month sheets and the leak could only corrupt what came after. The check was guarding the one sheet
+  the bug could not reach. It now compares **every sheet** between the two views. When a rule says
+  "and nothing else changes", enumerate the everything; a representative sample picks itself for
+  the wrong reasons.
+- **A string check in a numeric harness fails silently in the wrong direction.** `chk()` compared with
+  `Math.abs(got - want) <= EPS`; handed two equal strings that is `NaN <= EPS`, i.e. false, so every
+  marker assertion "failed" and then crashed the reporter on `got.toFixed`. The crash was the lucky
+  part — had `chk` returned a pass for non-numbers instead, the marker checks would have read green
+  forever. Widen the comparator with the assertion, not after it.
 
 **Equivalent mutations.** Two are marked `equivalent:` rather than surviving: flooring the lane
 remainders cannot change any output, because every draw is clamped by `Math.max(0, dRem[i])` and

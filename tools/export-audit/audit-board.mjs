@@ -559,6 +559,42 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     Math.round(r.ab.absorbedTot + r.ab.unabsorbedTot), Math.round(sum(r.u)));
 }
 
+// ═══ the on-screen marker on the spend forecast panel ════════════════════════════════════
+// The workbook's markers are asserted in audit.mjs. This one is the marker the USER actually sees:
+// the forecast panel's own heading, under "Discretionary only". It is rendered, never exported, so
+// no export suite can reach it — exactly the class of figure this file exists for.
+{
+  const name = 'forecast marker';
+  const sc = {
+    services: ['USAF', 'ANG'],
+    items: [it('A', 'ATL', [12000000, 1500000]), it('B', 'PSM', [3000000, 400000])],
+    disc: [8000000, 1000000], mand: [4000000, 600000], order: ['A', 'B'],
+  };
+  const { ev, w, errors } = boot();
+  seed(ev, sc);
+  ev(`S.awards['A']={mode:'single',d:FYMON[1][0],day:1};
+      S.awards['B']={mode:'single',d:FYMON[2][0],day:1}; save(); 'ok'`);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // Open the panel: fcBody() only writes the heading while the forecast is on screen.
+  ev('if(!fcOpen) toggleFc(); "ok"');
+  chk(name, 'panel', 'the forecast panel opens', String(ev('!!fcOpen')), 'true');
+
+  const head = () => { const el = w.document.querySelector('#fcTitle');
+                       return el ? el.textContent.replace(/\s+/g, ' ').trim() : null; };
+  const tag = JSON.parse(ev('JSON.stringify(SCEN_TAG)'));
+  ev(`setScen(''); render(); 'ok'`);   const off = head();
+  ev(`setScen('disc'); render(); 'ok'`); const on = head();
+  ev(`setScen(''); render(); 'ok'`);   const back = head();
+
+  chk(name, 'panel', 'the heading renders at all', off === null ? 'missing' : 'present', 'present');
+  chk(name, 'panel', 'marked under Discretionary only',
+    String(on).includes(tag) ? 'marked' : 'unmarked', 'marked');
+  chk(name, 'panel', 'clean under Discretionary + Mandatory',
+    String(off).includes(tag) ? 'marked' : 'clean', 'clean');
+  chk(name, 'panel', 'the marker comes back off with the toggle',
+    String(back).includes(tag) ? 'marked' : 'clean', 'clean');
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

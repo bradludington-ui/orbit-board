@@ -6,8 +6,11 @@ import { boot, seed, capture, num, cv } from './boot.mjs';
 const EPS = 0.005;
 let failures = [];
 const chk = (scenario, sheet, what, got, want) => {
-  const ok = Math.abs(got - want) <= EPS;
-  if (!ok) failures.push({ scenario, sheet, what, got, want, delta: got - want });
+  // Numbers compare within EPS; anything else (a marker string, a "differs"/"same" verdict)
+  // compares exactly. Without this branch a string pair yields NaN and fails unconditionally.
+  const numeric = typeof got === 'number' && typeof want === 'number';
+  const ok = numeric ? Math.abs(got - want) <= EPS : Object.is(got, want);
+  if (!ok) failures.push({ scenario, sheet, what, got, want, delta: numeric ? got - want : null });
   return ok;
 };
 
@@ -564,6 +567,124 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// ═══ the ◨/◧ view toggle, and the marker that has to travel with it ═════════════════════════════
+// "Discretionary only" runs the lane walk with every mandatory lane empty. The spend-plan family
+// follows it; the rest of the workbook must not. And a workbook built that way is a WHAT-IF, which
+// stops being obviously one the moment it is emailed — so the marker is part of the behaviour, not
+// decoration, and is asserted here alongside the figures.
+{
+  const name = 'view toggle';
+  const sc = {
+    services: ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'],
+    items: [it('A', 'ATL', [12000000, 1500000, 900000, 4200000, 2100000, 2361859]),
+            it('B', 'PSM', [3000000, 400000, 200000, 1000000, 500000, 300000])],
+    disc: [8000000, 1000000, 600000, 3000000, 1400000, 1600000],
+    mand: [4000000, 600000, 400000, 1500000, 800000, 900000],
+    order: ['A', 'B'],
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev(`
+    MS.rcn=[{k:'r0',rcn:'12345',eeic:'ABC12',t:'T',svc:['USAF','ANG','AFRC']}];
+    S.rcnAsg={A:'r0',B:'r0'}; S.si={A:'LA',B:'EN'};
+    S.awards['A']={mode:'single',d:FYMON[1][0],day:1};
+    S.awards['B']={mode:'single',d:FYMON[2][0],day:1}; save(); 'ok'`);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const txt = c => String((c && typeof c === 'object' && 'v' in c) ? c.v : (c ?? ''));
+  const numOf = c => { const v = (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+                       return typeof v === 'number' ? v : NaN; };
+  const look = () => {
+    const sheets = JSON.parse(capture(ev));
+    const tot = (n, re) => { const sh = sheetOf(sheets, n); if (!sh) return null;
+      const r = sh.rows.find(x => re.test(txt(x[0]))); if (!r) return null;
+      const v = r.map(numOf).filter(x => !isNaN(x)); return v.length ? v[v.length - 1] : null; };
+    const title = n => { const sh = sheetOf(sheets, n); return sh ? txt(sh.rows[0][0]) : ''; };
+    return { rcn: tot('RCN-EEIC by Month', /^ALL SERVICES/),
+             si:  tot('SI Codes by Month', /^ALL SERVICES/),
+             unf: tot('Unfunded Requirements', /^TOTAL/),
+             rcnTitle: title('RCN-EEIC by Month'),
+             siTitle:  title('SI Codes by Month'),
+             file: ev('scenFile("BOOK")'),
+             body: sheets.reduce((a, sh) => (a[sh.name] = JSON.stringify(sh.rows), a), {}) };
+  };
+  const both = (ev(`setScen(''); 'ok'`), look());
+  const disc = (ev(`setScen('disc'); 'ok'`), look());
+  ev(`setScen(''); 'ok'`);
+
+  // Under "Discretionary only" the month sheets carry exactly the DISCRETIONARY drawn on their own
+  // services — mandatory withheld means it never reaches a month.
+  const drawn = svcs => svcs
+    .reduce((a, svc) => { const i = sc.services.indexOf(svc); return a + Math.min(sc.disc[i],
+      sc.order.reduce((q, id) => q + (sc.items.find(x => x.id === id).ask[i] || 0), 0)); }, 0);
+  chk(name, 'month sheets', 'RCN month follows the toggle', disc.rcn, drawn(['USAF', 'ANG', 'AFRC']));
+  chk(name, 'month sheets', 'SI month follows the toggle',  disc.si,  drawn(['STOVL', 'USMC-C', 'USN']));
+  chk(name, 'month sheets', 'RCN month differs between the two views',
+    both.rcn === disc.rcn ? 'same' : 'differs', 'differs');
+  chk(name, 'month sheets', 'SI month differs between the two views',
+    both.si === disc.si ? 'same' : 'differs', 'differs');
+
+  // Everything else in the workbook keeps reading the truth walk. Unfunded Requirements is
+  // ask-versus-allocation, not a lane shortfall, so the toggle must not move it.
+  chk(name, 'scope', 'Unfunded Requirements is NOT moved by the toggle', disc.unf, both.unf);
+
+  // ONE SHEET IS NOT ENOUGH. The month sheets are built partway through the workbook, so a view
+  // that leaked into the shared truth walk would corrupt only the sheets built AFTER them --
+  // Unfunded Requirements is computed earlier and would sail through. Compare every sheet.
+  //
+  // "<FY> Spend Forecast" is deliberately on the invariant side: it is not the board's own
+  // forecast but PLAN A (discretionary only) and PLAN B (disc + mandatory) side by side, both
+  // modelled through fundOf. It already shows both answers at once, so the toggle must not move
+  // it. The board's on-screen forecast tab is the one that follows the view; it is checked above.
+  const FAMILY = ['RCN-EEIC by Month', 'SI Codes by Month'];
+  const names = Object.keys(both.body);
+  chk(name, 'scope', 'the two views build the same sheets',
+    names.join('|'), Object.keys(disc.body).join('|'));
+  names.filter(n => !FAMILY.includes(n)).forEach(n =>
+    chk(name, 'scope', n + ': NOT moved by the toggle',
+      both.body[n] === disc.body[n] ? 'same' : 'differs', 'same'));
+  // Assert presence rather than filtering on it: a build where monSheet returned null would make
+  // a .filter() skip these two checks entirely and the suite would still read green.
+  FAMILY.forEach(n => {
+    chk(name, 'scope', n + ': present in the workbook',
+      names.includes(n) ? 'present' : 'missing', 'present');
+    chk(name, 'scope', n + ': moved by the toggle',
+      both.body[n] === disc.body[n] ? 'same' : 'differs', 'differs');
+  });
+
+  // The board's own FY27 Spend Forecast tab is the other half of the family. It is computed, not
+  // exported, so no sheet check can see it — read forecast() directly and hold it to the same rule.
+  const fc = () => JSON.parse(ev(`(function(){ const F=forecast(); let m=0,u=0;
+    Object.keys(F.byPMO).forEach(function(k){ m+=F.byPMO[k].m.reduce(function(a,v){return a+v;},0);
+                                              u+=F.byPMO[k].unsch; });
+    return JSON.stringify({months:m, unsch:u,
+      roll:F.rollRows.reduce(function(a,r){return a+r.tot;},0)}); })()`));
+  const fcBoth = (ev(`setScen(''); 'ok'`), fc());
+  const fcDisc = (ev(`setScen('disc'); 'ok'`), fc());
+  ev(`setScen(''); 'ok'`);
+  chk(name, 'spend forecast', 'forecast follows the toggle', fcDisc.months + fcDisc.unsch,
+    drawn(sc.services));
+  chk(name, 'spend forecast', 'forecast differs between the two views',
+    fcBoth.months === fcDisc.months ? 'same' : 'differs', 'differs');
+  chk(name, 'spend forecast', 'forecast restores when the toggle goes back off', fc().months,
+    fcBoth.months);
+  // Conservation holds in BOTH views: every funded dollar lands in a month or in UNSCHEDULED.
+  chk(name, 'spend forecast', 'roll-up reconciles to the months, Discretionary only',
+    fcDisc.roll, fcDisc.months + fcDisc.unsch);
+  chk(name, 'spend forecast', 'roll-up reconciles to the months, Discretionary + Mandatory',
+    fcBoth.roll, fcBoth.months + fcBoth.unsch);
+
+  // The marker travels on the sheet titles and the file name, and is absent when it should be.
+  [['RCN sheet title', disc.rcnTitle, both.rcnTitle],
+   ['SI sheet title',  disc.siTitle,  both.siTitle],
+   ['file name',       disc.file,     both.file]].forEach(([what, on, off]) => {
+    chk(name, 'marker', `${what}: marked under Discretionary only`,
+      /DISC/i.test(on) ? 'marked' : 'unmarked', 'marked');
+    chk(name, 'marker', `${what}: clean under Discretionary + Mandatory`,
+      /DISC-ONLY|DISCRETIONARY ONLY/i.test(off) ? 'marked' : 'clean', 'clean');
+  });
+}
+
 // ---------------------------------------------------------------------------------------------
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
@@ -572,6 +693,8 @@ failures.forEach(f => { const k = f.scenario + ' | ' + f.sheet; (byKey[k] ||= []
 console.log(`${failures.length} FAILING CHECK(S)\n`);
 for (const [k, fs] of Object.entries(byKey)) {
   console.log(`--- ${k}`);
-  fs.forEach(f => console.log(`    ${f.what}\n        workbook ${f.got.toFixed(4)}   truth ${f.want.toFixed(4)}   off by ${f.delta.toFixed(4)}`));
+  fs.forEach(f => console.log(f.delta === null
+    ? `    ${f.what}\n        workbook ${JSON.stringify(f.got)}   truth ${JSON.stringify(f.want)}`
+    : `    ${f.what}\n        workbook ${f.got.toFixed(4)}   truth ${f.want.toFixed(4)}   off by ${f.delta.toFixed(4)}`));
 }
 process.exit(1);
