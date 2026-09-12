@@ -129,6 +129,23 @@ implementation and `mcShortSvcOf()` delegates to it — Mission Critical's short
 reading gated to starred requirements, so the star and the portfolio cannot disagree about what a
 dollar is. Both are floored **per service**.
 
+### Where a split is edited, per build
+
+The two builds deliberately differ here, and `parity-allow.json` records it:
+
+- **grid** — the docked RECORD inspector owns the per-service Split editor. The row expander does
+  not repeat it; it shows a one-line pointer instead. Two editors for one set of numbers is one too
+  many, and the inspector is the one with room for six services × four money columns.
+- **card** — has no inspector, so the row expander keeps the editor as its only one.
+
+`migrateSplit(id)` promotes a legacy whole-requirement split to per-service vectors. It used to run
+inside the row expander's render; it is now a shared function called by both builds, so removing
+that editor from the grid could not take the migration with it.
+
+The inspector's split table is `table-layout:fixed` with a `<colgroup>`. Without it the columns are
+content-sized, so the moment a UFR cell turns from an em dash into a dollar figure every other
+column resizes — while the user is typing into them.
+
 ### Every requirement carries an explicit Split
 
 `auto (lanes)` is gone from the funding menu, as Force DISC/MAND/UFR were before it. `tiers()`
@@ -318,6 +335,15 @@ Four kinds of gap it has already found, none of which the checks alone would hav
   DOM. Re-evaluating the same expression in the harness would compare a copy against a copy and pass
   whatever the board did — the lane-oracle trap in a different costume. A pattern that no longer
   matches is recorded as a FAILURE, never skipped.
+- **`typeof x === 'function'` on an out-of-scope name fails OPEN, silently.** The grid inspector read
+  `★ MC shortage` as `(typeof mcShortOf === 'function') ? mcShortOf(it) : 0`. `mcShortOf` is a
+  `const` **inside `exportExcel()`**, so it is not in scope there — and `typeof` on an undeclared
+  identifier returns `'undefined'` instead of throwing, so the guard swallowed it and the field read
+  0 for every requirement. Every starred row said "covered", however short it was, for as long as
+  that line existed. A guard that turns a missing dependency into a plausible default hides the
+  failure it was written to reveal; call the global helper and let a genuine mistake throw.
+  It survived because `inspector-agrees.mjs` compared requirement, discretionary, mandatory and
+  unfunded — but never the MC field. **A rendered figure with no assertion is decoration.**
 - **A scenario absent is a rule untested.** No board scenario had a starred requirement, so all four
   Mission Critical tile figures were being compared against zero and agreed. Adding MC scenarios also
   exposed a bug in the harness's own tier oracle, which had missed the line that makes a must-pay read

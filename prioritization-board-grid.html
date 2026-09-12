@@ -258,7 +258,7 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 /* The inspector is a second view of the SELECTED row, not a second copy of the data: everything in
    it calls the same accessors the row does, so there is no path by which the two can disagree.
    Below 1400px there is no room for both, and the row already carries every control, so it goes. */
-.gridsplit{display:grid;grid-template-columns:minmax(0,1fr) clamp(360px,25vw,470px);gap:10px;align-items:start}
+.gridsplit{display:grid;grid-template-columns:minmax(0,1fr) clamp(420px,30vw,600px);gap:10px;align-items:start}
 .inspector{background:var(--panelA);border:1px solid var(--line);border-radius:9px;position:sticky;top:calc(var(--hdrH,56px) + var(--tbarH,32px) + var(--scsH,0px) + 8px);max-height:calc(100vh - var(--hdrH,56px) - var(--tbarH,32px) - var(--scsH,0px) - 16px);overflow:auto;font-size:11px}
 .insp-hd{display:flex;align-items:center;gap:8px;padding:7px 11px;border-bottom:1px solid var(--line2);background:var(--panel2);position:sticky;top:0}
 .insp-hd b{font-size:10px;letter-spacing:.13em}
@@ -278,11 +278,12 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 /* One ROW per service rather than one column: six services and seven-figure dollars do not fit
    across a narrow panel, and the split is read down the list anyway — set Disc and Mand, and UFR
    is whatever the requirement still needs. UFR is never typed; it is the remainder. */
-.insp-split{width:100%;border-collapse:collapse;font-size:10.5px}
+.insp-split{width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed}
 .insp-split th{font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);
   font-weight:800;text-align:right;padding:0 3px 3px}
 .insp-split th.l{text-align:left}
-.insp-split td{padding:2px 3px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.insp-split td{padding:2px 3px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
 .insp-split td.l{text-align:left;font-weight:700}
 .insp-split input{width:100%;min-width:0;background:var(--panel);border:1px solid var(--line2);
   border-radius:4px;color:var(--ink);font:700 10.5px/1.5 inherit;padding:2px 4px;text-align:right;
@@ -1212,7 +1213,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.40 (12 Sep 2026)';
+const BUILD='v1.41 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14297,16 +14298,9 @@ function svcTable(it){
       <td style="font-weight:700">${fM(askTot(it))}${it.custom?'':` <button class="qb" onclick="resetAsk('${it.id}')" title="restore the original requested amounts">↺ orig</button>`}</td></tr>
     <tr><td>Allocation ${foAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">= D + M (derived)</span>' : (isSvc?'<span class="mode-tag">BY SVC</span>':'(prorated — type to set by service)')}</td>${r2}
       <td style="color:var(--amber);font-weight:700">${foAll? fM(pxAll.dT+pxAll.mT) : fM(eff(it))}</td></tr>
-    ${(S.fsrc[it.id]&&S.fsrc[it.id].m==='split')? (()=>{
-      const fo=S.fsrc[it.id];
-      if(!Array.isArray(fo.dv)){ const Tm=tiers(), pm=Tm[it.id]||{d:SVC.map(_=>0),m:SVC.map(_=>0)}; fo.dv=pm.d.map(v=>Math.round(v)); fo.mv=pm.m.map(v=>Math.round(v)); delete fo.d; delete fo.mnd; }
-      const Tx=tiers(), px=Tx[it.id]||{d:SVC.map(_=>0),m:SVC.map(_=>0),u:SVC.map(_=>0),dT:0,mT:0,uT:0};
-      const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${fo.dv[i]?Math.round(fo.dv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY"></td>`).join('');
-      const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${fo.mv[i]?Math.round(fo.mv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY"></td>`).join('');
-      const uRow=SVC.map((s,i)=>`<td style="color:${px.u[i]>0.5?'var(--red)':'var(--dim)'};font-weight:700">${px.u[i]>0.5?fM(px.u[i]):'—'}</td>`).join('');
-      return `<tr><td style="color:var(--green);font-weight:700">⚙ Split — Disc $ (edit)</td>${dRow}<td style="color:var(--green);font-weight:700">${fM(px.dT)}</td></tr>
-      <tr><td style="color:var(--purp);font-weight:700">⚙ Split — Mand $ (edit)</td>${mRow}<td style="color:var(--purp);font-weight:700">${fM(px.mT)}</td></tr>
-      <tr><td style="color:var(--red);font-weight:700">⚙ Resulting UFR</td>${uRow}<td style="color:${px.uT>0.5?'var(--red)':'var(--dim)'};font-weight:700">${fM(px.uT)}</td></tr>`;})() : ''}
+    ${(S.fsrc[it.id]&&S.fsrc[it.id].m==='split')? `<tr><td style="color:var(--gold);font-weight:700">\u2699 Split D / M / UFR</td>
+      <td colspan="${SVC.length+1}" style="color:var(--dim);font-size:9px">edited in the RECORD panel on the right \u2014 per service, with the UFR derived.
+      It was duplicated here, and two editors for one set of numbers is one too many.</td></tr>` : ''}
     <tr><td style="color:var(--blue);font-weight:700">Minimum useful increment</td>
       <td colspan="${SVC.length}" style="color:var(--dim);font-size:9px">the least this still buys something at — blank means the full requirement. Only needed for band 0&ndash;2 items that fall below the line.</td>
       <td><input style="width:100%;text-align:right" placeholder="${fM(askTot(it))}" value="${(S.minInc||{})[it.id]? Math.round(S.minInc[it.id]).toLocaleString():''}"
@@ -18293,6 +18287,17 @@ function convertAllToSplit(){
   save(); render();
   alert(n+' requirement'+(n===1?'':'s')+' converted to Split. The board\u2019s figures are unchanged.');
 }
+// A split saved before per-service vectors existed carries whole-requirement d/mnd amounts, which
+// tiers() prorates. Promote it to vectors from what the lane walk actually produced, so the number
+// on screen is the number being edited. Idempotent; safe to call on anything.
+function migrateSplit(id){
+  const fo=(S.fsrc||{})[id];
+  if(!fo || fo.m!=='split' || Array.isArray(fo.dv)) return false;
+  const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
+  fo.dv=p.d.map(v=>Math.round(v)); fo.mv=p.m.map(v=>Math.round(v));
+  delete fo.d; delete fo.mnd;
+  return true;
+}
 function setFsrcSvc(id, kind, i, val){
   const fo=S.fsrc[id];
   if(!fo||fo.m!=='split') return;
@@ -19849,13 +19854,22 @@ function inspectorBody(){
   const sum = function(a){ return (a||[]).reduce(function(x,y){ return x+y; }, 0); };
   const dT = sum(t.d), mT = sum(t.m), uT = sum(t.u);
   const ids = gridIds(), pos = ids.indexOf(id);
-  const mcShort = (typeof mcShortOf === 'function') ? mcShortOf(it) : 0;
+  // mcShortOf is a const INSIDE exportExcel(), so it is not in scope here. `typeof` on an
+  // undeclared identifier returns 'undefined' instead of throwing, so the old guard swallowed that
+  // silently and this read 0 for every requirement -- a starred row always said "covered", however
+  // short it was. Read the global helper, which is the single implementation of the stated rule:
+  // MC shortage = ask - discretionary allocated, floored per service.
+  const mcShort = S.mc[id] ? sum(mcShortSvcOf(it, t)) : 0;
   const ccar = ccarOf(it), pid = pidOf(it);
 
   // Per service, because money is not fungible across them — the same rule the lanes follow.
   // In SPLIT mode Disc and Mand are typed here and UFR is derived: tiers() sets u = ask - disc - mand
   // per service, so there is nothing to enter for it and nothing that could disagree with it.
   const fo = S.fsrc[id];
+  // The row expander used to promote a legacy whole-requirement split on render. That editor is
+  // gone from this build, so the migration happens here instead -- otherwise a board saved before
+  // per-service vectors existed would show computed figures in boxes that edit directed ones.
+  migrateSplit(id);
   const inSplit = !!(fo && fo.m === 'split' && Array.isArray(fo.dv));
   const svcRow = function(sname, i){
     const ask = it.ask[i]||0, d = t.d[i]||0, m = t.m[i]||0, u = t.u[i]||0;
@@ -19872,6 +19886,8 @@ function inspectorBody(){
       + '<td class="' + (u > 0.005 ? 'uf' : 'ro') + '">' + (u > 0.005 ? fM(u) : '\u2014') + '</td></tr>';
   };
   const svc = '<table class="insp-split">'
+    + '<colgroup><col style="width:58px"><col style="width:86px">'
+    + '<col><col><col style="width:78px"></colgroup>'
     + '<tr><th class="l">Service</th><th>Req</th><th>Disc</th><th>Mand</th><th>UFR</th></tr>'
     + SVC.map(svcRow).join('')
     + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fM(askTot(it)) + '</td>'

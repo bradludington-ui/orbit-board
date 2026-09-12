@@ -37,7 +37,12 @@ for (const id of SC.order) {
     document.querySelectorAll('#inspector .insp-f').forEach(f => {
       fields[f.querySelector('.fl').textContent.trim().toLowerCase()] = f.querySelector('.fv').textContent.trim();
     });
-    return { fields, truth: { ask: sum(item.ask), d: sum(t.d), m: sum(t.m), u: sum(t.u) } };
+    // ★ MC shortage is one of the two STATED Mission Critical rules and the inspector is where it
+    // is read per requirement. It went unchecked here, and the panel spent that whole time saying
+    // "covered" for every starred row because it was reading an identifier that is not in scope.
+    const mcs = SVC.map((s,i)=>Math.max(0, (item.ask[i]||0) - ((t.d[i])||0)));
+    return { fields, mc: !!S.mc[rid],
+             truth: { ask: sum(item.ask), d: sum(t.d), m: sum(t.m), u: sum(t.u), mcShort: sum(mcs) } };
   }, id);
   // fM() formats; compare the rendered string to the same formatter applied to the engine's number
   const fmt = await p.evaluate(n => fM(n), r.truth.ask);
@@ -49,11 +54,15 @@ for (const id of SC.order) {
                 discretionary: r.fields['discretionary'], mandatory: r.fields['mandatory'] };
   const unfGot = r.fields['unfunded'];
   const unfWant = r.truth.u > 0.005 ? fu : '—';
+  const fmc = await p.evaluate(n => fM(n), r.truth.mcShort);
+  const mcKey = Object.keys(r.fields).find(k => k.includes('mc shortage'));
+  const mcGot = mcKey ? r.fields[mcKey] : '(field missing)';
+  const mcWant = !r.mc ? '—' : (r.truth.mcShort > 0.005 ? fmc : 'covered');
   const ok = got.requirement===want.requirement && got.discretionary===want.discretionary
-          && got.mandatory===want.mandatory && unfGot===unfWant;
+          && got.mandatory===want.mandatory && unfGot===unfWant && mcGot===mcWant;
   if (!ok) { bad++;
-    console.log(`  FAIL  ${id}  panel ${JSON.stringify({...got, unfunded:unfGot})}  engine ${JSON.stringify({...want, unfunded:unfWant})}`); }
-  else console.log(`  ok    ${id}  req ${got.requirement} · D ${got.discretionary} · M ${got.mandatory} · unf ${unfGot}`);
+    console.log(`  FAIL  ${id}  panel ${JSON.stringify({...got, unfunded:unfGot, mcShortage:mcGot})}  engine ${JSON.stringify({...want, unfunded:unfWant, mcShortage:mcWant})}`); }
+  else console.log(`  ok    ${id}  req ${got.requirement} · D ${got.discretionary} · M ${got.mandatory} · unf ${unfGot} · ★ ${mcGot}`);
 }
 await b.close();
 if (errs.length) { console.log('\n  page errors:', errs.length); errs.slice(0,3).forEach(e=>console.log('   ', e.slice(0,140))); }

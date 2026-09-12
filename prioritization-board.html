@@ -1131,7 +1131,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.40 (12 Sep 2026)';
+const BUILD='v1.41 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14215,7 +14215,7 @@ function svcTable(it){
       <td style="color:var(--amber);font-weight:700">${foAll? fM(pxAll.dT+pxAll.mT) : fM(eff(it))}</td></tr>
     ${(S.fsrc[it.id]&&S.fsrc[it.id].m==='split')? (()=>{
       const fo=S.fsrc[it.id];
-      if(!Array.isArray(fo.dv)){ const Tm=tiers(), pm=Tm[it.id]||{d:SVC.map(_=>0),m:SVC.map(_=>0)}; fo.dv=pm.d.map(v=>Math.round(v)); fo.mv=pm.m.map(v=>Math.round(v)); delete fo.d; delete fo.mnd; }
+      migrateSplit(it.id);
       const Tx=tiers(), px=Tx[it.id]||{d:SVC.map(_=>0),m:SVC.map(_=>0),u:SVC.map(_=>0),dT:0,mT:0,uT:0};
       const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${fo.dv[i]?Math.round(fo.dv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY"></td>`).join('');
       const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${fo.mv[i]?Math.round(fo.mv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY"></td>`).join('');
@@ -18208,6 +18208,17 @@ function convertAllToSplit(){
   let n=0; ids.forEach(id=>{ if(seedSplit(id,T)) n++; });
   save(); render();
   alert(n+' requirement'+(n===1?'':'s')+' converted to Split. The board\u2019s figures are unchanged.');
+}
+// A split saved before per-service vectors existed carries whole-requirement d/mnd amounts, which
+// tiers() prorates. Promote it to vectors from what the lane walk actually produced, so the number
+// on screen is the number being edited. Idempotent; safe to call on anything.
+function migrateSplit(id){
+  const fo=(S.fsrc||{})[id];
+  if(!fo || fo.m!=='split' || Array.isArray(fo.dv)) return false;
+  const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
+  fo.dv=p.d.map(v=>Math.round(v)); fo.mv=p.m.map(v=>Math.round(v));
+  delete fo.d; delete fo.mnd;
+  return true;
 }
 function setFsrcSvc(id, kind, i, val){
   const fo=S.fsrc[id];
