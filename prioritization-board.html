@@ -10,10 +10,14 @@
   --ink:#e9ecf3;--mut:#a3aab9;--dim:#8a92a4;
   --gold:#d6b46a;--blue:#5fa8f5;--purp:#bda4dd;
   --green:#45d29a;--greenD:#12302a;--red:#ff6b81;--redD:#38202a;--amber:#ffd25e;
+  --unf:#ff6b81;--unfD:#38202a;
   /* Text that lands ON a saturated accent fill, and the tinted badge surfaces. These were literal
      values scattered through the sheet; a light ground turns every one of them into a dark smudge,
      so they are tokens now and a new theme is a list of values rather than another sweep. */
   --onGreen:#06231a;--onAmber:#000000;--onRed:#ffffff;--flash:#243257;
+  /* Text on a GCOLOR pastel. Those pastels are theme-independent and always light, so this is
+     dark in every theme and is deliberately NOT overridden below. */
+  --onChip:#15120a;
   --tintA:#4a3a10;--tintAi:#ffd25e;
   --tintO:#3a2a12;--tintOi:#e08a3c;--tintOb:#e08a3c;
   --tintB:#16283e;--tintBi:#7cc0f5;--tintBb:#35608a;
@@ -28,6 +32,7 @@ html[data-theme="navy"]{
   --ink:#eef2f8;--mut:#a8b4c6;--dim:#8b98ac;
   --gold:#e0bd72;--blue:#6fb2f7;--purp:#c3aade;
   --green:#4fd6a0;--greenD:#123028;--red:#ff7b8e;--redD:#3a2029;--amber:#ffd66b;
+  --unf:#ff7b8e;--unfD:#3a2029;
   --onGreen:#06231a;--onAmber:#14100a;--onRed:#2b0a12;--flash:#26344b;
   --tintA:#4d3d14;--tintAi:#ffd66b;
   --tintO:#3d2d16;--tintOi:#e8955a;--tintOb:#e8955a;
@@ -42,6 +47,7 @@ html[data-theme="parchment"]{
   --ink:#2a2418;--mut:#5c5442;--dim:#787058;
   --gold:#87610f;--blue:#1b5490;--purp:#634189;
   --green:#1f6a44;--greenD:#e2efdf;--red:#9e2a29;--redD:#f8e4de;--amber:#87610f;
+  --unf:#9e2a29;--unfD:#f8e4de;
   --onGreen:#fffdf8;--onAmber:#fffdf8;--onRed:#fffdf8;--flash:#f5e8c8;
   --tintA:#f5e8cd;--tintAi:#87610f;
   --tintO:#f8e6d5;--tintOi:#8a4410;--tintOb:#8a4410;
@@ -56,11 +62,38 @@ html[data-theme="blueprint"]{
   --ink:#10233a;--mut:#41586e;--dim:#5d7488;
   --gold:#0f5a91;--blue:#0f5a91;--purp:#5b4193;
   --green:#0e6b4a;--greenD:#dbf0e7;--red:#a52036;--redD:#fbe2e6;--amber:#8a5a10;
+  --unf:#a52036;--unfD:#fbe2e6;
   --onGreen:#ffffff;--onAmber:#ffffff;--onRed:#ffffff;--flash:#e2edf7;
   --tintA:#f8ecd2;--tintAi:#8a5a10;
   --tintO:#fbe7d6;--tintOi:#8a4410;--tintOb:#8a4410;
   --tintB:#dceaf6;--tintBi:#0f5a91;--tintBb:#0f5a91;
   --tintP:#e8e0f6;--tintPi:#5b4193;
+}
+/* ---- Harbor: cool paper, and the first palette built for colour-deficient reading rather than
+   tinted for it afterwards. THE LANES NO LONGER USE GREEN vs RED -- that is the pair red-green
+   deficiency collapses, and it was carrying the board's most important distinction.
+     discretionary = blue #055795 · mandatory = ochre #6E4F00 · unfunded = neutral #34383D
+   Unfunded is deliberately colourless: a hue sweep of the whole wheel showed that once a third
+   lane must stay readable as text AND stay apart from blue and ochre for a red-green reader, no
+   colour beats a plain neutral. It also reads right -- no money, no colour.
+   Measured, all-pairs: CVD dE 13.1, normal-vision dE 15.1, every token >= 4.5:1 on every surface.
+   Mission critical is violet #4A2A7A, the best-separating 4th role of five measured (worst pair
+   dE 7.6, just under the 8 target) -- which is why MC also carries the star glyph and the lane
+   label spells itself out. Nothing here is colour-alone.
+   --gold is navy, not blue, on purpose: chrome must not wear the discretionary hue or the
+   furniture competes with the numbers. ---- */
+html[data-theme="harbor"]{
+  --bg:#c4ccd6;--panel:#d9dfe7;--panel2:#c9d0da;--line:#aeb7c3;
+  --sink:#c2ccd9;--panelA:#ced5de;--lineSoft:#bdc5cf;--line2:#8b95a4;--onGold:#eaf0f6;
+  --ink:#182029;--mut:#3b4553;--dim:#46505e;
+  --gold:#25394d;--blue:#25394d;--purp:#6e4f00;
+  --green:#055795;--greenD:#c3d4e6;--red:#8c1d3f;--redD:#efdbe1;--amber:#4a2a7a;
+  --unf:#34383d;--unfD:#d3d7dc;
+  --onGreen:#ffffff;--onAmber:#ffffff;--onRed:#ffffff;--flash:#cbd9e8;
+  --tintA:#e2daee;--tintAi:#4a2a7a;
+  --tintO:#efe0cc;--tintOi:#7a4a08;--tintOb:#7a4a08;
+  --tintB:#d3e1ef;--tintBi:#0b4f8a;--tintBb:#0b4f8a;
+  --tintP:#e4dcc4;--tintPi:#6e4f00;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',Arial,sans-serif;padding-bottom:24px}
@@ -202,7 +235,7 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .row.t-split{border-left:4px solid var(--green);box-shadow:inset 3px 0 0 0 var(--purp)}
 .tl-mc{background:var(--tintA);color:var(--tintAi)}
 .row.t-mand{border-left:4px solid var(--purp)}
-.row.t-unf{border-left:4px solid var(--red)}
+.row.t-unf{border-left:4px solid var(--unf)}
 .row.buy{outline:1.5px dashed var(--gold);outline-offset:-1px}
 .row.buy .tt::before{content:'✈ ';color:var(--gold)}
 .grip{cursor:grab;color:var(--dim);font-size:15px;text-align:center;user-select:none}
@@ -237,7 +270,8 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .rank .ud{display:flex;flex-direction:column;gap:2px}
 .rank .ud button{background:var(--panel2);border:1px solid var(--line);color:var(--mut);border-radius:3px;font-size:8px;padding:1px 5px;cursor:pointer}
 .rank .ud button:hover{color:var(--ink);border-color:var(--blue)}
-.gchip{font-size:10.5px;font-weight:800;text-align:center;padding:4px 4px;border-radius:5px;color:var(--onGold)}
+.pmodot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;border:1px solid var(--line2)}
+.gchip{font-size:10.5px;font-weight:800;text-align:center;padding:4px 4px;border-radius:5px;color:var(--onChip)}
 .tt{font-size:12.5px;font-weight:600;line-height:1.25}
 .ev{font-size:10px;color:var(--mut);margin-top:2px}
 .sect-new{display:inline-block;font-size:9px;font-weight:700;background:var(--gold);color:var(--onGold);border-radius:3px;padding:1px 5px;margin-left:6px;vertical-align:middle}
@@ -255,7 +289,7 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .tl-disc{background:var(--greenD);color:var(--green)}
 .tl-split{background:var(--tintB);color:var(--tintBi)}
 .tl-mand{background:var(--tintP);color:var(--tintPi)}
-.tl-unf{background:var(--redD);color:var(--red)}
+.tl-unf{background:var(--unfD);color:var(--unf)}
 .acts{display:grid;grid-template-columns:62px 44px 38px 108px 26px;gap:5px;align-items:center}
 .acts .rowmenu{display:block}
 .acts .rowmenu .rmbtn{width:100%;font-size:14px;line-height:1;padding:5px 0;letter-spacing:1px}
@@ -524,7 +558,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 (function(){
   try{
     var t=localStorage.getItem('spmtTheme');
-    if(t==='navy'||t==='parchment'||t==='blueprint') document.documentElement.setAttribute('data-theme',t);
+    if(t==='navy'||t==='parchment'||t==='blueprint'||t==='harbor') document.documentElement.setAttribute('data-theme',t);
   }catch(e){ /* private-mode storage refuses; the default palette is the right fallback */ }
 })();
 </script>
@@ -1083,7 +1117,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.31 (12 Sep 2026)';
+const BUILD='v1.32 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1576,7 +1610,8 @@ const THEMES=[
   {k:'',          n:'Midnight',      d:'the original \u2014 dark ground, gold accent'},
   {k:'navy',      n:'Navy Command',  d:'deep navy, panels lifted, contrast eased'},
   {k:'parchment', n:'Parchment',     d:'off-white paper, umber text, the gold kept'},
-  {k:'blueprint', n:'Blueprint',     d:'cool paper, steel blue in place of the gold'}
+  {k:'blueprint', n:'Blueprint',     d:'cool paper, steel blue in place of the gold'},
+  {k:'harbor',    n:'Harbor',         d:'cool paper, built for colour-deficient reading'}
 ];
 function themeGet(){
   try{ const t=localStorage.getItem('spmtTheme')||''; return THEMES.some(x=>x.k===t)? t : ''; }
@@ -15326,7 +15361,7 @@ function pmoMatrix(){
   const h2=`<tr>${SVC.map(_=>'<th style="border-left:1px solid var(--line);color:var(--green)">Disc</th><th style="color:var(--purp)">Mand</th>').join('')}<th style="border-left:1px solid var(--gold);color:var(--green)">Disc</th><th style="color:var(--purp)">Mand</th></tr>`;
   const row=(k,a,cls,color)=>{
     const dT=a.disc.reduce((x,y)=>x+y,0), mT=a.mand.reduce((x,y)=>x+y,0);
-    return `<tr${cls?' class="'+cls+'"':''}><td${color?' style="color:'+color+';font-weight:800"':''}>${k}${a.n?` <span style="color:var(--dim);font-size:9px">${a.n}</span>`:''}</td>
+    return `<tr${cls?' class="'+cls+'"':''}><td style="font-weight:800">${color?`<span class="pmodot" style="background:${color}"></span>`:''}${k}${a.n?` <span style="color:var(--dim);font-size:9px">${a.n}</span>`:''}</td>
       ${SVC.map((s,i)=>`<td style="border-left:1px solid var(--lineSoft);color:var(--green)">${a.disc[i]?fM(a.disc[i]):'—'}</td><td style="color:var(--purp)">${a.mand[i]?fM(a.mand[i]):'—'}</td>`).join('')}
       <td style="border-left:1px solid var(--gold);color:var(--green);font-weight:700">${fM(dT)}</td><td style="color:var(--purp);font-weight:700">${fM(mT)}</td>
       <td style="color:var(--amber)">${a.mc?fM(a.mc):'—'}</td></tr>`;
