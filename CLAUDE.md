@@ -215,8 +215,25 @@ Four kinds of gap it has already found, none of which the checks alone would hav
   the full ask" and "basis on the allocation" indistinguishable. Both now have scenarios.
 - **A figure the board shows but never exports is invisible to export suites.** The cumulative could
   be made to skip unfunded dollars entirely with all three export suites green, because no export
-  carries it — and it is what places the cutline banners. `audit-board.mjs` covers the board's own
-  derived figures; add to it rather than stretching an export suite.
+  carries it — and it is what places the cutline banners. Sweeping the scoreboard tiles and the
+  discretionary fit strip afterwards found **every one of their figures equally unprotected**,
+  including the PROGRAM FLOOR, which is one of the two stated Mission Critical rules. `audit-board.mjs`
+  covers the board's own derived figures; add to it rather than stretching an export suite.
+- **Read the rendered page, do not recompute.** `audit-board.mjs` pulls each tile's figure out of the
+  DOM. Re-evaluating the same expression in the harness would compare a copy against a copy and pass
+  whatever the board did — the lane-oracle trap in a different costume. A pattern that no longer
+  matches is recorded as a FAILURE, never skipped.
+- **A scenario absent is a rule untested.** No board scenario had a starred requirement, so all four
+  Mission Critical tile figures were being compared against zero and agreed. Adding MC scenarios also
+  exposed a bug in the harness's own tier oracle, which had missed the line that makes a must-pay read
+  `mc` only once mandatory or unfunded touches it.
+
+**Equivalent mutations.** Two are marked `equivalent:` rather than surviving: flooring the lane
+remainders cannot change any output, because every draw is clamped by `Math.max(0, dRem[i])` and
+nothing can drive a remainder negative. That is a claim with a receipt — `audit-board.mjs` asserts
+the clamping invariants, so if a clamp is ever removed the mutation stops being equivalent and the
+suite fails. Mark a mutation equivalent only with that kind of backing; a survivor that is merely
+inconvenient is still a survivor.
 
 ## Never commit a populated board
 

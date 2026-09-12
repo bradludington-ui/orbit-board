@@ -41,6 +41,27 @@ const SCENARIOS = {
     disc: [0, 0, 0], mand: [0, 0, 0],
     order: ['A', 'B'],
   },
+  // The scoreboard carries four Mission Critical figures and, until this scenario, no board
+  // scenario had a starred requirement at all — so MC total, MC need, the program floor and the
+  // mandatory tile's "incl ★ MC" were all being compared against zero.
+  // A splits D+M, B is must-pay carried entirely by mandatory, C spills and strands, D is unfunded.
+  'must-pays that the discretionary lane cannot cover': {
+    services: SVC3,
+    items: [it('A', 'ATL', [50, 20, 10]), it('B', 'PSM', [20, 10, 5]),
+            it('C', 'AV', [10, 5, 3]), it('D', 'MxS', [5, 5, 5])],
+    disc: [40, 20, 10], mand: [30, 15, 8],
+    order: ['A', 'B', 'C', 'D'],
+    mc: { A: true, B: true },
+  },
+  // Must-pays the discretionary lane covers outright: MC total is real but MC need must read zero,
+  // so the program floor collapses to the discretionary BA and cannot be confused with it by luck.
+  'must-pays fully covered by discretionary': {
+    services: SVC3,
+    items: [it('A', 'ATL', [20, 10, 5]), it('B', 'PSM', [15, 5, 5])],
+    disc: [60, 30, 15], mand: [20, 10, 5],
+    order: ['A', 'B'],
+    mc: { A: true },
+  },
   'trimmed rows, partial coverage': {
     services: SVC3,
     items: [it('A', 'ATL', [60, 30, 10]), it('B', 'PSM', [40, 20, 10]), it('C', 'AV', [20, 10, 5])],
@@ -81,14 +102,185 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       p.cum, sc.order.slice(0, sc.order.indexOf(id) + 1).reduce((a, x) => a + sum(basisOf(x)), 0));
   });
 
+  // ---- the clamping invariants ----
+  // These are why two mutations in the sweep are marked EQUIVALENT rather than surviving: flooring
+  // the lane remainders is defensive, because nothing can drive them negative in the first place.
+  // That is only a safe thing to say while these hold. If a clamp is ever removed, these fail and
+  // the two mutations stop being equivalent — which is the point of asserting it rather than
+  // writing the reasoning into a comment and trusting it.
+  {
+    const rem = JSON.parse(ev('JSON.stringify(tiers().__rem)'));
+    const drew = k => SVC.map((sv, i) => sc.order.reduce((a, id) => a + (T[id][k][i] || 0), 0));
+    const dDrawn = drew('d'), mDrawn = drew('m');
+    SVC.forEach((sv, i) => {
+      chk(name, 'invariant', `${sv}: discretionary remaining never goes negative`,
+        rem.dRem[i] >= -0.005 ? 'ok' : `negative (${rem.dRem[i]})`, 'ok');
+      chk(name, 'invariant', `${sv}: mandatory remaining never goes negative`,
+        rem.mRem[i] >= -0.005 ? 'ok' : `negative (${rem.mRem[i]})`, 'ok');
+      chk(name, 'invariant', `${sv}: discretionary drawn never exceeds its BA`,
+        dDrawn[i] <= sc.disc[i] + 0.005 ? 'ok' : `${dDrawn[i]} drawn vs BA ${sc.disc[i]}`, 'ok');
+      chk(name, 'invariant', `${sv}: mandatory drawn never exceeds its BA`,
+        mDrawn[i] <= sc.mand[i] + 0.005 ? 'ok' : `${mDrawn[i]} drawn vs BA ${sc.mand[i]}`, 'ok');
+    });
+  }
+
   // ---- the tier label the row wears, which the lane chip and the row edge both read from ----
   sc.order.forEach(id => {
     const p = T[id];
     const dT = sum(p.d), mT = sum(p.m), uT = sum(p.u);
-    const want = uT > 0.005 ? 'unf'
-               : mT > 0.005 ? (dT > 0.005 ? 'split' : (sc.mc && sc.mc[id] ? 'mc' : 'mand'))
-               : (sc.mc && sc.mc[id] ? 'mc' : 'disc');
+    // The star only claims the row once the money misses it: a must-pay drawing ANY mandatory or
+    // carrying ANY unfunded reads 'mc', but one the discretionary lane covers outright stays 'disc'.
+    const mc = !!(sc.mc && sc.mc[id]);
+    let want = uT > 0.005 ? 'unf'
+             : mT > 0.005 ? (dT > 0.005 ? 'split' : (mc ? 'mc' : 'mand'))
+             : 'disc';
+    if (mc && (mT + uT) > 0.005) want = 'mc';
     chk(name, 'tier', `${id}: tier matches its lane draws`, p.tier, want);
+  });
+}
+
+
+// ═══ the scoreboard tiles and the discretionary fit strip ═══════════════════════════════════════
+// These are read off the RENDERED page, not recomputed in the harness. Re-evaluating the same
+// expression here would compare my copy against my copy and pass whatever the board did — the same
+// trap the lane oracle fell into. Reading the DOM tests the figure the user actually sees, wiring
+// included.
+//
+// A pattern that fails to match is a FAILURE, never a skip. A check that cannot run reads as a pass,
+// and this file exists because of figures nothing was checking.
+for (const [name, sc] of Object.entries(SCENARIOS)) {
+  const { ev, w, errors } = boot();
+  seed(ev, sc);
+  ev('render()');
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const T = JSON.parse(ev('JSON.stringify(tiers())'));
+  const SVC = sc.services, ids = sc.order;
+  const doc = w.document;
+  const textOf = sel => { const el = doc.querySelector(sel); return el ? el.textContent.replace(/\s+/g, ' ').trim() : null; };
+  const money = t => t === null ? NaN : Number(String(t).replace(/[$,]/g, ''));
+
+  // Pull one figure out of rendered text by an anchored pattern. Records a failure if the pattern
+  // no longer matches, so a reworded tile surfaces instead of silently dropping its coverage.
+  const grab = (where, what, sel, re, group = 1) => {
+    const t = textOf(sel);
+    if (t === null) { chk(name, where, `${what} — element ${sel} missing`, 'missing', 'present'); return NaN; }
+    const m = t.match(re);
+    if (!m) { chk(name, where, `${what} — pattern not found in "${t.slice(0, 90)}"`, 'no match', 'match'); return NaN; }
+    return money(m[group]);
+  };
+
+  // ---- the oracle, from the lane engine's per-service vectors ----
+  const perSvc = k => SVC.map((s, i) => ids.reduce((a, id) => a + (T[id][k][i] || 0), 0));
+  const dBySvc = perSvc('d'), mBySvc = perSvc('m'), uBySvc = perSvc('u');
+  const dBA = sum(sc.disc), mBA = sum(sc.mand);
+  const askOf = id => sum(sc.items.find(x => x.id === id).ask);
+  const mcIds = ids.filter(id => sc.mc && sc.mc[id]);
+
+  // Left in each lane is floored PER SERVICE before summing: an overdrawn lane must never be
+  // cancelled out by a healthy one, because the money cannot move between them.
+  const dLeftExp = sum(SVC.map((s, i) => Math.max(0, sc.disc[i] - dBySvc[i])));
+  const mLeftExp = sum(SVC.map((s, i) => Math.max(0, sc.mand[i] - mBySvc[i])));
+  const dUsedExp = sum(dBySvc), mUsedExp = sum(mBySvc), uAmtExp = sum(uBySvc);
+  // RULE: MC shortage = requirement value less what DISCRETIONARY covered, floored per service.
+  const mcNeedExp = sum(mcIds.map(id => sum(SVC.map((s, i) =>
+    Math.max(0, (sc.items.find(x => x.id === id).ask[i] || 0) - (T[id].d[i] || 0))))));
+  const mcTotExp = mcIds.reduce((a, id) => a + askOf(id), 0);
+  const floorExp = dBA + mcNeedExp;
+  const mcCovExp = mcIds.reduce((a, id) => a + sum(T[id].m), 0);
+
+  // ---- tile 1 · Discretionary ----
+  chk(name, 'tile · Discretionary', 'left across service lanes, floored per service',
+    grab('tile · Discretionary', 'left', '.sc.disc .rm', /^\$([\d,]+)/), dLeftExp);
+  chk(name, 'tile · Discretionary', 'BA',
+    grab('tile · Discretionary', 'BA', '.sc.disc', /BA: \$([\d,]+)/), dBA);
+  chk(name, 'tile · Discretionary', 'discretionary used',
+    grab('tile · Discretionary', 'used', '.sc.disc', /\$([\d,]+) used/), dUsedExp);
+
+  chk(name, 'tile · Discretionary', 'count of rows funded wholly by discretionary',
+    grab('tile · Discretionary', 'disc count', '.sc.disc', /(\d+) reqs fully disc/),
+    ids.filter(id => sum(T[id].d) > 0.005 && sum(T[id].m) <= 0.005 && sum(T[id].u) <= 0.005).length);
+  chk(name, 'tile · Discretionary', 'count of rows split across both lanes',
+    grab('tile · Discretionary', 'split count', '.sc.disc', /(\d+) split D\+M/),
+    ids.filter(id => sum(T[id].u) <= 0.005 && sum(T[id].m) > 0.005 && sum(T[id].d) > 0.005).length);
+
+  // ---- tile 2 · Mission critical ----
+  chk(name, 'tile · Mission critical', 'MC total is the sum of starred requirement values',
+    grab('tile · Mission critical', 'MC total', '.sc.mc .rm', /^\$([\d,]+)/), mcTotExp);
+  chk(name, 'tile · Mission critical', 'count of must-pay requirements',
+    grab('tile · Mission critical', 'MC count', '.sc.mc', /allocated to (\d+) must-pay/), mcIds.length);
+  chk(name, 'tile · Mission critical', 'PROGRAM FLOOR == discretionary BA + MC need',
+    grab('tile · Mission critical', 'floor', '.sc.mc', /Program floor \(Discretionary BA \+ MC need\): \$([\d,]+)/), floorExp);
+  if (mcNeedExp > 0.5) {
+    chk(name, 'tile · Mission critical', 'MC need above the discretionary BA',
+      grab('tile · Mission critical', 'MC need', '.sc.mc', /MC need \$([\d,]+)/), mcNeedExp);
+  }
+
+  // ---- tile 3 · Mandatory ----
+  chk(name, 'tile · Mandatory', 'left across service lanes, floored per service',
+    grab('tile · Mandatory', 'left', '.sc.mand .rm', /^\$([\d,]+)/), mLeftExp);
+  chk(name, 'tile · Mandatory', 'mandatory drawn',
+    grab('tile · Mandatory', 'drawn', '.sc.mand', /\$([\d,]+) drawn/), mUsedExp);
+  chk(name, 'tile · Mandatory', 'count of rows funded wholly by mandatory',
+    grab('tile · Mandatory', 'mand count', '.sc.mand', /(\d+) reqs fully mand/),
+    ids.filter(id => sum(T[id].u) <= 0.005 && sum(T[id].m) > 0.005 && sum(T[id].d) <= 0.005).length);
+  chk(name, 'tile · Mandatory', 'of which drawn for ★ MC requirements',
+    grab('tile · Mandatory', 'MC share', '.sc.mand', /incl ★ MC \$([\d,]+)/), mcCovExp);
+
+  // ---- tile 4 · Whole budget ----
+  chk(name, 'tile · Whole budget', 'total BA',
+    grab('tile · Whole budget', 'whole', '.sc.whole .rm', /^\$([\d,]+)/), dBA + mBA);
+  chk(name, 'tile · Whole budget', 'funded when whole',
+    grab('tile · Whole budget', 'funded', '.sc.whole', /\$([\d,]+) funded when whole/), dUsedExp + mUsedExp);
+  chk(name, 'tile · Whole budget', 'count of rows carrying unfunded dollars',
+    grab('tile · Whole budget', 'unf count', '.sc.whole', /(\d+) reqs \//),
+    ids.filter(id => sum(T[id].u) > 0.005).length);
+  chk(name, 'tile · Whole budget', 'unfunded beyond the whole budget',
+    grab('tile · Whole budget', 'unfunded', '.sc.whole', /\$([\d,]+) unfunded beyond it/), uAmtExp);
+
+  // ---- the discretionary fit strip, per service ----
+  // Exact dollars live in each chip's tooltip; the chip face is abbreviated for width.
+  const chips = [...doc.querySelectorAll('#fitBar .fitchip')];
+  chk(name, 'fit strip', 'one chip per service', chips.length, SVC.length);
+  SVC.forEach((svc, i) => {
+    const el = chips[i];
+    if (!el) { chk(name, 'fit strip', `${svc}: chip missing`, 'missing', 'present'); return; }
+    const tip = (el.getAttribute('title') || '').replace(/\s+/g, ' ');
+    const g = re => { const m = tip.match(re); if (!m) { chk(name, 'fit strip', `${svc}: pattern not found in "${tip.slice(0, 90)}"`, 'no match', 'match'); return NaN; } return money(m[1]); };
+    chk(name, 'fit strip', `${svc}: discretionary BA`, g(/discretionary BA \$([\d,]+)/), sc.disc[i]);
+    chk(name, 'fit strip', `${svc}: drawn against it`, g(/— \$([\d,]+) drawn/), dBySvc[i]);
+    const over = mBySvc[i] + uBySvc[i];
+    if (over > 0.5) {
+      chk(name, 'fit strip', `${svc}: mandatory past the lane`, g(/Past it: \$([\d,]+) mandatory/), mBySvc[i]);
+      chk(name, 'fit strip', `${svc}: unfunded past the lane`, g(/, \$([\d,]+) unfunded/), uBySvc[i]);
+    } else {
+      chk(name, 'fit strip', `${svc}: says nothing went past the lane`,
+        /Nothing has gone past it/.test(tip) ? 'yes' : 'no', 'yes');
+    }
+  });
+
+  // ---- the lane counts beside the strip ----
+  const bar = textOf('#fitBar') || '';
+  const cnt = (lbl, re) => { const m = bar.match(re);
+    if (!m) { chk(name, 'lane counts', `${lbl} — pattern not found`, 'no match', 'match'); return NaN; }
+    return Number(m[1]); };
+  chk(name, 'lane counts', 'fits in disc — fully discretionary rows only',
+    cnt('fits in disc', /fits in disc (\d+)/),
+    ids.filter(id => sum(T[id].d) > 0.005 && sum(T[id].m) <= 0.005 && sum(T[id].u) <= 0.005).length);
+  chk(name, 'lane counts', 'spills to mand — any mandatory draw',
+    cnt('spills to mand', /spills to mand (\d+)/),
+    ids.filter(id => sum(T[id].m) > 0.005).length);
+  chk(name, 'lane counts', 'unfunded — any unfunded dollar',
+    cnt('unfunded', /unfunded (\d+)/),
+    ids.filter(id => sum(T[id].u) > 0.005).length);
+
+  // ---- the per-service unfunded warning in the header ----
+  const warn = textOf('#svcWarn') || '';
+  SVC.forEach((svc, i) => {
+    if (uBySvc[i] <= 0.5) return;
+    const m = warn.match(new RegExp(svc.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' \\$([\\d,]+)'));
+    chk(name, 'unfunded by service', `${svc} reported, and not netted onto another service`,
+      m ? money(m[1]) : 'absent', uBySvc[i]);
   });
 }
 

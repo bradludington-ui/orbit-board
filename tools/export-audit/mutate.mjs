@@ -29,6 +29,34 @@ const SUITES = [
 // area: which surface the line belongs to. find/replace: the deliberate break.
 const MUTATIONS = [
   // ---- the lane engine: the basis for every printed figure ------------------------------------
+  // ---- the scoreboard tiles and the discretionary fit strip ------------------------------------
+  // Board-only figures: nothing here reaches an export, so only audit-board.mjs can see them. They
+  // are what someone reads before deciding where the cutline falls, which makes them worth as much
+  // as anything printed.
+  { id: 'sb-left-unfloored', area: 'scoreboard', equivalent: 'dRem is clamped at 0 by every draw, so it can never be negative — audit-board.mjs asserts that invariant',
+    what: 'discretionary left nets an overdrawn lane against a healthy one',
+    find: '  const dBA=discTot(), mBA=mandTot();\n  const dLeft=T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0);',
+    repl: '  const dBA=discTot(), mBA=mandTot();\n  const dLeft=T.__rem.dRem.reduce((a,b)=>a+b,0);' },
+  { id: 'sb-floor-drops-mc', area: 'scoreboard', what: 'program floor reverts to the discretionary BA alone',
+    find: '  const floor=discTot()+mcNeed;', repl: '  const floor=discTot();' },
+  { id: 'sb-mc-coverage', area: 'scoreboard', what: 'MC drawn-from-mandatory reads the discretionary draw',
+    find: '  S.order.forEach(id=>{ if(S.mc[id]&&T[id]){ mcCov+=T[id].mT; mcUnf+=T[id].uT; } });',
+    repl: '  S.order.forEach(id=>{ if(S.mc[id]&&T[id]){ mcCov+=T[id].dT; mcUnf+=T[id].uT; } });' },
+  { id: 'fit-left-unfloored', area: 'fitBySvc', equivalent: 'a service can never draw more discretionary than its BA — audit-board.mjs asserts that invariant',
+    what: 'per-service discretionary left allowed to go negative',
+    find: 'left:Math.max(0,ba-d)', repl: 'left:(ba-d)' },
+  { id: 'fit-over-drops-unf', area: 'fitBySvc', what: 'what went past the lane forgets the unfunded part',
+    find: 'over:m+u}', repl: 'over:m}' },
+  { id: 'fit-count-disc', area: 'fitCounts', what: '"fits in disc" counts rows that also spilled',
+    find: '    if(t.dT>0.005 && t.mT<=0.005 && t.uT<=0.005) disc++; });',
+    repl: '    if(t.dT>0.005) disc++; });' },
+  { id: 'sb-split-as-mand', area: 'tierTotals', what: 'split D+M rows counted as fully mandatory',
+    find: '    else if(p.mT>0.005 && p.dT>0.005) splitN++;',
+    repl: '    else if(p.mT>0.005 && p.dT>0.005) mN++;' },
+  { id: 'svcshort-netted', area: 'svcShort', what: 'unfunded-by-service piles every service onto the first',
+    find: '  S.order.forEach(id=>{ const p=T[id]; if(p) p.u.forEach((v,i)=>u[i]+=v); });',
+    repl: '  S.order.forEach(id=>{ const p=T[id]; if(p) p.u.forEach((v,i)=>u[0]+=v); });' },
+
   // ---- svcAlloc: how a TRIMMED allocation splits across services -------------------------------
   // Added after a review found this function carried no mutation at all. It decides how one scalar
   // allocation becomes per-service dollars, and money is not fungible across services — so getting
@@ -193,17 +221,33 @@ for (const m of picked) {
       break;
     }
   }
-  results.push({ ...m, status: caughtBy ? 'caught' : 'SURVIVED', by: caughtBy || '' });
-  console.log(`  ${(caughtBy ? 'caught  ' : 'SURVIVED').padEnd(12)} ${m.id.padEnd(22)} ${caughtBy ? '(' + caughtBy + ')' : '<- NOT COVERED: ' + m.what}`);
+  // An EQUIVALENT mutation changes the source without changing any observable behaviour, so no
+  // suite can catch it and none should be written to try. Reporting it as SURVIVED forever would
+  // teach the reader to skim past that word, which is the one word here that has to keep its force.
+  // It is a claim, not an excuse: each one names the invariant that makes it equivalent, and that
+  // invariant is asserted in audit-board.mjs — so if the clamp ever goes, the mutation stops being
+  // equivalent and the suites fail on the invariant instead.
+  const status = caughtBy ? 'caught' : (m.equivalent ? 'equivalent' : 'SURVIVED');
+  results.push({ ...m, status, by: caughtBy || '' });
+  const note = caughtBy ? '(' + caughtBy + ')'
+             : m.equivalent ? '<- no observable difference: ' + m.equivalent
+             : '<- NOT COVERED: ' + m.what;
+  console.log(`  ${status.padEnd(12)} ${m.id.padEnd(22)} ${note}`);
 }
 
 const caught = results.filter(r => r.status === 'caught');
 const survived = results.filter(r => r.status === 'SURVIVED');
 const skipped = results.filter(r => r.status === 'NOT APPLIED');
+const equiv = results.filter(r => r.status === 'equivalent');
 
 console.log('\n' + '='.repeat(96));
-console.log(`caught ${caught.length}/${picked.length - skipped.length}` +
+console.log(`caught ${caught.length}/${picked.length - skipped.length - equiv.length}` +
+  (equiv.length ? `   (${equiv.length} equivalent, no observable difference)` : '') +
   (skipped.length ? `   (${skipped.length} could not be applied)` : ''));
+if (equiv.length) {
+  console.log(`\n${equiv.length} EQUIVALENT — behaviour is unchanged, so nothing can or should catch them:\n`);
+  equiv.forEach(r => console.log(`  ${r.area}/${r.id}\n      ${r.equivalent}`));
+}
 if (survived.length) {
   console.log(`\n${survived.length} SURVIVING MUTATION(S) — these lines are not protected:\n`);
   survived.forEach(r => console.log(`  ${r.area}/${r.id}\n      ${r.what}`));
