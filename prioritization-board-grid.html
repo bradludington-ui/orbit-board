@@ -275,6 +275,23 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-svc>div{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:5px 7px;min-width:0}
 .insp-svc .fl{overflow-wrap:anywhere}
 .insp-svc .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+/* One ROW per service rather than one column: six services and seven-figure dollars do not fit
+   across a narrow panel, and the split is read down the list anyway — set Disc and Mand, and UFR
+   is whatever the requirement still needs. UFR is never typed; it is the remainder. */
+.insp-split{width:100%;border-collapse:collapse;font-size:10.5px}
+.insp-split th{font-size:7.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut);
+  font-weight:800;text-align:right;padding:0 3px 3px}
+.insp-split th.l{text-align:left}
+.insp-split td{padding:2px 3px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.insp-split td.l{text-align:left;font-weight:700}
+.insp-split input{width:100%;min-width:0;background:var(--panel);border:1px solid var(--line2);
+  border-radius:4px;color:var(--ink);font:700 10.5px/1.5 inherit;padding:2px 4px;text-align:right;
+  font-variant-numeric:tabular-nums}
+.insp-split input.d{border-color:var(--green)}
+.insp-split input.m{border-color:var(--purp)}
+.insp-split tr.tot td{border-top:1px solid var(--line2);padding-top:4px;font-weight:800}
+.insp-split .ro{color:var(--dim)}
+.insp-split .uf{color:var(--unf);font-weight:800}
 .insp-f .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .insp-empty{padding:26px 16px;text-align:center;color:var(--dim);font-size:11px;line-height:1.6}
 .insp-kbd{font:10px ui-monospace,Menlo,monospace;background:var(--panel);border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--mut)}
@@ -1195,7 +1212,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.33 (12 Sep 2026)';
+const BUILD='v1.34 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -19698,16 +19715,32 @@ function inspectorBody(){
   const ccar = ccarOf(it), pid = pidOf(it);
 
   // Per service, because money is not fungible across them — the same rule the lanes follow.
-  const svc = SVC.map(function(sname, i){
-    const d = (t.d[i]||0), m = (t.m[i]||0), u = (t.u[i]||0);
-    const bits = [];
-    if(d > 0.005) bits.push('D ' + fM(d));
-    if(m > 0.005) bits.push('M ' + fM(m));
-    if(u > 0.005) bits.push('<span style="color:var(--unf)">unf ' + fM(u) + '</span>');
-    return '<div><div class="fl">' + esc(sname) + '</div>'
-         + '<div class="fv">' + fM(it.ask[i]||0) + '</div>'
-         + '<div style="font-size:8.5px;color:var(--dim)">' + (bits.join(' · ') || '—') + '</div></div>';
-  }).join('');
+  // In SPLIT mode Disc and Mand are typed here and UFR is derived: tiers() sets u = ask - disc - mand
+  // per service, so there is nothing to enter for it and nothing that could disagree with it.
+  const fo = S.fsrc[id];
+  const inSplit = !!(fo && fo.m === 'split' && Array.isArray(fo.dv));
+  const svcRow = function(sname, i){
+    const ask = it.ask[i]||0, d = t.d[i]||0, m = t.m[i]||0, u = t.u[i]||0;
+    const cell = (kind, val) => inSplit
+      ? '<input class="' + kind + '" value="' + (val ? Math.round(val).toLocaleString() : '')
+        + '" placeholder="0" onfocus="this.select()" title="' + esc(sname) + ' \u2014 dollars directed to '
+        + (kind === 'd' ? 'DISCRETIONARY' : 'MANDATORY')
+        + '" onchange="setFsrcSvc(\'' + id + '\',\'' + kind + '\',' + i + ',this.value)">'
+      : '<span class="ro">' + (val > 0.005 ? fM(val) : '\u2014') + '</span>';
+    return '<tr><td class="l">' + esc(sname) + '</td>'
+      + '<td class="ro">' + (ask ? fM(ask) : '\u2014') + '</td>'
+      + '<td>' + cell('d', inSplit ? (fo.dv[i]||0) : d) + '</td>'
+      + '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m) + '</td>'
+      + '<td class="' + (u > 0.005 ? 'uf' : 'ro') + '">' + (u > 0.005 ? fM(u) : '\u2014') + '</td></tr>';
+  };
+  const svc = '<table class="insp-split">'
+    + '<tr><th class="l">Service</th><th>Req</th><th>Disc</th><th>Mand</th><th>UFR</th></tr>'
+    + SVC.map(svcRow).join('')
+    + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fM(askTot(it)) + '</td>'
+    + '<td style="color:var(--green)">' + fM(dT) + '</td>'
+    + '<td style="color:var(--purp)">' + fM(mT) + '</td>'
+    + '<td class="' + (uT > 0.005 ? 'uf' : 'ro') + '">' + (uT > 0.005 ? fM(uT) : '\u2014') + '</td></tr>'
+    + '</table>';
 
   el.innerHTML =
     '<div class="insp-hd"><b>#' + (pos>=0? pos+1 : '—') + ' · RECORD</b>'
@@ -19743,8 +19776,11 @@ function inspectorBody(){
       + '<div class="insp-f' + (pid ? '' : ' empty') + '" style="cursor:pointer" onclick="editPid(\'' + id + '\')">'
         + '<div class="fl">PID</div><div class="fv">' + (pid ? esc(pid) : '+ assign') + '</div></div>'
       + '</div>'
-    + '<div class="insp-lbl">By service — money is not fungible across them</div>'
-    + '<div class="insp-svc">' + svc + '</div>'
+    + '<div class="insp-lbl">By service — money is not fungible across them'
+      + (inSplit ? ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 type Disc and Mand; UFR is the remainder</span>'
+                 : ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 set funding to Split D/M/UFR to edit</span>')
+      + '</div>'
+    + svc
     + '<div class="insp-lbl">Open on the row</div>'
     + '<div class="rowchips">'
       + '<span class="rchip" style="cursor:pointer" onclick="toggleDetail(\'' + id + '\')">\u229e By service</span>'
