@@ -294,7 +294,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const sc = {
     services: ['STOVL', 'CV', 'CTOL'],
     items: [it('A', 'ATL', [12000000, 4200000, 2361859])],
-    disc: [14000000, 5000000, 3000000], mand: [1000000, 500000, 300000],
+    disc: [8000000, 2000000, 1000000], mand: [5000000, 3000000, 2000000],
     order: ['A'],
   };
   const { ev, errors } = boot();
@@ -308,23 +308,29 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       // Three dates; the first two take deliberately uneven shares so no service's residual equals
       // any other's, and an even split cannot pass by coincidence.
       S.awards['A'].inc = [
-        {d:'2026-11', day:1, sv: SVC.map(function(s,i){ return Math.round(((p.d[i]||0)+(p.m[i]||0))*0.40); })},
-        {d:'2027-02', day:1, sv: SVC.map(function(s,i){ return Math.round(((p.d[i]||0)+(p.m[i]||0))*0.25); })},
+        {d:'2026-11', day:1, sv: SVC.map(function(s,i){ return Math.round((p.d[i]||0)*0.40); })},
+        {d:'2027-02', day:1, sv: SVC.map(function(s,i){ return Math.round((p.d[i]||0)*0.25); })},
         {d:'2027-06', day:1, sv: SVC.map(function(){ return 0; })}
       ];
       save();
       fillLastAwd('A');
       var T2 = tiers(), p2 = T2['A'], inc = S.awards['A'].inc;
       return JSON.stringify({
-        alloc: SVC.map(function(s,i){ return (p2.d[i]||0)+(p2.m[i]||0); }),
+        // DISCRETIONARY alone — the basis the increment balance tracks.
+        alloc: SVC.map(function(s,i){ return (p2.d[i]||0); }),
+        mand:  SVC.map(function(s,i){ return (p2.m[i]||0); }),
         sched: SVC.map(function(s,i){ return inc.reduce(function(a,x){ return a+((x.sv||[])[i]||0); }, 0); }),
         last:  inc[inc.length-1].sv.slice(),
         first: inc[0].sv.slice(), second: inc[1].sv.slice()
       });
     })()`));
 
+  // The scenario is only meaningful if mandatory is actually drawn; otherwise the two possible
+  // bases are the same number and this proves nothing.
+  chk(name, 'residual', 'scenario actually draws mandatory, so the basis is distinguishable',
+    sum(r.mand) > 0.5 ? 'yes' : 'no', 'yes');
   sc.services.forEach((svc, i) => {
-    chk(name, 'residual', `${svc}: every allocated dollar is scheduled once the last increment is filled`,
+    chk(name, 'residual', `${svc}: every DISCRETIONARY dollar is scheduled once the last increment is filled`,
       Math.round(r.sched[i]), Math.round(r.alloc[i]));
     // Stated independently of what fillLastAwd did: the last increment IS the remainder.
     chk(name, 'residual', `${svc}: last increment == allocated less the earlier increments`,
@@ -332,7 +338,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   });
   // A total that ties while the per-service splits are wrong is the failure this guards against,
   // so the totals are checked too — but they are not the point, and they are checked last.
-  chk(name, 'residual', 'total scheduled equals total allocated',
+  chk(name, 'residual', 'total scheduled equals total DISCRETIONARY allocated',
     Math.round(sum(r.sched)), Math.round(sum(r.alloc)));
 }
 

@@ -31,8 +31,10 @@ const MUTATIONS = [
   // ---- the lane engine: the basis for every printed figure ------------------------------------
   // ---- the incremental-funding residual: the number that goes on a contract mod ----------------
   { id: 'inc-residual-netted', area: 'fillLastAwd', what: 'residual netted across services instead of computed per service',
-    find: '    const alloc=(p.d[i]||0)+(p.m[i]||0);',
-    repl: '    const alloc=SVC.reduce((q,s2,j)=>q+(p.d[j]||0)+(p.m[j]||0),0)/SVC.length;' },
+    find: '    const alloc=(p.d[i]||0);',
+    repl: '    const alloc=SVC.reduce((q,s2,j)=>q+(p.d[j]||0),0)/SVC.length;' },
+  { id: 'inc-residual-basis', area: 'fillLastAwd', what: 'residual reverts to discretionary + mandatory instead of discretionary alone',
+    find: '    const alloc=(p.d[i]||0);', repl: '    const alloc=(p.d[i]||0)+(p.m[i]||0);' },
   { id: 'inc-residual-ignores-prior', area: 'fillLastAwd', what: 'last increment set to the whole allocation, ignoring earlier increments',
     find: '    last.sv[i]=Math.max(0, Math.round(alloc-others));',
     repl: '    last.sv[i]=Math.max(0, Math.round(alloc));' },

@@ -1212,7 +1212,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.35 (12 Sep 2026)';
+const BUILD='v1.36 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -5814,17 +5814,18 @@ const fyMin=()=> (MS.cur-1)+'-10-01';
 const fyMax=()=> MS.cur+'-09-30';
 const awDateVal=(ym,day)=> ym? ym+'-'+String(day||1).padStart(2,'0') : '';
 function fillLastAwd(id){
-  // THE RESIDUAL MOD. Everything allocated but not yet scheduled goes onto the last increment, per
-  // service — because money is not fungible across services, so each one has to clear its own
-  // balance. This is the figure that was being worked out by hand: allocated less what the earlier
-  // increments already obligate.
+  // THE RESIDUAL MOD. Everything DISCRETIONARY but not yet scheduled goes onto the last increment,
+  // per service — because money is not fungible across services, so each one has to clear its own
+  // balance. This is the figure that was being worked out by hand: discretionary allocated, less
+  // what the earlier increments already obligate. Discretionary alone, matching the balance above:
+  // mandatory is spillover, not the pot being rationed.
   const aw=S.awards[id];
   if(!aw||aw.mode!=='inc'||!aw.inc||!aw.inc.length) return;
   const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
   const last=aw.inc[aw.inc.length-1];
   if(!Array.isArray(last.sv)) last.sv=SVC.map(_=>0);
   SVC.forEach((s,i)=>{
-    const alloc=(p.d[i]||0)+(p.m[i]||0);
+    const alloc=(p.d[i]||0);
     const others=aw.inc.reduce((a,x,j)=> a + (j===aw.inc.length-1? 0 : (((x.sv||[])[i])||0)), 0);
     // Clamped at zero: earlier increments already over-obligating this service is a real state, and
     // a negative increment is not a thing anyone can put on a contract.
@@ -14272,6 +14273,10 @@ function svcTable(it){
       const aw=S.awards[it.id];
       const Tw=tiers(), pw=Tw[it.id]||{dT:0,mT:0};
       const funded=pw.dT+pw.mT;
+      // THE INCREMENT BALANCE TRACKS DISCRETIONARY ALONE. That is the pot being rationed and
+      // re-drilled; mandatory is spillover and is not what anyone is deciding an increment against.
+      // On a row with no mandatory draw these are the same number, which is most rows.
+      const discAl=pw.dT;
       const isInc=aw&&aw.mode==='inc';
       const incSum=isInc? (aw.inc||[]).reduce((a,x)=>a+incTot(x),0) : 0;
       return `<div style="padding:6px 2px 2px;border-top:1px solid var(--line);margin-top:6px">
@@ -14284,10 +14289,11 @@ function svcTable(it){
       &nbsp;&nbsp;<label style="font-size:10.5px;cursor:pointer"><input type="checkbox" ${isInc?'checked':''} onchange="toggleAwdInc('${it.id}',${Math.round(funded)})"> <b style="color:${isInc?'var(--green)':'var(--dim)'}">Incremental funding</b></label>
       ${isInc? (()=>{
         const svTots=SVC.map((s,i)=>(aw.inc||[]).reduce((a,x)=>a+((x.sv||[])[i]||0),0));
-        const fSv=SVC.map((s,i)=>pw.d[i]+pw.m[i]);
+        const fSv=SVC.map((s,i)=>pw.d[i]||0);              // discretionary allocated, per service
+        const mSv=SVC.map((s,i)=>pw.m[i]||0);              // mandatory, carried but not tracked here
         return `<div style="margin-top:4px;overflow-x:auto"><table style="border-collapse:collapse;font-size:10px">
         <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${s}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--blue);padding:2px 6px" title="allocated dollars still unscheduled after this increment — the last one has to clear it">Remaining</th><th></th></tr>
-        ${(()=>{ let run=funded; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); return `<tr>
+        ${(()=>{ let run=discAl; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); return `<tr>
           <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" onchange="setAwdIncDate('${it.id}',${i},this.value)" title="click for the calendar — this increment's obligation date (day sets the CR half-month window)"></td>
           ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc('${it.id}',${i},${si},this.value)" onfocus="this.select()" title="${s} increment for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}"></td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:var(--gold);white-space:nowrap">${fM(incTot(a))}</td>
@@ -14295,17 +14301,18 @@ function svcTable(it){
           <td><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd('${it.id}',${i})" title="remove increment">✕</button></td></tr>`; }).join(''); })()}
         <tr><td style="padding:2px 6px;color:var(--dim);font-weight:700">Σ by service</td>
           ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${s}: increments ${fM(svTots[i])} vs funded ${fM(fSv[i])}">${fM(svTots[i])}</td>`).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(incSum-funded)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td><td></td></tr>
+          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(incSum-discAl)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td><td></td></tr>
         <tr><td style="padding:2px 6px;color:var(--blue);font-weight:800" title="what the final mod still has to obligate, per service">Balance to schedule</td>
           ${SVC.map((s,i)=>{ const r=fSv[i]-svTots[i];
             return `<td style="padding:2px 6px;text-align:right;font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${s}: allocated ${fM(fSv[i])} less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'\u2014':fM(r)}</td>`; }).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(funded-incSum)<1?'var(--green)':(funded-incSum<0?'var(--red)':'var(--blue)')}">${Math.abs(funded-incSum)<1?'\u2713 $0':fM(funded-incSum)}</td>
-          <td colspan="2" style="padding:2px 6px">${(Math.abs(funded-incSum)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd('${it.id}')" title="put the whole remaining balance on the last increment, per service — the residual mod">\u21b5 put on last</button>`:''}</td></tr>
+          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(discAl-incSum)<1?'var(--green)':(discAl-incSum<0?'var(--red)':'var(--blue)')}">${Math.abs(discAl-incSum)<1?'\u2713 $0':fM(discAl-incSum)}</td>
+          <td colspan="2" style="padding:2px 6px">${(Math.abs(discAl-incSum)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd('${it.id}')" title="put the whole remaining balance on the last increment, per service — the residual mod">\u21b5 put on last</button>`:''}</td></tr>
         </table>
         <span style="display:inline-block;margin-top:4px">
           <input type="date" id="awdM-${it.id}" min="${fyMin()}" max="${fyMax()}" title="pick the new increment's date from the calendar">
           <button class="qb" onclick="addAwd('${it.id}')" title="add an increment at the picked date">＋ add date</button></span>
-        <span style="font-size:9.5px;color:${Math.abs(incSum-funded)<1?'var(--green)':'var(--amber)'};margin-left:8px">increments ${fM(incSum)} vs funded ${fM(funded)}${Math.abs(incSum-funded)<1?' ✓':' — each service\u2019s amounts act as weights, scaled to that service\u2019s funded dollars'}</span>
+        <span style="font-size:9.5px;color:${Math.abs(incSum-discAl)<1?'var(--green)':'var(--amber)'};margin-left:8px">increments ${fM(incSum)} vs <b>discretionary allocated</b> ${fM(discAl)}${Math.abs(incSum-discAl)<1?' ✓':''}</span>
+        ${pw.mT>0.5? `<div style="font-size:9.5px;color:var(--dim);margin-top:2px">\u2139 ${fM(pw.mT)} of mandatory is also allocated here. The balance above tracks <b>discretionary only</b>, as asked \u2014 but the spend forecast treats these amounts as WEIGHTS and spreads the whole ${fM(funded)} across these dates, so the mandatory rides along in the same proportions.</div>`:''}
       </div>`;})():''}
     </div>`;})()}
     <div class="svc-hint">Top row = the REQUIREMENT VALUE (FY27 ask) by service — edit it when the requirement itself changes; unfunded deltas follow automatically. Second row = your ALLOCATION against it. With a ⚙ forced split, type each service's Discretionary and Mandatory dollars directly — anything not covered (or beyond lane capacity) shows as that service's UFR. ↺ orig restores the requested values; ↺ split restores the allocation split.</div></div>`;
