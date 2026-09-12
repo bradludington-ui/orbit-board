@@ -16,7 +16,8 @@
     "audit:grid": "BOARD=prioritization-board-grid.html npm run audit --silent",
     "controls": "node tools/row-controls.mjs --diff prioritization-board.html prioritization-board-grid.html",
     "inspector": "node tools/inspector-agrees.mjs",
-    "verify:grid": "npm run controls --silent && npm run inspector --silent"
+    "verify:grid": "npm run controls --silent && npm run inspector --silent && npm run toolbar --silent",
+    "toolbar": "node tools/toolbar-fits.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

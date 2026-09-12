@@ -117,6 +117,18 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',Arial,sans-ser
 #appnSel:hover{border-color:var(--blue);color:var(--blue)}
 .apn-chip{cursor:default}
 /* toolbar menus open to the RIGHT (the header's File menu stays right-aligned) */
+/* The toolbar controls are ONE no-wrap group. They were direct children of a wrapping flex row,
+   so the last button — Export — dropped to a second line as soon as the row ran short. It needs
+   about 1040px; a 1280 laptop at Windows' usual 125% scaling reports 1024, which is exactly where
+   it broke. Grouping alone only guarantees they stay together, so the group is also made to FIT:
+   the two standing labels go first (the select reads "O&M" and the button reads "FY27", which is
+   what the labels were saying), then the separators tighten, then the buttons themselves.
+   No overflow on the group: overflow-x forces overflow-y to compute as auto, which would clip
+   every dropdown that opens out of it. */
+.tgrp{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0}
+@media (max-width:1240px){ .tbar .tlbl{display:none} .tbar .tsep{margin:0 4px} }
+@media (max-width:1060px){ .tbar .btn{padding:5px 7px} .tbar .tsep{margin:0 2px} .tbar .tgrp{gap:4px} }
+@media (max-width:920px){ .tbar .dragnote{display:none} }
 .tbar .mdd{right:auto;left:0}
 .tbar .dragnote{margin-left:auto}
 /* Save: primary action, and it says when there is something to save */
@@ -238,8 +250,8 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .row.cur{background:var(--flash)}
 .row.cur::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 2px var(--gold)}
 .row{position:relative}
-.gridwrap{background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:10px}
-.gridhead{display:grid;grid-template-columns:var(--rowcols);gap:10px;padding:7px 12px;background:var(--panel2);border-bottom:1px solid var(--line2);font-size:8px;letter-spacing:.09em;text-transform:uppercase;font-weight:800;color:var(--mut)}
+.gridwrap{background:var(--panel);border:1px solid var(--line);border-radius:9px;overflow:clip;margin-bottom:10px}
+.gridhead{display:grid;grid-template-columns:var(--rowcols);gap:10px;padding:7px 12px;background:var(--panel2);border-bottom:1px solid var(--line2);font-size:8px;letter-spacing:.09em;text-transform:uppercase;font-weight:800;color:var(--mut);position:sticky;top:calc(var(--hdrH,56px) + var(--tbarH,32px) + var(--scsH,0px));z-index:30}
 /* The column header now says "Requirement" and "Cumulative", so the per-row repeat of those words
    is noise -- it is what makes a list of cards refuse to read as a table. The figures keep their
    title attributes, so nothing is lost to a screen reader or a hover. */
@@ -247,7 +259,7 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
    it calls the same accessors the row does, so there is no path by which the two can disagree.
    Below 1400px there is no room for both, and the row already carries every control, so it goes. */
 .gridsplit{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:10px;align-items:start}
-.inspector{background:var(--panelA);border:1px solid var(--line);border-radius:9px;position:sticky;top:8px;max-height:calc(100vh - 16px);overflow:auto;font-size:11px}
+.inspector{background:var(--panelA);border:1px solid var(--line);border-radius:9px;position:sticky;top:calc(var(--hdrH,56px) + var(--tbarH,32px) + var(--scsH,0px) + 8px);max-height:calc(100vh - var(--hdrH,56px) - var(--tbarH,32px) - var(--scsH,0px) - 16px);overflow:auto;font-size:11px}
 .insp-hd{display:flex;align-items:center;gap:8px;padding:7px 11px;border-bottom:1px solid var(--line2);background:var(--panel2);position:sticky;top:0}
 .insp-hd b{font-size:10px;letter-spacing:.13em}
 .insp-bd{padding:10px 11px}
@@ -621,6 +633,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
   </div>
 </div>
 <div class="tbar">
+ <div class="tgrp">
   <span class="tlbl">Appropriation</span>
   <select id="appnSel" onchange="switchAppn(this.value)" title="Switch appropriation"></select>
   <span class="tlbl tsp">Fiscal year</span>
@@ -634,6 +647,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
   <div class="tsep"></div>
   <div class="menu" id="m_tools"><button class="btn" id="b_tools" onclick="toggleMenu('tools')" title="The shape of the board itself — services and destinations, not a single fiscal year.">🛠 Tools ▾</button><div class="mdd" id="dd_tools"></div></div>
   <div class="menu" id="m_export"><button class="btn" id="b_export" onclick="toggleMenu('export')">⬇ Export ▾</button><div class="mdd" id="dd_export"></div></div>
+ </div>
   <span class="dragnote" id="dragNote"></span>
   <input type="file" id="stateFile" accept=".json,.txt,.html,.htm" style="display:none" onchange="importState(this)">
   <input type="file" id="multiFile" accept=".html,.htm" multiple style="display:none" onchange="importBoards(this)">
@@ -19621,6 +19635,18 @@ syncAddPanel();
    the panel and the row can disagree. */
 let curRow = null;
 
+// .scstack is sticky too, and its height changes when the scorecards are collapsed, so the offset
+// the column header needs is not a constant. Measured here rather than in syncSticky() so that
+// shared function stays byte-identical between the two builds.
+function gridSticky(){
+  try{
+    const el = document.querySelector('.scstack');
+    const h = (el && el.offsetHeight) ? el.offsetHeight : 0;
+    document.documentElement.style.setProperty('--scsH', h + 'px');
+  }catch(e){ /* a board that cannot measure still renders; the header just pins a little high */ }
+}
+try{ window.addEventListener('resize', gridSticky); }catch(e){}
+
 function gridRows(){ return [].slice.call(document.querySelectorAll('#list .row')); }
 function gridIds(){ return gridRows().map(function(r){ return r.id.replace(/^row-/,''); }); }
 
@@ -19642,6 +19668,7 @@ function gridAfterRender(){
   else if(!curRow || ids.indexOf(curRow) < 0){ curRow = ids[0]; }
   gridMark();
   inspectorBody();
+  gridSticky();
 }
 
 function inspField(label, value, cls){

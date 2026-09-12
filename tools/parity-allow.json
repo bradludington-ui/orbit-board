@@ -1,13 +1,14 @@
 {
-  "notes": "Functions allowed to differ between prioritization-board.html (card) and prioritization-board-grid.html (grid). PRESENTATION ONLY. Anything touching lane math, Mission Critical, per-service flooring or the exports must NEVER appear here — if a name below ever starts doing arithmetic, that is the bug.",
+  "notes": "Functions allowed to differ between prioritization-board.html (card) and prioritization-board-grid.html (grid). PRESENTATION ONLY. Anything touching lane math, Mission Critical, per-service flooring or the exports must NEVER appear here \u2014 if a name below ever starts doing arithmetic, that is the bug.",
   "functions": {
-    "themeGet":        "grid build defaults to Harbor when nothing is stored; card build defaults to Midnight",
-    "gridRows":        "grid only — the rendered row elements, for selection and keyboard nav",
-    "gridIds":         "grid only — requirement ids in displayed order",
-    "setCur":          "grid only — sets the selected row and repaints the inspector",
-    "gridMark":        "grid only — puts the .cur class on the selected row",
-    "gridAfterRender": "grid only — keeps the selection valid across re-render, re-sort and drag",
-    "inspField":       "grid only — one labelled field in the inspector",
-    "inspectorBody":   "grid only — renders the docked inspector. READS ONLY: every figure comes from tiers()/askTot()/mcShortOf(), never recomputed here"
+    "themeGet": "grid build defaults to Harbor when nothing is stored; card build defaults to Midnight",
+    "gridRows": "grid only \u2014 the rendered row elements, for selection and keyboard nav",
+    "gridIds": "grid only \u2014 requirement ids in displayed order",
+    "setCur": "grid only \u2014 sets the selected row and repaints the inspector",
+    "gridMark": "grid only \u2014 puts the .cur class on the selected row",
+    "gridAfterRender": "grid only \u2014 keeps the selection valid across re-render, re-sort and drag",
+    "inspField": "grid only \u2014 one labelled field in the inspector",
+    "inspectorBody": "grid only \u2014 renders the docked inspector. READS ONLY: every figure comes from tiers()/askTot()/mcShortOf(), never recomputed here",
+    "gridSticky": "grid only \u2014 measures the sticky scorecard stack so the column header pins below it"
   }
 }
