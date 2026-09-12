@@ -29,8 +29,20 @@ It holds the invariants the lost suite held: the script parses, the six appropri
 the save path can still find its target, no board data is committed, and nothing external is
 referenced. It exits non-zero on failure.
 
-There is no browser in the web session, so `check.mjs` plus reading is the whole verification story
-for changes made here. Anything touching layout or interaction needs a human to open the file.
+### Seeing the board
+
+```
+npm run shoot -- out.png [--tools] [--full] [--board FILE] [--width N]
+```
+
+Chromium IS available (`/opt/pw-browsers/chromium-1194/...`), so layout can be checked here after all.
+`shoot.mjs` renders the real board with a seeded seven-requirement position and photographs it —
+the only way to verify anything the audits cannot see, which is everything about appearance. Shoot
+the file at `HEAD` and the working copy and compare when a change moves the furniture.
+
+The board's globals are `const`/`let` declarations living in the global LEXICAL environment, not
+properties of `window`. Reach them by bare identifier inside `page.evaluate`, and never let the
+payload shadow their names.
 
 ## The funding model — get this right before touching any export
 
@@ -183,7 +195,7 @@ writes a file containing the *old* state. `check.mjs` guards this.
 
 ## Hand-edit points
 
-These were templated per board by the build script. Line numbers are as of `v1.30`; find them
+These were templated per board by the build script. Line numbers are as of `v1.31`; find them
 by symbol name, not by number.
 
 | What | Symbol | ~Line |

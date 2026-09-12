@@ -1083,7 +1083,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.30 (11 Sep 2026)';
+const BUILD='v1.31 (12 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -15349,13 +15349,20 @@ function pmoMatrix(){
     <div style="padding:4px 14px 8px;font-size:9px;color:var(--dim)">Prime contracts roll up to their owning PMOs here (AVSC → PSM · PW → PP · CDS Sust → CDS · DFC split by CLIN: …2 → AV, …8 → TSS, …10 → MxS); the PRIMES section on the board still shows the contracts themselves. LANE MODEL: each cell is that PMO's dollars drawn from the service's discretionary lane (Disc) and its mandatory spillover (Mand) — a requirement can sit in both. ★ MC need = the above-discretionary portion of that PMO's Mission Critical items. Lanes can't be over-drawn; anything neither lane covers lands in UNFUNDED.</div>`;
 }
 let ceTab='ALL';
-let siOpen=true;                 // a snapshot is only a snapshot if it is already showing
+let siOpen=true;                 // once summoned it opens expanded; the header collapses it
+// OFF THE DASHBOARD, ON DEMAND. The Special Interest overview used to sit open on the O&M board on
+// every load. It is a reference cut, not something the board is steered by, so it is now summoned
+// from Tools like the other structural panels. Nothing about the data changed: per-requirement SI
+// codes, the picker, the CR return and the workbook's Special Interest tab all read siOf() exactly
+// as before, so a board that never opens this panel still exports the same numbers.
+let siShown=false;
+function toggleSi(){ siShown=!siShown; render(); }
 function siMatrix(){
   const wrap=document.getElementById('siWrap');
   if(!wrap) return;
   // O&M only, and gated on the same accessor as the picker and the CR return -- the template is
   // shared by all four boards and anything ungated appears on every one of them.
-  if(!siApplies()){ wrap.style.display='none'; return; }
+  if(!siApplies() || !siShown){ wrap.style.display='none'; return; }
   wrap.style.display='block';
   const ar=document.getElementById('siArrow'); if(ar) ar.textContent = siOpen? '▾':'▸';
   const el=document.getElementById('siBody');
@@ -16388,6 +16395,8 @@ function syncBtns(){
     +mi('📍 Destinations…',"mRun(toggleEnt)",entOpen,flowEnts().length+' place'+(flowEnts().length===1?'':'s')+' money can go')
     +(rcnApplies()? mi('🗂 RCN / EEIC…',"mRun(toggleRcn)",rcnOpen,
         rcnReg().length+' combo'+(rcnReg().length===1?'':'s')+' · USAF / ANG / AFRC') : '')
+    +(siApplies()? mi('🎯 Special Interest codes…',"mRun(toggleSi)",siShown,
+        'allocations by code and service — O&M only') : '')
     +mi('💱 Funding realignment…',"mRun(toggleRlg)",rlgOpen,
         'source a lump sum by moving whole requirements between years')
     +mi('🧱 WBS from execution data…',"mRun(toggleExw)",exwOpen,
