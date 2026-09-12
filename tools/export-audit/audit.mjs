@@ -476,6 +476,78 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// ═══ RCN-EEIC by Month ══════════════════════════════════════════════════════════════════════════
+// A month-by-month sheet, gated on the O&M appropriation AND on USAF/ANG/AFRC being present — which
+// is why no existing scenario reached it and it carried no coverage at all. It spreads tiers()
+// output through monSpreadOf, so it moves real money across months, and the sheet has to add up
+// two ways: every service block conserves its own funded dollars, and ALL SERVICES is the sum of
+// the blocks above it, month by month.
+{
+  const name = 'RCN-EEIC by Month';
+  const sc = {
+    services: ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'],
+    items: [it('A', 'ATL', [12000000, 1500000, 900000, 4200000, 2100000, 2361859]),
+            it('B', 'PSM', [3000000, 400000, 200000, 0, 0, 0])],
+    disc: [8000000, 1000000, 600000, 3000000, 1400000, 1600000],
+    mand: [4000000, 600000, 400000, 1500000, 800000, 900000],
+    order: ['A', 'B'],
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev(`
+    MS.rcn=[{k:'rTEST_0', rcn:'12345', eeic:'ABC12', t:'Test combo', svc:['USAF','ANG','AFRC']}];
+    S.rcnAsg={A:'rTEST_0', B:'rTEST_0'};
+    toggleAwdInc('A',0);
+    var p=tiers()['A'];
+    S.awards['A'].inc=[
+      {d:FYMON[1][0],day:1,sv:SVC.map(function(s,i){return Math.round((p.d[i]||0)*0.40);})},
+      {d:FYMON[4][0],day:1,sv:SVC.map(function(s,i){return Math.round((p.d[i]||0)*0.25);})}];
+    S.awards['B']={mode:'single', d:FYMON[2][0], day:1};
+    save(); 'ok'`);
+  const sheets = JSON.parse(capture(ev));
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  const sh = sheetOf(sheets, name);
+
+  // The sheet must EXIST. Silently skipping is how a check that cannot run reads as a pass.
+  chk(name, name, 'sheet is produced when the appropriation and services allow it',
+    sh ? 1 : 0, 1);
+
+  if (sh) {
+    const txt = c => String((c && typeof c === 'object' && 'v' in c) ? c.v : (c ?? ''));
+    const numOf = c => { const v = (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+                         return typeof v === 'number' ? v : NaN; };
+    const rowNamed = re => sh.rows.find(r => re.test(txt(r[0])));
+    const cells = r => r ? r.map(numOf).map(v => isNaN(v) ? 0 : v) : null;
+
+    // Per service: the block total equals what the lane engine funded on that service.
+    const T = JSON.parse(ev('JSON.stringify(tiers())'));
+    ['USAF', 'ANG', 'AFRC'].forEach(svc => {
+      const i = sc.services.indexOf(svc);
+      const want = sc.order.reduce((a, id) => a + (T[id].d[i] || 0) + (T[id].m[i] || 0), 0);
+      const row = cells(rowNamed(new RegExp('^' + svc + ' TOTAL')));
+      chk(name, name, `${svc} TOTAL row exists`, row ? 1 : 0, 1);
+      if (row) {
+        const tot = row[row.length - 1];
+        chk(name, name, `${svc}: block total equals what the lanes funded on that service`, tot, want);
+        // CONSERVATION inside the block: the months plus NO DATE are the total, nothing lost.
+        const monthsPlusNoDate = row.slice(0, -1).reduce((a, b) => a + b, 0);
+        chk(name, name, `${svc}: months + NO DATE add to the block total`, monthsPlusNoDate, tot);
+      }
+    });
+
+    // ALL SERVICES is the sum of the three blocks, month by month — not a separate walk.
+    const all = cells(rowNamed(/^ALL SERVICES/));
+    chk(name, name, 'ALL SERVICES row exists', all ? 1 : 0, 1);
+    if (all) {
+      const parts = ['USAF', 'ANG', 'AFRC'].map(svc => cells(rowNamed(new RegExp('^' + svc + ' TOTAL'))));
+      if (parts.every(Boolean)) {
+        all.forEach((v, j) => chk(name, name, `ALL SERVICES column ${j + 1} is the sum of the blocks`,
+          v, parts.reduce((a, p2) => a + (p2[j] || 0), 0)));
+      }
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------------------------
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
