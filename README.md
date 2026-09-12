@@ -76,6 +76,7 @@ and a timestamp, and a save that would clobber newer work stops and says so firs
 | `tools/check.mjs` | Invariant checks for one build. |
 | `tools/parity.mjs` | Proves the two builds have not diverged. |
 | `tools/row-controls.mjs` | Lists every control on a requirement row; diffs two builds. |
+| `tools/export-audit/` | Drives the real exports in jsdom and checks every printed figure. |
 
 ```
 npm run check

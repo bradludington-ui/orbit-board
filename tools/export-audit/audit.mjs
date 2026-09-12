@@ -108,6 +108,39 @@ const SCENARIOS = {
     order: ['A'], mc: { A: true },
     alloc: { A: { m: 's', v: [60, 5] } },
   },
+  // A DIRECTED SOURCE ON A TRIMMED REQUIREMENT. basisSvcOf says a funding-source override bases on
+  // the FULL ask, not the board allocation. Until this scenario existed, every fsrc item also had no
+  // allocation — so svcAlloc returned the ask anyway and the two readings were indistinguishable.
+  // Here the ask is 80 and the allocation 40, so they cannot be confused.
+  'directed source on a trimmed requirement': {
+    services: SVC3,
+    items: [it('A', 'ATL', [50, 20, 10]), it('B', 'PSM', [30, 10, 5])],
+    disc: [60, 25, 12], mand: [40, 20, 10],
+    order: ['A', 'B'],
+    fsrc: { A: { m: 'mand' } },
+    alloc: { A: { m: 't', v: 40 } },
+  },
+  // A SCALAR TRIM — one figure typed into the row's allocation box, which svcAlloc prorates across
+  // services by each service's share of the ask. Every other scenario here hands in a per-service
+  // vector, so this branch carried no coverage at all until a mutation sweep said so, and it is the
+  // commonest edit on the board. The asks are deliberately uneven: the rule gives 30 / 15 / 5 where
+  // an even split would give 16.67 each, so a wrong split cannot hide inside a right total.
+  'scalar trim prorated across services': {
+    services: SVC3,
+    items: [it('A', 'ATL', [60, 30, 10])],
+    disc: [40, 20, 10], mand: [0, 0, 0],
+    order: ['A'],
+    alloc: { A: { m: 't', v: 50 } },
+  },
+  // The same trim where one service's discretionary lane cannot cover its prorated share, so the
+  // proration and the per-service lane floor have to hold at the same time.
+  'scalar trim against a short lane': {
+    services: SVC3,
+    items: [it('A', 'ATL', [60, 30, 10])],
+    disc: [10, 20, 10], mand: [15, 0, 0],
+    order: ['A'],
+    alloc: { A: { m: 't', v: 50 } },
+  },
   // Nothing funded at all: every dollar must land in unfunded.
   'zero budget': {
     services: SVC3,
@@ -146,12 +179,23 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const askAll = ids.reduce((a, id) => a + askOf(id), 0);
 
   // UNFUNDED IS PER SERVICE. A service is a service AND ITS VARIANT; money never nets across them.
-  const basisOf = {};
-  ids.forEach(id => { basisOf[id] = JSON.parse(ev(`JSON.stringify((S.fsrc['${id}'] ? itemById('${id}').ask : svcAlloc(itemById('${id}'))))`)); });
+  // THE ALLOCATION BASIS, DERIVED HERE from the scenario's own inputs — never read back from the
+  // page. A scalar allocation prorates by each service's share of the ask; an even split is a
+  // different answer, not a rounding difference, because money is not fungible across services.
+  const basisOf = id => {
+    const item = sc.items.find(x => x.id === id);
+    if (sc.fsrc && sc.fsrc[id]) return item.ask.slice();
+    const a = sc.alloc && sc.alloc[id];
+    if (a === null || a === undefined) return item.ask.slice();
+    if (a.m === 's') return a.v.slice();          // per-service vector, taken as given
+    const at = sum(item.ask);                     // scalar trim, prorated by ask share
+    if (at > 0) return item.ask.map(x => a.v * x / at);
+    return SVC.map(() => a.v / SVC.length);       // a zero ask cannot be weighted
+  };
   const askArr = id => sc.items.find(x => x.id === id).ask;
   const unfSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]));
-  const beyondSvcExp = id => SVC.map((s, i) => Math.max(0, Math.min(askArr(id)[i], basisOf[id][i]) - T[id].d[i] - T[id].m[i]));
-  const trimSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - basisOf[id][i]));
+  const beyondSvcExp = id => SVC.map((s, i) => Math.max(0, Math.min(askArr(id)[i], basisOf(id)[i]) - T[id].d[i] - T[id].m[i]));
+  const trimSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - basisOf(id)[i]));
   const svcTot = f => SVC.map((s, i) => ids.reduce((a, id) => a + f(id)[i], 0));
   const unfSvcAll = svcTot(unfSvcExp), beyondSvcAll = svcTot(beyondSvcExp), trimSvcAll = svcTot(trimSvcExp);
   // With unfunded floored per service, funded + unfunded exceeds the ask exactly where a service was
@@ -163,7 +207,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // ---- 1. conservation inside tiers() itself (the basis for everything else) ----
   ids.forEach(id => {
     const p = T[id];
-    const basis = JSON.parse(ev(`JSON.stringify((S.fsrc['${id}'] ? itemById('${id}').ask : svcAlloc(itemById('${id}'))))`));
+    const basis = basisOf(id);
     SVC.forEach((s, i) => chk(name, 'tiers()', `${id} d+m+u == basis [${s}]`,
       p.d[i] + p.m[i] + p.u[i], basis[i]));
   });
@@ -173,7 +217,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   {
     const dRem = sc.disc.slice(), mRem = sc.mand.slice();
     ids.forEach(id => {
-      const basis = JSON.parse(ev(`JSON.stringify((S.fsrc['${id}'] ? itemById('${id}').ask : svcAlloc(itemById('${id}'))))`));
+      const basis = basisOf(id);
       if (sc.fsrc && sc.fsrc[id]) {          // directed sources have their own rules; drawn down so
         SVC.forEach((s, i) => {              // later requirements still see the right lane balances
           dRem[i] -= T[id].d[i]; mRem[i] -= T[id].m[i];
@@ -299,7 +343,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     // 'Allocated' is the basis the lane engine worked from: the ask for a directed source,
     // the board's allocation otherwise. Never the funded total.
     chk(name, 'Unfunded Requirements', `${id}: Allocated == the basis used`,
-      num(r[8]), sum(basisOf[id]));
+      num(r[8]), sum(basisOf(id)));
   });
 
   // ---- 6c. tier list sheets, PER ROW: printed amount must equal its per-service vector ----

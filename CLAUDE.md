@@ -159,11 +159,14 @@ cannot diverge: `pmoKeys()`, `mcShortSvcOf()`, `unfSvcOf()`, `beyondSvcOf()`, `t
 
 ```
 npm install        # jsdom, for the audit only
-npm run audit          # every export that does lane math
+npm run audit          # all four suites
 npm run audit:export   # the Excel workbook (exportExcel)
 npm run audit:ppt      # the PowerPoint deck (exportPPT)
 npm run audit:other    # the Priority Drill (exportCSV) and Exec Synopsis (execSynopsis)
+npm run audit:board    # figures the board derives and never exports
 ```
+
+Point any of them at the grid build with `BOARD=$PWD/prioritization-board-grid.html`.
 
 **Which exports do lane math at all.** Only four: `exportExcel`, `exportPPT`, `exportCSV` and
 `execSynopsis`. The rest — ACE Tie-Out, Chart of Accounts, ATR/BTR Log, Spend Plan Source, CR Cash
@@ -192,13 +195,28 @@ search string no longer matches is reported **NOT APPLIED**, never as caught —
 not masquerade as coverage.
 
 Every surviving mutation is a line nothing protects. Add the check, do not delete the mutation.
-Currently 24/24 caught. Two kinds of gap it has already found and which the checks alone missed:
+Four kinds of gap it has already found, none of which the checks alone would have shown:
 
 - **Conservation is not enough.** `d + m + u == basis` still holds when a draw is merely mis-split —
   short-change the discretionary draw and the shortfall moves into mandatory, every total ties. The
   suite now re-derives the greedy walk independently (the "lane oracle") and compares draw for draw.
 - **A check that cannot run reads as a pass.** Assertions matched on a title the slide never renders,
   and a figure was computed but never asserted. Both looked green for as long as they existed.
+- **AN ORACLE THAT ASKS THE CODE UNDER TEST WILL AGREE WITH IT.** The lane oracle obtained the
+  allocation basis by calling `svcAlloc()` in the page, so a mutation splitting a trimmed allocation
+  evenly across services — instead of weighting it by each service's ask — passed every suite. The
+  sheets faithfully printed the wrong split and the oracle confirmed it. `basisOf()` in `audit.mjs`
+  now restates the rule from the scenario's own inputs and never reads it back from the page.
+  **Derive expectations from the fixture, never from the code you are testing.**
+- **A path with no fixture has no coverage, however many checks point at it.** Every scenario passed
+  a per-service allocation vector (`m:'s'`), so the scalar-trim branch of `svcAlloc` — one figure
+  typed into the row's allocation box, the commonest edit on the board — was never once executed.
+  Likewise every funding-source override sat on a requirement with no allocation, making "basis on
+  the full ask" and "basis on the allocation" indistinguishable. Both now have scenarios.
+- **A figure the board shows but never exports is invisible to export suites.** The cumulative could
+  be made to skip unfunded dollars entirely with all three export suites green, because no export
+  carries it — and it is what places the cutline banners. `audit-board.mjs` covers the board's own
+  derived figures; add to it rather than stretching an export suite.
 
 ## Never commit a populated board
 

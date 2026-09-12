@@ -7,7 +7,7 @@
     "audit:export": "node tools/export-audit/audit.mjs",
     "audit:ppt": "node tools/export-audit/audit-ppt.mjs",
     "audit:other": "node tools/export-audit/audit-other.mjs",
-    "audit": "npm run audit:export && npm run audit:ppt && npm run audit:other",
+    "audit": "npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board",
     "mutate": "node tools/export-audit/mutate.mjs",
     "shoot": "node tools/export-audit/shoot.mjs",
     "check:card": "node tools/check.mjs prioritization-board.html",
@@ -17,7 +17,9 @@
     "controls": "node tools/row-controls.mjs --diff prioritization-board.html prioritization-board-grid.html",
     "inspector": "node tools/inspector-agrees.mjs",
     "verify:grid": "npm run controls --silent && npm run inspector --silent && npm run toolbar --silent",
-    "toolbar": "node tools/toolbar-fits.mjs"
+    "toolbar": "node tools/toolbar-fits.mjs",
+    "mutate:grid": "BOARD=$PWD/prioritization-board-grid.html node tools/export-audit/mutate.mjs",
+    "audit:board": "node tools/export-audit/audit-board.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

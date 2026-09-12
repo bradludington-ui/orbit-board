@@ -14,16 +14,39 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-const BOARD = join(HERE, '..', '..', 'prioritization-board.html');
+// Which build to sweep. There are two now, and parity.mjs proves their math is byte-identical,
+// so a clean sweep of one covers both — but 'proves' is worth checking rather than trusting.
+const BOARD = process.env.BOARD || join(HERE, '..', '..', 'prioritization-board.html');
 const SUITES = [
   ['excel', join(HERE, 'audit.mjs')],
   ['ppt', join(HERE, 'audit-ppt.mjs')],
   ['other', join(HERE, 'audit-other.mjs')],
+  // The board derives figures it never exports — the cumulative among them. Without a suite that
+  // can see them, a mutation to those lines passes everything and proves nothing.
+  ['board', join(HERE, 'audit-board.mjs')],
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
 const MUTATIONS = [
   // ---- the lane engine: the basis for every printed figure ------------------------------------
+  // ---- svcAlloc: how a TRIMMED allocation splits across services -------------------------------
+  // Added after a review found this function carried no mutation at all. It decides how one scalar
+  // allocation becomes per-service dollars, and money is not fungible across services — so getting
+  // it wrong misstates every service column while the totals still tie. That is the same shape as
+  // the PMO Matrix averaging bug, which printed a plausible total over a wrong split.
+  { id: 'svc-alloc-even', area: 'svcAlloc', what: 'trimmed allocation split evenly instead of by each service ask',
+    find: '  if(at>0) return it.ask.map(x=>a.v*x/at);',
+    repl: '  if(at>0) return SVC.map(_=>a.v/SVC.length);' },
+  { id: 'svc-alloc-override', area: 'svcAlloc', what: 'per-service allocation override ignored',
+    find: "  if(a.m==='s') return a.v.slice();",
+    repl: "  if(a.m==='s') return it.ask.slice();" },
+  { id: 'basis-fsrc', area: 'model', what: 'funding-source override no longer bases on the full ask',
+    find: 'function basisSvcOf(it){ return S.fsrc[it.id]? it.ask.slice() : svcAlloc(it); }',
+    repl: 'function basisSvcOf(it){ return svcAlloc(it); }' },
+  { id: 'cum-skips-unfunded', area: 'tiers', what: 'cumulative counts only what a lane covered',
+    find: '    const e=dT+mT+uT;\n    cum+=e;',
+    repl: '    const e=dT+mT+uT;\n    cum+=dT+mT;' },
+
   { id: 'lane-disc-draw', area: 'tiers', what: 'discretionary draw short-changed by 10%',
     find: 'const dd=Math.min(v, Math.max(0,dRem[i])); dRem[i]-=dd; d[i]=dd;',
     repl: 'const dd=Math.min(v*0.9, Math.max(0,dRem[i])); dRem[i]-=dd; d[i]=dd;' },
