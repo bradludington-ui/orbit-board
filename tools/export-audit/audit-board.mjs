@@ -342,6 +342,70 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     Math.round(sum(r.sched)), Math.round(sum(r.alloc)));
 }
 
+
+// ═══ the spend forecast: increments are discretionary DOLLARS ═══════════════════════════════════
+// monSpreadOf places money into months. Two things have to hold, and the first is the one that
+// makes the second safe:
+//   CONSERVATION — every funded dollar lands in a month or in UNSCHEDULED. Never dropped, never
+//                  invented. This is the property the function exists to keep.
+//   LITERAL       — what you type into an increment is the discretionary that lands in that month.
+//                  It used to be a weight against the whole funded amount, which inflated every
+//                  figure once the balance started reconciling against discretionary alone.
+{
+  const name = 'spend forecast';
+  const sc = {
+    services: ['STOVL', 'CV', 'CTOL'],
+    items: [it('A', 'ATL', [12000000, 4200000, 2361859])],
+    disc: [8000000, 2000000, 1000000], mand: [5000000, 3000000, 2000000],
+    order: ['A'],
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  // Two increments covering 65% of discretionary, both on real months, so a third of the
+  // discretionary is deliberately left unscheduled and must show up as UNSCHEDULED.
+  const r = JSON.parse(ev(`
+    (function(){
+      toggleAwdInc('A', 0);
+      var T = tiers(), p = T['A'];
+      var m0 = FYMON[1][0], m1 = FYMON[4][0];
+      S.awards['A'].inc = [
+        {d:m0, day:1, sv: SVC.map(function(s,i){ return Math.round((p.d[i]||0)*0.40); })},
+        {d:m1, day:1, sv: SVC.map(function(s,i){ return Math.round((p.d[i]||0)*0.25); })}
+      ];
+      save();
+      var sp = monSpreadOf('A', tiers()['A']);
+      var p2 = tiers()['A'];
+      return JSON.stringify({
+        months: sp.m, unsch: sp.unsch, mi: [1, 4],
+        d: SVC.map(function(s,i){ return p2.d[i]||0; }),
+        m: SVC.map(function(s,i){ return p2.m[i]||0; }),
+        inc: S.awards['A'].inc.map(function(x){ return x.sv.slice(); })
+      });
+    })()`));
+
+  sc.services.forEach((svc, i) => {
+    const placed = r.months[i].reduce((a, b) => a + b, 0) + r.unsch[i];
+    chk(name, 'conservation', `${svc}: every funded dollar is in a month or UNSCHEDULED`,
+      Math.round(placed), Math.round(r.d[i] + r.m[i]));
+
+    // What was typed is what lands, plus mandatory riding the same proportions.
+    const wsum = r.inc.reduce((a, x) => a + x[i], 0);
+    r.mi.forEach((k, j) => {
+      const wantD = r.inc[j][i];
+      const wantM = wsum > 0 ? r.m[i] * r.inc[j][i] / wsum : 0;
+      chk(name, 'literal placement', `${svc}: increment ${j + 1} lands as typed (+ its mandatory share)`,
+        Math.round(r.months[i][k]), Math.round(wantD + wantM));
+    });
+
+    // The discretionary never put on a date is UNSCHEDULED — the same figure the board's
+    // Balance to schedule row reports.
+    chk(name, 'unscheduled', `${svc}: discretionary not on a date shows as UNSCHEDULED`,
+      Math.round(r.unsch[i]), Math.round(r.d[i] - wsum));
+  });
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

@@ -168,10 +168,15 @@ npm run audit:board    # figures the board derives and never exports
 
 Point any of them at the grid build with `BOARD=$PWD/prioritization-board-grid.html`.
 
-**Which exports do lane math at all.** Only four: `exportExcel`, `exportPPT`, `exportCSV` and
-`execSynopsis`. The rest — ACE Tie-Out, Chart of Accounts, ATR/BTR Log, Spend Plan Source, CR Cash
-Return — reconcile against imported sources and never touch `tiers()`, the star or unfunded, so
-they are outside these suites. Check that before assuming an export needs auditing.
+**Which exports do lane math at all.** Four do it directly: `exportExcel`, `exportPPT`, `exportCSV`
+and `execSynopsis`. ACE Tie-Out, Chart of Accounts, ATR/BTR Log and CR Cash Return reconcile against
+imported sources and never touch `tiers()`, the star or unfunded, so they stay outside these suites.
+
+**Spend Plan Source is the exception, and it is easy to miss.** It does no lane *decisions*, but it
+spreads `tiers()` output across months through `monSpreadOf` — so it carries real money arithmetic
+and a conservation property: every funded dollar lands in a month or in UNSCHEDULED, never dropped
+and never invented. That is asserted in `audit-board.mjs`, not in the export suites, because the
+function is board logic that an export happens to consume.
 
 **The suite's epsilon is 0.005 DOLLARS.** The Spend Forecast tab prints in $M, where that tolerance
 is enormous: a whole dropped PMO came to 0.000012 and passed. Scale to dollars before comparing

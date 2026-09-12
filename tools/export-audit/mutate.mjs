@@ -29,6 +29,17 @@ const SUITES = [
 // area: which surface the line belongs to. find/replace: the deliberate break.
 const MUTATIONS = [
   // ---- the lane engine: the basis for every printed figure ------------------------------------
+  // ---- the spend forecast: where the money lands, month by month -------------------------------
+  { id: 'fc-weights-not-dollars', area: 'monSpreadOf', what: 'increments back to weights against the whole funded amount',
+    find: '          const dAmt=w[j]*dScale;          // discretionary: literally this increment',
+    repl: '          const dAmt=fsv*w[j]/wsum;        // discretionary: literally this increment' },
+  { id: 'fc-drops-unscheduled', area: 'monSpreadOf', what: 'unscheduled discretionary silently dropped instead of held',
+    find: '        unsch[i]+=Math.max(0, dsv-dPlaced);',
+    repl: '        unsch[i]+=0;' },
+  { id: 'fc-mand-not-carried', area: 'monSpreadOf', what: 'mandatory left out of the forecast entirely',
+    find: '          const mAmt=msv*w[j]/wsum;        // mandatory: no increments of its own, rides the same dates',
+    repl: '          const mAmt=0;                    // mandatory: no increments of its own, rides the same dates' },
+
   // ---- the incremental-funding residual: the number that goes on a contract mod ----------------
   { id: 'inc-residual-netted', area: 'fillLastAwd', what: 'residual netted across services instead of computed per service',
     find: '    const alloc=(p.d[i]||0);',
