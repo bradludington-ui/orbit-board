@@ -44,6 +44,20 @@ const MUTATIONS = [
     find: '          const mAmt=msv*w[j]/wsum;        // mandatory: no increments of its own, rides the same dates',
     repl: '          const mAmt=0;                    // mandatory: no increments of its own, rides the same dates' },
 
+  // ---- the month-by-month sheets: the blocks and their ALL SERVICES roll-up --------------------
+  { id: 'mon-grand-skips-none', area: 'monSheet', what: 'ALL SERVICES stops counting the unassigned bucket',
+    find: `        rows.push(line(noneLbl, b, 1));
+        b.m.forEach(function(v,j){ sub.m[j]+=v; grand.m[j]+=v; });`,
+    repl: `        rows.push(line(noneLbl, b, 1));
+        b.m.forEach(function(v,j){ sub.m[j]+=v; });` },
+  { id: 'mon-block-drops-nod', area: 'monSheet', what: 'a service block forgets its undated dollars',
+    find: `        sub.nod+=b.nod; grand.nod+=b.nod;
+      });
+      if(bag[g][NONE]){`,
+    repl: `        grand.nod+=b.nod;
+      });
+      if(bag[g][NONE]){` },
+
   // ---- the incremental-funding residual: the number that goes on a contract mod ----------------
   { id: 'inc-residual-netted', area: 'fillLastAwd', what: 'residual netted across services instead of computed per service',
     find: '    const alloc=(p.d[i]||0);',
