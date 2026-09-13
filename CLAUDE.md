@@ -114,6 +114,32 @@ requirement costs. Do not recompute the star anywhere else.
 These two are the stated rules and are asserted verbatim in the audit under the `RULE` label.
 Change them only on an explicit instruction, and update those checks in the same commit.
 
+### Reading a workbook, and moving one between years
+
+**Every offset `xlsxRead()` follows comes out of the file it is reading.** A CCaR pull that did not
+finish downloading points them anywhere; unchecked, a DataView read past the end threw *"Offset is
+outside the bounds of the DataView"* — true, and no help to someone deciding whether to download it
+again. Each read is now bounded and each failure names the fault: an empty file, no ZIP
+end-of-directory record, a directory starting past the end, an entry count that runs out of file, a
+zip that is not a workbook, a part missing from the zip, a failed decompression, a cell pointing
+past the shared-string table (which used to yield `undefined` and land as a **blank cell** — missing
+data rather than a damaged file). All four callers already surface `e.message`.
+
+The fixture is built by the board's OWN writer, so a workbook that round-trips proves reader and
+writer agree — and damaging that buffer gives realistically corrupt files instead of invented ones.
+
+**`yearCopy()`'s own comment warned that its normalise list and its `cp()` payload must stay in step
+"IN BOTH DIRECTIONS"** — a container normalised with no `cp()` arrives EMPTY and the data stays
+behind, looking exactly like a year nobody filled in. That warning had no test. The oracle now reads
+the container list **out of the board's source** rather than restating it, so a container added to
+one side and forgotten in the other fails the day it is added. One named exception: `upl` is keyed
+`'r|<id>'`, not the bare id, and is checked separately.
+
+Also covered: award and increment dates shift with the year (a copy two years out must not still say
+2026), CR half-month keys shift, the requirement value travels, a COPY leaves the source year
+untouched, and a MOVE clears the order and every PMO ordering — anything less funds the same
+requirement in two years at once.
+
 ### Save → reopen is an invariant, and it is tested
 
 The board persists by rewriting its own HTML: `buildSavedHtml()` drops the whole store into the

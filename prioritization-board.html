@@ -1131,7 +1131,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.45 (13 Sep 2026)';
+const BUILD='v1.46 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -6249,32 +6249,57 @@ function _xunesc(t){
     .replace(/&#(\d+);/g,function(_,d){ return String.fromCharCode(+d); })
     .replace(/&amp;/g,'&');
 }
+// EVERY OFFSET BELOW COMES OUT OF THE FILE ITSELF, so a truncated or damaged workbook can point
+// anywhere. Unchecked, a DataView read past the end throws "Offset is outside the bounds of the
+// DataView" -- true, and useless to someone who just wants to know their CCaR pull did not survive
+// the download. Each read is bounded, and each failure says what is wrong with the file.
 async function xlsxRead(buf){
   const u=new Uint8Array(buf), dv=new DataView(buf);
+  const SZ=u.length;
+  const BAD=(why)=>new Error('That file is not a readable .xlsx \u2014 '+why
+    +'. It is most likely damaged or incompletely downloaded; export it again and retry.');
+  const need=(off,len,why)=>{ if(!(off>=0 && off+len<=SZ)) throw BAD(why); };
   let e=-1;
-  for(let i=u.length-22;i>=0;i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
-  if(e<0) throw new Error('not an xlsx (zip) file');
+  for(let i=SZ-22;i>=0;i--){ if(dv.getUint32(i,true)===0x06054b50){ e=i; break; } }
+  if(e<0) throw new Error(SZ===0
+    ? 'That file is empty \u2014 nothing was read.'
+    : 'That file is not an .xlsx workbook (no ZIP end-of-directory record). If it came from a '
+      +'download, it may have been truncated; export it again and retry.');
+  need(e,22,'its end-of-directory record runs past the end of the file');
   const cnt=dv.getUint16(e+10,true), cdOff=dv.getUint32(e+16,true);
+  need(cdOff,4,'its directory starts at byte '+cdOff+', past the end of a '+SZ+'-byte file');
   const entries={};
   let p=cdOff;
   for(let k=0;k<cnt;k++){
+    // A corrupt entry count would otherwise walk off the end one header at a time.
+    need(p,46,'its directory claims '+cnt+' entries but runs out of file after '+k);
     const nlen=dv.getUint16(p+28,true), elen=dv.getUint16(p+30,true), clen=dv.getUint16(p+32,true);
+    need(p+46,nlen,'a name in its directory runs past the end of the file');
     entries[new TextDecoder().decode(u.subarray(p+46,p+46+nlen))]={comp:dv.getUint16(p+10,true), csize:dv.getUint32(p+20,true), off:dv.getUint32(p+42,true)};
     p+=46+nlen+elen+clen;
   }
   async function get(name){
     const en=entries[name]; if(!en) return null;
+    need(en.off,30,'the entry for '+name+' points past the end of the file');
     const nlen=dv.getUint16(en.off+26,true), elen=dv.getUint16(en.off+28,true);
-    const data=u.subarray(en.off+30+nlen+elen, en.off+30+nlen+elen+en.csize);
+    const start=en.off+30+nlen+elen;
+    need(start,en.csize,'the data for '+name+' runs past the end of the file');
+    const data=u.subarray(start, start+en.csize);
     if(en.comp===0) return new TextDecoder().decode(data);
-    const out=await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
-    return new TextDecoder().decode(out);
+    try{
+      const out=await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
+      return new TextDecoder().decode(out);
+    }catch(err){ throw BAD(name+' inside it could not be decompressed'); }
   }
   const sst=[];
   const sx=await get('xl/sharedStrings.xml');
   if(sx){ for(const m of sx.matchAll(/<si>([\s\S]*?)<\/si>/g)){ let t=''; for(const tm of m[1].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g)) t+=tm[1]; sst.push(_xunesc(t)); } }
   const wbx=await get('xl/workbook.xml');
   const rels=await get('xl/_rels/workbook.xml.rels');
+  // A zip without these is a zip, not a workbook. Reading on would throw on null.matchAll and
+  // report a TypeError, which says nothing about the file the user picked.
+  if(!wbx)  throw BAD('it contains no workbook part (xl/workbook.xml)');
+  if(!rels) throw BAD('its workbook has no relationships part (xl/_rels/workbook.xml.rels)');
   // Attribute order is not guaranteed by the format, and a Target may be relative to xl/ with
   // ../ segments — this workbook's customXml parts are exactly that.
   const relPath=t=>{
@@ -6322,7 +6347,13 @@ async function xlsxRead(buf){
         // INLINE STRINGS ARE ESCAPED TOO. This branch took the raw XML, so every workbook this
         // app writes came back with &amp; in place of & - and "O&M" is in nearly every budget name.
         if(t==='inlineStr'){ const im=body.match(/<t[^>]*>([\s\S]*?)<\/t>/); v=im? _xunesc(im[1]):''; }
-        else if(vm){ v = t==='s'? sst[parseInt(vm[1])] : (t==='str'? vm[1] : parseFloat(vm[1])); }
+        // A shared-string index past the end of the table yields undefined, which lands in the
+        // sheet as a blank cell and reads as missing data rather than a damaged file.
+        else if(vm){ v = t==='s'? (function(){ const ix=parseInt(vm[1]);
+                       if(!(ix>=0 && ix<sst.length)) throw BAD('a cell points at text #'+ix
+                         +' but its shared-string table holds '+sst.length);
+                       return sst[ix]; })()
+                     : (t==='str'? vm[1] : parseFloat(vm[1])); }
         if(v!==null){ cells[ci]=v; if(ci+1>maxc) maxc=ci+1; }
       }
       const arr=[]; for(let i=0;i<maxc;i++) arr.push(cells[i]!==undefined? cells[i]:'');

@@ -24,6 +24,14 @@ export function boot({ svc, items, quiet = true, html = null } = {}) {
   w.URL.revokeObjectURL = () => {};
   w.HTMLAnchorElement.prototype.click = function () {};
   w.alert = () => {}; w.confirm = () => true; w.prompt = () => null;
+  // Streams and fetch primitives the XLSX reader needs. jsdom ships none of them; every real
+  // browser does, and Node has them globally. Injecting the SAME realm's Blob alongside Response
+  // and DecompressionStream matters -- a jsdom Blob piped into a Node stream does not interop, and
+  // the failure looks like a corrupt workbook rather than a missing polyfill.
+  for (const g of ['Blob', 'Response', 'Request', 'Headers', 'ReadableStream', 'WritableStream',
+                   'TransformStream', 'DecompressionStream', 'CompressionStream']) {
+    if (typeof globalThis[g] === 'function') w[g] = globalThis[g];
+  }
 
   const ev = code => w.eval(code);
   return { dom, w, ev, errors };
