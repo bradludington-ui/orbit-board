@@ -1131,7 +1131,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.43 (13 Sep 2026)';
+const BUILD='v1.44 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3057,6 +3057,126 @@ function defaultOrder(){
 const BANDS_LEGACY=[
   {id:'cong'},{id:'manpwr'},{id:'stop'},{id:'rdns'},{id:'health'},{id:'defer'}
 ];
+// ── IMPORTED STATE IS POSITIONAL, AND POSITION IS NOT A SERVICE ───────────────────────────────
+// Every per-service figure on this board is an array indexed by SVC position. A state file from a
+// board whose service list differs -- reordered, shorter, longer, or simply a different set --
+// lands each of those arrays against the WRONG service, and every total still reconciles, so the
+// board looks perfectly healthy while USAF holds AFRC's money. The file has always carried its own
+// service list in dataPack.services; nothing ever read it back. This does.
+//
+// Returns one of:
+//   {state:'match'}                      the lists agree -- nothing to do
+//   {state:'unknown'}                    the file carries no service list; caller decides
+//   {state:'reorder', map, from, to}     same set, different order -- safely remappable BY NAME
+//   {state:'mismatch', missing, extra}   a different set -- never guessed at, always refused
+// map[i] is where THIS board's service i sits in the incoming file.
+// The width of a state's per-service vectors, read off the first one that exists, or null when the
+// state carries none. Used only when the file brought no service list to compare names against.
+// WHERE THE SERVICE LIST HIDES. A file may arrive as a bare state, or as a store with a year map,
+// and normalizeStore() nests the former inside the latter -- so the pack can sit at the top or on
+// any year. Reading only raw.dataPack missed it on every state file, which is the commonest shape
+// a teammate sends, and the guard then had nothing to compare and waved it through.
+function packOfStore(raw){
+  if(!raw) return null;
+  if(raw.dataPack && Array.isArray(raw.dataPack.services)) return raw.dataPack;
+  const ys = raw.years || {};
+  const cur = ys[raw.cur];
+  if(cur && cur.dataPack && Array.isArray(cur.dataPack.services)) return cur.dataPack;
+  for(const y of Object.keys(ys)){
+    const p = ys[y] && ys[y].dataPack;
+    if(p && Array.isArray(p.services)) return p;
+  }
+  return null;
+}
+function arityOfState(st){
+  if(!st) return null;
+  const cand = [st.discSvc, st.mandSvc, st.bm && st.bm.disc];
+  for(const v of cand) if(Array.isArray(v) && v.length) return v.length;
+  for(const k of Object.keys(st.asks||{})) if(Array.isArray(st.asks[k]) && st.asks[k].length) return st.asks[k].length;
+  for(const k of Object.keys(st.fsrc||{})){ const f=st.fsrc[k];
+    if(f && Array.isArray(f.dv) && f.dv.length) return f.dv.length; }
+  const ys = Object.keys(st.years||{});
+  for(const y of ys){ const n = arityOfState(st.years[y]); if(n!==null) return n; }
+  return null;
+}
+function svcCheckPack(pack, st){
+  const mine = (typeof SVC!=='undefined' && SVC.length)? SVC.slice() : [];
+  const theirs = (pack && Array.isArray(pack.services))? pack.services.slice() : null;
+  if(!mine.length) return {state:'unknown'};
+  // A FILE WITH NO SERVICE LIST CANNOT BE CHECKED BY NAME, but arity is still a tell: a state whose
+  // per-service vectors are a different LENGTH than this board's service list cannot be describing
+  // the same services, whatever they were called.
+  if(!theirs || !theirs.length){
+    const n = arityOfState(st);
+    return (n!==null && n!==mine.length)? {state:'arity', n:n, to:mine} : {state:'unknown'};
+  }
+  if(mine.length===theirs.length && mine.every(function(s,i){ return s===theirs[i]; }))
+    return {state:'match'};
+  const missing = mine.filter(function(s){ return theirs.indexOf(s)<0; });
+  const extra   = theirs.filter(function(s){ return mine.indexOf(s)<0; });
+  if(missing.length || extra.length) return {state:'mismatch', missing:missing, extra:extra,
+                                             from:theirs, to:mine};
+  return {state:'reorder', map:mine.map(function(s){ return theirs.indexOf(s); }),
+          from:theirs, to:mine};
+}
+// Permute every per-service vector in a state from the file's order into this board's.
+// EXHAUSTIVENESS IS THE WHOLE POINT: a vector left behind is a worse corruption than the one this
+// exists to prevent, because the rest of the board would have moved around it. The list mirrors
+// the one applyState() refits, plus the award increments, which that list has never covered.
+// tools/export-audit/audit-import.mjs walks the remapped state generically and fails on any
+// service-length array that did not permute, so a forgotten vector cannot pass quietly.
+function svcRemapState(st, map){
+  if(!st || !Array.isArray(map)) return st;
+  const pick = function(v){
+    if(!Array.isArray(v)) return v;
+    return map.map(function(j){ return (j>=0 && j<v.length)? v[j] : 0; });
+  };
+  if(st.bm){ st.bm.disc=pick(st.bm.disc); st.bm.mand=pick(st.bm.mand);
+    (st.bm.adds||[]).forEach(function(a){ a.vec=pick(a.vec); }); }
+  st.discSvc=pick(st.discSvc); st.mandSvc=pick(st.mandSvc);
+  (st.custom||[]).forEach(function(it){ it.ask=pick(it.ask); it.fy26=pick(it.fy26); });
+  Object.keys(st.asks||{}).forEach(function(k){ st.asks[k]=pick(st.asks[k]); });
+  Object.keys(st.alloc||{}).forEach(function(k){ const a=st.alloc[k];
+    if(a && a.m==='s') a.v=pick(a.v); });
+  Object.keys(st.fsrc||{}).forEach(function(k){ const f=st.fsrc[k];
+    if(f && Array.isArray(f.dv)){ f.dv=pick(f.dv); f.mv=pick(f.mv); } });
+  Object.keys(st.clins||{}).forEach(function(k){ (st.clins[k]||[]).forEach(function(c){ c.ask=pick(c.ask); }); });
+  // Award increments carry their own per-service dollars and are NOT in applyState's refit list.
+  Object.keys(st.awards||{}).forEach(function(k){ const aw=st.awards[k];
+    (aw && aw.inc || []).forEach(function(x){ if(Array.isArray(x.sv)) x.sv=pick(x.sv); }); });
+  // A year map holds a whole state per fiscal year; each one is positional in the same way.
+  Object.keys(st.years||{}).forEach(function(y){ svcRemapState(st.years[y], map); });
+  return st;
+}
+// The decision, and the sentence the user reads. Returns true to go ahead (remapping st in place
+// when that is what it takes), false to abandon the import.
+function svcGuardImport(st, pack, label){
+  const c = svcCheckPack(pack, st);
+  if(c.state==='match' || c.state==='unknown') return true;
+  const what = label? '"'+label+'"' : 'that file';
+  if(c.state==='arity'){
+    alert('\u26a0 '+what+' carries per-service figures for '+c.n+' service'+(c.n===1?'':'s')+', '
+      + 'and this board has '+c.to.length+': '+c.to.join(', ')+'.\n\n'
+      + 'It names no service list, so there is no way to tell which figure belongs to which '
+      + 'service. Placing them by position would put money on the wrong ones and every total '
+      + 'would still balance.\n\nNothing was imported.');
+    return false;
+  }
+  if(c.state==='mismatch'){
+    alert('⚠ '+what+' was built for a different set of services, so its per-service figures '
+      + 'cannot be placed on this board.\n\n'
+      + 'This board: '+c.to.join(', ')+'\nThat file:  '+c.from.join(', ')
+      + (c.missing.length? '\n\nNot in the file: '+c.missing.join(', ') : '')
+      + (c.extra.length?   '\nNot on this board: '+c.extra.join(', ') : '')
+      + '\n\nNothing was imported. Open it on the board that owns those services.');
+    return false;
+  }
+  return confirm('⚠ '+what+' lists the same services in a DIFFERENT ORDER.\n\n'
+    + 'That file:  '+c.from.join(', ')+'\nThis board: '+c.to.join(', ')
+    + '\n\nEvery per-service figure will be matched up BY NAME, so each service keeps its own '
+    + 'money. Without this they would land by position and the totals would still balance.\n\n'
+    + 'Import it?') && !!svcRemapState(st, c.map);
+}
 function applyState(st){
   S = st;
   // A CONTAINER OF THE WRONG TYPE IS NOT A CONTAINER. Every `if(!S.x) S.x={}` below catches a
@@ -3421,6 +3541,16 @@ function normalizeStore(raw){
   return {base:BASE_FY_DEFAULT, cur:BASE_FY_DEFAULT, ts:(raw&&raw.ts)||0, years:{[BASE_FY_DEFAULT]:st}};
 }
 function applyStore(raw){
+  // EVERY WHOLESALE ADOPTION COMES THROUGH HERE -- the file import, the shared folder, the live
+  // view, a board pulled from another appropriation -- so the service-alignment guard sits here
+  // rather than on each caller, where the one that got missed would be the one that mattered.
+  //
+  // On this board's own state it is silent: the state and the service list came from the same
+  // pack, so the names match. It only speaks up when a state arrives describing services this
+  // board does not have in that order, which is precisely when its positional per-service arrays
+  // would otherwise land on the wrong services with every total still reconciling.
+  // Returning false abandons the load and leaves the board exactly as it was.
+  if(raw && !svcGuardImport(raw, packOfStore(raw), raw.__srcName)) return false;
   // a wholesale load is one line in the journal, not four thousand. On the FIRST boot pass the
   // journal's bindings are still in their temporal dead zone - there is no shadow to protect yet,
   // so there is nothing to pause either.
@@ -4188,7 +4318,10 @@ function publishJson(){
 }
 function adoptShared(){
   if(!SHARED) return;
-  applyStore(SHARED); persist(); render();
+  // A refused load leaves the board untouched, so there is nothing to persist and nothing to
+  // report as loaded. Saying so beats a status line claiming a load that did not happen.
+  if(applyStore(SHARED)===false) return;
+  persist(); render();
   setStat('Shared state loaded (published '+fmtTs(SHARED.ts)+').');
 }
 function importBoards(inp){
@@ -4205,7 +4338,7 @@ function importBoards(inp){
       if(!r.slug||!r.st) return;
       lsSet(_SLUGMAP[r.slug].key, JSON.stringify(r.st), _SLUGMAP[r.slug].t+' board data');
       PUBS[r.slug]=r.st;
-      if(r.slug===_AP.slug){ applyStore(r.st); applied=true; }
+      if(r.slug===_AP.slug){ applied = applyStore(r.st)!==false; }
     });
     if(applied){ persist(); render(); }
     const ok=results.filter(r=>r.slug&&r.st).map(r=>_SLUGMAP[r.slug].t+' \u2190 '+r.name);
@@ -4904,7 +5037,8 @@ function importState(inp){
         location.reload();
         return;
       }
-      applyStore(st); save(); render();
+      if(applyStore(st)===false){ inp.value=''; return; }
+      save(); render();
       setStat((fromBoard?'\u2b05 Imported saved state from '+f.name:'\ud83d\udcc2 State loaded from file')+(st.ts? ' (saved '+fmtTs(st.ts)+')':'')+'.'
         + carriedTxt
         + importReportHtml(st)
@@ -20008,7 +20142,8 @@ loadShared(st=>{
   }
   SHARED=st;
   if((st.ts||0)>=(MS.ts||0)){
-    applyStore(st); persist(); render();
+    if(applyStore(st)===false) return;
+    persist(); render();
     setStat('🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published '+fmtTs(st.ts)+'.');
   } else {
     setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <a style="color:var(--blue);cursor:pointer" onclick="adoptShared()">discard mine and load shared</a>, or 💾 Save yours.');

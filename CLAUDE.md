@@ -114,6 +114,46 @@ requirement costs. Do not recompute the star anywhere else.
 These two are the stated rules and are asserted verbatim in the audit under the `RULE` label.
 Change them only on an explicit instruction, and update those checks in the same commit.
 
+### Imported state is POSITIONAL, and position is not a service
+
+Every per-service figure on the board is an array indexed by `SVC` position. A state file from a
+board whose service list differs — reordered, shorter, longer, or a different set — lands each of
+those arrays against the **wrong service**, and because the same dollars are all still present,
+**every total reconciles and nothing looks wrong**. This was live until v1.44: the file had always
+carried its own list in `dataPack.services`; nothing ever read it back.
+
+`applyStore()` is the single choke point — the file import, the shared folder, the live view, a
+board pulled from another appropriation all funnel through it. The guard sits there rather than on
+each of its twelve callers, where the one that got missed would be the one that mattered. It
+returns **false** on refusal and leaves the store byte-identical.
+
+| `svcCheckPack()` says | What happens |
+|---|---|
+| `match` | silent |
+| `reorder` | remapped **by name** after a confirm showing both lists |
+| `mismatch` | refused, naming what is missing and what is extra |
+| `arity` | no list in the file, but the vectors are the wrong WIDTH — refused |
+| `unknown` | nothing to compare and nothing suspicious — allowed |
+
+**A partial remap is worse than no guard**, because the rest of the board moves around the vector
+left behind. `audit-import.mjs` fills every per-service vector with the file's own indices and then
+walks the remapped state **generically**, failing on any service-width array that did not permute —
+it does not share `svcRemapState()`'s list of what to fix, so a forgotten vector cannot pass. It
+earned that immediately: `awards[].inc[].sv` carries per-service dollars and is not in
+`applyState()`'s refit list either.
+
+**Where the service list hides.** A teammate sends a STATE, not a store; `normalizeStore()` nests it
+under `years.<fy>` and takes its `dataPack` down with it. Reading only `raw.dataPack` found nothing
+and waved the commonest shape there is straight through. `packOfStore()` looks at the top, the
+current year, and every year.
+
+**A limit, stated rather than papered over.** `importState()`'s populated-board branch cannot be
+reached from the harness: `IS_SHELL` is a boot-time const off the shipped `DATA`, and the committed
+program carries none — the same rule that forbids committing a populated board. So the callers'
+`if(applyStore(...)===false) return;` lines are reviewed, not covered; what they protect is a
+misleading status line, and the money is covered. The mutation that targeted that unreachable line
+was REMOVED rather than left as a permanent survivor or given a test that only tested itself.
+
 ### Two unfunded readings, both measured against the ASK
 
 Unfunded is **never** measured against a trimmed allocation. Money asked for and not received is

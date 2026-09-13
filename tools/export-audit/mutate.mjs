@@ -24,6 +24,9 @@ const SUITES = [
   // The board derives figures it never exports — the cumulative among them. Without a suite that
   // can see them, a mutation to those lines passes everything and proves nothing.
   ['board', join(HERE, 'audit-board.mjs')],
+  // Import is the one place the board takes numbers it did not compute, and every suite above it
+  // is on the way OUT. A break in the service-alignment guard is invisible to all of them.
+  ['import', join(HERE, 'audit-import.mjs')],
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
@@ -271,6 +274,34 @@ const MUTATIONS = [
   { id: 'scen-marker-file', area: 'marker', what: 'a what-if workbook saves under the ordinary file name',
     find: "function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }",
     repl: 'function scenFile(n){ return n; }' },
+  // ---- importing a state file: the service-alignment guard --------------------------------------
+  // Every figure below the guard is positional. These break it in the four ways that matter, and
+  // each one leaves a board whose totals still reconcile perfectly.
+  { id: 'svc-guard-off', area: 'applyStore', what: 'imported state is adopted without checking whose services it describes',
+    find: '  if(raw && !svcGuardImport(raw, packOfStore(raw), raw.__srcName)) return false;',
+    repl: '  if(false && raw) return false;' },
+  { id: 'svc-pack-top-only', area: 'packOfStore', what: 'the service list is looked for only at the top, so a state file hides it under years',
+    find: '  const ys = raw.years || {};',
+    repl: '  const ys = {};' },
+  { id: 'svc-guard-allows-mismatch', area: 'svcGuardImport', what: 'a file for a different set of services is accepted anyway',
+    find: "  if(c.state==='match' || c.state==='unknown') return true;",
+    repl: "  if(c.state==='match' || c.state==='unknown' || c.state==='mismatch') return true;" },
+  { id: 'svc-check-order-blind', area: 'svcCheckPack', what: 'a reordered service list reads as a match, so nothing is remapped',
+    find: "  if(mine.length===theirs.length && mine.every(function(s,i){ return s===theirs[i]; }))\n    return {state:'match'};",
+    repl: "  if(mine.length===theirs.length) return {state:'match'};" },
+  { id: 'svc-remap-identity', area: 'svcRemapState', what: 'the remap returns every vector untouched',
+    find: '    return map.map(function(j){ return (j>=0 && j<v.length)? v[j] : 0; });',
+    repl: '    return v.slice();' },
+  { id: 'svc-remap-misses-fsrc', area: 'svcRemapState', what: 'the split vectors are left in the file\u2019s service order',
+    find: "    if(f && Array.isArray(f.dv)){ f.dv=pick(f.dv); f.mv=pick(f.mv); } });",
+    repl: "    if(f && Array.isArray(f.dv)){ f.mv=f.mv; } });" },
+  { id: 'svc-remap-misses-awards', area: 'svcRemapState', what: 'award increments keep the file\u2019s service order',
+    find: "    (aw && aw.inc || []).forEach(function(x){ if(Array.isArray(x.sv)) x.sv=pick(x.sv); }); });",
+    repl: "    (aw && aw.inc || []).forEach(function(x){ if(Array.isArray(x.sv)) x.sv=x.sv; }); });" },
+  { id: 'svc-arity-blind', area: 'svcCheckPack', what: 'a state with no service list and the wrong vector width is let through',
+    find: "    return (n!==null && n!==mine.length)? {state:'arity', n:n, to:mine} : {state:'unknown'};",
+    repl: "    return {state:'unknown'};" },
+
   // ---- the MC shortage, per requirement, on the Mission Critical sheet -------------------------
   { id: 'mc-short-col-nets-mand', area: 'excel', what: 'the per-requirement MC shortage nets off mandatory, against the stated rule',
     find: "      if(isMC){ const sh=mcShortSvcOf(it,T[it.id]);",
