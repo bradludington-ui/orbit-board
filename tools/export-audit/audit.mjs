@@ -567,7 +567,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     S.awards['B']={mode:'single', d:FYMON[2][0], day:1};
     // C needs a DATE, not just money. Undated dollars land in NO DATE, so without this the
     // unassigned bucket contributes nothing to any month column and a mutation dropping it from
-    // the ALL SERVICES roll-up changes nothing at all.
+    // the roll-up row changes nothing at all.
     S.awards['C']={mode:'single', d:FYMON[6][0], day:1};
     save(); 'ok'`);
   const sheets = JSON.parse(capture(ev));
@@ -612,12 +612,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
         row.slice(0, -1).reduce((a, b) => a + b, 0), tot);
     });
 
-    // ALL SERVICES is the sum of the blocks above it, column by column — not a separate walk that
+    // The roll-up is the sum of the blocks above it, column by column — not a separate walk that
     // could quietly disagree with them.
-    const all = cells(rowNamed(/^ALL SERVICES/));
-    chk(name, name, 'ALL SERVICES row exists', all ? 1 : 0, 1);
+    const all = cells(rowNamed(/\u2014 TOTAL BY MONTH$/));
+    chk(name, name, 'the roll-up row exists', all ? 1 : 0, 1);
     if (all && blocks.length === svcs.length) {
-      all.forEach((v, j) => chk(name, name, `ALL SERVICES column ${j + 1} is the sum of the blocks`,
+      all.forEach((v, j) => chk(name, name, `the roll-up's column ${j + 1} is the sum of the blocks`,
         v, blocks.reduce((a, b) => a + (b[j] || 0), 0)));
     }
   }
@@ -656,8 +656,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       const r = sh.rows.find(x => re.test(txt(x[0]))); if (!r) return null;
       const v = r.map(numOf).filter(x => !isNaN(x)); return v.length ? v[v.length - 1] : null; };
     const title = n => { const sh = sheetOf(sheets, n); return sh ? txt(sh.rows[0][0]) : ''; };
-    return { rcn: tot('RCN-EEIC by Month', /^ALL SERVICES/),
-             si:  tot('SI Codes by Month', /^ALL SERVICES/),
+    return { rcn: tot('RCN-EEIC by Month', /\u2014 TOTAL BY MONTH$/),
+             si:  tot('SI Codes by Month', /\u2014 TOTAL BY MONTH$/),
              unf: tot('Unfunded Requirements', /^TOTAL/),
              rcnTitle: title('RCN-EEIC by Month'),
              siTitle:  title('SI Codes by Month'),

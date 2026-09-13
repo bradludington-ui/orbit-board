@@ -144,7 +144,13 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',Arial,sans-ser
 .sc-h{background:var(--bg);padding:6px 18px;font-size:11px;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
 .sc-h:hover{background:var(--panel)}
 .sc-h #scMini{font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap}
-.scores{background:var(--bg);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 18px;border-bottom:1px solid var(--line)}
+/* `repeat(4,1fr)` tracks cannot shrink below their own content, and .rm/.sub are white-space:nowrap
+   -- so the widest card set a 352px floor and four of them ran 26px past a 1366px screen, scrolling
+   the whole document sideways. verify:grid measures the TOOLBAR group, not the document, so it had
+   reported "no overflow" at every width for as long as this existed. minmax(0,1fr) lets the tracks
+   shrink; below the same 1400px breakpoint the drawer uses, they fall to two rows of two. */
+.scores{background:var(--bg);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px 18px;border-bottom:1px solid var(--line)}
+@media (max-width:1400px){.scores{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .scores.min{display:none}
 .sc{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
 .sc.disc{border-color:var(--green)}.sc.mand{border-color:var(--purp)}.sc.whole{border-color:var(--gold)}.sc.mc{border-color:var(--amber)}
@@ -244,6 +250,12 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
    grids. Everything else here is density: the card chrome (radius, gap, border) goes, a hairline
    divider and a zebra take over, and the tier colour stays as the left edge it always was. ---- */
 :root{--rowcols:112px 86px minmax(220px,1fr) minmax(300px,440px) 392px}
+/* Those minimums add up to a 1150px floor, so below that the whole DOCUMENT scrolled sideways --
+   170px of it at 1024. The columns are not free to scroll in their own container here: .gridhead
+   is position:sticky against the PAGE, and an ancestor with overflow:auto would become its scroll
+   container and break the pinned header. So the floor comes down instead, and only where it has
+   to. Nothing is dropped -- the rank and PMO columns give up padding they were not using. */
+@media (max-width:1150px){:root{--rowcols:84px 64px minmax(150px,1fr) minmax(210px,330px) 340px}}
 .row{background:var(--panel);border:0;border-bottom:1px solid var(--lineSoft);border-radius:0;margin-bottom:0;padding:5px 12px;display:grid;grid-template-columns:var(--rowcols);gap:10px;align-items:center;transition:background .12s}
 .row:nth-of-type(even){background:var(--panelA)}
 .row:hover{background:var(--panel2)}
@@ -296,7 +308,40 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-f .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .insp-empty{padding:26px 16px;text-align:center;color:var(--dim);font-size:11px;line-height:1.6}
 .insp-kbd{font:10px ui-monospace,Menlo,monospace;background:var(--panel);border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--mut)}
-@media (max-width:1400px){.gridsplit{grid-template-columns:1fr}.inspector{display:none}}
+/* BELOW 1400 THE PANEL BECOMES A DRAWER, IT DOES NOT DISAPPEAR. It used to be display:none here,
+   and because this build deliberately retired the row editor -- the row is triage, the RECORD panel
+   is the editor -- hiding it left NO editor at all: on a 1366x768 laptop, the commonest screen
+   there is, the description, the per-service requirement value and the record fields were simply
+   unreachable, with nothing on screen to say why. Only a real browser at a real width finds that;
+   jsdom has no layout, so every audit passed. The drawer keeps ONE editor at every size, which is
+   what stops a second one growing back in the row. */
+@media (max-width:1400px){
+  .gridsplit{grid-template-columns:1fr}
+  .inspector{
+    position:fixed; top:0; right:0; bottom:0; left:auto; width:min(460px,92vw);
+    max-height:none; height:100%; z-index:60; border-radius:0; border-width:0 0 0 1px;
+    box-shadow:-14px 0 34px rgba(0,0,0,.34);
+    transform:translateX(102%); transition:transform .18s ease-out; will-change:transform;
+  }
+  .inspector.open{transform:translateX(0)}
+  .inspector .drawerbar{display:flex}
+  /* Tapping outside closes it, the way every drawer does. */
+  .drawerscrim{position:fixed; inset:0; z-index:59; background:rgba(0,0,0,.34); border:0; padding:0;
+    cursor:pointer; display:none}
+  .drawerscrim.on{display:block}
+}
+@media (prefers-reduced-motion:reduce){ .inspector{transition:none} }
+/* The bar only exists in drawer mode; docked, the panel needs no chrome of its own. */
+/* Chips echoed into the RECORD panel are STATUS, never controls: the row is where they are set.
+   Whatever gave a chip its pointer -- an inline style or its class -- it stops being an invitation
+   here. */
+.chipsro .rchip, .chipsro .rchip *{cursor:default}
+.inspector .drawerbar{display:none; align-items:center; justify-content:space-between; gap:8px;
+  position:sticky; top:0; z-index:2; background:var(--panelA); border-bottom:1px solid var(--line);
+  padding:7px 10px; margin:-1px -1px 8px; font-weight:800; letter-spacing:.04em; font-size:10px}
+.inspector .drawerbar button{font:inherit; cursor:pointer; background:transparent; color:inherit;
+  border:1px solid var(--line); border-radius:5px; padding:3px 9px}
+.inspector .drawerbar button:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
 .gridhead .nums>div{text-align:right}
 .row .nums .l{display:none}
 .row .tt{line-height:1.2}
@@ -323,8 +368,20 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
    standing open on every row forever. Measured: band and funding source rendered on 100% of
    rows and were set on none, and the three selects were 48px of the identity column's 112. */
 .rowchips{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:3px}
-.rchip{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.2px;padding:1px 7px;border-radius:3px;border:1px solid var(--line2);background:var(--panelA);color:var(--mut);white-space:nowrap;cursor:pointer;line-height:1.55}
-.rchip:hover{border-color:var(--gold);color:var(--ink)}
+/* A CHIP LOOKS CLICKABLE ONLY IF IT IS. .rchip set cursor:pointer for every chip, including the
+   plain badges (the PMO name) and every chip whose handler had been stripped -- 117 of them on a
+   full board. The RECORD panel's echo of the impact chip was the one that mattered: the field the
+   whole PMO workflow exists to collect, inviting a click that went nowhere. Drive it off the
+   handler's presence so it can never drift again. */
+.rchip{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.2px;padding:1px 7px;border-radius:3px;border:1px solid var(--line2);background:var(--panelA);color:var(--mut);white-space:nowrap;line-height:1.55}
+/* A CHIP LOOKS CLICKABLE ONLY IF IT IS. .rchip carried cursor:pointer and a hover highlight for
+   EVERY chip -- the plain badges, and every chip whose handler the grid build strips because the
+   RECORD panel owns that control. 117 of them on a full board. The one that mattered was the
+   panel's echo of the impact chip: the field the whole PMO workflow exists to collect, inviting a
+   click that went nowhere. Both affordances now key off the handler, so they cannot drift apart
+   from it again. */
+.rchip[onclick]{cursor:pointer}
+.rchip[onclick]:hover{border-color:var(--gold);color:var(--ink)}
 .rchip.add{border-style:dashed;border-color:var(--line);color:var(--dim);font-weight:600}
 .rchip.warn{border-color:var(--red);color:var(--red)}
 .chipm{position:relative;display:inline-block}
@@ -1007,6 +1064,8 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
     </div>
     <div id="list"></div>
   </div>
+  <button class="drawerscrim" id="drawerScrim" type="button" tabindex="-1"
+          aria-label="Close the record panel" onclick="drawerClose()"></button>
   <aside class="inspector" id="inspector"></aside>
  </div>
 </div>
@@ -1264,7 +1323,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.49 (13 Sep 2026)';
+const BUILD='v1.51 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -12341,7 +12400,15 @@ function exportPlans(){
     if(cut) r.push([{v:'The plan runs out at #'+cut.rank+' \u2014 '+dispTitle(itemById(cut.id)),s:B}],[]);
     r.push(['Rank','Band / Priority','PMO','Requirement','CCaR','PID',
       'Allocated','Disc allocated','Mand allocated','Funded from '+pot,'Short','Status',
-      ...SVC.map(sv=>sv+' allocated'), ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H})));
+      // "<SVC> asked", NOT "<SVC> allocated". These columns are p.want -- what THIS PLAN asked for
+      // per service -- while the Allocated column beside them is fsDirected(), what the board
+      // DIRECTED to the pots. Two different quantities wearing the same word: they did not add up
+      // to each other (29,552,779 against 23,300,000 on a six-service board) and, unlike Allocated,
+      // they differ between the A and B tabs -- while the note at the top of the sheet says
+      // Allocated "is the same figure on every tab". Anyone cross-footing the row found a gap and
+      // no way to tell whether the board was wrong. Named for what they are, the row closes:
+      // per service, asked = funded + short.
+      ...SVC.map(sv=>sv+' asked'), ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H})));
     rows.forEach(x=>{
       const p=x[key];
       const dr=fsDirected(x.id, T);
@@ -19899,7 +19966,7 @@ function exportExcel(){
   const crW=crWins(), crD=crData();
   const crSheet={name:'CR Cash Needs', cols:[36,...crW.map(_=>11),11,12],
     rows:[[{v:expTitle()+' — Continuing Resolution cash needs by half-month window (OCT '+(MS.cur-1)+' – MAR '+MS.cur+') — funded dollars placed by obligation dates',s:TI}],[],
-      [{v:'Service / Requirement',s:H},...crW.map(w=>({v:w.lbl,s:H})),{v:'No date',s:H},{v:'TOTAL',s:H}]]};
+      [{v:'Service / Requirement',s:H},...crW.map(w=>({v:w.lbl,s:H})),{v:'No date',s:H},{v:'TOTAL IN WINDOW',s:H}]]};
   SVC.forEach((s,i)=>{
     const sv=crD[i];
     crSheet.rows.push([{v:s,s:SEC},...sv.win.map(v=>({v,s:NB})),{v:sv.nodate,s:sv.nodate>0.5?NR:NB},{v:sv.tot,s:NB}]);
@@ -20175,7 +20242,16 @@ function exportExcel(){
       rows.push(line(shown(sv).toUpperCase()+' TOTAL', sub, SEC));
       rows.push([]);
     });
-    rows.push(line('ALL SERVICES \u2014 TOTAL BY MONTH', grand, SEC));
+    // NAME THE SCOPE. This helper builds sheets for a FIXED list of services -- RCN/EEIC is carried
+    // by RCN_SVCS, Special Interest by CR_SVCS -- and on a board with services outside that list a
+    // row headed "ALL SERVICES" is simply untrue. It sent a reader reconciling the workbook hunting
+    // for money that was never in scope: the RCN sheet totalled 14.1M against a funded topline of
+    // 23.3M, and the SI sheet held the other 9.2M under a total with the same name. Both were
+    // arithmetically right and both claimed to be everything.
+    const _all = (svcNames.length===SVC.length)
+      && svcNames.every(function(sv){ return SVC.indexOf(sv)>=0; });
+    rows.push(line((_all? 'ALL SERVICES'
+                        : svcNames.map(shown).join(' + ')) + ' \u2014 TOTAL BY MONTH', grand, SEC));
     rows.push([]);
     rows.push([{v:'Funded dollars ('+(scenOn()? 'DISCRETIONARY ONLY \u2014 mandatory withheld'
         : 'discretionary + mandatory')+'), placed in the month of each '
@@ -20510,7 +20586,43 @@ function setCur(id){
   curRow = id;
   gridMark();
   inspectorBody();
+  // Selecting a row is what OPENS the drawer -- the guide says "click any row, its record opens on
+  // the right", and that sentence has to stay true at every width. Docked, this is inert.
+  drawerOpen();
 }
+
+// ── THE RECORD PANEL AS A DRAWER, BELOW 1400 ──────────────────────────────────────────────────
+// One editor, two presentations. Everything below only decides whether the panel is sliding over
+// the grid or sitting beside it; nothing here knows anything about a requirement.
+function drawerNarrow(){
+  try{ return window.matchMedia('(max-width:1400px)').matches; }catch(e){ return false; }
+}
+function drawerOpen(){
+  if(!drawerNarrow()) return;
+  const p=document.getElementById('inspector'), s=document.getElementById('drawerScrim');
+  if(!p) return;
+  p.classList.add('open'); if(s) s.classList.add('on');
+  // A drawer that traps nothing still has to be escapable, and a panel that opens under the
+  // keyboard's feet is a panel a keyboard user cannot reach.
+  p.setAttribute('role','dialog'); p.setAttribute('aria-modal','false');
+  p.setAttribute('aria-label','Record'); p.setAttribute('tabindex','-1');
+  try{ p.focus({preventScroll:true}); }catch(e){}
+}
+function drawerClose(){
+  const p=document.getElementById('inspector'), s=document.getElementById('drawerScrim');
+  if(p) p.classList.remove('open');
+  if(s) s.classList.remove('on');
+  // Put the reader back where they were, not at the top of a 115-row list.
+  try{ const r=document.getElementById('row-'+curRow); if(r) r.focus({preventScroll:true}); }catch(e){}
+}
+function drawerSync(){
+  // The window can be resized across the breakpoint with the drawer open, or docked and then
+  // narrowed. Neither may leave the panel half in one mode and half in the other.
+  if(!drawerNarrow()) drawerClose();
+}
+try{ window.addEventListener('resize', drawerSync); }catch(e){}
+try{ document.addEventListener('keydown', function(e){
+  if(e.key==='Escape' && drawerNarrow()) drawerClose(); }); }catch(e){}
 function gridMark(){
   gridRows().forEach(function(r){ r.classList.toggle('cur', r.id === 'row-' + curRow); });
 }
@@ -20550,12 +20662,16 @@ function inspField(label, value, cls){
   return '<div class="insp-f ' + (cls||'') + '"><div class="fl">' + label + '</div>'
        + '<div class="fv">' + value + '</div></div>';
 }
+function drawerBar(){
+  return '<div class="drawerbar"><span>RECORD</span>'
+    + '<button type="button" onclick="drawerClose()" title="Close (Esc)">\u2715 Close</button></div>';
+}
 function inspectorBody(){
   const el = document.getElementById('inspector');
   if(!el) return;
   const it = curRow && DATA.items.filter(function(x){ return x.id === curRow; })[0];
   if(!it){
-    el.innerHTML = '<div class="insp-empty">No requirement selected.<br>'
+    el.innerHTML = drawerBar() + '<div class="insp-empty">No requirement selected.<br>'
       + 'Click any row to see and edit its record here.</div>';
     return;
   }
@@ -20617,7 +20733,7 @@ function inspectorBody(){
     + '<td class="' + (uT > 0.005 ? 'uf' : 'ro') + '">' + (uT > 0.005 ? fM(uT) : '\u2014') + '</td></tr>'
     + '</table>';
 
-  el.innerHTML =
+  el.innerHTML = drawerBar() +
     '<div class="insp-hd"><b>#' + (pos>=0? pos+1 : '—') + ' · RECORD</b>'
       + '<span style="flex:1"></span>'
       + '<span class="insp-kbd">J</span><span class="insp-kbd">K</span>'
@@ -20638,8 +20754,16 @@ function inspectorBody(){
          // Same rule for the band and funding chips: shown here, set on the row. Blanking rowChipId
          // stops this call re-opening a picker the row already has open; stripping the handlers
          // stops it BEING a picker.
-         const html = rowChipsHtml(it).replace(/ onclick="[^"]*"/g, '')
-                                      .replace(/cursor:pointer/g, 'cursor:default');
+         // THE CURSOR HAS TO COME OFF TOO, AND NOT EVERY CHIP WEARS IT INLINE. Stripping the
+         // handler and replacing `cursor:pointer` catches only the chips that set it in a style
+         // ATTRIBUTE. The impact chip takes its pointer from the .rchip class, so it kept looking
+         // clickable in the RECORD panel while doing nothing -- the one field the whole PMO
+         // workflow exists to collect, offering a click that goes nowhere. A class on the wrapper
+         // settles it for every chip, including the next one somebody adds.
+         const html = '<span class="chipsro">'
+                    + rowChipsHtml(it).replace(/ onclick="[^"]*"/g, '')
+                                      .replace(/cursor:pointer/g, 'cursor:default')
+                    + '</span>';
          rowChipId = keep; return html; })()
     // FUNDING IS STILL SETTABLE HERE. The chips above are status only, but Split is now the one
     // setting there is, so a requirement left on the legacy lane walk needs a way to convert -- and

@@ -13,6 +13,11 @@
     "svcTable": "grid only — RETIRED there: the docked inspector edits the per-service requirement values, the Disc/Mand split, the minimum useful increment, the absorber and the award schedule. The card build has no inspector and keeps the full editor",
     "rowChipsHtml": "grid only — the funding chip is a status BADGE, not a second editor; the split is set on the inspector. The card build keeps it as a picker",
     "rowMenuHtml": "grid only — description, note, Record and the plan-event rename are inspector chips there, so the menu keeps only what the inspector has no equivalent for: the consequence, the CCaR record-name rename, and lifecycle",
-    "gridDedupe": "grid only — strips the row handlers that duplicate the inspector, so render() stays shared and byte-identical with the card build"
+    "gridDedupe": "grid only — strips the row handlers that duplicate the inspector, so render() stays shared and byte-identical with the card build",
+    "drawerNarrow": "grid only — is the viewport below the 1400px breakpoint where the docked inspector becomes a drawer. The card build has no inspector to dock or slide",
+    "drawerOpen": "grid only — slides the RECORD panel in when a row is selected below 1400px, and is inert above it. The panel used to be display:none there, which left this build with NO editor at all on a 1366px laptop because the row editor was retired",
+    "drawerClose": "grid only — slides the drawer away and returns focus to the row it was opened from",
+    "drawerSync": "grid only — the window can be resized across the breakpoint with the drawer open; this stops the panel being half docked and half drawer",
+    "drawerBar": "grid only — the drawer's own close control, built with the panel body so it can never be left behind pointing at a requirement that has gone"
   }
 }

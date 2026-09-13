@@ -389,6 +389,119 @@ the other. It matches on the live `onclick` **attribute**, not on a regex over `
 handler is written with entity quotes (`toggleCons(&quot;A&quot;)`), and asserting against whatever
 the serializer chose to re-escape tests the serializer.
 
+### Do the totals add up? — the reconciliation suite
+
+Every other suite here derives what it expects from the board's own helpers — `tiers()`, `mcCalc()`,
+`tierTotals()`. That is the right way to test that the exports agree with the board, and it is worth
+**nothing** if `tiers()` itself is wrong, because then every check agrees with the same mistake.
+`audit-recon.mjs` never calls a board helper to build an expectation. It asserts arithmetic that
+must hold whatever the allocation algorithm does:
+
+```
+conservation   per requirement, per service:  disc + mand + beyond + trim = ask
+capacity       per service:  Σ disc ≤ disc BA   and   Σ mand ≤ mand BA
+cross-foot     every printed TOTAL = the sum of the rows above it, column by column
+row closes     wherever a figure is broken out per service, the parts add back to it
+agreement      the same quantity is the same number in every artefact that prints it
+```
+
+**Getting the identity right was most of the value.** The first version asserted `disc + mand +
+unfunded = ask` and failed on exactly the two trimmed requirements, returning their trim value. That
+was the *check* being wrong: the lanes conserve against the **allocation**, and the trim — asked for,
+never put to a lane — is a fourth term the workbook already prints as its own column. A conservation
+law you cannot state precisely is one you are not really testing.
+
+It runs on five board shapes (a trimmed board with odd cents, a service with **no** discretionary BA,
+requirements asking on one service only, pots larger than the asks, an absorber carrying the
+shortfall), reconciles 16 workbook sheets, 37 breakout rows, the PowerPoint deck at its own $0.1M
+precision, and the same figures after a save/reopen and inside a PMO copy.
+
+It is load-bearing, not decorative: break `trimSvcOf`, `beyondSvcOf`, `unfSvcOf` or `discUnfSvcOf`
+and it fails with 46–170 failing checks each — breaks that `tiers()` and every export would have
+**agreed about**.
+
+**Thirteen export paths leave this board, not two.** `exportExcel` and the deck were reconciled;
+the other eleven had never been opened by any check. Six more produce workbooks that carry money
+(the Priority Drill, Chart of Accounts, Funds Flow, Two Spend Plans, the ATR/BTR Log, Spend Plan
+Source); five correctly refuse when their input is absent, and the suite now holds them to refusing
+*with a reason* rather than emitting an empty file. Every workbook is read back and put through the
+same two rules: a per-service breakout adds back to the figure it breaks out, and a portfolio total
+is the portfolio's total.
+
+**Six columns on the Two Spend Plans were named for the wrong quantity.** `<SVC> allocated` held
+`p.want` — what *that plan* asked for per service — while the `Allocated` column beside it held
+`fsDirected()`, what the board directed to the pots. Two different quantities wearing the same word:
+they disagreed by **$6.25M** on the TOTAL row, and unlike `Allocated` they changed between the A and
+B tabs while the sheet's own note says `Allocated` "is the same figure on every tab". The figures
+were right; the name was not. They are `<SVC> asked` now, and the row closes: per service,
+asked = funded + short.
+
+**Check an identity on EVERY row, not just the total.** The plans sheet sums its TOTAL row
+independently of its detail rows, so breaking `Allocated = Disc allocated + Mand allocated` on the
+detail left the total correct — the mutation survived until the check walked every row. Both halves
+individually defensible is how a spreadsheet comes apart in front of a room.
+
+Three more lessons from writing it, all of the same family — **a check that cannot run reads as a
+pass**: matching only bare service names left the spend plans unexamined (the suffixed `<SVC> funded`
+form never matched); stopping at the first run on a header row abandoned the second, so the sheet
+whose breakout had just been found wrong reported "0 breakout blocks"; and taking the *first*
+`Subtotal` on the drill's band tab read band 1's figures as the portfolio's — a smaller number that
+looks entirely plausible. That tab has no grand total: its band subtotals are meant to add to the
+portfolio, so adding them up is also the check that nothing is double-counted or dropped between
+bands.
+
+**Two sheets said "ALL SERVICES" and meant three.** `monSheet()` builds for a FIXED service list —
+RCN/EEIC is carried by `RCN_SVCS` (USAF, ANG, AFRC), Special Interest by `CR_SVCS` (STOVL, USMC-C,
+USN) — and on a six-service board each printed a roll-up headed *ALL SERVICES*. The RCN sheet
+totalled $14.1M against a funded topline of $23.3M and the SI sheet held the other $9.2M under a row
+with the same name. **No money was lost and both were arithmetically right**; together they partition
+the portfolio exactly. But a reader cross-footing the workbook could only conclude that $9.2M had
+gone missing. The roll-up now names the services it covers. For the same reason the CR sheet's last
+column is `TOTAL IN WINDOW`: it is the OCT–MAR cash and deliberately excludes "No date", so a column
+headed plain `TOTAL` beside it read as a row total that did not add up.
+
+**A renamed label silently disarmed the check that read it.** Renaming that CR column — at this
+suite's own request — made `headerRow(..., 'TOTAL')` stop matching, and the `if (hdr >= 0)` guard
+around it reported a clean pass. Every lookup in this suite now asserts that it found what it was
+looking for, and the sheets it depends on are checked for existence by name. The same rename broke
+three checks in `audit.mjs`, which failed loudly — those now match the roll-up by **what it is**
+(the row ending `— TOTAL BY MONTH`) rather than by a name that can change.
+
+### Layout is a correctness property, and jsdom cannot see it
+
+**The grid build hid its only editor on the commonest screen there is.** `.inspector{display:none}`
+below 1400px, and because this build deliberately retired the row editor — the row is triage, the
+panel is the editor — hiding the panel left **no editor at all**. On a 1366×768 laptop the
+description, the per-service requirement value and the record fields were simply gone, with nothing
+on screen to say why. Six audit suites, 130 mutations and a parity diff all passed: **jsdom has no
+layout**, so not one of them could see it. A real browser at a real width found it in the first
+minute. Below 1400 the panel is now a **drawer** — it slides over the grid, opens when a row is
+selected, closes on Esc or the scrim, and returns focus to the row it came from. One editor at every
+size, which is what stops a second one growing back in the row.
+
+Two more of the same shape, found the same way and fixed in the same pass:
+
+- **The document scrolled sideways at 1366.** `.scores` used `repeat(4,1fr)`, and a `1fr` track
+  cannot shrink below its own content — with `white-space:nowrap` inside, the widest card set a
+  352px floor. `minmax(0,1fr)`, and two columns below 1400. The grid's own `--rowcols` minimums
+  added to a 1150px floor; those come down below 1150 rather than scrolling, because `.gridhead` is
+  `position:sticky` against the PAGE and giving an ancestor `overflow:auto` would break the pin.
+- **117 chips looked clickable and were not.** `.rchip` carried `cursor:pointer` *and* a hover
+  highlight for every chip — the plain badges, and every chip whose handler the grid strips because
+  the panel owns that control. The one that mattered was the panel's echo of the **impact** chip:
+  the single field the whole PMO workflow exists to collect, inviting a click that went nowhere.
+  Both affordances now key off `[onclick]`, so they cannot drift from the handler again.
+
+`npm run editors` (in `verify:grid`) holds all three, in Chromium, on a board with requirements on
+it, at seven widths from 1920 to 1024. An empty board has no row to select and no editor to miss, so
+it would pass every time while saying nothing. It is proven against the original defect: put
+`display:none` back and it fails at 1400 and below.
+
+**`boot.mjs` resolves `BOARD` once, at module load.** Setting `process.env.BOARD` after importing it
+changes nothing — the first version of this tool did exactly that and generated *two card fixtures*,
+so the grid half failed at every width for a reason that had nothing to do with the product. Boot a
+build from its own bytes (`boot({html: readFileSync(...)})`) instead.
+
 ### Where a split is edited, per build
 
 The two builds deliberately differ here, and `parity-allow.json` records it:

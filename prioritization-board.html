@@ -144,7 +144,13 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',Arial,sans-ser
 .sc-h{background:var(--bg);padding:6px 18px;font-size:11px;letter-spacing:.5px;cursor:pointer;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
 .sc-h:hover{background:var(--panel)}
 .sc-h #scMini{font-size:10.5px;color:var(--mut);font-variant-numeric:tabular-nums;display:flex;gap:14px;flex-wrap:wrap}
-.scores{background:var(--bg);display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 18px;border-bottom:1px solid var(--line)}
+/* `repeat(4,1fr)` tracks cannot shrink below their own content, and .rm/.sub are white-space:nowrap
+   -- so the widest card set a 352px floor and four of them ran 26px past a 1366px screen, scrolling
+   the whole document sideways. verify:grid measures the TOOLBAR group, not the document, so it had
+   reported "no overflow" at every width for as long as this existed. minmax(0,1fr) lets the tracks
+   shrink; below the same 1400px breakpoint the drawer uses, they fall to two rows of two. */
+.scores{background:var(--bg);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px 18px;border-bottom:1px solid var(--line)}
+@media (max-width:1400px){.scores{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .scores.min{display:none}
 .sc{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 12px}
 .sc.disc{border-color:var(--green)}.sc.mand{border-color:var(--purp)}.sc.whole{border-color:var(--gold)}.sc.mc{border-color:var(--amber)}
@@ -256,8 +262,20 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
    standing open on every row forever. Measured: band and funding source rendered on 100% of
    rows and were set on none, and the three selects were 48px of the identity column's 112. */
 .rowchips{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-top:3px}
-.rchip{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.2px;padding:1px 7px;border-radius:3px;border:1px solid var(--line2);background:var(--panelA);color:var(--mut);white-space:nowrap;cursor:pointer;line-height:1.55}
-.rchip:hover{border-color:var(--gold);color:var(--ink)}
+/* A CHIP LOOKS CLICKABLE ONLY IF IT IS. .rchip set cursor:pointer for every chip, including the
+   plain badges (the PMO name) and every chip whose handler had been stripped -- 117 of them on a
+   full board. The RECORD panel's echo of the impact chip was the one that mattered: the field the
+   whole PMO workflow exists to collect, inviting a click that went nowhere. Drive it off the
+   handler's presence so it can never drift again. */
+.rchip{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.2px;padding:1px 7px;border-radius:3px;border:1px solid var(--line2);background:var(--panelA);color:var(--mut);white-space:nowrap;line-height:1.55}
+/* A CHIP LOOKS CLICKABLE ONLY IF IT IS. .rchip carried cursor:pointer and a hover highlight for
+   EVERY chip -- the plain badges, and every chip whose handler the grid build strips because the
+   RECORD panel owns that control. 117 of them on a full board. The one that mattered was the
+   panel's echo of the impact chip: the field the whole PMO workflow exists to collect, inviting a
+   click that went nowhere. Both affordances now key off the handler, so they cannot drift apart
+   from it again. */
+.rchip[onclick]{cursor:pointer}
+.rchip[onclick]:hover{border-color:var(--gold);color:var(--ink)}
 .rchip.add{border-style:dashed;border-color:var(--line);color:var(--dim);font-weight:600}
 .rchip.warn{border-color:var(--red);color:var(--red)}
 .chipm{position:relative;display:inline-block}
@@ -1182,7 +1200,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.49 (13 Sep 2026)';
+const BUILD='v1.51 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -12256,7 +12274,15 @@ function exportPlans(){
     if(cut) r.push([{v:'The plan runs out at #'+cut.rank+' \u2014 '+dispTitle(itemById(cut.id)),s:B}],[]);
     r.push(['Rank','Band / Priority','PMO','Requirement','CCaR','PID',
       'Allocated','Disc allocated','Mand allocated','Funded from '+pot,'Short','Status',
-      ...SVC.map(sv=>sv+' allocated'), ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H})));
+      // "<SVC> asked", NOT "<SVC> allocated". These columns are p.want -- what THIS PLAN asked for
+      // per service -- while the Allocated column beside them is fsDirected(), what the board
+      // DIRECTED to the pots. Two different quantities wearing the same word: they did not add up
+      // to each other (29,552,779 against 23,300,000 on a six-service board) and, unlike Allocated,
+      // they differ between the A and B tabs -- while the note at the top of the sheet says
+      // Allocated "is the same figure on every tab". Anyone cross-footing the row found a gap and
+      // no way to tell whether the board was wrong. Named for what they are, the row closes:
+      // per service, asked = funded + short.
+      ...SVC.map(sv=>sv+' asked'), ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H})));
     rows.forEach(x=>{
       const p=x[key];
       const dr=fsDirected(x.id, T);
@@ -19874,7 +19900,7 @@ function exportExcel(){
   const crW=crWins(), crD=crData();
   const crSheet={name:'CR Cash Needs', cols:[36,...crW.map(_=>11),11,12],
     rows:[[{v:expTitle()+' — Continuing Resolution cash needs by half-month window (OCT '+(MS.cur-1)+' – MAR '+MS.cur+') — funded dollars placed by obligation dates',s:TI}],[],
-      [{v:'Service / Requirement',s:H},...crW.map(w=>({v:w.lbl,s:H})),{v:'No date',s:H},{v:'TOTAL',s:H}]]};
+      [{v:'Service / Requirement',s:H},...crW.map(w=>({v:w.lbl,s:H})),{v:'No date',s:H},{v:'TOTAL IN WINDOW',s:H}]]};
   SVC.forEach((s,i)=>{
     const sv=crD[i];
     crSheet.rows.push([{v:s,s:SEC},...sv.win.map(v=>({v,s:NB})),{v:sv.nodate,s:sv.nodate>0.5?NR:NB},{v:sv.tot,s:NB}]);
@@ -20150,7 +20176,16 @@ function exportExcel(){
       rows.push(line(shown(sv).toUpperCase()+' TOTAL', sub, SEC));
       rows.push([]);
     });
-    rows.push(line('ALL SERVICES \u2014 TOTAL BY MONTH', grand, SEC));
+    // NAME THE SCOPE. This helper builds sheets for a FIXED list of services -- RCN/EEIC is carried
+    // by RCN_SVCS, Special Interest by CR_SVCS -- and on a board with services outside that list a
+    // row headed "ALL SERVICES" is simply untrue. It sent a reader reconciling the workbook hunting
+    // for money that was never in scope: the RCN sheet totalled 14.1M against a funded topline of
+    // 23.3M, and the SI sheet held the other 9.2M under a total with the same name. Both were
+    // arithmetically right and both claimed to be everything.
+    const _all = (svcNames.length===SVC.length)
+      && svcNames.every(function(sv){ return SVC.indexOf(sv)>=0; });
+    rows.push(line((_all? 'ALL SERVICES'
+                        : svcNames.map(shown).join(' + ')) + ' \u2014 TOTAL BY MONTH', grand, SEC));
     rows.push([]);
     rows.push([{v:'Funded dollars ('+(scenOn()? 'DISCRETIONARY ONLY \u2014 mandatory withheld'
         : 'discretionary + mandatory')+'), placed in the month of each '

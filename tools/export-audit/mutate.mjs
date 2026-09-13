@@ -27,6 +27,11 @@ const SUITES = [
   // Import is the one place the board takes numbers it did not compute, and every suite above it
   // is on the way OUT. A break in the service-alignment guard is invisible to all of them.
   ['import', join(HERE, 'audit-import.mjs')],
+  // Every suite above derives what it expects from the board's own helpers. Reconciliation does
+  // not: it asserts arithmetic that must hold whatever the algorithm does, and cross-foots every
+  // printed total against the rows under it. A break that tiers() and the exports AGREE about is
+  // invisible to all of them and visible here.
+  ['recon', join(HERE, 'audit-recon.mjs')],
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
@@ -374,6 +379,35 @@ const MUTATIONS = [
   { id: 'export-double-marks', area: 'expName', what: 'a submittal, which already says what it is, is marked a second time',
     find: "  if(/PMO COPY|SUBMITTAL/.test(s)) return s;          // already says exactly what it is",
     repl: "  /* mark it anyway */" },
+  // ---- the totals themselves: does the arithmetic close? --------------------------------------
+  // These break CONSERVATION, which no suite written against the board's own helpers can see --
+  // tiers() and every export would agree about the broken number.
+  { id: 'recon-trim-dropped', area: 'trimSvcOf', what: 'money asked for but never allocated stops being counted as unfunded',
+    find: "  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - (b[i]||0)));\n}",
+    repl: "  return SVC.map(()=>0);\n}" },
+  { id: 'recon-beyond-netted', area: 'beyondSvcOf', what: 'the lane shortfall is netted across services instead of held per service',
+    find: "  return SVC.map((s,i)=>Math.max(0, Math.min(it.ask[i]||0, b[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));",
+    repl: "  const t=SVC.reduce((a,_,i)=>a+Math.max(0, Math.min(it.ask[i]||0, b[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)),0);\n  return SVC.map(()=>t/SVC.length);" },
+  { id: 'recon-unf-off-allocation', area: 'unfSvcOf', what: 'total unfunded is measured against the trimmed allocation instead of the ask',
+    find: "  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));\n}\nfunction beyondSvcOf",
+    repl: "  const b=basisSvcOf(it);\n  return SVC.map((s,i)=>Math.max(0, (b[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));\n}\nfunction beyondSvcOf" },
+  { id: 'recon-discunf-nets-mand', area: 'discUnfSvcOf', what: 'the vs-DISC reading nets mandatory off, making it the other reading',
+    find: "  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0)));",
+    repl: "  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));" },
+  { id: 'recon-month-scope-unnamed', area: 'monSheet', what: 'a month sheet claims ALL SERVICES while covering only its own list',
+    find: "    const _all = (svcNames.length===SVC.length)",
+    repl: "    const _all = true || (svcNames.length===SVC.length)" },
+  // ---- the other exportable products -----------------------------------------------------------
+  // exportExcel and the deck are not the only things that get briefed.
+  { id: 'plans-svc-mislabel', area: 'planSheet', what: 'the spend plans call this plan\u2019s per-service ask "allocated", so it disagrees with the Allocated column beside it',
+    find: "      ...SVC.map(sv=>sv+' asked'), ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H})));",
+    repl: "      ...SVC.map(sv=>sv+' allocated'), ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H})));" },
+  { id: 'plans-svc-funded-wrong', area: 'planSheet', what: 'the per-service funded breakout prints the ask instead of what was funded',
+    find: "        ...SVC.map((sv,i)=>({v:p.want[i]||0,s:N})), ...SVC.map((sv,i)=>({v:p.got[i]||0,s:N}))]);",
+    repl: "        ...SVC.map((sv,i)=>({v:p.want[i]||0,s:N})), ...SVC.map((sv,i)=>({v:p.want[i]||0,s:N}))]);" },
+  { id: 'plans-alloc-not-split', area: 'planSheet', what: 'Allocated stops being Disc allocated plus Mand allocated',
+    find: "        {v:dr.d+dr.m,s:N},{v:dr.d,s:N},{v:dr.m,s:N},{v:p.gotT,s:N},",
+    repl: "        {v:dr.d,s:N},{v:dr.d,s:N},{v:dr.m,s:N},{v:p.gotT,s:N}," },
 
   // ---- the PMO copy, and what a programme office may send back ---------------------------------
   { id: 'pmo-gate-open', area: 'sandboxBlock', what: 'a PMO copy can write back over the team\u2019s board',
