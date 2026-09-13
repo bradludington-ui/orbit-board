@@ -129,6 +129,34 @@ implementation and `mcShortSvcOf()` delegates to it — Mission Critical's short
 reading gated to starred requirements, so the star and the portfolio cannot disagree about what a
 dollar is. Both are floored **per service**.
 
+### The row is triage; the RECORD inspector is the editor (grid build)
+
+One rule, and it is what keeps the two surfaces from growing copies of each other:
+
+- **ROW** — only what you do while scanning 115 rows: rank and ▲▼, ★ MC, the band, and the ⋯ menu
+  for lifecycle (consequence, CCaR record-name rename, reset allocation, copy/move year, remove).
+  CCaR, PID, the funding mode and the award date show there as **badges**: status you need at a
+  glance, with no handler. Clicking one bubbles to the row-selection delegate, so it takes you to
+  the field on the right instead of doing nothing.
+- **INSPECTOR** — every edit of the selected requirement. Identity, the per-service REQ / DISC /
+  MAND (UFR derived), minimum useful increment, absorber, award schedule, note, description, record.
+
+Measured, not asserted: `npm run controls` renders both builds and reports any handler present in
+one and absent from the other. It compares the card's ROW against the grid's ROW **plus INSPECTOR**,
+because a control that moved is not a control that was lost — and it unwraps `rowMenuRun(id,()=>{X})`,
+which is only the menu's invocation shim. Anything genuinely dropped or re-implemented must be named
+in that file's `RETIRED` or `REPLACED` map with a reason, or the run fails.
+
+**`render()` stays SHARED and byte-identical.** The row's de-duplication is a post-render pass,
+`gridDedupe()`, not a fork — so parity keeps protecting the one function both builds depend on.
+Divergence is confined to four small presentation functions, each allowlisted.
+
+**A near miss worth remembering:** making the funding chip a badge on *both* surfaces left the grid
+with no way to set a requirement's funding at all. `convertAllToSplit()` does the whole board, but a
+single row on the legacy lane walk had no path. `npm run controls` caught it. When you demote a
+control to a badge, check where its capability went — "it is duplicated" and "it exists twice
+because one of them is the only one that works" look identical until you try it.
+
 ### Where a split is edited, per build
 
 The two builds deliberately differ here, and `parity-allow.json` records it:

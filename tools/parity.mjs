@@ -21,11 +21,17 @@ const ALLOW_PATH = HERE + 'parity-allow.json';
 // heuristic -- and if that ever stops being true, the counts below stop matching and you find out.
 function functionsOf(src) {
   const out = new Map();
-  for (const m of src.matchAll(/^function ([A-Za-z0-9_$]+)\s*\(/gm)) {
-    const end = src.indexOf('\n}', m.index);
-    if (end < 0) continue;
-    out.set(m[1], src.slice(m.index, end + 2));
-  }
+  const starts = [...src.matchAll(/^function ([A-Za-z0-9_$]+)\s*\(/gm)];
+  starts.forEach((m, k) => {
+    const next = k + 1 < starts.length ? starts[k + 1].index : src.length;
+    const close = src.indexOf('\n}', m.index);
+    // A ONE-LINE function closes on its own line and has no "\n}" of its own, so bounding every
+    // body at the next "\n}" swallowed the function that followed it. Harmless until the follower
+    // diverged -- then the difference was reported against the one-liner's name instead, pointing
+    // at innocent code. Stop at the next top-level declaration when that comes first.
+    const end = (close >= 0 && close + 2 <= next) ? close + 2 : next;
+    out.set(m[1], src.slice(m.index, end));
+  });
   return out;
 }
 const norm = s => s.replace(/\r\n/g, '\n').trimEnd();

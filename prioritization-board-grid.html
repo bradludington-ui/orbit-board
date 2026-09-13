@@ -1213,7 +1213,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.42 (12 Sep 2026)';
+const BUILD='v1.43 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14276,53 +14276,10 @@ function svcShort(T){
   S.order.forEach(id=>{ const p=T[id]; if(p) p.u.forEach((v,i)=>u[i]+=v); });
   return SVC.map((s,i)=>({s, short:u[i]})).filter(x=>x.short>0.5);
 }
-function svcTable(it){
-  const sa=svcAlloc(it);
-  const a=S.alloc[it.id];
-  const isSvc = a && a.m==='s';
-  const foAll=S.fsrc[it.id];
-  const pxAll=foAll? tiers()[it.id] : null;
-  let hd='',r1='',r2='';
-  const edited = !it.custom && S.asks && S.asks[it.id];
-  SVC.forEach((s,i)=>{
-    hd+=`<th>${s}</th>`;
-    r1+=`<td><input value="${it.ask[i]?Math.round(it.ask[i]).toLocaleString():''}"
-        onchange="setAsk('${it.id}',${i},this.value)" onfocus="this.select()" placeholder="0" title="${s} FY27 requirement value — editing updates totals, lane math, and unfunded deltas"></td>`;
-    r2+= foAll? `<td style="color:var(--gold);font-weight:700" title="${s} allocation = Disc + Mand drawn (derived from the ⚙ funding-source override, based on the FY27 Ask)">${(pxAll.d[i]+pxAll.m[i])>0.5? fM(pxAll.d[i]+pxAll.m[i]):'—'}</td>`
-      : `<td><input value="${sa[i]?Math.round(sa[i]).toLocaleString():''}"
-        onchange="setSvc('${it.id}',${i},this.value)" onfocus="this.select()" placeholder="0"></td>`;
-  });
-  return `<div class="svc-detail"><table>
-    <tr><th>CCaR: <input style="width:100px;font-weight:700;letter-spacing:.5px" maxlength="12" value="${esc(ccarOf(it))}" placeholder="JSF####" onchange="setCcarInline('${it.id}',this.value)" onfocus="this.select()" title="CCaR record (up to 12 characters)"></th>${hd}<th>Total</th></tr>
-    <tr><td>${FYL()} Ask (edit) ${edited?'<span class="mode-tag" style="background:var(--amber);color:var(--onAmber)">EDITED</span>':''}</td>${r1}
-      <td style="font-weight:700">${fM(askTot(it))}${it.custom?'':` <button class="qb" onclick="resetAsk('${it.id}')" title="restore the original requested amounts">↺ orig</button>`}</td></tr>
-    <tr><td>Allocation ${foAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">= D + M (derived)</span>' : (isSvc?'<span class="mode-tag">BY SVC</span>':'(prorated — type to set by service)')}</td>${r2}
-      <td style="color:var(--amber);font-weight:700">${foAll? fM(pxAll.dT+pxAll.mT) : fM(eff(it))}</td></tr>
-    ${(S.fsrc[it.id]&&S.fsrc[it.id].m==='split')? `<tr><td style="color:var(--gold);font-weight:700">\u2699 Split D / M / UFR</td>
-      <td colspan="${SVC.length+1}" style="color:var(--dim);font-size:9px">edited in the RECORD panel on the right \u2014 per service, with the UFR derived.
-      It was duplicated here, and two editors for one set of numbers is one too many.</td></tr>` : ''}
-    <tr><td style="color:var(--blue);font-weight:700">Minimum useful increment</td>
-      <td colspan="${SVC.length}" style="color:var(--dim);font-size:9px">the least this still buys something at — blank means the full requirement. Only needed for band 0&ndash;2 items that fall below the line.</td>
-      <td><input style="width:100%;text-align:right" placeholder="${fM(askTot(it))}" value="${(S.minInc||{})[it.id]? Math.round(S.minInc[it.id]).toLocaleString():''}"
-        onchange="setMinInc('${it.id}',this.value)" onfocus="this.select()"></td></tr>
-    ${(()=>{
-      const isAb=S.absorb===it.id;
-      const AB=isAb? absorbCalc(tiers()) : null;   // a full lane walk — only worth it for the absorber
-      const cells=SVC.map((sv,i)=>`<td style="color:${isAb&&AB.absorbed[i]>0.5?'var(--amber)':'var(--dim)'};font-weight:700">${isAb&&AB.absorbed[i]>0.5? fM(AB.absorbed[i]) : '\u2014'}</td>`).join('');
-      return `<tr><td style="color:var(--amber);font-weight:700">\u2691 Shortfall absorber</td>
-      ${isAb? cells : `<td colspan="${SVC.length}" style="color:var(--dim);font-size:9px">the contract that takes the hit when the portfolio does not close. Nominating it changes no allocation \u2014 it only shows what it would be giving up, per service.</td>`}
-      <td><label style="font-size:9.5px;cursor:pointer;white-space:nowrap"><input type="checkbox" ${isAb?'checked':''} onchange="setAbsorber('${it.id}',this.checked)"> absorb</label>
-      ${isAb? `<input style="width:100%;text-align:right;margin-top:2px" placeholder="floor $0" value="${S.absorbFloor? Math.round(S.absorbFloor).toLocaleString():''}"
-        onchange="setAbsorbFloor(this.value)" onfocus="this.select()" title="it will not be shown absorbing below this amount \u2014 anything past that shows as unabsorbed shortfall">`:''}</td></tr>
-      ${isAb? `<tr><td style="color:var(--dim);font-size:9px">portfolio shortfall ${fM(AB.sf.total)}</td>
-        <td colspan="${SVC.length}" style="color:var(--dim);font-size:9px">absorbing <b style="color:var(--amber)">${fM(AB.absorbedTot)}</b> of it${AB.floor>0?' (floor '+fM(AB.floor)+' of '+fM(AB.allocTot)+' allocated)':''}${AB.unabsorbedTot>0.5?' \u2014 <b style="color:var(--red)">'+fM(AB.unabsorbedTot)+' is beyond what this requirement can cover</b>':' \u2014 covers all of it'}</td>
-        <td style="color:${AB.unabsorbedTot>0.5?'var(--red)':'var(--green)'};font-weight:700">${AB.unabsorbedTot>0.5? fM(AB.unabsorbedTot)+' unabs' : '\u2713 covered'}</td></tr>`:''}`;
-    })()}
-    <tr><td style="color:var(--gold);font-weight:700">Realign (keeps total)</td>
-      <td colspan="${SVC.length}" style="text-align:center;color:var(--dim);font-size:9px">type into any <b style="color:var(--mut)">Allocation</b> cell above to fund that service directly — the rest stay as they are</td>
-      <td><button class="qb" style="width:100%" onclick="S.alloc['${it.id}']=null;save();render();flash('${it.id}')" title="set this requirement's allocation equal to its full ${FYL()} requirement">Allocate</button></td></tr>
-    </table>
-    ${(()=>{
+// The award / obligation schedule: one date, or incremental mods with a declining balance
+// against the DISCRETIONARY allocation. SHARED: the card build edits it in the row expander,
+// the grid build in the docked inspector. One implementation, so the two cannot drift.
+function awardBlockHtml(it){
       const aw=S.awards[it.id];
       const Tw=tiers(), pw=Tw[it.id]||{dT:0,mT:0};
       const funded=pw.dT+pw.mT;
@@ -14368,9 +14325,16 @@ function svcTable(it){
         ${pw.mT>0.5? `<div style="font-size:9.5px;color:var(--dim);margin-top:2px">\u2139 ${fM(pw.mT)} of mandatory is also allocated here. These increments are <b>discretionary dollars</b> and the forecast places them as typed; the mandatory has no increments of its own, so it rides these same dates in the same proportions. Anything left on the Balance to schedule row forecasts as UNSCHEDULED.</div>`:''}
         ${(Math.abs(discAl-incSum)>=1)? `<div style="font-size:9.5px;color:var(--blue);margin-top:2px">\u2139 ${fM(Math.max(0,discAl-incSum))} of discretionary is not on a date yet \u2014 it forecasts as UNSCHEDULED until it is.</div>`:''}
       </div>`;})():''}
-    </div>`;})()}
-    <div class="svc-hint">Top row = the REQUIREMENT VALUE (FY27 ask) by service — edit it when the requirement itself changes; unfunded deltas follow automatically. Second row = your ALLOCATION against it. With a ⚙ forced split, type each service's Discretionary and Mandatory dollars directly — anything not covered (or beyond lane capacity) shows as that service's UFR. ↺ orig restores the requested values; ↺ split restores the allocation split.</div></div>`;
+    </div>`;
 }
+function svcTable(it){
+  // RETIRED IN THIS BUILD. Everything it used to edit -- the per-service requirement values, the
+  // Disc/Mand split, the minimum useful increment, the shortfall absorber and the award schedule --
+  // is on the docked RECORD inspector, which is the one surface that edits the selected
+  // requirement. The card build has no inspector and keeps the full editor; see parity-allow.json.
+  return '';
+}
+
 function noteBox(it){
   const n=S.notes[it.id]||'';
   return `<div class="note-detail"><textarea placeholder="Notes for ${esc(it.title)} — decisions, caveats, taskers…"
@@ -14495,18 +14459,11 @@ function rowChipsHtml(it){
   const fs=S.fsrc[id];
   const FLBL={disc:'\u2699 DISCRETIONARY', mand:'\u2699 MANDATORY', ufr:'\u2699 UFR',
               split:'\u2699 SPLIT D/M/UFR'};
-  h+=chipPick('fund', id, fs? (FLBL[fs.m]||'\u2699 set') : '+ funding', fs? fs.m : '',
-      // Force DISCRETIONARY / MANDATORY / UFR were removed on request: sending a whole requirement
-      // to one lane is the blunt version of what Split does properly, and the split is how the
-      // money is actually decided. tiers() still HONOURS a legacy force setting so no existing
-      // board changes its numbers, and the chip still shows one — it just cannot be chosen again.
-      // AUTO (LANES) was removed the same way and for the same reason: every requirement now
-      // carries an explicit split. tiers() still walks the lanes for a requirement that has no
-      // override -- an older saved board, or one mid-migration -- so nothing breaks; it simply
-      // cannot be chosen, and convertAllToSplit() is how a board moves over wholesale.
-      [{v:'split',n:'Split D / M / UFR\u2026'}],
-      'setFsrc', 'funding source \u2014 override the automatic lane draw for this requirement',
-      'var(--gold)');
+  // BADGE, NOT AN EDITOR. The funding split is set on the RECORD inspector in this build; the chip
+  // still says what a row is set to, because that is worth seeing while scanning the list. Clicking
+  // it does nothing of its own -- the click bubbles to the row, which selects it.
+  h+='<span class="rchip" style="border-color:var(--gold);color:var(--gold)" title="funding \u2014 '
+    +'set the per-service split on the RECORD panel">'+(fs? (FLBL[fs.m]||'\u2699 set') : '\u2699 auto (lanes)')+'</span>';
   { const ce=(S.costElem||{})[id];   // the store does not exist on a board without cost elements
     if(ce) h+='<span class="rchip" onclick="pickCostElem(&quot;'+id+'&quot;)" '
       +'title="cost element \u2014 click to change">'+esc(chipClip(ce))+'</span>'; }
@@ -14535,12 +14492,13 @@ function rowMenuHtml(it){
   return '<div class="menu rowmenu'+(rowMenuId===id?' open':'')+'" id="rm_'+id+'">'
     +'<button class="qb rmbtn" onclick="toggleRowMenu(\''+id+'\',event)" title="more actions for this requirement">⋯</button>'
     +'<div class="mdd" onclick="event.stopPropagation()">'
+    // DESCRIPTION, NOTE, RECORD and the plan-event rename all live on the RECORD inspector in this
+    // build, so the menu no longer offers them: one editor each. What stays here is what the
+    // inspector has no equivalent for -- the consequence statement, the CCaR record-name rename,
+    // and the row's own lifecycle.
     +'<div class="mlbl">Describe</div>'
-    +mi((desc?'📄 Edit description':'📄 Add a description'),'toggleDesc(\''+id+'\')', desc?'set':'')
-    +mi((note?'📝 Edit note':'📝 Add a note'),'toggleNote(\''+id+'\')', note?'set':'')
     +(wantCons? mi((hasCons?'⚠ Edit the consequence':'⚠ What happens if this is not funded'),
         'toggleCons(\''+id+'\')', hasCons?'written':(bd.consReq?'REQUIRED':'')) : '')
-    +mi('✎ Rename the plan event','editTitle(\''+id+'\')', S.titles[id]?'renamed':'')
     // Reachable here as well as on the row, because the row only shows the record name when it
     // differs from the plan event — and after a rename that makes them match, it would vanish.
     +mi('✎ Rename the CCaR record name','editRecName(\''+id+'\')',
@@ -14549,12 +14507,6 @@ function rowMenuHtml(it){
     // category, WBS, RCN/EEIC, SI, budget per service, destination -- used to hang here as up to
     // sixteen more rows, six of them added by the BAE registry alone. The unset count rides on the
     // entry so a blank field in the Spend Plan Source export is visible without opening anything.
-    +'<div class="msep"></div>'
-    +(function(){
-        const C=recCount(id, it);
-        return mi('📋 Record — classify this requirement…','toggleRec(\''+id+'\')',
-          C.un? C.un+' of '+C.n+' not set' : 'all '+C.n+' set');
-      })()
     +'<div class="msep"></div><div class="mlbl">Allocation</div>'
     +mi('↺ Reset to the full requirement','S.alloc[\''+id+'\']=null;save();render();flash(\''+id+'\')')
     +(ys.length? '<div class="msep"></div><div class="mlbl">Move between fiscal years</div>'
@@ -19847,9 +19799,29 @@ function gridAfterRender(){
   const ids = gridIds();
   if(!ids.length){ curRow = null; }
   else if(!curRow || ids.indexOf(curRow) < 0){ curRow = ids[0]; }
+  gridDedupe();
   gridMark();
   inspectorBody();
   gridSticky();
+}
+// The row is for TRIAGE: rank, star, band, lifecycle. Every edit of the selected requirement
+// belongs on the RECORD inspector, so the handlers that made the row a second editor are stripped
+// here rather than by forking render(), which is shared with the card build and byte-identical
+// between them -- parity.mjs protects that, and this is presentation, not logic.
+//
+// Stripping onclick does NOT make these dead: the click bubbles to the document-level delegate
+// that selects the row, so clicking a chip takes you to the field on the right.
+function gridDedupe(){
+  const list = document.getElementById('list'); if(!list) return;
+  // the row expander's button: the expander renders nothing in this build
+  list.querySelectorAll('button.qb[onclick^="toggleDetail("]').forEach(function(b){ b.remove(); });
+  // title, CCaR and PID: the inspector owns all three
+  list.querySelectorAll('[onclick^="toggleDetail("],[onclick^="editTitle("],'
+    + '[onclick^="editCcar("],[onclick^="editPid("]').forEach(function(el){
+    el.removeAttribute('onclick');
+    el.style.cursor = 'default';
+    if(el.classList.contains('tedit')) el.remove();   // the pencil is an editor and nothing else
+  });
 }
 
 function inspField(label, value, cls){
@@ -19896,18 +19868,28 @@ function inspectorBody(){
         + (kind === 'd' ? 'DISCRETIONARY' : 'MANDATORY')
         + '" onchange="setFsrcSvc(\'' + id + '\',\'' + kind + '\',' + i + ',this.value)">'
       : '<span class="ro">' + (val > 0.005 ? fM(val) : '\u2014') + '</span>';
+    // REQ IS THE REQUIREMENT VALUE, and it is edited here now -- this column absorbed the row
+    // expander's six per-service ask inputs when that editor was retired in this build.
+    const reqCell = '<input class="q" value="' + (ask ? Math.round(ask).toLocaleString() : '')
+      + '" placeholder="0" onfocus="this.select()" title="' + esc(sname) + ' \u2014 ' + FYL()
+      + ' requirement value. Editing it moves the unfunded deltas with it."'
+      + ' onchange="setAsk(\'' + id + '\',' + i + ',this.value)">';
     return '<tr><td class="l">' + esc(sname) + '</td>'
-      + '<td class="ro">' + (ask ? fM(ask) : '\u2014') + '</td>'
+      + '<td>' + reqCell + '</td>'
       + '<td>' + cell('d', inSplit ? (fo.dv[i]||0) : d) + '</td>'
       + '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m) + '</td>'
       + '<td class="' + (u > 0.005 ? 'uf' : 'ro') + '">' + (u > 0.005 ? fM(u) : '\u2014') + '</td></tr>';
   };
   const svc = '<table class="insp-split">'
-    + '<colgroup><col style="width:58px"><col style="width:86px">'
-    + '<col><col><col style="width:78px"></colgroup>'
+    // Service and UFR are pinned; REQ, DISC and MAND are all editable now and share what is left
+    // equally, so the three money inputs are the same size and none of them resizes when a UFR
+    // cell turns from an em dash into a figure.
+    + '<colgroup><col style="width:58px"><col><col><col><col style="width:78px"></colgroup>'
     + '<tr><th class="l">Service</th><th>Req</th><th>Disc</th><th>Mand</th><th>UFR</th></tr>'
     + SVC.map(svcRow).join('')
-    + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fM(askTot(it)) + '</td>'
+    + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fM(askTot(it))
+    + (it.custom ? '' : ' <button class="qb" onclick="resetAsk(\'' + id + '\')"'
+        + ' title="restore the originally requested amounts">\u21ba</button>') + '</td>'
     + '<td style="color:var(--green)">' + fM(dT) + '</td>'
     + '<td style="color:var(--purp)">' + fM(mT) + '</td>'
     + '<td class="' + (uT > 0.005 ? 'uf' : 'ro') + '">' + (uT > 0.005 ? fM(uT) : '\u2014') + '</td></tr>'
@@ -19922,14 +19904,30 @@ function inspectorBody(){
     + '<div class="insp-ttl">' + esc(dispTitle(it))
       + ' <span class="tedit" style="cursor:pointer" onclick="editTitle(\'' + id + '\')" title="rename requirement">\u270e</span></div>'
     + '<div class="rowchips" style="margin-bottom:2px">'
+      // STATUS, NOT AN EDITOR. \u2605 MC is a triage decision made while scanning the list, so the ROW
+      // owns it; repeating the toggle here would be the duplication we just removed, facing the
+      // other way. It still shows, because the record should say what a requirement is.
       + '<span class="rchip" style="' + (S.mc[id] ? 'border-color:var(--amber);color:var(--amber)' : '')
-        + ';cursor:pointer" onclick="S.mc[\'' + id + '\']=!S.mc[\'' + id + '\'];save();render()" '
-        + 'title="\u2605 Mission Critical — this must be paid this year">'
+        + '" title="\u2605 Mission Critical \u2014 set it on the row">'
         + (S.mc[id] ? '\u2605 MC' : '\u2606 not MC') + '</span>'
       + '<span class="rchip">' + esc(grpOf(it)) + '</span>'
       + '</div>'
     + (function(){ const keep = rowChipId; rowChipId = null;
-         const html = rowChipsHtml(it); rowChipId = keep; return html; })()
+         // Same rule for the band and funding chips: shown here, set on the row. Blanking rowChipId
+         // stops this call re-opening a picker the row already has open; stripping the handlers
+         // stops it BEING a picker.
+         const html = rowChipsHtml(it).replace(/ onclick="[^"]*"/g, '')
+                                      .replace(/cursor:pointer/g, 'cursor:default');
+         rowChipId = keep; return html; })()
+    // FUNDING IS STILL SETTABLE HERE. The chips above are status only, but Split is now the one
+    // setting there is, so a requirement left on the legacy lane walk needs a way to convert -- and
+    // with the row's picker gone this is the only per-requirement way to do it.
+    + (fo ? '' : '<div class="rowchips" style="margin-bottom:2px">'
+        + '<span class="rchip" style="border-color:var(--gold);color:var(--gold);cursor:pointer"'
+        + ' onclick="setFsrc(\'' + id + '\',\'split\')"'
+        + ' title="this requirement is still on the automatic lane walk. Convert it to an explicit'
+        + ' Split D/M/UFR, keeping the dollars it has right now.">'
+        + '\u2699 auto (lanes) \u2192 convert to Split</span></div>')
     + '<div class="insp-g">'
       + inspField(FYL() + ' requirement', fM(askTot(it)), 'big')
       + inspField('Allocated', fM(dT + mT), 'big')
@@ -19952,9 +19950,33 @@ function inspectorBody(){
                  : ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 set funding to Split D/M/UFR to edit</span>')
       + '</div>'
     + svc
+    // Everything below came off the row expander when that editor was retired in this build. These
+    // are edits about the SELECTED requirement, so they belong on the record, not on the list.
+    + '<div class="insp-lbl">Planning</div>'
+    + '<div class="insp-g">'
+      + '<div class="insp-f' + ((S.minInc||{})[id] ? '' : ' empty') + '">'
+        + '<div class="fl">Minimum useful increment</div>'
+        + '<div class="fv"><input style="width:100%;text-align:right" placeholder="' + fM(askTot(it)) + '"'
+          + ' value="' + ((S.minInc||{})[id] ? Math.round(S.minInc[id]).toLocaleString() : '') + '"'
+          + ' onfocus="this.select()" onchange="setMinInc(\'' + id + '\',this.value)"'
+          + ' title="the least this still buys something at \u2014 blank means the full requirement.'
+          + ' Only needed for band 0-2 items that fall below the line."></div></div>'
+      + '<div class="insp-f' + (S.absorb === id ? '' : ' empty') + '">'
+        + '<div class="fl">\u2691 Shortfall absorber</div>'
+        + '<div class="fv"><label style="font-size:10.5px;cursor:pointer;font-weight:600">'
+          + '<input type="checkbox"' + (S.absorb === id ? ' checked' : '')
+          + ' onchange="setAbsorber(\'' + id + '\',this.checked)"> absorb</label>'
+          + (S.absorb === id
+            ? '<input style="width:100%;text-align:right;margin-top:2px" placeholder="floor $0"'
+              + ' value="' + (S.absorbFloor ? Math.round(S.absorbFloor).toLocaleString() : '') + '"'
+              + ' onfocus="this.select()" onchange="setAbsorbFloor(this.value)"'
+              + ' title="it will not be shown absorbing below this amount">'
+            : '')
+        + '</div></div>'
+      + '</div>'
+    + awardBlockHtml(it)
     + '<div class="insp-lbl">Open on the row</div>'
     + '<div class="rowchips">'
-      + '<span class="rchip" style="cursor:pointer" onclick="toggleDetail(\'' + id + '\')">\u229e By service</span>'
       + '<span class="rchip" style="cursor:pointer" onclick="toggleNote(\'' + id + '\')">\ud83d\udcdd Note</span>'
       + '<span class="rchip" style="cursor:pointer" onclick="toggleDesc(\'' + id + '\')">\ud83d\udcc4 Description</span>'
       + '<span class="rchip" style="cursor:pointer" onclick="toggleRec(\'' + id + '\')">\ud83d\udccb Record</span>'
