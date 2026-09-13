@@ -1323,7 +1323,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.51 (13 Sep 2026)';
+const BUILD='v1.52 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3294,8 +3294,13 @@ function arityOfState(st){
   for(const y of ys){ const n = arityOfState(st.years[y]); if(n!==null) return n; }
   return null;
 }
-function svcCheckPack(pack, st){
-  const mine = (typeof SVC!=='undefined' && SVC.length)? SVC.slice() : [];
+// `mineList` is the service list to check AGAINST. It defaults to this board's, which is right for
+// every file import -- but an appropriation package may be for an appropriation you are NOT looking
+// at, and two appropriations can legitimately carry different services. Checking such a package
+// against the services on screen would refuse a good one and wave a bad one through.
+function svcCheckPack(pack, st, mineList){
+  const mine = Array.isArray(mineList)? mineList.slice()
+             : ((typeof SVC!=='undefined' && SVC.length)? SVC.slice() : []);
   const theirs = (pack && Array.isArray(pack.services))? pack.services.slice() : null;
   if(!mine.length) return {state:'unknown'};
   // A FILE WITH NO SERVICE LIST CANNOT BE CHECKED BY NAME, but arity is still a tell: a state whose
@@ -3345,8 +3350,8 @@ function svcRemapState(st, map){
 }
 // The decision, and the sentence the user reads. Returns true to go ahead (remapping st in place
 // when that is what it takes), false to abandon the import.
-function svcGuardImport(st, pack, label){
-  const c = svcCheckPack(pack, st);
+function svcGuardImport(st, pack, label, mineList){
+  const c = svcCheckPack(pack, st, mineList);
   if(c.state==='match' || c.state==='unknown') return true;
   const what = label? '"'+label+'"' : 'that file';
   if(c.state==='arity'){
@@ -5404,6 +5409,30 @@ function pkgApply(pkg, fname){
   }
   const cur=pkgStoreOf(ap);
   const led=cur? pkgLedger(ap) : null;
+
+  // ── THE PACKAGE CARRIES ANOTHER BOARD'S PER-SERVICE FIGURES ──────────────────────────────────
+  // applyStore() is where the service-alignment guard lives, and on a consolidated board it only
+  // runs for the appropriation you are currently viewing (ap===mySlug(), below). A package for any
+  // OTHER appropriation was written straight into its storage key and its PUBS slot with no check
+  // at all -- the same positional hazard the guard exists for, through a door it never watched:
+  // the figures land by position, every total still balances, and nothing looks wrong until someone
+  // opens that appropriation and briefs another service's money.
+  //
+  // It is checked against the services THAT APPROPRIATION already has, not the ones on screen.
+  {
+    const _tgt = packOfStore(cur);
+    const _in  = packOfStore(pkg.ms);
+    const _to  = (_tgt && Array.isArray(_tgt.services) && _tgt.services.length)
+               ? _tgt.services
+               : ((ap===mySlug() && typeof SVC!=='undefined' && SVC.length)? SVC : null);
+    if(_to){
+      if(!svcGuardImport(pkg.ms, _in, (fname||(nm+' package')), _to)) return false;
+      // After a remap the state IS in the target's order, so the pack it carries must say so --
+      // that dataPack is what names the services when this appropriation is next opened.
+      if(_in && Array.isArray(_in.services)) _in.services = _to.slice();
+    }
+  }
+
 
   // ---- 1. staleness. Four decentralised copies is a worse config-control problem than the one
   // this feature solves, unless an out-of-date one is refused rather than merged.

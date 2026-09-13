@@ -408,6 +408,27 @@ const MUTATIONS = [
   { id: 'plans-alloc-not-split', area: 'planSheet', what: 'Allocated stops being Disc allocated plus Mand allocated',
     find: "        {v:dr.d+dr.m,s:N},{v:dr.d,s:N},{v:dr.m,s:N},{v:p.gotT,s:N},",
     repl: "        {v:dr.d,s:N},{v:dr.d,s:N},{v:dr.m,s:N},{v:p.gotT,s:N}," },
+  // ---- appropriation packages: the other path that takes numbers this board did not compute -----
+  { id: 'pkg-svc-unguarded', area: 'pkgApply', what: 'a package for another appropriation lands its per-service figures with no check at all',
+    find: "      if(!svcGuardImport(pkg.ms, _in, (fname||(nm+' package')), _to)) return false;",
+    repl: "      /* unguarded */" },
+  { id: 'pkg-svc-wrong-list', area: 'pkgApply', what: 'a package is checked against the services ON SCREEN, not the ones that appropriation holds',
+    find: "      if(!svcGuardImport(pkg.ms, _in, (fname||(nm+' package')), _to)) return false;",
+    repl: "      if(!svcGuardImport(pkg.ms, _in, (fname||(nm+' package')))) return false;" },
+  { id: 'pkg-pack-order-stale', area: 'pkgApply', what: 'the remapped state still says it is in the sender\u2019s service order, so a reload undoes the remap',
+    find: "      if(_in && Array.isArray(_in.services)) _in.services = _to.slice();",
+    repl: "      /* left as sent */" },
+
+  // ---- the change journal: the safety net under every accepted change -----------------------------
+  { id: 'jrnl-undo-wrong-way', area: 'jrnlUndo', what: 'undo writes the value back that it was meant to remove',
+    find: "  if(!jrnlSet(fy, e.p, e.a)){",
+    repl: "  if(!jrnlSet(fy, e.p, e.b)){" },
+  { id: 'jrnl-reversal-unrecorded', area: 'jrnlUndo', what: 'a reversal leaves no trail, so the change it undid cannot be seen to have been undone',
+    find: "  jrnlAdd({t:Date.now(), by:whoAmI()||'unknown', fy:fy, p:e.p.slice(), a:e.b, b:e.a, f:1});",
+    repl: "  /* no trail */" },
+  { id: 'jrnl-big-undoable', area: 'jrnlUndoable', what: 'a value too large to have been recorded is offered as undoable, so undoing it puts back a placeholder',
+    find: "  && !(e.a&&e.a._b) && !(e.b&&e.b._b)); }",
+    repl: "  ); }" },
 
   // ---- the PMO copy, and what a programme office may send back ---------------------------------
   { id: 'pmo-gate-open', area: 'sandboxBlock', what: 'a PMO copy can write back over the team\u2019s board',

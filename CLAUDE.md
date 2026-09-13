@@ -332,6 +332,60 @@ through it too, so typing a value by hand and accepting one from a PMO cannot di
 `handoff — back` block proves applying equals typing, through the real code path and across a
 save/reopen.
 
+### Appropriation packages were the other unguarded door
+
+`applyStore()` is the single choke point where the service-alignment guard runs — and `pkgApply()`
+calls it **only for the appropriation you are currently viewing**. On a consolidated board a package
+for any other one was written straight into that appropriation's storage key and its `PUBS` slot:
+
+```js
+lsSet(_SLUGMAP[ap].key, JSON.stringify(next), …)   // another appropriation's storage
+PUBS[ap] = next;                                    // and its in-memory slot
+if (ap === mySlug()) { applyStore(next); }          // ← the guard only ran HERE
+```
+
+Unguarded, a package built for ARMY / USMC / USCG was accepted **silently** — no alert at all — and
+overwrote that appropriation's figures while its stored `dataPack` still said USAF / ANG / AFRC.
+Nothing covered `pkgApply` at all.
+
+**It is checked against the services that appropriation already holds, not the ones on screen.** Two
+appropriations may legitimately carry different lists; comparing to the wrong one refuses a good
+package and waves a bad one through. `svcCheckPack()` and `svcGuardImport()` now take the target list
+as an argument, defaulting to `SVC` for every ordinary file import.
+
+Two things the fix has to get right, both caught by a surviving mutation rather than by reading:
+
+- **The guard must run before `pkgStrip()`**, which copies the state, and before the preview — a
+  refusal should not ask the reader anything first, and a remap must be reflected in the diff they
+  are shown. Placed after the copy, the remap changed an object nobody wrote.
+- **The remapped state's own `dataPack.services` must be rewritten to the target order**, because
+  that list is what names the services when the appropriation is next opened. Left as the sender
+  wrote it, a reload undoes the remap.
+
+**A fixture where the two lists coincide proves nothing.** The first version gave the board and the
+other appropriation the same three services, so checking the wrong list looked identical and
+`pkg-svc-wrong-list` survived. The board on screen now carries STOVL / USMC-C / USN while the package
+is for a USAF / ANG / AFRC appropriation.
+
+### The change journal is the safety net, and nothing tested it
+
+`pmoApply()`'s confirmation says, in as many words: *"Each one is recorded in the change journal, so
+it can be found and undone later."* That sentence is the recourse when a programme office's proposal
+is accepted in error, and it was covered by nothing. Now: a hand edit is journalled with its path,
+before and after; undo restores exactly what was there; **the reversal is itself journalled** (both
+entries stand — capturing the revert as an ordinary diff once folded it into the original entry and
+then dropped that entry as a no-op, erasing the very change being reverted); and an accepted PMO
+change can be found by path and put back.
+
+**A value too large to have been recorded refuses to be undone.** `JRNL_BIG` caps a journalled value
+at 300 characters and stores a *size* in its place; an impact statement runs well past that. Undoing
+such an entry would put back a placeholder — silent data loss on the one field the whole PMO workflow
+exists to collect — so `jrnlUndoable()` rejects it and says why, and the statement stays whole.
+
+**Drive the journal the way the board does.** `jrnlSync()` re-takes the shadow *without* writing
+entries; `jrnlCapture()` is what diffs it and records. Calling sync twice records nothing at all —
+which the first version of this check did, and then read somebody else's entry as its own.
+
 ### Two unfunded readings, both measured against the ASK
 
 Unfunded is **never** measured against a trimmed allocation. Money asked for and not received is

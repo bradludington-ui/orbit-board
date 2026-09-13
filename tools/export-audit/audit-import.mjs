@@ -1106,6 +1106,207 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   chk(name, 'fidelity', 'char for char', cell === LONG ? 'exact' : 'altered', 'exact');
 }
 
+// ══ appropriation packages: the OTHER path that takes numbers this board did not compute ═══════
+// applyStore() is where the service-alignment guard lives, and pkgApply() calls it ONLY for the
+// appropriation you are currently viewing. A package for any other one was written straight into
+// that appropriation's storage key and its PUBS slot -- the same positional hazard the guard exists
+// for, through a door it never watched. Nothing covered pkgApply at all.
+{
+  const name = 'appropriation package — services';
+  const OTHER = 'ff';                                  // a different appropriation on the same board
+  const THEIRS = ['USAF', 'ANG', 'AFRC'];              // the services THAT appropriation holds
+  // THE BOARD ON SCREEN CARRIES DIFFERENT SERVICES. That is the point of the distinction: two
+  // appropriations may legitimately hold different lists, so a package must be checked against the
+  // one it is FOR. With both lists the same, checking the wrong one looks identical and the
+  // mutation that does so survives -- which is exactly what happened the first time round.
+  const ONSCREEN = ['STOVL', 'USMC-C', 'USN'];
+  const myBoard = () => ({ services: ONSCREEN,
+    items: [it('A', 'PSM', [9000000, 2000000, 1000000])],
+    disc: [9000000, 2000000, 1000000], mand: [0, 0, 0], order: ['A'] });
+
+  // A store as the OTHER appropriation already has it, sitting in its own storage key.
+  const seedOther = (ev, services) => ev(`(function(){
+    const st={base:2027, cur:2027, ts:1,
+      dataPack:{services:${JSON.stringify(services)}, items:[{id:'X',grp:'PSM',ask:[1,1,1]}]},
+      years:{2027:{order:['X'], alloc:{}, mc:{}, fsrc:{}, custom:[], removed:[],
+        discSvc:[100,200,300], mandSvc:[0,0,0], asks:{X:[100,200,300]}}}};
+    localStorage.setItem(_SLUGMAP['${OTHER}'].key, JSON.stringify(st));
+    return 'ok'; })()`);
+
+  // A package for that appropriation, written against a DIFFERENT ORDER of the same services.
+  const pkgFor = (services, vec) => ({
+    spmtPkg: 1, ap: OTHER, dir: 'issue', seq: 1, by: 'Manager', ts: Date.now(),
+    ms: { base: 2027, cur: 2027, ts: 2,
+      dataPack: { services, items: [{ id: 'X', grp: 'PSM', ask: vec }] },
+      years: { 2027: { order: ['X'], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [],
+        discSvc: vec.slice(), mandSvc: [0, 0, 0], asks: { X: vec.slice() } } } } });
+
+  const readOther = (ev) => JSON.parse(ev(`(function(){
+    const st=JSON.parse(localStorage.getItem(_SLUGMAP['${OTHER}'].key)||'null');
+    if(!st) return JSON.stringify(null);
+    const y=st.years&&st.years[2027];
+    return JSON.stringify({svc:(st.dataPack||{}).services||null,
+                           disc:(y||{}).discSvc||null, ask:((y||{}).asks||{}).X||null}); })()`));
+
+  // ── a REORDER must be matched up by name, not taken at face value ────────────────────────────
+  {
+    const sc = myBoard();
+    const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+    chk(name, 'fixture', 'this board is a consolidated one', ev('pkgIsCons()'), true);
+    chk(name, 'fixture', 'and carries different services from the one the package is for',
+      ev('SVC.join(",")'), ONSCREEN.join(','));
+    chk(name, 'fixture', 'and is NOT the appropriation the package is for',
+      ev(`mySlug()!=='${OTHER}'`), true);
+    seedOther(ev, THEIRS);
+    const mine = ev(`JSON.stringify(itemById('A').ask)`);
+    // Their list reordered; the figures are in THAT order, so 7 belongs to AFRC and 9 to USAF.
+    const pkg = pkgFor(['AFRC', 'USAF', 'ANG'], [7, 9, 8]);
+    ev(`window.alert=function(){}; window.confirm=function(){return true;};
+        pkgApply(${JSON.stringify(pkg)}, 'pkg.json'); 'ok'`);
+    const got = readOther(ev);
+    chk(name, 'reorder', 'the package was taken', got ? 'taken' : 'refused', 'taken');
+    chk(name, 'reorder', 'its figures land on the services they were written for',
+      JSON.stringify((got || {}).disc), JSON.stringify([9, 8, 7]));
+    chk(name, 'reorder', 'the requirement value is remapped too',
+      JSON.stringify((got || {}).ask), JSON.stringify([9, 8, 7]));
+    // The stored state carries its own service list, and that is what names the services when this
+    // appropriation is next opened. Left in the sender's order it would undo the remap on reload.
+    chk(name, 'reorder', 'and the state it stores says which order it is now in',
+      JSON.stringify((got || {}).svc), JSON.stringify(THEIRS));
+    chk(name, 'reorder', 'the appropriation on screen is untouched',
+      ev(`JSON.stringify(itemById('A').ask)`), mine);
+  }
+
+  // ── a DIFFERENT SET of services cannot be placed, and nothing may be written ─────────────────
+  {
+    const sc = myBoard();
+    const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+    seedOther(ev, THEIRS);
+    const before = JSON.stringify(readOther(ev));
+    const mine = ev(`JSON.stringify(itemById('A').ask)`);
+    const pkg = pkgFor(['ARMY', 'USMC', 'USCG'], [1, 2, 3]);
+    const said = ev(`(function(){ var m=''; window.alert=function(x){ m+=x; };
+      window.confirm=function(){ return true; };
+      pkgApply(${JSON.stringify(pkg)}, 'pkg.json'); return m; })()`);
+    chk(name, 'mismatch', 'a package for other services is refused',
+      /different set of services/.test(said) ? 'refused' : 'ACCEPTED: ' + said.slice(0, 70), 'refused');
+    chk(name, 'mismatch', 'and that appropriation is left exactly as it was',
+      JSON.stringify(readOther(ev)), before);
+    chk(name, 'mismatch', 'the appropriation on screen is untouched too',
+      ev(`JSON.stringify(itemById('A').ask)`), mine);
+    chk(name, 'mismatch', 'and nothing was put in its publish slot',
+      ev(`(function(){ try{ return (typeof PUBS!=='undefined' && PUBS && PUBS['${OTHER}'])? 'written' : 'empty'; }
+                       catch(e){ return 'empty'; } })()`), 'empty');
+  }
+
+  // ── the same services in the same order: silent, and it lands ────────────────────────────────
+  {
+    const sc = myBoard();
+    const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+    seedOther(ev, THEIRS);
+    const pkg = pkgFor(THEIRS.slice(), [11, 22, 33]);
+    const said = ev(`(function(){ var m=''; window.alert=function(x){ m+=x; };
+      window.confirm=function(){ return true; };
+      pkgApply(${JSON.stringify(pkg)}, 'pkg.json'); return m; })()`);
+    chk(name, 'match', 'a package that matches is not questioned',
+      /different set of services|DIFFERENT ORDER/.test(said) ? 'questioned' : 'silent', 'silent');
+    chk(name, 'match', 'and its figures land unchanged',
+      JSON.stringify((readOther(ev) || {}).disc), JSON.stringify([11, 22, 33]));
+  }
+}
+
+// ══ the change journal is the safety net, and nothing tested it ════════════════════════════════
+// pmoApply()'s confirmation says, in as many words: "Each one is recorded in the change journal, so
+// it can be found and undone later." That sentence is the recourse when a programme office's
+// proposal is accepted in error, and it was covered by nothing at all.
+{
+  const name = 'the change journal';
+  const sc = base();
+  sc.items.push(it('B', 'ATL', [3000000, 500000, 250000]));
+  sc.order.push('B');
+
+  // ── A HAND EDIT IS RECORDED, AND PUTTING IT BACK RESTORES EXACTLY WHAT WAS THERE ─────────────
+  {
+    const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+    ev(`try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+        S.desc['A']='What the board said first.'; save(); 'ok'`);
+    const before = ev(`JSON.stringify({desc:S.desc, ccar:S.ccar, asks:S.asks})`);
+    const n0 = +ev('(MS.jrnl||[]).length');
+    // jrnlSync() re-takes the shadow WITHOUT writing entries; jrnlCapture() is what diffs the
+    // shadow against now and records. Calling sync twice records nothing at all -- which the first
+    // version of this check did, and then read somebody else's entry as its own.
+    ev(`jrnlSync(); S.desc['A']='Rewritten.'; jrnlCapture(); save(); 'ok'`);
+    chk(name, 'record', 'the change is journalled', +ev('(MS.jrnl||[]).length') > n0 ? 'recorded' : 'silent', 'recorded');
+    const e = JSON.parse(ev(`JSON.stringify((MS.jrnl||[])[(MS.jrnl||[]).length-1])`));
+    chk(name, 'record', 'with the path it changed', JSON.stringify(e.p), JSON.stringify(['desc', 'A']));
+    chk(name, 'record', 'the value before', e.a, 'What the board said first.');
+    chk(name, 'record', 'and the value after', e.b, 'Rewritten.');
+    chk(name, 'record', 'and it is marked as something that can be put back',
+      ev(`jrnlUndoable((MS.jrnl||[])[(MS.jrnl||[]).length-1])`), true);
+
+    const idx = +ev('(MS.jrnl||[]).length') - 1;
+    ev(`window.confirm=function(){return true;}; jrnlUndo(${idx}); 'ok'`);
+    chk(name, 'undo', 'undoing restores exactly what was there',
+      ev(`JSON.stringify({desc:S.desc, ccar:S.ccar, asks:S.asks})`), before);
+    // BOTH ENTRIES MUST STAND. Capturing the revert as an ordinary diff folded it into the original
+    // entry and then dropped that entry as a no-op, which erased the very change being reverted.
+    chk(name, 'undo', 'and the reversal is itself journalled',
+      +ev('(MS.jrnl||[]).length') > idx + 1 ? 'recorded' : 'lost', 'recorded');
+    chk(name, 'undo', 'the change it reversed still stands',
+      ev(`JSON.stringify(((MS.jrnl||[])[${idx}]||{}).p)`), JSON.stringify(['desc', 'A']));
+    chk(name, 'undo', 'and the reversal is marked as one',
+      ev(`!!((MS.jrnl||[])[${idx + 1}]||{}).f`), true);
+  }
+
+  // ── A VALUE TOO LARGE TO RECORD IS NOT UNDOABLE, AND SAYS SO ─────────────────────────────────
+  // JRNL_BIG caps a journalled value at 300 characters and stores a SIZE in its place. An impact
+  // statement runs well past that. Restoring one from the journal would put back a placeholder --
+  // silent data loss on the one field the whole PMO workflow exists to collect -- so the entry must
+  // refuse to be undone rather than half-succeed.
+  {
+    const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+    const LONG = 'The depot line stops in March and forty aircraft go unsupported. '.repeat(9);
+    chk(name, 'big values', 'the fixture is genuinely past the cap', LONG.length > 300, true);
+    ev(`try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+        jrnlSync(); S.cons['A']=${JSON.stringify(LONG)}; jrnlCapture(); save(); 'ok'`);
+    const last = +ev('(MS.jrnl||[]).length') - 1;
+    chk(name, 'big values', 'it is journalled as a size, not as the text',
+      ev(`typeof ((MS.jrnl||[])[${last}]||{}).b === 'object'`), true);
+    chk(name, 'big values', 'and the entry refuses to be undone',
+      ev(`jrnlUndoable((MS.jrnl||[])[${last}])`), false);
+    const held = ev(`S.cons['A']`);
+    const said = ev(`(function(){ var m=''; setStat=function(x){ m+=x; };
+      window.confirm=function(){ return true; }; jrnlUndo(${last}); return m; })()`);
+    chk(name, 'big values', 'it says why rather than putting back a placeholder',
+      /cannot be put back/.test(said) ? 'said' : 'silent: ' + said.slice(0, 60), 'said');
+    chk(name, 'big values', 'and the statement is still there, whole',
+      ev(`S.cons['A']`), held);
+  }
+
+  // ── THE PROMISE pmoApply MAKES: an accepted proposal can be found and undone ─────────────────
+  {
+    const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+    ev(`try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+        S.ccar['B']='CC-ORIGINAL'; save(); 'ok'`);
+    const before = ev(`JSON.stringify({ccar:S.ccar, asks:S.asks})`);
+    ev(`window.alert=function(){}; window.confirm=function(){return true;};
+        pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+          svc:SVC.slice(), items:{B:{ccar:'CC-FROM-PMO'}}, base:{B:{ccar:'CC-ORIGINAL'}}},'s.json');
+        PMOPICK={'B|ccar':true}; pmoApply(); 'ok'`);
+    chk(name, 'a PMO change', 'it applied', ev(`S.ccar['B']`), 'CC-FROM-PMO');
+    const idx = +ev(`(function(){ const j=MS.jrnl||[];
+      for(let i=j.length-1;i>=0;i--){ const e=j[i];
+        if(e&&Array.isArray(e.p)&&e.p[0]==='ccar'&&e.p[1]==='B') return i; } return -1; })()`);
+    chk(name, 'a PMO change', 'and it is in the journal, by path', idx >= 0 ? 'found' : 'NOT FOUND', 'found');
+    if (idx >= 0) {
+      chk(name, 'a PMO change', 'it can be put back', ev(`jrnlUndoable((MS.jrnl||[])[${idx}])`), true);
+      ev(`window.confirm=function(){return true;}; jrnlUndo(${idx}); 'ok'`);
+      chk(name, 'a PMO change', 'and undoing it leaves the board as it was',
+        ev(`JSON.stringify({ccar:S.ccar, asks:S.asks})`), before);
+    }
+  }
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};
