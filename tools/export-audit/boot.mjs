@@ -5,13 +5,15 @@ import { readFileSync } from 'node:fs';
 export const BOARD = process.env.BOARD
   || new URL('../../prioritization-board.html', import.meta.url).pathname;
 
-export function boot({ svc, items, quiet = true } = {}) {
+// `html` boots a board from a STRING rather than from disk -- what buildSavedHtml() hands back,
+// so a saved file can be reopened and compared against the board that wrote it.
+export function boot({ svc, items, quiet = true, html = null } = {}) {
   const vc = new VirtualConsole();
   const errors = [];
   vc.on('jsdomError', e => errors.push(e.message));
   if (!quiet) vc.sendTo(console);
 
-  const dom = new JSDOM(readFileSync(BOARD, 'utf8'), {
+  const dom = new JSDOM(html != null ? html : readFileSync(BOARD, 'utf8'), {
     runScripts: 'dangerously',
     virtualConsole: vc,
     url: 'https://example.invalid/board.html',

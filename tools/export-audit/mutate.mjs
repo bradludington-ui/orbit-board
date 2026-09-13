@@ -274,6 +274,17 @@ const MUTATIONS = [
   { id: 'scen-marker-file', area: 'marker', what: 'a what-if workbook saves under the ordinary file name',
     find: "function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }",
     repl: 'function scenFile(n){ return n; }' },
+  // ---- saving: the board rewrites its own HTML, and reopening it is the only way back ----------
+  { id: 'save-no-lt-escape', area: 'buildSavedHtml', what: 'a literal </script> in a note ends the payload early and truncates the whole store',
+    find: String.raw`rpDb:RPDB}).replace(/</g,'\\u003c');`,
+    repl: "rpDb:RPDB});" },
+  { id: 'save-drops-awards', area: 'dataPackOf', what: 'the saved file loses the requirement list, so every non-custom row drops on reopen',
+    find: "    items:BASE_ITEMS.map(it=>Object.assign({}, it, {ask:(BASE_ASK[it.id]||it.ask).slice()}))",
+    repl: "    items:[]" },
+  { id: 'save-rounds-money', area: 'buildSavedHtml', what: 'saved dollars are rounded to thousands on the way out',
+    find: "  return SRC0.replace(/(<script type=\"application\\/json\" id=\"pubState\">)[\\s\\S]*?(<\\/script>)/,",
+    repl: "  json=json.replace(/(\\d{4,})/g,function(m){return String(Math.round(+m/1000)*1000);});\n  return SRC0.replace(/(<script type=\"application\\/json\" id=\"pubState\">)[\\s\\S]*?(<\\/script>)/," },
+
   // ---- importing a state file: the service-alignment guard --------------------------------------
   // Every figure below the guard is positional. These break it in the four ways that matter, and
   // each one leaves a board whose totals still reconcile perfectly.

@@ -1,4 +1,11 @@
-// Importing a state file is the one place the board takes numbers it did not compute. Every
+// STATE CROSSING THE FILE BOUNDARY, in both directions.
+//
+// OUT and back: the board saves by rewriting its own HTML -- buildSavedHtml() replaces the pubState
+// script tag inside SRC0 -- and reopening that file is how every save is ever read back. If a value
+// does not survive the trip it is gone, silently, and the only evidence is a board that looks
+// slightly different from the one that was saved.
+//
+// IN: importing a state file is the one place the board takes numbers it did not compute. Every
 // per-service figure it holds is an array indexed by SVC POSITION, so a file from a board whose
 // service list differs lands each of them on the wrong service -- and because the same dollars are
 // all still present, every total reconciles and nothing on the board looks wrong.
@@ -178,6 +185,101 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
     String(ev(`applyStore(${JSON.stringify(mineStore)}) !== false`)), 'true');
 }
 
+
+// A real board has its requirements in DATA when BASE_ITEMS is captured at boot, so dataPackOf()
+// carries them into the saved file. seed() runs AFTER boot, so the fixture has to fill BASE_ITEMS
+// itself -- without this the file saves items:[] and the reopened board drops every non-custom row.
+const asBooted = (ev, sc) => ev(`(function(){
+  BASE_ITEMS.length=0;
+  ${JSON.stringify(sc.items)}.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+  return 'ok'; })()`);
+
+// pmoOrder is REBUILT from the requirement list on load, so it is derived state rather than saved
+// state and is excluded from the whole-store comparison. Everything else has to match exactly.
+// SAVE CLOCKS ARE MEANT TO MOVE: buildSavedHtml() calls save(), which stamps a fresh MS.ts, so a
+// byte comparison would fail on a millisecond and say nothing about the data. Only the three
+// timestamps are zeroed -- by name, not by walking for every key called "t", because `t` elsewhere
+// in the store is a title (rcn) and a match string (flow.ents).
+const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
+  Object.keys(m.years || {}).forEach(y => { delete m.years[y].pmoOrder; });
+  m.ts = 0;
+  (m.log || []).forEach(e => { e.ts = 0; });
+  (m.jrnl || []).forEach(e => { e.t = 0; });
+  return JSON.stringify(m); };
+
+// ══ SAVE → REOPEN ═════════════════════════════════════════════════════════════
+// The board persists by rewriting its own HTML. buildSavedHtml() drops the whole store into the
+// pubState script tag of SRC0; reopening that file is the ONLY way a save is ever read back. So the
+// invariant is simply: what comes back is what went in. Nothing tested this before -- the saved
+// file was built, downloaded and trusted.
+{
+  const name = 'save → reopen';
+  const sc = base();
+  const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+
+  // A board with something in every store worth losing: renames, notes, a per-service split, a
+  // trimmed allocation, an award schedule with increments, an MC star, a band, a custom row.
+  ev(`
+    S.mc['A']=true;
+    S.titles['A']='Renamed \u2014 with an em dash, a "quote" and an apostrophe\u2019s tail';
+    S.notes['A']='note with <b>markup</b> and a literal <\/script> in it';
+    S.desc['A']='description \u2713 with unicode \u00e9\u00e5\u5b57 and an emoji \ud83d\ude80';
+    S.ccar['A']='JSF9911'; S.pid['A']='PID-4242';
+    S.alloc['A']={m:'t', v:7500001};
+    seedSplit('A'); S.fsrc['A'].dv[1]=123456;
+    S.awards['A']={mode:'inc', inc:[{d:FYMON[1][0], day:3, sv:[10,20,30]},
+                                    {d:FYMON[4][0], day:17, sv:[40,50,60]}]};
+    S.minInc['A']=250000; S.absorb='A'; S.absorbFloor=1000;
+    S.custom.push({id:'NEW-1',grp:'PSM',sect:'new',custom:true,title:'added row',event:'e',
+                   ccar:'',fy26:[0,0,0],ask:[11,22,33],alloc:null});
+    S.order.push('NEW-1');
+    save(); 'ok'`);
+
+  const before = settled(ev);
+  const html   = ev('buildSavedHtml()');
+  chk(name, 'file', 'the saved file carries a pubState payload',
+    /<script type="application\/json" id="pubState">.+?<\/script>/s.test(html) ? 'yes' : 'no', 'yes');
+  // A literal </script> inside a note would end the tag early and truncate the whole store. The
+  // writer escapes "<"; this is what proves the escape is load-bearing rather than decorative.
+  chk(name, 'file', 'no stray </script> inside the payload',
+    (html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/) || [,''])[1]
+      .indexOf('</script>') < 0 ? 'clean' : 'truncated', 'clean');
+
+  // Reopen the saved file exactly as a browser would, and read its store back.
+  const re = boot({ html });
+  chk(name, 'store', 'the reopened board is the board that was saved', settled(re.ev), before);
+  chk(name, 'store', 'and it rendered without throwing',
+    re.errors.length ? re.errors[0].slice(0, 120) : 'ok', 'ok');
+}
+
+// ══ the values most likely to be quietly mangled ════════════════════════════════════
+// A whole-store comparison passes the moment both sides are equally wrong, so name the fields that
+// would cost real money or real meaning and check them one at a time on the REOPENED board.
+{
+  const name = 'what survives';
+  const sc2 = base();
+  const { ev } = boot(); seed(ev, sc2); asBooted(ev, sc2);
+  ev(`
+    S.alloc['A']={m:'t', v:7500001};
+    seedSplit('A'); S.fsrc['A'].dv[1]=123456;
+    S.awards['A']={mode:'inc', inc:[{d:FYMON[1][0], day:3, sv:[10,20,30]}]};
+    S.titles['A']='a "quoted" \u2014 title'; S.notes['A']='</script> & <b>&amp;</b>';
+    S.minInc['A']=250000; save(); 'ok'`);
+  const re = boot({ html: ev('buildSavedHtml()') });
+  const got = k => re.ev(k);
+  chk(name, 'money', 'the trimmed allocation keeps its exact dollars', Number(got("S.alloc['A'].v")), 7500001);
+  chk(name, 'money', 'a hand-typed split value survives', Number(got("S.fsrc['A'].dv[1]")), 123456);
+  chk(name, 'money', 'and it is still a NUMBER, not a string', got("typeof S.fsrc['A'].dv[1]"), 'number');
+  chk(name, 'money', 'the minimum useful increment survives', Number(got("S.minInc['A']")), 250000);
+  chk(name, 'schedule', 'the increment day survives', Number(got("S.awards['A'].inc[0].day")), 3);
+  chk(name, 'schedule', 'its per-service dollars survive',
+    got("JSON.stringify(S.awards['A'].inc[0].sv)"), '[10,20,30]');
+  chk(name, 'text', 'a title with quotes and an em dash survives',
+    got("S.titles['A']"), 'a "quoted" \u2014 title');
+  chk(name, 'text', 'a note containing </script> and entities survives',
+    got("S.notes['A']"), '</script> & <b>&amp;</b>');
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};
@@ -185,6 +287,15 @@ failures.forEach(f => { const k = f.scenario + ' | ' + f.where; (by[k] ||= []).p
 console.log(`${failures.length} FAILING CHECK(S)\n`);
 for (const [k, fs] of Object.entries(by)) {
   console.log(`--- ${k}`);
-  fs.forEach(f => console.log(`    ${f.what}\n        got ${f.got}   want ${f.want}`));
+  fs.forEach(f => {
+    const g = String(f.got), w = String(f.want);
+    if (g.length < 160 && w.length < 160) { console.log(`    ${f.what}\n        got ${g}   want ${w}`); return; }
+    // Two multi-kilobyte stores tell you nothing side by side. Point at the first difference.
+    let i = 0; while (i < g.length && i < w.length && g[i] === w[i]) i++;
+    const cut = Math.max(0, i - 60);
+    console.log(`    ${f.what}\n        first differs at char ${i} of ${g.length}/${w.length}`
+      + `\n          got  \u2026${g.slice(cut, i + 90)}\u2026`
+      + `\n          want \u2026${w.slice(cut, i + 90)}\u2026`);
+  });
 }
 process.exit(1);

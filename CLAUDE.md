@@ -114,6 +114,35 @@ requirement costs. Do not recompute the star anywhere else.
 These two are the stated rules and are asserted verbatim in the audit under the `RULE` label.
 Change them only on an explicit instruction, and update those checks in the same commit.
 
+### Save → reopen is an invariant, and it is tested
+
+The board persists by rewriting its own HTML: `buildSavedHtml()` drops the whole store into the
+`pubState` script tag of `SRC0`, and reopening that file is the ONLY way a save is ever read back.
+If a value does not survive the trip it is gone silently, and the only evidence is a board that
+looks slightly different from the one that was saved. `audit-import.mjs` boots the saved HTML in a
+second jsdom — the real path, not a simulation of it — and compares.
+
+**Three exclusions from the whole-store comparison, each deliberate:**
+
+- `ts`, `log[].ts`, `jrnl[].t` — save clocks are MEANT to move; `buildSavedHtml()` calls `save()`.
+  Zeroed **by name**, never by walking for every key called `t`: elsewhere in the store `t` is a
+  title (`rcn`) and a match string (`flow.ents`).
+- `pmoOrder` — rebuilt from the requirement list on load, so it is derived rather than saved.
+
+A whole-store comparison passes the moment both sides are equally wrong, so the suite also checks
+named fields one at a time: exact dollars on a trimmed allocation, a hand-typed split value **and
+that it is still a number rather than a string**, the minimum useful increment, an increment's day
+and its per-service dollars, a title with quotes and an em dash, a note containing `</script>`.
+
+**The `<` escape is load-bearing, not decoration.** `.replace(/</g,'\u003c')` is what stops a note
+containing a literal `</script>` from closing the tag early and truncating the entire store — the
+board would not lose a note, it would not load at all. `save-no-lt-escape` proves it.
+
+**A fixture that could not happen tests nothing.** The first run of this suite failed with a
+requirement missing from `order` on reopen. That was the fixture, not the product: `BASE_ITEMS` is
+captured at boot and `seed()` runs after boot, so `dataPackOf()` wrote `items:[]`. A real board has
+its requirements in `DATA` at boot. The fixture now fills `BASE_ITEMS` explicitly and says why.
+
 ### Imported state is POSITIONAL, and position is not a service
 
 Every per-service figure on the board is an array indexed by `SVC` position. A state file from a
