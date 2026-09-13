@@ -13,6 +13,25 @@
 // This suite drives the real adoption path, applyStore(), the way an import does.
 import { boot, seed, BOARD } from './boot.mjs';
 import { readFileSync } from 'node:fs';
+import { JSDOM, VirtualConsole } from 'jsdom';
+
+// boot.mjs cannot help here: the board reads browser storage DURING its own boot script, so the
+// storage has to be in place before the page parses. That is what beforeParse is for.
+const openWith = (html, store) => {
+  const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole: new VirtualConsole(),
+    url: 'https://example.invalid/board.html',
+    beforeParse(w) { Object.keys(store || {}).forEach(k => { try { w.localStorage.setItem(k, store[k]); } catch (e) {} }); } });
+  const w = dom.window;
+  w.URL.createObjectURL = () => 'blob:stub'; w.URL.revokeObjectURL = () => {};
+  w.HTMLAnchorElement.prototype.click = function () {};
+  w.alert = () => {}; w.confirm = () => true; w.prompt = () => null;
+  for (const g of ['Blob','Response','Request','Headers','ReadableStream','WritableStream',
+                   'TransformStream','DecompressionStream','CompressionStream'])
+    if (typeof globalThis[g] === 'function') w[g] = globalThis[g];
+  return w;
+};
+const dumpLs = (w) => { const o = {}; const ls = w.localStorage;
+  for (let i = 0; i < ls.length; i++) { const k = ls.key(i); o[k] = ls.getItem(k); } return o; };
 
 let failures = [];
 const chk = (scenario, where, what, got, want) => {
@@ -449,6 +468,580 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
   chk(name, 'move', 'and recorded as removed, so it is restorable', String(mv.removed), 'true');
   chk(name, 'move', 'it is on the target year', String(mv.inTarget), 'true');
   chk(name, 'move', 'and off every PMO ordering here', String(mv.inPmoOrder), 'false');
+}
+
+// ══ THE PMO COPY, AND WHAT COMES BACK FROM IT ═══════════════════════════════════════════════════
+// A copy published for a programme office: everything works on screen, nothing reaches the team's
+// board, and the one artifact it produces is a submittal the team reviews field by field.
+//
+// The guardrail is honest about being a guardrail -- the data is in the file and anyone who opens
+// it can read all of it. What these checks protect is the part that IS enforceable: that the copy
+// cannot write outward, that a submittal carries only what a PMO is invited to propose, and that
+// nothing lands on the board without being ticked.
+{
+  const name = 'PMO copy';
+  // TWO REAL REQUIREMENTS. This block corrects a record number on B, and B has to be a requirement
+  // the board actually has for that to mean anything: a bag key for an id not in S.order gets no
+  // baseline when the copy is published, so it is not a field a programme office can propose --
+  // it is a stray key, and the package is right to leave it behind.
+  const sc = base();
+  sc.items.push(it('B', 'ATL', [3000000, 500000, 250000]));
+  sc.order.push('B');
+  const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+
+  chk(name, 'flag', 'the portfolio board is not a sandbox', String(ev('SANDBOX')), 'false');
+
+  // String.raw: a plain template literal eats the backslashes out of the regex and the \u003c
+  // escape, and the page then throws "Invalid regular expression flags" from inside eval.
+  const html = ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const P = boot({ html });
+  chk(name, 'flag', 'the published copy knows it is one', String(P.ev('SANDBOX')), 'true');
+  chk(name, 'flag', 'and who published it', P.ev('PMODE.by'), 'BLL');
+
+  // OUTBOUND IS SHUT. Each of the four is checked by driving it and watching for the refusal --
+  // a button that is merely hidden is still reachable from the console or a stale menu.
+  const blocked = (call) => P.ev(`(function(){ var hit=false; var _a=window.alert;
+    window.alert=function(){ hit=true; }; try{ ${call}; }catch(e){} window.alert=_a;
+    return hit? 'refused' : 'ALLOWED'; })()`);
+  chk(name, 'outbound', 'saving to a file is refused',       blocked('saveInPlaceFile()'), 'refused');
+  chk(name, 'outbound', 'saving in place is refused',        blocked('saveInPlace()'),     'refused');
+  chk(name, 'outbound', 'downloading a board copy is refused', blocked('publishState()'),  'refused');
+  chk(name, 'outbound', 'publishing another PMO copy is refused', blocked('publishPmoCopy()'), 'refused');
+  // ...but their own work must survive a refresh, or an afternoon of impact statements is lost.
+  chk(name, 'outbound', 'their own browser storage still accepts changes', String(P.ev('persist()')), 'true');
+
+  // WHAT TRAVELS BACK. Only the invited fields, only where they differ from the baseline shipped
+  // with the copy, and never the priority order -- the ranking stays the portfolio team's.
+  P.ev(`try{ localStorage.setItem('prio27who','PMO Lead'); }catch(e){}
+    S.cons['A'] = 'Depot line stops in March; forty aircraft unsupported. '.repeat(12);
+    S.desc['A'] = 'Sustainment of the depot line.';
+    S.asks['A'] = [9500000, 2000000, 1000000];
+    S.ccar['B'] = 'JSF7777';
+    S.order = ['B','A'];
+    S.mc['A'] = true; S.band['A'] = 'pdm';
+    S.alloc['A'] = {m:'t', v:1};
+    save(); 'ok'`);
+  const sub = JSON.parse(P.ev('JSON.stringify(pmoSubmitBuild())'));
+  chk(name, 'submittal', 'it carries the requirements that changed',
+    Object.keys(sub).sort().join(','), 'A,B');
+  chk(name, 'submittal', 'A carries exactly the invited fields it changed',
+    Object.keys(sub.A || {}).sort().join(','), 'asks,cons,desc');
+  chk(name, 'submittal', 'B carries only its record correction',
+    Object.keys(sub.B || {}).sort().join(','), 'ccar');
+  // The star, the band and the allocation are the portfolio team's calls. A package that could
+  // carry them would turn a review into an argument about who decides what.
+  ['mc', 'band', 'alloc', 'fsrc', 'awards', 'minInc'].forEach(k =>
+    chk(name, 'submittal', `${k} is NOT something a PMO can propose`,
+      JSON.stringify(sub).includes('"' + k + '"') ? 'carried' : 'withheld', 'withheld'));
+  chk(name, 'submittal', 'the priority order is not sent',
+    JSON.stringify(sub).includes('"order"') ? 'sent' : 'theirs to explore', 'theirs to explore');
+  // JRNL_BIG caps a journalled value at 300 characters; an impact statement runs well past it.
+  // This is why the package carries values rather than journal entries.
+  chk(name, 'submittal', 'a long impact statement survives whole',
+    (sub.A && sub.A.cons || '').length > 300 ? 'whole' : 'truncated', 'whole');
+
+  // THE PACKAGE ITSELF, built the way the button builds it. Testing pmoSubmitBuild() alone leaves
+  // the packaging untested -- and the baseline, which is the only thing that makes a conflict
+  // knowable on the other end, is added during packaging.
+  const wire = JSON.parse(P.ev(`(function(){ var cap=null; var _B=window.Blob;
+    window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+    try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
+  chk(name, 'submittal', 'the package says what it is', wire.dir, 'submit');
+  chk(name, 'submittal', 'it is attributed to the sender', wire.by, 'PMO Lead');
+  chk(name, 'submittal', 'it says which copy it came from',
+    wire.fromTs > 0 ? 'dated' : 'undated', 'dated');
+  // Without this the reviewing board has nothing to compare against and every field reads as
+  // uncontested, however much has changed since the copy went out.
+  chk(name, 'submittal', 'it carries the baseline it was published with',
+    Object.keys(wire.base || {}).sort().join(','), 'A,B');
+  chk(name, 'submittal', 'and the baseline holds the value each field started from',
+    JSON.stringify((wire.base || {}).A && wire.base.A.asks),
+    JSON.stringify([9000000, 2000000, 1000000]));
+}
+
+// ── review: nothing lands without a tick, and a clash is visible ────────────────────────────────
+{
+  const name = 'submittal review';
+  const sc = base();
+  const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+  // The board moved on after the copy went out: it rewrote the SAME impact statement.
+  ev(`S.cons['A']='Our own earlier wording.'; save(); 'ok'`);
+  const pkg = { spmtPkg: 1, dir: 'submit', ap: '', fy: 2027, ts: Date.now(), by: 'PMO Lead',
+    fromTs: Date.now() - 86400000,
+    items: { A: { cons: 'Theirs: the depot line stops in March.', asks: [9500000, 2000000, 1000000] },
+             B: { ccar: 'JSF7777' } },
+    base:  { A: { cons: null, asks: [9000000, 2000000, 1000000] }, B: { ccar: null } } };
+  ev(`window.alert=function(){}; pmoTake(${JSON.stringify(pkg)}, 'sub.json'); 'ok'`);
+
+  const rows = JSON.parse(ev('JSON.stringify(pmoRows().map(function(r){ return {id:r.id,key:r.key,conflict:r.conflict}; }))'));
+  chk(name, 'diff', 'it holds three proposed changes', rows.length, 3);
+  // THE CONFLICT IS THE POINT. The baseline travels in the package, so "changed here since" is
+  // knowable; diffing against the board's own current values would compare it with itself and
+  // every field would look uncontested.
+  chk(name, 'diff', 'the field this board also changed is flagged',
+    rows.filter(r => r.conflict).map(r => r.id + '|' + r.key).join(','), 'A|cons');
+  chk(name, 'diff', 'and the untouched ones are not',
+    rows.filter(r => !r.conflict).length, 2);
+  chk(name, 'review', 'nothing is ticked to begin with', ev('Object.keys(PMOPICK).length'), 0);
+  chk(name, 'review', 'so applying now does nothing',
+    ev(`(function(){ var h=false; var _a=window.alert; window.alert=function(){h=true;};
+        pmoApply(); window.alert=_a; return h? 'refused':'APPLIED'; })()`), 'refused');
+  chk(name, 'review', 'the board is untouched while it is only proposed',
+    ev("S.cons['A']"), 'Our own earlier wording.');
+  chk(name, 'report', 'a change report builds before anything is applied',
+    ev(`(function(){ var n=0; var _c=URL.createObjectURL;
+        URL.createObjectURL=function(b){ n=(b&&(b.size||b.length))||1; return 'blob:x'; };
+        pmoReport(); URL.createObjectURL=_c; return n>500? 'built':'empty'; })()`), 'built');
+
+  // Tick two of the three; the third must stay where it was.
+  ev(`PMOPICK={'A|cons':true,'A|asks':true}; window.confirm=function(){return true;};
+      window.alert=function(){}; pmoApply(); 'ok'`);
+  chk(name, 'apply', 'the ticked impact statement is applied',
+    ev("S.cons['A']"), 'Theirs: the depot line stops in March.');
+  chk(name, 'apply', 'the ticked requirement value is applied',
+    ev("JSON.stringify(S.asks['A'])"), JSON.stringify([9500000, 2000000, 1000000]));
+  chk(name, 'apply', 'the unticked record correction is NOT applied',
+    ev("S.ccar['B'] || '(none)'"), '(none)');
+  chk(name, 'apply', 'every applied change is in the change journal',
+    ev("MS.jrnl.filter(function(e){ return e.p && e.p[0]==='cons'; }).length > 0") ? 'journalled' : 'silent',
+    'journalled');
+}
+
+// ══ THE HANDOFF, HELD TO "NOTHING IS LOST AND NOTHING IS INVENTED" ══════════════════════════════
+// Two directions, one standard: the copy a programme office receives must compute exactly what this
+// board computes, and an accepted change must leave the board exactly as if it had been typed here
+// by hand. Anything less is a number briefed to leadership that nobody typed.
+const fpOf = (ev) => ev(`(function(){ const T=tiers(); const o={};
+  S.order.forEach(function(id){ const p=T[id]; if(!p) return;
+    o[id]={d:p.d.map(Math.round), m:p.m.map(Math.round), u:p.u.map(Math.round),
+           cum:Math.round(p.cum), tier:p.tier, natM:Math.round(p.natM), natU:Math.round(p.natU)}; });
+  const TT=tierTotals(T), MC=mcCalc(T);
+  o.__tot={dUsed:Math.round(TT.dUsed), mUsed:Math.round(TT.mUsed), uAmt:Math.round(TT.uAmt)};
+  o.__mc={tot:MC.tot.map(Math.round), need:MC.need.map(Math.round)};
+  o.__ask=S.order.map(function(id){ var x=itemById(id); return x? JSON.stringify(x.ask):'?'; });
+  return JSON.stringify(o); })()`);
+
+// A board with the awkward cases on it: six services, a scalar trim, a split, an award, a star,
+// and a CUSTOM requirement -- the one whose value does not live where every other one's does.
+const handoffSc = () => ({
+  services: ['USAF','ANG','AFRC','STOVL','USMC-C','USN'],
+  items: [it('A','PSM',[9000000,2000000,1000000,4000000,1500000,2500000]),
+          it('B','ATL',[3000000,500000,250000,1000000,0,750000]),
+          it('C','TSS',[1200000,0,0,300000,200000,100000])],
+  disc:[8000000,1500000,600000,3000000,1400000,1600000],
+  mand:[4000000,600000,400000,1500000,800000,900000],
+  order:['A','B','C'], mc:{A:true},
+});
+const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
+  // THE SIDE DATABASES RIDE ALONGSIDE THE STORE, not inside it: execution data, the ACE cost
+  // estimate and the reprogramming log are their own globals and buildSavedHtml() packs each one
+  // separately. Left empty in the fixture, a copy that dropped them looked identical to one that
+  // carried them -- so seed all three with something recognisable.
+  EXDB={ts:1700000000001, all:{'A':{oblig:1234567, comm:7654321}}};
+  ACEDB={ts:1700000000002, sets:{'FY27':{'A':{pt:42}}}};
+  RPDB={ts:1700000000003, entries:[{id:'r1', k:'ATR', fy:2027, amt:2500000, note:'depot line'}]};
+  S.alloc['B']={m:'t',v:3900001}; S.band['A']='pdm'; seedSplit('C');
+  S.awards['A']={mode:'single',d:FYMON[2][0],day:7};
+  S.custom.push({id:'NEW-1',grp:'PSM',sect:'new',custom:true,title:'Added here',event:'e',
+                 ccar:'',fy26:SVC.map(function(){return 0;}), ask:[500000,0,0,0,0,0], alloc:null});
+  S.order.push('NEW-1'); applyState(S); save(); 'ok'`); };
+
+{
+  const name = 'handoff — out';
+  const sc = handoffSc();
+  const { ev } = boot(); seed(ev, sc); handoffSeed(ev, sc);
+  const boardFp = fpOf(ev);
+  const html = ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const P = boot({ html });
+
+  // IF THE COPY COMPUTES ANYTHING DIFFERENT, every conversation downstream is about a different
+  // board. This compares each requirement's lane vectors, its cumulative, its tier, both cutline
+  // figures, the portfolio totals, Mission Critical, and every requirement value.
+  chk(name, 'figures', 'the copy computes exactly what this board computes', fpOf(P.ev), boardFp);
+  chk(name, 'content', 'it carries every requirement', P.ev('S.order.length'), ev('S.order.length'));
+  chk(name, 'content', 'including the one added here', P.ev(`S.order.indexOf('NEW-1')>=0`), true);
+  chk(name, 'content', 'the baseline covers every requirement',
+    P.ev('Object.keys(PMODE.base).length'), ev('S.order.length'));
+  // Every per-requirement store, compared whole. A store that failed to travel would look like a
+  // programme office that simply had not written anything.
+  ['alloc','mc','band','fsrc','awards','asks','notes','desc','cons','ccar','pid','recNames',
+   'minInc','rcnAsg','si','wbs','ptype','obCat'].forEach(k =>
+    chk(name, 'content', `${k} travelled intact`,
+      P.ev(`JSON.stringify(S['${k}']||{})`), ev(`JSON.stringify(S['${k}']||{})`)));
+  ['bands','rcn','baselines','snaps','ppbe','pmos'].forEach(k =>
+    chk(name, 'content', `${k} travelled intact`,
+      P.ev(`JSON.stringify(MS['${k}']||null)`), ev(`JSON.stringify(MS['${k}']||null)`)));
+  // The three side databases are their own globals, packed separately by buildSavedHtml(). A copy
+  // that dropped one is a copy whose execution read-outs, cost estimate or reprogramming tracker
+  // are simply EMPTY -- which reads as a programme with nothing in it rather than as a broken file.
+  ['EXDB','ACEDB','RPDB'].forEach(k =>
+    chk(name, 'content', `${k} travelled intact`,
+      P.ev(`JSON.stringify(${k}||null)`), ev(`JSON.stringify(${k}||null)`)));
+  chk(name, 'content', 'and the reprogramming log is not merely present but populated',
+    P.ev(`(RPDB.entries||[]).length`), 1);
+
+  // AN INVARIANT, ASSERTED SO AN EQUIVALENCE CLAIM CANNOT ROT. applyState() rebuilds DATA.items
+  // from BASE_ITEMS plus the S.custom objects THEMSELVES, so itemById() on a custom requirement
+  // returns the store's own object -- which is why applyAskVec()'s `c.ask=` line is belt and braces
+  // rather than the only writer, and why the mutation against it is equivalent. If this ever stops
+  // holding, that line becomes load-bearing and this check fails first.
+  chk(name, 'aliasing', 'itemById() on a custom requirement IS the stored object',
+    ev(`itemById('NEW-1')===S.custom.filter(function(c){ return c.id==='NEW-1'; })[0]`), true);
+}
+
+{
+  const name = 'handoff — back';
+  const sc = handoffSc();
+  // The office changes four things, including the value on the CUSTOM requirement.
+  const { ev: pe } = (() => { const b = boot(); seed(b.ev, sc); handoffSeed(b.ev, sc); return b; })();
+  const html = pe(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const P = boot({ html });
+  const LONG = 'Depot line stops in March 26; forty aircraft unsupported. '.repeat(9);
+  P.ev(`try{ localStorage.setItem('prio27who','PMO'); }catch(e){}
+    S.cons['A']=${JSON.stringify(LONG)};
+    [3100000,500000,250000,1000000,0,750000].forEach(function(v,i){ setAsk('B',i,String(v)); });
+    [777000,0,0,0,0,0].forEach(function(v,i){ setAsk('NEW-1',i,String(v)); });
+    S.ccar['C']='JSF4242'; save(); 'ok'`);
+  const wire = JSON.parse(P.ev(`(function(){ var cap=null; var _B=window.Blob;
+    window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+    try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
+  chk(name, 'package', 'it carries the service list it was written against',
+    (wire.svc || []).join(','), sc.services.join(','));
+  chk(name, 'package', 'the custom requirement’s value is in it',
+    JSON.stringify((wire.items || {})['NEW-1']), JSON.stringify({ asks: [777000,0,0,0,0,0] }));
+
+  // PATH 1 — accept every proposed change on a fresh board.
+  const X = boot(); seed(X.ev, sc); handoffSeed(X.ev, sc);
+  X.ev(`window.alert=function(){}; window.confirm=function(){return true;};
+    pmoTake(${JSON.stringify(wire)}, 's.json');
+    PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[r.id+'|'+r.key]=true; }); pmoApply(); 'ok'`);
+  // PATH 2 — type the same values here, by hand, the way the team would have.
+  const Y = boot(); seed(Y.ev, sc); handoffSeed(Y.ev, sc);
+  Y.ev(`S.cons['A']=${JSON.stringify(LONG)};
+    [3100000,500000,250000,1000000,0,750000].forEach(function(v,i){ setAsk('B',i,String(v)); });
+    [777000,0,0,0,0,0].forEach(function(v,i){ setAsk('NEW-1',i,String(v)); });
+    S.ccar['C']='JSF4242'; applyState(S); save(); 'ok'`);
+
+  // THE STANDARD. Not "the fields look right" -- the whole board, recomputed, identical.
+  chk(name, 'equivalence', 'applying the submittal leaves the board exactly as typing would',
+    fpOf(X.ev), fpOf(Y.ev));
+  // A CUSTOM requirement keeps its value on its own object and applyState ignores S.asks for it.
+  // Writing S.asks alone lost the change in silence while the review reported it applied.
+  chk(name, 'custom', 'a custom requirement’s value actually moves',
+    X.ev(`JSON.stringify(itemById('NEW-1').ask)`), JSON.stringify([777000,0,0,0,0,0]));
+  chk(name, 'custom', 'and it is stored where a reload will find it',
+    X.ev(`JSON.stringify(S.custom.filter(function(c){return c.id==='NEW-1';})[0].ask)`),
+    JSON.stringify([777000,0,0,0,0,0]));
+  chk(name, 'custom', 'with no stale S.asks entry applyState would ignore',
+    X.ev(`(S.asks||{})['NEW-1']===undefined`), true);
+  chk(name, 'fidelity', 'the impact statement is char-for-char',
+    X.ev(`S.cons['A']`), LONG);
+  chk(name, 'fidelity', 'the requirement value keeps every dollar',
+    X.ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([3100000,500000,250000,1000000,0,750000]));
+}
+
+{
+  const name = 'handoff — service alignment';
+  const sc = handoffSc();
+  // Same services, listed in a different order: remap by NAME, never by position.
+  const R = boot(); seed(R.ev, sc); handoffSeed(R.ev, sc);
+  R.ev(`window.alert=function(){}; window.confirm=function(){return true;};
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+      svc:['USN','USAF','ANG','AFRC','STOVL','USMC-C'],
+      items:{A:{asks:[2500000,9500000,2000000,1000000,4000000,1500000]}},
+      base:{A:{asks:[2500000,9000000,2000000,1000000,4000000,1500000]}}},'s.json');
+    PMOPICK={'A|asks':true}; pmoApply(); 'ok'`);
+  chk(name, 'reorder', 'each figure lands on the service it was written for',
+    R.ev(`JSON.stringify(itemById('A').ask)`),
+    JSON.stringify([9500000,2000000,1000000,4000000,1500000,2500000]));
+
+  // A different SET of services cannot be placed at all. Guessing would be a misallocation that
+  // every row total still reconciles -- the exact failure the state-import guard exists for.
+  const W = boot(); seed(W.ev, sc); handoffSeed(W.ev, sc);
+  const before = W.ev(`JSON.stringify(itemById('A').ask)`);
+  W.ev(`window.__a=''; window.alert=function(m){ window.__a=m; };
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+      svc:['ARMY','USMC','USCG'], items:{A:{asks:[1,2,3]}}, base:{A:{asks:[0,0,0]}}},'s.json'); 'ok'`);
+  chk(name, 'mismatch', 'a submittal for other services is refused',
+    W.ev(`/different set of services/.test(window.__a)`) ? 'refused' : 'ACCEPTED', 'refused');
+  chk(name, 'mismatch', 'nothing is held for review', W.ev('PMOSUB===null'), true);
+  chk(name, 'mismatch', 'and the board is untouched', W.ev(`JSON.stringify(itemById('A').ask)`), before);
+}
+
+{
+  const name = 'handoff — the review controls';
+  const sc = handoffSc();
+
+  // ── THE PER-ROW TICK MUST ACTUALLY TICK ─────────────────────────────────────────────────────
+  // "Nothing is applied until you tick it" is the whole promise of the review, and it is made by a
+  // checkbox. `pmoPick` was renamed `subPick` in a collision rename and this call site was missed:
+  // the box drew, the click raised a ReferenceError into a console nobody reads, and the reviewer's
+  // only working control was "Tick all". Drive the RENDERED control, not the function behind it --
+  // calling subPick() directly is exactly what missed this for a whole release.
+  const T = boot(); seed(T.ev, sc); handoffSeed(T.ev, sc);
+  T.ev(`window.alert=function(){}; window.confirm=function(){return true;};
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+      svc:SVC.slice(), items:{A:{cons:'Depot line stops.'}}, base:{A:{cons:null}}},'s.json');
+    subOpenReview(); 'ok'`);
+  chk(name, 'tick', 'the review renders a tick box for the proposed change',
+    T.ev(`document.querySelectorAll('#subBody input[type=checkbox]').length`), 1);
+  const ticked = T.ev(`(function(){
+    var b=document.querySelector('#subBody input[type=checkbox]'); if(!b) return 'no box';
+    b.checked=true; b.dispatchEvent(new Event('change'));
+    return JSON.stringify(Object.keys(PMOPICK).filter(function(k){ return PMOPICK[k]; }));
+  })()`);
+  chk(name, 'tick', 'clicking it records the pick', ticked, JSON.stringify(['A|cons']));
+  T.ev(`pmoApply(); 'ok'`);
+  chk(name, 'tick', 'and applying writes only what was ticked',
+    T.ev(`S.cons['A']||''`), 'Depot line stops.');
+
+  // ── A REQUIREMENT ADDED IN THE COPY IS NOT SENT, AND THE OFFICE IS TOLD ──────────────────────
+  // The package carries FIELDS of requirements the portfolio board already has. One added after the
+  // copy was published has no id there, so it could only ever arrive as a row nobody can tick --
+  // while the office believed it had submitted it.
+  const A = boot(); seed(A.ev, sc); handoffSeed(A.ev, sc);
+  const ahtml = A.ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const PA = boot({ html: ahtml });
+  PA.ev(`try{ localStorage.setItem('prio27who','PMO'); }catch(e){}
+    S.custom.push({id:'PMO-NEW',grp:'PSM',sect:'new',custom:true,title:'Raised by the office',
+      event:'e',ccar:'',fy26:SVC.map(function(){return 0;}),
+      ask:[250000,0,0,0,0,0],alloc:null});
+    S.order.push('PMO-NEW'); S.desc['A']='Rewritten by the office.'; applyState(S); save(); 'ok'`);
+  const sent = JSON.parse(PA.ev(`(function(){ var cap=null, msg=''; var _B=window.Blob;
+    window.alert=function(m){ msg+=m; };
+    window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+    try{ pmoSubmit(); }catch(e){} window.Blob=_B;
+    return JSON.stringify({pkg:cap, msg:msg}); })()`));
+  const pkgA = JSON.parse(sent.pkg || '{}');
+  chk(name, 'added', 'a requirement added in the copy is kept out of the package',
+    (pkgA.items || {})['PMO-NEW'] === undefined, true);
+  chk(name, 'added', 'and the office is told, by name',
+    /Raised by the office/.test(sent.msg || '') ? 'named' : 'silent', 'named');
+  chk(name, 'added', 'while everything else it edited still goes',
+    ((pkgA.items || {})['A'] || {}).desc, 'Rewritten by the office.');
+
+  // ── A PACKAGE WITH NO SERVICE LIST IS NOT READ SILENTLY ──────────────────────────────────────
+  // Every submittal this board publishes carries one. A package without it is damaged or hand-made,
+  // and its per-service figures would land by position against whatever this board's services are --
+  // with every row total still reconciling.
+  const N = boot(); seed(N.ev, sc); handoffSeed(N.ev, sc);
+  const was = N.ev(`JSON.stringify(itemById('A').ask)`);
+  N.ev(`window.__q=''; window.alert=function(){};
+    window.confirm=function(m){ window.__q=m; return false; };
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+      items:{A:{asks:[1,2,3,4,5,6]}}, base:{A:{asks:[0,0,0,0,0,0]}}},'s.json'); 'ok'`);
+  chk(name, 'no list', 'a listless submittal with per-service figures asks first',
+    N.ev(`/does not say which services/.test(window.__q)`) ? 'asked' : 'read it anyway', 'asked');
+  chk(name, 'no list', 'declining holds nothing for review', N.ev('PMOSUB===null'), true);
+  chk(name, 'no list', 'and leaves the board untouched', N.ev(`JSON.stringify(itemById('A').ask)`), was);
+  // A listless package that proposes only PROSE has no positional hazard and must not nag.
+  const Q = boot(); seed(Q.ev, sc); handoffSeed(Q.ev, sc);
+  Q.ev(`window.__n=0; window.alert=function(){};
+    window.confirm=function(){ window.__n++; return true; };
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+      items:{A:{desc:'Prose only.'}}, base:{A:{desc:null}}},'s.json'); 'ok'`);
+  chk(name, 'no list', 'but a prose-only one is not questioned', Q.ev('window.__n'), 0);
+  chk(name, 'no list', 'and is held for review', Q.ev('PMOSUB!==null'), true);
+}
+
+{
+  const name = 'handoff — the copy has its own storage';
+  const sc = handoffSc();
+  const { ev } = boot(); seed(ev, sc); handoffSeed(ev, sc);
+  ev(`S.cons['A']='PORTFOLIO-V2 — what the copy should show.'; save(); 'ok'`);
+  const pub = (ts) => ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:` + ts + String.raw`, fy:MS.cur, ap:APPN, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const html = pub('1700000000000');
+
+  // ── STALE STORAGE MUST NOT WIN ───────────────────────────────────────────────────────────────
+  // Every copy used to share prio27om with the portfolio board and with every other copy, and the
+  // boot restore takes browser storage over the file whenever storage's clock is later. Copies are
+  // published days before they are distributed, so an office that had worked in ANY earlier copy
+  // opened the new one and saw THAT board's numbers under this copy's banner -- silently, because
+  // every total still reconciled -- and would then have submitted the old board's text back as new
+  // input, against a baseline it never matched. This is the check that would have caught it.
+  const { ev: oe } = boot(); seed(oe, sc); handoffSeed(oe, sc);
+  oe(`S.cons['A']='STALE — from a copy they had before.'; MS.ts=Date.now()+86400000; 'ok'`);
+  const stale = { [ev('_AP.key')]: oe('JSON.stringify(MS)') };
+  const X = openWith(html, stale);
+  chk(name, 'stale', 'the copy keeps a separate storage key',
+    X.eval('_AP.key') === ev('_AP.key') ? 'SHARED' : 'its own', 'its own');
+  chk(name, 'stale', 'and shows what was published, not what the browser had',
+    X.eval(`(S.cons||{})['A']`), 'PORTFOLIO-V2 — what the copy should show.');
+  chk(name, 'stale', 'so it proposes nothing nobody typed',
+    X.eval('JSON.stringify(pmoSubmitBuild())'), '{}');
+
+  // ── THEIR OWN WORK STILL SURVIVES A CLOSED TAB ───────────────────────────────────────────────
+  // Isolating the key must not cost the office its afternoon: an impact statement is written over
+  // days, not in one sitting, and the copy cannot save to a file.
+  const d1 = openWith(html, {});
+  d1.eval(`S.cons['A']='Written by the office on day one.'; save(); 'ok'`);
+  const d2 = openWith(html, dumpLs(d1));
+  chk(name, 'their work', 'reopening restores what they wrote',
+    d2.eval(`(S.cons||{})['A']`), 'Written by the office on day one.');
+  chk(name, 'their work', 'the published baseline is still the one they started from',
+    d2.eval(`(PMODE.base['A']||{}).cons||''`), 'PORTFOLIO-V2 — what the copy should show.');
+  chk(name, 'their work', 'and the submittal is exactly what they changed',
+    d2.eval('JSON.stringify(pmoSubmitBuild())'),
+    JSON.stringify({ A: { cons: 'Written by the office on day one.' } }));
+
+  // Two copies of the same board cannot reach each other's storage either.
+  const other = openWith(pub('1800000000000'), dumpLs(d1));
+  chk(name, 'their work', 'a different copy does not inherit it',
+    other.eval(`(S.cons||{})['A']`), 'PORTFOLIO-V2 — what the copy should show.');
+  // ── THE COPY OPENS AS THE BOARD IT WAS PUBLISHED FROM ────────────────────────────────────────
+  // The appropriation was read from the reader's OWN browser (prio27appn) before the file had any
+  // say, so a copy opened on a machine where somebody had once looked at another drill came up as
+  // that appropriation -- an empty board under a full banner, with no error anywhere.
+  const drift = openWith(html, Object.assign({ prio27appn: 'OPN' }, {}));
+  chk(name, 'appropriation', 'a copy opens as the board it was published from',
+    drift.eval('APPN'), ev('APPN'));
+  chk(name, 'appropriation', 'with the requirements it was published with',
+    drift.eval('S.order.length'), ev('S.order.length'));
+  chk(name, 'appropriation', 'and switching inside a copy is refused rather than reloading empty',
+    drift.eval(`(function(){ var hit=false; window.alert=function(){ hit=true; };
+      try{ switchAppn('opn'); }catch(e){} return hit? 'refused' : 'ALLOWED'; })()`), 'refused');
+
+  // ...and neither does the portfolio board sitting on the same machine.
+  const pb = openWith(ev('SRC0'), dumpLs(d1));
+  chk(name, 'their work', 'the portfolio board keeps its own key', pb.eval('_AP.key'), ev('_AP.key'));
+  chk(name, 'their work', 'and is not a sandbox', String(pb.eval('SANDBOX')), 'false');
+}
+
+// ══ what is reviewed is what would land ════════════════════════════════════════════════════════
+// The review, the spreadsheet and pmoApply() all read the same package, but only pmoApply() put a
+// requirement value through the board's rule for one. A package is a JSON file -- a hand edit or a
+// damaged transfer is all it takes -- and one carrying a negative and a NaN was REPORTED as
+// "USAF $-5,000,000 · AFRC $NaN" and APPLIED as zeroes. The team would have signed off a
+// spreadsheet that did not describe the board it produced.
+{
+  const name = 'handoff — the review cannot promise what applying will not do';
+  const sc = base();
+  const seedOne = () => { const b = boot(); seed(b.ev, sc); asBooted(b.ev, sc);
+    b.ev(`window.__a=''; window.alert=function(m){ window.__a=m; };
+          window.confirm=function(){ return true; }; 'ok'`); return b; };
+
+  const { ev } = seedOne();
+  ev(`pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+    svc:SVC.slice(), items:{A:{asks:[-5000000, 2000000, 'abc'], ccar:{x:1}}},
+    base:{A:{asks:[9000000,2000000,1000000]}}},'s.json'); 'ok'`);
+  const shown = ev(`pmoFmtVal('asks', pmoRows().filter(function(r){ return r.key==='asks'; })[0].prop)`);
+  chk(name, 'values', 'the review shows the value the board would store',
+    shown, 'USAF $0 · ANG $2,000,000 · AFRC $0');
+  chk(name, 'values', 'and nothing that is not a number',
+    /NaN|-\$/.test(shown) ? 'promised a number it cannot store' : 'clean', 'clean');
+  chk(name, 'values', 'a record number arriving as an object is shown as text, not as a shape',
+    typeof ev(`pmoRows().filter(function(r){ return r.key==='ccar'; })[0].prop`), 'string');
+  ev(`PMOPICK={'A|asks':true}; pmoApply(); 'ok'`);
+  chk(name, 'values', 'and applying lands exactly that',
+    ev(`JSON.stringify(itemById('A').ask)`), JSON.stringify([0, 2000000, 0]));
+
+  // A vector of the wrong WIDTH is not a value to tidy up -- padding it zeroes a service in silence,
+  // which is the positional hazard again wearing a different hat.
+  const W = seedOne();
+  const before = W.ev(`JSON.stringify(itemById('A').ask)`);
+  W.ev(`pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+    svc:SVC.slice(), items:{A:{asks:[1,2]}}, base:{A:{asks:[9000000,2000000,1000000]}}},'s.json'); 'ok'`);
+  chk(name, 'width', 'a value with the wrong number of services is refused',
+    W.ev(`/wrong number of services/.test(window.__a)`) ? 'refused' : 'ACCEPTED', 'refused');
+  chk(name, 'width', 'nothing is held for review', W.ev('PMOSUB===null'), true);
+  chk(name, 'width', 'and the board is untouched', W.ev(`JSON.stringify(itemById('A').ask)`), before);
+}
+
+// ══ the change report is the record the team argues from ═══════════════════════════════════════
+// "A pre-audit change report ... so that my team and I fully understand and know what updates have
+// been made." A byte count proves it downloaded, not that it says anything true. Read it back with
+// the board's OWN workbook reader and compare every cell against the review it claims to describe.
+{
+  const name = 'handoff — the change report';
+  const sc = base();
+  sc.items.push(it('B', 'ATL', [3000000, 500000, 250000]));
+  sc.order.push('B');
+  const { ev, w } = boot(); seed(ev, sc); asBooted(ev, sc);
+  ev(`S.cons['A']='Our own earlier wording.'; save(); 'ok'`);
+  // Three live rows and one for a requirement this board no longer has, one of them ticked, one of
+  // them a conflict -- every state the Status and Conflict columns are supposed to tell apart.
+  ev(`window.alert=function(){}; window.confirm=function(){return true;};
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO Lead',fromTs:1,
+      svc:SVC.slice(),
+      items:{A:{cons:'Theirs: the depot line stops in March.', asks:[9500000,2000000,1000000]},
+             B:{ccar:'JSF7777'}, ZZ:{desc:'from a requirement since removed'}},
+      base:{A:{cons:null, asks:[9000000,2000000,1000000]}, B:{ccar:null}, ZZ:{desc:null}}},'s.json');
+    PMOPICK={'A|cons':true}; 'ok'`);
+  const want = JSON.parse(ev(`JSON.stringify(pmoRows().map(function(r){ return [
+    (PMO_LBL[r.key]||r.key), String(pmoFmtVal(r.key,r.now)), String(pmoFmtVal(r.key,r.prop)),
+    (r.conflict? 'YES — this board changed too':''),
+    (r.gone? 'requirement missing' : (PMOPICK[r.id+'|'+r.key]? 'ticked to apply':'not applied'))]; }))`));
+  const before = ev(`JSON.stringify({cons:S.cons, asks:S.asks, ccar:S.ccar, desc:S.desc})`);
+  const book = JSON.parse(await w.eval(`(async function(){
+    var cap=null, _B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ pmoReport(); }catch(e){ return JSON.stringify({err:String((e&&e.message)||e)}); }
+    window.Blob=_B;
+    if(!cap) return JSON.stringify({err:'no workbook bytes'});
+    var ab=cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength);
+    var sh=await xlsxRead(ab);
+    return JSON.stringify({sheets:Object.keys(sh), rows:sh[Object.keys(sh)[0]]}); })()`));
+  chk(name, 'reads back', 'the report is a workbook this board can read',
+    book.err ? 'THREW: ' + book.err : 'read', 'read');
+  const rows = book.rows || [];
+  chk(name, 'reads back', 'on one named sheet', (book.sheets || []).join(','), 'Proposed changes');
+  chk(name, 'says so', 'the title says nothing has been applied',
+    /NOTHING BELOW HAS BEEN APPLIED/.test(String(rows[0] && rows[0][0])) ? 'said' : 'silent', 'said');
+  chk(name, 'says so', 'and names who sent it',
+    /SUBMITTAL FROM PMO Lead/.test(String(rows[0] && rows[0][0])) ? 'named' : 'anonymous', 'named');
+  chk(name, 'columns', 'the header is the one the team reads',
+    (rows[3] || []).join('|'),
+    'Rank|PMO|Requirement|CCaR|Field|On the board now|Proposed|Conflict|Status');
+  // ONE ROW PER PROPOSED CHANGE, in the review's own order. A report that drops or reorders a row
+  // is worse than none: the team signs off a list that is not the list.
+  const body = rows.slice(4).filter(r => r.length > 1);
+  chk(name, 'rows', 'one row per proposed change', body.length, want.length);
+  want.forEach((exp, i) => {
+    const got = body[i] || [];
+    chk(name, 'rows', `row ${i + 1}: the field it is about`, got[4], exp[0]);
+    chk(name, 'rows', `row ${i + 1}: what the board says now`, got[5], exp[1]);
+    chk(name, 'rows', `row ${i + 1}: what the office proposes`, got[6], exp[2]);
+    chk(name, 'rows', `row ${i + 1}: the conflict column`, got[7] || '', exp[3]);
+    chk(name, 'rows', `row ${i + 1}: the status column`, got[8], exp[4]);
+  });
+  chk(name, 'rows', 'the requirement this board no longer has is labelled',
+    /no longer on this board/.test(String((body[body.length - 1] || [])[2])) ? 'labelled' : 'unmarked',
+    'labelled');
+  // PRE-audit. A report that changed anything on the way out would be describing a board that no
+  // longer exists by the time it is read.
+  chk(name, 'pre-audit', 'exporting it applies nothing',
+    ev(`JSON.stringify({cons:S.cons, asks:S.asks, ccar:S.ccar, desc:S.desc})`), before);
+
+  // An impact statement runs to thousands of characters. The on-screen review clips at 300 to keep
+  // the table readable; the SPREADSHEET is the copy of record and must carry the whole thing.
+  const LONG = 'The depot line stops in March 26 and forty aircraft go unsupported. '.repeat(40);
+  const L = boot(); seed(L.ev, sc); asBooted(L.ev, sc);
+  L.ev(`window.alert=function(){}; window.confirm=function(){return true;};
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+      svc:SVC.slice(), items:{A:{cons:${JSON.stringify(LONG)}}}, base:{A:{cons:null}}},'s.json'); 'ok'`);
+  const cell = await L.w.eval(`(async function(){
+    var cap=null,_B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ pmoReport(); }catch(e){ return 'THREW'; } window.Blob=_B;
+    var ab=cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength);
+    var sh=await xlsxRead(ab); return String(sh[Object.keys(sh)[0]][4][6]||''); })()`);
+  chk(name, 'fidelity', 'a long impact statement reaches the spreadsheet whole', cell.length, LONG.length);
+  chk(name, 'fidelity', 'char for char', cell === LONG ? 'exact' : 'altered', 'exact');
 }
 
 console.log('\n' + '='.repeat(96));

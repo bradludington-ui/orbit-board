@@ -576,6 +576,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 </script>
 </head>
 <body>
+<div id="subBanner"></div>
 <div class="hdr">
   <div class="brand"><div class="eyebrow">SUSTAINMENT PORTFOLIO MANAGEMENT TOOL — SPMT</div>
   <h1 style="margin-top:0"><span id="fyTag">FY27</span> <span id="appnLbl">O&M PRIORITIZATION</span> BOARD <span id="bldTag" style="font-size:9px;color:var(--dim);font-weight:600;letter-spacing:.5px;vertical-align:middle"></span></h1></div>
@@ -772,6 +773,12 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
   </div>
 </div>
 
+<div class="modal-bg" id="subPanel" onclick="if(event.target===this)subClose()">
+  <div class="modal" style="width:1240px;max-width:97vw;max-height:88vh">
+    <h3>✉ SUBMITTAL REVIEW <button class="x" onclick="subClose()">✕ Close</button></h3>
+    <div id="subBody"></div>
+  </div>
+</div>
 <div class="modal-bg" id="jrnlPanel" onclick="if(event.target===this)toggleJrnl()">
   <div class="modal" style="width:1180px;max-width:97vw;max-height:88vh">
     <h3>\u{1F553} CHANGE JOURNAL <button class="x" onclick="toggleJrnl()">✕ Close</button></h3>
@@ -924,6 +931,9 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 
 
 <script type="application/json" id="pubState">null</script>
+<!-- A PMO COPY carries a mode here. It is baked in when the copy is published and is
+     never written by the app at runtime, so a sandbox cannot quietly promote itself. -->
+<script type="application/json" id="pubMode">null</script>
 <script>
 const SRC0 = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 // ---------------------------------------------------------------------------------------------
@@ -962,6 +972,19 @@ let PUB = null;
 const _bootLost = [];
 try{ PUB = JSON.parse(document.getElementById('pubState').textContent); }
 catch(e){ _bootLost.push('the saved board state in this file'); }
+// ── PMO COPY (sandbox) ────────────────────────────────────────────────────────────
+// A copy published for a programme office. Everything on screen still WORKS -- drag the order,
+// retype a value, watch the cutline move -- and persist() still writes to that reader's own browser
+// storage, so an afternoon's work survives a refresh. What it cannot do is write OUTWARD: not the
+// file, not the shared folder, not a downloaded board copy. The one artifact it produces is a
+// submittal package.
+//
+// This is a GUARDRAIL, not a control. The data is in the file and anyone who can open it can read
+// all of it and edit their own copy. It exists to stop honest mistakes and to make it unmistakable
+// which board is the real one -- never to keep anybody out.
+let PMODE=null;
+try{ PMODE = JSON.parse(document.getElementById('pubMode').textContent); }catch(e){}
+const SANDBOX = !!(PMODE && PMODE.sandbox);
 let EXDB = (function(){
   let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27execdb')||'null'); }
   catch(e){ _bootLost.push('the imported CCaR execution data held in browser storage'); }
@@ -1026,10 +1049,38 @@ function persistAce(){
 function activeFy(){ const d=new Date(); return (d.getMonth()+1)>=10? d.getFullYear()+1 : d.getFullYear(); }
 const _hasData=p=>!!(p&&((p.items&&p.items.length)||(p.services&&p.services.length)));
 const APPNS = {"O&M": {"services":[],"items":[],"budget":[]}, "FULL FUND": {"services":[],"items":[],"budget":[]}, "INITIAL SPARES": {"services":[],"items":[],"budget":[]}, "OPN": {"services":[],"items":[],"budget":[]}};
-const APPN=(function(){try{const a=localStorage.getItem("prio27appn"); return APPNS[a]? a:"O&M";}catch(e){return "O&M";}})();
+// A PMO COPY IS PUBLISHED FOR ONE APPROPRIATION and has only that one's data baked into it.
+// Reading the office's own stored choice first let a copy open as a DIFFERENT appropriation than
+// the numbers it carries -- an empty board under a full banner, on a machine where somebody had
+// once looked at another drill.
+const APPN=(function(){
+  if(PMODE && PMODE.sandbox && APPNS[PMODE.ap]) return PMODE.ap;
+  try{const a=localStorage.getItem("prio27appn"); return APPNS[a]? a:"O&M";}catch(e){return "O&M";}})();
 const _AP={"O&M":{slug:"om",key:"prio27om",sf:"prio-state-om.json",exp:"FY27 O&M Priority Drill",t:"O&M"},"FULL FUND":{slug:"ff",key:"prio27ff",sf:"prio-state-ff.json",exp:"FY27 Full Fund Priority Drill",t:"Full Fund"},"INITIAL SPARES":{slug:"sp",key:"prio27sp",sf:"prio-state-sp.json",exp:"FY27 Initial Spares Priority Drill",t:"Initial Spares"},"OPN":{slug:"opn",key:"prio27opn",sf:"prio-state-opn.json",exp:"FY27 OPN Priority Drill",t:"OPN"}}[APPN];
 const _SLUGMAP={om:{key:"prio27om",t:"O&M"},ff:{key:"prio27ff",t:"Full Fund"},sp:{key:"prio27sp",t:"Initial Spares"},opn:{key:"prio27opn",t:"OPN"}};
-function switchAppn(a){ if(a&&a!==APPN&&APPNS[a]){ try{liveLeaving();}catch(e){} try{localStorage.setItem("prio27appn",a);}catch(e){} location.reload(); } }
+// ── A PMO COPY GETS ITS OWN BROWSER STORAGE ───────────────────────────────────────────────────
+// Every copy used to share `prio27om` with the portfolio board and with every other copy, and the
+// boot restore takes browser storage over the file whenever storage's clock is later. Copies are
+// published days before they are distributed, so an office that had worked in ANY earlier copy
+// opened the new one and saw THAT board's numbers under this copy's banner -- silently, because
+// every total still reconciled. It would then have submitted the old board's text back as new
+// input, against a baseline it never matched.
+//
+// Keyed to the publish stamp: a first open finds nothing and falls through to the snapshot baked
+// into this very file, their own work is restored on every open after that, and no other copy and
+// no other board can reach it. This must run BEFORE `DATA`, which reads the key.
+if(PMODE && PMODE.sandbox){
+  const _ck='-pmo'+(PMODE.ts||0);
+  _AP.key+=_ck;
+  Object.keys(_SLUGMAP).forEach(function(k){ _SLUGMAP[k].key+=_ck; });
+}
+// A copy carries one appropriation, so switching is not a view change here -- it would reload into
+// a board with no data. Say so rather than reload into an empty screen.
+function switchAppn(a){
+  if(PMODE && PMODE.sandbox){ alert('\u26a0 This PMO copy holds the '+_AP.t+' portfolio only.\n\n'
+    +'Ask the portfolio team for a copy of the '+((_SLUGMAP[a]&&_SLUGMAP[a].t)||a)+' board if you '
+    +'need it \u2014 each one is published separately.'); return; }
+  if(a&&a!==APPN&&APPNS[a]){ try{liveLeaving();}catch(e){} try{localStorage.setItem("prio27appn",a);}catch(e){} location.reload(); } }
 document.title="FY27 "+_AP.t+" Prioritization Board (Consolidated)";
 let PUBS=(PUB&&PUB.appns)? PUB.appns : {};
 if(PUB&&PUB.appns) PUB=PUBS[_AP.slug]||null;
@@ -1131,7 +1182,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.46 (13 Sep 2026)';
+const BUILD='v1.48 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4246,7 +4297,433 @@ function _fhGet(cb){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded
 // WHERE SAVE GOES. Working out of the folder makes the folder the place a save belongs; the HTML
 // on the share is the PROGRAM and four people writing to it would clobber each other. The file save
 // stays available as an archive, under Save a copy.
+// ── WHAT A PMO MAY PROPOSE ───────────────────────────────────────────────────────
+// Narrative, the requirement value, and record-keeping. NOT the allocation, the star, the band, the
+// funding split or the award dates -- those are the portfolio team's decisions, and a package that
+// could carry them would turn a review into an argument about who owns what.
+// asks is per-service dollars, so accepting one moves the cutline; the review makes that explicit.
+const PMO_FIELDS = [
+  ['desc',     'Description'],
+  ['cons',     'Impact if not funded'],
+  ['notes',    'Note'],
+  ['asks',     'Requirement value (by service)'],
+  ['ccar',     'CCaR record'],
+  ['pid',      'PID'],
+  ['recNames', 'CCaR record name'],
+];
+const PMO_KEYS = PMO_FIELDS.map(function(f){ return f[0]; });
+const PMO_LBL  = (function(){ const m={}; PMO_FIELDS.forEach(function(f){ m[f[0]]=f[1]; }); return m; })();
+
+// The value of one contributable field, normalised so an absent value and an empty one compare the
+// same way -- otherwise clearing a note reads as a change on every export.
+function pmoVal(state, key, id){
+  const bag = (state||{})[key] || {};
+  const v = bag[id];
+  if(v===undefined || v===null) return null;
+  if(Array.isArray(v)) return v.slice();
+  if(typeof v==='string') return v.length? v : null;
+  return v;
+}
+function pmoSame(a, b){
+  if(Array.isArray(a) && Array.isArray(b))
+    return a.length===b.length && a.every(function(x,i){ return Math.abs((x||0)-(b[i]||0))<0.005; });
+  return JSON.stringify(a===undefined?null:a) === JSON.stringify(b===undefined?null:b);
+}
+
+// ── PUBLISHING A PMO COPY ──────────────────────────────────────────────────────
+// The copy is this board, plus a baked-in mode and a BASELINE of every contributable field as it
+// stands right now. The baseline is what makes a submittal small and honest: the sandbox sends back
+// only what its reader actually changed, and it can say so without guessing.
+function pmoBaseline(){
+  const base={};
+  (S.order||[]).forEach(function(id){
+    const one={};
+    PMO_KEYS.forEach(function(k){ const v=pmoVal(S,k,id); if(v!==null) one[k]=v; });
+    // The ask lives on the item, not in S.asks, until it is edited -- baseline the effective value.
+    const it=itemById(id); if(it && !one.asks) one.asks=it.ask.slice();
+    base[id]=one;
+  });
+  return base;
+}
+function publishPmoCopy(){
+  if(SANDBOX){ sandboxBlock('Publishing a PMO copy'); return; }
+  const who=whoAmI()||'';
+  if(!confirm('Publish a PMO copy of this board?\n\n'
+    + 'It carries the WHOLE portfolio as it stands now, so anyone who opens it sees every '
+    + 'requirement and every figure. Put it somewhere your programme offices can reach \u2014 Teams or '
+    + 'the shared folder; e-mail strips .html attachments.\n\n'
+    + 'On that copy they can move rows, retype values and write impact statements, and none of it '
+    + 'reaches this board. What they send back is a small submittal file you review before anything '
+    + 'is applied.')) return;
+  // `ap` pins the appropriation: the copy opens as the board it was published from, whatever the
+  // reader's browser last had selected.
+  const mode={sandbox:true, by:who, ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()};
+  const html=buildSavedHtml().replace(
+    /(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+    function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download=document.title.replace(/FY\d\d/,FYL())+' \u2014 PMO COPY \u2014 '
+    + new Date().toISOString().slice(0,10) + '.html';
+  a.click();
+  setStat('\u{1F4E4} PMO copy published \u2014 upload it to Teams or the shared folder. '
+    + 'It is read-only outward: offices can work in it, and send back a submittal you review.');
+}
+
+// ── SENDING INPUT BACK ──────────────────────────────────────────────────────────
+// Only what changed against the baseline this copy shipped with, and only in the fields above.
+// The package carries VALUES, not journal entries: JRNL_BIG caps a journalled value at 300 chars
+// and an impact statement runs well past that, so a journal-borne submittal would arrive truncated.
+function pmoSubmitBuild(){
+  const base=(PMODE && PMODE.base) || {};
+  const out={};
+  (S.order||[]).forEach(function(id){
+    const was=base[id]||{}, one={};
+    PMO_KEYS.forEach(function(k){
+      let now=pmoVal(S,k,id);
+      if(k==='asks' && now===null){ const it=itemById(id); if(it) now=it.ask.slice(); }
+      const before=(was[k]===undefined)? null : was[k];
+      if(!pmoSame(now, before)) one[k]=now;
+    });
+    if(Object.keys(one).length) out[id]=one;
+  });
+  return out;
+}
+function pmoSubmit(){
+  if(!SANDBOX){ alert('Submittal packages are sent from a PMO copy. This is the portfolio board \u2014 '
+    + 'your changes are already on it.'); return; }
+  const items=pmoSubmitBuild();
+  // A REQUIREMENT ADDED IN THIS COPY CANNOT BE SENT THIS WAY. The package carries FIELDS of
+  // requirements the portfolio board already has; a new one has no id there, so it would arrive as
+  // a row the reviewer can only read and never tick -- and the office would believe it had been
+  // submitted. Drop it here and say so, where the person who added it is still sitting.
+  const base0=(PMODE&&PMODE.base)||{};
+  const added=Object.keys(items).filter(function(id){ return !base0[id]; });
+  added.forEach(function(id){ delete items[id]; });
+  if(added.length){
+    const nm=added.map(function(id){ const it=itemById(id); return it? (recName(it)||dispTitle(it)) : id; });
+    alert('\u26a0 '+added.length+' requirement'+(added.length===1?'':'s')+' you added in this copy '
+      +(added.length===1?'is':'are')+' NOT part of a submittal:\n\n  \u2022 '+nm.join('\n  \u2022 ')
+      +'\n\nA submittal proposes changes to requirements the portfolio board already has. A NEW '
+      +'requirement has to be raised with the portfolio team directly \u2014 send them the detail and '
+      +'they will add it, and it will be on the next copy you receive.\n\n'
+      +'Everything else you edited is still being sent.');
+  }
+  const n=Object.keys(items).length;
+  if(!n){ alert('Nothing to send yet.\n\nEdit a description, an impact statement or a requirement '
+    + 'value, then submit. Moving rows around is yours to explore and is not sent \u2014 the priority '
+    + 'order stays the portfolio team\u2019s.'); return; }
+  const who=whoAmI();
+  if(!who || who==='unknown'){ alert('Put your name in first \u2014 \u2692 Tools \u203a \u270e My editor '
+    + 'name\u2026\n\nIt travels with the submittal so the portfolio team knows whose input this is.'); return; }
+  // THE BASELINE TRAVELS WITH THE SUBMITTAL. Without it a conflict cannot be seen: the reviewing
+  // board would compare the proposal against itself and every field would look uncontested. What is
+  // needed is what the board said WHEN THE COPY WAS PUBLISHED, and only this file knows that.
+  const base={};
+  Object.keys(items).forEach(function(id){
+    const was=((PMODE&&PMODE.base)||{})[id]||{}, one={};
+    Object.keys(items[id]).forEach(function(k){ one[k]=(was[k]===undefined)? null : was[k]; });
+    base[id]=one;
+  });
+  // THE SERVICE LIST TRAVELS TOO. A requirement value is an array indexed by service POSITION, so a
+  // submittal read on a board whose services have changed since would land each figure against the
+  // wrong service -- with the row total unchanged, so nothing would look wrong. Same failure the
+  // state import guards against; the same list is what makes it detectable.
+  const pkg={spmtPkg:(typeof PKG_VER!=='undefined'? PKG_VER : 1), dir:'submit',
+             ap:(typeof mySlug==='function'? mySlug() : ''), fy:(PMODE&&PMODE.fy)||MS.cur,
+             ts:Date.now(), by:who, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),
+             items:items, base:base};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
+  a.download='SPMT SUBMITTAL - '+who.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
+    + new Date().toISOString().slice(0,10)+'.json';
+  a.click();
+  setStat('\u2709 Submittal built for <b>'+esc(who)+'</b> \u2014 '+n+' requirement'+(n===1?'':'s')
+    + '. Send it to the portfolio team; they review every field before anything is applied.');
+}
+
+// ── REVIEWING WHAT CAME BACK ──────────────────────────────────────────────────
+// THE DIFF IS AGAINST THIS BOARD AS IT STANDS NOW, not against the copy the office was given. That
+// is the whole point: what matters is what would change if it were applied today. It is also what
+// makes a CONFLICT visible -- a field the office rewrote that this board has ALSO changed since the
+// copy went out. Diffing against their snapshot would hide exactly that case.
+let PMOSUB=null;                       // the package under review
+let PMOPICK={};                        // 'id|field' -> true, and nothing is ticked to begin with
+function pmoNow(id, key){
+  let v=pmoVal(S,key,id);
+  if(key==='asks' && v===null){ const it=itemById(id); if(it) v=it.ask.slice(); }
+  return v;
+}
+function pmoRows(){
+  const pkg=PMOSUB; if(!pkg) return [];
+  const base=(pkg.baseSeen)||{};
+  const rows=[];
+  Object.keys(pkg.items||{}).forEach(function(id){
+    const it=itemById(id);
+    PMO_KEYS.forEach(function(k){
+      const prop=pkg.items[id][k];
+      if(prop===undefined) return;
+      const now=pmoNow(id,k);
+      if(pmoSame(now, prop)) return;                        // already says what they propose
+      const was=(base[id]||{})[k];
+      rows.push({id:id, key:k, it:it, now:now, prop:prop,
+                 gone:!it,                                   // a requirement this board no longer has
+                 conflict: was!==undefined && !pmoSame(now, was)});
+    });
+  });
+  return rows;
+}
+function pmoFmtVal(k, v){
+  if(v===null||v===undefined) return '\u2014';
+  if(k==='asks' && Array.isArray(v)) return SVC.map(function(s,i){ return s+' '+fM(v[i]||0); }).join(' \u00b7 ');
+  return String(v);
+}
+
+// THE CHANGE REPORT, BEFORE ANYTHING IS APPLIED. A spreadsheet the team can read away from the
+// app, argue with, and keep -- one row per proposed field, with what the board says today beside
+// what the office proposes. Exported from the review, so it describes exactly what is on offer.
+function pmoReport(){
+  if(!PMOSUB){ alert('Import a submittal first.'); return; }
+  const rows=pmoRows();
+  if(!rows.length){ alert('Nothing to report \u2014 this submittal proposes no change this board has not already made.'); return; }
+  const TI={b:1,sz:13}, H={b:1,bg:'DDDDDD'}, N={};
+  const MR=masterRanks();          // a local everywhere else in this file; the report needs it too
+  const sheet={name:'Proposed changes', cols:[8,10,44,13,26,44,44,11,11],
+    rows:[[{v:document.title.replace(/FY\d\d/,FYL())+'  \u2014  SUBMITTAL FROM '+(PMOSUB.by||'?')
+            +'  \u2014  '+rows.length+' proposed change'+(rows.length===1?'':'s')
+            +'  \u2014  NOTHING BELOW HAS BEEN APPLIED',s:TI}],
+          [{v:'Sent '+(PMOSUB.ts? new Date(PMOSUB.ts).toLocaleString():'?')
+            +(PMOSUB.fromTs? '  \u00b7  from a PMO copy published '+new Date(PMOSUB.fromTs).toLocaleDateString():'')}],
+          [],
+          [{v:'Rank',s:H},{v:'PMO',s:H},{v:'Requirement',s:H},{v:'CCaR',s:H},{v:'Field',s:H},
+           {v:'On the board now',s:H},{v:'Proposed',s:H},{v:'Conflict',s:H},{v:'Status',s:H}]]};
+  rows.forEach(function(r){
+    sheet.rows.push([
+      {v:r.it? (MR[r.id]||'') : '', s:N},
+      r.it? grpOf(r.it) : '',
+      r.it? (recName(r.it)||dispTitle(r.it)) : r.id+' (no longer on this board)',
+      r.it? ccarOf(r.it) : '',
+      PMO_LBL[r.key]||r.key,
+      pmoFmtVal(r.key, r.now),
+      pmoFmtVal(r.key, r.prop),
+      r.conflict? 'YES \u2014 this board changed too' : '',
+      r.gone? 'requirement missing' : (PMOPICK[r.id+'|'+r.key]? 'ticked to apply' : 'not applied')]);
+  });
+  sheet.rows.push([]);
+  sheet.rows.push([{v:'A CONFLICT means this board changed that same field after the PMO copy went '
+    +'out. Applying replaces what is here now. Nothing in this file has been applied \u2014 it is the '
+    +'review, not the result.'}]);
+  const blob=buildXlsx([sheet]);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download='SPMT SUBMITTAL REVIEW - '+String(PMOSUB.by||'').replace(/[^A-Za-z0-9 _-]/g,'')+' - '
+    + new Date().toISOString().slice(0,10)+'.xlsx';
+  a.click();
+  setStat('\u{1F4C4} Change report exported \u2014 '+rows.length+' proposed change'+(rows.length===1?'':'s')
+    + '. Nothing has been applied.');
+}
+// Applying goes one field at a time through jrnlSet(), so every accepted change lands in the change
+// journal with a path, a before and an after -- the same trail as any edit made by hand.
+function pmoApply(){
+  if(!PMOSUB) return;
+  const rows=pmoRows().filter(function(r){ return PMOPICK[r.id+'|'+r.key] && !r.gone; });
+  if(!rows.length){ alert('Nothing is ticked. Tick the changes you want, then apply.'); return; }
+  const nConf=rows.filter(function(r){ return r.conflict; }).length;
+  if(!confirm('Apply '+rows.length+' change'+(rows.length===1?'':'s')+' from '+(PMOSUB.by||'the submittal')+'?'
+    + (nConf? '\n\n\u26a0 '+nConf+' of them overwrite a field THIS BOARD changed since the copy went out.' : '')
+    + '\n\nEach one is recorded in the change journal, so it can be found and undone later.')) return;
+  let n=0;
+  rows.forEach(function(r){
+    // The requirement value goes through the same path a typed edit takes. jrnlSet() writes the
+    // store key it is given, which is right for every other field and silently wrong for this one.
+    if(r.key==='asks'){ if(applyAskVec(r.id, r.prop)) n++; return; }
+    if(jrnlSet(MS.cur, [r.key, r.id], r.prop)) n++;
+  });
+  applyState(MS.years[MS.cur]);
+  save(); render();
+  setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(PMOSUB.by||'?')+'</b>. '
+    + 'Every one is in the change journal.');
+  PMOSUB=null; PMOPICK={};
+}
+
+// Take delivery of a submittal: hold it for review, record what this board said at the moment the
+// PMO copy was published so a conflict can be spotted, and open the review. NOTHING IS APPLIED.
+function pmoTake(pkg, fname){
+  if(!pkg.items || !Object.keys(pkg.items).length){
+    alert('That submittal is empty \u2014 it proposes no changes.'); return; }
+  const mine=(typeof mySlug==='function'? mySlug() : '');
+  if(pkg.ap && mine && pkg.ap!==mine){
+    alert('That submittal is for '+((typeof APPN_LBL!=='undefined' && APPN_LBL[pkg.ap])||pkg.ap)
+      +', and this is the '+((typeof APPN_LBL!=='undefined' && APPN_LBL[mine])||mine)+' board.\n\n'
+      +'Open it on the board it belongs to.'); return; }
+  if(pkg.fy && MS.years[pkg.fy] && pkg.fy!==MS.cur){
+    if(!confirm('That submittal was written against FY'+(pkg.fy%100)+' and you are on '+FYL()+'.\n\n'
+      +'Review it anyway? Changes would apply to '+FYL()+'.')) return; }
+  // Per-service figures are positional. Check the sender's service list against this board's before
+  // a single number is shown, and remap by NAME when the same services are merely ordered
+  // differently. Refusing is the right answer for a different set: guessing would be a silent
+  // misallocation that every total still reconciles.
+  // A package with NO service list and per-service figures in it is the unguarded case: every
+  // requirement value would land by position against whatever this board's services happen to be.
+  // Every submittal this board publishes carries the list, so a package without one is damaged or
+  // hand-made -- say what the risk is rather than reading the numbers and hoping.
+  if(!(Array.isArray(pkg.svc) && pkg.svc.length)
+     && Object.keys(pkg.items).some(function(id){ return Array.isArray((pkg.items[id]||{}).asks); })){
+    if(!confirm('\u26a0 That submittal proposes requirement values but does not say which services '
+      +'they are for.\n\nPer-service figures are read by POSITION, so if it was written against a '
+      +'different service list every figure lands against the wrong service \u2014 and the row total '
+      +'still adds up, so nothing would look wrong.\n\nThis board reads them as: '
+      +SVC.join(', ')+'\n\nReview it anyway?')) return;
+  }
+  if(Array.isArray(pkg.svc) && pkg.svc.length){
+    const c=svcCheckPack({services:pkg.svc});
+    if(c.state==='mismatch'){
+      alert('\u26a0 That submittal was written against a different set of services.\n\n'
+        +'This board: '+c.to.join(', ')+'\nThat file:  '+c.from.join(', ')
+        +'\n\nIts per-service figures cannot be placed here. Nothing was loaded.');
+      return;
+    }
+    if(c.state==='reorder'){
+      const fix=function(bag){ Object.keys(bag||{}).forEach(function(id){
+        const one=bag[id]; if(one && Array.isArray(one.asks))
+          one.asks=c.map.map(function(j){ return (j>=0 && j<one.asks.length)? one.asks[j] : 0; }); }); };
+      fix(pkg.items); fix(pkg.base);
+      setStat('\u2139 That submittal lists the services in a different order; its per-service figures '
+        +'were matched up by name.');
+    }
+  }
+  // ── WHAT IS REVIEWED MUST BE WHAT WOULD LAND ────────────────────────────────────────────────
+  // The review, the spreadsheet and pmoApply() all read the package, but only pmoApply() used to
+  // put a requirement value through the board's rule for one. A package carrying -5,000,000 and a
+  // NaN -- a JSON file, so a hand edit or a damaged transfer is all it takes -- was REPORTED as
+  // "USAF $-5,000,000 · AFRC $NaN" and APPLIED as zeroes. The team would have signed off a
+  // spreadsheet that did not describe the board it produced. Normalise once, here at the door, so
+  // every reader downstream agrees by construction.
+  const _wrong=[];
+  Object.keys(pkg.items||{}).forEach(function(id){
+    const one=pkg.items[id]; if(!one) return;
+    if(one.asks!==undefined && one.asks!==null){
+      // A vector of the wrong WIDTH is not a value to be tidied up: padding it would zero a service
+      // silently, which is the positional hazard again wearing a different hat.
+      if(!Array.isArray(one.asks) || one.asks.length!==SVC.length){ _wrong.push(id); return; }
+      one.asks=askVecOf(one.asks);
+    }
+    // Prose and record numbers are shown, searched and exported as text. An object or a number
+    // arriving in one renders as [object Object] and is stored that way.
+    ['desc','cons','notes','ccar','pid','recNames'].forEach(function(k){
+      if(one[k]!==undefined && one[k]!==null && typeof one[k]!=='string') one[k]=String(one[k]);
+    });
+  });
+  if(_wrong.length){
+    alert('\u26a0 That submittal proposes requirement values with the wrong number of services for '
+      +_wrong.length+' requirement'+(_wrong.length===1?'':'s')+' ('+_wrong.join(', ')+').\n\n'
+      +'This board has '+SVC.length+': '+SVC.join(', ')+'.\n\nThe file is damaged or was written '
+      +'against a different board. Nothing was loaded.');
+    return;
+  }
+  PMOSUB=JSON.parse(JSON.stringify(pkg));
+  // The baseline came in the package -- it is what THIS board said when the copy was published.
+  // Re-reading the board here instead would compare it against itself, and every field would look
+  // uncontested however much had changed in the meantime. That was the first version of this, and
+  // the conflict flag never once fired.
+  PMOSUB.baseSeen=pkg.base||{};
+  PMOPICK={};
+  const n=pmoRows().length;
+  setStat('\u2709 Submittal from <b>'+esc(pkg.by||'?')+'</b> \u2014 '+n+' proposed change'+(n===1?'':'s')
+    + ' held for review. <b>Nothing has been applied.</b> Export the change report, then tick what you accept.');
+  if(typeof subOpenReview==='function') subOpenReview();
+}
+
+let subOpen=false;
+function subOpenReview(){ subOpen=true; subBody(); }
+function subClose(){ subOpen=false; subBody(); }
+function subPick(id, key, on){ PMOPICK[id+'|'+key]=!!on; subBody(); }
+function subPickAll(on){
+  pmoRows().forEach(function(r){ if(!r.gone) PMOPICK[r.id+'|'+r.key]=!!on; });
+  subBody();
+}
+function subBody(){
+  const pn=document.getElementById('subPanel'); if(pn) pn.style.display=subOpen?'flex':'none';
+  const el=document.getElementById('subBody'); if(!el) return;
+  if(!subOpen){ el.innerHTML=''; return; }
+  if(!PMOSUB){ el.innerHTML='<div class="hint">No submittal loaded. Import one with \u{1F4C1} File \u203a Import.</div>'; return; }
+  const rows=pmoRows(), MR=masterRanks();
+  const nPick=rows.filter(function(r){ return PMOPICK[r.id+'|'+r.key] && !r.gone; }).length;
+  const nConf=rows.filter(function(r){ return r.conflict; }).length;
+  let h='<div class="hint" style="margin-bottom:8px">'
+    +'<b>'+esc(PMOSUB.by||'?')+'</b> proposes '+rows.length+' change'+(rows.length===1?'':'s')+', sent '
+    +(PMOSUB.ts? esc(new Date(PMOSUB.ts).toLocaleString()):'?')
+    +(PMOSUB.fromTs? ' from a PMO copy published '+esc(new Date(PMOSUB.fromTs).toLocaleDateString()):'')
+    +'. <b>Nothing is applied until you tick it.</b> Their priority order is not sent \u2014 the ranking '
+    +'stays yours.'
+    +(nConf? ' <b style="color:var(--amber)">'+nConf+' would overwrite a field this board changed since.</b>':'')
+    +'</div>';
+  h+='<div class="fr" style="gap:8px;margin-bottom:8px;flex-wrap:wrap">'
+    +'<button class="qb" onclick="pmoReport()">\u{1F4C4} Export change report (.xlsx)</button>'
+    +'<button class="qb" onclick="subPickAll(true)">Tick all</button>'
+    +'<button class="qb" onclick="subPickAll(false)">Untick all</button>'
+    +'<span style="flex:1"></span>'
+    +'<button class="qb" '+(nPick?'style="border-color:var(--green);color:var(--green);font-weight:800"':'disabled style="opacity:.5"')
+    +' onclick="pmoApply()">\u2714 Apply '+nPick+' ticked</button></div>';
+  if(!rows.length){ el.innerHTML=h+'<div class="hint">This submittal proposes nothing this board has not already got.</div>'; return; }
+  // Long prose in a fixed table needs somewhere to go, or an impact statement runs off the edge and
+  // the reviewer reads half of it -- which defeats the point of reviewing before applying.
+  h+='<style>#subBody td{white-space:normal;word-break:break-word;vertical-align:top}'
+    +'#subBody th{white-space:nowrap}</style>'
+    +'<div style="overflow:auto;max-height:62vh"><table class="fctab" style="width:100%;table-layout:fixed">'
+    +'<colgroup><col style="width:34px"><col style="width:24%"><col style="width:14%">'
+    +'<col style="width:30%"><col style="width:30%"></colgroup>'
+    +'<tr><th></th><th style="text-align:left">Requirement</th><th style="text-align:left">Field</th>'
+    +'<th style="text-align:left">On the board now</th><th style="text-align:left">Proposed</th></tr>';
+  rows.forEach(function(r){
+    const key=r.id+'|'+r.key;
+    h+='<tr'+(r.conflict?' style="background:rgba(255,170,0,.08)"':'')+'>'
+      +'<td style="text-align:center">'+(r.gone
+        ? '<span title="this board no longer has that requirement" style="color:var(--red)">\u2715</span>'
+        : '<input type="checkbox" '+(PMOPICK[key]?'checked':'')
+          +' onchange="subPick(\''+r.id+'\',\''+r.key+'\',this.checked)">')+'</td>'
+      +'<td style="text-align:left">'+(r.it? '<b>#'+(MR[r.id]||'')+'</b> '+esc(recName(r.it)||dispTitle(r.it))
+                                            +' <span style="color:var(--dim)">'+esc(grpOf(r.it))+'</span>'
+                                          : '<span style="color:var(--red)">'+esc(r.id)+' \u2014 not on this board</span>')+'</td>'
+      +'<td style="text-align:left">'+esc(PMO_LBL[r.key]||r.key)
+        +(r.conflict? '<br><span style="color:var(--amber);font-size:9px;font-weight:800">CONFLICT \u2014 changed here too</span>':'')+'</td>'
+      +'<td style="text-align:left;color:var(--dim)">'+esc(String(pmoFmtVal(r.key,r.now)).slice(0,300))+'</td>'
+      +'<td style="text-align:left">'+esc(String(pmoFmtVal(r.key,r.prop)).slice(0,300))+'</td></tr>';
+  });
+  h+='</table></div>';
+  el.innerHTML=h;
+}
+// A PMO copy says so, permanently and at the top. A stale cutline briefed as current is worse than
+// no copy at all, so the date it was published is part of the banner rather than buried in a menu.
+function subBanner(){
+  if(!SANDBOX) return '';
+  return '<div style="background:var(--amber);color:var(--onAmber,#15120a);padding:6px 12px;'
+    +'font-weight:800;font-size:11px;letter-spacing:.04em;text-align:center">'
+    +'\u25e8 PMO COPY \u2014 a snapshot'+(PMODE&&PMODE.by? ' published by '+esc(PMODE.by):'')
+    +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
+    +'. Work in it freely \u2014 nothing here reaches the portfolio board.'
+    // THE ACTION SITS WHERE THE INSTRUCTION IS. It is also in the Budget year menu, but a programme
+    // office opening this for the first time should not have to go looking under a menu named after
+    // something else to do the one thing this copy is for.
+    +' <button class="qb" style="margin-left:8px;border-color:currentColor;font-weight:800"'
+    +' onclick="pmoSubmit()">\u2709 Submit input</button></div>';
+}
+
+// THE OUTBOUND GATE. Every way a board leaves this machine passes one of the four functions
+// below, so the refusal lives here rather than on the buttons -- a button that is merely hidden is
+// still reachable, and the one that got missed would be the one that mattered.
+function sandboxBlock(what){
+  if(!SANDBOX) return false;
+  alert('\u26a0 This is a PMO copy of the board' + (PMODE && PMODE.by ? ', published by ' + PMODE.by : '')
+    + (PMODE && PMODE.ts ? ' on ' + new Date(PMODE.ts).toLocaleDateString() : '') + '.\n\n'
+    + what + ' is turned off here, so this copy can never be mistaken for the team\u2019s board.\n\n'
+    + 'Your changes stay on screen and survive a refresh \u2014 they are saved in this browser only. '
+    + 'To send your descriptions, impact statements and requirement values back, use '
+    + '\u2709 Submit input, which produces a small file for the portfolio team.');
+  return true;
+}
 async function saveInPlace(){
+  if(sandboxBlock('Saving to the shared file')) return;
   if(driveStoreOn()){
     try{ await driveStorePush(false); }
     catch(e){ setStat('⚠ Could not save to the shared folder — <b>'
@@ -4257,6 +4734,7 @@ async function saveInPlace(){
   return await saveInPlaceFile();
 }
 async function saveInPlaceFile(){
+  if(sandboxBlock('Saving to a file')) return;
   if(!window.showSaveFilePicker){
     publishState();
     setStat('⚠ This browser doesn\u2019t allow in-place file saving — a copy was downloaded instead (copy it over the shared file).');
@@ -4300,6 +4778,7 @@ async function saveInPlaceFile(){
   }
 }
 function publishState(){
+  if(sandboxBlock('Downloading a copy of the board')) return;
   const html=buildSavedHtml();
   DIRTY=false; try{ syncBtns(); }catch(e){}
   const a=document.createElement('a');
@@ -4932,6 +5411,9 @@ function importState(inp){
       if(!/^\s*</.test(txt)){
         let pk=null;
         try{ pk=JSON.parse(txt); }catch(e){ pk=null; /* not JSON — fall through to the old paths */ }
+        // A SUBMITTAL IS NOT A BOARD. It proposes changes to fields; it never replaces anything.
+        // Routed before pkgApply so it can never fall through to the wholesale replace below.
+        if(pk && pk.spmtPkg && pk.dir==='submit'){ pmoTake(pk, f.name); inp.value=''; return; }
         if(pk && pk.spmtPkg){ pkgApply(pk, f.name); inp.value=''; return; }
       }
       if(/^\s*</.test(txt) || txt.indexOf('id="pubState"')>=0){
@@ -13527,11 +14009,38 @@ function fcBody(){
     +'<div class="hint" style="margin-top:8px">Funded = Discretionary + Mandatory drawn per requirement. Increment amounts act as weights and are scaled to the funded total, so trims and funding-source overrides flow through automatically. UNSCH = funded requirements with no award/obligation dates yet — add dates from each requirement\u2019s detail view (click its title).</div>';
 }
 
+// THE REQUIREMENT VALUE LIVES IN TWO PLACES, depending on the requirement. A CUSTOM one carries it
+// on its own object inside S.custom (itemsOf concatenates those by reference); everything else
+// carries it in S.asks, which applyState copies onto the item -- and applyState IGNORES S.asks for a
+// custom requirement. So writing S.asks alone loses a custom requirement's change in total silence:
+// the journal records it, the submittal review reports it applied, and the number does not move.
+// One function, used by the typed edit and by an accepted submittal, so the two cannot drift.
+// THE RULE FOR WHAT A REQUIREMENT VALUE MAY BE, in one place. A negative, a NaN or a missing entry
+// becomes zero. Anything that shows a proposed value to a human must run it through this FIRST, or
+// the screen and the spreadsheet promise a number the board will never store.
+function askVecOf(vec){
+  return SVC.map(function(_,i){ const n=parseFloat((vec||[])[i]); return (isFinite(n)&&n>0)? n : 0; });
+}
+function applyAskVec(id, vec){
+  const it=itemById(id); if(!it) return false;
+  const v=askVecOf(vec);
+  it.ask=v.slice();
+  if(it.custom){
+    const c=(S.custom||[]).filter(function(x){ return x.id===id; })[0];
+    if(c) c.ask=v.slice();                       // the store's own copy, belt and braces
+    if(S.asks) delete S.asks[id];                // never leave a value applyState will ignore
+  } else {
+    if(!S.asks) S.asks={};
+    S.asks[id]=v.slice();
+  }
+  return true;
+}
 function setAsk(id,i,val){
   const it=itemById(id); if(!it) return;
   const v=parseAmt(val);
-  it.ask[i] = (v===null||v<0)? 0 : v;
-  if(!it.custom){ if(!S.asks) S.asks={}; S.asks[id]=it.ask.slice(); }
+  const next=it.ask.slice();
+  next[i] = (v===null||v<0)? 0 : v;
+  applyAskVec(id, next);
   open[id]=true;
   save(); render(); flash(id);
 }
@@ -14580,10 +15089,19 @@ function rowChipsHtml(it){
       +';color:'+(tv==='H'?'var(--amber)':'var(--blue)')+'" '
       +'onclick="toggleChip(&quot;band&quot;,&quot;'+id+'&quot;,event)" '
       +'title="priority within the band \u2014 change it in the band picker">TIER '+tv+'</span>';
-  if(bid!==null && BAND_DEF(id).consReq && !((S.cons||{})[id]||'').trim())
-    h+='<span class="rchip warn" onclick="toggleCons(&quot;'+id+'&quot;)" '
-      +'title="this band requires a statement of what happens if it is not funded">'
-      +'\u26a0 CONSEQUENCE</span>';
+  // WHAT HAPPENS IF THIS IS NOT FUNDED, reachable on EVERY requirement. It used to appear only
+  // where a decision band demanded one, so on an ordinary band there was no way to write the field
+  // at all -- and it is the field a programme office is best placed to fill in. The chip now always
+  // shows, and says which state it is in.
+  {
+    const _written=((S.cons||{})[id]||'').trim();
+    const _req=(bid!==null && BAND_DEF(id).consReq);
+    h+='<span class="rchip'+(_written? '' : ' warn')+'" onclick="toggleCons(&quot;'+id+'&quot;)" '
+      +'title="'+(_written? 'what happens if this is not funded \u2014 click to edit'
+                          : (_req? 'this band requires a statement of what happens if it is not funded'
+                                 : 'say what happens if this is not funded'))+'">'
+      +'\u26a0 '+(_written? 'Impact' : (_req? 'CONSEQUENCE' : 'Impact \u2014 not written'))+'</span>';
+  }
   const fs=S.fsrc[id];
   const FLBL={disc:'\u2699 DISCRETIONARY', mand:'\u2699 MANDATORY', ufr:'\u2699 UFR',
               split:'\u2699 SPLIT D/M/UFR'};
@@ -16656,6 +17174,14 @@ function syncBtns(){
     (function(){ const n=S.order.filter(id=>!S.fsrc[id]).length;
       return mi('⚙ Convert all to Split…',"mRun(convertAllToSplit)",false,
         n? n+' still on the automatic lane walk' : 'all requirements carry an explicit split'); })()+
+    '<div class="msep"></div><div class="mlbl">Programme offices</div>'+
+    (SANDBOX
+      ? mi('✉ Submit input…',"mRun(pmoSubmit)",false,
+           'send your descriptions, impacts and values back')
+      : mi('📤 Publish PMO copy…',"mRun(publishPmoCopy)",false,
+           'a working snapshot they cannot save over')
+        + (PMOSUB? mi('✉ Review submittal…',"mRun(subOpenReview)",subOpen,
+             'from '+esc(PMOSUB.by||'?')+' — nothing applied yet') : ''))+
     mi('📋 Two Spend Plans…',"mRun(togglePlans)",planOpen,'discretionary only vs the whole top line')+
     '<div class="msep"></div><div class="mlbl">Spend plan basis</div>'+
     mi('◨ Discretionary only',"setScen('disc')",scenView==='disc',
@@ -17218,6 +17744,7 @@ async function driveStorePull(quiet){
 }
 // WRITE BACK, after checking nobody moved it underneath us.
 async function driveStorePush(quiet){
+  if(sandboxBlock('Writing to the shared folder')) return;
   if(!driveStoreOn()) return false;
   const dir=await driveDir(true);
   const ap=mySlug();
@@ -19894,6 +20421,10 @@ document.getElementById('appnSel').innerHTML = Object.keys(APPNS).map(a=>'<optio
 document.getElementById('appnLbl').textContent = APPN+' PRIORITIZATION';
 { const bt=document.getElementById('bldTag'); if(bt) bt.textContent=BUILD; }
 syncAddPanel();
+// The PMO-copy banner is written once at boot, not on every render: it is a property of the FILE,
+// not of the board's state, and nothing that happens on screen can change it.
+try{ const _b=document.getElementById('subBanner'); if(_b) _b.innerHTML=subBanner(); }catch(e){}
+
 render();
 /* THE CHART OF ACCOUNTS — appropriation → PMO → requirement → CCaR record.
    O&M → BOP → Travel → the CCaR record and its record title.

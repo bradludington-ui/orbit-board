@@ -649,6 +649,53 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     after[id].du >= after[id].u - 0.005 ? 'ok' : 'total exceeds vs-DISC', 'ok'));
 }
 
+// ══ the impact statement must be reachable on EVERY requirement ═════════════════════════
+// "What happens if this is not funded" is the field a programme office is best placed to write, and
+// it used to sit behind a band condition: the ⚠ CONSEQUENCE chip appears only where
+// BAND_DEF().consReq is set, and the ⋯ menu offers it only on a critical band. On an ordinary band
+// there was no way in at all -- which made the PMO submittal workflow unable to collect the one
+// thing it exists to collect.
+{
+  const name = 'impact is always reachable';
+  const sc = { services: ['USAF', 'ANG', 'AFRC'],
+    items: [it('A', 'PSM', [9000000, 2000000, 1000000])],
+    disc: [9000000, 2000000, 1000000], mand: [0, 0, 0], order: ['A'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  const draw = () => ev('render(); if(typeof setCur==="function") setCur("A"); "ok"');
+  draw();
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // Read the ROW through the DOM, not through a regex over innerHTML. Both builds render a row;
+  // the card build has no inspector, and a check that can only run in one build is a check that
+  // quietly stops covering the other. The handler is written as an HTML entity in the source
+  // (toggleCons(&quot;A&quot;)), so match on the live attribute value -- the one the click uses --
+  // rather than on however the serializer chose to re-escape it.
+  const chip = () => ev(`(function(){
+    var row=document.getElementById('row-A'); if(!row) return {found:false};
+    var all=row.querySelectorAll('[onclick]');
+    for (var i=0;i<all.length;i++){
+      var h=all[i].getAttribute('onclick')||'';
+      if (h.indexOf('toggleCons')>=0 && h.indexOf('A')>=0)
+        return {found:true, text:(all[i].textContent||'').replace(/\\s+/g,' ').trim()};
+    }
+    return {found:false};
+  })()`);
+
+  chk(name, 'fixture', 'the requirement has no decision band', ev('BAND_OF("A")===null'), true);
+  const before = chip();
+  chk(name, 'row', 'the impact statement can be opened from the row',
+    before.found ? 'reachable' : 'no way in', 'reachable');
+  chk(name, 'row', 'and an unwritten one says so',
+    /not written/.test(before.text || '') ? 'flagged' : 'silent', 'flagged');
+  ev(`S.cons['A']='If this is not funded the depot line stops in March.'; 'ok'`);
+  draw();
+  const wrote = chip();
+  chk(name, 'row', 'once written it is still reachable to edit',
+    wrote.found ? 'reachable' : 'no way in', 'reachable');
+  chk(name, 'row', 'and no longer flagged as missing',
+    /not written/.test(wrote.text || '') ? 'still flagged' : 'clean', 'clean');
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

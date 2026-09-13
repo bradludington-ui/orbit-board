@@ -209,6 +209,107 @@ program carries none — the same rule that forbids committing a populated board
 misleading status line, and the money is covered. The mutation that targeted that unreachable line
 was REMOVED rather than left as a permanent survivor or given a test that only tested itself.
 
+### The PMO copy, and what comes back — a no-fail round trip
+
+The board goes out to programme offices as a **sandbox copy** and their input comes back as a
+submittal package. Neither leg may lose or misplace a figure, because nobody is diffing the two
+files by hand and a wrong requirement value reconciles perfectly against itself.
+
+**Outbound.** `publishPmoCopy()` writes the same self-contained HTML the board always writes, with
+one extra script tag — `pubMode` → the `SANDBOX` const. Sandbox gates the **outbound** writes
+(publish, shared folder, live view) and deliberately leaves `persist()` alone, so a programme office
+can close the tab and come back to its own work. Nothing about the money is stripped: the copy holds
+the whole portfolio and recomputes it from the same `tiers()`, so the lane vectors, the cumulative,
+the tier, `natM`/`natU`, the totals and the Mission Critical memo are identical to the board it came
+from. `audit-import.mjs`'s `handoff — out` block asserts that identity rather than assuming it.
+
+**Inbound.** `pmoSubmit()` builds a package of only the contributable fields — narrative, impact,
+requirement value, CCaR / PID / record name. The minimum useful increment is deliberately NOT
+contributable: it is a funding decision, not a programme fact. The package carries three things
+besides the edits, and each one was added because it was missing:
+
+- `svc` — the sandbox's service list. Without it a submittal is exactly the positional-import
+  hazard above, arriving through a door the guard did not watch. `pmoTake()` now checks and remaps
+  by name, and refuses a different service set with the board untouched and nothing held for review.
+- `base` — the values the office started from, travelling **with** the package. Recording the
+  baseline at import instead meant the conflict flag could never fire: by then the board's own value
+  had already been read as the baseline.
+- an editor name, so a review row says who wrote it.
+
+**Nothing is applied until it is ticked.** `pmoRows()` builds the review table, `pmoReport()` writes
+it as a workbook before anything lands, and `pmoApply()` writes only the ticked rows.
+
+**A rename that misses a call site does not throw at load.** `subBody()` emitted
+`onchange="pmoPick(...)"` long after `pmoPick` became `subPick` in a collision rename. The markup was
+there, the checkbox drew, clicking it raised a `ReferenceError` into a console nobody reads, and
+**nothing happened** — so the only working control in the review was *Tick all*, and "nothing is
+applied until you tick it" meant accept everything or accept nothing. Two things now stop it coming
+back: `check.mjs` resolves **every** inline handler name in the file statically (264 of them), so it
+covers panels no audit happens to open; and the import suite drives the **rendered** checkbox with a
+real `change` event rather than calling `subPick()`, because calling the function behind the control
+is exactly what missed this.
+
+**A requirement added in the PMO copy is not a submittal.** The package carries *fields* of
+requirements the portfolio board already has; one added after the copy was published has no id
+there, so it could only ever arrive as a row the reviewer can read and never tick — while the office
+believed it had submitted it. `pmoSubmit()` drops those ids and names them to the person who added
+them, where they are still sitting, and tells them to raise it with the portfolio team directly.
+Everything else they edited still goes.
+
+**A package with no service list is questioned, not read.** Every submittal this board publishes
+carries `svc`; one without it is damaged or hand-made, and its per-service figures would land by
+position with every row total still reconciling. It now says so and names the order this board would
+read them in. A package proposing only prose has no positional hazard and is not questioned.
+
+**A PMO copy gets its own browser storage, and this is the one that would have failed live.** Every
+copy shared `prio27om` with the portfolio board and with every other copy, and the boot restore
+takes browser storage over the file **whenever storage's clock is later** — that ordering is
+deliberate and right for the portfolio board. Copies are published days before they are distributed,
+so an office that had worked in any earlier copy opened the new one and saw *that* board's numbers
+under this copy's banner. Nothing looked wrong: every total reconciled. They would then have
+submitted the old board's text back as new input, against a baseline it never matched, and the
+portfolio team would have seen it as a proposed change with a conflict flag — a value nobody ever
+typed into that copy, offered for acceptance. The key is now suffixed with the copy's publish stamp,
+before `DATA` reads it: a first open falls through to the snapshot baked into the file, their own
+work is restored on every open after that, and no other copy and no other board can reach it.
+`PMODE.ap` pins the appropriation for the same reason — it was read from the reader's own browser
+before the file had any say, so a copy could open as a drill whose data it does not carry.
+
+**The side databases ride alongside the store, not inside it.** Execution data (`EXDB`), the ACE cost
+estimate (`ACEDB`) and the reprogramming log (`RPDB`) are their own globals, packed separately by
+`buildSavedHtml()`. The handoff fixture left all three empty, so a copy that dropped one was
+byte-indistinguishable from one that carried it — and a copy arriving with an empty reprogramming
+tracker reads as *a programme with nothing in it*, not as a broken file. The fixture now seeds all
+three with something recognisable and the copy is compared on each.
+
+**What is reviewed must be what would land.** The review table, the spreadsheet and `pmoApply()`
+all read the same package, but only `pmoApply()` put a requirement value through the board's rule
+for one. A package is a JSON file, so a hand edit or a damaged transfer is all it takes: one
+carrying `-5000000` and `'abc'` was *reported* as **USAF $-5,000,000 · AFRC $NaN** and *applied* as
+zeroes — a spreadsheet signed off that did not describe the board it produced. `askVecOf()` is now
+the single statement of that rule (`applyAskVec()` calls it too) and `pmoTake()` normalises at the
+door, so every reader downstream agrees by construction. A vector of the wrong **width** is refused
+rather than tidied: padding it would zero a service in silence, which is the positional hazard again
+wearing a different hat.
+
+**The change report is read back with the board's own workbook reader.** It was covered by a byte
+count, which proves it downloaded and nothing else — the "a check that cannot fail reads as a pass"
+trap this file keeps warning about, on the one artefact the team signs off from. Every cell is now
+compared against the review it claims to describe: one row per proposed change in the review's own
+order, the field, both values, the conflict column, the status column (ticked / not applied /
+requirement missing), that exporting applies nothing, and that a 2,700-character impact statement
+reaches the spreadsheet whole — the on-screen table clips at 300 to stay readable, the spreadsheet
+is the copy of record and must not.
+
+**`applyState()` does not own the requirement value.** A custom requirement keeps its value in
+`S.custom[].ask`; a seeded one keeps it in `S.asks[id]`. `pmoApply()` wrote `S.asks` for both, so an
+accepted value on a custom requirement was **silently dropped** — the review said applied, the board
+showed the old number. `applyAskVec()` is now the one writer: it puts the vector where that
+requirement actually keeps it, clears the stale `S.asks` entry on a custom, and `setAsk()` routes
+through it too, so typing a value by hand and accepting one from a PMO cannot diverge. The
+`handoff — back` block proves applying equals typing, through the real code path and across a
+save/reopen.
+
 ### Two unfunded readings, both measured against the ASK
 
 Unfunded is **never** measured against a trimmed allocation. Money asked for and not received is
@@ -251,6 +352,20 @@ with no way to set a requirement's funding at all. `convertAllToSplit()` does th
 single row on the legacy lane walk had no path. `npm run controls` caught it. When you demote a
 control to a badge, check where its capability went — "it is duplicated" and "it exists twice
 because one of them is the only one that works" look identical until you try it.
+
+**The impact statement is a ROW chip in both builds, and it is not band-gated.** "What happens if
+this is not funded" is the one thing a programme office is best placed to write and the whole PMO
+submittal loop exists to collect it — yet it used to appear only where `BAND_DEF().consReq` is set,
+with the ⋯ menu offering it on a critical band alone. On an ordinary band there was no way in at
+all. It is now in `rowChipsHtml()`, always present, labelled by state: *Impact* once written,
+*CONSEQUENCE* where the band requires one and it is missing, *Impact — not written* everywhere else.
+The grid inspector's copy was removed at the same time, per the rule above.
+
+The audit for it reads the rendered **row** (`#row-A`) in both builds, not the inspector — the card
+build has none, and a check that can only run in one build is a check that quietly stopped covering
+the other. It matches on the live `onclick` **attribute**, not on a regex over `innerHTML`: the
+handler is written with entity quotes (`toggleCons(&quot;A&quot;)`), and asserting against whatever
+the serializer chose to re-escape tests the serializer.
 
 ### Where a split is edited, per build
 

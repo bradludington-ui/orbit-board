@@ -162,6 +162,29 @@ console.log('\noffline');
   else pass('no linked scripts or stylesheets');
 }
 
+// ---- every inline handler names a function that exists --------------------------------------
+// A control whose handler was renamed does not throw at load and does not look broken: the markup
+// is there, the checkbox draws, the click raises a ReferenceError into the console and NOTHING
+// HAPPENS. `pmoPick` shipped that way -- it became `subPick` in a collision rename and this one
+// call site was missed, so every per-row tick in the submittal review was dead while "Tick all"
+// still worked. The reviewer would have accepted all or nothing without ever being told.
+// Static, so it covers panels no audit happens to open.
+{
+  console.log('\ninline handlers');
+  const names = new Set();
+  const HRE = /on(?:click|change|input|submit|keydown|keyup|blur|focus|dblclick|mousedown|contextmenu)\s*=\s*(?:"|\\"|&quot;|')\s*([A-Za-z_$][\w$]*)\s*\(/g;
+  for (const m of src.matchAll(HRE)) names.add(m[1]);
+  const defined = new Set();
+  const DRE = /(?:^|\n)\s*(?:async\s+)?function\s+([A-Za-z_$][\w$]*)|(?:^|\n)\s*(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=/g;
+  for (const d of src.matchAll(DRE)) defined.add(d[1] || d[2]);
+  // `onclick="if(...)"` and friends are inline statements, not a call to a named function.
+  const KEYWORD = new Set(['if', 'for', 'while', 'switch', 'return', 'typeof', 'void', 'delete', 'do', 'try']);
+  const GLOBAL  = new Set(['alert', 'confirm', 'prompt', 'print', 'open', 'close', 'event']);
+  const missing = [...names].filter(n => !defined.has(n) && !KEYWORD.has(n) && !GLOBAL.has(n)).sort();
+  if (missing.length) fail(`inline handler names nothing: ${missing.join(', ')}`);
+  else pass(`all ${names.size} inline handler names resolve`);
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);
