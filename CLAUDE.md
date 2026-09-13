@@ -900,11 +900,36 @@ colour beats a neutral once the third lane must stay readable as text *and* stay
 other two for a red-green reader. Nothing in it is colour-alone: lanes carry their word, unfunded
 is a dashed outline, Mission Critical is the star glyph.
 
-Check colour with numbers, never by eye:
-`node <dataviz-skill>/scripts/validate_palette.js "#hex,#hex,#hex" --mode light --surface "#panel"`
-— its lightness-band and chroma-floor checks are calibrated for chart **fills**, so text tokens
-and deliberate neutrals will FAIL those two legitimately; CVD separation, normal-vision floor and
-contrast are the ones that matter here.
+Check colour with numbers, never by eye — **`npm run colours` now does it**, in a real browser, for
+every theme and both builds. The validator is vendored at `tools/vendor/validate_palette.mjs`
+because it ships with a skill in a temp directory: a check that depends on that would pass today and
+vanish tomorrow.
+
+**What actually protects a colour-deficient reader here is not the lane hues.** The charts carry
+meaning by fill **density** — solid discretionary, hatched mandatory, open dashed unfunded — off a
+single blue ramp (`--fcSolid` / `--fcMand` / `--fcEdge`, 7° of hue between them), so they read the
+same in greyscale and under every deficiency. The lane hues (`--green`, `--purp`, `--unf`) tint
+labelled cards and chips, where the word is beside the colour. So the checks are:
+
+| Held | Why |
+|---|---|
+| the chart never references a lane hue, and still draws its hatch | the real guarantee, asserted against the **rendered** SVG |
+| its fills stay one hue ramp | a well-meant tweak giving mandatory its own colour breaks greyscale |
+| Harbor clears the CVD gate (ΔE ≥ 8) | it is the theme that promises this — it measures **13.1** |
+| no theme's lane separation gets worse than baseline | records the truth without pretending |
+| text clears WCAG (AAA body, AA muted and dim) | measured 12.3–15.9 : 1, 7.2–7.4 : 1, 4.9–6.1 : 1 |
+
+**The measured truth, recorded rather than papered over.** Worst all-pairs CVD ΔE on the three lane
+accents: Midnight **5.2**, Navy **4.1**, Parchment **4.8**, Blueprint **4.7**, Harbor **13.1**. The
+validator's floor is 6.0. Four themes sit on the green/red axis and their discretionary and unfunded
+accents are hard to tell apart for a deuteranope — which is the pre-existing design and exactly why
+Harbor was built. Those numbers are a BASELINE, not a gate: a token tweak that makes any theme worse
+fails loudly, without asserting a standard those four palettes were never built to meet. **The card
+build still defaults to Midnight**; the grid build defaults to Harbor.
+
+Each guard is proven against its own failure: point the chart at `var(--purp)` → *leaked: --purp*;
+put Harbor's unfunded back on red → *worst ΔE 4.1 (gate 8)* and a baseline regression; dim `--mut` →
+*1.6:1*.
 
 ## House style
 
