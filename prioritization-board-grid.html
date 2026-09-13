@@ -1264,7 +1264,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.48 (13 Sep 2026)';
+const BUILD='v1.49 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -2157,8 +2157,8 @@ function exportRlgPlan(){
                        cols:[10,16,11,8,46,40,15,11,34,10,30], rows:out}]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([wb],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download='SPMT Funding Plan \u2014 '+(rlgLabel||'new requirement').replace(/[^A-Za-z0-9 ]+/g,' ').trim()
-    +' '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName('SPMT Funding Plan \u2014 '+(rlgLabel||'new requirement').replace(/[^A-Za-z0-9 ]+/g,' ').trim()
+    +' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\u2b07 Exported the funding plan \u2014 '+rows.length+' line'+(rows.length===1?'':'s')
     +', '+fM2(tot)+'.');
@@ -4448,8 +4448,8 @@ function publishPmoCopy(){
     function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
-  a.download=document.title.replace(/FY\d\d/,FYL())+' \u2014 PMO COPY \u2014 '
-    + new Date().toISOString().slice(0,10) + '.html';
+  a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 PMO COPY \u2014 '
+    + new Date().toISOString().slice(0,10) + '.html');
   a.click();
   setStat('\u{1F4E4} PMO copy published \u2014 upload it to Teams or the shared folder. '
     + 'It is read-only outward: offices can work in it, and send back a submittal you review.');
@@ -4520,8 +4520,8 @@ function pmoSubmit(){
              items:items, base:base};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
-  a.download='SPMT SUBMITTAL - '+who.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
-    + new Date().toISOString().slice(0,10)+'.json';
+  a.download=expName('SPMT SUBMITTAL - '+who.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
+    + new Date().toISOString().slice(0,10)+'.json');
   a.click();
   setStat('\u2709 Submittal built for <b>'+esc(who)+'</b> \u2014 '+n+' requirement'+(n===1?'':'s')
     + '. Send it to the portfolio team; they review every field before anything is applied.');
@@ -4574,7 +4574,7 @@ function pmoReport(){
   const TI={b:1,sz:13}, H={b:1,bg:'DDDDDD'}, N={};
   const MR=masterRanks();          // a local everywhere else in this file; the report needs it too
   const sheet={name:'Proposed changes', cols:[8,10,44,13,26,44,44,11,11],
-    rows:[[{v:document.title.replace(/FY\d\d/,FYL())+'  \u2014  SUBMITTAL FROM '+(PMOSUB.by||'?')
+    rows:[[{v:expTitle()+'  \u2014  SUBMITTAL FROM '+(PMOSUB.by||'?')
             +'  \u2014  '+rows.length+' proposed change'+(rows.length===1?'':'s')
             +'  \u2014  NOTHING BELOW HAS BEEN APPLIED',s:TI}],
           [{v:'Sent '+(PMOSUB.ts? new Date(PMOSUB.ts).toLocaleString():'?')
@@ -4601,8 +4601,8 @@ function pmoReport(){
   const blob=buildXlsx([sheet]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download='SPMT SUBMITTAL REVIEW - '+String(PMOSUB.by||'').replace(/[^A-Za-z0-9 _-]/g,'')+' - '
-    + new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName('SPMT SUBMITTAL REVIEW - '+String(PMOSUB.by||'').replace(/[^A-Za-z0-9 _-]/g,'')+' - '
+    + new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\u{1F4C4} Change report exported \u2014 '+rows.length+' proposed change'+(rows.length===1?'':'s')
     + '. Nothing has been applied.');
@@ -4794,6 +4794,33 @@ function subBanner(){
     +' onclick="pmoSubmit()">\u2709 Submit input</button></div>';
 }
 
+// ── ANYTHING THAT LEAVES A PMO COPY SAYS SO ───────────────────────────────────────────────────
+// The amber banner is on SCREEN. A workbook mailed on from a copy carried none of it: an 11-sheet
+// export taken off a November copy was indistinguishable from one taken off the live board this
+// morning -- same filename, same title row -- so a superseded cutline could be briefed onward with
+// this board's own name on it. That is the same "a stale copy briefed as current" failure the
+// banner exists to prevent, one step further out where the banner cannot reach.
+//
+// Both marks go through ONE function each rather than onto each export. There are a dozen export
+// paths and twenty-four places a file gets its name; on a list that long the one that got missed
+// would be the one that mattered.
+function expStamp(){ return (PMODE && PMODE.ts)? new Date(PMODE.ts).toISOString().slice(0,10) : ''; }
+// The title row -- or title slide -- of every exported artefact.
+function expTitle(){
+  const t=document.title.replace(/FY\d\d/,FYL());
+  // The caveat goes in FRONT. Callers append their own sheet name after this, so a mark tacked
+  // on the end lands in the middle of the finished line and reads like part of that name.
+  return SANDBOX? ('◨ PMO COPY (snapshot of '+expStamp()+', NOT the current plan)  —  '+t) : t;
+}
+// The name the file lands under, so it is marked in the mail that forwards it as well as inside.
+function expName(n){
+  if(!SANDBOX) return String(n);
+  const s=String(n);
+  if(/PMO COPY|SUBMITTAL/.test(s)) return s;          // already says exactly what it is
+  const i=s.lastIndexOf('.');
+  return (i>0? s.slice(0,i) : s)+' [PMO COPY '+expStamp()+']'+(i>0? s.slice(i) : '');
+}
+
 // THE OUTBOUND GATE. Every way a board leaves this machine passes one of the four functions
 // below, so the refusal lives here rather than on the buttons -- a button that is merely hidden is
 // still reachable, and the one that got missed would be the one that mattered.
@@ -4868,7 +4895,7 @@ function publishState(){
   DIRTY=false; try{ syncBtns(); }catch(e){}
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
-  a.download=FNAME;
+  a.download=expName(FNAME);
   a.click();
   setStat('💾 Saved — updated board downloaded to your Downloads folder. Copy it onto the shared drive, replacing the old board file. '
     +'Everyone who opens it sees your priorities, PMO ranks, BA, MC flags, allocations, and notes automatically. '
@@ -4877,7 +4904,7 @@ function publishState(){
 function publishJson(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(MS)],{type:'application/json'}));
-  a.download=STATEFILE;
+  a.download=expName(STATEFILE);
   a.click();
 }
 function adoptShared(){
@@ -5089,7 +5116,7 @@ function pkgIssue(ap, quiet){
   const savedOk=save()!==false;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
-  a.download='SPMT PACKAGE - '+(PKG_NAMES[ap]||ap)+' - issue '+seq+' - '+new Date().toISOString().slice(0,10)+'.json';
+  a.download=expName('SPMT PACKAGE - '+(PKG_NAMES[ap]||ap)+' - issue '+seq+' - '+new Date().toISOString().slice(0,10)+'.json');
   a.click();
   // The staleness guard stands on this ledger entry, and save() only reaches browser storage.
   // Close the board without writing the file and the guard quietly stops protecting this
@@ -5166,7 +5193,7 @@ function pkgReturn(){
              baseSig:src? src.baseSig : '', ms:body};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
-  a.download='SPMT PACKAGE - '+(PKG_NAMES[ap]||ap)+' - return '+pkg.seq+' - '+new Date().toISOString().slice(0,10)+'.json';
+  a.download=expName('SPMT PACKAGE - '+(PKG_NAMES[ap]||ap)+' - return '+pkg.seq+' - '+new Date().toISOString().slice(0,10)+'.json');
   a.click();
   // Record that it went, so the panel can say so and the board is not silent about work already
   // handed back. Nothing else here changes state, so this is the only reason to save.
@@ -6790,7 +6817,7 @@ function crExport(){
   const bytes=buildXlsx([{name:'O&M,N', cols:CR_COLW.slice(), freeze:6, rows:out}], SRC_XTRA);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download='FY'+fy+' CRA APN OMN Oct-Mar - '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName('FY'+fy+' CRA APN OMN Oct-Mar - '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   const noSi=rows.filter(function(e){ const it=itemById(e.id); return it && !siOf(it); }).length;
   setStat('⬇ CR cash return — '+rows.length+' requirement'+(rows.length===1?'':'s')+', '
@@ -8144,8 +8171,8 @@ function exportIdsReq(){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],
     {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download='IDS Batch Import Req \u2014 '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(fy%100)
-    +' '+idsFileId()+'.xlsx';
+  a.download=expName('IDS Batch Import Req \u2014 '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(fy%100)
+    +' '+idsFileId()+'.xlsx');
   a.click();
   const held=R.skip.length;
   setStat('\u2b07 IDS requirement batch \u2014 <b>'+R.rows.length+'</b> line'
@@ -10346,7 +10373,7 @@ function flowPng(){
         if(!b){ setStat('\u26a0 Could not build the image \u2014 use \u2b07 Export instead.'); return; }
         const a=document.createElement('a');
         a.href=URL.createObjectURL(b);
-        a.download='SPMT Funds Flow '+flowCalc().label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()+' '+new Date().toISOString().slice(0,10)+'.png';
+        a.download=expName('SPMT Funds Flow '+flowCalc().label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()+' '+new Date().toISOString().slice(0,10)+'.png');
         a.click();
         setStat('\u2b07 Saved a '+(w*SCALE)+'\u00d7'+(h*SCALE)+' PNG \u2014 drop it straight onto a slide.');
       },'image/png');
@@ -10733,8 +10760,8 @@ function exportFlow(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download='SPMT Funds Flow - '+F.label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()
-    +' '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName('SPMT Funds Flow - '+F.label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()
+    +' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('⬇ Exported: funds flow '+F.label+' — summary, prime detail, OGC detail.');
 }
@@ -11055,7 +11082,7 @@ function exportExView(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download='SPMT Active Year Execution - '+label+' '+dstr+'.xlsx';
+  a.download=expName('SPMT Active Year Execution - '+label+' '+dstr+'.xlsx');
   a.click();
   setStat('\u2b07 Exported: Active Year Execution — '+label+'.');
 }
@@ -11161,7 +11188,7 @@ function exportSrc(){
   const bytes=buildXlsx(sheets, SRC_XTRA);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download='Spend Plan Source - '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName('Spend Plan Source - '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('⬇ Exported '+n+' row'+(n===1?'':'s')+' across '+sheets.length+' tab'
     +(sheets.length===1?'':'s')+' in the Spend Plan Source layout — '
@@ -11545,7 +11572,7 @@ function bandExport(){
   const pack={spmtBands:1, from:apLabel(), ts:Date.now(), bands:BANDS_LIST()};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}));
-  a.download='SPMT decision bands - '+apLabel().replace(/[^A-Za-z0-9 &-]/g,'')+'.json';
+  a.download=expName('SPMT decision bands - '+apLabel().replace(/[^A-Za-z0-9 &-]/g,'')+'.json');
   a.click();
   setStat('\u2b07 Ladder exported \u2014 share this file to put the same bands on another board.');
 }
@@ -12051,7 +12078,10 @@ function scenOpt(){ return scenView==='disc'? {noMand:true} : null; }
 // moment it is emailed. One marker, defined once and used by the sheet titles, the board panel and
 // the file name, so they cannot describe the same workbook differently.
 const SCEN_TAG='DISCRETIONARY ONLY — mandatory withheld';
-function scenTitle(t){ return scenOn()? (t+'   \u2014   \u25e8 '+SCEN_TAG+' (WHAT-IF, not the funded plan)') : t; }
+function scenTitle(t){
+  const s = scenOn()? (t+'   \u2014   \u25e8 '+SCEN_TAG+' (WHAT-IF, not the funded plan)') : t;
+  return SANDBOX? (s+'   \u2014   \u25e8 PMO COPY (snapshot of '+expStamp()+', NOT the current plan)') : s;
+}
 function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }
 function scenOn(){ return scenView==='disc'; }
 // the mandatory BA as the CURRENT VIEW sees it -- zero when the pot is withheld
@@ -12299,7 +12329,7 @@ function exportPlans(){
     +'engine on the rest. FUNDED is what each plan\u2019s top line then reaches. A funded figure '
     +'below its allocated one means that plan ran out before it got there.';
   const sheet=(name,key,budget,tt,cut,pot)=>{
-    const r=[[{v:document.title.replace(/FY\d\d/,FYL())+' \u2014 '+name,s:TI}],
+    const r=[[{v:expTitle()+' \u2014 '+name,s:TI}],
       [{v:'Every figure on this tab is funded from '+pot+'.',s:0}],
       [{v:DEFN,s:0}],
       [{v:OFFLINE,s:0}],[],
@@ -12372,7 +12402,7 @@ function exportPlans(){
     cmp]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=document.title.replace(/FY\d\d/,FYL())+' \u2014 Two Spend Plans '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 Two Spend Plans '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('⬇ Both spend plans exported — Plan A, Plan B, and what the mandatory top line changes.');
 }
@@ -12467,7 +12497,7 @@ function exportProposedOrder(){
   const csv='\ufeff'+out.map(r=>r.map(c=>'"'+(''+c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='Proposed 1-N order '+FYL()+' '+new Date().toISOString().slice(0,10)+'.csv';
+  a.download=expName('Proposed 1-N order '+FYL()+' '+new Date().toISOString().slice(0,10)+'.csv');
   a.click();
   setStat('\u2b07 Proposed order exported \u2014 nothing on the board was changed.');
 }
@@ -13927,7 +13957,7 @@ function exportReprog(){
     {v:parseFloat(r.amtM)||0, s:N2}, r.dir==='deduct'?'Deduct':'Add', r.pool==='mand'?'Mand':'Disc',
     r.status||'Pending', r.hac||'', r.sac||'', r.hasc||'', r.sasc||'', r.remarks||''];
   const sheet={name:'ATR-BTR Log', cols:[16,7,6,10,10,10,9,42,10,11,7,11,9,9,9,9,50],
-    rows:[[{v:document.title.replace(/FY\d\d/,FYL())+' — ATR / BTR Reprogramming Log ($M)',s:TI}],[]]};
+    rows:[[{v:expTitle()+' — ATR / BTR Reprogramming Log ($M)',s:TI}],[]]};
   const bySvcTot={};
   ['BTR','ATR'].forEach(t=>{
     const es=rpFiltered().filter(r=>r.type===t);
@@ -13953,7 +13983,7 @@ function exportReprog(){
   const bytes=buildXlsx([sheet]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=FYL()+' ATR-BTR Log '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName(FYL()+' ATR-BTR Log '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
 }
 function toggleCr(){
@@ -16613,7 +16643,7 @@ function exportPPT(){
       ['Whole budget', fSM(dBA+mBA), _PPT.NAVY], ['Unfunded (incl allocation trims)', fSM(totUnf), _PPT.RED]];
     const rows=[[{t:'Measure',...H,align:'l'},{t:'Amount',...H}]];
     kpi.forEach(k=>rows.push([{t:k[0],sz:1200,c:_PPT.INK,align:'l'},{t:k[1],sz:1200,b:1,c:k[2]}]));
-    slides.push(_pSlide(_pTitle(document.title.replace(/FY\d\d/,FYL()))
+    slides.push(_pSlide(_pTitle(expTitle())
       +_pText(4,914400,1250000,7315200,400000,
         _pPara(_pRun(FYL()+' Discretionary / Mandatory Prioritization Drill — Current Board Position',{sz:1300,i:1,c:_PPT.NAVY}),'ctr'))
       +_pTbl(5,1943100,2000000,5257800,[5,2],rows)
@@ -16737,7 +16767,7 @@ function exportPPT(){
   const bytes=buildPptx(slides);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'}));
-  a.download=document.title.replace(/FY\d\d/,FYL())+' — Slides '+new Date().toISOString().slice(0,10)+'.pptx';
+  a.download=expName(document.title.replace(/FY\d\d/,FYL())+' — Slides '+new Date().toISOString().slice(0,10)+'.pptx');
   a.click();
   setStat('📽 PowerPoint deck downloaded — built inside the SFWG/SFCB Membership template (its actual master, layouts, and markings).');
 }
@@ -19118,7 +19148,7 @@ function exportCSV(){
   // ---- tab 1: summary -------------------------------------------------------------------------
   const grand=agg(S.order.map(itemById).filter(Boolean));
   const sum={name:'Summary', cols:[8,30,26,8,16,16,16,16,16,8], rows:[
-    [{v:document.title.replace(/FY\d\d/,FYL())+'  —  funded by decision band',s:TI}],
+    [{v:expTitle()+'  —  funded by decision band',s:TI}],
     [{v:'Priority order as it stands. Every figure is whole dollars.',s:0}],[],
     [{v:'BUDGET AUTHORITY',s:SEC},'','','',{v:'Discretionary',s:H},{v:'Mandatory',s:H},{v:'Whole budget',s:H}],
     [{v:'',s:0},'','','',{v:discTot(),s:MB},{v:mandTot(),s:MB},{v:discTot()+mandTot(),s:MB}],[],
@@ -19185,7 +19215,7 @@ function exportCSV(){
   }
 
   // ---- tab 2: the whole 1-N, by band -----------------------------------------------------------
-  const wholeRows=[[{v:document.title.replace(/FY\d\d/,FYL())+'  —  priority order, grouped by band',s:TI}],[]];
+  const wholeRows=[[{v:expTitle()+'  —  priority order, grouped by band',s:TI}],[]];
   all.forEach(function(g,n){
     if(g.its.length) section(g, wholeRows);
     // checked whether or not the group rendered: a header holding nothing of its own still has a
@@ -19198,7 +19228,7 @@ function exportCSV(){
   // ---- a tab per PMO ---------------------------------------------------------------------------
   const sheets=[sum, whole];
   PMOS.forEach(pm=>{
-    const rows=[[{v:pm+'  —  '+document.title.replace(/FY\d\d/,FYL())+', grouped by band',s:TI}],[]];
+    const rows=[[{v:pm+'  —  '+expTitle()+', grouped by band',s:TI}],[]];
     let any=false;
     all.forEach(g=>{
       const its=g.its.filter(it=>grpOf(it)===pm);
@@ -19214,7 +19244,7 @@ function exportCSV(){
   const bytes=buildXlsx(sheets, extra);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=(_AP.exp+' ')+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName((_AP.exp+' ')+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('⬇ Priority drill exported — funded by band, for the whole order and for each PMO.');
 }
@@ -19282,7 +19312,7 @@ function execSynopsis(){
   const csv='\ufeff'+rows.map(r=>(r||[]).map(c=>'"'+(''+(c??'')).replace(/"/g,'""')+'"').join(',')).join('\r\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-  a.download='FY27 Exec Funding Synopsis '+new Date().toISOString().slice(0,10)+'.csv';
+  a.download=expName('FY27 Exec Funding Synopsis '+new Date().toISOString().slice(0,10)+'.csv');
   a.click();
 }
 // ===================== ACE TIE-OUT WORKBOOK =====================
@@ -19573,7 +19603,7 @@ function exportAceTieout(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=document.title.replace(/FY\d\d/,FYL())+' \u2014 ACE Tie-Out '+k+' '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 ACE Tie-Out '+k+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\ud83d\udcc8 ACE Tie-Out workbook exported \u2014 <b>'+k+'</b>, '+scopeLbl
     +'. Confirmed mappings carry a figure; suggestions do not.');
@@ -19763,7 +19793,7 @@ function exportExcel(){
   const gmx=matrixSheet('PMO Matrix', document.title+' — PMO Funding by service (Disc lane | Mand spillover)','PMO',byGX,pmoKeys(byGX));
   // --- Funding Streams: what each stream funds, by service ---
   const fs={name:'Funding Streams', cols:[16,15,15,15,15,15,15,15,15,16,16,16],
-    rows:[[{v:document.title+' — Funding by stream and service (lane model)',s:TI}],[],
+    rows:[[{v:expTitle()+' — Funding by stream and service (lane model)',s:TI}],[],
       [{v:'Service',s:H},{v:FYL()+' Ask',s:H},{v:'Disc BA',s:H},{v:'Disc Funded',s:H},{v:'Disc Remaining',s:H},{v:'Mand BA',s:H},{v:'Mand Funded',s:H},{v:'Mand Remaining',s:H},{v:'Funded Total',s:H},{v:'Ask Not Allocated (delta)',s:H},{v:'Beyond Both Lanes',s:H},{v:'TOTAL UNFUNDED',s:H}]]};
   SVC.forEach((s,i)=>{
     fs.rows.push([s,{v:allAsk[i],s:N},{v:S.discSvc[i],s:N},{v:allD[i],s:N},{v:Math.max(0,T.__rem.dRem[i]),s:N},
@@ -19851,7 +19881,7 @@ function exportExcel(){
     sheet.rows.push([]);
   };
   const fcSheet={name:FYL()+' Two-Plan Forecast', cols:[34,...FYMON.map(_=>9),9,11],
-    rows:[[{v:document.title.replace(/FY\d\d/,FYL())+' \u2014 '+FYL()+' Two-Plan Spend Forecast \u2014 PLAN A (discretionary only) vs PLAN B (discretionary + mandatory), two modelled walks, NOT this board\u2019s allocations (OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur+') \u2014 $M, spread by award/obligation schedule',s:TI}],[]]};
+    rows:[[{v:expTitle()+' \u2014 '+FYL()+' Two-Plan Spend Forecast \u2014 PLAN A (discretionary only) vs PLAN B (discretionary + mandatory), two modelled walks, NOT this board\u2019s allocations (OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur+') \u2014 $M, spread by award/obligation schedule',s:TI}],[]]};
   fcBlock(fcSheet, 'PLAN A \u2014 DISCRETIONARY ONLY',
     'The priority order funded against the discretionary topline alone, as if there were no '
     +'mandatory pot at all.', forecast(fcFrom(planFc.A)), planFc.aTop);
@@ -19868,7 +19898,7 @@ function exportExcel(){
   // --- CR Cash Needs (half-month windows Oct–Mar) ---
   const crW=crWins(), crD=crData();
   const crSheet={name:'CR Cash Needs', cols:[36,...crW.map(_=>11),11,12],
-    rows:[[{v:document.title.replace(/FY\d\d/,FYL())+' — Continuing Resolution cash needs by half-month window (OCT '+(MS.cur-1)+' – MAR '+MS.cur+') — funded dollars placed by obligation dates',s:TI}],[],
+    rows:[[{v:expTitle()+' — Continuing Resolution cash needs by half-month window (OCT '+(MS.cur-1)+' – MAR '+MS.cur+') — funded dollars placed by obligation dates',s:TI}],[],
       [{v:'Service / Requirement',s:H},...crW.map(w=>({v:w.lbl,s:H})),{v:'No date',s:H},{v:'TOTAL',s:H}]]};
   SVC.forEach((s,i)=>{
     const sv=crD[i];
@@ -19949,7 +19979,7 @@ function exportExcel(){
       .reduce((a,b)=>add(a,b.__k||zero()), zero());
     const rollN=r=>[buckets[r.h]].concat(r.kids.map(i=>buckets[i]))
       .reduce((a,b)=>a+b.its.length, 0);
-    const rows=[[{v:document.title.replace(/FY\d\d/,FYL())+' — Decision Bands, in priority order',s:TI}],[]];
+    const rows=[[{v:expTitle()+' — Decision Bands, in priority order',s:TI}],[]];
     // summary first, so the shape is readable before anyone scrolls
     rows.push([{v:'BAND SUMMARY',s:SEC}]);
     rows.push(['Band','Band name','Rule','Stoppage gap','Consequence req','Reqs',FYL()+' Requirement',
@@ -20363,7 +20393,7 @@ function exportExcel(){
       });
     });
     const pm={name:'CE by PMO', cols:[30,8,15,15,16,16,15,15],
-      rows:[[{v:document.title+' — Cost Elements by PMO (Disc / Mand portions)',s:TI}],[],
+      rows:[[{v:expTitle()+' — Cost Elements by PMO (Disc / Mand portions)',s:TI}],[],
         [{v:'PMO / Cost Element',s:H},{v:'Reqs',s:H},{v:FYL()+' Ask',s:H},{v:'Disc portion',s:H},{v:'★ MC requirement (memo)',s:H},{v:'★ MC short vs Disc',s:H},{v:'Mand portion',s:H},{v:'Unfunded (incl delta)',s:H}]]};
     pmoKeys(byP).forEach(g=>{
       const p=byP[g]; if(!p) return;
@@ -20436,7 +20466,7 @@ function exportExcel(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=scenFile(document.title.replace(/FY\d\d/,FYL())+' — Breakouts')+' '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName(scenFile(document.title.replace(/FY\d\d/,FYL())+' — Breakouts')+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
 }
 // THE ONE PLACE THAT CAPTURED THE LIST. Boot code, run once, so a PMO added later never
@@ -20903,7 +20933,7 @@ function exportCoa(){
   const bytes=buildXlsx([s1,s2,s3]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download='SPMT Chart of Accounts '+FY+' '+new Date().toISOString().slice(0,10)+'.xlsx';
+  a.download=expName('SPMT Chart of Accounts '+FY+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\ud83d\udcd2 Chart of accounts exported \u2014 '+rows.length+' requirements across '
     +sum.length+' appropriation'+(sum.length===1?'':'s')+', '+open.length+' with something to settle.');

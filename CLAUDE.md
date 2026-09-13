@@ -275,6 +275,28 @@ work is restored on every open after that, and no other copy and no other board 
 `PMODE.ap` pins the appropriation for the same reason — it was read from the reader's own browser
 before the file had any say, so a copy could open as a drill whose data it does not carry.
 
+**Anything that leaves a PMO copy says so.** The amber banner is on *screen*; a workbook mailed on
+from a copy carried none of it. An 11-sheet export taken off a November copy was indistinguishable
+from one taken off the live board this morning — same filename, same title row — so a superseded
+cutline could be briefed onward with this board's own name on it. That is the same failure the
+banner exists to prevent, one step further out where the banner cannot reach.
+
+The mark rides the board's **own** convention rather than a second one beside it: `scenTitle()` /
+`scenFile()` already marked a what-if view as "not the funded plan", and a snapshot is the same kind
+of claim — both can be true at once. Two choke points carry it, not twelve: `expName()` for all 24
+places a file gets its name, `expTitle()` for all 12 title rows. With a dozen export paths, marking
+each by hand is how one gets missed. The caveat goes in **front** — callers append their own sheet
+name after the title, so a mark tacked on the end lands mid-line and reads like part of that name.
+A file that already says what it is (a submittal, the copy itself) is not marked twice.
+
+Two sheets titled themselves off the raw `document.title`, which made them the only two the FY
+substitution had never reached *and* the only two no mark could reach. They go through the helper now.
+
+**The patch that added this ate its own helper.** `expTitle()`'s body contains the very expression
+the rewrite was replacing, so inserting the helper first turned it into `const t=expTitle();` — a
+function calling itself forever. `check.mjs` passed that file happily; only booting it caught it.
+Any transform over this file must insert what it defines *after* it rewrites what it matches.
+
 **The side databases ride alongside the store, not inside it.** Execution data (`EXDB`), the ACE cost
 estimate (`ACEDB`) and the reprogramming log (`RPDB`) are their own globals, packed separately by
 `buildSavedHtml()`. The handoff fixture left all three empty, so a copy that dropped one was

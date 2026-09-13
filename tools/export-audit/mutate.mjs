@@ -269,8 +269,11 @@ const MUTATIONS = [
     find: "function scenOpt(){ return scenView==='disc'? {noMand:true} : null; }",
     repl: 'function scenOpt(){ return null; }' },
   { id: 'scen-marker-sheet', area: 'marker', what: 'a what-if workbook prints sheet titles that look like the funded plan',
-    find: String.raw`function scenTitle(t){ return scenOn()? (t+'   \u2014   \u25e8 '+SCEN_TAG+' (WHAT-IF, not the funded plan)') : t; }`,
-    repl: 'function scenTitle(t){ return t; }' },
+    // scenTitle() grew a second caveat (the PMO-copy mark) and stopped being one line. Target the
+    // WHAT-IF clause itself rather than the whole function, so it survives the next thing that is
+    // added beside it -- a mutation whose target drifts is a check that silently stopped running.
+    find: String.raw`scenOn()? (t+'   \u2014   \u25e8 '+SCEN_TAG+' (WHAT-IF, not the funded plan)') : t`,
+    repl: 't' },
   { id: 'scen-marker-file', area: 'marker', what: 'a what-if workbook saves under the ordinary file name',
     find: "function scenFile(n){ return scenOn()? (n+' [DISC-ONLY]') : n; }",
     repl: 'function scenFile(n){ return n; }' },
@@ -355,6 +358,22 @@ const MUTATIONS = [
   { id: 'review-pads-short-vector', area: 'pmoTake', what: 'a value with too few services is padded, zeroing a service in silence',
     find: "      if(!Array.isArray(one.asks) || one.asks.length!==SVC.length){ _wrong.push(id); return; }",
     repl: "      if(false){ _wrong.push(id); return; }" },
+  // A file that leaves a PMO copy and does not say so can be briefed as the current plan.
+  { id: 'export-name-unmarked', area: 'expName', what: 'a file exported from a PMO copy keeps the live board\u2019s filename',
+    find: "  if(!SANDBOX) return String(n);",
+    repl: "  if(true) return String(n);" },
+  { id: 'export-title-unmarked', area: 'expTitle', what: 'a workbook exported from a PMO copy keeps the live board\u2019s title row',
+    find: "  return SANDBOX? ('\u25e8 PMO COPY (snapshot of '+expStamp()",
+    repl: "  return false? ('\u25e8 PMO COPY (snapshot of '+expStamp()" },
+  { id: 'export-mark-undated', area: 'expStamp', what: 'the mark does not say WHEN the copy was published, so staleness cannot be judged',
+    find: "function expStamp(){ return (PMODE && PMODE.ts)? new Date(PMODE.ts).toISOString().slice(0,10) : ''; }",
+    repl: "function expStamp(){ return ''; }" },
+  { id: 'export-mark-buried', area: 'expTitle', what: 'the caveat is appended, so it lands mid-line and reads as part of the sheet name',
+    find: "+', NOT the current plan)  \u2014  '+t) : t;",
+    repl: "+', NOT the current plan)') : t;" },
+  { id: 'export-double-marks', area: 'expName', what: 'a submittal, which already says what it is, is marked a second time',
+    find: "  if(/PMO COPY|SUBMITTAL/.test(s)) return s;          // already says exactly what it is",
+    repl: "  /* mark it anyway */" },
 
   // ---- the PMO copy, and what a programme office may send back ---------------------------------
   { id: 'pmo-gate-open', area: 'sandboxBlock', what: 'a PMO copy can write back over the team\u2019s board',

@@ -922,6 +922,68 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   chk(name, 'their work', 'and is not a sandbox', String(pb.eval('SANDBOX')), 'false');
 }
 
+// ══ anything that leaves a PMO copy says so ════════════════════════════════════════════════════
+// The amber banner is on SCREEN. A workbook mailed on from a copy carried none of it: an 11-sheet
+// export off a November copy was indistinguishable from one off the live board this morning -- same
+// filename, same title row -- so a superseded cutline could be briefed onward under this board's own
+// name. Read the artefact the office would actually circulate, with the board's own reader.
+{
+  const name = 'handoff — an export from a copy says it is one';
+  const sc = base();
+  const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+  const html = ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:1763078400000, fy:MS.cur, ap:APPN, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+
+  // Drive the real export and read what comes out -- the name the file lands under and the title
+  // row a reader sees first. Recomputing what the mark "should" say would test the restatement.
+  const shot = (w) => w.eval(`(async function(){
+    var cap=null,_B=window.Blob,name='';
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    var _c=document.createElement.bind(document);
+    document.createElement=function(t){ var e=_c(t);
+      if(t==='a') Object.defineProperty(e,'download',{set:function(v){ name=v; },get:function(){ return name; }});
+      return e; };
+    try{ exportExcel(); }catch(e){ return JSON.stringify({err:String((e&&e.message)||e)}); }
+    window.Blob=_B; document.createElement=_c;
+    var ab=cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength);
+    var sh=await xlsxRead(ab); var f=Object.keys(sh)[0];
+    return JSON.stringify({name:name, title:String((sh[f][0]||[])[0]||''), sheets:Object.keys(sh).length});
+  })()`);
+
+  const L = boot(); seed(L.ev, sc); asBooted(L.ev, sc);
+  const live = JSON.parse(await shot(L.w));
+  const copy = JSON.parse(await shot(boot({ html }).w));
+
+  chk(name, 'live', 'the live board exports the whole workbook', live.sheets > 1 ? 'full' : 'thin', 'full');
+  chk(name, 'live', 'and is NOT marked as a copy',
+    /PMO COPY/.test(live.name + live.title) ? 'MARKED' : 'clean', 'clean');
+
+  chk(name, 'copy', 'a copy exports the same workbook', copy.sheets, live.sheets);
+  // The filename is what a person sees in Teams and in the mail that forwards it.
+  chk(name, 'copy', 'its filename says it came from a copy',
+    /\[PMO COPY /.test(copy.name) ? 'marked' : 'bare', 'marked');
+  chk(name, 'copy', 'and carries the date it was published',
+    /\[PMO COPY 2025-11-14\]/.test(copy.name) ? 'dated' : 'undated', 'dated');
+  chk(name, 'copy', 'the extension survives the mark',
+    /\.xlsx$/.test(copy.name) ? 'xlsx' : copy.name.slice(-12), 'xlsx');
+  // The title row is what a person sees on opening it, and on the printout.
+  chk(name, 'copy', 'the title row says it is a snapshot',
+    /PMO COPY \(snapshot of 2025-11-14, NOT the current plan\)/.test(copy.title) ? 'said' : 'silent', 'said');
+  // THE CAVEAT COMES FIRST. Callers append their own sheet name after the title, so a mark tacked
+  // on the end lands mid-line and reads like part of that sheet's name.
+  chk(name, 'copy', 'and leads with it rather than burying it',
+    copy.title.indexOf('PMO COPY') < 4 ? 'leads' : 'buried at ' + copy.title.indexOf('PMO COPY'), 'leads');
+  chk(name, 'copy', 'the board and sheet are still named after it',
+    /Prioritization Board/.test(copy.title) && copy.title.length > 60 ? 'named' : 'lost', 'named');
+
+  // A file that already says what it is must not say it twice.
+  chk(name, 'no double mark', 'a submittal built in a copy is not re-marked',
+    boot({ html }).ev(`expName('SPMT SUBMITTAL - J Smith - 2026-09-13.json')`),
+    'SPMT SUBMITTAL - J Smith - 2026-09-13.json');
+}
+
 // ══ what is reviewed is what would land ════════════════════════════════════════════════════════
 // The review, the spreadsheet and pmoApply() all read the same package, but only pmoApply() put a
 // requirement value through the board's rule for one. A package is a JSON file -- a hand edit or a
