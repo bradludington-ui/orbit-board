@@ -601,9 +601,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // worth protecting is losslessness, not the mechanics -- if conversion shifts a dollar, it does so
 // across every requirement at once and quietly.
 //
-// The fixture uses a SCALAR trim, which prorates to fractional per-service dollars, because
-// seedSplit() rounds each service to whole dollars on the way in. Whole numbers everywhere would
-// make the rounding step invisible and prove nothing about it.
+// The fixture uses a SCALAR trim, which prorates to fractional per-service dollars. seedSplit()
+// used to round each service to whole dollars on the way in; whole numbers everywhere would make
+// that step invisible and prove nothing about it, so the fractional fixture stays as the thing
+// that would notice any rounding reintroduced here.
 for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
                                ['fractional trim', {m:'t', v:5000001}]]) {
   const name = 'convert to split — ' + label;
@@ -694,6 +695,101 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     wrote.found ? 'reachable' : 'no way in', 'reachable');
   chk(name, 'row', 'and no longer flagged as missing',
     /not written/.test(wrote.text || '') ? 'still flagged' : 'clean', 'clean');
+}
+
+// ══ the Spruills grid must read the board's OWN requirements ═══════════════════════════
+// APPNS is the consolidated multi-appropriation payload. It is a const baked in at build time and
+// is EMPTY on a board that simply carries its own requirements -- nothing ever writes to it, and
+// buildSavedHtml does not rewrite it either. spDefs() took it anyway for the board's own
+// appropriation, so the Spruills panel reported Total Requirements $0.00M on a board holding
+// $1.4B of asks, printed a DELTA of the entire budget as surplus, and dropped every per-PMO row.
+// pkgPackOf has guarded this exact trap for a while; this makes sure spDefs keeps doing the same.
+//
+// The oracle is the scenario's own arithmetic. Asking spGather() what it thinks the answer is
+// would have agreed with the bug.
+{
+  const name = 'Spruills reads the board it is on';
+  const sc = { services: ['USAF', 'ANG', 'AFRC'],
+    items: [it('A', 'PSM', [9000000, 2000000, 1000000]),
+            it('B', 'AV',  [4000000, 500000, 250000]),
+            it('C', 'MxS', [1500000, 750000, 125000])],
+    disc: [9000000, 2000000, 1000000], mand: [3000000, 500000, 250000],
+    order: ['A', 'B', 'C'] };
+  const wantReq = sum(sc.items.map(i => sum(i.ask)));
+  const wantBud = sum(sc.disc) + sum(sc.mand);
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev('render(); "ok"');
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  // The precondition the bug needed. If a build ever starts filling APPNS this check still holds,
+  // but say so rather than passing silently on a board where the trap cannot spring.
+  const appnsEmpty = ev(`(function(){ if(typeof APPNS==='undefined') return 'no APPNS';
+    var p=APPNS[APPN]; return !!(p&&((p.items&&p.items.length)||(p.services&&p.services.length)))? 'filled':'empty'; })()`);
+  chk(name, 'precondition', "the board's own APPNS slot is empty", appnsEmpty, 'empty');
+
+  const fy = ev('MS.cur');
+  const G = JSON.parse(ev('JSON.stringify(spGather())'));
+  const own = G.blocks.find(b => b.name === ev('APPN'));
+  chk(name, 'spGather', "the board's own appropriation has a block", !!own, true);
+  if (own) {
+    chk(name, 'spGather', 'total requirements are the board\'s asks', own.req[fy], wantReq);
+    chk(name, 'spGather', 'available funding is disc + mand', own.bud[fy], wantBud);
+    chk(name, 'spGather', 'delta is funding minus requirements',
+      (own.bud[fy] || 0) - (own.req[fy] || 0), wantBud - wantReq);
+    // The missing rows were the other half of it: a block with the right total and no rows under
+    // it still briefs as a blank page.
+    const rowTot = sum(Object.values(own.rows).map(r => +r[fy] || 0));
+    chk(name, 'spGather', 'the rows under it add to the same total', rowTot, wantReq);
+    chk(name, 'spGather', 'and there is a row per PMO', Object.keys(own.rows).length,
+      new Set(sc.items.map(i => i.grp)).size);
+  }
+}
+
+// ══ recording a funding source must not change what a requirement is short ═════════════
+// A directed source says where the ALLOCATION is drawn from. It used to re-base the requirement on
+// its full ask, so the gap between ask and allocation -- TRIM on every ordinary requirement -- was
+// reported as BEYOND BOTH LANES on this one, and counted into the portfolio shortfall. Because
+// seedSplit() fills the directed dollars FROM the allocation, that meant the act of recording where
+// money came from, which moves no money whatsoever, flipped a row from "fully funded" to "partly
+// unfunded" and grew the banner. Two requirements identical in ask, trim and funding read
+// differently side by side on the 1-N report, with nothing on screen to say why.
+//
+// A and B here are the same requirement twice. Only the recorded source differs.
+{
+  const name = 'a recorded funding source moves no money';
+  const sc = { services: ['USAF', 'ANG', 'AFRC'],
+    items: [it('A', 'PSM', [9000000, 2000000, 1000000]),
+            it('B', 'PSM', [9000000, 2000000, 1000000])],
+    disc: [20000000, 5000000, 3000000], mand: [0, 0, 0],
+    order: ['A', 'B'],
+    alloc: { A: { m: 't', v: 6600000 }, B: { m: 't', v: 6600000 } } };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const read = id => JSON.parse(ev(`(function(){ var T=tiers(), p=T['${id}'], x=itemById('${id}');
+    return JSON.stringify({d:p.dT, m:p.mT, beyond:p.uT, tier:p.tier,
+      trim:trimTotOf(x), unf:unfTotOf(x,p), basis:basisSvcOf(x).reduce(function(a,b){return a+b;},0)}); })()`));
+
+  const plain = read('A');
+  // Record a source on B only — seeded from its own allocation, so no dollar is directed anywhere
+  // it was not already going.
+  chk(name, 'setup', 'the source is seeded from the allocation', ev(`seedSplit('B')`), true);
+  ev('save(); render(); "ok"');
+  const sourced = read('B');
+
+  ['d', 'm', 'beyond', 'trim', 'unf', 'basis'].forEach(k => {
+    const what = { d: 'discretionary drawn', m: 'mandatory drawn', beyond: 'beyond both lanes',
+                   trim: 'trim', unf: 'total unfunded', basis: 'the basis measured against' }[k];
+    chk(name, 'unchanged', `${what} is the same with a source recorded`, sourced[k], plain[k]);
+  });
+  chk(name, 'unchanged', 'and so is the funding tier', sourced.tier, plain.tier);
+  // The trim on a 9/2/1 ask allocated 6.6 is 5.4, and the lanes cover the allocation in full, so
+  // the arithmetic is stated rather than taken from either row.
+  chk(name, 'oracle', 'the trim is the ask less the allocation', plain.trim, 12000000 - 6600000);
+  chk(name, 'oracle', 'nothing is beyond the lanes', plain.beyond, 0);
+  chk(name, 'oracle', 'total unfunded is the trim', plain.unf, plain.trim);
 }
 
 console.log('\n' + '='.repeat(96));

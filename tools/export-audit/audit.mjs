@@ -111,10 +111,12 @@ const SCENARIOS = {
     order: ['A'], mc: { A: true },
     alloc: { A: { m: 's', v: [60, 5] } },
   },
-  // A DIRECTED SOURCE ON A TRIMMED REQUIREMENT. basisSvcOf says a funding-source override bases on
-  // the FULL ask, not the board allocation. Until this scenario existed, every fsrc item also had no
-  // allocation — so svcAlloc returned the ask anyway and the two readings were indistinguishable.
-  // Here the ask is 80 and the allocation 40, so they cannot be confused.
+  // A DIRECTED SOURCE ON A TRIMMED REQUIREMENT. The basis is the board allocation, the same as for
+  // any other requirement — a source says where the allocation is drawn from, not that the untrimmed
+  // ask is being claimed. Until this scenario existed, every fsrc item also had no allocation, so
+  // svcAlloc returned the ask anyway and the two readings were indistinguishable. Here the ask is 80
+  // and the allocation 40, so they cannot be confused: the 40 difference must come out as TRIM, and
+  // Beyond Both Lanes must be nothing.
   'directed source on a trimmed requirement': {
     services: SVC3,
     items: [it('A', 'ATL', [50, 20, 10]), it('B', 'PSM', [30, 10, 5])],
@@ -185,9 +187,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // THE ALLOCATION BASIS, DERIVED HERE from the scenario's own inputs — never read back from the
   // page. A scalar allocation prorates by each service's share of the ask; an even split is a
   // different answer, not a rounding difference, because money is not fungible across services.
+  // A directed funding source does NOT re-base the requirement on its full ask: it says where the
+  // ALLOCATION is drawn from. It used to, and that made the same money read as TRIM on an ordinary
+  // requirement and as BEYOND BOTH LANES on one carrying a source — so recording where money came
+  // from, which moves no money, grew the shortfall.
   const basisOf = id => {
     const item = sc.items.find(x => x.id === id);
-    if (sc.fsrc && sc.fsrc[id]) return item.ask.slice();
     const a = sc.alloc && sc.alloc[id];
     if (a === null || a === undefined) return item.ask.slice();
     if (a.m === 's') return a.v.slice();          // per-service vector, taken as given

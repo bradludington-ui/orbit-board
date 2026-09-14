@@ -320,7 +320,13 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .tl-split{background:var(--tintB);color:var(--tintBi)}
 .tl-mand{background:var(--tintP);color:var(--tintPi)}
 .tl-unf{background:var(--unfD);color:var(--unf)}
-.acts{display:grid;grid-template-columns:62px 44px 38px 108px 26px;gap:5px;align-items:center}
+/* THE MONEY COLUMN GETS THE ROOM. These were five fixed tracks, and the allocation field was
+   pinned at 38px while the ⋯ menu beside it took 108px -- inside a 392px column with ~94px spare.
+   A formatted allocation needs about 70px and clipped to "5,7(" on every trimmed requirement, which
+   is what a reader saw instead of the figure. The amount takes the slack now; ⋯ is one glyph and
+   needs nothing like 108px. Measured, not eyeballed: tools/editors-reachable.mjs fails if any row
+   control's scrollWidth exceeds the box drawn for it. */
+.acts{display:grid;grid-template-columns:62px 44px minmax(96px,1fr) 34px 26px;gap:5px;align-items:center}
 .acts .rowmenu{display:block}
 .acts .rowmenu .rmbtn{width:100%;font-size:14px;line-height:1;padding:5px 0;letter-spacing:1px}
 .acts .rowmenu.open .rmbtn{background:var(--gold);border-color:var(--gold);color:var(--onGold)}
@@ -339,7 +345,13 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .qb.on{background:var(--gold);border-color:var(--gold);color:var(--onGold)}
 .qb:hover{color:var(--ink);border-color:var(--blue)}
 .addp{margin:0 18px 10px;background:var(--panel);border:1px dashed var(--gold);border-radius:8px;padding:12px;display:none}
-.addp .fr{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+/* .fr was only ever declared INSIDE .addp, so the other 33 rows using it fell back to
+   display:block: their gap did nothing, justify-content did nothing, and a child with
+   flex:1 did not grow. The 1-N panel's two buttons and their caption sat flush against
+   one another with no space at all. Declared once here for every row that asks for it;
+   the bottom margin stays scoped to .addp so no existing spacing moves. */
+.fr{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.addp .fr{margin-bottom:8px}
 .addp input,.addp select{background:var(--sink);border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:6px 8px;font-size:11px}
 .addp label{font-size:10px;color:var(--dim)}
 .addp .hint{font-size:9px;color:var(--dim)}
@@ -794,7 +806,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 
 <div class="modal-bg" id="divPanel" onclick="if(event.target===this)toggleDiv()">
   <div class="modal" style="width:1080px;max-width:96vw;max-height:88vh">
-    <h3>\u2696 SPMT vs CCaR <button class="x" onclick="toggleDiv()">\u2715 Close</button></h3>
+    <h3>⚖ SPMT vs CCaR <button class="x" onclick="toggleDiv()">✕ Close</button></h3>
     <div id="divBody"></div>
   </div>
 </div>
@@ -814,7 +826,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 </div>
 <div class="modal-bg" id="jrnlPanel" onclick="if(event.target===this)toggleJrnl()">
   <div class="modal" style="width:1180px;max-width:97vw;max-height:88vh">
-    <h3>\u{1F553} CHANGE JOURNAL <button class="x" onclick="toggleJrnl()">✕ Close</button></h3>
+    <h3>🕓 CHANGE JOURNAL <button class="x" onclick="toggleJrnl()">✕ Close</button></h3>
     <div id="jrnlBody"></div>
   </div>
 </div>
@@ -1215,7 +1227,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.53 (13 Sep 2026)';
+const BUILD='v1.54 (14 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4457,7 +4469,10 @@ function pmoSubmit(){
     + 'value, then submit. Moving rows around is yours to explore and is not sent \u2014 the priority '
     + 'order stays the portfolio team\u2019s.'); return; }
   const who=whoAmI();
-  if(!who || who==='unknown'){ alert('Put your name in first \u2014 \u2692 Tools \u203a \u270e My editor '
+  // THE PATH IN THIS MESSAGE IS THE FILE MENU, because that is where the item is. It said Tools,
+  // which has no such entry -- so an office following it opened the one menu that could not help,
+  // on the first step of the workflow. Checked against the rendered menu, not from memory.
+  if(!who || who==='unknown'){ alert('Put your name in first \u2014 \u{1F4C1} File \u203a \u270e My editor '
     + 'name\u2026\n\nIt travels with the submittal so the portfolio team knows whose input this is.'); return; }
   // THE BASELINE TRAVELS WITH THE SUBMITTAL. Without it a conflict cannot be seen: the reviewing
   // board would compare the proposal against itself and every field would look uncontested. What is
@@ -9693,9 +9708,14 @@ function flowEntEditor(){
     +'<b>Kind</b> decides which requirements can route <i>through</i> it: only a <b>government '
     +'activity</b> offers the second hop, because only a MIPR passes through one on its way to a '
     +'contractor.</div>'
-    +'<table class="fctab"><tr><th style="text-align:left">Destination</th>'
-    +'<th style="text-align:left">Kind</th><th style="text-align:left">Match terms (optional)</th>'
-    +'<th>Used by</th><th></th></tr>';
+    // .fctab is table-layout:fixed, so the columns share the width evenly unless they are told
+    // otherwise -- and min-width is ignored outright. Left to itself it gave the two free-text
+    // columns about 100px each and cut six of the eight standard destinations off mid-word in
+    // their own edit box: "Defense Logistics A", "OC-ALC Oklahoma", "NAWCWD China La".
+    +'<table class="fctab"><tr><th style="text-align:left;width:30%">Destination</th>'
+    +'<th style="text-align:left;width:20%">Kind</th>'
+    +'<th style="text-align:left;width:26%">Match terms (optional)</th>'
+    +'<th style="width:17%">Used by</th><th style="width:7%"></th></tr>';
   L.forEach(function(e,i){
     const used=flowEntUse(e.k);
     h+='<tr><td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%" '
@@ -10443,9 +10463,9 @@ function flowHtml(){
               : 'FY'+f+' is answered from the imported CCaR QPE')
           +'<button class="btn" style="font-size:8.5px;padding:4px 5px;opacity:.7" title="Show FY'+f+' on its own" onclick="flowOneYear('+f+')">only</button>';
       }).join('')
-    +chip(flowPseudo().on, '+ '+esc(flowPseudo().label)+' FY'+(flowPseudo().from%100),
+    +chip(flowPseudo().on, '+ '+flowPseudo().label+' FY'+(flowPseudo().from%100),
         'flowSetPseudo(&quot;on&quot;,'+(flowPseudo().on?'false':'true')+')',
-        esc(flowPseudo().label)+' money is appropriated in FY'+flowPseudo().from
+        flowPseudo().label+' money is appropriated in FY'+flowPseudo().from
         +' and spent as FY'+flowPseudo().to+'. Switched on, it counts as FY'+(flowPseudo().to%100)
         +' \u2014 never in both, whatever years are selected.')
     +'</div>'
@@ -10482,8 +10502,8 @@ function flowHtml(){
     +chip(!(F.cats||[]).some(c=>flowSubOnFor(c.k)),'NONE','flowSubAll(false)','Collapse every breakout')
     +(F.cats||[]).map(function(c){
         const L=flowSubOf(c.k);
-        return chip(flowSubOnFor(c.k), esc(c.n), 'flowSetSubShow(&quot;'+c.k+'&quot;,'+(flowSubOnFor(c.k)?'false':'true')+')',
-          L? ('Break '+esc(c.n)+' out into '+L.length+' rungs. The chart makes room for it — every layout '
+        return chip(flowSubOnFor(c.k), c.n, 'flowSetSubShow(&quot;'+c.k+'&quot;,'+(flowSubOnFor(c.k)?'false':'true')+')',
+          L? ('Break '+c.n+' out into '+L.length+' rungs. The chart makes room for it — every layout '
               +'resizes so nothing overlaps.') : 'No breakout defined for this category');
       }).join('')
     +' <button class="btn" style="font-size:10px;padding:4px 11px" onclick="exportFlow()">\u2B07 Export funds flow</button>'
@@ -13143,7 +13163,14 @@ function spDefs(){
              ms:MS, slug:mySlug()};
   if(typeof APPNS!=='undefined'){
     ['O&M','FULL FUND','INITIAL SPARES','OPN'].forEach(a=>{
-      if(a===APPN){ defs.push({name:a, data:APPNS[a], ms:MS, ppbe:MS.ppbe||{}, slug:APPN_SLUG[a]}); return; }
+      // APPNS ONLY GAINS A PAYLOAD WHEN A CONSOLIDATED FILE IS BUILT. On a board that simply
+      // carries its own requirements every entry in it is empty, and taking it anyway reported
+      // the board's OWN requirements as zero: Spruills showed FY27 "Total Requirements $0.00M"
+      // and a DELTA of the entire budget as surplus, on a board holding $1.4B of asks. Fall back
+      // to the board itself when the consolidated slot is empty — pkgPackOf already does exactly
+      // this, for exactly this reason.
+      if(a===APPN){ defs.push({name:a, data:_hasData(APPNS[a])? APPNS[a] : DATA, ms:MS,
+                               ppbe:MS.ppbe||{}, slug:APPN_SLUG[a]}); return; }
       let st=null;
       try{ st=JSON.parse(localStorage.getItem(_SLUGMAP[APPN_SLUG[a]].key)||'null'); }catch(e){}
       if(!st&&PUBS) st=PUBS[APPN_SLUG[a]]||null;
@@ -14036,7 +14063,9 @@ function crBody(){
   const fold=a=> monthly? a.reduce((acc,v,i)=>{ acc[Math.floor(i/2)]+=v; return acc; },Array(6).fill(0)) : a;
   const R=crRows();
   const keys=R.keys, D=R.data;
-  const hd='<tr><th style="text-align:left">'+(crBy==='svc'?'Service':'PMO')+'</th>'+wins.map(w=>'<th>'+w.lbl+'</th>').join('')+'<th style="border-left:1px solid var(--amber)">No date</th><th style="border-left:1px solid var(--gold)">TOTAL</th></tr>';
+  const hd='<tr><th style="text-align:left">'+(crBy==='svc'?'Service':'PMO')+'</th>'+wins.map(w=>'<th>'+w.lbl+'</th>').join('')+'<th style="border-left:1px solid var(--amber)">No date</th>'
+    +'<th style="border-left:1px solid var(--gold)" title="Funded dollars with an obligation date inside the CR window. '
+    +'Excludes the No date column and anything obligating after March.">TOTAL IN WINDOW</th></tr>';
   const cell=v=>'<td>'+(v>5e3?fM2(v):'\u2014')+'</td>';
   let h='<div style="margin-bottom:6px">'
     +'<button class="btn '+(crMode==='half'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crMode=\'half\';render()">Half-month</button> '
@@ -14206,10 +14235,11 @@ function tiers(ord, scen){
     const d=SVC.map(_=>0), m=SVC.map(_=>0), u=SVC.map(_=>0);
     const fo=(S.fsrc||{})[id];
     if(fo){
-      // MANUAL OVERRIDE: runs off the FY27 ASK (not the allocation). The directed
-      // Disc/Mand dollars draw from the lanes; anything not covered — or directed
-      // to UFR — is unfunded. The requirement's allocation becomes Disc + Mand drawn.
-      const basis = it.ask;
+      // MANUAL OVERRIDE: the directed Disc/Mand dollars draw from the lanes; anything not covered
+      // -- or directed to UFR -- is beyond. THE BASIS COMES FROM basisSvcOf(), never from a second
+      // copy of the rule written out here: tiers() and the three figures next to mcCalc() have to
+      // agree about what the engine worked from, and a rule stated twice is a rule that drifts.
+      const basis = basisSvcOf(it);
       if(fo.m==='split' && Array.isArray(fo.dv)){
         // per-service directed split: each service's Disc/Mand dollars set explicitly
         basis.forEach((v,i)=>{
@@ -14338,8 +14368,8 @@ function mcCalc(T){
 // services first and flooring once nets them against each other: on a requirement asking 40 STOVL /
 // 30 CV and allocated 60 / 5, that reported 5 unfunded where the truth is 25.
 //
-// THE BASIS is what the lane engine actually worked from: the board's allocation for an ordinary
-// requirement, and the ask for one with a directed funding source (see tiers()).
+// THE BASIS is what the lane engine actually worked from: the board's allocation, for every
+// requirement. A directed funding source used to re-base on the full ask -- see basisSvcOf below.
 //
 // The three figures below are defined so that, per service and in total,
 //
@@ -14347,7 +14377,17 @@ function mcCalc(T){
 //
 // in every case, including an over-allocated service, where the trim is nothing and the lane
 // shortfall is capped at the ask.
-function basisSvcOf(it){ return S.fsrc[it.id]? it.ask.slice() : svcAlloc(it); }
+// A directed funding source used to re-base the requirement on its FULL ask. That made the same
+// money carry two different names: on an ordinary trimmed requirement the gap between ask and
+// allocation is TRIM, but on one with a source recorded against it the identical gap was BEYOND --
+// counted into the portfolio shortfall. Two rows with the same $10,380,271 ask, the same trim and
+// the same $5,709,149 of discretionary read "fully funded" and "partly unfunded $4,671,122" beside
+// each other on the 1-N report, and since seedSplit() fills the directed dollars FROM the
+// allocation, merely recording where money came from -- moving no money at all -- flipped a row and
+// grew the shortfall banner. The board allocation is the basis for every requirement now, so a trim
+// is a trim however it was funded. Directing a source says where the ALLOCATION comes from; it is
+// not a claim on the untrimmed ask.
+function basisSvcOf(it){ return svcAlloc(it); }
 function unfSvcOf(it, p){
   return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));
 }
@@ -14894,14 +14934,23 @@ function svcSummary(){
   const el=document.getElementById('gsBody');
   if(!gsOpen){ el.innerHTML=''; return; }
   const T=tiers();
-  const d=SVC.map(_=>0), mc=SVC.map(_=>0), mct=SVC.map(_=>0), m=SVC.map(_=>0), u=SVC.map(_=>0), ask=SVC.map(_=>0);
+  const d=SVC.map(_=>0), m=SVC.map(_=>0), u=SVC.map(_=>0), ask=SVC.map(_=>0);
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const p=T[id];
-    SVC.forEach((s,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=p.u[i];
-      if(S.mc[id]){ mc[i]+=p.m[i]+p.u[i]; mct[i]+=p.d[i]+p.m[i]+p.u[i]; } });
+    SVC.forEach((s,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=p.u[i]; });
     it.ask.forEach((v,i)=>ask[i]+=v);
   });
+  // THE STAR IS READ, NEVER RECOMPUTED. This panel used to work it out again --
+  //   need = p.m + p.u          (mandatory drawn plus the lane shortfall)
+  //   total = p.d + p.m + p.u   (the ALLOCATION, not the requirement's own value)
+  // -- which is the old `spill` definition this board already retired once, plus a total that
+  // silently drops every trim. On a board with trimmed allocations it under-stated BOTH by the
+  // whole trim ($68.7M on a $1.4B portfolio) and disagreed with the scoreboard card directly above
+  // it, the workbook and the deck, all of which read mcCalc(). The rule is ask MINUS DISCRETIONARY,
+  // mandatory ignored, and mcCalc() is its single implementation.
+  const MC=mcCalc(T);
+  const mc=MC.need, mct=MC.tot;
   const chart=fitChartSvg(T);
   let rows='';
   SVC.forEach((s,i)=>{
@@ -16253,7 +16302,15 @@ function pmoMatrix(){
       if(p.dT+p.mT>0.005 && (!frac||frac.some(v=>v>0))) a.n++;
       SVC.forEach((s,i)=>{ const f=frac? frac[i]:1;
         a.disc[i]+=p.d[i]*f; a.mand[i]+=p.m[i]*f; a.unf[i]+=p.u[i]*f; });
-      if(S.mc[id]) a.mc+=p.spill*(frac? frac.reduce((x,y)=>x+y,0)/SVC.length : 1);
+      // THE STAR, APPORTIONED PER SERVICE, FROM THE ONE IMPLEMENTATION. This line broke both of
+      // this file's stated rules at once: it read p.spill -- mandatory drawn plus the lane
+      // shortfall, the definition the star was moved OFF because it double-counted dollars the
+      // Mand and Unfunded columns had already claimed -- and it spread the result by an AVERAGE
+      // across services (frac summed over SVC.length) when the line directly above it apportions
+      // correctly, x[i]*frac[i]. Together they under-stated the must-pay shortfall by the whole
+      // trim and disagreed with the scoreboard, the service table, the workbook and the deck.
+      if(S.mc[id]){ const sh=mcShortSvcOf(it,p);
+        SVC.forEach((s,i)=>{ a.mc+=sh[i]*(frac? frac[i] : 1); }); }
     });
     SVC.forEach((s,i)=>{ allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=p.u[i]; });
   });
@@ -17173,9 +17230,13 @@ function render(){
   const rp=document.getElementById('rmPanel');
   if(rmOpen && S.removed.length){
     rp.style.display='block';
+    // The list is as long as the board's removals, and it sits INLINE above the rows -- with no
+    // ceiling, forty removed requirements pushed the whole board a screen and a half down the page.
+    // Scroll it in place, the way every other long list here does.
     rp.innerHTML='<div class="fr"><b style="color:var(--red);font-size:11px">REMOVED REQUIREMENTS</b> <button class="btn" onclick="restoreAll()">↩ Restore all</button></div>'+
+      '<div style="max-height:38vh;overflow:auto">'+
       S.removed.map(id=>{const it=BASE_ITEMS.find(x=>x.id===id)||{title:id,grp:''};
-        return `<div class="fr" style="margin-bottom:4px"><span style="font-size:11px"><b>${grpOf(it)}</b> — ${esc(it.title)}</span><button class="qb" onclick="restoreReq('${id}')">↩ restore</button></div>`;}).join('');
+        return `<div class="fr" style="margin-bottom:4px"><span style="font-size:11px"><b>${grpOf(it)}</b> — ${esc(it.title)}</span><button class="qb" onclick="restoreReq('${id}')">↩ restore</button></div>`;}).join('')+'</div>';
   } else { rp.style.display='none'; rp.innerHTML=''; }
 }
 let openMenu=null;
@@ -18704,7 +18765,7 @@ function budRegBody(){
   const reg=budReg();
   if(!reg.length){
     el.innerHTML='<div class="hint">No budget list held yet. Import the CCaR Budget Allocation '
-      +'Extract from <b>\u2b07 Export \u203a Import Budget Extract (BAE)</b>. The USAF and DON '
+      +'Extract from <b>\u2692 Tools \u203a Import Budget Extract (BAE)</b>. The USAF and DON '
       +'extracts cover different departments and do not overlap \u2014 import both.</div>';
     return;
   }
@@ -18851,7 +18912,7 @@ function idsBody(){
     h+='</table>';
     h+='<div class="hint" style="margin-top:3px">Budget names are assigned in '
       +'<b>\u{1F6E0} Tools \u203a Classify requirements</b> \u2014 filter to one PMO and set a whole '
-      +'column at once. Control numbers come from <b>Export \u203a Import CCaR Records</b>, and a '
+      +'column at once. Control numbers come from <b>\u2692 Tools \u203a Import CCaR Records</b>, and a '
       +'requirement with no CCaR number, or one the records file does not hold, cannot be given one '
       +'here.</div>';
   }
@@ -18984,7 +19045,13 @@ function esc(s){return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 // the three cannot seed a split three different ways.
 function seedSplit(id, T){
   const p=(T||tiers())[id]; if(!p) return false;
-  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(v=>Math.round(v))};
+  // RECORD EXACTLY WHAT THE LANE ENGINE PRODUCED, unrounded. These used to be rounded to whole
+  // dollars, which was invisible while a directed source re-based the requirement on its full ask:
+  // the rounded figure sat well under that ceiling and passed through untouched. Against the board
+  // allocation -- the basis now -- a value rounded DOWN loses its fraction to unfunded and one
+  // rounded UP is capped, so conversion stopped being lossless by a few cents per service, on every
+  // requirement at once. dv/mv are internal state; nothing renders them raw.
+  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.slice()};
   return true;
 }
 function setFsrc(id,val){
@@ -19670,11 +19737,11 @@ function exportExcel(){
   // leaving the column blank
   const itemRowP=(it,amt,svcv)=>[{v:MR[it.id],s:0},grpOf(it),ceOf(it.id),recName(it)||dispTitle(it),dispTitle(it),{v:ccarOf(it),s:1},{v:pidOf(it),s:0},{v:amt,s:N},...svcv.map(v=>({v,s:N}))];
   // portion selectors: [filter, amount, per-svc vector]
-  // WHAT THE LANE ENGINE ACTUALLY WORKED FROM. An override runs off the ASK and ignores the
-  // board's allocation entirely (see tiers()), so the ask IS the basis for those rows. This column
-  // used to show the FUNDED total for overridden rows instead, which made Ask - Allocated
-  // disagree with the Delta printed beside it on every overridden line.
-  const aOf=it=> S.fsrc[it.id]? askTot(it) : eff(it);
+  // WHAT THE LANE ENGINE ACTUALLY WORKED FROM -- asked for by name rather than restated here.
+  // This column used to show the FUNDED total for overridden rows, which made Ask - Allocated
+  // disagree with the Delta printed beside it; the fix then wrote the basis rule out a THIRD time
+  // (tiers(), basisSvcOf, here), so changing the rule left this column behind. One implementation.
+  const aOf=it=> basisSvcOf(it).reduce((a,b)=>a+b,0);
   // MISSION CRITICAL IS NOT A LANE. There are two pots -- discretionary and mandatory -- and a
   // requirement's dollars are already wholly inside them (or unfunded). The star is a separate
   // designation meaning "this has to be funded next year", so its figure is the REQUIREMENT'S OWN

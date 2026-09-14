@@ -593,6 +593,45 @@ it, at seven widths from 1920 to 1024. An empty board has no row to select and n
 it would pass every time while saying nothing. It is proven against the original defect: put
 `display:none` back and it fails at 1400 and below.
 
+### Photograph every panel, because arithmetic checks cannot see a panel
+
+Seven audit suites read the workbook and the lane engine. None of them opens a modal, so a panel
+could report the wrong figure — or fail to appear at all — and every suite would still pass. Going
+through all 36 panels and all 8 menus one screenshot at a time found five defects nothing else
+could have:
+
+- **Spruills reported the board's own requirements as $0.00M.** `spDefs()` took `APPNS[APPN]` for
+  the board's own appropriation. `APPNS` is the consolidated payload — a `const` baked in at build
+  time, empty on any board that simply carries its own requirements, and `buildSavedHtml` does not
+  rewrite it. So the panel printed a DELTA of the entire budget as *surplus*: FY27 read
+  `+$5,476.83M` on a board holding $1,415.21M of asks, and every per-PMO row was missing.
+  `pkgPackOf()` had guarded exactly this for a while (`_hasData(APPNS[ak])`, else `DATA`); `spDefs`
+  now does the same. The oracle for it is derived from the scenario, never read back from
+  `spGather()` — which would have agreed with the bug, sign flip and all.
+- **A recorded funding source changed what a requirement was short.** See the section below.
+- **`chip()` escapes its own label, and two callers escaped first.** Every funds-flow category with
+  an ampersand read `Workforce &amp; Travel` on its chip. No total was wrong, so no arithmetic
+  check could notice.
+- **`\u{1F553}` and `\u2696` written straight into markup.** A JS escape in an HTML attribute is
+  just text: the Change Journal and SPMT-vs-CCaR headings showed the escape itself.
+- **`.fr` was only ever declared inside `.addp`.** The other 33 rows using it fell back to
+  `display:block`, so their `gap` did nothing, `justify-content` did nothing, and a child with
+  `flex:1` did not grow. Declared once at top level; the bottom margin stays scoped to `.addp` so
+  no existing spacing moved.
+- **`.fctab` is `table-layout:fixed`, where `min-width` is ignored.** The destinations editor
+  collapsed its two free-text columns to ~100px and cut six of the eight standard destinations off
+  mid-word inside their own edit boxes. Explicit `width` percentages, not `min-width`.
+
+`npm run panels` (in `verify:grid`) opens every `.modal-bg` in Chromium and every toolbar menu,
+on both builds, and asserts three things: each one **opens**, its visible text carries **no escaped
+entity and no `\uXXXX` escape**, and **no `<input>` clips its own value** (`scrollWidth >
+clientWidth`). Openers are read off the live DOM; the six panels needing a context — a drilled-down
+cell, a selected requirement, a pending submittal — are driven explicitly, and a panel with no
+entry fails rather than being skipped. Closing resets each panel's **open flag** before re-render:
+stripping the `.open` class alone leaves the flag set, `render()` puts the panel straight back, and
+it then sits behind the next capture and clips it. Proven against all three original defects —
+restore the double-escape, the raw `\u2696`, or break `toggleBm()`, and it fails in both builds.
+
 **`boot.mjs` resolves `BOARD` once, at module load.** Setting `process.env.BOARD` after importing it
 changes nothing — the first version of this tool did exactly that and generated *two card fixtures*,
 so the grid half failed at every width for a reason that had nothing to do with the product. Boot a
@@ -633,6 +672,43 @@ unfunded is ask-based either way. `audit-board.mjs` asserts this across two fixt
 SCALAR trim so the per-service values are fractional: `seedSplit` rounds each service to whole
 dollars, and whole-number fixtures would make that rounding invisible. If conversion ever shifts a
 dollar it will do so across every requirement at once and silently.
+
+### A recorded funding source moves no money
+
+`basisSvcOf()` used to return the full ask for a requirement carrying a directed funding source,
+and the board allocation for every other. That made the same money carry two different names: the
+gap between ask and allocation is TRIM on an ordinary requirement, but on one with a source
+recorded against it the identical gap came out as BEYOND BOTH LANES — and beyond is what the
+portfolio shortfall banner counts.
+
+Because `seedSplit()` fills the directed dollars **from the current allocation**, the consequence
+was that recording where money came from — moving no money whatsoever — flipped a requirement from
+"fully funded" to "partly unfunded" and grew the banner. On a 115-requirement board that read as a
+$38,325,128 portfolio shortfall which was entirely trim on the 7 requirements that happened to have
+both, on a board whose lanes held $5.48B against $1.42B of asks and whose true lane shortfall was
+**zero**. Two rows identical in ask, trim and funding sat side by side on the 1-N report reading
+"fully funded" and "partly unfunded $4,671,122", with nothing on screen to say why.
+
+The basis is the allocation now, for every requirement. A source says where the ALLOCATION is drawn
+from; it is not a claim on the untrimmed ask. Everything else is unchanged: unfunded stays ask-based
+(`beyond + trim == unfunded` still holds per service and in total), and the $107,017,782 the
+workbook prints as TOTAL Unfunded did not move.
+
+**The rule was written out three times** — `tiers()`, `basisSvcOf()` and `aOf()` in the workbook's
+Unfunded Requirements sheet — so changing it in one place left the other two behind and the audit
+caught the disagreement immediately. All three read `basisSvcOf()` now.
+
+**`seedSplit()` no longer rounds.** It recorded the lane draw rounded to whole dollars, which was
+invisible while the basis was the ask (the rounded figure sat well under that ceiling and passed
+through untouched). Against the allocation, a value rounded DOWN loses its fraction to unfunded and
+one rounded UP is capped — so converting a board to Split stopped being lossless, by cents, on
+every requirement at once. `audit-board.mjs` catches it through the fractional-trim fixture, which
+exists for exactly this.
+
+Two guards hold the property: `a recorded funding source moves no money` in `audit-board.mjs` (two
+copies of one requirement, differing only in whether a source is recorded, asserted equal on
+discretionary, mandatory, beyond, trim, unfunded, basis and tier), and the `basis-fsrc` mutation,
+inverted to put the old ask-basis back.
 
 **EVERY per-service figure is floored PER SERVICE, not once on the totals.** A "service" is a
 service AND ITS VARIANT — STOVL, USMC CV and USN are each their own pot — and money never moves

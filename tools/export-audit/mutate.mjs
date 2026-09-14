@@ -137,9 +137,24 @@ const MUTATIONS = [
   { id: 'svc-alloc-override', area: 'svcAlloc', what: 'per-service allocation override ignored',
     find: "  if(a.m==='s') return a.v.slice();",
     repl: "  if(a.m==='s') return it.ask.slice();" },
-  { id: 'basis-fsrc', area: 'model', what: 'funding-source override no longer bases on the full ask',
-    find: 'function basisSvcOf(it){ return S.fsrc[it.id]? it.ask.slice() : svcAlloc(it); }',
-    repl: 'function basisSvcOf(it){ return svcAlloc(it); }' },
+  // Inverted when the rule changed: a directed source used to re-base the requirement on its full
+  // ask, which reported a trim as "beyond both lanes" and let the act of recording a source change
+  // what a requirement was short. This puts that back, so the guards that now forbid it stay honest.
+  { id: 'basis-fsrc', area: 'model', what: 'a recorded funding source re-bases on the full ask again',
+    find: 'function basisSvcOf(it){ return svcAlloc(it); }',
+    repl: 'function basisSvcOf(it){ return S.fsrc[it.id]? it.ask.slice() : svcAlloc(it); }' },
+  // seedSplit recorded the lane draw rounded to whole dollars. Harmless while the basis was the
+  // ask (the rounded value sat under that ceiling); against the allocation it makes converting a
+  // board to Split lossy by cents, on every requirement at once.
+  { id: 'seed-split-rounds', area: 'model', what: 'converting to Split rounds the directed dollars',
+    find: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.slice()};",
+    repl: "  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(v=>Math.round(v))};" },
+  // The Spruills grid took the consolidated payload for the board's OWN appropriation. It is empty
+  // on any board that simply carries its own requirements, so the panel reported $0.00M of
+  // requirements and a DELTA of the whole budget as surplus.
+  { id: 'spdefs-no-fallback', area: 'model', what: "Spruills ignores the board's own requirements",
+    find: 'data:_hasData(APPNS[a])? APPNS[a] : DATA',
+    repl: 'data:APPNS[a]' },
   { id: 'cum-skips-unfunded', area: 'tiers', what: 'cumulative counts only what a lane covered',
     find: '    const e=dT+mT+uT;\n    cum+=e;',
     repl: '    const e=dT+mT+uT;\n    cum+=dT+mT;' },
@@ -241,9 +256,13 @@ const MUTATIONS = [
   { id: 'excel-unf-vec', area: 'excel', what: 'Unfunded vector forgets the mandatory draw',
     find: '    unf: [(p,it)=>unfTotOf(it,p)>0.005, (p,it)=>unfTotOf(it,p), (p,it)=>unfSvcOf(it,p)]};',
     repl: '    unf: [(p,it)=>unfTotOf(it,p)>0.005, (p,it)=>unfTotOf(it,p), (p,it)=>SVC.map((s,i)=>Math.max(0,it.ask[i]-p.d[i]))]};' },
-  { id: 'excel-aof', area: 'excel', what: '"Allocated" reverts to the funded total for overrides',
-    find: '  const aOf=it=> S.fsrc[it.id]? askTot(it) : eff(it);',
-    repl: '  const aOf=it=> S.fsrc[it.id]? (T[it.id].dT+T[it.id].mT) : eff(it);' },
+  // Rewritten when aOf stopped carrying its own copy of the basis rule. The old find string
+  // targeted the line that used to read `S.fsrc[it.id]? askTot(it) : eff(it)`, so after that change
+  // it matched nothing and the mutation quietly stopped proving anything -- which is why NOT APPLIED
+  // fails this run rather than passing quietly.
+  { id: 'excel-aof', area: 'excel', what: '"Allocated" shows the funded total instead of the basis',
+    find: '  const aOf=it=> basisSvcOf(it).reduce((a,b)=>a+b,0);',
+    repl: '  const aOf=it=> (T[it.id].dT+T[it.id].mT);' },
 
   // ---- PowerPoint aggregates --------------------------------------------------------------------
   { id: 'ppt-streams-disc', area: 'ppt', what: 'Funding-by-stream discretionary double counts',
@@ -534,11 +553,13 @@ const MUTATIONS = [
     repl: "      const shT=SVC.map((s,i)=>its.reduce((a,it)=>a+unfSvcOf(it,T[it.id])[i],0));" },
 
   // ---- converting to an explicit Split, and the two ask-based unfunded readings ---------------
+  // Re-aimed when seedSplit stopped rounding. Both used to target the rounded line; after the
+  // change they matched nothing and proved nothing -- which is why NOT APPLIED fails the run.
   { id: 'split-seed-drops-mand', area: 'seedSplit', what: 'conversion freezes discretionary but forgets the mandatory draw',
-    find: "  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(v=>Math.round(v))};",
-    repl: "  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(function(){return 0;})};" },
-  { id: 'split-seed-floors', area: 'seedSplit', what: 'conversion floors each service instead of rounding, losing a dollar per service',
-    find: "  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(v=>Math.round(v))};",
+    find: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.slice()};",
+    repl: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.map(function(){return 0;})};" },
+  { id: 'split-seed-floors', area: 'seedSplit', what: 'conversion floors each service, losing a fraction per service',
+    find: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.slice()};",
     repl: "  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.floor(v)), mv:p.m.map(v=>Math.floor(v))};" },
   { id: 'convert-skips-some', area: 'convertAllToSplit', what: 'the bulk convert quietly leaves some requirements on the lane walk',
     find: "  const ids=S.order.filter(id=>!S.fsrc[id] && T[id]);",
