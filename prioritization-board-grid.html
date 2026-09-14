@@ -325,13 +325,17 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
   }
   .inspector.open{transform:translateX(0)}
   .inspector .drawerbar{display:flex}
-  /* Tapping outside closes it, the way every drawer does. */
-  .drawerscrim{position:fixed; inset:0; z-index:59; background:rgba(0,0,0,.34); border:0; padding:0;
-    cursor:pointer; display:none}
+  /* Tapping outside closes it, the way every drawer does. Its display:none is declared OUTSIDE
+     this media block -- scoped in here it left the scrim a live element on every wide screen. */
   .drawerscrim.on{display:block}
 }
 @media (prefers-reduced-motion:reduce){ .inspector{transition:none} }
 /* The bar only exists in drawer mode; docked, the panel needs no chrome of its own. */
+/* The drawer's scrim: hidden at every width unless the drawer is open. Declared here rather than
+   inside the narrow media query, because a rule that only exists below 1400px leaves the element
+   displayed above it. */
+.drawerscrim{position:fixed; inset:0; z-index:59; background:rgba(0,0,0,.34); border:0; padding:0;
+  cursor:pointer; display:none}
 /* Chips echoed into the RECORD panel are STATUS, never controls: the row is where they are set.
    Whatever gave a chip its pointer -- an inline style or its class -- it stops being an invitation
    here. */
@@ -694,9 +698,23 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 (function(){
   try{
     var t=localStorage.getItem('spmtTheme');
-    if(t===null) t='harbor';   // GRID BUILD: Harbor is the default here; the card build stays Midnight
+    if(t===null) t='harbor';   // never chosen: Harbor, the palette built for colour-deficient reading
+    // THE STORED CHOICE IS AUTHORITATIVE, INCLUDING WHEN IT IS MIDNIGHT. SRC0 is captured after
+    // this runs, so every saved board and every PMO copy bakes <html data-theme="..."> into its own
+    // markup. Only ever ADDING the attribute meant a baked one survived a reader choosing Midnight:
+    // themeGet() answered '' and the menu ticked Midnight while the screen went on painting the
+    // saver's theme. Clearing it here makes a saved file behave exactly like a fresh one, and
+    // repairs the files already saved.
     if(t==='navy'||t==='parchment'||t==='blueprint'||t==='harbor') document.documentElement.setAttribute('data-theme',t);
-  }catch(e){ /* private-mode storage refuses; the default palette is the right fallback */ }
+    else document.documentElement.removeAttribute('data-theme');
+  }catch(e){
+    // STORAGE REFUSED IS AN UNCONFIGURED READER, and an unconfigured reader gets the accessible
+    // palette -- the same answer themeGet() gives in its own catch. Doing nothing here left the two
+    // disagreeing: the menu said Harbor was on while the screen painted Midnight, because the throw
+    // came from getItem and skipped the setAttribute below it. A private window is exactly the case
+    // this default exists for.
+    try{ document.documentElement.setAttribute('data-theme','harbor'); }catch(e2){}
+  }
 })();
 </script>
 </head>
@@ -1064,11 +1082,16 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
     </div>
     <div id="list"></div>
   </div>
-  <button class="drawerscrim" id="drawerScrim" type="button" tabindex="-1"
-          aria-label="Close the record panel" onclick="drawerClose()"></button>
   <aside class="inspector" id="inspector"></aside>
  </div>
 </div>
+<!-- OUTSIDE .gridsplit ON PURPOSE. Sitting between the rows and the panel it became a GRID ITEM:
+     it took column two and pushed the RECORD panel onto a second implicit row in column one, where
+     it rendered underneath the rows while the 570px column beside them stayed empty. The board
+     looked like the panel had simply stopped appearing. It is a fixed-position overlay and belongs
+     in neither column. -->
+<button class="drawerscrim" id="drawerScrim" type="button" tabindex="-1"
+        aria-label="Close the record panel" onclick="drawerClose()"></button>
 
 
 <script type="application/json" id="pubState">null</script>
@@ -1323,7 +1346,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.52 (13 Sep 2026)';
+const BUILD='v1.53 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1820,11 +1843,13 @@ const THEMES=[
   {k:'harbor',    n:'Harbor',         d:'cool paper, built for colour-deficient reading'}
 ];
 function themeGet(){
-  // GRID BUILD: never chosen (null) means Harbor, which this layout was designed against. An
-  // explicit Midnight is stored as '' and still wins -- that is why null and '' are kept apart.
+  // NEVER CHOSEN (null) MEANS HARBOR. It is the only palette whose lane accents a red-green reader
+  // can tell apart -- measured, not assumed: worst pair delta-E 13.1 against the others' 4.1 to 5.2
+  // (npm run colours). An explicit Midnight is stored as '' and still wins, which is why null and
+  // '' are kept apart: someone who chose the dark theme keeps it.
   try{ const t=localStorage.getItem('spmtTheme'); if(t===null) return 'harbor';
        return THEMES.some(x=>x.k===t)? t : ''; }
-  catch(e){ return 'harbor'; }   // storage refused; this build's own default is the right answer
+  catch(e){ return 'harbor'; }   // storage refused; the accessible default is the right answer
 }
 function themeName(){ const t=themeGet(); return (THEMES.filter(x=>x.k===t)[0]||THEMES[0]).n; }
 // Called from the menu by INDEX: mi() hands its handler to an onclick attribute, so passing the

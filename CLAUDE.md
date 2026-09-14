@@ -443,6 +443,24 @@ the other. It matches on the live `onclick` **attribute**, not on a regex over `
 handler is written with entity quotes (`toggleCons(&quot;A&quot;)`), and asserting against whatever
 the serializer chose to re-escape tests the serializer.
 
+### Harbor is the default in both builds
+
+An unconfigured reader gets Harbor — the only palette whose lane accents a red-green reader can tell
+apart (worst pair ΔE **13.1**, against 4.1–5.2 for the others; `npm run colours`). Someone who chose
+Midnight keeps it: the stored value distinguishes `null` (never chosen) from `''` (chose the dark
+theme), which is why those two are kept apart. `themeGet()` is now byte-identical between the builds
+and has left `parity-allow.json` — an allowlist entry for a function that agrees is a licence nobody
+is using, and the next real divergence would hide behind it.
+
+**The pre-paint bootstrap is authoritative, including when the answer is Midnight.** `SRC0` is
+captured *after* it runs, so every saved board and every PMO copy bakes `<html data-theme="...">`
+into its own markup. Only ever ADDING the attribute meant a baked one survived a reader choosing
+Midnight: `themeGet()` answered `''` and the menu ticked Midnight while the screen went on painting
+the saver's theme. Clearing it makes a saved file behave exactly like a fresh one, and repairs the
+files already saved. Storage being refused is an unconfigured reader too, so the bootstrap's `catch`
+paints the default rather than doing nothing — it previously left `themeGet()` and the screen
+disagreeing in every private window.
+
 ### Do the totals add up? — the reconciliation suite
 
 Every other suite here derives what it expects from the board's own helpers — `tiers()`, `mcCalc()`,
@@ -520,6 +538,30 @@ around it reported a clean pass. Every lookup in this suite now asserts that it 
 looking for, and the sheets it depends on are checked for existence by name. The same rename broke
 three checks in `audit.mjs`, which failed loudly — those now match the roll-up by **what it is**
 (the row ending `— TOTAL BY MONTH`) rather than by a name that can change.
+
+### A hidden overlay is still a grid item
+
+The drawer's scrim sat between `.gridwrap` and `<aside class="inspector">` inside `.gridsplit`, and
+its `display:none` was declared **only inside** the `@media (max-width:1400px)` block. Above the
+breakpoint it was therefore a live element in a two-column grid: it took column two, and the RECORD
+panel was pushed onto a second implicit row in **column one**, rendering underneath the rows while
+the 570px column beside them stayed empty. On screen the panel had simply stopped appearing.
+
+```
+1900px  columns: 1284px 570px
+   gridwrap  18–1302      ← the rows
+   inspector 18–1302      ← the panel, same column, underneath
+```
+
+**Every reachability check passed the whole time** — `REQ editor: 7`, `impact: 40` — because the
+editors were all present and visible. They were in the wrong *place*. `editors-reachable.mjs` now
+asserts WHERE the panel is: beside the rows above the breakpoint, a fixed drawer below it, and the
+scrim never showing on a docked layout. Put both halves of the bug back and it reports
+`panel: BELOW the rows`.
+
+Two rules out of it. A `position:fixed` overlay belongs **outside** the grid it covers, not between
+two of its columns. And a `display:none` that exists only inside a media query leaves the element
+displayed everywhere else — declare the resting state at the top level and let the query turn it on.
 
 ### Layout is a correctness property, and jsdom cannot see it
 

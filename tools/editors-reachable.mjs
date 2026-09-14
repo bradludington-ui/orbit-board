@@ -74,23 +74,50 @@ for (const [f, file] of Object.entries(made)) {
     const r = await p.evaluate(()=>{
       const vis = el => { if(!el) return false; const c=el.getBoundingClientRect();
         return c.width>0 && c.height>0 && getComputedStyle(el).visibility!=='hidden'; };
+      // WHERE the panel is, not just whether it exists. Docked, it must sit BESIDE the rows; the
+      // drawer's scrim once sat between them as a grid item, took column two, and pushed the panel
+      // onto a second implicit row in column one -- rendering it underneath the rows while the
+      // column beside them stayed empty. Every reachability check still passed: the editors were
+      // all there, in the wrong place, and the board looked like the panel had stopped appearing.
+      const _ins = document.querySelector('#inspector'), _wrap = document.querySelector('.gridwrap');
+      const _place = (() => {
+        if (!_ins || !_wrap) return 'n/a';
+        const i = _ins.getBoundingClientRect(), w = _wrap.getBoundingClientRect();
+        if (!(i.width > 0 && i.height > 0)) return 'not shown';
+        if (getComputedStyle(_ins).position === 'fixed') return 'drawer';
+        return i.left >= w.right - 1 ? 'beside the rows'
+             : (i.top >= w.bottom - 1 ? 'BELOW the rows' : 'OVERLAPPING the rows');
+      })();
+      const _scrim = document.querySelector('.drawerscrim');
+      const _scrimShown = !!(_scrim && getComputedStyle(_scrim).display !== 'none');
       const reach = pred => [...document.querySelectorAll('[onclick],input,textarea,select,button')]
         .filter(e => pred(((e.getAttribute('onclick')||'')+' '+(e.getAttribute('onchange')||''))) && vis(e)).length;
       const lookalike = [...document.querySelectorAll('.rchip')].filter(e => {
         const c = e.getBoundingClientRect();
         return c.width>0 && !e.getAttribute('onclick') && getComputedStyle(e).cursor==='pointer'; }).length;
       return { ask:reach(h=>/setAsk\(/.test(h)), impact:reach(h=>/toggleCons/.test(h)),
-               lookalike, over: document.documentElement.scrollWidth - innerWidth };
+               lookalike, over: document.documentElement.scrollWidth - innerWidth,
+               place:_place, scrim:_scrimShown };
     });
     const fails = [];
     if (r.ask < 1)     fails.push('no requirement-value editor');
     if (r.impact < 1)  fails.push('no way to write an impact statement');
     if (r.over > 0)    fails.push(`document scrolls sideways by ${r.over}px`);
     if (r.lookalike)   fails.push(`${r.lookalike} chip(s) look clickable and are not`);
+    if (grid) {
+      const wantDocked = w > 1400;
+      if (wantDocked && r.place !== 'beside the rows')
+        fails.push(`the RECORD panel is ${r.place}, not beside the rows`);
+      if (!wantDocked && r.place !== 'drawer')
+        fails.push(`below the breakpoint the panel should be a drawer, not ${r.place}`);
+      // The scrim only belongs on screen while the drawer is open over the grid.
+      if (wantDocked && r.scrim) fails.push('the drawer scrim is showing on a docked layout');
+    }
     if (errs.length)   fails.push(errs[0]);
     if (fails.length) bad++;
     console.log(`  ${fails.length?'FAIL':'ok  '} ${String(w).padStart(5)}px  REQ editor:${String(r.ask).padStart(2)}`
       + `  impact:${String(r.impact).padStart(3)}  dead chips:${r.lookalike}  overflow:${r.over}px`
+      + (grid ? `  panel:${r.place}` : '')
       + (fails.length? '\n         ' + fails.join('; ') : ''));
     await ctx.close();
   }

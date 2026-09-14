@@ -588,8 +588,23 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 (function(){
   try{
     var t=localStorage.getItem('spmtTheme');
+    if(t===null) t='harbor';   // never chosen: Harbor, the palette built for colour-deficient reading
+    // THE STORED CHOICE IS AUTHORITATIVE, INCLUDING WHEN IT IS MIDNIGHT. SRC0 is captured after
+    // this runs, so every saved board and every PMO copy bakes <html data-theme="..."> into its own
+    // markup. Only ever ADDING the attribute meant a baked one survived a reader choosing Midnight:
+    // themeGet() answered '' and the menu ticked Midnight while the screen went on painting the
+    // saver's theme. Clearing it here makes a saved file behave exactly like a fresh one, and
+    // repairs the files already saved.
     if(t==='navy'||t==='parchment'||t==='blueprint'||t==='harbor') document.documentElement.setAttribute('data-theme',t);
-  }catch(e){ /* private-mode storage refuses; the default palette is the right fallback */ }
+    else document.documentElement.removeAttribute('data-theme');
+  }catch(e){
+    // STORAGE REFUSED IS AN UNCONFIGURED READER, and an unconfigured reader gets the accessible
+    // palette -- the same answer themeGet() gives in its own catch. Doing nothing here left the two
+    // disagreeing: the menu said Harbor was on while the screen painted Midnight, because the throw
+    // came from getItem and skipped the setAttribute below it. A private window is exactly the case
+    // this default exists for.
+    try{ document.documentElement.setAttribute('data-theme','harbor'); }catch(e2){}
+  }
 })();
 </script>
 </head>
@@ -1200,7 +1215,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.52 (13 Sep 2026)';
+const BUILD='v1.53 (13 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1697,8 +1712,13 @@ const THEMES=[
   {k:'harbor',    n:'Harbor',         d:'cool paper, built for colour-deficient reading'}
 ];
 function themeGet(){
-  try{ const t=localStorage.getItem('spmtTheme')||''; return THEMES.some(x=>x.k===t)? t : ''; }
-  catch(e){ return ''; }   // storage refused; Midnight is the right answer
+  // NEVER CHOSEN (null) MEANS HARBOR. It is the only palette whose lane accents a red-green reader
+  // can tell apart -- measured, not assumed: worst pair delta-E 13.1 against the others' 4.1 to 5.2
+  // (npm run colours). An explicit Midnight is stored as '' and still wins, which is why null and
+  // '' are kept apart: someone who chose the dark theme keeps it.
+  try{ const t=localStorage.getItem('spmtTheme'); if(t===null) return 'harbor';
+       return THEMES.some(x=>x.k===t)? t : ''; }
+  catch(e){ return 'harbor'; }   // storage refused; the accessible default is the right answer
 }
 function themeName(){ const t=themeGet(); return (THEMES.filter(x=>x.k===t)[0]||THEMES[0]).n; }
 // Called from the menu by INDEX: mi() hands its handler to an onclick attribute, so passing the

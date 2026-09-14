@@ -78,11 +78,48 @@ const spread = hs => { // smallest arc covering every hue
   return 360 - gap; };
 
 let bad = 0;
+
+// THE DEFAULT IS PART OF THE COLOUR STORY. An unconfigured reader gets Harbor -- the only palette
+// whose lane accents a red-green reader can tell apart -- and someone who CHOSE the dark theme
+// keeps it. Both builds, and all four ways a browser can arrive: never chosen, chosen, chosen
+// something else, and storage refused. That last one found a real disagreement: themeGet() answered
+// Harbor while the pre-paint bootstrap swallowed the throw and painted Midnight, so the menu and
+// the screen disagreed in every private window.
+const DEFAULTS = [
+  ['a fresh browser gets the accessible palette', null,        'harbor', 'harbor'],
+  ['an explicit Midnight is kept',                '',          '',       '(none)'],
+  ['and any other explicit choice is kept',       'parchment', 'parchment', 'parchment'],
+  ['storage refused still paints the default',    '__throw__', 'harbor', 'harbor'],
+];
 const chk = (what, ok, detail) => { if (!ok) bad++;
   console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}${detail ? '   ' + detail : ''}`); };
 
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
                                   args: ['--no-sandbox'] });
+
+for (const file of ['prioritization-board.html', 'prioritization-board-grid.html']) {
+  console.log('\n' + file + ' — the default theme');
+  for (const [what, pre, wantGet, wantAttr] of DEFAULTS) {
+    const ctx = await b.newContext();
+    const p = await ctx.newPage();
+    if (pre === '__throw__')
+      await p.addInitScript(() => { Object.defineProperty(window, 'localStorage',
+        { get() { throw new Error('blocked'); } }); });
+    await p.goto('file://' + built[file]);
+    if (pre !== null && pre !== '__throw__') {
+      await p.evaluate(t => localStorage.setItem('spmtTheme', t), pre);
+      await p.reload();
+    }
+    await p.waitForFunction(() => typeof themeGet === 'function', null, { timeout: 30000 });
+    const r = await p.evaluate(() => ({
+      get: themeGet(),
+      attr: document.documentElement.getAttribute('data-theme') || '(none)' }));
+    await ctx.close();
+    // The two must AGREE. themeGet() drives the menu tick; data-theme drives what is painted.
+    chk(what, r.get === wantGet && r.attr === wantAttr,
+      `themeGet '${r.get}' · painted ${r.attr}`);
+  }
+}
 for (const file of ['prioritization-board.html', 'prioritization-board-grid.html']) {
   console.log('\n' + file);
   for (const [k, nm] of THEMES) {
