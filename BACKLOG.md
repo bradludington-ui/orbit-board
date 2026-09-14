@@ -130,7 +130,7 @@ Add a funding-type classification to OGC requirements: **MIPR Direct Cite Fundin
 
 ## 3. Make band and impact editable in the right-hand panel
 
-**Asked 14 Sep 2026 · not started**
+**Asked 14 Sep 2026 · DONE, v1.56**
 
 The band assignment shows in the requirement listing and is editable there, and it also shows
 in the right-hand panel — but read-only. Make it **editable in the panel**.
@@ -186,7 +186,7 @@ Everything dropped becomes panel-only.
 
 ## 6. "Open on the row" becomes pop-up editors, from the panel only
 
-**Asked 14 Sep 2026 · not started**
+**Asked 14 Sep 2026 · DONE, v1.56**
 
 Today the panel's **Open on the row** group has three chips — 📝 Note, 📄 Description,
 📋 Record — calling `toggleNote()`, `toggleDesc()`, `toggleRec()`, which open editors **on the

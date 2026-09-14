@@ -304,6 +304,15 @@ const MUTATIONS = [
   // The impact chip moved OUT of the grid inspector and into the row, where both builds render it
   // and no band gates it. The mutation moved with it: gate it on a band again and the row of an
   // ordinary requirement has no way in -- which is the state this feature shipped in.
+  // The pop-up editor, driven directly by audit-board in BOTH builds -- the machinery is shared and
+  // only the routing differs, so a mutation here cannot survive on whichever build does not route
+  // through it in the UI.
+  { id: 'fld-save-drops-edit', area: 'fldSave', what: 'the pop-up reports a save and writes nothing',
+    find: "  const id=fldOpen.id, v=a.value;",
+    repl: "  const id=fldOpen.id, v=D.get(fldOpen.id);" },
+  { id: 'fld-stale-stays-open', area: 'fldBody', what: 'the editor stays open on a requirement that has gone',
+    find: "  if(!it) fldOpen=null;                      // removed out from under the editor",
+    repl: "  // removed out from under the editor" },
   { id: 'impact-band-gated', area: 'rowChipsHtml', what: 'the impact statement is reachable only where a band demands one',
     find: `onclick="toggleCons(&quot;'+id+'&quot;)" `,
     repl: `data-x="'+id+'" ` },

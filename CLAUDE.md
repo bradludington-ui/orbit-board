@@ -593,6 +593,34 @@ it, at seven widths from 1920 to 1024. An empty board has no row to select and n
 it would pass every time while saying nothing. It is proven against the original defect: put
 `display:none` back and it fails at 1400 and below.
 
+### One implementation, two behaviours, decided at runtime
+
+Note, Description and Impact are a **pop-up** on the grid build and a **row expander** on the card
+build. The obvious way to do that is two versions of three functions, allowlisted as divergent. The
+better way costs nothing: write the machinery once, byte-identical in both files, and let it ask
+`fldHasPanel()` — `!!document.getElementById('inspector')` — which is the thing that actually
+differs. `parity.mjs` stays quiet because nothing diverged, and there is one implementation to fix
+when something is wrong with it.
+
+`toggleCons` / `toggleDesc` / `toggleNote` route to `openFld()` where there is a panel and fall
+through to the row flag where there is not. The card build never reaches the pop-up through its UI.
+
+**Which is a trap for mutation testing**, and the check is written around it. `mutate.mjs` cannot
+scope a mutation to a build, so a mutation to `fldSave` would be caught on the grid and SURVIVE on
+the card — where nothing routes through it. So `the pop-up editor` in `audit-board.mjs` drives
+`openFld()` and `fldSave()` **directly, in both builds**, and asserts the routing separately. The
+save path is then covered everywhere and `fld-save-drops-edit` is caught twice.
+
+### The band is a field in the panel, not an un-stripped chip
+
+The panel's chip strip is `rowChipsHtml(it)` with every `onclick` removed and `cursor:pointer`
+rewritten to `cursor:default`, wrapped in `.chipsro`. That is deliberate: CLAUDE.md records the
+defect it fixed — 117 chips that looked clickable and were not, the impact chip among them.
+
+So making the band editable in the panel means giving it a **real field** — a `<select>` in the
+`insp-f` idiom under a *Classification* label. Un-stripping the echo would have been three fewer
+lines and would have put every chip in that strip back to looking live while doing nothing.
+
 ### `npm run audit` runs BOTH builds. It used to run one.
 
 `audit:grid` existed and nothing called it: `audit:grid` was `BOARD=… npm run audit`, so `audit`

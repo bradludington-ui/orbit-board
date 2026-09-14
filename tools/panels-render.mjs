@@ -39,6 +39,8 @@ const SPECIAL = {
   recPanel:  `recOpen=S.order[0]; recBody();`,
   wbsPanel:  `toggleWbs('req', S.order[0], '');`,
   subPanel:  `subOpenReview();`,
+  // The pop-up editor for the three written fields. It needs a requirement to be editing.
+  fldPanel:  `openFld(S.order[0], 'cons');`,
   // uiPrompt only falls through to this panel where window.prompt throws (Electron). A browser
   // answers the native prompt, so drive the fallback path itself.
   uipPanel:  `_uipCb=function(){}; document.getElementById('uipMsg').textContent='Name this scenario';

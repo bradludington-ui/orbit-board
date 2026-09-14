@@ -803,6 +803,53 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'oracle', 'total unfunded is the trim', plain.unf, plain.trim);
 }
 
+// ══ the pop-up editor saves what was typed, and opens where there is a panel to open it from ══
+// Note, Description and Impact used to expand the row. On the grid build they are a pop-up now,
+// because the RECORD panel is right there and an edit belongs with the requirement's other fields.
+//
+// TWO PROPERTIES, and they are checked separately on purpose. The machinery is byte-identical in
+// both builds -- only the ROUTING differs, on whether this build has an #inspector -- so the save
+// path is driven directly here in BOTH, and a mutation to it cannot survive on the build that does
+// not happen to route through it. The routing is then asserted per build.
+{
+  const name = 'the pop-up editor';
+  const sc = { services: ['USAF', 'ANG', 'AFRC'],
+    items: [it('A', 'PSM', [9000000, 2000000, 1000000])],
+    disc: [9000000, 2000000, 1000000], mand: [0, 0, 0], order: ['A'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev('render(); if(typeof setCur==="function") setCur("A"); "ok"');
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const isOpen = () => ev(`(function(){ var e=document.getElementById('fldPanel');
+    return e? /\\bopen\\b/.test(e.className) : false; })()`);
+
+  // 1. the save path, driven directly, in whichever build this is
+  for (const [kind, store, text] of [['cons', 'cons', 'Depot line stops in March.'],
+                                     ['desc', 'desc', 'Sustains the fielded capability.'],
+                                     ['note', 'notes', 'Agreed at the Sep SFWG.']]) {
+    ev(`openFld('A','${kind}'); "ok"`);
+    chk(name, kind, 'opens on the requirement', isOpen(), true);
+    chk(name, kind, 'loads what is already stored',
+      ev(`(document.getElementById('fldVal')||{}).value===undefined? 'no field' : 'present'`), 'present');
+    ev(`document.getElementById('fldVal').value=${JSON.stringify(text)}; fldSave(); "ok"`);
+    chk(name, kind, 'saves what was typed', ev(`(S.${store}||{})['A']||''`), text);
+    chk(name, kind, 'and closes once saved', isOpen(), false);
+  }
+  // A requirement removed out from under the editor must not leave it open on nothing.
+  ev(`openFld('A','note'); "ok"`);
+  ev(`fldOpen={id:'GONE', kind:'note'}; fldBody(); "ok"`);
+  chk(name, 'stale', 'it closes when its requirement is gone', isOpen(), false);
+
+  // 2. the routing, which is the half that differs
+  const hasPanel = ev('fldHasPanel()');
+  ev(`consOpen['A']=false; toggleCons('A'); "ok"`);
+  chk(name, 'routing', `a panel build opens the pop-up, one without expands the row (panel: ${hasPanel})`,
+    hasPanel ? (isOpen() && !ev(`!!consOpen['A']`) ? 'pop-up' : 'wrong route')
+             : (!isOpen() && ev(`!!consOpen['A']`) ? 'row' : 'wrong route'),
+    hasPanel ? 'pop-up' : 'row');
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

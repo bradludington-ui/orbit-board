@@ -19,5 +19,6 @@
     "drawerSync": "grid only — the window can be resized across the breakpoint with the drawer open; this stops the panel being half docked and half drawer",
     "drawerBar": "grid only — the drawer's own close control, built with the panel body so it can never be left behind pointing at a requirement that has gone"
   },
-  "rowChipsHtml": "grid only — the row there carries identity, money and the band, nothing else. The impact chip moved to the RECORD panel's 'Open on the row' group and the funding split is a panel field, so neither is on the row. The card build keeps both: it has no panel, and the funding chip is its only picker for the split"
+  "rowChipsHtml": "grid only — the row there carries identity, money and the band, nothing else. The impact chip moved to the RECORD panel's 'Open on the row' group and the funding split is a panel field, so neither is on the row. The card build keeps both: it has no panel, and the funding chip is its only picker for the split",
+  "rowMenuHtml": "grid only — description, note, Record, the plan-event rename and now the consequence are all edited from the RECORD panel there, so the menu keeps only what the panel has no equivalent for: the CCaR record-name rename and the row's own lifecycle. The card build has no panel and keeps the full menu"
 }

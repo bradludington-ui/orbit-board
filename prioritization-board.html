@@ -461,6 +461,8 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .clin-detail .peramt{width:130px;background:var(--panelA);border:1.5px solid var(--gold);border-radius:4px;color:var(--amber);font-size:11px;font-weight:800;padding:3px 6px;text-align:right}
 .note-detail{grid-column:1/-1;background:var(--sink);border-radius:6px;padding:8px 12px}
 .note-detail textarea{width:100%;min-height:44px;background:var(--panelA);border:1px solid var(--line);border-radius:5px;color:var(--ink);font-size:11.5px;padding:6px 8px;font-family:inherit;resize:vertical}
+/* The pop-up editor borrows the same shape. Without font-family:inherit a bare textarea falls back to the browser's monospace, which reads as a different application. */
+#fldBody textarea{width:100%;background:var(--panelA);border:1px solid var(--line);border-radius:5px;color:var(--ink);font-size:12px;line-height:1.5;padding:8px 10px;font-family:inherit;resize:vertical}
 .note-detail textarea:focus{outline:none;border-color:var(--gold)}
 .note-snip{font-size:10px;color:var(--amber);margin-top:2px;font-style:italic}
 .stdtag{font-size:8px;font-weight:800;letter-spacing:.5px;padding:1px 5px;border-radius:3px;
@@ -771,6 +773,13 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
     <h3>🗓 ROLL REQUIREMENTS FORWARD
       <button class="x" onclick="rollOpen=false;render()">✕ Close</button></h3>
     <div id="rollBody"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="fldPanel" onclick="if(event.target===this)fldClose()">
+  <div class="modal" style="width:720px;max-width:95vw">
+    <h3 id="fldTitle">✎ EDIT</h3>
+    <div id="fldBody"></div>
   </div>
 </div>
 
@@ -1226,7 +1235,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.55 (14 Sep 2026)';
+const BUILD='v1.56 (14 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -12578,7 +12587,63 @@ function setBand(id,v){ if(v===''){ delete S.band[id]; delete (S.cons||{})[id]; 
 function setMinInc(id,v){ const n=parseAmt(v); if(n===null||n<=0) delete S.minInc[id]; else S.minInc[id]=n; save(); render(); }
 function setCons(id,v){ v=(v||'').trim(); if(v) S.cons[id]=v; else delete S.cons[id]; save(); render(); }
 let consOpen={};
-function toggleCons(id){ consOpen[id]=!consOpen[id]; render(); }
+function toggleCons(id){ if(fldHasPanel()){ openFld(id,'cons'); return; } consOpen[id]=!consOpen[id]; render(); }
+// ONE POP-UP FOR THE THREE WRITTEN FIELDS. Note, Description and Impact used to expand the row in
+// place. That is right on a board with nowhere else to put them, and wrong on one where the RECORD
+// panel is two inches away: the edit belongs with the rest of the requirement's fields, not wedged
+// into the middle of the priority list.
+//
+// WHICH BEHAVIOUR YOU GET IS DECIDED BY WHETHER THIS BUILD HAS A PANEL, not by which file it is.
+// The two boards share every function byte for byte and parity.mjs enforces that; #inspector is the
+// thing that actually differs, so asking for it keeps one implementation instead of two that drift.
+let fldOpen=null;                 // {id, kind}, or null when nothing is being edited
+function fldHasPanel(){ return !!document.getElementById('inspector'); }
+const FLD_DEF={
+  cons:{ lbl:'\u26a0 Impact if not funded', set:'setCons',
+         get:function(id){ return (S.cons||{})[id]||''; },
+         ph:function(it){ const b=BAND_DEF(it.id);
+           return 'If this is NOT funded, what happens and when? '
+             +(b && b.consReq? 'Required for '+b.n+' \u2014 this text becomes the UFR justification.'
+                             : 'Feeds the UFR if this falls below the line.'); } },
+  desc:{ lbl:'\ud83d\udcc4 Description', set:'setDesc',
+         get:function(id){ return (S.desc||{})[id]||''; },
+         ph:function(it){ return 'What is '+dispTitle(it)+' for? Plain-language description \u2014 this '
+             +'is what shows up on the spend plan read-out.'; } },
+  note:{ lbl:'\ud83d\udcdd Note', set:'setNote',
+         get:function(id){ return S.notes[id]||''; },
+         ph:function(it){ return 'Notes for '+dispTitle(it)+' \u2014 decisions, caveats, taskers\u2026'; } }
+};
+function openFld(id, kind){ fldOpen={id:id, kind:kind}; fldBody(); }
+function fldClose(){ fldOpen=null; fldBody(); }
+function fldBody(){
+  const bg=document.getElementById('fldPanel'), el=document.getElementById('fldBody');
+  if(!bg||!el) return;
+  const it=fldOpen? itemById(fldOpen.id) : null;
+  if(!it) fldOpen=null;                      // removed out from under the editor
+  bg.className='modal-bg'+(fldOpen?' open':'');
+  if(!fldOpen){ el.innerHTML=''; return; }
+  const D=FLD_DEF[fldOpen.kind];
+  if(!D){ fldOpen=null; bg.className='modal-bg'; el.innerHTML=''; return; }
+  const t=document.getElementById('fldTitle');
+  if(t) t.innerHTML=esc(D.lbl)+'  <span style="font-weight:600;text-transform:none;letter-spacing:0;'
+    +'color:var(--mut)">'+esc(dispTitle(it))+'</span>'
+    +'<button class="x" onclick="fldClose()">\u2715 Close</button>';
+  el.innerHTML='<textarea id="fldVal" style="width:100%;min-height:190px" placeholder="'
+    +esc(D.ph(it))+'">'+esc(D.get(it.id))+'</textarea>'
+    +'<div class="fr" style="margin-top:9px">'
+    +'<button class="btn pub" onclick="fldSave()">\u2714 Save</button>'
+    +'<button class="btn" onclick="fldClose()">Cancel</button>'
+    +'<span class="hint">Saved against this requirement and written into the board.</span></div>';
+  setTimeout(function(){ try{ document.getElementById('fldVal').focus(); }catch(e){} }, 50);
+}
+function fldSave(){
+  if(!fldOpen) return;
+  const D=FLD_DEF[fldOpen.kind], a=document.getElementById('fldVal');
+  if(!D||!a) return;
+  const id=fldOpen.id, v=a.value;
+  fldOpen=null;              // close FIRST: the setter renders, and render() draws this panel
+  window[D.set](id, v);
+}
 function consBox(it){
   const b=BAND_DEF(it.id);
   return `<div class="note-detail cons"><textarea placeholder="If this is NOT funded, what happens and when? ${b.consReq?'Required for '+esc(b.n)+' — this text becomes the UFR justification.':'Feeds the UFR if this falls below the line.'}"
@@ -15334,8 +15399,8 @@ function pickCostElem(id){
   });
 }
 function toggleDetail(id){ open[id]=!open[id]; render(); }
-function toggleNote(id){ noteOpen[id]=!noteOpen[id]; render(); }
-function toggleDesc(id){ descOpen[id]=!descOpen[id]; render(); }
+function toggleNote(id){ if(fldHasPanel()){ openFld(id,'note'); return; } noteOpen[id]=!noteOpen[id]; render(); }
+function toggleDesc(id){ if(fldHasPanel()){ openFld(id,'desc'); return; } descOpen[id]=!descOpen[id]; render(); }
 // Description = what this requirement IS, in plain words. Distinct from Notes, which carry
 // decisions, caveats and taskers. The description is what a spend-plan reader needs, so it is
 // carried into the exports that the printed spend plan will be built from.
@@ -17095,7 +17160,7 @@ function render(){
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
       +'checked it, or the unread part will be lost.'); }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); matBody(); rollBody(); svcSummary(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
