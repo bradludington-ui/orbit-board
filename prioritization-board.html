@@ -533,7 +533,6 @@ table.sp tr.tot td{font-weight:800;background:var(--panelA);border-bottom:1px so
 .edcard .l{font-size:9px;letter-spacing:.8px;color:var(--dim);font-weight:800;text-transform:uppercase}
 .edcard .v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px}
 .edcard .s{font-size:9.5px;color:var(--mut);margin-top:3px;line-height:1.4}
-.desc-snip{font-size:10px;color:var(--mut);margin-top:2px;line-height:1.4}
 .note-detail.desc textarea{border-color:var(--line2)}
 .cesel{margin-top:3px;background:var(--sink);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:9.5px;padding:2px 4px;max-width:220px}
 .cesel.unset{color:var(--dim);border-style:dashed}
@@ -1227,7 +1226,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.54 (14 Sep 2026)';
+const BUILD='v1.55 (14 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3318,7 +3317,6 @@ function applyState(st){
   // early builds stored a numeric band index; migrate those to the default band ids
   Object.keys(S.band).forEach(k=>{ const v=S.band[k];
     if(typeof v==='number' && BANDS_LEGACY[v]) S.band[k]=BANDS_LEGACY[v].id; });
-  if(!S.tier) S.tier={};   // H/M/L within band
   if(!S.minInc) S.minInc={};  // minimum useful increment ($); unset = the full requirement
   if(!S.cons) S.cons={};   // consequence of NOT funding — required for band 2, feeds the UFR
   if(!S.awards) S.awards={};  // {id:{mode:'single', d:'2026-12'} | {mode:'inc', inc:[{d,v},...]}}
@@ -3577,7 +3575,6 @@ const IMP_CATS = [
   ['rcnSvc',    'RCN/EEIC per service', null],
   ['clinRcn',   'RCN/EEIC (CLIN)',     null],
   ['aceMap',    'ACE tie-out mappings', null],
-  ['tier',      'band tiers',          null],
   ['cons',      'consequences',        null],
   ['minInc',    'minimum increments',  null],
   ['crHalf',    'CR half-month marks', null],
@@ -3747,7 +3744,7 @@ function yearCopy(id, y, mode, opts){
   // stays behind, silently, looking exactly like a year nobody has filled in yet.
   ['alloc','mc','notes','desc','titles','ccar','pid','costElem','fsrc','asks','awards','grp','si','dest',
    'wbs','clinWbs','rcnAsg','rcnSvc','clinRcn','aceMap','upl','obCat','budgetAsg','ptype','recNames',
-   'clinAlloc','clinMeta','clinNew','clinRm','crHalf','band','tier','cons','minInc']
+   'clinAlloc','clinMeta','clinNew','clinRm','crHalf','band','cons','minInc']
     .forEach(k=>{ if(!T[k]) T[k]={}; });
   if(!Array.isArray(T.order)) T.order=[];
   if(!Array.isArray(T.custom)) T.custom=[];
@@ -3792,7 +3789,7 @@ function yearCopy(id, y, mode, opts){
   cp(T.clinAlloc, (S.clinAlloc||{})[id]); cp(T.clinMeta, (S.clinMeta||{})[id]);
   cp(T.clinNew, (S.clinNew||{})[id]); cp(T.clinRm, (S.clinRm||{})[id]);
   // the decision band is now the requirement's most important attribute — a copy must carry it
-  cp(T.band, (S.band||{})[id]); cp(T.tier, (S.tier||{})[id]);
+  cp(T.band, (S.band||{})[id]);
   cp(T.cons, (S.cons||{})[id]); cp(T.minInc, (S.minInc||{})[id]);
   const aw=shiftAw(S.awards[id]); if(aw) T.awards[tid]=aw; else delete T.awards[tid];
   if(S.crHalf[id]){ const ch={}; Object.keys(S.crHalf[id]).forEach(k=>{ const m=/^(\d{4})-(\d{2})$/.exec(k); ch[m? (parseInt(m[1])+dy)+'-'+m[2] : k]=S.crHalf[id][k]; }); T.crHalf[tid]=ch; }
@@ -11478,7 +11475,7 @@ function bandDel(i){
       +(kids.length? '\n\n'+kids.length+' sub-band'+(kids.length===1?'':'s')+' filed under it ('
         +kids.map(k=>k.n).join(', ')+') will stay, as band'+(kids.length===1?'':'s')
         +' of their own. Their requirements are not touched.':''))) return;
-  if(used) S.order.forEach(id=>{ if(BAND_OF(id)===b.id){ delete S.band[id]; delete (S.tier||{})[id]; } });
+  if(used) S.order.forEach(id=>{ if(BAND_OF(id)===b.id){ delete S.band[id]; } });
   // bandNormalize unfiles anything whose header has gone, so the sub-bands become bands in
   // their own right at the position they already held. Nothing to promote by hand.
   L.splice(i,1); bandSave(L);
@@ -11897,8 +11894,6 @@ function bandPanelBody(){
     +'what this board allocates: the lane engine never reads it. It is used only by '
     +'⚖ <b>Executive Decision</b>, which prints the rule for every band on its own face.</div>';
 }
-const TIER_OF=id=>((S.tier||{})[id]||'M');
-const TIER_RANK={H:0,M:1,L:2};
 // minimum useful increment: what the requirement still buys something at. Unset = the full ask,
 // so the gap is correct from the first minute and sharpens as floors are entered.
 function minIncOf(it){
@@ -11910,7 +11905,7 @@ function minIncOf(it){
 function proposedOrder(){
   const pos={}; S.order.forEach((id,i)=>pos[id]=i);
   return S.order.slice().sort((a,b)=>
-    (BAND_EFF(a)-BAND_EFF(b)) || (TIER_RANK[TIER_OF(a)]-TIER_RANK[TIER_OF(b)]) || (pos[a]-pos[b]));
+    (BAND_EFF(a)-BAND_EFF(b)) || (pos[a]-pos[b]));
 }
 // Applying is a separate, explicit act — only reachable from the preview.
 function applyProposedOrder(){
@@ -12431,7 +12426,7 @@ function poRows(){
     const it=itemById(id); if(!it) return null;
     const b=BAND_DEF(id), ask=askTot(it);
     const a=TA[id]||Z, n2=TB[id]||Z;
-    return {id, rank:i+1, was:now[id], move:now[id]-(i+1), band:b, tier:TIER_OF(id),
+    return {id, rank:i+1, was:now[id], move:now[id]-(i+1), band:b,
             pmo:grpOf(it), title:dispTitle(it), ask,
             dNow:a.dT, mNow:a.mT, uNow:a.uT, dNew:n2.dT, mNew:n2.mT, uNew:n2.uT,
             sNow:st(a), sNew:st(n2)};
@@ -12467,7 +12462,7 @@ function poBody(){
   h+='<div style="max-height:46vh;overflow:auto"><table class="po"><thead>'
     +'<tr><th colspan="8"></th><th class="n grpb" colspan="3">Allocation \u2014 current order</th><th class="n grpb" colspan="3">Allocation \u2014 proposed order</th><th></th></tr>'
     +'<tr>'
-    +'<th>#</th><th>was</th><th>move</th><th>Band</th><th>Tier</th><th>PMO</th><th>Requirement</th>'
+    +'<th>#</th><th>was</th><th>move</th><th>Band</th><th>PMO</th><th>Requirement</th>'
     +'<th class="n">'+FYL()+'</th>'
     +'<th class="n grpb">Disc</th><th class="n">Mand</th><th class="n">Unfunded</th>'
     +'<th class="n grpb">Disc</th><th class="n">Mand</th><th class="n">Unfunded</th>'
@@ -12477,7 +12472,7 @@ function poBody(){
       +'<td>'+(r.move===0?'<span style="color:var(--dim)">\u2014</span>'
              :'<b style="color:'+(r.move>0?'var(--green)':'var(--red)')+'">'+(r.move>0?'\u25b2':'\u25bc')+Math.abs(r.move)+'</b>')+'</td>'
       +'<td style="color:'+esc(r.band.c||'var(--mut)')+'">'+esc(r.band.n)+'</td>'
-      +'<td>'+esc(r.tier)+'</td><td>'+esc(r.pmo)+'</td><td>'+esc(r.title)+'</td>'
+      +'<td>'+esc(r.pmo)+'</td><td>'+esc(r.title)+'</td>'
       +'<td class="n">'+fM(r.ask)+'</td>'
       +money(r.dNow,'var(--green)')+money(r.mNow,'var(--purp)')+money(r.uNow,'var(--red)')
       +money(r.dNew,'var(--green)')+money(r.mNew,'var(--purp)')+money(r.uNew,'var(--red)')
@@ -12495,12 +12490,12 @@ function poBody(){
 }
 function exportProposedOrder(){
   const {rows}=poRows();
-  const hdr=['Proposed Rank','Current Rank','Move','Band','Band Rule','Tier','PMO','Requirement',
+  const hdr=['Proposed Rank','Current Rank','Move','Band','Band Rule','PMO','Requirement',
              FYL()+' Requirement',
              'Discretionary $ (current order)','Mandatory $ (current order)','Unfunded $ (current order)',
              'Discretionary $ (proposed order)','Mandatory $ (proposed order)','Unfunded $ (proposed order)',
              'Status now','Status proposed','Consequence of non-funding'];
-  const out=[hdr].concat(rows.map(r=>[r.rank, r.was, r.move, r.band.n, r.band.rule, r.tier, r.pmo, r.title,
+  const out=[hdr].concat(rows.map(r=>[r.rank, r.was, r.move, r.band.n, r.band.rule, r.pmo, r.title,
     Math.round(r.ask), Math.round(r.dNow), Math.round(r.mNow), Math.round(r.uNow),
     Math.round(r.dNew), Math.round(r.mNew), Math.round(r.uNew),
     r.sNow, r.sNew, (S.cons||{})[r.id]||'']));
@@ -12578,9 +12573,8 @@ function edCompute(ord){
 }
 let edOpen=false;
 function toggleEd(){ edOpen=!edOpen; render(); }
-function setBand(id,v){ if(v===''){ delete S.band[id]; delete (S.tier||{})[id]; delete (S.cons||{})[id]; }
+function setBand(id,v){ if(v===''){ delete S.band[id]; delete (S.cons||{})[id]; }
   else S.band[id]=v; save(); render(); }
-function setTier(id,v){ if(!v||v==='M') delete S.tier[id]; else S.tier[id]=v; save(); render(); }
 function setMinInc(id,v){ const n=parseAmt(v); if(n===null||n<=0) delete S.minInc[id]; else S.minInc[id]=n; save(); render(); }
 function setCons(id,v){ v=(v||'').trim(); if(v) S.cons[id]=v; else delete S.cons[id]; save(); render(); }
 let consOpen={};
@@ -12634,7 +12628,7 @@ function blSnapshot(){
       : svcAlloc(it).slice();
     const ask=it.ask.slice();
     reqs.push({id, title:dispTitle(it), grp:grpOf(it), ccar:ccarOf(it)||'', pid:pidOf(it)||'',
-               band:BAND_OF(id), tier:TIER_OF(id), mc:!!S.mc[id], ask, alloc});
+               band:BAND_OF(id), mc:!!S.mc[id], ask, alloc});
     if(!pmo[grpOf(it)]) pmo[grpOf(it)]={ask:SVC.map(_=>0), alloc:SVC.map(_=>0), n:0};
     pmo[grpOf(it)].n++;
     SVC.forEach((sv,i)=>{ pmo[grpOf(it)].ask[i]+=ask[i]||0; pmo[grpOf(it)].alloc[i]+=alloc[i]||0; });
@@ -13627,7 +13621,7 @@ function posSummary(){
       : (svcAlloc(it)||[]).slice();
     out[id]={title:dispTitle(it), rec:recName(it)||'', grp:grpOf(it),
              ccar:ccarOf(it)||'', pid:pidOf(it)||'',
-             band:BAND_OF(id), tier:TIER_OF(id), mc:!!(S.mc||{})[id],
+             band:BAND_OF(id), mc:!!(S.mc||{})[id],
              ask:(it.ask||[]).slice(), alloc:alloc};
   });
   return out;
@@ -15222,27 +15216,14 @@ function rowChipsHtml(it){
   const id=it.id, L=BANDS_LIST(), bid=BAND_OF(id);
   let bi=-1; L.forEach(function(b,i){ if(b.id===bid) bi=i; });
   const bd=(bid!==null)? BAND_DEF(id) : null;
-  const tv=TIER_OF(id);
   let h='<div class="rowchips">';
-  // TIER IS PRIORITY WITHIN THE BAND, so it is a section of the band picker rather than a chip of
-  // its own - measured, 95% of banded rows sat at the default M and drew a chip saying so.
   const bandItems=[{v:'', n:'\u2014 no band \u2014'}].concat(L.map(function(b,i){
     return {v:b.id, n:i+' \u00b7 '+b.n}; }));
-  if(bid!==null) bandItems.push({sep:'Priority within the band'},
-    {v:'H', n:'High',   set:'setTier', on:tv==='H'},
-    {v:'M', n:'Medium', set:'setTier', on:tv==='M'},
-    {v:'L', n:'Low',    set:'setTier', on:tv==='L'});
   h+=chipPick('band', id,
       bid===null? '+ band' : ((bi>=0? bi+' \u00b7 ':'')+chipClip(bd.n)),
       bid===null? '' : bid, bandItems, 'setBand',
       'Decision band \u2014 the funding rule travels with the band. Manage the ladder in \u2696 Bands.',
       bd && bd.c);
-  // The chip appears once tier is OFF its default, the same rule everything else on the row follows.
-  if(bid!==null && tv!=='M')
-    h+='<span class="rchip" style="border-color:'+(tv==='H'?'var(--amber)':'var(--blue)')
-      +';color:'+(tv==='H'?'var(--amber)':'var(--blue)')+'" '
-      +'onclick="toggleChip(&quot;band&quot;,&quot;'+id+'&quot;,event)" '
-      +'title="priority within the band \u2014 change it in the band picker">TIER '+tv+'</span>';
   // WHAT HAPPENS IF THIS IS NOT FUNDED, reachable on EVERY requirement. It used to appear only
   // where a decision band demanded one, so on an ordinary band there was no way to write the field
   // at all -- and it is the field a programme office is best placed to fill in. The chip now always
@@ -17179,7 +17160,6 @@ function render(){
     const changed = a!==null&&a!==undefined;
     const inpVal = changed? Math.round(eff(it)).toLocaleString():'';
     const note=S.notes[id];
-    const desc=(S.desc||{})[id];
     const showDetail = svcAll || open[id];
     h+=`<div class="row t-${t.tier} ${id.startsWith('BUY-')?'buy':''}" id="row-${id}" ${canDrag?'draggable="true"':''}
         ondragstart="dstart(event,'${id}')" ondragend="dend(event)" ondragover="dover(event,'${id}')" ondragleave="dleave(event)" ondrop="ddrop(event,'${id}')">
@@ -17187,11 +17167,10 @@ function render(){
         <input value="${hardOpen? liveRank[id] : rank}" ${hardOpen?'style="border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)"':''} onchange="setRank('${id}',this.value)" onfocus="this.select()" title="${hardOpen? 'RANK-ENTRY MODE — type the target rank; the row stays put here but moves in the real order (box shows its current rank)' : (pmoMode()? filter+'’s own rank (master unaffected)' : 'master rank')}">
         <span class="ud"><button onclick="bump('${id}',-1)">▲</button><button onclick="bump('${id}',1)">▼</button></span></div>
       <div><div class="gchip" style="background:${GCOLOR[grpOf(it)]}">${grpOf(it)}</div>
-        ${ptypeOf(id)?`<div style="margin-top:2px"><span onclick="togglePtype('${id}')" style="cursor:pointer;display:inline-block;font-size:8px;font-weight:800;letter-spacing:.4px;padding:1px 6px;border-radius:3px;${ptypeOf(id)==='PRIME'?'background:var(--gold);color:var(--onGold)':'background:var(--line2);color:var(--mut)'}" title="classification — click to switch between Prime Contract and OGC">${ptypeOf(id)==='PRIME'?PRIME_ICON+' PRIME':'OGC'}</span></div>`:`<div style="margin-top:2px"><span onclick="togglePtype('${id}')" style="cursor:pointer;font-size:8px;color:var(--dim);border:1px dashed var(--line);border-radius:3px;padding:1px 6px" title="click to classify: Prime Contract / OGC">+ type</span></div>`}
+        ${ptypeOf(id)?`<div style="margin-top:2px"><span onclick="togglePtype('${id}')" style="cursor:pointer;display:inline-block;font-size:8px;font-weight:800;letter-spacing:.4px;padding:1px 6px;border-radius:3px;${ptypeOf(id)==='PRIME'?'background:var(--gold);color:var(--onGold)':'background:var(--line2);color:var(--mut)'}" title="classification — click to switch between Prime Contract and OGC">${ptypeOf(id)==='PRIME'?PRIME_ICON+' PRIME':'OGC'}</span></div>`:''}
         <div class="pmor">${pmoMode()? 'master #'+MR[id] : grpOf(it)+' #'+PR[id]}</div></div>
       <div><div class="tt"><span onclick="toggleDetail('${id}')" title="click here, or ⊞ By service, to break this requirement out by service">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${it.team}</span>`:''}<span class="tedit ${S.titles[id]?'ren':''}" onclick="editTitle('${id}')" title="${S.titles[id]?'renamed — was: '+esc(it.event||it.title)+' (click to edit)':'rename requirement'}">✎</span>${it.custom?'<span class="sect-new">ADDED</span>':''}${recName(it)&&recName(it)!==dispTitle(it)?`<span class="recname edit" onclick="editRecName('${id}')" title="CCaR Record Name — the requirement as the source file files it${(S.recNames||{})[id]?'. Renamed — the file says: '+esc(recNameSrc(it)):''}. Click to rename.">${esc(recName(it))}${(S.recNames||{})[id]?' \u270e':''}</span>`:''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched \u2014 this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">\u2691 ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' \u00b7 +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}</div>
         <div class="ev">${(it.event && dispTitle(it)!==it.event)? esc(it.event)+'  ·  ' : ''}<span onclick="editCcar('${id}')" style="cursor:pointer;color:${ccarOf(it)?'var(--gold)':'var(--dim)'};font-weight:700" title="click to assign the CCaR record (up to 12 characters)">${ccarOf(it)? esc(ccarOf(it)) : '+ CCaR'}</span>  ·  <span onclick="editPid('${id}')" style="cursor:pointer;color:${pidOf(it)?'var(--blue,#6aa6e8)':'var(--dim)'};font-weight:700" title="click to assign the PID number (up to 20 characters)">${pidOf(it)? 'PID '+esc(pidOf(it)) : '+ PID'}</span>${S.awards[id]? (S.awards[id].mode==='inc'? `  ·  <span style="color:var(--green);font-weight:700" title="incremental funding — ${(S.awards[id].inc||[]).length} increment(s); edit in the detail view">📅 INC ×${(S.awards[id].inc||[]).length}</span>` : `  ·  <span style="color:var(--green);font-weight:700" title="award/obligation date — full funded amount forecasts in this month${S.awards[id].day?'; day '+S.awards[id].day+' sets the CR half-month window':''}">📅 ${S.awards[id].day? S.awards[id].day+' ':''}${esc(ymLbl(S.awards[id].d))}</span>`) : ''}</div>
-        ${desc?`<div class="desc-snip">📄 ${esc(desc.length>150?desc.slice(0,150)+'…':desc)}</div>`:''}
         ${note?`<div class="note-snip">📝 ${esc(note.length>110?note.slice(0,110)+'…':note)}</div>`:''}
         ${rowChipsHtml(it)}</div>
       <div class="nums">
@@ -19161,7 +19140,7 @@ function restoreAll(){ S.removed=[]; applyState(S); save(); render(); }
 // One width per column of the Priority Drill's requirement tabs, hoisted so the suite can hold it
 // against the header row. A short list does not move data, so nothing else would notice — but every
 // column past the gap takes the next one's width and the name columns clip.
-function drillCols(){ return [7,9,8,44,44,13,15,20,6,5,15,15,15,15,15,15,15,7,14].concat(SVC.map(function(){ return 14; })); }
+function drillCols(){ return [7,9,8,44,44,13,15,20,5,15,15,15,15,15,15,15,7,14].concat(SVC.map(function(){ return 14; })); }
 function exportCSV(){
   // Everything is read from the board as it stands; nothing here changes it.
   const T=tiers(), MR=masterRanks();
@@ -19204,7 +19183,7 @@ function exportCSV(){
 
   // ---- requirement columns, shared by every detail tab --------------------------------------
   const COLS=drillCols();
-  const HDR=()=>['Rank','PMO','Type','Requirement (CCaR Record Name)','Plan Event','CCaR','PID','Cost Element','Tier','★ MC',
+  const HDR=()=>['Rank','PMO','Type','Requirement (CCaR Record Name)','Plan Event','CCaR','PID','Cost Element','★ MC',
     'Funding source',FYL()+' Requirement','Allocated','Discretionary','Mandatory','Funded','Unfunded',
     '% Fund','Award', ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H}));
   const ROW=it=>{ const x=mOf(it), p=x.p;
@@ -19212,7 +19191,7 @@ function exportCSV(){
       // both names: a requirement with no record name falls back to its plan event rather than
       // leaving the column blank
       recName(it)||dispTitle(it), dispTitle(it),
-      {v:ccarOf(it),s:1}, {v:pidOf(it),s:0}, ceOf(it.id), TIER_OF(it.id), S.mc[it.id]?'★':'',
+      {v:ccarOf(it),s:1}, {v:pidOf(it),s:0}, ceOf(it.id), S.mc[it.id]?'★':'',
       srcLbl(it.id),
       {v:x.ask,s:M}, {v:(S.fsrc||{})[it.id]? x.fn : eff(it), s:M},
       {v:x.d,s:M}, {v:x.m,s:M}, {v:x.fn,s:M}, {v:x.u, s:x.u>0.5? MR_ : M},
@@ -19220,7 +19199,7 @@ function exportCSV(){
       ...SVC.map((sv,j)=>({v:(p.d?(p.d[j]||0):0)+(p.m?(p.m[j]||0):0), s:M}))]; };
   // one empty per non-money column. Eleven now, not ten — miss this and every figure in every
   // subtotal row shifts one column left while the workbook still opens cleanly.
-  const SUB=(label,a2,style)=>[{v:label,s:style||B},'','','','','','','','','','',
+  const SUB=(label,a2,style)=>[{v:label,s:style||B},'','','','','','','','','',
     {v:a2.ask,s:MB},'',{v:a2.d,s:MB},{v:a2.m,s:MB},{v:a2.fn,s:MB},{v:a2.u,s:MB},
     {v:pct(a2.fn,a2.ask),s:B},'', ...SVC.map(_=>'')];
 
@@ -19243,7 +19222,7 @@ function exportCSV(){
     if(a2.n) rollAt[last]={lbl:BAND_LBL_AT(g.i), n:b.n, agg:a2, kids:kids.length};
   });
   const ROLL=r=>[{v:'BAND '+r.lbl+' TOTAL  —  '+r.n.toUpperCase()+'  (with its '+r.kids
-      +' sub-band'+(r.kids===1?'':'s')+')', s:SEC},'','','','','','','','','','',
+      +' sub-band'+(r.kids===1?'':'s')+')', s:SEC},'','','','','','','','','',
     {v:r.agg.ask,s:MSEC},'',{v:r.agg.d,s:MSEC},{v:r.agg.m,s:MSEC},{v:r.agg.fn,s:MSEC},
     {v:r.agg.u,s:MSEC},{v:pct(r.agg.fn,r.agg.ask),s:B},'', ...SVC.map(_=>'')];
 
@@ -20039,10 +20018,10 @@ function exportExcel(){
     const RULELBL={full:'fund in full', min:'minimum first, then top up', skip:'full, or skip if it will not fit'};
     const srcLbl=id=>{ const f=S.fsrc[id]; return f? ({disc:'Force DISC',mand:'Force MAND',ufr:'Force UFR',split:'Split D/M/UFR'}[f.m]||f.m) : 'auto (lanes)'; };
     const L=BANDS_LIST();
-    const cols=[7,6,24,6,9,8,22,44,44,13,17,6,14,14,13,
+    const cols=[7,6,24,9,8,22,44,44,13,17,6,14,14,13,
       ...SVC.map(_=>13),14, ...SVC.map(_=>13),14, ...SVC.map(_=>13),14, ...SVC.map(_=>13),14,
       9,15,50,50];
-    const hdr=()=>[ 'Rank','Band','Band name','Tier','PMO','Type','Cost Element','Requirement (CCaR Record Name)','Plan Event','CCaR','PID',
+    const hdr=()=>[ 'Rank','Band','Band name','PMO','Type','Cost Element','Requirement (CCaR Record Name)','Plan Event','CCaR','PID',
       '★ MC','Funding source',FYL()+' Requirement','Min useful incr',
       ...SVC.map(v=>v+' Disc'),'DISC TOTAL',
       ...SVC.map(v=>v+' Mand'),'MAND TOTAL',
@@ -20150,7 +20129,7 @@ function exportExcel(){
         const k=measure(it);
         cum+=k.fT;
         const cons=(S.cons||{})[it.id]||'';
-        rows.push([{v:MR[it.id],s:0},{v:(b.i===null?'—':BAND_LBL_AT(b.i)),s:0},b.n,TIER_OF(it.id),
+        rows.push([{v:MR[it.id],s:0},{v:(b.i===null?'—':BAND_LBL_AT(b.i)),s:0},b.n,
           grpOf(it),(ptypeOf(it.id)||''),ceOf(it.id),recName(it)||dispTitle(it),dispTitle(it),{v:ccarOf(it),s:1},{v:pidOf(it),s:0},
           S.mc[it.id]?'★':'', srcLbl(it.id),
           {v:k.ask,s:N},{v:minIncOf(it),s:N},
@@ -20159,12 +20138,12 @@ function exportExcel(){
           {v:(b.consReq&&!cons.trim())? 'REQUIRED — not written' : cons, s:(b.consReq&&!cons.trim())?1:0},
           (S.desc||{})[it.id]||'']);
       });
-      rows.push([{v:'Subtotal — '+(b.i===null?'not yet banded':'band '+BAND_LBL_AT(b.i)),s:B},'','','','','','','','','','','','',
+      rows.push([{v:'Subtotal — '+(b.i===null?'not yet banded':'band '+BAND_LBL_AT(b.i)),s:B},'','','','','','','','','','','',
         {v:b.__k.ask,s:NB},'', ...numsOf(b.__k,NB), '','','','']);
       rows.push([]);
       if(rollAt[n]) rollRow(n);
     });
-    rows.push([{v:'GRAND TOTAL — all '+grandN+' requirements',s:SEC},'','','','','','','','','','','','',
+    rows.push([{v:'GRAND TOTAL — all '+grandN+' requirements',s:SEC},'','','','','','','','','','','',
       {v:grand.ask,s:NB},'', ...numsOf(grand,NB), '','','','']);
     rows.push([]);
     rows.push(['Sub-bands are shown in full on their own AND summed into their header’s BAND n TOTAL line, so a '

@@ -495,9 +495,12 @@ const MUTATIONS = [
   { id: 'year-move-leaves-source', area: 'yearCopy', what: 'a MOVE leaves the requirement in this year too, funding it twice',
     find: "    S.order=S.order.filter(x=>x!==id);",
     repl: "    S.order=S.order.slice();" },
+  // Re-aimed when the L/M/H tier went: this used to drop the band copy and leave the tier one, and
+  // with tier gone the find matched nothing -- NOT APPLIED, which is a check proving nothing. It
+  // drops the band copy on its own now, so band is still normalised on the target and never filled.
   { id: 'year-drops-a-container', area: 'yearCopy', what: 'one attached container is normalised on the target but never filled',
-    find: "  cp(T.band, (S.band||{})[id]); cp(T.tier, (S.tier||{})[id]);",
-    repl: "  cp(T.tier, (S.tier||{})[id]);" },
+    find: "  cp(T.band, (S.band||{})[id]);\n  cp(T.cons, (S.cons||{})[id]);",
+    repl: "  cp(T.cons, (S.cons||{})[id]);" },
   { id: 'year-ask-not-carried', area: 'yearCopy', what: 'the requirement value is left behind, so the copy arrives worth nothing',
     find: "    T.asks[id]=it.ask.slice();                           // carry the current requirement value",
     repl: "    T.asks[id]=SVC.map(function(){return 0;});           // carry the current requirement value" },

@@ -593,6 +593,66 @@ it, at seven widths from 1920 to 1024. An empty board has no row to select and n
 it would pass every time while saying nothing. It is proven against the original defect: put
 `display:none` back and it fails at 1400 and below.
 
+### `npm run audit` runs BOTH builds. It used to run one.
+
+`audit:grid` existed and nothing called it: `audit:grid` was `BOARD=… npm run audit`, so `audit`
+could not call it back without recursing. The chain is `audit:suites` now, and `audit` runs it
+twice — once per build. Until that changed, seven suites covered the card build and the grid build
+was covered only when somebody remembered to type `npm run audit:grid`.
+
+This is not hypothetical. Removing the impact chip from the grid row left that build with **no way
+to write the impact statement at all** — the field the whole PMO submittal workflow exists to
+collect — and `npm run audit` stayed green, because the check that guards it ran against the card.
+`npm run audit:grid` failed immediately. **Twelve "ALL CHECKS PASSED" lines is the healthy count.**
+
+The check itself now follows the build rather than pinning one spot: it looks for the `toggleCons`
+handler on the row **and** in the RECORD panel, and prints which one answered. A surface that moves
+is then a passing check that says something different, not a silent one.
+
+### The row carries identity, money and the band
+
+Everything else moved to the RECORD panel. Dropped from the row: the description preview, the
+impact chip, the funding badge, and the dashed `+ type` prompt on an unclassified row.
+
+Nothing was stranded, and that was checked rather than assumed before each was removed:
+
+| Dropped | Still reachable via |
+|---|---|
+| description preview | the row's `⋯` menu (card), the panel's *Open on the row* group (grid) |
+| `+ type` prompt | `📋 Record` in both builds — the PRIME/OGC **badge** stays on the row when set |
+| impact chip | the row chip (card); the panel's *Open on the row* group (grid) |
+| funding badge | never editable on the row in the grid build; the panel's BY SERVICE table sets the split, and a requirement still on the lane walk gets its own *convert to Split* chip there |
+
+`render()` is byte-identical across builds, so the row template can only change in BOTH. Per-build
+differences live in `rowChipsHtml`, which is allowlisted in `parity-allow.json` — **and the reason
+recorded there has to be rewritten when the divergence changes**, or the allowlist starts asserting
+something that stopped being true.
+
+**One mutation must match both builds.** `mutate.mjs` has no way to scope a mutation to a build, so
+a find string present in only one reads as NOT APPLIED there — a check that has stopped covering
+anything. The panel's impact chip is therefore written with the same entity-quoted handler the card
+build's row chip uses, so `impact-band-gated` catches the regression in both.
+
+### Removing the L/M/H tier
+
+`TIER_OF` defaulted to `'M'`, and the only place it decided anything was `proposedOrder()`, which
+sorted **band → tier → current position**. It is gone; the sort is **band → current position**.
+
+**Measured before and after, because "inert" was an assumption worth testing.** On a board with no
+tier data the proposed order is byte-for-byte what it was. On a board that HAD tier data the order
+does change — the tier term really was doing something there — but only in the *preview*:
+`proposedOrder()` feeds `⚖ Preview proposed 1–N order` and nothing else, so the live 1–N moves only
+if somebody publishes it.
+
+Existing `S.tier` data in a saved board is left where it is rather than purged. It is never read
+again, and deleting user data to tidy up is not a trade this project makes.
+
+**Removing a column from a sheet is four edits, not one.** The header, the column width, the
+detail cell — and *every total row that pads up to it with empty cells*. The suites caught all
+four misses: the Decision Bands GRAND TOTAL and Subtotal rows pad with a fixed run of `''`, and so
+do `ROLL` and `SUB` on the Priority Drill. A one-cell overrun shifts every figure right of it, which
+`3 cross-foot` reports as 35 failures that all look like arithmetic and are really alignment.
+
 ### Photograph every panel, because arithmetic checks cannot see a panel
 
 Seven audit suites read the workbook and the lane engine. None of them opens a modal, so a panel

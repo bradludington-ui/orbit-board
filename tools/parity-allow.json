@@ -18,5 +18,6 @@
     "drawerClose": "grid only — slides the drawer away and returns focus to the row it was opened from",
     "drawerSync": "grid only — the window can be resized across the breakpoint with the drawer open; this stops the panel being half docked and half drawer",
     "drawerBar": "grid only — the drawer's own close control, built with the panel body so it can never be left behind pointing at a requirement that has gone"
-  }
+  },
+  "rowChipsHtml": "grid only — the row there carries identity, money and the band, nothing else. The impact chip moved to the RECORD panel's 'Open on the row' group and the funding split is a panel field, so neither is on the row. The card build keeps both: it has no panel, and the funding chip is its only picker for the split"
 }

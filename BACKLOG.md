@@ -133,17 +133,22 @@ Add a funding-type classification to OGC requirements: **MIPR Direct Cite Fundin
 **Asked 14 Sep 2026 · not started**
 
 The band assignment shows in the requirement listing and is editable there, and it also shows
-in the right-hand panel — but read-only. Make it **editable in the panel**. Same for
-**Impact**.
+in the right-hand panel — but read-only. Make it **editable in the panel**.
 
-Pairs with entries 5 and 6: as editing moves to the panel, the row keeps the band as a
-*badge*, not a control.
+**Impact is done (v1.55)** — it is now an editable chip in the panel's *Open on the row* group.
+What remains is the **band**.
+
+The obstacle to name: the panel's chip strip is `rowChipsHtml(it)` with every `onclick` stripped
+and `cursor:pointer` rewritten, deliberately, so the panel's own fields own the controls. Making
+the band editable in the panel therefore means giving it a real panel field, not un-stripping the
+echo — un-stripping would make every chip in that strip clickable again, which is the defect
+`.chipsro` was introduced to fix.
 
 ---
 
 ## 4. Remove the Low / Medium / High tier
 
-**Asked 14 Sep 2026 · not started**
+**Asked 14 Sep 2026 · DONE, v1.55**
 
 Not in use, and how a tier got selected was never clear. Remove the levels and the control.
 
@@ -160,7 +165,7 @@ and the tier column in the exports.
 
 ## 5. Slim the requirement listing lines
 
-**Asked 14 Sep 2026 · decisions settled · not started**
+**Asked 14 Sep 2026 · DONE, v1.55**
 
 With editing moving to the right-hand panel, the row should carry key information only.
 
@@ -187,11 +192,16 @@ Today the panel's **Open on the row** group has three chips — 📝 Note, 📄 
 📋 Record — calling `toggleNote()`, `toggleDesc()`, `toggleRec()`, which open editors **on the
 row**.
 
-Wanted:
+**Impact has already moved into this group (v1.55)** — it had to, because entry 5 took the impact
+chip off the grid row and the panel strips every `onclick` from its echo of the row chips, which
+would have left the field with no way in at all. So the group is already
+Note · Description · Record · Impact.
+
+Still wanted:
 
 - Each opens a **pop-up window** for the edit instead of expanding the row.
-- Reachable **from the right-hand panel only** — not from the row.
-- **Move Impact down into this group**, so the group is Note · Description · Record · Impact.
+- Reachable **from the right-hand panel only** — not from the row. Note the card build has no
+  panel, so on that build these stay where they are.
 
 > Watch, twice over: `npm run editors` (`tools/editors-reachable.mjs`) asserts every editor is
 > reachable at every width, and `npm run panels` (`tools/panels-render.mjs`) asserts every

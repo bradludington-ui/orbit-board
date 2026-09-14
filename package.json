@@ -7,13 +7,13 @@
     "audit:export": "node tools/export-audit/audit.mjs",
     "audit:ppt": "node tools/export-audit/audit-ppt.mjs",
     "audit:other": "node tools/export-audit/audit-other.mjs",
-    "audit": "npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy",
+    "audit": "npm run audit:suites --silent && npm run audit:grid --silent",
     "mutate": "node tools/export-audit/mutate.mjs",
     "shoot": "node tools/export-audit/shoot.mjs",
     "check:card": "node tools/check.mjs prioritization-board.html",
     "check:grid": "node tools/check.mjs prioritization-board-grid.html",
     "parity": "node tools/parity.mjs",
-    "audit:grid": "BOARD=prioritization-board-grid.html npm run audit --silent",
+    "audit:grid": "BOARD=prioritization-board-grid.html npm run audit:suites --silent",
     "controls": "node tools/row-controls.mjs --diff prioritization-board.html prioritization-board-grid.html",
     "inspector": "node tools/inspector-agrees.mjs",
     "verify:grid": "npm run controls --silent && npm run inspector --silent && npm run toolbar --silent && npm run editors --silent && npm run colours --silent && npm run menus --silent && npm run panels --silent",
@@ -26,7 +26,8 @@
     "audit:recon": "node tools/export-audit/audit-recon.mjs",
     "colours": "node tools/colour-check.mjs",
     "panels": "node tools/panels-render.mjs",
-    "menus": "node tools/menu-paths.mjs"
+    "menus": "node tools/menu-paths.mjs",
+    "audit:suites": "npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

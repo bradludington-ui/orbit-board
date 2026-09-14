@@ -666,25 +666,36 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const draw = () => ev('render(); if(typeof setCur==="function") setCur("A"); "ok"');
   draw();
   if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
-  // Read the ROW through the DOM, not through a regex over innerHTML. Both builds render a row;
-  // the card build has no inspector, and a check that can only run in one build is a check that
-  // quietly stops covering the other. The handler is written as an HTML entity in the source
-  // (toggleCons(&quot;A&quot;)), so match on the live attribute value -- the one the click uses --
-  // rather than on however the serializer chose to re-escape it.
+  // Read the DOM, not a regex over innerHTML. The handler is written as an HTML entity in the
+  // source (toggleCons(&quot;A&quot;)), so match on the live attribute value -- the one the click
+  // uses -- rather than on however the serializer chose to re-escape it.
+  //
+  // WHERE the way in lives differs by build, and the check has to follow it rather than pin one
+  // spot. The card build offers it on the row; the grid build carries identity, money and the band
+  // on the row and puts this in the RECORD panel, whose echo of the row chips has every onclick
+  // stripped. Searching the row alone passed on the card and silently stopped covering the grid --
+  // which is how removing the row chip read as green until audit:grid was run.
   const chip = () => ev(`(function(){
-    var row=document.getElementById('row-A'); if(!row) return {found:false};
-    var all=row.querySelectorAll('[onclick]');
-    for (var i=0;i<all.length;i++){
-      var h=all[i].getAttribute('onclick')||'';
-      if (h.indexOf('toggleCons')>=0 && h.indexOf('A')>=0)
-        return {found:true, text:(all[i].textContent||'').replace(/\\s+/g,' ').trim()};
+    var row=document.getElementById('row-A');
+    var scopes=[['row', row]];
+    var ins=document.getElementById('inspector')||document.getElementById('recPanel');
+    if(ins) scopes.push(['panel', ins]);
+    for (var s=0;s<scopes.length;s++){
+      var el=scopes[s][1]; if(!el) continue;
+      var all=el.querySelectorAll('[onclick]');
+      for (var i=0;i<all.length;i++){
+        var h=all[i].getAttribute('onclick')||'';
+        if (h.indexOf('toggleCons')>=0 && h.indexOf('A')>=0)
+          return {found:true, where:scopes[s][0],
+                  text:(all[i].textContent||'').replace(/\\s+/g,' ').trim()};
+      }
     }
     return {found:false};
   })()`);
 
   chk(name, 'fixture', 'the requirement has no decision band', ev('BAND_OF("A")===null'), true);
   const before = chip();
-  chk(name, 'row', 'the impact statement can be opened from the row',
+  chk(name, 'row', `the impact statement can be opened (${before.where || 'nowhere'})`,
     before.found ? 'reachable' : 'no way in', 'reachable');
   chk(name, 'row', 'and an unwritten one says so',
     /not written/.test(before.text || '') ? 'flagged' : 'silent', 'flagged');
