@@ -520,12 +520,21 @@ const MUTATIONS = [
   { id: 'year-move-leaves-source', area: 'yearCopy', what: 'a MOVE leaves the requirement in this year too, funding it twice',
     find: "    S.order=S.order.filter(x=>x!==id);",
     repl: "    S.order=S.order.slice();" },
-  // Re-aimed when the L/M/H tier went: this used to drop the band copy and leave the tier one, and
-  // with tier gone the find matched nothing -- NOT APPLIED, which is a check proving nothing. It
-  // drops the band copy on its own now, so band is still normalised on the target and never filled.
+  // RE-AIMED TWICE NOW, and the second time says what the first did not. It first dropped the band
+  // copy and left the tier one; when tier went the find matched nothing. It was re-aimed onto two
+  // ADJACENT LINES of copies -- and adding the MIPR container put cp(T.mipr,...) on the end of the
+  // band line, so the two-line find matched nothing again. Both misses reported NOT APPLIED, which
+  // fails the sweep rather than passing it, which is the only reason either was ever noticed.
+  //
+  // The lesson is about the TARGET, not the container: a find spanning lines that GROW every time
+  // someone adds a container is a target that disarms itself on schedule. It is aimed at a single
+  // whole statement now, and at the NEWEST container, because the copy a person forgets to write is
+  // the one they just added to the normalise list. audit-import.mjs reads that list out of the
+  // board's own source and proves every container in it actually receives data, so dropping any
+  // one of them fails there -- this mutation is what proves that check still bites.
   { id: 'year-drops-a-container', area: 'yearCopy', what: 'one attached container is normalised on the target but never filled',
-    find: "  cp(T.band, (S.band||{})[id]);\n  cp(T.cons, (S.cons||{})[id]);",
-    repl: "  cp(T.cons, (S.cons||{})[id]);" },
+    find: " cp(T.mipr, (S.mipr||{})[id]);",
+    repl: "" },
   { id: 'year-ask-not-carried', area: 'yearCopy', what: 'the requirement value is left behind, so the copy arrives worth nothing',
     find: "    T.asks[id]=it.ask.slice();                           // carry the current requirement value",
     repl: "    T.asks[id]=SVC.map(function(){return 0;});           // carry the current requirement value" },
