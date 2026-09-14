@@ -56,8 +56,16 @@ replaces the format; it does not loosen the guard.
 | Impact if not funded | added |
 | Ask / requirement amount **by service** | added |
 | Projected award / obligation date | added — `S.awards[id]` |
+| MIPR type (Direct Cite / Reimbursable) | added — see entry 2, and the scope note below |
 | ~~RCN / EEIC~~ | **NOT mandatory** — the accounting team sets it |
 | ~~Navy SI code~~ | **NOT mandatory** — the accounting team sets it |
+
+**Scope of the MIPR-type requirement.** It is an OGC classification, so it is mandatory on a
+proposed requirement **wherever the requirement is an OGC** — i.e. wherever the destination is
+not a prime contractor. It does not apply to a requirement going straight to a prime, and the
+gate must not demand it there: a mandatory field that cannot apply is a gate people learn to
+work around. This is the same Kind test as the "Goes to" rule below, so the two are satisfied
+or waived together — implement them off one predicate, not two.
 
 **The "Goes to" completeness rule — settled.** Keyed on the destination's **Kind**, not on a
 name list: any destination that is **not a prime contractor** requires the secondary location
@@ -113,8 +121,10 @@ Add a funding-type classification to OGC requirements: **MIPR Direct Cite Fundin
   timing follow from it, but those are internal decisions and are deliberately **not**
   modelled here. Do not add sending or timing logic.
 - Belongs in the record panel beside "Goes to", and on the Spend Plan Source export.
-- Open: is it mandatory for a PMO-proposed new requirement (entry 1), or office-set later
-  like RCN/EEIC? Not yet decided.
+- **Mandatory for a PMO-proposed new requirement — settled** (entry 1). Unlike RCN/EEIC and
+  the Navy SI code, this is not an accounting-team field: the PMO knows which it is, and it
+  is what decides how the money is sent. It is required wherever the requirement is an OGC —
+  see the scope note in entry 1.
 
 ---
 
