@@ -761,6 +761,45 @@ SCALAR trim so the per-service values are fractional: `seedSplit` rounds each se
 dollars, and whole-number fixtures would make that rounding invisible. If conversion ever shifts a
 dollar it will do so across every requirement at once and silently.
 
+### MIPR type, and the matrix column nobody could sweep
+
+How an OGC's money is sent — **MIPR Direct Cite** or **MIPR Reimbursable**. The board records
+*which*; how and when the money actually moves is decided outside it and is deliberately not
+modelled. `S.mipr[id]` holds `'direct'` or `'reimb'`, `MIPR_LBL` is the only place either is
+spelled out, and `setMipr()` refuses anything else — a free-text box here would produce eight
+spellings of "MIPR Direct Cite" and a pivot table nobody can use, which is the same reasoning that
+made `OB_CATS` a fixed list.
+
+**The gate is `destIsOgc(it)`, keyed on the destination's KIND.** Not "LM or P&W" by name: a name
+list goes stale the day a prime is renamed or a third is added, the same trap as the hardcoded year
+list that blanked a whole appropriation in `spGather`. The audit asserts it by renaming a prime and
+adding a third — a name list cannot survive either. The Goes-to completeness rule in BACKLOG entry 1
+is the **same** test, so it must call this predicate rather than repeat it; a rule written out more
+than once drifts, and this one already has three readers to keep honest.
+
+**It is not on the Spend Plan Source export, and that is deliberate.** That export is a measured
+mirror of a real workbook — its own comment says any change must come from re-measuring the file,
+never from taste — and `QPE_READS` maps its columns **by index**, so inserting one would silently
+re-point every column after it on the next import. MIPR type prints on the **🎯 Priority Drill**
+instead. The record panel's footer used to read *"These fields are what the Spend Plan Source export
+prints"*, which that made false; it now says *except where a field says otherwise*, and the MIPR
+field carries the exception in its own note. A footer that is true of every field but one is worse
+than no footer, because it is the one field you would check it for.
+
+**The part that nearly shipped wrong.** `matCols()` derives the classification matrix's columns
+from `recFields()`, so MIPR type became a matrix column on its own. But `matBulk()` is the one list
+that is deliberately **not** derived — a bulk write needs the option values as data, not as rendered
+markup — and a list-valued column with no bulk setter means the sweep covers less than the grid
+draws. `matBulkOk()` is the board's own name for that gap. It returned `['MIPR type']` the moment
+any requirement was routed to a government activity, and all twelve suites stayed green, because no
+suite had ever called it on a board with a destination logged: **a check that cannot run reads as a
+pass**, again. Two rules follow:
+
+- **Any new record field rendering a `<select>` needs a `matBulk()` entry**, with its options read
+  off the same constant the field reads, never retyped.
+- The MIPR block in `audit-board.mjs` now asserts `matBulkOk()` is empty **on a routed board**, and
+  that a bulk set writes the value rather than the label. Both fail when the setter is removed.
+
 ### A recorded funding source moves no money
 
 `basisSvcOf()` used to return the full ask for a requirement carrying a directed funding source,
@@ -938,6 +977,23 @@ Green suites prove nothing on their own: a check that never runs looks exactly l
 `mutate.mjs` breaks one line of export math at a time and requires a suite to fail. A mutation whose
 search string no longer matches is reported **NOT APPLIED**, never as caught — a stale target must
 not masquerade as coverage.
+
+**NEVER EDIT A SUITE WHILE A SWEEP IS RUNNING.** `mutate.mjs` reads the board source ONCE at module
+load, so editing `prioritization-board*.html` mid-sweep is safe — and that half of the rule is what
+makes the other half so easy to get wrong. The SUITES are not read once: line 645 spawns each one
+with `execFileSync(process.execPath, [path], …)`, a **fresh process per mutation**, so a suite file
+edited at mutation 92 is the file every later mutation runs.
+
+That is not merely stale, it inverts the result. `mutate.mjs` treats **any** non-zero exit as
+"caught" and then `break`s. A suite that fails unconditionally against the swept board — because it
+now asserts behaviour that board does not have yet — therefore marks every mutation the earlier
+suites missed as `caught (board)`, and `import`, `recon` and `legacy` never run at all. The sweep
+reports **zero survivors** and means nothing by it. This happened: MIPR checks were added to
+`audit-board.mjs` while a sweep of a pre-MIPR board was at 92/153, and the run had to be thrown away.
+
+So: a sweep pins the board, not the harness. Commit first, sweep the committed tree, and leave
+`tools/` alone until it finishes. If a suite must change, kill the sweep and start it again — a
+sweep you have to reason about is worth less than one you re-ran.
 
 Every surviving mutation is a line nothing protects. Add the check, do not delete the mutation.
 Four kinds of gap it has already found, none of which the checks alone would have shown:

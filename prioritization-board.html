@@ -1235,7 +1235,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.56 (14 Sep 2026)';
+const BUILD='v1.57 (14 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3579,6 +3579,7 @@ const IMP_CATS = [
   // dropped it read identically — which is the exact ambiguity this report exists to remove.
   ['desc',      'descriptions',        null],
   ['obCat',     'obligation categories', null],
+  ['mipr',      'MIPR types',          null],
   ['budgetAsg', 'budget assignments',  null],
   ['rcnAsg',    'RCN/EEIC assignments', null],
   ['rcnSvc',    'RCN/EEIC per service', null],
@@ -3753,7 +3754,7 @@ function yearCopy(id, y, mode, opts){
   // stays behind, silently, looking exactly like a year nobody has filled in yet.
   ['alloc','mc','notes','desc','titles','ccar','pid','costElem','fsrc','asks','awards','grp','si','dest',
    'wbs','clinWbs','rcnAsg','rcnSvc','clinRcn','aceMap','upl','obCat','budgetAsg','ptype','recNames',
-   'clinAlloc','clinMeta','clinNew','clinRm','crHalf','band','cons','minInc']
+   'clinAlloc','clinMeta','clinNew','clinRm','crHalf','band','cons','minInc','mipr']
     .forEach(k=>{ if(!T[k]) T[k]={}; });
   if(!Array.isArray(T.order)) T.order=[];
   if(!Array.isArray(T.custom)) T.custom=[];
@@ -3798,7 +3799,7 @@ function yearCopy(id, y, mode, opts){
   cp(T.clinAlloc, (S.clinAlloc||{})[id]); cp(T.clinMeta, (S.clinMeta||{})[id]);
   cp(T.clinNew, (S.clinNew||{})[id]); cp(T.clinRm, (S.clinRm||{})[id]);
   // the decision band is now the requirement's most important attribute — a copy must carry it
-  cp(T.band, (S.band||{})[id]);
+  cp(T.band, (S.band||{})[id]); cp(T.mipr, (S.mipr||{})[id]);
   cp(T.cons, (S.cons||{})[id]); cp(T.minInc, (S.minInc||{})[id]);
   const aw=shiftAw(S.awards[id]); if(aw) T.awards[tid]=aw; else delete T.awards[tid];
   if(S.crHalf[id]){ const ch={}; Object.keys(S.crHalf[id]).forEach(k=>{ const m=/^(\d{4})-(\d{2})$/.exec(k); ch[m? (parseInt(m[1])+dy)+'-'+m[2] : k]=S.crHalf[id][k]; }); T.crHalf[tid]=ch; }
@@ -4371,6 +4372,7 @@ const PMO_FIELDS = [
   ['ccar',     'CCaR record'],
   ['pid',      'PID'],
   ['recNames', 'CCaR record name'],
+  ['mipr',     'MIPR type'],
 ];
 const PMO_KEYS = PMO_FIELDS.map(function(f){ return f[0]; });
 const PMO_LBL  = (function(){ const m={}; PMO_FIELDS.forEach(function(f){ m[f[0]]=f[1]; }); return m; })();
@@ -9327,6 +9329,24 @@ const DEST_SPLIT='destsplit';   // same title, requirements pointing different w
 function destOf(it){
   const d=(S.dest||{})[it&&it.id] || {};
   return {to:d.to||'', end:d.end||''};
+}
+// MIPR TYPE. How an OGC's money is sent: Direct Cite, or Reimbursable. The board records WHICH and
+// stops there -- how the money is actually sent and when are internal decisions this deliberately
+// does not model, so nothing downstream keys off this beyond printing it.
+const MIPR_LBL={direct:'MIPR Direct Cite', reimb:'MIPR Reimbursable'};
+function miprOf(id){ return (S.mipr||{})[id]||''; }
+function setMipr(id,v){
+  if(!S.mipr) S.mipr={};
+  if(v && MIPR_LBL[v]) S.mipr[id]=v; else delete S.mipr[id];
+  save(); render(); try{ flash(id); }catch(e){}
+}
+// AN OGC IS ONE WHOSE MONEY DOES NOT GO STRAIGHT TO A PRIME, keyed on the destination's KIND and
+// never on a name list: "LM or P&W" goes stale the day a prime is renamed or a third one is added,
+// which is the trap that blanked a whole appropriation in Spruills. ONE predicate, shared with the
+// Goes-to completeness rule, so the two are satisfied or waived together.
+function destIsOgc(it){
+  const to=destOf(it).to; if(!to) return false;
+  const e=flowEnt(to); return !!e && e.kind!=='prime';
 }
 // The ULTIMATE recipient: where it ends up. If nothing was recorded for the second hop, the money
 // stopped at the first one — that is not a gap, it is a direct award.
@@ -15827,6 +15847,16 @@ function recFields(id, it){
       '<option value=""'+(destOf(it).to?'':' selected')+'>— not logged —</option>'
       +flowEnts().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).to===e.k?' selected':'')
         +'>'+esc(e.n)+(e.kind==='gov'?' (gov)':'')+'</option>'; }).join(''))));
+  if(destIsOgc(it))
+    F.push(recF('MIPR type', miprOf(id),
+      recSel('setMipr(&quot;'+id+'&quot;,this.value)',
+        'How this OGC is funded \u2014 Direct Cite or Reimbursable. The board records which; how and '
+        +'when the money is sent is decided outside it.',
+        '<option value=""'+(miprOf(id)?'':' selected')+'>\u2014 not set \u2014</option>'
+        +Object.keys(MIPR_LBL).map(function(k){ return '<option value="'+k+'"'
+            +(miprOf(id)===k?' selected':'')+'>'+MIPR_LBL[k]+'</option>'; }).join('')),
+      'prints on the \u{1F3AF} Priority Drill, not the Spend Plan Source \u2014 that workbook is '
+      +'measured from the file itself, so nothing is added to it by taste'));
   if(destOf(it).to && (flowEnt(destOf(it).to)||{}).kind==='gov')
     F.push(recF('Which awards to', destOf(it).end,
       recSel('setDest(&quot;'+id+'&quot;,&quot;end&quot;,this.value)',
@@ -15882,8 +15912,9 @@ function recBody(){
   });
   h+='</div>';
   h+='<div class="hint" style="margin-top:10px;border-top:1px solid var(--lineSoft);padding-top:8px">'
-    +'These fields are what the <b>Spend Plan Source</b> export prints. A field left unset is a '
-    +'blank cell in that workbook — the export never guesses one.</div>';
+    +'These fields are what the <b>Spend Plan Source</b> export prints, except where a field '
+    +'says otherwise. A field left unset is a blank cell in that workbook — the export '
+    +'never guesses one.</div>';
   el.innerHTML=h;
 }
 
@@ -15943,6 +15974,13 @@ function matBulk(){
   out['Which awards to']={opts:flowEnts().map(function(e){ return [e.k,e.n]; }),
               get:function(it){ return destOf(it).end; },
               set:function(id,v){ setDest(id,'end',v); }};
+  // Options read off MIPR_LBL, never retyped here: two spellings of the same two choices is how a
+  // pivot table stops adding up. matBulkOk() is what made this mandatory -- the record panel
+  // offers MIPR type the moment a requirement routes to a government activity, and a list-valued
+  // field the grid shows with no bulk setter means the sweep silently covers less than the grid.
+  out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),
+              get:function(it){ return miprOf(it.id); },
+              set:function(id,v){ setMipr(id,v); }};
   out['Prime contract / OGC']={opts:[['PRIME','PRIME'],['OGC','OGC']],
               get:function(it){ return ptypeOf(it.id); },
               set:function(id,v){ if(!S.ptype) S.ptype={}; S.ptype[id]=v; }};
@@ -16111,7 +16149,7 @@ function matBody(){
   h+='<div class="hint" style="margin-top:8px;border-top:1px solid var(--lineSoft);padding-top:8px">'
     +'These are the same controls the requirement record uses \u2014 editing here is editing there. '
     +'They are recorded against <b>'+FYL()+'</b> only, and they are what the '
-    +'<b>Spend Plan Source</b> export prints.</div>';
+    +'<b>Spend Plan Source</b> export prints, except where the record says otherwise.</div>';
   el.innerHTML=h;
 }
 
@@ -19205,7 +19243,7 @@ function restoreAll(){ S.removed=[]; applyState(S); save(); render(); }
 // One width per column of the Priority Drill's requirement tabs, hoisted so the suite can hold it
 // against the header row. A short list does not move data, so nothing else would notice — but every
 // column past the gap takes the next one's width and the name columns clip.
-function drillCols(){ return [7,9,8,44,44,13,15,20,5,15,15,15,15,15,15,15,7,14].concat(SVC.map(function(){ return 14; })); }
+function drillCols(){ return [7,9,8,44,44,13,15,20,5,15,18,15,15,15,15,15,15,7,14].concat(SVC.map(function(){ return 14; })); }
 function exportCSV(){
   // Everything is read from the board as it stands; nothing here changes it.
   const T=tiers(), MR=masterRanks();
@@ -19249,7 +19287,7 @@ function exportCSV(){
   // ---- requirement columns, shared by every detail tab --------------------------------------
   const COLS=drillCols();
   const HDR=()=>['Rank','PMO','Type','Requirement (CCaR Record Name)','Plan Event','CCaR','PID','Cost Element','★ MC',
-    'Funding source',FYL()+' Requirement','Allocated','Discretionary','Mandatory','Funded','Unfunded',
+    'Funding source','MIPR type',FYL()+' Requirement','Allocated','Discretionary','Mandatory','Funded','Unfunded',
     '% Fund','Award', ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H}));
   const ROW=it=>{ const x=mOf(it), p=x.p;
     return [{v:MR[it.id],s:0}, grpOf(it), (ptypeOf(it.id)||''),
@@ -19257,14 +19295,14 @@ function exportCSV(){
       // leaving the column blank
       recName(it)||dispTitle(it), dispTitle(it),
       {v:ccarOf(it),s:1}, {v:pidOf(it),s:0}, ceOf(it.id), S.mc[it.id]?'★':'',
-      srcLbl(it.id),
+      srcLbl(it.id), (MIPR_LBL[miprOf(it.id)]||''),
       {v:x.ask,s:M}, {v:(S.fsrc||{})[it.id]? x.fn : eff(it), s:M},
       {v:x.d,s:M}, {v:x.m,s:M}, {v:x.fn,s:M}, {v:x.u, s:x.u>0.5? MR_ : M},
       {v:pct(x.fn,x.ask),s:0}, awLbl(it.id),
       ...SVC.map((sv,j)=>({v:(p.d?(p.d[j]||0):0)+(p.m?(p.m[j]||0):0), s:M}))]; };
   // one empty per non-money column. Eleven now, not ten — miss this and every figure in every
   // subtotal row shifts one column left while the workbook still opens cleanly.
-  const SUB=(label,a2,style)=>[{v:label,s:style||B},'','','','','','','','','',
+  const SUB=(label,a2,style)=>[{v:label,s:style||B},'','','','','','','','','','',
     {v:a2.ask,s:MB},'',{v:a2.d,s:MB},{v:a2.m,s:MB},{v:a2.fn,s:MB},{v:a2.u,s:MB},
     {v:pct(a2.fn,a2.ask),s:B},'', ...SVC.map(_=>'')];
 
@@ -19287,7 +19325,7 @@ function exportCSV(){
     if(a2.n) rollAt[last]={lbl:BAND_LBL_AT(g.i), n:b.n, agg:a2, kids:kids.length};
   });
   const ROLL=r=>[{v:'BAND '+r.lbl+' TOTAL  —  '+r.n.toUpperCase()+'  (with its '+r.kids
-      +' sub-band'+(r.kids===1?'':'s')+')', s:SEC},'','','','','','','','','',
+      +' sub-band'+(r.kids===1?'':'s')+')', s:SEC},'','','','','','','','','','',
     {v:r.agg.ask,s:MSEC},'',{v:r.agg.d,s:MSEC},{v:r.agg.m,s:MSEC},{v:r.agg.fn,s:MSEC},
     {v:r.agg.u,s:MSEC},{v:pct(r.agg.fn,r.agg.ask),s:B},'', ...SVC.map(_=>'')];
 

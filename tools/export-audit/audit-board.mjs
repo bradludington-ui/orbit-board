@@ -850,6 +850,73 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     hasPanel ? 'pop-up' : 'row');
 }
 
+// ══ MIPR type is asked for on an OGC, and never on a prime ═════════════════════════════
+// How an OGC's money is sent -- Direct Cite or Reimbursable. Two properties worth pinning:
+//
+//  1. WHICH REQUIREMENTS ARE ASKED. Keyed on the destination's KIND, not on "LM or P&W" by name.
+//     A name list goes stale the day a prime is renamed or a third one is added -- the same trap
+//     as the hardcoded year list that blanked a whole appropriation in Spruills. This asserts the
+//     behaviour by RENAMING a prime and adding a third, which a name list could not survive.
+//  2. IT TRAVELS. It is a PMO-contributable field and an attached container, so a year copy and a
+//     submittal both have to carry it; a field the board asks for and then loses is worse than one
+//     it never asked for.
+{
+  const name = 'MIPR type';
+  const sc = { services: ['USAF', 'ANG', 'AFRC'],
+    items: [it('A', 'PSM', [9000000, 2000000, 1000000]), it('B', 'AV', [4000000, 500000, 250000])],
+    disc: [9000000, 2000000, 1000000], mand: [0, 0, 0], order: ['A', 'B'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev('render(); "ok"');
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const asked = id => ev(`destIsOgc(itemById('${id}'))`);
+  chk(name, 'gate', 'not asked before a destination is logged', asked('A'), false);
+  ev(`setDest('A','to','lm'); "ok"`);                       // a prime
+  chk(name, 'gate', 'not asked when it goes straight to a prime', asked('A'), false);
+  ev(`setDest('A','to','pax'); "ok"`);                      // a government activity
+  chk(name, 'gate', 'asked when it goes to a government activity', asked('A'), true);
+
+  // The point of keying on Kind: rename the prime, add another, and the answer must not move.
+  ev(`flowSetEnt(0,'n','Lockheed Martin Aeronautics'); "ok"`);
+  ev(`setDest('B','to','lm'); "ok"`);
+  chk(name, 'gate', 'a renamed prime is still a prime', asked('B'), false);
+  ev(`flowAddEnt(); var L=flowEnts(); flowSetEnt(L.length-1,'kind','prime'); "ok"`);
+  const third = ev(`(function(){ var L=flowEnts(); return L[L.length-1].k; })()`);
+  ev(`setDest('B','to','${third}'); "ok"`);
+  chk(name, 'gate', 'and a third prime added later is one too', asked('B'), false);
+
+  // store and round-trip
+  ev(`setMipr('A','direct'); "ok"`);
+  chk(name, 'store', 'it keeps what was chosen', ev(`miprOf('A')`), 'direct');
+  chk(name, 'store', 'and refuses a value that is not one of the two',
+    (ev(`setMipr('A','nonsense'); miprOf('A')`)) || '(cleared)', '(cleared)');
+  ev(`setMipr('A','reimb'); "ok"`);
+
+  // it is contributable, so a submittal carries it
+  chk(name, 'travels', 'it is a field a programme office can send back',
+    ev(`PMO_KEYS.indexOf('mipr')>=0`), true);
+
+  // THE CLASSIFICATION MATRIX HAS TO COVER IT. matCols() is derived from recFields(), so a new
+  // record field appears as a matrix column on its own -- but matBulk() is the one list that is
+  // NOT derived, and a list-valued column with no bulk setter means the sweep covers less than
+  // the grid shows. matBulkOk() is the board's own name for that gap; it read ['MIPR type'] the
+  // first time a requirement was routed to a government activity, and nothing said so, because
+  // no suite had ever called it on a board with a destination logged.
+  chk(name, 'matrix', 'the matrix offers it as a column once a requirement is an OGC',
+    ev(`matCols().indexOf('MIPR type')>=0`), true);
+  chk(name, 'matrix', 'and the bulk sweep has a setter for every column it draws',
+    ev(`JSON.stringify(matBulkOk())`), '[]');
+  chk(name, 'matrix', 'a bulk set writes the value, not the label',
+    ev(`matSet('bulkF','MIPR type'); matSet('bulkV','direct'); matApplyBulk(); miprOf('A')`),
+    'direct');
+  // The year copy is NOT asserted here. 'mipr' is in the board's container normalise list, and
+  // `copy / move between years` in audit-import.mjs reads that list out of the board's own source
+  // and proves every container in it actually receives data. Restating it here would be a second
+  // check of the same thing that could drift from the first -- and the tautology this replaced
+  // ("'listed' : 'listed'") asserted nothing at all while looking like it did.
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

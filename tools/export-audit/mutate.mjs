@@ -304,6 +304,22 @@ const MUTATIONS = [
   // The impact chip moved OUT of the grid inspector and into the row, where both builds render it
   // and no band gates it. The mutation moved with it: gate it on a band again and the row of an
   // ordinary requirement has no way in -- which is the state this feature shipped in.
+  // MIPR type. The first is the trap the Kind test exists to avoid: hardcode the two primes by
+  // NAME and it works perfectly until somebody renames one or adds a third.
+  { id: 'mipr-gate-by-name', area: 'destIsOgc', what: 'the OGC test hardcodes the primes by name',
+    find: "  const e=flowEnt(to); return !!e && e.kind!=='prime';",
+    repl: "  const e=flowEnt(to); return !!e && e.n!=='Lockheed Martin' && e.n!=='Pratt & Whitney';" },
+  { id: 'mipr-takes-anything', area: 'setMipr', what: 'MIPR type stores a value that is not one of the two',
+    find: "  if(v && MIPR_LBL[v]) S.mipr[id]=v; else delete S.mipr[id];",
+    repl: "  if(v) S.mipr[id]=v; else delete S.mipr[id];" },
+  // The matrix draws a column for every record field and bulk-sets from a list it does NOT derive.
+  // Dropping the setter is silent in the UI apart from one hint, so it is the suites that must see it.
+  { id: 'mipr-no-bulk-setter', area: 'matBulk', what: 'the matrix draws a MIPR column it cannot sweep',
+    find: "  out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),",
+    repl: "  if(false) out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),"},
+  { id: 'mipr-bulk-writes-label', area: 'matBulk', what: 'a bulk MIPR set writes the label, not the value',
+    find: "              get:function(it){ return miprOf(it.id); },\n              set:function(id,v){ setMipr(id,v); }};",
+    repl: "              get:function(it){ return miprOf(it.id); },\n              set:function(id,v){ setMipr(id, MIPR_LBL[v]||v); }};" },
   // The pop-up editor, driven directly by audit-board in BOTH builds -- the machinery is shared and
   // only the routing differs, so a mutation here cannot survive on whichever build does not route
   // through it in the UI.

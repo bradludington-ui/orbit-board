@@ -1,7 +1,7 @@
-# Backlog — agreed but not built
+# Backlog — agreed changes, built and unbuilt
 
 Changes the portfolio office has asked for, recorded here so they survive a session.
-**Nothing in this file has been applied.** Each entry is written to be picked up cold.
+Entries marked DONE have been applied; the rest are written to be picked up cold.
 
 Decisions below are settled unless an entry says otherwise. Where a decision closes off a
 trap the codebase has already fallen into once, the entry says which.
@@ -109,7 +109,7 @@ that blanked a whole appropriation in Spruills (see CLAUDE.md, `spGather`).
 
 ## 2. Classify OGCs as MIPR Direct Cite or MIPR Reimbursable
 
-**Asked 14 Sep 2026 · decisions settled · not started**
+**Asked 14 Sep 2026 · DONE, v1.57**
 
 Add a funding-type classification to OGC requirements: **MIPR Direct Cite Funding** or
 **MIPR Reimbursable**.
@@ -125,6 +125,31 @@ Add a funding-type classification to OGC requirements: **MIPR Direct Cite Fundin
   the Navy SI code, this is not an accounting-team field: the PMO knows which it is, and it
   is what decides how the money is sent. It is required wherever the requirement is an OGC —
   see the scope note in entry 1.
+
+### As built, and the one place it departs from the above
+
+`S.mipr[id]` holds `'direct'` or `'reimb'`; `MIPR_LBL` is the sole place either is spelled out.
+`setMipr()` refuses anything else. The record panel offers the field only when `destIsOgc(it)` is
+true — **the same predicate** the Goes-to completeness rule in entry 1 must use, written once so
+the two cannot drift apart. It is in `PMO_FIELDS`, so a submittal carries it, and in the container
+normalise list, so a year copy does.
+
+**It is NOT on the Spend Plan Source export**, which is where this entry asked for it. That export
+is a measured mirror of a real workbook — its own comment says *"The export mirrors them exactly,
+so any change here must come from re-measuring the file, never from taste"* — and `QPE_READS` maps
+its columns **by index**, so inserting one would silently re-point every column after it on the
+next import. It prints on the **🎯 Priority Drill** instead, and the record panel's footer now says
+the export covers these fields *except where a field says otherwise*, with the MIPR field carrying
+that exception itself.
+
+> **Found while building, and worth remembering:** `matCols()` derives the classification matrix's
+> columns from `recFields()`, so the new field became a matrix column on its own — but `matBulk()`
+> is the one list that is deliberately **not** derived, and a list-valued column with no bulk setter
+> means the sweep covers less than the grid draws. `matBulkOk()` is the board's own name for that
+> gap, and it read `['MIPR type']` the first time a requirement was routed to a government activity.
+> Nothing failed, because no suite had ever called it on a board with a destination logged. **Any
+> new record field that renders a `<select>` needs a `matBulk()` entry**, and the MIPR block in
+> `audit-board.mjs` now asserts `matBulkOk()` is empty on a routed board.
 
 ---
 
@@ -209,3 +234,44 @@ Still wanted:
 > no entry there fails the sweep rather than being skipped, which is the point. And per
 > CLAUDE.md, a chip that looks clickable must key its affordance off `[onclick]`, so removing
 > the row route must remove the row affordance with it.
+
+---
+
+## 7. A bulk classification write lands on requirements that never offer the field
+
+**Found 14 Sep 2026 while building entry 2 · not started**
+
+`matApplyBulk()` writes to every row `matRows()` returns. `matRows()` filters by PMO and by the
+missing-field picker, but **not** by whether the chosen field is one that requirement actually
+offers. So a bulk `MIPR type = Direct Cite` with no missing-field filter set writes the
+classification onto all 115 requirements, including the ~114 routed to a prime, where the record
+panel will never show it. The value is then real: it is in `S.mipr`, so it travels in a submittal
+and in a year copy, and nothing on screen says it is there.
+
+**This is pre-existing, not new.** `Which awards to` has behaved this way since it shipped — a bulk
+set writes `dest.end` on primes the same way. Entry 2 only made it easier to notice, because MIPR
+type is the first field whose *absence* is meaningful rather than merely unanswered.
+
+**The obvious fix is wrong, which is why this is an entry and not a patch.** Scoping the write to
+rows whose `recFields()` offers a field with that label would silently no-op the per-service budget
+setters: `matBulk()` carries `↳ USAF`, `↳ ANG`, `↳ AFRC` … which have **no** matching record-field
+label — they are bulk-only entries with no column. Measured on a 3-service board:
+
+```
+bulk keys : [… "Goes to","Which awards to","MIPR type", … "↳ USAF","↳ ANG","↳ AFRC"]
+A labels  : [… "Goes to","MIPR type","Which awards to"]        ← offers all three
+B labels  : [… "Goes to"]                                       ← offers only the first
+```
+
+So the scoping test has to distinguish "this row does not offer this field" from "this field is not
+a record field at all", and any fix needs a check covering both. Options worth weighing:
+
+1. Give each `matBulk()` entry an explicit `applies(it)` predicate, defaulting to *always*; MIPR
+   type and `Which awards to` use `destIsOgc` / the gov-kind test. Most honest, most typing.
+2. Skip rows whose `recFields()` lacks the label **only when some row has it** — clever, and the
+   kind of clever that is wrong on a board where no requirement is an OGC yet.
+3. Leave the write alone and make the confirm dialog count the rows that do not offer the field, so
+   the blast radius is stated rather than scoped. Smallest change; does not stop the write.
+
+Option 1 is the recommendation. Whichever is chosen, the guard is an `audit-board.mjs` case plus a
+mutation: a bulk set that reaches a requirement which never offered the field is the defect.
