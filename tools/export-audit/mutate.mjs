@@ -243,9 +243,17 @@ const MUTATIONS = [
     repl: "  line('','PROGRAM FLOOR (Discretionary BA + MC short)','',fD(dTot+mcShortTot));" },
   { id: 'drill-pmo-keys', area: 'other', what: 'Priority Drill drops offices not on the configured list',
     find: '  const PMOS=pmoKeys(_pmoSeen);', repl: '  const PMOS=GROUPS.filter(g=>_pmoSeen[g]);' },
+  // RE-AIMED when mOf() grew the second unfunded reading: the old find carried the whole return
+  // statement, so adding u1 to it matched nothing -- NOT APPLIED, a check proving nothing. Aimed at
+  // the single u: term now, which is the thing the mutation is actually about and does not move
+  // when a sibling field is added beside it.
   { id: 'drill-unf', area: 'other', what: 'Priority Drill unfunded netted across services again',
-    find: '    return {ask, d:p.dT, m:p.mT, fn, u:unfTotOf(it,p), p}; };',
-    repl: '    return {ask, d:p.dT, m:p.mT, fn, u:Math.max(0,ask-fn), p}; };' },
+    find: 'u:unfTotOf(it,p), u1:discUnfTotOf(it,p), p}; };',
+    repl: 'u:Math.max(0,ask-fn), u1:discUnfTotOf(it,p), p}; };' },
+  // and the same net-across-services error on the SECOND reading, which has its own subtraction
+  { id: 'drill-unf-disc', area: 'other', what: 'Priority Drill vs-DISC reading netted across services',
+    find: 'u:unfTotOf(it,p), u1:discUnfTotOf(it,p), p}; };',
+    repl: 'u:unfTotOf(it,p), u1:Math.max(0,ask-p.dT), p}; };' },
 
   { id: 'excel-forecast-pmo', area: 'excel', what: 'Two-Plan Forecast BY PMO drops offices not on the list',
     find: '    const ks=pmoKeys(FF.byPMO);', repl: '    const ks=GROUPS.filter(g=>FF.byPMO[g]);' },
@@ -265,9 +273,11 @@ const MUTATIONS = [
     repl: '  const aOf=it=> (T[it.id].dT+T[it.id].mT);' },
 
   // ---- PowerPoint aggregates --------------------------------------------------------------------
+  // RE-AIMED when the stream slide gained its second unfunded reading: the find carried the whole
+  // accumulation line, so adding aU1 to it matched nothing. Aimed at the aD term alone now.
   { id: 'ppt-streams-disc', area: 'ppt', what: 'Funding-by-stream discretionary double counts',
-    find: 'SVC.forEach((s,i)=>{allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]; aM[i]+=p.m[i]; aU[i]+=uv[i];});});',
-    repl: 'SVC.forEach((s,i)=>{allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]*1.05; aM[i]+=p.m[i]; aU[i]+=uv[i];});});' },
+    find: 'allAsk[i]+=it.ask[i]; aD[i]+=p.d[i];',
+    repl: 'allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]*1.05;' },
   { id: 'ppt-unfunded-total', area: 'ppt', what: 'UFR slide total drops the trim deltas',
     find: '    const totalU=uIts.reduce((a,it)=>a+unf2(it),0);',
     repl: '    const totalU=uIts.reduce((a,it)=>a+T[it.id].uT,0);' },

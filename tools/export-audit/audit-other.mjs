@@ -134,16 +134,37 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     }
   }
 
-  // the whole-order tab's unfunded column is floored per service
+  // The whole-order tab's TWO unfunded columns, each floored per service, each read BY NAME.
+  //
+  // This used to ask only whether the floored value appeared SOMEWHERE among the row's numbers
+  // (`cells.some(...)`). That is satisfiable by any other cell that happens to carry the same
+  // figure -- and when the second unfunded reading was added as a column, it carried exactly that
+  // figure on every row where mandatory drew nothing. So a mutation that netted the Unfunded column
+  // ACROSS services went on passing: the value it was looking for had simply moved next door.
+  // "Somewhere on the row" is not a column check.
   {
     const whole = sheets[1];
+    const wh = whole.rows.find(r => txt(r[0]).trim() === 'Rank') || [];
+    const wcol = h => {
+      const i = wh.findIndex(c => txt(c).trim() === h);
+      if (i < 0) failures.push({ scenario: name, where: 'Priority Drill',
+        what: `no column headed "${h}" on the whole-order tab`, got: 'missing', want: 'present' });
+      return i;
+    };
+    const cU = wcol('Unfunded'), cU1 = wcol('Unfunded vs DISC');
     ids.forEach(id => {
       const grp = sc.items.find(x => x.id === id).grp;
       const r = whole.rows.find(x => txt(x[1]) === grp || txt(x[2]) === grp);
       if (!r) return;
-      const cells = r.map(numOf).filter(v => !isNaN(v));
-      if (!cells.some(v => Math.abs(v - unfOf(id)) <= 0.005) && unfOf(id) > 0.005)
-        failures.push({ scenario: name, where: 'Priority Drill', what: `${id}: per-service unfunded ${unfOf(id).toFixed(2)} not on the row`, got: cells.join('/'), want: unfOf(id) });
+      // READING #2, floored per service. Netting it across services instead cancels a service
+      // funded past its ask against another that is short -- which is the whole reason it is
+      // floored -- so an over-allocated scenario is what makes this check bite.
+      if (cU >= 0) chk(name, 'Priority Drill', `${id}: Unfunded column floored per service`,
+        numOf(r[cU]), unfOf(id));
+      // READING #1, the same flooring one lane earlier.
+      if (cU1 >= 0) chk(name, 'Priority Drill', `${id}: Unfunded vs DISC column floored per service`,
+        numOf(r[cU1]), sum(SVC.map((s, i) =>
+          Math.max(0, (sc.items.find(x => x.id === id).ask[i] || 0) - T[id].d[i]))));
     });
   }
 
