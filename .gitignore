@@ -16,3 +16,10 @@
 # tooling only — the board itself has no dependencies
 node_modules/
 package-lock.json
+
+# Nightly math-validation reports. Run output, not source -- and a failing report embeds suite
+# output that can quote fixture figures, so it stays out of the repo.
+.math-reports/
+
+# IA review screenshots. Run output, regenerated nightly.
+.ia-shots/

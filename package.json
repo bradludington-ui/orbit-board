@@ -27,7 +27,16 @@
     "colours": "node tools/colour-check.mjs",
     "panels": "node tools/panels-render.mjs",
     "menus": "node tools/menu-paths.mjs",
-    "audit:suites": "npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy"
+    "audit:suites": "npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy",
+    "coverage:money": "node tools/money-coverage.mjs",
+    "validate:math": "node tools/validate-math.mjs",
+    "trace": "node tools/trace-matrix.mjs",
+    "trace:grid": "BOARD=$PWD/prioritization-board-grid.html node tools/trace-matrix.mjs",
+    "ia:census": "node tools/ia-census.mjs",
+    "ia:shots": "node tools/ia-shots.mjs",
+    "ia": "npm run ia:census --silent && npm run ia:shots --silent",
+    "fuzz": "node tools/roundtrip-fuzz.mjs",
+    "delta": "node tools/export-delta.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

@@ -1048,6 +1048,224 @@ per-service numbers, runs the real `exportExcel()` and `exportPPT()`, and checks
 figure against `tiers()`. Add a scenario there before changing export math. The board itself still
 has **no** dependencies — jsdom is dev tooling and never ships in the HTML.
 
+### The nightly IA review — how it looks, and where things are filed
+
+```
+npm run ia:census     # structure: menus, groups, items, hints, positions, duplicates, orphans
+npm run ia:shots      # 16 fixed views into .ia-shots/
+npm run ia            # both
+```
+
+The **SPMT Interface Review** Routine fires at **08:00 UTC** (an hour after the math run, so they do
+not compete for the container) and reviews the board's visuals and information architecture: menu
+headers, dropdown grouping, where clickable items sit and how they are categorised. It also runs a
+**market scan** — a weekday-rotating look at what named commercial tools and published design
+systems do (navigation Monday, data density Tuesday, filters Wednesday, exports Thursday, summary
+tiles Friday, editing Saturday, colour and accessibility Sunday). It is **advisory, not a gate** —
+it proposes, a person decides, and it is forbidden from changing code.
+
+> **The network constraint, verified 15 Sep 2026.** `WebSearch` works. `WebFetch` and curl to any
+> external host are **blocked by the egress proxy** (`EGRESS_BLOCKED`, organization policy). So the
+> scan's evidence is SEARCH-RESULT SUMMARIES, not pages read in full — weaker evidence, and the
+> report is required to say so rather than write "according to Tableau's documentation" for
+> something seen only in a snippet. The Routine carries this fact so no night is spent
+> rediscovering it. It is also told that a scan returning only marketing listicles should be
+> reported as having found nothing usable: a confidently wrong claim about a competitor's interface
+> is worse than no scan at all, because it is indistinguishable from a real one and it will be
+> acted on.
+
+**The tools state facts; the agent forms the opinion, and the report keeps the two apart.** The
+census measures and never advises — a census that editorialises is one you cannot check. The nightly
+report is written in three separated parts:
+
+| Part | What belongs in it |
+|---|---|
+| OBSERVED | facts only, each with its number or the screenshot it came from |
+| ASSUMPTIONS | everything inferred to interpret those facts — who the user is, how often an item is used, what a group name promises |
+| RECOMMENDATIONS | what to change, the evidence, what improves, the risk, and a feasibility read |
+
+The ASSUMPTIONS section is the part that makes the rest usable. A recommendation is only worth
+acting on if the reader can see which parts were measured and which were guessed, and an assumption
+nobody wrote down is one nobody can correct. The report is also told that **"no change" is a
+legitimate finding** — a review that invents work to look busy is worse than no review.
+
+**Two measurement notes, both learned by getting them wrong first.** A menu item is
+`<span.chk></span> LABEL <span.sub>hint</span>`: taking `innerText` and splitting on newlines runs
+label and hint together, which reported every item as having no hint while the hint sat inside the
+label. And **every** item carries a `.chk` span — only a state-bearing one that is currently ON has
+a tick in it (measured: 542 empty, 4 ticked), so the census records "shows a tick right now", which
+is a fact, and does not claim to identify toggles: an OFF toggle and a one-shot action are identical
+in the DOM, and a census must not guess at what it cannot see.
+
+The shot set is **fixed on purpose**. A nightly review is only useful if last night and tonight are
+comparable, so the views do not vary with whatever happens to be open. `closeAll()` resets state
+between captures for the reason `panels-render.mjs` already documents: removing a panel's class
+without clearing its flag lets `render()` put it straight back, and the next screenshot then shows
+the previous view's panel.
+
+> A wrong selector here is silent — `snap()` records a MISS rather than throwing. That is what caught
+> `#scoreboard` not existing (it is `#scores`), and the same wrong id had been sitting in
+> `trace-matrix.mjs` falling back to `document.body`. The regexes there were specific enough that it
+> still read the right figures, but a selector that silently matches everything is one edit away from
+> reading the wrong one. It is pinned now and throws if the scoreboard moves.
+
+### The trace matrix — one quantity, every surface that states it
+
+```
+npm run trace          # card build
+npm run trace:grid     # grid build
+```
+
+The same dollars travel from the requirement math to a dashboard tile, a panel, a workbook column, a
+band subtotal and a slide. A reader can only trust any of them if they agree, and until this existed
+the only way to find a disagreement was for someone to compare a deck against a workbook in a
+meeting. The matrix cross-foots **10 surfaces × 12 quantities — 60 populated cells** against a truth
+computed from the fixture's own numbers, never read back out of the board.
+
+Quantities: ask · discretionary BA and drawn · mandatory BA and drawn · funded · **both** unfunded
+readings · trim · beyond lanes · MC value · MC short. Surfaces: the lane engine, the rendered
+dashboard (read off the DOM, because a figure computed right and displayed wrong is still wrong on
+the screen someone is briefing from), Funding Streams, Decision Bands, the PMO Matrix, Unfunded
+Requirements, the Priority Drill's band subtotals, the Spend Plan Source, and both deck tables.
+
+**A cell is one of three things, and the third is the point:**
+
+| | |
+|---|---|
+| `ok` | the surface states it and agrees |
+| `MISMATCH` | it states it and does NOT agree — the run fails and names quantity, surface, got, want, delta |
+| `--` | the surface does not state it. **Not an error.** A slide that never mentions trim is silent, not wrong, and silence is recorded rather than scored |
+
+Two rules keep it honest. **Every cell is located by NAME** — a column header, a row label — never by
+index; a lookup that silently re-points is the exact failure this file exists to catch, so it must
+not be the failure of the file itself. And **units are normalised, not ignored**: the deck abbreviates
+to `$M`/`$B`, so it is compared at ±$60k — the rounding the format imposes, not a licence to drift.
+The deck printing `$33.0M` against a truth of `$32,950,000` is correct; the same cell printing
+`$28.0M` is not.
+
+Proven to bite: point the Decision Bands summary at reading #2 where reading #1 belongs and it
+reports *"xl · Decision Bands says $10,750,000, the board says $15,950,000 (off by $-5,200,000)"* —
+and that delta is the mandatory draw, which names the cause as well as the location.
+
+Two quantities the matrix deliberately does NOT map: the Unfunded Requirements sheet's own ask and
+allocated columns. They cover only the LISTED requirements, so they are not board-wide and comparing
+them to a portfolio total would fail for the wrong reason. Its two unfunded totals ARE board-wide —
+every requirement short on either reading is listed — which is what makes those comparable.
+
+### The data-loss fuzz — the other can't-fail
+
+```
+npm run fuzz                      # random seed, printed
+node tools/roundtrip-fuzz.mjs --seed 424242     # replay exactly
+npm run fuzz -- --rounds 6
+```
+
+The stated can't-fails on this programme are **data loss and math**. Three layers now attack the
+math. This attacks the other one, and it attacks it the same way: not by checking a fixture someone
+thought of, but by generating state nobody thought of and insisting it survives.
+
+`audit-import.mjs` already proves save → reopen on a FIXED board. Necessary, not sufficient:
+`year-drops-a-container` exists only because a person sat down and thought of the container it
+drops. A fuzzer finds the container nobody thought about. Every container is populated with awkward
+values — quotes, em dashes, a literal `</script>`, zero, a fractional cent, a 300-character string,
+unicode — then driven through the trips the data actually takes:
+
+| Trip | What it would mean to fail |
+|---|---|
+| save → reopen | a value written to the store is not there when the file is reopened |
+| save → reopen → **save again** | it survives one trip and is re-encoded on the next, so it is lost on the third |
+| year copy, every requirement | `yearCopy` created the container and never copied into it |
+
+**The seed is the whole point.** It is printed on every run and accepted with `--seed`, so a failure
+at 3am is replayable at 9am with one command. `Math.random()` cannot be replayed, and a failure you
+cannot reproduce is a rumour.
+
+Proven to bite, on two injected defects: dropping `cp(T.mipr, …)` reports *"container mipr is
+normalised on the target but never filled — 2 entries in the source year, 0 in the copy"*, and
+removing the load-bearing `.replace(/</g,'\\u003c')` reports exact paths —
+`years.2027.alloc.R002  saved {"m":"t","v":0.01}  read undefined` — because a note containing
+`</script>` closes the tag early and truncates the store.
+
+### The export delta — which numbers moved
+
+```
+npm run delta                         # working tree vs HEAD
+node tools/export-delta.mjs --ref 6b21d1a
+node tools/export-delta.mjs --ref <sha> --board prioritization-board-grid.html
+```
+
+*"Is the math right"* and *"what did this change move"* are **different questions**. Two versions can
+both be internally consistent, both pass every suite, and still print different figures in the
+workbook someone is about to brief. The suites answer the first. This answers the second, which is
+the one asked in the room.
+
+**No baseline file.** It builds every export twice — once from the working tree, once from a git ref
+— and diffs. A stored baseline is a file someone has to remember to refresh, and a stale one reports
+movement that already happened. Git already knows what the board used to be. The fixture is FIXED in
+both runs, so every difference belongs to the code.
+
+It always exits 0: movement is information, not a fault. Figures move for good reasons. The question
+is whether the ones that moved are the ones you meant to move.
+
+> **Two addressing bugs found while building it, both of which produced PHANTOM movement.** Decision
+> Bands carries TWO header blocks — a summary and the detail table — and addressing detail rows
+> against the summary's header put every column past it on `col#30`, which then read as *"Funded %
+> moved by $14.4M"* the moment a column was inserted. And keying a row by column 0 collided every
+> Spend Plan Source row onto `2027`, because column 0 there is the fiscal year. Fixed by taking the
+> **nearest header above each row** and building the row key from its leading text cells with a
+> disambiguating counter. Phantom movement is the one thing this tool must not produce: a report
+> that cries wolf gets skimmed, and then a real move goes past unread. Before the fix it reported 15
+> moved figures against v1.57; after, 3 — and those 3 are the real Spend Plan Source basis change.
+
+### The nightly math validation, and the one thing the suites cannot tell you
+
+```
+npm run validate:math        # the whole arithmetic gate, ~35 min
+npm run coverage:money       # just the coverage census, ~1 s
+```
+
+A Routine fires `validate:math` every night at **07:00 UTC** (about 3am US Eastern) in a fresh
+session, which clones `main`, runs the gate and reports. It is explicitly forbidden from committing,
+pushing or "fixing" anything: a change made unattended at 3am to a board people brief from is not
+worth the convenience. It reports, and a person decides.
+
+The orchestrator runs **every stage even when an earlier one fails** — a nightly report that stops at
+the first red tells you one thing and hides five — and exits non-zero if any stage failed. Stages:
+money coverage (both builds), the 7 suites (both builds), parity, the browser checks, and both
+mutation sweeps in parallel.
+
+**`npm run coverage:money` is the new one, and it answers a question no suite can.** Every suite can
+be green while a surface has no check at all: the Spend Plan Source shipped with its Amount column
+asserted by nothing, and changing its basis moved a fixture total from 285 to 150 with all twelve
+suites passing. The detector is the mutation sweep itself — a money surface with no mutation aimed
+at it is a surface nothing is proving anything about — so it maps every mutation's search string to
+the function body containing it and reports any money surface with none.
+
+It refuses to go stale in three directions, each of which is a trap this codebase has already fallen
+into once:
+
+| It fails when | Because |
+|---|---|
+| a surface exists in the board but not in the REGISTRY | a new export must not appear without someone saying whether it emits money |
+| the REGISTRY names a function the board no longer has | a renamed export must not leave a dead promise of coverage behind it |
+| a recorded `gap` now HAS coverage | debt that was paid must be struck off, or the list of known holes becomes fiction |
+
+That last one fired on its first run: `execSynopsis` was recorded as a gap and already had three
+mutations.
+
+**A gap is debt, not a pass.** Five money surfaces have no mutation aimed at them today — `crData`,
+`exportFlow`, `exportCoa`, `exportReprog`, `exportAceTieout` — each recorded with a date and what it
+would take. They do not fail the run; they are printed every night until they are paid down, and the
+run DOES fail the moment a new one appears. This is the same posture as the colour baseline: record
+the truth, gate on regression, never assert a standard the thing was not built to meet.
+
+> **Watch the gate itself.** `audit:suites` chains SEVEN suites but only SIX print
+> `ALL CHECKS PASSED` — `audit:legacy` closes with its own sentence, which is why 12 banners across
+> both builds is healthy and 14 is not a target. The first version of this orchestrator gated on 7
+> and failed on a perfectly good board. A nightly job that cries wolf is one nobody reads, so the
+> gate is the **exit code**, with the banner count reported as a fact and the legacy line asserted
+> separately so that suite cannot go quiet unnoticed.
+
 ### Measuring the suites — run this after adding checks
 
 ```
