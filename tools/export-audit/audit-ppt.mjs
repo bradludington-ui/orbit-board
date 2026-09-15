@@ -148,13 +148,32 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // ---- slide 2: funding by stream and service ----
   const fs = tables.find(t => t && t.some(r => String(cellText(r[0])) === 'Service'));
   if (fs) {
+    // BY HEADER, NEVER BY INDEX. Adding the second unfunded reading put a column before the old
+    // r[6] and these checks carried on reading it -- comparing reading #1 against reading #2's
+    // truth and failing for a reason that had nothing to do with the defect. A slide that gains a
+    // column must fail loudly here, not quietly re-point.
+    const head = fs.find(r => String(cellText(r[0])) === 'Service') || [];
+    const col = h => {
+      const i = head.findIndex(c => {
+        const t = String(cellText(c)).trim();
+        return h instanceof RegExp ? h.test(t) : t === h;
+      });
+      if (i < 0) throw new Error(`no column headed "${h}" on the funding-by-stream slide -- got: `
+        + head.map(c => String(cellText(c))).join(' | '));
+      return i;
+    };
+    const cAsk = col(/ Ask$/), cD = col('Disc Funded'), cM = col('Mand Drawn');
+    const cU1 = col('Unf vs DISC'), cU2 = col('TOTAL Unf');
     SVC.forEach((s, i) => {
       const r = fs.find(x => String(cellText(x[0])) === s); if (!r) return;
-      chk(name, 'Funding by Stream', `${s} Ask`, cellText(r[1]), fSM(allAsk[i]));
-      chk(name, 'Funding by Stream', `${s} Disc Funded`, cellText(r[3]), fSM(allD[i]));
-      chk(name, 'Funding by Stream', `${s} Mand Drawn`, cellText(r[5]), fSM(allM[i]));
-      chk(name, 'Funding by Stream', `${s} Unfunded floored per service`, cellText(r[6]),
+      chk(name, 'Funding by Stream', `${s} Ask`, cellText(r[cAsk]), fSM(allAsk[i]));
+      chk(name, 'Funding by Stream', `${s} Disc Funded`, cellText(r[cD]), fSM(allD[i]));
+      chk(name, 'Funding by Stream', `${s} Mand Drawn`, cellText(r[cM]), fSM(allM[i]));
+      chk(name, 'Funding by Stream', `${s} TOTAL Unf floored per service`, cellText(r[cU2]),
         fSM(ids.reduce((a, id) => a + Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]), 0)));
+      // READING #1: ask less DISCRETIONARY alone, mandatory not netted off.
+      chk(name, 'Funding by Stream', `${s} Unf vs DISC floored per service`, cellText(r[cU1]),
+        fSM(ids.reduce((a, id) => a + Math.max(0, askArr(id)[i] - T[id].d[i]), 0)));
     });
   }
 

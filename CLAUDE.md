@@ -386,6 +386,67 @@ exists to collect — so `jrnlUndoable()` rejects it and says why, and the state
 entries; `jrnlCapture()` is what diffs it and records. Calling sync twice records nothing at all —
 which the first version of this check did, and then read somebody else's entry as its own.
 
+### The spend plan sends what DISCRETIONARY paid, and only that
+
+`SRC_BASIS` used to be `'alloc'`, resolving to `svcAlloc(it)` — the allocation basis the lane engine
+works **from**. That is not what is funded. A requirement the lanes could not reach is still carried
+at its full allocation, so the Spend Plan Source printed an obligation date against dollars that were
+never coming. On a three-requirement fixture it exported **285 where 210 was funded** — one wholly
+unfunded requirement, sent in full. The constant's own comment read `'alloc' what is funded`, which
+was simply false.
+
+It is `p.d` now — the discretionary draw out of the lane walk — stated **once** in `srcSvcOf(it, T)`
+and read by three callers: the export, the CCaR reconciliation's board-side amount, and the
+per-service budget check beside it. Three copies of that rule would mean the export disagreeing with
+the reconciliation that exists to check it.
+
+Two properties worth keeping:
+
+- **`p.d` is INVARIANT under the discretionary-only view.** `tiers()` draws discretionary before it
+  ever touches mandatory, so withholding the mandatory pot cannot change a discretionary draw. The
+  Spend Plan Source therefore needs no `[DISC-ONLY]` marker — there is no second answer for it to be
+  mistaken for. That is a property the suite asserts, not a coincidence.
+- **The lane walk can only answer for the ACTIVE year**, because `tiers()` reads `S`. `svcAlloc()`
+  read `S.alloc` whatever year it was handed, so the dormant `SRC_YEARS='all'` path priced past years
+  off this year's lanes. A year the walk cannot speak for is now skipped and NAMED in the status
+  line, never guessed at.
+
+**It had no money check at all.** `audit-recon` asked only whether the workbook was readable, and
+`audit-other`'s header explicitly listed the Spend Plan Source among exports that "carry no lane
+arithmetic". Changing its basis moved a fixture total from 285 to 150 with **all twelve suites still
+green**. It is covered now, and that header is corrected.
+
+### Both unfunded readings, on every surface that states one
+
+The formulas were always right. What was wrong was their reach: reading #2 was everywhere and
+reading #1 existed in exactly one column of one sheet — and that sheet filtered its rows on reading
+#2, so the requirements the two readings disagree about were dropped, taking their vs-DISC figures
+with them. The column looked authoritative and its total read **75 where the truth was 135**. The
+board-wide reading #1 appeared nowhere in the workbook, the deck, the Priority Drill or the CSV.
+
+Both readings are now stated on: Funding Streams, the Decision Bands summary AND detail blocks, the
+PMO and Cost Element matrices, Unfunded Requirements, the per-PMO unfunded listings, the Priority
+Drill (rows, subtotals and band rolls), the PowerPoint KPI and stream slides, and the board's own
+whole-budget tile.
+
+**The dashboard's headline figure used to be neither reading.** `tierTotals().uAmt` sums `p.uT`,
+beyond-both-lanes — which excludes trims, so on any board with an allocation cut it is smaller than
+both. The tile stated that one number and a reader comparing it to the workbook found neither
+column. It now shows both, and `tierTotals` returns `u1Amt` and `u2Amt` beside `uAmt`.
+
+Three traps this walked into, all the same shape — **a lookup that silently re-points**:
+
+- **Columns read by index.** Adding one column to Funding Streams moved four checks one column left
+  and they kept "passing" against the wrong figure. `colOf(sheet, header)` now resolves by name and
+  THROWS on an unknown header, so a rename fails loudly instead of comparing `NaN`.
+- **An exclusion list of row labels.** The matrix checks filtered PMO rows by listing the block rows
+  they were not — so a new `baBlock` row was promoted to a PMO and inflated every lane total by the
+  whole portfolio shortfall. They slice at the `BUDGET AUTHORITY` row now: a list of what something
+  is NOT goes stale, a boundary does not.
+- **A money column padded instead of filled.** A subtotal row that pads a money column leaves that
+  reading blank on every subtotal while the neighbouring one stays filled — and the sheet still
+  opens, still cross-foots, and simply never states the reading.
+
 ### Two unfunded readings, both measured against the ASK
 
 Unfunded is **never** measured against a trimmed allocation. Money asked for and not received is
@@ -886,17 +947,38 @@ only**. `scenView` is the state (`''` or `'disc'`); `scenOpt()` returns `{noMand
 what would have spilled into mandatory shows as unfunded and never reaches a month. There is no
 second engine: it is `tiers()` with one option.
 
-**What follows the toggle** — exactly three things, and nothing else:
+**What follows the toggle** — the SPEND-PLAN FAMILY, every surface that states WHEN funded dollars
+land, and nothing else:
 
 | Surface | How |
 |---|---|
 | RCN-EEIC by Month (sheet) | `const Tv = scenOn()? tiers(null, scenOpt()) : T` |
 | SI Codes by Month (sheet) | the same `Tv` |
+| CR Cash Needs (sheet) | `crData(scenOpt())` |
+| CR cash panel (on screen) | `crData(scenOpt())` |
 | Spend forecast **tab** (on screen) | `forecast()` bare: `const T = fundOf ? null : tiers(null, scenOpt())` |
+
+**The 1A9A CR Cash Return is the one spend-plan surface that does NOT follow it**, and the exception
+is asserted, not just commented. It is a formal external submission on a fixed format — header row
+`FY<yy> CRA REQUIREMENTS` — with nowhere to stamp `[DISC-ONLY]` without corrupting what the
+recipient parses. A what-if that cannot be labelled a what-if is precisely how model figures end up
+under a real heading. `crExportRows()` therefore calls `crData()` with no scenario, and the suite
+compares its rows across both views.
+
+The workbook sheets are safe to move because the WHOLE workbook filename carries `[DISC-ONLY]`
+(`scenFile`, line 20779) and each family sheet stamps `scenTitle()` on its own title row.
 
 **What must NOT follow it:** every other sheet in the workbook, the deck, and the board's own
 totals. Unfunded Requirements is ask-versus-allocation rather than a lane shortfall, so the toggle
-would misstate it. The audit compares **every sheet** between the two views, not just one — the
+would misstate it.
+
+> **A "differs under the toggle" check can be satisfied by its own marker.** These sheets stamp
+> `scenTitle()` on their title row, so comparing a serialized sheet BODY across the two views
+> differs whether or not a single dollar moved. A CR sheet deliberately wired to ignore the toggle
+> still "passed" that check. The family checks compare the sheets' NUMBERS with every label
+> stripped (`look().nums`), plus an assertion that the sheet carries figures at all — two empty
+> grids agree and prove nothing. Whole-body comparison still has a job: it proves a sheet did NOT
+> move. It can never prove one did. The audit compares **every sheet** between the two views, not just one — the
 month sheets are built partway through `exportExcel`, so a view leaking into the shared `T` would
 corrupt only the sheets built *after* them and a single-sheet check sails straight past it.
 

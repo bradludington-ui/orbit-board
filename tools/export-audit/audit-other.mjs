@@ -2,9 +2,14 @@
 //   exportCSV      — the Priority Drill workbook (1-N by band, plus a tab per PMO)
 //   execSynopsis   — the Executive Funding Synopsis (CSV)
 //
-// The other Excel exports (ACE Tie-Out, Chart of Accounts, ATR/BTR Log, Spend Plan Source, CR Cash
-// Return) carry no lane, MC or unfunded arithmetic — they reconcile against imported sources — so
-// they are not covered here.
+//   exportSrc      — the Spend Plan Source workbook, whose Amount column IS lane arithmetic
+//
+// The remaining Excel exports (ACE Tie-Out, Chart of Accounts, ATR/BTR Log, CR Cash Return) carry no
+// lane, MC or unfunded arithmetic — they reconcile against imported sources — so they are not
+// covered here. The Spend Plan Source used to be on that list and no longer belongs on it: its
+// Amount column is now what DISCRETIONARY paid, straight out of the lane walk. While it was listed
+// there it had no money check at all, and changing its basis moved a fixture total from 285 to 150
+// with all twelve suites still green.
 import { boot, seed, cv } from './boot.mjs';
 
 const failures = [];
@@ -165,6 +170,71 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     if (uf) chk(name, 'Exec Synopsis', 'unfunded total floored per service',
       money(uf[5]), ids.reduce((a, id) => a + unfOf(id), 0));
   }
+}
+
+// ══ THE SPEND PLAN SOURCE SENDS WHAT DISCRETIONARY PAID, AND NOTHING ELSE ═══════════════
+// Every expectation here is computed from the SCENARIO's own numbers, never read back out of the
+// board: a lane walk this suite performs itself. An oracle that asks the code under test will
+// agree with it.
+{
+  const name = 'spend plan source';
+  const mkI = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false,
+    title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  // Lanes that BIND: R1 is covered by discretionary, R2 straddles into mandatory, R3 gets nothing.
+  const SV = ['A', 'B'], DISC = [100, 50], MAND = [40, 20];
+  const ITEMS = [mkI('R1', 'PSM', [80, 30]), mkI('R2', 'AV', [60, 40]), mkI('R3', 'MxS', [50, 25])];
+  const sc = { services: SV, items: ITEMS, disc: DISC, mand: MAND, order: ['R1', 'R2', 'R3'] };
+
+  // the oracle: a greedy per-service walk, written out here rather than imported from the board
+  const dRem = DISC.slice(), mRem = MAND.slice();
+  const discOf = {}, fundedOf = {};
+  ITEMS.forEach(it => {
+    let d = 0, m = 0;
+    it.ask.forEach((v, i) => {
+      const dd = Math.min(v, Math.max(0, dRem[i])); dRem[i] -= dd;
+      const mm = Math.min(v - dd, Math.max(0, mRem[i])); mRem[i] -= mm;
+      d += dd; m += mm;
+    });
+    discOf[it.id] = d; fundedOf[it.id] = d + m;
+  });
+  const discTotal = sum(Object.values(discOf));          // 150
+  const fundedTotal = sum(Object.values(fundedOf));      // 210
+
+  const { ev } = boot();
+  seed(ev, sc);
+  ev(`S.awards['R1']={mode:'single',d:FYMON[0][0],day:9};
+      S.awards['R2']={mode:'single',d:FYMON[2][0],day:9};
+      S.awards['R3']={mode:'single',d:FYMON[3][0],day:9}; 'ok'`);
+
+  const srcAmounts = view => JSON.parse(ev(`(function(){
+    scenView=${JSON.stringify(view)};
+    var got='[]';
+    if(!globalThis.__ob2) globalThis.__ob2=buildXlsx;
+    buildXlsx=function(sheets){ got=JSON.stringify(sheets); return new Uint8Array(0); };
+    try{ exportSrc(); }catch(e){ got='[]'; }
+    buildXlsx=globalThis.__ob2; scenView='';
+    return got; })()`));
+  const totalsOf = pack => {
+    const sh = pack[0] || {}, rows = (sh.rows || sh.data || []).slice(1);
+    let t = 0; const by = {};
+    rows.forEach(r => { const a = numOf(r[9]), k = txt(r[3]);
+      if (!isNaN(a)) { t += a; by[k] = (by[k] || 0) + a; } });
+    return { t, by };
+  };
+  const N = totalsOf(srcAmounts('')), D = totalsOf(srcAmounts('disc'));
+
+  chk(name, 'amount', 'the Amount column totals what DISCRETIONARY paid', N.t, discTotal);
+  // The two numbers that must NOT come out, each a real defect this replaced:
+  chk(name, 'amount', 'it is not the allocation basis, which carries unfunded dollars',
+    N.t === sum(ITEMS.map(it => sum(it.ask))) ? 'allocation basis (unfunded money exported)' : 'no', 'no');
+  chk(name, 'amount', 'and it is not disc+mand either', N.t === fundedTotal ? 'disc+mand' : 'no', 'no');
+  chk(name, 'amount', 'a wholly unfunded requirement contributes no money at all',
+    N.by['R3 event'] || 0, 0);
+  chk(name, 'amount', 'a straddling requirement sends only its discretionary draw',
+    N.by['R2 event'] || 0, discOf.R2);
+  // p.d cannot move with the view -- tiers() draws discretionary before it touches mandatory -- so
+  // this export needs no [DISC-ONLY] marker. That is a property to hold, not a coincidence.
+  chk(name, 'view', 'identical under the discretionary-only view', D.t, N.t);
 }
 
 console.log('\n' + '='.repeat(96));

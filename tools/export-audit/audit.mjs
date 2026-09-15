@@ -18,6 +18,20 @@ const sum = a => a.reduce((x, y) => x + y, 0);
 const rowKey = r => String(cv(r[0]) ?? '');
 const findRow = (sh, k) => sh.rows.find(r => rowKey(r).trim() === k);
 const sheetOf = (sheets, n) => sheets.find(s => s.name === n);
+// COLUMNS BY NAME, NEVER BY INDEX. A sheet gains a column and every r[n] after it silently reads
+// the neighbour -- the arithmetic still ties, against the wrong figure. Adding the second unfunded
+// reading to Funding Streams moved four checks one column left and they kept "passing" on values
+// that were off by the whole trim. An unknown header throws here rather than returning -1, because
+// a renamed column must fail loudly instead of reading undefined and comparing NaN.
+const hdrRow = sh => sh.rows.find(r => (r || []).some(c => String(cv(c) ?? '').trim() === 'Service'))
+  || sh.rows[2];
+const colOf = (sh, h) => {
+  const hr = hdrRow(sh) || [];
+  const i = hr.findIndex(c => String(cv(c) ?? '').trim() === h);
+  if (i < 0) throw new Error(`no column headed "${h}" on sheet "${sh.name}" -- headers: `
+    + hr.map(c => String(cv(c) ?? '')).filter(Boolean).join(' | '));
+  return i;
+};
 
 // ---------------------------------------------------------------------------------------------
 // Scenarios. Per-service asks are deliberately uneven so anything that averages across services
@@ -202,10 +216,14 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   };
   const askArr = id => sc.items.find(x => x.id === id).ask;
   const unfSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]));
+  // READING #1: ask less what DISCRETIONARY paid, mandatory not counted at all. One lane earlier
+  // than unfSvcExp and floored the same way, per service.
+  const discUnfSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i]));
   const beyondSvcExp = id => SVC.map((s, i) => Math.max(0, Math.min(askArr(id)[i], basisOf(id)[i]) - T[id].d[i] - T[id].m[i]));
   const trimSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - basisOf(id)[i]));
   const svcTot = f => SVC.map((s, i) => ids.reduce((a, id) => a + f(id)[i], 0));
   const unfSvcAll = svcTot(unfSvcExp), beyondSvcAll = svcTot(beyondSvcExp), trimSvcAll = svcTot(trimSvcExp);
+  const discUnfSvcAll = svcTot(discUnfSvcExp);
   // With unfunded floored per service, funded + unfunded exceeds the ask exactly where a service was
   // funded BEYOND what it asked for -- that excess is real money and does not vanish. Per service the
   // identity is funded + unfunded == max(ask, funded); this is its board-wide form.
@@ -252,26 +270,45 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 
   // ---- 3. Funding Streams: the board-wide roll-up ----
   const fs = sheetOf(sheets, 'Funding Streams');
+  const FSC = {
+    disc: colOf(fs, 'Disc Funded'), mand: colOf(fs, 'Mand Funded'),
+    fund: colOf(fs, 'Funded Total'), trim: colOf(fs, 'Ask Not Allocated (delta)'),
+    beyond: colOf(fs, 'Beyond Both Lanes'),
+    discUnf: colOf(fs, 'Unfunded vs DISC'), unf: colOf(fs, 'TOTAL UNFUNDED'),
+  };
   SVC.forEach((s, i) => {
     const r = findRow(fs, s); if (!r) return;
-    chk(name, 'Funding Streams', `${s} Disc Funded`, num(r[3]), allD[i]);
-    chk(name, 'Funding Streams', `${s} Mand Funded`, num(r[6]), allM[i]);
-    chk(name, 'Funding Streams', `${s} Funded Total`, num(r[8]), allD[i] + allM[i]);
-    chk(name, 'Funding Streams', `${s} Beyond Both Lanes`, num(r[10]), beyondSvcAll[i]);
-    chk(name, 'Funding Streams', `${s} TOTAL UNFUNDED (floored per service)`, num(r[11]), unfSvcAll[i]);
-    chk(name, 'Funding Streams', `${s} Trim`, num(r[9]), trimSvcAll[i]);
+    chk(name, 'Funding Streams', `${s} Disc Funded`, num(r[FSC.disc]), allD[i]);
+    chk(name, 'Funding Streams', `${s} Mand Funded`, num(r[FSC.mand]), allM[i]);
+    chk(name, 'Funding Streams', `${s} Funded Total`, num(r[FSC.fund]), allD[i] + allM[i]);
+    chk(name, 'Funding Streams', `${s} Beyond Both Lanes`, num(r[FSC.beyond]), beyondSvcAll[i]);
+    chk(name, 'Funding Streams', `${s} TOTAL UNFUNDED (floored per service)`, num(r[FSC.unf]), unfSvcAll[i]);
+    chk(name, 'Funding Streams', `${s} Trim`, num(r[FSC.trim]), trimSvcAll[i]);
     // the three must close: beyond + trim == unfunded, per service
     chk(name, 'Funding Streams', `${s} beyond + trim == unfunded`,
-      num(r[10]) + num(r[9]), num(r[11]));
+      num(r[FSC.beyond]) + num(r[FSC.trim]), num(r[FSC.unf]));
+    // READING #1, the second of the two the board states: ask less DISCRETIONARY alone. It can
+    // never be smaller than reading #2, and the gap is exactly what the mandatory lane carried.
+    chk(name, 'Funding Streams', `${s} Unfunded vs DISC (floored per service)`,
+      num(r[FSC.discUnf]), discUnfSvcAll[i]);
+    chk(name, 'Funding Streams', `${s} reading #1 - reading #2 == mandatory drawn`,
+      num(r[FSC.discUnf]) - num(r[FSC.unf]), allM[i]);
   });
 
   // ---- 4. PMO Matrix: per-PMO shares must add back to the board totals ----
   const gmx = sheetOf(sheets, 'PMO Matrix');
-  const pmoRows = gmx.rows.filter(r => {
-    const k = rowKey(r);
-    return k && !['TOTAL', 'PMO', 'BUDGET AUTHORITY', 'REMAINING (lanes)', 'UNFUNDED (beyond both lanes)',
-      'ASK NOT ALLOCATED (trim deltas)', 'TOTAL UNFUNDED (deltas + beyond lanes)'].includes(k)
-      && !k.includes('—') && typeof num(r[1]) === 'number' && !isNaN(num(r[1]));
+  // The per-key rows are everything ABOVE the budget-authority block, and slicing there is
+  // STRUCTURAL. This used to be an exclusion list of the block's row labels, which is the same trap
+  // as any hardcoded name list: adding the second unfunded reading to baBlock put a row in the
+  // block that the list did not name, so it was counted as a PMO and inflated every lane total by
+  // the whole portfolio shortfall. A list of what something is NOT goes stale; a boundary does not.
+  const baAt = gmx.rows.findIndex(r => rowKey(r).trim() === 'BUDGET AUTHORITY');
+  chk(name, 'PMO Matrix', 'the budget-authority block is present to slice at',
+    baAt >= 0 ? 'found' : 'MISSING', 'found');
+  const pmoRows = gmx.rows.slice(0, baAt < 0 ? gmx.rows.length : baAt).filter(r => {
+    const k = rowKey(r).trim();
+    return k && k !== 'TOTAL' && k !== 'PMO' && !k.includes('—')
+      && typeof num(r[1]) === 'number' && !isNaN(num(r[1]));
   });
   SVC.forEach((s, i) => {
     chk(name, 'PMO Matrix', `sum of PMO rows == board Disc [${s}]`,
@@ -376,6 +413,19 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     if (tr) {
       chk(name, 'Unfunded Requirements', 'TOTAL unfunded == sum of per-service columns',
         sum(uSvc.map(i => num(tr[i]))), num(tr[C.tot]));
+      // BOTH READINGS, BOARD-WIDE, against the fixture's own arithmetic. This is the check the
+      // sheet's ROW SET has to satisfy: a requirement short against discretionary but covered once
+      // mandatory is counted has a TOTAL Unfunded of zero, and while the filter listed only
+      // TOTAL-unfunded rows it was dropped -- taking its vs-DISC figure with it. The column looked
+      // authoritative and its total was short by exactly the rows the two readings disagree about.
+      // Summing the printed rows would NOT catch that; only the board-wide truth does.
+      chk(name, 'Unfunded Requirements', 'TOTAL "Unfunded vs DISC" == board-wide ask - disc',
+        num(tr[C.discUnf]), sum(discUnfSvcAll));
+      chk(name, 'Unfunded Requirements', 'TOTAL "TOTAL Unfunded" == board-wide ask - disc - mand',
+        num(tr[C.tot]), sum(unfSvcAll));
+      // and the two must differ by exactly what the mandatory lane drew, or one of them is the other
+      chk(name, 'Unfunded Requirements', 'the gap between the readings == mandatory drawn',
+        num(tr[C.discUnf]) - num(tr[C.tot]), sum(allM));
     }
   }
 
@@ -470,11 +520,15 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   {
     const cem = sheetOf(sheets, 'Cost Element Matrix');
     if (cem) {
-      const rows = cem.rows.filter(r => {
-        const k = rowKey(r);
-        return k && !['TOTAL', 'Cost Element', 'BUDGET AUTHORITY', 'REMAINING (lanes)',
-          'UNFUNDED (beyond both lanes)', 'ASK NOT ALLOCATED (trim deltas)',
-          'TOTAL UNFUNDED (deltas + beyond lanes)'].includes(k) && !isNaN(num(r[1]));
+      // Sliced at the budget-authority block, for the same reason the PMO Matrix is: baBlock's rows
+      // are not a fixed set, and an exclusion list of their labels silently promotes any new one to
+      // a data row. Both matrix tabs come off the same builder, so both had to move together.
+      const cemBaAt = cem.rows.findIndex(r => rowKey(r).trim() === 'BUDGET AUTHORITY');
+      chk(name, 'Cost Element Matrix', 'the budget-authority block is present to slice at',
+        cemBaAt >= 0 ? 'found' : 'MISSING', 'found');
+      const rows = cem.rows.slice(0, cemBaAt < 0 ? cem.rows.length : cemBaAt).filter(r => {
+        const k = rowKey(r).trim();
+        return k && k !== 'TOTAL' && k !== 'Cost Element' && !isNaN(num(r[1]));
       });
       chk(name, 'Cost Element Matrix', 'MC memo == sum of MC requirement/ask values',
         sum(rows.map(r => num(r[r.length - 2]))), mcMemo);
@@ -667,7 +721,15 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
              rcnTitle: title('RCN-EEIC by Month'),
              siTitle:  title('SI Codes by Month'),
              file: ev('scenFile("BOOK")'),
-             body: sheets.reduce((a, sh) => (a[sh.name] = JSON.stringify(sh.rows), a), {}) };
+             body: sheets.reduce((a, sh) => (a[sh.name] = JSON.stringify(sh.rows), a), {}),
+             // MONEY ONLY, with every label stripped. The whole-body compare below proves a sheet
+             // did NOT move; it cannot prove one DID, because these sheets stamp scenTitle() on
+             // their title row -- so the body differs under the toggle whether or not a single
+             // dollar changed. A "moved by the toggle" check satisfied by its own marker asserts
+             // nothing. This is what the FAMILY checks compare instead.
+             nums: sheets.reduce((a, sh) => (a[sh.name] = JSON.stringify(sh.rows.map(r =>
+               (r || []).map(c => { const v = (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+                                    return typeof v === 'number' ? v : null; }))), a), {}) };
   };
   const both = (ev(`setScen(''); 'ok'`), look());
   const disc = (ev(`setScen('disc'); 'ok'`), look());
@@ -699,7 +761,17 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // it. The board's on-screen forecast tab is the one that follows the view; it is checked below.
   // The sheet carries its own name for exactly this reason -- it used to be "<FY> Spend Forecast",
   // one word away from the tab, and the two were read as the same thing.
-  const FAMILY = ['RCN-EEIC by Month', 'SI Codes by Month'];
+  // THE SPEND-PLAN FAMILY: every surface that states WHEN funded dollars land. All of them follow
+  // the view, because a spend plan built under "discretionary only" must show the discretionary
+  // plan. CR Cash Needs joined them when the toggle was extended to all spend-plan surfaces; it is
+  // safe to move because the WHOLE workbook filename carries [DISC-ONLY] (scenFile, asserted
+  // below) and the sheet stamps scenTitle on its own title row.
+  //
+  // The 1A9A CR Cash Return is the one spend-plan surface deliberately NOT in this family. It is a
+  // formal external submission on a fixed format with nowhere to put a marker, so it always reports
+  // the funded plan -- asserted separately below, because a scenario leaking into it would put
+  // model figures under a real heading.
+  const FAMILY = ['RCN-EEIC by Month', 'SI Codes by Month', 'CR Cash Needs'];
   const names = Object.keys(both.body);
   chk(name, 'scope', 'the two views build the same sheets',
     names.join('|'), Object.keys(disc.body).join('|'));
@@ -711,9 +783,33 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   FAMILY.forEach(n => {
     chk(name, 'scope', n + ': present in the workbook',
       names.includes(n) ? 'present' : 'missing', 'present');
-    chk(name, 'scope', n + ': moved by the toggle',
-      both.body[n] === disc.body[n] ? 'same' : 'differs', 'differs');
+    // ON THE NUMBERS, not the body: see `nums` above. Comparing bodies here passed on the marker
+    // alone -- a CR sheet wired to ignore the toggle still "differed" because its stamped title did.
+    chk(name, 'scope', n + ': its FIGURES move with the toggle',
+      both.nums[n] === disc.nums[n] ? 'same' : 'differs', 'differs');
+    // and the sheet must actually carry figures, or two empty grids agree and prove nothing
+    chk(name, 'scope', n + ': carries figures to compare',
+      /[-\d]/.test(String(both.nums[n] || '').replace(/null|,|\[|\]/g, '')) ? 'yes' : 'no', 'yes');
   });
+
+  // THE 1A9A CR CASH RETURN IS THE EXCEPTION, and the exception has to be a tested property rather
+  // than a comment. It is a formal external submission on a fixed format -- header row
+  // 'FY<yy> CRA REQUIREMENTS' -- with nowhere to stamp [DISC-ONLY], so it must report the FUNDED
+  // plan in BOTH views. crExportRows() reads crData() with no scenario; passing scenOpt() there
+  // would send a what-if out under a real heading, reconciling perfectly the whole way.
+  // Asserted on rows, not on a file: crExport() alerts and returns on a non-O&M board.
+  {
+    const rowsIn = view => ev(`(function(){ setScen(${JSON.stringify(view)});
+      var r; try{ r=JSON.stringify(crExportRows()); }catch(e){ r='ERR '+e.message; }
+      setScen(''); return r; })()`);
+    const a = rowsIn(''), b = rowsIn('disc');
+    chk(name, 'scope', 'the 1A9A CR cash return is NOT moved by the toggle',
+      a === b ? 'same' : 'differs', 'same');
+    // and it must actually be producing something, or "same" is two empty lists agreeing
+    chk(name, 'scope', 'the 1A9A return had rows to compare',
+      (a && a !== '[]' && !a.startsWith('ERR')) ? 'rows' : `nothing to compare (${String(a).slice(0, 40)})`,
+      'rows');
+  }
 
   // The board's own on-screen spend forecast TAB is the other half of the family. It is computed, not
   // exported, so no sheet check can see it — read forecast() directly and hold it to the same rule.

@@ -546,6 +546,9 @@ const rowCloses = (name, wb) => {
   const R = Object.values(F.rows);
   const board = { ask: T(R.map(r => T(r.ask))), disc: T(R.map(r => T(r.d))),
     mand: T(R.map(r => T(r.m))), unf: T(R.map(r => T(r.unf))),
+    // READING #1 board-wide: ask less DISCRETIONARY alone. The same per-row figure the MC shortage
+    // is built from, summed over EVERY requirement rather than the starred ones.
+    discUnf: T(R.map(r => T(r.discUnf))),
     mcValue: T(R.filter(r => r.mc).map(r => T(r.ask))),
     mcShort: T(R.filter(r => r.mc).map(r => T(r.discUnf))) };
   const near = (got, want, what, where) => chk(name, where, what,
@@ -556,7 +559,9 @@ const rowCloses = (name, wb) => {
   near(cellIn(1, /^TOTAL/, 'FY27 Ask'), board.ask, 'the stream table’s ask agrees with the board', 'Funding by Stream');
   near(cellIn(1, /^TOTAL/, 'Disc Funded'), board.disc, 'its discretionary agrees', 'Funding by Stream');
   near(cellIn(1, /^TOTAL/, 'Mand Drawn'), board.mand, 'its mandatory agrees', 'Funding by Stream');
-  near(cellIn(1, /^TOTAL/, 'Unfunded (incl delta)'), board.unf, 'its unfunded agrees', 'Funding by Stream');
+  near(cellIn(1, /^TOTAL/, 'TOTAL Unf'), board.unf, 'its TOTAL unfunded agrees', 'Funding by Stream');
+  near(cellIn(1, /^TOTAL/, 'Unf vs DISC'), board.discUnf,
+    'its unfunded-vs-discretionary agrees', 'Funding by Stream');
   near(cellIn(2, /^TOTAL/, 'FY27 Ask'), board.ask, 'the PMO table’s ask agrees', 'Funding by PMO');
   near(cellIn(2, /^TOTAL/, 'Discretionary'), board.disc, 'its discretionary agrees', 'Funding by PMO');
   near(cellIn(2, /^TOTAL/, 'Mandatory'), board.mand, 'its mandatory agrees', 'Funding by PMO');
@@ -666,6 +671,8 @@ const rowCloses = (name, wb) => {
     mand:   T(R.map(r => T(r.m))),
     funded: T(R.map(r => T(r.d))) + T(R.map(r => T(r.m))),
     unf:    T(R.map(r => T(r.unf))),
+    // READING #1 board-wide: ask less DISCRETIONARY alone.
+    discUnf: T(R.map(r => T(r.discUnf))),
   };
   const grab = (fn) => w.eval(`(async function(){
     var cap=null,_B=window.Blob,msg='';
@@ -728,6 +735,13 @@ const rowCloses = (name, wb) => {
           money(colSum('Funded')), money(truth.funded));
         chk(name, 'exportCSV', 'and to the unfunded total',
           money(colSum('Unfunded')), money(truth.unf));
+        // BOTH READINGS on the drill's subtotals. 'Unfunded vs DISC' is a MONEY column, so padding
+        // it in the subtotal row instead of printing a figure leaves the second reading blank on
+        // every band while the first stays filled -- the tab still opens and still cross-foots.
+        chk(name, 'exportCSV', 'and to the unfunded-vs-discretionary total',
+          money(colSum('Unfunded vs DISC')), money(truth.discUnf));
+        chk(name, 'exportCSV', 'its two unfunded readings differ by the mandatory draw',
+          money(colSum('Unfunded vs DISC') - colSum('Unfunded')), money(truth.mand));
         // Funded must also equal Discretionary + Mandatory on the tab's own figures.
         chk(name, 'exportCSV', 'its Funded is its own Discretionary + Mandatory',
           money(colSum('Discretionary') + colSum('Mandatory')), money(colSum('Funded')));

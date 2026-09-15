@@ -314,6 +314,38 @@ const MUTATIONS = [
     repl: "  if(v) S.mipr[id]=v; else delete S.mipr[id];" },
   // The matrix draws a column for every record field and bulk-sets from a list it does NOT derive.
   // Dropping the setter is silent in the UI apart from one hint, so it is the suites that must see it.
+  // ── THE SPEND PLAN SOURCE, and the two unfunded readings ──────────────────────────────────
+  // Every one of these shipped green once. The Amount column had no money check at all, so moving
+  // its basis changed a fixture total by 45% with all twelve suites passing.
+  { id: 'src-basis-allocation', area: 'srcSvcOf', what: 'the spend plan sends the allocation basis, so unfunded money is exported with an obligation date',
+    find: "  const p=(T||{})[it.id];\n  return p? p.d.slice() : SVC.map(_=>0);",
+    repl: "  return svcAlloc(it)||[];" },
+  { id: 'src-basis-disc-plus-mand', area: 'srcSvcOf', what: 'the spend plan sends mandatory dollars as well as discretionary',
+    find: "  return p? p.d.slice() : SVC.map(_=>0);",
+    repl: "  return p? p.d.map(function(v,i){ return v+(p.m[i]||0); }) : SVC.map(_=>0);" },
+  // The row set of the Unfunded Requirements sheet decides whether reading #1 can be right at all:
+  // drop the requirements the two readings disagree about and the column is left stating reading #2.
+  { id: 'unf-sheet-one-reading-filter', area: 'exportExcel', what: 'the unfunded sheet lists only what BOTH pots leave short, so its vs-DISC total is wrong',
+    find: "    && (unfTotOf(it,T[it.id])>0.005 || discUnfTotOf(it,T[it.id])>0.005));",
+    repl: "    && (unfTotOf(it,T[it.id])>0.005));" },
+  { id: 'discunf-agg-is-unf', area: 'exportExcel', what: 'the per-service reading #1 aggregate quietly sums reading #2',
+    find: "    S.order.forEach(id=>{ const it=itemById(id); if(!it) return; discUnfSvcOf(it,T[id]).forEach((x,i)=>v[i]+=x); });",
+    repl: "    S.order.forEach(id=>{ const it=itemById(id); if(!it) return; unfSvcOf(it,T[id]).forEach((x,i)=>v[i]+=x); });" },
+  { id: 'tile-reading1-is-reading2', area: 'tierTotals', what: 'the dashboard states reading #2 twice and never reading #1',
+    find: "    u1Amt+=discUnfTotOf(it,p); u2Amt+=unfTotOf(it,p);",
+    repl: "    u1Amt+=unfTotOf(it,p); u2Amt+=unfTotOf(it,p);" },
+  // A money column padded instead of filled: the sheet still opens, still cross-foots, and simply
+  // never states the second reading on any subtotal.
+  { id: 'drill-sub-pads-reading1', area: 'exportCSV', what: 'the drill subtotals pad the vs-DISC column instead of printing it',
+    find: "{v:a2.fn,s:MB},{v:a2.u,s:MB},{v:a2.u1,s:MB},",
+    repl: "{v:a2.fn,s:MB},{v:a2.u,s:MB},''," },
+  // The 1A9A is a formal external return with nowhere to stamp a what-if marker.
+  { id: 'cr-1a9a-follows-view', area: 'crExportRows', what: 'the 1A9A cash return follows the discretionary-only view, sending a what-if under a real heading',
+    find: "  const svc=crData(), idx=CR_SVCS.map",
+    repl: "  const svc=crData(scenOpt()), idx=CR_SVCS.map" },
+  { id: 'cr-sheet-ignores-view', area: 'exportExcel', what: 'CR Cash Needs stops following the toggle, so a discretionary-only workbook states the funded plan',
+    find: "  const crW=crWins(), crD=crData(scenOpt());",
+    repl: "  const crW=crWins(), crD=crData();" },
   { id: 'mipr-no-bulk-setter', area: 'matBulk', what: 'the matrix draws a MIPR column it cannot sweep',
     find: "  out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),",
     repl: "  if(false) out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),"},

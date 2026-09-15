@@ -1235,7 +1235,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.57 (14 Sep 2026)';
+const BUILD='v1.58 (15 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -6669,8 +6669,12 @@ function crWins(){
   });
   return out;
 }
-function crData(){
-  const T=tiers();
+// SCENARIO-AWARE, like forecast(). CR cash needs are a SPEND PLAN: under the discretionary-only
+// view the mandatory lanes are empty, so what would have spilled into them shows as unfunded and
+// never reaches a window. The scenario is a PARAMETER and must never become a mode -- callers pass
+// it, so each call site states for itself whether it is showing the funded plan or a what-if.
+function crData(scen){
+  const T=tiers(null, scen||null);
   const ms=FYMON.slice(0,6);
   const mi={}; ms.forEach(([ym],i)=>mi[ym]=i);
   const svc=SVC.map(_=>({win:Array(12).fill(0), nodate:0, tot:0, items:[]}));
@@ -6758,6 +6762,12 @@ function crObl(id){
   return Math.round(Date.UTC(+m[1], +m[2]-1, day)/86400000)+25569;
 }
 function crExportRows(){
+  // THE 1A9A RETURN NEVER TAKES THE SCENARIO, and it is the one spend-plan surface that does not
+  // follow the view. It is a formal external submission on a fixed format: its header row is
+  // 'FY<yy> CRA REQUIREMENTS' and there is nowhere in that layout to stamp a [DISC-ONLY] marker
+  // without corrupting the format the recipient parses. A what-if that cannot be labelled a what-if
+  // is exactly how model figures end up under a real heading, reconciling perfectly the whole way.
+  // So this always reports the FUNDED plan. crData(scenOpt()) here would be the defect.
   const svc=crData(), idx=CR_SVCS.map(function(n){ return SVC.indexOf(n); }).filter(function(i){ return i>=0; });
   const by={};
   idx.forEach(function(i){
@@ -6999,8 +7009,34 @@ const SRC_XTRA=[
   {fill:false, fmt:SRC_FMT_MON}                   // Month, shown MMM-YYYY, still a real date
 ];
 const SRC_GRAIN='svc';    // 'svc' one row per requirement per funded service | 'req' one per requirement
-const SRC_BASIS='alloc';  // 'alloc' what is funded | 'ask' the full requirement
+const SRC_BASIS='disc';   // 'disc' what DISCRETIONARY paid | 'ask' the full requirement
 const SRC_YEARS='cur';    // 'cur' the active year | 'all' every year the board holds
+// ---- WHAT THE SPEND PLAN SOURCE SENDS, per service. ONE implementation, three readers: the export
+// itself, the CCaR reconciliation's board-side amount, and the per-service budget check beside it.
+// Stated once because a rule written out more than once drifts, and here the drift would be the
+// export disagreeing with the reconciliation that exists to check it.
+//
+// IT IS WHAT DISCRETIONARY ACTUALLY PAID -- p.d out of the lane walk -- and nothing else.
+//
+// It used to be svcAlloc(it), the ALLOCATION BASIS the lane engine works FROM. That is not what is
+// funded: a requirement the lanes could not reach is still carried at its full allocation, so the
+// workbook printed money with an obligation date against dollars that were never coming. Measured
+// on a three-requirement fixture it sent 285 where 210 was funded -- one wholly unfunded
+// requirement, exported in full. A spend plan that lists unfunded dollars is a plan for money that
+// does not exist, and it reconciles perfectly against itself the whole way.
+//
+// NOT disc+mand either: this office sends discretionary. Mandatory is reported beside it and never
+// inside it.
+//
+// p.d is INVARIANT under the discretionary-only view, because tiers() draws discretionary before it
+// ever touches mandatory -- withholding the mandatory pot cannot change a discretionary draw. So
+// this export cannot disagree with itself between the two views, and needs no [DISC-ONLY] marker:
+// there is no second answer for it to be mistaken for.
+function srcSvcOf(it, T){
+  if(SRC_BASIS==='ask') return (it.ask||[]).slice();
+  const p=(T||{})[it.id];
+  return p? p.d.slice() : SVC.map(_=>0);
+}
 // The importer reads the service back out of the Budget cell, so write it the way that file spells
 // it. STOVL and USMC-B are both the B model; the source calls it USMC STOVL.
 function srcBudget(svc){
@@ -8699,9 +8735,8 @@ async function importBud(inp){
 // ============================================================ CCaR RECONCILIATION
 const DIV_TOL=1.0;          // dollars; below this it is rounding, not a difference
 const DIV_CAP=60;           // rows listed per finding; the count is always the true one
-function divBoardAmt(it){
-  const v=(SRC_BASIS==='ask')? (it.ask||[]) : (svcAlloc(it)||[]);
-  return v.reduce(function(a,b){ return a+(+b||0); },0);
+function divBoardAmt(it, T){
+  return srcSvcOf(it, T).reduce(function(a,b){ return a+(+b||0); },0);
 }
 function divOne(set){ const k=Object.keys(set); return k.length===1? k[0] : ''; }
 
@@ -8721,6 +8756,9 @@ function divCcarSide(){
 }
 
 function ccarDiv(){
+  // ONE lane walk for the whole reconciliation. It must be the same dollars the Spend Plan Source
+  // sends, or this check reconciles the board against a figure it never exported.
+  const DT=tiers();
   const C=divCcarSide(), find=[], seen={};
   const add=(k,title,why,rows)=>{ if(rows.length) find.push({k:k, t:title, why:why, rows:rows}); };
   const order=(S.order||[]);
@@ -8737,7 +8775,7 @@ function ccarDiv(){
     if(!c){ missing.push({id:id, label:dispTitle(it), sub:raw}); return; }
     compared++;
 
-    const b=divBoardAmt(it), d=b-c.amt;
+    const b=divBoardAmt(it, DT), d=b-c.amt;
     if(Math.abs(d)>DIV_TOL){
       amt.push({id:id, label:dispTitle(it),
                 sub:(d>0? 'board is higher by ':'CCaR is higher by ')+fM(Math.abs(d))});
@@ -8754,7 +8792,7 @@ function ccarDiv(){
     if(cb){
       const mine={};
       SVC.forEach(function(sv,i){
-        const v=(SRC_BASIS==='ask')? (+(it.ask&&it.ask[i])||0) : (+((svcAlloc(it)||[])[i])||0);
+        const v=+(srcSvcOf(it, DT)[i])||0;
         if(v<=0.005) return;
         let n=null; try{ n=budForRow(id, sv); }catch(e){}
         if(n) mine[n]=1;
@@ -11118,13 +11156,13 @@ function exportExView(){
 // board has no equivalent for stays EMPTY - RCN, EEIC, Navy SI and Cost Element exist here only as
 // service-level PPBE lines, and prorating one of those down to a requirement would put a number in
 // a cell that nobody entered.
-function srcRowsOf(fy, St){
+function srcRowsOf(fy, St, T){
   const out=[];
   const order=(St.order||[]).slice();
   order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const ask=it.ask||[], alc=(St.fsrc&&St.fsrc[id])? null : null;
-    const vals=(SRC_BASIS==='ask')? ask : (svcAlloc(it)||[]);
+    const vals=srcSvcOf(it, T);
     const aw=(St.awards||{})[id];
     const when=aw? (aw.mode==='inc'? ((aw.inc||[])[0]||{}).d : aw.d) : '';
     // the award date where there is one; 31 August of the fiscal year where there is not
@@ -11200,13 +11238,21 @@ function exportSrc(){
   const slugs=(typeof APPNS!=='undefined' && APPNS)? APPN_SLUGS : [mySlug()];
   const hdr=SRC_HDR.map(h=>({v:h, s:srcXf(0)}));
   const sheets=[];
+  // ONE lane walk, and it can only answer for the ACTIVE year: tiers() reads S. A past year's
+  // rows priced off this year's lanes would be wrong in a way nothing on the sheet reveals -- which
+  // is exactly what svcAlloc() did here before, since it reads S.alloc whatever year it is handed.
+  // A year this walk cannot speak for is SKIPPED and named, never guessed at. SRC_YEARS='cur' makes
+  // that unreachable today; this is the honest shape if it is ever flipped.
+  const DT=tiers(), skipped=[];
   slugs.forEach(sl=>{
     const rows=[hdr];
     if(sl===mySlug()){
       const years=(SRC_YEARS==='all')? Object.keys(MS.years||{}).map(Number).sort() : [MS.cur];
       years.forEach(fy=>{
         const St=(fy===MS.cur)? S : (MS.years||{})[fy];
-        if(St) srcRowsOf(fy, St).forEach(r=>rows.push(r));
+        if(!St) return;
+        if(St!==S){ if(skipped.indexOf(fy)<0) skipped.push(fy); return; }
+        srcRowsOf(fy, St, DT).forEach(r=>rows.push(r));
       });
     }
     sheets.push({name:SRC_TABS[sl].slice(0,31), cols:SRC_COLW.slice(), freeze:1, rows});
@@ -11220,10 +11266,12 @@ function exportSrc(){
   a.click();
   setStat('⬇ Exported '+n+' row'+(n===1?'':'s')+' across '+sheets.length+' tab'
     +(sheets.length===1?'':'s')+' in the Spend Plan Source layout — '
-    +(SRC_BASIS==='alloc'?'allocated':'requested')+' amounts, FY'
+    +(SRC_BASIS==='ask'?'requested':'funded discretionary')+' amounts, FY'
     +(SRC_YEARS==='all'?' (all years)':String(MS.cur).slice(-2))
     +'. Columns the board does not hold are blank.'
-    +(srcGapNote()? ' ⚠ '+srcGapNote()+'.' : ''));
+    +(srcGapNote()? ' ⚠ '+srcGapNote()+'.' : '')
+    +(skipped.length? ' ⚠ FY'+skipped.join(', FY')+' skipped \u2014 the lane walk only runs on '
+      +'the active year, and pricing a past year off this year\u2019s lanes would be a guess.' : ''));
 }
 let crOpen=false, crX={}, crMode='half', crBy='svc';
 let bmOpen=false;
@@ -14089,7 +14137,7 @@ function toggleCr(){
 }
 function crRows(){
   // generalized: bucket rows by Service or by PMO (prime contracts roll to owning PMOs)
-  if(crBy==='svc') return {keys:SVC.slice(), data:crData()};
+  if(crBy==='svc') return {keys:SVC.slice(), data:crData(scenOpt())};
   const T=tiers();
   const ms=FYMON.slice(0,6);
   const mi={}; ms.forEach(([ym],i)=>mi[ym]=i);
@@ -14485,22 +14533,28 @@ function trimTotOf(it){ return _vsum(trimSvcOf(it)); }
 
 function tierTotals(T){
   let dUsed=0,mUsed=0,uAmt=0,dN=0,splitN=0,mN=0,uN=0;
+  // THE TWO PORTFOLIO READINGS, board-wide. uAmt is the LANE figure -- what fell beyond both lanes
+  // -- and it is not either of them: it excludes trims, so on a board with any allocation cut it is
+  // smaller than both. Stating only uAmt on screen meant the dashboard's most prominent unfunded
+  // number was a third figure, and a reader comparing it to the workbook found neither column.
+  let u1Amt=0, u2Amt=0;
   const MC=mcCalc(T);
   const mcNeed=MC.needTot, mcTot=MC.total, mcN=MC.n;
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const p=T[id];
     dUsed+=p.dT; mUsed+=p.mT; uAmt+=p.uT;
+    u1Amt+=discUnfTotOf(it,p); u2Amt+=unfTotOf(it,p);
     if(p.uT>0.005) uN++;
     else if(p.mT>0.005 && p.dT>0.005) splitN++;
     else if(p.mT>0.005) mN++;
     else dN++;
   });
-  return {dUsed,mcNeed,mcTot,mcSvc:MC,mUsed,uAmt,dN,splitN,mcN,mN,uN};
+  return {dUsed,mcNeed,mcTot,mcSvc:MC,mUsed,uAmt,u1Amt,u2Amt,dN,splitN,mcN,mN,uN};
 }
 function scoreboard(){
   const T=tiers(null, scenOpt());
-  const {dUsed,mcNeed,mcTot,mcSvc,mUsed,uAmt,dN,splitN,mcN,mN,uN}=tierTotals(T);
+  const {dUsed,mcNeed,mcTot,mcSvc,mUsed,uAmt,u1Amt,u2Amt,dN,splitN,mcN,mN,uN}=tierTotals(T);
   const dBA=discTot(), mBA=mandTot();
   const dLeft=T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0);
   const mLeft=T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0);
@@ -14533,7 +14587,11 @@ function scoreboard(){
     <div class="bar"><i style="width:${Math.min(100,mBA>0?mcCov/mBA*100:0)}%;background:var(--amber)"></i><i style="width:${Math.min(100,mBA>0?Math.max(0,mUsed-mcCov)/mBA*100:0)}%;background:var(--purp)"></i></div></div>
   <div class="sc whole"><div class="nm" style="color:var(--gold)">4 · Whole budget</div>
     <div class="rm" style="color:var(--gold)">${fM(whole)} <span style="font-size:9px;color:var(--dim)">total BA</span></div>
-    <div class="sub">${fM(wUsed)} funded when whole · ${uN} reqs / ${fM(uAmt)} unfunded beyond it</div>
+    <div class="sub">${fM(wUsed)} funded when whole · ${uN} reqs / ${fM(uAmt)} beyond both lanes</div>
+    <div class="sub" title="Two readings of short, both measured against the ASK. vs DISC counts the discretionary lane alone; TOTAL counts both pots. The gap between them is what mandatory is carrying. Allocation trims are unfunded in both.">
+      <b style="color:${u1Amt>0.5?'var(--red)':'var(--dim)'}">UNFUNDED vs DISC ${fM(u1Amt)}</b>
+      <span style="color:var(--dim)"> · </span>
+      <b style="color:${u2Amt>0.5?'var(--red)':'var(--dim)'}">TOTAL ${fM(u2Amt)}</b></div>
     <div class="bar"><i style="width:${Math.min(100,whole>0?dUsed/whole*100:0)}%;background:var(--green)"></i><i style="width:${Math.min(100,whole>0?mUsed/whole*100:0)}%;background:var(--purp)"></i></div></div>`;
   // ---- discretionary fit strip -----------------------------------------------------------
   const FB=fitBySvc(T), FC=fitCounts(T), AB=absorbCalc(T);
@@ -16814,8 +16872,9 @@ function exportPPT(){
   const unf2=it=> unfTotOf(it, T[it.id]);
   const dBA=discTot(), mBA=mandTot();
   const TT=tierTotals(T);
-  let totUnf=0;
-  S.order.forEach(id=>{const it=itemById(id); if(it) totUnf+=unf2(it);});
+  let totUnf=0, totUnf1=0;
+  S.order.forEach(id=>{const it=itemById(id); if(!it) return;
+    totUnf+=unf2(it); totUnf1+=discUnfTotOf(it, T[it.id]);});
   const MX=457200, CW=8229600;
   const hdr=(title,sub)=> _pTitle(title)
     +(sub? _pText(97,MX,1100000,CW,270000,_pPara(_pRun(sub,{sz:1150,i:1,c:_PPT.NAVY}))):'')
@@ -16831,7 +16890,11 @@ function exportPPT(){
       ['★ MC short vs discretionary', TT.mcNeed>0.5? fSM(TT.mcNeed):'none', TT.mcNeed>0.5?_PPT.RED:_PPT.DIM],
       ['PROGRAM FLOOR (Disc BA + MC short)', fSM(dBA+TT.mcNeed), _PPT.AMBER],
       ['Mandatory BA', fSM(mBA), _PPT.PURP], ['Mandatory drawn', fSM(TT.mUsed), _PPT.PURP],
-      ['Whole budget', fSM(dBA+mBA), _PPT.NAVY], ['Unfunded (incl allocation trims)', fSM(totUnf), _PPT.RED]];
+      ['Whole budget', fSM(dBA+mBA), _PPT.NAVY],
+      // BOTH READINGS on the slide people brief from. Stating one and not the other is how a room
+      // hears a single unfunded number and takes it for the whole answer.
+      ['Unfunded vs DISC (mandatory not counted)', fSM(totUnf1), _PPT.RED],
+      ['TOTAL Unfunded (incl allocation trims)', fSM(totUnf), _PPT.RED]];
     const rows=[[{t:'Measure',...H,align:'l'},{t:'Amount',...H}]];
     kpi.forEach(k=>rows.push([{t:k[0],sz:1200,c:_PPT.INK,align:'l'},{t:k[1],sz:1200,b:1,c:k[2]}]));
     slides.push(_pSlide(_pTitle(expTitle())
@@ -16842,15 +16905,15 @@ function exportPPT(){
   }
   // ---- 2: funding streams by service ----
   {
-    const rows=[[{t:'Service',...H,align:'l'},{t:FYL()+' Ask',...H},{t:'Disc BA',...H},{t:'Disc Funded',...H},{t:'Mand BA',...H},{t:'Mand Drawn',...H},{t:'Unfunded (incl delta)',...H}]];
-    const allAsk=SVC.map(_=>0), aD=SVC.map(_=>0), aM=SVC.map(_=>0), aU=SVC.map(_=>0);
+    const rows=[[{t:'Service',...H,align:'l'},{t:FYL()+' Ask',...H},{t:'Disc BA',...H},{t:'Disc Funded',...H},{t:'Mand BA',...H},{t:'Mand Drawn',...H},{t:'Unf vs DISC',...H},{t:'TOTAL Unf',...H}]];
+    const allAsk=SVC.map(_=>0), aD=SVC.map(_=>0), aM=SVC.map(_=>0), aU=SVC.map(_=>0), aU1=SVC.map(_=>0);
     S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return;
-      const uv=unfSvcOf(it,p);
-      SVC.forEach((s,i)=>{allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]; aM[i]+=p.m[i]; aU[i]+=uv[i];});});
-    SVC.forEach((s,i)=>rows.push([{t:s,b:1,c:_PPT.INK,align:'l'},{t:fSM(allAsk[i]),c:_PPT.INK},{t:fSM(S.discSvc[i]),c:_PPT.GREEN},{t:fSM(aD[i]),c:_PPT.GREEN},{t:fSM(S.mandSvc[i]),c:_PPT.PURP},{t:fSM(aM[i]),c:_PPT.PURP},{t:fSM(aU[i]),c:aU[i]>0.5?_PPT.RED:_PPT.DIM}]));
+      const uv=unfSvcOf(it,p), uv1=discUnfSvcOf(it,p);
+      SVC.forEach((s,i)=>{allAsk[i]+=it.ask[i]; aD[i]+=p.d[i]; aM[i]+=p.m[i]; aU[i]+=uv[i]; aU1[i]+=uv1[i];});});
+    SVC.forEach((s,i)=>rows.push([{t:s,b:1,c:_PPT.INK,align:'l'},{t:fSM(allAsk[i]),c:_PPT.INK},{t:fSM(S.discSvc[i]),c:_PPT.GREEN},{t:fSM(aD[i]),c:_PPT.GREEN},{t:fSM(S.mandSvc[i]),c:_PPT.PURP},{t:fSM(aM[i]),c:_PPT.PURP},{t:fSM(aU1[i]),c:aU1[i]>0.5?_PPT.RED:_PPT.DIM},{t:fSM(aU[i]),c:aU[i]>0.5?_PPT.RED:_PPT.DIM}]));
     const sum=a=>a.reduce((x,y)=>x+y,0);
-    rows.push([{t:'TOTAL',b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:fSM(sum(allAsk)),b:1,c:'FFFFFF',...TOTF},{t:fSM(dBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aD)),b:1,c:'FFFFFF',...TOTF},{t:fSM(mBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aM)),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aU)),b:1,c:_PPT.GOLD,...TOTF}]);
-    slides.push(_pSlide(hdr('Funding by Stream and Service','Lane model: each service exhausts its discretionary lane, then spills to its mandatory lane; trims and beyond-lane amounts are unfunded')+_pTbl(4,MX,1500000,CW,[3,2,2,2,2,2,2.4],rows)));
+    rows.push([{t:'TOTAL',b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:fSM(sum(allAsk)),b:1,c:'FFFFFF',...TOTF},{t:fSM(dBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aD)),b:1,c:'FFFFFF',...TOTF},{t:fSM(mBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aM)),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aU1)),b:1,c:_PPT.GOLD,...TOTF},{t:fSM(sum(aU)),b:1,c:_PPT.GOLD,...TOTF}]);
+    slides.push(_pSlide(hdr('Funding by Stream and Service','Lane model: each service exhausts its discretionary lane, then spills to its mandatory lane. Unf vs DISC counts the discretionary lane alone; TOTAL Unf counts both pots. Trims are unfunded in each.')+_pTbl(4,MX,1500000,CW,[3,2,2,2,2,2,2.2,2.2],rows)));
   }
   // ---- 3: PMO rollup ----
   // The same share model as the workbook's PMO Matrix: a CLIN-backed prime is split across the
@@ -19243,7 +19306,7 @@ function restoreAll(){ S.removed=[]; applyState(S); save(); render(); }
 // One width per column of the Priority Drill's requirement tabs, hoisted so the suite can hold it
 // against the header row. A short list does not move data, so nothing else would notice — but every
 // column past the gap takes the next one's width and the name columns clip.
-function drillCols(){ return [7,9,8,44,44,13,15,20,5,15,18,15,15,15,15,15,15,7,14].concat(SVC.map(function(){ return 14; })); }
+function drillCols(){ return [7,9,8,44,44,13,15,20,5,15,18,15,15,15,15,15,15,17,7,14].concat(SVC.map(function(){ return 14; })); }
 function exportCSV(){
   // Everything is read from the board as it stands; nothing here changes it.
   const T=tiers(), MR=masterRanks();
@@ -19276,10 +19339,12 @@ function exportCSV(){
     // Unfunded is floored PER SERVICE: a service is a service AND ITS VARIANT and money never nets
     // across them, so max(0, ask - funded) on the totals would let an over-allocated service cancel
     // a shortage in another.
-    return {ask, d:p.dT, m:p.mT, fn, u:unfTotOf(it,p), p}; };
+    // BOTH READINGS. u is ask less BOTH pots; u1 is ask less DISCRETIONARY alone. Floored per
+    // service in each case, for the reason stated just above.
+    return {ask, d:p.dT, m:p.mT, fn, u:unfTotOf(it,p), u1:discUnfTotOf(it,p), p}; };
   const agg=its=>its.reduce((a2,it)=>{ const x=mOf(it);
-    a2.n++; a2.ask+=x.ask; a2.d+=x.d; a2.m+=x.m; a2.fn+=x.fn; a2.u+=x.u; return a2; },
-    {n:0,ask:0,d:0,m:0,fn:0,u:0});
+    a2.n++; a2.ask+=x.ask; a2.d+=x.d; a2.m+=x.m; a2.fn+=x.fn; a2.u+=x.u; a2.u1+=x.u1; return a2; },
+    {n:0,ask:0,d:0,m:0,fn:0,u:0,u1:0});
 
   const RULE={full:'fund in full', min:'minimum first, then top up', skip:'full, or skip'};
   const pct=(a2,b2)=> b2>0.5? Math.round(a2/b2*100) : 0;
@@ -19288,7 +19353,7 @@ function exportCSV(){
   const COLS=drillCols();
   const HDR=()=>['Rank','PMO','Type','Requirement (CCaR Record Name)','Plan Event','CCaR','PID','Cost Element','★ MC',
     'Funding source','MIPR type',FYL()+' Requirement','Allocated','Discretionary','Mandatory','Funded','Unfunded',
-    '% Fund','Award', ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H}));
+    'Unfunded vs DISC','% Fund','Award', ...SVC.map(sv=>sv+' funded')].map(v=>({v,s:H}));
   const ROW=it=>{ const x=mOf(it), p=x.p;
     return [{v:MR[it.id],s:0}, grpOf(it), (ptypeOf(it.id)||''),
       // both names: a requirement with no record name falls back to its plan event rather than
@@ -19298,12 +19363,16 @@ function exportCSV(){
       srcLbl(it.id), (MIPR_LBL[miprOf(it.id)]||''),
       {v:x.ask,s:M}, {v:(S.fsrc||{})[it.id]? x.fn : eff(it), s:M},
       {v:x.d,s:M}, {v:x.m,s:M}, {v:x.fn,s:M}, {v:x.u, s:x.u>0.5? MR_ : M},
+      {v:x.u1, s:x.u1>0.5? MR_ : M},
       {v:pct(x.fn,x.ask),s:0}, awLbl(it.id),
       ...SVC.map((sv,j)=>({v:(p.d?(p.d[j]||0):0)+(p.m?(p.m[j]||0):0), s:M}))]; };
   // one empty per non-money column. Eleven now, not ten — miss this and every figure in every
   // subtotal row shifts one column left while the workbook still opens cleanly.
+  // 'Unfunded vs DISC' is a MONEY column, so it takes a FIGURE here, not another empty. Padding it
+  // instead would leave the second reading blank on every subtotal while the first stayed filled --
+  // the sheet would still open, still cross-foot, and simply never state the reading.
   const SUB=(label,a2,style)=>[{v:label,s:style||B},'','','','','','','','','','',
-    {v:a2.ask,s:MB},'',{v:a2.d,s:MB},{v:a2.m,s:MB},{v:a2.fn,s:MB},{v:a2.u,s:MB},
+    {v:a2.ask,s:MB},'',{v:a2.d,s:MB},{v:a2.m,s:MB},{v:a2.fn,s:MB},{v:a2.u,s:MB},{v:a2.u1,s:MB},
     {v:pct(a2.fn,a2.ask),s:B},'', ...SVC.map(_=>'')];
 
   /* A HEADER'S TOTAL IS ITS OWN REQUIREMENTS PLUS EVERYTHING FILED UNDER IT, emitted after the
@@ -19327,7 +19396,7 @@ function exportCSV(){
   const ROLL=r=>[{v:'BAND '+r.lbl+' TOTAL  —  '+r.n.toUpperCase()+'  (with its '+r.kids
       +' sub-band'+(r.kids===1?'':'s')+')', s:SEC},'','','','','','','','','','',
     {v:r.agg.ask,s:MSEC},'',{v:r.agg.d,s:MSEC},{v:r.agg.m,s:MSEC},{v:r.agg.fn,s:MSEC},
-    {v:r.agg.u,s:MSEC},{v:pct(r.agg.fn,r.agg.ask),s:B},'', ...SVC.map(_=>'')];
+    {v:r.agg.u,s:MSEC},{v:r.agg.u1,s:MSEC},{v:pct(r.agg.fn,r.agg.ask),s:B},'', ...SVC.map(_=>'')];
 
   // a banded section: coloured banner, header, rows in priority order, subtotal
   const section=(g,rows)=>{
@@ -19865,15 +19934,22 @@ function exportExcel(){
     // figure the star is actually about -- was in no export at all, so checking it meant opening
     // rows one at a time. Appended at the END so no existing column moves.
     const isMC = tier==='mc';
+    // The UNFUNDED sheet states BOTH readings. Its ROW SET must not move: disc, mand and unf
+    // partition every requirement exactly once, and listing a requirement here that mandatory has
+    // covered would double-count it against the lane sheets. So reading #1 is an extra COLUMN,
+    // appended at the END like the MC shortage was, and no existing column shifts.
+    const isUNF = tier==='unf';
     const rows=[[{v:name+'  \u2014  '+its.length+(tier==='mc'
       ? ' starred requirements with a shortfall (memo \u2014 their dollars are already in the lane sheets)'
       : ' requirements (portion drawn \u2014 a requirement can appear on several sheets)'),s:TI}],[],
       isMC? listHdr(AMTLBL[tier]).concat([{v:'\u2605 Short vs DISC',s:H}],SVC.map(s=>({v:'Short '+s,s:H})))
+      : isUNF? listHdr(AMTLBL[tier]).concat([{v:'Unfunded vs DISC',s:H}])
           : listHdr(AMTLBL[tier])];
     its.forEach(it=>{
       const row=itemRowP(it,amt(T[it.id],it),vec(T[it.id],it));
       if(isMC){ const sh=mcShortSvcOf(it,T[it.id]);
         row.push({v:sh.reduce((a,b)=>a+b,0),s:NB}, ...sh.map(v=>({v,s:N}))); }
+      if(isUNF) row.push({v:discUnfTotOf(it,T[it.id]),s:N});
       rows.push(row);
     });
     const tot=its.reduce((a,it)=>a+amt(T[it.id],it),0);
@@ -19883,6 +19959,9 @@ function exportExcel(){
       const shT=SVC.map((s,i)=>its.reduce((a,it)=>a+mcShortSvcOf(it,T[it.id])[i],0));
       totRow.push({v:shT.reduce((a,b)=>a+b,0),s:NB}, ...shT.map(v=>({v,s:NB})));
     }
+    // A MONEY column takes a FIGURE in the total row, never another empty -- pad it and the second
+    // reading is blank on every subtotal while the first stays filled, and the sheet never says so.
+    if(isUNF) totRow.push({v:its.reduce((a,it)=>a+discUnfTotOf(it,T[it.id]),0),s:NB});
     rows.push(totRow);
     if(tier==='mc'){
       // The board-wide memo covers EVERY starred requirement; this sheet lists only the ones that
@@ -19930,6 +20009,13 @@ function exportExcel(){
   const unfSvc=(()=>{ const v=SVC.map(_=>0);
     S.order.forEach(id=>{ const it=itemById(id); if(!it) return; unfSvcOf(it,T[id]).forEach((x,i)=>v[i]+=x); });
     return v; })();
+  // READING #1, the same aggregation one lane earlier: ask less what DISCRETIONARY paid, with the
+  // mandatory pot not counted at all. Summed per service from the per-requirement reading for the
+  // same reason beyondSvc is -- a board-level subtraction would net an over-allocated service
+  // against a short one and quietly understate both.
+  const discUnfSvc=(()=>{ const v=SVC.map(_=>0);
+    S.order.forEach(id=>{ const it=itemById(id); if(!it) return; discUnfSvcOf(it,T[id]).forEach((x,i)=>v[i]+=x); });
+    return v; })();
   const baBlock=rows=>{
     rows.push([{v:'BUDGET AUTHORITY',s:SEC},...SVC.flatMap((s,i)=>[{v:S.discSvc[i],s:NB},{v:S.mandSvc[i],s:NB}]),{v:discTot(),s:NB},{v:mandTot(),s:NB},'']);
     rows.push([{v:'REMAINING (lanes)',s:B},...SVC.flatMap((s,i)=>[{v:Math.max(0,T.__rem.dRem[i]),s:N},{v:Math.max(0,T.__rem.mRem[i]),s:N}]),
@@ -19940,6 +20026,11 @@ function exportExcel(){
       {v:dltSvc.reduce((a,b)=>a+b,0),s:NB},'','']);
     rows.push([{v:'TOTAL UNFUNDED (deltas + beyond lanes)',s:B},...SVC.flatMap((s,i)=>[{v:unfSvc[i],s:unfSvc[i]>0.5?NR:N},'']),
       {v:unfSvc.reduce((a,b)=>a+b,0),s:unfSvc.some(v=>v>0.5)?NR:NB},'','']);
+    // THE SECOND READING, stated wherever the first is. Ask less DISCRETIONARY alone: what the
+    // portfolio is short if the mandatory pot is not counted against it. It is never smaller than
+    // the row above, and the gap between them is exactly what mandatory is carrying.
+    rows.push([{v:'UNFUNDED vs DISC (mandatory not counted)',s:B},...SVC.flatMap((s,i)=>[{v:discUnfSvc[i],s:discUnfSvc[i]>0.5?NR:N},'']),
+      {v:discUnfSvc.reduce((a,b)=>a+b,0),s:discUnfSvc.some(v=>v>0.5)?NR:NB},'','']);
   };
   const matrixSheet=(name,title,keyLbl,byK,keys,keyStyle)=>{
     const sh={name, cols:[26,...SVC.flatMap(_=>[13,13]),14,14,16,16],
@@ -19991,18 +20082,20 @@ function exportExcel(){
   });
   const gmx=matrixSheet('PMO Matrix', document.title+' — PMO Funding by service (Disc lane | Mand spillover)','PMO',byGX,pmoKeys(byGX));
   // --- Funding Streams: what each stream funds, by service ---
-  const fs={name:'Funding Streams', cols:[16,15,15,15,15,15,15,15,15,16,16,16],
+  const fs={name:'Funding Streams', cols:[16,15,15,15,15,15,15,15,15,16,16,16,16],
     rows:[[{v:expTitle()+' — Funding by stream and service (lane model)',s:TI}],[],
-      [{v:'Service',s:H},{v:FYL()+' Ask',s:H},{v:'Disc BA',s:H},{v:'Disc Funded',s:H},{v:'Disc Remaining',s:H},{v:'Mand BA',s:H},{v:'Mand Funded',s:H},{v:'Mand Remaining',s:H},{v:'Funded Total',s:H},{v:'Ask Not Allocated (delta)',s:H},{v:'Beyond Both Lanes',s:H},{v:'TOTAL UNFUNDED',s:H}]]};
+      [{v:'Service',s:H},{v:FYL()+' Ask',s:H},{v:'Disc BA',s:H},{v:'Disc Funded',s:H},{v:'Disc Remaining',s:H},{v:'Mand BA',s:H},{v:'Mand Funded',s:H},{v:'Mand Remaining',s:H},{v:'Funded Total',s:H},{v:'Ask Not Allocated (delta)',s:H},{v:'Beyond Both Lanes',s:H},{v:'Unfunded vs DISC',s:H},{v:'TOTAL UNFUNDED',s:H}]]};
   SVC.forEach((s,i)=>{
     fs.rows.push([s,{v:allAsk[i],s:N},{v:S.discSvc[i],s:N},{v:allD[i],s:N},{v:Math.max(0,T.__rem.dRem[i]),s:N},
       {v:S.mandSvc[i],s:N},{v:allM[i],s:N},{v:Math.max(0,T.__rem.mRem[i]),s:N},
-      {v:allD[i]+allM[i],s:NB},{v:dltSvc[i],s:N},{v:beyondSvc[i],s:beyondSvc[i]>0.5?NR:N},{v:unfSvc[i],s:unfSvc[i]>0.5?NR:N}]);
+      {v:allD[i]+allM[i],s:NB},{v:dltSvc[i],s:N},{v:beyondSvc[i],s:beyondSvc[i]>0.5?NR:N},
+      {v:discUnfSvc[i],s:discUnfSvc[i]>0.5?NR:N},{v:unfSvc[i],s:unfSvc[i]>0.5?NR:N}]);
   });
   const sum=a=>a.reduce((x,y)=>x+y,0);
   fs.rows.push([{v:'TOTAL',s:SEC},{v:sum(allAsk),s:NB},{v:discTot(),s:NB},{v:sum(allD),s:NB},{v:T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},
     {v:mandTot(),s:NB},{v:sum(allM),s:NB},{v:T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0),s:NB},
-    {v:sum(allD)+sum(allM),s:NB},{v:sum(dltSvc),s:NB},{v:sum(beyondSvc),s:sum(beyondSvc)>0.5?NR:NB},{v:sum(unfSvc),s:sum(unfSvc)>0.5?NR:NB}]);
+    {v:sum(allD)+sum(allM),s:NB},{v:sum(dltSvc),s:NB},{v:sum(beyondSvc),s:sum(beyondSvc)>0.5?NR:NB},
+    {v:sum(discUnfSvc),s:sum(discUnfSvc)>0.5?NR:NB},{v:sum(unfSvc),s:sum(unfSvc)>0.5?NR:NB}]);
   fs.rows.push([]);
   fs.rows.push(['LANE MODEL: each service draws its own discretionary lane first, then spills into its mandatory lane. Deltas (Ask − Allocation) are trims made on the board — they are unfunded requirements too and are included in TOTAL UNFUNDED.']);
   fs.rows.push([]);
@@ -20019,9 +20112,16 @@ function exportExcel(){
     +'the topline you are counting on. These figures are a memo over requirements and are already '
     +'inside the lane columns above \u2014 do not add them to a lane total.']);
   // --- Unfunded Requirements listing (lane shortfalls + ask-vs-alloc deltas) ---
-  const uIts=S.order.map(itemById).filter(it=>it&&unfTotOf(it,T[it.id])>0.005);
+  // BOTH READINGS DECIDE WHO IS LISTED, and that is not a nicety. A requirement short against
+  // DISCRETIONARY but covered once the mandatory pot is counted has a TOTAL Unfunded of zero, so it
+  // was dropped from this sheet entirely -- taking its "Unfunded vs DISC" figure with it. The column
+  // stayed and looked authoritative; its total was short by exactly the requirements the two
+  // readings disagree about, which is the only thing anyone opens a two-reading sheet to see. On a
+  // three-requirement fixture it printed 75 where the true reading was 135.
+  const uIts=S.order.map(itemById).filter(it=>it
+    && (unfTotOf(it,T[it.id])>0.005 || discUnfTotOf(it,T[it.id])>0.005));
   const uSheet={name:'Unfunded Requirements', cols:[8,10,22,44,44,13,17,14,14,14,14,16,14,...SVC.map(_=>13)],
-    rows:[[{v:'Unfunded requirements  —  '+uIts.length+' items (allocation trims count as unfunded)',s:TI}],[],
+    rows:[[{v:'Unfunded requirements  —  '+uIts.length+' items, short against DISCRETIONARY or against BOTH pots (allocation trims count as unfunded)',s:TI}],[],
       [{v:'Rank',s:H},{v:'PMO',s:H},{v:'Cost Element',s:H},{v:'Requirement (CCaR Record Name)',s:H},{v:'Plan Event',s:H},{v:'CCaR',s:H},{v:'PID',s:H},{v:FYL()+' Ask',s:H},{v:'Allocated',s:H},{v:'Trim, by service',s:H},{v:'Beyond Both Lanes',s:H},
        // TWO READINGS OF SHORT, side by side: what discretionary alone leaves, and what both pots
        // leave. The gap between the columns is what the mandatory pot is carrying.
@@ -20095,9 +20195,9 @@ function exportExcel(){
     +'scaled to each requirement\u2019s funded total in that plan. Both plans are spread by the '
     +'same rules as the board\u2019s own forecast, so they cannot disagree about when a dollar lands.']);
   // --- CR Cash Needs (half-month windows Oct–Mar) ---
-  const crW=crWins(), crD=crData();
+  const crW=crWins(), crD=crData(scenOpt());
   const crSheet={name:'CR Cash Needs', cols:[36,...crW.map(_=>11),11,12],
-    rows:[[{v:expTitle()+' — Continuing Resolution cash needs by half-month window (OCT '+(MS.cur-1)+' – MAR '+MS.cur+') — funded dollars placed by obligation dates',s:TI}],[],
+    rows:[[{v:scenTitle(expTitle()+' — Continuing Resolution cash needs by half-month window (OCT '+(MS.cur-1)+' – MAR '+MS.cur+') — funded dollars placed by obligation dates'),s:TI}],[],
       [{v:'Service / Requirement',s:H},...crW.map(w=>({v:w.lbl,s:H})),{v:'No date',s:H},{v:'TOTAL IN WINDOW',s:H}]]};
   SVC.forEach((s,i)=>{
     const sv=crD[i];
@@ -20122,14 +20222,14 @@ function exportExcel(){
     const srcLbl=id=>{ const f=S.fsrc[id]; return f? ({disc:'Force DISC',mand:'Force MAND',ufr:'Force UFR',split:'Split D/M/UFR'}[f.m]||f.m) : 'auto (lanes)'; };
     const L=BANDS_LIST();
     const cols=[7,6,24,9,8,22,44,44,13,17,6,14,14,13,
-      ...SVC.map(_=>13),14, ...SVC.map(_=>13),14, ...SVC.map(_=>13),14, ...SVC.map(_=>13),14,
+      ...SVC.map(_=>13),14, ...SVC.map(_=>13),14, ...SVC.map(_=>13),14, ...SVC.map(_=>13),14,16,
       9,15,50,50];
     const hdr=()=>[ 'Rank','Band','Band name','PMO','Type','Cost Element','Requirement (CCaR Record Name)','Plan Event','CCaR','PID',
       '★ MC','Funding source',FYL()+' Requirement','Min useful incr',
       ...SVC.map(v=>v+' Disc'),'DISC TOTAL',
       ...SVC.map(v=>v+' Mand'),'MAND TOTAL',
       ...SVC.map(v=>v+' Funded'),'FUNDED TOTAL',
-      ...SVC.map(v=>v+' Unfunded'),'UNFUNDED TOTAL',
+      ...SVC.map(v=>v+' Unfunded'),'UNFUNDED TOTAL','UNFUNDED vs DISC',
       'Funded %','Cum funded in band','Consequence of non-funding','Description'
     ].map(v=>({v,s:H}));
     // one requirement's numbers
@@ -20138,18 +20238,23 @@ function exportExcel(){
       const d=SVC.map((x,i)=>p.d[i]), m=SVC.map((x,i)=>p.m[i]);
       const fn=SVC.map((x,i)=>p.d[i]+p.m[i]);
       const uf=unfSvcOf(it,p);
+      // READING #1 beside it: ask less DISCRETIONARY alone. Summed per service like everything
+      // else here, so a service funded past its ask cannot mask another that is short.
+      const du=discUnfSvcOf(it,p);
       const ask=askTot(it), fT=p.dT+p.mT;
       // The total is the SUM of the per-service figures, not the totals differenced: those net an
       // over-allocated service against a short one.
-      return {d,m,fn,uf,ask,dT:p.dT,mT:p.mT,fT,uT:uf.reduce((a,b)=>a+b,0)};
+      return {d,m,fn,uf,du,ask,dT:p.dT,mT:p.mT,fT,
+              uT:uf.reduce((a,b)=>a+b,0), duT:du.reduce((a,b)=>a+b,0)};
     };
-    const zero=()=>({d:SVC.map(_=>0),m:SVC.map(_=>0),fn:SVC.map(_=>0),uf:SVC.map(_=>0),ask:0,dT:0,mT:0,fT:0,uT:0});
-    const add=(a,b)=>{ SVC.forEach((x,i)=>{a.d[i]+=b.d[i];a.m[i]+=b.m[i];a.fn[i]+=b.fn[i];a.uf[i]+=b.uf[i];});
-      a.ask+=b.ask; a.dT+=b.dT; a.mT+=b.mT; a.fT+=b.fT; a.uT+=b.uT; return a; };
+    const zero=()=>({d:SVC.map(_=>0),m:SVC.map(_=>0),fn:SVC.map(_=>0),uf:SVC.map(_=>0),du:SVC.map(_=>0),ask:0,dT:0,mT:0,fT:0,uT:0,duT:0});
+    const add=(a,b)=>{ SVC.forEach((x,i)=>{a.d[i]+=b.d[i];a.m[i]+=b.m[i];a.fn[i]+=b.fn[i];a.uf[i]+=b.uf[i];a.du[i]+=b.du[i];});
+      a.ask+=b.ask; a.dT+=b.dT; a.mT+=b.mT; a.fT+=b.fT; a.uT+=b.uT; a.duT+=b.duT; return a; };
     const numsOf=(k,st)=>[...k.d.map(v=>({v,s:st})),{v:k.dT,s:st===N?NB:st},
       ...k.m.map(v=>({v,s:st})),{v:k.mT,s:st===N?NB:st},
       ...k.fn.map(v=>({v,s:st})),{v:k.fT,s:st===N?NB:st},
-      ...k.uf.map(v=>({v,s:k.uT>0.5&&st===N?NR:st})),{v:k.uT,s:k.uT>0.5?NR:(st===N?NB:st)}];
+      ...k.uf.map(v=>({v,s:k.uT>0.5&&st===N?NR:st})),{v:k.uT,s:k.uT>0.5?NR:(st===N?NB:st)},
+      {v:k.duT,s:k.duT>0.5?NR:(st===N?NB:st)}];
     // the ladder, plus an unbanded bucket that must never be silently dropped
     const buckets=L.map((b,i)=>({i, id:b.id, n:b.n, rule:b.rule, crit:!!b.crit, consReq:!!b.consReq, std:BAND_IS_STD(b), its:[]}));
     const unb={i:null, id:null, n:'(not yet banded)', rule:BAND_FALLBACK().rule, crit:false, consReq:false, std:false, its:[]};
@@ -20181,8 +20286,11 @@ function exportExcel(){
     const rows=[[{v:expTitle()+' — Decision Bands, in priority order',s:TI}],[]];
     // summary first, so the shape is readable before anyone scrolls
     rows.push([{v:'BAND SUMMARY',s:SEC}]);
+    // BOTH READINGS in the summary too. This block is the first thing on the sheet and is what a
+    // reader quotes; stating one reading here and two further down would be the same sheet giving
+    // two answers to "how short are we" depending on how far you scrolled.
     rows.push(['Band','Band name','Rule','Stoppage gap','Consequence req','Reqs',FYL()+' Requirement',
-      'Disc','Mand','Funded','Unfunded','Funded %'].map(v=>({v,s:H})));
+      'Disc','Mand','Funded','Unfunded','Unfunded vs DISC','Funded %'].map(v=>({v,s:H})));
     const grand=zero(); let grandN=0;
     all.forEach(function(b,n){
       const k=b.its.reduce((a,it)=>add(a,measure(it)), zero());
@@ -20193,17 +20301,20 @@ function exportExcel(){
         {v:(kid?'    ':'')+b.n,s:b.std?B:0},RULELBL[b.rule]||b.rule,
         b.crit?'yes':'', b.consReq?'yes':'', {v:b.its.length,s:0},
         {v:k.ask,s:N},{v:k.dT,s:N},{v:k.mT,s:N},{v:k.fT,s:N},{v:k.uT,s:k.uT>0.5?NR:N},
+        {v:k.duT,s:k.duT>0.5?NR:N},
         {v:k.ask>0.5? Math.round(k.fT/k.ask*100):0,s:0}]);
       if(rollAt[n]){ const r=rollAt[n], kk=rollK(r), nn=rollN(r);
         rows.push([{v:BAND_LBL_AT(r.h)+' total',s:SEC},
           {v:buckets[r.h].n.toUpperCase()+' — with its '+r.kids.length
             +' sub-band'+(r.kids.length===1?'':'s'),s:SEC},'','','',{v:nn,s:B},
           {v:kk.ask,s:NB},{v:kk.dT,s:NB},{v:kk.mT,s:NB},{v:kk.fT,s:NB},{v:kk.uT,s:NB},
+          {v:kk.duT,s:NB},
           {v:kk.ask>0.5? Math.round(kk.fT/kk.ask*100):0,s:B}]);
       }
     });
     rows.push([{v:'ALL BANDS',s:SEC},'','','','',{v:grandN,s:B},{v:grand.ask,s:NB},{v:grand.dT,s:NB},
       {v:grand.mT,s:NB},{v:grand.fT,s:NB},{v:grand.uT,s:grand.uT>0.5?NR:NB},
+      {v:grand.duT,s:grand.duT>0.5?NR:NB},
       {v:grand.ask>0.5? Math.round(grand.fT/grand.ask*100):0,s:B}]);
     rows.push([]);
     /* THE HEADER TOTAL AS A ROW. Its own line rather than a re-styled subtotal, because a reader

@@ -235,8 +235,20 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'tile · Whole budget', 'count of rows carrying unfunded dollars',
     grab('tile · Whole budget', 'unf count', '.sc.whole', /(\d+) reqs \//),
     ids.filter(id => sum(T[id].u) > 0.005).length);
-  chk(name, 'tile · Whole budget', 'unfunded beyond the whole budget',
-    grab('tile · Whole budget', 'unfunded', '.sc.whole', /\$([\d,]+) unfunded beyond it/), uAmtExp);
+  chk(name, 'tile · Whole budget', 'beyond both lanes',
+    grab('tile · Whole budget', 'beyond', '.sc.whole', /\$([\d,]+) beyond both lanes/), uAmtExp);
+  // THE TWO PORTFOLIO READINGS, ON SCREEN. The tile used to show the lane figure alone, which is
+  // NEITHER reading -- it excludes trims -- so the dashboard's most prominent unfunded number was a
+  // third figure that appeared in no export. Both are asserted here because they are RENDERED and
+  // never exported: no export suite can reach them.
+  chk(name, 'tile · Whole budget', 'UNFUNDED vs DISC (ask - disc)',
+    grab('tile · Whole budget', 'r1', '.sc.whole', /UNFUNDED vs DISC \$([\d,]+)/),
+    sum(ids.map(id => sum(SVC.map((s, i) =>
+      Math.max(0, (sc.items.find(x => x.id === id).ask[i] || 0) - T[id].d[i]))))));
+  chk(name, 'tile · Whole budget', 'TOTAL unfunded (ask - disc - mand)',
+    grab('tile · Whole budget', 'r2', '.sc.whole', /TOTAL \$([\d,]+)/),
+    sum(ids.map(id => sum(SVC.map((s, i) =>
+      Math.max(0, (sc.items.find(x => x.id === id).ask[i] || 0) - T[id].d[i] - T[id].m[i]))))));
 
   // ---- the discretionary fit strip, per service ----
   // Exact dollars live in each chip's tooltip; the chip face is abbreviated for width.
