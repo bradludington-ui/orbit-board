@@ -8,7 +8,8 @@
 // NOT APPLIED, never as caught or survived — otherwise a stale search string would masquerade as
 // proof that a line is covered.
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execFile } from 'node:child_process';
+import { cpus } from 'node:os';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,14 +25,19 @@ const SUITES = [
   // The board derives figures it never exports — the cumulative among them. Without a suite that
   // can see them, a mutation to those lines passes everything and proves nothing.
   ['board', join(HERE, 'audit-board.mjs')],
-  // Import is the one place the board takes numbers it did not compute, and every suite above it
-  // is on the way OUT. A break in the service-alignment guard is invisible to all of them.
-  ['import', join(HERE, 'audit-import.mjs')],
   // Every suite above derives what it expects from the board's own helpers. Reconciliation does
   // not: it asserts arithmetic that must hold whatever the algorithm does, and cross-foots every
   // printed total against the rows under it. A break that tiers() and the exports AGREE about is
   // invisible to all of them and visible here.
   ['recon', join(HERE, 'audit-recon.mjs')],
+  // LAST ON PURPOSE, AND THE ORDER OF THIS LIST IS A COST DECISION. The loop stops at the first
+  // suite that catches, so a suite placed early is paid for by every mutation the ones before it
+  // miss. Measured on an idle box: other 2.9s, ppt 3.7s, recon 4.2s, excel 8.2s, board 12.4s,
+  // import 23.8s. Import is four times the average and catches the narrowest slice -- it is the
+  // one place the board takes numbers it did not compute, and every suite above it is on the way
+  // OUT -- so it goes at the end. Moving it after recon alone takes ~20s off every mutation that
+  // recon catches and costs 4s on the few import catches.
+  ['import', join(HERE, 'audit-import.mjs')],
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
@@ -764,24 +770,39 @@ const results = [];
 
 console.log(`\nmutation sweep — ${picked.length} mutation(s), ${SUITES.length} suite(s)\n`);
 
+// MUTATIONS RUN CONCURRENTLY; the SUITES within one mutation stay sequential, because the loop
+// short-circuits on the first catch and running them in parallel would pay for suites it does not
+// need. One sweep on its own was using a single core of four while the box sat idle -- and
+// validate-math runs two sweeps (one per build) side by side, so half the default here is the
+// right share. MUT_JOBS overrides it.
+const JOBS = Math.max(1, Number(process.env.MUT_JOBS) || Math.ceil(cpus().length / 2));
+const runSuite = (path, file) => new Promise(done => {
+  execFile(process.execPath, [path], { env: { ...process.env, BOARD: file }, maxBuffer: 1 << 26 },
+    err => done(!err));               // err == non-zero exit == the suite failed == mutation caught
+});
+
+// The NOT APPLIED test is a string match on source we already hold: cheap, and worth doing for
+// every mutation up front so a stale target is reported even if the sweep is interrupted later.
+const queue = [];
 for (const m of picked) {
   const hits = src.split(m.find).length - 1;
   if (hits !== 1) {
-    results.push({ ...m, status: 'NOT APPLIED', by: `target matched ${hits} times, expected 1` });
+    results.push({ ...m, status: 'NOT APPLIED', by: `target matched ${hits} times, expected 1`, seq: results.length });
     console.log(`  NOT APPLIED  ${m.id.padEnd(22)} target matched ${hits}x`);
     continue;
   }
+  queue.push(m);
+}
+
+console.log(`  running ${queue.length} mutation(s) ${JOBS} at a time\n`);
+
+async function runOne(m) {
   const file = join(dir, m.id + '.html');
   writeFileSync(file, src.replace(m.find, m.repl));
 
   let caughtBy = null;
   for (const [suite, path] of SUITES) {
-    try {
-      execFileSync(process.execPath, [path], { env: { ...process.env, BOARD: file }, stdio: 'pipe' });
-    } catch {
-      caughtBy = suite;                 // non-zero exit == the suite failed == mutation caught
-      break;
-    }
+    if (!(await runSuite(path, file))) { caughtBy = suite; break; }
   }
   // An EQUIVALENT mutation changes the source without changing any observable behaviour, so no
   // suite can catch it and none should be written to try. Reporting it as SURVIVED forever would
@@ -794,8 +815,18 @@ for (const m of picked) {
   const note = caughtBy ? '(' + caughtBy + ')'
              : m.equivalent ? '<- no observable difference: ' + m.equivalent
              : '<- NOT COVERED: ' + m.what;
+  // Printed as each finishes, so the line order is completion order rather than list order. The
+  // SUMMARY is what is read and what validate-math parses, and that is sorted below.
   console.log(`  ${status.padEnd(12)} ${m.id.padEnd(22)} ${note}`);
 }
+
+{
+  let next = 0;
+  const worker = async () => { while (next < queue.length) await runOne(queue[next++]); };
+  await Promise.all(Array.from({ length: JOBS }, worker));
+}
+// Completion order is not list order. Restore it so two runs of the same sweep read the same.
+results.sort((a, b) => picked.findIndex(x => x.id === a.id) - picked.findIndex(x => x.id === b.id));
 
 const caught = results.filter(r => r.status === 'caught');
 const survived = results.filter(r => r.status === 'SURVIVED');

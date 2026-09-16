@@ -1346,6 +1346,38 @@ the first red tells you one thing and hides five — and exits non-zero if any s
 the defect register, money coverage (both builds), the trace matrix (both builds), the 7 suites
 (both builds), parity, the browser checks, and both mutation sweeps in parallel.
 
+### What the run costs, and why the suite order is a cost decision
+
+**~67 minutes**, of which the two mutation sweeps are ~62 and ~64 (they run in parallel, so the
+wall clock is the slower one). Everything else totals about three minutes.
+
+The sweep is 177 mutations × up to 6 suites × 2 builds, and the loop **short-circuits on the first
+suite that catches**. That makes the order of `SUITES` a performance decision, not a stylistic one:
+a suite placed early is paid for by every mutation the ones before it miss. Measured on an idle box:
+
+| suite | cost |
+|---|---|
+| `audit-other` | 2.9s |
+| `audit-ppt` | 3.7s |
+| `audit-recon` | 4.2s |
+| `audit` (excel) | 8.2s |
+| `audit-board` | 12.4s |
+| `audit-import` | **23.8s** |
+
+`audit-import` is four times the average and catches the narrowest slice — every suite above it
+watches the way *out* of the board — so it goes **last**. It used to sit ahead of `recon`, which
+meant every mutation `recon` caught paid 23.8 seconds for nothing first.
+
+**Mutations run concurrently; the suites inside one mutation do not.** `MUT_JOBS` defaults to half
+the cores, because `validate:math` runs two sweeps side by side — so two sweeps × two workers
+saturates a four-core box. Parallelising the *suites* would be wrong: the loop stops at the first
+catch, so it would pay for work it does not need.
+
+> **The 11 equivalent mutations run all six suites every night — about ten minutes — and can never
+> be caught.** Skipping them is the obvious saving and it is deliberately not taken: running them is
+> the only way to detect an equivalence that has gone **stale**. An equivalence is a claim that a
+> line cannot be broken; the night it stops being true is the night you need to hear about it.
+
 ### The defect register — every math error this board has shipped
 
 `math-defects.json`, checked by `npm run defects`, is the first stage of the nightly run. **When a
@@ -1363,7 +1395,7 @@ funded beside its own UFR"* is what gets recognised again next time; *"`tiers()`
 `dRem[i]`"* is not. The register is read by whoever is staring at a number that looks wrong.
 
 It does **not** re-run the mutations — the sweep does that, and doing it twice would double a
-two-hour run. This stage asserts the guards *exist and are wired in*; the sweep proves they *bite*.
+hour-long run. This stage asserts the guards *exist and are wired in*; the sweep proves they *bite*.
 Together they mean a fixed defect cannot come back unnoticed.
 
 `guarded: false` is outstanding debt — a defect fixed but never pinned down by a mutation. It is
