@@ -145,8 +145,8 @@ const MUTATIONS = [
   // ask, which reported a trim as "beyond both lanes" and let the act of recording a source change
   // what a requirement was short. This puts that back, so the guards that now forbid it stay honest.
   { id: 'basis-fsrc', area: 'model', what: 'a recorded funding source re-bases on the full ask again',
-    find: 'function basisSvcOf(it){ return svcAlloc(it); }',
-    repl: 'function basisSvcOf(it){ return S.fsrc[it.id]? it.ask.slice() : svcAlloc(it); }' },
+    find: '  const a = svcAlloc(it);',
+    repl: '  const a = S.fsrc[it.id]? it.ask.slice() : svcAlloc(it);' },
   // seedSplit recorded the lane draw rounded to whole dollars. Harmless while the basis was the
   // ask (the rounded value sat under that ceiling); against the allocation it makes converting a
   // board to Split lossy by cents, on every requirement at once.
@@ -176,7 +176,7 @@ const MUTATIONS = [
   { id: 'mc-short-nets-mand', area: 'model', what: 'MC shortage nets off mandatory',
     find: '  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0)));',
     repl: '  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));' },
-  { id: 'mc-short-unfloored', area: 'model', what: 'MC shortage not floored per service',
+  { id: 'mc-short-unfloored', area: 'model', equivalent: 'basisSvcOf() clamps the allocation to the ask, so no service can be funded above its own requirement and ask - d [- m] is never negative -- this floor is now arithmetically unreachable. It was a real mutation while an over-allocation could be drawn in full. audit.mjs asserts \'funded never exceeds the requirement\' per service on every scenario, and basis-over-ask proves the clamp is enforced, so if either gives way THOSE fail first and this stops being equivalent', what: 'MC shortage not floored per service',
     find: '  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0)));',
     repl: '  return SVC.map((s,i)=>((it.ask[i]||0) - ((p&&p.d[i])||0)));' },
   { id: 'mc-excel-total', area: 'excel', what: 'Excel MC memo reverts to mandatory+unfunded',
@@ -218,7 +218,7 @@ const MUTATIONS = [
   { id: 'unf-trim-not-per-service', area: 'model', what: 'trim netted across services again',
     find: '  const b=basisSvcOf(it);\n  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - (b[i]||0)));',
     repl: '  const b=basisSvcOf(it);\n  const t=Math.max(0,_vsum(it.ask)-_vsum(b)); return SVC.map((s,i)=>i===0?t:0);' },
-  { id: 'unf-beyond-uncapped', area: 'model', what: 'beyond-both-lanes not capped at the ask',
+  { id: 'unf-beyond-uncapped', area: 'model', equivalent: 'min(ask, basis) == basis now that basisSvcOf() clamps the allocation to the ask, so the cap is the identity. It was a real mutation while the basis could exceed the requirement -- which is the defect over-allocation-became-unfunded records. The clamp is guarded by basis-over-ask and basis-clamps-to-alloc, so removing it fails those first', what: 'beyond-both-lanes not capped at the ask',
     find: '  return SVC.map((s,i)=>Math.max(0, Math.min(it.ask[i]||0, b[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));',
     repl: '  return SVC.map((s,i)=>Math.max(0, (b[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));' },
 
@@ -251,11 +251,11 @@ const MUTATIONS = [
   // statement, so adding u1 to it matched nothing -- NOT APPLIED, a check proving nothing. Aimed at
   // the single u: term now, which is the thing the mutation is actually about and does not move
   // when a sibling field is added beside it.
-  { id: 'drill-unf', area: 'other', what: 'Priority Drill unfunded netted across services again',
+  { id: 'drill-unf', area: 'other', equivalent: 'basisSvcOf() clamps the allocation to the ask, so no service can be funded above its own requirement and ask - d [- m] is never negative -- this floor is now arithmetically unreachable. It was a real mutation while an over-allocation could be drawn in full. audit.mjs asserts \'funded never exceeds the requirement\' per service on every scenario, and basis-over-ask proves the clamp is enforced, so if either gives way THOSE fail first and this stops being equivalent', what: 'Priority Drill unfunded netted across services again',
     find: 'u:unfTotOf(it,p), u1:discUnfTotOf(it,p), p}; };',
     repl: 'u:Math.max(0,ask-fn), u1:discUnfTotOf(it,p), p}; };' },
   // and the same net-across-services error on the SECOND reading, which has its own subtraction
-  { id: 'drill-unf-disc', area: 'other', what: 'Priority Drill vs-DISC reading netted across services',
+  { id: 'drill-unf-disc', area: 'other', equivalent: 'basisSvcOf() clamps the allocation to the ask, so no service can be funded above its own requirement and ask - d [- m] is never negative -- this floor is now arithmetically unreachable. It was a real mutation while an over-allocation could be drawn in full. audit.mjs asserts \'funded never exceeds the requirement\' per service on every scenario, and basis-over-ask proves the clamp is enforced, so if either gives way THOSE fail first and this stops being equivalent', what: 'Priority Drill vs-DISC reading netted across services',
     find: 'u:unfTotOf(it,p), u1:discUnfTotOf(it,p), p}; };',
     repl: 'u:unfTotOf(it,p), u1:Math.max(0,ask-p.dT), p}; };' },
 
@@ -660,7 +660,7 @@ const MUTATIONS = [
   { id: 'discunf-off-allocation', area: 'discUnfSvcOf', what: 'unfunded vs DISC measured off the trimmed allocation instead of the ask',
     find: "function discUnfSvcOf(it, p){",
     repl: "function discUnfSvcOf(it, p){ const _b=basisSvcOf(it); return SVC.map((s,i)=>Math.max(0,(_b[i]||0)-((p&&p.d[i])||0)));" },
-  { id: 'discunf-not-floored', area: 'discUnfSvcOf', what: 'unfunded vs DISC lets an over-funded service pay down another service',
+  { id: 'discunf-not-floored', area: 'discUnfSvcOf', equivalent: 'basisSvcOf() clamps the allocation to the ask, so no service can be funded above its own requirement and ask - d [- m] is never negative -- this floor is now arithmetically unreachable. It was a real mutation while an over-allocation could be drawn in full. audit.mjs asserts \'funded never exceeds the requirement\' per service on every scenario, and basis-over-ask proves the clamp is enforced, so if either gives way THOSE fail first and this stops being equivalent', what: 'unfunded vs DISC lets an over-funded service pay down another service',
     find: "  return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0)));",
     repl: "  return SVC.map((s,i)=>((it.ask[i]||0) - ((p&&p.d[i])||0)));" },
   { id: 'usheet-discunf-col', area: 'excel', what: 'the Unfunded sheet prints the total in the vs-DISC column',
@@ -678,6 +678,18 @@ const MUTATIONS = [
   { id: 'scen-marker-always', area: 'marker', what: 'the marker is stamped on the funded plan too',
     find: 'function scenOn(){ return scenView===\'disc\'; }',
     repl: 'function scenOn(){ return true; }' },
+
+  // ---- an allocation above the ask must not become money -----------------------------------------
+  // Over-allocate a service and, unclamped, the engine SPENDS lane money the requirement never
+  // asked for and reports whatever the lane could not cover as UNFUNDED -- so a service drawn to
+  // its full requirement shows a shortfall. Both mutations put that back. The check that settles
+  // it is the identity, not the figure: beyond + trim == the requirement's own shortfall.
+  { id: 'basis-over-ask', area: 'basisSvcOf', what: 'an allocation above a service\u2019s ask is drawn in full, spending lane money nothing asked for',
+    find: '  return SVC.map(function(_,i){ return Math.min(D$(a[i]), Math.max(0, D$(it.ask[i]))); });',
+    repl: '  return a.map(D$);' },
+  { id: 'basis-clamps-to-alloc', area: 'basisSvcOf', what: 'the clamp is applied the wrong way round, so a trim is erased instead of an over-allocation',
+    find: '  return SVC.map(function(_,i){ return Math.min(D$(a[i]), Math.max(0, D$(it.ask[i]))); });',
+    repl: '  return SVC.map(function(_,i){ return Math.max(D$(a[i]), Math.max(0, D$(it.ask[i]))); });' },
 
   // ---- unspent discretionary vs the trims that could take it -----------------------------------
   // The ORDER is the claim. Sorted by size, or netted across services, the list still looks

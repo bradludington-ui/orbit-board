@@ -1417,7 +1417,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.60 (16 Sep 2026)';
+const BUILD='v1.61 (16 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14642,7 +14642,7 @@ function tiers(ord, scen){
   let cum=0;
   (ord||S.order).forEach(id=>{
     const it=itemById(id); if(!it) return;
-    const sv=svcAlloc(it);
+    const sv=basisSvcOf(it);   // ONE basis rule; these read svcAlloc directly before
     const d=SVC.map(_=>0), m=SVC.map(_=>0), u=SVC.map(_=>0);
     const fo=(S.fsrc||{})[id];
     if(fo){
@@ -14800,7 +14800,20 @@ function mcCalc(T){
 // grew the shortfall banner. The board allocation is the basis for every requirement now, so a trim
 // is a trim however it was funded. Directing a source says where the ALLOCATION comes from; it is
 // not a claim on the untrimmed ask.
-function basisSvcOf(it){ return svcAlloc(it); }
+// THE BASIS A REQUIREMENT DRAWS AGAINST -- the allocation, CLAMPED TO THE REQUIREMENT.
+// The allocation is still the basis; that rule was settled deliberately and basis-fsrc guards it.
+// What is new is the clamp, and it only bites where a service is allocated MORE than it asked for.
+// Without it the engine drew the whole over-allocation: it SPENT lane money on a requirement that
+// never asked for it -- understating what was left -- and any part the lane could not cover came
+// out as UNFUNDED, so a service drawn to its full requirement reported a shortfall. That is not a
+// number that can exist. Nobody is short of money they did not ask for.
+// It also restores the identity the trace matrix prints at the top of every run:
+//     beyond + trim == the requirement's own shortfall, per service
+// which fails by exactly the over-allocation while the clamp is missing.
+function basisSvcOf(it){
+  const a = svcAlloc(it);
+  return SVC.map(function(_,i){ return Math.min(D$(a[i]), Math.max(0, D$(it.ask[i]))); });
+}
 function unfSvcOf(it, p){
   return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));
 }
@@ -20305,7 +20318,7 @@ function exportExcel(){
   const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0), allAsk=SVC.map(_=>0), allSv=SVC.map(_=>0);
   S.order.forEach(id=>{
     const p=T[id], it=itemById(id); if(!p||!it) return;
-    const sv=svcAlloc(it);
+    const sv=basisSvcOf(it);   // ONE basis rule; these read svcAlloc directly before
     const ov=!!S.fsrc[id];
     SVC.forEach((s,i)=>{allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=p.u[i]; allAsk[i]+=it.ask[i]; allSv[i]+= ov? (p.d[i]+p.m[i]) : sv[i];});
   });
@@ -21234,6 +21247,9 @@ function inspectorBody(){
   const t = T[id] || {d:SVC.map(function(){return 0;}), m:SVC.map(function(){return 0;}), u:SVC.map(function(){return 0;})};
   const sum = function(a){ return (a||[]).reduce(function(x,y){ return x+y; }, 0); };
   const dT = sum(t.d), mT = sum(t.m), uT = sum(t.u);
+  // The requirement's own shortfall — reading #2, ask less both lanes, floored per service. uT is
+  // BEYOND and is only the lane-limited part of it.
+  const unfT = sum(unfSvcOf(it, t));
   const ids = gridIds(), pos = ids.indexOf(id);
   // mcShortOf is a const INSIDE exportExcel(), so it is not in scope here. `typeof` on an
   // undeclared identifier returns 'undefined' instead of throwing, so the old guard swallowed that
@@ -21253,7 +21269,13 @@ function inspectorBody(){
   migrateSplit(id);
   const inSplit = !!(fo && fo.m === 'split' && Array.isArray(fo.dv));
   const svcRow = function(sname, i){
+    // UFR IS MEASURED AGAINST THE REQUIREMENT, which is the column beside it and what the hint
+    // above this table promises: "UFR is the remainder". t.u is BEYOND -- allocated and no lane
+    // could pay it -- and is a strictly smaller number: it says nothing about ask that was never
+    // allocated. Printing beyond under a UFR heading left a service $51.5M short of its ask
+    // showing an em dash.
     const ask = it.ask[i]||0, d = t.d[i]||0, m = t.m[i]||0, u = t.u[i]||0;
+    const unf = Math.max(0, ask - d - m);
     // The box holds what was DIRECTED; drewLine/drewTip add what the lane actually supplied when
     // it was less. Both come from the shared rule, so this panel and the card's row expander
     // cannot drift on what a split editor owes the reader.
@@ -21275,7 +21297,10 @@ function inspectorBody(){
       + '<td>' + reqCell + '</td>'
       + '<td>' + cell('d', inSplit ? (fo.dv[i]||0) : d, d) + '</td>'
       + '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m, m) + '</td>'
-      + '<td class="' + (u > 0.005 ? 'uf' : 'ro') + '">' + (u > 0.005 ? fM(u) : '\u2014') + '</td></tr>';
+      + '<td class="' + (unf > 0.005 ? 'uf' : 'ro') + '">' + (unf > 0.005 ? fM(unf) : '\u2014')
+        + (u > 0.005 ? '<div class="drew" title="of that shortfall, this much WAS allocated but no'
+            + ' lane could pay it — the rest was never allocated">lane short ' + fM(u) + '</div>' : '')
+        + '</td></tr>';
   };
   // What the row DIRECTED, against what the engine could actually draw. Equal on every board that
   // is not up against a lane limit; the gap is the whole point when it is not.
@@ -21295,7 +21320,8 @@ function inspectorBody(){
     // higher, say so here too, or the column does not add up to its own total on screen.
     + '<td style="color:var(--green)">' + fM(dT) + directedLine(dirD, dT) + '</td>'
     + '<td style="color:var(--purp)">' + fM(mT) + directedLine(dirM, mT) + '</td>'
-    + '<td class="' + (uT > 0.005 ? 'uf' : 'ro') + '">' + (uT > 0.005 ? fM(uT) : '\u2014') + '</td></tr>'
+    + '<td class="' + (unfT > 0.005 ? 'uf' : 'ro') + '">' + (unfT > 0.005 ? fM(unfT) : '\u2014')
+      + (uT > 0.005 ? '<div class="drew">lane short ' + fM(uT) + '</div>' : '') + '</td></tr>'
     + '</table>';
 
   el.innerHTML = drawerBar() +
@@ -21344,8 +21370,8 @@ function inspectorBody(){
       + inspField('Allocated', fM(dT + mT), 'big')
       + inspField('Discretionary', fM(dT))
       + inspField('Mandatory', fM(mT))
-      + inspField('Unfunded', uT > 0.005 ? '<span style="color:var(--unf)">' + fM(uT) + '</span>' : '\u2014',
-                  uT > 0.005 ? '' : 'empty')
+      + inspField('Unfunded', unfT > 0.005 ? '<span style="color:var(--unf)">' + fM(unfT) + '</span>' : '\u2014',
+                  unfT > 0.005 ? '' : 'empty')
       + inspField('\u2605 MC shortage', (S.mc[id] && mcShort > 0.005)
                   ? '<span style="color:var(--amber)">' + fM(mcShort) + '</span>'
                   : (S.mc[id] ? 'covered' : '\u2014'), (S.mc[id] && mcShort > 0.005) ? '' : 'empty')

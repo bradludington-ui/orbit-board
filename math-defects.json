@@ -71,6 +71,19 @@
                     "svcalloc-prorates-raw", "split-share-fractional"]
     },
     {
+      "id": "over-allocation-became-unfunded",
+      "found": "2026-09-16",
+      "foundBy": "user",
+      "build": "v1.61",
+      "surface": "the split editor's UFR column, the record panel's Unfunded field, and every lane figure tiers() derives",
+      "symptom": "A service showed its full requirement funded by discretionary and still reported a UFR. On the same row two other services drew only part of what was directed to them while their lanes held hundreds of millions.",
+      "cause": "basisSvcOf() returned the allocation UNCLAMPED, so a service allocated more than it asked for drew the whole over-allocation \u2014 spending lane money nothing asked for \u2014 and whatever the lane could not cover came out as u, which the split editor printed under a UFR heading. The board's own rulebook already stated beyond as max(0, min(ask, basis) \u2212 d \u2212 m); tiers() had no cap, so the identity beyond + trim == the requirement's shortfall failed by exactly the over-allocation.",
+      "fix": "basisSvcOf() clamps the allocation to the ask, in ONE place, and both former svcAlloc() call sites read it. The split editors report UFR against the REQUIREMENT (ask \u2212 d \u2212 m) with the lane-limited part named separately, rather than printing beyond under a UFR heading.",
+      "guarded": true,
+      "checks": ["beyond + trim == unfunded vs BOTH lanes"],
+      "mutations": ["basis-over-ask", "basis-clamps-to-alloc", "basis-fsrc"]
+    },
+    {
       "id": "directed-shown-as-drawn",
       "found": "2026-09-16",
       "foundBy": "user",

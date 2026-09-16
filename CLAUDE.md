@@ -88,8 +88,34 @@ must be derived from those, never recomputed.
 The identity that must hold on every row of every tab:
 
 ```
-d + m + u  ==  the requirement      (per service, and in total)
+d + m + u  ==  basisSvcOf()         (per service, and in total)
 ```
+
+**and `basisSvcOf()` is the allocation CLAMPED TO THE ASK.** The allocation is the basis — that was
+settled deliberately and `basis-fsrc` guards it — but a service allocated *more* than it asked for
+cannot draw the excess. Unclamped, the engine spent lane money nothing asked for, and whatever the
+lane could not cover surfaced as unfunded on a service already funded in full. The identity that
+settles it, and the check that enforces it:
+
+```
+beyond + trim  ==  the requirement's own shortfall     (per service)
+```
+
+Uncapped, that fails by exactly the over-allocation.
+
+> **The clamp made five existing guards inert, and that is worth understanding before touching it.**
+> Every unfunded reading here is written `max(0, ask − d [− m])`, and those floors exist to stop an
+> over-funded service paying down a short one. Once no service can be funded above its own ask, the
+> floors are arithmetically unreachable — so `mc-short-unfloored`, `discunf-not-floored`,
+> `drill-unf`, `drill-unf-disc` and `unf-beyond-uncapped` all stopped biting the moment the clamp
+> landed, and had to be declared equivalent.
+>
+> **They are only safe to declare because the invariant they rest on is itself checked.**
+> `audit.mjs` asserts *"funded never exceeds the requirement"* per service on every scenario, and
+> `basis-over-ask` proves the clamp is enforced. Remove the clamp and those fail FIRST, which is
+> the whole reason the equivalences are honest rather than a way of silencing five red mutations.
+> **Leave the floors in the code.** They cost nothing and they are load-bearing again the instant
+> the clamp goes.
 
 ### Every dollar the board holds is a whole dollar
 

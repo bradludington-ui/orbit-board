@@ -208,11 +208,17 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const basisOf = id => {
     const item = sc.items.find(x => x.id === id);
     const a = sc.alloc && sc.alloc[id];
-    if (a === null || a === undefined) return item.ask.slice();
-    if (a.m === 's') return a.v.slice();          // per-service vector, taken as given
-    const at = sum(item.ask);                     // scalar trim, prorated by ask share
-    if (at > 0) return item.ask.map(x => a.v * x / at);
-    return SVC.map(() => a.v / SVC.length);       // a zero ask cannot be weighted
+    const raw = (a === null || a === undefined) ? item.ask.slice()
+      : a.m === 's' ? a.v.slice()                 // per-service vector, taken as given
+      : sum(item.ask) > 0 ? item.ask.map(x => a.v * x / sum(item.ask))   // scalar trim, by ask share
+      : SVC.map(() => a.v / SVC.length);          // a zero ask cannot be weighted
+    // CLAMPED TO THE REQUIREMENT, stated here independently of the board. An allocation above a
+    // service's ask is not money that requirement can draw: uncapped, the engine spent lane money
+    // nothing asked for, and whatever the lane could not cover surfaced as unfunded on a service
+    // already funded in full. Derived here rather than read back from basisSvcOf() -- an oracle
+    // that asks the code under test what the answer is will agree with it, including when it is
+    // wrong, which is how the uncapped reading survived in this file in the first place.
+    return SVC.map((_, i) => Math.min(raw[i], Math.max(0, item.ask[i] || 0)));
   };
   const askArr = id => sc.items.find(x => x.id === id).ask;
   const unfSvcExp = id => SVC.map((s, i) => Math.max(0, askArr(id)[i] - T[id].d[i] - T[id].m[i]));
@@ -231,11 +237,50 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     Math.max(askArr(id)[i], T[id].d[i] + T[id].m[i]))), 0);
 
   // ---- 1. conservation inside tiers() itself (the basis for everything else) ----
+  // CAPPED AT THE ASK. u is "beyond both lanes" and the rulebook states it as
+  // max(0, min(ask, basis) - d - m). The cap only bites where a service is allocated MORE than it
+  // asked for, and there it is the difference between a real answer and a phantom: without it a
+  // service drawn to its full requirement still reports unfunded money, which is not a number that
+  // can exist. Nobody is short of money they did not ask for.
   ids.forEach(id => {
-    const p = T[id];
-    const basis = basisOf(id);
+    const p = T[id], basis = basisOf(id);
     SVC.forEach((s, i) => chk(name, 'tiers()', `${id} d+m+u == basis [${s}]`,
       p.d[i] + p.m[i] + p.u[i], basis[i]));
+  });
+
+  // ---- 1z. NO SERVICE IS EVER FUNDED ABOVE ITS OWN REQUIREMENT ----
+  // This is the invariant the per-service FLOORS rest on. Every unfunded reading on this board is
+  // written max(0, ask - d [- m]) and every one of those floors exists to stop an over-funded
+  // service paying down a short one -- money is not fungible across services. Since basisSvcOf()
+  // clamps the allocation to the ask, d + m can never exceed it, so those floors are arithmetically
+  // unreachable and the mutations that remove them cannot bite.
+  //
+  // THAT IS WHY THIS CHECK EXISTS. Five guards were declared equivalent on the strength of this
+  // invariant; if it ever stops holding they become load-bearing again with nothing proving they
+  // work. This check fails FIRST in that case, which is the only thing that makes those
+  // equivalences safe to declare.
+  ids.forEach(id => {
+    const p = T[id], ask = askArr(id);
+    SVC.forEach((s, i) => chk(name, 'tiers()',
+      `${id} funded never exceeds the requirement [${s}]`,
+      p.d[i] + p.m[i] <= ask[i] + 0.005 ? 'ok' : `${p.d[i] + p.m[i]} > ${ask[i]}`, 'ok'));
+  });
+
+  // ---- 1a. THE IDENTITY THAT SETTLES WHAT u MEANS ----
+  // beyond + trim == the requirement's own shortfall, per service. This is the check that decides
+  // between the capped and uncapped readings, and it is why the cap is not a preference: with an
+  // uncapped u the identity fails by exactly the over-allocation, and the board contradicts the
+  // rulebook it prints at the top of its own trace matrix. Stated per service because money is not
+  // fungible across them -- netted, an over-allocation on one service would hide a shortage on
+  // another, which is the defect 'mc over-allocated one service' exists to prevent.
+  ids.forEach(id => {
+    const p = T[id], basis = basisOf(id), ask = askArr(id);
+    SVC.forEach((s, i) => {
+      const trim = Math.max(0, ask[i] - basis[i]);
+      const ufr2 = Math.max(0, ask[i] - p.d[i] - p.m[i]);
+      chk(name, 'tiers()', `${id} beyond + trim == unfunded vs BOTH lanes [${s}]`,
+        p.u[i] + trim, ufr2);
+    });
   });
 
   // ---- 1b. INDEPENDENT ORACLE: re-derive the greedy walk and compare draw for draw ----
@@ -254,7 +299,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
         const want = basis[i];
         const d = Math.min(want, Math.max(0, dRem[i])); dRem[i] -= d;
         const m = Math.min(want - d, Math.max(0, mRem[i])); mRem[i] -= m;
-        const u = want - d - m;
+        const u = want - d - m;   // basisOf is already clamped, so this needs no second cap
         chk(name, 'lane oracle', `${id} discretionary draw [${s}]`, T[id].d[i], d);
         chk(name, 'lane oracle', `${id} mandatory draw [${s}]`, T[id].m[i], m);
         chk(name, 'lane oracle', `${id} unfunded [${s}]`, T[id].u[i], u);

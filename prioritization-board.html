@@ -1283,7 +1283,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.60 (16 Sep 2026)';
+const BUILD='v1.61 (16 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14508,7 +14508,7 @@ function tiers(ord, scen){
   let cum=0;
   (ord||S.order).forEach(id=>{
     const it=itemById(id); if(!it) return;
-    const sv=svcAlloc(it);
+    const sv=basisSvcOf(it);   // ONE basis rule; these read svcAlloc directly before
     const d=SVC.map(_=>0), m=SVC.map(_=>0), u=SVC.map(_=>0);
     const fo=(S.fsrc||{})[id];
     if(fo){
@@ -14666,7 +14666,20 @@ function mcCalc(T){
 // grew the shortfall banner. The board allocation is the basis for every requirement now, so a trim
 // is a trim however it was funded. Directing a source says where the ALLOCATION comes from; it is
 // not a claim on the untrimmed ask.
-function basisSvcOf(it){ return svcAlloc(it); }
+// THE BASIS A REQUIREMENT DRAWS AGAINST -- the allocation, CLAMPED TO THE REQUIREMENT.
+// The allocation is still the basis; that rule was settled deliberately and basis-fsrc guards it.
+// What is new is the clamp, and it only bites where a service is allocated MORE than it asked for.
+// Without it the engine drew the whole over-allocation: it SPENT lane money on a requirement that
+// never asked for it -- understating what was left -- and any part the lane could not cover came
+// out as UNFUNDED, so a service drawn to its full requirement reported a shortfall. That is not a
+// number that can exist. Nobody is short of money they did not ask for.
+// It also restores the identity the trace matrix prints at the top of every run:
+//     beyond + trim == the requirement's own shortfall, per service
+// which fails by exactly the over-allocation while the clamp is missing.
+function basisSvcOf(it){
+  const a = svcAlloc(it);
+  return SVC.map(function(_,i){ return Math.min(D$(a[i]), Math.max(0, D$(it.ask[i]))); });
+}
 function unfSvcOf(it, p){
   return SVC.map((s,i)=>Math.max(0, (it.ask[i]||0) - ((p&&p.d[i])||0) - ((p&&p.m[i])||0)));
 }
@@ -15488,13 +15501,16 @@ function svcTable(it){
       // cannot drift on what a split editor owes the reader.
       const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${fo.dv[i]?Math.round(fo.dv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY${drewTip(fo.dv[i]||0,px.d[i]||0)}">${drewLine(fo.dv[i]||0,px.d[i]||0)}</td>`).join('');
       const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${fo.mv[i]?Math.round(fo.mv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY${drewTip(fo.mv[i]||0,px.m[i]||0)}">${drewLine(fo.mv[i]||0,px.m[i]||0)}</td>`).join('');
-      const uRow=SVC.map((s,i)=>`<td style="color:${px.u[i]>0.5?'var(--red)':'var(--dim)'};font-weight:700">${px.u[i]>0.5?fM(px.u[i]):'—'}</td>`).join('');
+      // Against the REQUIREMENT, not the allocation: px.u is BEYOND and says nothing about ask
+      // that was never allocated. One rule, the same as the grid panel's.
+      const uSvc=unfSvcOf(it,px), uSvcT=uSvc.reduce((a,b)=>a+b,0);
+      const uRow=SVC.map((s,i)=>`<td style="color:${uSvc[i]>0.5?'var(--red)':'var(--dim)'};font-weight:700">${uSvc[i]>0.5?fM(uSvc[i]):'—'}${px.u[i]>0.5?`<div class="drew" title="of that shortfall, this much WAS allocated but no lane could pay it">lane short ${fM(px.u[i])}</div>`:''}</td>`).join('');
       // The TOTAL is what was DRAWN -- that is the money. directedLine adds what the cells above
       // it add up to, or the column does not foot to its own total on screen.
       const dirD=fo.dv.reduce((a,b)=>a+(b||0),0), dirM=fo.mv.reduce((a,b)=>a+(b||0),0);
       return `<tr><td style="color:var(--green);font-weight:700">⚙ Split — Disc $ (edit)</td>${dRow}<td style="color:var(--green);font-weight:700">${fM(px.dT)}${directedLine(dirD,px.dT)}</td></tr>
       <tr><td style="color:var(--purp);font-weight:700">⚙ Split — Mand $ (edit)</td>${mRow}<td style="color:var(--purp);font-weight:700">${fM(px.mT)}${directedLine(dirM,px.mT)}</td></tr>
-      <tr><td style="color:var(--red);font-weight:700">⚙ Resulting UFR</td>${uRow}<td style="color:${px.uT>0.5?'var(--red)':'var(--dim)'};font-weight:700">${fM(px.uT)}</td></tr>`;})() : ''}
+      <tr><td style="color:var(--red);font-weight:700">⚙ Resulting UFR</td>${uRow}<td style="color:${uSvcT>0.5?'var(--red)':'var(--dim)'};font-weight:700">${fM(uSvcT)}${px.uT>0.5?`<div class="drew">lane short ${fM(px.uT)}</div>`:''}</td></tr>`;})() : ''}
     <tr><td style="color:var(--blue);font-weight:700">Minimum useful increment</td>
       <td colspan="${SVC.length}" style="color:var(--dim);font-size:9px">the least this still buys something at — blank means the full requirement. Only needed for band 0&ndash;2 items that fall below the line.</td>
       <td><input style="width:100%;text-align:right" placeholder="${fM(askTot(it))}" value="${(S.minInc||{})[it.id]? Math.round(S.minInc[it.id]).toLocaleString():''}"
@@ -20250,7 +20266,7 @@ function exportExcel(){
   const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0), allAsk=SVC.map(_=>0), allSv=SVC.map(_=>0);
   S.order.forEach(id=>{
     const p=T[id], it=itemById(id); if(!p||!it) return;
-    const sv=svcAlloc(it);
+    const sv=basisSvcOf(it);   // ONE basis rule; these read svcAlloc directly before
     const ov=!!S.fsrc[id];
     SVC.forEach((s,i)=>{allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=p.u[i]; allAsk[i]+=it.ask[i]; allSv[i]+= ov? (p.d[i]+p.m[i]) : sv[i];});
   });
