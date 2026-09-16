@@ -22,9 +22,21 @@
     },
     {
       "sc": "contrast",
+      "key": "#5d7488 on #e4ebf1 @11px",
+      "n": 6,
+      "detail": "4.04:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
+    },
+    {
+      "sc": "contrast",
       "key": "#5d7488 on #eef2f5 @10px",
       "n": 6,
       "detail": "4.32:1, needs 4.5:1 — e.g. \"📦 Opened with the saved board state — l\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f0ebdf @11px",
+      "n": 6,
+      "detail": "4.15:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
     },
     {
       "sc": "contrast",
@@ -34,20 +46,8 @@
     },
     {
       "sc": "contrast",
-      "key": "#5d7488 on #e4ebf1 @11px",
-      "n": 4,
-      "detail": "4.04:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f0ebdf @11px",
-      "n": 4,
-      "detail": "4.15:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
-    },
-    {
-      "sc": "contrast",
       "key": "#8b98ac on #253247 @11px",
-      "n": 4,
+      "n": 6,
       "detail": "4.42:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
     },
     {
@@ -193,18 +193,6 @@
       "key": "#8b98ac on #26344b @8px",
       "n": 1,
       "detail": "4.29:1, needs 4.5:1 — e.g. \"PSM #1\""
-    },
-    {
-      "sc": "reflow",
-      "key": "card @320px",
-      "n": 1,
-      "detail": "251px of horizontal scroll at 320px wide"
-    },
-    {
-      "sc": "reflow",
-      "key": "grid @320px",
-      "n": 1,
-      "detail": "612px of horizontal scroll at 320px wide"
     },
     {
       "sc": "target",

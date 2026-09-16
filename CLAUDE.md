@@ -136,6 +136,36 @@ drift: `drewLine(directed, drawn)` under a **cell**, `directedLine(directed, dra
 in the RECORD panel, the card in the row expander; one mutation on `drewLine` covers both. The input
 always keeps what the user typed — never overwrite a directed figure with the drawn one.
 
+### Unspent discretionary is not a failed flow — it is a decision nobody made
+
+A lane can hold budget authority nobody drew while requirements are short, and the two are **not
+the same money**. A requirement draws its **allocation**, never its ask, so an ask that was never
+allocated — a **trim** — cannot be paid by a lane however flush that lane is. That is the model
+working exactly as stated: no auto flows, funding must be physically allocated.
+
+The board used to state both facts and never join them up, which reads as a bug and is not one.
+`trimAbsorb(T)` answers the question they raise together: **which trims could the remaining lane
+actually cover, and in what order.** The panel sits directly under the service table, because that
+is where the two columns that provoke the question live.
+
+```
+trim[svc]   = max(0, ask - basis)          the trace matrix's own quantity
+take[svc]   = min(trim, what that lane still has)     walking the priority order
+beyond[svc] = trim - take                  no remaining discretionary can reach it
+```
+
+**The order is the whole claim, and the easiest thing to get wrong.** The lane pays top-down, so a
+row's figure only means anything if everything above it was raised first — sorted by size the list
+would still look plausible while naming requirements the lane cannot fund, and someone would type
+those figures into allocation boxes. `trim-absorb-unordered` exists to make sure a suite notices.
+
+**Per service, never netted.** A service with spare lane money must not be shown covering another
+service's trim. `trim-absorb-netted` covers that.
+
+"Still beyond the lane" is deliberately a separate column from "could be funded now": one is a
+reallocation, the other needs budget authority or mandatory. Blurring them turns an actionable list
+into a wish.
+
 ### The band is stated on the grid's row, and set on its panel
 
 In the **grid** build the row's decision-band chip is a plain label with no handler, so
@@ -1340,6 +1370,13 @@ mutations.
 > `split-share-fractional` survived the sweep and said so. Walking it FIRST caught the mutation
 > immediately. This is why a new check is not finished until a mutation has survived against it
 > once: a green check is evidence of nothing until something has made it go red.
+>
+> **It happened twice the same day.** The trim-absorption check asserts that the remaining lane is
+> offered top-down by PRIORITY, not by size — and the fixture made its first requirement both the
+> highest priority and the largest ask, so the two orders produced the same answer and
+> `trim-absorb-unordered` survived. A fixture that cannot tell two rules apart proves neither.
+> When a check defends an ORDER, a RULE or a CHOICE, the fixture has to make the alternatives
+> DISAGREE, or the check is a tautology wearing a scenario.
 
 **A gap is debt, not a pass.** Five money surfaces have no mutation aimed at them today — `crData`,
 `exportFlow`, `exportCoa`, `exportReprog`, `exportAceTieout` — each recorded with a date and what it

@@ -37,6 +37,8 @@ const REGISTRY = {
   tiers:        { money: true,  what: 'the lane walk — every dollar on the board starts here' },
   tierTotals:   { money: true,  what: 'board-wide totals, including both unfunded readings' },
   mcCalc:       { money: true,  what: 'Mission Critical total and shortage' },
+  trimAbsorb:   { money: true,  what: 'unspent discretionary against the trims that could take it — '
+                                    + 'read as an instruction to type a figure into an allocation box' },
   forecast:     { money: true,  what: 'the spend forecast — when funded dollars land' },
   srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column',
                   via: ['srcSvcOf'] },

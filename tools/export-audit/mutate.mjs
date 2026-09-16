@@ -679,6 +679,26 @@ const MUTATIONS = [
     find: 'function scenOn(){ return scenView===\'disc\'; }',
     repl: 'function scenOn(){ return true; }' },
 
+  // ---- unspent discretionary vs the trims that could take it -----------------------------------
+  // The ORDER is the claim. Sorted by size, or netted across services, the list still looks
+  // plausible and names requirements the lane cannot actually fund -- which is worse than not
+  // answering the question, because someone would type those figures into allocation boxes.
+  { id: 'trim-absorb-unordered', area: 'trimAbsorb', what: 'the list hands the remaining lane to the biggest trim instead of the highest priority',
+    find: '  S.order.forEach(function(id){\n    const it = itemById(id); if(!it) return;\n    const basis = basisSvcOf(it);',
+    repl: '  S.order.slice().sort(function(x,y){ const a=itemById(x), b=itemById(y);\n    return (b?askTot(b):0)-(a?askTot(a):0); }).forEach(function(id){\n    const it = itemById(id); if(!it) return;\n    const basis = basisSvcOf(it);' },
+  { id: 'trim-absorb-uncapped', area: 'trimAbsorb', what: 'a row is offered its whole trim whether the lane can cover it or not',
+    find: '    const take = SVC.map((_,i)=>Math.min(trim[i], left[i]));',
+    repl: '    const take = trim.slice();' },
+  { id: 'trim-absorb-netted', area: 'trimAbsorb', what: 'one service\u2019s spare lane money is shown covering another service\u2019s trim',
+    find: '    const take = SVC.map((_,i)=>Math.min(trim[i], left[i]));',
+    repl: '    const _pool=left.reduce((a,b)=>a+b,0);\n    const take = SVC.map((_,i)=>Math.min(trim[i], _pool));' },
+  { id: 'trim-absorb-lists-funded', area: 'trimAbsorb', what: 'requirements allocated in full are listed as having something to absorb',
+    find: '    if(trimTot <= 0) return;                       // not trimmed: nothing here to absorb anything',
+    repl: '    /* everything is listed */' },
+  { id: 'trim-absorb-beyond-hidden', area: 'trimAbsorb', what: 'trim no lane can reach is reported as zero, so it reads as fully placeable',
+    find: '    const beyond = SVC.map((_,i)=>trim[i] - take[i]);',
+    repl: '    const beyond = SVC.map(()=>0);' },
+
   // ---- whole dollars: the model must not carry fractions ---------------------------------------
   // Money was stored as a float and rounded only FOR DISPLAY, so a third of a cent per service
   // passed every 0.005 tolerance in this codebase while still tripping the >0.005 tests that decide

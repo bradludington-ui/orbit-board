@@ -1088,6 +1088,81 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     money(cell.tot.drew), ASK.reduce((a, b) => a + b, 0));
 }
 
+// ═══ UNSPENT DISCRETIONARY vs THE TRIMS THAT COULD TAKE IT ══════════════════════════════
+// The board states two facts and never joined them up: a lane holds BA nobody drew, and
+// requirements are short. trimAbsorb() answers the question they raise together -- which trims the
+// REMAINING lane could actually cover, and in what order.
+//
+// The order is the whole claim and the easiest thing to get wrong. Sorting by size would read as a
+// promise the lane cannot keep: the lane pays top-down, so a row's figure only means anything if
+// everything above it was raised first. And because money is not fungible across services, a
+// service with spare lane money must not be shown covering another service's trim.
+{
+  const name = 'trim absorption — what the remaining lane could take';
+  const sc = {
+    services: SVC3,
+    // A, B and C are all trimmed and all want USAF money. Only enough for one is left, so the
+    // ORDER decides who is offered it -- the property worth protecting.
+    //
+    // C IS THE BIGGEST ASK AND THE THIRD PRIORITY, AND THAT IS DELIBERATE. The first version of
+    // this fixture made A both the highest priority and the largest, so sorting by size and
+    // walking the priority order produced the SAME answer -- trim-absorb-unordered survived the
+    // sweep while the check sat there looking like it proved something. The two orders have to
+    // DISAGREE or the check cannot tell them apart. C's allocation is unchanged, so the lane walk
+    // is identical either way; only its trim, and its rank under a size sort, move.
+    items: [it('A', 'ATL', [100, 50, 40]), it('B', 'PSM', [80, 30, 20]),
+            it('C', 'AV', [400, 20, 60]), it('D', 'MxS', [40, 10, 10])],
+    disc: [200, 90, 70], mand: [0, 0, 0],
+    order: ['A', 'B', 'C', 'D'],
+    alloc: { A: { m: 's', v: [70, 40, 30] }, B: { m: 's', v: [50, 20, 10] },
+             C: { m: 's', v: [30, 10, 20] } },   // D is allocated its full ask
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const A = JSON.parse(ev(`(function(){ const T=tiers(), A=trimAbsorb(T);
+    return JSON.stringify({start:A.start, left:A.left, taken:A.taken,
+      rows:A.rows.map(function(x){ return {id:x.id, trim:x.trim, take:x.take, beyond:x.beyond}; })}); })()`));
+
+  // The lane is the ceiling. Offering more than is left would name requirements that cannot be
+  // funded, which is worse than not answering the question at all.
+  SVC3.forEach((s, i) => {
+    const placed = A.rows.reduce((a, r) => a + r.take[i], 0);
+    chk(name, 'lane', `${s}: never places more than the lane has left`,
+      placed <= A.start[i] + 0.005 ? 'ok' : `${placed} > ${A.start[i]}`, 'ok');
+    chk(name, 'lane', `${s}: what was left, less what was placed, is what is still unspent`,
+      A.start[i] - placed, A.left[i]);
+    chk(name, 'lane', `${s}: the running total agrees with the per-row figures`, A.taken[i], placed);
+  });
+
+  A.rows.forEach(r => SVC3.forEach((s, i) => {
+    chk(name, 'row', `${r.id}/${s}: never offers more than that row was trimmed by`,
+      r.take[i] <= r.trim[i] + 0.005 ? 'ok' : `${r.take[i]} > ${r.trim[i]}`, 'ok');
+    // trim splits into what a lane can reach and what it cannot. Those are different answers --
+    // one is a reallocation, the other needs budget authority -- so they must not blur.
+    chk(name, 'row', `${r.id}/${s}: trimmed by == could be funded + still beyond the lane`,
+      r.trim[i], r.take[i] + r.beyond[i]);
+  }));
+
+  // PRIORITY ORDER, stated as the thing a reader would check by hand. USAF has 10 left and three
+  // rows want it; the first one in the order is the one offered it.
+  const usafTakers = A.rows.filter(r => r.take[0] > 0.005).map(r => r.id);
+  // C is trimmed by far the most and asks for far the most; A is simply earlier. A must win.
+  chk(name, 'order', 'the earliest trimmed row gets first call on the lane, not the biggest',
+    usafTakers.join(','), 'A');
+  chk(name, 'order', 'and a row below it is offered nothing once the lane is spent',
+    (A.rows.filter(r => r.id === 'B')[0] || {}).take[0], 0);
+  // Whole dollars here too: this list is read as an instruction to type a figure into a box.
+  chk(name, 'whole dollars', 'every figure offered is a whole dollar',
+    A.rows.every(r => r.take.every(Number.isInteger) && r.trim.every(Number.isInteger))
+      ? 'ok' : 'fractional', 'ok');
+
+  chk(name, 'scope', 'a requirement allocated its full ask is not listed at all',
+    A.rows.some(r => r.id === 'D') ? 'D is listed' : 'ok', 'ok');
+  chk(name, 'scope', 'every trimmed requirement IS listed', A.rows.length, 3);
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

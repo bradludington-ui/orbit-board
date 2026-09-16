@@ -164,6 +164,8 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',Arial,sans-ser
 .bar i{display:block;height:100%}
 .ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 18px}
 .chip{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:5px 13px;font-size:12px;cursor:pointer;color:var(--mut);font-weight:600}
+.ta-note{padding:8px 14px;font-size:10.5px;color:var(--mut);line-height:1.5}
+.ta-note b{color:var(--ink)}
 .chip:hover{border-color:var(--blue)}
 .chip.on{background:var(--blue);color:var(--onGold);border-color:var(--blue)}
 .chip .n{font-size:10px;opacity:.75;margin-left:4px}
@@ -601,6 +603,41 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 .mlbl{font-size:9px;color:var(--dim);padding:8px 12px 3px;letter-spacing:.5px;font-weight:800}
 .foot b{color:var(--mut)}
 @media (max-width:1150px){.row{grid-template-columns:100px 80px 1fr}.nums,.acts{justify-content:flex-start}}
+/* ---- 320px: WCAG 1.4.10 Reflow ----------------------------------------------------------------
+   Section 508 requires the PAGE not to scroll sideways at 320 CSS px. It does NOT require a data
+   table or a chart to reflow -- those are "content requiring two-dimensional layout for usage or
+   meaning" and the criterion excepts them -- but they must scroll INSIDE their own box instead of
+   pushing the page. So everything that is a LAYOUT wraps or stacks here, and everything genuinely
+   two-dimensional keeps its own scroller.
+   Scoped entirely below 640px, which is beneath the narrowest width toolbar-fits.mjs measures
+   (820). Nothing anyone actually works at can move because of this block. */
+@media (max-width:640px){
+  .tbar{padding:5px 10px}
+  .tgrp{flex-wrap:wrap}                     /* the one row that did not wrap while .tbar did */
+  #chips{display:flex;flex-wrap:wrap;gap:6px}   /* a bare span: its chips had nothing to break on */
+  .ctl{padding:8px 10px}
+  .scores{grid-template-columns:1fr;padding:8px 10px}
+  .sc .rm,.sc .sub{white-space:normal}      /* a headline figure may wrap before the page does */
+  .row{grid-template-columns:minmax(0,1fr);gap:6px;padding:8px 10px}
+  .rank{justify-content:flex-start}
+  .nums{grid-template-columns:repeat(2,minmax(0,1fr));justify-items:start}
+  .acts{grid-template-columns:repeat(2,minmax(0,1fr));justify-items:stretch}
+  .acts .rowmenu{justify-self:end}
+  .rowchips{flex-wrap:wrap}
+  /* Two-dimensional by nature: let them scroll rather than reflow, which is what the criterion
+     asks for and what keeps the figures readable. */
+  .chartwrap,.tblwrap,.gs-body,.pm-body{overflow-x:auto;max-width:100%}
+  table{max-width:100%}
+  /* WITHOUT LOSS OF INFORMATION is the other half of 1.4.10, and hiding a clipped header would
+     have cost it. The grid build labels its money columns once, in .gridhead, and hides the
+     per-row labels that are already in the markup. Stacked, that header labels nothing -- it was
+     clipped to 282px of its 919px and sat above rows that no longer line up with it. So it goes,
+     and the row's own labels come back. The card build has no .gridhead and is unaffected. */
+  .gridhead{display:none}
+  .row .nums .l{display:block}
+  .nums{justify-items:start}
+  .nums .b{text-align:left}
+}
 </style>
 <script>
 /* The theme is applied HERE, before the body exists. Set from the main script it would paint the
@@ -677,6 +714,8 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 <div class="gs-wrap"><div class="gs">
   <div class="gs-h" onclick="gsOpen=!gsOpen;render()"><span class="gsx" id="gsArrow">▾</span> <span class="gsn">Funding by service</span> <span class="gsd">discretionary / mandatory / unfunded</span></div>
   <div id="gsBody"></div>
+  <div class="gs-h" onclick="taOpen=!taOpen;render()"><span class="gsx" id="taArrow">&#9656;</span> <span class="gsn">Unspent discretionary &mdash; what could take it</span> <span class="gsd">trimmed requirements the remaining lane could cover, in priority order</span></div>
+  <div id="taBody"></div>
 </div></div>
 
 <div class="gs-wrap"><div class="gs">
@@ -1244,7 +1283,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.59 (16 Sep 2026)';
+const BUILD='v1.60 (16 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1435,6 +1474,7 @@ const fMc = v=>{ const a=Math.abs(v);
        : a>=1e3? '$'+Math.round(v/1e3)+'K' : '$'+Math.round(v); };
 let SHARED=null, rmOpen=false, mcOnly=false, filter='ALL', dragId=null, svcFilter=-1;
 let svcAll=false, gsOpen=true, scOpen=true, teamOpen=true, buysOpen=false, ceOpen=true, pmoSumOpen=true, open={}, noteOpen={}, descOpen={};
+let taOpen=false;   // unspent discretionary vs the trims that could take it
 let laneFilter='';   // '' | 'disc' (fully discretionary) | 'mand' (spilling) | 'unf' (any unfunded)
 const itemById = id => DATA.items.find(x=>x.id===id);
 /* WHAT A YEAR'S REQUIREMENT LIST IS: the shipped payload minus what was removed, plus what was
@@ -15223,6 +15263,104 @@ function svcSummary(){
     <tr class="tot"><td>TOTAL</td><td>${fM(At)}</td><td>${fM(DB)}</td><td>${fM(Dt)}</td><td>${fM(DR)}</td><td style="color:var(--red)">${fM(MCt)}</td><td style="color:var(--amber)">${fM(MCTt)}</td><td>${fM(MB)}</td><td>${fM(Mt)}</td><td>${fM(MRm)}</td><td>${fM(Ut)}</td></tr></table>
   <div style="padding:4px 14px 8px;font-size:9px;color:var(--dim)">LANE MODEL: walking the priority order, each service's allocation draws from that service's discretionary lane until it is exhausted, then spills into that service's mandatory lane — requirements and even single services can use both pots at once. ★ Mission Critical need (red) = the above-discretionary SHORTFALL of MC items; Mission Critical Total (amber) = the full dollars of all ★ MC requirements for that service. Unfunded = what neither lane could cover for that service.</div>`;
 }
+/* ---- WHAT COULD TAKE THE MONEY THAT IS LEFT -----------------------------------------------------
+   The board states two facts and never joins them up: a service lane holds BA nobody drew, and
+   requirements are short. They are NOT the same money, and the gap between them is not a flow that
+   failed -- it is a decision nobody has made. A requirement draws its ALLOCATION, never its ask, so
+   an ask that was never allocated (a TRIM) cannot be paid by a lane however flush that lane is.
+   That is the model working as stated: no auto flows, funding must be physically allocated.
+
+   So this answers the question the two columns raise and neither one settles: WHICH trims could the
+   remaining lane actually cover, and in what order.
+
+   PRIORITY ORDER IS THE WHOLE POINT. The lane can absorb at most what is left in it, and handing
+   that out top-down is the same walk tiers() does -- so a row's figure means "if the allocations
+   above this one were raised first, this is what would be left for this one", not "this is what
+   everybody is short". A list sorted by size would read as a promise the lane cannot keep.
+
+   trim is the trace matrix's own quantity: max(0, ask - basis) per service, floored per service
+   because money is not fungible across them. A service with spare lane money cannot cover another
+   service's trim, and a list that netted them would name requirements that cannot actually be
+   funded. */
+function trimAbsorb(T){
+  T = T || tiers();
+  const start = SVC.map((_,i)=>Math.max(0, (T.__rem.dRem[i]||0)));
+  const left  = start.slice();
+  const rows  = [];
+  S.order.forEach(function(id){
+    const it = itemById(id); if(!it) return;
+    const basis = basisSvcOf(it);
+    const trim  = SVC.map((_,i)=>Math.max(0, D$((it.ask[i]||0) - (basis[i]||0))));
+    const trimTot = trim.reduce((a,b)=>a+b,0);
+    if(trimTot <= 0) return;                       // not trimmed: nothing here to absorb anything
+    const take = SVC.map((_,i)=>Math.min(trim[i], left[i]));
+    take.forEach(function(v,i){ left[i] -= v; });
+    const beyond = SVC.map((_,i)=>trim[i] - take[i]);
+    rows.push({id:id, trim:trim, take:take, beyond:beyond, trimTot:trimTot,
+               takeTot:take.reduce((a,b)=>a+b,0), beyondTot:beyond.reduce((a,b)=>a+b,0)});
+  });
+  return {rows:rows, start:start, left:left,
+          taken: SVC.map((_,i)=>start[i]-left[i])};
+}
+function taBody(){
+  const el=document.getElementById('taBody'); if(!el) return;
+  const ar=document.getElementById('taArrow'); if(ar) ar.textContent = taOpen? '\u25be':'\u25b8';
+  if(!taOpen){ el.innerHTML=''; return; }
+  const T=tiers(), A=trimAbsorb(T), MR=masterRanks();
+  const startTot=A.start.reduce((a,b)=>a+b,0), takenTot=A.taken.reduce((a,b)=>a+b,0);
+  if(startTot<=0.5){
+    el.innerHTML='<div class="ta-note">Every discretionary lane is spent \u2014 there is nothing left to place. '
+      +'Anything still short needs more budget authority, not a bigger allocation.</div>';
+    return;
+  }
+  if(!A.rows.length){
+    el.innerHTML='<div class="ta-note"><b>'+fM(startTot)+'</b> of discretionary is unspent and '
+      +'<b>no requirement is trimmed</b> \u2014 every one of them is allocated its full '+FYL()
+      +' requirement. The money has nowhere to go inside this year\u2019s list.</div>';
+    return;
+  }
+  const svcHdr=SVC.map(function(s,i){
+    return '<th title="'+esc(s)+' discretionary left after the whole walk">'+esc(s)+'</th>'; }).join('');
+  let rows='';
+  A.rows.forEach(function(r){
+    const it=itemById(r.id);
+    const cells=SVC.map(function(_,i){
+      return '<td style="color:'+(r.take[i]>0.5?'var(--green)':'var(--dim)')+'">'
+        +(r.take[i]>0.5? fM(r.take[i]) : '\u2014')+'</td>'; }).join('');
+    rows+='<tr><td style="text-align:left">#'+(MR[r.id]||'\u2014')+'</td>'
+      +'<td style="text-align:left">'+esc(grpOf(it))+'</td>'
+      +'<td style="text-align:left" title="'+esc(dispTitle(it))+'">'+esc(dispTitle(it))+'</td>'
+      +'<td style="color:var(--amber);font-weight:700">'+fM(r.trimTot)+'</td>'
+      +cells
+      +'<td style="color:var(--green);font-weight:800">'+fM(r.takeTot)+'</td>'
+      +'<td style="color:'+(r.beyondTot>0.5?'var(--red)':'var(--dim)')+'">'
+        +(r.beyondTot>0.5? fM(r.beyondTot):'\u2014')+'</td></tr>';
+  });
+  const trimTot=A.rows.reduce((a,r)=>a+r.trimTot,0);
+  const beyondTot=A.rows.reduce((a,r)=>a+r.beyondTot,0);
+  el.innerHTML='<div class="ta-note"><b>'+fM(startTot)+'</b> of discretionary budget authority is '
+    +'unspent. <b>'+A.rows.length+'</b> requirement'+(A.rows.length===1?' is':'s are')+' trimmed \u2014 '
+    +'allocated less than the '+FYL()+' requirement \u2014 by <b>'+fM(trimTot)+'</b> in total. '
+    +'Raising allocations in this order would place <b style="color:var(--green)">'+fM(takenTot)
+    +'</b> of it.</div>'
+    +'<table><tr><th style="text-align:left">Rank</th><th style="text-align:left">PMO</th>'
+    +'<th style="text-align:left">Requirement</th><th title="'+FYL()
+    +' requirement never allocated, per service">Trimmed by</th>'+svcHdr
+    +'<th>Could be funded now</th><th>Still beyond the lane</th></tr>'
+    +rows
+    +'<tr class="tot"><td style="text-align:left">TOTAL</td><td></td><td></td>'
+    +'<td style="color:var(--amber)">'+fM(trimTot)+'</td>'
+    +SVC.map(function(_,i){ return '<td style="color:var(--green)">'+fM(A.taken[i])+'</td>'; }).join('')
+    +'<td style="color:var(--green)">'+fM(takenTot)+'</td>'
+    +'<td style="color:'+(beyondTot>0.5?'var(--red)':'var(--dim)')+'">'+fM(beyondTot)+'</td></tr></table>'
+    +'<div class="ta-note" style="border-top:1px solid var(--lineSoft)">'
+    +'A requirement draws its ALLOCATION, never its ask. These rows are short because money was not '
+    +'allocated to them, not because a lane refused to pay \u2014 so nothing here moves on its own. '
+    +'Raise the allocation on the row, or per service in its \u229e SVC panel. The order matters: '
+    +'each figure assumes everything above it was raised first, because that is the order the lane '
+    +'walk pays in. \u201cStill beyond the lane\u201d is trim that no remaining '
+    +'discretionary can reach \u2014 that needs budget authority or mandatory, not a reallocation.</div>';
+}
 function chips(){
   const counts={ALL:DATA.items.length};
   GROUPS.forEach(g=>counts[g]=DATA.items.filter(i=>grpOf(i)===g).length);
@@ -17379,7 +17517,7 @@ function render(){
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
       +'checked it, or the unread part will be lost.'); }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
