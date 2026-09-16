@@ -1,0 +1,576 @@
+{
+  "notes": "Recorded Section 508 / WCAG findings. The run fails on anything NEW, and also when a recorded finding stops occurring without being struck off — a list of known holes that has stopped being true is worse than no list. Regenerate with --emit after a fix, and say in the commit which criterion was closed.",
+  "recorded": "2026-09-16",
+  "findings": [
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #e4ebf1 @10px",
+      "n": 57,
+      "detail": "4.04:1, needs 4.5:1 — e.g. \"★ MC\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f0ebdf @10px",
+      "n": 57,
+      "detail": "4.15:1, needs 4.5:1 — e.g. \"★ MC\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8b98ac on #253247 @10px",
+      "n": 57,
+      "detail": "4.42:1, needs 4.5:1 — e.g. \"★ MC\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #eef2f5 @10px",
+      "n": 6,
+      "detail": "4.32:1, needs 4.5:1 — e.g. \"📦 Opened with the saved board state — l\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f7f3ea @10px",
+      "n": 6,
+      "detail": "4.45:1, needs 4.5:1 — e.g. \"📦 Opened with the saved board state — l\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #e4ebf1 @11px",
+      "n": 4,
+      "detail": "4.04:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f0ebdf @11px",
+      "n": 4,
+      "detail": "4.15:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8b98ac on #253247 @11px",
+      "n": 4,
+      "detail": "4.42:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #dde5ec @9px",
+      "n": 2,
+      "detail": "3.82:1, needs 4.5:1 — e.g. \"36\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #eef2f5 @11px",
+      "n": 2,
+      "detail": "4.32:1, needs 4.5:1 — e.g. \"(click to minimize)\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #ece6d8 @9px",
+      "n": 2,
+      "detail": "3.96:1, needs 4.5:1 — e.g. \"36\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f7f3ea @11px",
+      "n": 2,
+      "detail": "4.45:1, needs 4.5:1 — e.g. \"(click to minimize)\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #dde5ec @11px",
+      "n": 1,
+      "detail": "3.82:1, needs 4.5:1 — e.g. \"absorb\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #dde5ec @12px",
+      "n": 1,
+      "detail": "3.82:1, needs 4.5:1 — e.g. \"—\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #e2edf7 @10px",
+      "n": 1,
+      "detail": "4.10:1, needs 4.5:1 — e.g. \"OGC - Sustainment Fuel (Ferry Flights)\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #e2edf7 @12px",
+      "n": 1,
+      "detail": "4.10:1, needs 4.5:1 — e.g. \"$1,854,094\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #e2edf7 @15px",
+      "n": 1,
+      "detail": "4.10:1, needs 4.5:1 — e.g. \"⠿\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#5d7488 on #e2edf7 @8px",
+      "n": 1,
+      "detail": "4.10:1, needs 4.5:1 — e.g. \"PSM #1\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #ece6d8 @11px",
+      "n": 1,
+      "detail": "3.96:1, needs 4.5:1 — e.g. \"absorb\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #ece6d8 @12px",
+      "n": 1,
+      "detail": "3.96:1, needs 4.5:1 — e.g. \"—\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f5e8c8 @10px",
+      "n": 1,
+      "detail": "4.05:1, needs 4.5:1 — e.g. \"OGC - Sustainment Fuel (Ferry Flights)\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f5e8c8 @12px",
+      "n": 1,
+      "detail": "4.05:1, needs 4.5:1 — e.g. \"$1,854,094\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f5e8c8 @15px",
+      "n": 1,
+      "detail": "4.05:1, needs 4.5:1 — e.g. \"⠿\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#787058 on #f5e8c8 @8px",
+      "n": 1,
+      "detail": "4.05:1, needs 4.5:1 — e.g. \"PSM #1\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8a92a4 on #243257 @10px",
+      "n": 1,
+      "detail": "4.03:1, needs 4.5:1 — e.g. \"OGC - Sustainment Fuel (Ferry Flights)\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8a92a4 on #243257 @12px",
+      "n": 1,
+      "detail": "4.03:1, needs 4.5:1 — e.g. \"$1,854,094\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8a92a4 on #243257 @15px",
+      "n": 1,
+      "detail": "4.03:1, needs 4.5:1 — e.g. \"⠿\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8a92a4 on #243257 @8px",
+      "n": 1,
+      "detail": "4.03:1, needs 4.5:1 — e.g. \"PSM #1\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8b98ac on #26344b @10px",
+      "n": 1,
+      "detail": "4.29:1, needs 4.5:1 — e.g. \"OGC - Sustainment Fuel (Ferry Flights)\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8b98ac on #26344b @12px",
+      "n": 1,
+      "detail": "4.29:1, needs 4.5:1 — e.g. \"$1,854,094\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8b98ac on #26344b @15px",
+      "n": 1,
+      "detail": "4.29:1, needs 4.5:1 — e.g. \"⠿\""
+    },
+    {
+      "sc": "contrast",
+      "key": "#8b98ac on #26344b @8px",
+      "n": 1,
+      "detail": "4.29:1, needs 4.5:1 — e.g. \"PSM #1\""
+    },
+    {
+      "sc": "reflow",
+      "key": "card @320px",
+      "n": 1,
+      "detail": "251px of horizontal scroll at 320px wide"
+    },
+    {
+      "sc": "reflow",
+      "key": "grid @320px",
+      "n": 1,
+      "detail": "612px of horizontal scroll at 320px wide"
+    },
+    {
+      "sc": "target",
+      "key": "span | editRecName('…')",
+      "n": 360,
+      "detail": "640x12px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | toggleChip(\"…\",\"…\",event)",
+      "n": 360,
+      "detail": "131x18px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | editTitle('…')",
+      "n": 185,
+      "detail": "9x12px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | toggleCons(\"…\")",
+      "n": 185,
+      "detail": "57x18px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setRank('…',this.value)",
+      "n": 180,
+      "detail": "44x22px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | editCcar('…')",
+      "n": 180,
+      "detail": "41x11px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | editPid('…')",
+      "n": 180,
+      "detail": "58x11px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | toggleDetail('…')",
+      "n": 180,
+      "detail": "224x14px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | laneFilter=laneFilter==='…'?'…':'…';render()",
+      "n": 30,
+      "detail": "79x19px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setFsrcSvc('…','…',0,this.value)",
+      "n": 10,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setFsrcSvc('…','…',1,this.value)",
+      "n": 10,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setFsrcSvc('…','…',2,this.value)",
+      "n": 10,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setFsrcSvc('…','…',3,this.value)",
+      "n": 10,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setFsrcSvc('…','…',4,this.value)",
+      "n": 10,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setFsrcSvc('…','…',5,this.value)",
+      "n": 10,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "button | resetAsk('…')",
+      "n": 5,
+      "detail": "24x23px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "button | setAwdDateFull('…','…')",
+      "n": 5,
+      "detail": "24x23px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setAbsorber('…',this.checked)",
+      "n": 5,
+      "detail": "13x13px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setAsk('…',0,this.value)",
+      "n": 5,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setAsk('…',1,this.value)",
+      "n": 5,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setAsk('…',2,this.value)",
+      "n": 5,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setAsk('…',3,this.value)",
+      "n": 5,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setAsk('…',4,this.value)",
+      "n": 5,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setAsk('…',5,this.value)",
+      "n": 5,
+      "detail": "111x21px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setAwdDateFull('…',this.value)",
+      "n": 5,
+      "detail": "92x23px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | setMinInc('…',this.value)",
+      "n": 5,
+      "detail": "221x19px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "input | toggleAwdInc('…',1854094)",
+      "n": 5,
+      "detail": "13x13px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "select | setBand(\"…\",this.value)",
+      "n": 5,
+      "detail": "221x19px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | toggleDesc('…')",
+      "n": 5,
+      "detail": "82x18px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | toggleNote('…')",
+      "n": 5,
+      "detail": "51x18px, needs 24x24"
+    },
+    {
+      "sc": "target",
+      "key": "span | toggleRec('…')",
+      "n": 5,
+      "detail": "62x18px, needs 24x24"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#2b313d border on #171b23",
+      "n": 426,
+      "detail": "1.32:1, needs 3:1 — e.g. button.btn, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#35435c border on #1c2637",
+      "n": 426,
+      "detail": "1.53:1, needs 3:1 — e.g. button.btn, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#aeb7c3 border on #d9dfe7",
+      "n": 426,
+      "detail": "1.51:1, needs 3:1 — e.g. button.btn, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#c3cfda border on #ffffff",
+      "n": 426,
+      "detail": "1.58:1, needs 3:1 — e.g. button.btn, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#ddd5c4 border on #fffdf8",
+      "n": 426,
+      "detail": "1.44:1, needs 3:1 — e.g. button.btn, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#2b313d border on #141822",
+      "n": 109,
+      "detail": "1.49:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#35435c border on #182234",
+      "n": 109,
+      "detail": "1.83:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#aeb7c3 border on #ced5de",
+      "n": 109,
+      "detail": "1.37:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#c3cfda border on #f7fafc",
+      "n": 109,
+      "detail": "1.51:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#ddd5c4 border on #fbf8f1",
+      "n": 109,
+      "detail": "1.38:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#2b313d border on #101319",
+      "n": 34,
+      "detail": "1.43:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#35435c border on #141c2b",
+      "n": 34,
+      "detail": "1.71:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#aeb7c3 border on #c4ccd6",
+      "n": 34,
+      "detail": "1.30:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#c3cfda border on #eef2f5",
+      "n": 34,
+      "detail": "1.41:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#ddd5c4 border on #f7f3ea",
+      "n": 34,
+      "detail": "1.32:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#333a48 border on #141822",
+      "n": 13,
+      "detail": "1.55:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#42526e border on #182234",
+      "n": 13,
+      "detail": "2.02:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#8b95a4 border on #ced5de",
+      "n": 13,
+      "detail": "2.05:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#a9b8c7 border on #f7fafc",
+      "n": 13,
+      "detail": "1.93:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#c9bfa8 border on #fbf8f1",
+      "n": 13,
+      "detail": "1.72:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#2b313d border on #243257",
+      "n": 4,
+      "detail": "1.49:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#333a48 border on #171b23",
+      "n": 4,
+      "detail": "1.55:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#35435c border on #26344b",
+      "n": 4,
+      "detail": "1.83:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#42526e border on #1c2637",
+      "n": 4,
+      "detail": "2.02:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#8b95a4 border on #d9dfe7",
+      "n": 4,
+      "detail": "2.26:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#a9b8c7 border on #ffffff",
+      "n": 4,
+      "detail": "2.03:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#aeb7c3 border on #cbd9e8",
+      "n": 4,
+      "detail": "1.41:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#c3cfda border on #e2edf7",
+      "n": 4,
+      "detail": "1.33:1, needs 3:1 — e.g. input, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#c9bfa8 border on #fffdf8",
+      "n": 4,
+      "detail": "1.80:1, needs 3:1 — e.g. span.rchip, no discernible edge"
+    },
+    {
+      "sc": "uiContrast",
+      "key": "#ddd5c4 border on #f5e8c8",
+      "n": 4,
+      "detail": "1.20:1, needs 3:1 — e.g. input, no discernible edge"
+    }
+  ]
+}

@@ -929,6 +929,165 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   // ("'listed' : 'listed'") asserted nothing at all while looking like it did.
 }
 
+// ═══ EVERY DOLLAR THE ENGINE PRODUCES IS A WHOLE DOLLAR ═════════════════════════════════
+// Money used to be stored as a float and rounded only FOR DISPLAY. A scalar allocation prorated
+// across the services by x*t/at left a fraction on every lane, and because unfSvcOf() floors each
+// service separately those fractions cannot cancel against one another -- they surfaced as
+// unfunded dollars nobody was short of, on a screen that also said the requirement was fully
+// funded.
+//
+// THE ORACLE IS Number.isInteger, NOT A TOLERANCE, and that is the whole point. Every other money
+// check in this codebase compares to within 0.005, so a third of a cent per service passed all of
+// them while still tripping the >0.005 tests that decide what counts as unfunded. A rule this one
+// enforces cannot be expressed with the tolerance the rule exists to eliminate.
+{
+  const name = 'whole dollars — scalar allocations that do not divide';
+  // Chosen so no proration lands clean: none of these asks divide their allocation evenly, and
+  // 13 across [1,3,7,11] is deliberately small enough that a lost dollar is the whole answer.
+  const sc = {
+    services: ['USAF', 'ANG', 'STOVL', 'USN'],
+    items: [it('A', 'ATL', [246947793, 28251630, 100813070, 63796828]),
+            it('B', 'PSM', [1, 3, 7, 11]),
+            it('C', 'AV',  [333333333, 333333333, 333333334, 1]),
+            it('D', 'MxS', [70000001, 30000007, 10000003, 5000009])],
+    disc: [200000001, 20000003, 90000007, 50000011],
+    mand: [10000003, 5000007, 3000011, 2000013],
+    // D IS WALKED FIRST, and that is the whole point of it. Placed last it drew nothing: A
+    // exhausts every discretionary lane, so D's directed share was capped at a dry lane's zero and
+    // the fractional spread this fixture exists to expose never reached the output. A fixture that
+    // cannot reach the code it is aimed at reads exactly like a passing one -- and this one did,
+    // until split-share-fractional survived the sweep and said so.
+    order: ['D', 'A', 'B', 'C'],
+    alloc: { A: { m: 't', v: 412915308 }, B: { m: 't', v: 13 }, C: { m: 't', v: 777777777 } },
+    // D carries a LEGACY whole-requirement split -- scalar Disc and Mand with no per-service
+    // vectors. tiers() has to spread those across the lanes itself, and that spread is a second
+    // proration with its own chance to leave a fraction on every service.
+    fsrc: { D: { m: 'split', d: 61234567, mnd: 23456789 } },
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const F = JSON.parse(ev(`(function(){
+    const T=tiers(), out={rows:[], ba:{disc:S.discSvc.slice(), mand:S.mandSvc.slice()}};
+    S.order.forEach(function(id){ const p=T[id], x=itemById(id); if(!p||!x) return;
+      out.rows.push({id:id, ask:x.ask.slice(), alloc:svcAlloc(x), d:p.d, m:p.m, u:p.u,
+                     du:discUnfSvcOf(x,p), uu:unfSvcOf(x,p), effTot:eff(x)}); });
+    return JSON.stringify(out); })()`));
+
+  const whole = v => Number.isInteger(v);
+  const allWhole = vec => vec.every(whole) ? 'ok' : vec.join(',');
+  chk(name, 'whole dollars', 'the legacy split spread whole dollars too',
+    (F.rows.filter(r => r.id === 'D')[0] || {d: [0.5]}).d.every(Number.isInteger) ? 'ok' : 'fractional', 'ok');
+  F.rows.forEach(r => {
+    [['requirement value', r.ask], ['allocation', r.alloc], ['discretionary drawn', r.d],
+     ['mandatory drawn', r.m], ['unfunded', r.u], ['unfunded vs DISC', r.du],
+     ['unfunded total', r.uu]].forEach(([what, vec]) =>
+      chk(name, 'whole dollars', `${r.id}: every per-service ${what} is a whole dollar`,
+        allWhole(vec), 'ok'));
+    // EXACT, not near. The per-service allocation has to add back up to the scalar that was typed
+    // or the difference becomes unfunded the moment a lane is tight -- which is the defect.
+    chk(name, 'apportion', `${r.id}: the per-service allocation sums to exactly what was allocated`,
+      sum(r.alloc), r.effTot);
+    // Conservation still holds service by service, in whole dollars.
+    r.alloc.forEach((v, i) => chk(name, 'apportion',
+      `${r.id}: service ${i} — drawn plus unfunded equals the allocation`,
+      r.d[i] + r.m[i] + r.u[i], v));
+  });
+  chk(name, 'whole dollars', 'discretionary budget authority is whole dollars', allWhole(F.ba.disc), 'ok');
+  chk(name, 'whole dollars', 'mandatory budget authority is whole dollars', allWhole(F.ba.mand), 'ok');
+
+  // What a person types is rounded at the door, not at the glass. These run last: they change the
+  // board, and everything above is measured against the board as it was seeded.
+  chk(name, 'input', 'a typed cent is stored as a whole dollar',
+    ev(`setAsk('B',0,'1,234.56'); itemById('B').ask[0]`), 1235);
+  chk(name, 'input', 'a typed shorthand amount is stored as a whole dollar',
+    ev(`setAsk('B',1,'1.2345M'); itemById('B').ask[1]`), 1234500);
+  chk(name, 'input', 'a typed allocation is stored as a whole dollar',
+    ev(`setAlloc('C','777777777.49'); (S.alloc['C']||{}).v`), 777777777);
+}
+
+// ═══ DIRECTED IS NOT DRAWN ══════════════════════════════════════════════════════════════
+// A directed split says where a requirement's dollars SHOULD come from. tiers() can only give what
+// the service's lane still holds and what the allocation covers, so a directed dollar past either
+// limit is not funded -- it lands in UFR. The editor used to print the DIRECTED figure in the box
+// and the DRAWN figure in the column total, which let a service read as fully funded beside its own
+// non-zero UFR and made the Disc column disagree with its own total by exactly the shortfall.
+//
+// Both builds render this from their own markup -- the grid from the RECORD panel, the card from
+// the row expander -- so the check reads whichever editor the build has and asserts on the CELL,
+// never on "somewhere in the HTML". A figure found loose in the page is the check that once passed
+// because the value it wanted was sitting in the next column.
+{
+  const name = 'directed vs drawn — a lane too short for what was directed';
+  const SHORT = 6293317;
+  const ASK = [246947793, 100813070, 63796828];
+  const sc = {
+    services: ['USAF', 'STOVL', 'USN'],
+    items: [it('A', 'PSM', ASK.slice())],
+    disc: [ASK[0], ASK[1] - SHORT, ASK[2]], mand: [0, 0, 0],
+    order: ['A'],
+    fsrc: { A: { m: 'split', dv: ASK.slice(), mv: [0, 0, 0] } },
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  // The engine's answer first. Everything the editor prints is measured against this, never
+  // against the editor's own other cells.
+  const p = JSON.parse(ev(`(function(){ const p=tiers()['A'];
+    return JSON.stringify({d:p.d, m:p.m, u:p.u, dT:p.dT}); })()`));
+  chk(name, 'engine', 'the short lane funds only what it holds', p.d[1], ASK[1] - SHORT);
+  chk(name, 'engine', 'and the remainder is unfunded', p.u[1], SHORT);
+  chk(name, 'engine', 'the other services are untouched', p.u[0] + p.u[2], 0);
+
+  const cell = JSON.parse(ev(`(function(){
+    let html;
+    if(typeof inspectorBody==='function'){                 // grid: the docked RECORD panel
+      curRow='A';
+      if(!document.getElementById('inspector')){
+        const d=document.createElement('div'); d.id='inspector'; document.body.appendChild(d); }
+      inspectorBody(); html=document.getElementById('inspector').innerHTML;
+    } else { html=svcTable(itemById('A')); }               // card: the row expander
+    const wrap=document.createElement('div'); wrap.innerHTML=html;
+    // OWN text means the cell's own figure with the second-reading line removed -- reading the
+    // whole cell would let 'directed $411,557,691' answer a question asked about the total.
+    const read=function(td){
+      const dr=td.querySelector('.drew');
+      const own=[].slice.call(td.childNodes).filter(function(n){
+        return !(n.classList && n.classList.contains('drew')); })
+        .map(function(n){ return n.textContent; }).join('').trim();
+      return {box:((td.querySelector('input')||{}).value||'').trim(), own:own,
+              drew:(dr? dr.textContent : '').trim()}; };
+    const t=wrap.querySelector('.insp-split');
+    if(t){                                                  // one ROW per service
+      const tr=[].slice.call(t.querySelectorAll('tr')).filter(function(r){
+        return r.children[0] && r.children[0].textContent.trim()==='STOVL'; })[0];
+      const tot=[].slice.call(t.querySelectorAll('tr')).filter(function(r){
+        return r.children[0] && r.children[0].textContent.trim()==='TOTAL'; })[0];
+      return JSON.stringify({svc:read(tr.children[2]), tot:read(tot.children[2])});
+    }
+    const rows=[].slice.call(wrap.querySelectorAll('tr'));   // card: one COLUMN per service
+    const dr=rows.filter(function(r){ return r.children[0]
+      && /Split .* Disc/.test(r.children[0].textContent); })[0];
+    return JSON.stringify({svc:read(dr.children[2]), tot:read(dr.children[dr.children.length-1])});
+  })()`));
+
+  const money = s => Number(String(s).replace(/[^0-9.-]/g, '')) || 0;
+  chk(name, 'editor', 'the box still holds the figure that was DIRECTED', money(cell.svc.box), ASK[1]);
+  chk(name, 'editor', 'the same cell also states what was actually DRAWN',
+    money(cell.svc.drew), ASK[1] - SHORT);
+  // The editor's own two figures have to be the engine's arithmetic, or it is telling a different
+  // story from the money it is reporting.
+  chk(name, 'editor', 'directed minus drawn is exactly this service’s unfunded figure',
+    money(cell.svc.box) - money(cell.svc.drew), p.u[1]);
+  // And the column must foot: the total is what was drawn, and it says so when the cells above it
+  // were directed higher. Without that second reading the column does not add up on screen.
+  chk(name, 'editor', 'the column total is what was DRAWN', money(cell.tot.own), p.dT);
+  chk(name, 'editor', 'and the total states the DIRECTED sum the cells above it add up to',
+    money(cell.tot.drew), ASK.reduce((a, b) => a + b, 0));
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

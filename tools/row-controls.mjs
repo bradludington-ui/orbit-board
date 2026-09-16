@@ -93,6 +93,10 @@ if (args[0] === '--diff') {
   REPLACED['toggleChip("fund","A",event)'] = ["setFsrc('\u2026','\u2026')",
     'the row picker offered one option once auto (lanes) was dropped, so the inspector converts a '
     + 'requirement to Split in a single click instead'];
+  REPLACED['toggleChip("band","A",event)'] = ['setBand("A",this.value)',
+    'the band is STATED on the row and SET on the RECORD panel. It is the field the whole funding '
+    + 'ladder hangs off and the one most easily changed by brushing past a chip while dragging 115 '
+    + 'rows into order, so the grid build keeps one editor for it rather than a picker and a select'];
   const RETIRED = {};
   RETIRED["toggleDetail('\u2026')"] = 'the row expander is retired in the grid build; everything it '
     + 'edited moved to the docked inspector, so the disclosure toggle has nothing left to disclose';

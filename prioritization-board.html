@@ -278,6 +278,9 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .rchip[onclick]:hover{border-color:var(--gold);color:var(--ink)}
 .rchip.add{border-style:dashed;border-color:var(--line);color:var(--dim);font-weight:600}
 .rchip.warn{border-color:var(--red);color:var(--red)}
+/* The second reading under a split editor's cell: what the lane could actually supply. */
+.drew{font-size:8px;font-weight:800;letter-spacing:.02em;color:var(--red);text-align:right;
+  margin-top:1px;white-space:nowrap}
 .chipm{position:relative;display:inline-block}
 .chipm .mdd{left:0;right:auto;min-width:212px;max-height:340px;overflow-y:auto}
 .chipm.open .rchip{background:var(--gold);border-color:var(--gold);color:var(--onGold)}
@@ -298,7 +301,13 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .rank{display:flex;gap:4px;align-items:center}
 .rank input{width:44px;background:var(--sink);border:1px solid var(--line);border-radius:5px;color:var(--ink);font-weight:800;font-size:13px;padding:5px 4px;text-align:center}
 .rank .ud{display:flex;flex-direction:column;gap:2px}
-.rank .ud button{background:var(--panel2);border:1px solid var(--line);color:var(--mut);border-radius:3px;font-size:8px;padding:1px 5px;cursor:pointer}
+/* WCAG 2.5.8 wants 24x24. These were 20x13 and there are two on every one of 115 rows, which made
+   them the most-repeated conformance finding on the board -- and they are the control you use while
+   dragging the priority order, so the standard and the job agree here. The row is 83px tall and the
+   stack is 50px, so nothing grows. */
+.rank .ud button{background:var(--panel2);border:1px solid var(--line);color:var(--mut);border-radius:3px;
+  font-size:9px;line-height:1;padding:0;width:24px;height:24px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center}
 .rank .ud button:hover{color:var(--ink);border-color:var(--blue)}
 .pmodot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;border:1px solid var(--line2)}
 .gchip{font-size:10.5px;font-weight:800;text-align:center;padding:4px 4px;border-radius:5px;color:var(--onChip)}
@@ -1235,7 +1244,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.58 (15 Sep 2026)';
+const BUILD='v1.59 (16 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1302,8 +1311,9 @@ function absorbCalc(T){
   const floor=Math.max(0, Math.min(S.absorbFloor||0, aTot));
   const absorbed=[], unabsorbed=[];
   let capped=false;
+  const floorV=apportion(floor, alloc);
   for(let i=0;i<SVC.length;i++){
-    const room=Math.max(0, (alloc[i]||0) - (aTot>0? floor*(alloc[i]||0)/aTot : 0));
+    const room=Math.max(0, (alloc[i]||0) - floorV[i]);
     const take=Math.min(sf.bySvc[i]||0, room);
     absorbed.push(take);
     const left=(sf.bySvc[i]||0)-take;
@@ -1324,6 +1334,101 @@ function laneOf(t){ const d=t.dT>0.005, m=t.mT>0.005;
 const LANELBL={disc:'DISCRETIONARY', mand:'MANDATORY', split:'BOTH', unf:'UNFUNDED'};
 const laneLbl=t=>LANELBL[laneOf(t)];
 const fM = v=>'$'+Math.round(v).toLocaleString();
+/* ---- DIRECTED IS NOT DRAWN --------------------------------------------------------------------
+   A directed split says where a requirement's dollars SHOULD come from. tiers() can only give what
+   that service's lane still holds and what the allocation covers, so a directed dollar past either
+   limit is not funded -- it lands in UFR. An editor that prints only the DIRECTED figure therefore
+   shows a service as fully funded beside its own non-zero UFR, and its column stops adding up to
+   its own total. ONE implementation of the second reading, because both builds owe it: the grid
+   renders the split editor in the RECORD panel and the card in the row expander, and neither may
+   state the rule differently from the other. */
+const drewGap = (directedV, drawnV) => (directedV - drawnV) > 0.005;
+// On a CELL: what the lane actually supplied, under the figure that was typed.
+const drewLine = (directedV, drawnV) => drewGap(directedV, drawnV)
+  ? '<div class="drew" title="the lane could not supply the rest">drew '+fM(drawnV)+'</div>' : '';
+// On a TOTAL: what the cells above it were directed to, since the total itself is what was drawn.
+const directedLine = (directedV, drawnV) => drewGap(directedV, drawnV)
+  ? '<div class="drew" title="the cells above were directed higher than the lanes could supply">'
+    + 'directed '+fM(directedV)+'</div>' : '';
+// The same fact in a tooltip, for the box the figure was typed into.
+const drewTip = (directedV, drawnV) => drewGap(directedV, drawnV)
+  ? ' \u2014 '+fM(drawnV)+' of it could be drawn; '+fM(directedV-drawnV)
+    + ' could not and shows as this service\u2019s UFR' : '';
+/* ---- WHOLE DOLLARS ---------------------------------------------------------------------------
+   EVERY DOLLAR THE BOARD HOLDS IS A WHOLE DOLLAR. Money used to be stored as a float and rounded
+   only FOR DISPLAY, so a requirement could be short by a third of a cent, print as fully funded,
+   and still trip the >0.005 tests that decide what is unfunded -- a UFR nobody is short of, on a
+   board people brief from. Rounding at the door instead of at the glass means the figure on the
+   screen is the figure in the model. Requirement values, allocations, budget authority, directed
+   splits and award increments all come through here. */
+const D$ = v => { const n = Math.round(Number(v)); return isFinite(n)? n : 0; };
+/* ---- A COLOUR THAT CAN ACTUALLY BE READ ON THE GROUND IT IS ON --------------------------------
+   A decision band's hue identifies a LANE. It was never chosen to be read as TEXT, and on the light
+   themes it cannot be: #d6a24a on --panelA measures 1.56:1 against WCAG 1.4.3's 4.5:1 floor, and
+   #ff6b81 measures 1.85:1. Section 508 adopts that floor by reference, so this is a conformance
+   failure, not a preference.
+   The fix is DERIVED rather than hand-picked. A second colour per band per theme would be five
+   values to keep in step, and an office that adds its own band -- which ⚖ Bands exists to let them
+   do -- would get none of it. So: keep the hue, walk its lightness toward whichever end the ground
+   allows until it clears the floor, and stop at the first step that does. The band still reads as
+   itself; it just stops being invisible. */
+function _rgb(h){ h=String(h||'').trim();
+  const m=/^#?([0-9a-f]{6})$/i.exec(h) || /^#?([0-9a-f]{3})$/i.exec(h);
+  if(!m) return null;
+  let v=m[1]; if(v.length===3) v=v[0]+v[0]+v[1]+v[1]+v[2]+v[2];
+  return {r:parseInt(v.slice(0,2),16), g:parseInt(v.slice(2,4),16), b:parseInt(v.slice(4,6),16)}; }
+function _lum(c){ const f=v=>{ v/=255; return v<=0.03928? v/12.92 : Math.pow((v+0.055)/1.055,2.4); };
+  return 0.2126*f(c.r)+0.7152*f(c.g)+0.0722*f(c.b); }
+function _ratio(a,b){ const l1=_lum(a), l2=_lum(b);
+  return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05); }
+const _hex=c=>'#'+[c.r,c.g,c.b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
+function readableOn(hue, bg, need){
+  const c=_rgb(hue), g=_rgb(bg);
+  if(!c||!g) return hue;                       // not a hex we understand: leave it alone
+  if(_ratio(c,g) >= (need||4.5)) return hue;   // already legible here
+  const toBlack = _lum(g) > 0.18;              // light ground: darken. dark ground: lighten.
+  for(let k=0.04; k<=1.0001; k+=0.04){
+    const t = toBlack
+      ? {r:c.r*(1-k), g:c.g*(1-k), b:c.b*(1-k)}
+      : {r:c.r+(255-c.r)*k, g:c.g+(255-c.g)*k, b:c.b+(255-c.b)*k};
+    if(_ratio(t,g) >= (need||4.5)) return _hex(t);
+  }
+  return toBlack? '#000000' : '#ffffff';       // the ground is extreme; take the end of the ramp
+}
+/* The ground a row chip actually sits on. Opaque in every theme, so it can be read straight off the
+   token rather than composited. Cached per theme because render() asks for it once per chip and a
+   populated board draws 115 of them. */
+let _chipBgFor = {};
+function chipBg(){
+  let t='';
+  try{ t=String(localStorage.getItem('spmtTheme')); }catch(e){ t='?'; }
+  if(_chipBgFor[t]) return _chipBgFor[t];
+  let v='';
+  try{ v=getComputedStyle(document.documentElement).getPropertyValue('--panelA').trim(); }catch(e){}
+  return (_chipBgFor[t] = v || '#141822');
+}
+// A band's hue, made readable against the chip it is printed on.
+const bandInk = c => readableOn(c, chipBg(), 4.5);
+/* Split a whole-dollar TOTAL across WEIGHTS into whole dollars summing to EXACTLY the total.
+   Largest remainder: floor every share, then hand the leftover dollars out one at a time to the
+   biggest fractions. Rounding each share on its own does NOT do this -- six services rounded
+   independently can miss the total by several dollars, and because the lane walk floors each
+   service separately that gap cannot cancel: it lands in the unfunded column as money nobody
+   asked for. Used everywhere a total is spread across the service lanes. */
+function apportion(total, weights){
+  const T = D$(total), n = (weights||[]).length;
+  if(!n) return [];
+  const w = weights.map(function(x){ const v = Number(x); return (isFinite(v)&&v>0)? v : 0; });
+  const sum = w.reduce(function(a,b){ return a+b; }, 0);
+  const raw = sum>0 ? w.map(function(x){ return T*x/sum; })
+                    : w.map(function(){ return T/n; });
+  const out = raw.map(Math.floor);
+  let left = T - out.reduce(function(a,b){ return a+b; }, 0);
+  const order = raw.map(function(v,i){ return {i:i, f:v-Math.floor(v)}; })
+                   .sort(function(a,b){ return (b.f-a.f) || (a.i-b.i); });
+  for(let k=0; left>0 && k<order.length; k++){ out[order[k].i]++; left--; }
+  return out;
+}
 // Same number, short enough for a chip. Exact dollars stay in the tooltip.
 const fMc = v=>{ const a=Math.abs(v);
   return a>=1e9? '$'+(v/1e9).toFixed(2)+'B' : a>=1e6? '$'+(v/1e6).toFixed(1)+'M'
@@ -3346,7 +3451,7 @@ function applyState(st){
     DATA.budget.length = SVC.length;
   }
   const bud = DATA.budget, budT = bud.reduce((a,b)=>a+b,0);
-  const prorate = (vec,tot)=>{ const s=vec.reduce((a,b)=>a+b,0); return s>0? vec.map(x=>x*tot/s) : vec.map(_=>tot/vec.length); };
+  const prorate = (vec,tot)=>apportion(tot, vec);
   if(_svcKnown && (!Array.isArray(S.discSvc)||S.discSvc.length!==SVC.length)){
     const t = (typeof S.discBA==='number')? S.discBA : Math.round(budT*0.85);
     S.discSvc = prorate(bud.slice(), t);
@@ -3373,10 +3478,12 @@ function applyState(st){
   // load, so nothing downstream has to defend itself. A comma-formatted string is READ rather than
   // discarded - somebody's real figure, written the way a person writes it, should not become zero.
   const money=x=>{
-    if(typeof x==='number') return isFinite(x)? x : 0;
+    // Rounds as well as parses, so a board saved before whole dollars were enforced is healed on
+    // open rather than carrying its fractions forward into every figure derived from it.
+    if(typeof x==='number') return D$(x);
     if(x===null||x===undefined||x==='') return 0;
     const n=parseFloat(String(x).replace(/[$,\s]/g,''));
-    return isFinite(n)? n : 0;
+    return isFinite(n)? D$(n) : 0;
   };
   const fit=v=>{ if(!_svcKnown) return Array.isArray(v)? v.map(money) : [];  // no list to align to: keep what arrived
     const o=Array.isArray(v)? v.slice(0,SVC.length).map(money):[]; while(o.length<SVC.length) o.push(0); return o; };
@@ -3426,8 +3533,8 @@ function applyState(st){
     aw.inc.forEach(x=>{
       if(Array.isArray(x.sv)&&x.sv.length===SVC.length) return;
       const v=x.v||0;
-      if(it){ const at=it.ask.reduce((a,b)=>a+b,0); x.sv= at>0? it.ask.map(a=>v*a/at) : SVC.map(_=>v/SVC.length); }
-      else x.sv=SVC.map(_=>v/SVC.length);
+      if(it) x.sv=apportion(v, it.ask);
+      else x.sv=apportion(v, SVC.map(_=>1));
       delete x.v;
     });
   });
@@ -5656,7 +5763,8 @@ function parseAmt(s){
   else if(s.endsWith('K')){m=1e3;s=s.slice(0,-1);}
   else if(s.endsWith('B')){m=1e9;s=s.slice(0,-1);}
   const v=parseFloat(s);
-  return isNaN(v)? null : v*m;
+  // Whole dollars. A typed cent is a cent the lane walk would have to floor somewhere.
+  return isNaN(v)? null : D$(v*m);
 }
 // The PLAN EVENT is what a requirement is called. It says what is being funded; the CCaR record
 // name says which record it is filed under. A rename overrides the displayed name.
@@ -14280,7 +14388,7 @@ function fcBody(){
 // becomes zero. Anything that shows a proposed value to a human must run it through this FIRST, or
 // the screen and the spreadsheet promise a number the board will never store.
 function askVecOf(vec){
-  return SVC.map(function(_,i){ const n=parseFloat((vec||[])[i]); return (isFinite(n)&&n>0)? n : 0; });
+  return SVC.map(function(_,i){ const n=parseFloat((vec||[])[i]); return (isFinite(n)&&n>0)? D$(n) : 0; });
 }
 function applyAskVec(id, vec){
   const it=itemById(id); if(!it) return false;
@@ -14330,11 +14438,13 @@ const eff = it => {
 };
 function svcAlloc(it){
   const a=S.alloc[it.id];
-  if(a===null||a===undefined) return it.ask.slice();
-  if(a.m==='s') return a.v.slice();
+  if(a===null||a===undefined) return it.ask.map(D$);
+  if(a.m==='s') return a.v.map(D$);
+  // A TOTAL allocation is spread in the shape of the ask. apportion() keeps the parts whole and
+  // makes them sum to exactly the total: the naive x*t/at gave six fractions whose floors no
+  // longer added up to what was allocated, and the difference surfaced as phantom unfunded.
   const at=askTot(it);
-  if(at>0) return it.ask.map(x=>a.v*x/at);
-  return SVC.map(_=>a.v/SVC.length);
+  return apportion(a.v, at>0? it.ask : SVC.map(_=>1));
 }
 
 const discTot = ()=>S.discSvc.reduce((a,b)=>a+b,0);
@@ -14384,11 +14494,13 @@ function tiers(ord, scen){
           D=Math.max(0, Math.min(fo.d||0, tot));
           M=Math.max(0, Math.min(fo.mnd||0, tot-D));
         } // 'ufr': D=M=0
+        // Whole dollars, summing to exactly D and M. A per-service share of a legacy split used
+        // to be D*v/tot, which put a fraction on every lane and a rounding gap in the remainder.
+        const Dv=apportion(D, basis), Mv=apportion(M, basis);
         basis.forEach((v,i)=>{
           if(v<=0) return;
-          const share = tot>0? v/tot : 0;
-          const dd=Math.min(D*share, Math.max(0,dRem[i]), v); dRem[i]-=dd; d[i]=dd;
-          const mm=Math.min(M*share, Math.max(0,mRem[i]), v-dd); mRem[i]-=mm; m[i]=mm;
+          const dd=Math.min(Dv[i], Math.max(0,dRem[i]), v); dRem[i]-=dd; d[i]=dd;
+          const mm=Math.min(Mv[i], Math.max(0,mRem[i]), v-dd); mRem[i]-=mm; m[i]=mm;
           u[i]=v-dd-mm;
         });
       }
@@ -14826,8 +14938,8 @@ function applyBudget(){
   const d=S.bm.disc.slice(), m=S.bm.mand.slice();
   (S.bm.adds||[]).forEach(a=>{ const t=(a.pool==='mand')? m:d; (a.vec||[]).forEach((v,i)=>{ if(i<t.length) t[i]+=(v||0); }); });
   // Reprogramming actions are tracked, not applied — CCaR already accounts for the money.
-  S.discSvc=d.map(v=>Math.max(0,v));
-  S.mandSvc=m.map(v=>Math.max(0,v));
+  S.discSvc=d.map(v=>Math.max(0,D$(v)));
+  S.mandSvc=m.map(v=>Math.max(0,D$(v)));
 }
 function setBATot(kind,val){          // (command bar) — writes the BASE component
   const v=parseAmt(val);
@@ -15142,10 +15254,10 @@ function zeroSpread(id, src){
   const moved=cur[src];
   if(moved<=0){ return; }
   const rest=cur.reduce((a,b,i)=>a+(i===src?0:b),0);
-  const v=cur.map((x,i)=>{
-    if(i===src) return 0;
-    return rest>0? x + moved*x/rest : moved/(SVC.length-1);
-  });
+  // The moved dollars are apportioned whole, so the requirement's total is preserved exactly
+  // rather than to within a rounding error spread over the services that received it.
+  const add=apportion(moved, cur.map((x,i)=> i===src? 0 : (rest>0? x : 1)));
+  const v=cur.map((x,i)=> i===src? 0 : D$(x)+add[i]);
   S.alloc[id]={m:'s', v:v};
   open[id]=true;
   save(); render(); flash(id);
@@ -15233,11 +15345,17 @@ function svcTable(it){
       const fo=S.fsrc[it.id];
       migrateSplit(it.id);
       const Tx=tiers(), px=Tx[it.id]||{d:SVC.map(_=>0),m:SVC.map(_=>0),u:SVC.map(_=>0),dT:0,mT:0,uT:0};
-      const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${fo.dv[i]?Math.round(fo.dv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY"></td>`).join('');
-      const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${fo.mv[i]?Math.round(fo.mv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY"></td>`).join('');
+      // The box holds what was DIRECTED; drewLine/drewTip add what the lane actually supplied when
+      // it was less. Both come from the shared rule, so this editor and the grid's RECORD panel
+      // cannot drift on what a split editor owes the reader.
+      const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${fo.dv[i]?Math.round(fo.dv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY${drewTip(fo.dv[i]||0,px.d[i]||0)}">${drewLine(fo.dv[i]||0,px.d[i]||0)}</td>`).join('');
+      const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${fo.mv[i]?Math.round(fo.mv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY${drewTip(fo.mv[i]||0,px.m[i]||0)}">${drewLine(fo.mv[i]||0,px.m[i]||0)}</td>`).join('');
       const uRow=SVC.map((s,i)=>`<td style="color:${px.u[i]>0.5?'var(--red)':'var(--dim)'};font-weight:700">${px.u[i]>0.5?fM(px.u[i]):'—'}</td>`).join('');
-      return `<tr><td style="color:var(--green);font-weight:700">⚙ Split — Disc $ (edit)</td>${dRow}<td style="color:var(--green);font-weight:700">${fM(px.dT)}</td></tr>
-      <tr><td style="color:var(--purp);font-weight:700">⚙ Split — Mand $ (edit)</td>${mRow}<td style="color:var(--purp);font-weight:700">${fM(px.mT)}</td></tr>
+      // The TOTAL is what was DRAWN -- that is the money. directedLine adds what the cells above
+      // it add up to, or the column does not foot to its own total on screen.
+      const dirD=fo.dv.reduce((a,b)=>a+(b||0),0), dirM=fo.mv.reduce((a,b)=>a+(b||0),0);
+      return `<tr><td style="color:var(--green);font-weight:700">⚙ Split — Disc $ (edit)</td>${dRow}<td style="color:var(--green);font-weight:700">${fM(px.dT)}${directedLine(dirD,px.dT)}</td></tr>
+      <tr><td style="color:var(--purp);font-weight:700">⚙ Split — Mand $ (edit)</td>${mRow}<td style="color:var(--purp);font-weight:700">${fM(px.mT)}${directedLine(dirM,px.mT)}</td></tr>
       <tr><td style="color:var(--red);font-weight:700">⚙ Resulting UFR</td>${uRow}<td style="color:${px.uT>0.5?'var(--red)':'var(--dim)'};font-weight:700">${fM(px.uT)}</td></tr>`;})() : ''}
     <tr><td style="color:var(--blue);font-weight:700">Minimum useful increment</td>
       <td colspan="${SVC.length}" style="color:var(--dim);font-size:9px">the least this still buys something at — blank means the full requirement. Only needed for band 0&ndash;2 items that fall below the line.</td>
@@ -15366,7 +15484,7 @@ function rowChipsHtml(it){
       bid===null? '+ band' : ((bi>=0? bi+' \u00b7 ':'')+chipClip(bd.n)),
       bid===null? '' : bid, bandItems, 'setBand',
       'Decision band \u2014 the funding rule travels with the band. Manage the ladder in \u2696 Bands.',
-      bd && bd.c);
+      bd && bd.c && bandInk(bd.c));
   // WHAT HAPPENS IF THIS IS NOT FUNDED, reachable on EVERY requirement. It used to appear only
   // where a decision band demanded one, so on an ordinary band there was no way to write the field
   // at all -- and it is the field a programme office is best placed to fill in. The chip now always

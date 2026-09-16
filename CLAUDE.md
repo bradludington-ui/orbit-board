@@ -91,6 +91,62 @@ The identity that must hold on every row of every tab:
 d + m + u  ==  the requirement      (per service, and in total)
 ```
 
+### Every dollar the board holds is a whole dollar
+
+Money is rounded **at the door, not at the glass**. `D$(v)` rounds anything entering the model —
+`parseAmt` (every figure a person types), `money()` (every figure read off a saved board, so an old
+board is healed on open), `askVecOf`, budget authority. There are no cents anywhere in the model.
+
+This is not cosmetic. Money used to be stored as a float and rounded only for display, and a scalar
+allocation prorated across services by `x*t/at` left a fraction on every lane. `unfSvcOf()` floors
+each service **separately**, so those fractions could not cancel against one another — they
+surfaced as unfunded dollars nobody was short of, on a screen that simultaneously said the
+requirement was fully funded.
+
+**Never spread a total across services by hand.** Use `apportion(total, weights)`. It returns whole
+dollars that sum to **exactly** the total, by largest remainder: floor every share, then hand the
+leftover dollars out one at a time to the biggest fractions. Rounding each share independently does
+*not* do this — six services rounded on their own can miss the total by several dollars. Every
+proration goes through it: `svcAlloc`, the legacy whole-requirement split inside `tiers()`, budget
+authority seeding, award increments, `zeroSpread`, the absorber floor.
+
+The check for this rule is `Number.isInteger`, **not a tolerance**, and that matters: every other
+money check in this codebase compares to within `0.005`, so a third of a cent per service passed
+all of them while still tripping the `>0.005` tests that decide what counts as unfunded. A rule
+cannot be enforced with the tolerance it exists to eliminate.
+
+### Directed is not drawn
+
+A directed split (`fsrc[id] = {m:'split', dv, mv}`) says where a requirement's dollars **should**
+come from. `tiers()` can only give what that service's lane still holds and what the allocation
+covers:
+
+```
+drawn = min(directed, what the lane has left, the allocation's basis for that service)
+```
+
+so a directed dollar past either limit **is not funded** — it lands in UFR. A split editor that
+prints only the directed figure therefore shows a service as fully funded beside its own non-zero
+UFR, and its column stops adding up to its own total. That shipped, and it is what "the math is
+slightly off" looks like from the outside.
+
+Both builds owe the reader the second reading, from **one** shared implementation so they cannot
+drift: `drewLine(directed, drawn)` under a **cell**, `directedLine(directed, drawn)` under a
+**total**, `drewTip` in the box's tooltip, all gated by `drewGap`. The grid renders the split editor
+in the RECORD panel, the card in the row expander; one mutation on `drewLine` covers both. The input
+always keeps what the user typed — never overwrite a directed figure with the drawn one.
+
+### The band is stated on the grid's row, and set on its panel
+
+In the **grid** build the row's decision-band chip is a plain label with no handler, so
+`.rchip[onclick]` leaves it without a pointer and it cannot offer a click that goes nowhere. The
+editor is the `<select>` in the RECORD panel's Classification group. Two editors for the field the
+whole funding ladder hangs off is the duplication this build keeps removing, and a band is not
+something to change by brushing past a chip while dragging 115 rows into order. The **card** build
+keeps its picker: `recFields` has no band field and the card has no panel split editor, so the chip
+is its only way in. `row-controls.mjs` records this as a *replacement*, not a loss, and verifies the
+replacement actually exists in the other build.
+
 **Mission Critical is NOT a third lane.** It is a designation meaning "this has to be funded next
 year". Its figure is the starred requirement's **own value**, and it is a **memo**: reported beside
 the lanes, never added into them, and never counted toward a requirement total. It used to be
@@ -1231,8 +1287,32 @@ worth the convenience. It reports, and a person decides.
 
 The orchestrator runs **every stage even when an earlier one fails** — a nightly report that stops at
 the first red tells you one thing and hides five — and exits non-zero if any stage failed. Stages:
-money coverage (both builds), the 7 suites (both builds), parity, the browser checks, and both
-mutation sweeps in parallel.
+the defect register, money coverage (both builds), the trace matrix (both builds), the 7 suites
+(both builds), parity, the browser checks, and both mutation sweeps in parallel.
+
+### The defect register — every math error this board has shipped
+
+`math-defects.json`, checked by `npm run defects`, is the first stage of the nightly run. **When a
+math defect is found, it gets an entry.** Not as a changelog: every entry names the CHECK that would
+now catch it and the MUTATIONS that prove that check still bites, and the stage FAILS if one of
+those mutation ids has disappeared from `mutate.mjs`.
+
+That is the only property worth having. *"We fixed the phantom UFR"* is a claim. *"The mutation that
+reintroduces it is still in the sweep and the sweep still catches it"* is a measurement. A register
+written in prose rots — the entries stay while the checks that earned them get refactored away, and
+a year later it is a list of things we used to test.
+
+Write the **symptom as the person saw it**, not as the code explains it. *"A service showed fully
+funded beside its own UFR"* is what gets recognised again next time; *"`tiers()` caps `dd` at
+`dRem[i]`"* is not. The register is read by whoever is staring at a number that looks wrong.
+
+It does **not** re-run the mutations — the sweep does that, and doing it twice would double a
+two-hour run. This stage asserts the guards *exist and are wired in*; the sweep proves they *bite*.
+Together they mean a fixed defect cannot come back unnoticed.
+
+`guarded: false` is outstanding debt — a defect fixed but never pinned down by a mutation. It is
+reported every night and does not fail the run, the same posture as a coverage gap: record the
+truth, gate on regression.
 
 **`npm run coverage:money` is the new one, and it answers a question no suite can.** Every suite can
 be green while a surface has no check at all: the Spend Plan Source shipped with its Amount column
@@ -1252,6 +1332,14 @@ into once:
 
 That last one fired on its first run: `execSynopsis` was recorded as a gap and already had three
 mutations.
+
+> **A sixth way a check can look like it works: a fixture that cannot reach the code it aims at.**
+> The whole-dollar scenario put its legacy-split requirement LAST in the priority order. The first
+> requirement exhausted every discretionary lane, so the split's fractional shares were capped at a
+> dry lane's zero and never reached the output — the check passed, proving nothing, and
+> `split-share-fractional` survived the sweep and said so. Walking it FIRST caught the mutation
+> immediately. This is why a new check is not finished until a mutation has survived against it
+> once: a green check is evidence of nothing until something has made it go red.
 
 **A gap is debt, not a pass.** Five money surfaces have no mutation aimed at them today — `crData`,
 `exportFlow`, `exportCoa`, `exportReprog`, `exportAceTieout` — each recorded with a date and what it
@@ -1442,6 +1530,83 @@ Two embedded Office templates, both base64, both generated-code regions — do n
 - **15412–15576** — a minimal XLSX writer with its own stylesheet.
 
 The XLSX reader uses the browser's native `DecompressionStream`; there is no zip library.
+
+## Section 508 / WCAG 2.2 — the one outside standard
+
+`npm run standards` (`tools/standards-check.mjs`) measures the board against 36 CFR 1194, which
+adopts WCAG 2.0 AA by reference, plus the 2.1/2.2 criteria a dense internal tool most often fails.
+**Every finding names its criterion**, so it can be cited in a review rather than argued about.
+
+It measures **what the browser actually painted, on a populated board, in every theme, on both
+builds**. Both halves of that matter. `colour-check.mjs` holds three *token* pairs above AA — `ink`,
+`mut`, `dim` against `panel` — which is necessary and nowhere near sufficient: it cannot see a chip
+whose colour is set inline, a value on a lifted surface rather than the panel, or any of the
+hundreds of pairs that only exist once requirements are loaded. And an empty board has no rows, no
+panels and no chart, so a conformance run against one is a run against something nobody opens.
+
+**Findings are grouped by the PROBLEM, not the instance.** A colour pair, a handler, a control
+shape. 115 rows produce thousands of control instances; one finding per instance is a baseline
+nobody reads and a diff nobody reviews. The count rides along so the scale stays visible.
+
+### The baseline is debt, gated — never a pass
+
+This board was not built to AA. Asserting it outright would produce a wall nobody acts on, which is
+the failure mode the colour baseline and the money-coverage gaps already avoid. So every finding is
+recorded in `tools/a11y-baseline.json` with a date, and the run **fails two ways**:
+
+| fails when | because |
+|---|---|
+| a finding appears that is not recorded | conformance got worse, and nothing else would have said so |
+| a recorded finding stops occurring | a list of known holes that has stopped being true is worse than no list |
+
+Regenerate with `--emit` after a fix and say in the commit **which criterion closed**. `--full`
+prints every finding rather than the summary.
+
+### Never print a band's hue as text — derive a readable one
+
+A decision band's colour identifies a **lane**. It was never chosen to be read as text, and on the
+light themes it cannot be: `#d6a24a` on `--panelA` measured **1.56:1** against WCAG 1.4.3's 4.5:1
+floor, `#ff6b81` measured 1.85:1. Section 508 adopts that floor by reference, so it was a
+conformance failure rather than a preference.
+
+`readableOn(hue, bg, need)` keeps the hue and walks its lightness toward whichever end the ground
+allows until it clears the floor, stopping at the first step that does; `bandInk(c)` applies it
+against `--panelA`, which is opaque in all five themes and so can be read straight off the token.
+**The variant is derived, never hand-picked.** A second colour per band per theme would be five
+values to keep in step — and an office that adds its own band, which ⚖ Bands exists to let them do,
+would get none of it. The band still reads as itself; it stops being invisible.
+
+Fixed at the same time: the rank `▲`/`▼` arrows were 20×13px against WCAG 2.5.8's 24×24, on both
+buttons of all 115 rows — the most repeated finding on the board, and the control you use while
+dragging the priority order, so the standard and the job agreed. Rows are 83px and the stack is
+50px, so nothing grew. Measure before assuming a bigger control costs height.
+
+As recorded on 16 Sep 2026, after those two fixes — **95 findings, 5,155 instances**, over four
+criteria (1.4.11 is new: it was declared but never emitted, and reported a vacuous pass until it
+was implemented):
+
+| criterion | state |
+|---|---|
+| 1.4.3 Contrast (Minimum) | 32 distinct, 223 instances — was 38 / 304 |
+| 1.4.11 Non-text Contrast | 30 distinct, 2,950 instances — low-contrast border tokens |
+| 2.5.8 Target Size (Minimum) | 31 distinct, 1,980 instances — was 33 / 2,700 |
+| 1.4.10 Reflow | 2 — both builds scroll sideways at 320px |
+| 4.1.2 Name, Role, Value | clean — every control has an accessible name |
+| 2.4.7 Focus Visible | clean |
+| 1.3.1 Info and Relationships | clean — every data table has headers |
+| 3.1.1 / 2.4.2 Language, Title | clean |
+
+The clean ones are the expensive ones to retrofit, and they are clean: every control has an
+accessible name, focus is visible on every control shape, every data table has real headers. What
+remains is colour and geometry, which are local fixes.
+
+> **A criterion that cannot fire reports a vacuous pass.** 1.4.11 was declared in the criteria table
+> and never emitted, so the first run printed "Non-text Contrast — no findings" while checking
+> nothing. Implementing it surfaced 2,950 instances. This is the same failure as a stale mutation
+> search string, wearing different clothes: **the tool that catches checks which cannot fail must
+> not contain one.** Keyed by colour pair, not by control — a low-contrast border token is one
+> decision applied to hundreds of controls, and keying by handler reported it as 240 findings
+> nobody could review.
 
 ## Colour: one token, one job
 

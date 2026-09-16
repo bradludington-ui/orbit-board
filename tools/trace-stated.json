@@ -1,0 +1,86 @@
+{
+  "ask": [
+    "engine (tiers)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "drill · 1-N by Band",
+    "ppt · Funding by Stream"
+  ],
+  "discBA": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "ppt · KPI slide",
+    "ppt · Funding by Stream"
+  ],
+  "mandBA": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "ppt · KPI slide",
+    "ppt · Funding by Stream"
+  ],
+  "disc": [
+    "engine (tiers)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "drill · 1-N by Band",
+    "xl · Spend Plan Source",
+    "ppt · Funding by Stream"
+  ],
+  "mand": [
+    "engine (tiers)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "drill · 1-N by Band",
+    "ppt · Funding by Stream"
+  ],
+  "funded": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "drill · 1-N by Band"
+  ],
+  "ufr1": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "xl · PMO Matrix",
+    "xl · Unfunded Requirements",
+    "drill · 1-N by Band",
+    "ppt · KPI slide",
+    "ppt · Funding by Stream"
+  ],
+  "ufr2": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "xl · PMO Matrix",
+    "xl · Unfunded Requirements",
+    "drill · 1-N by Band",
+    "ppt · KPI slide",
+    "ppt · Funding by Stream"
+  ],
+  "trim": [
+    "engine (tiers)",
+    "xl · Funding Streams",
+    "xl · PMO Matrix"
+  ],
+  "beyond": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "xl · PMO Matrix"
+  ],
+  "mcTotal": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "ppt · KPI slide"
+  ],
+  "mcShort": [
+    "engine (tiers)"
+  ]
+}

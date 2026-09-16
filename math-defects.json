@@ -1,0 +1,87 @@
+{
+  "notes": [
+    "THE REGISTER OF MATH DEFECTS THIS BOARD HAS ACTUALLY SHIPPED.",
+    "",
+    "Every entry is a real arithmetic or reporting error that reached a screen or an export, and",
+    "every entry names the CHECK that would now catch it and the MUTATIONS that prove that check",
+    "still bites. tools/math-defects.mjs verifies those guards exist on every run, so this file",
+    "cannot quietly become a list of things we used to test. A register nobody can execute is a",
+    "changelog; this one fails the nightly run the moment a guard is deleted.",
+    "",
+    "ADD AN ENTRY WHENEVER A MATH DEFECT IS FOUND -- by the nightly agent, by a sweep, or by a",
+    "person looking at the board. Write the SYMPTOM as the person saw it, not as the code explains",
+    "it: 'a service showed fully funded beside its own UFR' is what gets recognised again next",
+    "time, and 'tiers() caps dd at dRem[i]' is not.",
+    "",
+    "guarded:false is outstanding debt -- a defect we fixed but did not pin down with a mutation.",
+    "It is reported every night and does NOT fail the run. A missing guard on guarded:true DOES."
+  ],
+  "defects": [
+    {
+      "id": "spend-plan-sent-the-allocation",
+      "found": "2026-09-15",
+      "foundBy": "math validation",
+      "build": "v1.58",
+      "surface": "Spend Plan Source, and every send plan derived from it",
+      "symptom": "A send plan carried dollars that no lane had actually paid for — unfunded money left the building with an obligation date against it.",
+      "cause": "srcSvcOf() used the ALLOCATION as its basis. An allocation is an intention; only the discretionary draw is money that exists.",
+      "fix": "SRC_BASIS='disc'. The spend plan sends what discretionary funded — p.d — and nothing else. No auto flows, no assumptions.",
+      "guarded": true,
+      "checks": ["Spend Plan Source"],
+      "mutations": ["src-basis-allocation", "src-basis-disc-plus-mand"]
+    },
+    {
+      "id": "one-unfunded-reading",
+      "found": "2026-09-15",
+      "foundBy": "math validation",
+      "build": "v1.58",
+      "surface": "the scoreboard tile, the Unfunded Requirements list, the Priority Drill and the deck",
+      "symptom": "The tile read $0 beyond both lanes on a 115-requirement board that was $126,909,491 short. Every short dollar was a TRIM — an allocation set below the ask — and nothing reported trims at all.",
+      "cause": "Only one unfunded reading existed: ask minus discretionary minus mandatory. Money trimmed before it ever reached a lane was invisible to it.",
+      "fix": "Two readings on every UFR surface. #1 discUnfSvcOf = max(0, ask - d). #2 unfSvcOf = max(0, ask - d - m). Both floored per service, both stated wherever either is.",
+      "guarded": true,
+      "checks": ["unfunded vs DISC"],
+      "mutations": ["usheet-discunf-col", "unf-sheet-one-reading-filter", "drill-unf-disc"]
+    },
+    {
+      "id": "matrix-column-with-no-setter",
+      "found": "2026-09-15",
+      "foundBy": "math validation",
+      "build": "v1.58",
+      "surface": "the PMO Matrix bulk sweep",
+      "symptom": "matBulkOk() reported 'MIPR type' as a column the sweep could draw but not write, the moment a requirement routed to a government activity.",
+      "cause": "The column was added to the matrix without a matching entry in matBulk(), so the bulk setter had nothing to call.",
+      "fix": "matBulk() gained the entry, and a check now asserts every column the matrix draws has a setter.",
+      "guarded": true,
+      "checks": ["and the bulk sweep has a setter for every column it draws"],
+      "mutations": ["mipr-no-bulk-setter", "mipr-bulk-writes-label"]
+    },
+    {
+      "id": "phantom-ufr-from-fractional-proration",
+      "found": "2026-09-16",
+      "foundBy": "user",
+      "build": "v1.59",
+      "surface": "any requirement with a scalar allocation, anywhere unfunded is reported",
+      "symptom": "Unfunded dollars appeared against requirements nobody was short of — 'it's creating UFRs that are not there'.",
+      "cause": "Money was stored as a float and rounded only FOR DISPLAY. A scalar allocation spread across services by x*t/at left a fraction on every lane, and because unfSvcOf() floors each service SEPARATELY those fractions could not cancel against one another. Every money check in the codebase compares to within 0.005, so a third of a cent per service passed all of them while still tripping the >0.005 tests that decide what counts as unfunded.",
+      "fix": "D$() rounds everything entering the model — typed figures, saved boards on open, budget authority. apportion(total, weights) replaces every pro-rata spread and returns whole dollars summing to EXACTLY the total by largest remainder. The check asserts Number.isInteger, deliberately not a tolerance.",
+      "guarded": true,
+      "checks": ["whole dollars — scalar allocations that do not divide"],
+      "mutations": ["money-floats-again", "apportion-naive-round", "apportion-drops-remainder",
+                    "svcalloc-prorates-raw", "split-share-fractional"]
+    },
+    {
+      "id": "directed-shown-as-drawn",
+      "found": "2026-09-16",
+      "foundBy": "user",
+      "build": "v1.59",
+      "surface": "the split editor — the grid's RECORD panel and the card's row expander",
+      "symptom": "A service showed its full requirement funded by discretionary while the same row carried a UFR, and the Disc column did not add up to its own total — off by exactly the UFR.",
+      "cause": "The Disc and Mand CELLS printed what was DIRECTED (fo.dv/fo.mv) while the UFR cells and the column TOTAL printed what the engine actually DREW. tiers() caps each draw at min(directed, what that lane still holds, the allocation's basis), so a directed dollar past either limit is not funded.",
+      "fix": "One shared rule for the second reading: drewLine under a cell, directedLine under a total, drewTip in the tooltip, all gated by drewGap. The input still holds what was typed; directed minus drawn is stated and equals the UFR.",
+      "guarded": true,
+      "checks": ["directed vs drawn — a lane too short for what was directed"],
+      "mutations": ["drew-line-silent", "drew-echoes-directed", "directed-total-silent", "drew-gap-never"]
+    }
+  ]
+}

@@ -35,6 +35,10 @@ const SUITES = [
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
+const DREW_LINE_FIND = "const drewLine = (directedV, drawnV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"the lane could not supply the rest\">drew '+fM(drawnV)+'</div>' : '';";
+const DREW_LINE_ECHO = "const drewLine = (directedV, drawnV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"the lane could not supply the rest\">drew '+fM(directedV)+'</div>' : '';";
+const DIRECTED_LINE_FIND = "const directedLine = (directedV, drawnV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"the cells above were directed higher than the lanes could supply\">'\n    + 'directed '+fM(directedV)+'</div>' : '';";
+
 const MUTATIONS = [
   // ---- the lane engine: the basis for every printed figure ------------------------------------
   // ---- the spend forecast: where the money lands, month by month -------------------------------
@@ -92,10 +96,10 @@ const MUTATIONS = [
     repl: '    const take=Math.min(sf.total/SVC.length, room);' },
   { id: 'abs-room-unfloored', area: 'absorbCalc', equivalent: 'the floor is clamped to the allocation total before it is spread, so a service\'s share of it can never exceed that service\'s own allocation — audit-board.mjs asserts that invariant',
     what: 'room to absorb allowed to go negative',
-    find: '    const room=Math.max(0, (alloc[i]||0) - (aTot>0? floor*(alloc[i]||0)/aTot : 0));',
-    repl: '    const room=(alloc[i]||0) - (aTot>0? floor*(alloc[i]||0)/aTot : 0);' },
+    find: '    const room=Math.max(0, (alloc[i]||0) - floorV[i]);',
+    repl: '    const room=(alloc[i]||0) - floorV[i];' },
   { id: 'abs-floor-not-spread', area: 'absorbCalc', what: 'the floor lands wholly on each service instead of in the shape of the allocation',
-    find: '    const room=Math.max(0, (alloc[i]||0) - (aTot>0? floor*(alloc[i]||0)/aTot : 0));',
+    find: '    const room=Math.max(0, (alloc[i]||0) - floorV[i]);',
     repl: '    const room=Math.max(0, (alloc[i]||0) - floor);' },
 
   // ---- the scoreboard tiles and the discretionary fit strip ------------------------------------
@@ -132,11 +136,11 @@ const MUTATIONS = [
   // it wrong misstates every service column while the totals still tie. That is the same shape as
   // the PMO Matrix averaging bug, which printed a plausible total over a wrong split.
   { id: 'svc-alloc-even', area: 'svcAlloc', what: 'trimmed allocation split evenly instead of by each service ask',
-    find: '  if(at>0) return it.ask.map(x=>a.v*x/at);',
-    repl: '  if(at>0) return SVC.map(_=>a.v/SVC.length);' },
+    find: '  return apportion(a.v, at>0? it.ask : SVC.map(_=>1));',
+    repl: '  return apportion(a.v, SVC.map(_=>1));' },
   { id: 'svc-alloc-override', area: 'svcAlloc', what: 'per-service allocation override ignored',
-    find: "  if(a.m==='s') return a.v.slice();",
-    repl: "  if(a.m==='s') return it.ask.slice();" },
+    find: "  if(a.m==='s') return a.v.map(D$);",
+    repl: "  if(a.m==='s') return it.ask.map(D$);" },
   // Inverted when the rule changed: a directed source used to re-base the requirement on its full
   // ask, which reported a trim as "beyond both lanes" and let the act of recording a source change
   // what a requirement was short. This puts that back, so the guards that now forbid it stay honest.
@@ -146,7 +150,7 @@ const MUTATIONS = [
   // seedSplit recorded the lane draw rounded to whole dollars. Harmless while the basis was the
   // ask (the rounded value sat under that ceiling); against the allocation it makes converting a
   // board to Split lossy by cents, on every requirement at once.
-  { id: 'seed-split-rounds', area: 'model', what: 'converting to Split rounds the directed dollars',
+  { id: 'seed-split-rounds', area: 'model', equivalent: 'p.d and p.m are whole dollars now -- tiers() draws them with Math.min of integers, so rounding or flooring them at conversion is the identity. This was a real mutation while money was a float. audit-board.mjs asserts Number.isInteger on every lane draw, so if that invariant ever breaks THAT check fails first and this stops being equivalent', what: 'converting to Split rounds the directed dollars',
     find: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.slice()};",
     repl: "  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.round(v)), mv:p.m.map(v=>Math.round(v))};" },
   // The Spruills grid took the consolidated payload for the board's OWN appropriation. It is empty
@@ -637,9 +641,16 @@ const MUTATIONS = [
   { id: 'split-seed-drops-mand', area: 'seedSplit', what: 'conversion freezes discretionary but forgets the mandatory draw',
     find: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.slice()};",
     repl: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.map(function(){return 0;})};" },
-  { id: 'split-seed-floors', area: 'seedSplit', what: 'conversion floors each service, losing a fraction per service',
+  { id: 'split-seed-floors', area: 'seedSplit', equivalent: 'p.d and p.m are whole dollars now -- tiers() draws them with Math.min of integers, so rounding or flooring them at conversion is the identity. This was a real mutation while money was a float. audit-board.mjs asserts Number.isInteger on every lane draw, so if that invariant ever breaks THAT check fails first and this stops being equivalent', what: 'conversion floors each service, losing a fraction per service',
     find: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.slice()};",
     repl: "  S.fsrc[id]={m:'split', dv:p.d.map(v=>Math.floor(v)), mv:p.m.map(v=>Math.floor(v))};" },
+  // Declaring the two rounding mutations equivalent would leave this line with nothing aimed at
+  // it, which is how a line quietly stops being covered while the sweep still looks healthy. This
+  // one is not about rounding and bites whatever the money model is: freeze the draw into the
+  // WRONG lane and the conversion stops being lossless.
+  { id: 'split-seed-swaps-lanes', area: 'seedSplit', what: 'conversion freezes the mandatory draw as directed DISCRETIONARY and the discretionary draw as MANDATORY',
+    find: "  S.fsrc[id]={m:'split', dv:p.d.slice(), mv:p.m.slice()};",
+    repl: "  S.fsrc[id]={m:'split', dv:p.m.slice(), mv:p.d.slice()};" },
   { id: 'convert-skips-some', area: 'convertAllToSplit', what: 'the bulk convert quietly leaves some requirements on the lane walk',
     find: "  const ids=S.order.filter(id=>!S.fsrc[id] && T[id]);",
     repl: "  const ids=S.order.filter(id=>!S.fsrc[id] && T[id]).slice(0,1);" },
@@ -667,6 +678,47 @@ const MUTATIONS = [
   { id: 'scen-marker-always', area: 'marker', what: 'the marker is stamped on the funded plan too',
     find: 'function scenOn(){ return scenView===\'disc\'; }',
     repl: 'function scenOn(){ return true; }' },
+
+  // ---- whole dollars: the model must not carry fractions ---------------------------------------
+  // Money was stored as a float and rounded only FOR DISPLAY, so a third of a cent per service
+  // passed every 0.005 tolerance in this codebase while still tripping the >0.005 tests that decide
+  // what counts as unfunded -- a UFR nobody was short of. audit-board asserts Number.isInteger for
+  // exactly that reason: the rule cannot be expressed with the tolerance it exists to eliminate.
+  // These five put each route back.
+  { id: 'money-floats-again', area: 'D$', what: 'money stops being rounded at the door, so fractions re-enter the model',
+    find: 'const D$ = v => { const n = Math.round(Number(v)); return isFinite(n)? n : 0; };',
+    repl: 'const D$ = v => { const n = Number(v); return isFinite(n)? n : 0; };' },
+  { id: 'apportion-naive-round', area: 'apportion', what: 'each service is rounded on its own, so the parts stop summing to the total',
+    find: '  const out = raw.map(Math.floor);',
+    repl: '  const out = raw.map(Math.round);' },
+  { id: 'apportion-drops-remainder', area: 'apportion', what: 'the leftover dollars are never handed out, so an allocation quietly shrinks',
+    find: '  for(let k=0; left>0 && k<order.length; k++){ out[order[k].i]++; left--; }',
+    repl: '  /* the remainder is dropped */' },
+  { id: 'svcalloc-prorates-raw', area: 'svcAlloc', what: 'a scalar allocation goes back to a raw pro-rata spread, leaving a fraction on every lane',
+    find: '  return apportion(a.v, at>0? it.ask : SVC.map(_=>1));',
+    repl: '  return at>0? it.ask.map(x=>a.v*x/at) : SVC.map(_=>a.v/SVC.length);' },
+  { id: 'split-share-fractional', area: 'tiers', what: 'a legacy whole-requirement split spreads fractional dollars across the services',
+    find: '        const Dv=apportion(D, basis), Mv=apportion(M, basis);',
+    repl: '        const Dv=basis.map(v=>D*(tot>0? v/tot : 0)), Mv=basis.map(v=>M*(tot>0? v/tot : 0));' },
+
+  // ---- directed is not drawn -------------------------------------------------------------------
+  // ONE rule, shared by both builds' split editors -- the grid's RECORD panel and the card's row
+  // expander -- so a single spelling covers both. A cell stating only what was DIRECTED shows a
+  // service as fully funded beside its own non-zero UFR and stops its column footing to its own
+  // total, which is precisely the defect this replaced.
+  { id: 'drew-line-silent', area: 'drewLine', what: 'the cell states only what was directed, so a short lane reads as fully funded',
+    find: DREW_LINE_FIND,
+    repl: "const drewLine = (directedV, drawnV) => '';" },
+  { id: 'drew-echoes-directed', area: 'drewLine', what: 'the second reading echoes the directed figure instead of what the lane supplied',
+    find: DREW_LINE_FIND,
+    repl: DREW_LINE_ECHO },
+  { id: 'directed-total-silent', area: 'directedLine', what: 'the column total stops stating the directed sum, so the column does not foot on screen',
+    find: DIRECTED_LINE_FIND,
+    repl: "const directedLine = (directedV, drawnV) => '';" },
+  { id: 'drew-gap-never', area: 'drewGap', what: 'a shortfall is never judged worth stating, silencing both readings at once',
+    find: 'const drewGap = (directedV, drawnV) => (directedV - drawnV) > 0.005;',
+    repl: 'const drewGap = (directedV, drawnV) => false;' },
+
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

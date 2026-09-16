@@ -50,6 +50,23 @@ const note = s => { stages.push(s); return s; };
 console.log(`SPMT MATH VALIDATION — ${started.toISOString()}`);
 console.log('='.repeat(96));
 
+// ---- 0. the defect register: is every defect this board has ALREADY shipped still guarded? ------
+// Cheapest stage and the first one, because it answers a different question from all the others.
+// They ask whether the board is right TODAY. This asks whether the specific ways it has been wrong
+// BEFORE are still pinned down -- every entry names the mutations that prove its check bites, and
+// this fails if one of them has gone. A defect that ships twice is the one that costs trust.
+{
+  const r = await run('defect register', 'node', [join(HERE, 'math-defects.mjs')], {});
+  const known = N(r.out, /(\d+) known defect\(s\)/);
+  const muts = N(r.out, /guarded by (\d+) mutation\(s\)/);
+  const unguarded = N(r.out, /, (\d+) unguarded/);
+  note({ ...r, ok: r.code === 0, detail: r.code === 0
+    ? `${known ?? '?'} known defect(s) still guarded by ${muts ?? '?'} mutation(s)`
+      + (unguarded ? `, ${unguarded} not yet pinned down` : '')
+    : 'A GUARD IS MISSING — a defect this board has already shipped can ship again' });
+  console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  defect register`);
+}
+
 // ---- 1. coverage: is there anything whose money nothing is checking? ----------------------------
 for (const [lbl, env] of [['coverage (card)', {}], ['coverage (grid)', { BOARD: GRID }]]) {
   const r = await run(lbl, 'node', [join(HERE, 'money-coverage.mjs')], env);

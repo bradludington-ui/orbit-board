@@ -36,7 +36,9 @@
     "ia:shots": "node tools/ia-shots.mjs",
     "ia": "npm run ia:census --silent && npm run ia:shots --silent",
     "fuzz": "node tools/roundtrip-fuzz.mjs",
-    "delta": "node tools/export-delta.mjs"
+    "delta": "node tools/export-delta.mjs",
+    "defects": "node tools/math-defects.mjs",
+    "standards": "node tools/standards-check.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

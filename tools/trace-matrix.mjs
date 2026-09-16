@@ -16,6 +16,7 @@
 // style. Adding one column to Funding Streams once moved four checks one column left, and they went
 // on passing against the wrong figure. A lookup that silently re-points is the failure mode this
 // whole file exists to catch, so it must not be the failure mode of the file itself.
+import { readFileSync } from 'node:fs';
 import { boot, seed, capture, cv } from './export-audit/boot.mjs';
 
 const BOARD = process.env.BOARD || null;
@@ -84,6 +85,27 @@ const LABEL = {
   trim: 'Trim (ask not allocated)', beyond: 'Beyond both lanes',
   mcTotal: 'MC requirement value', mcShort: 'MC short vs discretionary',
 };
+// THE RULEBOOK. One statement of each formula, in the same place as the oracle that computes it,
+// so the definition a surface is held to and the definition printed in the report cannot drift.
+// [svc] means the rule is applied PER SERVICE and then summed -- money is not fungible across
+// services, so a figure netted across them is a different and wrong number. max(0, ...) is the
+// per-service FLOOR: a service with money left over never offsets a service that is short.
+const FORMULA = {
+  ask:     'Σ[svc] ask                      the requirement as stated, before any decision',
+  discBA:  'Σ[svc] discSvc                  discretionary budget authority',
+  mandBA:  'Σ[svc] mandSvc                  mandatory budget authority',
+  disc:    'Σ[svc] d                        drawn from discretionary by tiers()',
+  mand:    'Σ[svc] m                        drawn from mandatory by tiers()',
+  funded:  'disc + mand                     money that actually exists against the requirement',
+  ufr1:    'Σ[svc] max(0, ask − d)          READING #1 — short against discretionary alone',
+  ufr2:    'Σ[svc] max(0, ask − d − m)      READING #2 — short against both lanes',
+  trim:    'Σ[svc] max(0, ask − basis)      ask never allocated: a decision, not a shortfall',
+  beyond:  'Σ[svc] max(0, min(ask, basis) − d − m)   allocated but no lane could pay it',
+  mcTotal: 'Σ[svc] ask, starred rows only   MC is a MEMO, never a third lane',
+  mcShort: 'Σ[svc] max(0, ask − d), starred rows only',
+};
+// The identity every surface is held to, and the one a reader can check by hand on any row:
+//     d + m + u == basis      (per service)        beyond + trim == ufr2
 const ORDER = ['ask', 'discBA', 'mandBA', 'disc', 'mand', 'funded', 'ufr1', 'ufr2', 'trim', 'beyond', 'mcTotal', 'mcShort'];
 
 // ---- harvest -------------------------------------------------------------------------------------
@@ -268,16 +290,50 @@ const add = (name, kind, tol, cells) => surfaces.push({ name, kind, tol, cells }
   });
 }
 
+// --emit prints the populated-cell map and nothing else, so it can be piped straight to
+// trace-stated.json. It must run before ANY report output or the file gets the banner too.
+if (process.argv.includes('--emit')) {
+  const out = {};
+  for (const k of ORDER) out[k] = surfaces.filter(s => s.cells[k] !== undefined).map(s => s.name);
+  console.log(JSON.stringify(out, null, 2));
+  process.exit(0);
+}
+
 // ---- the matrix ----------------------------------------------------------------------------------
 const fm = v => v === undefined ? '--' : '$' + Math.round(v).toLocaleString();
 const W = 30;
 console.log('TRACE MATRIX — every surface that states a quantity, cross-footed against the fixture');
 console.log('='.repeat(120));
 console.log('truth is computed in this file from the fixture\'s own numbers, never read from the board\n');
+console.log('THE FORMULAS EVERY SURFACE IS HELD TO — one definition, applied per service, then summed.');
+console.log('A surface may be SILENT about a quantity. If it states one, it states THIS one.');
+console.log('-'.repeat(120));
+for (const k of ORDER) console.log(`  ${LABEL[k].padEnd(32)} ${FORMULA[k]}`);
+console.log('-'.repeat(120));
+console.log('  identity, per service:  d + m + u == basis        portfolio:  beyond + trim == TOTAL unfunded');
+console.log('-'.repeat(120) + '\n');
 
-const fails = [];
+// WHICH SURFACE STATES WHICH QUANTITY, recorded. A cell that has ALWAYS been silent is fine -- a
+// slide that never mentions trim is not wrong. But a cell that used to carry a figure and now says
+// '--' is a surface that quietly STOPPED REPORTING, and silence scores as silence, not as a
+// mismatch: the matrix would go on saying every link holds while a figure vanished off a briefing
+// product. So the populated set is pinned here and gated on.
+//   node tools/trace-matrix.mjs --emit   print this map from the current run, to paste back
+// Add a name when a surface legitimately starts stating a quantity; remove one only deliberately,
+// and say why in the commit.
+const STATED = JSON.parse(readFileSync(new URL('./trace-stated.json', import.meta.url), 'utf8'));
+
+const fails = [], wentSilent = [];
+for (const k of ORDER) {
+  for (const name of (STATED[k] || [])) {
+    const s = surfaces.find(x => x.name === name);
+    if (!s) { wentSilent.push({ label: LABEL[k], surface: name, why: 'that surface is gone' }); continue; }
+    if (s.cells[k] === undefined) wentSilent.push({ label: LABEL[k], surface: name, why: 'it no longer states this quantity' });
+  }
+}
 for (const k of ORDER) {
   console.log(`${LABEL[k]}`);
+  console.log(`  ${''.padEnd(W)} ${''.padStart(16)}   ${FORMULA[k]}`);
   console.log(`  ${'TRUTH'.padEnd(W)} ${fm(T[k]).padStart(16)}`);
   for (const s of surfaces) {
     const v = s.cells[k];
@@ -292,6 +348,14 @@ for (const k of ORDER) {
 const stated = surfaces.reduce((a, s) => a + ORDER.filter(k => s.cells[k] !== undefined).length, 0);
 console.log('='.repeat(120));
 console.log(`${surfaces.length} surfaces · ${ORDER.length} quantities · ${stated} populated cells`);
+if (wentSilent.length) {
+  console.log(`\n${wentSilent.length} SURFACE(S) STOPPED STATING A FIGURE THEY USED TO STATE:\n`);
+  wentSilent.forEach(w => console.log(`  ${w.label}\n      ${w.surface} — ${w.why}\n`));
+  console.log('A figure that disappears scores as silence, not as a mismatch, so nothing else in');
+  console.log('this matrix would have noticed. If the removal was deliberate, strike the surface');
+  console.log('off trace-stated.json in the same commit and say why.');
+  process.exit(1);
+}
 if (!fails.length) {
   console.log('\nEVERY LINK HOLDS — every surface that states a quantity states the same one');
   process.exit(0);

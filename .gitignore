@@ -12,6 +12,14 @@
 # Named one by one on purpose, like the boards above: a stray state file dropped in tools/
 # must still be unstageable by accident.
 !tools/parity-allow.json
+# Which surface states which quantity, pinned so a figure that vanishes off a briefing product
+# fails the trace matrix instead of scoring as silence. Regenerate with trace-matrix.mjs --emit.
+!tools/trace-stated.json
+# Recorded Section 508 / WCAG findings. Debt, gated on regression — source, not run output.
+!tools/a11y-baseline.json
+# The register of math defects this board has shipped. Source, not run output: the nightly gate
+# reads it as its first stage, so a copy that never reaches main takes the guard with it.
+!math-defects.json
 
 # tooling only — the board itself has no dependencies
 node_modules/
