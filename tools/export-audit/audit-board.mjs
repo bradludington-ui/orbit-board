@@ -1088,6 +1088,106 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     money(cell.tot.drew), ASK.reduce((a, b) => a + b, 0));
 }
 
+// ═══ THE ALLOCATION IS THE CAP, AND IT HAS TO BE SETTABLE ═══════════════════════════════
+// v1.61 made the ROW ALLOCATION the basis every draw is measured against. Every control that SETS
+// it was behind a condition that a funding-source override switched off: the row's input went
+// disabled, and the grid's RECORD panel carried a read-only "Allocated" field. So an overridden
+// requirement -- which on a working board is most of them -- had no control anywhere for the one
+// figure that now capped it. A directed dollar past a trimmed allocation could be typed, was
+// silently refused, and came out as a UFR with nothing on screen able to clear it.
+//
+// It reached a brief on a PRIME CONTRACT, where the CLIN grid routinely leaves the row allocation
+// under the ask: the record showed a service fully funded against its own request with $51,510,452
+// of UFR beside it, and the editor's explanation -- "the lane could not supply the rest" -- named
+// a lane still holding $704,562,659.
+//
+// Three things are checked here, and the first two are the ones that failed:
+//   1. the editor names the limit that ACTUALLY refused the dollar, lane or allocation;
+//   2. an overridden requirement has a LIVE allocation control, on the row and in the panel;
+//   3. driving that control to the ask clears the UFR to exactly zero.
+{
+  const name = 'the allocation caps the draw — and can be raised';
+  // The user's own figures. USAF is trimmed below its ask; the lane is deliberately flush, so
+  // nothing but the allocation can be the limit.
+  const ASK   = [246947793, 28251630, 50000000];
+  const ALLOC = [195437341, 19759949, 50000000];
+  const TRIM  = ASK[0] - ALLOC[0] + ASK[1] - ALLOC[1];
+  const sc = {
+    services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', ASK.slice())],
+    disc: [900000000, 900000000, 900000000], mand: [0, 0, 0],
+    order: ['A'],
+    alloc: { A: { m: 's', v: ALLOC.slice() } },
+    fsrc: { A: { m: 'split', dv: ASK.slice(), mv: [0, 0, 0] } },
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  // The oracle is the scenario's own inputs: ask - allocation, per service, floored. Never read
+  // back from tiers(), which is the thing under test.
+  const p = JSON.parse(ev(`(function(){ const p=tiers()['A'], it=itemById('A');
+    return JSON.stringify({d:p.d, u:p.u, unf:unfSvcOf(it,p), dRem:tiers().__rem.dRem}); })()`));
+  chk(name, 'engine', 'the trimmed service draws its allocation and no more', p.d[0], ALLOC[0]);
+  chk(name, 'engine', 'the shortfall is ask less allocation', p.unf[0], ASK[0] - ALLOC[0]);
+  chk(name, 'engine', 'nothing is BEYOND — every allocated dollar was paid', p.u[0], 0);
+  chk(name, 'engine', 'and the lane it is blamed on is still flush',
+    p.dRem[0] > 0, true);
+
+  // 1. THE SENTENCE. Two limits, two different sentences, and the wrong one sends a reader hunting
+  //    money that was never the constraint.
+  const says = JSON.parse(ev(`(function(){ const it=itemById('A'), P=tiers()['A'], b=basisSvcOf(it);
+    const capped=drewLine(it.ask[0], P.d[0], b[0]);
+    // The same cell with the lane as the binding limit instead: drawn short of the cap.
+    const lane=drewLine(it.ask[0], b[0]-1, b[0]);
+    const grab=function(h){ const m=/title="([^"]*)"/.exec(h); return m? m[1] : ''; };
+    return JSON.stringify({capped:grab(capped), lane:grab(lane)}); })()`));
+  chk(name, 'wording', 'an allocation-capped cell names the allocation',
+    /allocation for this service stops at/.test(says.capped), true);
+  chk(name, 'wording', 'and does not blame the lane', /lane could not supply/.test(says.capped), false);
+  chk(name, 'wording', 'a lane-limited cell still blames the lane',
+    /lane could not supply/.test(says.lane), true);
+
+  // 2. THE CONTROL. On the ROW in both builds, and in the grid build's RECORD panel as well.
+  //    "Present" is not enough: a disabled input is exactly the defect.
+  const ctl = JSON.parse(ev(`(function(){
+    render();
+    const rowIn=[].slice.call(document.querySelectorAll('#list .row .acts input'))
+      .filter(function(n){ return /setAlloc/.test(n.getAttribute('onchange')||''); });
+    let panel=[];
+    if(typeof inspectorBody==='function'){
+      curRow='A';
+      if(!document.getElementById('inspector')){
+        const d=document.createElement('div'); d.id='inspector'; document.body.appendChild(d); }
+      inspectorBody();
+      panel=[].slice.call(document.querySelectorAll('#inspector input'))
+        .filter(function(n){ return /setSvc\\(/.test(n.getAttribute('onchange')||''); });
+    } else {
+      const wrap=document.createElement('div'); wrap.innerHTML=svcTable(itemById('A'));
+      panel=[].slice.call(wrap.querySelectorAll('input'))
+        .filter(function(n){ return /setSvc\\(/.test(n.getAttribute('onchange')||''); });
+    }
+    return JSON.stringify({row:rowIn.length, rowDead:rowIn.filter(function(n){ return n.disabled; }).length,
+      panel:panel.length, panelDead:panel.filter(function(n){ return n.disabled; }).length});
+  })()`));
+  chk(name, 'control', 'the row offers an allocation input under a ⚙ override', ctl.row, 1);
+  chk(name, 'control', 'and it is not disabled', ctl.rowDead, 0);
+  chk(name, 'control', 'the editor offers one allocation input per service', ctl.panel, sc.services.length);
+  chk(name, 'control', 'and none of them is disabled', ctl.panelDead, 0);
+
+  // 3. THE ROUND TRIP. Drive the control the way the input drives it and the UFR has to go.
+  chk(name, 'round trip', 'the shortfall before is the whole trim',
+    p.unf.reduce((a, b) => a + b, 0), TRIM);
+  const after = JSON.parse(ev(`(function(){
+    setSvc('A',0,'${ASK[0]}'); setSvc('A',1,'${ASK[1]}');
+    const P=tiers()['A'], it=itemById('A');
+    return JSON.stringify({unf:unfSvcOf(it,P).reduce(function(a,b){ return a+b; },0), dT:P.dT});
+  })()`));
+  chk(name, 'round trip', 'raising the allocation to the ask clears the shortfall', after.unf, 0);
+  chk(name, 'round trip', 'and the discretionary draw is the whole requirement',
+    after.dT, ASK.reduce((a, b) => a + b, 0));
+}
+
 // ═══ UNSPENT DISCRETIONARY vs THE TRIMS THAT COULD TAKE IT ══════════════════════════════
 // The board states two facts and never joined them up: a lane holds BA nobody drew, and
 // requirements are short. trimAbsorb() answers the question they raise together -- which trims the

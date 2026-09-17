@@ -41,9 +41,11 @@ const SUITES = [
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
-const DREW_LINE_FIND = "const drewLine = (directedV, drawnV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"the lane could not supply the rest\">drew '+fM(drawnV)+'</div>' : '';";
-const DREW_LINE_ECHO = "const drewLine = (directedV, drawnV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"the lane could not supply the rest\">drew '+fM(directedV)+'</div>' : '';";
-const DIRECTED_LINE_FIND = "const directedLine = (directedV, drawnV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"the cells above were directed higher than the lanes could supply\">'\n    + 'directed '+fM(directedV)+'</div>' : '';";
+const DREW_LINE_FIND = "const drewLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"'+drewWhy(drawnV, capV)+'\">drew '+fM(drawnV)+'</div>' : '';";
+const DREW_LINE_ECHO = "const drewLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"'+drewWhy(drawnV, capV)+'\">drew '+fM(directedV)+'</div>' : '';";
+const DIRECTED_LINE_FIND = "const directedLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)\n  ? '<div class=\"drew\" title=\"the cells above were directed higher than '\n    + ((typeof capV === 'number' && drawnV >= capV - 0.005)? 'the allocation covers'\n                                                           : 'the lanes could supply')+'\">'\n    + 'directed '+fM(directedV)+'</div>' : '';";
+// WHICH LIMIT REFUSED THE DOLLAR. Shared by both builds' split editors, so one spelling covers both.
+const DREW_WHY_FIND = "const drewWhy = (drawnV, capV) => (typeof capV === 'number' && drawnV >= capV - 0.005)\n  ? 'the allocation for this service stops at '+fM(capV)\n    +' \\u2014 raise the allocation to draw more'\n  : 'the lane could not supply the rest';";
 
 const MUTATIONS = [
   // ---- the lane engine: the basis for every printed figure ------------------------------------
@@ -746,16 +748,42 @@ const MUTATIONS = [
   // total, which is precisely the defect this replaced.
   { id: 'drew-line-silent', area: 'drewLine', what: 'the cell states only what was directed, so a short lane reads as fully funded',
     find: DREW_LINE_FIND,
-    repl: "const drewLine = (directedV, drawnV) => '';" },
+    repl: "const drewLine = (directedV, drawnV, capV) => '';" },
   { id: 'drew-echoes-directed', area: 'drewLine', what: 'the second reading echoes the directed figure instead of what the lane supplied',
     find: DREW_LINE_FIND,
     repl: DREW_LINE_ECHO },
   { id: 'directed-total-silent', area: 'directedLine', what: 'the column total stops stating the directed sum, so the column does not foot on screen',
     find: DIRECTED_LINE_FIND,
-    repl: "const directedLine = (directedV, drawnV) => '';" },
+    repl: "const directedLine = (directedV, drawnV, capV) => '';" },
   { id: 'drew-gap-never', area: 'drewGap', what: 'a shortfall is never judged worth stating, silencing both readings at once',
     find: 'const drewGap = (directedV, drawnV) => (directedV - drawnV) > 0.005;',
     repl: 'const drewGap = (directedV, drawnV) => false;' },
+
+  // ---- the allocation is the cap, and it has to be settable ------------------------------------
+  // Two limits can refuse a directed dollar and they are not the same decision: a trimmed ROW
+  // ALLOCATION can be raised here in a minute, a dry LANE is the topline. Naming the wrong one sent
+  // a reader hunting money that was never the constraint -- it shipped, on a prime contract whose
+  // CLIN work had left the row under the ask, beside a lane still holding $704M.
+  { id: 'why-always-lane', area: 'drewWhy', what: 'an allocation cap is reported as a lane shortage, the exact defect v1.62 fixed',
+    find: DREW_WHY_FIND,
+    repl: "const drewWhy = (drawnV, capV) => 'the lane could not supply the rest';" },
+  { id: 'why-always-alloc', area: 'drewWhy', what: 'a genuinely dry lane is blamed on the allocation instead',
+    find: DREW_WHY_FIND,
+    repl: "const drewWhy = (drawnV, capV) => 'the allocation for this service stops at '+fM(capV)+' \\u2014 raise the allocation to draw more';" },
+  // THE TRAP ITSELF. v1.61 made the allocation the basis every draw is measured against and left
+  // the control that sets it disabled under a funding-source override, so the figure that capped
+  // the requirement could not be edited anywhere. Both builds share render(), so one spelling does.
+  { id: 'row-alloc-disabled-again', area: 'render', what: 'the row allocation goes read-only under a \u2699 override, leaving the cap unsettable',
+    find: `        <input class="\${isSvc?'svcmode':''}" style="\${S.fsrc[id]?'border-color:var(--gold)':''}"`,
+    repl: `        <input \${S.fsrc[id]?'disabled':''} class="\${isSvc?'svcmode':''}" style="\${S.fsrc[id]?'border-color:var(--gold)':''}"` },
+  // The same trap one layer down: the control is there and does nothing. Targets the SETTER, which
+  // both builds share, rather than either editor's markup.
+  { id: 'alloc-locked-under-override', area: 'setSvc', what: 'the allocation setter silently refuses to write while a funding source is set',
+    find: `function setSvc(id,i,val){
+  const it=itemById(id);`,
+    repl: `function setSvc(id,i,val){
+  if(S.fsrc[id]) return;
+  const it=itemById(id);` },
 
 ];
 

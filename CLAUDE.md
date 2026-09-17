@@ -574,6 +574,47 @@ implementation and `mcShortSvcOf()` delegates to it — Mission Critical's short
 reading gated to starred requirements, so the star and the portfolio cannot disagree about what a
 dollar is. Both are floored **per service**.
 
+### The allocation is the cap, and it must be settable wherever it is shown
+
+`basisSvcOf()` makes the **row allocation** the basis every draw is measured against. That is one
+decision with two halves, and v1.61 shipped only the first: it gave the allocation authority and
+left every control that *sets* it behind a condition a ⚙ funding-source override switched off — the
+row input rendered `disabled`, the card build's per-service allocation cells became derived text,
+and the grid build's RECORD panel carried a read-only *Allocated* field. An overridden requirement
+therefore had no control anywhere for the one figure that capped it. A directed Disc or Mand dollar
+past a trimmed allocation could be typed, was silently clamped, and surfaced as a UFR nothing on
+screen could clear.
+
+**A prime contract meets this by itself.** CLIN alignment work routinely leaves the row allocation
+under the ask, and the two are deliberately independent — the grid is line-by-line detail, the row
+allocation is what the board funds. So the rule:
+
+> **Anywhere the allocation is displayed, it is editable.** No funding source, band, prime marking
+> or CLIN state may take that control away. If a figure caps the money, the person briefing the
+> money can change it.
+
+The grid build's RECORD panel carries the block: one input per service, an allocated total,
+`↺ Requirement`, and for a prime `↑ CLIN grid` beside a line stating the grid total, the allocation
+and the difference — which is also the answer to *where do the "Apply grid to row" figures come
+from*. They come from `clinSvcTot()`, the grid's per-service column sums, and nothing else.
+
+### Two limits refuse a dollar, and they are not the same sentence
+
+A directed dollar can be refused by a **trimmed allocation** or by a **dry lane**. They look
+identical in the arithmetic and could not be less alike to the reader: the first can be raised here,
+in a minute; the second is the topline. `drewWhy()` decides which sentence the `drew` line carries,
+from the cap the cell was measured against —
+
+```
+discretionary cell   cap = basisSvcOf(it)[i]
+mandatory cell       cap = basisSvcOf(it)[i] - d[i]        (what the basis has left)
+column total         cap = Σ basis        /  Σ basis - dT
+```
+
+Blaming a flush lane is not a wording nit. It shipped, on a prime whose USAF lane still held
+$704,562,659 while the panel said the lane could not supply the rest, and it sent the reader
+hunting money that was never the constraint.
+
 ### The row is triage; the RECORD inspector is the editor (grid build)
 
 One rule, and it is what keeps the two surfaces from growing copies of each other:

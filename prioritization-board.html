@@ -1283,7 +1283,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.61 (16 Sep 2026)';
+const BUILD='v1.62 (17 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1382,16 +1382,31 @@ const fM = v=>'$'+Math.round(v).toLocaleString();
    renders the split editor in the RECORD panel and the card in the row expander, and neither may
    state the rule differently from the other. */
 const drewGap = (directedV, drawnV) => (directedV - drawnV) > 0.005;
+/* WHICH LIMIT REFUSED THE DOLLAR. Two different things can refuse a directed dollar and they are
+   not the same decision, so they must not carry the same sentence. The ROW ALLOCATION is a trim
+   somebody made on this board: it can be raised, here, in a minute. A dry LANE is the topline: it
+   cannot. Saying "the lane could not supply the rest" beside a lane still holding hundreds of
+   millions sent a reader hunting money that was never the constraint -- and that is the line a
+   PRIME CONTRACT shows every time CLIN work leaves its row allocation under the ask.
+   capV is the most this cell could have drawn: basisSvcOf() for discretionary, and that less the
+   discretionary already drawn for mandatory. Passing nothing keeps the lane wording, which is the
+   honest default for a caller that does not know the cap. */
+const drewWhy = (drawnV, capV) => (typeof capV === 'number' && drawnV >= capV - 0.005)
+  ? 'the allocation for this service stops at '+fM(capV)
+    +' \u2014 raise the allocation to draw more'
+  : 'the lane could not supply the rest';
 // On a CELL: what the lane actually supplied, under the figure that was typed.
-const drewLine = (directedV, drawnV) => drewGap(directedV, drawnV)
-  ? '<div class="drew" title="the lane could not supply the rest">drew '+fM(drawnV)+'</div>' : '';
+const drewLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
+  ? '<div class="drew" title="'+drewWhy(drawnV, capV)+'">drew '+fM(drawnV)+'</div>' : '';
 // On a TOTAL: what the cells above it were directed to, since the total itself is what was drawn.
-const directedLine = (directedV, drawnV) => drewGap(directedV, drawnV)
-  ? '<div class="drew" title="the cells above were directed higher than the lanes could supply">'
+const directedLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
+  ? '<div class="drew" title="the cells above were directed higher than '
+    + ((typeof capV === 'number' && drawnV >= capV - 0.005)? 'the allocation covers'
+                                                           : 'the lanes could supply')+'">'
     + 'directed '+fM(directedV)+'</div>' : '';
 // The same fact in a tooltip, for the box the figure was typed into.
-const drewTip = (directedV, drawnV) => drewGap(directedV, drawnV)
-  ? ' \u2014 '+fM(drawnV)+' of it could be drawn; '+fM(directedV-drawnV)
+const drewTip = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
+  ? ' \u2014 '+fM(drawnV)+' of it could be drawn ('+drewWhy(drawnV, capV)+'); '+fM(directedV-drawnV)
     + ' could not and shows as this service\u2019s UFR' : '';
 /* ---- WHOLE DOLLARS ---------------------------------------------------------------------------
    EVERY DOLLAR THE BOARD HOLDS IS A WHOLE DOLLAR. Money used to be stored as a float and rounded
@@ -15482,25 +15497,34 @@ function svcTable(it){
     hd+=`<th>${s}</th>`;
     r1+=`<td><input value="${it.ask[i]?Math.round(it.ask[i]).toLocaleString():''}"
         onchange="setAsk('${it.id}',${i},this.value)" onfocus="this.select()" placeholder="0" title="${s} FY27 requirement value — editing updates totals, lane math, and unfunded deltas"></td>`;
-    r2+= foAll? `<td style="color:var(--gold);font-weight:700" title="${s} allocation = Disc + Mand drawn (derived from the ⚙ funding-source override, based on the FY27 Ask)">${(pxAll.d[i]+pxAll.m[i])>0.5? fM(pxAll.d[i]+pxAll.m[i]):'—'}</td>`
-      : `<td><input value="${sa[i]?Math.round(sa[i]).toLocaleString():''}"
-        onchange="setSvc('${it.id}',${i},this.value)" onfocus="this.select()" placeholder="0"></td>`;
+    // THE ALLOCATION IS EDITED HERE WHATEVER THE FUNDING SOURCE SAYS. This cell used to go
+    // read-only under a ⚙ override, on the reasoning that the override derived the allocation from
+    // the ask. v1.61 reversed that -- basisSvcOf() made the ALLOCATION the basis every draw is
+    // measured against -- and left the control disabled, so an overridden requirement had no way to
+    // set the one figure that now capped it. A directed dollar past a trimmed allocation could be
+    // typed, was silently refused, and came out as a UFR with nothing on screen that could clear it.
+    r2+= `<td><input style="${foAll?'border-color:var(--gold)':''}" value="${sa[i]?Math.round(sa[i]).toLocaleString():''}"
+        onchange="setSvc('${it.id}',${i},this.value)" onfocus="this.select()" placeholder="0"
+        title="${s} allocation — what the board funds against this requirement${foAll?'. Every ⚙ directed dollar stops here: anything past it shows as this service’s UFR.':''}"></td>`;
   });
   return `<div class="svc-detail"><table>
     <tr><th>CCaR: <input style="width:100px;font-weight:700;letter-spacing:.5px" maxlength="12" value="${esc(ccarOf(it))}" placeholder="JSF####" onchange="setCcarInline('${it.id}',this.value)" onfocus="this.select()" title="CCaR record (up to 12 characters)"></th>${hd}<th>Total</th></tr>
     <tr><td>${FYL()} Ask (edit) ${edited?'<span class="mode-tag" style="background:var(--amber);color:var(--onAmber)">EDITED</span>':''}</td>${r1}
       <td style="font-weight:700">${fM(askTot(it))}${it.custom?'':` <button class="qb" onclick="resetAsk('${it.id}')" title="restore the original requested amounts">↺ orig</button>`}</td></tr>
-    <tr><td>Allocation ${foAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">= D + M (derived)</span>' : (isSvc?'<span class="mode-tag">BY SVC</span>':'(prorated — type to set by service)')}</td>${r2}
-      <td style="color:var(--amber);font-weight:700">${foAll? fM(pxAll.dT+pxAll.mT) : fM(eff(it))}</td></tr>
+    <tr><td>Allocation ${foAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">⚙ THE CAP ON EVERY DRAW</span>' : (isSvc?'<span class="mode-tag">BY SVC</span>':'(prorated — type to set by service)')}</td>${r2}
+      <td style="color:var(--amber);font-weight:700">${fM(sa.reduce((x,y)=>x+y,0))}</td></tr>
     ${(S.fsrc[it.id]&&S.fsrc[it.id].m==='split')? (()=>{
       const fo=S.fsrc[it.id];
       migrateSplit(it.id);
       const Tx=tiers(), px=Tx[it.id]||{d:SVC.map(_=>0),m:SVC.map(_=>0),u:SVC.map(_=>0),dT:0,mT:0,uT:0};
+      // THE CAP EACH CELL WAS MEASURED AGAINST, so "drew less" can say which limit refused the rest.
+      // Discretionary is capped by the basis; mandatory by whatever the basis has left after it.
+      const bs=basisSvcOf(it), bsT=bs.reduce((x,y)=>x+y,0);
       // The box holds what was DIRECTED; drewLine/drewTip add what the lane actually supplied when
       // it was less. Both come from the shared rule, so this editor and the grid's RECORD panel
       // cannot drift on what a split editor owes the reader.
-      const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${fo.dv[i]?Math.round(fo.dv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY${drewTip(fo.dv[i]||0,px.d[i]||0)}">${drewLine(fo.dv[i]||0,px.d[i]||0)}</td>`).join('');
-      const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${fo.mv[i]?Math.round(fo.mv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY${drewTip(fo.mv[i]||0,px.m[i]||0)}">${drewLine(fo.mv[i]||0,px.m[i]||0)}</td>`).join('');
+      const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${fo.dv[i]?Math.round(fo.dv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY${drewTip(fo.dv[i]||0,px.d[i]||0,bs[i])}">${drewLine(fo.dv[i]||0,px.d[i]||0,bs[i])}</td>`).join('');
+      const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${fo.mv[i]?Math.round(fo.mv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY${drewTip(fo.mv[i]||0,px.m[i]||0,bs[i]-(px.d[i]||0))}">${drewLine(fo.mv[i]||0,px.m[i]||0,bs[i]-(px.d[i]||0))}</td>`).join('');
       // Against the REQUIREMENT, not the allocation: px.u is BEYOND and says nothing about ask
       // that was never allocated. One rule, the same as the grid panel's.
       const uSvc=unfSvcOf(it,px), uSvcT=uSvc.reduce((a,b)=>a+b,0);
@@ -15508,8 +15532,8 @@ function svcTable(it){
       // The TOTAL is what was DRAWN -- that is the money. directedLine adds what the cells above
       // it add up to, or the column does not foot to its own total on screen.
       const dirD=fo.dv.reduce((a,b)=>a+(b||0),0), dirM=fo.mv.reduce((a,b)=>a+(b||0),0);
-      return `<tr><td style="color:var(--green);font-weight:700">⚙ Split — Disc $ (edit)</td>${dRow}<td style="color:var(--green);font-weight:700">${fM(px.dT)}${directedLine(dirD,px.dT)}</td></tr>
-      <tr><td style="color:var(--purp);font-weight:700">⚙ Split — Mand $ (edit)</td>${mRow}<td style="color:var(--purp);font-weight:700">${fM(px.mT)}${directedLine(dirM,px.mT)}</td></tr>
+      return `<tr><td style="color:var(--green);font-weight:700">⚙ Split — Disc $ (edit)</td>${dRow}<td style="color:var(--green);font-weight:700">${fM(px.dT)}${directedLine(dirD,px.dT,bsT)}</td></tr>
+      <tr><td style="color:var(--purp);font-weight:700">⚙ Split — Mand $ (edit)</td>${mRow}<td style="color:var(--purp);font-weight:700">${fM(px.mT)}${directedLine(dirM,px.mT,bsT-px.dT)}</td></tr>
       <tr><td style="color:var(--red);font-weight:700">⚙ Resulting UFR</td>${uRow}<td style="color:${uSvcT>0.5?'var(--red)':'var(--dim)'};font-weight:700">${fM(uSvcT)}${px.uT>0.5?`<div class="drew">lane short ${fM(px.uT)}</div>`:''}</td></tr>`;})() : ''}
     <tr><td style="color:var(--blue);font-weight:700">Minimum useful increment</td>
       <td colspan="${SVC.length}" style="color:var(--dim);font-size:9px">the least this still buys something at — blank means the full requirement. Only needed for band 0&ndash;2 items that fall below the line.</td>
@@ -15533,7 +15557,7 @@ function svcTable(it){
       <td><button class="qb" style="width:100%" onclick="S.alloc['${it.id}']=null;save();render();flash('${it.id}')" title="set this requirement's allocation equal to its full ${FYL()} requirement">Allocate</button></td></tr>
     </table>
     ${awardBlockHtml(it)}
-    <div class="svc-hint">Top row = the REQUIREMENT VALUE (FY27 ask) by service — edit it when the requirement itself changes; unfunded deltas follow automatically. Second row = your ALLOCATION against it. With a ⚙ forced split, type each service's Discretionary and Mandatory dollars directly — anything not covered (or beyond lane capacity) shows as that service's UFR. ↺ orig restores the requested values; ↺ split restores the allocation split.</div></div>`;
+    <div class="svc-hint">Top row = the REQUIREMENT VALUE (FY27 ask) by service — edit it when the requirement itself changes; unfunded deltas follow automatically. Second row = your ALLOCATION against it — <b>the cap on every draw, ⚙ override or not</b>. With a ⚙ forced split, type each service's Discretionary and Mandatory dollars directly — anything past the allocation, or beyond lane capacity, shows as that service's UFR, and the “drew” line under the box says which of the two refused it. ↺ orig restores the requested values; ↺ split restores the allocation split.</div></div>`;
 }
 function noteBox(it){
   const n=S.notes[it.id]||'';
@@ -17625,9 +17649,8 @@ function render(){
         </span>
         <button class="qb ${showDetail?'on':''}" onclick="toggleDetail('${id}')" title="Show this requirement broken out by service — edit the ${FYL()} requirement and the allocation for each service individually.">⊞ SVC</button>
         <button class="mcb ${S.mc[id]?'on':''}" onclick="S.mc['${id}']=!S.mc['${id}'];save();render()" title="★ Mission Critical — this must be paid this year">★ MC</button>
-        ${S.fsrc[id]? `<input disabled style="opacity:.75;border-color:var(--gold);color:var(--gold);font-weight:800" value="${Math.round(t.dT+t.mT).toLocaleString()}" title="allocation = Discretionary + Mandatory drawn (derived from the ⚙ funding-source override, which runs off the FY27 Ask)">`
-        : `<input class="${isSvc?'svcmode':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
-          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is separate; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)'}">`}
+        <input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
+          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. A directed Disc or Mand dollar past it cannot be drawn and shows as UFR. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is separate; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">
         ${rowMenuHtml(it)}
       </div>
       ${showDetail? svcTable(it):''}

@@ -288,6 +288,12 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-svc{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
 .insp-svc>div{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:5px 7px;min-width:0}
 .insp-svc .fl{overflow-wrap:anywhere}
+/* THE ALLOCATION BLOCK'S OWN CONTROLS take the 24px target and a border that can be seen against
+   --sink, rather than inheriting the panel's denser default. This is the one place on the panel
+   where a mis-hit is a UFR on a brief: it is the cap every draw on the requirement is measured
+   against. 2.5.8 Target Size and 1.4.11 Non-text Contrast, both AA. */
+.insp-svc input.allocin{min-height:24px;border-color:var(--mut)}
+.insp-f .allocbtn{min-height:24px;border-color:var(--mut)}
 .insp-svc .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 /* One ROW per service rather than one column: six services and seven-figure dollars do not fit
    across a narrow panel, and the split is read down the list anyway — set Disc and Mand, and UFR
@@ -1417,7 +1423,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.61 (16 Sep 2026)';
+const BUILD='v1.62 (17 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1516,16 +1522,31 @@ const fM = v=>'$'+Math.round(v).toLocaleString();
    renders the split editor in the RECORD panel and the card in the row expander, and neither may
    state the rule differently from the other. */
 const drewGap = (directedV, drawnV) => (directedV - drawnV) > 0.005;
+/* WHICH LIMIT REFUSED THE DOLLAR. Two different things can refuse a directed dollar and they are
+   not the same decision, so they must not carry the same sentence. The ROW ALLOCATION is a trim
+   somebody made on this board: it can be raised, here, in a minute. A dry LANE is the topline: it
+   cannot. Saying "the lane could not supply the rest" beside a lane still holding hundreds of
+   millions sent a reader hunting money that was never the constraint -- and that is the line a
+   PRIME CONTRACT shows every time CLIN work leaves its row allocation under the ask.
+   capV is the most this cell could have drawn: basisSvcOf() for discretionary, and that less the
+   discretionary already drawn for mandatory. Passing nothing keeps the lane wording, which is the
+   honest default for a caller that does not know the cap. */
+const drewWhy = (drawnV, capV) => (typeof capV === 'number' && drawnV >= capV - 0.005)
+  ? 'the allocation for this service stops at '+fM(capV)
+    +' \u2014 raise the allocation to draw more'
+  : 'the lane could not supply the rest';
 // On a CELL: what the lane actually supplied, under the figure that was typed.
-const drewLine = (directedV, drawnV) => drewGap(directedV, drawnV)
-  ? '<div class="drew" title="the lane could not supply the rest">drew '+fM(drawnV)+'</div>' : '';
+const drewLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
+  ? '<div class="drew" title="'+drewWhy(drawnV, capV)+'">drew '+fM(drawnV)+'</div>' : '';
 // On a TOTAL: what the cells above it were directed to, since the total itself is what was drawn.
-const directedLine = (directedV, drawnV) => drewGap(directedV, drawnV)
-  ? '<div class="drew" title="the cells above were directed higher than the lanes could supply">'
+const directedLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
+  ? '<div class="drew" title="the cells above were directed higher than '
+    + ((typeof capV === 'number' && drawnV >= capV - 0.005)? 'the allocation covers'
+                                                           : 'the lanes could supply')+'">'
     + 'directed '+fM(directedV)+'</div>' : '';
 // The same fact in a tooltip, for the box the figure was typed into.
-const drewTip = (directedV, drawnV) => drewGap(directedV, drawnV)
-  ? ' \u2014 '+fM(drawnV)+' of it could be drawn; '+fM(directedV-drawnV)
+const drewTip = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
+  ? ' \u2014 '+fM(drawnV)+' of it could be drawn ('+drewWhy(drawnV, capV)+'); '+fM(directedV-drawnV)
     + ' could not and shows as this service\u2019s UFR' : '';
 /* ---- WHOLE DOLLARS ---------------------------------------------------------------------------
    EVERY DOLLAR THE BOARD HOLDS IS A WHOLE DOLLAR. Money used to be stored as a float and rounded
@@ -17677,9 +17698,8 @@ function render(){
         </span>
         <button class="qb ${showDetail?'on':''}" onclick="toggleDetail('${id}')" title="Show this requirement broken out by service — edit the ${FYL()} requirement and the allocation for each service individually.">⊞ SVC</button>
         <button class="mcb ${S.mc[id]?'on':''}" onclick="S.mc['${id}']=!S.mc['${id}'];save();render()" title="★ Mission Critical — this must be paid this year">★ MC</button>
-        ${S.fsrc[id]? `<input disabled style="opacity:.75;border-color:var(--gold);color:var(--gold);font-weight:800" value="${Math.round(t.dT+t.mT).toLocaleString()}" title="allocation = Discretionary + Mandatory drawn (derived from the ⚙ funding-source override, which runs off the FY27 Ask)">`
-        : `<input class="${isSvc?'svcmode':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
-          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is separate; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)'}">`}
+        <input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
+          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. A directed Disc or Mand dollar past it cannot be drawn and shows as UFR. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is separate; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">
         ${rowMenuHtml(it)}
       </div>
       ${showDetail? svcTable(it):''}
@@ -21268,6 +21288,9 @@ function inspectorBody(){
   // per-service vectors existed would show computed figures in boxes that edit directed ones.
   migrateSplit(id);
   const inSplit = !!(fo && fo.m === 'split' && Array.isArray(fo.dv));
+  // THE CAP EACH CELL WAS MEASURED AGAINST, so a cell that drew less can say WHICH limit refused
+  // the rest. Discretionary is capped by the basis; mandatory by what the basis has left after it.
+  const bs = basisSvcOf(it), bsT = bs.reduce(function(a,b){ return a+b; }, 0);
   const svcRow = function(sname, i){
     // UFR IS MEASURED AGAINST THE REQUIREMENT, which is the column beside it and what the hint
     // above this table promises: "UFR is the remainder". t.u is BEYOND -- allocated and no lane
@@ -21279,13 +21302,13 @@ function inspectorBody(){
     // The box holds what was DIRECTED; drewLine/drewTip add what the lane actually supplied when
     // it was less. Both come from the shared rule, so this panel and the card's row expander
     // cannot drift on what a split editor owes the reader.
-    const cell = (kind, val, drew) => {
+    const cell = (kind, val, drew, cap) => {
       if(!inSplit) return '<span class="ro">' + (val > 0.005 ? fM(val) : '\u2014') + '</span>';
       return '<input class="' + kind + '" value="' + (val ? Math.round(val).toLocaleString() : '')
         + '" placeholder="0" onfocus="this.select()" title="' + esc(sname) + ' \u2014 dollars directed to '
-        + (kind === 'd' ? 'DISCRETIONARY' : 'MANDATORY') + esc(drewTip(val, drew))
+        + (kind === 'd' ? 'DISCRETIONARY' : 'MANDATORY') + esc(drewTip(val, drew, cap))
         + '" onchange="setFsrcSvc(\'' + id + '\',\'' + kind + '\',' + i + ',this.value)">'
-        + drewLine(val, drew);
+        + drewLine(val, drew, cap);
     };
     // REQ IS THE REQUIREMENT VALUE, and it is edited here now -- this column absorbed the row
     // expander's six per-service ask inputs when that editor was retired in this build.
@@ -21295,8 +21318,8 @@ function inspectorBody(){
       + ' onchange="setAsk(\'' + id + '\',' + i + ',this.value)">';
     return '<tr><td class="l">' + esc(sname) + '</td>'
       + '<td>' + reqCell + '</td>'
-      + '<td>' + cell('d', inSplit ? (fo.dv[i]||0) : d, d) + '</td>'
-      + '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m, m) + '</td>'
+      + '<td>' + cell('d', inSplit ? (fo.dv[i]||0) : d, d, bs[i]) + '</td>'
+      + '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m, m, bs[i] - d) + '</td>'
       + '<td class="' + (unf > 0.005 ? 'uf' : 'ro') + '">' + (unf > 0.005 ? fM(unf) : '\u2014')
         + (u > 0.005 ? '<div class="drew" title="of that shortfall, this much WAS allocated but no'
             + ' lane could pay it — the rest was never allocated">lane short ' + fM(u) + '</div>' : '')
@@ -21318,11 +21341,68 @@ function inspectorBody(){
         + ' title="restore the originally requested amounts">\u21ba</button>') + '</td>'
     // The total is what was DRAWN -- that is the money. When the column above it was directed
     // higher, say so here too, or the column does not add up to its own total on screen.
-    + '<td style="color:var(--green)">' + fM(dT) + directedLine(dirD, dT) + '</td>'
-    + '<td style="color:var(--purp)">' + fM(mT) + directedLine(dirM, mT) + '</td>'
+    + '<td style="color:var(--green)">' + fM(dT) + directedLine(dirD, dT, bsT) + '</td>'
+    + '<td style="color:var(--purp)">' + fM(mT) + directedLine(dirM, mT, bsT - dT) + '</td>'
     + '<td class="' + (unfT > 0.005 ? 'uf' : 'ro') + '">' + (unfT > 0.005 ? fM(unfT) : '\u2014')
       + (uT > 0.005 ? '<div class="drew">lane short ' + fM(uT) + '</div>' : '') + '</td></tr>'
     + '</table>';
+
+  // THE ALLOCATION IS EDITED HERE. v1.61 made the ALLOCATION the basis every draw is measured
+  // against -- basisSvcOf() -- and left every control that sets it behind a condition: this panel
+  // carried a read-only "Allocated" field, and the row's own input went dead the moment a \u2699
+  // override was set. An overridden requirement therefore had no way anywhere to set the one figure
+  // that now capped it: a directed dollar past a trimmed allocation could be typed, was silently
+  // refused, and came out as a UFR with nothing on screen that could clear it.
+  // A PRIME CONTRACT meets this every time CLIN work leaves its row allocation under the ask, which
+  // is how it reached a brief -- a service fully funded against its ask, with a UFR beside it.
+  const allocV = svcAlloc(it), allocT = allocV.reduce(function(a,b){ return a+b; }, 0);
+  const allocSet = S.alloc[id] !== null && S.alloc[id] !== undefined;
+  const trimT = Math.max(0, askTot(it) - allocT);
+  const allocBlk = '<div class="insp-lbl">Allocation \u2014 the cap on every draw'
+    + ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 '
+    + (allocSet ? (trimT > 0.005 ? fM(trimT) + ' below the requirement' : 'set by hand')
+                : 'the full requirement')
+    + '</span></div>'
+    + '<div class="insp-svc">'
+    + SVC.map(function(sname, i){
+        return '<div><div class="fl">' + esc(sname) + '</div><div class="fv">'
+          + '<input class="allocin" style="width:100%;text-align:right" placeholder="0" value="'
+          + (allocV[i] ? Math.round(allocV[i]).toLocaleString() : '') + '"'
+          + ' onfocus="this.select()" onchange="setSvc(\'' + id + '\',' + i + ',this.value)"'
+          + ' title="' + esc(sname) + ' \u2014 what the board funds against this requirement.'
+          + ' Every draw stops here, directed or automatic. The requirement asks '
+          + fM(it.ask[i] || 0) + '.">'
+          + '</div></div>';
+      }).join('')
+    + '</div>'
+    + '<div class="insp-g">'
+      + inspField('Allocated total', fM(allocT))
+      + '<div class="insp-f"><div class="fl">Set it from</div><div class="fv">'
+        + '<button class="qb allocbtn" onclick="S.alloc[\'' + id + '\']=null;save();render();flash(\'' + id + '\')"'
+        + ' title="allocate the full ' + FYL() + ' requirement, ' + fM(askTot(it))
+        + '">\u21ba Requirement</button>'
+        + (clinApplies(id)
+            ? ' <button class="qb allocbtn" onclick="clinToRow(\'' + id + '\')"'
+              + ' title="set the allocation to what the CLIN grid adds up to, per service \u2014 '
+              + fM(clinGridTot(id)) + ' across every CLIN on this contract">\u2191 CLIN grid</button>'
+            : '')
+      + '</div></div>'
+    + '</div>'
+    // WHERE "APPLY GRID TO ROW" GETS ITS FIGURES, stated where the allocation is set rather than
+    // only inside the CLIN drill. The two are deliberately independent -- the grid is the
+    // line-by-line detail, the allocation is what the board funds -- and a prime whose grid and
+    // allocation disagree needs to see the gap at the moment it is deciding the dollars.
+    + (clinApplies(id) ? (function(){
+        const gT = clinGridTot(id), dlt = allocT - gT;
+        return '<div style="font-size:9.5px;color:var(--dim);line-height:1.5;margin:-2px 0 4px">'
+          + 'CLIN grid total <b style="color:var(--mut)">' + fM(gT) + '</b> \u00b7 allocation '
+          + '<b style="color:var(--mut)">' + fM(allocT) + '</b> \u00b7 difference '
+          + '<b style="color:' + (Math.abs(dlt) <= 0.005 ? 'var(--green)' : 'var(--amber)') + '">'
+          + (dlt < 0 ? '\u2212' : '') + fM(Math.abs(dlt)) + '</b><br>'
+          + 'The grid is line-by-line detail and funds nothing on its own. The allocation above is '
+          + 'what the board funds \u2014 type into it, or pull the grid across with \u2191 CLIN grid.'
+          + '</div>';
+      })() : '');
 
   el.innerHTML = drawerBar() +
     '<div class="insp-hd"><b>#' + (pos>=0? pos+1 : '—') + ' · RECORD</b>'
@@ -21367,7 +21447,7 @@ function inspectorBody(){
         + '\u2699 auto (lanes) \u2192 convert to Split</span></div>')
     + '<div class="insp-g">'
       + inspField(FYL() + ' requirement', fM(askTot(it)), 'big')
-      + inspField('Allocated', fM(dT + mT), 'big')
+      + inspField('Allocated', fM(dT + mT), 'big')   // DRAWN, not the cap -- the cap is the block below
       + inspField('Discretionary', fM(dT))
       + inspField('Mandatory', fM(mT))
       + inspField('Unfunded', unfT > 0.005 ? '<span style="color:var(--unf)">' + fM(unfT) + '</span>' : '\u2014',
@@ -21398,6 +21478,7 @@ function inspectorBody(){
             + (BAND_OF(id)===b.id?' selected':'') + '>'+i+' · '+esc(b.n)+'</option>'; }).join('')
         + '</select></div></div>'
       + '</div>'
+    + allocBlk
     + '<div class="insp-lbl">By service — money is not fungible across them'
       + (inSplit ? ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 type Disc and Mand; UFR is the remainder</span>'
                  : ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 set funding to Split D/M/UFR to edit</span>')
