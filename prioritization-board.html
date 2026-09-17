@@ -1283,7 +1283,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.63 (17 Sep 2026)';
+const BUILD='v1.66 (17 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -6609,6 +6609,26 @@ function setPidInline(id,val){
 const fM2=v=>'$'+(v/1e6).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'M';
 const _MN3=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 function ymLbl(ym){ const m=/^(\d{4})-(\d{2})$/.exec(ym||''); return m? _MN3[parseInt(m[2],10)-1]+' '+(parseInt(m[1],10)%100) : (ym||''); }
+// THE AWARD DATES A REQUIREMENT CARRIES, in order, as one cell of text.
+// A single award is its one date. INCREMENTAL FUNDING IS EVERY INCREMENT'S DATE, oldest first:
+// "incremental ×3" says there are three and not when any of them lands, which is the only
+// question an obligation plan is opened to answer. The day is carried when there is one, because
+// it is what sets the CR half-month window.
+// SORTED HERE rather than trusted from the array. addAwd() keeps it sorted on insert, but
+// setAwdIncMonth() can move an increment afterwards and leave the stored order stale -- and a list
+// of dates whose order is wrong is worse than no list, because it reads as a schedule.
+function awdDateLbl(id){
+  const aw=(S.awards||{})[id];
+  if(!aw) return '';
+  const one=x=> (x && x.d)? ((x.day? x.day+' ' : '')+ymLbl(x.d)) : '';
+  if(aw.mode==='inc'){
+    const key=x=>(x.d||'')+String(x.day||0).padStart(2,'0');
+    return (aw.inc||[]).slice()
+      .sort(function(a,b){ const ka=key(a), kb=key(b); return ka<kb? -1 : (ka>kb? 1 : 0); })
+      .map(one).filter(Boolean).join('; ');
+  }
+  return one(aw);
+}
 function setAwdDate(id,val){
   if(!val){ delete S.awards[id]; save(); render(); flash(id); return; }
   const aw=S.awards[id];
@@ -12615,7 +12635,7 @@ function exportPlans(){
      discretionary top line runs out before a requirement the two stop being the same number.
      The question "how much mandatory money does this requirement have" is answered by the
      allocation, so that is what is read. */
-  const cmp={name:'A vs B', cols:[7,30,9,46,15,15,15,17,19,14,14],
+  const cmp={name:'A vs B', cols:[7,30,9,46,13,26,15,15,15,17,19,14,14],
     rows:[[{v:'What the mandatory top line changes',s:TI}],
       [{v:'MAND ALLOCATED is the mandatory money DIRECTED to the requirement \u2014 what was typed '
         +'in, not a difference between two plans. A FUNDED is what the discretionary top line alone '
@@ -12624,10 +12644,13 @@ function exportPlans(){
       [{v:'Plan A buys',s:B},'','',{v:R.aT.got,s:NB}],
       [{v:'Plan B buys',s:B},'','',{v:R.bT.got,s:NB}],
       [{v:'Difference \u2014 what mandatory pays for',s:SEC},'','',{v:R.bT.got-R.aT.got,s:NB}],[],
-      ['Rank','Band / Priority','PMO','Requirement','Allocated','Disc allocated','Mand allocated',
+      // CCaR and the AWARD DATES sit between the requirement and the money, because that is the
+      // order the question is asked in: which record is this, when does it obligate, how much.
+      ['Rank','Band / Priority','PMO','Requirement','CCaR','Award date(s)','Allocated','Disc allocated','Mand allocated',
        'A funded (disc)','B funded (disc + mand)','A status','B status'].map(v=>({v,s:H}))]};
   rows.forEach(function(x){ const dr=fsDirected(x.id, T);
-    cmp.rows.push([{v:x.rank,s:0},{v:bandCell(x.id),s:0},x.pmo,x.title,{v:dr.d+dr.m,s:N},
+    cmp.rows.push([{v:x.rank,s:0},{v:bandCell(x.id),s:0},x.pmo,x.title,
+      {v:ccarOf(x.it),s:1},{v:awdDateLbl(x.id),s:0},{v:dr.d+dr.m,s:N},
       {v:dr.d,s:N},{v:dr.m,s:dr.m>0.5?NB:N},
       {v:x.a.gotT,s:N},{v:x.b.gotT,s:N},
       {v:({full:'Funded',part:'PARTIAL',cut:'NOT FUNDED',none:'NOT IN THIS PLAN'})[x.a.st],
@@ -14754,7 +14777,10 @@ function scoreboard(){
   const wUsed=dUsed+mUsed;
   const floor=discTot()+mcNeed;   // your discretionary, plus what the must-pays need on top of it
   let mcCov=0, mcUnf=0;
-  S.order.forEach(id=>{ if(S.mc[id]&&T[id]){ mcCov+=T[id].mT; mcUnf+=T[id].uT; } });
+  S.order.forEach(id=>{ const it2=itemById(id);
+    // Against the ASK. A must-pay requirement is short of what it asked for, not of what somebody
+    // allocated it -- which is the rule mcShortSvcOf() already follows one tile to the left.
+    if(S.mc[id]&&T[id]&&it2){ mcCov+=T[id].mT; mcUnf+=unfTotOf(it2,T[id]); } });
   const mcCovered = mcUnf<=0.005;
   const h=`
   <div class="sc disc"><div class="nm" style="color:var(--green)">1 · Discretionary (basis)</div>
@@ -15157,7 +15183,10 @@ function fitChartSvg(T){
   const d=SVC.map(_=>0), m=SVC.map(_=>0), u=SVC.map(_=>0), ask=SVC.map(_=>0);
   S.order.forEach(id=>{
     const it=itemById(id), p=T[id]; if(!it||!p) return;
-    SVC.forEach((sv,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=p.u[i]; });
+    // UNFUNDED IS MEASURED AGAINST THE ASK. p.u is BEYOND -- allocated and no lane could pay --
+    // and is a strictly smaller number that says nothing about ask that was never allocated.
+    const uv=unfSvcOf(it,p);
+    SVC.forEach((sv,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=uv[i]; });
     it.ask.forEach((v,i)=>ask[i]+=v);
   });
   const dBA=SVC.map((sv,i)=>(S.discSvc||[])[i]||0), mBA=SVC.map((sv,i)=>(S.mandSvc||[])[i]||0);
@@ -15267,7 +15296,12 @@ function svcSummary(){
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const p=T[id];
-    SVC.forEach((s,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=p.u[i]; });
+    // THE UNFUNDED COLUMN IS THE ASK-BASED READING, the same one the scoreboard, the workbook and
+    // the deck print. It used to sum p.u -- BEYOND both lanes -- which excludes every dollar of ask
+    // that was never allocated, so a board whose requirements are trimmed or hand-directed below
+    // their ask read $0 unfunded per service while the portfolio carried hundreds of millions.
+    const uv=unfSvcOf(it,p);
+    SVC.forEach((s,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=uv[i]; });
     it.ask.forEach((v,i)=>ask[i]+=v);
   });
   // THE STAR IS READ, NEVER RECOMPUTED. This panel used to work it out again --
@@ -15531,9 +15565,15 @@ function svcTable(it){
       <td style="font-weight:700">${fM(askTot(it))}${it.custom?'':` <button class="qb" onclick="resetAsk('${it.id}')" title="restore the original requested amounts">↺ orig</button>`}</td></tr>
     <tr><td>Allocation ${splitAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">= ⚙ DIRECTED D + M</span>' : (foAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">⚙ SOURCE SET</span>' : (isSvc?'<span class="mode-tag">BY SVC</span>':'(prorated — type to set by service)'))}</td>${r2}
       <td style="color:var(--amber);font-weight:700">${fM(sa.reduce((x,y)=>x+y,0))}</td></tr>
-    ${(S.fsrc[it.id]&&S.fsrc[it.id].m==='split')? (()=>{
+    ${(()=>{
+      // EVERY REQUIREMENT'S DISC AND MAND ARE TYPED HERE, converted or not. These rows used to
+      // render only once a requirement had been switched to Split, which made the automatic lane
+      // walk a gate in front of the one decision this editor exists for. setFsrcSvc() converts on
+      // the first keystroke, seeded from the draw already on screen, so nothing moves but what was
+      // typed -- and until then the boxes hold exactly what the lane walk produced.
       const fo=S.fsrc[it.id];
-      migrateSplit(it.id);
+      const isSp=!!(fo && fo.m==='split');
+      if(isSp) migrateSplit(it.id);
       const Tx=tiers(), px=Tx[it.id]||{d:SVC.map(_=>0),m:SVC.map(_=>0),u:SVC.map(_=>0),dT:0,mT:0,uT:0};
       // THE CAP EACH CELL WAS MEASURED AGAINST, so "drew less" can say which limit refused the rest.
       // Discretionary is capped by the basis; mandatory by whatever the basis has left after it.
@@ -15541,18 +15581,22 @@ function svcTable(it){
       // The box holds what was DIRECTED; drewLine/drewTip add what the lane actually supplied when
       // it was less. Both come from the shared rule, so this editor and the grid's RECORD panel
       // cannot drift on what a split editor owes the reader.
-      const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${fo.dv[i]?Math.round(fo.dv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY${drewTip(fo.dv[i]||0,px.d[i]||0,bs[i])}">${drewLine(fo.dv[i]||0,px.d[i]||0,bs[i])}</td>`).join('');
-      const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${fo.mv[i]?Math.round(fo.mv[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY${drewTip(fo.mv[i]||0,px.m[i]||0,bs[i]-(px.d[i]||0))}">${drewLine(fo.mv[i]||0,px.m[i]||0,bs[i]-(px.d[i]||0))}</td>`).join('');
+      // Not yet converted: directed IS drawn, because the lane walk is the only thing that has
+      // said anything about this requirement so far.
+      const DV=(isSp&&Array.isArray(fo.dv))? fo.dv : px.d;
+      const MV=(isSp&&Array.isArray(fo.mv))? fo.mv : px.m;
+      const dRow=SVC.map((s,i)=>`<td><input style="border-color:var(--green)" value="${DV[i]?Math.round(DV[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','d',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to DISCRETIONARY${drewTip(DV[i]||0,px.d[i]||0,bs[i])}">${drewLine(DV[i]||0,px.d[i]||0,bs[i])}</td>`).join('');
+      const mRow=SVC.map((s,i)=>`<td><input style="border-color:var(--purp)" value="${MV[i]?Math.round(MV[i]).toLocaleString():''}" placeholder="0" onchange="setFsrcSvc('${it.id}','m',${i},this.value)" onfocus="this.select()" title="${s} — dollars directed to MANDATORY${drewTip(MV[i]||0,px.m[i]||0,bs[i]-(px.d[i]||0))}">${drewLine(MV[i]||0,px.m[i]||0,bs[i]-(px.d[i]||0))}</td>`).join('');
       // Against the REQUIREMENT, not the allocation: px.u is BEYOND and says nothing about ask
       // that was never allocated. One rule, the same as the grid panel's.
       const uSvc=unfSvcOf(it,px), uSvcT=uSvc.reduce((a,b)=>a+b,0);
       const uRow=SVC.map((s,i)=>`<td style="color:${uSvc[i]>0.5?'var(--red)':'var(--dim)'};font-weight:700">${uSvc[i]>0.5?fM(uSvc[i]):'—'}${px.u[i]>0.5?`<div class="drew" title="of that shortfall, this much WAS allocated but no lane could pay it">lane short ${fM(px.u[i])}</div>`:''}</td>`).join('');
       // The TOTAL is what was DRAWN -- that is the money. directedLine adds what the cells above
       // it add up to, or the column does not foot to its own total on screen.
-      const dirD=fo.dv.reduce((a,b)=>a+(b||0),0), dirM=fo.mv.reduce((a,b)=>a+(b||0),0);
-      return `<tr><td style="color:var(--green);font-weight:700">⚙ Split — Disc $ (edit)</td>${dRow}<td style="color:var(--green);font-weight:700">${fM(px.dT)}${directedLine(dirD,px.dT,bsT)}</td></tr>
-      <tr><td style="color:var(--purp);font-weight:700">⚙ Split — Mand $ (edit)</td>${mRow}<td style="color:var(--purp);font-weight:700">${fM(px.mT)}${directedLine(dirM,px.mT,bsT-px.dT)}</td></tr>
-      <tr><td style="color:var(--red);font-weight:700">⚙ Resulting UFR</td>${uRow}<td style="color:${uSvcT>0.5?'var(--red)':'var(--dim)'};font-weight:700">${fM(uSvcT)}${px.uT>0.5?`<div class="drew">lane short ${fM(px.uT)}</div>`:''}</td></tr>`;})() : ''}
+      const dirD=DV.reduce((a,b)=>a+(b||0),0), dirM=MV.reduce((a,b)=>a+(b||0),0);
+      return `<tr><td style="color:var(--green);font-weight:700">${isSp?'⚙ ':''}Disc $ (edit)</td>${dRow}<td style="color:var(--green);font-weight:700">${fM(px.dT)}${directedLine(dirD,px.dT,bsT)}</td></tr>
+      <tr><td style="color:var(--purp);font-weight:700">${isSp?'⚙ ':''}Mand $ (edit)</td>${mRow}<td style="color:var(--purp);font-weight:700">${fM(px.mT)}${directedLine(dirM,px.mT,bsT-px.dT)}</td></tr>
+      <tr><td style="color:var(--red);font-weight:700">Resulting UFR</td>${uRow}<td style="color:${uSvcT>0.5?'var(--red)':'var(--dim)'};font-weight:700">${fM(uSvcT)}${px.uT>0.5?`<div class="drew">lane short ${fM(px.uT)}</div>`:''}</td></tr>`;})()}
     <tr><td style="color:var(--blue);font-weight:700">Minimum useful increment</td>
       <td colspan="${SVC.length}" style="color:var(--dim);font-size:9px">the least this still buys something at — blank means the full requirement. Only needed for band 0&ndash;2 items that fall below the line.</td>
       <td><input style="width:100%;text-align:right" placeholder="${fM(askTot(it))}" value="${(S.minInc||{})[it.id]? Math.round(S.minInc[it.id]).toLocaleString():''}"
@@ -15575,7 +15619,7 @@ function svcTable(it){
       <td><button class="qb" style="width:100%" onclick="S.alloc['${it.id}']=null;save();render();flash('${it.id}')" title="set this requirement's allocation equal to its full ${FYL()} requirement">Allocate</button></td></tr>
     </table>
     ${awardBlockHtml(it)}
-    <div class="svc-hint">Top row = the REQUIREMENT VALUE (FY27 ask) by service — edit it when the requirement itself changes; unfunded deltas follow automatically. Second row = your ALLOCATION against it. With a ⚙ forced split you set it in the two rows below instead: type each service's Discretionary and Mandatory dollars and <b>those dollars ARE the allocation</b> — whatever you leave undirected is that service's UFR, and only the lane itself can refuse what you did direct, which the “drew” line under the box says when it happens. ↺ orig restores the requested values; ↺ split restores the allocation split.</div></div>`;
+    <div class="svc-hint">Top row = the REQUIREMENT VALUE (FY27 ask) by service — edit it when the requirement itself changes; unfunded deltas follow automatically. Second row = your ALLOCATION against it. You set it in the two rows below: type each service's Discretionary and Mandatory dollars and <b>those dollars ARE the allocation</b> — whatever you leave undirected is that service's UFR, and only the lane itself can refuse what you did direct, which the “drew” line under the box says when it happens. A requirement still showing the automatic lane walk's figures is pinned where it stands the moment you type into either row; nothing moves but the figure you typed. ↺ orig restores the requested values; ↺ split restores the allocation split.</div></div>`;
 }
 function noteBox(it){
   const n=S.notes[it.id]||'';
@@ -16772,7 +16816,8 @@ function pmoMatrix(){
       const fT=frac? frac.reduce((x,y)=>x+y,0)/Math.max(1,frac.filter(v=>v>0).length):1;
       if(p.dT+p.mT>0.005 && (!frac||frac.some(v=>v>0))) a.n++;
       SVC.forEach((s,i)=>{ const f=frac? frac[i]:1;
-        a.disc[i]+=p.d[i]*f; a.mand[i]+=p.m[i]*f; a.unf[i]+=p.u[i]*f; });
+        // Against the ASK, apportioned the same way the money is. p.u is BEYOND and drops the trim.
+        a.disc[i]+=p.d[i]*f; a.mand[i]+=p.m[i]*f; a.unf[i]+=unfSvcOf(it,p)[i]*f; });
       // THE STAR, APPORTIONED PER SERVICE, FROM THE ONE IMPLEMENTATION. This line broke both of
       // this file's stated rules at once: it read p.spill -- mandatory drawn plus the lane
       // shortfall, the definition the star was moved OFF because it double-counted dollars the
@@ -16783,7 +16828,8 @@ function pmoMatrix(){
       if(S.mc[id]){ const sh=mcShortSvcOf(it,p);
         SVC.forEach((s,i)=>{ a.mc+=sh[i]*(frac? frac[i] : 1); }); }
     });
-    SVC.forEach((s,i)=>{ allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=p.u[i]; });
+    const uvAll=unfSvcOf(it,p);            // ask-based, like every other unfunded figure here
+    SVC.forEach((s,i)=>{ allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=uvAll[i]; });
   });
   const shorts=[];
   SVC.forEach((s,i)=>{ if(allU[i]>0.5) shorts.push('△ '+s+' unfunded '+fM(allU[i])); });
@@ -16919,7 +16965,9 @@ function ceSummary(){
   });
   // board-wide funded totals + shortfalls per service (independent of the PMO tab)
   const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0);
-  S.order.forEach(id=>{ const p=T[id]; if(p) SVC.forEach((s,i)=>{ allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=p.u[i]; }); });
+  S.order.forEach(id=>{ const p=T[id], it2=itemById(id); if(!p||!it2) return;
+    const uv=unfSvcOf(it2,p);            // ask-based, like every other unfunded figure here
+    SVC.forEach((s,i)=>{ allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=uv[i]; }); });
   const shorts=[];
   SVC.forEach((s,i)=>{ if(allU[i]>0.5) shorts.push('△ '+s+' unfunded '+fM(allU[i])); });
   document.getElementById('ceWarn').innerHTML = shorts.length?
@@ -17369,7 +17417,7 @@ function teamSummary(){
     const team=it.team==='ATL'?'ATL':'BTL';
     const a=agg[team], p=T[id];
     a.ask+=askTot(it); a.n++;
-    a.disc+=p.dT; a.mand+=p.mT; a.unf+=p.uT;
+    a.disc+=p.dT; a.mand+=p.mT; a.unf+=unfTotOf(it,p);   // ask-based, not BEYOND
     if(S.mc[id]) a.mc+=p.spill;
     SVC.forEach((s,i)=>a.svc[i]+=p.d[i]+p.m[i]);
   });
@@ -19568,8 +19616,16 @@ function migrateSplit(id){
   delete fo.d; delete fo.mnd;
   return true;
 }
+// TYPING A DISC OR MAND DOLLAR IS THE DECISION TO SET THIS REQUIREMENT BY HAND. No requirement is
+// gated behind a mode switch first: the board's own direction is that every requirement carries an
+// explicit split, and a cell that refuses the keystroke and tells you to go and flip a setting is
+// the automatic lane walk defending itself. The first keystroke converts the requirement, SEEDED
+// FROM THE LANE WALK IT WAS ALREADY PRODUCING -- so nothing moves except the figure that was typed,
+// which is the same property convertAllToSplit() has and 'a recorded funding source moves no
+// money' asserts.
 function setFsrcSvc(id, kind, i, val){
-  const fo=S.fsrc[id];
+  let fo=S.fsrc[id];
+  if(!fo || fo.m!=='split'){ seedSplit(id); fo=S.fsrc[id]; }
   if(!fo||fo.m!=='split') return;
   if(!Array.isArray(fo.dv)){         // migrate a legacy whole-requirement split to vectors
     const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
@@ -20330,7 +20386,8 @@ function exportExcel(){
     const p=T[id], it=itemById(id); if(!p||!it) return;
     const sv=basisSvcOf(it);   // ONE basis rule; these read svcAlloc directly before
     const ov=!!S.fsrc[id];
-    SVC.forEach((s,i)=>{allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=p.u[i]; allAsk[i]+=it.ask[i]; allSv[i]+= ov? (p.d[i]+p.m[i]) : sv[i];});
+    const uv=unfSvcOf(it,p);           // ask-based; nothing reads allU today, and a wrong one is a trap
+    SVC.forEach((s,i)=>{allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=uv[i]; allAsk[i]+=it.ask[i]; allSv[i]+= ov? (p.d[i]+p.m[i]) : sv[i];});
   });
   const dltSvc=(()=>{ const v=SVC.map(_=>0);
     S.order.forEach(id=>{ const it=itemById(id); if(!it) return; trimSvcOf(it).forEach((x,i)=>v[i]+=x); });
@@ -21079,6 +21136,78 @@ function exportExcel(){
   const SHARES={}, seenG={};
   S.order.forEach(id=>{ const it=itemById(id); if(!it) return;
     SHARES[id]=pmoSharesOf(it); SHARES[id].forEach(([g])=>{ if(g) seenG[g]=1; }); });
+
+  /* ---- THIS OFFICE'S REQUIREMENTS, ONE ROW EACH, AND WHERE THE MONEY OBLIGATES ------------------
+     The sections above cut an office's money by PORTION -- what discretionary paid, what mandatory
+     paid, what nobody paid. This cuts the SAME money by REQUIREMENT: one line each, Disc and Mand
+     split per service, what it is still short, and the months its funded dollars are planned to
+     obligate in. It is the view somebody takes into an execution review, where the question is not
+     "how much is discretionary" but "what is this contract and when does it hit".
+
+     THE MONTH COLUMNS COME FROM monSpreadOf(), which is the placement rule every other forecast on
+     this board already uses -- the Spend Forecast panel, the month-by-month sheets and the CR cash
+     return. Writing a second rule here would eventually disagree with them about which month a
+     dollar lands in, on two sheets of the same workbook.
+
+     UNSCHEDULED IS A COLUMN, NOT A ROUNDING GAP. Funded dollars with no award date -- and the
+     discretionary an incremental schedule never placed -- have to land somewhere, or the month
+     columns stop adding to Total (Disc+Mand) and a reader cross-footing the row finds a hole the
+     board cannot account for. Every funded dollar is in a month or in that column.
+
+     FIGURES ARE THIS OFFICE'S SHARE, scaled per service exactly as the sections above are, so the
+     tab still adds back to its row on the PMO Matrix and a requirement spanning offices is not
+     counted twice. UFR is the ask-based reading -- ask less discretionary less mandatory -- and is
+     NOT part of Total (Disc+Mand); it is what the office is still short, not money it holds.
+
+     The first seven columns are the same seven the sections above use, so the two blocks occupy the
+     same spreadsheet columns instead of each needing its own widths. */
+  const obligCols=[...listCols, ...SVC.slice(1).map(_=>13), 16, 18, ...FYMON.map(_=>12), 14];
+  const obligBlock=g=>{
+    const picked=[];
+    S.order.forEach(id=>{
+      const it=itemById(id); if(!it) return;
+      const sh=(SHARES[id]||[]).find(r=>r[0]===g); if(!sh) return;
+      const p=T[id]; if(!p) return;
+      const frac=sh[1], f=i=>(frac? frac[i] : 1);
+      const dv=p.d.map((v,i)=>v*f(i)), mv=p.m.map((v,i)=>v*f(i));
+      const uv=unfSvcOf(it,p).map((v,i)=>v*f(i));
+      // monSpreadOf reads p.d and p.m only, so handing it this office's SHARE of the draw places
+      // the share by the same rule that places the whole -- one implementation, scaled.
+      const sp=monSpreadOf(id,{d:dv,m:mv});
+      const mon=FYMON.map((x,k)=>SVC.reduce((a,sv,i)=>a+(sp.m[i][k]||0),0));
+      const uns=sp.unsch.reduce((a,b)=>a+b,0);
+      const dT=dv.reduce((a,b)=>a+b,0), mT=mv.reduce((a,b)=>a+b,0), uT=uv.reduce((a,b)=>a+b,0);
+      if(dT+mT+uT<=0.005) return;              // this office has no stake in this requirement
+      picked.push({it,dv,mv,dT,mT,uT,mon,uns});
+    });
+    if(!picked.length) return [];
+    const SUMC=k=>picked.reduce((a,r)=>a+k(r),0);
+    const rows=[[],
+      [{v:g+' \u2014 '+FYL()+' Requirements (Disc/Mand Funded Portions) with UFR and Planned '
+        +'Obligation Dates',s:TI}]];
+    // The band label sits in the first month column. buildXlsx writes no merged cells, and teaching
+    // it to would change the writer thirteen exports share for the sake of one caption.
+    rows.push([...Array(7+SVC.length*2+2).fill(''), {v:FYL()+' Spend Plan',s:SEC}]);
+    rows.push(['Rank','PMO','Cost Element','Requirement (CCaR Record Name)','Plan Event','CCaR #','PID',
+      ...SVC.map(sv=>sv+' Disc'), ...SVC.map(sv=>sv+' Mand'),
+      'Total (Disc+Mand)','UFR (Unfunded Requirement)',
+      ...FYMON.map(x=>x[1]),'Unscheduled'].map(v=>({v,s:H})));
+    picked.forEach(r=>rows.push([
+      {v:MR[r.it.id],s:0}, grpOf(r.it), ceOf(r.it.id),
+      recName(r.it)||dispTitle(r.it), dispTitle(r.it), {v:ccarOf(r.it),s:1}, {v:pidOf(r.it),s:0},
+      ...r.dv.map(v=>({v,s:N})), ...r.mv.map(v=>({v,s:N})),
+      {v:r.dT+r.mT,s:N}, {v:r.uT,s:r.uT>0.5?NR:N},
+      ...r.mon.map(v=>({v,s:N})), {v:r.uns,s:r.uns>0.5?NR:N}]));
+    rows.push([{v:'TOTAL \u2014 '+picked.length+' requirement'+(picked.length===1?'':'s'),s:SEC},'','','','','','',
+      ...SVC.map((sv,i)=>({v:SUMC(r=>r.dv[i]),s:NB})), ...SVC.map((sv,i)=>({v:SUMC(r=>r.mv[i]),s:NB})),
+      {v:SUMC(r=>r.dT+r.mT),s:NB}, {v:SUMC(r=>r.uT),s:NB},
+      ...FYMON.map((x,k)=>({v:SUMC(r=>r.mon[k]),s:NB})), {v:SUMC(r=>r.uns),s:NB}]);
+    rows.push([{v:'The month columns plus UNSCHEDULED add to Total (Disc+Mand): every funded dollar '
+      +'obligates in a month or is waiting on an award date. UFR is what this office is still short '
+      +'against the '+FYL()+' requirement and is NOT part of that total. Every figure is this '
+      +'office\u2019s share of the requirement, so the rows add back to its line on the PMO Matrix.',s:0}]);
+    return rows;
+  };
   pmoKeys(seenG).forEach(g=>{
     const rows=[[{v:g+' — funding by portion (lane model)',s:TI}],[]];
     let any=false;
@@ -21113,7 +21242,8 @@ function exportExcel(){
       rows.push(['Discretionary + Mandatory + Unfunded = this office\u2019s share of the requirement. '
         +'★ Mission Critical is a MEMO of the starred requirements\u2019 own value and is already '
         +'inside those three — do not add it in.']);
-      sheets.push({name:('PMO '+g).slice(0,31), cols:listCols, rows});
+      obligBlock(g).forEach(r=>rows.push(r));
+      sheets.push({name:('PMO '+g).slice(0,31), cols:obligCols, rows});
     }
   });
   const bytes=buildXlsx(sheets);

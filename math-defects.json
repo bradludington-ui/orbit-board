@@ -154,6 +154,43 @@
         "split-alloc-drops-mand",
         "clin-writes-the-money"
       ]
+    },
+    {
+      "id": "beyond-printed-as-unfunded",
+      "found": "2026-09-17",
+      "foundBy": "user",
+      "build": "v1.64",
+      "surface": "the service lane table and its chart, the PMO matrix, the cost-element rollup, the team table, the scoreboard's must-pay warning, and a board-wide vector in the Excel workbook",
+      "symptom": "“UFR amounts are not summarizing at the top.” The service lane table showed $0 in its Unfunded column for every service and $0 on the TOTAL row, while the requirement records beside it carried $260,377,324 and $110,947,113 of UFR. The same $0 appeared on the team table, the PMO and cost-element shortfall chips, and the must-pay warning.",
+      "cause": "The board holds THREE quantities and only two may be printed under the word UNFUNDED: unfSvcOf() = ask − disc − mand, discUnfSvcOf() = ask − disc, and p.u = basis − drawn, which is BEYOND BOTH LANES — money that WAS allocated and that no lane could pay. Seven surfaces summed p.u and labelled the result Unfunded. p.u is strictly smaller than either ask-based reading because it says nothing about ask that was never allocated, so it under-reported by the whole trim on any requirement funded below its ask. It was largely masked while the basis was the row allocation, because an untrimmed requirement's p.u happened to equal its real shortfall; making a directed split's own dollars the basis (v1.63) drove p.u to zero on a hand-directed board with flush lanes and exposed all seven at once.",
+      "fix": "Every surface that says Unfunded reads unfSvcOf() / unfTotOf(), the single implementation the scoreboard, the workbook, the deck and the trace matrix already used. p.u keeps its own name: it is shown as “beyond both lanes” or “lane short” and never as unfunded.",
+      "guarded": true,
+      "checks": [
+        "unfunded means the same thing on every surface"
+      ],
+      "mutations": [
+        "lane-table-unf-beyond",
+        "team-table-unf-beyond",
+        "mc-warn-unf-beyond"
+      ]
+    },
+    {
+      "id": "disc-mand-gated-behind-a-mode",
+      "found": "2026-09-17",
+      "foundBy": "user",
+      "build": "v1.64",
+      "surface": "the grid build's RECORD panel and the card build's row expander",
+      "symptom": "“I have no way to update the Disc and Mandatory amounts for a requirement.” The Disc and Mand cells rendered as em dashes with the note “set funding to Split D/M/UFR to edit” on every requirement still running on the automatic lane walk — which is most of a fresh board.",
+      "cause": "The per-service Disc and Mand editors only rendered once a requirement carried an explicit split, and setFsrcSvc() returned early for anything else. That put the automatic lane walk in front of the one decision the editor exists for, on a board whose stated direction is that every requirement carries an explicit split.",
+      "fix": "The boxes are live on every requirement, pre-filled with what the lane walk currently draws. Typing into one IS the conversion: setFsrcSvc() seeds the split from that same draw before applying the typed figure, so nothing moves except the service that was typed — the property convertAllToSplit() already had and ‘a recorded funding source moves no money’ asserts. The chip that offered the conversion now states where the figures came from and pins them without changing one.",
+      "guarded": true,
+      "checks": [
+        "every requirement takes a typed Disc and Mand"
+      ],
+      "mutations": [
+        "disc-mand-gated",
+        "seed-on-type-rebases"
+      ]
     }
   ]
 }

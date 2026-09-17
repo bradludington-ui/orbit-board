@@ -258,6 +258,87 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'view', 'identical under the discretionary-only view', D.t, N.t);
 }
 
+// ═══ THE TWO SPEND PLANS — what the A vs B tab STATES ═══════════════════════════════════════
+// audit-recon cross-foots the money on the Plan A and Plan B tabs and skips this one, because the
+// comparison tab is a summary with no TOTAL row to foot against. That left it with no checks at
+// all — so when two identity columns were inserted into the middle of it, nothing in the repo
+// could tell whether they landed where they were meant to or pushed every figure one column left.
+//
+// A column count is the whole risk here. The widths array and the header row are written in two
+// different places and a workbook whose widths are one short still opens, still cross-foots, and
+// simply prints the wrong headings over the money.
+{
+  const name = 'the two spend plans — the A vs B tab';
+  const SVC3 = ['USAF', 'ANG', 'STOVL'];
+  const mk = (id, ask) => ({ id, grp: 'PSM', team: 'PSM', sect: '', custom: false,
+    title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const { ev, errors } = boot();
+  seed(ev, { services: SVC3,
+    items: [mk('A', [900, 200, 100]), mk('B', [400, 100, 50]), mk('C', [300, 80, 40])],
+    disc: [1000, 250, 120], mand: [400, 100, 50], order: ['A', 'B', 'C'] });
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  // A carries one award date, B carries three increments STORED OUT OF ORDER, C carries neither.
+  // The increments are deliberately shuffled: the editor sorts on insert, but a month changed
+  // afterwards leaves the array stale, and a list of dates in the wrong order reads as a schedule.
+  ev(`
+    S.ccar={A:'JSF1234', B:'JSF5678'};
+    S.awards={ A:{mode:'single', d:'2026-10', day:9},
+               B:{mode:'inc', d:'2027-01', inc:[{d:'2027-03',day:1,sv:[0,0,0]},
+                                                {d:'2026-11',day:15,sv:[0,0,0]},
+                                                {d:'2027-01',day:2,sv:[0,0,0]}]} };
+    globalThis.__sp=null;
+    if(!globalThis.__ob) globalThis.__ob=buildXlsx;
+    buildXlsx=function(sheets){ globalThis.__sp=sheets; return new Uint8Array(0); };
+    exportPlans();
+    buildXlsx=globalThis.__ob; 'ok'`);
+  const sheets = JSON.parse(ev('JSON.stringify(globalThis.__sp)'));
+  const cmp = (sheets || []).filter(x => x.name === 'A vs B')[0];
+  chk(name, 'tab', 'the comparison tab is in the workbook', cmp ? 'found' : 'missing', 'found');
+  if (cmp) {
+    const h = cmp.rows.findIndex(r => txt((r || [])[0]) === 'Rank');
+    chk(name, 'tab', 'it has a header row', h >= 0 ? 'found' : 'missing', 'found');
+    const hdr = (cmp.rows[h] || []).map(txt);
+    // THE COUNT. Widths and headings are authored separately; one short and every figure on the
+    // tab prints under the wrong heading in a workbook that opens perfectly.
+    chk(name, 'tab', 'one column width per heading', cmp.cols.length, hdr.length);
+
+    const at = k => hdr.indexOf(k);
+    chk(name, 'placement', 'the CCaR record is stated', at('CCaR') >= 0, true);
+    chk(name, 'placement', 'the award dates are stated', at('Award date(s)') >= 0, true);
+    chk(name, 'placement', 'both sit after the requirement',
+      at('CCaR') > at('Requirement') && at('Award date(s)') > at('Requirement'), true);
+    chk(name, 'placement', 'and before the money',
+      at('CCaR') < at('Allocated') && at('Award date(s)') < at('Allocated'), true);
+
+    const rowOf = rank => (cmp.rows.slice(h + 1).filter(r => txt((r || [])[0]) === String(rank))[0] || []).map(txt);
+    const cell = (rank, col) => rowOf(rank)[at(col)];
+    // The board is the oracle for the record number, never the neighbouring column.
+    SVC3.length && ['A', 'B', 'C'].forEach((id, i) => chk(name, 'ccar',
+      `${id}: the CCaR is the board's own`, cell(i + 1, 'CCaR'), ev(`ccarOf(itemById('${id}'))`)));
+
+    chk(name, 'award', 'a single award prints its day and month', cell(1, 'Award date(s)'), '9 OCT 26');
+    // EVERY increment, OLDEST FIRST, however the array happens to be stored.
+    chk(name, 'award', 'incremental funding lists every increment date, in order',
+      cell(2, 'Award date(s)'), '15 NOV 26; 2 JAN 27; 1 MAR 27');
+    chk(name, 'award', 'and it is not a count of them',
+      /×|incremental/i.test(cell(2, 'Award date(s)')), false);
+    chk(name, 'award', 'a requirement with no award date states nothing', cell(3, 'Award date(s)'), '');
+    chk(name, 'ccar', 'and one with no record states nothing', cell(3, 'CCaR'), '');
+
+    // The money the inserted columns sit beside still has to add up, which nothing checked before.
+    let seen = 0;
+    cmp.rows.slice(h + 1).forEach(r => {
+      const a = numOf(r[at('Allocated')]), d = numOf(r[at('Disc allocated')]),
+            m = numOf(r[at('Mand allocated')]);
+      if (isNaN(a) || isNaN(d) || isNaN(m)) return;
+      seen++;
+      chk(name, 'money', `rank ${txt(r[0])}: Disc allocated + Mand allocated = Allocated`, d + m, a);
+    });
+    chk(name, 'money', 'and there were rows to check', seen, 3);
+  }
+}
+
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

@@ -120,9 +120,11 @@ const MUTATIONS = [
     repl: '  const dBA=discTot(), mBA=mandTot();\n  const dLeft=T.__rem.dRem.reduce((a,b)=>a+b,0);' },
   { id: 'sb-floor-drops-mc', area: 'scoreboard', what: 'program floor reverts to the discretionary BA alone',
     find: '  const floor=discTot()+mcNeed;', repl: '  const floor=discTot();' },
+  // The line this aims at gained an ask-based unfunded reading and a second guard, so the search
+  // string moved with it. mcCov is still the target: what MANDATORY paid for the must-pays.
   { id: 'sb-mc-coverage', area: 'scoreboard', what: 'MC drawn-from-mandatory reads the discretionary draw',
-    find: '  S.order.forEach(id=>{ if(S.mc[id]&&T[id]){ mcCov+=T[id].mT; mcUnf+=T[id].uT; } });',
-    repl: '  S.order.forEach(id=>{ if(S.mc[id]&&T[id]){ mcCov+=T[id].dT; mcUnf+=T[id].uT; } });' },
+    find: '    if(S.mc[id]&&T[id]&&it2){ mcCov+=T[id].mT; mcUnf+=unfTotOf(it2,T[id]); } });',
+    repl: '    if(S.mc[id]&&T[id]&&it2){ mcCov+=T[id].dT; mcUnf+=unfTotOf(it2,T[id]); } });' },
   { id: 'fit-left-unfloored', area: 'fitBySvc', equivalent: 'a service can never draw more discretionary than its BA — audit-board.mjs asserts that invariant',
     what: 'per-service discretionary left allowed to go negative',
     find: 'left:Math.max(0,ba-d)', repl: 'left:(ba-d)' },
@@ -799,6 +801,91 @@ const MUTATIONS = [
     repl: `    return SVC.map(function(_,i){ return D$(fo.dv[i]||0); });` },
   // THE CLIN GRID IS A VISUAL BREAKOUT AND FEEDS NOTHING. This offers it a way into the funding
   // math on exactly the requirements that state their own allocation by hand.
+  // ---- "unfunded" means the same thing on every surface that says it ------------------------------
+  // p.u is BEYOND BOTH LANES -- allocated, and no lane could pay it. It is strictly smaller than
+  // either ask-based reading, and on a board of hand-directed requirements with flush lanes it is
+  // ZERO. Printing it under the word UNFUNDED made seven panels read $0 while the portfolio carried
+  // hundreds of millions. Each of these puts one of those panels back.
+  { id: 'lane-table-unf-beyond', area: 'svcSummary', what: 'the service lane table prints BEYOND under its Unfunded column again',
+    find: `    const uv=unfSvcOf(it,p);
+    SVC.forEach((s,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=uv[i]; });
+    it.ask.forEach((v,i)=>ask[i]+=v);`,
+    repl: `    const uv=p.u;
+    SVC.forEach((s,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=uv[i]; });
+    it.ask.forEach((v,i)=>ask[i]+=v);` },
+  { id: 'team-table-unf-beyond', area: 'teamSummary', what: 'the team table reports BEYOND as unfunded again',
+    find: `    a.disc+=p.dT; a.mand+=p.mT; a.unf+=unfTotOf(it,p);   // ask-based, not BEYOND`,
+    repl: `    a.disc+=p.dT; a.mand+=p.mT; a.unf+=p.uT;` },
+  { id: 'mc-warn-unf-beyond', area: 'scoreboard', what: 'the must-pay warning measures the shortfall against the allocation again',
+    find: `    if(S.mc[id]&&T[id]&&it2){ mcCov+=T[id].mT; mcUnf+=unfTotOf(it2,T[id]); } });`,
+    repl: `    if(S.mc[id]&&T[id]&&it2){ mcCov+=T[id].mT; mcUnf+=T[id].uT; } });` },
+
+  // ---- every requirement takes a typed Disc and Mand ----------------------------------------------
+  // The gate. A cell that refuses the keystroke until you have flipped a setting is the automatic
+  // lane walk defending itself, on a board whose direction is that every requirement is hand-set.
+  { id: 'disc-mand-gated', area: 'setFsrcSvc', what: 'Disc and Mand refuse a typed dollar until the requirement has been converted first',
+    find: `  let fo=S.fsrc[id];
+  if(!fo || fo.m!=='split'){ seedSplit(id); fo=S.fsrc[id]; }`,
+    // The boxes are still offered; they simply stop working, which is the worse half of the defect.
+    repl: `  let fo=S.fsrc[id];` },
+  // Converting on a keystroke must move NO money. A seed that re-bases on the ask changes figures
+  // the user never touched, on a board they are about to brief.
+  { id: 'seed-on-type-rebases', area: 'setFsrcSvc', what: 'the first keystroke seeds the split from the ask instead of the draw, moving money nobody touched',
+    find: `  if(!fo || fo.m!=='split'){ seedSplit(id); fo=S.fsrc[id]; }`,
+    repl: `  if(!fo || fo.m!=='split'){ const _it=itemById(id); S.fsrc[id]={m:'split', dv:_it.ask.slice(), mv:SVC.map(_=>0)}; fo=S.fsrc[id]; }` },
+
+  // ---- the PMO tabs' obligation report ------------------------------------------------------------
+  // A row that does not cross-foot is worse than no row: a reader adds the month columns across,
+  // expects Total (Disc+Mand), and finds a hole against a figure printed on the same line.
+  { id: 'oblig-drops-unscheduled', area: 'exportExcel', what: 'funded dollars with no award date vanish from the PMO report instead of landing in Unscheduled',
+    find: `      const uns=sp.unsch.reduce((a,b)=>a+b,0);`,
+    repl: `      const uns=0;` },
+  { id: 'oblig-widths-stale', area: 'exportExcel', what: 'the PMO report column widths are one block short, so every figure prints under the wrong heading',
+    find: `  const obligCols=[...listCols, ...SVC.slice(1).map(_=>13), 16, 18, ...FYMON.map(_=>12), 14];`,
+    repl: `  const obligCols=[...listCols, ...SVC.slice(1).map(_=>13), 16, 18, 14];` },
+  // The office's SHARE, scaled per service exactly as the sections above it are. Dropping the
+  // scaling makes a requirement spanning two offices count whole on both, and the tab stops adding
+  // back to its row on the PMO Matrix.
+  { id: 'oblig-ignores-share', area: 'exportExcel', what: 'the PMO report shows the whole requirement on every office that owns a piece of it',
+    find: `      const dv=p.d.map((v,i)=>v*f(i)), mv=p.m.map((v,i)=>v*f(i));`,
+    repl: `      const dv=p.d.slice(), mv=p.m.slice();` },
+  // UFR is what the office is still SHORT. Folding it into the funded total makes the report state
+  // money the board does not have, on the line somebody reads the obligation plan from.
+  { id: 'oblig-ufr-inside-total', area: 'exportExcel', what: 'the PMO report adds UFR into Total (Disc+Mand)',
+    find: `      {v:r.dT+r.mT,s:N}, {v:r.uT,s:r.uT>0.5?NR:N},`,
+    repl: `      {v:r.dT+r.mT+r.uT,s:N}, {v:r.uT,s:r.uT>0.5?NR:N},` },
+  // Two placement rules for one question. This one buckets every funded dollar into the first
+  // month, which is what a second implementation drifts into looking like.
+  { id: 'oblig-months-collapse', area: 'exportExcel', what: 'the PMO report stops reading the award dates and piles every dollar into October',
+    find: `      const mon=FYMON.map((x,k)=>SVC.reduce((a,sv,i)=>a+(sp.m[i][k]||0),0));`,
+    repl: `      const mon=FYMON.map((x,k)=>k? 0 : SVC.reduce((a,sv,i)=>a+sp.m[i].reduce((q,w)=>q+w,0),0));` },
+
+  // ---- the Two Spend Plans, A vs B tab -----------------------------------------------------------
+  // Identity columns wedged into the middle of a tab nothing was checking. The risk is not that a
+  // date comes out wrong; it is that a column count goes stale and every figure on the tab prints
+  // under the wrong heading in a workbook that opens perfectly.
+  { id: 'avsb-widths-stale', area: 'exportPlans', what: 'the A vs B column widths are left at the old count, so every heading sits over the wrong column',
+    find: `  const cmp={name:'A vs B', cols:[7,30,9,46,13,26,15,15,15,17,19,14,14],`,
+    repl: `  const cmp={name:'A vs B', cols:[7,30,9,46,15,15,15,17,19,14,14],` },
+  { id: 'avsb-drops-ccar', area: 'exportPlans', what: 'the A vs B rows stop stating the CCaR record, shifting every cell after it',
+    find: `      {v:ccarOf(x.it),s:1},{v:awdDateLbl(x.id),s:0},{v:dr.d+dr.m,s:N},`,
+    repl: `      {v:awdDateLbl(x.id),s:0},{v:dr.d+dr.m,s:N},` },
+  // An obligation plan is opened to find out WHEN money lands. A count of increments answers a
+  // different question, and answering it under a heading that says "Award date(s)" is worse than
+  // leaving the column out.
+  { id: 'awd-dates-counted', area: 'awdDateLbl', what: 'incremental funding reports how many increments there are instead of when they land',
+    find: `  if(aw.mode==='inc'){
+    const key=x=>(x.d||'')+String(x.day||0).padStart(2,'0');`,
+    repl: `  if(aw.mode==='inc'){
+    return 'incremental \\u00d7'+((aw.inc||[]).length);
+    const key=x=>(x.d||'')+String(x.day||0).padStart(2,'0');` },
+  { id: 'awd-dates-unsorted', area: 'awdDateLbl', what: 'the increment dates are printed in stored order, which a later month edit leaves stale',
+    find: `    return (aw.inc||[]).slice()
+      .sort(function(a,b){ const ka=key(a), kb=key(b); return ka<kb? -1 : (ka>kb? 1 : 0); })
+      .map(one).filter(Boolean).join('; ');`,
+    repl: `    return (aw.inc||[]).slice()
+      .map(one).filter(Boolean).join('; ');` },
+
   { id: 'clin-writes-the-money', area: 'clinTable', what: 'the CLIN drill offers to overwrite a hand-typed split from the grid',
     find: `      +(clinSplitRow(pid)? ''
         : '<button class="qb" onclick="clinToRow(\\''+pid+'\\')"`,

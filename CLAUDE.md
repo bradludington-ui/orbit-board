@@ -612,6 +612,40 @@ funding math and must never become one. `clinSplit()` divides money the board ha
 allocation** — the drill says so in words rather than leaving a button that would overwrite a
 hand-typed split. Nothing else reads `S.clinAlloc` into a lane.
 
+### Three quantities, and only two may be called "Unfunded"
+
+```
+unfSvcOf()      ask - disc - mand      what the requirement is short        "Unfunded"
+discUnfSvcOf()  ask - disc             what one pot leaves short            "Unfunded vs DISC"
+p.u             basis - drawn          ALLOCATED, and no lane could pay it  "beyond both lanes"
+```
+
+`p.u` is **strictly smaller** than either ask-based reading: it says nothing about ask that was
+never allocated. Seven surfaces summed it and printed the result under the word Unfunded — the
+service lane table and its chart, the PMO matrix, the cost-element rollup, the team table, the
+scoreboard's must-pay warning, and a board-wide vector in the workbook.
+
+It hid for a long time because while the basis was the row allocation, an *untrimmed* requirement's
+`p.u` happened to equal its real shortfall. Making a directed split's own dollars the basis drove
+`p.u` to zero on a hand-directed board with flush lanes, and every one of those panels read **$0
+unfunded** beside records carrying hundreds of millions.
+
+> A surface that says **Unfunded** reads `unfSvcOf()` / `unfTotOf()`. `p.u` appears only under its
+> own name — *beyond both lanes*, *lane short*.
+
+### No requirement is gated behind a mode switch
+
+The per-service Disc and Mand boxes are live on **every** requirement, converted or not, pre-filled
+with what the lane walk currently draws. **Typing into one is the conversion**: `setFsrcSvc()` seeds
+the split from that same draw before applying the typed figure, so nothing moves except the service
+that was typed. Read-only cells telling the reader to go and flip a setting first were the automatic
+lane walk standing in front of the one decision the editor exists for, on a board whose direction is
+that every requirement carries an explicit split.
+
+The seeding is the risk, not the typing: a seed that rounds, re-prorates or re-bases on the ask
+would move figures nobody touched, on a board somebody is about to brief. `seedSplit()` records what
+the lane engine produced, unrounded, and `a recorded funding source moves no money` holds it there.
+
 ### Two limits refuse a dollar, and they are not the same sentence
 
 A directed dollar can be refused by a **trimmed allocation** or by a **dry lane**. They look
@@ -735,6 +769,46 @@ they disagreed by **$6.25M** on the TOTAL row, and unlike `Allocated` they chang
 B tabs while the sheet's own note says `Allocated` "is the same figure on every tab". The figures
 were right; the name was not. They are `<SVC> asked` now, and the row closes: per service,
 asked = funded + short.
+
+**The A vs B tab had no checks at all, and columns were inserted into the middle of it.** The
+recon suite skips it — it is a summary with no TOTAL row to foot against — so when `CCaR` and
+`Award date(s)` went in between `Requirement` and `Allocated`, nothing in the repo could tell
+whether they landed where they were meant to or pushed every figure one column left. The widths
+array and the header row are authored in two different places: a workbook whose widths are one
+short still opens, still cross-foots, and simply prints the wrong headings over the money. So the
+tab is checked now — one width per heading, both columns strictly between the requirement and the
+money, the CCaR read back against `ccarOf()`, and `Disc allocated + Mand allocated = Allocated` on
+every row.
+
+**Award dates are spelled once, in `awdDateLbl()`.** A single award is its date; incremental
+funding is **every increment's date, oldest first**. `incremental ×3` says there are three and not
+when any of them lands, which is the only question an obligation plan is opened to answer. The list
+is sorted in the helper rather than trusted from the array — `addAwd()` sorts on insert, but
+`setAwdIncMonth()` can move an increment afterwards, and a list of dates in the wrong order reads
+as a schedule.
+
+**Each PMO tab carries an obligation report under its portion sections.** The four sections above
+it cut an office's money by PORTION (what discretionary paid, what mandatory paid, what nobody
+paid); the report cuts the same money by REQUIREMENT — one row each, Disc and Mand per service,
+UFR, and the months its funded dollars are planned to obligate in. Three rules it must keep:
+
+- **The months come from `monSpreadOf()`**, the placement rule the Spend Forecast panel, the
+  month-by-month sheets and the CR cash return already use. A second rule here would eventually
+  disagree with them about when a dollar lands, on two sheets of the same workbook.
+- **`Unscheduled` is a column, not a rounding gap.** Funded dollars with no award date, and the
+  discretionary an incremental schedule never placed, land there — so the month columns plus
+  Unscheduled always add to `Total (Disc+Mand)`. Without it a reader adding the row across finds a
+  hole against a figure printed on the same line.
+- **Figures are the office's SHARE**, scaled per service exactly as the sections above are, so the
+  tab still adds back to its row on the PMO Matrix. `UFR` is the ask-based reading and is **not**
+  inside `Total (Disc+Mand)` — it is what the office is short, not money it holds.
+
+**A fixture that cannot reach its target is the failure mode this repo keeps hitting.** Four times
+now. Two mutations against that report survived because every requirement in the fixture was funded
+in full (UFR zero, so folding it into the total changed nothing) and none was owned by more than one
+office (share 1, so ignoring it changed nothing) — both mutations were the identity. Before writing
+a check, ask what value makes the thing you are testing *matter*, then assert that the fixture has
+it: `the fixture really does carry a shortfall`, `neither office carries the whole requirement`.
 
 **Check an identity on EVERY row, not just the total.** The plans sheet sums its TOTAL row
 independently of its detail rows, so breaking `Allocated = Disc allocated + Mand allocated` on the

@@ -1073,8 +1073,10 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
       return JSON.stringify({svc:read(tr.children[2]), tot:read(tot.children[2])});
     }
     const rows=[].slice.call(wrap.querySelectorAll('tr'));   // card: one COLUMN per service
+    // The label lost its "Split \u2014" prefix when the Disc and Mand rows stopped being gated
+    // behind a conversion: they render on every requirement now, converted or not.
     const dr=rows.filter(function(r){ return r.children[0]
-      && /Split .* Disc/.test(r.children[0].textContent); })[0];
+      && /Disc \\$ \\(edit\\)/.test(r.children[0].textContent); })[0];
     return JSON.stringify({svc:read(dr.children[2]), tot:read(dr.children[dr.children.length-1])});
   })()`));
 
@@ -1239,6 +1241,167 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     forced.half, Math.round(forced.ask / 2));
 }
 
+
+// ═══ "UNFUNDED" MEANS THE SAME THING ON EVERY SURFACE THAT SAYS IT ══════════════════════
+// The board holds two ask-based readings and one lane reading, and only the first two may ever be
+// printed under the word UNFUNDED:
+//
+//   unfSvcOf()      ask - discretionary - mandatory      what the requirement is short
+//   discUnfSvcOf()  ask - discretionary                  what one pot leaves short
+//   p.u / beyondSvcOf()   basis - drawn                  ALLOCATED, and no lane could pay it
+//
+// p.u is strictly smaller: it says nothing about ask that was never allocated. Seven surfaces
+// summed it and labelled the result "Unfunded" — the service lane table and the chart above it,
+// the PMO matrix, the cost-element rollup, the team table, the must-pay warning on the scoreboard,
+// and a board-wide vector in the workbook. On a board whose requirements are hand-directed below
+// their ask with flush lanes, p.u is ZERO on every one of them, so the panels read $0 unfunded per
+// service while the record beside them showed hundreds of millions. Reported from a live board.
+//
+// The scenario is built so the two readings CANNOT be confused: beyond is exactly zero everywhere,
+// so any surface still reading it prints a figure that is wrong by the whole shortfall.
+{
+  const name = 'unfunded means the same thing on every surface';
+  const ASK = [1000, 300, 200];
+  const DV  = [ 700, 300, 200];          // hand-directed below the ask on USAF only
+  const SHORT = ASK[0] - DV[0];
+  const sc = {
+    services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', ASK.slice(), { team: 'ATL' })],
+    disc: [5000, 5000, 5000], mand: [5000, 5000, 5000],   // deliberately flush: nothing is beyond
+    order: ['A'],
+    mc: { A: true },
+    fsrc: { A: { m: 'split', dv: DV.slice(), mv: [0, 0, 0] } },
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const truth = JSON.parse(ev(`(function(){ const A=itemById('A'), p=tiers()['A'];
+    return JSON.stringify({ beyond:p.u, unf:unfSvcOf(A,p) }); })()`));
+  const S = a => a.reduce((x, y) => x + y, 0);
+  chk(name, 'setup', 'nothing at all is beyond both lanes', S(truth.beyond), 0);
+  chk(name, 'setup', 'and the requirement is short by what was not directed', S(truth.unf), SHORT);
+
+  // Every panel is driven for real and read out of the DOM: a figure that is right in a helper and
+  // wrong on the panel is the defect, so the helper is never asked what the panel says.
+  const read = (call, el, col) => JSON.parse(ev(`(function(){
+    try{ ${call} }catch(e){ return JSON.stringify({err:String(e.message)}); }
+    const n=document.getElementById('${el}'); if(!n) return JSON.stringify({err:'no #${el}'});
+    const rows=[].slice.call(n.querySelectorAll('tr')).map(function(tr){
+      return [].slice.call(tr.children).map(function(td){ return td.textContent.trim(); }); });
+    const hdr=rows[0]||[]; const c=hdr.indexOf('${col}');
+    if(c<0) return JSON.stringify({err:'no column ${col} in '+JSON.stringify(hdr)});
+    const money=function(v){ return Number(String(v).replace(/[^0-9.-]/g,''))||0; };
+    const tot=rows.filter(function(r){ return /^TOTAL/i.test(r[0]||''); })[0];
+    return JSON.stringify({ total: tot? money(tot[c]) : null,
+      cells: rows.slice(1).filter(function(r){ return !/^TOTAL/i.test(r[0]||''); })
+                 .map(function(r){ return money(r[c]); }) });
+  })()`));
+
+  const lane = read('gsOpen=true; svcSummary();', 'gsBody', 'Unfunded');
+  chk(name, 'service lane table', 'it rendered', lane.err || 'ok', 'ok');
+  if (!lane.err) {
+    chk(name, 'service lane table', 'the TOTAL unfunded is the ask-based figure', lane.total, SHORT);
+    chk(name, 'service lane table', 'and the short service carries it', lane.cells[0], SHORT);
+    chk(name, 'service lane table', 'it is not BEYOND, which is zero here', lane.total === 0, false);
+  }
+
+  // The team panel only exists on a board that carries teams, so turn them on rather than let the
+  // check pass on a panel that was never drawn.
+  const team = read('DATA.teams=true; teamOpen=true; teamSummary();', 'teamBody', 'Unfunded');
+  chk(name, 'team table', 'it rendered', team.err || 'ok', 'ok');
+  if (!team.err) {
+    chk(name, 'team table', 'the team unfunded is the ask-based figure', S(team.cells), SHORT);
+    chk(name, 'team table', 'it is not BEYOND, which is zero here', S(team.cells) === 0, false);
+  }
+
+  // The scoreboard's must-pay warning. A is starred, so the line has to state the same shortfall.
+  const mcLine = ev(`(function(){
+    scoreboard();
+    const t=(document.getElementById('scoreboard')||document.body).textContent;
+    const m=/of the must-pay total is UNFUNDED/.test(t);
+    const f=/⚠\\s*\\$([\\d,]+) of the must-pay total/.exec(t);
+    return JSON.stringify({shown:m, amt:f? Number(f[1].replace(/,/g,'')) : null});
+  })()`);
+  const mc = JSON.parse(mcLine);
+  chk(name, 'scoreboard', 'the must-pay warning states the ask-based shortfall',
+    mc.shown ? mc.amt : 'not shown', SHORT);
+}
+
+// ═══ EVERY REQUIREMENT'S DISC AND MAND ARE TYPED — NO MODE SWITCH FIRST ═════════════════
+// The Disc and Mand cells used to go read-only until a requirement had been converted to an
+// explicit Split, with the editor telling the reader to go and flip a setting. That made the
+// automatic lane walk a gate in front of the one decision this editor exists for, on a board whose
+// stated direction is that every requirement carries an explicit split.
+//
+// The conversion is not free to get wrong: it must move NO money. setFsrcSvc() seeds the split from
+// the draw the lane walk was already producing, so only the typed service changes.
+{
+  const name = 'every requirement takes a typed Disc and Mand';
+  const ASK = [1000, 300, 200];
+  // THE DRAW MUST NOT EQUAL THE ASK, or a seed that re-bases on the ask is the IDENTITY and the
+  // check that exists to catch it cannot. The first version of this fixture funded A in full; the
+  // mutation SURVIVED, which is this repo's third fixture-cannot-reach-its-target. USAF is trimmed
+  // on the row allocation so the lane walk draws 800 of its 1000 ask.
+  const TRIM_TO = 800;
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', ASK.slice())],
+    alloc: { A: { m: 's', v: [TRIM_TO, ASK[1], ASK[2]] } },
+    disc: [5000, 5000, 5000], mand: [5000, 5000, 5000], order: ['A'] };   // NO fsrc at all
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+
+  const ed = JSON.parse(ev(`(function(){
+    render();
+    let html;
+    if(typeof inspectorBody==='function'){
+      curRow='A';
+      if(!document.getElementById('inspector')){
+        const d=document.createElement('div'); d.id='inspector'; document.body.appendChild(d); }
+      inspectorBody(); html=document.getElementById('inspector').innerHTML;
+    } else { html=svcTable(itemById('A')); }
+    const w=document.createElement('div'); w.innerHTML=html;
+    const ins=[].slice.call(w.querySelectorAll('input'))
+      .filter(function(n){ return /setFsrcSvc/.test(n.getAttribute('onchange')||''); });
+    return JSON.stringify({ n:ins.length, dead:ins.filter(function(n){ return n.disabled; }).length,
+      gated:/set funding to Split/.test(html),
+      filled:ins.filter(function(n){ return String(n.value||'').replace(/[^0-9]/g,'').length>0; }).length });
+  })()`));
+  chk(name, 'editor', 'one Disc and one Mand box per service, with no source recorded',
+    ed.n, sc.services.length * 2);
+  chk(name, 'editor', 'none of them is disabled', ed.dead, 0);
+  chk(name, 'editor', 'and nothing tells the reader to go and flip a setting first', ed.gated, false);
+  chk(name, 'editor', 'the boxes hold what the lane walk drew', ed.filled, sc.services.length);
+
+  const before = JSON.parse(ev(`(function(){ const p=tiers()['A'], A=itemById('A');
+    return JSON.stringify({dT:p.dT, d:p.d, m:p.m, unf:unfSvcOf(A,p), src:!!S.fsrc['A']}); })()`));
+  chk(name, 'before', 'the requirement starts on the automatic lane walk', before.src, false);
+  // THE PROPERTY THAT MAKES THE REST OF THIS BLOCK ABLE TO FAIL. State it, do not assume it.
+  chk(name, 'before', 'and the lane walk draws LESS than the ask somewhere',
+    before.d[0] < ASK[0] ? 'yes' : `no — drew ${before.d[0]} of ${ASK[0]}`, 'yes');
+  chk(name, 'before', 'the trimmed service draws its allocation', before.d[0], TRIM_TO);
+
+  // TYPED INTO A SERVICE THAT IS NOT THE TRIMMED ONE, so the untouched-service assertions below are
+  // measured against a figure a bad seed would move.
+  const TYPED = 250, AT = 1;
+  ev(`setFsrcSvc('A','d',${AT},'${TYPED}'); 'ok'`);
+  const after = JSON.parse(ev(`(function(){ const p=tiers()['A'], A=itemById('A');
+    return JSON.stringify({dT:p.dT, d:p.d, m:p.m, unf:unfSvcOf(A,p),
+      src:(S.fsrc['A']||{}).m, dv:S.fsrc['A'].dv, mv:S.fsrc['A'].mv}); })()`));
+  chk(name, 'after', 'the first keystroke converts the requirement', after.src, 'split');
+  chk(name, 'after', 'the typed service holds what was typed', after.d[AT], TYPED);
+  chk(name, 'after', 'the typed service is short by exactly what was given up',
+    after.unf[AT], ASK[AT] - TYPED);
+  // NOTHING ELSE MOVED. This is the whole risk of converting on a keystroke: a seed that rounds,
+  // reprorates or re-bases on the ask would change figures the user never touched, on a board they
+  // are about to brief. The trimmed service is the one that would move, so it is named.
+  sc.services.forEach((sv, i) => { if (i === AT) return;
+    chk(name, 'after', `${sv}: its discretionary draw is untouched`, after.d[i], before.d[i]);
+    chk(name, 'after', `${sv}: and its shortfall is untouched`, after.unf[i], before.unf[i]);
+  });
+  chk(name, 'after', 'the seed recorded the draw, not the ask', after.dv[0], TRIM_TO);
+}
 
 // ═══ UNSPENT DISCRETIONARY vs THE TRIMS THAT COULD TAKE IT ══════════════════════════════
 // The board states two facts and never joined them up: a lane holds BA nobody drew, and

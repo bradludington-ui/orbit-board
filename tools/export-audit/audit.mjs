@@ -901,6 +901,166 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   });
 }
 
+// ═══ THE PMO TABS' OBLIGATION REPORT ════════════════════════════════════════════════════════
+// Each PMO tab carries, under its four portion sections, one row per requirement that office has a
+// stake in: Disc and Mand per service, what it is still short, and the months its funded dollars
+// are planned to obligate in.
+//
+// The row has to CROSS-FOOT or it is worse than not being there. A reader adds the month columns
+// across and expects Total (Disc+Mand); every dollar without an award date, and every dollar an
+// incremental schedule left unplaced, has to show up in UNSCHEDULED or that addition comes up
+// short against a figure printed on the same line.
+//
+// The months themselves are asserted against the scenario's OWN award dates, never read back from
+// monSpreadOf() — an oracle that asks the code under test where a dollar went agrees with it,
+// including when it is wrong.
+{
+  const name = "the PMO tabs' obligation report";
+  const SVCX = ['USAF', 'ANG', 'STOVL'];
+  const mk = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false,
+    title: id + ' record name', event: id + ' plan event', ccar: '',
+    fy26: ask.map(() => 0), ask, alloc: null });
+  // THE FIXTURE HAS TO BE ABLE TO FAIL. The first version of it funded every requirement in full
+  // and gave none of them more than one owning office, so 'UFR is not inside the total' and 'the
+  // share is applied' were both the IDENTITY and both mutations SURVIVED. So: A is TRIMMED below
+  // its ask, and PRIME-3 is split across two offices by its CLIN numbers.
+  const ASK_A = [900, 200, 100], ALLOC_A = [700, 200, 100];
+  const UFR_A = ASK_A.reduce((a, v, i) => a + (v - ALLOC_A[i]), 0);
+  const CL_AV = [300, 75, 40], CL_MX = [100, 25, 10];              // PRIME-3's CLINs, by office
+  const ASK_P = CL_AV.map((v, i) => v + CL_MX[i]);
+  const { ev, errors } = boot();
+  seed(ev, { services: SVCX,
+    items: [mk('A', 'AV', ASK_A.slice()), mk('PRIME-3', 'AV', ASK_P.slice()), mk('C', 'PSM', [300, 80, 40])],
+    disc: [1400, 400, 200], mand: [200, 60, 30], order: ['A', 'PRIME-3', 'C'],
+    alloc: { A: { m: 's', v: ALLOC_A.slice() } } });
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // A obligates on one date; PRIME-3 is incremental and STORED OUT OF ORDER; C carries no date.
+  // PRIME-3's CLIN numbers decide its offices: ...2 is AV, ...10 is MxS.
+  ev(`
+    DATA.clins={'PRIME-3':[{clin:'0002',desc:'av share',ccar:'',ask:${JSON.stringify(CL_AV)}},
+                           {clin:'0010',desc:'mxs share',ccar:'',ask:${JSON.stringify(CL_MX)}}]};
+    S.ccar={A:'JSF4620', 'PRIME-3':'JSF6435', C:'JSF6506'};
+    S.awards={ A:{mode:'single', d:'2026-11', day:30},
+               'PRIME-3':{mode:'inc', d:'2026-12', inc:[{d:'2027-03',day:31,sv:[200,50,25]},
+                                                        {d:'2026-12',day:15,sv:[200,50,25]}]} };
+    'ok'`);
+  const sheets = JSON.parse(capture(ev));
+
+  const block = tab => {
+    const sh = sheetOf(sheets, 'PMO ' + tab);
+    if (!sh) return { err: 'no tab PMO ' + tab };
+    const t = sh.rows.findIndex(r => /Requirements \(Disc\/Mand Funded Portions\)/.test(String(cv((r || [])[0]) ?? '')));
+    if (t < 0) return { err: 'no obligation report on PMO ' + tab };
+    const hdr = (sh.rows[t + 2] || []).map(c => String(cv(c) ?? ''));
+    const band = (sh.rows[t + 1] || []).findIndex(c => String(cv(c) ?? '').includes('Spend Plan'));
+    const at = k => hdr.indexOf(k);
+    const rows = sh.rows.slice(t + 3).filter(r => typeof cv(r[at('Total (Disc+Mand)')]) === 'number');
+    return { sh, title: String(cv(sh.rows[t][0])), hdr, band, at, rows,
+             cols: sh.cols.length, months: hdr.slice(at('OCT 26'), at('Unscheduled')) };
+  };
+
+  const av = block('AV');
+  chk(name, 'PMO AV', 'the report is on the tab', av.err || 'ok', 'ok');
+  if (!av.err) {
+    chk(name, 'PMO AV', 'it is titled for the office', av.title.startsWith('AV — FY27 Requirements'), true);
+    // THE COUNT. Widths and headings are authored separately; one short and every figure on the
+    // block prints under the wrong heading in a workbook that opens perfectly.
+    chk(name, 'PMO AV', 'one column width per heading', av.cols, av.hdr.length);
+    ['Rank', 'Requirement (CCaR Record Name)', 'Plan Event', 'CCaR #',
+     'Total (Disc+Mand)', 'UFR (Unfunded Requirement)', 'Unscheduled'].forEach(h =>
+      chk(name, 'PMO AV', `it states "${h}"`, av.at(h) >= 0, true));
+    SVCX.forEach(sv => {
+      chk(name, 'PMO AV', `${sv} has its own Disc column`, av.at(sv + ' Disc') >= 0, true);
+      chk(name, 'PMO AV', `${sv} has its own Mand column`, av.at(sv + ' Mand') >= 0, true);
+    });
+    chk(name, 'PMO AV', 'twelve months of the fiscal year', av.months.length, 12);
+    chk(name, 'PMO AV', 'the first one is October', av.months[0], 'OCT 26');
+    chk(name, 'PMO AV', 'the Spend Plan band sits over the first month column',
+      av.band, av.at('OCT 26'));
+
+    // CROSS-FOOT, EVERY ROW AND THE TOTAL.
+    const M0 = av.at('OCT 26'), UNS = av.at('Unscheduled'), TOT = av.at('Total (Disc+Mand)');
+    let seen = 0;
+    av.rows.forEach(r => {
+      const months = r.slice(M0, UNS).reduce((a, c) => a + (num(c) || 0), 0);
+      seen++;
+      chk(name, 'PMO AV', `${String(cv(r[0]))}: months + unscheduled = Total (Disc+Mand)`,
+        months + (num(r[UNS]) || 0), num(r[TOT]));
+    });
+    chk(name, 'PMO AV', 'and there were rows to check', seen, 3);   // 2 requirements + the TOTAL row
+    // THE PROPERTIES THAT LET THE REST OF THIS BLOCK FAIL. State them rather than assume them.
+    chk(name, 'PMO AV', 'the fixture really does carry a shortfall',
+      num(av.rows[0][av.at('UFR (Unfunded Requirement)')]) > 0, true);
+
+    // WHERE THE MONEY LANDS, against the scenario's own dates. A obligates 30 Nov 2026, so its
+    // whole funded amount is in NOV 26 and nowhere else.
+    const rowOf = rank => av.rows.filter(r => String(cv(r[0])) === String(rank))[0];
+    const cell = (rank, col) => num(rowOf(rank)[av.at(col)]) || 0;
+    chk(name, 'PMO AV', 'a single award date puts the whole funded amount in that month',
+      cell(1, 'NOV 26'), cell(1, 'Total (Disc+Mand)'));
+    chk(name, 'PMO AV', 'and nothing of it is unscheduled', cell(1, 'Unscheduled'), 0);
+    // PRIME-3's increments are stored newest-first; both must land in their own month regardless.
+    // The expected figure is this office's SHARE of the increment, derived from the scenario's own
+    // CLIN split rather than written as a literal that goes stale the moment the fixture moves.
+    const INC = [200, 50, 25];
+    const incAv = INC.reduce((a, v, i) => a + v * CL_AV[i] / (CL_AV[i] + CL_MX[i]), 0);
+    chk(name, 'PMO AV', 'an increment lands in its own month', cell(2, 'DEC 26'), incAv);
+    chk(name, 'PMO AV', 'including one stored out of order', cell(2, 'MAR 27'), incAv);
+    chk(name, 'PMO AV', 'and the two are the whole funded amount',
+      cell(2, 'DEC 26') + cell(2, 'MAR 27'), cell(2, 'Total (Disc+Mand)'));
+
+    // UFR IS NOT INSIDE THE TOTAL. It is what the office is still short, not money it holds.
+    // A is trimmed, so its UFR is non-zero and folding it in would be visible here.
+    chk(name, 'PMO AV', 'the trimmed requirement states its shortfall',
+      num(rowOf(1)[av.at('UFR (Unfunded Requirement)')]), UFR_A);
+    chk(name, 'PMO AV', 'and the funded total is what the lanes paid, not ask less nothing',
+      cell(1, 'Total (Disc+Mand)'), ALLOC_A.reduce((a, b) => a + b, 0));
+    av.rows.forEach(r => {
+      const d = SVCX.reduce((a, sv) => a + (num(r[av.at(sv + ' Disc')]) || 0), 0);
+      const m = SVCX.reduce((a, sv) => a + (num(r[av.at(sv + ' Mand')]) || 0), 0);
+      chk(name, 'PMO AV', `${String(cv(r[0]))}: Total is Disc + Mand and nothing else`,
+        d + m, num(r[av.at('Total (Disc+Mand)')]));
+    });
+
+    // THE OFFICE'S SHARE. PRIME-3's CLINs put 300/75/40 with AV and 100/25/10 with MxS, so each
+    // tab must carry that fraction of the draw and the two must add back to the whole requirement.
+    // The fractions come from the scenario's own CLIN figures, never from pmoSharesOf().
+    const mxs = block('MxS');
+    chk(name, 'PMO MxS', 'the second office got a tab', mxs.err || 'ok', 'ok');
+    if (!mxs.err) {
+      const pAv = av.rows.filter(r => String(cv(r[0])) === '2')[0];
+      const pMx = mxs.rows.filter(r => String(cv(r[0])) === '2')[0];
+      chk(name, 'share', 'the shared requirement is on both tabs',
+        (pAv && pMx) ? 'both' : `av ${!!pAv}, mxs ${!!pMx}`, 'both');
+      if (pAv && pMx) {
+        SVCX.forEach((sv, i) => {
+          const whole = CL_AV[i] + CL_MX[i];
+          const got = num(pAv[av.at(sv + ' Disc')]) || 0;
+          chk(name, 'share', `${sv}: AV carries its CLIN share of the draw`,
+            got, (num(pAv[av.at(sv + ' Disc')]) + num(pMx[mxs.at(sv + ' Disc')])) * CL_AV[i] / whole);
+        });
+        const tAv = num(pAv[av.at('Total (Disc+Mand)')]), tMx = num(pMx[mxs.at('Total (Disc+Mand)')]);
+        chk(name, 'share', 'and neither office carries the whole requirement',
+          (tAv < ASK_P.reduce((a, b) => a + b, 0) && tMx > 0) ? 'shared' : `av ${tAv}, mxs ${tMx}`, 'shared');
+        chk(name, 'share', 'the two shares add back to the whole funded requirement',
+          tAv + tMx, ASK_P.reduce((a, b) => a + b, 0));
+      }
+    }
+  }
+
+  // A REQUIREMENT WITH NO AWARD DATE IS UNSCHEDULED, not dropped. C carries none.
+  const psm = block('PSM');
+  chk(name, 'PMO PSM', 'the report is on that tab too', psm.err || 'ok', 'ok');
+  if (!psm.err) {
+    const r = psm.rows[0];
+    const tot = num(r[psm.at('Total (Disc+Mand)')]);
+    chk(name, 'PMO PSM', 'a requirement with no award date is funded', tot > 0, true);
+    chk(name, 'PMO PSM', 'and all of it sits in Unscheduled', num(r[psm.at('Unscheduled')]), tot);
+    chk(name, 'PMO PSM', 'with no month claiming any of it',
+      r.slice(psm.at('OCT 26'), psm.at('Unscheduled')).reduce((a, c) => a + (num(c) || 0), 0), 0);
+  }
+}
+
 // ---------------------------------------------------------------------------------------------
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
