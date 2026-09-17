@@ -138,18 +138,21 @@
       "foundBy": "user",
       "build": "v1.61",
       "surface": "the row allocation input, the card build's row expander and the grid build's RECORD panel",
-      "symptom": "A prime contract reported a UFR that could not be cleared. Three services were fully funded against their asks, USAF and ANG drew only part of theirs, and the panel explained the shortfall as “the lane could not supply the rest” while that service's discretionary lane still held $704,562,659. Reported figures: USAF UFR $51,510,452, ANG $8,491,681, total $60,002,133.",
-      "cause": "v1.61 introduced basisSvcOf() and made the ROW ALLOCATION the basis every draw is measured against — correctly. It did not revisit the controls that SET the allocation, and every one of them was behind a condition a funding-source override switched off: the row's input rendered `disabled` whenever S.fsrc[id] was present, the card build's per-service allocation cells became read-only derived text, and the grid build's RECORD panel carried only a read-only “Allocated” field. An overridden requirement therefore had no control anywhere for the one figure that now capped it. A directed Disc or Mand dollar past a trimmed allocation could be typed, was silently clamped by tiers(), and surfaced as a UFR nothing on screen could clear. On a prime the trim arrives by itself: CLIN alignment work routinely leaves the row allocation under the ask.",
-      "fix": "The allocation is editable wherever it is shown, override or not — the row input, the card build's per-service cells, and a new per-service Allocation block on the grid build's RECORD panel with ↺ Requirement and, for a prime, ↑ CLIN grid beside a line stating the grid total, the allocation and the difference. And the second reading names the limit that actually refused the dollar: drewWhy() distinguishes a cap set by the allocation — raisable, here — from a lane that ran dry.",
+      "symptom": "A prime contract reported a UFR that could not be cleared. Three services were fully funded against their asks, USAF and ANG drew only part of theirs, and the editor explained the shortfall as “the lane could not supply the rest” while that service’s discretionary lane still held $704,562,659. Reported figures: USAF UFR $51,510,452, ANG $8,491,681, total $60,002,133. A second board showed the same sentence under a $207,222,162 total that no lane had refused at all.",
+      "cause": "TWO FIGURES CLAIMED ONE DECISION. A per-service directed split states, per service, exactly how many Disc and Mand dollars go against a requirement. A ROW ALLOCATION sat beside it saying the same thing in a different number, and v1.61’s basisSvcOf() made that row allocation the cap every draw was measured against — so the typed figure was silently refused whenever the two disagreed, and the refusal was reported as a lane shortage. Worse, every control that SET the row allocation was behind a condition a funding-source override switched off: the row input rendered disabled, the card build’s per-service cells became derived text, and the grid build’s RECORD panel carried a read-only “Allocated” field. The figure that capped the requirement could not be edited anywhere. On a prime the gap arrives by itself, because CLIN alignment work routinely leaves the row allocation under the ask.",
+      "fix": "The second authority is gone. svcAlloc() reads the DIRECTED dollars for a per-service split, so the Disc and Mand boxes are the allocation and nothing caps them but the lane and the ask. What is not directed is a TRIM, exactly as on any other requirement, which keeps beyond + trim == unfunded and keeps seeding a split from the lane walk a no-op. The row shows that allocation rather than offering an input that writes where nothing reads. Every OTHER funding source states only where its money comes from, not how much, so it still draws against the row allocation — and that input is live again, which was the v1.62 half of this fix and is still what those requirements need. The CLIN grid feeds none of it: it is a visual breakout, the drill says so, and it offers no button into the funding math on a row that states its own allocation. Separately, drewWhy() names which limit refused a dollar — a cap you can raise, or a lane you cannot.",
       "guarded": true,
       "checks": [
-        "the allocation caps the draw — and can be raised"
+        "a directed split states its own allocation"
       ],
       "mutations": [
         "why-always-lane",
         "why-always-alloc",
         "row-alloc-disabled-again",
-        "alloc-locked-under-override"
+        "alloc-locked-under-override",
+        "split-alloc-ignores-directed",
+        "split-alloc-drops-mand",
+        "clin-writes-the-money"
       ]
     }
   ]

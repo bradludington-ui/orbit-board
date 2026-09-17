@@ -574,29 +574,43 @@ implementation and `mcShortSvcOf()` delegates to it — Mission Critical's short
 reading gated to starred requirements, so the star and the portfolio cannot disagree about what a
 dollar is. Both are floored **per service**.
 
-### The allocation is the cap, and it must be settable wherever it is shown
+### A directed split states its own allocation
 
-`basisSvcOf()` makes the **row allocation** the basis every draw is measured against. That is one
-decision with two halves, and v1.61 shipped only the first: it gave the allocation authority and
-left every control that *sets* it behind a condition a ⚙ funding-source override switched off — the
-row input rendered `disabled`, the card build's per-service allocation cells became derived text,
-and the grid build's RECORD panel carried a read-only *Allocated* field. An overridden requirement
-therefore had no control anywhere for the one figure that capped it. A directed Disc or Mand dollar
-past a trimmed allocation could be typed, was silently clamped, and surfaced as a UFR nothing on
-screen could clear.
+Two figures used to claim one decision. A **per-service directed split** says, per service, exactly
+how many Disc and Mand dollars go against a requirement. A **row allocation** sat beside it saying
+the same thing in a different number, and `basisSvcOf()` made that row allocation the cap every draw
+was measured against — so the typed figure was silently refused whenever the two disagreed, and the
+refusal was reported as a lane shortage. The controls that set the row allocation were themselves
+switched off by a ⚙ override, so the figure doing the capping could not be edited anywhere.
 
-**A prime contract meets this by itself.** CLIN alignment work routinely leaves the row allocation
-under the ask, and the two are deliberately independent — the grid is line-by-line detail, the row
-allocation is what the board funds. So the rule:
+> **`svcAlloc()` reads the directed dollars for a per-service split.** The Disc and Mand boxes *are*
+> the allocation. Nothing caps them but the lane and the requirement.
 
-> **Anywhere the allocation is displayed, it is editable.** No funding source, band, prime marking
-> or CLIN state may take that control away. If a figure caps the money, the person briefing the
-> money can change it.
+Everything follows from that and nothing else had to change:
 
-The grid build's RECORD panel carries the block: one input per service, an allocated total,
-`↺ Requirement`, and for a prime `↑ CLIN grid` beside a line stating the grid total, the allocation
-and the difference — which is also the answer to *where do the "Apply grid to row" figures come
-from*. They come from `clinSvcTot()`, the grid's per-service column sums, and nothing else.
+```
+basis  = min(directed D + directed M, ask)      per service, clamped in basisSvcOf() as always
+trim   = ask - basis                            what was NOT directed — a trim, like any other
+u      = basis - drawn D - drawn M              directed but no lane could pay — a real lane shortfall
+         beyond + trim == unfunded              still holds, per service and in total
+```
+
+It also keeps *a recorded funding source moves no money*: `seedSplit()` fills the directed dollars
+from the lane walk, so the basis it produces is the allocation it was seeded from, to the dollar.
+
+**Every other funding source still draws against the row allocation.** Force Disc, Force Mand, Force
+UFR and a legacy whole-requirement split state only *where* the money comes from, never how much —
+so they keep a live, settable row allocation, and a dead control there is the same defect wearing a
+different face. A per-service split shows its allocation instead of offering an input that writes
+where nothing reads.
+
+### The CLIN grid feeds nothing
+
+CLIN lines are a **visual breakout of where cash is planned to land**. They are not an input to the
+funding math and must never become one. `clinSplit()` divides money the board has already decided;
+`clinToRow()` writes the row allocation and is therefore **not offered on a row that states its own
+allocation** — the drill says so in words rather than leaving a button that would overwrite a
+hand-typed split. Nothing else reads `S.clinAlloc` into a lane.
 
 ### Two limits refuse a dollar, and they are not the same sentence
 

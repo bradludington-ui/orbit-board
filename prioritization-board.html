@@ -1283,7 +1283,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.62 (17 Sep 2026)';
+const BUILD='v1.63 (17 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14492,6 +14492,18 @@ const eff = it => {
   return a.v.reduce((x,y)=>x+y,0);
 };
 function svcAlloc(it){
+  // A PER-SERVICE DIRECTED SPLIT STATES ITS OWN ALLOCATION, and nothing else may state it for them.
+  // The dollars typed into Disc and Mand ARE what the board is putting against this requirement,
+  // per service. A row allocation held beside them was a SECOND AUTHORITY over one decision: it
+  // capped what could be typed, could not itself be typed while a source was recorded, and left a
+  // UFR nothing on screen could clear. What is NOT directed is a TRIM, exactly as on any other
+  // requirement -- the ask less what was allocated -- so seeding a split from the lane walk still
+  // moves no money and changes no figure, which is what 'a recorded funding source moves no money'
+  // asserts. The clamp to the ask stays where it has always been, in basisSvcOf(); one clamp rule.
+  const fo=(S.fsrc||{})[it.id];
+  if(fo && fo.m==='split' && Array.isArray(fo.dv)){
+    return SVC.map(function(_,i){ return D$(fo.dv[i]||0) + D$((fo.mv||[])[i]||0); });
+  }
   const a=S.alloc[it.id];
   if(a===null||a===undefined) return it.ask.map(D$);
   if(a.m==='s') return a.v.map(D$);
@@ -15490,6 +15502,10 @@ function svcTable(it){
   const a=S.alloc[it.id];
   const isSvc = a && a.m==='s';
   const foAll=S.fsrc[it.id];
+  // A PER-SERVICE DIRECTED SPLIT STATES ITS OWN ALLOCATION: the Disc and Mand rows below ARE this
+  // row, so it is shown, not typed. Every other funding source says only WHERE the money comes
+  // from, not how much, so it still draws against an allocation that has to be settable.
+  const splitAll = !!(foAll && foAll.m==='split' && Array.isArray(foAll.dv));
   const pxAll=foAll? tiers()[it.id] : null;
   let hd='',r1='',r2='';
   const edited = !it.custom && S.asks && S.asks[it.id];
@@ -15503,15 +15519,17 @@ function svcTable(it){
     // measured against -- and left the control disabled, so an overridden requirement had no way to
     // set the one figure that now capped it. A directed dollar past a trimmed allocation could be
     // typed, was silently refused, and came out as a UFR with nothing on screen that could clear it.
-    r2+= `<td><input style="${foAll?'border-color:var(--gold)':''}" value="${sa[i]?Math.round(sa[i]).toLocaleString():''}"
+    r2+= splitAll
+      ? `<td style="color:var(--gold);font-weight:700" title="${s} allocation = the Disc and Mand dollars directed below. A ⚙ Split states its own allocation — set it in those two rows.">${sa[i]>0.5? fM(sa[i]):'—'}</td>`
+      : `<td><input style="${foAll?'border-color:var(--gold)':''}" value="${sa[i]?Math.round(sa[i]).toLocaleString():''}"
         onchange="setSvc('${it.id}',${i},this.value)" onfocus="this.select()" placeholder="0"
-        title="${s} allocation — what the board funds against this requirement${foAll?'. Every ⚙ directed dollar stops here: anything past it shows as this service’s UFR.':''}"></td>`;
+        title="${s} allocation — what the board funds against this requirement"></td>`;
   });
   return `<div class="svc-detail"><table>
     <tr><th>CCaR: <input style="width:100px;font-weight:700;letter-spacing:.5px" maxlength="12" value="${esc(ccarOf(it))}" placeholder="JSF####" onchange="setCcarInline('${it.id}',this.value)" onfocus="this.select()" title="CCaR record (up to 12 characters)"></th>${hd}<th>Total</th></tr>
     <tr><td>${FYL()} Ask (edit) ${edited?'<span class="mode-tag" style="background:var(--amber);color:var(--onAmber)">EDITED</span>':''}</td>${r1}
       <td style="font-weight:700">${fM(askTot(it))}${it.custom?'':` <button class="qb" onclick="resetAsk('${it.id}')" title="restore the original requested amounts">↺ orig</button>`}</td></tr>
-    <tr><td>Allocation ${foAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">⚙ THE CAP ON EVERY DRAW</span>' : (isSvc?'<span class="mode-tag">BY SVC</span>':'(prorated — type to set by service)')}</td>${r2}
+    <tr><td>Allocation ${splitAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">= ⚙ DIRECTED D + M</span>' : (foAll? '<span class="mode-tag" style="background:var(--gold);color:var(--onGold)">⚙ SOURCE SET</span>' : (isSvc?'<span class="mode-tag">BY SVC</span>':'(prorated — type to set by service)'))}</td>${r2}
       <td style="color:var(--amber);font-weight:700">${fM(sa.reduce((x,y)=>x+y,0))}</td></tr>
     ${(S.fsrc[it.id]&&S.fsrc[it.id].m==='split')? (()=>{
       const fo=S.fsrc[it.id];
@@ -15557,7 +15575,7 @@ function svcTable(it){
       <td><button class="qb" style="width:100%" onclick="S.alloc['${it.id}']=null;save();render();flash('${it.id}')" title="set this requirement's allocation equal to its full ${FYL()} requirement">Allocate</button></td></tr>
     </table>
     ${awardBlockHtml(it)}
-    <div class="svc-hint">Top row = the REQUIREMENT VALUE (FY27 ask) by service — edit it when the requirement itself changes; unfunded deltas follow automatically. Second row = your ALLOCATION against it — <b>the cap on every draw, ⚙ override or not</b>. With a ⚙ forced split, type each service's Discretionary and Mandatory dollars directly — anything past the allocation, or beyond lane capacity, shows as that service's UFR, and the “drew” line under the box says which of the two refused it. ↺ orig restores the requested values; ↺ split restores the allocation split.</div></div>`;
+    <div class="svc-hint">Top row = the REQUIREMENT VALUE (FY27 ask) by service — edit it when the requirement itself changes; unfunded deltas follow automatically. Second row = your ALLOCATION against it. With a ⚙ forced split you set it in the two rows below instead: type each service's Discretionary and Mandatory dollars and <b>those dollars ARE the allocation</b> — whatever you leave undirected is that service's UFR, and only the lane itself can refuse what you did direct, which the “drew” line under the box says when it happens. ↺ orig restores the requested values; ↺ split restores the allocation split.</div></div>`;
 }
 function noteBox(it){
   const n=S.notes[it.id]||'';
@@ -15807,6 +15825,12 @@ const CLINS = DATA.clins || {};
 // CLINs at all -- could mark a requirement PRIME and get nothing. clinList() already copes with a
 // prime that has no baked lines: it returns the added ones and nothing else.
 function clinApplies(id){ return ptypeOf(id)==='PRIME'; }
+// Does this prime state its own allocation? A per-service directed split does, so the grid has
+// nothing it is allowed to write to and nothing to be reconciled against.
+function clinSplitRow(id){
+  const fo=(S.fsrc||{})[id];
+  return !!(fo && fo.m==='split' && Array.isArray(fo.dv));
+}
 let clinOpen = {};
 function toggleClin(id){ clinOpen[id]=!clinOpen[id]; render(); }
 function clinAskTot(c){ return (c.ask||[]).reduce((a,b)=>a+b,0); }
@@ -16633,7 +16657,12 @@ function clinTable(it){
       +'<span style="flex:1"></span>'
       +'<button class="qb" onclick="clinAdd(\''+pid+'\')" title="add a CLIN to this contract">＋ Add CLIN</button>'
       +'<button class="qb" onclick="clinFromRow(\''+pid+'\')" title="spread each service’s row allocation across the CLINs in the shape of their requests">↓ Fill from row</button>'
-      +'<button class="qb" onclick="clinToRow(\''+pid+'\')" title="set the row allocation to what this grid adds up to, per service">↑ Apply grid to row</button>'
+      // NOT OFFERED ON A DIRECTED SPLIT. There the Disc and Mand dollars ARE the allocation, typed
+      // by hand, and a button that overwrote them from this grid would be exactly what the grid is
+      // not allowed to be: an input to the funding math. The grid is a visual breakout of where
+      // cash is planned to land, and it feeds nothing.
+      +(clinSplitRow(pid)? ''
+        : '<button class="qb" onclick="clinToRow(\''+pid+'\')" title="set the row allocation to what this grid adds up to, per service">↑ Apply grid to row</button>')
       +'<button class="qb" onclick="clinResetGrid(\''+pid+'\')" title="every CLIN allocation back to its requested amount — numbers, names and additions are kept">↺ Reset allocations</button>'
     +'</div>'
     +'<div class="cscroll"><table class="clingrid">'
@@ -16657,10 +16686,14 @@ function clinTable(it){
       +'Click a CLIN number, description or CCaR to change it. ＋ Add CLIN puts a new line on this '
       +'contract. Your changes sit over the board data, so removed lines can be put back and a fresh '
       +'data import never overwrites them. '
-      +(Math.abs(diffT)<0.5 && diff.every(v=>Math.abs(v)<0.5)
-        ? '✓ The grid and the row agree on every service.'
-        : '⚠ The grid and the row differ. That is allowed — the <b>row allocation</b> is what the board '
-          +'funds and what the cutlines and exports use; the grid is your line-by-line detail.')
+      +(clinSplitRow(pid)
+        ? '<b>This grid feeds none of the funding math.</b> It is a visual breakout of where the cash '
+          +'is planned to land. What the board funds is the ⚙ Disc and Mand dollars directed per '
+          +'service, typed by hand; the grid can differ from them freely and nothing reconciles it.'
+        : (Math.abs(diffT)<0.5 && diff.every(v=>Math.abs(v)<0.5)
+          ? '✓ The grid and the row agree on every service.'
+          : '⚠ The grid and the row differ. That is allowed — the <b>row allocation</b> is what the board '
+            +'funds and what the cutlines and exports use; the grid is your line-by-line detail.'))
       +(isInc? ' · <b>📅 Incremental funding follows the ROW service totals</b>, not this grid — '
               +'changing a CLIN never moves an increment.' : '')
     +'</div></div>';
@@ -17619,6 +17652,11 @@ function render(){
     if(svcFilter>=0 && (T[id].d[svcFilter]+T[id].m[svcFilter]+T[id].u[svcFilter])<=0.005) return;
     const a=S.alloc[id];
     const isSvc = a && a.m==='s';
+    // A PER-SERVICE DIRECTED SPLIT STATES ITS OWN ALLOCATION -- svcAlloc() reads the directed Disc
+    // and Mand dollars for these rows, so there is no second figure here to type. Showing an input
+    // that writes S.alloc would be a control that does nothing.
+    const rowFo=S.fsrc[id];
+    const rowSplit = !!(rowFo && rowFo.m==='split' && Array.isArray(rowFo.dv));
     const changed = a!==null&&a!==undefined;
     const inpVal = changed? Math.round(eff(it)).toLocaleString():'';
     const note=S.notes[id];
@@ -17649,8 +17687,9 @@ function render(){
         </span>
         <button class="qb ${showDetail?'on':''}" onclick="toggleDetail('${id}')" title="Show this requirement broken out by service — edit the ${FYL()} requirement and the allocation for each service individually.">⊞ SVC</button>
         <button class="mcb ${S.mc[id]?'on':''}" onclick="S.mc['${id}']=!S.mc['${id}'];save();render()" title="★ Mission Critical — this must be paid this year">★ MC</button>
-        <input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
-          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. A directed Disc or Mand dollar past it cannot be drawn and shows as UFR. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is separate; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">
+        ${rowSplit? `<input disabled style="opacity:.8;border-color:var(--gold);color:var(--gold);font-weight:800" value="${Math.round(svcAlloc(it).reduce((x,y)=>x+y,0)).toLocaleString()}" title="allocation = the Disc and Mand dollars you directed, per service, in the ⚙ Split editor. A Split states its own allocation; there is no second figure to set here.${CLINS[id]? ' The CLIN grid is a visual breakout only and feeds none of this.':''}">`
+        : `<input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
+          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is a visual breakout only and feeds none of this; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">`}
         ${rowMenuHtml(it)}
       </div>
       ${showDetail? svcTable(it):''}

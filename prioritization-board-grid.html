@@ -288,12 +288,6 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-svc{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px}
 .insp-svc>div{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:5px 7px;min-width:0}
 .insp-svc .fl{overflow-wrap:anywhere}
-/* THE ALLOCATION BLOCK'S OWN CONTROLS take the 24px target and a border that can be seen against
-   --sink, rather than inheriting the panel's denser default. This is the one place on the panel
-   where a mis-hit is a UFR on a brief: it is the cap every draw on the requirement is measured
-   against. 2.5.8 Target Size and 1.4.11 Non-text Contrast, both AA. */
-.insp-svc input.allocin{min-height:24px;border-color:var(--mut)}
-.insp-f .allocbtn{min-height:24px;border-color:var(--mut)}
 .insp-svc .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 /* One ROW per service rather than one column: six services and seven-figure dollars do not fit
    across a narrow panel, and the split is read down the list anyway — set Disc and Mand, and UFR
@@ -1423,7 +1417,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.62 (17 Sep 2026)';
+const BUILD='v1.63 (17 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14632,6 +14626,18 @@ const eff = it => {
   return a.v.reduce((x,y)=>x+y,0);
 };
 function svcAlloc(it){
+  // A PER-SERVICE DIRECTED SPLIT STATES ITS OWN ALLOCATION, and nothing else may state it for them.
+  // The dollars typed into Disc and Mand ARE what the board is putting against this requirement,
+  // per service. A row allocation held beside them was a SECOND AUTHORITY over one decision: it
+  // capped what could be typed, could not itself be typed while a source was recorded, and left a
+  // UFR nothing on screen could clear. What is NOT directed is a TRIM, exactly as on any other
+  // requirement -- the ask less what was allocated -- so seeding a split from the lane walk still
+  // moves no money and changes no figure, which is what 'a recorded funding source moves no money'
+  // asserts. The clamp to the ask stays where it has always been, in basisSvcOf(); one clamp rule.
+  const fo=(S.fsrc||{})[it.id];
+  if(fo && fo.m==='split' && Array.isArray(fo.dv)){
+    return SVC.map(function(_,i){ return D$(fo.dv[i]||0) + D$((fo.mv||[])[i]||0); });
+  }
   const a=S.alloc[it.id];
   if(a===null||a===undefined) return it.ask.map(D$);
   if(a.m==='s') return a.v.map(D$);
@@ -15856,6 +15862,12 @@ const CLINS = DATA.clins || {};
 // CLINs at all -- could mark a requirement PRIME and get nothing. clinList() already copes with a
 // prime that has no baked lines: it returns the added ones and nothing else.
 function clinApplies(id){ return ptypeOf(id)==='PRIME'; }
+// Does this prime state its own allocation? A per-service directed split does, so the grid has
+// nothing it is allowed to write to and nothing to be reconciled against.
+function clinSplitRow(id){
+  const fo=(S.fsrc||{})[id];
+  return !!(fo && fo.m==='split' && Array.isArray(fo.dv));
+}
 let clinOpen = {};
 function toggleClin(id){ clinOpen[id]=!clinOpen[id]; render(); }
 function clinAskTot(c){ return (c.ask||[]).reduce((a,b)=>a+b,0); }
@@ -16682,7 +16694,12 @@ function clinTable(it){
       +'<span style="flex:1"></span>'
       +'<button class="qb" onclick="clinAdd(\''+pid+'\')" title="add a CLIN to this contract">＋ Add CLIN</button>'
       +'<button class="qb" onclick="clinFromRow(\''+pid+'\')" title="spread each service’s row allocation across the CLINs in the shape of their requests">↓ Fill from row</button>'
-      +'<button class="qb" onclick="clinToRow(\''+pid+'\')" title="set the row allocation to what this grid adds up to, per service">↑ Apply grid to row</button>'
+      // NOT OFFERED ON A DIRECTED SPLIT. There the Disc and Mand dollars ARE the allocation, typed
+      // by hand, and a button that overwrote them from this grid would be exactly what the grid is
+      // not allowed to be: an input to the funding math. The grid is a visual breakout of where
+      // cash is planned to land, and it feeds nothing.
+      +(clinSplitRow(pid)? ''
+        : '<button class="qb" onclick="clinToRow(\''+pid+'\')" title="set the row allocation to what this grid adds up to, per service">↑ Apply grid to row</button>')
       +'<button class="qb" onclick="clinResetGrid(\''+pid+'\')" title="every CLIN allocation back to its requested amount — numbers, names and additions are kept">↺ Reset allocations</button>'
     +'</div>'
     +'<div class="cscroll"><table class="clingrid">'
@@ -16706,10 +16723,14 @@ function clinTable(it){
       +'Click a CLIN number, description or CCaR to change it. ＋ Add CLIN puts a new line on this '
       +'contract. Your changes sit over the board data, so removed lines can be put back and a fresh '
       +'data import never overwrites them. '
-      +(Math.abs(diffT)<0.5 && diff.every(v=>Math.abs(v)<0.5)
-        ? '✓ The grid and the row agree on every service.'
-        : '⚠ The grid and the row differ. That is allowed — the <b>row allocation</b> is what the board '
-          +'funds and what the cutlines and exports use; the grid is your line-by-line detail.')
+      +(clinSplitRow(pid)
+        ? '<b>This grid feeds none of the funding math.</b> It is a visual breakout of where the cash '
+          +'is planned to land. What the board funds is the ⚙ Disc and Mand dollars directed per '
+          +'service, typed by hand; the grid can differ from them freely and nothing reconciles it.'
+        : (Math.abs(diffT)<0.5 && diff.every(v=>Math.abs(v)<0.5)
+          ? '✓ The grid and the row agree on every service.'
+          : '⚠ The grid and the row differ. That is allowed — the <b>row allocation</b> is what the board '
+            +'funds and what the cutlines and exports use; the grid is your line-by-line detail.'))
       +(isInc? ' · <b>📅 Incremental funding follows the ROW service totals</b>, not this grid — '
               +'changing a CLIN never moves an increment.' : '')
     +'</div></div>';
@@ -17668,6 +17689,11 @@ function render(){
     if(svcFilter>=0 && (T[id].d[svcFilter]+T[id].m[svcFilter]+T[id].u[svcFilter])<=0.005) return;
     const a=S.alloc[id];
     const isSvc = a && a.m==='s';
+    // A PER-SERVICE DIRECTED SPLIT STATES ITS OWN ALLOCATION -- svcAlloc() reads the directed Disc
+    // and Mand dollars for these rows, so there is no second figure here to type. Showing an input
+    // that writes S.alloc would be a control that does nothing.
+    const rowFo=S.fsrc[id];
+    const rowSplit = !!(rowFo && rowFo.m==='split' && Array.isArray(rowFo.dv));
     const changed = a!==null&&a!==undefined;
     const inpVal = changed? Math.round(eff(it)).toLocaleString():'';
     const note=S.notes[id];
@@ -17698,8 +17724,9 @@ function render(){
         </span>
         <button class="qb ${showDetail?'on':''}" onclick="toggleDetail('${id}')" title="Show this requirement broken out by service — edit the ${FYL()} requirement and the allocation for each service individually.">⊞ SVC</button>
         <button class="mcb ${S.mc[id]?'on':''}" onclick="S.mc['${id}']=!S.mc['${id}'];save();render()" title="★ Mission Critical — this must be paid this year">★ MC</button>
-        <input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
-          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. A directed Disc or Mand dollar past it cannot be drawn and shows as UFR. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is separate; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">
+        ${rowSplit? `<input disabled style="opacity:.8;border-color:var(--gold);color:var(--gold);font-weight:800" value="${Math.round(svcAlloc(it).reduce((x,y)=>x+y,0)).toLocaleString()}" title="allocation = the Disc and Mand dollars you directed, per service, in the ⚙ Split editor. A Split states its own allocation; there is no second figure to set here.${CLINS[id]? ' The CLIN grid is a visual breakout only and feeds none of this.':''}">`
+        : `<input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
+          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is a visual breakout only and feeds none of this; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">`}
         ${rowMenuHtml(it)}
       </div>
       ${showDetail? svcTable(it):''}
@@ -21347,63 +21374,6 @@ function inspectorBody(){
       + (uT > 0.005 ? '<div class="drew">lane short ' + fM(uT) + '</div>' : '') + '</td></tr>'
     + '</table>';
 
-  // THE ALLOCATION IS EDITED HERE. v1.61 made the ALLOCATION the basis every draw is measured
-  // against -- basisSvcOf() -- and left every control that sets it behind a condition: this panel
-  // carried a read-only "Allocated" field, and the row's own input went dead the moment a \u2699
-  // override was set. An overridden requirement therefore had no way anywhere to set the one figure
-  // that now capped it: a directed dollar past a trimmed allocation could be typed, was silently
-  // refused, and came out as a UFR with nothing on screen that could clear it.
-  // A PRIME CONTRACT meets this every time CLIN work leaves its row allocation under the ask, which
-  // is how it reached a brief -- a service fully funded against its ask, with a UFR beside it.
-  const allocV = svcAlloc(it), allocT = allocV.reduce(function(a,b){ return a+b; }, 0);
-  const allocSet = S.alloc[id] !== null && S.alloc[id] !== undefined;
-  const trimT = Math.max(0, askTot(it) - allocT);
-  const allocBlk = '<div class="insp-lbl">Allocation \u2014 the cap on every draw'
-    + ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 '
-    + (allocSet ? (trimT > 0.005 ? fM(trimT) + ' below the requirement' : 'set by hand')
-                : 'the full requirement')
-    + '</span></div>'
-    + '<div class="insp-svc">'
-    + SVC.map(function(sname, i){
-        return '<div><div class="fl">' + esc(sname) + '</div><div class="fv">'
-          + '<input class="allocin" style="width:100%;text-align:right" placeholder="0" value="'
-          + (allocV[i] ? Math.round(allocV[i]).toLocaleString() : '') + '"'
-          + ' onfocus="this.select()" onchange="setSvc(\'' + id + '\',' + i + ',this.value)"'
-          + ' title="' + esc(sname) + ' \u2014 what the board funds against this requirement.'
-          + ' Every draw stops here, directed or automatic. The requirement asks '
-          + fM(it.ask[i] || 0) + '.">'
-          + '</div></div>';
-      }).join('')
-    + '</div>'
-    + '<div class="insp-g">'
-      + inspField('Allocated total', fM(allocT))
-      + '<div class="insp-f"><div class="fl">Set it from</div><div class="fv">'
-        + '<button class="qb allocbtn" onclick="S.alloc[\'' + id + '\']=null;save();render();flash(\'' + id + '\')"'
-        + ' title="allocate the full ' + FYL() + ' requirement, ' + fM(askTot(it))
-        + '">\u21ba Requirement</button>'
-        + (clinApplies(id)
-            ? ' <button class="qb allocbtn" onclick="clinToRow(\'' + id + '\')"'
-              + ' title="set the allocation to what the CLIN grid adds up to, per service \u2014 '
-              + fM(clinGridTot(id)) + ' across every CLIN on this contract">\u2191 CLIN grid</button>'
-            : '')
-      + '</div></div>'
-    + '</div>'
-    // WHERE "APPLY GRID TO ROW" GETS ITS FIGURES, stated where the allocation is set rather than
-    // only inside the CLIN drill. The two are deliberately independent -- the grid is the
-    // line-by-line detail, the allocation is what the board funds -- and a prime whose grid and
-    // allocation disagree needs to see the gap at the moment it is deciding the dollars.
-    + (clinApplies(id) ? (function(){
-        const gT = clinGridTot(id), dlt = allocT - gT;
-        return '<div style="font-size:9.5px;color:var(--dim);line-height:1.5;margin:-2px 0 4px">'
-          + 'CLIN grid total <b style="color:var(--mut)">' + fM(gT) + '</b> \u00b7 allocation '
-          + '<b style="color:var(--mut)">' + fM(allocT) + '</b> \u00b7 difference '
-          + '<b style="color:' + (Math.abs(dlt) <= 0.005 ? 'var(--green)' : 'var(--amber)') + '">'
-          + (dlt < 0 ? '\u2212' : '') + fM(Math.abs(dlt)) + '</b><br>'
-          + 'The grid is line-by-line detail and funds nothing on its own. The allocation above is '
-          + 'what the board funds \u2014 type into it, or pull the grid across with \u2191 CLIN grid.'
-          + '</div>';
-      })() : '');
-
   el.innerHTML = drawerBar() +
     '<div class="insp-hd"><b>#' + (pos>=0? pos+1 : '—') + ' · RECORD</b>'
       + '<span style="flex:1"></span>'
@@ -21447,7 +21417,7 @@ function inspectorBody(){
         + '\u2699 auto (lanes) \u2192 convert to Split</span></div>')
     + '<div class="insp-g">'
       + inspField(FYL() + ' requirement', fM(askTot(it)), 'big')
-      + inspField('Allocated', fM(dT + mT), 'big')   // DRAWN, not the cap -- the cap is the block below
+      + inspField('Allocated', fM(dT + mT), 'big')
       + inspField('Discretionary', fM(dT))
       + inspField('Mandatory', fM(mT))
       + inspField('Unfunded', unfT > 0.005 ? '<span style="color:var(--unf)">' + fM(unfT) + '</span>' : '\u2014',
@@ -21478,9 +21448,8 @@ function inspectorBody(){
             + (BAND_OF(id)===b.id?' selected':'') + '>'+i+' · '+esc(b.n)+'</option>'; }).join('')
         + '</select></div></div>'
       + '</div>'
-    + allocBlk
     + '<div class="insp-lbl">By service — money is not fungible across them'
-      + (inSplit ? ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 type Disc and Mand; UFR is the remainder</span>'
+      + (inSplit ? ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 type Disc and Mand \u2014 this IS the allocation; UFR is the remainder</span>'
                  : ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 set funding to Split D/M/UFR to edit</span>')
       + '</div>'
     + svc

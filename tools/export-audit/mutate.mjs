@@ -773,17 +773,37 @@ const MUTATIONS = [
   // THE TRAP ITSELF. v1.61 made the allocation the basis every draw is measured against and left
   // the control that sets it disabled under a funding-source override, so the figure that capped
   // the requirement could not be edited anywhere. Both builds share render(), so one spelling does.
-  { id: 'row-alloc-disabled-again', area: 'render', what: 'the row allocation goes read-only under a \u2699 override, leaving the cap unsettable',
-    find: `        <input class="\${isSvc?'svcmode':''}" style="\${S.fsrc[id]?'border-color:var(--gold)':''}"`,
-    repl: `        <input \${S.fsrc[id]?'disabled':''} class="\${isSvc?'svcmode':''}" style="\${S.fsrc[id]?'border-color:var(--gold)':''}"` },
+  { id: 'row-alloc-disabled-again', area: 'render', what: 'the row allocation goes read-only for a forced source, leaving it unsettable',
+    find: `        : \`<input class="\${isSvc?'svcmode':''}" style="\${S.fsrc[id]?'border-color:var(--gold)':''}"`,
+    repl: `        : \`<input \${S.fsrc[id]?'disabled':''} class="\${isSvc?'svcmode':''}" style="\${S.fsrc[id]?'border-color:var(--gold)':''}"` },
   // The same trap one layer down: the control is there and does nothing. Targets the SETTER, which
   // both builds share, rather than either editor's markup.
-  { id: 'alloc-locked-under-override', area: 'setSvc', what: 'the allocation setter silently refuses to write while a funding source is set',
-    find: `function setSvc(id,i,val){
-  const it=itemById(id);`,
-    repl: `function setSvc(id,i,val){
+  { id: 'alloc-locked-under-override', area: 'setAlloc', what: 'the allocation setter silently refuses to write while a funding source is set',
+    find: `function setAlloc(id,val){
+  const v=parseAmt(val);`,
+    repl: `function setAlloc(id,val){
   if(S.fsrc[id]) return;
-  const it=itemById(id);` },
+  const v=parseAmt(val);` },
+
+  // ---- a directed split states its own allocation -----------------------------------------------
+  // The second authority. A per-service split types its dollars per service; a row allocation held
+  // beside it said the same thing in a different number, capped what could be typed, and produced a
+  // UFR nothing could clear. These put the second number back, one way each.
+  { id: 'split-alloc-ignores-directed', area: 'svcAlloc', what: 'a directed split goes back to drawing against a separate row allocation',
+    find: `  const fo=(S.fsrc||{})[it.id];
+  if(fo && fo.m==='split' && Array.isArray(fo.dv)){`,
+    repl: `  const fo=null;
+  if(fo && fo.m==='split' && Array.isArray(fo.dv)){` },
+  { id: 'split-alloc-drops-mand', area: 'svcAlloc', what: 'a split counts only its discretionary dollars as allocated, so every directed mandatory dollar falls outside the basis',
+    find: `    return SVC.map(function(_,i){ return D$(fo.dv[i]||0) + D$((fo.mv||[])[i]||0); });`,
+    repl: `    return SVC.map(function(_,i){ return D$(fo.dv[i]||0); });` },
+  // THE CLIN GRID IS A VISUAL BREAKOUT AND FEEDS NOTHING. This offers it a way into the funding
+  // math on exactly the requirements that state their own allocation by hand.
+  { id: 'clin-writes-the-money', area: 'clinTable', what: 'the CLIN drill offers to overwrite a hand-typed split from the grid',
+    find: `      +(clinSplitRow(pid)? ''
+        : '<button class="qb" onclick="clinToRow(\\''+pid+'\\')"`,
+    repl: `      +(false? ''
+        : '<button class="qb" onclick="clinToRow(\\''+pid+'\\')"` },
 
 ];
 
