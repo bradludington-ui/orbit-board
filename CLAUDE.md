@@ -612,6 +612,70 @@ funding math and must never become one. `clinSplit()` divides money the board ha
 allocation** — the drill says so in words rather than leaving a button that would overwrite a
 hand-typed split. Nothing else reads `S.clinAlloc` into a lane.
 
+### A submittal carries one office's requirements
+
+The scope is `grpOf` — the requirement's **own** office, deliberately not a CLIN share. Under shares,
+both part-owners of a split prime could propose the same field and the portfolio team would have to
+arbitrate; under this rule two submittals can never contest one field, and that is the only reason
+several can be held side by side at all.
+
+It is enforced **twice**, and both matter:
+
+- **In the copy**, at submit time, where the person who made the edit is still sitting. Dropping a
+  foreign row quietly at the far end leaves an office believing it submitted something it did not,
+  so the rows are named in the message.
+- **At the board**, on import. The package is a JSON file — a hand edit or an older build is all it
+  takes for another office's row to arrive anyway, so the sender is not trusted to have done it.
+
+The office travels **inside** the package as `pkg.pmo` and in the filename. A scope a rename can
+change is not a scope. A package with no `pmo` was written before scoping existed: it is taken, with
+a warning, because refusing would strand work already done — and it is the only package that can
+still collide with another, which is why `pmoApply()` refuses a field ticked from two submittals
+rather than letting the last one win.
+
+**Applying does not clear the held packages.** A row that was applied drops off the list on its own,
+because `pmoRows()` skips a field the board has come to agree with. What is left is what was *not*
+accepted, still there for the next pass. Clearing them — which the single-package version did —
+threw away every untaken proposal the moment the first batch went in.
+
+### A banded heading is a merge, and the order of the XML decides whether the file opens
+
+`buildXlsx` takes `sheet.merges` as `{r, c, cs}` — row, first column, width, zero-based like the
+rows. Two things about it are not style choices:
+
+- **`mergeCells` belongs after `sheetData`.** Put it before and Excel does not render it oddly — it
+  refuses the part and the workbook does not open at all. `merge-before-sheetdata` exists to make
+  sure that can never ship.
+- **A merge paints only what is there.** Every cell a band covers is emitted with the band's own
+  style, or the fill stops after the label and the rest of the span is plain.
+
+Nothing else on this board reads `exportExcel`'s bytes back, so the PMO report's bands are checked
+at the byte level: unzip the workbook, assert the element order, the declared count against what is
+actually written, and an anchor cell for every range.
+
+**The band colours are the board's own language** — discretionary green, mandatory purple, the spend
+plan blue because it is not a lane. Anything else teaches a second colour vocabulary to a reader who
+already knows this one.
+
+### The offices are chosen in one place
+
+The PMO filter and the prime/OGC filter are one menu. They were a chip strip *and* a Filter-menu
+entry, which is a control with two homes — changed in one, looked for in the other.
+
+Moving a selection into a menu hides it, so **the button carries it**: `🏢 PSM · Primes ▾`. A board
+showing one office's requirements while looking like it shows the portfolio is a briefing error
+waiting to happen.
+
+**An office with nothing in it is still listed**, under its own heading. Hiding it — what the chips
+did, defensibly on a crowded strip — means somebody who has just added an office goes looking for it
+and reads the absence as *"it did not work"*. Listing it inline instead would bury three live
+offices under seven empty ones.
+
+Counts come from `grpOf()`, so a reassignment or an added office is counted the moment it happens.
+`pmoSync()` reconciles `GROUPS` from `MS.pmos` plus every office the payload homes requirements to,
+and it runs **before** the normalisation that deletes assignments naming an unknown office — the
+other order silently wipes every move to an office somebody added.
+
 ### Three quantities, and only two may be called "Unfunded"
 
 ```

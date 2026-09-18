@@ -128,6 +128,10 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',Arial,sans-ser
 .tgrp{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-width:0}
 @media (max-width:1240px){ .tbar .tlbl{display:none} .tbar .tsep{margin:0 4px} }
 @media (max-width:1060px){ .tbar .btn{padding:5px 7px} .tbar .tsep{margin:0 2px} .tbar .tgrp{gap:4px} }
+/* One tier tighter, because the PMO menu is a ninth button on this row. HORIZONTAL padding only:
+   trimming the vertical would take the buttons under the 24px target 2.5.8 asks for, which is a
+   conformance finding traded for a layout one. */
+@media (max-width:900px){ .tbar .btn{padding:5px 4px} .tbar .tsep{margin:0 1px} .tbar .tgrp{gap:3px} }
 @media (max-width:920px){ .tbar .dragnote{display:none} }
 .tbar .mdd{right:auto;left:0}
 .tbar .dragnote{margin-left:auto}
@@ -686,6 +690,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
   <div class="menu" id="m_fy"><button class="btn" id="b_fy" onclick="toggleMenu('fy')">FY27 ▾</button><div class="mdd" id="dd_fy"></div></div>
   <div class="tsep"></div>
   <div class="menu" id="m_view"><button class="btn" id="b_view" onclick="toggleMenu('view')">🔍 Filter ▾</button><div class="mdd" id="dd_view"></div></div>
+  <div class="menu" id="m_pmo"><button class="btn" id="b_pmo" onclick="toggleMenu('pmo')" title="Whose requirements you are looking at — one programme office, the primes, or the whole portfolio.">🏢 PMO ▾</button><div class="mdd" id="dd_pmo"></div></div>
   <div class="tsep"></div>
   <div class="menu" id="m_ay"><button class="btn" id="b_ay" onclick="toggleMenu('ay')" title="What is executing right now — obligations against the active fiscal year.">📈 Active year ▾</button><div class="mdd" id="dd_ay"></div></div>
   <div class="menu" id="m_by"><button class="btn" id="b_by" onclick="toggleMenu('by')" title="The year you are building — requirements, priorities, forecast, CR posture.">🎯 Budget year ▾</button><div class="mdd" id="dd_by"></div></div>
@@ -1283,7 +1288,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.66 (17 Sep 2026)';
+const BUILD='v1.67 (18 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4599,6 +4604,42 @@ function publishPmoCopy(){
 // Only what changed against the baseline this copy shipped with, and only in the fields above.
 // The package carries VALUES, not journal entries: JRNL_BIG caps a journalled value at 300 chars
 // and an impact statement runs well past that, so a journal-borne submittal would arrive truncated.
+// ── WHICH OFFICE IS WORKING IN THIS COPY ──────────────────────────────────────────────────────
+// A submittal carries ONE office's requirements. That office is chosen in the copy, kept in the
+// browser like the editor name, and shown in the banner the whole time somebody is working -- not
+// asked for once at the end, where a wrong answer is discovered after the work is done.
+function myPmo(){ try{ return localStorage.getItem('prio27pmo')||''; }catch(e){ return ''; } }
+// The offices this board actually carries: pmoKeys()'s rule, configured order first and anything
+// else appended, because a requirement whose office was dropped from GROUPS still has an owner and
+// that owner still has to be able to submit for it.
+function pmoChoices(){
+  const seen={};
+  (S.order||[]).forEach(function(id){ const it=itemById(id); if(it) seen[grpOf(it)]=1; });
+  const out=pmoKeys(seen).filter(Boolean);
+  return out.length? out : GROUPS.slice();
+}
+function pickMyPmo(then){
+  const list=pmoChoices(), cur=myPmo();
+  uiPrompt('Which programme office are you submitting for?\n\n'
+    +list.map(function(g,i){ return '  '+(i+1)+'. '+g; }).join('\n')
+    +'\n\nOnly that office\u2019s requirements travel in a submittal.\n'
+    +'Type the name, or a number from the list.', cur, function(v){
+    if(v===null) return;
+    v=(''+v).trim();
+    if(!v) return;
+    const idx=parseInt(v,10);
+    const hit=(!isNaN(idx)&&list[idx-1])? list[idx-1]
+      : list.filter(function(g){ return g.toLowerCase()===v.toLowerCase(); })[0]
+      || list.filter(function(g){ return g.toLowerCase().indexOf(v.toLowerCase())===0; })[0];
+    if(!hit){ alert('No programme office matches \u201c'+v+'\u201d.\n\nThis board has: '
+      +list.join(', ')); return; }
+    try{ localStorage.setItem('prio27pmo', hit); }catch(e){}
+    try{ const b=document.getElementById('subBanner'); if(b) b.innerHTML=subBanner(); }catch(e){}
+    setStat('\u{1F3E2} Submitting for <b>'+esc(hit)+'</b> \u2014 only '+esc(hit)
+      +'\u2019s requirements travel in a submittal.');
+    if(then) then(hit);
+  });
+}
 function pmoSubmitBuild(){
   const base=(PMODE && PMODE.base) || {};
   const out={};
@@ -4617,6 +4658,10 @@ function pmoSubmitBuild(){
 function pmoSubmit(){
   if(!SANDBOX){ alert('Submittal packages are sent from a PMO copy. This is the portfolio board \u2014 '
     + 'your changes are already on it.'); return; }
+  // THE OFFICE IS PART OF THE PACKAGE, so ask for it before anything else is built. Re-entering
+  // through the callback rather than looping means a cancelled prompt simply stops.
+  const pmo=myPmo();
+  if(!pmo){ pickMyPmo(function(){ pmoSubmit(); }); return; }
   const items=pmoSubmitBuild();
   // A REQUIREMENT ADDED IN THIS COPY CANNOT BE SENT THIS WAY. The package carries FIELDS of
   // requirements the portfolio board already has; a new one has no id there, so it would arrive as
@@ -4634,10 +4679,30 @@ function pmoSubmit(){
       +'they will add it, and it will be on the next copy you receive.\n\n'
       +'Everything else you edited is still being sent.');
   }
+  // ── SCOPED TO THIS OFFICE, AND NOBODY ELSE'S ───────────────────────────────────────────────
+  // The rule is the requirement's OWN office -- grpOf -- and deliberately not a CLIN share. Under
+  // shares, both part-owners of a split prime could propose the same field and the portfolio team
+  // would have to arbitrate; under this rule two submittals can never contest one field, which is
+  // what lets several be reviewed side by side at all.
+  // IT IS CAUGHT HERE, in the copy, where the person who made the edit is still sitting. Dropping
+  // it quietly at the far end would leave an office believing it had submitted something it had not.
+  const foreign=Object.keys(items).filter(function(id){
+    const it=itemById(id); return !it || grpOf(it)!==pmo; });
+  foreign.forEach(function(id){ delete items[id]; });
+  if(foreign.length){
+    const nm=foreign.map(function(id){ const it=itemById(id);
+      return it? (grpOf(it)+' \u2014 '+(recName(it)||dispTitle(it))) : id; });
+    alert('\u26a0 '+foreign.length+' requirement'+(foreign.length===1?'':'s')+' you edited '
+      +(foreign.length===1?'belongs':'belong')+' to another programme office, so '
+      +(foreign.length===1?'it is':'they are')+' NOT being sent:\n\n  \u2022 '+nm.join('\n  \u2022 ')
+      +'\n\nA submittal proposes changes to '+pmo+'\u2019s own requirements. If one of these looks '
+      +'wrong, raise it with the office that owns it or at the SFWG \u2014 the portfolio team cannot '
+      +'take it from '+pmo+'.\n\nEverything else you edited is still being sent.');
+  }
   const n=Object.keys(items).length;
   if(!n){ alert('Nothing to send yet.\n\nEdit a description, an impact statement or a requirement '
-    + 'value, then submit. Moving rows around is yours to explore and is not sent \u2014 the priority '
-    + 'order stays the portfolio team\u2019s.'); return; }
+    + 'value on one of '+pmo+'\u2019s requirements, then submit. Moving rows around is yours to '
+    + 'explore and is not sent \u2014 the priority order stays the portfolio team\u2019s.'); return; }
   const who=whoAmI();
   // THE PATH IN THIS MESSAGE IS THE FILE MENU, because that is where the item is. It said Tools,
   // which has no such entry -- so an office following it opened the one menu that could not help,
@@ -4657,16 +4722,20 @@ function pmoSubmit(){
   // submittal read on a board whose services have changed since would land each figure against the
   // wrong service -- with the row total unchanged, so nothing would look wrong. Same failure the
   // state import guards against; the same list is what makes it detectable.
+  // pmo travels INSIDE the package, not only in the file name: a scope a rename can change is not
+  // a scope. The name carries it too, so a reviewer can sort an inbox without opening anything.
   const pkg={spmtPkg:(typeof PKG_VER!=='undefined'? PKG_VER : 1), dir:'submit',
              ap:(typeof mySlug==='function'? mySlug() : ''), fy:(PMODE&&PMODE.fy)||MS.cur,
-             ts:Date.now(), by:who, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),
+             ts:Date.now(), by:who, pmo:pmo, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),
              items:items, base:base};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
-  a.download=expName('SPMT SUBMITTAL - '+who.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
+  a.download=expName('SPMT SUBMITTAL - '+pmo.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
+    + who.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
     + new Date().toISOString().slice(0,10)+'.json');
   a.click();
-  setStat('\u2709 Submittal built for <b>'+esc(who)+'</b> \u2014 '+n+' requirement'+(n===1?'':'s')
+  setStat('\u2709 Submittal built for <b>'+esc(pmo)+'</b> by <b>'+esc(who)+'</b> \u2014 '
+    + n+' requirement'+(n===1?'':'s')
     + '. Send it to the portfolio team; they review every field before anything is applied.');
 }
 
@@ -4675,31 +4744,52 @@ function pmoSubmit(){
 // is the whole point: what matters is what would change if it were applied today. It is also what
 // makes a CONFLICT visible -- a field the office rewrote that this board has ALSO changed since the
 // copy went out. Diffing against their snapshot would hide exactly that case.
-let PMOSUB=null;                       // the package under review
-let PMOPICK={};                        // 'id|field' -> true, and nothing is ticked to begin with
+// SEVERAL SUBMITTALS ARE REVIEWED TOGETHER. One office at a time meant seven passes and seven
+// spreadsheets for a board with seven offices, and no way to see the round as a whole. Holding them
+// side by side is only safe because each is SCOPED to its own office's requirements: two packages
+// cannot propose the same field, so there is no arbitration to build and no last-one-wins to hide.
+let PMOSUBS=[];                        // every submittal held, in the order it arrived
+let PMOPICK={};                        // 'src|id|field' -> true; nothing is ticked to begin with
+const pickKey=r=>r.src+'|'+r.id+'|'+r.key;
+const subFrom=p=>(p&&(p.pmo||p.by))||'?';
 function pmoNow(id, key){
   let v=pmoVal(S,key,id);
   if(key==='asks' && v===null){ const it=itemById(id); if(it) v=it.ask.slice(); }
   return v;
 }
+// EVERY HELD SUBMITTAL, AS ONE LIST. A row carries the package it came from, so the reviewer can
+// see who proposed what and a tick can never mean two different things.
+// A row that this board has SINCE come to agree with drops out on its own -- pmoSame() below --
+// which is what lets changes be applied in batches: what was accepted disappears, what was not
+// stays on the list for the next pass.
 function pmoRows(){
-  const pkg=PMOSUB; if(!pkg) return [];
-  const base=(pkg.baseSeen)||{};
   const rows=[];
-  Object.keys(pkg.items||{}).forEach(function(id){
-    const it=itemById(id);
-    PMO_KEYS.forEach(function(k){
-      const prop=pkg.items[id][k];
-      if(prop===undefined) return;
-      const now=pmoNow(id,k);
-      if(pmoSame(now, prop)) return;                        // already says what they propose
-      const was=(base[id]||{})[k];
-      rows.push({id:id, key:k, it:it, now:now, prop:prop,
-                 gone:!it,                                   // a requirement this board no longer has
-                 conflict: was!==undefined && !pmoSame(now, was)});
+  PMOSUBS.forEach(function(pkg, si){
+    const base=(pkg.baseSeen)||{};
+    Object.keys(pkg.items||{}).forEach(function(id){
+      const it=itemById(id);
+      PMO_KEYS.forEach(function(k){
+        const prop=pkg.items[id][k];
+        if(prop===undefined) return;
+        const now=pmoNow(id,k);
+        if(pmoSame(now, prop)) return;                      // already says what they propose
+        const was=(base[id]||{})[k];
+        rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo,
+                   id:id, key:k, it:it, now:now, prop:prop,
+                   gone:!it,                                 // a requirement this board no longer has
+                   conflict: was!==undefined && !pmoSame(now, was)});
+      });
     });
   });
-  return rows;
+  // Grouped by office, then in the board's own priority order, so the list reads the way the board
+  // does rather than in whatever order the packages happened to be imported.
+  const MR=masterRanks();
+  return rows.sort(function(a,b){
+    if(a.from!==b.from) return a.from<b.from? -1 : 1;
+    const ra=MR[a.id]||1e9, rb=MR[b.id]||1e9;
+    if(ra!==rb) return ra-rb;
+    return PMO_KEYS.indexOf(a.key)-PMO_KEYS.indexOf(b.key);
+  });
 }
 function pmoFmtVal(k, v){
   if(v===null||v===undefined) return '\u2014';
@@ -4711,22 +4801,31 @@ function pmoFmtVal(k, v){
 // app, argue with, and keep -- one row per proposed field, with what the board says today beside
 // what the office proposes. Exported from the review, so it describes exactly what is on offer.
 function pmoReport(){
-  if(!PMOSUB){ alert('Import a submittal first.'); return; }
+  if(!PMOSUBS.length){ alert('Import a submittal first.'); return; }
   const rows=pmoRows();
   if(!rows.length){ alert('Nothing to report \u2014 this submittal proposes no change this board has not already made.'); return; }
   const TI={b:1,sz:13}, H={b:1,bg:'DDDDDD'}, N={};
   const MR=masterRanks();          // a local everywhere else in this file; the report needs it too
-  const sheet={name:'Proposed changes', cols:[8,10,44,13,26,44,44,11,11],
-    rows:[[{v:expTitle()+'  \u2014  SUBMITTAL FROM '+(PMOSUB.by||'?')
+  // ONE SHEET FOR THE WHOLE ROUND. Submitted by / Sent are columns rather than a header line,
+  // because with several offices in the file a single header cannot say who sent what -- and the
+  // spreadsheet is the thing that gets mailed on and argued with away from the app.
+  const sheet={name:'Proposed changes', cols:[10,8,10,44,13,26,44,44,11,13,18],
+    rows:[[{v:expTitle()+'  \u2014  '+PMOSUBS.length+' SUBMITTAL'+(PMOSUBS.length===1?'':'S')
+            +' FROM '+PMOSUBS.map(subFrom).join(', ')
             +'  \u2014  '+rows.length+' proposed change'+(rows.length===1?'':'s')
             +'  \u2014  NOTHING BELOW HAS BEEN APPLIED',s:TI}],
-          [{v:'Sent '+(PMOSUB.ts? new Date(PMOSUB.ts).toLocaleString():'?')
-            +(PMOSUB.fromTs? '  \u00b7  from a PMO copy published '+new Date(PMOSUB.fromTs).toLocaleDateString():'')}],
+          [{v:PMOSUBS.map(function(pk){ return subFrom(pk)+' by '+(pk.by||'?')
+              +' sent '+(pk.ts? new Date(pk.ts).toLocaleString():'?')
+              +(pk.fromTs? ' (copy published '+new Date(pk.fromTs).toLocaleDateString()+')':'')
+              +(pk.pmo? '' : '  \u2014  UNSCOPED, may touch any office\u2019s requirements'); })
+            .join('   \u00b7   ')}],
           [],
-          [{v:'Rank',s:H},{v:'PMO',s:H},{v:'Requirement',s:H},{v:'CCaR',s:H},{v:'Field',s:H},
-           {v:'On the board now',s:H},{v:'Proposed',s:H},{v:'Conflict',s:H},{v:'Status',s:H}]]};
+          [{v:'Submitted by',s:H},{v:'Rank',s:H},{v:'PMO',s:H},{v:'Requirement',s:H},{v:'CCaR',s:H},
+           {v:'Field',s:H},{v:'On the board now',s:H},{v:'Proposed',s:H},{v:'Conflict',s:H},
+           {v:'Status',s:H},{v:'Decision / notes',s:H}]]};
   rows.forEach(function(r){
     sheet.rows.push([
+      r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : ''),
       {v:r.it? (MR[r.id]||'') : '', s:N},
       r.it? grpOf(r.it) : '',
       r.it? (recName(r.it)||dispTitle(r.it)) : r.id+' (no longer on this board)',
@@ -4735,16 +4834,20 @@ function pmoReport(){
       pmoFmtVal(r.key, r.now),
       pmoFmtVal(r.key, r.prop),
       r.conflict? 'YES \u2014 this board changed too' : '',
-      r.gone? 'requirement missing' : (PMOPICK[r.id+'|'+r.key]? 'ticked to apply' : 'not applied')]);
+      r.gone? 'requirement missing' : (PMOPICK[pickKey(r)]? 'ticked to apply' : 'not applied'),
+      '']);
   });
   sheet.rows.push([]);
   sheet.rows.push([{v:'A CONFLICT means this board changed that same field after the PMO copy went '
     +'out. Applying replaces what is here now. Nothing in this file has been applied \u2014 it is the '
-    +'review, not the result.'}]);
+    +'review, not the result. DECISION / NOTES is left blank on purpose: it is yours to fill in and '
+    +'keep as the record of what was accepted and why.'}]);
   const blob=buildXlsx([sheet]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('SPMT SUBMITTAL REVIEW - '+String(PMOSUB.by||'').replace(/[^A-Za-z0-9 _-]/g,'')+' - '
+  a.download=expName('SPMT SUBMITTAL REVIEW - '
+    + (PMOSUBS.length===1? String(subFrom(PMOSUBS[0])).replace(/[^A-Za-z0-9 _-]/g,'')
+                         : PMOSUBS.length+' offices')+' - '
     + new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\u{1F4C4} Change report exported \u2014 '+rows.length+' proposed change'+(rows.length===1?'':'s')
@@ -4753,11 +4856,29 @@ function pmoReport(){
 // Applying goes one field at a time through jrnlSet(), so every accepted change lands in the change
 // journal with a path, a before and an after -- the same trail as any edit made by hand.
 function pmoApply(){
-  if(!PMOSUB) return;
-  const rows=pmoRows().filter(function(r){ return PMOPICK[r.id+'|'+r.key] && !r.gone; });
+  if(!PMOSUBS.length) return;
+  const rows=pmoRows().filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone; });
   if(!rows.length){ alert('Nothing is ticked. Tick the changes you want, then apply.'); return; }
+  // TWO SUBMITTALS TICKED ON ONE FIELD. Scoping makes this impossible between two scoped packages
+  // -- an office owns a requirement or it does not -- but an UNSCOPED legacy package loaded beside
+  // a scoped one can still reach a field the other owns. Applying both would let whichever ran last
+  // win, silently, and the spreadsheet would record both as accepted.
+  const seen={}, clash=[];
+  rows.forEach(function(r){ const k=r.id+'|'+r.key;
+    if(seen[k]) clash.push(r.from+' and '+seen[k]+' \u2014 '
+      +(r.it? (recName(r.it)||dispTitle(r.it)) : r.id)+' \u00b7 '+(PMO_LBL[r.key]||r.key));
+    else seen[k]=r.from; });
+  if(clash.length){
+    alert('\u26a0 '+clash.length+' field'+(clash.length===1?' is':'s are')+' ticked from more than one '
+      +'submittal:\n\n  \u2022 '+clash.join('\n  \u2022 ')
+      +'\n\nApplying both would let whichever ran last win without saying so. Untick one of each '
+      +'pair, then apply.');
+    return;
+  }
   const nConf=rows.filter(function(r){ return r.conflict; }).length;
-  if(!confirm('Apply '+rows.length+' change'+(rows.length===1?'':'s')+' from '+(PMOSUB.by||'the submittal')+'?'
+  const offices=rows.map(function(r){ return r.from; })
+    .filter(function(v,i,a){ return a.indexOf(v)===i; });
+  if(!confirm('Apply '+rows.length+' change'+(rows.length===1?'':'s')+' from '+offices.join(', ')+'?'
     + (nConf? '\n\n\u26a0 '+nConf+' of them overwrite a field THIS BOARD changed since the copy went out.' : '')
     + '\n\nEach one is recorded in the change journal, so it can be found and undone later.')) return;
   let n=0;
@@ -4768,10 +4889,18 @@ function pmoApply(){
     if(jrnlSet(MS.cur, [r.key, r.id], r.prop)) n++;
   });
   applyState(MS.years[MS.cur]);
+  PMOPICK={};
   save(); render();
-  setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(PMOSUB.by||'?')+'</b>. '
-    + 'Every one is in the change journal.');
-  PMOSUB=null; PMOPICK={};
+  // THE PACKAGES STAY LOADED. What was applied drops off the list on its own, because pmoRows()
+  // skips a field the board has come to agree with; what is left is what was NOT accepted, still
+  // there for the next pass. Clearing them here would throw away every untaken proposal the moment
+  // the first batch was applied.
+  const left=pmoRows().length;
+  setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(offices.join(', '))+'</b>. '
+    + 'Every one is in the change journal. '
+    + (left? left+' proposed change'+(left===1?'':'s')+' still held for review.'
+           : 'Nothing is left to review.'));
+  if(typeof subBody==='function') subBody();
 }
 
 // Take delivery of a submittal: hold it for review, record what this board said at the moment the
@@ -4849,47 +4978,143 @@ function pmoTake(pkg, fname){
       +'against a different board. Nothing was loaded.');
     return;
   }
-  PMOSUB=JSON.parse(JSON.stringify(pkg));
+  // ── SCOPE: THIS OFFICE'S REQUIREMENTS AND NOBODY ELSE'S ─────────────────────────────────────
+  // The package names the office it is from, and anything in it that office does not own is dropped
+  // before the review ever sees it. That is what makes several submittals reviewable side by side:
+  // two of them can never contest one field, so there is no arbitration and no last-one-wins.
+  // A requirement this board no longer has is NOT dropped here -- the review marks it 'gone' with
+  // its own symbol, which tells the reviewer something a silent drop would not.
+  let outOfScope=[];
+  if(pkg.pmo){
+    Object.keys(pkg.items).forEach(function(id){
+      const it=itemById(id);
+      if(!it || grpOf(it)===pkg.pmo) return;
+      outOfScope.push(grpOf(it)+' \u2014 '+(recName(it)||dispTitle(it)));
+      delete pkg.items[id];
+    });
+    if(!Object.keys(pkg.items).length){
+      alert('That submittal is from '+pkg.pmo+' but proposes nothing on '+pkg.pmo+'\u2019s own '
+        +'requirements.\n\n'+outOfScope.length+' proposed change'+(outOfScope.length===1?'':'s')
+        +' '+(outOfScope.length===1?'was':'were')+' for requirements another office owns, and a '
+        +'submittal can only carry its own. Nothing was loaded.');
+      return;
+    }
+  } else {
+    // Written before submittals were scoped. Refusing would strand work somebody has already done,
+    // so it is taken -- and said out loud, because it can reach any office's requirements and is the
+    // one thing that can still collide with another package.
+    if(!confirm('\u2139 That submittal does not say which programme office it is from.\n\n'
+      +'It was written before submittals carried a scope, so it may propose changes to ANY '
+      +'requirement on the board \u2014 including ones another office owns.\n\nReview it anyway?')) return;
+  }
+  // A SECOND PACKAGE FROM THE SAME OFFICE REPLACES THE FIRST. Two rounds from one office stacked
+  // side by side would offer the reviewer the same field twice with different answers, which is the
+  // arbitration the scope exists to avoid.
+  const dup=PMOSUBS.map(function(pk,i){ return subFrom(pk)===subFrom(pkg)? i : -1; })
+    .filter(function(i){ return i>=0; });
+  dup.slice().reverse().forEach(function(i){ PMOSUBS.splice(i,1); });
+  const held=JSON.parse(JSON.stringify(pkg));
   // The baseline came in the package -- it is what THIS board said when the copy was published.
   // Re-reading the board here instead would compare it against itself, and every field would look
   // uncontested however much had changed in the meantime. That was the first version of this, and
   // the conflict flag never once fired.
-  PMOSUB.baseSeen=pkg.base||{};
+  held.baseSeen=pkg.base||{};
+  PMOSUBS.push(held);
   PMOPICK={};
   const n=pmoRows().length;
-  setStat('\u2709 Submittal from <b>'+esc(pkg.by||'?')+'</b> \u2014 '+n+' proposed change'+(n===1?'':'s')
-    + ' held for review. <b>Nothing has been applied.</b> Export the change report, then tick what you accept.');
+  setStat('\u2709 Submittal from <b>'+esc(subFrom(pkg))+'</b>'
+    + (pkg.by && pkg.by!==pkg.pmo? ' (<b>'+esc(pkg.by)+'</b>)' : '')
+    + (dup.length? ' \u2014 replacing an earlier one from the same office' : '')
+    + (outOfScope.length? ' \u2014 '+outOfScope.length+' change'+(outOfScope.length===1?'':'s')
+        +' for another office\u2019s requirements dropped' : '')
+    + '. <b>Nothing has been applied.</b> '+PMOSUBS.length+' submittal'+(PMOSUBS.length===1?'':'s')
+    + ' held, '+n+' proposed change'+(n===1?'':'s')+' in total.');
+  if(outOfScope.length){
+    alert('\u2139 '+outOfScope.length+' proposed change'+(outOfScope.length===1?'':'s')+' in that '
+      +'submittal '+(outOfScope.length===1?'is':'are')+' for requirements '+pkg.pmo+' does not own, '
+      +'so '+(outOfScope.length===1?'it was':'they were')+' dropped:\n\n  \u2022 '
+      +outOfScope.join('\n  \u2022 ')
+      +'\n\nA submittal carries its own office\u2019s requirements only. Everything else in it is '
+      +'held for review.');
+  }
   if(typeof subOpenReview==='function') subOpenReview();
 }
 
 let subOpen=false;
 function subOpenReview(){ subOpen=true; subBody(); }
 function subClose(){ subOpen=false; subBody(); }
-function subPick(id, key, on){ PMOPICK[id+'|'+key]=!!on; subBody(); }
-function subPickAll(on){
-  pmoRows().forEach(function(r){ if(!r.gone) PMOPICK[r.id+'|'+r.key]=!!on; });
+function subPick(src, id, key, on){ PMOPICK[src+'|'+id+'|'+key]=!!on; subBody(); }
+function subPickAll(on, src){
+  pmoRows().forEach(function(r){
+    if(r.gone) return;
+    if(src!==undefined && src!==null && r.src!==src) return;
+    PMOPICK[pickKey(r)]=!!on; });
+  subBody();
+}
+// Dropping a submittal forgets what it proposed; it does not undo anything already applied, which
+// is in the change journal like any other edit.
+function subDrop(i){
+  const pk=PMOSUBS[i]; if(!pk) return;
+  if(!confirm('Remove the submittal from '+subFrom(pk)+' from the review?\n\n'
+    +'Anything you have already applied stays applied \u2014 this only stops the rest being offered. '
+    +'Import the file again to bring it back.')) return;
+  PMOSUBS.splice(i,1);
+  PMOPICK={};
+  setStat('Submittal from <b>'+esc(subFrom(pk))+'</b> removed from the review. '
+    +PMOSUBS.length+' still held.');
+  subBody();
+}
+function subClearAll(){
+  if(!PMOSUBS.length) return;
+  if(!confirm('Clear all '+PMOSUBS.length+' submittal'+(PMOSUBS.length===1?'':'s')+' from the review?\n\n'
+    +'Anything already applied stays applied. Import the files again to bring them back.')) return;
+  PMOSUBS=[]; PMOPICK={};
+  setStat('Review cleared. Nothing already applied was undone.');
   subBody();
 }
 function subBody(){
   const pn=document.getElementById('subPanel'); if(pn) pn.style.display=subOpen?'flex':'none';
   const el=document.getElementById('subBody'); if(!el) return;
   if(!subOpen){ el.innerHTML=''; return; }
-  if(!PMOSUB){ el.innerHTML='<div class="hint">No submittal loaded. Import one with \u{1F4C1} File \u203a Import.</div>'; return; }
+  if(!PMOSUBS.length){ el.innerHTML='<div class="hint">No submittals loaded. Import them with \u{1F4C1} File \u203a Import \u2014 one per programme office, and they are reviewed together.</div>'; return; }
   const rows=pmoRows(), MR=masterRanks();
-  const nPick=rows.filter(function(r){ return PMOPICK[r.id+'|'+r.key] && !r.gone; }).length;
+  const nPick=rows.filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone; }).length;
   const nConf=rows.filter(function(r){ return r.conflict; }).length;
+  const nOpen=PMOSUBS.filter(function(pk){ return !pk.pmo; }).length;
+  // ONE LINE PER SUBMITTAL, so the round reads as a round: who sent what, when, and how much of it
+  // is still on the table. The per-office counts come from the same pmoRows() the table below uses,
+  // so a heading can never disagree with the list under it.
   let h='<div class="hint" style="margin-bottom:8px">'
-    +'<b>'+esc(PMOSUB.by||'?')+'</b> proposes '+rows.length+' change'+(rows.length===1?'':'s')+', sent '
-    +(PMOSUB.ts? esc(new Date(PMOSUB.ts).toLocaleString()):'?')
-    +(PMOSUB.fromTs? ' from a PMO copy published '+esc(new Date(PMOSUB.fromTs).toLocaleDateString()):'')
-    +'. <b>Nothing is applied until you tick it.</b> Their priority order is not sent \u2014 the ranking '
+    +'<b>'+PMOSUBS.length+' submittal'+(PMOSUBS.length===1?'':'s')+'</b> held, proposing '
+    +rows.length+' change'+(rows.length===1?'':'s')+' in total. '
+    +'<b>Nothing is applied until you tick it.</b> Priority order is never sent \u2014 the ranking '
     +'stays yours.'
     +(nConf? ' <b style="color:var(--amber)">'+nConf+' would overwrite a field this board changed since.</b>':'')
+    +(nOpen? ' <b style="color:var(--amber)">'+nOpen+' '+(nOpen===1?'is':'are')+' unscoped and may '
+      +'reach another office\u2019s requirements.</b>':'')
     +'</div>';
+  h+='<table class="fctab" style="width:100%;margin-bottom:8px"><tr>'
+    +'<th style="text-align:left">From</th><th style="text-align:left">Sent by</th>'
+    +'<th style="text-align:left">Sent</th><th>Left to review</th><th></th></tr>'
+    + PMOSUBS.map(function(pk,i){
+        const mine=rows.filter(function(r){ return r.src===i; }).length;
+        return '<tr><td style="text-align:left"><b>'+esc(pk.pmo||'\u2014 unscoped \u2014')+'</b></td>'
+          +'<td style="text-align:left">'+esc(pk.by||'?')+'</td>'
+          +'<td style="text-align:left;color:var(--dim)">'+esc(pk.ts? new Date(pk.ts).toLocaleString():'?')
+          +(pk.fromTs? '<br><span style="font-size:9px">copy published '
+            +esc(new Date(pk.fromTs).toLocaleDateString())+'</span>':'')+'</td>'
+          +'<td style="text-align:center;font-weight:800">'+mine+'</td>'
+          +'<td style="text-align:right;white-space:nowrap">'
+          +'<button class="qb" onclick="subPickAll(true,'+i+')">Tick these</button> '
+          +'<button class="qb" onclick="subPickAll(false,'+i+')">Untick</button> '
+          +'<button class="qb" style="border-color:var(--red);color:var(--red)" onclick="subDrop('+i+')">\u2715</button></td></tr>';
+      }).join('')
+    +'</table>';
   h+='<div class="fr" style="gap:8px;margin-bottom:8px;flex-wrap:wrap">'
     +'<button class="qb" onclick="pmoReport()">\u{1F4C4} Export change report (.xlsx)</button>'
     +'<button class="qb" onclick="subPickAll(true)">Tick all</button>'
     +'<button class="qb" onclick="subPickAll(false)">Untick all</button>'
+    +'<button class="qb" onclick="subClearAll()">Clear the review</button>'
     +'<span style="flex:1"></span>'
     +'<button class="qb" '+(nPick?'style="border-color:var(--green);color:var(--green);font-weight:800"':'disabled style="opacity:.5"')
     +' onclick="pmoApply()">\u2714 Apply '+nPick+' ticked</button></div>';
@@ -4899,17 +5124,20 @@ function subBody(){
   h+='<style>#subBody td{white-space:normal;word-break:break-word;vertical-align:top}'
     +'#subBody th{white-space:nowrap}</style>'
     +'<div style="overflow:auto;max-height:62vh"><table class="fctab" style="width:100%;table-layout:fixed">'
-    +'<colgroup><col style="width:34px"><col style="width:24%"><col style="width:14%">'
-    +'<col style="width:30%"><col style="width:30%"></colgroup>'
-    +'<tr><th></th><th style="text-align:left">Requirement</th><th style="text-align:left">Field</th>'
+    +'<colgroup><col style="width:34px"><col style="width:9%"><col style="width:23%"><col style="width:13%">'
+    +'<col style="width:27%"><col style="width:27%"></colgroup>'
+    +'<tr><th></th><th style="text-align:left">From</th>'
+    +'<th style="text-align:left">Requirement</th><th style="text-align:left">Field</th>'
     +'<th style="text-align:left">On the board now</th><th style="text-align:left">Proposed</th></tr>';
   rows.forEach(function(r){
-    const key=r.id+'|'+r.key;
+    const key=pickKey(r);
     h+='<tr'+(r.conflict?' style="background:rgba(255,170,0,.08)"':'')+'>'
       +'<td style="text-align:center">'+(r.gone
         ? '<span title="this board no longer has that requirement" style="color:var(--red)">\u2715</span>'
         : '<input type="checkbox" '+(PMOPICK[key]?'checked':'')
-          +' onchange="subPick(\''+r.id+'\',\''+r.key+'\',this.checked)">')+'</td>'
+          +' onchange="subPick('+r.src+',\''+r.id+'\',\''+r.key+'\',this.checked)">')+'</td>'
+      +'<td style="text-align:left"><b>'+esc(r.from)+'</b>'
+        +(r.scoped? '' : '<br><span style="color:var(--amber);font-size:9px;font-weight:800">UNSCOPED</span>')+'</td>'
       +'<td style="text-align:left">'+(r.it? '<b>#'+(MR[r.id]||'')+'</b> '+esc(recName(r.it)||dispTitle(r.it))
                                             +' <span style="color:var(--dim)">'+esc(grpOf(r.it))+'</span>'
                                           : '<span style="color:var(--red)">'+esc(r.id)+' \u2014 not on this board</span>')+'</td>'
@@ -4930,6 +5158,12 @@ function subBanner(){
     +'\u25e8 PMO COPY \u2014 a snapshot'+(PMODE&&PMODE.by? ' published by '+esc(PMODE.by):'')
     +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
     +'. Work in it freely \u2014 nothing here reaches the portfolio board.'
+    // THE SCOPE IS VISIBLE THE WHOLE TIME somebody is working, not asked for once at the end. A
+    // submittal carries one office's requirements, so knowing which office that is belongs beside
+    // the work, where it can be corrected before the work is done rather than after.
+    +' <button class="qb" style="margin-left:8px;border-color:currentColor;font-weight:800"'
+    +' onclick="pickMyPmo()" title="a submittal carries this office\u2019s requirements only">'
+    +(myPmo()? '\u{1F3E2} '+esc(myPmo()) : '\u{1F3E2} set your office')+'</button>'
     // THE ACTION SITS WHERE THE INSTRUCTION IS. It is also in the Budget year menu, but a programme
     // office opening this for the first time should not have to go looking under a menu named after
     // something else to do the one thing this copy is for.
@@ -15435,19 +15669,43 @@ function taBody(){
     +'walk pays in. \u201cStill beyond the lane\u201d is trim that no remaining '
     +'discretionary can reach \u2014 that needs budget authority or mandatory, not a reallocation.</div>';
 }
-function chips(){
+// WHO THE BOARD IS SHOWING: the offices, the primes, and the counts behind each. This used to be a
+// strip of chips beside the search box and is a menu of its own now -- one place to pick an office,
+// one place to manage the list, and a button that says which is selected so nothing is hidden by
+// the move. The COUNTS are the reason it is built here rather than written into the menu by hand:
+// they come from grpOf(), so an office somebody added, or a requirement somebody reassigned, is
+// counted the moment it happens.
+function pmoCounts(){
   const counts={ALL:DATA.items.length};
-  GROUPS.forEach(g=>counts[g]=DATA.items.filter(i=>grpOf(i)===g).length);
-  let h='';
-  ['ALL',...GROUPS].forEach(g=>{
-    if(g!=='ALL'&&!counts[g]) return;
-    h+=`<span class="chip ${filter===g?'on':''}" onclick="filter='${g}';render()">${g}<span class="n">${counts[g]}</span></span>`;
-  });
-  const nP=DATA.items.filter(i=>ptypeOf(i.id)==='PRIME').length;
-  const nO=DATA.items.filter(i=>ptypeOf(i.id)==='OGC').length;
-  if(nP) h+=`<span class="chip ${ptypeFilter==='PRIME'?'on':''}" style="border-color:var(--gold)" onclick="ptypeFilter=ptypeFilter==='PRIME'?'':'PRIME';render()" title="consolidated view of every requirement marked Prime Contract, across all PMOs"><span style="color:var(--gold)">${PRIME_ICON}</span> PRIMES<span class="n">${nP}</span></span>`;
-  if(nO) h+=`<span class="chip ${ptypeFilter==='OGC'?'on':''}" onclick="ptypeFilter=ptypeFilter==='OGC'?'':'OGC';render()" title="every requirement marked Other Governmental Cost">OGC<span class="n">${nO}</span></span>`;
-  document.getElementById('chips').innerHTML=h;
+  GROUPS.forEach(function(g){ counts[g]=DATA.items.filter(function(i){ return grpOf(i)===g; }).length; });
+  // An office the payload homes requirements to but the configured list has dropped still owns
+  // them -- grpOf falls back to the file's own value -- so it is counted and offered rather than
+  // leaving its requirements unreachable from here.
+  DATA.items.forEach(function(i){ const g=grpOf(i);
+    if(g && counts[g]===undefined) counts[g]=DATA.items.filter(function(x){ return grpOf(x)===g; }).length; });
+  return counts;
+}
+function pmoMenuKeys(counts){
+  const seen={}; Object.keys(counts).forEach(function(k){ if(k!=='ALL') seen[k]=1; });
+  return pmoKeys(seen);
+}
+function setPmoFilter(g){ filter=g; render(); }
+function chips(){
+  // The strip is gone; the element stays because the removed-requirements chip sits beside it.
+  const el=document.getElementById('chips'); if(el) el.innerHTML='';
+}
+// WHERE A REQUIREMENT'S OFFICE IS SET. The control is one per requirement and belongs on that
+// requirement's own record -- a second one on the menu would be a second place to change the same
+// thing. But the menu is where somebody goes looking for anything to do with offices, so it takes
+// them there rather than pretending not to know. With a row selected it simply opens it.
+function pmoReassignHint(){
+  const sel=(typeof curRow!=='undefined' && curRow && itemById(curRow))? curRow : null;
+  if(sel && typeof toggleRec==='function'){ toggleRec(sel); return; }
+  alert('A requirement\u2019s PMO is set on its own record.\n\n'
+    +'Open any requirement\u2019s \ud83d\udccb Record \u2014 the PMO field is the second one, under '
+    +'\u201cWhat it is\u201d.\n\n'
+    +'The move applies to '+FYL()+' only: the source file keeps its own answer and the record says '
+    +'so. Its per-office rank travels with it, landing last in the office it joins.');
 }
 
 // ---- service realignment (always preserves the requirement's total) ----
@@ -17092,7 +17350,13 @@ function _stylesXml(extra){
       +(fid?' fillId="'+fid+'" applyFill="1"':'')
       +(e.border?' borderId="1" applyBorder="1"':'')
       // The element must actually close, and Excel ignores an alignment it was not told to apply.
-      +(e.wrap? ' applyAlignment="1"><alignment wrapText="1" vertical="bottom"/></xf>' : '/>');
+      // CENTRE is for a heading banded across a group of columns: left-aligned in a merged span it
+      // sits over the first column and reads as that column's heading rather than the group's.
+      +((e.wrap||e.center)
+        ? ' applyAlignment="1"><alignment'
+          +(e.center? ' horizontal="center"' : '')
+          +(e.wrap? ' wrapText="1" vertical="bottom"' : '')+'/></xf>'
+        : '/>');
   }).join('');
   // Function replacements, never string ones: a format code like &quot;$&quot;#,##0.00 contains
   // the sequence $& , which a string replacement expands to the matched placeholder and quietly
@@ -17164,8 +17428,22 @@ function buildXlsx(sheets, extra){
       }).join('');
       return '<row r="'+(ri+1)+'">'+cells+'</row>';
     }).join('');
+    // A HEADING BANDED ACROSS A GROUP OF COLUMNS. sheet.merges is a list of {r, c, cs} -- the row,
+    // the first column and how many columns wide, zero-based like the rows themselves. The label
+    // goes in the first cell of the span the way it always would; the cells it covers still have to
+    // be EMITTED with the band's own style, or the fill stops at the first column and the band is a
+    // coloured cell with a stripe of plain ones after it.
+    // mergeCells belongs AFTER sheetData in the schema. Put it before and Excel rejects the part
+    // outright rather than ignoring it -- the file does not open at all.
+    const merges=(s.merges&&s.merges.length)
+      ? '<mergeCells count="'+s.merges.length+'">'
+        + s.merges.map(function(m){
+            return '<mergeCell ref="'+_colL(m.c)+(m.r+1)+':'
+              +_colL(m.c+Math.max(1,m.cs||1)-1)+(m.r+1)+'"/>'; }).join('')
+        + '</mergeCells>'
+      : '';
     files.push(['xl/worksheets/sheet'+(i+1)+'.xml',_utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+views+cols+'<sheetData>'+rows+'</sheetData></worksheet>')]);
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+views+cols+'<sheetData>'+rows+'</sheetData>'+merges+'</worksheet>')]);
   });
   return _zipStore(files);
 }
@@ -17829,9 +18107,62 @@ function syncBtns(){
     '<div class="msep"></div>'+
     mi('⚙ Set base year…',"mRun(setBaseYear)",false,'rolls the 5-year window')+
     mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,'empties this year only',' warn');
-  const nFilt=(mcOnly?1:0)+(svcFilter>=0?1:0)+(ptypeFilter?1:0)+(laneFilter?1:0);
+  const nFilt=(mcOnly?1:0)+(svcFilter>=0?1:0)+(laneFilter?1:0);
   const bv=document.getElementById('b_view');
   if(bv) bv.textContent='🔍 Filter'+(nFilt?' ●'+nFilt:'')+(svcAll?' ☰':'')+' ▾';
+  // ── THE PMO MENU ────────────────────────────────────────────────────────────────────────────
+  // THE BUTTON SAYS WHAT IS SELECTED. The chips it replaced were visible at a glance; a menu is
+  // not, so the selection has to be on the face of it or the board silently shows one office's
+  // requirements while looking like it shows all of them.
+  (function(){
+    const counts=pmoCounts(), keys=pmoMenuKeys(counts);
+    const bp=document.getElementById('b_pmo');
+    if(bp) bp.textContent='🏢 '
+      + (filter==='ALL'? 'PMO' : filter)
+      + (ptypeFilter? ' · '+(ptypeFilter==='PRIME'?'Primes':'OGC') : '')
+      + ' ▾';
+    const dd=document.getElementById('dd_pmo'); if(!dd) return;
+    const nP=DATA.items.filter(function(i){ return ptypeOf(i.id)==='PRIME'; }).length;
+    const nO=DATA.items.filter(function(i){ return ptypeOf(i.id)==='OGC'; }).length;
+    const cnt=function(n){ return n? '<span class="n">'+n+'</span>' : ''; };
+    dd.innerHTML=
+      '<div class="mlbl">Whose requirements</div>'+
+      mi('All programme offices '+cnt(counts.ALL),"setPmoFilter('ALL')",filter==='ALL',
+         'the whole portfolio')+
+      // EVERY CONFIGURED OFFICE, INCLUDING AN EMPTY ONE. The chips this replaced hid an office
+      // with no requirements -- defensible on a crowded strip, wrong here: somebody who has just
+      // added an office goes looking for it, and an absence reads as “it did not work” rather
+      // than “there is nothing in it yet”. The count says which it is.
+      keys.filter(function(g){ return counts[g]; }).map(function(g){
+        return mi(esc(g)+' '+cnt(counts[g]),"setPmoFilter('"+g.replace(/'/g,"\\'")+"')",filter===g,
+                  GROUPS.indexOf(g)<0? 'from the source file — not on the configured list':'');
+      }).join('')+
+      // AN OFFICE WITH NOTHING IN IT IS STILL OFFERED, under its own heading. Hiding it -- which the
+      // chips did, defensibly on a crowded strip -- means somebody who has just added an office goes
+      // looking for it and reads the absence as “it did not work”. Listing it among the others
+      // instead would bury three live offices under seven empty ones.
+      (function(){
+        const empty=keys.filter(function(g){ return !counts[g]; });
+        if(!empty.length) return '';
+        return '<div class="msep"></div><div class="mlbl">Configured, nothing in them yet</div>'
+          + empty.map(function(g){
+              return mi(esc(g),"setPmoFilter('"+g.replace(/'/g,"\\'")+"')",filter===g,
+                        'no requirements in '+FYL()); }).join('');
+      })()+
+      ((nP||nO)? '<div class="msep"></div><div class="mlbl">By contract type</div>' : '')+
+      (nP? mi('<span style="color:var(--gold)">'+PRIME_ICON+'</span> Prime Contracts '+cnt(nP),
+              "ptypeFilter=ptypeFilter==='PRIME'?'':'PRIME';render()",ptypeFilter==='PRIME',
+              'across every office') : '')+
+      (nO? mi('OGC '+cnt(nO),"ptypeFilter=ptypeFilter==='OGC'?'':'OGC';render()",ptypeFilter==='OGC',
+              'Other Governmental Costs, across every office') : '')+
+      '<div class="msep"></div><div class="mlbl">The list itself</div>'+
+      mi('⚙ Manage programme offices…',"mRun(togglePmo)",pmoOpen,
+         GROUPS.length+' office'+(GROUPS.length===1?'':'s')+' — add, rename, reorder')+
+      mi('⇄ Reassign a requirement…',"mRun(pmoReassignHint)",false,
+         'open any requirement’s 📋 Record and set its PMO there')+
+      ((filter!=='ALL'||ptypeFilter)? '<div class="msep"></div>'
+        +mi('✕ Show every office',"filter='ALL';ptypeFilter='';render()",false,'clear this selection') : '');
+  })();
   document.getElementById('dd_view').innerHTML=
     '<div class="mlbl">Display</div>'+
     mi('☰ By-service detail on every row',"svcAll=!svcAll;render()",svcAll)+
@@ -17841,8 +18172,9 @@ function syncBtns(){
     mi('◩ Any unfunded portion',"laneFilter=laneFilter==='unf'?'':'unf';render()",laneFilter==='unf','the lanes could not cover it')+
     '<div class="msep"></div>'+
     mi('★ Mission Critical only',"mcOnly=!mcOnly;render()",mcOnly)+
-    mi('<span style="color:var(--gold)">'+PRIME_ICON+'</span> Prime Contracts only',"ptypeFilter=ptypeFilter==='PRIME'?'':'PRIME';render()",ptypeFilter==='PRIME','across all PMOs')+
-    mi('OGC only',"ptypeFilter=ptypeFilter==='OGC'?'':'OGC';render()",ptypeFilter==='OGC','Other Governmental Costs')+
+    // Prime Contracts and OGC moved to the 🏢 PMO menu, beside the offices. They answer the same
+    // question -- whose requirements am I looking at -- and a control with two homes is a control
+    // somebody changes in one place and looks for in the other.
     mi('Any service',"svcFilter=-1;render()",svcFilter<0)+
     SVC.map((s,i)=>mi(s+' — funded requirements only',`svcFilter=${i};render()`,svcFilter===i)).join('')+
     (nFilt? '<div class="msep"></div>'+mi('✕ Clear all filters',"mcOnly=false;svcFilter=-1;ptypeFilter='';laneFilter='';document.getElementById('q').value='';render()",false,'back to the full list'):'');
@@ -17870,11 +18202,13 @@ function syncBtns(){
     '<div class="msep"></div><div class="mlbl">Programme offices</div>'+
     (SANDBOX
       ? mi('✉ Submit input…',"mRun(pmoSubmit)",false,
-           'send your descriptions, impacts and values back')
+           myPmo()? 'send '+esc(myPmo())+'’s descriptions, impacts and values back'
+                  : 'pick your office, then send your input back')
       : mi('📤 Publish PMO copy…',"mRun(publishPmoCopy)",false,
            'a working snapshot they cannot save over')
-        + (PMOSUB? mi('✉ Review submittal…',"mRun(subOpenReview)",subOpen,
-             'from '+esc(PMOSUB.by||'?')+' — nothing applied yet') : ''))+
+        + (PMOSUBS.length? mi('✉ Review submittals…',"mRun(subOpenReview)",subOpen,
+             PMOSUBS.length+' held — '+esc(PMOSUBS.map(subFrom).join(', '))
+             +' — nothing applied yet') : ''))+
     mi('📋 Two Spend Plans…',"mRun(togglePlans)",planOpen,'discretionary only vs the whole top line')+
     '<div class="msep"></div><div class="mlbl">Spend plan basis</div>'+
     mi('◨ Discretionary only',"setScen('disc')",scenView==='disc',
@@ -21161,7 +21495,26 @@ function exportExcel(){
 
      The first seven columns are the same seven the sections above use, so the two blocks occupy the
      same spreadsheet columns instead of each needing its own widths. */
-  const obligCols=[...listCols, ...SVC.slice(1).map(_=>13), 16, 18, ...FYMON.map(_=>12), 14];
+  // THE THREE BANDS, AND WHY THEY ARE THESE COLOURS. They sit side by side over one header row, so
+  // they have to be told apart at a glance -- and the board already has a colour language the
+  // reader knows: discretionary is green and mandatory is purple everywhere on screen, in the deck
+  // and in the panels. Using anything else here would teach a second one. The spend plan takes blue
+  // because it is the only band that is not a lane. All three carry white text at better than 5:1.
+  const XTRA=[
+    {fill:'1E6B52', white:true, bold:true, center:true},   // Disc Allocations
+    {fill:'5B3A8E', white:true, bold:true, center:true},   // Mand Allocations
+    {fill:'1F4E79', white:true, bold:true, center:true},   // FY27 Spend Plan
+  ];
+  const BAND_D=XF_EXTRA0, BAND_M=XF_EXTRA0+1, BAND_P=XF_EXTRA0+2;
+  // Column positions, named once. Everything below -- the header, the rows, the total, the bands
+  // and the widths -- is laid out from these, so a column added in the middle moves them all
+  // together instead of shifting the figures out from under their own headings.
+  const nS=SVC.length;
+  const I_ASK=7, I_D=8, I_DM=9, I_SD=10, I_SM=10+nS, I_UFR=10+2*nS, I_MON=11+2*nS,
+        I_UNS=11+2*nS+FYMON.length, N_COL=I_UNS+1;
+  const obligCols=[8,10,22,44,44,13,17, 16,17,18,
+                   ...SVC.map(_=>13), ...SVC.map(_=>13), 18, ...FYMON.map(_=>12), 14];
+  let obligMerges=[];
   const obligBlock=g=>{
     const picked=[];
     S.order.forEach(id=>{
@@ -21176,33 +21529,54 @@ function exportExcel(){
       const sp=monSpreadOf(id,{d:dv,m:mv});
       const mon=FYMON.map((x,k)=>SVC.reduce((a,sv,i)=>a+(sp.m[i][k]||0),0));
       const uns=sp.unsch.reduce((a,b)=>a+b,0);
+      // THE ASK IS SHARED TOO. Every other figure on the row is this office's share, so an
+      // unshared ask would make the row's own arithmetic -- ask less disc less mand is the UFR --
+      // stop closing on exactly the requirements that span two offices.
+      const av=it.ask.map((v,i)=>v*f(i));
       const dT=dv.reduce((a,b)=>a+b,0), mT=mv.reduce((a,b)=>a+b,0), uT=uv.reduce((a,b)=>a+b,0);
+      const aT=av.reduce((a,b)=>a+b,0);
       if(dT+mT+uT<=0.005) return;              // this office has no stake in this requirement
-      picked.push({it,dv,mv,dT,mT,uT,mon,uns});
+      picked.push({it,av,dv,mv,aT,dT,mT,uT,mon,uns});
     });
     if(!picked.length) return [];
     const SUMC=k=>picked.reduce((a,r)=>a+k(r),0);
     const rows=[[],
       [{v:g+' \u2014 '+FYL()+' Requirements (Disc/Mand Funded Portions) with UFR and Planned '
         +'Obligation Dates',s:TI}]];
-    // The band label sits in the first month column. buildXlsx writes no merged cells, and teaching
-    // it to would change the writer thirteen exports share for the sake of one caption.
-    rows.push([...Array(7+SVC.length*2+2).fill(''), {v:FYL()+' Spend Plan',s:SEC}]);
+    // THE BAND ROW. Every cell a band covers is emitted with the band's own style -- an empty cell
+    // with a fill -- because a merge paints only what is there: label the first column alone and the
+    // colour stops after it.
+    const band=Array(N_COL).fill('');
+    for(let i=I_SD;i<I_SM;i++) band[i]={v:'',s:BAND_D};
+    for(let i=I_SM;i<I_UFR;i++) band[i]={v:'',s:BAND_M};
+    for(let i=I_MON;i<I_UNS;i++) band[i]={v:'',s:BAND_P};
+    band[I_SD]={v:'Disc Allocations',s:BAND_D};
+    band[I_SM]={v:'Mand Allocations',s:BAND_M};
+    band[I_MON]={v:FYL()+' Spend Plan',s:BAND_P};
+    const bandRow=rows.length;                 // where the merges have to point, counted not guessed
+    rows.push(band);
     rows.push(['Rank','PMO','Cost Element','Requirement (CCaR Record Name)','Plan Event','CCaR #','PID',
+      FYL()+' Ask','Disc allocated','Total (Disc+Mand)',
       ...SVC.map(sv=>sv+' Disc'), ...SVC.map(sv=>sv+' Mand'),
-      'Total (Disc+Mand)','UFR (Unfunded Requirement)',
+      'UFR (Unfunded Requirement)',
       ...FYMON.map(x=>x[1]),'Unscheduled'].map(v=>({v,s:H})));
     picked.forEach(r=>rows.push([
       {v:MR[r.it.id],s:0}, grpOf(r.it), ceOf(r.it.id),
       recName(r.it)||dispTitle(r.it), dispTitle(r.it), {v:ccarOf(r.it),s:1}, {v:pidOf(r.it),s:0},
+      {v:r.aT,s:N}, {v:r.dT,s:N}, {v:r.dT+r.mT,s:N},
       ...r.dv.map(v=>({v,s:N})), ...r.mv.map(v=>({v,s:N})),
-      {v:r.dT+r.mT,s:N}, {v:r.uT,s:r.uT>0.5?NR:N},
+      {v:r.uT,s:r.uT>0.5?NR:N},
       ...r.mon.map(v=>({v,s:N})), {v:r.uns,s:r.uns>0.5?NR:N}]));
     rows.push([{v:'TOTAL \u2014 '+picked.length+' requirement'+(picked.length===1?'':'s'),s:SEC},'','','','','','',
+      {v:SUMC(r=>r.aT),s:NB}, {v:SUMC(r=>r.dT),s:NB}, {v:SUMC(r=>r.dT+r.mT),s:NB},
       ...SVC.map((sv,i)=>({v:SUMC(r=>r.dv[i]),s:NB})), ...SVC.map((sv,i)=>({v:SUMC(r=>r.mv[i]),s:NB})),
-      {v:SUMC(r=>r.dT+r.mT),s:NB}, {v:SUMC(r=>r.uT),s:NB},
+      {v:SUMC(r=>r.uT),s:NB},
       ...FYMON.map((x,k)=>({v:SUMC(r=>r.mon[k]),s:NB})), {v:SUMC(r=>r.uns),s:NB}]);
-    rows.push([{v:'The month columns plus UNSCHEDULED add to Total (Disc+Mand): every funded dollar '
+    obligMerges.push({r:bandRow, c:I_SD,  cs:nS},
+                     {r:bandRow, c:I_SM,  cs:nS},
+                     {r:bandRow, c:I_MON, cs:FYMON.length});
+    rows.push([{v:'\u2026 and '+FYL()+' Ask less Disc allocated less the mandatory beside it is the UFR. '
+      +'The month columns plus UNSCHEDULED add to Total (Disc+Mand): every funded dollar '
       +'obligates in a month or is waiting on an award date. UFR is what this office is still short '
       +'against the '+FYL()+' requirement and is NOT part of that total. Every figure is this '
       +'office\u2019s share of the requirement, so the rows add back to its line on the PMO Matrix.',s:0}]);
@@ -21242,11 +21616,18 @@ function exportExcel(){
       rows.push(['Discretionary + Mandatory + Unfunded = this office\u2019s share of the requirement. '
         +'★ Mission Critical is a MEMO of the starred requirements\u2019 own value and is already '
         +'inside those three — do not add it in.']);
-      obligBlock(g).forEach(r=>rows.push(r));
-      sheets.push({name:('PMO '+g).slice(0,31), cols:obligCols, rows});
+      // The block is appended AFTER the portion sections, so where its band row lands depends on how
+      // many rows those sections produced. obligBlock() counts it rather than assuming, and the
+      // offset is added here -- a merge pointing at the wrong row paints a stripe across the data.
+      obligMerges=[];
+      const blk=obligBlock(g);
+      const at=rows.length;
+      blk.forEach(r=>rows.push(r));
+      sheets.push({name:('PMO '+g).slice(0,31), cols:obligCols, rows,
+                   merges:obligMerges.map(m=>({r:m.r+at, c:m.c, cs:m.cs}))});
     }
   });
-  const bytes=buildXlsx(sheets);
+  const bytes=buildXlsx(sheets, XTRA);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName(scenFile(document.title.replace(/FY\d\d/,FYL())+' — Breakouts')+' '+new Date().toISOString().slice(0,10)+'.xlsx');

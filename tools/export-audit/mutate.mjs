@@ -395,8 +395,8 @@ const MUTATIONS = [
     find: "    if(r.key==='asks'){ if(applyAskVec(r.id, r.prop)) n++; return; }",
     repl: "    /* straight to the store */" },
   { id: 'handoff-no-svc-list', area: 'pmoSubmit', what: 'the submittal leaves its service list behind, so per-service figures cannot be aligned',
-    find: '             ts:Date.now(), by:who, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),',
-    repl: '             ts:Date.now(), by:who, fromTs:(PMODE&&PMODE.ts)||0,' },
+    find: '             ts:Date.now(), by:who, pmo:pmo, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),',
+    repl: '             ts:Date.now(), by:who, pmo:pmo, fromTs:(PMODE&&PMODE.ts)||0,' },
   { id: 'handoff-svc-by-position', area: 'pmoTake', what: 'a reordered service list is taken at face value, landing each figure on the wrong service',
     find: "      fix(pkg.items); fix(pkg.base);",
     repl: "      /* positional */" },
@@ -448,8 +448,8 @@ const MUTATIONS = [
     repl: "  /* whatever they had */" },
   // The change report is the record the team signs off from.
   { id: 'report-drops-status', area: 'pmoReport', what: 'the report does not say which rows are ticked to apply',
-    find: "      r.gone? 'requirement missing' : (PMOPICK[r.id+'|'+r.key]? 'ticked to apply' : 'not applied')]);",
-    repl: "      '']);" },
+    find: "      r.gone? 'requirement missing' : (PMOPICK[pickKey(r)]? 'ticked to apply' : 'not applied'),",
+    repl: "      ''," },
   { id: 'report-hides-conflict', area: 'pmoReport', what: 'the report does not flag a field this board changed too',
     find: "      r.conflict? 'YES \\u2014 this board changed too' : '',",
     repl: "      '',                                    // the conflict column" },
@@ -550,7 +550,7 @@ const MUTATIONS = [
     find: '  PMOPICK={};\n  const n=pmoRows().length;',
     repl: '  PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[r.id+\'|\'+r.key]=true; });\n  const n=pmoRows().length;' },
   { id: 'pmo-applies-unticked', area: 'pmoApply', what: 'apply takes every proposed change, not only the ticked ones',
-    find: "  const rows=pmoRows().filter(function(r){ return PMOPICK[r.id+'|'+r.key] && !r.gone; });",
+    find: "  const rows=pmoRows().filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone; });",
     repl: "  const rows=pmoRows().filter(function(r){ return !r.gone; });" },
   // ---- reading a workbook: every offset comes out of the file being read ------------------------
   { id: 'xlsx-cdoff-unchecked', area: 'xlsxRead', what: 'a damaged directory offset throws a raw RangeError instead of naming the problem',
@@ -841,8 +841,39 @@ const MUTATIONS = [
     find: `      const uns=sp.unsch.reduce((a,b)=>a+b,0);`,
     repl: `      const uns=0;` },
   { id: 'oblig-widths-stale', area: 'exportExcel', what: 'the PMO report column widths are one block short, so every figure prints under the wrong heading',
-    find: `  const obligCols=[...listCols, ...SVC.slice(1).map(_=>13), 16, 18, ...FYMON.map(_=>12), 14];`,
-    repl: `  const obligCols=[...listCols, ...SVC.slice(1).map(_=>13), 16, 18, 14];` },
+    find: `  const obligCols=[8,10,22,44,44,13,17, 16,17,18,
+                   ...SVC.map(_=>13), ...SVC.map(_=>13), 18, ...FYMON.map(_=>12), 14];`,
+    repl: `  const obligCols=[8,10,22,44,44,13,17, 16,17,18,
+                   ...SVC.map(_=>13), 18, ...FYMON.map(_=>12), 14];` },
+
+  // ---- the banded headings over the PMO report ------------------------------------------------
+  // A band is a heading that claims a block of columns. One column short or long and it claims
+  // figures it does not describe, on the row a reader uses to know what they are looking at.
+  { id: 'band-disc-short', area: 'exportExcel', what: 'the Disc Allocations band stops one column short of the services it heads',
+    find: `                     {r:bandRow, c:I_SM,  cs:nS},`,
+    repl: `                     {r:bandRow, c:I_SM,  cs:nS-1},` },
+  { id: 'band-not-painted', area: 'exportExcel', what: 'only the labelled cell of each band is painted, so the colour stops after the first column',
+    find: `    for(let i=I_SD;i<I_SM;i++) band[i]={v:'',s:BAND_D};`,
+    repl: `    for(let i=I_SD;i<I_SM;i++) band[i]='';` },
+  { id: 'band-one-colour', area: 'exportExcel', what: 'all three bands take the same fill, so three headings in a row read as one',
+    find: `  const BAND_D=XF_EXTRA0, BAND_M=XF_EXTRA0+1, BAND_P=XF_EXTRA0+2;`,
+    repl: `  const BAND_D=XF_EXTRA0, BAND_M=XF_EXTRA0, BAND_P=XF_EXTRA0;` },
+  // THE ONE THAT STOPS THE FILE OPENING. mergeCells belongs after sheetData; before it, Excel
+  // refuses the part outright and the workbook does not open at all.
+  { id: 'merge-before-sheetdata', area: 'buildXlsx', what: 'mergeCells is written before sheetData, which makes Excel refuse the whole sheet',
+    find: `'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+views+cols+'<sheetData>'+rows+'</sheetData>'+merges+'</worksheet>')]);`,
+    repl: `'<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+views+cols+merges+'<sheetData>'+rows+'</sheetData></worksheet>')]);` },
+  { id: 'merge-count-wrong', area: 'buildXlsx', what: 'the declared merge count does not match the merges written, which Excel repairs the file over',
+    find: `      ? '<mergeCells count="'+s.merges.length+'">'`,
+    repl: `      ? '<mergeCells count="'+(s.merges.length+1)+'">'` },
+
+  // ---- the three summary columns --------------------------------------------------------------
+  { id: 'oblig-ask-unshared', area: 'exportExcel', what: 'the Ask column shows the whole requirement while every figure beside it is the office\u2019s share, so the row stops closing',
+    find: `      const av=it.ask.map((v,i)=>v*f(i));`,
+    repl: `      const av=it.ask.slice();` },
+  { id: 'oblig-disc-is-funded', area: 'exportExcel', what: 'the Disc allocated column carries disc + mand, so the two summary columns say the same thing',
+    find: `      {v:r.aT,s:N}, {v:r.dT,s:N}, {v:r.dT+r.mT,s:N},`,
+    repl: `      {v:r.aT,s:N}, {v:r.dT+r.mT,s:N}, {v:r.dT+r.mT,s:N},` },
   // The office's SHARE, scaled per service exactly as the sections above it are. Dropping the
   // scaling makes a requirement spanning two offices count whole on both, and the tab stops adding
   // back to its row on the PMO Matrix.
@@ -852,13 +883,66 @@ const MUTATIONS = [
   // UFR is what the office is still SHORT. Folding it into the funded total makes the report state
   // money the board does not have, on the line somebody reads the obligation plan from.
   { id: 'oblig-ufr-inside-total', area: 'exportExcel', what: 'the PMO report adds UFR into Total (Disc+Mand)',
-    find: `      {v:r.dT+r.mT,s:N}, {v:r.uT,s:r.uT>0.5?NR:N},`,
-    repl: `      {v:r.dT+r.mT+r.uT,s:N}, {v:r.uT,s:r.uT>0.5?NR:N},` },
+    // The row layout moved: the funded total is one of three summary columns after PID now, and
+    // UFR sits on its own further right. Same claim, aimed at where the figure actually is.
+    find: `      {v:r.aT,s:N}, {v:r.dT,s:N}, {v:r.dT+r.mT,s:N},`,
+    repl: `      {v:r.aT,s:N}, {v:r.dT,s:N}, {v:r.dT+r.mT+r.uT,s:N},` },
   // Two placement rules for one question. This one buckets every funded dollar into the first
   // month, which is what a second implementation drifts into looking like.
   { id: 'oblig-months-collapse', area: 'exportExcel', what: 'the PMO report stops reading the award dates and piles every dollar into October',
     find: `      const mon=FYMON.map((x,k)=>SVC.reduce((a,sv,i)=>a+(sp.m[i][k]||0),0));`,
     repl: `      const mon=FYMON.map((x,k)=>k? 0 : SVC.reduce((a,sv,i)=>a+sp.m[i].reduce((q,w)=>q+w,0),0));` },
+
+  // ---- a submittal carries one office's requirements ---------------------------------------------
+  // The scope is what lets several submittals be reviewed side by side: two of them can never
+  // contest one field. Break it and the review is back to arbitrating between offices, silently.
+  { id: 'submit-sends-other-office', area: 'pmoSubmit', what: 'a submittal carries requirements another office owns',
+    find: `  foreign.forEach(function(id){ delete items[id]; });`,
+    repl: `  foreign.forEach(function(id){ void id; });` },
+  { id: 'submit-foreign-silent', area: 'pmoSubmit', what: 'the office is never told which of its edits are not being sent',
+    find: `  if(foreign.length){
+    const nm=foreign.map(function(id){ const it=itemById(id);`,
+    repl: `  if(false){
+    const nm=foreign.map(function(id){ const it=itemById(id);` },
+  { id: 'submit-no-pmo-in-pkg', area: 'pmoSubmit', what: 'the package does not say which office it is from, so nothing downstream can scope it',
+    find: `             ts:Date.now(), by:who, pmo:pmo, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),`,
+    repl: `             ts:Date.now(), by:who, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),` },
+  // THE BOARD DOES NOT TRUST THE SENDER TO HAVE DONE IT. The package is a JSON file; a hand edit
+  // or an older build is all it takes for another office's row to arrive anyway.
+  { id: 'take-ignores-scope', area: 'pmoTake', what: 'a row the sending office does not own is reviewed anyway',
+    find: `      outOfScope.push(grpOf(it)+' \\u2014 '+(recName(it)||dispTitle(it)));
+      delete pkg.items[id];`,
+    repl: `      outOfScope.push(grpOf(it)+' \\u2014 '+(recName(it)||dispTitle(it)));` },
+  { id: 'take-stacks-same-office', area: 'pmoTake', what: 'a second round from one office is held beside the first, offering the same field twice',
+    find: `  dup.slice().reverse().forEach(function(i){ PMOSUBS.splice(i,1); });`,
+    repl: `  dup.slice().reverse().forEach(function(i){ void i; });` },
+  // Clearing the packages on apply throws away every proposal that was NOT accepted, the moment
+  // the first batch goes in -- which is what the single-package version did.
+  { id: 'apply-discards-unapplied', area: 'pmoApply', what: 'applying clears every held submittal, losing what was not accepted',
+    find: `  applyState(MS.years[MS.cur]);
+  PMOPICK={};
+  save(); render();`,
+    repl: `  applyState(MS.years[MS.cur]);
+  PMOPICK={}; PMOSUBS=[];
+  save(); render();` },
+
+  // ---- the PMO menu ------------------------------------------------------------------------------
+  // The offices moved off a chip strip that showed the selection at a glance. A menu does not, so
+  // the button has to carry it -- otherwise the board shows one office's requirements while looking
+  // like it shows the portfolio, which is a briefing error waiting to happen.
+  { id: 'pmo-button-silent', area: 'syncBtns', what: 'the PMO button stops naming the office that is selected',
+    find: `    if(bp) bp.textContent='🏢 '
+      + (filter==='ALL'? 'PMO' : filter)`,
+    repl: `    if(bp) bp.textContent='🏢 '
+      + 'PMO'` },
+  { id: 'pmo-hides-empty-office', area: 'syncBtns', what: 'an office with no requirements is left out of the menu, so one just added looks like it failed',
+    find: `        const empty=keys.filter(function(g){ return !counts[g]; });
+        if(!empty.length) return '';`,
+    repl: `        const empty=keys.filter(function(g){ return !counts[g]; });
+        if(empty.length>=0) return '';` },
+  { id: 'pmo-counts-ignore-moves', area: 'pmoCounts', what: 'the menu counts requirements by their file value, so a reassignment never shows',
+    find: `  GROUPS.forEach(function(g){ counts[g]=DATA.items.filter(function(i){ return grpOf(i)===g; }).length; });`,
+    repl: `  GROUPS.forEach(function(g){ counts[g]=DATA.items.filter(function(i){ return i.grp===g; }).length; });` },
 
   // ---- the Two Spend Plans, A vs B tab -----------------------------------------------------------
   // Identity columns wedged into the middle of a tab nothing was checking. The risk is not that a

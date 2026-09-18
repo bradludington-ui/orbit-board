@@ -2,6 +2,7 @@
 // discretionary / mandatory / unfunded truth. Every check compares a number the workbook prints
 // against the same number recomputed from tiers().
 import { boot, seed, capture, num, cv } from './boot.mjs';
+import { inflateRawSync } from 'node:zlib';
 
 const EPS = 0.005;
 let failures = [];
@@ -955,7 +956,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     const band = (sh.rows[t + 1] || []).findIndex(c => String(cv(c) ?? '').includes('Spend Plan'));
     const at = k => hdr.indexOf(k);
     const rows = sh.rows.slice(t + 3).filter(r => typeof cv(r[at('Total (Disc+Mand)')]) === 'number');
-    return { sh, title: String(cv(sh.rows[t][0])), hdr, band, at, rows,
+    return { sh, t, title: String(cv(sh.rows[t][0])), hdr, band, at, rows,
              cols: sh.cols.length, months: hdr.slice(at('OCT 26'), at('Unscheduled')) };
   };
 
@@ -966,17 +967,67 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     // THE COUNT. Widths and headings are authored separately; one short and every figure on the
     // block prints under the wrong heading in a workbook that opens perfectly.
     chk(name, 'PMO AV', 'one column width per heading', av.cols, av.hdr.length);
-    ['Rank', 'Requirement (CCaR Record Name)', 'Plan Event', 'CCaR #',
-     'Total (Disc+Mand)', 'UFR (Unfunded Requirement)', 'Unscheduled'].forEach(h =>
+    ['Rank', 'Requirement (CCaR Record Name)', 'Plan Event', 'CCaR #', 'PID',
+     'FY27 Ask', 'Disc allocated', 'Total (Disc+Mand)',
+     'UFR (Unfunded Requirement)', 'Unscheduled'].forEach(h =>
       chk(name, 'PMO AV', `it states "${h}"`, av.at(h) >= 0, true));
+    // THE THREE SUMMARY COLUMNS SIT TOGETHER, DIRECTLY AFTER PID, and in that order: what was
+    // asked, what discretionary put against it, what both lanes put against it.
+    chk(name, 'PMO AV', 'the ask comes straight after PID', av.at('FY27 Ask'), av.at('PID') + 1);
+    chk(name, 'PMO AV', 'then the discretionary total', av.at('Disc allocated'), av.at('FY27 Ask') + 1);
+    chk(name, 'PMO AV', 'then disc + mand', av.at('Total (Disc+Mand)'), av.at('Disc allocated') + 1);
+    chk(name, 'PMO AV', 'and they come before the per-service breakout',
+      av.at('Total (Disc+Mand)') < av.at('USAF Disc'), true);
+    // ONE column headed Total (Disc+Mand), not two. It used to sit after the Mand block as well.
+    chk(name, 'PMO AV', 'the funded total is stated once',
+      av.hdr.filter(h => h === 'Total (Disc+Mand)').length, 1);
     SVCX.forEach(sv => {
       chk(name, 'PMO AV', `${sv} has its own Disc column`, av.at(sv + ' Disc') >= 0, true);
       chk(name, 'PMO AV', `${sv} has its own Mand column`, av.at(sv + ' Mand') >= 0, true);
     });
     chk(name, 'PMO AV', 'twelve months of the fiscal year', av.months.length, 12);
     chk(name, 'PMO AV', 'the first one is October', av.months[0], 'OCT 26');
-    chk(name, 'PMO AV', 'the Spend Plan band sits over the first month column',
-      av.band, av.at('OCT 26'));
+    // ── THE BANDS. Three headings over three blocks, each its own colour, each merged across
+    //    exactly the columns it describes. A band one column short or one long is a heading that
+    //    claims figures it does not cover, on the row a reader uses to know what they are looking at.
+    const bandCells = (av.sh.rows[av.t + 1] || []);
+    const labelled = bandCells.map((c, i) => ({ i, v: String(cv(c) ?? ''), s: c && c.s }))
+      .filter(x => x.v);
+    chk(name, 'bands', 'three headings are banded across the section', labelled.length, 3);
+    chk(name, 'bands', 'Disc Allocations sits over the first service Disc column',
+      labelled[0] && labelled[0].v + '@' + labelled[0].i, 'Disc Allocations@' + av.at('USAF Disc'));
+    chk(name, 'bands', 'Mand Allocations sits over the first service Mand column',
+      labelled[1] && labelled[1].v + '@' + labelled[1].i, 'Mand Allocations@' + av.at('USAF Mand'));
+    chk(name, 'bands', 'the Spend Plan band sits over the first month column',
+      labelled[2] && labelled[2].v + '@' + labelled[2].i, 'FY27 Spend Plan@' + av.at('OCT 26'));
+    // DISTINCT COLOURS, or three bands in a row read as one. They are also the board's own colour
+    // language -- discretionary green, mandatory purple -- so the reader is not taught a second one.
+    chk(name, 'bands', 'each band has its own style',
+      new Set(labelled.map(x => x.s)).size, 3);
+    // A MERGE PAINTS ONLY WHAT IS THERE. Every cell under a band has to be emitted with the band's
+    // own style, or the colour stops after the label and the rest of the span is plain.
+    const spanPainted = (from, n, style) => {
+      let ok = 0;
+      for (let i = from; i < from + n; i++) { const c = bandCells[i];
+        if (c && typeof c === 'object' && c.s === style) ok++; }
+      return ok;
+    };
+    chk(name, 'bands', 'the Disc band is painted across every service column',
+      spanPainted(av.at('USAF Disc'), SVCX.length, labelled[0] && labelled[0].s), SVCX.length);
+    chk(name, 'bands', 'the Mand band too',
+      spanPainted(av.at('USAF Mand'), SVCX.length, labelled[1] && labelled[1].s), SVCX.length);
+    chk(name, 'bands', 'and the Spend Plan band across all twelve months',
+      spanPainted(av.at('OCT 26'), 12, labelled[2] && labelled[2].s), 12);
+    // The merges the writer is handed: one per band, on the band's own row, spanning its block.
+    const mg = (av.sh.merges || []).slice().sort((a, b) => a.c - b.c);
+    chk(name, 'bands', 'three merges are asked for', mg.length, 3);
+    chk(name, 'bands', 'all on the band row', mg.every(m => m.r === av.t + 1), true);
+    chk(name, 'bands', 'the Disc merge spans its services',
+      mg[0] && mg[0].c + '+' + mg[0].cs, av.at('USAF Disc') + '+' + SVCX.length);
+    chk(name, 'bands', 'the Mand merge spans its services',
+      mg[1] && mg[1].c + '+' + mg[1].cs, av.at('USAF Mand') + '+' + SVCX.length);
+    chk(name, 'bands', 'the Spend Plan merge spans the twelve months',
+      mg[2] && mg[2].c + '+' + mg[2].cs, av.at('OCT 26') + '+12');
 
     // CROSS-FOOT, EVERY ROW AND THE TOTAL.
     const M0 = av.at('OCT 26'), UNS = av.at('Unscheduled'), TOT = av.at('Total (Disc+Mand)');
@@ -1009,6 +1060,20 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'PMO AV', 'and the two are the whole funded amount',
       cell(2, 'DEC 26') + cell(2, 'MAR 27'), cell(2, 'Total (Disc+Mand)'));
 
+    // THE ROW'S OWN ARITHMETIC CLOSES, left to right: what was asked, less what the two lanes put
+    // against it, is what is short. On a shared requirement all three are this office's share, so
+    // an unshared ask would break exactly the rows that span two offices.
+    av.rows.forEach(r => {
+      const a = num(r[av.at('FY27 Ask')]) || 0, t = num(r[av.at('Total (Disc+Mand)')]) || 0;
+      const u = num(r[av.at('UFR (Unfunded Requirement)')]) || 0;
+      chk(name, 'PMO AV', `${String(cv(r[0]))}: Ask less funded is the UFR`, a - t, u);
+    });
+    // And the two summary columns are the blocks beside them, added up.
+    av.rows.forEach(r => {
+      const d = SVCX.reduce((x, sv) => x + (num(r[av.at(sv + ' Disc')]) || 0), 0);
+      chk(name, 'PMO AV', `${String(cv(r[0]))}: Disc allocated is the service columns`,
+        num(r[av.at('Disc allocated')]), d);
+    });
     // UFR IS NOT INSIDE THE TOTAL. It is what the office is still short, not money it holds.
     // A is trimmed, so its UFR is non-zero and folding it in would be visible here.
     chk(name, 'PMO AV', 'the trimmed requirement states its shortfall',
@@ -1045,6 +1110,71 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
         chk(name, 'share', 'the two shares add back to the whole funded requirement',
           tAv + tMx, ASK_P.reduce((a, b) => a + b, 0));
       }
+    }
+  }
+
+  // ── THE BYTES, NOT THE SHEET OBJECTS ─────────────────────────────────────────────────────
+  // Everything above reads what exportExcel HANDED the writer. mergeCells is the one thing that
+  // can be perfectly right there and still fatal: it belongs after sheetData in the schema, and a
+  // workbook that puts it before is not "slightly wrong" -- Excel refuses the part and the file
+  // does not open at all. Nothing else on this board reads this workbook's bytes back, so the only
+  // way to know is to unzip what came out.
+  {
+    // capture() swapped buildXlsx for a stub that returns no bytes and never put it back. Reading
+    // the bytes means asking the REAL writer for them.
+    ev(`if(globalThis.__origBuildXlsx) buildXlsx=globalThis.__origBuildXlsx; 'ok'`);
+    const b64 = ev(`(function(){
+      let cap=null; const _B=window.Blob;
+      window.Blob=function(p,o){ if(!cap && p && p[0] && p[0].byteLength) cap=p[0]; return new _B(p,o); };
+      try{ exportExcel(); } finally { window.Blob=_B; }
+      if(!cap) return '';
+      let s=''; const u=new Uint8Array(cap.buffer, cap.byteOffset, cap.byteLength);
+      for(let i=0;i<u.length;i++) s+=String.fromCharCode(u[i]);
+      return btoa(s);
+    })()`);
+    chk(name, 'bytes', 'the workbook produced bytes', b64 ? 'bytes' : 'nothing', 'bytes');
+    if (b64) {
+      const buf = Buffer.from(b64, 'base64');
+      // Walk the central directory rather than trusting a name order.
+      const eocd = buf.lastIndexOf(Buffer.from([0x50, 0x4b, 0x05, 0x06]));
+      chk(name, 'bytes', 'it is a zip with an end-of-directory record', eocd > 0, true);
+      const nEnt = buf.readUInt16LE(eocd + 10), cdOff = buf.readUInt32LE(eocd + 16);
+      const parts = {};
+      let q = cdOff;
+      for (let i = 0; i < nEnt; i++) {
+        const nLen = buf.readUInt16LE(q + 28), xLen = buf.readUInt16LE(q + 30), cLen = buf.readUInt16LE(q + 32);
+        const lho = buf.readUInt32LE(q + 42), method = buf.readUInt16LE(q + 10), csize = buf.readUInt32LE(q + 20);
+        const nm = buf.toString('utf8', q + 46, q + 46 + nLen);
+        const lnLen = buf.readUInt16LE(lho + 26), lxLen = buf.readUInt16LE(lho + 28);
+        const raw = buf.subarray(lho + 30 + lnLen + lxLen, lho + 30 + lnLen + lxLen + csize);
+        try { parts[nm] = (method === 0 ? raw : inflateRawSync(raw)).toString('utf8'); } catch (e) { parts[nm] = ''; }
+        q += 46 + nLen + xLen + cLen;
+      }
+      const sheetXml = Object.keys(parts).filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n));
+      const withMerge = sheetXml.filter(n => parts[n].indexOf('<mergeCells') >= 0);
+      // DERIVED FROM THE FIXTURE, not written as a number. This fixture grew a third office when
+      // the shared prime was added to it, and a literal 2 would have been quietly wrong about
+      // which sheets were being checked rather than loudly wrong about the merges.
+      // A PMO tab with nothing to report carries no block and so no merges -- rightly. What must
+      // hold is that every tab that HAS the block has its bands in the file.
+      const nWithBlock = sheets.filter(x => /^PMO /.test(x.name)
+        && x.rows.some(r => /Requirements \(Disc\/Mand Funded Portions\)/.test(String(cv((r || [])[0]) ?? '')))).length;
+      chk(name, 'bytes', 'the fixture really does produce banded tabs', nWithBlock > 1, true);
+      chk(name, 'bytes', 'every tab carrying the block carries its merges in the file itself',
+        withMerge.length, nWithBlock);
+      withMerge.forEach(n => {
+        const xml = parts[n];
+        const m = /<mergeCells count="(\d+)">([\s\S]*?)<\/mergeCells>/.exec(xml) || [];
+        const refs = [...String(m[2] || '').matchAll(/<mergeCell ref="([A-Z]+\d+):([A-Z]+\d+)"\/>/g)];
+        chk(name, 'bytes', `${n}: the declared count matches what is there`,
+          Number(m[1] || -1), refs.length);
+        // THE ORDER THAT DECIDES WHETHER THE FILE OPENS.
+        chk(name, 'bytes', `${n}: mergeCells comes after sheetData`,
+          xml.indexOf('<mergeCells') > xml.indexOf('</sheetData>'), true);
+        // A merge whose anchor cell was never written leaves Excel repairing the file on open.
+        refs.forEach(r => chk(name, 'bytes', `${n}: ${r[1]}:${r[2]} has a cell to anchor on`,
+          xml.indexOf('<c r="' + r[1] + '"') >= 0, true));
+      });
     }
   }
 

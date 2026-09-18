@@ -1403,6 +1403,147 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'after', 'the seed recorded the draw, not the ask', after.dv[0], TRIM_TO);
 }
 
+// ═══ THE PMO MENU IS THE ONE PLACE THE OFFICES ARE CHOSEN ═══════════════════════════════
+// The offices and the prime/OGC filter used to be chips beside the search box, and the prime filter
+// was ALSO in the Filter menu -- two homes for one control. They are one menu now, which moves a
+// selection that used to be visible at a glance behind a click. So the button has to say what is
+// selected, or the board shows one office's requirements while looking like it shows all of them.
+{
+  const name = 'the PMO menu';
+  const sc = {
+    services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'AV', [900, 200, 100]), it('B', 'AV', [400, 100, 50]),
+            it('C', 'PSM', [300, 80, 40]),  it('D', 'MxS', [200, 50, 25])],
+    disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B', 'C', 'D'],
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // applyState() seeds the per-office rankings from the items, and seed() pushes the fixture's
+  // items AFTER it -- so in this harness they are empty and filtering to an office renders nothing.
+  // Seed them the way the board does, or the filter check would be testing the harness.
+  ev(`S.pmoOrder={}; GROUPS.forEach(function(g){
+        S.pmoOrder[g]=S.order.filter(function(id){ const i=itemById(id); return i&&grpOf(i)===g; }); });
+      'ok'`);
+
+  const look = () => JSON.parse(ev(`(function(){
+    render();
+    const dd=document.getElementById('dd_pmo'), b=document.getElementById('b_pmo');
+    if(!dd||!b) return JSON.stringify({err:'no PMO menu'});
+    return JSON.stringify({
+      button: b.textContent.trim(),
+      items: [].slice.call(dd.querySelectorAll('.mi')).map(function(n){
+        return n.textContent.replace(/\\s+/g,' ').trim(); }),
+      chips: (document.getElementById('chips')||{}).innerHTML || '',
+      viewMenu: (document.getElementById('dd_view')||{}).textContent || ''
+    });
+  })()`));
+
+  let m = look();
+  chk(name, 'menu', 'the board has a PMO menu', m.err || 'ok', 'ok');
+  // ONE HOME. The chips are gone and the prime filter left the Filter menu with them.
+  chk(name, 'one home', 'the chip strip no longer carries the offices', m.chips, '');
+  chk(name, 'one home', 'and the Filter menu no longer carries Prime Contracts',
+    /Prime Contracts/.test(m.viewMenu), false);
+  // The ticked entry carries a check mark before its label, so this matches inside the text.
+  chk(name, 'menu', 'it offers the whole portfolio',
+    m.items.some(x => /All programme offices/.test(x)), true);
+  // EVERY OFFICE THAT HAS REQUIREMENTS, WITH ITS COUNT -- derived from grpOf(), so a reassignment
+  // or an added office is counted the moment it happens rather than when somebody remembers.
+  ['PSM 1', 'AV 2', 'MxS 1'].forEach(want =>
+    chk(name, 'counts', `it offers ${want.split(' ')[0]} with its count`,
+      m.items.some(x => x.indexOf(want) === 0), true));
+  // AN EMPTY OFFICE IS STILL OFFERED. Hiding it -- what the chips did -- means somebody who has
+  // just added one goes looking and reads the absence as a failure.
+  chk(name, 'empty offices', 'an office with nothing in it is still listed',
+    m.items.some(x => /^ATL/.test(x)), true);
+  chk(name, 'empty offices', 'and says so rather than showing a bare zero',
+    m.items.some(x => /^ATL/.test(x) && /no requirements/.test(x)), true);
+
+  // THE BUTTON SAYS WHAT IS SELECTED.
+  chk(name, 'button', 'with nothing picked it names the menu', /PMO/.test(m.button), true);
+  ev(`setPmoFilter('PSM'); 'ok'`);   m = look();
+  chk(name, 'button', 'picking an office puts it on the button', /PSM/.test(m.button), true);
+  // The filter really is applied, not just displayed: the rendered list holds PSM's one row.
+  chk(name, 'button', 'and the list is filtered to it',
+    Number(ev(`document.querySelectorAll('#list .row').length`)), 1);
+  ev(`ptypeFilter='PRIME'; 'ok'`);   m = look();
+  chk(name, 'button', 'a contract-type filter shows on the button too',
+    /Primes/.test(m.button), true);
+  ev(`filter='ALL'; ptypeFilter=''; 'ok'`);
+
+  // ORDER MATTERS FROM HERE DOWN, AND THE NEXT CHECK IS WHY.
+  // pmoSave() below runs applyState(), which rebuilds DATA.items from the baseline -- and this
+  // harness pushes its fixture in AFTER applyState, so the baseline is empty and the board is left
+  // with no requirements at all. Everything that counts, filters or moves a requirement has to
+  // happen BEFORE that call. This assertion is the tripwire: move the reassignment checks below
+  // pmoSave and they stop testing an empty board silently and fail here instead.
+  chk(name, 'reassign', 'the board still holds its requirements at this point',
+    Number(ev(`DATA.items.length`)), 4);
+  // A REASSIGNMENT MOVES THE REQUIREMENT, NOT JUST ITS LABEL.
+  //
+  // Everything above this reads offices straight out of the fixture, where the overlay and the
+  // file agree -- so counting by grpOf() and counting by the file's own i.grp give the SAME
+  // answer, and a mutation that swapped one for the other sailed through. The comment on the
+  // count checks claimed a reassignment showed up 'the moment it happens'; nothing here had ever
+  // reassigned anything. The two readings have to DISAGREE before any of this proves a thing.
+  //
+  // So move one: A is homed to AV in the payload and sent to MxS by hand. From here on the file
+  // says AV and the board must say MxS everywhere.
+  const before = look();
+  chk(name, 'reassign', 'before the move the offices hold their payload counts',
+    ['AV 2', 'MxS 1'].every(w => before.items.some(x => x.indexOf(w) === 0)), true);
+  ev(`setGrp('A','MxS'); 'ok'`);
+  m = look();
+  chk(name, 'reassign', 'the requirement now answers with the office it was moved to',
+    ev(`grpOf(itemById('A'))`), 'MxS');
+  // THE PAYLOAD IS NOT REWRITTEN. The move is an overlay for this year, which is what lets the
+  // record editor say where it came from and what makes the next import a merge rather than a
+  // fight. If this ever starts returning MxS, the move has scribbled on the baseline.
+  chk(name, 'reassign', 'without the payload being rewritten underneath it',
+    ev(`itemById('A').grp`), 'AV');
+  // THE COUNTS FOLLOW IT -- both ends, in the same render. Counting the office it left is what
+  // catches a count that reads the file: the office it joined can be right by accident.
+  chk(name, 'reassign', 'the office it left is one lighter',
+    m.items.some(x => x.indexOf('AV 1') === 0), true);
+  chk(name, 'reassign', 'and the office it joined is one heavier',
+    m.items.some(x => x.indexOf('MxS 2') === 0), true);
+  // AND IT IS A REAL MOVE, not a relabelled row: filtering to the new office lists it.
+  ev(`setPmoFilter('MxS'); 'ok'`);
+  chk(name, 'reassign', 'filtering to the new office lists both requirements',
+    Number(ev(`document.querySelectorAll('#list .row').length`)), 2);
+  ev(`setPmoFilter('AV'); 'ok'`);
+  chk(name, 'reassign', 'and the office it left no longer lists it',
+    ev(`!!document.getElementById('row-A')`), false);
+  ev(`setPmoFilter('ALL'); 'ok'`);
+  // EVERY SURFACE THAT LISTS AN OFFICE. The workbook decides which PMO tabs to emit, and which
+  // rows land on each, with this same predicate -- so a move that stopped here would print the
+  // requirement on the wrong tab of the thing that gets briefed.
+  chk(name, 'reassign', 'the offices that have requirements are derived the same way',
+    ev(`JSON.stringify(GROUPS.filter(function(g){
+          return DATA.items.some(function(i){ return grpOf(i)===g; }); }))`),
+    JSON.stringify(['PSM', 'AV', 'MxS']));   // configured order, not the order the fixture lists
+  chk(name, 'reassign', 'and the moved requirement belongs to the tab it was sent to',
+    ev(`DATA.items.filter(function(i){ return grpOf(i)==='MxS'; })
+          .map(function(i){ return i.id; }).sort().join(',')`), 'A,D');
+  // The record says where it came from, so a reviewer can see the move rather than infer it.
+  chk(name, 'reassign', 'the record editor shows what it was moved from',
+    ev(`(recFields('A', itemById('A')).filter(function(f){ return f.l==='PMO'; })[0]||{}).n`),
+    'moved from AV for ' + ev(`FYL()`));
+
+  // AN OFFICE ADDED HERE REACHES EVERY SURFACE THAT LISTS ONE.
+  ev(`pmoSave(GROUPS.concat(['SE'])); 'ok'`);
+  m = look();
+  chk(name, 'added office', 'it joins the configured list', ev(`GROUPS.indexOf('SE')>=0`), true);
+  chk(name, 'added office', 'it appears in the menu straight away',
+    m.items.some(x => /^SE/.test(x)), true);
+  // The per-requirement control is built from GROUPS, so the same addition reaches it.
+  chk(name, 'added office', 'and the record editor offers it',
+    ev(`/GROUPS\\.map/.test(String(recFields))`), true);
+  chk(name, 'added office', 'the roll-ups order it after the configured ones',
+    ev(`JSON.stringify(pmoKeys({SE:1, AV:1}))`), JSON.stringify(['AV', 'SE']));
+}
+
 // ═══ UNSPENT DISCRETIONARY vs THE TRIMS THAT COULD TAKE IT ══════════════════════════════
 // The board states two facts and never joined them up: a lane holds BA nobody drew, and
 // requirements are short. trimAbsorb() answers the question they raise together -- which trims the

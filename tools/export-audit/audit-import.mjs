@@ -515,20 +515,27 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 
   // WHAT TRAVELS BACK. Only the invited fields, only where they differ from the baseline shipped
   // with the copy, and never the priority order -- the ranking stays the portfolio team's.
-  P.ev(`try{ localStorage.setItem('prio27who','PMO Lead'); }catch(e){}
+  // A is PSM's and B is ATL's. The office is PSM, so B's correction must not travel however
+  // thoroughly it was typed -- that is the scope, checked here as well as in its own scenario
+  // because this is the scenario that proves WHAT a package carries.
+  P.ev(`try{ localStorage.setItem('prio27who','PMO Lead');
+              localStorage.setItem('prio27pmo','PSM'); }catch(e){}
     S.cons['A'] = 'Depot line stops in March; forty aircraft unsupported. '.repeat(12);
     S.desc['A'] = 'Sustainment of the depot line.';
     S.asks['A'] = [9500000, 2000000, 1000000];
-    S.ccar['B'] = 'JSF7777';
+    S.ccar['A'] = 'JSF7777';
+    S.ccar['B'] = 'JSF8888';
     S.order = ['B','A'];
     S.mc['A'] = true; S.band['A'] = 'pdm';
     S.alloc['A'] = {m:'t', v:1};
     save(); 'ok'`);
+  // pmoSubmitBuild() collects what CHANGED; the scope is applied when the package is built, so
+  // this still sees both and the wire package below is where B must disappear.
   const sub = JSON.parse(P.ev('JSON.stringify(pmoSubmitBuild())'));
   chk(name, 'submittal', 'it carries the requirements that changed',
     Object.keys(sub).sort().join(','), 'A,B');
   chk(name, 'submittal', 'A carries exactly the invited fields it changed',
-    Object.keys(sub.A || {}).sort().join(','), 'asks,cons,desc');
+    Object.keys(sub.A || {}).sort().join(','), 'asks,ccar,cons,desc');
   chk(name, 'submittal', 'B carries only its record correction',
     Object.keys(sub.B || {}).sort().join(','), 'ccar');
   // The star, the band and the allocation are the portfolio team's calls. A package that could
@@ -551,12 +558,16 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`));
   chk(name, 'submittal', 'the package says what it is', wire.dir, 'submit');
   chk(name, 'submittal', 'it is attributed to the sender', wire.by, 'PMO Lead');
+  chk(name, 'submittal', 'and to the office it is from', wire.pmo, 'PSM');
+  // THE SCOPE BITES HERE, between what changed and what is sent.
+  chk(name, 'submittal', 'another office\u2019s requirement does not travel',
+    Object.keys(wire.items || {}).sort().join(','), 'A');
   chk(name, 'submittal', 'it says which copy it came from',
     wire.fromTs > 0 ? 'dated' : 'undated', 'dated');
   // Without this the reviewing board has nothing to compare against and every field reads as
   // uncontested, however much has changed since the copy went out.
   chk(name, 'submittal', 'it carries the baseline it was published with',
-    Object.keys(wire.base || {}).sort().join(','), 'A,B');
+    Object.keys(wire.base || {}).sort().join(','), 'A');
   chk(name, 'submittal', 'and the baseline holds the value each field started from',
     JSON.stringify((wire.base || {}).A && wire.base.A.asks),
     JSON.stringify([9000000, 2000000, 1000000]));
@@ -597,7 +608,8 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
         pmoReport(); URL.createObjectURL=_c; return n>500? 'built':'empty'; })()`), 'built');
 
   // Tick two of the three; the third must stay where it was.
-  ev(`PMOPICK={'A|cons':true,'A|asks':true}; window.confirm=function(){return true;};
+  ev(`PMOPICK={}; pmoRows().forEach(function(r){ if(r.id==='A'&&(r.key==='cons'||r.key==='asks')) PMOPICK[pickKey(r)]=true; });
+    window.confirm=function(){return true;};
       window.alert=function(){}; pmoApply(); 'ok'`);
   chk(name, 'apply', 'the ticked impact statement is applied',
     ev("S.cons['A']"), 'Theirs: the depot line stops in March.');
@@ -628,9 +640,13 @@ const fpOf = (ev) => ev(`(function(){ const T=tiers(); const o={};
 // and a CUSTOM requirement -- the one whose value does not live where every other one's does.
 const handoffSc = () => ({
   services: ['USAF','ANG','AFRC','STOVL','USMC-C','USN'],
+  // ONE OFFICE OWNS ALL THREE. This scenario is about what KIND of field survives the trip -- long
+  // prose, a per-service vector, a custom requirement -- not about who owns what. A submittal is
+  // scoped to its own office now, so a fixture spanning three would quietly shrink to one row and
+  // stop testing the thing it exists for. Scoping is proved in 'scoped submittals'.
   items: [it('A','PSM',[9000000,2000000,1000000,4000000,1500000,2500000]),
-          it('B','ATL',[3000000,500000,250000,1000000,0,750000]),
-          it('C','TSS',[1200000,0,0,300000,200000,100000])],
+          it('B','PSM',[3000000,500000,250000,1000000,0,750000]),
+          it('C','PSM',[1200000,0,0,300000,200000,100000])],
   disc:[8000000,1500000,600000,3000000,1400000,1600000],
   mand:[4000000,600000,400000,1500000,800000,900000],
   order:['A','B','C'], mc:{A:true},
@@ -706,7 +722,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
       function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
   const P = boot({ html });
   const LONG = 'Depot line stops in March 26; forty aircraft unsupported. '.repeat(9);
-  P.ev(`try{ localStorage.setItem('prio27who','PMO'); }catch(e){}
+  P.ev(`try{ localStorage.setItem('prio27who','PMO');
+              localStorage.setItem('prio27pmo','PSM'); }catch(e){}
     S.cons['A']=${JSON.stringify(LONG)};
     [3100000,500000,250000,1000000,0,750000].forEach(function(v,i){ setAsk('B',i,String(v)); });
     [777000,0,0,0,0,0].forEach(function(v,i){ setAsk('NEW-1',i,String(v)); });
@@ -723,7 +740,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   const X = boot(); seed(X.ev, sc); handoffSeed(X.ev, sc);
   X.ev(`window.alert=function(){}; window.confirm=function(){return true;};
     pmoTake(${JSON.stringify(wire)}, 's.json');
-    PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[r.id+'|'+r.key]=true; }); pmoApply(); 'ok'`);
+    PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; }); pmoApply(); 'ok'`);
   // PATH 2 — type the same values here, by hand, the way the team would have.
   const Y = boot(); seed(Y.ev, sc); handoffSeed(Y.ev, sc);
   Y.ev(`S.cons['A']=${JSON.stringify(LONG)};
@@ -759,7 +776,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
       svc:['USN','USAF','ANG','AFRC','STOVL','USMC-C'],
       items:{A:{asks:[2500000,9500000,2000000,1000000,4000000,1500000]}},
       base:{A:{asks:[2500000,9000000,2000000,1000000,4000000,1500000]}}},'s.json');
-    PMOPICK={'A|asks':true}; pmoApply(); 'ok'`);
+    PMOPICK={}; pmoRows().forEach(function(r){ if(r.id==='A'&&r.key==='asks') PMOPICK[pickKey(r)]=true; });
+    pmoApply(); 'ok'`);
   chk(name, 'reorder', 'each figure lands on the service it was written for',
     R.ev(`JSON.stringify(itemById('A').ask)`),
     JSON.stringify([9500000,2000000,1000000,4000000,1500000,2500000]));
@@ -773,7 +791,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
       svc:['ARMY','USMC','USCG'], items:{A:{asks:[1,2,3]}}, base:{A:{asks:[0,0,0]}}},'s.json'); 'ok'`);
   chk(name, 'mismatch', 'a submittal for other services is refused',
     W.ev(`/different set of services/.test(window.__a)`) ? 'refused' : 'ACCEPTED', 'refused');
-  chk(name, 'mismatch', 'nothing is held for review', W.ev('PMOSUB===null'), true);
+  chk(name, 'mismatch', 'nothing is held for review', W.ev('PMOSUBS.length===0'), true);
   chk(name, 'mismatch', 'and the board is untouched', W.ev(`JSON.stringify(itemById('A').ask)`), before);
 }
 
@@ -799,7 +817,9 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     b.checked=true; b.dispatchEvent(new Event('change'));
     return JSON.stringify(Object.keys(PMOPICK).filter(function(k){ return PMOPICK[k]; }));
   })()`);
-  chk(name, 'tick', 'clicking it records the pick', ticked, JSON.stringify(['A|cons']));
+  // The key carries the submittal it came from, so a tick can never mean two different things
+  // once several are held side by side.
+  chk(name, 'tick', 'clicking it records the pick', ticked, JSON.stringify(['0|A|cons']));
   T.ev(`pmoApply(); 'ok'`);
   chk(name, 'tick', 'and applying writes only what was ticked',
     T.ev(`S.cons['A']||''`), 'Depot line stops.');
@@ -814,7 +834,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
       function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
   const PA = boot({ html: ahtml });
-  PA.ev(`try{ localStorage.setItem('prio27who','PMO'); }catch(e){}
+  PA.ev(`try{ localStorage.setItem('prio27who','PMO');
+               localStorage.setItem('prio27pmo','PSM'); }catch(e){}
     S.custom.push({id:'PMO-NEW',grp:'PSM',sect:'new',custom:true,title:'Raised by the office',
       event:'e',ccar:'',fy26:SVC.map(function(){return 0;}),
       ask:[250000,0,0,0,0,0],alloc:null});
@@ -844,16 +865,35 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
       items:{A:{asks:[1,2,3,4,5,6]}}, base:{A:{asks:[0,0,0,0,0,0]}}},'s.json'); 'ok'`);
   chk(name, 'no list', 'a listless submittal with per-service figures asks first',
     N.ev(`/does not say which services/.test(window.__q)`) ? 'asked' : 'read it anyway', 'asked');
-  chk(name, 'no list', 'declining holds nothing for review', N.ev('PMOSUB===null'), true);
+  chk(name, 'no list', 'declining holds nothing for review', N.ev('PMOSUBS.length===0'), true);
   chk(name, 'no list', 'and leaves the board untouched', N.ev(`JSON.stringify(itemById('A').ask)`), was);
-  // A listless package that proposes only PROSE has no positional hazard and must not nag.
+  // A listless package that proposes only PROSE has no positional hazard and must not nag. It is
+  // scoped, so the only question it could raise is the service one -- which is the point.
   const Q = boot(); seed(Q.ev, sc); handoffSeed(Q.ev, sc);
   Q.ev(`window.__n=0; window.alert=function(){};
     window.confirm=function(){ window.__n++; return true; };
-    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',pmo:'PSM',fromTs:1,
       items:{A:{desc:'Prose only.'}}, base:{A:{desc:null}}},'s.json'); 'ok'`);
   chk(name, 'no list', 'but a prose-only one is not questioned', Q.ev('window.__n'), 0);
-  chk(name, 'no list', 'and is held for review', Q.ev('PMOSUB!==null'), true);
+  chk(name, 'no list', 'and is held for review', Q.ev('PMOSUBS.length===1'), true);
+
+  // ── A PACKAGE THAT NAMES NO OFFICE IS SAID OUT LOUD ──────────────────────────────────────────
+  // Written before submittals carried a scope. Refusing would strand work already done, so it is
+  // taken -- but it can reach ANY office's requirements, which makes it the one package that can
+  // still collide with another, so it is never taken quietly.
+  const U = boot(); seed(U.ev, sc); handoffSeed(U.ev, sc);
+  U.ev(`window.__q=''; window.alert=function(){};
+    window.confirm=function(m){ window.__q=String(m); return true; };
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+      svc:SVC.slice(), items:{A:{desc:'Prose only.'}}, base:{A:{desc:null}}},'s.json'); 'ok'`);
+  chk(name, 'unscoped', 'a submittal naming no office asks before it is reviewed',
+    U.ev(`/does not say which programme office/.test(window.__q)`) ? 'asked' : 'taken quietly', 'asked');
+  chk(name, 'unscoped', 'and saying yes holds it', U.ev('PMOSUBS.length===1'), true);
+  const V = boot(); seed(V.ev, sc); handoffSeed(V.ev, sc);
+  V.ev(`window.alert=function(){}; window.confirm=function(){ return false; };
+    pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
+      svc:SVC.slice(), items:{A:{desc:'Prose only.'}}, base:{A:{desc:null}}},'s.json'); 'ok'`);
+  chk(name, 'unscoped', 'saying no holds nothing', V.ev('PMOSUBS.length===0'), true);
 }
 
 {
@@ -1008,7 +1048,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     /NaN|-\$/.test(shown) ? 'promised a number it cannot store' : 'clean', 'clean');
   chk(name, 'values', 'a record number arriving as an object is shown as text, not as a shape',
     typeof ev(`pmoRows().filter(function(r){ return r.key==='ccar'; })[0].prop`), 'string');
-  ev(`PMOPICK={'A|asks':true}; pmoApply(); 'ok'`);
+  ev(`PMOPICK={}; pmoRows().forEach(function(r){ if(r.id==='A'&&r.key==='asks') PMOPICK[pickKey(r)]=true; });
+    pmoApply(); 'ok'`);
   chk(name, 'values', 'and applying lands exactly that',
     ev(`JSON.stringify(itemById('A').ask)`), JSON.stringify([0, 2000000, 0]));
 
@@ -1020,7 +1061,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     svc:SVC.slice(), items:{A:{asks:[1,2]}}, base:{A:{asks:[9000000,2000000,1000000]}}},'s.json'); 'ok'`);
   chk(name, 'width', 'a value with the wrong number of services is refused',
     W.ev(`/wrong number of services/.test(window.__a)`) ? 'refused' : 'ACCEPTED', 'refused');
-  chk(name, 'width', 'nothing is held for review', W.ev('PMOSUB===null'), true);
+  chk(name, 'width', 'nothing is held for review', W.ev('PMOSUBS.length===0'), true);
   chk(name, 'width', 'and the board is untouched', W.ev(`JSON.stringify(itemById('A').ask)`), before);
 }
 
@@ -1043,11 +1084,13 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
       items:{A:{cons:'Theirs: the depot line stops in March.', asks:[9500000,2000000,1000000]},
              B:{ccar:'JSF7777'}, ZZ:{desc:'from a requirement since removed'}},
       base:{A:{cons:null, asks:[9000000,2000000,1000000]}, B:{ccar:null}, ZZ:{desc:null}}},'s.json');
-    PMOPICK={'A|cons':true}; 'ok'`);
+    PMOPICK={}; pmoRows().forEach(function(r){ if(r.id==='A'&&r.key==='cons') PMOPICK[pickKey(r)]=true; });
+    'ok'`);
   const want = JSON.parse(ev(`JSON.stringify(pmoRows().map(function(r){ return [
     (PMO_LBL[r.key]||r.key), String(pmoFmtVal(r.key,r.now)), String(pmoFmtVal(r.key,r.prop)),
     (r.conflict? 'YES — this board changed too':''),
-    (r.gone? 'requirement missing' : (PMOPICK[r.id+'|'+r.key]? 'ticked to apply':'not applied'))]; }))`));
+    (r.gone? 'requirement missing' : (PMOPICK[pickKey(r)]? 'ticked to apply':'not applied')),
+    r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : '')]; }))`));
   const before = ev(`JSON.stringify({cons:S.cons, asks:S.asks, ccar:S.ccar, desc:S.desc})`);
   const book = JSON.parse(await w.eval(`(async function(){
     var cap=null, _B=window.Blob;
@@ -1068,22 +1111,35 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     /SUBMITTAL FROM PMO Lead/.test(String(rows[0] && rows[0][0])) ? 'named' : 'anonymous', 'named');
   chk(name, 'columns', 'the header is the one the team reads',
     (rows[3] || []).join('|'),
-    'Rank|PMO|Requirement|CCaR|Field|On the board now|Proposed|Conflict|Status');
+    'Submitted by|Rank|PMO|Requirement|CCaR|Field|On the board now|Proposed|Conflict|Status|Decision / notes');
+  // BY NAME, NOT BY POSITION. These read fixed indices until a column was inserted in the middle of
+  // the report, and then every one of them failed for the same uninformative reason. A cell is
+  // found the way a reader finds it -- under its heading.
+  const HDR = (rows[3] || []).map(String);
+  const col = h => HDR.indexOf(h);
+  ['Submitted by','Rank','PMO','Requirement','CCaR','Field','On the board now','Proposed',
+   'Conflict','Status','Decision / notes'].forEach(h =>
+    chk(name, 'columns', `it has a "${h}" column`, col(h) >= 0, true));
   // ONE ROW PER PROPOSED CHANGE, in the review's own order. A report that drops or reorders a row
   // is worse than none: the team signs off a list that is not the list.
   const body = rows.slice(4).filter(r => r.length > 1);
   chk(name, 'rows', 'one row per proposed change', body.length, want.length);
   want.forEach((exp, i) => {
     const got = body[i] || [];
-    chk(name, 'rows', `row ${i + 1}: the field it is about`, got[4], exp[0]);
-    chk(name, 'rows', `row ${i + 1}: what the board says now`, got[5], exp[1]);
-    chk(name, 'rows', `row ${i + 1}: what the office proposes`, got[6], exp[2]);
-    chk(name, 'rows', `row ${i + 1}: the conflict column`, got[7] || '', exp[3]);
-    chk(name, 'rows', `row ${i + 1}: the status column`, got[8], exp[4]);
+    chk(name, 'rows', `row ${i + 1}: the field it is about`, got[col('Field')], exp[0]);
+    chk(name, 'rows', `row ${i + 1}: what the board says now`, got[col('On the board now')], exp[1]);
+    chk(name, 'rows', `row ${i + 1}: what the office proposes`, got[col('Proposed')], exp[2]);
+    chk(name, 'rows', `row ${i + 1}: the conflict column`, got[col('Conflict')] || '', exp[3]);
+    chk(name, 'rows', `row ${i + 1}: the status column`, got[col('Status')], exp[4]);
+    // WHO SENT IT is the column that makes several submittals reviewable as one list.
+    chk(name, 'rows', `row ${i + 1}: who it came from`, got[col('Submitted by')], exp[5]);
   });
   chk(name, 'rows', 'the requirement this board no longer has is labelled',
-    /no longer on this board/.test(String((body[body.length - 1] || [])[2])) ? 'labelled' : 'unmarked',
-    'labelled');
+    /no longer on this board/.test(String((body[body.length - 1] || [])[col('Requirement')]))
+      ? 'labelled' : 'unmarked', 'labelled');
+  // Left blank on purpose: it is the reviewer's column, and the report is the record they keep.
+  chk(name, 'rows', 'the decision column arrives empty for them to fill in',
+    body.every(r => String(r[col('Decision / notes')] || '') === '') ? 'empty' : 'pre-filled', 'empty');
   // PRE-audit. A report that changed anything on the way out would be describing a board that no
   // longer exists by the time it is read.
   chk(name, 'pre-audit', 'exporting it applies nothing',
@@ -1101,7 +1157,9 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
     try{ pmoReport(); }catch(e){ return 'THREW'; } window.Blob=_B;
     var ab=cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength);
-    var sh=await xlsxRead(ab); return String(sh[Object.keys(sh)[0]][4][6]||''); })()`);
+    var sh=await xlsxRead(ab), rr=sh[Object.keys(sh)[0]];
+    var c=(rr[3]||[]).map(String).indexOf('Proposed');
+    return String(rr[4][c]||''); })()`);
   chk(name, 'fidelity', 'a long impact statement reaches the spreadsheet whole', cell.length, LONG.length);
   chk(name, 'fidelity', 'char for char', cell === LONG ? 'exact' : 'altered', 'exact');
 }
@@ -1292,7 +1350,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     ev(`window.alert=function(){}; window.confirm=function(){return true;};
         pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
           svc:SVC.slice(), items:{B:{ccar:'CC-FROM-PMO'}}, base:{B:{ccar:'CC-ORIGINAL'}}},'s.json');
-        PMOPICK={'B|ccar':true}; pmoApply(); 'ok'`);
+        PMOPICK={}; pmoRows().forEach(function(r){ if(r.id==='B'&&r.key==='ccar') PMOPICK[pickKey(r)]=true; });
+        pmoApply(); 'ok'`);
     chk(name, 'a PMO change', 'it applied', ev(`S.ccar['B']`), 'CC-FROM-PMO');
     const idx = +ev(`(function(){ const j=MS.jrnl||[];
       for(let i=j.length-1;i>=0;i--){ const e=j[i];
@@ -1305,6 +1364,114 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
         ev(`JSON.stringify({ccar:S.ccar, asks:S.asks})`), before);
     }
   }
+}
+
+// ══ A SUBMITTAL CARRIES ONE OFFICE'S REQUIREMENTS, AND SEVERAL ARE REVIEWED TOGETHER ══════════
+// One office at a time meant a pass and a spreadsheet per office, with no view of the round. Several
+// can be held side by side only because each is SCOPED: an office may propose changes to the
+// requirements it OWNS (grpOf) and to nothing else, so two packages can never contest one field.
+// That is the property the whole feature rests on, so it is checked from both ends -- the copy must
+// refuse to SEND another office's row, and the board must refuse to REVIEW one that arrives anyway.
+{
+  const name = 'scoped submittals';
+  const sc = { services: MINE,
+    items: [it('A', 'AV', [900, 200, 100]), it('B', 'AV', [400, 100, 50]),
+            it('C', 'PSM', [300, 80, 40]),  it('D', 'MxS', [200, 50, 25])],
+    disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B', 'C', 'D'] };
+  const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+
+  const html = ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+
+  // One office works in the copy and submits. The copy is re-seeded because a published file
+  // carries the board's baked DATA, not this fixture's items.
+  const submitAs = (pmo, who, edits) => {
+    const P = boot({ html });
+    seed(P.ev, sc); asBooted(P.ev, sc);
+    P.ev(`PMODE.base=pmoBaseline();
+          try{ localStorage.setItem('prio27who','${who}'); localStorage.setItem('prio27pmo','${pmo}'); }catch(e){}
+          ${edits}; 'ok'`);
+    return JSON.parse(P.ev(`(function(){
+      let cap=null; const _B=window.Blob;
+      window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+      globalThis.__al=[]; const _a=window.alert; window.alert=function(m){ globalThis.__al.push(String(m)); };
+      try{ pmoSubmit(); }catch(e){} window.Blob=_B; window.alert=_a;
+      return JSON.stringify({pkg: cap? JSON.parse(cap) : null, alerts: globalThis.__al});
+    })()`));
+  };
+
+  // ── FROM THE COPY: another office's row never leaves ──────────────────────────────────────
+  const av = submitAs('AV', 'J. Smith',
+    `setDesc('A','AV on its own row'); setDesc('C','AV on a PSM row'); setAsk('B',0,'450')`);
+  chk(name, 'submit', 'the package is built', av.pkg ? 'built' : 'nothing', 'built');
+  if (av.pkg) {
+    chk(name, 'submit', 'it names the office it is from', av.pkg.pmo, 'AV');
+    chk(name, 'submit', 'it carries that office’s requirements',
+      Object.keys(av.pkg.items).sort().join(','), 'A,B');
+    chk(name, 'submit', 'and not another office’s, however hard they were edited',
+      Object.keys(av.pkg.items).indexOf('C') >= 0 ? 'C went too' : 'C stayed behind', 'C stayed behind');
+    // SILENTLY DROPPING IT IS THE WORSE BUG: the office would believe it had submitted something.
+    const told = av.alerts.filter(a => /another programme office/.test(a))[0] || '';
+    chk(name, 'submit', 'the office is told, while it is still sitting there', told ? 'told' : 'silent', 'told');
+    chk(name, 'submit', 'and the message names the row it dropped', /PSM/.test(told), true);
+  }
+  const psm = submitAs('PSM', 'R. Jones', `setDesc('C','PSM on its own row'); setCons('C','slips a year')`);
+  chk(name, 'submit', 'a second office scopes to its own rows too',
+    psm.pkg ? psm.pkg.pmo + ':' + Object.keys(psm.pkg.items).join(',') : 'nothing', 'PSM:C');
+
+  // ── AT THE BOARD: both are held at once, each row tagged with where it came from ──────────
+  ev(`window.alert=function(){};
+      pmoTake(${JSON.stringify(av.pkg)}, 'av.json');
+      pmoTake(${JSON.stringify(psm.pkg)}, 'psm.json'); 'ok'`);
+  const held = JSON.parse(ev(`(function(){
+    return JSON.stringify({ n:PMOSUBS.length, from:PMOSUBS.map(subFrom),
+      rows:pmoRows().map(function(r){ return r.from+'|'+r.id+'|'+r.key; }) }); })()`));
+  chk(name, 'review', 'both submittals are held at once', held.n, 2);
+  chk(name, 'review', 'each by its office', held.from.join(','), 'AV,PSM');
+  chk(name, 'review', 'every proposed field is on the list',
+    held.rows.slice().sort().join(' '), 'AV|A|desc AV|B|asks PSM|C|cons PSM|C|desc');
+  chk(name, 'review', 'and no field is offered twice',
+    held.rows.length, held.rows.map(r => r.split('|').slice(1).join('|'))
+      .filter((v, i, a) => a.indexOf(v) === i).length);
+
+  // ── A SECOND ROUND FROM ONE OFFICE REPLACES THE FIRST ─────────────────────────────────────
+  // Two rounds from one office held side by side would offer the same field twice with different
+  // answers, which is exactly the arbitration the scope exists to avoid.
+  ev(`window.alert=function(){}; pmoTake(${JSON.stringify(av.pkg)}, 'av-again.json'); 'ok'`);
+  chk(name, 'review', 'a second package from the same office replaces the first',
+    Number(ev('PMOSUBS.length')), 2);
+
+  // ── OUT-OF-SCOPE ROWS ARE REFUSED AT THE DOOR TOO ─────────────────────────────────────────
+  // The copy drops them, but the package is a JSON file: a hand edit or an older build is all it
+  // takes. The board does not trust the sender to have done it.
+  const forged = JSON.parse(JSON.stringify(av.pkg));
+  forged.items['C'] = { desc: 'AV reaching into PSM by hand' };
+  ev(`window.alert=function(){}; PMOSUBS=[]; PMOPICK={};
+      pmoTake(${JSON.stringify(forged)}, 'forged.json'); 'ok'`);
+  const kept = JSON.parse(ev('JSON.stringify(Object.keys((PMOSUBS[0]||{}).items||{}).sort())'));
+  chk(name, 'review', 'a row the sending office does not own is dropped on import',
+    kept.join(','), 'A,B');
+
+  // ── APPLYING ACROSS BOTH, IN ONE PASS ─────────────────────────────────────────────────────
+  ev(`window.alert=function(){}; window.confirm=function(){ return true; };
+      PMOSUBS=[]; PMOPICK={};
+      pmoTake(${JSON.stringify(av.pkg)}, 'av.json');
+      pmoTake(${JSON.stringify(psm.pkg)}, 'psm.json');
+      subPickAll(true); pmoApply(); 'ok'`);
+  const after = JSON.parse(ev(`(function(){ return JSON.stringify({
+    descA:(S.desc||{}).A||'', descC:(S.desc||{}).C||'', consC:(S.cons||{}).C||'',
+    askB:(S.asks||{}).B||null, left:pmoRows().length, stillHeld:PMOSUBS.length }); })()`));
+  chk(name, 'apply', 'the first office’s change lands', after.descA, 'AV on its own row');
+  chk(name, 'apply', 'the second office’s change lands', after.descC, 'PSM on its own row');
+  chk(name, 'apply', 'and its impact statement too', after.consC, 'slips a year');
+  chk(name, 'apply', 'a requirement value lands through the board’s own rule',
+    Array.isArray(after.askB) ? after.askB[0] : 'not a vector', 450);
+  // WHAT WAS APPLIED DROPS OFF; WHAT WAS NOT STAYS. Clearing the packages on apply would throw
+  // away every untaken proposal the moment the first batch went in.
+  chk(name, 'apply', 'nothing is left proposing what the board now says', after.left, 0);
+  chk(name, 'apply', 'and the packages are still held rather than discarded', after.stillHeld, 2);
 }
 
 console.log('\n' + '='.repeat(96));
