@@ -7,7 +7,7 @@
 :root{
   --bg:#101319;--panel:#171b23;--panel2:#1f242e;--line:#2b313d;
   --sink:#0b0d12;--panelA:#141822;--lineSoft:#242935;--line2:#333a48;--onGold:#141005;
-  --ink:#e9ecf3;--mut:#a3aab9;--dim:#8a92a4;
+  --ink:#e9ecf3;--mut:#a3aab9;--dim:#959dad;
   --gold:#d6b46a;--blue:#5fa8f5;--purp:#bda4dd;
   --green:#45d29a;--greenD:#12302a;--red:#ff6b81;--redD:#38202a;--amber:#ffd25e;
   --unf:#ff6b81;--unfD:#38202a;
@@ -29,7 +29,7 @@
 html[data-theme="navy"]{
   --bg:#141c2b;--panel:#1c2637;--panel2:#253247;--line:#35435c;
   --sink:#0e1523;--panelA:#182234;--lineSoft:#2b384e;--line2:#42526e;--onGold:#14100a;
-  --ink:#eef2f8;--mut:#a8b4c6;--dim:#8b98ac;
+  --ink:#eef2f8;--mut:#a8b4c6;--dim:#919db0;
   --gold:#e0bd72;--blue:#6fb2f7;--purp:#c3aade;
   --green:#4fd6a0;--greenD:#123028;--red:#ff7b8e;--redD:#3a2029;--amber:#ffd66b;
   --unf:#ff7b8e;--unfD:#3a2029;
@@ -44,7 +44,7 @@ html[data-theme="navy"]{
 html[data-theme="parchment"]{
   --bg:#f7f3ea;--panel:#fffdf8;--panel2:#f0ebdf;--line:#ddd5c4;
   --sink:#ece6d8;--panelA:#fbf8f1;--lineSoft:#e8e1d2;--line2:#c9bfa8;--onGold:#fffdf8;
-  --ink:#2a2418;--mut:#5c5442;--dim:#787058;
+  --ink:#2a2418;--mut:#5c5442;--dim:#6e6650;
   --gold:#87610f;--blue:#1b5490;--purp:#634189;
   --green:#1f6a44;--greenD:#e2efdf;--red:#9e2a29;--redD:#f8e4de;--amber:#87610f;
   --unf:#9e2a29;--unfD:#f8e4de;
@@ -59,7 +59,7 @@ html[data-theme="parchment"]{
 html[data-theme="blueprint"]{
   --bg:#eef2f5;--panel:#ffffff;--panel2:#e4ebf1;--line:#c3cfda;
   --sink:#dde5ec;--panelA:#f7fafc;--lineSoft:#d8e0e8;--line2:#a9b8c7;--onGold:#ffffff;
-  --ink:#10233a;--mut:#41586e;--dim:#5d7488;
+  --ink:#10233a;--mut:#41586e;--dim:#536779;
   --gold:#0f5a91;--blue:#0f5a91;--purp:#5b4193;
   --green:#0e6b4a;--greenD:#dbf0e7;--red:#a52036;--redD:#fbe2e6;--amber:#8a5a10;
   --unf:#a52036;--unfD:#fbe2e6;
@@ -1297,7 +1297,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.69 (19 Sep 2026)';
+const BUILD='v1.70 (19 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({

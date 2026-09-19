@@ -1644,7 +1644,7 @@ is whether the ones that moved are the ones you meant to move.
 ### The nightly math validation, and the one thing the suites cannot tell you
 
 ```
-npm run validate:math        # the whole arithmetic gate, ~35 min
+npm run validate:math        # the whole arithmetic gate, ~130 min (two sweeps of 250 mutations side by side)
 npm run coverage:money       # just the coverage census, ~1 s
 ```
 
@@ -1663,7 +1663,7 @@ the defect register, money coverage (both builds), the trace matrix (both builds
 **~67 minutes**, of which the two mutation sweeps are ~62 and ~64 (they run in parallel, so the
 wall clock is the slower one). Everything else totals about three minutes.
 
-The sweep is 177 mutations × up to 6 suites × 2 builds, and the loop **short-circuits on the first
+The sweep is 250 mutations × up to 6 suites × 2 builds, and the loop **short-circuits on the first
 suite that catches**. That makes the order of `SUITES` a performance decision, not a stylistic one:
 a suite placed early is paid for by every mutation the ones before it miss. Measured on an idle box:
 
@@ -1987,6 +1987,23 @@ Fixed at the same time: the rank `▲`/`▼` arrows were 20×13px against WCAG 2
 buttons of all 115 rows — the most repeated finding on the board, and the control you use while
 dragging the priority order, so the standard and the job agreed. Rows are 83px and the stack is
 50px, so nothing grew. Measure before assuming a bigger control costs height.
+
+### 1.4.3 closed: the dim ink clears 4.5:1 on every surface it is painted on
+
+All thirty *Contrast (Minimum)* findings in the 16 Sep baseline were one token: `--dim`, the
+quietest ink, measured on the surfaces it is actually painted on — the sink, a lifted row, the
+selected row — rather than on `--panel`, which is the one pair `colour-check.mjs` held. It read
+3.82:1 on Blueprint's sink and 4.03:1 on Midnight's selected row against the 4.5:1 floor. Each
+theme's `--dim` was walked along its own lightness, hue and saturation kept, to the first step
+that clears 4.5:1 on the *worst* surface the standards tool had seen it on, so every other surface
+clears by more: Blueprint `#5d7488`→`#536779` (4.60:1 on `#dde5ec`), Parchment `#787058`→`#6e6650`
+(4.59:1 on `#ece6d8`), Navy `#8b98ac`→`#919db0` (4.57:1 on `#26344b`), Midnight
+`#8a92a4`→`#959dad` (4.62:1 on `#243257`); Harbor's `#46505e` already cleared everywhere (5.03:1)
+and is unchanged. The baseline was regenerated with `--emit` and holds the two criteria still
+open: *1.4.11 Non-text Contrast* (control borders at 1.2–2.3:1 against a 3:1 floor, which is a
+new `--edge` token per theme and a visible change to every button and input) and *2.5.8 Target
+Size* (31 controls under 24×24, most of them inline edit spans and 21px inputs in the grid
+inspector). Both are design decisions to be seen before they ship, not token arithmetic.
 
 As recorded on 16 Sep 2026, after those two fixes — **95 findings, 5,155 instances**, over four
 criteria (1.4.11 is new: it was declared but never emitted, and reported a vacuous pass until it

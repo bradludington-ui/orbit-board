@@ -1,187 +1,7 @@
 {
   "notes": "Recorded Section 508 / WCAG findings. The run fails on anything NEW, and also when a recorded finding stops occurring without being struck off — a list of known holes that has stopped being true is worse than no list. Regenerate with --emit after a fix, and say in the commit which criterion was closed.",
-  "recorded": "2026-09-16",
+  "recorded": "2026-09-19",
   "findings": [
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #e4ebf1 @10px",
-      "n": 57,
-      "detail": "4.04:1, needs 4.5:1 — e.g. \"★ MC\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f0ebdf @10px",
-      "n": 57,
-      "detail": "4.15:1, needs 4.5:1 — e.g. \"★ MC\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8b98ac on #253247 @10px",
-      "n": 57,
-      "detail": "4.42:1, needs 4.5:1 — e.g. \"★ MC\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #e4ebf1 @11px",
-      "n": 6,
-      "detail": "4.04:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #eef2f5 @10px",
-      "n": 6,
-      "detail": "4.32:1, needs 4.5:1 — e.g. \"📦 Opened with the saved board state — l\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f0ebdf @11px",
-      "n": 6,
-      "detail": "4.15:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f7f3ea @10px",
-      "n": 6,
-      "detail": "4.45:1, needs 4.5:1 — e.g. \"📦 Opened with the saved board state — l\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8b98ac on #253247 @11px",
-      "n": 6,
-      "detail": "4.42:1, needs 4.5:1 — e.g. \"discretionary / mandatory / unfunded\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #dde5ec @9px",
-      "n": 2,
-      "detail": "3.82:1, needs 4.5:1 — e.g. \"36\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #eef2f5 @11px",
-      "n": 2,
-      "detail": "4.32:1, needs 4.5:1 — e.g. \"(click to minimize)\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #ece6d8 @9px",
-      "n": 2,
-      "detail": "3.96:1, needs 4.5:1 — e.g. \"36\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f7f3ea @11px",
-      "n": 2,
-      "detail": "4.45:1, needs 4.5:1 — e.g. \"(click to minimize)\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #dde5ec @11px",
-      "n": 1,
-      "detail": "3.82:1, needs 4.5:1 — e.g. \"absorb\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #e2edf7 @10px",
-      "n": 1,
-      "detail": "4.10:1, needs 4.5:1 — e.g. \"OGC - Sustainment Fuel (Ferry Flights)\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #e2edf7 @12px",
-      "n": 1,
-      "detail": "4.10:1, needs 4.5:1 — e.g. \"$1,854,094\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #e2edf7 @15px",
-      "n": 1,
-      "detail": "4.10:1, needs 4.5:1 — e.g. \"⠿\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#5d7488 on #e2edf7 @8px",
-      "n": 1,
-      "detail": "4.10:1, needs 4.5:1 — e.g. \"PSM #1\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #ece6d8 @11px",
-      "n": 1,
-      "detail": "3.96:1, needs 4.5:1 — e.g. \"absorb\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f5e8c8 @10px",
-      "n": 1,
-      "detail": "4.05:1, needs 4.5:1 — e.g. \"OGC - Sustainment Fuel (Ferry Flights)\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f5e8c8 @12px",
-      "n": 1,
-      "detail": "4.05:1, needs 4.5:1 — e.g. \"$1,854,094\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f5e8c8 @15px",
-      "n": 1,
-      "detail": "4.05:1, needs 4.5:1 — e.g. \"⠿\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#787058 on #f5e8c8 @8px",
-      "n": 1,
-      "detail": "4.05:1, needs 4.5:1 — e.g. \"PSM #1\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8a92a4 on #243257 @10px",
-      "n": 1,
-      "detail": "4.03:1, needs 4.5:1 — e.g. \"OGC - Sustainment Fuel (Ferry Flights)\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8a92a4 on #243257 @12px",
-      "n": 1,
-      "detail": "4.03:1, needs 4.5:1 — e.g. \"$1,854,094\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8a92a4 on #243257 @15px",
-      "n": 1,
-      "detail": "4.03:1, needs 4.5:1 — e.g. \"⠿\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8a92a4 on #243257 @8px",
-      "n": 1,
-      "detail": "4.03:1, needs 4.5:1 — e.g. \"PSM #1\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8b98ac on #26344b @10px",
-      "n": 1,
-      "detail": "4.29:1, needs 4.5:1 — e.g. \"OGC - Sustainment Fuel (Ferry Flights)\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8b98ac on #26344b @12px",
-      "n": 1,
-      "detail": "4.29:1, needs 4.5:1 — e.g. \"$1,854,094\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8b98ac on #26344b @15px",
-      "n": 1,
-      "detail": "4.29:1, needs 4.5:1 — e.g. \"⠿\""
-    },
-    {
-      "sc": "contrast",
-      "key": "#8b98ac on #26344b @8px",
-      "n": 1,
-      "detail": "4.29:1, needs 4.5:1 — e.g. \"PSM #1\""
-    },
     {
       "sc": "target",
       "key": "span | editRecName('…')",
@@ -371,91 +191,91 @@
     {
       "sc": "uiContrast",
       "key": "#2b313d border on #171b23",
-      "n": 426,
+      "n": 422,
       "detail": "1.32:1, needs 3:1 — e.g. button.btn, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#35435c border on #1c2637",
-      "n": 426,
+      "n": 422,
       "detail": "1.53:1, needs 3:1 — e.g. button.btn, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#aeb7c3 border on #d9dfe7",
-      "n": 426,
+      "n": 422,
       "detail": "1.51:1, needs 3:1 — e.g. button.btn, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#c3cfda border on #ffffff",
-      "n": 426,
+      "n": 422,
       "detail": "1.58:1, needs 3:1 — e.g. button.btn, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#ddd5c4 border on #fffdf8",
-      "n": 426,
+      "n": 422,
       "detail": "1.44:1, needs 3:1 — e.g. button.btn, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#2b313d border on #141822",
-      "n": 109,
+      "n": 115,
       "detail": "1.49:1, needs 3:1 — e.g. input, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#35435c border on #182234",
-      "n": 109,
+      "n": 115,
       "detail": "1.83:1, needs 3:1 — e.g. input, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#aeb7c3 border on #ced5de",
-      "n": 109,
+      "n": 115,
       "detail": "1.37:1, needs 3:1 — e.g. input, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#c3cfda border on #f7fafc",
-      "n": 109,
+      "n": 115,
       "detail": "1.51:1, needs 3:1 — e.g. input, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#ddd5c4 border on #fbf8f1",
-      "n": 109,
+      "n": 115,
       "detail": "1.38:1, needs 3:1 — e.g. input, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#2b313d border on #101319",
-      "n": 34,
+      "n": 22,
       "detail": "1.43:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#35435c border on #141c2b",
-      "n": 34,
+      "n": 22,
       "detail": "1.71:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#aeb7c3 border on #c4ccd6",
-      "n": 34,
+      "n": 22,
       "detail": "1.30:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#c3cfda border on #eef2f5",
-      "n": 34,
+      "n": 22,
       "detail": "1.41:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
     },
     {
       "sc": "uiContrast",
       "key": "#ddd5c4 border on #f7f3ea",
-      "n": 34,
+      "n": 22,
       "detail": "1.32:1, needs 3:1 — e.g. div.fitchip, no discernible edge"
     },
     {
