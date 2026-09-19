@@ -427,16 +427,16 @@ const MUTATIONS = [
   // there, the box draws, the click raises a ReferenceError into a console nobody reads, and the
   // reviewer's only working control is "Tick all" -- accept everything or nothing.
   { id: 'handoff-tick-dead', area: 'subBody', what: 'the per-row tick box calls a function that does not exist',
-    find: `onchange="subPick(`,
-    repl: `onchange="pmoPick(` },
+    find: `\n          +' onchange="subPick(`,
+    repl: `\n          +' onchange="pmoPick(` },
   { id: 'handoff-sends-added-req', area: 'pmoSubmit', what: 'a requirement added in the copy is sent as a row nobody can ever tick',
-    find: "  added.forEach(function(id){ delete items[id]; });",
+    find: "  Object.keys(items).forEach(function(id){ if(!base0[id]) delete items[id]; });   // travels whole, below",
     repl: "  /* send it anyway */" },
   { id: 'handoff-added-req-silent', area: 'pmoSubmit', what: 'the office is never told the requirement it added is not being sent',
-    find: "  if(added.length){",
-    repl: "  if(false){" },
+    find: "  if(gaps.length){\n    alert(",
+    repl: "  if(false){\n    alert(" },
   { id: 'handoff-listless-pkg', area: 'pmoTake', what: 'a submittal with no service list has its per-service figures read by position',
-    find: "     && Object.keys(pkg.items).some(function(id){ return Array.isArray((pkg.items[id]||{}).asks); })){",
+    find: "     && (Object.keys(pkg.items).some(function(id){ return Array.isArray((pkg.items[id]||{}).asks); })\n         || pkg.added.some(function(a){ return Array.isArray(a.ask); }))){",
     repl: "     && false){" },
   // The copy's storage isolation. Sharing the key let an office's older board win over the file
   // whenever its clock was later -- the copy showed the wrong portfolio and said nothing.
@@ -541,8 +541,8 @@ const MUTATIONS = [
     find: "    PMO_KEYS.forEach(function(k){\n      let now=pmoVal(S,k,id);",
     repl: "    ['desc','cons','notes','asks','ccar','pid','recNames','mc','band','alloc'].forEach(function(k){\n      let now=pmoVal(S,k,id);" },
   { id: 'pmo-no-baseline', area: 'pmoSubmit', what: 'the submittal leaves its baseline behind, so no conflict can ever be seen',
-    find: '             items:items, base:base};',
-    repl: '             items:items, base:{}};' },
+    find: '             items:items, base:base, added:added};',
+    repl: '             items:items, base:{}, added:added};' },
   { id: 'pmo-conflict-blind', area: 'pmoRows', what: 'a field this board changed too is applied without a word',
     find: '                 conflict: was!==undefined && !pmoSame(now, was)});',
     repl: '                 conflict: false});' },
@@ -550,8 +550,8 @@ const MUTATIONS = [
     find: '  PMOPICK={};\n  const n=pmoRows().length;',
     repl: '  PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[r.id+\'|\'+r.key]=true; });\n  const n=pmoRows().length;' },
   { id: 'pmo-applies-unticked', area: 'pmoApply', what: 'apply takes every proposed change, not only the ticked ones',
-    find: "  const rows=pmoRows().filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone; });",
-    repl: "  const rows=pmoRows().filter(function(r){ return !r.gone; });" },
+    find: "  const rows=pmoRows().filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone && !r.taken; });",
+    repl: "  const rows=pmoRows().filter(function(r){ return !r.gone && !r.taken; });" },
   // ---- reading a workbook: every offset comes out of the file being read ------------------------
   { id: 'xlsx-cdoff-unchecked', area: 'xlsxRead', what: 'a damaged directory offset throws a raw RangeError instead of naming the problem',
     find: "  need(cdOff,4,'its directory starts at byte '+cdOff+', past the end of a '+SZ+'-byte file');",
@@ -943,6 +943,38 @@ const MUTATIONS = [
   { id: 'pmo-counts-ignore-moves', area: 'pmoCounts', what: 'the menu counts requirements by their file value, so a reassignment never shows',
     find: `  GROUPS.forEach(function(g){ counts[g]=DATA.items.filter(function(i){ return grpOf(i)===g; }).length; });`,
     repl: `  GROUPS.forEach(function(g){ counts[g]=DATA.items.filter(function(i){ return i.grp===g; }).length; });` },
+
+  // ---- a copy proposes a new requirement -----------------------------------------------------------
+  { id: 'proposal-dropped', area: 'pmoTake', what: 'a proposed requirement arrives and is never offered for review',
+    find: "  held.added=(pkg.added||[]).slice();", repl: "  held.added=[];" },
+  { id: 'proposal-gate-open', area: 'pmoProposalGate', what: 'a proposal with mandatory fields blank can be sent',
+    find: "  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push('Projected award date');\n  return miss;",
+    repl: "  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push('Projected award date');\n  return [];" },
+  { id: 'proposal-double-add', area: 'pmoTakenAs', what: 'the same submittal imported twice adds the requirement twice',
+    find: "  return (S.custom||[]).filter(function(c){ return c.from && c.from.nid===a.nid && c.from.pmo===subFrom(pkg); }).map(function(c){ return c.id; })[0]||null;",
+    repl: "  return null;" },
+  { id: 'proposal-lands-on-top', area: 'pmoAcceptProposal', what: 'an accepted proposal lands at the top of the consolidated listing instead of the bottom',
+    find: "  S.custom.push(it); DATA.items.push(it);\n  S.order.push(it.id);\n  if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];",
+    repl: "  S.custom.push(it); DATA.items.push(it);\n  S.order.unshift(it.id);\n  if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];" },
+  { id: 'proposal-ask-dropped', area: 'pmoAcceptProposal', what: 'an accepted proposal loses the office’s ask values',
+    find: "            ccar:'', fy26:SVC.map(function(){ return 0; }), ask:askVecOf(a.ask), alloc:null,\n            from:{pmo:r.from, nid:a.nid, by:r.by, ts:Date.now()}};",
+    repl: "            ccar:'', fy26:SVC.map(function(){ return 0; }), ask:SVC.map(function(){ return 0; }), alloc:null,\n            from:{pmo:r.from, nid:a.nid, by:r.by, ts:Date.now()}};" },
+  { id: 'proposal-unscoped', area: 'pmoTake', what: 'a proposal for an office the package is not from is held anyway',
+    find: "    pkg.added=pkg.added.filter(function(a){ if(a.grp===pkg.pmo) return true;",
+    repl: "    pkg.added=pkg.added.filter(function(a){ if(true) return true;" },
+
+  // ---- the classification matrix: a bulk write lands only where the field is offered --------------
+  { id: 'bulk-lands-everywhere', area: 'matApplyBulk', what: 'a bulk classification write lands on every row, including requirements that never offer the field',
+    find: "  return matRows().filter(function(it){ return !B.applies || B.applies(it); });",
+    repl: "  return matRows();" },
+  { id: 'second-hop-gov-only', area: 'recFields', what: 'the second-hop control is offered only for a gov destination, so an other-kind OGC can never satisfy the completeness rule',
+    find: "  if(destIsOgc(it))\n    F.push(recF('Which awards to', destOf(it).end,",
+    repl: "  if(destOf(it).to && (flowEnt(destOf(it).to)||{}).kind==='gov')\n    F.push(recF('Which awards to', destOf(it).end," },
+
+  // ---- the buy lines: seated at boot, and only once -----------------------------------------------
+  { id: 'buy-lines-repushed', area: 'boot', what: 'the aircraft buy line is seated again on every reopen of a saved board',
+    find: "  if(!_hasBuy('BUY-AC')) DATA.items.push({id:'BUY-AC', grp:'ATL', team:'ATL', sect:'', custom:false,",
+    repl: "  DATA.items.push({id:'BUY-AC', grp:'ATL', team:'ATL', sect:'', custom:false," },
 
   // ---- the Two Spend Plans, A vs B tab -----------------------------------------------------------
   // Identity columns wedged into the middle of a tab nothing was checking. The risk is not that a

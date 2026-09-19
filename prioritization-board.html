@@ -943,6 +943,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
     <input id="naTot" style="width:100px" placeholder="or $ total">
     <button class="btn" onclick="addReq()">Add to board</button></div>
   <div class="hint">Set the requirement value BY SERVICE in the boxes (blank = $0), or type one total to spread it evenly. New requirements land at the BOTTOM of the priority order — drag them where the group decides. They save with the board and flow into the export with Ref NEW-#.</div>
+  <div class="hint" id="naProposeHint" style="display:none"></div>
 </div>
 
 <div class="modal-bg" id="uipPanel">
@@ -1279,16 +1280,24 @@ function pmoUse(g){
 }
 const GCOLOR = {ATL:'#e08a3c',PRIMES:'#c8a951',PSM:'#7fb57f',PP:'#f1a48a',AV:'#f2c955',MxS:'#8fafd6',CDS:'#b79dd9',TSS:'#f5a3a3',BOP:'#b5b5b5'};
 if(DATA.buys){
-  DATA.items.push({id:'BUY-AC', grp:'ATL', team:'ATL', sect:'', custom:false,
+  // ONCE. A saved board's data pack already carries these two rows -- BASE_ITEMS is sliced right
+  // after this push, so the first save wrote them into the pack -- and DATA is rehydrated FROM that
+  // pack before this line runs. Pushing unconditionally added a second BUY-AC and BUY-ENG on every
+  // reopen: x1, x2, x3 across three opens, measured. S.order held each id once, so the priority
+  // list looked right while every surface that walks DATA.items counted the buy lines twice, then
+  // three times, and the pack grew on every save. Found by the round-trip fuzz the day it learned
+  // to fill every container the board writes.
+  const _hasBuy=id=>DATA.items.some(i=>i&&i.id===id);
+  if(!_hasBuy('BUY-AC')) DATA.items.push({id:'BUY-AC', grp:'ATL', team:'ATL', sect:'', custom:false,
     title:'Aircraft Buy — quantities set on the ✈ Aircraft & Engine tab',
     event:'adjusted qty × unit cost, by service', ccar:'', fy26:DATA.services.map(_=>0), ask:DATA.services.map(_=>0), alloc:null});
-  DATA.items.push({id:'BUY-ENG', grp:'ATL', team:'ATL', sect:'', custom:false,
+  if(!_hasBuy('BUY-ENG')) DATA.items.push({id:'BUY-ENG', grp:'ATL', team:'ATL', sect:'', custom:false,
     title:'Engine Buy — quantities set on the ✈ Aircraft & Engine tab',
     event:'adjusted qty × unit cost, by service', ccar:'', fy26:DATA.services.map(_=>0), ask:DATA.services.map(_=>0), alloc:null});
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.67 (18 Sep 2026)';
+const BUILD='v1.68 (19 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3938,7 +3947,7 @@ function yearCopy(id, y, mode, opts){
   };
   let tid=id;
   if(isCustom){
-    const n=T.custom.length? Math.max(...T.custom.map(x=>parseInt((x.id||'').split('-')[1])||0))+1 : 1;
+    const n=T.custom.length? Math.max(...T.custom.map(x=>parseInt((x.id||'').split('-').pop())||0))+1 : 1;
     tid='NEW-'+n;
     // BOTH names travel verbatim. Baking dispTitle into `title` was right when the display fell
     // back to the record name; now it writes the PLAN EVENT into the record-name slot and the
@@ -4655,6 +4664,96 @@ function pmoSubmitBuild(){
   });
   return out;
 }
+
+// ── A COPY CAN PROPOSE A NEW REQUIREMENT ──────────────────────────────────────────────────────
+// BACKLOG entry 1. A requirement added on a PMO copy has no id on the portfolio board, so it cannot
+// travel as field deltas the way an edit does. It travels WHOLE, in the package's own `added`
+// section, flagged as new, and the portfolio team accepts or declines it as one thing. The office
+// cannot send one until every mandatory field is filled -- the gate is in the copy, where the
+// person who can fill the field is still sitting, and it is also on the Pre-flight panel.
+//
+// THE MANDATORY SET is the RECORD panel's, less the two the accounting team owns (RCN/EEIC, Navy SI
+// code), plus the four the panel does not carry. The record fields are read through recFields().set
+// -- the same answer the panel shows -- rather than restated here, so the gate and the panel cannot
+// disagree. The two OGC fields are gated on destIsOgc(), the one predicate the panel uses, so they
+// are demanded together or waived together; a mandatory field that cannot apply is a gate people
+// learn to work around.
+const PROPOSAL_MANDATORY=['Prime contract / OGC','PMO','Obligation category','WBS','Goes to',
+  'Which awards to (for an OGC)','MIPR type (for an OGC)','Description','Impact if not funded',
+  'Requirement value (by service)','Projected award date'];
+// Which requirements on this copy are proposals: added here, on the list, and unknown to the board
+// the copy was published from.
+function pmoProposalIds(){
+  const base=(PMODE&&PMODE.base)||{};
+  return (S.order||[]).filter(function(id){ const it=itemById(id); return !!(it && it.custom && !base[id]); });
+}
+// The mandatory fields a proposal is still missing, by the label the person will see. Empty = ready.
+function pmoProposalGate(id){
+  const it=itemById(id); if(!it) return ['requirement missing'];
+  const F=recFields(id,it).filter(function(f){ return !f.sec; });
+  const has=function(l){ return F.some(function(f){ return f.l===l && f.set; }); };
+  const miss=[];
+  ['Prime contract / OGC','PMO','Obligation category','WBS','Goes to'].forEach(function(l){ if(!has(l)) miss.push(l); });
+  if(destIsOgc(it)){
+    if(!destOf(it).end) miss.push('Which awards to');
+    if(!miprOf(id)) miss.push('MIPR type');
+  }
+  if(!String((S.desc||{})[id]||'').trim()) miss.push('Description');
+  if(!String((S.cons||{})[id]||'').trim()) miss.push('Impact if not funded');
+  if(!(askTot(it)>0)) miss.push('Requirement value (by service)');
+  const aw=(S.awards||{})[id];
+  if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push('Projected award date');
+  return miss;
+}
+function pmoProposalOf(id){
+  const it=itemById(id);
+  return {nid:id, grp:grpOf(it), title:it.title||'', event:it.event||'', ask:it.ask.slice(),
+          ccar:ccarOf(it)||'', desc:(S.desc||{})[id]||'', cons:(S.cons||{})[id]||'', notes:(S.notes||{})[id]||'',
+          pid:(S.pid||{})[id]||'', recNames:(S.recNames||{})[id]||'', mipr:miprOf(id)||'',
+          obCat:obCatOf(id)||'', ptype:ptypeOf(id)||'', wbs:wbsReq(id).slice(),
+          dest:{to:destOf(it).to||'', end:destOf(it).end||''},
+          awards:(S.awards||{})[id]? JSON.parse(JSON.stringify(S.awards[id])) : null,
+          minInc:(S.minInc||{})[id]||null};
+}
+// Has this board already taken this proposal? Provenance on the accepted requirement -- the office
+// and the provisional id -- is what says so, and it is what stops the same submittal imported twice
+// from adding the requirement twice.
+function pmoTakenAs(a, pkg){
+  return (S.custom||[]).filter(function(c){ return c.from && c.from.nid===a.nid && c.from.pmo===subFrom(pkg); }).map(function(c){ return c.id; })[0]||null;
+}
+// ACCEPT: create the requirement the way addReq() creates one, at the BOTTOM of the consolidated
+// listing for the SFWG to place, with the office's own ask values, and every field the proposal
+// carried. Every store write lands in the change journal through save(), like any edit by hand.
+function pmoAcceptProposal(r){
+  const a=r.prop; if(!a) return false;
+  if(pmoTakenAs(a, PMOSUBS[r.src]||{})) return false;
+  const g=(GROUPS.indexOf(a.grp)>=0)? a.grp : (GROUPS[0]||a.grp);
+  const it={id:'NEW-'+newReqSeq(), grp:g, sect:'new', custom:true,
+            team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined),
+            title:a.title||'(proposed requirement)', event:a.event||'(proposed by '+r.from+')',
+            ccar:'', fy26:SVC.map(function(){ return 0; }), ask:askVecOf(a.ask), alloc:null,
+            from:{pmo:r.from, nid:a.nid, by:r.by, ts:Date.now()}};
+  S.custom.push(it); DATA.items.push(it);
+  S.order.push(it.id);
+  if(!Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=[];
+  S.pmoOrder[g].push(it.id);
+  seedSplit(it.id);
+  const id=it.id;
+  if(a.ccar) S.ccar[id]=String(a.ccar).slice(0,12);
+  if(a.desc) S.desc[id]=a.desc;
+  if(a.cons) S.cons[id]=a.cons;
+  if(a.notes) S.notes[id]=a.notes;
+  if(a.pid){ if(!S.pid) S.pid={}; S.pid[id]=a.pid; }
+  if(a.recNames) S.recNames[id]=a.recNames;
+  if(a.mipr && MIPR_LBL[a.mipr]){ if(!S.mipr) S.mipr={}; S.mipr[id]=a.mipr; }
+  if(a.obCat){ if(!S.obCat) S.obCat={}; S.obCat[id]=a.obCat; }
+  if(a.ptype==='PRIME'||a.ptype==='OGC'){ if(!S.ptype) S.ptype={}; S.ptype[id]=a.ptype; }
+  if(Array.isArray(a.wbs) && a.wbs.length){ if(!S.wbs) S.wbs={}; S.wbs[id]=JSON.parse(JSON.stringify(a.wbs)); }
+  if(a.dest && (a.dest.to||a.dest.end)){ if(!S.dest) S.dest={}; S.dest[id]={to:a.dest.to||'', end:a.dest.end||''}; }
+  if(a.awards && typeof a.awards==='object') S.awards[id]=JSON.parse(JSON.stringify(a.awards));
+  if(typeof a.minInc==='number' && a.minInc>0) S.minInc[id]=a.minInc;
+  return true;
+}
 function pmoSubmit(){
   if(!SANDBOX){ alert('Submittal packages are sent from a PMO copy. This is the portfolio board \u2014 '
     + 'your changes are already on it.'); return; }
@@ -4667,18 +4766,31 @@ function pmoSubmit(){
   // requirements the portfolio board already has; a new one has no id there, so it would arrive as
   // a row the reviewer can only read and never tick -- and the office would believe it had been
   // submitted. Drop it here and say so, where the person who added it is still sitting.
+  // A REQUIREMENT ADDED IN THIS COPY IS A PROPOSAL. It cannot travel as field deltas -- the board has
+  // no id to attach them to -- so it goes WHOLE, in the package's own section, flagged as new. And it
+  // is gated HERE, in the copy: a proposal with a mandatory field blank is not sent, and nothing
+  // else is sent either, because a package that quietly left one requirement behind is exactly the
+  // failure this replaced -- the office believing it had submitted something it had not.
   const base0=(PMODE&&PMODE.base)||{};
-  const added=Object.keys(items).filter(function(id){ return !base0[id]; });
-  added.forEach(function(id){ delete items[id]; });
-  if(added.length){
-    const nm=added.map(function(id){ const it=itemById(id); return it? (recName(it)||dispTitle(it)) : id; });
-    alert('\u26a0 '+added.length+' requirement'+(added.length===1?'':'s')+' you added in this copy '
-      +(added.length===1?'is':'are')+' NOT part of a submittal:\n\n  \u2022 '+nm.join('\n  \u2022 ')
-      +'\n\nA submittal proposes changes to requirements the portfolio board already has. A NEW '
-      +'requirement has to be raised with the portfolio team directly \u2014 send them the detail and '
-      +'they will add it, and it will be on the next copy you receive.\n\n'
+  Object.keys(items).forEach(function(id){ if(!base0[id]) delete items[id]; });   // travels whole, below
+  const owned=pmoProposalIds().filter(function(id){ const it=itemById(id); return it && grpOf(it)===pmo; });
+  const gaps=owned.map(function(id){ return {id:id, miss:pmoProposalGate(id)}; }).filter(function(g){ return g.miss.length; });
+  // WITHHELD BY NAME, and the rest still goes. An incomplete proposal is not sent; the office is told
+  // which one, and which fields it needs, while they are still sitting there. Everything else they
+  // edited travels as usual -- holding forty field edits hostage to one half-filled proposal would be
+  // a rule people learn to work around by deleting the proposal.
+  if(gaps.length){
+    alert('⚠ '+gaps.length+' requirement'+(gaps.length===1?'':'s')+' you added in this copy '
+      +(gaps.length===1?'is':'are')+' missing mandatory fields and '+(gaps.length===1?'is':'are')+' NOT being sent:\n\n'
+      +gaps.map(function(g){ const it=itemById(g.id);
+          return '  • '+(recName(it)||dispTitle(it))+'\n      needs: '+g.miss.join(', '); }).join('\n')
+      +'\n\nA proposed requirement travels whole, for the portfolio team to accept, and every mandatory '
+      +'field has to be filled before it can. Open its record (☰) to fill them, then submit again.\n\n'
       +'Everything else you edited is still being sent.');
   }
+  const gapIds=gaps.map(function(g){ return g.id; });
+  const proposals=owned.filter(function(id){ return gapIds.indexOf(id)<0; });
+  const added=proposals.map(pmoProposalOf);
   // ── SCOPED TO THIS OFFICE, AND NOBODY ELSE'S ───────────────────────────────────────────────
   // The rule is the requirement's OWN office -- grpOf -- and deliberately not a CLIN share. Under
   // shares, both part-owners of a split prime could propose the same field and the portfolio team
@@ -4688,6 +4800,8 @@ function pmoSubmit(){
   // it quietly at the far end would leave an office believing it had submitted something it had not.
   const foreign=Object.keys(items).filter(function(id){
     const it=itemById(id); return !it || grpOf(it)!==pmo; });
+  // a proposal for another office does not travel either, and is named in the same message
+  pmoProposalIds().forEach(function(id){ const it=itemById(id); if(it && grpOf(it)!==pmo) foreign.push(id); });
   foreign.forEach(function(id){ delete items[id]; });
   if(foreign.length){
     const nm=foreign.map(function(id){ const it=itemById(id);
@@ -4699,7 +4813,7 @@ function pmoSubmit(){
       +'wrong, raise it with the office that owns it or at the SFWG \u2014 the portfolio team cannot '
       +'take it from '+pmo+'.\n\nEverything else you edited is still being sent.');
   }
-  const n=Object.keys(items).length;
+  const n=Object.keys(items).length+added.length;
   if(!n){ alert('Nothing to send yet.\n\nEdit a description, an impact statement or a requirement '
     + 'value on one of '+pmo+'\u2019s requirements, then submit. Moving rows around is yours to '
     + 'explore and is not sent \u2014 the priority order stays the portfolio team\u2019s.'); return; }
@@ -4727,7 +4841,7 @@ function pmoSubmit(){
   const pkg={spmtPkg:(typeof PKG_VER!=='undefined'? PKG_VER : 1), dir:'submit',
              ap:(typeof mySlug==='function'? mySlug() : ''), fy:(PMODE&&PMODE.fy)||MS.cur,
              ts:Date.now(), by:who, pmo:pmo, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),
-             items:items, base:base};
+             items:items, base:base, added:added};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
   a.download=expName('SPMT SUBMITTAL - '+pmo.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
@@ -4736,6 +4850,7 @@ function pmoSubmit(){
   a.click();
   setStat('\u2709 Submittal built for <b>'+esc(pmo)+'</b> by <b>'+esc(who)+'</b> \u2014 '
     + n+' requirement'+(n===1?'':'s')
+    + (added.length? ' (<b>'+added.length+' proposed new</b>)' : '')
     + '. Send it to the portfolio team; they review every field before anything is applied.');
 }
 
@@ -4780,6 +4895,13 @@ function pmoRows(){
                    conflict: was!==undefined && !pmoSame(now, was)});
       });
     });
+    // A PROPOSED REQUIREMENT IS ONE ROW, accepted or declined whole. It stays offered until this
+    // board has taken it; once it has, the row says so and cannot be ticked again.
+    (pkg.added||[]).forEach(function(a){
+      rows.push({src:si, from:subFrom(pkg), by:(pkg.by||'?'), scoped:!!pkg.pmo,
+                 id:a.nid, key:'__new', it:null, now:null, prop:a, gone:false, conflict:false,
+                 isNew:true, taken:pmoTakenAs(a, pkg)});
+    });
   });
   // Grouped by office, then in the board's own priority order, so the list reads the way the board
   // does rather than in whatever order the packages happened to be imported.
@@ -4793,7 +4915,20 @@ function pmoRows(){
 }
 function pmoFmtVal(k, v){
   if(v===null||v===undefined) return '\u2014';
-  if(k==='asks' && Array.isArray(v)) return SVC.map(function(s,i){ return s+' '+fM(v[i]||0); }).join(' \u00b7 ');
+  if(k==='asks' && Array.isArray(v)) return SVC.map(function(s,i){ return s+' '+fM(v[i]||0); }).join(' · ');
+  if(k==='__new' && v && typeof v==='object'){
+    const parts=[v.title||'(untitled)'];
+    if(v.event) parts.push(v.event);
+    parts.push(SVC.map(function(s,i){ return s+' '+fM((v.ask||[])[i]||0); }).join(' · '));
+    if(v.ptype) parts.push(v.ptype);
+    if(v.obCat) parts.push(v.obCat);
+    if(v.dest && v.dest.to) parts.push('→ '+(flowEntName(v.dest.to)||v.dest.to)
+      +(v.dest.end? ' → '+(flowEntName(v.dest.end)||v.dest.end) : ''));
+    if(v.mipr) parts.push(MIPR_LBL[v.mipr]||v.mipr);
+    if(v.awards && v.awards.d) parts.push('award '+ymLbl(v.awards.d));
+    if(v.ccar) parts.push('CCaR '+v.ccar);
+    return parts.join(' · ');
+  }
   return String(v);
 }
 
@@ -4824,6 +4959,15 @@ function pmoReport(){
            {v:'Field',s:H},{v:'On the board now',s:H},{v:'Proposed',s:H},{v:'Conflict',s:H},
            {v:'Status',s:H},{v:'Decision / notes',s:H}]]};
   rows.forEach(function(r){
+    if(r.isNew){
+      sheet.rows.push([
+        r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : ''),
+        {v:'', s:N}, r.prop.grp, 'NEW — '+(r.prop.title||r.prop.nid), r.prop.ccar||'',
+        'New requirement (proposed)', '—', pmoFmtVal('__new', r.prop), '',
+        r.taken? 'already added as '+r.taken : (PMOPICK[pickKey(r)]? 'ticked to accept' : 'not accepted'),
+        '']);
+      return;
+    }
     sheet.rows.push([
       r.from + (r.by && r.by!==r.from? ' ('+r.by+')' : ''),
       {v:r.it? (MR[r.id]||'') : '', s:N},
@@ -4857,7 +5001,7 @@ function pmoReport(){
 // journal with a path, a before and an after -- the same trail as any edit made by hand.
 function pmoApply(){
   if(!PMOSUBS.length) return;
-  const rows=pmoRows().filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone; });
+  const rows=pmoRows().filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone && !r.taken; });
   if(!rows.length){ alert('Nothing is ticked. Tick the changes you want, then apply.'); return; }
   // TWO SUBMITTALS TICKED ON ONE FIELD. Scoping makes this impossible between two scoped packages
   // -- an office owns a requirement or it does not -- but an UNSCOPED legacy package loaded beside
@@ -4885,6 +5029,7 @@ function pmoApply(){
   rows.forEach(function(r){
     // The requirement value goes through the same path a typed edit takes. jrnlSet() writes the
     // store key it is given, which is right for every other field and silently wrong for this one.
+    if(r.key==='__new'){ if(pmoAcceptProposal(r)) n++; return; }
     if(r.key==='asks'){ if(applyAskVec(r.id, r.prop)) n++; return; }
     if(jrnlSet(MS.cur, [r.key, r.id], r.prop)) n++;
   });
@@ -4906,7 +5051,9 @@ function pmoApply(){
 // Take delivery of a submittal: hold it for review, record what this board said at the moment the
 // PMO copy was published so a conflict can be spotted, and open the review. NOTHING IS APPLIED.
 function pmoTake(pkg, fname){
-  if(!pkg.items || !Object.keys(pkg.items).length){
+  pkg.items=(pkg.items && typeof pkg.items==='object')? pkg.items : {};
+  pkg.added=(Array.isArray(pkg.added)? pkg.added : []).filter(function(a){ return a && typeof a==='object'; });
+  if(!Object.keys(pkg.items).length && !pkg.added.length){
     alert('That submittal is empty \u2014 it proposes no changes.'); return; }
   const mine=(typeof mySlug==='function'? mySlug() : '');
   if(pkg.ap && mine && pkg.ap!==mine){
@@ -4925,7 +5072,8 @@ function pmoTake(pkg, fname){
   // Every submittal this board publishes carries the list, so a package without one is damaged or
   // hand-made -- say what the risk is rather than reading the numbers and hoping.
   if(!(Array.isArray(pkg.svc) && pkg.svc.length)
-     && Object.keys(pkg.items).some(function(id){ return Array.isArray((pkg.items[id]||{}).asks); })){
+     && (Object.keys(pkg.items).some(function(id){ return Array.isArray((pkg.items[id]||{}).asks); })
+         || pkg.added.some(function(a){ return Array.isArray(a.ask); }))){
     if(!confirm('\u26a0 That submittal proposes requirement values but does not say which services '
       +'they are for.\n\nPer-service figures are read by POSITION, so if it was written against a '
       +'different service list every figure lands against the wrong service \u2014 and the row total '
@@ -4945,6 +5093,8 @@ function pmoTake(pkg, fname){
         const one=bag[id]; if(one && Array.isArray(one.asks))
           one.asks=c.map.map(function(j){ return (j>=0 && j<one.asks.length)? one.asks[j] : 0; }); }); };
       fix(pkg.items); fix(pkg.base);
+      pkg.added.forEach(function(a){ if(Array.isArray(a.ask))
+        a.ask=c.map.map(function(j){ return (j>=0 && j<a.ask.length)? a.ask[j] : 0; }); });
       setStat('\u2139 That submittal lists the services in a different order; its per-service figures '
         +'were matched up by name.');
     }
@@ -4978,6 +5128,21 @@ function pmoTake(pkg, fname){
       +'against a different board. Nothing was loaded.');
     return;
   }
+  // A PROPOSED REQUIREMENT ARRIVES WHOLE, through the same door: a value of the wrong width is
+  // refused rather than padded, prose is text, and the ask goes through the board's own rule.
+  const _wrongNew=pkg.added.filter(function(a){ return !Array.isArray(a.ask) || a.ask.length!==SVC.length; });
+  if(_wrongNew.length){
+    alert('⚠ That submittal proposes '+_wrongNew.length+' new requirement'+(_wrongNew.length===1?'':'s')
+      +' with the wrong number of services.\n\nThis board has '+SVC.length+': '+SVC.join(', ')
+      +'.\n\nThe file is damaged or was written against a different board. Nothing was loaded.');
+    return;
+  }
+  pkg.added.forEach(function(a){
+    a.nid=String(a.nid||''); a.grp=String(a.grp||''); a.title=String(a.title||'').trim();
+    ['event','ccar','desc','cons','notes','pid','recNames','mipr','obCat','ptype'].forEach(function(k){
+      a[k]=(a[k]===undefined||a[k]===null)? '' : String(a[k]); });
+    a.ask=askVecOf(a.ask);
+  });
   // ── SCOPE: THIS OFFICE'S REQUIREMENTS AND NOBODY ELSE'S ─────────────────────────────────────
   // The package names the office it is from, and anything in it that office does not own is dropped
   // before the review ever sees it. That is what makes several submittals reviewable side by side:
@@ -4992,7 +5157,9 @@ function pmoTake(pkg, fname){
       outOfScope.push(grpOf(it)+' \u2014 '+(recName(it)||dispTitle(it)));
       delete pkg.items[id];
     });
-    if(!Object.keys(pkg.items).length){
+    pkg.added=pkg.added.filter(function(a){ if(a.grp===pkg.pmo) return true;
+      outOfScope.push(a.grp+' — '+(a.title||a.nid)+' (proposed new)'); return false; });
+    if(!Object.keys(pkg.items).length && !pkg.added.length){
       alert('That submittal is from '+pkg.pmo+' but proposes nothing on '+pkg.pmo+'\u2019s own '
         +'requirements.\n\n'+outOfScope.length+' proposed change'+(outOfScope.length===1?'':'s')
         +' '+(outOfScope.length===1?'was':'were')+' for requirements another office owns, and a '
@@ -5019,6 +5186,7 @@ function pmoTake(pkg, fname){
   // uncontested however much had changed in the meantime. That was the first version of this, and
   // the conflict flag never once fired.
   held.baseSeen=pkg.base||{};
+  held.added=(pkg.added||[]).slice();
   PMOSUBS.push(held);
   PMOPICK={};
   const n=pmoRows().length;
@@ -5046,7 +5214,7 @@ function subClose(){ subOpen=false; subBody(); }
 function subPick(src, id, key, on){ PMOPICK[src+'|'+id+'|'+key]=!!on; subBody(); }
 function subPickAll(on, src){
   pmoRows().forEach(function(r){
-    if(r.gone) return;
+    if(r.gone || r.taken) return;
     if(src!==undefined && src!==null && r.src!==src) return;
     PMOPICK[pickKey(r)]=!!on; });
   subBody();
@@ -5080,6 +5248,7 @@ function subBody(){
   const rows=pmoRows(), MR=masterRanks();
   const nPick=rows.filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone; }).length;
   const nConf=rows.filter(function(r){ return r.conflict; }).length;
+  const nNew=rows.filter(function(r){ return r.isNew && !r.taken; }).length;
   const nOpen=PMOSUBS.filter(function(pk){ return !pk.pmo; }).length;
   // ONE LINE PER SUBMITTAL, so the round reads as a round: who sent what, when, and how much of it
   // is still on the table. The per-office counts come from the same pmoRows() the table below uses,
@@ -5089,6 +5258,7 @@ function subBody(){
     +rows.length+' change'+(rows.length===1?'':'s')+' in total. '
     +'<b>Nothing is applied until you tick it.</b> Priority order is never sent \u2014 the ranking '
     +'stays yours.'
+    +(nNew? ' <b style="color:var(--green)">'+nNew+' propose'+(nNew===1?'s':'')+' a NEW requirement — accepted whole, at the bottom of the listing for the SFWG to place.</b>':'')
     +(nConf? ' <b style="color:var(--amber)">'+nConf+' would overwrite a field this board changed since.</b>':'')
     +(nOpen? ' <b style="color:var(--amber)">'+nOpen+' '+(nOpen===1?'is':'are')+' unscoped and may '
       +'reach another office\u2019s requirements.</b>':'')
@@ -5131,6 +5301,23 @@ function subBody(){
     +'<th style="text-align:left">On the board now</th><th style="text-align:left">Proposed</th></tr>';
   rows.forEach(function(r){
     const key=pickKey(r);
+    if(r.isNew){
+      const a=r.prop;
+      h+='<tr style="background:rgba(120,200,120,.08)">'
+        +'<td style="text-align:center">'+(r.taken
+          ? '<span title="already added to this board as '+esc(r.taken)+'" style="color:var(--green)">✓</span>'
+          : '<input type="checkbox" '+(PMOPICK[key]?'checked':'')
+            +' onchange="subPick('+r.src+',\''+r.id+'\',\''+r.key+'\',this.checked)">')+'</td>'
+        +'<td style="text-align:left"><b>'+esc(r.from)+'</b>'
+          +(r.scoped? '' : '<br><span style="color:var(--amber);font-size:9px;font-weight:800">UNSCOPED</span>')+'</td>'
+        +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(a.title||a.nid)
+          +' <span style="color:var(--dim)">'+esc(a.grp)+'</span>'
+          +(r.taken? '<br><span style="color:var(--green);font-size:9px;font-weight:800">ALREADY ADDED AS '+esc(r.taken)+'</span>':'')+'</td>'
+        +'<td style="text-align:left">New requirement (proposed)</td>'
+        +'<td style="text-align:left;color:var(--dim)">—</td>'
+        +'<td style="text-align:left">'+esc(String(pmoFmtVal('__new',a)).slice(0,400))+'</td></tr>';
+      return;
+    }
     h+='<tr'+(r.conflict?' style="background:rgba(255,170,0,.08)"':'')+'>'
       +'<td style="text-align:center">'+(r.gone
         ? '<span title="this board no longer has that requirement" style="color:var(--red)">\u2715</span>'
@@ -6100,6 +6287,14 @@ function togglePmo(){ pmoOpen=!pmoOpen; render(); }
 function syncNaGrp(){
   const el=document.getElementById('naGrp'); if(!el) return;
   el.innerHTML=GROUPS.map(function(g){ return '<option>'+esc(g)+'</option>'; }).join('');
+  // ON A PMO COPY, ADDING IS PROPOSING. Said on the panel itself, with the mandatory list, so the
+  // person adding one learns the rule before they type rather than from a refusal at submit time.
+  const ph=document.getElementById('naProposeHint');
+  if(ph){ ph.style.display=(typeof SANDBOX!=='undefined' && SANDBOX)? '' : 'none';
+    if(typeof SANDBOX!=='undefined' && SANDBOX)
+      ph.innerHTML='<b>On a PMO copy this is a PROPOSAL.</b> It travels back with your submittal flagged as '
+        +'new, for the portfolio team to accept or decline, and it cannot be sent until every mandatory '
+        +'field is filled: '+PROPOSAL_MANDATORY.map(esc).join(' · ')+'. Open its record (☰) to fill them.'; }
 }
 
 /* Write the list and put the board back in step with it. applyState re-normalises this year's
@@ -8392,6 +8587,19 @@ function preflight(){
       'The requirements export drops these lines. The money is on the board and would not be in the file.',
       rs.map(function(r){ return {id:r.id, label:pfName(r.id), sub:r.svc}; }));
   });
+
+  // 1b. on a PMO copy: a proposed requirement that cannot be sent yet. The same gate pmoSubmit()
+  //     applies, shown here so it is found before the refusal rather than by it.
+  if(typeof SANDBOX!=='undefined' && SANDBOX && typeof pmoProposalIds==='function'){
+    const rows=[];
+    pmoProposalIds().forEach(function(id){ const miss=pmoProposalGate(id);
+      // named the way the submit alert names it -- the title the office typed -- not the plan event
+      if(miss.length) rows.push({id:id, label:(recName(itemById(id))||pfName(id)), sub:'needs '+miss.join(', ')}); });
+    add('block','newreq','A proposed requirement is missing mandatory fields',
+      'A requirement added on this copy travels back whole, for the portfolio team to accept, and it '
+      +'cannot be sent until every mandatory field is filled. Submit input is refused while any of '
+      +'these is open.', rows);
+  }
 
   // 2. allocated more than asked. IDS refuses a line whose approved exceeds its requirement, and
   //    the export papers over it by raising the requirement - which is a figure nobody chose.
@@ -16537,7 +16745,11 @@ function recFields(id, it){
             +(miprOf(id)===k?' selected':'')+'>'+MIPR_LBL[k]+'</option>'; }).join('')),
       'prints on the \u{1F3AF} Priority Drill, not the Spend Plan Source \u2014 that workbook is '
       +'measured from the file itself, so nothing is added to it by taste'));
-  if(destOf(it).to && (flowEnt(destOf(it).to)||{}).kind==='gov')
+  // Offered wherever the requirement is an OGC -- any destination that is not a prime, so an
+  // 'other' kind gets the control too. It used to be gov-only, which left the Goes-to completeness
+  // rule (BACKLOG entry 1) unsatisfiable for an 'other' destination. Same predicate as MIPR type
+  // above, on purpose: the two are satisfied or waived together.
+  if(destIsOgc(it))
     F.push(recF('Which awards to', destOf(it).end,
       recSel('setDest(&quot;'+id+'&quot;,&quot;end&quot;,this.value)',
         'The ultimate recipient, when that activity awards our money on a commercial contract',
@@ -16651,7 +16863,15 @@ function matBulk(){
   out['Goes to']={opts:flowEnts().map(function(e){ return [e.k, e.n+(e.kind==='gov'?' (gov)':'')]; }),
               get:function(it){ return destOf(it).to; },
               set:function(id,v){ setDest(id,'to',v); }};
+  // APPLIES. A bulk write used to land on every row matRows() returned, whether or not that
+  // requirement offered the field: a bulk 'MIPR type = Direct Cite' with no missing-field filter
+  // wrote the classification onto every prime, where the record panel never shows it -- and the
+  // value was real, in S.mipr, travelling in a submittal and a year copy with nothing on screen
+  // saying so. 'Which awards to' had done the same since it shipped. An entry with no applies()
+  // applies to every requirement; the two that do not are keyed on destIsOgc, the same predicate
+  // the record panel uses to offer them, so the sweep and the panel can never disagree.
   out['Which awards to']={opts:flowEnts().map(function(e){ return [e.k,e.n]; }),
+              applies:function(it){ return destIsOgc(it); },
               get:function(it){ return destOf(it).end; },
               set:function(id,v){ setDest(id,'end',v); }};
   // Options read off MIPR_LBL, never retyped here: two spellings of the same two choices is how a
@@ -16659,6 +16879,7 @@ function matBulk(){
   // offers MIPR type the moment a requirement routes to a government activity, and a list-valued
   // field the grid shows with no bulk setter means the sweep silently covers less than the grid.
   out['MIPR type']={opts:Object.keys(MIPR_LBL).map(function(k){ return [k, MIPR_LBL[k]]; }),
+              applies:function(it){ return destIsOgc(it); },
               get:function(it){ return miprOf(it.id); },
               set:function(id,v){ setMipr(id,v); }};
   out['Prime contract / OGC']={opts:[['PRIME','PRIME'],['OGC','OGC']],
@@ -16702,16 +16923,22 @@ function matBulkOk(){
   return missing;
 }
 // What a bulk write would actually do. Nothing is written until this has been shown and accepted.
+// The rows a bulk write REACHES: what matRows() returns, less any requirement that never offers
+// the field. One function, used by the preview, the confirm and the write, so the three agree.
+function matBulkRows(B){
+  return matRows().filter(function(it){ return !B.applies || B.applies(it); });
+}
 function matBulkPreview(){
   const B=matBulk()[matBulkF];
   if(!B || matBulkV==='') return null;
   let blank=0, same=0, differ=0;
-  const rows=matRows();
+  const all=matRows(), rows=matBulkRows(B);
   rows.forEach(function(it){
     const cur=String(B.get(it)||'');
     if(!cur) blank++; else if(cur===matBulkV) same++; else differ++;
   });
-  return {n:rows.length, blank:blank, same:same, differ:differ, field:matBulkF, val:matBulkV};
+  return {n:rows.length, blank:blank, same:same, differ:differ, skip:all.length-rows.length,
+          field:matBulkF, val:matBulkV};
 }
 function matApplyBulk(){
   const B=matBulk()[matBulkF], P=matBulkPreview();
@@ -16719,13 +16946,15 @@ function matApplyBulk(){
   if(!confirm('SET '+matBulkF+' = "'+matBulkV+'" ON '+P.n+' REQUIREMENT'+(P.n===1?'':'S')+'?\n\n'
     +'  '+P.blank+' have no answer yet\n'
     +'  '+P.same+' already say exactly this\n'
-    +'  '+P.differ+' say something ELSE and would be OVERWRITTEN\n\n'
+    +'  '+P.differ+' say something ELSE and would be OVERWRITTEN\n'
+    +(P.skip? '  '+P.skip+' never offer this field and are left alone\n' : '')+'\n'
     +'This cannot be undone. Save first if you are unsure.')) return;
-  const rows=matRows();
+  const rows=matBulkRows(B);
   rows.forEach(function(it){ B.set(it.id, matBulkV); });
   save(); render();
   setStat('\u2713 '+esc(matBulkF)+' set to <b>'+esc(matBulkV)+'</b> on '+rows.length
-    +' requirement'+(rows.length===1?'':'s')+(P.differ? ' \u2014 '+P.differ+' had a different answer and were overwritten.' : '.'));
+    +' requirement'+(rows.length===1?'':'s')+(P.differ? ' \u2014 '+P.differ+' had a different answer and were overwritten' : '')
+    +(P.skip? (P.differ?'; ':' \u2014 ')+P.skip+' never offer this field and were left alone' : '')+'.');
 }
 function matBody(){
   const bg=document.getElementById('matPanel'), el=document.getElementById('matBody');
@@ -16790,7 +17019,8 @@ function matBody(){
       +'<button class="btn" style="font-size:10px;padding:3px 10px"'+(P?'':' disabled')
       +' onclick="matApplyBulk()">Apply</button>';
     if(P) h+='<span class="mat-prev">'+P.blank+' blank \u00b7 '+P.same+' already this \u00b7 '
-      +'<b style="color:'+(P.differ?'var(--amber)':'var(--dim)')+'">'+P.differ+' overwritten</b></span>';
+      +'<b style="color:'+(P.differ?'var(--amber)':'var(--dim)')+'">'+P.differ+' overwritten</b>'
+      +(P.skip? ' \u00b7 '+P.skip+' never offer it, left alone' : '')+'</span>';
     h+='</div>';
     const gap=matBulkOk();
     if(gap.length) h+='<div class="hint" style="color:var(--amber)">These columns cannot be set in '
@@ -19989,8 +20219,11 @@ function addReq(){
   const g=document.getElementById('naGrp').value;
   const ev=(document.getElementById('naEvent').value||'').trim();
   const cc=(document.getElementById('naCcar').value||'').trim().slice(0,12);
-  const n=S.custom.length? Math.max(...S.custom.map(x=>parseInt(x.id.split('-')[1])||0))+1 : 1;
-  const it={id:'NEW-'+n, grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined), title:t, event:ev||'(added at drill)',
+  // THE NUMBER IS THE LAST SEGMENT. On a PMO copy the id also carries the office -- NEW-PSM-1 -- so
+  // two offices proposing at once can never mint the same id, and a reviewer can tell whose it is
+  // before opening it. split('-')[1] read 'PSM' as the number and would have minted NEW-PSM-NaN.
+  const n=newReqSeq();
+  const it={id:((typeof SANDBOX!=='undefined' && SANDBOX)? 'NEW-'+g+'-'+n : 'NEW-'+n), grp:g, sect:'new', custom:true, team:(DATA.teams? (g==='ATL'?'ATL':'BTL') : undefined), title:t, event:ev||'(added at drill)',
             ccar:'', fy26:SVC.map(_=>0), ask:ask, alloc:null};
   S.custom.push(it); DATA.items.push(it); S.order.push(it.id);
   // A new requirement is born on Split, seeded from the lane walk that now includes it. The menu
@@ -20003,6 +20236,11 @@ function addReq(){
   ['naTitle','naEvent','naTot','naCcar'].forEach(id=>document.getElementById(id).value='');
   SVC.forEach((s,i)=>document.getElementById('naSvc'+i).value='');
   save(); render(); flash(it.id);
+}
+// The next number for an added requirement, read off the LAST segment of every custom id so
+// NEW-3, NEW-PSM-3 and NEW-AV-3 all count.
+function newReqSeq(){
+  return S.custom.length? Math.max(...S.custom.map(function(x){ return parseInt((x.id||'').split('-').pop())||0; }))+1 : 1;
 }
 function removeReq(id){
   const it=itemById(id);

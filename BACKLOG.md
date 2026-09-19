@@ -10,7 +10,34 @@ trap the codebase has already fallen into once, the entry says which.
 
 ## 1. A PMO copy must be able to propose a NEW requirement
 
-**Asked 14 Sep 2026 · decisions settled · not started**
+**Asked 14 Sep 2026 · decisions settled · DONE, 19 Sep 2026**
+
+### As built
+
+- **Whole, in its own section.** The package gains `added: […]`, one whole object per proposal
+  (`pmoProposalOf`), beside the `items` deltas. A proposal's provisional id is never in `items`.
+- **Provisional id carries the office.** `addReq()` on a copy mints `NEW-<office>-<n>`; the number is
+  the LAST segment everywhere (`newReqSeq`, and `yearCopy` was reading `split('-')[1]`). On accept the
+  board mints its own `NEW-<n>`.
+- **The gate is in the copy, and on Pre-flight.** `pmoProposalGate(id)` reads the RECORD fields
+  through `recFields().set` and the four extras from state; the two OGC fields are demanded off
+  `destIsOgc()`. `pmoSubmit()` withholds an incomplete proposal **by name**, lists each missing
+  field, and sends everything else the office edited — the contract the old guard had for an added
+  row, kept, because holding forty field edits hostage to one half-filled proposal is a rule people
+  learn to work around by deleting the proposal. The Add panel says it is a proposal and lists the
+  mandatory set.
+- **Review renders it as one row**, accept or decline, with a one-line summary; the change report
+  carries it; a re-imported submittal shows it as *already added as NEW-n* and it cannot be ticked.
+- **Accept creates it the way `addReq()` does**, at the bottom of the consolidated listing and last
+  in its office, with the office's ask values kept, every carried field set, and provenance
+  (`from: {pmo, nid, by, ts}`) that is what stops a double-add.
+- **Scoped both ends.** A proposal for another office does not travel and the office is told; one
+  that arrives for an office the package is not from is refused at the door.
+- Guarded by *a copy proposes a new requirement* in `audit-import.mjs` and six mutations:
+  `proposal-dropped`, `proposal-gate-open`, `proposal-double-add`, `proposal-lands-on-top`,
+  `proposal-ask-dropped`, `proposal-unscoped`.
+
+### As asked
 
 ### What is wanted
 
@@ -74,10 +101,9 @@ Pratt & Whitney, so behaviour is identical now — but it does not go stale when
 renamed or a third is added. A hardcoded list is the same trap as the hardcoded year list
 that blanked a whole appropriation in Spruills (see CLAUDE.md, `spGather`).
 
-> **Gap to close when building:** `S.dest[id]` holds `.to` (first hop) and `.end` (ultimate
-> recipient), but the "Which awards to" control is offered **only when the destination's kind
-> is `gov`**. An `Other`-kind destination has no second-hop control at all today, so the rule
-> cannot be satisfied there. The control has to be offered for every non-prime kind.
+> **Gap closed, 19 Sep 2026 (with entry 7):** the "Which awards to" control is offered for every
+> non-prime kind, keyed on `destIsOgc()` — the same predicate as MIPR type, so the two are
+> satisfied or waived together as this entry requires. Guarded by `second-hop-gov-only`.
 
 ### The rest, settled
 
@@ -131,8 +157,11 @@ Add a funding-type classification to OGC requirements: **MIPR Direct Cite Fundin
 `S.mipr[id]` holds `'direct'` or `'reimb'`; `MIPR_LBL` is the sole place either is spelled out.
 `setMipr()` refuses anything else. The record panel offers the field only when `destIsOgc(it)` is
 true — **the same predicate** the Goes-to completeness rule in entry 1 must use, written once so
-the two cannot drift apart. It is in `PMO_FIELDS`, so a submittal carries it, and in the container
-normalise list, so a year copy does.
+the two cannot drift apart. It is in `PMO_FIELDS`, so a submittal carries it, and `yearCopy()` has a
+`cp(T.mipr, …)`, so a year copy does. It is **not** in `applyState()`'s normalise list: the container
+is created lazily by `setMipr()` (`if(!S.mipr) S.mipr={}`), like `obCat`, `aceMap`, `whatif`, `upl`,
+`rcnAsg`, `budgetAsg` and the six `clin*` containers. That is why the round-trip fuzz reads the set of
+containers out of the board's source rather than from that list — see CLAUDE.md.
 
 **It is NOT on the Spend Plan Source export**, which is where this entry asked for it. That export
 is a measured mirror of a real workbook — its own comment says *"The export mirrors them exactly,
@@ -239,7 +268,24 @@ Still wanted:
 
 ## 7. A bulk classification write lands on requirements that never offer the field
 
-**Found 14 Sep 2026 while building entry 2 · not started**
+**Found 14 Sep 2026 while building entry 2 · DONE, 19 Sep 2026 — option 1, as recommended**
+
+### As built
+
+Each `matBulk()` entry may carry `applies(it)`; an entry without one applies to every requirement.
+`MIPR type` and `Which awards to` are keyed on `destIsOgc()` — the predicate the record panel
+already uses to offer them, so the sweep and the panel cannot disagree. One function,
+`matBulkRows()`, decides the reach for the preview, the confirm and the write, and all three say
+how many requirements never offer the field and are left alone. The `↳ USAF`-style per-service
+budget setters carry no `applies()` and still reach everyone, which is the case the obvious fix
+would have broken. Guarded by *a bulk write lands only where the field is offered* in
+`audit-board.mjs` and the `bulk-lands-everywhere` mutation; registered as
+`bulk-write-where-the-field-is-not-offered`.
+
+The second-hop control is now offered for **every non-prime kind**, off that same predicate —
+which closes the gap entry 1 records below. Guarded by `second-hop-gov-only`.
+
+### As found
 
 `matApplyBulk()` writes to every row `matRows()` returns. `matRows()` filters by PMO and by the
 missing-field picker, but **not** by whether the chosen field is one that requirement actually

@@ -1457,6 +1457,68 @@ allocated columns. They cover only the LISTED requirements, so they are not boar
 them to a portfolio total would fail for the wrong reason. Its two unfunded totals ARE board-wide —
 every requirement short on either reading is listed — which is what makes those comparable.
 
+### A block after `process.exit()` never runs, and reads as a pass
+
+The proposal scenario was appended to the end of `audit-import.mjs` — after the summary and its
+`process.exit(1)`. It never executed. The import suite reported ALL CHECKS PASSED on a board with
+the proposal deliberately dropped, and five mutations aimed at the scenario survived; that was the
+only signal. Every suite now asserts, at its summary, that every `const name = '…'` in its own
+source was heard from by `chk()`; one that was not fails as *never ran*. The same trap as a fixture
+that cannot reach its target, one level up: a check that cannot be reached at all.
+
+Proven to bite: moving *the two spend plans — the A vs B tab* after `process.exit(1)` in a scratch
+copy of `audit-other.mjs` reports *"this scenario never ran — is its block after process.exit()?"*
+by name. A name built by concatenation (`'convert to split — ' + label`) is heard only in its
+finished forms, so a literal that any heard scenario starts with counts as run; the first cut
+flagged that one falsely. And the first version of the proof moved the self-check along with the
+scenario, because the cut stopped at the last `}` before the summary — which is the self-check's
+own. A proof that cannot reach its target reads as a pass too.
+
+### A submittal can carry a new requirement, whole
+
+A requirement added on a PMO copy has no id on the portfolio board, so it cannot travel as field
+deltas the way an edit does. It travels **whole**, in the package's own `added` section, flagged
+as new, and the portfolio team accepts or declines it as one thing. Three rules, each guarded:
+
+- **Gated in the copy, not at the far end.** `pmoProposalGate()` names every mandatory field still
+  blank; `pmoSubmit()` withholds that proposal *by name* and sends everything else the office
+  edited — the first cut blocked the whole submit, and the existing *review controls* check caught
+  it as the workflow tax it was; Pre-flight shows the same gate.
+  The record fields are read through `recFields().set` — the panel's own answer — and the two OGC
+  fields are demanded off `destIsOgc()`, so a field that cannot apply is never demanded. Dropping
+  the proposal *quietly* is the failure this replaced; withholding it by name is not dropping it.
+- **Accepted the way `addReq()` adds**, at the bottom of the consolidated listing for the SFWG to
+  place, with the office's ask values kept and every carried field set. Every write goes through
+  `save()`, so it is in the change journal like any edit by hand.
+- **Provenance stops the double-add.** The accepted requirement carries `from: {pmo, nid}`; the same
+  submittal imported again shows *already added as NEW-n* and cannot be ticked.
+
+The provisional id carries the office (`NEW-PSM-1`) so two offices can never mint the same one, and
+the number is the **last** segment everywhere — `yearCopy` was reading `split('-')[1]`, which on
+such an id is the office. Guarded by *a copy proposes a new requirement* (`audit-import.mjs`) and
+the six `proposal-*` mutations.
+
+### A bulk write lands only where the field is offered
+
+`matApplyBulk()` wrote to every row `matRows()` returned. `matRows()` filters by office and by
+the missing-field picker — never by whether the requirement *offers* the field. So a bulk
+`MIPR type = Direct Cite` with no filter set landed on every prime, where the record panel never
+shows it, and the value was real: in `S.mipr`, travelling in a submittal and a year copy, with
+nothing on screen saying so. Pre-existing since `Which awards to` shipped.
+
+**The obvious fix was wrong, and that is the lesson.** Skipping rows whose `recFields()` lacks the
+label would have silently no-op'd the `↳ USAF` per-service budget setters, which are bulk-only
+entries with no record label at all. So each `matBulk()` entry says for itself who it applies to
+(`applies(it)`), and the default is everyone. The two gated fields are keyed on `destIsOgc()` —
+**the same predicate the record panel uses to offer them**, written once, so the sweep and the
+panel cannot disagree. One function, `matBulkRows()`, decides the reach for the preview, the
+confirm and the write; a write that is scoped one way and previewed another is a dialog that
+lies. The second-hop control is offered off that predicate too, for every non-prime kind.
+
+Guarded by *a bulk write lands only where the field is offered* (`audit-board.mjs`), the
+`bulk-lands-everywhere` and `second-hop-gov-only` mutations, and the register entry
+`bulk-write-where-the-field-is-not-offered`.
+
 ### The data-loss fuzz — the other can't-fail
 
 ```
@@ -1477,19 +1539,46 @@ unicode — then driven through the trips the data actually takes:
 
 | Trip | What it would mean to fail |
 |---|---|
+| **fill every container the board writes** | a container this tool never fills is a container whose loss it can never see — an empty one after `populate()` fails the run |
 | save → reopen | a value written to the store is not there when the file is reopened |
 | save → reopen → **save again** | it survives one trip and is re-encoded on the next, so it is lost on the third |
-| year copy, every requirement | `yearCopy` created the container and never copied into it |
+| year copy, every requirement | `yearCopy` created the container and never copied into it — checked for every container on `yearCopy`'s own normalise list, read from the board |
+| PMO copy → edit → submit → take → review | a field an office changed on its copy is not in the package, or is not offered to the reviewer with the value the copy held — and a field it did NOT change is in the package anyway, which would overwrite the portfolio board's later edits on apply |
+
+**Which containers exist is read from the board, never listed in the tool.** The first version
+carried fourteen names under a comment saying *"if a field exists, it gets written here"*. By the
+time anyone looked the board wrote fifty-two — the PMO reassignment overlay, the typed record
+fields, the six CLIN containers, the accounting keys — and the fuzz had passed for days while a
+value lost from any of them would have gone unnoticed. The `applyState()` normalise list is not the
+source of truth either: `mipr`, `obCat`, `aceMap`, `whatif`, `upl`, `rcnAsg`, `budgetAsg` and every
+`clin*` container are created lazily inside their own setters and never appear there. So the tool
+scans `S.<key> =`, `S.<key>[…]`, `.push(` and `.splice(` out of the board's source, and a container
+that is still empty after `populate()` fails the run by name. A container that genuinely cannot be
+filled is excused in `EXCUSED` with its reason (today: only `pmoOrder`, rebuilt on every load), and
+an excuse for a container the board no longer writes fails too, so that list cannot rot.
+
+**The first run with every container filled found a shipped defect.** A board with buy lines seats
+`BUY-AC` and `BUY-ENG` in `DATA.items` at boot; `BASE_ITEMS` is sliced right after, so the first save
+wrote them into the data pack, and the next open rehydrated `DATA` from that pack and seated them
+again: ×1, ×2, ×3 across three opens, measured on the board's own boot path. `S.order` held each id
+once, so the priority list looked right; every surface that walks `DATA.items` would have counted
+the buy lines twice, then three times. Registered as `buy-lines-duplicated-on-reopen`, guarded by
+*buy lines reopen once* in `audit-import.mjs` and the `buy-lines-repushed` mutation.
+
+The fuzz is a stage of `validate:math` on both builds. Its seed is random every run and printed.
 
 **The seed is the whole point.** It is printed on every run and accepted with `--seed`, so a failure
 at 3am is replayable at 9am with one command. `Math.random()` cannot be replayed, and a failure you
 cannot reproduce is a rumour.
 
-Proven to bite, on two injected defects: dropping `cp(T.mipr, …)` reports *"container mipr is
-normalised on the target but never filled — 2 entries in the source year, 0 in the copy"*, and
+Proven to bite, on four injected defects: dropping `cp(T.mipr, …)` reports *"container mipr is
+normalised on the target but never filled — 2 entries in the source year, 0 in the copy"*;
 removing the load-bearing `.replace(/</g,'\\u003c')` reports exact paths —
 `years.2027.alloc.R002  saved {"m":"t","v":0.01}  read undefined` — because a note containing
-`</script>` closes the tag early and truncates the store.
+`</script>` closes the tag early and truncates the store; removing the `S.grp` write from
+`populate()` reports *"1 container(s) the board writes are never filled by this fuzz — grp"*; and
+making `pmoSubmitBuild()` skip `recNames` reports *"PRIME-000.recNames changed on the copy is not
+what the package carries — copy held "0 edited", package undefined"*.
 
 ### The export delta — which numbers moved
 

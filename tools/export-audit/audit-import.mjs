@@ -34,7 +34,15 @@ const dumpLs = (w) => { const o = {}; const ls = w.localStorage;
   for (let i = 0; i < ls.length; i++) { const k = ls.key(i); o[k] = ls.getItem(k); } return o; };
 
 let failures = [];
+// EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
+// a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
+// five mutations aimed at it survived. chk() records every scenario it hears from; at the summary,
+// any `const name = '...'` in this file it never heard from is a failure, not a pass.
+import { readFileSync as _selfRead } from 'node:fs';
+import { fileURLToPath as _selfPath } from 'node:url';
+const SEEN = new Set();
 const chk = (scenario, where, what, got, want) => {
+  SEEN.add(scenario);
   const ok = (typeof got === 'number' && typeof want === 'number')
     ? Math.abs(got - want) <= 0.005 : String(got) === String(want);
   if (!ok) failures.push({ scenario, where, what, got, want });
@@ -275,6 +283,35 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // ══ the values most likely to be quietly mangled ════════════════════════════════════
 // A whole-store comparison passes the moment both sides are equally wrong, so name the fields that
 // would cost real money or real meaning and check them one at a time on the REOPENED board.
+// ═══ BUY LINES REOPEN ONCE ══════════════════════════════════════════════════════════════════════════
+// A board with buy lines seats BUY-AC and BUY-ENG in DATA.items at boot when the payload says so.
+// The first save wrote those two rows into the data pack, the next open rehydrated DATA from that
+// pack and seated them AGAIN: one more of each on every reopen, x1, x2, x3, measured. S.order held
+// each id once, so the priority list looked right; every surface that walks DATA.items counted the
+// buy lines twice, then three times. Found by the round-trip fuzz the day it learned to fill every
+// container the board writes -- nothing here had ever opened a saved board with buy lines.
+{
+  const name = 'buy lines reopen once';
+  const sc = base();
+  const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+  // The payload says the board has buy lines, the way a real board's baked template does. This
+  // boot happened before the flag was set, so it seated none; the next boot is the board's own path.
+  ev(`DATA.buys=true; BASE_ITEMS.length=0;
+      DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      applyState(S); save(); 'ok'`);
+  const count = h => Number(h.ev(`DATA.items.filter(function(i){ return i.id==='BUY-AC'; }).length`));
+  const b1 = boot({ html: ev('buildSavedHtml()') });
+  chk(name, 'first open', 'the board seats one aircraft buy line', count(b1), 1);
+  const n1 = Number(b1.ev('DATA.items.length'));
+  const b2 = boot({ html: b1.ev('buildSavedHtml()') });
+  chk(name, 'reopen', 'a reopen still holds exactly one', count(b2), 1);
+  chk(name, 'reopen', 'and the requirement count does not grow', Number(b2.ev('DATA.items.length')), n1);
+  const b3 = boot({ html: b2.ev('buildSavedHtml()') });
+  chk(name, 'reopen', 'nor on the open after that', count(b3), 1);
+  chk(name, 'reopen', 'and the pack the next save would write carries it once',
+    Number(b3.ev(`dataPackOf().items.filter(function(i){ return i.id==='BUY-AC'; }).length`)), 1);
+}
+
 {
   const name = 'what survives';
   const sc2 = base();
@@ -1474,6 +1511,158 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   chk(name, 'apply', 'and the packages are still held rather than discarded', after.stillHeld, 2);
 }
 
+// ═══ A COPY PROPOSES A NEW REQUIREMENT ═══════════════════════════════════════════════════════
+// BACKLOG entry 1. A requirement added on a PMO copy travels back WHOLE, flagged as new, for the
+// portfolio team to accept or decline; the office cannot send it until every mandatory field is
+// filled; on accept it is created the way addReq() creates one, at the bottom of the consolidated
+// listing, with the office's own ask values; and the same submittal imported twice cannot add it
+// twice. Each of those is a way to lose or double a requirement, so each is asserted.
+{
+  const name = 'a copy proposes a new requirement';
+  const sc = { services: MINE,
+    items: [it('A', 'AV', [900, 200, 100]), it('C', 'PSM', [300, 80, 40])],
+    disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'C'] };
+  const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
+  const html = ev(String.raw`(function(){
+    const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const P = boot({ html });
+  seed(P.ev, sc); asBooted(P.ev, sc);
+  P.ev(`PMODE.base=pmoBaseline();
+        try{ localStorage.setItem('prio27who','R. Jones'); localStorage.setItem('prio27pmo','PSM'); }catch(e){}
+        'ok'`);
+  const submit = () => JSON.parse(P.ev(`(function(){
+    let cap=null; const _B=window.Blob;
+    window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+    globalThis.__al=[]; const _a=window.alert; window.alert=function(m){ globalThis.__al.push(String(m)); };
+    try{ pmoSubmit(); }catch(e){ globalThis.__al.push('THREW '+e.message); } window.Blob=_B; window.alert=_a;
+    return JSON.stringify({pkg: cap? JSON.parse(cap) : null, alerts: globalThis.__al});
+  })()`));
+
+  // ── ADDED ON THE COPY, THROUGH THE PANEL ─────────────────────────────────────────────────
+  P.ev(`syncAddPanel(); syncNaGrp();
+        document.getElementById('naGrp').value='PSM';
+        document.getElementById('naTitle').value='Depot tooling for the new line';
+        document.getElementById('naEvent').value='tooling buy';
+        document.getElementById('naSvc0').value='250000'; document.getElementById('naSvc1').value='50000';
+        document.getElementById('naSvc2').value='0';
+        addReq(); 'ok'`);
+  const nid = P.ev(`(S.custom[S.custom.length-1]||{}).id||''`);
+  chk(name, 'add', 'the id carries the office, so two offices cannot mint the same one', nid, 'NEW-PSM-1');
+  chk(name, 'add', 'and it lands at the bottom of the copy’s order', P.ev(`S.order[S.order.length-1]`), nid);
+  chk(name, 'add', 'the panel says it is a proposal',
+    /PROPOSAL/.test(P.ev(`document.getElementById('naProposeHint').textContent`)), true);
+
+  // ── THE GATE: nothing goes until every mandatory field is filled ─────────────────────────
+  // Something else is edited too, so the package has a reason to exist without the proposal.
+  P.ev(`setDesc('C','PSM rewrote this.'); 'ok'`);
+  const r1 = submit();
+  chk(name, 'gate', 'an incomplete proposal is withheld',
+    ((r1.pkg && r1.pkg.added) || []).length, 0);
+  chk(name, 'gate', 'while everything else the office edited still goes',
+    (((r1.pkg || {}).items || {}).C || {}).desc, 'PSM rewrote this.');
+  const told = r1.alerts.filter(a => /missing mandatory fields/.test(a))[0] || '';
+  chk(name, 'gate', 'the office is told which proposal, by name', /Depot tooling/.test(told), true);
+  chk(name, 'gate', 'and what it is missing, by field', /Description/.test(told) && /Impact/.test(told), true);
+  chk(name, 'gate', 'and that the rest was sent', /still being sent/.test(told), true);
+  const pf = JSON.parse(P.ev(`JSON.stringify(preflight().find.filter(function(f){ return f.k==='newreq'; }))`));
+  chk(name, 'gate', 'pre-flight shows the same gate', pf.length, 1);
+  chk(name, 'gate', 'as a block, naming the proposal',
+    pf.length ? pf[0].sev + ':' + /Depot tooling/.test(pf[0].rows[0].label) : 'no finding', 'block:true');
+  // Fill the mandatory set. The OGC fields come into play the moment it routes to a government
+  // activity, and a second hop is required because it is not a prime.
+  P.ev(`setDesc('${nid}','Tooling the line cannot run without.');
+        setCons('${nid}','No second shift until it lands.');
+        setObCat('${nid}', OB_CATS[0]);
+        S.ptype['${nid}']='OGC';
+        setDest('${nid}','to','pax'); 'ok'`);
+  const g1 = JSON.parse(P.ev(`JSON.stringify(pmoProposalGate('${nid}'))`));
+  chk(name, 'gate', 'routed to a government activity, it now needs the second hop and a MIPR type',
+    g1.indexOf('Which awards to') >= 0 && g1.indexOf('MIPR type') >= 0, true);
+  P.ev(`setDest('${nid}','end','dla'); setMipr('${nid}','direct');
+        wbsStore('req','${nid}',null,[{w:'1.2.3', v:[]}]);
+        setAwdDate('${nid}', FYMON[3][0]); 'ok'`);
+  chk(name, 'gate', 'with every mandatory field filled the gate is clear',
+    P.ev(`JSON.stringify(pmoProposalGate('${nid}'))`), '[]');
+  chk(name, 'gate', 'and pre-flight no longer blocks',
+    Number(P.ev(`preflight().find.filter(function(f){ return f.k==='newreq'; }).length`)), 0);
+  const ob = P.ev('OB_CATS[0]'), fm = P.ev('FYMON[3][0]');
+
+  // ── IT TRAVELS WHOLE, IN ITS OWN SECTION ──────────────────────────────────────────────────
+  // A second added row, for another office: it must not travel, however complete.
+  P.ev(`document.getElementById('naGrp').value='AV';
+        document.getElementById('naTitle').value='Not ours to send';
+        document.getElementById('naSvc0').value='1000'; addReq(); 'ok'`);
+  const r2 = submit();
+  chk(name, 'travel', 'the package is built', r2.pkg ? 'built' : 'refused: ' + r2.alerts.join(' | ').slice(0, 160), 'built');
+  const added = (r2.pkg && r2.pkg.added) || [];
+  chk(name, 'travel', 'it carries the proposal in its own section', added.length, 1);
+  chk(name, 'travel', 'whole, under its provisional id', added[0] && added[0].nid, nid);
+  chk(name, 'travel', 'with the office’s ask by service', JSON.stringify(added[0] && added[0].ask), JSON.stringify([250000, 50000, 0]));
+  chk(name, 'travel', 'and every field that was filled',
+    added[0] && [added[0].desc, added[0].mipr, added[0].obCat, added[0].dest.to, added[0].dest.end, added[0].awards && added[0].awards.d].join('|'),
+    ['Tooling the line cannot run without.', 'direct', ob, 'pax', 'dla', fm].join('|'));
+  chk(name, 'travel', 'not as field deltas as well',
+    Object.keys((r2.pkg && r2.pkg.items) || {}).indexOf(nid) >= 0 ? 'also in items' : 'only in added', 'only in added');
+  chk(name, 'travel', 'another office’s added row stays behind', added.some(a => a.grp === 'AV') ? 'AV went too' : 'AV stayed', 'AV stayed');
+  chk(name, 'travel', 'and the office is told', /another programme office/.test(r2.alerts.join(' ')), true);
+
+  // ── AT THE BOARD: one row, accepted whole ────────────────────────────────────────────────
+  ev(`window.alert=function(){}; pmoTake(${JSON.stringify(r2.pkg)}, 'psm.json'); 'ok'`);
+  const rows = JSON.parse(ev(`JSON.stringify(pmoRows().map(function(r){ return {id:r.id, key:r.key, isNew:!!r.isNew, taken:r.taken||null}; }))`));
+  chk(name, 'review', 'the proposal is offered as one row', rows.filter(r => r.isNew).length, 1);
+  chk(name, 'review', 'not yet taken', (rows.filter(r => r.isNew)[0] || {}).taken, null);
+  chk(name, 'review', 'the change report carries it',
+    ev(`(function(){ var n=0; var _c=URL.createObjectURL;
+        URL.createObjectURL=function(b){ n=(b&&(b.size||b.length))||1; return 'blob:x'; };
+        pmoReport(); URL.createObjectURL=_c; return n>500? 'built':'empty'; })()`), 'built');
+  const before = Number(ev(`S.custom.length`));
+  // applyState() seeds the per-office rankings from the items, and seed() pushes the fixture's items
+  // AFTER it -- so in this harness they are empty and the accepted requirement would rebuild FIRST in
+  // its office. Seed them the way the board does, or the office-order check tests the harness.
+  ev(`S.pmoOrder={}; GROUPS.forEach(function(g){
+        S.pmoOrder[g]=S.order.filter(function(id){ const i=itemById(id); return i&&grpOf(i)===g; }); });
+      subPickAll(true); pmoApply(); 'ok'`);
+  const after = JSON.parse(ev(`(function(){
+    var c=S.custom[S.custom.length-1]||{};
+    return JSON.stringify({ n:S.custom.length, id:c.id, title:c.title, ask:c.ask, from:c.from||null,
+      last:S.order[S.order.length-1], pmoLast:(S.pmoOrder.PSM||[]).slice(-1)[0],
+      desc:S.desc[c.id]||'', mipr:(S.mipr||{})[c.id]||'', dest:(S.dest||{})[c.id]||null,
+      award:((S.awards||{})[c.id]||{}).d||'' }); })()`));
+  chk(name, 'accept', 'accepting creates the requirement', after.n, before + 1);
+  chk(name, 'accept', 'under this board’s own numbering', after.id, 'NEW-1');
+  chk(name, 'accept', 'with the title the office gave it', after.title, 'Depot tooling for the new line');
+  chk(name, 'accept', 'and the office’s ask values, kept', JSON.stringify(after.ask), JSON.stringify([250000, 50000, 0]));
+  chk(name, 'accept', 'at the bottom of the consolidated listing, for the SFWG to place', after.last, 'NEW-1');
+  chk(name, 'accept', 'and last within its own office', after.pmoLast, 'NEW-1');
+  chk(name, 'accept', 'every field the proposal carried is on it',
+    [after.desc, after.mipr, after.dest && after.dest.to, after.dest && after.dest.end, after.award].join('|'),
+    ['Tooling the line cannot run without.', 'direct', 'pax', 'dla', fm].join('|'));
+  chk(name, 'accept', 'with provenance: which office proposed it, under which provisional id',
+    after.from && after.from.pmo + '/' + after.from.nid, 'PSM/' + nid);
+  // THE SAME SUBMITTAL, IMPORTED AGAIN, CANNOT ADD IT TWICE.
+  ev(`pmoTake(${JSON.stringify(r2.pkg)}, 'psm-again.json'); 'ok'`);
+  const again = JSON.parse(ev(`JSON.stringify(pmoRows().filter(function(r){ return r.isNew; }).map(function(r){ return r.taken||null; }))`));
+  chk(name, 'twice', 'a re-imported proposal shows as already added', again.join(','), 'NEW-1');
+  ev(`subPickAll(true); PMOPICK['0|${nid}|__new']=true; window.confirm=function(){ return true; }; pmoApply(); 'ok'`);
+  chk(name, 'twice', 'and cannot be added a second time however it is ticked', Number(ev(`S.custom.length`)), before + 1);
+
+  // ── SCOPE AT THE DOOR: a proposal for another office is dropped on import ─────────────────
+  const foreignPkg = Object.assign({}, r2.pkg, { pmo: 'AV', items: {}, added: [Object.assign({}, added[0], { grp: 'PSM', nid: 'NEW-PSM-9' })] });
+  const drop = ev(`(function(){ var m=''; window.alert=function(x){ m+=String(x); }; PMOSUBS.length=0;
+    pmoTake(${JSON.stringify(foreignPkg)}, 'av.json'); return (PMOSUBS.length? 'held' : 'refused')+' '+(/another office owns/.test(m)? 'said' : 'silent'); })()`);
+  chk(name, 'scope', 'a proposal for an office the package is not from is refused, and said', drop, 'refused said');
+}
+
+{
+  const src = _selfRead(_selfPath(import.meta.url), 'utf8');
+  const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
+  // A name built by concatenation ('convert to split — ' + label) is heard only in its finished
+  // forms, so a literal that any heard scenario STARTS WITH has run. A dead block's literal has none.
+  named.forEach(n => { if (![...SEEN].some(s => s === n || s.startsWith(n))) failures.push({ scenario: n, where: 'harness',
+    what: 'this scenario never ran — is its block after process.exit()?', got: 'never ran', want: 'ran' }); });
+}
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

@@ -12,7 +12,15 @@
 import { boot, seed } from './boot.mjs';
 
 const failures = [];
+// EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
+// a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
+// five mutations aimed at it survived. chk() records every scenario it hears from; at the summary,
+// any `const name = '...'` in this file it never heard from is a failure, not a pass.
+import { readFileSync as _selfRead } from 'node:fs';
+import { fileURLToPath as _selfPath } from 'node:url';
+const SEEN = new Set();
 const chk = (scenario, where, what, got, want) => {
+  SEEN.add(scenario);
   const ok = typeof got === 'number' && typeof want === 'number'
     ? Math.abs(got - want) <= 0.005 : String(got) === String(want);
   if (!ok) failures.push({ scenario, where, what, got, want });
@@ -927,11 +935,84 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'matrix', 'a bulk set writes the value, not the label',
     ev(`matSet('bulkF','MIPR type'); matSet('bulkV','direct'); matApplyBulk(); miprOf('A')`),
     'direct');
-  // The year copy is NOT asserted here. 'mipr' is in the board's container normalise list, and
+  // The year copy is NOT asserted here. 'mipr' is on yearCopy()'s normalise list, and
   // `copy / move between years` in audit-import.mjs reads that list out of the board's own source
   // and proves every container in it actually receives data. Restating it here would be a second
   // check of the same thing that could drift from the first -- and the tautology this replaced
   // ("'listed' : 'listed'") asserted nothing at all while looking like it did.
+}
+
+// ═══ A BULK WRITE LANDS ONLY WHERE THE FIELD IS OFFERED ══════════════════════════════════════════════════════
+// BACKLOG entry 7. matApplyBulk() wrote to every row matRows() returned, whether or not that
+// requirement offered the field: a bulk MIPR type with no missing-field filter set landed on every
+// prime, where the record panel never shows it, and the value was real -- in S.mipr, travelling in
+// a submittal and a year copy, with nothing on screen saying so. The obvious fix (skip rows whose
+// recFields() lacks the label) was wrong: the per-service budget setters are bulk-only entries with
+// no matching label and would have been silently no-op'd. So each entry says for itself who it
+// applies to, and the default is everyone.
+{
+  const name = 'a bulk write lands only where the field is offered';
+  const sc = {
+    services: SVC3,
+    items: [it('A', 'PSM', [100, 50, 40]), it('B', 'PSM', [80, 30, 20]), it('C', 'AV', [60, 20, 10])],
+    disc: [300, 100, 70], mand: [0, 0, 0], order: ['A', 'B', 'C'],
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // A goes to a government activity (an OGC), B straight to a prime, C has no destination yet.
+  ev(`setDest('A','to','pax'); setDest('B','to','lm'); 'ok'`);
+  chk(name, 'fixture', 'only A offers MIPR type on its record',
+    ev(`JSON.stringify(['A','B','C'].filter(function(id){
+      return recFields(id, itemById(id)).some(function(f){ return f.l==='MIPR type'; }); }))`),
+    JSON.stringify(['A']));
+
+  // THE PREVIEW SAYS WHO IS REACHED AND WHO IS LEFT ALONE, before anything is written.
+  ev(`matPmo='ALL'; matMissing=''; matSet('bulkF','MIPR type'); matSet('bulkV','direct'); 'ok'`);
+  const P = JSON.parse(ev(`JSON.stringify(matBulkPreview())`));
+  chk(name, 'preview', 'it reaches the one requirement that offers the field', P.n, 1);
+  chk(name, 'preview', 'and says how many never offer it', P.skip, 2);
+
+  // THE WRITE LANDS ON A AND NOWHERE ELSE. B is a prime and C is unrouted; neither has a MIPR
+  // type on its record, so a value in S.mipr for either is a value nothing on screen can show.
+  ev(`matApplyBulk(); 'ok'`);
+  chk(name, 'write', 'the OGC takes the classification', ev(`miprOf('A')`), 'direct');
+  chk(name, 'write', 'the prime does not', ev(`miprOf('B')||'(none)'`), '(none)');
+  chk(name, 'write', 'nor does the unrouted requirement', ev(`miprOf('C')||'(none)'`), '(none)');
+  chk(name, 'write', 'and the store holds exactly one entry',
+    ev(`JSON.stringify(Object.keys(S.mipr||{}))`), JSON.stringify(['A']));
+
+  // 'Which awards to' is the other gated field, and it has been landing on primes since it shipped.
+  ev(`matSet('bulkF','Which awards to'); matSet('bulkV','dla'); matApplyBulk(); 'ok'`);
+  chk(name, 'second hop', 'the OGC takes the ultimate recipient', ev(`destOf(itemById('A')).end`), 'dla');
+  chk(name, 'second hop', 'the prime does not', ev(`destOf(itemById('B')).end||'(none)'`), '(none)');
+
+  // AN ENTRY WITH NO applies() STILL REACHES EVERYONE -- the fix must not have narrowed the sweep
+  // for the fields every requirement offers, which is the trap the obvious fix would have fallen
+  // into. Obligation category is offered on every record.
+  ev(`matSet('bulkF','Obligation category'); matSet('bulkV',OB_CATS[0]); 'ok'`);
+  const Q = JSON.parse(ev(`JSON.stringify(matBulkPreview())`));
+  chk(name, 'ungated', 'a field every requirement offers reaches all three', Q.n, 3);
+  chk(name, 'ungated', 'and leaves none alone', Q.skip, 0);
+  ev(`matApplyBulk(); 'ok'`);
+  chk(name, 'ungated', 'and lands on all three',
+    ev(`['A','B','C'].filter(function(id){ return obCatOf(id)===OB_CATS[0]; }).length`), 3);
+  // The per-service budget setters are bulk-only -- no record label -- and must still be offered.
+  chk(name, 'ungated', 'the bulk-only per-service budget setters are still in the sweep',
+    ev(`Object.keys(matBulk()).some(function(k){ return k.indexOf('\u21b3 ')===0; })`), true);
+
+  // THE SECOND-HOP CONTROL IS OFFERED FOR EVERY NON-PRIME KIND, not only 'gov'. BACKLOG entry 1's
+  // completeness rule cannot be satisfied for an 'other' destination otherwise, and the two gates
+  // (MIPR type, Which awards to) are one predicate so they cannot drift.
+  ev(`flowAddEnt(); var L=flowEnts(); flowSetEnt(L.length-1,'kind','other'); 'ok'`);
+  const other = ev(`(function(){ var L=flowEnts(); return L[L.length-1].k; })()`);
+  ev(`setDest('C','to','${other}'); 'ok'`);
+  chk(name, 'other kind', 'a requirement routed to an other-kind destination is an OGC',
+    ev(`destIsOgc(itemById('C'))`), true);
+  chk(name, 'other kind', 'and its record offers the second hop',
+    ev(`recFields('C', itemById('C')).some(function(f){ return f.l==='Which awards to'; })`), true);
+  chk(name, 'other kind', 'and MIPR type, off the same predicate',
+    ev(`recFields('C', itemById('C')).some(function(f){ return f.l==='MIPR type'; })`), true);
 }
 
 // ═══ EVERY DOLLAR THE ENGINE PRODUCES IS A WHOLE DOLLAR ═════════════════════════════════
@@ -1619,6 +1700,14 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'scope', 'every trimmed requirement IS listed', A.rows.length, 3);
 }
 
+{
+  const src = _selfRead(_selfPath(import.meta.url), 'utf8');
+  const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
+  // A name built by concatenation ('convert to split — ' + label) is heard only in its finished
+  // forms, so a literal that any heard scenario STARTS WITH has run. A dead block's literal has none.
+  named.forEach(n => { if (![...SEEN].some(s => s === n || s.startsWith(n))) failures.push({ scenario: n, where: 'harness',
+    what: 'this scenario never ran — is its block after process.exit()?', got: 'never ran', want: 'ran' }); });
+}
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

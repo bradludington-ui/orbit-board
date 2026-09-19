@@ -130,6 +130,19 @@ for (const [lbl, env] of [['suites (card)', {}], ['suites (grid)', { BOARD: GRID
   console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  browser checks`);
 }
 
+// ---- 5b. the other can't-fail ---------------------------------------------------------------------
+// Data loss. A random seed every night, printed so a failure is replayable; the fuzz fills every
+// container the board writes -- it reads the set from the board's source and fails if one is left
+// empty -- and drives save/reopen, the second save, the year copy and the PMO round trip.
+for (const [lbl, env] of [['fuzz (card)', {}], ['fuzz (grid)', { BOARD: GRID }]]) {
+  const r = await run(lbl, 'node', [join(HERE, 'roundtrip-fuzz.mjs')], env);
+  const seed = (/seed (\d+)/.exec(r.out || '') || [])[1] || '?';
+  note({ ...r, ok: r.code === 0, detail: r.code === 0
+    ? `nothing lost across 3 randomized boards, seed ${seed}`
+    : `a value did not survive a trip — replay with --seed ${seed}` });
+  console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  ${lbl}`);
+}
+
 // ---- 6. the sweeps, in parallel -------------------------------------------------------------------
 console.log('  ..    mutation sweeps (both builds, in parallel) — this is the long one');
 const [cardSweep, gridSweep] = await Promise.all([

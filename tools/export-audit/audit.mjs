@@ -6,7 +6,15 @@ import { inflateRawSync } from 'node:zlib';
 
 const EPS = 0.005;
 let failures = [];
+// EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
+// a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
+// five mutations aimed at it survived. chk() records every scenario it hears from; at the summary,
+// any `const name = '...'` in this file it never heard from is a failure, not a pass.
+import { readFileSync as _selfRead } from 'node:fs';
+import { fileURLToPath as _selfPath } from 'node:url';
+const SEEN = new Set();
 const chk = (scenario, sheet, what, got, want) => {
+  SEEN.add(scenario);
   // Numbers compare within EPS; anything else (a marker string, a "differs"/"same" verdict)
   // compares exactly. Without this branch a string pair yields NaN and fails unconditionally.
   const numeric = typeof got === 'number' && typeof want === 'number';
@@ -1192,6 +1200,14 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 }
 
 // ---------------------------------------------------------------------------------------------
+{
+  const src = _selfRead(_selfPath(import.meta.url), 'utf8');
+  const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
+  // A name built by concatenation ('convert to split — ' + label) is heard only in its finished
+  // forms, so a literal that any heard scenario STARTS WITH has run. A dead block's literal has none.
+  named.forEach(n => { if (![...SEEN].some(s => s === n || s.startsWith(n))) failures.push({ scenario: n, sheet: 'harness',
+    what: 'this scenario never ran — is its block after process.exit()?', got: 'never ran', want: 'ran' }); });
+}
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const byKey = {};
