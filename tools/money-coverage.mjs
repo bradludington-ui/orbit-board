@@ -49,25 +49,15 @@ const REGISTRY = {
   exportPPT:    { money: true,  what: 'the PowerPoint deck' },
   exportPlans:  { money: true,  what: 'Plan A / Plan B two-plan forecast' },
 
-  crData:       { money: true,  what: 'CR cash needs by half-month window',
-                  gap: '15 Sep 2026 — the scenario WIRING is covered (cr-sheet-ignores-view, '
-                     + 'cr-1a9a-follows-view), but crData’s own arithmetic is not: nothing breaks '
-                     + 'the half-month window placement, the no-date bucket, or the per-service split '
-                     + 'and expects a suite to notice.' },
-  exportFlow:   { money: true,  what: 'the funds flow',
-                  gap: '15 Sep 2026 — audit-recon only asks whether the workbook is readable and '
-                     + 'cross-foots breakout rows; it found 0 breakout rows here. The flow’s own '
-                     + 'totals are compared to nothing.' },
-  exportCoa:    { money: true,  what: 'chart of accounts',
-                  gap: '15 Sep 2026 — same as the funds flow: readable-and-closes only, 0 breakout '
-                     + 'rows, no comparison against a board figure.' },
-  exportReprog: { money: true,  what: 'the ATR/BTR reprogramming log',
-                  gap: '15 Sep 2026 — readable-and-closes only. A reprogramming log states money '
-                     + 'moving between lines and nothing re-derives those movements.' },
+  // The five below were recorded gaps from 15 Sep 2026 and were closed on 19 Sep 2026, each with a
+  // check that derives the figure from the fixture and a mutation inside the surface that the check
+  // catches. Closing the funds flow found a shipped defect (flow-plan-year-printed-the-allocation).
+  crData:       { money: true,  what: 'CR cash needs by half-month window' },
+  exportFlow:   { money: true,  what: 'the funds flow', via: ['flowCalc', 'flowPlanRecs'] },
+  exportCoa:    { money: true,  what: 'chart of accounts', via: ['coaRows', 'coaSummary', 'coaAsk'] },
+  exportReprog: { money: true,  what: 'the ATR/BTR reprogramming log' },
   execSynopsis: { money: true,  what: 'the Executive Funding Synopsis' },
-  exportAceTieout: { money: true, what: 'the ACE tie-out',
-                  gap: '15 Sep 2026 — reconciles against an imported estimate rather than the lane '
-                     + 'walk, and no mutation breaks the tie-out arithmetic.' },
+  exportAceTieout: { money: true, what: 'the ACE tie-out' },
 
   // surfaces that carry no arithmetic of their own -- each needs a reason, not a shrug
   exportProposedOrder: { money: false, reason:

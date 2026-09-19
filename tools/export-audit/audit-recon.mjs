@@ -105,6 +105,30 @@ const sc = fixture();
 seed(ev, sc);
 ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
 dress(ev);
+// The five surfaces the register recorded as gaps need state the base fixture never carried: a
+// reprogramming log, an imported estimate (two confirmed lines, one nobody confirms, one under a PMO
+// no office reports under), a year override on one ask, the other funding sources typed in, and
+// prime tokens that route two requirements to Lockheed and Pratt. Seeded BEFORE the figures and the
+// workbook are read, so everything below sees the same board.
+const dress2 = (ev) => ev(`
+  var E=rpAll(); E.length=0;
+  E.push({id:'RP1', ts:1, ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:'', pec:'', bpac:'', title:'BTR add USAF',      amtM:1.5,  dir:'add',    pool:'disc', status:'Pending', remarks:''});
+  E.push({id:'RP2', ts:2, ap:mySlug(), fy:MS.cur, type:'BTR', svc:1, appn:'', pec:'', bpac:'', title:'BTR deduct ANG',   amtM:0.5,  dir:'deduct', pool:'mand', status:'Pending', remarks:''});
+  E.push({id:'RP3', ts:3, ap:mySlug(), fy:MS.cur, type:'ATR', svc:0, appn:'', pec:'', bpac:'', title:'ATR add USAF',      amtM:2.0,  dir:'add',    pool:'disc', status:'Pending', remarks:''});
+  E.push({id:'RP4', ts:4, ap:mySlug(), fy:MS.cur, type:'ATR', svc:3, appn:'', pec:'', bpac:'', title:'ATR deduct STOVL', amtM:0.25, dir:'deduct', pool:'disc', status:'Pending', remarks:''});
+  ACEDB.sets={}; ACEDB.sets['2026ACE']={lines:[
+    {ap:mySlug(), pmo:'PSM',    wbs:'1.1', v:{}}, {ap:mySlug(), pmo:'TSS', wbs:'2.2', v:{}},
+    {ap:mySlug(), pmo:'ATL',    wbs:'9.9', v:{}}, {ap:mySlug(), pmo:'NOBODY', wbs:'7.7', v:{}} ]};
+  var L=ACEDB.sets['2026ACE'].lines;
+  L[0].v[MS.cur]=9500000; L[1].v[MS.cur]=1700000; L[2].v[MS.cur]=4000000; L[3].v[MS.cur]=333000;
+  if(!S.wbs) S.wbs={}; if(!S.aceMap) S.aceMap={};
+  S.wbs['A']=[{w:'1.1', v:[]}]; S.aceMap['A']={w:['1.1'], ok:true};
+  S.wbs['C']=[{w:'2.2', v:[]}]; S.aceMap['C']={w:['2.2'], ok:true};
+  S.asks['C']=[1300000, 300000, 150000, 333333, 200000, 100000];
+  flowCfg().rules.lm='Req B'; flowCfg().rules.pw='Req D';
+  flowCfg().other[MS.cur]={ip:1000000, fms:500000};
+  applyState(S); save(); 'ok'`);
+dress2(ev);
 const F = boardFigures(ev);
 const book = JSON.parse(await workbook(w));
 if (book.__err) { console.log('the workbook did not build: ' + book.__err); process.exit(1); }
@@ -825,6 +849,230 @@ const rowCloses = (name, wb) => {
       });
     }
   }
+}
+
+
+// ── shared by the blocks below ─────────────────────────────────────────────────────────────────
+const _sum = a => a.reduce((x, y) => x + y, 0);
+const _fundedOf = id => _sum(F.rows[id].d) + _sum(F.rows[id].m);
+const _funded = _sum(Object.keys(F.rows).map(_fundedOf));
+const grabX = (fn) => w.eval(`(async function(){
+  var cap=null,_B=window.Blob,msg='';
+  window.alert=function(m){ msg+=String(m); }; window.confirm=function(){ return true; };
+  window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+  try{ ${fn}(); }catch(e){ window.Blob=_B; return JSON.stringify({state:'threw', msg:String((e&&e.message)||e)}); }
+  window.Blob=_B;
+  if(!cap) return JSON.stringify({state:'refused', msg:msg.slice(0,80)});
+  var ab=cap.buffer.slice(cap.byteOffset,cap.byteOffset+cap.byteLength);
+  try{ return JSON.stringify({state:'ok', sheets: await xlsxRead(ab)}); }
+  catch(e){ return JSON.stringify({state:'unreadable', msg:String((e&&e.message)||e)}); } })()`);
+
+// ══ 12. THE FUNDS FLOW ═════════════════════════════════════════════════════════════════════════
+// A plan year is answered from the board's own figures, and the figure has to be the one every
+// other surface calls Funded. Measured before the fix on this very fixture: the flow printed
+// 29,752,779 against a Funded of 23,300,000 -- the allocation, funded plus 6,452,779 beyond both
+// lanes -- and with one requirement allocated at twice its ask it printed 4,875,000 above the total
+// requirement. Recorded as a gap on 15 Sep: "the flow's own totals are compared to nothing".
+{
+  const name = 'the funds flow';
+  const beyond = _sum(Object.keys(F.rows).map(id => _sum(F.rows[id].beyond)));
+  chk(name, 'fixture', 'the fixture has dollars beyond both lanes, so the allocation and the draw differ',
+    beyond > 0.5 ? 'yes' : 'no', 'yes');
+  const flow = JSON.parse(ev(`(function(){ const F=flowCalc(MS.cur);
+    return JSON.stringify({kind:flowYearKind(MS.cur), tot:F.tot, us:F.us, grand:F.grand, ip:F.ip, fms:F.fms, appn:F.appn,
+      lm:F.prime.LM.v, pw:F.prime.PW.v, primeTot:F.primeTot, ogc:F.ext.v, upl:F.upl.v,
+      cats:Object.keys(F.ext.by).map(function(k){ return F.ext.by[k].v; })}); })()`));
+  chk(name, 'scope', 'the fixture year is a plan year, answered from the board', flow.kind, 'plan');
+  chk(name, 'total', 'US service funding is the funded topline every other surface states', flow.tot, _funded);
+  chk(name, 'total', 'every dollar is in exactly one appropriation', _sum(Object.values(flow.appn)), flow.tot);
+  chk(name, 'total', 'and is either a prime’s or an other government cost', flow.primeTot + flow.ogc, flow.tot);
+  chk(name, 'primes', 'Lockheed Martin is the requirement the LM rule matches', flow.lm, _fundedOf('B'));
+  chk(name, 'primes', 'Pratt & Whitney is the requirement the PW rule matches', flow.pw, _fundedOf('D'));
+  chk(name, 'primes', 'and the prime total is the two together', flow.primeTot, flow.lm + flow.pw);
+  chk(name, 'ogc', 'the other government costs are everything else', flow.ogc, _fundedOf('A') + _fundedOf('C') + _fundedOf('E'));
+  chk(name, 'ogc', 'and the categories add back to it', _sum(flow.cats), flow.ogc);
+  chk(name, 'grand', 'total funding is US funding plus the other sources typed in', flow.grand, flow.tot + 1000000 + 500000);
+  chk(name, 'grand', 'US funding is stated as itself', flow.us, flow.tot);
+  // THE WORKBOOK SAYS THE SAME. Labels are read the way a person reads them, by the first cell.
+  const got = JSON.parse(await grabX('exportFlow'));
+  chk(name, 'workbook', 'the funds-flow workbook builds', got.state, 'ok');
+  const sheet = Object.values(got.sheets || {}).find(rs => rs.some(r => (r || [])[0] === 'US SERVICE FUNDING')) || [];
+  const cell = (label, col = 1) => { const r = sheet.find(r => String((r || [])[0] ?? '').trim() === label); return r ? num(r[col]) : null; };
+  chk(name, 'workbook', 'US SERVICE FUNDING prints the funded topline', cell('US SERVICE FUNDING'), _funded);
+  chk(name, 'workbook', 'Prime total prints the primes', cell('Prime total'), flow.primeTot);
+  chk(name, 'workbook', 'OGC total prints the other government costs', cell('OGC total'), flow.ogc);
+  chk(name, 'workbook', 'Other sources total prints IP + FMS', cell('Other sources total'), 1500000);
+  const tf = sheet.filter(r => String((r || [])[0] ?? '').trim() === 'TOTAL FUNDING').map(r => num(r[1])).filter(v => v !== null);
+  chk(name, 'workbook', 'TOTAL FUNDING prints the grand total everywhere it appears',
+    tf.length && tf.every(v => Math.abs(v - flow.grand) <= 0.005) ? 'yes' : JSON.stringify(tf), 'yes');
+  chk(name, 'workbook', 'and the reconciliation block closes: US + other = total',
+    cell('US service appropriations') + cell('Other sources'), flow.grand);
+}
+
+// ══ 13. THE CHART OF ACCOUNTS ══════════════════════════════════════════════════════════════════
+// The one money column it carries is the requirement, resolved the way applyState resolves it --
+// the year's override where one exists. Recorded as a gap on 15 Sep: no comparison against a board
+// figure. The override lives in two places. On the board's OWN appropriation applyState has already
+// written it into the live item, so the sheet and the board agree by construction (the fixture
+// overrides C for the year, and the sheet has to side with the board). In a CONSOLIDATED file the
+// other appropriations arrive as shipped payloads with their state alongside, and coaAsk() is the
+// only thing that applies that state: a mutation that ignored the override survived every check
+// on the own appropriation, because there it changes nothing. So a Full Fund slot is stood up
+// here with an override the payload does not carry, at Full Fund's own service count -- four, not
+// this board's six -- and one override of the wrong length, which the sheet has to discard.
+{
+  const name = 'the chart of accounts';
+  const askOf = id => _sum(F.rows[id].ask);
+  const askTot = _sum(Object.keys(F.rows).map(askOf));
+  const payloadC = _sum(sc.items.find(x => x.id === 'C').ask);
+  chk(name, 'fixture', 'C’s ask is overridden this year, so payload and board differ', payloadC !== askOf('C') ? 'yes' : 'no', 'yes');
+  const FF = { FF1: [400000, 30000, 20000, 10000], FF2: [250000, 25000, 5000, 5000] };   // as shipped
+  const FF1_OVER = [700000, 30000, 20000, 10000];        // Full Fund's length: applies
+  const FF2_WRONG = [1, 1, 1, 1, 1, 1];                  // this board's length, not Full Fund's: discarded
+  const own = ev('APPN');
+  ev(`(function(){ var P=APPNS['FULL FUND']; P.services.length=0; P.items.length=0;
+    ['USAF','ANG','AFRC','USN'].forEach(function(s){ P.services.push(s); });
+    P.items.push({id:'FF1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req FF1', event:'Ev FF1', ccar:'CCFF1', fy26:[0,0,0,0], ask:${JSON.stringify(FF.FF1)}, alloc:null});
+    P.items.push({id:'FF2', grp:'ATL', team:'ATL', sect:'', custom:false, title:'Req FF2', event:'Ev FF2', ccar:'CCFF2', fy26:[0,0,0,0], ask:${JSON.stringify(FF.FF2)}, alloc:null});
+    var st={years:{}}; st.years[MS.cur]={asks:{FF1:${JSON.stringify(FF1_OVER)}, FF2:${JSON.stringify(FF2_WRONG)}}, order:['FF2','FF1']};
+    localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify(st)); return 'ok'; })()`);
+  const got = JSON.parse(await grabX('exportCoa'));
+  // the slot is cleared again, so nothing after this block sees a second appropriation
+  ev(`(function(){ var P=APPNS['FULL FUND']; P.services.length=0; P.items.length=0; localStorage.removeItem(_SLUGMAP.ff.key); return 'ok'; })()`);
+  chk(name, 'workbook', 'the chart of accounts builds', got.state, 'ok');
+  const FY = ev('FYL()');
+  const stand = got.sheets['Where we stand'] || [], chart = got.sheets['Chart of accounts'] || [];
+  const hdr = headerRow(stand, 'Appropriation', 'Reqs');
+  const cAsk = colOf(stand, hdr, FY + ' Requirement'), cN = colOf(stand, hdr, 'Reqs');
+  const apRow = ap => stand.find((r, i) => i > hdr && (r || [])[0] === ap) || [];
+  chk(name, 'summary', 'the board’s own appropriation row counts every requirement', num(apRow(own)[cN]), Object.keys(F.rows).length);
+  chk(name, 'summary', 'its requirement total is the board’s ask, this year’s override included', num(apRow(own)[cAsk]), askTot);
+  const h3 = headerRow(chart, 'Appropriation', 'PMO', 'Requirement');
+  const c3 = colOf(chart, h3, FY + ' Requirement');
+  // the sheet blanks a repeated appropriation, so the tree is read the way a person reads it
+  const byAp = {}; let ap = '';
+  chart.slice(h3 + 1).forEach(r => { r = r || []; if (String(r[0] ?? '').trim()) ap = String(r[0]).trim();
+    const v = num(r[c3]); if (v !== null) (byAp[ap] ||= []).push({ req: String(r[2] ?? ''), ask: v }); });
+  const ownRows = byAp[own] || [], ffRows = byAp['FULL FUND'] || [];
+  chk(name, 'chart', 'one row per requirement on the board’s own appropriation', ownRows.length, Object.keys(F.rows).length);
+  chk(name, 'chart', 'and the rows add back to its summary', _sum(ownRows.map(r => r.ask)), askTot);
+  chk(name, 'chart', 'C’s row carries the overridden ask, not the payload’s',
+    ownRows.some(r => Math.abs(r.ask - askOf('C')) <= 0.005) ? 'overridden' : 'payload', 'overridden');
+  // the consolidated slot: the payload says one thing, its state another, and the state wins
+  const ffAsk = req => (ffRows.find(r => r.req === req) || { ask: null }).ask;
+  chk(name, 'consolidated', 'Full Fund’s rows are on the sheet, one per requirement', ffRows.length, 2);
+  chk(name, 'consolidated', 'and in the slot’s own order, FF2 first', ffRows.map(r => r.req).join(','), 'Ev FF2,Ev FF1');
+  chk(name, 'consolidated', 'FF1 prints the slot’s override, not the shipped ask', ffAsk('Ev FF1'), _sum(FF1_OVER));
+  chk(name, 'consolidated', 'FF2’s override is the wrong length for Full Fund and is discarded: the shipped ask', ffAsk('Ev FF2'), _sum(FF.FF2));
+  chk(name, 'consolidated', 'the Full Fund summary row counts two requirements', num(apRow('FULL FUND')[cN]), 2);
+  chk(name, 'consolidated', 'and its requirement total is the two rows together', num(apRow('FULL FUND')[cAsk]), _sum(FF1_OVER) + _sum(FF.FF2));
+}
+
+// ══ 14. THE REPROGRAMMING LOG ══════════════════════════════════════════════════════════════════
+// Every entry states money moving; the log subtotals each type net of deducts and nets it by
+// service. Recorded as a gap on 15 Sep: "nothing re-derives those movements". The four seeded
+// entries are re-derived here from their own amounts and signs.
+{
+  const name = 'the reprogramming log';
+  const RP = [{ type: 'BTR', svc: 'USAF', amt: 1.5, dir: 'add' }, { type: 'BTR', svc: 'ANG', amt: 0.5, dir: 'deduct' },
+              { type: 'ATR', svc: 'USAF', amt: 2.0, dir: 'add' }, { type: 'ATR', svc: 'STOVL', amt: 0.25, dir: 'deduct' }];
+  const net = e => e.amt * (e.dir === 'deduct' ? -1 : 1);
+  const netOf = (type, svc) => _sum(RP.filter(e => (!type || e.type === type) && (!svc || e.svc === svc)).map(net));
+  const got = JSON.parse(await grabX('exportReprog'));
+  chk(name, 'workbook', 'the log builds', got.state, 'ok');
+  const sheet = Object.values(got.sheets || {})[0] || [];
+  const sub = t => { const r = sheet.find(r => String((r || [])[0] ?? '').startsWith('Subtotal — ' + t)); return r ? num(r[7]) : null; };
+  chk(name, 'subtotal', 'BTR net is adds less deducts', sub('BTR'), netOf('BTR'));
+  chk(name, 'subtotal', 'ATR net likewise', sub('ATR'), netOf('ATR'));
+  const h = headerRow(sheet, 'Service', 'BTR net', 'ATR net', 'Total net');
+  const cB = colOf(sheet, h, 'BTR net'), cA = colOf(sheet, h, 'ATR net'), cT = colOf(sheet, h, 'Total net');
+  const svcRow = sv => sheet.find((r, i) => i > h && (r || [])[0] === sv) || [];
+  ['USAF', 'ANG', 'STOVL'].forEach(sv => {
+    chk(name, 'by service', sv + ': BTR net', num(svcRow(sv)[cB]), netOf('BTR', sv));
+    chk(name, 'by service', sv + ': ATR net', num(svcRow(sv)[cA]), netOf('ATR', sv));
+    chk(name, 'by service', sv + ': total net is the two together', num(svcRow(sv)[cT]), netOf(null, sv));
+  });
+  chk(name, 'by service', 'a service with no entry nets to zero, not to a neighbour’s figure', num(svcRow('AFRC')[cT]), 0);
+  const tot = sheet.find((r, i) => i > h && (r || [])[0] === 'TOTAL') || [];
+  chk(name, 'total', 'TOTAL BTR is the BTR subtotal', num(tot[cB]), netOf('BTR'));
+  chk(name, 'total', 'TOTAL ATR is the ATR subtotal', num(tot[cA]), netOf('ATR'));
+  chk(name, 'total', 'and the grand net is every entry, deducts negative', num(tot[cT]), netOf());
+}
+
+// ══ 15. THE ACE TIE-OUT ════════════════════════════════════════════════════════════════════════
+// Board funded per requirement is the lane draw; the estimate is the sum of the lines a requirement
+// confirmed; the delta is funded less estimate. The per-PMO sheet reads the estimate from the
+// estimate -- never by adding requirement rows, which would double a shared line -- and the board
+// from the rows. Recorded as a gap on 15 Sep: "no mutation breaks the tie-out arithmetic". Found
+// while building this: a confirmed line under a PMO no office aligns to was counted on the Mapping
+// sheet and dropped from the per-PMO sheet, so two sheets of one export disagreed with nothing
+// saying why. The sheet now states such lines and keeps them out of its total.
+{
+  const name = 'the ACE tie-out';
+  const est = { PSM: 9500000, TSS: 1700000, ATL: 4000000, NOBODY: 333000 };
+  const got = JSON.parse(await grabX('exportAceTieout'));
+  chk(name, 'workbook', 'the tie-out builds against the seeded estimate', got.state, 'ok');
+  const map = got.sheets['Mapping by Requirement'] || [], pmo = got.sheets['Reconciliation by PMO'] || [];
+  const orphan = got.sheets['Lines Nothing Claims'] || [];
+  const hm = headerRow(map, 'FY', 'PMO', 'Board funded', 'Estimate', 'Delta');
+  const cF = colOf(map, hm, 'Board funded'), cE = colOf(map, hm, 'Estimate'), cD = colOf(map, hm, 'Delta');
+  const cR = colOf(map, hm, 'Requirement (CCaR Record Name)');
+  const rowOf = title => map.find((r, i) => i > hm && (r || [])[cR] === title) || [];
+  chk(name, 'by requirement', 'A: board funded is the lane draw', num(rowOf('Req A')[cF]), _fundedOf('A'));
+  chk(name, 'by requirement', 'A: the estimate is its confirmed line', num(rowOf('Req A')[cE]), est.PSM);
+  chk(name, 'by requirement', 'A: delta is funded less estimate', num(rowOf('Req A')[cD]), _fundedOf('A') - est.PSM);
+  chk(name, 'by requirement', 'C: delta likewise, negative when the estimate is the larger', num(rowOf('Req C')[cD]), _fundedOf('C') - est.TSS);
+  chk(name, 'by requirement', 'B: unconfirmed, so no estimate is stated',
+    num(rowOf('Req B')[cE]) === null ? 'blank' : String(rowOf('Req B')[cE]), 'blank');
+  const tot = map.find((r, i) => i > hm && (r || [])[0] === 'TOTAL') || [];
+  chk(name, 'total', 'board funded totals every requirement, confirmed or not', num(tot[cF]), _funded);
+  chk(name, 'total', 'the estimate totals confirmed lines only', num(tot[cE]), est.PSM + est.TSS);
+  chk(name, 'total', 'and the delta is the difference', num(tot[cD]), _funded - est.PSM - est.TSS);
+  const hp = headerRow(pmo, 'FY', 'PMO', 'Estimate', 'Board funded', 'Delta');
+  const pE = colOf(pmo, hp, 'Estimate'), pB = colOf(pmo, hp, 'Board funded'), pD = colOf(pmo, hp, 'Delta');
+  const prow = p => pmo.find((r, i) => i > hp && String((r || [])[1] ?? '').split(' ')[0] === p) || [];
+  chk(name, 'by PMO', 'PSM: the estimate is its line', num(prow('PSM')[pE]), est.PSM);
+  chk(name, 'by PMO', 'PSM: board funded is its requirement', num(prow('PSM')[pB]), _fundedOf('A'));
+  chk(name, 'by PMO', 'ATL: an estimate nobody confirmed is still reconciled', num(prow('ATL')[pE]), est.ATL);
+  chk(name, 'by PMO', 'ATL: against the office’s funded requirement', num(prow('ATL')[pB]), _fundedOf('B'));
+  const ptot = pmo.find((r, i) => i > hp && String((r || [])[0] ?? '').endsWith('TOTAL')) || [];
+  chk(name, 'by PMO', 'the FY total estimate is every aligned PMO’s line', num(ptot[pE]), est.PSM + est.TSS + est.ATL);
+  chk(name, 'by PMO', 'the FY total board funded is every requirement', num(ptot[pB]), _funded);
+  chk(name, 'by PMO', 'and the delta closes', num(ptot[pD]), _funded - (est.PSM + est.TSS + est.ATL));
+  // the line no office reports under is stated, not lost, and not added to anybody's total
+  const stray = pmo.find((r, i) => i > hp && /^NOBODY/.test(String((r || [])[1] ?? ''))) || [];
+  chk(name, 'stray line', 'an estimate PMO no office aligns to is stated on the sheet', num(stray[pE]), est.NOBODY);
+  chk(name, 'stray line', 'and says why', /no office on this board reports under it/.test(String(stray[1] ?? '')), true);
+  chk(name, 'orphans', 'the WBS lines nothing claims are listed',
+    orphan.filter((r, i) => i > 2 && r && r.length && /^FY/.test(String(r[0]))).map(r => String(r[1])).sort().join(','), '7.7,9.9');
+}
+
+// ══ 16. CR CASH NEEDS — THE SHEET CROSS-FOOTS ══════════════════════════════════════════════════
+// crData()'s own arithmetic -- the twelve half-month windows, the flip to 16-EOM, increments and
+// the no-date bucket -- is proved in audit-board.mjs on a fixture built for it. This is the sheet
+// that prints it: every service row is crData's, TOTAL is the services added, CUMULATIVE runs.
+{
+  const name = 'CR cash needs — the sheet cross-foots';
+  const cr = book['CR Cash Needs'] || [];
+  const crd = JSON.parse(ev(`JSON.stringify(crData().map(function(s){ return {win:s.win, nodate:s.nodate, tot:s.tot}; }))`));
+  const hdr = headerRow(cr, 'Service / Requirement', 'No date', 'TOTAL IN WINDOW');
+  const cND = colOf(cr, hdr, 'No date'), cT = colOf(cr, hdr, 'TOTAL IN WINDOW');
+  chk(name, 'shape', 'the sheet has its header', hdr >= 0 ? 'yes' : 'no', 'yes');
+  F.svc.forEach((sv, i) => {
+    const row = cr.find((r, j) => j > hdr && (r || [])[0] === sv) || [];
+    for (let w = 0; w < 12; w++) chk(name, sv, 'window ' + (w + 1) + ' is crData’s', num(row[1 + w]), crd[i].win[w]);
+    chk(name, sv, 'No date is crData’s', num(row[cND]), crd[i].nodate);
+    chk(name, sv, 'its total is the sum of its windows', num(row[cT]), _sum(crd[i].win));
+  });
+  const tot = cr.find((r, j) => j > hdr && (r || [])[0] === 'TOTAL') || [];
+  for (let w = 0; w < 12; w++) chk(name, 'TOTAL', 'window ' + (w + 1) + ' is the services added', num(tot[1 + w]), _sum(crd.map(s => s.win[w])));
+  chk(name, 'TOTAL', 'No date is the services added', num(tot[cND]), _sum(crd.map(s => s.nodate)));
+  const cum = cr.find((r, j) => j > hdr && String((r || [])[0] ?? '').startsWith('CUMULATIVE')) || [];
+  let run = 0;
+  for (let w = 0; w < 12; w++) { run += _sum(crd.map(s => s.win[w])); chk(name, 'CUMULATIVE', 'through window ' + (w + 1), num(cum[1 + w]), run); }
+  // only A carries an award date on this board; every other funded dollar has no date
+  chk(name, 'No date', 'is the funded money of every requirement without an award date',
+    num(tot[cND]), _sum(['B', 'C', 'D', 'E'].map(_fundedOf)));
 }
 
 {

@@ -944,6 +944,64 @@ const MUTATIONS = [
     find: `  GROUPS.forEach(function(g){ counts[g]=DATA.items.filter(function(i){ return grpOf(i)===g; }).length; });`,
     repl: `  GROUPS.forEach(function(g){ counts[g]=DATA.items.filter(function(i){ return i.grp===g; }).length; });` },
 
+  // ---- CR cash needs: crData's own arithmetic ------------------------------------------------------
+  { id: 'cr-half-ignored', area: 'crData', what: 'a requirement flipped to the 16-EOM half is placed in the 1-15 half anyway',
+    find: "      const half=(S.crHalf[id]&&S.crHalf[id][e.ym])?1:0;", repl: "      const half=0;" },
+  { id: 'cr-nodate-dropped', area: 'crData', what: 'funded money with no award date vanishes instead of landing in the no-date bucket',
+    find: "    if(!scheduled) SVC.forEach((s,i)=>{ if(fSv[i]>0.005) svc[i].nodate+=fSv[i]; });",
+    repl: "    if(!scheduled) SVC.forEach((s,i)=>{ if(fSv[i]>0.005) svc[i].nodate+=0; });" },
+  { id: 'cr-inc-equal-split', area: 'crData', what: 'increments are split equally instead of by their own per-service amounts',
+    find: "            const amt=fSv[i]*w[j]/wsum;", repl: "            const amt=fSv[i]/w.length;" },
+  { id: 'cr-tot-untallied', area: 'crData', what: 'a service’s TOTAL IN WINDOW stops counting what lands',
+    find: "        svc[i].win[w]+=e.amts[i]; svc[i].tot+=e.amts[i];", repl: "        svc[i].win[w]+=e.amts[i];" },
+  { id: 'cr-window-not-doubled', area: 'crData', what: 'the window index forgets there are two halves per month, so November lands in the second half of October',
+    find: "      const w=mi[e.ym]*2+half;", repl: "      const w=mi[e.ym]+half;" },
+  { id: 'cr-zero-weight-lost', area: 'crData', what: 'an incremental award with no weights loses its money instead of reporting it as undated',
+    find: "          if(wsum<=0){ svc[i].nodate+=fSv[i]; return; }", repl: "          if(wsum<=0){ return; }" },
+
+  // ---- the funds flow: a plan year is the lane draw, and every total closes -------------------------
+  { id: 'flow-plan-year-allocation', area: 'flowPlanRecs', what: 'a plan year is answered from the allocation, so the flow counts money beyond both lanes as funding',
+    find: "      const vals=SVC.map(function(_,i){ return (p.d[i]||0)+(p.m[i]||0); });", repl: "      const vals=svcAlloc(it)||[];" },
+  { id: 'flow-prime-not-in-total', area: 'flowCalc', what: 'a prime’s money reaches its own line and not the prime total',
+    find: "      if(k){ F.prime[k].v+=amt; F.prime[k].rows.push(rec); F.primeTot+=amt; return; }",
+    repl: "      if(k){ F.prime[k].v+=amt; F.prime[k].rows.push(rec); return; }" },
+  { id: 'flow-grand-drops-other', area: 'flowCalc', what: 'TOTAL FUNDING forgets the other sources typed in',
+    find: "  F.grand=F.tot+F.ip+F.fms;", repl: "  F.grand=F.tot;" },
+  { id: 'flow-appn-uncounted', area: 'flowCalc', what: 'a dollar is counted in the total and in no appropriation',
+    find: "      F.tot+=amt; F.appn[sl]+=amt; F.rows++;", repl: "      F.tot+=amt; F.rows++;" },
+  { id: 'flow-sheet-us-funding-prints-grand', area: 'exportFlow', what: 'the US SERVICE FUNDING row prints the grand total instead of US funding',
+    find: "  sum.push([{v:'US SERVICE FUNDING',s:4},{v:F.tot,s:MB},'100.0%']);",
+    repl: "  sum.push([{v:'US SERVICE FUNDING',s:4},{v:F.grand,s:MB},'100.0%']);" },
+
+  // ---- the chart of accounts: the requirement, resolved the way the board resolves it ---------------
+  { id: 'coa-ask-ignores-override', area: 'coaAsk', what: 'the chart prints the payload’s ask and ignores this year’s override',
+    find: "  const v=(Array.isArray(o) && o.length===nsvc)? o : (it.ask||[]);", repl: "  const v=(it.ask||[]);" },
+  { id: 'coa-summary-drops-ask', area: 'coaSummary', what: 'the appropriation row counts requirements and no money',
+    find: "    b.n++; b.ask+=r.ask;", repl: "    b.n++;" },
+
+  // ---- the reprogramming log: deducts are negative, and the types stay apart ----------------------
+  { id: 'rp-deduct-not-negative', area: 'exportReprog', what: 'a deduct adds to the net by service instead of subtracting',
+    find: "      bySvcTot[key]=(bySvcTot[key]||0)+((parseFloat(r.amtM)||0)*(r.dir==='deduct'?-1:1));",
+    repl: "      bySvcTot[key]=(bySvcTot[key]||0)+(parseFloat(r.amtM)||0);" },
+  { id: 'rp-svc-key-mixes-types', area: 'exportReprog', what: 'BTRs and ATRs net together under one service',
+    find: "      const key=t+'|'+(SVC[r.svc]||'');", repl: "      const key='|'+(SVC[r.svc]||'');" },
+  { id: 'rp-total-drops-atr', area: 'exportReprog', what: 'the grand net forgets the ATRs',
+    find: "  sheet.rows.push([{v:'TOTAL',s:B},{v:gB,s:NB2},{v:gA,s:NB2},{v:gB+gA,s:NB2}]);",
+    repl: "  sheet.rows.push([{v:'TOTAL',s:B},{v:gB,s:NB2},{v:gA,s:NB2},{v:gB,s:NB2}]);" },
+  { id: 'rp-subtotal-adds-deducts', area: 'exportReprog', what: 'a type’s subtotal adds deducts instead of netting them',
+    find: "{v:es.reduce((a,r)=>a+((parseFloat(r.amtM)||0)*(r.dir==='deduct'?-1:1)),0),s:NB2}",
+    repl: "{v:es.reduce((a,r)=>a+(parseFloat(r.amtM)||0),0),s:NB2}" },
+
+  // ---- the ACE tie-out: funded, estimate, delta, and the line no office reports under ---------------
+  { id: 'ace-total-skips-unconfirmed', area: 'exportAceTieout', what: 'the board-funded total forgets every requirement that has not confirmed a line',
+    find: "        bTot+=r.f; if(e!=null) eTot+=e;", repl: "        if(e!=null){ bTot+=r.f; eTot+=e; }" },
+  { id: 'ace-delta-sign', area: 'exportAceTieout', what: 'the delta is estimate less funded, so a shortfall reads as a surplus',
+    find: "                   (e==null? '' : {v:r.f-e,s:N}),", repl: "                   (e==null? '' : {v:e-r.f,s:N})," },
+  { id: 'ace-pmo-total-drops-est', area: 'exportAceTieout', what: 'the per-PMO FY total forgets the estimate',
+    find: "        eY+=est; bY+=bd;", repl: "        bY+=bd;" },
+  { id: 'ace-stray-line-lost', area: 'exportAceTieout', what: 'an estimate line under a PMO no office reports under vanishes from the per-PMO sheet',
+    find: "        if(l.ap!==mySlug() || groups[l.pmo]) return;", repl: "        return;" },
+
   // ---- a copy proposes a new requirement -----------------------------------------------------------
   { id: 'proposal-dropped', area: 'pmoTake', what: 'a proposed requirement arrives and is never offered for review',
     find: "  held.added=(pkg.added||[]).slice();", repl: "  held.added=[];" },

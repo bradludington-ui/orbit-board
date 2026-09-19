@@ -226,6 +226,47 @@
     "bulk-lands-everywhere",
     "second-hop-gov-only"
    ]
+  },
+  {
+   "id": "flow-plan-year-printed-the-allocation",
+   "found": "2026-09-19",
+   "foundBy": "closing the exportFlow money-coverage gap: the first check that compared the funds flow's total to a board figure",
+   "build": "v1.68",
+   "surface": "the Funds Flow workbook and panel, on a fiscal year with no execution import (a plan year)",
+   "symptom": "On the reconciliation fixture the flow's TOTAL FUNDING and US SERVICE FUNDING read $29,752,779 while every other surface — the dashboard, Funding Streams, the PMO Matrix, the deck — read Funded as $23,300,000. The difference, $6,452,779, was the money allocated beyond both lanes, counted as funding. With one requirement allocated at twice its ask the flow rose to $34,627,779, $4,875,000 above the total requirement, while nothing else moved.",
+   "cause": "flowPlanRecs() built a plan year's records from svcAlloc() — the allocation, unclamped — under a comment saying that matched the Spend Plan Source so the two could not disagree. SRC_BASIS is 'disc', so they already did; and the allocation includes dollars the lanes cannot pay and any allocation above the ask.",
+   "fix": "A plan year's records are the lane draw per service — discretionary plus mandatory from tiers() — the figure every other surface calls Funded. The comment states the measured divergence so the basis is not changed back by taste.",
+   "guarded": true,
+   "checks": [
+    "the funds flow"
+   ],
+   "mutations": [
+    "flow-plan-year-allocation",
+    "flow-prime-not-in-total",
+    "flow-grand-drops-other",
+    "flow-appn-uncounted",
+    "flow-sheet-us-funding-prints-grand"
+   ]
+  },
+  {
+   "id": "ace-estimate-line-nobody-reports-under-vanished",
+   "found": "2026-09-19",
+   "foundBy": "closing the exportAceTieout money-coverage gap, on a fixture whose estimate carried a line under a PMO no board office aligns to",
+   "build": "v1.68",
+   "surface": "the ACE tie-out workbook — the Reconciliation by PMO sheet against the Mapping by Requirement sheet",
+   "symptom": "A requirement confirmed an estimate line whose PMO no office on the board aligns to. The Mapping sheet counted that line in its estimate total; the Reconciliation by PMO sheet, which walks the board's office groups, never reached it, so its FY TOTAL estimate was smaller than the Mapping sheet's by exactly that line and nothing on either sheet said why.",
+   "cause": "acePmoGroups() keys the per-PMO sheet by the ACE PMO each board office aligns to; an estimate line under any other PMO name belongs to no group and was neither summed nor listed.",
+   "fix": "The per-PMO sheet lists every such line by its PMO with the words 'no office on this board reports under it', and keeps it out of the FY total, which is the offices' to claim. The difference between the two sheets is now readable on the sheet.",
+   "guarded": true,
+   "checks": [
+    "the ACE tie-out"
+   ],
+   "mutations": [
+    "ace-stray-line-lost",
+    "ace-total-skips-unconfirmed",
+    "ace-delta-sign",
+    "ace-pmo-total-drops-est"
+   ]
   }
  ]
 }

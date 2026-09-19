@@ -1700,6 +1700,74 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'scope', 'every trimmed requirement IS listed', A.rows.length, 3);
 }
 
+
+// ═══ CR CASH NEEDS — THE HALF-MONTH PLACEMENT ═══════════════════════════════════════════════════
+// crData() places every funded dollar into one of twelve half-month windows across Oct–Mar, or into
+// the no-date bucket. The register recorded it as a gap on 15 Sep: its WIRING was guarded (the sheet
+// follows the toggle, the 1A9A return does not) and its arithmetic was not. Every placement rule gets
+// a requirement here. The lanes are deep, so each requirement is funded in full and the placement is
+// the only arithmetic under test.
+//   A  single date, November          -> the 1–15 window of November, whole
+//   B  single date, December, FLIPPED -> the 16–EOM window of December
+//   C  increments October and April, weighted 1:2 -> a THIRD lands in October; the April share is
+//      outside Oct–Mar and is not placed anywhere -- it is not cash needed under a CR
+//   D  no award date                  -> no date
+//   E  increments with no weight      -> no date
+//   F  funded in STOVL only, March    -> a row in STOVL and in no other service
+{
+  const name = 'CR cash needs — the half-month placement';
+  const sc = {
+    services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15]),
+            it('D', 'MxS', [40, 20, 5]),  it('E', 'PSM', [30, 10, 5]), it('F', 'AV', [0, 0, 25])],
+    disc: [1000, 500, 200], mand: [0, 0, 0], order: ['A', 'B', 'C', 'D', 'E', 'F'],
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  ev(`S.awards['A']={mode:'single', d:FYMON[1][0]};
+      S.awards['B']={mode:'single', d:FYMON[2][0]}; S.crHalf['B']={}; S.crHalf['B'][FYMON[2][0]]=1;
+      S.awards['C']={mode:'inc', inc:[{d:FYMON[0][0], sv:[60,30,15]},{d:FYMON[6][0], sv:[120,60,30]}]};
+      S.awards['E']={mode:'inc', inc:[{d:FYMON[3][0], sv:[0,0,0]}]};
+      S.awards['F']={mode:'single', d:FYMON[5][0]}; save(); 'ok'`);
+  const f = { A: [100, 50, 20], B: [80, 40, 10], C: [60, 30, 15], D: [40, 20, 5], E: [30, 10, 5], F: [0, 0, 25] };
+  chk(name, 'fixture', 'every requirement is funded in full',
+    ev(`(function(){ var T=tiers(); return JSON.stringify(S.order.map(function(id){ var p=T[id]; return p.d.map(function(v,i){ return v+p.m[i]; }); })); })()`),
+    JSON.stringify(Object.values(f)));
+  const cr = JSON.parse(ev(`JSON.stringify(crData().map(function(s){ return {win:s.win, nodate:s.nodate, tot:s.tot,
+    items:s.items.map(function(r){ return {id:r.id, wins:r.wins, months:r.months}; })}; }))`));
+  const W = (m, half) => m * 2 + (half ? 1 : 0);
+  sc.services.forEach((sv, i) => {
+    const want = Array(12).fill(0);
+    want[W(1, 0)] += f.A[i];          // A: November, 1–15
+    want[W(2, 1)] += f.B[i];          // B: December, flipped to 16–EOM
+    want[W(0, 0)] += f.C[i] / 3;      // C: a third in October; the April two-thirds is outside the window
+    want[W(5, 0)] += f.F[i];          // F: March
+    for (let w = 0; w < 12; w++) chk(name, sv, 'window ' + (w + 1), cr[i].win[w], want[w]);
+    chk(name, sv, 'no date is the unscheduled money: no award, and increments with no weight', cr[i].nodate, f.D[i] + f.E[i]);
+    chk(name, sv, 'the total is what landed in the window', cr[i].tot, want.reduce((a, b) => a + b, 0));
+    chk(name, sv, 'and not the funded amount, because an increment fell outside the window',
+      cr[i].tot < f.A[i] + f.B[i] + f.C[i] + f.F[i] ? 'ok' : 'the April share was counted', 'ok');
+  });
+  chk(name, 'rows', 'a service a requirement is not funded in gets no row for it',
+    cr[0].items.some(r => r.id === 'F') ? 'F has a USAF row' : 'ok', 'ok');
+  chk(name, 'rows', 'a requirement with nothing in the window gets no row',
+    cr[0].items.some(r => r.id === 'D' || r.id === 'E') ? 'an unscheduled row' : 'ok', 'ok');
+  chk(name, 'rows', 'a row names the month it lands in', (cr[0].items.find(r => r.id === 'C') || { months: [] }).months.join(','), ev('FYMON[0][0]'));
+  chk(name, 'rows', 'and a flipped row still names its month, not a half',
+    (cr[0].items.find(r => r.id === 'B') || { months: [] }).months.join(','), ev('FYMON[2][0]'));
+  // THE 1A9A RETURN: the three CR services only, one row per requirement, windows carried across
+  chk(name, '1A9A', 'the return covers the three CR services', ev('JSON.stringify(CR_SVCS)'), JSON.stringify(['STOVL', 'USMC-C', 'USN']));
+  const rt = JSON.parse(ev(`JSON.stringify(crExportRows().map(function(e){ return {id:e.id, w:e.wins}; }))`));
+  const stovl = sc.services.indexOf('STOVL');
+  chk(name, '1A9A', 'one row per requirement with STOVL money in the window', rt.map(r => r.id).sort().join(','), 'A,B,C,F');
+  rt.forEach(r => { for (let w = 0; w < 12; w++)
+    chk(name, '1A9A', r.id + ' window ' + (w + 1) + ' is its STOVL placement', r.w[w],
+      (cr[stovl].items.find(x => x.id === r.id) || { wins: Array(12).fill(0) }).wins[w]); });
+  chk(name, '1A9A', 'and it never takes the scenario: it is a formal return of the funded plan',
+    /const svc=crData\(\), idx=/.test(ev('String(crExportRows)')), true);
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

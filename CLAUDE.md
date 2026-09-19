@@ -1457,6 +1457,36 @@ allocated columns. They cover only the LISTED requirements, so they are not boar
 them to a portfolio total would fail for the wrong reason. Its two unfunded totals ARE board-wide —
 every requirement short on either reading is listed — which is what makes those comparable.
 
+### The funds flow's plan year is the lane draw
+
+On a fiscal year with no execution import, the Funds Flow is answered from the board. It was
+answered from the **allocation** — `svcAlloc()`, unclamped — under a comment claiming that matched
+the Spend Plan Source so the two could not disagree. `SRC_BASIS` is `'disc'`; they already did.
+Measured on the reconciliation fixture: the flow's TOTAL FUNDING read **$29,752,779** while every
+other surface read Funded as **$23,300,000** — the $6,452,779 beyond both lanes counted as funding —
+and with one requirement allocated at twice its ask the flow rose to $34,627,779, $4.9M above the
+total requirement. A funds flow above the funded topline is exactly the figure that draws concern
+against the board. The basis is now the lane draw (`tiers()` d+m per service), which is what every
+other surface calls Funded. Registered as `flow-plan-year-printed-the-allocation`; guarded by *the
+funds flow* in `audit-recon.mjs` and five `flow-*` mutations. Found by closing a coverage gap, which
+is what the gaps are recorded for.
+
+### The five money-coverage gaps are closed
+
+Each closed the same way: a check that derives the figure from the fixture (never from the code
+under test), a mutation inside the surface — or a `via` helper named in the register — that the
+check catches, and the `gap:` line struck. `crData` (six placement mutations, on a fixture built
+for it: a flipped half, weighted increments with one outside Oct–Mar, no date, no weight, one
+service only), `exportFlow` (five), `exportCoa` (two, on a year override the payload does not
+carry — and on a consolidated Full Fund slot, because on the board's own appropriation
+`applyState` has already written the override into the live item, so a `coaAsk()` that ignores the
+override changes nothing there; the mutation survived until the fixture stood up the slot the
+branch exists for), `exportReprog` (four, deducts negative and types apart), `exportAceTieout` (four). Closing
+the tie-out found a second defect: a confirmed estimate line under a PMO no office aligns to was
+counted on one sheet and dropped from the other — registered as
+`ace-estimate-line-nobody-reports-under-vanished`; the sheet now states such lines and keeps them
+out of its total.
+
 ### A block after `process.exit()` never runs, and reads as a pass
 
 The proposal scenario was appended to the end of `audit-import.mjs` — after the summary and its

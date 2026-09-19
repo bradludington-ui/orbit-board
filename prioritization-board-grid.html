@@ -1431,7 +1431,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.68 (19 Sep 2026)';
+const BUILD='v1.69 (19 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -10379,9 +10379,14 @@ function flowYearKind(fy){ return flowExecYears().indexOf(+fy)>=0? 'exec' : 'pla
 function flowPlanSlug(){ return mySlug(); }
 function flowPlanHas(fy){ return !!(MS.years && MS.years[fy]); }
 // One rec per requirement per funded SERVICE - the grain the Spend Plan Source export uses, for the
-// same reason: money is held per service and no coarser grain can say which service it is. The
-// basis is the allocation, which is what SRC_BASIS is, so the chart and that export cannot disagree
-// about what a requirement is funded at.
+// same reason: money is held per service and no coarser grain can say which service it is.
+// THE BASIS IS THE LANE DRAW -- what discretionary and mandatory actually paid -- which is the
+// figure every other surface calls Funded. It was the allocation, under a comment claiming that
+// matched the Spend Plan Source; it did not (SRC_BASIS is 'disc'), and on the reconciliation
+// fixture the flow printed 29,752,779 against a Funded of 23,300,000: the 6,452,779 beyond both
+// lanes counted as funding, and with one requirement allocated at twice its ask the flow printed
+// 4,875,000 above the total requirement. A funds flow that exceeds the funded topline is exactly
+// the figure that draws concern against the board.
 function flowPlanRecs(fy, sl){
   const out=[];
   if(sl!==flowPlanSlug()) return out;
@@ -10389,9 +10394,10 @@ function flowPlanRecs(fy, sl){
   // CURRENT year's state, reporting this year's money under a year nobody has touched.
   if(!flowPlanHas(fy)) return out;
   aceWithYear(fy, function(){
+    const T=tiers();
     (S.order||[]).forEach(id=>{
-      const it=itemById(id); if(!it) return;
-      const vals=svcAlloc(it)||[];
+      const it=itemById(id), p=T[id]; if(!it||!p) return;
+      const vals=SVC.map(function(_,i){ return (p.d[i]||0)+(p.m[i]||0); });
       // The record name is what every matcher reads (flowClass, flowReqIndex, siPrime); the plan
       // event is what a person reads. Same split the execution rows carry in columns 3 and 7.
       const ttl=recName(it)||dispTitle(it)||'';
@@ -20698,6 +20704,19 @@ function exportAceTieout(){
         rows.push(['FY'+(sc.fy%100),
                    present.join(' + ')+(present.length>1? '   (one line in '+k+')':''),
                    {v:est,s:N},{v:bd,s:N},{v:bd-est,s:N},{v:nOk,s:0},{v:mine.length,s:0}]);
+      });
+      // AN ESTIMATE LINE UNDER A PMO NO OFFICE REPORTS UNDER used to vanish from this sheet, while
+      // the Mapping sheet still counted it if a requirement confirmed it -- two sheets of one export
+      // disagreeing with nothing saying why. Stated here, and kept out of the total: it is nobody's
+      // to claim, and a reader can see the difference instead of hunting for it.
+      const stray={};
+      (set.lines||[]).forEach(function(l){
+        if(l.ap!==mySlug() || groups[l.pmo]) return;
+        const v=(l.v&&l.v[sc.fy])||0; if(!v) return;
+        stray[l.pmo]=(stray[l.pmo]||0)+v;
+      });
+      Object.keys(stray).sort().forEach(function(pm){
+        rows.push(['FY'+(sc.fy%100), pm+'   (no office on this board reports under it)', {v:stray[pm],s:N}, '', '', '', '']);
       });
       rows.push([{v:'FY'+(sc.fy%100)+' TOTAL',s:B},'',{v:eY,s:NB},{v:bY,s:NB},{v:bY-eY,s:NB},
                  {v:sc.mapped,s:B},{v:sc.rows.length,s:B}]);
