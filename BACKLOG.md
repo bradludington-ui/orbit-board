@@ -321,3 +321,114 @@ a record field at all", and any fix needs a check covering both. Options worth w
 
 Option 1 is the recommendation. Whichever is chosen, the guard is an `audit-board.mjs` case plus a
 mutation: a bulk set that reaches a requirement which never offered the field is the defect.
+
+---
+
+## 8. PPBE cycles across the FYDP — lock a cycle's five-year spend plan, allocate the next cycle's deltas, report and compare by cycle
+
+**Asked 19 Sep 2026 · STRATEGY PROPOSED, decisions open · not built**
+
+### What was asked
+
+Pull the **five-year spend plan** (the budget year plus the next four). Hold **several spend plans
+per year, one per PPBE cycle**: allocate against PB27 and lock it, move to BES28 and allocate only
+the deltas. **Select a cycle and see its allocations on the drill.** A five-year spend plan report
+that is **selectable by cycle** and can **compare two cycles** and account for every change between
+them.
+
+### What the board already has, and where each falls short
+
+| exists today | what it is | why it does not answer the ask |
+|---|---|---|
+| `MS.years[fy]`, `MS.base`…`base+4` | one full working state per fiscal year; the FYDP window; `switchYear`, `yearCopy`, the roll-forward | one plan per year. There is no notion of *which cycle* the plan on screen belongs to |
+| `MS.baselines['PB\|2027']` (📌 spend-plan baselines) | ONE fiscal year's plan frozen under a cycle: reqs (ask, alloc by service, band, MC, PMO, CCaR, PID), PMO roll-up, pots, bands; locked; a compare panel vs *the board now* by PMO, plus the requirements that moved | holds one FY per cycle key, so PB27's FY28–31 have nowhere to go; the compare is one year, by PMO, against the working board only; it cannot be *viewed on the drill*; it is a projection, so panels and exports cannot read it |
+| `MS.ppbe['PB\|2027']` (🏛 PPBE budget positions) | the official **funding** position by service and line per FY, per cycle | the money side, not the plan side. Stays as it is; the report can later print it beside the plan |
+| 📐 Spruills | AFY…AFY+5 requirements vs funding by PMO or service across appropriations; *Budget source* = board, a PPBE position, or a one-year baseline | a reqs-vs-funding view, not the per-requirement allocation plan; the baseline source resolves one year |
+| the change journal | every leaf that moved in `MS.years`, with who/when/before/after, 600 entries, skips `order` and the pots | the raw material for *accounting for changes*, not a report; not cycle-aware |
+| `aceWithYear(fy, fn)` | read another year through `applyState` without moving the board, restore in `finally` | the pattern the cycle view and the report should reuse: **one renderer, no second code path** |
+
+### The model — the recommendation
+
+**A cycle is a locked copy of the FYDP window, and the working plan carries a cycle tag.**
+
+- `MS.cycle` — the tag of the plan being worked (`'BES|2028'`), shown in the header beside the FY.
+  `MS.cycleRef` — the locked cycle deltas are measured against (defaults to the one just locked).
+- `MS.cycles[key]` — a locked plan: `{cyc, cycYr, base, years:{fy: full year state}, proj:{fy:
+  projection}, ts, by, note, from, locked:true}`. **Lock** deep-copies every year in the window that
+  holds state (`base`…`base+4`, and `MS.cur`) and writes the same projection `blSnapshot()` makes
+  today, so comparison and Spruills stay cheap while the drill can render the real thing.
+- **Legacy baselines migrate**: an existing `MS.baselines[key]` becomes `MS.cycles[key]` with
+  `proj:{fy}` only and `partial:true` — comparable and reportable, not viewable on the drill. The
+  📌 panel becomes the cycles panel; nothing a user has locked is lost.
+- **The lifecycle is lock, then retag, then allocate.** Lock PB27 → the working plan is retagged
+  BES28 with `cycleRef='PB|2027'` → ordinary allocation edits are the deltas. Nothing is copied
+  *into* the working plan: it already is PB27's plan, continuing. No "delta mode" to get stuck in.
+- **Viewing a cycle on the drill is a read-only mode, not a renderer.** `cycView='PB|2027'` applies
+  a deep copy of that cycle's `years[MS.cur]` through `applyState`, exactly as `aceWithYear` does,
+  under a banner *VIEWING PB27 (locked)*. Every edit handler is gated on it, `save()` refuses while
+  it is on, and `switchYear` inside the view stays inside the cycle. Every panel and every export
+  therefore reads the locked plan through the same `tiers()` they always use, and prints the cycle
+  in its title. This is the single most important choice: a second "cycle renderer" would be the
+  fourth parallel money path this codebase has already paid for three times.
+- **Deltas are visible where the work is.** Each row shows Δ vs the reference cycle — ask, allocated,
+  funded, rank, *new*, *removed* — on the card and in the grid inspector; a *Changes since PB27*
+  panel lists them per year with who and when from the journal (entries newer than the lock).
+- **The five-year spend plan report** — a panel and a workbook, *FYDP Spend Plan — <cycle>*. Source
+  is the working plan or any locked cycle. Rows are requirements (PMO, CCaR, band); per FY in the
+  cycle's own window: Requirement, Allocated, Funded (d+m), Unfunded; year totals; PMO and service
+  roll-up sheets. Every figure is `tiers()` under a year swap over the chosen state set, so a year's
+  Funded on the report **is** the board's Funded for that year (a trace-matrix link, not a claim).
+- **Compare two cycles** (A, B; either may be *working*): the same rows with A, B and Δ per FY,
+  overlapping years only, a year one cycle lacks printed as *not in <cycle>*; and a **Changes** sheet
+  — per FY, per requirement: added, removed, ask changed, allocation changed, funded changed, rank
+  changed, band changed, PMO moved, plus the pots — with a conservation rule the recon suite
+  asserts: **Σ row deltas = the total delta, per year, per column**. That is what "account for the
+  changes" means and it is the check that makes the sheet briefable.
+- **Spruills** gains *cycle plan (locked)* budget sources that supply every year the cycle holds;
+  the one-year baseline source remains for legacy keys. PPBE positions are unchanged.
+- **Office copies never carry locked cycles** (size; not office-editable); a copy carries the
+  reference projection so its rows can show Δ. Cycles live per appropriation, like `MS` does.
+
+### Two things to settle before stage 1
+
+1. **Storage.** A full year state on the real board is estimated at ~100–150 KB; five years × four
+   cycles a year is a few MB a year of history, against a localStorage budget already shared with
+   the working state, EXDB and ACEDB. Recommendation: locked cycles in their **own key**
+   (`prio27cycdb`, the EXDB/ACEDB pattern) so a refusal never touches the working plan; measure the
+   real size in stage 1 (`JSON.stringify(MS.years[MS.cur]).length` on the live board); if needed,
+   gzip the `years` blob with the browser's native `CompressionStream` (JSON of numbers compresses
+   about 5×) and keep full state for the last N cycles and projection only beyond. The file save is
+   the durable path either way.
+2. **Unlocking.** Today a baseline can be unlocked with a confirm. Keep that, journal it, stamp a
+   re-lock with a new time — never silent — and lock only from the manager board, never a copy.
+
+### Open decisions for the office
+
+- Cycle tags stay `POM · BES · PB · DoN`? A free-text note per lock is proposed either way.
+- Report grain: requirement rows with PMO subtotals (proposed), or PMO rows that drill down.
+- Whether a lock captures blank years as *no plan* (proposed) or refuses until every window year
+  holds one.
+- Whether the comparison also diffs the PPBE **positions** beside the plans (later, not stage 1).
+
+### The gate, per stage
+
+Every stage lands the same way the rest of the board does: money-coverage entry (`exportFydpPlan`,
+`via: ['fydpRows','fydpCompare']`), mutations aimed at it (funded-not-d-plus-m, compare drops a year
+in one cycle only, changes sheet loses a row so Σ ≠ total, a locked cycle takes an edit, a lock
+misses a window year, delta sign, wrong reference cycle), trace-matrix cells for the report's
+per-FY Funded, recon blocks for the conservation rules, audit-board cases for immutability and the
+view-mode write gate and the legacy migration, the round-trip fuzz taught the new containers
+(`cycle`, `cycleRef`, `cycles` — a lock's years must come back byte-identical), the export delta
+addressing the new sheets by name, parity on both builds.
+
+### Stages, each gated and pushed on its own
+
+1. Model, migration, lock across the window, the cycle tag in the header, own storage key, fuzz
+   containers, immutability checks. The 📌 panel becomes *PPBE cycles*.
+2. View a locked cycle on the drill: read-only mode through `applyState`, banner, selector in
+   🎯 Budget year, exports titled with the cycle.
+3. Δ vs reference: row chips (card and grid inspector), *Changes since* panel with journal
+   attribution, the lock → retag flow.
+4. FYDP Spend Plan report and workbook for one cycle; trace cells; coverage; mutations.
+5. Two-cycle comparison with the Changes sheet and conservation; Spruills reads cycle plans.
+6. Later: PPBE position beside the plan per FY; office copies carry the reference projection.
