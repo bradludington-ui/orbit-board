@@ -1176,9 +1176,22 @@ console.log(`\nmutation sweep — ${picked.length} mutation(s), ${SUITES.length}
 // validate-math runs two sweeps (one per build) side by side, so half the default here is the
 // right share. MUT_JOBS overrides it.
 const JOBS = Math.max(1, Number(process.env.MUT_JOBS) || Math.ceil(cpus().length / 2));
+// A DELIBERATE FAILURE PRINTS ITS BANNER. Every suite that finds a mutation says so -- "N FAILING
+// CHECK(S)", or recon's "the workbook did not build" -- and exits 1. An uncaught exception also
+// exits 1, and a signal or the box running short of something exits otherwise; none of those proved
+// anything about the mutation. The first version counted every non-zero exit as a catch, and under
+// heavy load a suite that died read as coverage: the same equivalent mutation was 'caught' on two
+// sweeps and passed both times the suite was run on it by hand. A suite that cannot run must not
+// read like a suite that caught something, so a death is retried once and then reported as CRASHED,
+// which fails the sweep the way NOT APPLIED does.
 const runSuite = (path, file) => new Promise(done => {
   execFile(process.execPath, [path], { env: { ...process.env, BOARD: file }, maxBuffer: 1 << 26 },
-    err => done(!err));               // err == non-zero exit == the suite failed == mutation caught
+    (err, stdout, stderr) => {
+      if (!err) return done({ caught: false, crashed: false });
+      const deliberate = /FAILING CHECK\(S\)|did not build/.test(String(stdout || ''));
+      const tail = String(stderr || stdout || '').split('\n').map(s => s.trim()).filter(Boolean).slice(-3).join(' | ').slice(0, 220);
+      done({ caught: deliberate, crashed: !deliberate, why: deliberate ? '' : (tail || ('exit ' + (err.code ?? err.signal ?? '?'))) });
+    });
 });
 
 // The NOT APPLIED test is a string match on source we already hold: cheap, and worth doing for
@@ -1200,9 +1213,17 @@ async function runOne(m) {
   const file = join(dir, m.id + '.html');
   writeFileSync(file, src.replace(m.find, m.repl));
 
-  let caughtBy = null;
+  let caughtBy = null, crashed = null;
   for (const [suite, path] of SUITES) {
-    if (!(await runSuite(path, file))) { caughtBy = suite; break; }
+    let r = await runSuite(path, file);
+    if (r.crashed) r = await runSuite(path, file);          // once more: load, not the mutation, may have killed it
+    if (r.crashed) { crashed = { suite, why: r.why }; break; }
+    if (r.caught) { caughtBy = suite; break; }
+  }
+  if (crashed) {
+    results.push({ ...m, status: 'CRASHED', by: crashed.suite + ': ' + crashed.why });
+    console.log(`  ${'CRASHED'.padEnd(12)} ${m.id.padEnd(22)} <- ${crashed.suite} died twice without a verdict: ${crashed.why}`);
+    return;
   }
   // An EQUIVALENT mutation changes the source without changing any observable behaviour, so no
   // suite can catch it and none should be written to try. Reporting it as SURVIVED forever would
@@ -1231,12 +1252,18 @@ results.sort((a, b) => picked.findIndex(x => x.id === a.id) - picked.findIndex(x
 const caught = results.filter(r => r.status === 'caught');
 const survived = results.filter(r => r.status === 'SURVIVED');
 const skipped = results.filter(r => r.status === 'NOT APPLIED');
+const crashed = results.filter(r => r.status === 'CRASHED');
 const equiv = results.filter(r => r.status === 'equivalent');
 
 console.log('\n' + '='.repeat(96));
-console.log(`caught ${caught.length}/${picked.length - skipped.length - equiv.length}` +
+console.log(`caught ${caught.length}/${picked.length - skipped.length - equiv.length - crashed.length}` +
   (equiv.length ? `   (${equiv.length} equivalent, no observable difference)` : '') +
-  (skipped.length ? `   (${skipped.length} could not be applied)` : ''));
+  (skipped.length ? `   (${skipped.length} could not be applied)` : '') +
+  (crashed.length ? `   (${crashed.length} CRASHED — a suite died without a verdict)` : ''));
+if (crashed.length) {
+  console.log(`\n${crashed.length} MUTATION(S) WITHOUT A VERDICT — a suite died on them twice, which proves nothing either way:\n`);
+  crashed.forEach(r => console.log(`  ${r.area}/${r.id}\n      ${r.by}`));
+}
 if (equiv.length) {
   console.log(`\n${equiv.length} EQUIVALENT — behaviour is unchanged, so nothing can or should catch them:\n`);
   equiv.forEach(r => console.log(`  ${r.area}/${r.id}\n      ${r.equivalent}`));
@@ -1250,4 +1277,4 @@ if (skipped.length) {
   skipped.forEach(r => console.log(`  ${r.area}/${r.id}\n      ${r.by}`));
 }
 console.log('');
-process.exit(survived.length || skipped.length ? 1 : 0);
+process.exit(survived.length || skipped.length || crashed.length ? 1 : 0);

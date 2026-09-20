@@ -40,6 +40,7 @@ function sweepFacts(out) {
     of: caught ? Number(caught[2]) : null,
     survived: (out.match(/^\s+SURVIVED/gm) || []).length,
     notApplied: (out.match(/^\s+NOT APPLIED/gm) || []).length,
+    crashed: (out.match(/^\s+CRASHED/gm) || []).length,
     equivalent: N(out, /\((\d+) equivalent/),
   };
 }
@@ -164,11 +165,11 @@ const [cardSweep, gridSweep] = await Promise.all([
 ]);
 for (const r of [cardSweep, gridSweep]) {
   const f = sweepFacts(r.out);
-  const ok = r.code === 0 && f.survived === 0 && f.notApplied === 0;
+  const ok = r.code === 0 && f.survived === 0 && f.notApplied === 0 && f.crashed === 0;
   note({ ...r, ok, facts: f, detail: `${f.caught}/${f.of} caught · ${f.survived} survived · `
-    + `${f.notApplied} not applied · ${f.equivalent} equivalent` });
+    + `${f.notApplied} not applied · ${f.crashed} crashed · ${f.equivalent} equivalent` });
   console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${r.label}  ${f.caught}/${f.of} caught, `
-    + `${f.survived} survived, ${f.notApplied} NOT APPLIED`);
+    + `${f.survived} survived, ${f.notApplied} NOT APPLIED, ${f.crashed} CRASHED`);
 }
 
 // ---- report ---------------------------------------------------------------------------------------

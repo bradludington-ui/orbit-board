@@ -1560,6 +1560,18 @@ holding two years with the base on the second, so a delta read against the wrong
 by coincidence), thirteen `delta-*`/`retag-*`/`who-*` mutations, and a trace-matrix surface that
 reads the panel's 'Now' side and expects the engine.
 
+### A suite that dies is not a suite that caught something
+
+`mutate.mjs` counted every non-zero exit as a catch. Under heavy load (a gate's two sweeps beside
+a worktree's runs) the same *equivalent* mutation was "caught (board)" on two sweeps, and passed
+both times the board suite was run on it by hand: a jsdom worker had died, and a death exits
+non-zero exactly as a failed check does. On a non-equivalent mutation that would have been
+invisible — a crash reading as coverage. A deliberate failure prints its banner (`N FAILING
+CHECK(S)`, or recon's *the workbook did not build*); a death does not. `runSuite` now reads the
+banner, a death is retried once and then reported as **CRASHED** with the suite and the last lines
+it wrote, the summary lists them, and a crash fails the sweep and the gate's sweep stage the way
+NOT APPLIED does. The nightly report's rule stands: a mutation without a verdict proved nothing.
+
 ### The five money-coverage gaps are closed
 
 Each closed the same way: a check that derives the figure from the fixture (never from the code
