@@ -58,6 +58,8 @@ const REGISTRY = {
   exportReprog: { money: true,  what: 'the ATR/BTR reprogramming log' },
   execSynopsis: { money: true,  what: 'the Executive Funding Synopsis' },
   exportAceTieout: { money: true, what: 'the ACE tie-out' },
+  exportCycCompare: { money: true, what: 'the two-cycle comparison — A, B and Δ per year, the Changes sheet, and the rows accounting for the totals',
+                  via: ['cycCmpData', 'cycCmpBody'] },
   exportFydpPlan: { money: true, what: 'the FYDP spend plan — one cycle or the working plan across its window, by requirement, PMO and service',
                   via: ['fydpData', 'fydpRows', 'fydpSub', 'fydpSvc', 'fydpUnf', 'fydpWindow', 'fydpBody'] },
   cycDelta:     { money: true,  what: 'the deltas against the reference cycle — the row chips, the record panel and the Changes panel',

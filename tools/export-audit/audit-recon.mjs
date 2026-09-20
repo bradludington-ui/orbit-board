@@ -1223,6 +1223,213 @@ const grabX = (fn) => w.eval(`(async function(){
   chk(name, 'restore', 'the board is as it was', _sum(JSON.parse(ev(`JSON.stringify(itemById('B').ask)`))), bAsk0);
 }
 
+// ══ 18. COMPARING TWO CYCLES ═══════════════════════════════════════════════════════════════════
+// A and B are read through the five-year plan's one shape, so every A-side figure is the engine
+// as it stood when A was locked and every B-side figure is the engine now (or as B was locked).
+// Both are re-derived here from the engine before and after the changes, requirement by
+// requirement, per year; the kinds (added, removed, changed, same) from what was done; and the
+// conservation rule that makes the sheet briefable -- Σ row deltas = the total delta, per year,
+// per column -- is asserted from the data, on the sheet and on the panel. For the year on screen
+// the deltas must also agree with cycDelta (stage 3): two paths, one answer. Then B is locked too,
+// the working plan moves again, and a comparison of the two locks must not follow it; and a year
+// only one side holds is stated, never compared.
+{
+  const name = 'comparing two cycles';
+  const cur = +ev('MS.cur'), keyA = 'PB|' + cur, keyB = 'BES|' + (cur + 1), fyl = y => 'FY' + (y % 100);
+  const snap = ev('JSON.stringify(S)'), base0 = ev('JSON.stringify(MS.base===undefined? null : MS.base)');
+  // A missing year or row is a FAILING CHECK, never a throw: a suite that dies proves nothing, and
+  // the sweep reports it as CRASHED rather than caught. The block is also wrapped so that anything
+  // unforeseen is reported as a failure with its message, and the board is put back regardless.
+  const fyOf = (Dd, y) => (Dd && Dd.fy && Dd.fy[y]) || { rows: {}, ids: [], tot: {}, rowsD: {}, pots: { disc: {}, mand: {} }, closes: 'missing', nAdded: 'missing', nRemoved: 'missing', nChanged: 'missing', nSame: 'missing' };
+  const rowOf = (Y, id) => (Y.rows && Y.rows[id]) || { d: {}, what: [], kind: 'missing', a: null, b: null };
+  const totOf = (Y, k) => (Y.tot && Y.tot[k]) || {};
+  const cmpOf = (a, b) => JSON.parse(ev(`JSON.stringify(cycCmpData(${JSON.stringify(a)}, ${JSON.stringify(b)}))`)) || { years: [], onlyA: [], onlyB: [], fy: {}, rows: {}, order: [] };
+  try {
+  const A1 = [18000000, 4000000, 2000000, 8000000, 3000000, 5000002];
+  ev(`MS.years[MS.cur]=S; MS.base=MS.cur+1;
+      var y1=JSON.parse(JSON.stringify(S)); y1.asks={A:${JSON.stringify(A1)}}; delete y1.pmoOrder; MS.years[MS.cur+1]=y1; save(); 'ok'`);
+  const ENGINE = `function(){ var T=tiers(), o={rows:{}, order:S.order.slice(), disc:(S.discSvc||[]).slice(), mand:(S.mandSvc||[]).slice()};
+      var s=function(a){ return a.reduce(function(x,y){ return x+(+y||0); },0); };
+      S.order.forEach(function(id,i){ var it=itemById(id), p=T[id]; if(!it||!p) return;
+        var d=SVC.map(function(_,k){ return p.d[k]||0; }), m=SVC.map(function(_,k){ return p.m[k]||0; });
+        var fund=d.map(function(v,k){ return v+m[k]; });
+        var alloc=(S.fsrc||{})[id]? fund.slice() : svcAlloc(it).slice();
+        o.rows[id]={title:dispTitle(it), grp:grpOf(it), rank:i+1, band:BAND_OF(id)||'', mc:!!S.mc[id], ask:s(it.ask), alloc:s(alloc), fund:s(fund),
+          unf:s(SVC.map(function(_,k){ return Math.max(0,(it.ask[k]||0)-fund[k]); }))}; });
+      o.discT=s(o.disc); o.mandT=s(o.mand);
+      return JSON.stringify(o); }`;
+  const before = { [cur]: JSON.parse(ev(`(${ENGINE})()`)), [cur + 1]: JSON.parse(ev(`aceWithYear(MS.cur+1, ${ENGINE})`)) };
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  chk(name, 'lock A', 'A is locked over both planned years', ev(`cycHeld('${keyA}').join(',')`), cur + ',' + (cur + 1));
+  // the working plan moves on. This year: a value, a band, a star, one removed (the last, so no rank
+  // shifts), one added at the end, a pot. Next year: A and B swap places, and no money is typed.
+  const bNew = JSON.parse(ev(`JSON.stringify(itemById('B').ask)`)); bNew[0] += 100000;
+  ev(`S.asks['B']=${JSON.stringify(bNew)}; S.band['D']='pdm'; S.mc['B']=true;
+      S.removed.push('E'); S.order=S.order.filter(function(id){ return id!=='E'; });
+      S.custom.push({id:'NEW-1', grp:'ATL', sect:'new', custom:true, title:'Added since PB', event:'Added since PB', ccar:'CCNEW', fy26:[0,0,0,0,0,0], ask:[10000,5000,0,0,0,0], alloc:null});
+      S.order.push('NEW-1');
+      if(S.bm && S.bm.disc){ S.bm.disc[0]=(S.bm.disc[0]||0)+500000; } else { S.discSvc[0]=(S.discSvc[0]||0)+500000; }   // the pot is derived from the budget mix where one is held
+      applyState(S); MS.years[MS.cur]=S; save(); render();
+      (function(){ var y1=MS.years[MS.cur+1], i=y1.order.indexOf('A'), j=y1.order.indexOf('B'); y1.order[i]='B'; y1.order[j]='A'; })(); 'ok'`);
+  const after = { [cur]: JSON.parse(ev(`(${ENGINE})()`)), [cur + 1]: JSON.parse(ev(`aceWithYear(MS.cur+1, ${ENGINE})`)) };
+  const K = ['ask', 'alloc', 'fund', 'unf'], KL = { ask: 'Requirement', alloc: 'Allocated', fund: 'Funded', unf: 'Unfunded' };
+  const flags = { [cur]: { B: ['requirement', 'starred'], D: ['band'] }, [cur + 1]: { A: ['rank'], B: ['rank'] } };
+  const expect = {};
+  [cur, cur + 1].forEach(y => {
+    const bf = before[y].rows, af = after[y].rows, ids = [...new Set([...Object.keys(af), ...Object.keys(bf)])], o = { rows: {}, tot: {} };
+    K.forEach(k => { o.tot[k] = { a: _sum(Object.values(bf).map(r => r[k])), b: _sum(Object.values(af).map(r => r[k])) }; o.tot[k].d = o.tot[k].b - o.tot[k].a; });
+    ids.forEach(id => { const r = {}; K.forEach(k => { r[k] = (af[id] ? af[id][k] : 0) - (bf[id] ? bf[id][k] : 0); });
+      r.kind = af[id] && bf[id] ? ((K.some(k => Math.abs(r[k]) > 0.5) || (flags[y][id] || []).length) ? 'changed' : 'same') : (af[id] ? 'added' : 'removed');
+      o.rows[id] = r; });
+    o.pots = { disc: after[y].discT - before[y].discT, mand: after[y].mandT - before[y].mandT };
+    expect[y] = o;
+  });
+  chk(name, 'fixture', 'this year removes E and adds NEW-1; next year swaps A and B', Object.keys(expect[cur].rows).filter(id => expect[cur].rows[id].kind !== 'same').sort().join(',').length > 0 && expect[cur].rows.E.kind + ':' + expect[cur].rows['NEW-1'].kind, 'removed:added');
+  chk(name, 'fixture', 'and the pot moved', expect[cur].pots.disc, 500000);
+  // ---- the comparison, A against the working plan
+  const D = cmpOf(keyA, 'working');
+  chk(name, 'years', 'the years compared are the two both hold, and none is only on one side', D.years.join(',') + '|' + D.onlyA.join(',') + '|' + D.onlyB.join(','), cur + ',' + (cur + 1) + '||');
+  [cur, cur + 1].forEach(y => {
+    const Y = fyOf(D, y), X = expect[y];
+    Object.keys(X.rows).forEach(id => {
+      chk(name, fyl(y) + ' ' + id, 'is on the comparison', !!Y.rows[id], true);
+      if (!Y.rows[id]) return;
+      K.forEach(k => chk(name, fyl(y) + ' ' + id, 'Δ ' + KL[k] + ' is the engine after less the engine before', Y.rows[id].d[k], X.rows[id][k]));
+      chk(name, fyl(y) + ' ' + id, 'is ' + X.rows[id].kind, Y.rows[id].kind, X.rows[id].kind);
+      (flags[y][id] || []).forEach(f => chk(name, fyl(y) + ' ' + id, 'says what changed: ' + f, Y.rows[id].what.indexOf(f) >= 0, true));
+    });
+    K.forEach(k => { chk(name, fyl(y) + ' total', 'A ' + KL[k] + ' is the engine before the lock', totOf(Y, k).a, X.tot[k].a);
+      chk(name, fyl(y) + ' total', 'B ' + KL[k] + ' is the engine now', totOf(Y, k).b, X.tot[k].b);
+      chk(name, fyl(y) + ' total', 'Δ ' + KL[k] + ' is B less A', totOf(Y, k).d, X.tot[k].d);
+      chk(name, fyl(y) + ' total', 'and the rows account for it: Σ rows Δ ' + KL[k], Y.rowsD[k], X.tot[k].d); });
+    chk(name, fyl(y) + ' pots', 'the pots moved by what was typed', Y.pots.disc.d + ':' + Y.pots.mand.d, X.pots.disc + ':' + X.pots.mand);
+    chk(name, fyl(y) + ' closes', 'the comparison says the rows account for the totals', Y.closes, true);
+    chk(name, fyl(y) + ' counts', 'added, removed, changed and same are counted', Y.nAdded + ':' + Y.nRemoved + ':' + Y.nChanged + ':' + Y.nSame,
+      ['added', 'removed', 'changed', 'same'].map(kd => Object.keys(X.rows).filter(id => X.rows[id].kind === kd).length).join(':'));
+  });
+  chk(name, fyl(cur + 1) + ' same', 'a year where only the order moved keeps at least one requirement the same', fyOf(D, cur + 1).nSame >= 1, true);
+  const Y0 = fyOf(D, cur);
+  // ---- two paths, one answer: the year on screen agrees with the stage-3 deltas
+  const S3 = JSON.parse(ev(`JSON.stringify((function(){ _cycDeltaCache=null; var d=cycDelta(MS.cur); return d? {ref:d.ref, rows:d.rows, removed:d.removed, tot:d.tot} : null; })())`));
+  chk(name, 'stage 3', 'the on-screen deltas read A as the reference', S3 && S3.ref, keyA);
+  if (S3) {
+    Object.keys(S3.rows).forEach(id => ['ask', 'alloc', 'fund'].forEach(k => chk(name, 'stage 3', id + ': Δ ' + KL[k] + ' agrees with cycDelta', rowOf(Y0, id).d[k], S3.rows[id][k])));
+    S3.removed.forEach(r => chk(name, 'stage 3', r.id + ': the removed requirement’s locked figure agrees', -rowOf(Y0, r.id).d.ask, r.askWas));
+    chk(name, 'stage 3', 'the total Δ agrees', totOf(Y0, 'ask').d + ':' + totOf(Y0, 'fund').d, S3.tot.ask + ':' + S3.tot.fund);
+  }
+  // ---- the workbook
+  ev(`cycCmpA='${keyA}'; cycCmpB='working'; 'ok'`);
+  const W = JSON.parse(await grabX('exportCycCompare'));
+  chk(name, 'workbook', 'the comparison builds', W.state, 'ok');
+  const cs = W.sheets['Compare'] || [], ch = W.sheets['Changes'] || [], bp = W.sheets['By PMO'] || [];
+  const la = ev(`blLbl('${keyA}')`), lb = 'WORKING';
+  chk(name, 'title', 'the title names A, B and the span', String((cs[0] || [])[0] ?? ''), 'SPMT CYCLE COMPARISON — ' + la + ' ⇄ ' + lb + ' — ' + fyl(cur) + '–' + fyl(cur + 1));
+  const h = headerRow(cs, 'PMO', 'Requirement', 'CCaR', fyl(cur) + ' Δ Requirement');
+  chk(name, 'shape', 'Compare has its header', h >= 0 ? 'yes' : 'no', 'yes');
+  const colC = (rows, hd, y, side, k) => colOf(rows, hd, fyl(y) + ' ' + (side === 'd' ? 'Δ' : (side === 'a' ? la : lb)) + ' ' + KL[k]);
+  const rowC = (ci, v) => cs.find((r, i) => i > h && String((r || [])[ci] ?? '') === v) || [];
+  const title = id => (before[cur].rows[id] || after[cur].rows[id]).title;
+  Object.keys(expect[cur].rows).forEach(id => { const row = rowC(1, title(id));
+    chk(name, 'sheet ' + id, 'is on the sheet under its office', String(row[0] ?? ''), (after[cur].rows[id] || before[cur].rows[id]).grp);
+    K.forEach(k => { chk(name, 'sheet ' + id, fyl(cur) + ' Δ ' + KL[k] + ' is the engine’s difference', num(row[colC(cs, h, cur, 'd', k)]), expect[cur].rows[id][k]);
+      chk(name, 'sheet ' + id, fyl(cur + 1) + ' Δ ' + KL[k] + ' likewise, or — when the requirement is in neither side that year', num(row[colC(cs, h, cur + 1, 'd', k)]), expect[cur + 1].rows[id] ? expect[cur + 1].rows[id][k] : null); }); });
+  chk(name, 'sheet', 'an added requirement has no A figure, and Δ is its whole B figure', String(rowC(1, title('NEW-1'))[colC(cs, h, cur, 'a', 'ask')]) + ':' + num(rowC(1, title('NEW-1'))[colC(cs, h, cur, 'd', 'ask')]), '—:' + after[cur].rows['NEW-1'].ask);
+  chk(name, 'sheet', 'a removed requirement has no B figure, and Δ is minus its whole A figure', String(rowC(1, title('E'))[colC(cs, h, cur, 'b', 'ask')]) + ':' + num(rowC(1, title('E'))[colC(cs, h, cur, 'd', 'ask')]), '—:' + (-before[cur].rows.E.ask));
+  const tot = rowC(0, 'TOTAL');
+  [cur, cur + 1].forEach(y => K.forEach(k => { chk(name, 'sheet TOTAL', fyl(y) + ' A ' + KL[k], num(tot[colC(cs, h, y, 'a', k)]), expect[y].tot[k].a);
+    chk(name, 'sheet TOTAL', fyl(y) + ' B ' + KL[k], num(tot[colC(cs, h, y, 'b', k)]), expect[y].tot[k].b);
+    chk(name, 'sheet TOTAL', fyl(y) + ' Δ ' + KL[k], num(tot[colC(cs, h, y, 'd', k)]), expect[y].tot[k].d); }));
+  const check = rowC(0, 'CHECK — the rows account for the totals');
+  chk(name, 'sheet CHECK', 'every Δ column closes', [cur, cur + 1].every(y => K.every(k => /^✓/.test(String(check[colC(cs, h, y, 'd', k)] ?? '')))) ? 'yes' : 'no', 'yes');
+  const subATL = rowC(0, 'Subtotal — ATL');
+  chk(name, 'sheet subtotal', 'ATL’s Δ requirement is B’s change plus the added requirement', num(subATL[colC(cs, h, cur, 'd', 'ask')]), expect[cur].rows.B.ask + expect[cur].rows['NEW-1'].ask);
+  chk(name, 'sheet subtotal', 'and its A side is B alone', num(subATL[colC(cs, h, cur, 'a', 'ask')]), before[cur].rows.B.ask);
+  // the Changes sheet
+  const hc = headerRow(ch, 'FY', 'Kind', 'PMO', 'Requirement', 'What changed');
+  const chRows = ch.filter((r, i) => i > hc && String((r || [])[0] ?? '') === fyl(cur));
+  const chRow = t => chRows.find(r => String((r || [])[3] ?? '') === t) || [];
+  chk(name, 'changes', 'the added requirement is ADDED, not in A', chRow(title('NEW-1'))[1] + ' / ' + chRow(title('NEW-1'))[5], 'ADDED / not in ' + la);
+  chk(name, 'changes', 'the removed one is REMOVED, not in B', chRow(title('E'))[1] + ' / ' + chRow(title('E'))[5], 'REMOVED / not in ' + lb);
+  chk(name, 'changes', 'B is CHANGED, and says what: its requirement and the star', chRow(title('B'))[1] + ' ' + (/requirement/.test(String(chRow(title('B'))[5])) && /starred/.test(String(chRow(title('B'))[5]))), 'CHANGED true');
+  chk(name, 'changes', 'D is CHANGED by band, from none to pdm', chRow(title('D'))[1] + ' ' + (/band/.test(String(chRow(title('D'))[5]))) + ' ' + chRow(title('D'))[colOf(ch, hc, la + ' Band')] + '→' + chRow(title('D'))[colOf(ch, hc, lb + ' Band')], 'CHANGED true —→pdm');
+  chk(name, 'changes', 'the star is shown on B’s side', chRow(title('B'))[colOf(ch, hc, la + ' ★')] + '/' + chRow(title('B'))[colOf(ch, hc, lb + ' ★')], '/★');
+  chk(name, 'changes', 'nothing is listed as the same', chRows.filter(r => String((r || [])[1] ?? '') === 'SAME').length, 0);
+  const sr = chRows.find(r => String((r || [])[1] ?? '') === 'Σ ROWS') || [], tr = chRows.find(r => String((r || [])[1] ?? '') === 'TOTAL Δ') || [], ck = chRows.find(r => String((r || [])[1] ?? '') === 'CHECK') || [];
+  const cD = k => colOf(ch, hc, 'Δ ' + KL[k]), cA = k => colOf(ch, hc, la + ' ' + KL[k]), cB = k => colOf(ch, hc, lb + ' ' + KL[k]);
+  K.forEach(k => { chk(name, 'changes Σ', 'Σ rows Δ ' + KL[k] + ' is the engine’s total difference', num(sr[cD(k)]), expect[cur].tot[k].d);
+    chk(name, 'changes TOTAL', 'TOTAL Δ ' + KL[k] + ' is B less A', num(tr[cD(k)]), expect[cur].tot[k].d);
+    chk(name, 'changes TOTAL', 'A ' + KL[k], num(tr[cA(k)]), expect[cur].tot[k].a);
+    chk(name, 'changes TOTAL', 'B ' + KL[k], num(tr[cB(k)]), expect[cur].tot[k].b); });
+  chk(name, 'changes CHECK', 'says the rows account for the totals', /^✓/.test(String(ck[5] ?? '')), true);
+  const pd = chRows.find(r => String((r || [])[1] ?? '') === 'Discretionary BA') || [];
+  chk(name, 'changes pots', 'the discretionary pot is A, B and the difference', num(pd[6]) + ':' + num(pd[7]) + ':' + num(pd[8]), before[cur].discT + ':' + after[cur].discT + ':' + (after[cur].discT - before[cur].discT));
+  const chRows1 = ch.filter((r, i) => i > hc && String((r || [])[0] ?? '') === fyl(cur + 1));
+  chk(name, 'changes ' + fyl(cur + 1), 'A and B are CHANGED by rank, and the ranks are printed', ['A', 'B'].map(id => { const r = chRows1.find(r => String((r || [])[3] ?? '') === title(id)) || [];
+    return r[1] + '/' + (/rank/.test(String(r[5] ?? '')) ? 'rank' : 'no-rank') + '/' + r[colOf(ch, hc, la + ' Rank')] + '→' + r[colOf(ch, hc, lb + ' Rank')]; }).join(' '), 'CHANGED/rank/1→2 CHANGED/rank/2→1');
+  chk(name, 'changes ' + fyl(cur + 1), 'nothing is added or removed', chRows1.filter(r => /^(ADDED|REMOVED)$/.test(String((r || [])[1] ?? ''))).length, 0);
+  // by PMO
+  const hp = headerRow(bp, 'PMO', 'Requirements', fyl(cur) + ' Δ Requirement');
+  const prow = g => bp.find((r, i) => i > hp && String((r || [])[0] ?? '') === g) || [];
+  chk(name, 'by PMO', 'ATL counts B and the added requirement', num(prow('ATL')[colOf(bp, hp, 'Requirements')]), 2);
+  chk(name, 'by PMO', 'ATL’s Δ requirement is the subtotal', num(prow('ATL')[colC(bp, hp, cur, 'd', 'ask')]), expect[cur].rows.B.ask + expect[cur].rows['NEW-1'].ask);
+  chk(name, 'by PMO', 'LOG’s Δ is minus the removed requirement', num(prow('LOG')[colC(bp, hp, cur, 'd', 'ask')]), -before[cur].rows.E.ask);
+  K.forEach(k => chk(name, 'by PMO', 'TOTAL Δ ' + KL[k] + ' is B less A', num(prow('TOTAL')[colC(bp, hp, cur, 'd', k)]), expect[cur].tot[k].d));
+  chk(name, 'by PMO', 'TOTAL counts every requirement on either side', num(prow('TOTAL')[colOf(bp, hp, 'Requirements')]), Object.keys(expect[cur].rows).length);
+  // ---- the panel
+  ev(`cycCmpOpen=true; render(); 'ok'`);
+  const panel = ev(`document.getElementById('cycCmpBody').innerHTML`);
+  chk(name, 'panel', 'the year’s counts are stated', new RegExp(fyl(cur) + ' — 1 added · 1 removed · ' + fyOf(D, cur).nChanged + ' changed · ' + fyOf(D, cur).nSame + ' unchanged').test(panel), true);
+  chk(name, 'panel', 'and both years say the rows account for the totals', (panel.match(/✓ the rows account for the totals/g) || []).length, 2);
+  const totTbl = (panel.match(/<table class="po cmptot">[\s\S]*?<\/table>/g) || [])[0] || '';
+  const reqRow = (/<tr><td><b>Requirement<\/b><\/td>([\s\S]*?)<\/tr>/.exec(totTbl) || [])[1] || '';
+  const fm = n => ev(`fM(${n})`), sgn = d => Math.abs(d) < 0.5 ? '<span class="z">—</span>' : ev(`cycSgn(${d})`);
+  chk(name, 'panel', 'this year’s requirement line is A, B and Δ', reqRow, '<td class="n">' + fm(expect[cur].tot.ask.a) + '</td><td class="n">' + fm(expect[cur].tot.ask.b) + '</td><td class="n">' + sgn(expect[cur].tot.ask.d) + '</td>');
+  chk(name, 'panel', 'the added and the removed are named', /ADDED/.test(panel) && /REMOVED/.test(panel) && new RegExp(title('NEW-1')).test(panel) && new RegExp(title('E')).test(panel), true);
+  // ---- B locked too; the working plan moves again; the two locks do not follow it
+  ev(`cycCmpOpen=false; blCyc='BES'; blYr=MS.cur+1; cycLock(); 'ok'`);
+  chk(name, 'lock B', 'B is locked over both years', ev(`cycHeld('${keyB}').join(',')`), cur + ',' + (cur + 1));
+  const cNew = JSON.parse(ev(`JSON.stringify(itemById('C').ask)`)); cNew[1] += 70000;
+  ev(`S.asks['C']=${JSON.stringify(cNew)}; applyState(S); MS.years[MS.cur]=S; var y2=JSON.parse(JSON.stringify(S)); delete y2.pmoOrder; MS.years[MS.cur+2]=y2; save(); 'ok'`);
+  const DL = cmpOf(keyA, keyB);
+  chk(name, 'two locks', 'PB against BES compares the same two years', DL.years.join(','), cur + ',' + (cur + 1));
+  chk(name, 'two locks', 'C did not move between the locks, though it has since', rowOf(fyOf(DL, cur), 'C').d.ask, 0);
+  chk(name, 'two locks', 'B’s change is what the locks hold', rowOf(fyOf(DL, cur), 'B').d.ask, expect[cur].rows.B.ask);
+  chk(name, 'two locks', 'and the total is the two locks’', totOf(fyOf(DL, cur), 'ask').d, expect[cur].tot.ask.d);
+  const DW = cmpOf(keyA, 'working');
+  chk(name, 'a year on one side', 'the working plan now holds a year PB never did, and it is stated, not compared', DW.years.join(',') + '|' + DW.onlyB.join(','), cur + ',' + (cur + 1) + '|' + (cur + 2));
+  chk(name, 'a year on one side', 'against the working plan C has moved', rowOf(fyOf(DW, cur), 'C').d.ask, 70000);
+  ev(`cycCmpA='${keyA}'; cycCmpB='${keyB}'; 'ok'`);
+  const W2 = JSON.parse(await grabX('exportCycCompare'));
+  chk(name, 'two locks', 'the workbook builds for two locks', W2.state, 'ok');
+  const cs2 = W2.sheets['Compare'] || [], h2 = headerRow(cs2, 'PMO', 'Requirement', 'CCaR', fyl(cur) + ' Δ Requirement');
+  const lB = ev(`blLbl('${keyB}')`);
+  chk(name, 'two locks', 'titled as the two cycles', String((cs2[0] || [])[0] ?? ''), 'SPMT CYCLE COMPARISON — ' + la + ' ⇄ ' + lB + ' — ' + fyl(cur) + '–' + fyl(cur + 1));
+  chk(name, 'two locks', 'C’s row shows no change', num((cs2.find((r, i) => i > h2 && String((r || [])[1] ?? '') === title('C')) || [])[colOf(cs2, h2, fyl(cur) + ' Δ Requirement')]), 0);
+  ev(`cycCmpB='working'; 'ok'`);
+  const W3 = JSON.parse(await grabX('exportCycCompare'));
+  const cs3 = W3.sheets['Compare'] || [], h3 = headerRow(cs3, 'PMO', 'Requirement', 'CCaR', fyl(cur) + ' Δ Requirement');
+  chk(name, 'a year on one side', 'the sheet carries the year as not in PB, with no figures', String((cs3[h3] || []).find(c => /not in/.test(String(c ?? ''))) ?? ''), fyl(cur + 2) + ' — not in ' + la);
+  chk(name, 'a year on one side', 'and its cells are —', String((cs3.find((r, i) => i > h3 && String((r || [])[0] ?? '') === 'TOTAL') || [])[(cs3[h3] || []).findIndex(c => /not in/.test(String(c ?? '')))] ?? ''), '—');
+  chk(name, 'a year on one side', 'the span runs to it', String((cs3[0] || [])[0] ?? ''), 'SPMT CYCLE COMPARISON — ' + la + ' ⇄ WORKING — ' + fyl(cur) + '–' + fyl(cur + 2));
+  chk(name, 'a year on one side', 'the Changes sheet says so', (W3.sheets['Changes'] || []).some(r => String((r || [])[0] ?? '') === fyl(cur + 2) && String((r || [])[1] ?? '') === 'not in ' + la), true);
+  // ---- the same source twice, and no A
+  ev(`cycCmpA='working'; cycCmpB='working'; cycCmpOpen=true; render(); 'ok'`);
+  chk(name, 'guard', 'the same source twice is refused on the panel', /Pick two different sources/.test(ev(`document.getElementById('cycCmpBody').innerHTML`)), true);
+  chk(name, 'guard', 'and in the workbook', JSON.parse(await grabX('exportCycCompare')).state, 'refused');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  } finally {
+    // put the board back: nothing after this block sees the locks, the years, the base or the moves
+    try {
+      ev(`cycCmpOpen=false; cycCmpA=''; cycCmpB='working';
+          ['${keyB}','${keyA}'].forEach(function(k){ if(blGet(k)){ blLock(k, false); blDelete(k); } });
+          MS.cycle=''; MS.cycleRef=''; delete MS.years[MS.cur+1]; delete MS.years[MS.cur+2]; MS.base=${base0 === 'null' ? 'undefined' : base0};
+          applyState(JSON.parse(${JSON.stringify(snap)})); MS.years[MS.cur]=S; save(); render(); 'ok'`);
+    } catch (e) { failures.push({ scenario: name, where: 'harness', what: 'the restore threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' }); }
+    chk(name, 'restore', 'the board is as it was', ev(`S.order.join(',')`) + ' ' + ev(`blList().length`), 'A,B,C,D,E 0');
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

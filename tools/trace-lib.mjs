@@ -290,6 +290,22 @@ if (hasCycles) {
       mandBA: cellAt(bs, /^Service$/, FY + ' Mand BA', /^TOTAL$/),
     });
   }
+  // 1f. THE CYCLE COMPARISON -- the lock just taken against the working plan. Every Δ must be
+  //     zero, and the B side (the working plan) must be the engine.
+  if (hasCycles && ev(`typeof exportCycCompare==='function'`)) {
+    const FY = 'FY' + (+ev('MS.cur') % 100), keep = JSON.parse(ev(`JSON.stringify([cycCmpA, cycCmpB])`));
+    ev(`cycCmpA='${key}'; cycCmpB='working'; 'ok'`);
+    const sheets = grab('exportCycCompare');
+    ev(`cycCmpA=${JSON.stringify(keep[0])}; cycCmpB=${JSON.stringify(keep[1])}; 'ok'`);
+    const cs = rowsOf(sheets.find(s => s.name === 'Compare'));
+    const dz = ['Requirement', 'Allocated', 'Funded', 'Unfunded'].map(k => cellAt(cs, /^PMO$/, FY + ' Δ ' + k, /^TOTAL$/));
+    if (dz.some(v => v === undefined || Math.abs(v) > 0.5)) throw new Error('the comparison of the lock just taken against the working plan is not zero: ' + JSON.stringify(dz));
+    add('xl · Cycle Comparison', 'Excel', 0.5, {
+      ask:    cellAt(cs, /^PMO$/, FY + ' WORKING Requirement', /^TOTAL$/),
+      funded: cellAt(cs, /^PMO$/, FY + ' WORKING Funded', /^TOTAL$/),
+      ufr2:   cellAt(cs, /^PMO$/, FY + ' WORKING Unfunded', /^TOTAL$/),
+    });
+  }
   // A SCRATCH LOCK, when asked for: the verifier runs this on a real file, where 'PB|<year>' may
   // already be a real lock taken weeks ago (and would then read the plan as it stood, not as it
   // is). The scratch key is deleted again and the working plan's tags are put back.

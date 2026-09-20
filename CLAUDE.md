@@ -1584,6 +1584,28 @@ the engine under a year swap, blank years, subtotals, TOTAL, By PMO, By Service,
 PB lock and a moved value the locked report must not follow), fourteen `fydp-*` mutations, and the
 trace-matrix surface *xl · FYDP Spend Plan* (requirement, funded, TOTAL unfunded, both pots).
 
+### Comparing two cycles: the same shape twice, and the rows account for the totals
+
+`cycCmpData(a, b)` reads both sources through `fydpData` — a locked cycle as it was locked, the
+working plan as it stands — so A and B are the same figures taken at different times, never two
+computations. Per year both hold, per requirement: A, B and Δ = B − A for requirement, allocated,
+funded (the lane draw) and unfunded, with rank, band, PMO and the star beside them; a requirement
+in B and not in A is ADDED, one in A and not in B is REMOVED, and each carries its whole figure as
+Δ. That is what makes the conservation rule hold — **Σ row deltas = the total delta, per year, per
+column** — and the rule is computed (`closes`), printed on the panel and on both sheets (a CHECK
+row), and asserted by the recon suite from the engine before and after the changes. For the year
+on screen the comparison must agree with `cycDelta` (stage 3): two paths, one answer. A year only
+one source holds is stated (*FY29 — not in PB27*) and carries no figures; the same source twice is
+refused. The workbook (*⇄ Cycle Comparison (Excel)*; *SPMT Cycle Comparison — PB27 vs WORKING —
+FY27–FY28 date.xlsx*) carries Compare (every requirement, PMO subtotals, TOTAL, CHECK), Changes
+(per year: added, removed and changed rows with what changed, Σ ROWS, TOTAL Δ, CHECK, the pots) and
+By PMO. The panel (*⇄ Compare two cycles…* under FYDP Views; the cycles panel's ⇄ Compare opens it
+with that cycle as A) shows per year the totals as A, B, Δ, the pots, the ✓ line and the changed
+rows. The old one-year "compare with the board now" in the cycles panel is gone: it was a third
+computation of the same figures. Guarded by *comparing two cycles* in audit-recon, fifteen `cmp-*`
+mutations, and the trace-matrix surface *xl · Cycle Comparison* (the lock just taken against the
+working plan: every Δ zero, and the B side the engine).
+
 ### A suite that dies is not a suite that caught something
 
 `mutate.mjs` counted every non-zero exit as a catch. Under heavy load (a gate's two sweeps beside

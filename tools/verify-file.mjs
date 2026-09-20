@@ -283,17 +283,29 @@ function crossFoots(sec, html, slug) {
   }
   check(sec, bad.length === 0, `every per-service breakout adds back to its figure (${rowsChecked} rows across ${blocks} blocks)`, bad.slice(0, 3).join(' | '));
   // the other workbooks build at all on this data
-  for (const fn of ['exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan']) {
+  for (const fn of ['exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare']) {
+    // the comparison needs a locked cycle for A; a file without one has nothing to compare, which is not a failure
+    if (fn === 'exportCycCompare') {
+      if (!cmpPrep(ev)) { check(sec, true, `${fn} has no locked cycle to compare, so it is not built here`, 'no cycle holds a year'); continue; }
+    }
     let n = 0; try { n = grabSheets(ev, fn).length; } catch { n = 0; }
     check(sec, n > 0, `${fn} builds on this data`, n ? `${n} sheet(s)` : 'no sheets came back');
   }
+}
+
+// The cycle comparison compares A against B; A must be a locked cycle that holds a year. The first
+// such cycle on the file is used, against the working plan. False when the file holds none.
+function cmpPrep(ev) {
+  if (!ev(`typeof exportCycCompare==='function' && typeof blList==='function'`)) return false;
+  return !!ev(`(function(){ var ks=blList().filter(function(k){ return cycHeld(k).length; }); if(!ks.length) return false; cycCmpA=ks[0]; cycCmpB='working'; return true; })()`);
 }
 
 // ============================== MOVED =============================================================
 function cellsOf(html, slug) {
   const { ev } = bootAs(html, SLUG_NAME[slug]);
   const cells = {};
-  for (const fn of ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan']) {
+  for (const fn of ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare']) {
+    if (fn === 'exportCycCompare' && !cmpPrep(ev)) continue;
     let sheets; try { sheets = grabSheets(ev, fn); } catch { continue; }
     for (const sh of sheets) {
       const rows = sh.rows || sh.data || [];

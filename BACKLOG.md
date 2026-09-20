@@ -326,7 +326,28 @@ mutation: a bulk set that reaches a requirement which never offered the field is
 
 ## 8. PPBE cycles across the FYDP — lock a cycle's five-year spend plan, allocate the next cycle's deltas, report and compare by cycle
 
-**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stage 3 BUILT 20 Sep 2026 (v1.73) · stage 4 BUILT 20 Sep 2026 (v1.74) · stages 5–6 open**
+**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stage 3 BUILT 20 Sep 2026 (v1.73) · stage 4 BUILT 20 Sep 2026 (v1.74) · stage 5 BUILT 20 Sep 2026 (v1.75) · stage 6 open**
+
+### Stage 5, as built (v1.75)
+
+- **`cycCmpData(a, b)`** — A and B (any locked cycle, or the working plan) read through the
+  five-year plan's one shape. Per year both hold, per requirement: A, B, Δ = B − A for requirement,
+  allocated, funded and unfunded; rank, band, PMO and star; ADDED / REMOVED / CHANGED / same. The
+  rows account for the totals (Σ row Δ = total Δ, per year, per column): computed, printed, asserted.
+  A year only one side holds is stated as *not in <cycle>*; the same source twice is refused.
+- **The workbook** *⇄ Cycle Comparison (Excel)*: Compare (requirement rows, PMO subtotals, TOTAL,
+  CHECK), Changes (per year: the rows that are not the same, with what changed, Σ ROWS, TOTAL Δ,
+  CHECK, the pots), By PMO.
+- **The panel** *⇄ Compare two cycles…* (FYDP Views): pickers for A and B, per year the totals as
+  A, B, Δ with the pots, the ✓ line, and the changed rows. The cycles panel's ⇄ Compare now opens it
+  with that cycle as A; the old one-year compare block is removed.
+- **Spruills** already reads locked cycles as *Budget source* for every year a cycle holds
+  (`blPmoAlloc`, stage 1) — nothing further was needed here.
+- **Proved by** *comparing two cycles* (audit-recon: A = the engine before the lock, B = the engine
+  after a value, a band, a star, a removal, an addition and a pot moved this year and a rank swap
+  next year; kinds; conservation from the data, on both sheets and on the panel; agreement with
+  `cycDelta`; two locks that do not follow a later move; a year on one side; the guards), fifteen
+  `cmp-*` mutations in both builds, and the trace-matrix surface *xl · Cycle Comparison*.
 
 ### Stage 4, as built (v1.74)
 

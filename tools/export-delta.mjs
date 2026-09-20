@@ -45,7 +45,7 @@ const FIX = {
   alloc: { C: { m: 's', v: [3000000, 500000, 200000] } },
 };
 
-const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan'];
+const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare'];
 const cv = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
 const txt = c => String(cv(c) ?? '').trim();
 
@@ -56,6 +56,9 @@ function harvest(html) {
   ev(`S.awards['A']={mode:'single',d:FYMON[1][0],day:1};
       S.awards['B']={mode:'single',d:FYMON[2][0],day:1};
       S.awards['C']={mode:'single',d:FYMON[3][0],day:1}; save(); 'ok'`);
+  // the cycle comparison needs a lock for A: a scratch PB lock of this fixture, against the working plan
+  if (ev(`typeof cycLock==='function' && typeof exportCycCompare==='function'`))
+    ev(`MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working'; 'ok'`);
   const cells = {};
   for (const fn of EXPORTS) {
     let sheets;

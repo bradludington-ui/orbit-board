@@ -1097,6 +1097,13 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
     <div id="fydpBody"></div>
   </div>
 </div>
+<div class="modal-bg" id="cycCmpPanel" onclick="if(event.target===this)toggleCycCmp()">
+  <div class="modal" style="width:1120px">
+    <h3>⇄ COMPARE TWO CYCLES — A against B, year by year, and the rows account for the totals
+      <button class="x" onclick="toggleCycCmp()">✕ Close</button></h3>
+    <div id="cycCmpBody"></div>
+  </div>
+</div>
 <div class="modal-bg" id="cycChgPanel" onclick="if(event.target===this)toggleCycChg()">
   <div class="modal" style="width:1120px">
     <h3>Δ CHANGES SINCE THE REFERENCE CYCLE — what moved, by how much, and who moved it
@@ -1473,7 +1480,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.74 (20 Sep 2026)';
+const BUILD='v1.75 (20 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -13609,7 +13616,7 @@ let ppOpen=false, ppCyc='PB', ppYr=null, ppSvcIdx=0;
 // from then on is BES28's delta -- nothing is copied INTO the working plan, it already is PB27's
 // plan, continuing. Before 19 Sep 2026 a "baseline" froze ONE fiscal year under a cycle; those
 // migrate (cycMigrateLegacy) as cycles holding one projection and no state, marked partial.
-let blOpen=false, blCyc='PB', blYr=null, blCmp='', blNote='';   // blCmp: which cycle the panel compares
+let blOpen=false, blCyc='PB', blYr=null, blNote='';
 function blStore(){ if(!CYCDB.cycles || typeof CYCDB.cycles!=='object') CYCDB.cycles={}; return CYCDB.cycles; }
 function blKey(cyc, yr){ return cyc+'|'+yr; }
 function blLbl(key){ const p=String(key).split('|'); return p[0]+String(p[1]).slice(-2); }
@@ -13680,7 +13687,7 @@ function cycLock(){
   persistCyc();
   MS.cycleRef=key;
   if(!MS.cycle) MS.cycle=key;      // an untagged working plan IS the plan just locked, until it is retagged
-  blCmp=key; blNote='';
+  blNote='';
   save(); render();
   setStat('🔒 <b>'+esc(blLbl(key))+'</b> locked — FY'+ys.map(y=>y%100).join(', FY')+' frozen. It is the '
     +'reference the working plan’s deltas are read against, and a Budget source in the Spruills.'
@@ -13701,7 +13708,6 @@ function blDelete(key){
   if(b.locked){ setStat('⚠ <b>'+esc(blLbl(key))+'</b> is locked — unlock it before deleting.'); return; }
   if(!confirm('Delete the '+blLbl(key)+' cycle?\n\nIt cannot be recovered.')) return;
   delete blStore()[key];
-  if(blCmp===key) blCmp='';
   if(MS.cycleRef===key){ MS.cycleRef=''; save(); }
   persistCyc(); render();
 }
@@ -13946,6 +13952,211 @@ function fydpBody(){
   h+=line('TOTAL', fydpSub(R.order, R.rows, D), 'tot');
   h+='</tbody></table></div>'
     +'<div class="hint" style="margin-top:8px">The workbook carries every requirement’s row with Requirement, Allocated, Funded and Unfunded per year, the PMO subtotals, and the same by PMO and by service with the budget authority beside it. Funded is the lane draw; Unfunded is requirement less funded, floored per service. A locked cycle prints its figures as locked; the working plan prints them as they stand.</div>';
+  el.innerHTML=h;
+}
+// ============================ COMPARING TWO CYCLES =========================================
+// Two sources -- any locked cycle, or the working plan -- read through the one shape the five-year
+// plan uses (fydpData), so A and B are the same figures taken at different times, never two
+// computations. Per year BOTH hold, per requirement: A, B and B − A for requirement, allocated,
+// funded (the lane draw) and unfunded, with rank, band, PMO and the star beside them. A
+// requirement in B and not in A is ADDED, one in A and not in B is REMOVED, and each carries its
+// whole figure as the delta, so the rows account for the totals: Σ row deltas = the total delta,
+// per year, per column. That identity is computed here, printed on the panel and the sheet, and
+// asserted by the recon suite -- it is what makes "account for the changes" a fact rather than a
+// claim. A year only one source holds is stated as such and carries no figures.
+let cycCmpOpen=false, cycCmpA='', cycCmpB='working';
+function toggleCycCmp(){ cycCmpOpen=!cycCmpOpen; render(); }
+function cycCmpSet(which, v){ if(which==='A') cycCmpA=v||''; else cycCmpB=v||'working'; render(); }
+function cycCmpOpenWith(a, b){ cycCmpA=a||''; cycCmpB=b||'working'; cycCmpOpen=true; blOpen=false; render(); }
+function cycCmpLbl(src){ return src==='working'? 'WORKING' : blLbl(src); }
+function cycCmpLong(src){ return src==='working'? 'the working plan'+(MS.cycle? ' ('+blLbl(MS.cycle)+')' : '') : blLbl(src)+' (locked)'; }
+const CMP_K=['ask','alloc','fund','unf'], CMP_KL={ask:'Requirement', alloc:'Allocated', fund:'Funded', unf:'Unfunded'};
+function cycCmpData(a, b){
+  if(!a || !b || a===b) return null;
+  const A=fydpData(a), B=fydpData(b); if(!A||!B) return null;
+  const years=A.held.filter(y=>B.held.indexOf(y)>=0);
+  const onlyA=A.held.filter(y=>B.held.indexOf(y)<0), onlyB=B.held.filter(y=>A.held.indexOf(y)<0);
+  const side=P=>{ const m={}; (P.reqs||[]).forEach((r,i)=>{ m[r.id]={ask:fydpSum(r.ask), alloc:fydpSum(r.alloc), fund:fydpSum(r.fund||r.alloc), unf:fydpUnf(r),
+      rank:i+1, band:r.band||'', grp:r.grp||'', mc:!!r.mc, title:r.title, ccar:r.ccar||''}; }); return m; };
+  const rows={}, order=[], fy={};
+  years.forEach(y=>{
+    const PA=A.proj[y], PB=B.proj[y], SA=side(PA), SB=side(PB);
+    const Y={rows:{}, ids:[], tot:{}, rowsD:{}, closes:false, nAdded:0, nRemoved:0, nChanged:0, nSame:0,
+      pots:{disc:{a:fydpSum(PA.disc), b:fydpSum(PB.disc)}, mand:{a:fydpSum(PA.mand), b:fydpSum(PB.mand)}}};
+    Y.pots.disc.d=Y.pots.disc.b-Y.pots.disc.a; Y.pots.mand.d=Y.pots.mand.b-Y.pots.mand.a;
+    CMP_K.forEach(k=>{ Y.tot[k]={a:0, b:0, d:0}; });
+    (PB.reqs||[]).forEach(r=>Y.ids.push(r.id));
+    (PA.reqs||[]).forEach(r=>{ if(Y.ids.indexOf(r.id)<0) Y.ids.push(r.id); });
+    Y.ids.forEach(id=>{
+      const ra=SA[id]||null, rb=SB[id]||null, ref=rb||ra;
+      const r={id:id, title:ref.title, grp:ref.grp, ccar:ref.ccar, a:ra, b:rb, d:{}, what:[], kind:(ra&&rb)? 'same' : (rb? 'added' : 'removed')};
+      CMP_K.forEach(k=>{ r.d[k]=(rb? rb[k]:0)-(ra? ra[k]:0); Y.tot[k].a+=ra? ra[k]:0; Y.tot[k].b+=rb? rb[k]:0; });
+      if(ra&&rb){
+        if(Math.abs(r.d.ask)>0.5) r.what.push('requirement');
+        if(Math.abs(r.d.alloc)>0.5) r.what.push('allocation');
+        if(Math.abs(r.d.fund)>0.5) r.what.push('funded');
+        if(Math.abs(r.d.unf)>0.5) r.what.push('unfunded');
+        if(ra.rank!==rb.rank) r.what.push('rank');
+        if(ra.band!==rb.band) r.what.push('band');
+        if(ra.grp!==rb.grp) r.what.push('PMO');
+        if(ra.mc!==rb.mc) r.what.push(rb.mc? 'starred':'unstarred');
+        if(r.what.length) r.kind='changed';
+      }
+      if(r.kind==='added') Y.nAdded++; else if(r.kind==='removed') Y.nRemoved++; else if(r.kind==='changed') Y.nChanged++; else Y.nSame++;
+      Y.rows[id]=r;
+      if(!rows[id]){ rows[id]={id:id, title:r.title, grp:r.grp, ccar:r.ccar}; order.push(id); }
+    });
+    CMP_K.forEach(k=>{ Y.tot[k].d=Y.tot[k].b-Y.tot[k].a; Y.rowsD[k]=fydpSum(Y.ids.map(id=>Y.rows[id].d[k])); });
+    Y.closes=CMP_K.every(k=>Math.abs(Y.rowsD[k]-Y.tot[k].d)<0.5);
+    fy[y]=Y;
+  });
+  return {a:a, b:b, A:A, B:B, years:years, onlyA:onlyA, onlyB:onlyB, fy:fy, rows:rows, order:order};
+}
+function exportCycCompare(){
+  if(!cycCmpA){ alert('Pick cycle A in ⇄ Compare two cycles first.'); return; }
+  const D=cycCmpData(cycCmpA, cycCmpB);
+  if(!D){ alert(cycCmpA===cycCmpB? 'Pick two different sources to compare.' : 'A source is no longer held. Pick again in ⇄ Compare two cycles.'); return; }
+  const H=2,B=1,N=3,NB=4,SEC=6,TI=7;
+  const fyl=y=>'FY'+(y%100);
+  const la=cycCmpLbl(D.a), lb=cycCmpLbl(D.b);
+  const allY=D.years.concat(D.onlyA, D.onlyB).sort((x,y)=>x-y);
+  const span=allY.length? fyl(allY[0])+'–'+fyl(allY[allY.length-1]) : 'no years';
+  const title='SPMT CYCLE COMPARISON — '+la+' ⇄ '+lb+' — '+span;
+  const note={v:'A is '+cycCmpLong(D.a)+'; B is '+cycCmpLong(D.b)+'. Δ is B less A. Per year both hold, one row per requirement: Requirement, Allocated, Funded (the lane draw) and Unfunded (requirement less funded, floored per service), each as A, B, Δ. A requirement in B and not in A is ADDED; one in A and not in B is REMOVED; each carries its whole figure as Δ, so the rows account for the totals — the CHECK row says whether they do. Years compared: '+(D.years.map(fyl).join(', ')||'none')+'.'
+    +(D.onlyA.length? ' Only in '+la+': '+D.onlyA.map(fyl).join(', ')+'.' : '')+(D.onlyB.length? ' Only in '+lb+': '+D.onlyB.map(fyl).join(', ')+'.' : ''), s:0};
+  const dash={v:'—', s:0};
+  const tri=(ra,rb,d,k,st)=>[ra? {v:ra[k],s:st} : dash, rb? {v:rb[k],s:st} : dash, {v:d[k],s:st}];
+  const byG={}; D.order.forEach(id=>{ const g=D.rows[id].grp||'(no PMO)'; (byG[g]=byG[g]||[]).push(id); });
+  const subOf=(ids,y)=>{ const Y=D.fy[y], s={a:{},b:{},d:{}}; CMP_K.forEach(k=>{ s.a[k]=0; s.b[k]=0; s.d[k]=0; });
+    ids.forEach(id=>{ const r=Y.rows[id]; if(!r) return; CMP_K.forEach(k=>{ s.a[k]+=r.a? r.a[k]:0; s.b[k]+=r.b? r.b[k]:0; s.d[k]+=r.d[k]; }); }); return s; };
+  const totOf=y=>{ const Y=D.fy[y], t={a:{},b:{},d:{}}; CMP_K.forEach(k=>{ t.a[k]=Y.tot[k].a; t.b[k]=Y.tot[k].b; t.d[k]=Y.tot[k].d; }); return t; };
+  const sheets=[];
+  // ---------- 1. compare: every requirement, per year, A · B · Δ, PMO subtotals, TOTAL, CHECK
+  {
+    const hdr=['PMO','Requirement','CCaR'];
+    allY.forEach(y=>{ if(D.years.indexOf(y)<0){ hdr.push(fyl(y)+' — not in '+(D.onlyA.indexOf(y)>=0? lb : la)); return; }
+      CMP_K.forEach(k=>{ hdr.push(fyl(y)+' '+la+' '+CMP_KL[k], fyl(y)+' '+lb+' '+CMP_KL[k], fyl(y)+' Δ '+CMP_KL[k]); }); });
+    const rows=[[{v:title,s:TI}],[note],[],hdr.map(v=>({v:v,s:H}))];
+    const line=(lbl, r, get, st, sub)=>{
+      const out=[sub? {v:lbl,s:B} : lbl, sub? '' : r.title, sub? '' : r.ccar];
+      allY.forEach(y=>{ if(D.years.indexOf(y)<0){ out.push(dash); return; }
+        const t=get(y); if(!t){ CMP_K.forEach(()=>out.push(dash,dash,dash)); return; }
+        CMP_K.forEach(k=>{ out.push.apply(out, tri(t.a, t.b, t.d, k, st)); }); });
+      rows.push(out);
+    };
+    pmoKeys(byG).forEach(g=>{
+      byG[g].forEach(id=>{ const r=D.rows[id]; line(r.grp, r, y=>D.fy[y].rows[id]||null, N, false); });
+      line('Subtotal — '+g, {}, y=>subOf(byG[g], y), NB, true);
+    });
+    rows.push([]);
+    line('TOTAL', {}, totOf, NB, true);
+    const chk=[{v:'CHECK — the rows account for the totals',s:B},'',''];
+    allY.forEach(y=>{ if(D.years.indexOf(y)<0){ chk.push(dash); return; }
+      const Y=D.fy[y];
+      CMP_K.forEach(k=>{ chk.push('', '', {v:(Math.abs(Y.rowsD[k]-Y.tot[k].d)<0.5? '✓ Σ rows = Δ' : '✗ Σ rows '+fM(Y.rowsD[k])+' vs Δ '+fM(Y.tot[k].d)), s:0}); }); });
+    rows.push(chk);
+    sheets.push({name:'Compare', cols:[10,44,16].concat(allY.map(y=>D.years.indexOf(y)<0? [18] : [14,14,14, 14,14,14, 14,14,14, 14,14,14]).flat()), freeze:4, rows:rows});
+  }
+  // ---------- 2. changes: per year, every requirement that is not the same, then Σ rows, TOTAL Δ, CHECK, the pots
+  {
+    const hdr=['FY','Kind','PMO','Requirement','CCaR','What changed'];
+    CMP_K.forEach(k=>{ hdr.push(la+' '+CMP_KL[k], lb+' '+CMP_KL[k], 'Δ '+CMP_KL[k]); });
+    hdr.push(la+' Rank', lb+' Rank', la+' Band', lb+' Band', la+' PMO', lb+' PMO', la+' ★', lb+' ★');
+    const rows=[[{v:title+' — CHANGES',s:TI}],[note],[],hdr.map(v=>({v:v,s:H}))];
+    D.years.forEach(y=>{
+      const Y=D.fy[y];
+      rows.push([{v:fyl(y)+' — '+Y.nAdded+' added · '+Y.nRemoved+' removed · '+Y.nChanged+' changed · '+Y.nSame+' unchanged',s:SEC}]);
+      const changed=Y.ids.map(id=>Y.rows[id]).filter(r=>r.kind!=='same')
+        .sort((p,q)=>Math.abs(q.d.fund)-Math.abs(p.d.fund) || Math.abs(q.d.ask)-Math.abs(p.d.ask));
+      changed.forEach(r=>{
+        const out=[fyl(y), r.kind.toUpperCase(), r.grp, r.title, r.ccar, r.kind==='changed'? r.what.join(', ') : (r.kind==='added'? 'not in '+la : 'not in '+lb)];
+        CMP_K.forEach(k=>{ out.push.apply(out, tri(r.a, r.b, r.d, k, N)); });
+        out.push(r.a? r.a.rank : '—', r.b? r.b.rank : '—', r.a? (r.a.band||'—') : '—', r.b? (r.b.band||'—') : '—',
+                 r.a? r.a.grp : '—', r.b? r.b.grp : '—', r.a? (r.a.mc? '★':'') : '—', r.b? (r.b.mc? '★':'') : '—');
+        rows.push(out);
+      });
+      if(!changed.length) rows.push([fyl(y), {v:'nothing changed',s:0}]);
+      const sr=[fyl(y), {v:'Σ ROWS',s:B}, '', '', '', 'every requirement, added and removed included'];
+      CMP_K.forEach(k=>{ sr.push('', '', {v:Y.rowsD[k],s:NB}); }); rows.push(sr);
+      const tr=[fyl(y), {v:'TOTAL Δ',s:B}, '', '', '', 'the totals of B less the totals of A'];
+      CMP_K.forEach(k=>{ tr.push({v:Y.tot[k].a,s:NB}, {v:Y.tot[k].b,s:NB}, {v:Y.tot[k].d,s:NB}); }); rows.push(tr);
+      rows.push([fyl(y), {v:'CHECK',s:B}, '', '', '', {v:(Y.closes? '✓ the rows account for the totals' : '✗ the rows do not account for the totals'), s:0}]);
+      rows.push([fyl(y), {v:'Discretionary BA',s:0}, '', '', '', 'the pot, not a row', {v:Y.pots.disc.a,s:N}, {v:Y.pots.disc.b,s:N}, {v:Y.pots.disc.d,s:N}]);
+      rows.push([fyl(y), {v:'Mandatory BA',s:0}, '', '', '', 'the pot, not a row', {v:Y.pots.mand.a,s:N}, {v:Y.pots.mand.b,s:N}, {v:Y.pots.mand.d,s:N}]);
+      rows.push([]);
+    });
+    D.onlyA.forEach(y=>rows.push([fyl(y), {v:'not in '+lb,s:0}, '', '', '', la+' holds this year; '+lb+' does not, so nothing is compared']));
+    D.onlyB.forEach(y=>rows.push([fyl(y), {v:'not in '+la,s:0}, '', '', '', lb+' holds this year; '+la+' does not, so nothing is compared']));
+    sheets.push({name:'Changes', cols:[8,12,10,44,16,30, 14,14,14, 14,14,14, 14,14,14, 14,14,14, 8,8,10,10,10,10,6,6], freeze:4, rows:rows});
+  }
+  // ---------- 3. by PMO: the same per year, rolled up
+  {
+    const hdr=['PMO','Requirements'];
+    D.years.forEach(y=>{ CMP_K.forEach(k=>{ hdr.push(fyl(y)+' '+la+' '+CMP_KL[k], fyl(y)+' '+lb+' '+CMP_KL[k], fyl(y)+' Δ '+CMP_KL[k]); }); });
+    const rows=[[{v:title+' — BY PMO',s:TI}],[note],[],hdr.map(v=>({v:v,s:H}))];
+    const put=(lbl, ids, st)=>{ const out=[{v:lbl,s:st},{v:ids.length,s:0}];
+      D.years.forEach(y=>{ const s=subOf(ids, y); CMP_K.forEach(k=>{ out.push({v:s.a[k],s:st},{v:s.b[k],s:st},{v:s.d[k],s:st}); }); });
+      rows.push(out); };
+    pmoKeys(byG).forEach(g=>put(g, byG[g], N));
+    rows.push([]);
+    put('TOTAL', D.order, NB);
+    sheets.push({name:'By PMO', cols:[14,12].concat(D.years.map(()=>[14,14,14,14,14,14,14,14,14,14,14,14]).flat()), freeze:4, rows:rows});
+  }
+  const bytes=buildXlsx(sheets);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download=expName('SPMT Cycle Comparison — '+la+' vs '+lb+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+  a.click();
+  setStat('⇄ Cycle comparison exported — '+esc(la)+' ⇄ '+esc(lb)+', '+D.years.length+' year'+(D.years.length===1?'':'s')+' compared.');
+}
+function cycCmpBody(){
+  const bg=document.getElementById('cycCmpPanel'), el=document.getElementById('cycCmpBody');
+  if(!bg||!el) return;
+  bg.className='modal-bg'+(cycCmpOpen?' open':'');
+  if(!cycCmpOpen){ el.innerHTML=''; return; }
+  const fyl=y=>'FY'+(y%100);
+  const held=blList().filter(k=>cycHeld(k).length);
+  if(cycCmpA && cycCmpA!=='working' && held.indexOf(cycCmpA)<0) cycCmpA='';
+  if(cycCmpB!=='working' && held.indexOf(cycCmpB)<0) cycCmpB='working';
+  const pick=(which, v)=>'<select style="font-size:10px;padding:3px 6px" onchange="cycCmpSet(\''+which+'\', this.value)">'
+    +(which==='A'? '<option value=""'+(v?'':' selected')+'>— pick —</option>' : '')
+    +'<option value="working"'+(v==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+esc(blLbl(MS.cycle))+')':'')+'</option>'
+    +held.map(k=>'<option value="'+k+'"'+(v===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>').join('')+'</select>';
+  let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">A '+pick('A', cycCmpA)+' ⇄ B '+pick('B', cycCmpB)
+    +' <span style="color:var(--dim);font-size:10px">Δ is B less A</span>'
+    +(cycCmpA && cycCmpA!==cycCmpB? ' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportCycCompare()">⇄ Export the workbook</button>' : '')+'</div>';
+  if(!held.length){ h+='<div class="hint">No locked cycle holds a year yet. Lock one under 📌 PPBE cycles, then compare it here with the working plan or with another cycle.</div>'; el.innerHTML=h; return; }
+  if(!cycCmpA){ h+='<div class="hint">Pick cycle A.</div>'; el.innerHTML=h; return; }
+  if(cycCmpA===cycCmpB){ h+='<div class="hint">Pick two different sources to compare.</div>'; el.innerHTML=h; return; }
+  const D=cycCmpData(cycCmpA, cycCmpB);
+  if(!D){ h+='<div class="hint">A source is no longer held.</div>'; el.innerHTML=h; return; }
+  const la=cycCmpLbl(D.a), lb=cycCmpLbl(D.b);
+  h+='<div class="hint" style="margin-bottom:8px">Years compared: <b>'+(D.years.map(fyl).join(', ')||'none')+'</b>'
+    +(D.onlyA.length? ' · '+D.onlyA.map(fyl).join(', ')+' not in '+esc(lb) : '')+(D.onlyB.length? ' · '+D.onlyB.map(fyl).join(', ')+' not in '+esc(la) : '')+'</div>';
+  if(!D.years.length){ h+='<div class="hint">The two sources hold no year in common, so there is nothing to compare.</div>'; el.innerHTML=h; return; }
+  const cell=o=>'<td class="n">'+fM(o.a)+'</td><td class="n">'+fM(o.b)+'</td><td class="n">'+(Math.abs(o.d)<0.5? '<span class="z">—</span>' : cycSgn(o.d))+'</td>';
+  h+='<div style="max-height:60vh;overflow:auto">';
+  D.years.forEach(y=>{
+    const Y=D.fy[y];
+    h+='<div class="pmoh" style="margin-top:10px">'+fyl(y)+' — '+Y.nAdded+' added · '+Y.nRemoved+' removed · '+Y.nChanged+' changed · '+Y.nSame+' unchanged</div>'
+      +'<table class="po cmptot"><thead><tr><th></th><th class="n">'+esc(la)+'</th><th class="n">'+esc(lb)+'</th><th class="n">Δ</th></tr></thead><tbody>';
+    CMP_K.forEach(k=>{ h+='<tr><td><b>'+CMP_KL[k]+'</b></td>'+cell(Y.tot[k])+'</tr>'; });
+    h+='<tr><td>Discretionary BA</td>'+cell(Y.pots.disc)+'</tr><tr><td>Mandatory BA</td>'+cell(Y.pots.mand)+'</tr></tbody></table>'
+      +'<div class="cmpchk" style="font-size:10px;color:'+(Y.closes?'var(--green)':'var(--red)')+';margin:4px 0 6px">'+(Y.closes? '✓' : '✗')+' the rows account for the totals: Σ rows '+cycSgn(Y.rowsD.fund)+' funded, '+cycSgn(Y.rowsD.ask)+' requirement</div>';
+    const changed=Y.ids.map(id=>Y.rows[id]).filter(r=>r.kind!=='same').sort((p,q)=>Math.abs(q.d.fund)-Math.abs(p.d.fund) || Math.abs(q.d.ask)-Math.abs(p.d.ask));
+    if(changed.length){
+      h+='<table class="po"><thead><tr><th>PMO</th><th>Requirement</th><th></th><th class="n">Req Δ</th><th class="n">Alloc Δ</th><th class="n">Funded Δ</th><th class="n">Unf Δ</th><th>Rank</th><th>What</th></tr></thead><tbody>';
+      changed.forEach(r=>{
+        const dd=v=>'<td class="n">'+(Math.abs(v)<0.5? '<span class="z">—</span>' : cycSgn(v))+'</td>';
+        h+='<tr'+(r.kind==='removed'? ' style="color:var(--dim)"':'')+'><td>'+esc(r.grp)+'</td><td>'+esc(r.title)+'</td><td><b>'+(r.kind==='changed'? '' : r.kind.toUpperCase())+'</b></td>'
+          +dd(r.d.ask)+dd(r.d.alloc)+dd(r.d.fund)+dd(r.d.unf)
+          +'<td>'+(r.a&&r.b? (r.a.rank!==r.b.rank? '#'+r.a.rank+' → #'+r.b.rank : '<span class="z">#'+r.b.rank+'</span>') : (r.b? '#'+r.b.rank : '—'))+'</td>'
+          +'<td style="font-size:10px">'+(r.kind==='changed'? esc(r.what.join(', ')) : (r.kind==='added'? 'not in '+esc(la) : 'not in '+esc(lb)))+'</td></tr>';
+      });
+      h+='</tbody></table>';
+    } else h+='<div class="hint">Nothing changed between '+esc(la)+' and '+esc(lb)+' for '+fyl(y)+'.</div>';
+  });
+  h+='</div><div class="hint" style="margin-top:8px">Both sides are read through the five-year plan’s one shape: a locked cycle as it was locked, the working plan as it stands. Δ is B less A per requirement, per service, then summed; an added or removed requirement carries its whole figure, so the rows account for the totals.</div>';
   el.innerHTML=h;
 }
 // ============================ DELTAS AGAINST THE REFERENCE CYCLE ============================
@@ -14249,7 +14460,7 @@ function blBody(){
     const held=Object.keys(c.proj||{}).map(Number).sort((a,b)=>a-b);
     const ask=P? (P.reqs||[]).reduce((a,r)=>a+r.ask.reduce((x,y)=>x+y,0),0) : null;
     const fund=P? (P.reqs||[]).reduce((a,r)=>a+(r.fund||r.alloc).reduce((x,y)=>x+y,0),0) : null;
-    h+='<tr'+(blCmp===k?' class="chg"':'')+'><td><b>'+esc(blLbl(k))+'</b>'
+    h+='<tr><td><b>'+esc(blLbl(k))+'</b>'
       +(k===MS.cycleRef? ' <span class="chip" style="font-size:9px;padding:1px 6px">reference</span>':'')
       +(c.from? '<div style="font-size:9px;color:var(--dim)">from '+esc(blLbl(c.from))+'</div>':'')+'</td>'
       +'<td>'+esc(fmtTs(c.ts))+'</td><td>'+esc(c.by||'')+'</td>'
@@ -14262,75 +14473,11 @@ function blBody(){
       +'<td class="n">'+(P? fM((P.mand||[]).reduce((x,y)=>x+y,0)) : '<span class="z">—</span>')+'</td>'
       +'<td style="font-size:10px;color:var(--dim)">'+esc(c.note||'')+'</td>'
       +'<td>'+(held.length? (CYCVIEW===k? '<button class="qb on" onclick="cycLeave()">↩ Leave view</button> ' : '<button class="qb" onclick="cycView(\''+k+'\')" title="put this locked plan on the drill, read only">👁 View</button> ') : '')
-      +'<button class="qb" onclick="blCmp=\''+k+'\';render()" title="compare this cycle’s '+FYL()+' plan with the board as it stands now">⇄ Compare</button></td>'
+      +'<button class="qb" onclick="cycCmpOpenWith(\''+k+'\',\'working\')" title="compare this cycle with the working plan, or with another cycle, year by year">⇄ Compare</button></td>'
       +'<td><button class="qb" onclick="blLock(\''+k+'\','+(c.locked?'false':'true')+')">'+(c.locked?'🔒 locked':'🔓 unlocked')+'</button>'
       +(c.locked? '' : ' <button class="qb" style="color:var(--red)" onclick="blDelete(\''+k+'\')">✕</button>')+'</td></tr>';
   });
   h+='</tbody></table>';
-
-  // ---- compare a cycle's plan for the year on screen with the board as it stands
-  if(blCmp && blGet(blCmp)){
-    const b=cycProj(blCmp, MS.cur);
-    if(!b){
-      const held=Object.keys(blGet(blCmp).proj||{}).map(Number).sort((a,b2)=>a-b2);
-      h+='<div class="hint" style="margin-top:12px"><b>'+esc(blLbl(blCmp))+'</b> holds no '+FYL()+' plan — it was '
-        +'locked with '+(held.length? held.map(fyl).join(', ') : 'no years')+'. Switch to one of those years to compare.</div>';
-    } else {
-    const T=tiers();
-    const nowAlloc=id=>{ const it=itemById(id); if(!it) return null;
-      return (S.fsrc||{})[id]? SVC.map((sv,i)=>((T[id]||{d:[],m:[]}).d[i]||0)+((T[id]||{d:[],m:[]}).m[i]||0))
-                             : svcAlloc(it).slice(); };
-    const sum=a=>(a||[]).reduce((x,y)=>x+y,0);
-    // by PMO
-    const pmos=[...new Set([...Object.keys(b.pmo||{}), ...S.order.map(id=>{const it=itemById(id);return it?grpOf(it):null;}).filter(Boolean)])].sort();
-    h+='<div class="pmoh" style="margin-top:14px">'+esc(blLbl(blCmp))+' ('+FYL()+')  ⇄  the board now  —  by PMO</div>'
-      +'<table class="po"><thead><tr><th>PMO</th><th class="n">Locked allocation</th>'
-      +'<th class="n">Allocated now</th><th class="n">Change</th><th class="n">Locked reqs</th><th class="n">Reqs now</th></tr></thead><tbody>';
-    let tb=0,tn=0;
-    pmos.forEach(g=>{
-      const was=sum(((b.pmo||{})[g]||{}).alloc);
-      let now=0, cnt=0;
-      S.order.forEach(id=>{ const it=itemById(id); if(!it||grpOf(it)!==g) return; cnt++; now+=sum(nowAlloc(id)); });
-      tb+=was; tn+=now;
-      const d=now-was;
-      h+='<tr><td><b>'+esc(g)+'</b></td><td class="n">'+money(was)+'</td><td class="n">'+money(now)+'</td>'
-        +'<td class="n">'+(Math.abs(d)<500? '<span class="z">—</span>'
-          : '<b style="color:'+(d<0?'var(--red)':'var(--green)')+'">'+(d>0?'+':'−')+fM(Math.abs(d))+'</b>')+'</td>'
-        +'<td class="n">'+(((b.pmo||{})[g]||{}).n||0)+'</td><td class="n">'+cnt+'</td></tr>';
-    });
-    h+='<tr class="tot"><td>TOTAL</td><td class="n">'+fM(tb)+'</td><td class="n">'+fM(tn)+'</td>'
-      +'<td class="n">'+(Math.abs(tn-tb)<500? '<span class="z">no change</span>'
-        : '<b style="color:'+((tn-tb)<0?'var(--red)':'var(--green)')+'">'+((tn-tb)>0?'+':'−')+fM(Math.abs(tn-tb))+'</b>')+'</td>'
-      +'<td class="n">'+(b.reqs||[]).length+'</td><td class="n">'+S.order.length+'</td></tr></tbody></table>';
-
-    // requirements that moved
-    const moved=[];
-    (b.reqs||[]).forEach(r=>{
-      const it=itemById(r.id);
-      const now=it? sum(nowAlloc(r.id)) : null;
-      const was=sum(r.alloc);
-      if(now===null){ moved.push({t:r.title, g:r.grp, was, now:null, why:'no longer on the board'}); return; }
-      if(Math.abs(now-was)>500) moved.push({t:dispTitle(it), g:grpOf(it), was, now, why:''});
-    });
-    S.order.forEach(id=>{ if((b.reqs||[]).some(r=>r.id===id)) return;
-      const it=itemById(id); if(!it) return;
-      moved.push({t:dispTitle(it), g:grpOf(it), was:null, now:sum(nowAlloc(id)), why:'added since'}); });
-    h+='<div class="pmoh" style="margin-top:12px">Requirements that changed since '+esc(blLbl(blCmp))
-      +' <span style="color:var(--dim);font-weight:400">('+moved.length+')</span></div>';
-    h+= moved.length? '<div style="max-height:34vh;overflow:auto"><table class="po"><thead><tr>'
-        +'<th>PMO</th><th>Requirement</th><th class="n">Locked</th><th class="n">Now</th><th class="n">Change</th><th></th>'
-        +'</tr></thead><tbody>'
-        +moved.map(m=>{ const d=(m.now===null||m.was===null)? null : m.now-m.was;
-          return '<tr><td>'+esc(m.g)+'</td><td>'+esc(m.t)+'</td>'
-            +'<td class="n">'+(m.was===null? '<span class="z">—</span>':money(m.was))+'</td>'
-            +'<td class="n">'+(m.now===null? '<span class="z">—</span>':money(m.now))+'</td>'
-            +'<td class="n">'+(d===null? '<span class="z">—</span>'
-              :'<b style="color:'+(d<0?'var(--red)':'var(--green)')+'">'+(d>0?'+':'−')+fM(Math.abs(d))+'</b>')+'</td>'
-            +'<td style="color:var(--dim)">'+esc(m.why)+'</td></tr>'; }).join('')
-        +'</tbody></table></div>'
-      : '<div class="hint">Nothing has moved — the board still matches this cycle for '+FYL()+'.</div>';
-    }
-  }
 
   h+='<div class="hint" style="margin-top:10px">A locked cycle is a fixed point in time: it copies every '
     +'year’s plan rather than pointing at it, so it still reads correctly after requirements are '
@@ -18835,7 +18982,7 @@ function render(){
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
       +'checked it, or the unread part will be lost.'); }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -19163,6 +19310,7 @@ function syncBtns(){
     '<div class="mlbl">Views</div>'+
     mi('📐 Spruills — Reqs vs Funding…',"mRun(toggleSp)",spOpen,'ACE × PPBE cycle · all appns')+
     mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'by requirement · PMO · service — a locked cycle or the working plan')+
+    mi('⇄ Compare two cycles…',"mRun(toggleCycCmp)",cycCmpOpen,'A ⇄ B per year · added, removed, changed · the rows account for the totals')+
     '<div class="msep"></div><div class="mlbl">Positions</div>'+
     mi('🏛 PPBE Budget Positions…',"mRun(toggleP2)",ppOpen,'POM · BES · PB · DoN')+
     '<div class="msep"></div><div class="mlbl">Bring data in</div>'+
@@ -19238,6 +19386,7 @@ function syncBtns(){
     mi('📊 Excel Workbook — full breakouts',"mRun(exportExcel)",false,'streams · forecast · CR · PMOs'+(DATA.costElems?' · CE':''))+
     mi('📈 ACE Tie-Out (Excel)',"mRun(exportAceTieout)",false,'mapping · PMO reconciliation · unclaimed lines')+
     mi('📊 FYDP Spend Plan (Excel)',"mRun(exportFydpPlan)",false,(fydpSrc==='working'? 'the working plan' : blLbl(fydpSrc)+' (locked)')+' · by requirement, PMO, service')+
+    mi('⇄ Cycle Comparison (Excel)',"mRun(exportCycCompare)",false,(cycCmpA? cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB) : 'pick A in ⇄ Compare two cycles')+' · compare, changes, by PMO')+
     // Under BRIEFING PRODUCTS, not Data: it is taken into a room and worked through, not loaded
     // into another system. It reaches every appropriation, so it says so on the menu - the rest of
     // this section answers for the board in front of you.
