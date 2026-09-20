@@ -58,6 +58,8 @@ const REGISTRY = {
   exportReprog: { money: true,  what: 'the ATR/BTR reprogramming log' },
   execSynopsis: { money: true,  what: 'the Executive Funding Synopsis' },
   exportAceTieout: { money: true, what: 'the ACE tie-out' },
+  cycDelta:     { money: true,  what: 'the deltas against the reference cycle — the row chips, the record panel and the Changes panel',
+                  via: ['cycDeltaChip', 'cycDeltaInsp', 'cycChgBody', 'cycWho', 'cycNextOf', 'cycRetagNext'] },
   cycProjOf:    { money: true,  what: 'a locked PPBE cycle’s projection — value, allocation and funding per requirement, per year',
                   via: ['cycLock', 'cycWindowYears', 'cycMigrateLegacy'] },
 

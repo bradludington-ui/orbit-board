@@ -6,7 +6,8 @@
     "drill · 1-N by Band",
     "ppt · Funding by Stream",
     "locked cycle (projection)",
-    "locked view (drill)"
+    "locked view (drill)",
+    "cycle deltas (panel, now)"
   ],
   "discBA": [
     "engine (tiers)",
@@ -15,7 +16,8 @@
     "ppt · KPI slide",
     "ppt · Funding by Stream",
     "locked cycle (projection)",
-    "locked view (drill)"
+    "locked view (drill)",
+    "cycle deltas (panel, now)"
   ],
   "mandBA": [
     "engine (tiers)",
@@ -24,7 +26,8 @@
     "ppt · KPI slide",
     "ppt · Funding by Stream",
     "locked cycle (projection)",
-    "locked view (drill)"
+    "locked view (drill)",
+    "cycle deltas (panel, now)"
   ],
   "disc": [
     "engine (tiers)",
@@ -52,7 +55,8 @@
     "xl · Decision Bands",
     "drill · 1-N by Band",
     "locked cycle (projection)",
-    "locked view (drill)"
+    "locked view (drill)",
+    "cycle deltas (panel, now)"
   ],
   "ufr1": [
     "engine (tiers)",

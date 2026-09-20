@@ -326,7 +326,26 @@ mutation: a bulk set that reaches a requirement which never offered the field is
 
 ## 8. PPBE cycles across the FYDP — lock a cycle's five-year spend plan, allocate the next cycle's deltas, report and compare by cycle
 
-**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stages 3–6 open**
+**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stage 3 BUILT 20 Sep 2026 (v1.73) · stages 4–6 open**
+
+### Stage 3, as built (v1.73)
+
+- **`cycDelta(fy)`** reads the year on screen against the reference cycle's projection of the same
+  year: requirement, allocation and funded per requirement (the board's own `tiers()` and
+  `svcAlloc()` less the projection's), rank, band, PMO, star, NEW and REMOVED, plus the pots. The
+  totals are accounted for by the rows, and the panel prints that identity.
+- **On the row**, in both builds: one chip under the title, only when something changed
+  (`Δ PB27 · req +$43 · rank ▲3 · ★ starred`). **In the grid's record panel**: *Since PB27*, was →
+  now per figure. **The Changes panel** (🎯 Budget year → Δ Changes since PB27): totals was/now/Δ,
+  the pots, every changed row sorted by the size of its funded change, the removed with their locked
+  figures, and *who · when* from the journal; a pure rank change says the order is not journaled.
+- **Lock, then retag.** After a lock the status offers *Retag it as BES28*; the cycles panel offers
+  the same while the working tag equals the reference. `cycNextOf`: PB→BES next year, POM→BES,
+  BES→PB. The reference is never touched by a retag.
+- **Locking from a PMO copy** is left as it was (allowed into the copy's own store): the office
+  confirmed the unlock rule as *anyone, confirmed and stamped*, and a copy's lock never merges back.
+- **Proved by** *PPBE cycles — the deltas against the reference* (audit-board), thirteen
+  mutations, a coverage entry for `cycDelta`, and a trace-matrix surface for the panel's 'Now'.
 
 ### Stage 2, as built (v1.72)
 

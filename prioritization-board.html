@@ -171,6 +171,8 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',Arial,sans-ser
 .ta-note{padding:8px 14px;font-size:10.5px;color:var(--mut);line-height:1.5}
 .ta-note b{color:var(--ink)}
 .chip:hover{border-color:var(--blue)}
+.dchip{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.3px;padding:1px 6px;border-radius:3px;margin-top:3px;background:var(--panelA);border:1px solid var(--line2);color:var(--mut)}
+.dchip b{color:var(--ink)}.dchip .up{color:var(--green)}.dchip .dn{color:var(--red)}
 .chip.on{background:var(--blue);color:var(--onGold);border-color:var(--blue)}
 .chip .n{font-size:10px;opacity:.75;margin-left:4px}
 .search{background:var(--panel);border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:7px 12px;font-size:12px;width:220px}
@@ -975,6 +977,13 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
   </div>
 </div>
 
+<div class="modal-bg" id="cycChgPanel" onclick="if(event.target===this)toggleCycChg()">
+  <div class="modal" style="width:1120px">
+    <h3>Δ CHANGES SINCE THE REFERENCE CYCLE — what moved, by how much, and who moved it
+      <button class="x" onclick="toggleCycChg()">✕ Close</button></h3>
+    <div id="cycChgBody"></div>
+  </div>
+</div>
 <div class="modal-bg" id="blPanel" onclick="if(event.target===this)toggleBl()">
   <div class="modal" style="width:1120px">
     <h3>📌 PPBE CYCLES — lock the five-year spend plan under a cycle, tag the working plan, read its deltas
@@ -1323,7 +1332,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.72 (20 Sep 2026)';
+const BUILD='v1.73 (20 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3737,6 +3746,7 @@ let MS;                                   // {base, cur, ts, years:{'2027':state
 let CYCVIEW='';                 // the key on screen, '' when the working plan is
 let _cycStash=null;             // {MS, S, dirty, title}: the working plan, set aside untouched
 let _cycRefusedAt=0;
+let _cycDeltaCache=null;        // {fy, ref, d}: the deltas against the reference, once per render
 const BASE_FY_DEFAULT=2027;
 const FYL = ()=> 'FY'+(MS? MS.cur%100 : 27);
 function freshYearState(){
@@ -13533,7 +13543,7 @@ function cycLock(){
   save(); render();
   setStat('🔒 <b>'+esc(blLbl(key))+'</b> locked — FY'+ys.map(y=>y%100).join(', FY')+' frozen. It is the '
     +'reference the working plan’s deltas are read against, and a Budget source in the Spruills.'
-    +(MS.cycle===key? ' The working plan is still tagged '+esc(blLbl(key))+' — retag it when the next cycle opens.' : ''));
+    +(MS.cycle===key? ' The working plan is still tagged '+esc(blLbl(key))+' — <button class="qb" onclick="cycRetagNext()">🏷 Retag it as '+esc(blLbl(blKey(cycNextOf(key).cyc, cycNextOf(key).yr)))+'</button> when the next cycle opens, and what you allocate from then on is its delta.' : ''));
 }
 function blLock(key,on){
   const b=blGet(key); if(!b) return;
@@ -13592,6 +13602,169 @@ function cycSetWorking(cyc, yr){
   save(); render();
   setStat(MS.cycle? '🏷 Working plan tagged <b>'+esc(blLbl(MS.cycle))+'</b>'
     +(MS.cycleRef? ' — deltas read against '+esc(blLbl(MS.cycleRef)) : '') : '🏷 Working plan untagged.');
+}
+// ============================ DELTAS AGAINST THE REFERENCE CYCLE ============================
+// The working plan is the reference cycle, continuing. What has changed since the lock is read by
+// comparing the year on screen to the lock's projection of the same year -- requirement by
+// requirement, per service, then summed -- and stated on the row, in the inspector, and in one
+// panel that also says who made each change and when, from the journal. NOTHING HERE IS A SECOND
+// COMPUTATION OF A MONEY FIGURE: 'now' is tiers() and svcAlloc(), exactly as the projection was
+// taken (cycProjOf), so a row's delta is the same two definitions subtracted. One computation per
+// render; the cache is cleared at the top of render().
+function cycDeltaRef(){ return (MS.cycleRef && blGet(MS.cycleRef))? MS.cycleRef : ''; }
+function cycDelta(fy){
+  fy=+fy||+MS.cur;
+  const ref=cycDeltaRef(); if(!ref) return null;
+  if(fy!==+MS.cur) return null;                 // only the year on screen is on the board to compare
+  const P=cycProj(ref, fy); if(!P) return null;
+  const T=tiers();
+  const sum=a=>(a||[]).reduce((x,y)=>x+(+y||0),0);
+  const was={}; P.reqs.forEach((r,i)=>{ was[r.id]={r:r, rank:i+1}; });
+  const rows={}, tot={ask:0, alloc:0, fund:0, askWas:0, allocWas:0, fundWas:0, askNow:0, allocNow:0, fundNow:0};
+  let nNew=0, nChanged=0;
+  S.order.forEach((id,i)=>{
+    const it=itemById(id), p=T[id]; if(!it||!p) return;
+    const fund=SVC.map((sv,k)=>(p.d[k]||0)+(p.m[k]||0));
+    const alloc=(S.fsrc||{})[id]? fund.slice() : svcAlloc(it).slice();
+    const ask=it.ask.slice();
+    const w=was[id];
+    const row={id:id, title:dispTitle(it), grp:grpOf(it), isNew:!w, rankNow:i+1, rankWas:w? w.rank : null,
+      askNow:sum(ask), allocNow:sum(alloc), fundNow:sum(fund),
+      askWas:w? sum(w.r.ask) : 0, allocWas:w? sum(w.r.alloc) : 0, fundWas:w? sum(w.r.fund||w.r.alloc) : 0,
+      bandWas:w? (w.r.band||null) : null, bandNow:BAND_OF(id), grpWas:w? w.r.grp : null,
+      mcWas:w? !!w.r.mc : false, mcNow:!!S.mc[id]};
+    row.ask=row.askNow-row.askWas; row.alloc=row.allocNow-row.allocWas; row.fund=row.fundNow-row.fundWas;
+    row.rank= w? (w.rank-(i+1)) : null;         // positive = moved UP the order since the lock
+    row.changed= row.isNew || Math.abs(row.ask)>0.5 || Math.abs(row.alloc)>0.5 || Math.abs(row.fund)>0.5
+      || row.rank!==0 || row.bandWas!==row.bandNow || (!!w && row.grpWas!==row.grp) || row.mcWas!==row.mcNow;
+    rows[id]=row;
+    if(row.isNew) nNew++;
+    if(row.changed) nChanged++;
+    tot.askNow+=row.askNow; tot.allocNow+=row.allocNow; tot.fundNow+=row.fundNow;
+  });
+  const removed=[];
+  P.reqs.forEach(r=>{ if(rows[r.id]) return;
+    removed.push({id:r.id, title:r.title, grp:r.grp, askWas:sum(r.ask), allocWas:sum(r.alloc), fundWas:sum(r.fund||r.alloc)}); });
+  P.reqs.forEach(r=>{ tot.askWas+=sum(r.ask); tot.allocWas+=sum(r.alloc); tot.fundWas+=sum(r.fund||r.alloc); });
+  tot.ask=tot.askNow-tot.askWas; tot.alloc=tot.allocNow-tot.allocWas; tot.fund=tot.fundNow-tot.fundWas;
+  const c=blGet(ref)||{};
+  return {ref:ref, fy:fy, ts:c.ts||0, by:c.by||'', rows:rows, removed:removed, tot:tot,
+          pots:{discWas:sum(P.disc), discNow:discTot(), mandWas:sum(P.mand), mandNow:mandTot()},
+          nNew:nNew, nChanged:nChanged, nRemoved:removed.length};
+}
+function cycDeltaCur(){
+  if(!_cycDeltaCache || _cycDeltaCache.fy!==+MS.cur || _cycDeltaCache.ref!==cycDeltaRef())
+    _cycDeltaCache={fy:+MS.cur, ref:cycDeltaRef(), d:cycDelta(MS.cur)};
+  return _cycDeltaCache.d;
+}
+// signed money, coloured: up is green, down is red -- the colour says direction, the figure says how much
+function cycSgn(v){ return (v>0? '<span class="up">+' : '<span class="dn">−')+fM(Math.abs(v))+'</span>'; }
+// THE ROW CHIP: one line under the requirement, only when something changed since the reference.
+function cycDeltaChip(id){
+  const D=cycDeltaCur(); if(!D) return '';
+  const r=D.rows[id]; if(!r || !r.changed) return '';
+  const lbl=blLbl(D.ref), parts=[];
+  if(r.isNew) parts.push('<b>NEW</b> since '+esc(lbl));
+  if(Math.abs(r.ask)>0.5) parts.push('req '+cycSgn(r.ask));
+  if(Math.abs(r.alloc)>0.5) parts.push('alloc '+cycSgn(r.alloc));
+  if(Math.abs(r.fund)>0.5) parts.push('funded '+cycSgn(r.fund));
+  if(r.rank!==null && r.rank!==0) parts.push('rank '+(r.rank>0? '<span class="up">▲'+r.rank+'</span>' : '<span class="dn">▼'+(-r.rank)+'</span>'));
+  if(!r.isNew && r.bandWas!==r.bandNow) parts.push('band');
+  if(!r.isNew && r.grpWas!==r.grp) parts.push('PMO '+esc(r.grpWas||'—')+'→'+esc(r.grp));
+  if(!r.isNew && r.mcWas!==r.mcNow) parts.push(r.mcNow? '★ starred' : '★ unstarred');
+  return '<div class="dchip" title="since '+esc(lbl)+' was locked '+esc(fmtTs(D.ts))+'">Δ '+esc(lbl)+' · '+parts.join(' · ')+'</div>';
+}
+// THE INSPECTOR BLOCK (the grid build's docked record panel): the same figures, was -> now.
+function cycDeltaInsp(id){
+  const D=cycDeltaCur(); if(!D || typeof inspField!=='function') return '';
+  const r=D.rows[id]; if(!r) return '';
+  const lbl=blLbl(D.ref);
+  if(!r.changed) return inspField('Since '+lbl, '<span style="color:var(--dim)">unchanged</span>');
+  const line=(what, was, now, d)=> what+' '+fM(was)+' → '+fM(now)+' ('+cycSgn(d)+')';
+  const L=[];
+  if(r.isNew) L.push('<b>NEW</b> — not in '+esc(lbl));
+  if(Math.abs(r.ask)>0.5) L.push(line('requirement', r.askWas, r.askNow, r.ask));
+  if(Math.abs(r.alloc)>0.5) L.push(line('allocated', r.allocWas, r.allocNow, r.alloc));
+  if(Math.abs(r.fund)>0.5) L.push(line('funded', r.fundWas, r.fundNow, r.fund));
+  if(r.rank!==null && r.rank!==0) L.push('rank #'+r.rankWas+' → #'+r.rankNow);
+  if(!r.isNew && r.bandWas!==r.bandNow) L.push('band '+esc(r.bandWas||'—')+' → '+esc(r.bandNow||'—'));
+  if(!r.isNew && r.grpWas!==r.grp) L.push('PMO '+esc(r.grpWas||'—')+' → '+esc(r.grp));
+  if(!r.isNew && r.mcWas!==r.mcNow) L.push(r.mcNow? '★ starred since' : '★ unstarred since');
+  return inspField('Since '+lbl, '<div class="dchip" style="margin:0">'+L.join('</div><div class="dchip" style="margin:2px 0 0">')+'</div>');
+}
+// WHO, AND WHEN, from the journal: the last entry since the lock that names this requirement.
+// Order edits are not journaled (JRNL_SKIP), so a rank change carries no name and says so.
+function cycWho(id, sinceTs, fy){
+  const es=(MS.jrnl||[]).filter(e=> e && (e.t||0)>sinceTs && (+e.fy===+fy) && Array.isArray(e.p) && e.p.indexOf(id)>=0);
+  if(!es.length) return '';
+  const last=es[es.length-1];
+  return esc(last.by||'unknown')+' · '+esc(shortTs(last.t))+(es.length>1? ' <span style="color:var(--dim)">(+'+(es.length-1)+' earlier)</span>' : '');
+}
+// THE NEXT CYCLE after a lock: PB27 is followed by BES28, POM28 by BES28, BES28 by PB28.
+function cycNextOf(key){
+  const p=String(key||'').split('|'), c=p[0], y=parseInt(p[1],10)||+MS.cur;
+  if(c==='PB') return {cyc:'BES', yr:y+1};
+  if(c==='POM') return {cyc:'BES', yr:y};
+  return {cyc:'PB', yr:y};
+}
+function cycRetagNext(){
+  const n=cycNextOf(MS.cycleRef||MS.cycle);
+  cycSetWorking(n.cyc, n.yr);
+}
+let cycChgOpen=false;
+function toggleCycChg(){ cycChgOpen=!cycChgOpen; render(); }
+function cycChgBody(){
+  const bg=document.getElementById('cycChgPanel'), el=document.getElementById('cycChgBody');
+  if(!bg||!el) return;
+  bg.className='modal-bg'+(cycChgOpen?' open':'');
+  if(!cycChgOpen){ el.innerHTML=''; return; }
+  const ref=cycDeltaRef();
+  if(!ref){ el.innerHTML='<div class="hint">No reference cycle. Lock one under 📌 PPBE cycles, or pick a locked cycle there as the reference, and the changes since it appear here, on every row, and in the record panel.</div>'; return; }
+  const D=cycDeltaCur();
+  if(!D){ el.innerHTML='<div class="hint"><b>'+esc(blLbl(ref))+'</b> holds no '+FYL()+' plan, so there is nothing to compare this year against. It holds FY'+cycHeld(ref).map(function(v){ return v%100; }).join(', FY')+'.</div>'; return; }
+  const lbl=blLbl(D.ref);
+  const rows=Object.keys(D.rows).map(k=>D.rows[k]).filter(r=>r.changed)
+    .sort((a,b)=> Math.abs(b.fund)-Math.abs(a.fund) || Math.abs(b.ask)-Math.abs(a.ask));
+  const sum=a=>a.reduce((x,y)=>x+y,0);
+  const rowsAsk=sum(rows.map(r=>r.ask)), rowsAlloc=sum(rows.map(r=>r.alloc)), rowsFund=sum(rows.map(r=>r.fund));
+  const remAsk=sum(D.removed.map(r=>r.askWas)), remAlloc=sum(D.removed.map(r=>r.allocWas)), remFund=sum(D.removed.map(r=>r.fundWas));
+  const closes=Math.abs((rowsAsk-remAsk)-D.tot.ask)<0.5 && Math.abs((rowsAlloc-remAlloc)-D.tot.alloc)<0.5 && Math.abs((rowsFund-remFund)-D.tot.fund)<0.5;
+  let h='<div class="hint" style="margin-bottom:8px">'+FYL()+' as it stands → against <b>'+esc(lbl)+'</b>, locked '+esc(fmtTs(D.ts))+(D.by? ' by '+esc(D.by):'')
+    +(MS.cycle? ' · working plan tagged <b>'+esc(blLbl(MS.cycle))+'</b>':'')
+    +' · '+D.nChanged+' changed · '+D.nNew+' new · '+D.nRemoved+' removed</div>';
+  h+='<table class="po"><thead><tr><th></th><th class="n">'+esc(lbl)+'</th><th class="n">Now</th><th class="n">Change</th></tr></thead><tbody>'
+    +'<tr><td><b>'+FYL()+' requirement</b></td><td class="n">'+fM(D.tot.askWas)+'</td><td class="n">'+fM(D.tot.askNow)+'</td><td class="n">'+(Math.abs(D.tot.ask)<0.5? '<span class="z">—</span>' : cycSgn(D.tot.ask))+'</td></tr>'
+    +'<tr><td><b>Allocated</b></td><td class="n">'+fM(D.tot.allocWas)+'</td><td class="n">'+fM(D.tot.allocNow)+'</td><td class="n">'+(Math.abs(D.tot.alloc)<0.5? '<span class="z">—</span>' : cycSgn(D.tot.alloc))+'</td></tr>'
+    +'<tr><td><b>Funded</b> (disc + mand)</td><td class="n">'+fM(D.tot.fundWas)+'</td><td class="n">'+fM(D.tot.fundNow)+'</td><td class="n">'+(Math.abs(D.tot.fund)<0.5? '<span class="z">—</span>' : cycSgn(D.tot.fund))+'</td></tr>'
+    +'<tr><td>Discretionary BA</td><td class="n">'+fM(D.pots.discWas)+'</td><td class="n">'+fM(D.pots.discNow)+'</td><td class="n">'+(Math.abs(D.pots.discNow-D.pots.discWas)<0.5? '<span class="z">—</span>' : cycSgn(D.pots.discNow-D.pots.discWas))+'</td></tr>'
+    +'<tr><td>Mandatory BA</td><td class="n">'+fM(D.pots.mandWas)+'</td><td class="n">'+fM(D.pots.mandNow)+'</td><td class="n">'+(Math.abs(D.pots.mandNow-D.pots.mandWas)<0.5? '<span class="z">—</span>' : cycSgn(D.pots.mandNow-D.pots.mandWas))+'</td></tr>'
+    +'</tbody></table>'
+    +'<div style="font-size:10px;color:'+(closes?'var(--green)':'var(--red)')+';margin:4px 0 10px">'+(closes? '✓' : '✗')+' the rows account for the totals: changed rows '+cycSgn(rowsFund)+' funded, removed '+cycSgn(-remFund)+', together '+cycSgn(rowsFund-remFund)+' against a total change of '+cycSgn(D.tot.fund)+'</div>';
+  if(!rows.length && !D.removed.length){ h+='<div class="hint">Nothing has changed since '+esc(lbl)+' for '+FYL()+'.</div>'; el.innerHTML=h; return; }
+  h+='<div style="max-height:52vh;overflow:auto"><table class="po"><thead><tr><th>PMO</th><th>Requirement</th><th class="n">Req Δ</th><th class="n">Alloc Δ</th><th class="n">Funded Δ</th><th>Rank</th><th>Also</th><th>Who · when</th></tr></thead><tbody>';
+  rows.forEach(r=>{
+    const also=[];
+    if(r.isNew) also.push('<b>NEW</b>');
+    if(!r.isNew && r.bandWas!==r.bandNow) also.push('band '+esc(r.bandWas||'—')+'→'+esc(r.bandNow||'—'));
+    if(!r.isNew && r.grpWas!==r.grp) also.push('PMO '+esc(r.grpWas||'—')+'→'+esc(r.grp));
+    if(!r.isNew && r.mcWas!==r.mcNow) also.push(r.mcNow? '★ starred' : '★ unstarred');
+    const who=cycWho(r.id, D.ts, D.fy) || (r.rank!==null && r.rank!==0 && !also.length && Math.abs(r.ask)<0.5 && Math.abs(r.alloc)<0.5 && Math.abs(r.fund)<0.5
+      ? '<span style="color:var(--dim)">order edits are not journaled</span>' : (r.isNew? '<span style="color:var(--dim)">added here</span>' : ''));
+    h+='<tr><td>'+esc(r.grp)+'</td><td>'+esc(r.title)+'</td>'
+      +'<td class="n">'+(Math.abs(r.ask)<0.5? '<span class="z">—</span>' : cycSgn(r.ask))+'</td>'
+      +'<td class="n">'+(Math.abs(r.alloc)<0.5? '<span class="z">—</span>' : cycSgn(r.alloc))+'</td>'
+      +'<td class="n">'+(Math.abs(r.fund)<0.5? '<span class="z">—</span>' : cycSgn(r.fund))+'</td>'
+      +'<td>'+(r.isNew? '#'+r.rankNow : (r.rank? '#'+r.rankWas+' → #'+r.rankNow : '<span class="z">#'+r.rankNow+'</span>'))+'</td>'
+      +'<td>'+also.join(' · ')+'</td><td style="font-size:10px">'+who+'</td></tr>';
+  });
+  D.removed.forEach(r=>{
+    h+='<tr style="color:var(--dim)"><td>'+esc(r.grp)+'</td><td>'+esc(r.title)+'</td>'
+      +'<td class="n">'+cycSgn(-r.askWas)+'</td><td class="n">'+cycSgn(-r.allocWas)+'</td><td class="n">'+cycSgn(-r.fundWas)+'</td>'
+      +'<td>—</td><td><b>REMOVED</b> since '+esc(lbl)+'</td><td style="font-size:10px">'+(cycWho(r.id, D.ts, D.fy)||'')+'</td></tr>';
+  });
+  h+='</tbody></table></div>'
+    +'<div class="hint" style="margin-top:8px">Every figure is the board’s own (tiers() and the allocation) less the locked projection of the same year, per service, then summed. Who and when come from the change journal, from entries newer than the lock that name the requirement; the priority order is not journaled, so a pure rank change carries no name.</div>';
+  el.innerHTML=h;
 }
 // ============================ VIEWING A LOCKED CYCLE ========================================
 // THE WHOLE STORE IS SET ASIDE AND A THROWAWAY COPY TAKES ITS PLACE, with the cycle's years in it.
@@ -13693,6 +13866,7 @@ function blBody(){
     +'<option value=""'+(wc[0]?'':' selected')+'>(untagged)</option>'
     +PPBE_CYCLES.map(c=>'<option value="'+c+'"'+(wc[0]===c?' selected':'')+'>'+c+'</option>').join('')+'</select>'
     +'<input style="width:64px" value="'+esc(wc[1])+'" title="cycle year" onchange="cycSetWorking(null, this.value)">'
+    +((MS.cycle && MS.cycle===MS.cycleRef)? ' <button class="qb" onclick="cycRetagNext()" title="the working plan is still tagged as the cycle it was locked as">🏷 Retag as '+esc(blLbl(blKey(cycNextOf(MS.cycle).cyc, cycNextOf(MS.cycle).yr)))+'</button>' : '')
     +'<span style="margin-left:14px">deltas read against</span>'
     +'<select style="font-size:10px;padding:3px 6px" onchange="MS.cycleRef=this.value;save();render()" title="The locked cycle the working plan’s changes are measured from">'
     +'<option value=""'+(MS.cycleRef?'':' selected')+'>(none)</option>'
@@ -18416,13 +18590,14 @@ function hardList(){
   return hardSnap;
 }
 function render(){
+  _cycDeltaCache=null;                      // the deltas are read fresh on every render
   if(_bootLost.length){                     // first render: there is a status bar now
     const lost=_bootLost.slice(); _bootLost.length=0;
     try{ setStat('\u26a0 <b>Could not read '+lost.length+' item'+(lost.length===1?'':'s')+' on opening:</b> '
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
       +'checked it, or the unread part will be lost.'); }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -18511,7 +18686,7 @@ function render(){
       <div><div class="tt"><span onclick="toggleDetail('${id}')" title="click here, or ⊞ By service, to break this requirement out by service">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${it.team}</span>`:''}<span class="tedit ${S.titles[id]?'ren':''}" onclick="editTitle('${id}')" title="${S.titles[id]?'renamed — was: '+esc(it.event||it.title)+' (click to edit)':'rename requirement'}">✎</span>${it.custom?'<span class="sect-new">ADDED</span>':''}${recName(it)&&recName(it)!==dispTitle(it)?`<span class="recname edit" onclick="editRecName('${id}')" title="CCaR Record Name — the requirement as the source file files it${(S.recNames||{})[id]?'. Renamed — the file says: '+esc(recNameSrc(it)):''}. Click to rename.">${esc(recName(it))}${(S.recNames||{})[id]?' \u270e':''}</span>`:''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched \u2014 this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">\u2691 ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' \u00b7 +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}</div>
         <div class="ev">${(it.event && dispTitle(it)!==it.event)? esc(it.event)+'  ·  ' : ''}<span onclick="editCcar('${id}')" style="cursor:pointer;color:${ccarOf(it)?'var(--gold)':'var(--dim)'};font-weight:700" title="click to assign the CCaR record (up to 12 characters)">${ccarOf(it)? esc(ccarOf(it)) : '+ CCaR'}</span>  ·  <span onclick="editPid('${id}')" style="cursor:pointer;color:${pidOf(it)?'var(--blue,#6aa6e8)':'var(--dim)'};font-weight:700" title="click to assign the PID number (up to 20 characters)">${pidOf(it)? 'PID '+esc(pidOf(it)) : '+ PID'}</span>${S.awards[id]? (S.awards[id].mode==='inc'? `  ·  <span style="color:var(--green);font-weight:700" title="incremental funding — ${(S.awards[id].inc||[]).length} increment(s); edit in the detail view">📅 INC ×${(S.awards[id].inc||[]).length}</span>` : `  ·  <span style="color:var(--green);font-weight:700" title="award/obligation date — full funded amount forecasts in this month${S.awards[id].day?'; day '+S.awards[id].day+' sets the CR half-month window':''}">📅 ${S.awards[id].day? S.awards[id].day+' ':''}${esc(ymLbl(S.awards[id].d))}</span>`) : ''}</div>
         ${note?`<div class="note-snip">📝 ${esc(note.length>110?note.slice(0,110)+'…':note)}</div>`:''}
-        ${rowChipsHtml(it)}</div>
+        ${rowChipsHtml(it)}${cycDeltaChip(id)}</div>
       <div class="nums">
         <div class="b"><div class="l">${FYL()} Requirement</div><div class="v">${fM(askTot(it))}</div></div>
         <div class="b"><div class="l">Cumulative</div><div class="v" style="color:var(--dim)">${fM(t.cum)}</div></div>
@@ -18728,6 +18903,9 @@ function syncBtns(){
        'spend plan + forecast only — mandatory withheld; board totals unchanged')+
     mi('◧ Discretionary + Mandatory',"setScen('')",scenView==='',
        'both pots — this board’s actual plan')+
+    (function(){ const ref=cycDeltaRef(), D=ref? cycDeltaCur() : null;
+      return mi('Δ Changes since '+(ref? blLbl(ref) : 'the reference')+'…',"mRun(toggleCycChg)",cycChgOpen,
+        !ref? 'lock a cycle first' : (!D? blLbl(ref)+' holds no '+FYL() : D.nChanged+' changed · '+D.nNew+' new · '+D.nRemoved+' removed')); })()+
     mi('📌 PPBE cycles — lock the spend plan…',"mRun(toggleBl)",blOpen,(MS.cycle? 'working '+blLbl(MS.cycle)+' · ':'')+(blList().length? blList().length+' locked cycle'+(blList().length===1?'':'s') : 'lock the FYDP window under a cycle'))+
     (CYCVIEW
       ? mi('↩ Leave the locked view',"mRun(cycLeave)",true,'back to the working plan'+(MS.cycle? ' — '+blLbl(MS.cycle) : ''))

@@ -266,6 +266,14 @@ if (hasCycles) {
 }
 
 
+  // 1d. THE DELTAS' NOW SIDE -- what the Changes panel prints as 'Now' against the lock. The lock
+  //     just taken is the reference, so the deltas are zero and 'Now' must be the engine.
+  if (ev(`typeof cycDelta==='function'`)) {
+    const d = JSON.parse(ev(`JSON.stringify((function(){ var keep=MS.cycleRef; MS.cycleRef='${key}'; _cycDeltaCache=null;
+      var D=cycDelta(MS.cur); MS.cycleRef=keep; _cycDeltaCache=null;
+      return D? {ask:D.tot.askNow, funded:D.tot.fundNow, discBA:D.pots.discNow, mandBA:D.pots.mandNow, zero:Math.abs(D.tot.ask)+Math.abs(D.tot.fund)} : null; })())`));
+    if (d) { if (d.zero > 0.5) throw new Error('the deltas against the lock just taken are not zero: ' + d.zero); delete d.zero; add('cycle deltas (panel, now)', 'visual', 0.5, d); }
+  }
   // A SCRATCH LOCK, when asked for: the verifier runs this on a real file, where 'PB|<year>' may
   // already be a real lock taken weeks ago (and would then read the plan as it stood, not as it
   // is). The scratch key is deleted again and the working plan's tags are put back.

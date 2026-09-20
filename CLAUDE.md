@@ -1539,6 +1539,27 @@ notice both — a verifier that cannot fail is a rumour — and that self-test i
 `validate:math`. The lock-and-view harvests run under a scratch cycle (`POM|2999`, deleted after)
 because on a real file `PB|<year>` may be a real lock taken weeks ago.
 
+### Deltas against the reference cycle: the same two definitions, subtracted
+
+`cycDelta(fy)` compares the year on screen to the reference cycle's projection of the same year
+(`MS.cycleRef`, set by the lock), requirement by requirement, per service, then summed. 'Now' is
+`tiers()` for funded and `svcAlloc()` for the allocation — exactly what `cycProjOf` wrote into
+the lock — so a row's delta is one definition less itself a lock ago, never a second computation.
+It reads only the year on screen (a delta for another year would need that year on the board),
+is computed once per render (`_cycDeltaCache`, cleared at the top of `render()`), and reports
+rank (positive = moved up), NEW (an id the lock never held), REMOVED (a lock id the order no
+longer holds, with its locked figures), band, PMO and star changes. The totals are accounted for
+by the rows: changed rows plus new, less removed, equals the total change, and the panel prints
+that identity with a ✓ or ✗ so a reader can see it close. Who and when come from the journal —
+entries newer than the lock that name the requirement — and the priority order is not journaled
+(`JRNL_SKIP`), so a pure rank change says so rather than inventing a name. The chip is one line
+under the row in both builds; the grid's record panel shows was → now; the Changes panel is under
+🎯 Budget year. After a lock the status offers the retag: PB27 is followed by BES28, POM by BES
+the same year, BES by PB. Guarded by *PPBE cycles — the deltas against the reference* (a lock
+holding two years with the base on the second, so a delta read against the wrong year cannot pass
+by coincidence), thirteen `delta-*`/`retag-*`/`who-*` mutations, and a trace-matrix surface that
+reads the panel's 'Now' side and expects the engine.
+
 ### The five money-coverage gaps are closed
 
 Each closed the same way: a check that derives the figure from the fixture (never from the code

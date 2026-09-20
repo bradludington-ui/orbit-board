@@ -1973,6 +1973,109 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'open', 'and leaving returns to the year that was on screen', +ev('MS.cur'), cur + 3);
 }
 
+
+// ═══ PPBE CYCLES — THE DELTAS AGAINST THE REFERENCE ═══════════════════════════════════════
+// After a lock the working plan moves on. Every change is read against the lock's projection of
+// the same year: value, allocation, funded (the lane draw), rank, band, PMO, the star, a
+// requirement added, one removed. The totals must be accounted for by the rows -- changed rows
+// plus new ones, less the removed -- and every figure must be the board's own authorities
+// (tiers() and svcAlloc()) less the projection's. The lock is taken with TWO years held, and the
+// base sits on the second, so a delta read against the wrong year cannot pass by coincidence.
+{
+  const name = 'PPBE cycles — the deltas against the reference';
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15]), it('D', 'MxS', [40, 20, 0]),
+            it('E', 'PSM', [30, 10, 5]), it('F', 'AV', [20, 10, 5]), it('G', 'MxS', [12, 6, 3])],
+    // USAF and ANG are deep, so a requirement nobody touched keeps its draw whatever the others do;
+    // STOVL is nearly dry, so at least one requirement is funded below its allocation and a delta
+    // that reads the allocation as the draw cannot pass by coincidence.
+    disc: [1000, 500, 10], mand: [80, 40, 0], order: ['A', 'B', 'C', 'D', 'E', 'F', 'G'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  const cur = +ev('MS.cur'), key = 'PB|' + cur;
+  ev(`MS.years[MS.cur]=S; MS.base=MS.cur+1;
+      var y1=JSON.parse(JSON.stringify(S)); y1.asks={A:[200,100,40]}; delete y1.pmoOrder; MS.years[MS.cur+1]=y1;
+      blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  chk(name, 'lock', 'the lock became the reference and the working tag', ev('MS.cycleRef') + ':' + ev('MS.cycle'), key + ':' + key);
+  chk(name, 'lock', 'and the status offers the retag to the next cycle', /Retag it as BES/.test(ev(`document.getElementById('shareStat').innerHTML`)), true);
+  chk(name, 'before', 'nothing has changed yet', ev(`(function(){ var D=cycDelta(MS.cur); return D.nChanged+':'+D.nNew+':'+D.nRemoved; })()`), '0:0:0');
+  const fundWasA = +ev(`cycProj('${key}', MS.cur).reqs.filter(function(r){ return r.id==='A'; })[0].fund.reduce(function(a,b){ return a+b; },0)`);
+  // the working plan moves on: a value, a trim, a star, a rank, a band, a PMO, one added, one removed
+  ev(`setAsk('B',0,'123');
+      S.alloc['A']={m:'t', v:100};
+      S.mc['C']=true; S.grp['C']='AV';
+      S.order.splice(S.order.indexOf('D'),1); S.order.unshift('D');
+      S.band['B']='pdm'; S.mc['F']=true;         // F's ONLY change is the star, so the star alone must count
+      S.custom.push({id:'NEW-1', grp:'PSM', sect:'new', custom:true, title:'Added here', event:'Added here', ccar:'', fy26:[0,0,0], ask:[10,5,2], alloc:null});
+      S.order.push('NEW-1');
+      S.removed.push('G'); S.order=S.order.filter(function(id){ return id!=='G'; });
+      applyState(S); save(); render(); 'ok'`);
+  const D = JSON.parse(ev(`JSON.stringify(cycDelta(MS.cur))`));
+  chk(name, 'read', 'the deltas read against the reference, for the year on screen', D && D.ref + ':' + D.fy, key + ':' + cur);
+  chk(name, 'value', 'B’s requirement moved by what was typed', D.rows.B.ask + ':' + D.rows.B.askWas + ':' + D.rows.B.askNow, '43:130:173');
+  chk(name, 'value', 'A’s value did not move, and the delta is read against THIS year, not the base year', D.rows.A.ask, 0);
+  chk(name, 'alloc', 'A’s allocation moved by the trim', D.rows.A.alloc, 100 - 170);
+  const fundNowA = +ev(`(function(){ var p=tiers()['A']; return p.d.reduce(function(a,b){ return a+b; },0)+p.m.reduce(function(a,b){ return a+b; },0); })()`);
+  chk(name, 'funded', 'A’s funded delta is the lane draw now less the lane draw locked', D.rows.A.fund, fundNowA - fundWasA);
+  chk(name, 'funded', 'and A is funded below its allocation on the dry lane, so funded and allocated are told apart', D.rows.A.fundNow < D.rows.A.allocNow, true);
+  chk(name, 'rank', 'D moved up three places', D.rows.D.rank + ':' + D.rows.D.rankWas + ':' + D.rows.D.rankNow, '3:4:1');
+  chk(name, 'rank', 'and A down one', D.rows.A.rank, -1);
+  chk(name, 'rank', 'E and F kept their places', D.rows.E.rank + ':' + D.rows.F.rank, '0:0');
+  chk(name, 'flags', 'C was starred and moved office', D.rows.C.mcWas + '>' + D.rows.C.mcNow + ' ' + D.rows.C.grpWas + '>' + D.rows.C.grp, 'false>true PSM>AV');
+  chk(name, 'flags', 'B changed band', D.rows.B.bandWas + '>' + D.rows.B.bandNow, 'null>pdm');
+  chk(name, 'flags', 'F, starred and nothing else, counts as changed', D.rows.F.changed + ':' + D.rows.F.mcWas + '>' + D.rows.F.mcNow + ':' + D.rows.F.rank + ':' + D.rows.F.fund, 'true:false>true:0:0');
+  chk(name, 'new', 'the added requirement is NEW, with no locked figure', D.rows['NEW-1'].isNew + ':' + D.rows['NEW-1'].askWas + ':' + D.rows['NEW-1'].ask, 'true:0:17');
+  chk(name, 'removed', 'the removed requirement is listed with its locked figures', D.removed.map(r => r.id + ':' + r.askWas).join(','), 'G:21');
+  chk(name, 'unchanged', 'E is unchanged', D.rows.E.changed, false);
+  chk(name, 'counts', 'changed, new and removed are counted', D.nChanged + ':' + D.nNew + ':' + D.nRemoved, '6:1:1');
+  // conservation: the rows account for the totals
+  const rows = Object.values(D.rows), S_ = a => a.reduce((x, y) => x + y, 0);
+  chk(name, 'totals', 'the requirement total moved by the rows, less the removed', Math.round((S_(rows.map(r => r.ask)) - S_(D.removed.map(r => r.askWas))) * 100) / 100, Math.round(D.tot.ask * 100) / 100);
+  chk(name, 'totals', 'so did the allocation', Math.round((S_(rows.map(r => r.alloc)) - S_(D.removed.map(r => r.allocWas))) * 100) / 100, Math.round(D.tot.alloc * 100) / 100);
+  chk(name, 'totals', 'and the funded', Math.round((S_(rows.map(r => r.fund)) - S_(D.removed.map(r => r.fundWas))) * 100) / 100, Math.round(D.tot.fund * 100) / 100);
+  chk(name, 'totals', 'now is the board: the requirement total', D.tot.askNow, +ev(`S.order.reduce(function(a,id){ return a+askTot(itemById(id)); },0)`));
+  chk(name, 'totals', 'and the funded total is the lane draw', D.tot.fundNow, +ev(`(function(){ var T=tiers(), s=0; S.order.forEach(function(id){ var p=T[id]; s+=p.d.reduce(function(a,b){return a+b;},0)+p.m.reduce(function(a,b){return a+b;},0); }); return s; })()`));
+  chk(name, 'totals', 'the pots are read live', D.pots.discNow + ':' + D.pots.mandNow, '1510:120');
+  // the row chip
+  const rowHtml = id => ev(`(document.getElementById('row-${id}')||{}).innerHTML||''`);
+  chk(name, 'chip', 'B carries the chip with its delta', /Δ PB\d\d/.test(rowHtml('B')) && /\+\$43/.test(rowHtml('B')), true);
+  chk(name, 'chip', 'D’s chip says it moved up three', /▲3/.test(rowHtml('D')), true);
+  chk(name, 'chip', 'the added requirement’s chip says NEW', /NEW/.test(rowHtml('NEW-1')), true);
+  chk(name, 'chip', 'C’s chip names the star and the office move', /starred/.test(rowHtml('C')) && /PSM→AV/.test(rowHtml('C')), true);
+  chk(name, 'chip', 'E, unchanged, carries no chip', /Δ PB/.test(rowHtml('E')), false);
+  const chipF = (/<div class="dchip"[^>]*>([\s\S]*?)<\/div>/.exec(rowHtml('F')) || [])[1] || '';
+  chk(name, 'chip', 'F’s chip names the star, and nothing else', /★ starred/.test(chipF) && !/req |alloc |funded |rank /.test(chipF), true);
+  // the panel
+  ev(`cycChgOpen=true; render(); 'ok'`);
+  const panel = ev(`document.getElementById('cycChgBody').innerHTML`);
+  chk(name, 'panel', 'the panel lists the added and the removed', /Added here/.test(panel) && /REMOVED/.test(panel) && /G event/.test(panel), true);
+  chk(name, 'panel', 'and closes: the rows account for the totals', /✓ the rows account for the totals/.test(panel), true);
+  chk(name, 'panel', 'B’s change is attributed from the journal', /unknown/.test(ev(`cycWho('B', cycDelta(MS.cur).ts, MS.cur)`)), true);
+  chk(name, 'panel', 'a pure rank change says the order is not journaled', /order edits are not journaled/.test(panel), true);
+  ev(`cycChgOpen=false; 'ok'`);
+  // the inspector, on the build that has one
+  if (ev(`typeof inspectorBody==='function' && typeof setCur==='function'`)) {
+    ev(`setCur('B'); inspectorBody(); 'ok'`);
+    const insp = ev(`(document.getElementById('inspector')||{}).innerHTML||''`);
+    chk(name, 'inspector', 'the record panel shows the change since the reference', /Since PB\d\d/.test(insp) && /\+\$43/.test(insp), true);
+  }
+  // the retag
+  ev(`cycRetagNext(); 'ok'`);
+  chk(name, 'retag', 'the working plan is tagged as the next cycle, BES of the following year', ev('MS.cycle'), 'BES|' + (cur + 1));
+  chk(name, 'retag', 'and the reference is unchanged', ev('MS.cycleRef'), key);
+  chk(name, 'retag', 'POM is followed by BES the same year, BES by PB', ev(`JSON.stringify([cycNextOf('POM|2027'), cycNextOf('BES|2027')])`), JSON.stringify([{ cyc: 'BES', yr: 2027 }, { cyc: 'PB', yr: 2027 }]));
+  // no reference, and a reference that lacks the year
+  ev(`MS.cycleRef=''; render(); 'ok'`);
+  chk(name, 'none', 'without a reference there is no delta and no chip', ev('cycDelta(MS.cur)') === null && !/Δ PB/.test(rowHtml('B')), true);
+  ev(`cycChgOpen=true; render(); 'ok'`);
+  chk(name, 'none', 'and the panel says so', /No reference cycle/.test(ev(`document.getElementById('cycChgBody').innerHTML`)), true);
+  ev(`cycChgOpen=false; MS.cycleRef='${key}'; switchYear(MS.cur+3); cycChgOpen=true; render(); 'ok'`);
+  chk(name, 'year', 'on a year the reference never held there is no delta, and the panel says which years it holds', ev('cycDelta(MS.cur)') === null && /holds no FY/.test(ev(`document.getElementById('cycChgBody').innerHTML`)), true);
+  ev(`cycChgOpen=false; switchYear(MS.cur-3); 'ok'`);
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
