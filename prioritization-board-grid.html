@@ -1457,7 +1457,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.71 (19 Sep 2026)';
+const BUILD='v1.72 (20 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1681,6 +1681,7 @@ let S;
 // ---- service list (template only; a board with data takes its services from that data) ----
 function svcEditable(){ return !SVC_FROM_DATA; }
 function svcSaveList(list){
+  if(cycBlock('Changing the service list')) return;
   MS.svc = list.slice();
   syncSvc();
   // every year's per-service arrays are rebuilt against the new list by applyState()
@@ -3864,6 +3865,12 @@ function setGrp(id, g){
 
 // ============ FYDP: one board, many fiscal years ============
 let MS;                                   // {base, cur, ts, years:{'2027':state, ...}}
+// The locked-cycle view (defined with the cycles, far below) is read by save(), persist(),
+// setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
+// live here, in front of every caller, or the first guard throws in the temporal dead zone.
+let CYCVIEW='';                 // the key on screen, '' when the working plan is
+let _cycStash=null;             // {MS, S, dirty, title}: the working plan, set aside untouched
+let _cycRefusedAt=0;
 const BASE_FY_DEFAULT=2027;
 const FYL = ()=> 'FY'+(MS? MS.cur%100 : 27);
 function freshYearState(){
@@ -3999,6 +4006,7 @@ function applyStore(raw){
   // board does not have in that order, which is precisely when its positional per-service arrays
   // would otherwise land on the wrong services with every total still reconciling.
   // Returning false abandons the load and leaves the board exactly as it was.
+  if(CYCVIEW){ cycRefuse('Loading a board'); return false; }
   if(raw && !svcGuardImport(raw, packOfStore(raw), raw.__srcName)) return false;
   // a wholesale load is one line in the journal, not four thousand. On the FIRST boot pass the
   // journal's bindings are still in their temporal dead zone - there is no shadow to protect yet,
@@ -4030,6 +4038,11 @@ function shiftAwardYears(st, dy){
 }
 function switchYear(y){
   y=parseInt(y);
+  if(CYCVIEW && !MS.years[y]){
+    setStat('🔒 <b>'+esc(blLbl(CYCVIEW))+'</b> holds no FY'+(y%100)+' plan — it was locked with FY'
+      +cycHeld(CYCVIEW).map(function(v){ return v%100; }).join(', FY')+'.');
+    return;
+  }
   if(!MS.years[y]){
     let seed=null;
     if(confirm('FY'+(y%100)+' has no data yet.\n\nOK — ROLL FORWARD: start FY'+(y%100)+' from a copy of FY'+(MS.cur%100)+' (priorities, BA, allocations, MC flags, buckets, CCaRs/PIDs; award dates shifted '+(y-MS.cur>0?'+':'')+(y-MS.cur)+' year(s)).\n\nCancel — start FY'+(y%100)+' BLANK: no requirements, zero BA. Add requirements as they emerge, restore baseline items from the Removed list, or import the ACE later.')){
@@ -4046,6 +4059,7 @@ function switchYear(y){
   MS.years[y]=S;
   const tag=document.getElementById('fyTag'); if(tag) tag.textContent=FYL();
   const fh=document.getElementById('fcTitle'); if(fh) fh.textContent='📅 '+FYL()+' PROJECTED SPEND PLAN FORECAST — OCT '+(MS.cur-1)+' – SEP '+MS.cur;
+  if(CYCVIEW){ render(); setStat('👁 <b>Viewing '+esc(blLbl(CYCVIEW))+' (locked)</b> — '+FYL()+'. Read only.'); return; }
   save(); render();
   setStat('🗓 Working '+FYL()+' — every year keeps its own priorities, BA, allocations, and forecast; all years save and share together.');
 }
@@ -4194,6 +4208,7 @@ function xferYear(id, code){
   setStat((mode==='c'?'🗓 Copied':'🗓 Moved')+' "'+esc(nm)+'" to FY'+(y%100)+' — switch there from the 🗓 menu to see it'+(MS.years[y].order.length===1?' (FY'+(y%100)+' was created blank; this is its first requirement)':'')+'.');
 }
 function resetYear(){
+  if(cycBlock('Resetting a year')) return;
   if(!confirm('Reset '+FYL()+' to BLANK?\n\nEverything in this year is erased — the board will show NO requirements and zero BA. Baseline items move to the Removed list (restorable). Other fiscal years are untouched.\n\nThis cannot be undone (unless you re-import an older saved board).')) return;
   MS.years[MS.cur]=freshYearState();
   applyState(MS.years[MS.cur]);
@@ -4258,6 +4273,7 @@ function rollPlan(){
           exists:per.reduce(function(a,p){ return a+p.exists; },0)};
 }
 function rollApply(){
+  if(cycBlock('Rolling requirements forward')) return;
   const p=rollPlan();
   if(!p.ids.length){ setStat('⚠ Nothing is ticked — choose the requirements to roll forward.'); return; }
   if(!p.years.length){ setStat('⚠ No year is ticked — choose which years to roll them into.'); return; }
@@ -4366,6 +4382,7 @@ function rollBody(){
 }
 
 function removeYear(){
+  if(cycBlock('Removing a year')) return;
   const others=Object.keys(MS.years).filter(y=>parseInt(y)!==MS.cur);
   if(!others.length){ alert('This is the only year in the plan — use Reset instead.'); return; }
   if(!confirm('Remove '+FYL()+' from the FYDP entirely?\n\nIts data is deleted and the board switches to another year. Other years are untouched.')) return;
@@ -4380,6 +4397,7 @@ function removeYear(){
   setStat('✂ Year removed — now working '+FYL()+'.');
 }
 function setBaseYear(){
+  if(cycBlock('Moving the base year')) return;
   uiPrompt('FYDP base year (the first year of the five-year window):', ''+MS.base, v=>{
   if(v===null) return;
   const y=parseInt((''+v).replace(/[^0-9]/g,''));
@@ -4409,6 +4427,7 @@ let DIRTY=false;
 // correct on screen, and a file save keeps it — the file does not use browser storage at all.
 let _persistFail=false;
 function persist(){
+  if(CYCVIEW) return cycRefuse('Writing to browser storage');
   MS.years[MS.cur]=S;
   try{
     localStorage.setItem(_AP.key, JSON.stringify(MS));
@@ -4616,6 +4635,7 @@ function jrnlBody(){
   el.innerHTML=h;
 }
 function save(){
+  if(CYCVIEW) return cycRefuse('Saving');
   DIRTY=true;
   jrnlCapture();
   MS.ts=Date.now();
@@ -4653,7 +4673,10 @@ function uipDone(ok){
   const cb=_uipCb; _uipCb=null;
   if(cb) cb(v);
 }
-function setStat(html){ const el=document.getElementById('shareStat'); if(el) el.innerHTML=html; }
+function setStat(html){
+  if(CYCVIEW && (Date.now()-_cycRefusedAt)<1500 && !/^🔒/.test(String(html)))
+    html='🔒 <b>Not kept — '+esc(blLbl(CYCVIEW))+' is a locked view.</b> '+html;
+  const el=document.getElementById('shareStat'); if(el) el.innerHTML=html; }
 function fmtTs(ts){ return ts? new Date(ts).toLocaleString():'unknown'; }
 function shortTs(ts){ if(!ts) return ''; const d=new Date(ts);
   return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}); }
@@ -4687,6 +4710,7 @@ function fileByOf(p){
 }
 let LASTKNOWN=0;   // ts of the file state we started from (collision baseline)
 function buildSavedHtml(){
+  if(CYCVIEW){ cycRefuse('Building a board file'); throw new Error('a locked cycle is on screen — leave the view before saving or publishing'); }
   save();
   PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const json = JSON.stringify({appns:PUBS, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:{ts:CYCDB.ts||0, byAp:cycByAp()}}).replace(/</g,'\\u003c');
   return SRC0.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
@@ -4748,6 +4772,7 @@ function pmoBaseline(){
   return base;
 }
 function publishPmoCopy(){
+  if(cycBlock('Publishing a PMO copy')) return;
   if(SANDBOX){ sandboxBlock('Publishing a PMO copy'); return; }
   const who=whoAmI()||'';
   if(!confirm('Publish a PMO copy of this board?\n\n'
@@ -4918,6 +4943,7 @@ function pmoAcceptProposal(r){
   return true;
 }
 function pmoSubmit(){
+  if(cycBlock('Submitting input')) return;
   if(!SANDBOX){ alert('Submittal packages are sent from a PMO copy. This is the portfolio board \u2014 '
     + 'your changes are already on it.'); return; }
   // THE OFFICE IS PART OF THE PACKAGE, so ask for it before anything else is built. Re-entering
@@ -5541,8 +5567,9 @@ function expTitle(){
 }
 // The name the file lands under, so it is marked in the mail that forwards it as well as inside.
 function expName(n){
-  if(!SANDBOX) return String(n);
-  const s=String(n);
+  let s=String(n);
+  if(CYCVIEW && !/LOCKED\]/.test(s)){ const j=s.lastIndexOf('.'); s=(j>0? s.slice(0,j) : s)+' ['+blLbl(CYCVIEW)+' LOCKED]'+(j>0? s.slice(j) : ''); }
+  if(!SANDBOX) return s;
   if(/PMO COPY|SUBMITTAL/.test(s)) return s;          // already says exactly what it is
   const i=s.lastIndexOf('.');
   return (i>0? s.slice(0,i) : s)+' [PMO COPY '+expStamp()+']'+(i>0? s.slice(i) : '');
@@ -5562,7 +5589,7 @@ function sandboxBlock(what){
   return true;
 }
 async function saveInPlace(){
-  if(sandboxBlock('Saving to the shared file')) return;
+  if(sandboxBlock('Saving to the shared file')||cycBlock('Saving to the shared file')) return;
   if(driveStoreOn()){
     try{ await driveStorePush(false); }
     catch(e){ setStat('⚠ Could not save to the shared folder — <b>'
@@ -5573,7 +5600,7 @@ async function saveInPlace(){
   return await saveInPlaceFile();
 }
 async function saveInPlaceFile(){
-  if(sandboxBlock('Saving to a file')) return;
+  if(sandboxBlock('Saving to a file')||cycBlock('Saving to a file')) return;
   if(!window.showSaveFilePicker){
     publishState();
     setStat('⚠ This browser doesn\u2019t allow in-place file saving — a copy was downloaded instead (copy it over the shared file).');
@@ -5617,7 +5644,7 @@ async function saveInPlaceFile(){
   }
 }
 function publishState(){
-  if(sandboxBlock('Downloading a copy of the board')) return;
+  if(sandboxBlock('Downloading a copy of the board')||cycBlock('Downloading a copy of the board')) return;
   const html=buildSavedHtml();
   DIRTY=false; try{ syncBtns(); }catch(e){}
   const a=document.createElement('a');
@@ -5629,6 +5656,7 @@ function publishState(){
     +'<a style="color:var(--blue);cursor:pointer" onclick="publishJson()">Or download the .json state file</a> (advanced, for the state-file workflow).');
 }
 function publishJson(){
+  if(cycBlock('Downloading the state file')) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(MS)],{type:'application/json'}));
   a.download=expName(STATEFILE);
@@ -13607,6 +13635,7 @@ function cycProjOf(){
 }
 // LOCK. Every window year that holds a plan is copied whole and projected, under one key.
 function cycLock(){
+  if(cycBlock('Locking a cycle')) return;
   const yr=blYr||MS.cur, key=blKey(blCyc, yr);
   const had=blGet(key);
   if(had && had.locked){
@@ -13651,6 +13680,7 @@ function blLock(key,on){
 }
 function blDelete(key){
   const b=blGet(key); if(!b) return;
+  if(key===CYCVIEW){ setStat('⚠ <b>'+esc(blLbl(key))+'</b> is on screen — leave the view before deleting it.'); return; }
   if(b.locked){ setStat('⚠ <b>'+esc(blLbl(key))+'</b> is locked — unlock it before deleting.'); return; }
   if(!confirm('Delete the '+blLbl(key)+' cycle?\n\nIt cannot be recovered.')) return;
   delete blStore()[key];
@@ -13688,6 +13718,7 @@ function cycMigrateLegacy(){
   return n;
 }
 function cycSetWorking(cyc, yr){
+  if(cycBlock('Retagging the working plan')) return;
   const cur=MS.cycle? MS.cycle.split('|') : ['', String(MS.cur)];
   const c=(cyc===null)? cur[0] : String(cyc||'');
   const y=(yr===null)? (parseInt(cur[1],10)||MS.cur) : (parseInt(yr,10)||MS.cur);
@@ -13696,11 +13727,84 @@ function cycSetWorking(cyc, yr){
   setStat(MS.cycle? '🏷 Working plan tagged <b>'+esc(blLbl(MS.cycle))+'</b>'
     +(MS.cycleRef? ' — deltas read against '+esc(blLbl(MS.cycleRef)) : '') : '🏷 Working plan untagged.');
 }
+// ============================ VIEWING A LOCKED CYCLE ========================================
+// THE WHOLE STORE IS SET ASIDE AND A THROWAWAY COPY TAKES ITS PLACE, with the cycle's years in it.
+// Every panel, export and helper then reads the locked plan through the same applyState, tiers()
+// and MS.years every other year goes through -- there is no second renderer, and no reader has
+// to know it is looking at a lock. Nothing edited on the copy can reach the working plan, because
+// the working plan is not on the page; and nothing edited can LOOK kept, because every write
+// funnels through save() or persist(), which refuse and put the pristine year back. The file
+// builder, a load, a lock and the live push refuse as well: a copy of the past must never leave
+// this machine dressed as the board.
+// CYCVIEW, _cycStash and _cycRefusedAt are declared beside MS, because save(), persist(),
+// setStat() and applyStore() read them and applyStore() runs at top level before this line.
+function cycViewing(){ return !!CYCVIEW; }
+function cycHeld(key){ const c=blGet(key); return c? Object.keys(c.years||{}).map(Number).sort(function(a,b){ return a-b; }) : []; }
+function cycView(key){
+  const c=blGet(key); if(!c) return;
+  const held=cycHeld(key);
+  if(!held.length){
+    setStat('⚠ <b>'+esc(blLbl(key))+'</b> holds no plan to show — it was migrated from a one-year baseline, '
+      +'which kept a projection and no state. It can still be compared, and read in the Spruills.');
+    return;
+  }
+  if(CYCVIEW) cycLeave(true);
+  MS.years[MS.cur]=S;
+  _cycStash={MS:MS, S:S, dirty:DIRTY, title:document.title};
+  CYCVIEW=key;
+  const V=JSON.parse(JSON.stringify(_cycStash.MS));     // a throwaway copy: MS-level edits die with it
+  V.years=JSON.parse(JSON.stringify(c.years));
+  if(c.base) V.base=c.base;
+  MS=V;
+  const y= MS.years[_cycStash.MS.cur]? +_cycStash.MS.cur : held[0];
+  MS.cur=y; FYMON=fyMonths(y); applyState(MS.years[y]); MS.years[y]=S;
+  document.title=_cycStash.title+' — '+blLbl(key)+' LOCKED VIEW';
+  cycSyncTags();
+  render();
+  setStat('👁 <b>Viewing '+esc(blLbl(key))+' (locked)</b> — the plan as it stood '+esc(fmtTs(c.ts))
+    +(c.by? ' by '+esc(c.by):'')+', holding FY'+held.map(function(v){ return v%100; }).join(', FY')
+    +'. Read only: nothing changed here is kept, and nothing can be saved, loaded, locked or sent '
+    +'as the board until you <button class="qb" onclick="cycLeave()">↩ leave the view</button>.');
+}
+function cycLeave(quiet){
+  if(!CYCVIEW) return;
+  const st=_cycStash; CYCVIEW=''; _cycStash=null;
+  MS=st.MS;
+  FYMON=fyMonths(MS.cur); applyState(MS.years[MS.cur]); MS.years[MS.cur]=S;
+  DIRTY=st.dirty; document.title=st.title;
+  cycSyncTags();
+  if(quiet) return;
+  render();
+  setStat('↩ Back on the working plan'+(MS.cycle? ' — <b>'+esc(blLbl(MS.cycle))+'</b>':'')+'.');
+}
+function cycSyncTags(){
+  const tag=document.getElementById('fyTag'); if(tag) tag.textContent=FYL();
+  const fh=document.getElementById('fcTitle'); if(fh) fh.textContent='📅 '+FYL()+' PROJECTED SPEND PLAN FORECAST — OCT '+(MS.cur-1)+' – SEP '+MS.cur;
+}
+// The pristine year, put back. A refused write must not leave its edit on screen looking kept.
+function cycReapply(){
+  const c=blGet(CYCVIEW); if(!c || !c.years || !c.years[MS.cur]) return;
+  applyState(JSON.parse(JSON.stringify(c.years[MS.cur]))); MS.years[MS.cur]=S;
+}
+function cycRefuse(what){
+  cycReapply();
+  _cycRefusedAt=Date.now();
+  setStat('🔒 <b>'+esc(what)+' is off while '+esc(blLbl(CYCVIEW))+' is on screen.</b> It is a locked cycle, read only — '
+    +'the change was not kept. <button class="qb" onclick="cycLeave()">↩ Leave the view</button> to work the plan.');
+  return false;
+}
+// The outbound and inbound gates ask this first, beside sandboxBlock(): true means refused.
+function cycBlock(what){
+  if(!CYCVIEW) return false;
+  cycRefuse(what);
+  return true;
+}
 function toggleBl(){ blOpen=!blOpen; render(); }
 function blBody(){
   // the header tag, kept current on every render whether or not the panel is open
   { const t=document.getElementById('cycTag');
-    if(t) t.textContent= MS.cycle? (blLbl(MS.cycle)+((MS.cycleRef&&MS.cycleRef!==MS.cycle)? ' · vs '+blLbl(MS.cycleRef) : '')) : ''; }
+    if(t) t.textContent= CYCVIEW? ('VIEWING '+blLbl(CYCVIEW)+' (locked)')
+      : (MS.cycle? (blLbl(MS.cycle)+((MS.cycleRef&&MS.cycleRef!==MS.cycle)? ' · vs '+blLbl(MS.cycleRef) : '')) : ''); }
   const bg=document.getElementById('blPanel'), el=document.getElementById('blBody');
   if(!bg||!el) return;
   bg.className='modal-bg'+(blOpen?' open':'');
@@ -13714,8 +13818,10 @@ function blBody(){
   const blank=win.filter(y=>ys.indexOf(y)<0);
   const wc=MS.cycle? MS.cycle.split('|') : ['', String(MS.cur)];
 
+  let h='';
+  if(CYCVIEW) h+='<div class="hint" style="margin-bottom:8px;color:var(--gold)">👁 <b>'+esc(blLbl(CYCVIEW))+' is on screen, read only.</b> Locking, retagging and the reference are off until you <button class="qb" onclick="cycLeave()">↩ leave the view</button>.</div>';
   // ---- the working plan: what it is tagged, and what its deltas are read against
-  let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">'
+  h+='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">'
     +'<span>Working plan is tagged</span>'
     +'<select style="font-size:10px;padding:3px 6px" onchange="cycSetWorking(this.value, null)" title="The PPBE cycle the plan you are editing belongs to. Lock PB27, retag as BES28, and what you allocate from then on is BES28’s delta.">'
     +'<option value=""'+(wc[0]?'':' selected')+'>(untagged)</option>'
@@ -13770,7 +13876,8 @@ function blBody(){
       +'<td class="n">'+(P? fM((P.disc||[]).reduce((x,y)=>x+y,0)) : '<span class="z">—</span>')+'</td>'
       +'<td class="n">'+(P? fM((P.mand||[]).reduce((x,y)=>x+y,0)) : '<span class="z">—</span>')+'</td>'
       +'<td style="font-size:10px;color:var(--dim)">'+esc(c.note||'')+'</td>'
-      +'<td><button class="qb" onclick="blCmp=\''+k+'\';render()" title="compare this cycle’s '+FYL()+' plan with the board as it stands now">⇄ Compare</button></td>'
+      +'<td>'+(held.length? (CYCVIEW===k? '<button class="qb on" onclick="cycLeave()">↩ Leave view</button> ' : '<button class="qb" onclick="cycView(\''+k+'\')" title="put this locked plan on the drill, read only">👁 View</button> ') : '')
+      +'<button class="qb" onclick="blCmp=\''+k+'\';render()" title="compare this cycle’s '+FYL()+' plan with the board as it stands now">⇄ Compare</button></td>'
       +'<td><button class="qb" onclick="blLock(\''+k+'\','+(c.locked?'false':'true')+')">'+(c.locked?'🔒 locked':'🔓 unlocked')+'</button>'
       +(c.locked? '' : ' <button class="qb" style="color:var(--red)" onclick="blDelete(\''+k+'\')">✕</button>')+'</td></tr>';
   });
@@ -18358,6 +18465,13 @@ function render(){
   let h='', rank=0, discCut=false, unfCut=false;
   // Say it on the board, not only in the menu. Someone reads these rows, or photographs them, and
   // nothing else about the page looks different when a pot has been withheld.
+  if(CYCVIEW){
+    const c=blGet(CYCVIEW)||{};
+    h+='<div class="cutline" style="margin:0 0 8px;color:var(--gold)"><span class="l" style="background:var(--gold)"></span>'
+      +'\ud83d\udd12 VIEWING '+esc(blLbl(CYCVIEW))+' (LOCKED) \u2014 '+FYL()+' as it stood '+esc(fmtTs(c.ts))+(c.by? ' by '+esc(c.by):'')
+      +' \u2014 read only: nothing changed here is kept '
+      +'<button class="qb" onclick="cycLeave()">\u21a9 Leave the view</button><span class="l" style="background:var(--gold)"></span></div>';
+  }
   if(scenOn()){
     h+='<div class="cutline cut-mand" style="margin:0 0 8px"><span class="l"></span>'
       +'\u25b2 VIEWING: DISCRETIONARY ONLY \u2014 mandatory withheld \u2014 these are not this '
@@ -18519,7 +18633,7 @@ function syncBtns(){
   const winYears=[]; for(let y=MS.base;y<MS.base+5;y++) winYears.push(y);
   const extraYears=Object.keys(MS.years).map(Number).filter(y=>!winYears.includes(y)).sort();
   document.getElementById('dd_fy').innerHTML=
-    '<div class="mlbl">Future Years Defense Plan — FY'+(MS.base%100)+' – FY'+((MS.base+4)%100)+'</div>'+
+    '<div class="mlbl">'+(CYCVIEW? 'VIEWING '+esc(blLbl(CYCVIEW))+' (locked) — ' : '')+'Future Years Defense Plan — FY'+(MS.base%100)+' – FY'+((MS.base+4)%100)+'</div>'+
     winYears.map(y=>mi('FY'+(y%100)+(y===MS.base?'  (base year)':''),
       y===MS.cur? "openMenu=null;syncBtns()" : `mRun(()=>switchYear(${y}))`,
       y===MS.cur,
@@ -18642,6 +18756,11 @@ function syncBtns(){
     mi('◧ Discretionary + Mandatory',"setScen('')",scenView==='',
        'both pots — this board’s actual plan')+
     mi('📌 PPBE cycles — lock the spend plan…',"mRun(toggleBl)",blOpen,(MS.cycle? 'working '+blLbl(MS.cycle)+' · ':'')+(blList().length? blList().length+' locked cycle'+(blList().length===1?'':'s') : 'lock the FYDP window under a cycle'))+
+    (CYCVIEW
+      ? mi('↩ Leave the locked view',"mRun(cycLeave)",true,'back to the working plan'+(MS.cycle? ' — '+blLbl(MS.cycle) : ''))
+      : blList().filter(function(k){ return cycHeld(k).length; }).map(function(k){
+          return mi('👁 View '+blLbl(k)+' (locked)…',"mRun(function(){ cycView('"+k+"'); })",false,
+                    'read only · FY'+cycHeld(k).map(function(v){ return v%100; }).join(', FY')); }).join(''))+
     // Beside the baseline, because they answer the same question a year apart: a baseline freezes
     // the PLAN under a PPBE cycle, a snapshot freezes the plan AND what has been obligated on a
     // date. Anyone reaching for one should see the other.
@@ -18882,6 +19001,7 @@ function liveStart(){
 // the same tick must never be the reason an autosave was skipped.
 let _autoBusy=false;
 async function liveTick(){
+  if(CYCVIEW) return;                      // never push a locked view as the live board
   try{
     if(driveStoreOn() && liveCfg().auto && _driveLive && DIRTY && !_autoBusy){
       _autoBusy=true;
@@ -19197,7 +19317,7 @@ async function driveStorePull(quiet){
 }
 // WRITE BACK, after checking nobody moved it underneath us.
 async function driveStorePush(quiet){
-  if(sandboxBlock('Writing to the shared folder')) return;
+  if(sandboxBlock('Writing to the shared folder')||cycBlock('Writing to the shared folder')) return;
   if(!driveStoreOn()) return false;
   const dir=await driveDir(true);
   const ap=mySlug();

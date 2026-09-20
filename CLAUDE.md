@@ -1490,6 +1490,31 @@ and the legacy container is deleted once carried, or a cycle deleted on purpose 
 the next load. Guarded by *PPBE cycles — the lock is the window, frozen* in `audit-board.mjs`,
 thirteen `cycle-*` mutations, and a trace-matrix surface that reads Funded back out of the lock.
 
+### Viewing a locked cycle: the store is set aside, a throwaway copy goes on the page
+
+`cycView(key)` stashes the whole working store (`MS`, `S`, the dirty flag, the title) and puts a
+deep copy of it on the page with the cycle's years in it, then applies the year through the same
+`applyState` every year goes through. There is no second renderer: every panel, export and helper
+reads the lock because the lock *is* what `MS.years` holds. Two consequences are load-bearing. A
+write cannot reach anything durable because the working plan is not on the page — and every write
+funnels through `save()` or `persist()`, which refuse and put the pristine year back
+(`cycReapply`), so a refused edit never sits on screen looking kept; `setStat` keeps the refusal
+in front of the handler's own message for a second and a half. And `cycLeave()` restores the
+stashed objects themselves, so the working plan comes back byte for byte (the suite asserts it).
+The gates that must also refuse: `buildSavedHtml` (throws — an empty string would be written as
+the file), every outbound function beside `sandboxBlock`, `applyStore` (a load over a view would
+lose the stash), `cycLock`, `cycSetWorking`, the year-level mutators and `svcSaveList` (which
+writes `MS.svc`), and `liveTick`, which would otherwise push the lock as the live board.
+`switchYear` stays inside the cycle and refuses a year it never held rather than rolling one
+forward. `CYCVIEW` and its two companions are declared beside `let MS`, not with the cycle code:
+`save()`, `persist()`, `setStat()` and `applyStore()` read them, `applyStore()` runs at top level,
+and a `let` further down leaves them in the temporal dead zone — the BANDS_STD rule, and the first
+cut threw on boot and rendered nothing. The trace harness syncs `BASE_ITEMS` after `seed()` for the
+same reason every suite does: the view applies state, and the board rebuilds from that baseline. The banner, the header tag, `document.title` (which several exports print) and
+`expName` (every file name) all say which lock is on screen. Guarded by *PPBE cycles — a locked
+view is read-only and leaves no trace*, fifteen `view-*` mutations, and a trace-matrix surface
+that reads all twelve quantities off the view and expects the engine's.
+
 ### The five money-coverage gaps are closed
 
 Each closed the same way: a check that derives the figure from the fixture (never from the code

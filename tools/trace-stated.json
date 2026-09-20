@@ -5,7 +5,8 @@
     "xl · Decision Bands",
     "drill · 1-N by Band",
     "ppt · Funding by Stream",
-    "locked cycle (projection)"
+    "locked cycle (projection)",
+    "locked view (drill)"
   ],
   "discBA": [
     "engine (tiers)",
@@ -13,7 +14,8 @@
     "xl · Funding Streams",
     "ppt · KPI slide",
     "ppt · Funding by Stream",
-    "locked cycle (projection)"
+    "locked cycle (projection)",
+    "locked view (drill)"
   ],
   "mandBA": [
     "engine (tiers)",
@@ -21,7 +23,8 @@
     "xl · Funding Streams",
     "ppt · KPI slide",
     "ppt · Funding by Stream",
-    "locked cycle (projection)"
+    "locked cycle (projection)",
+    "locked view (drill)"
   ],
   "disc": [
     "engine (tiers)",
@@ -30,7 +33,8 @@
     "drill · 1-N by Band",
     "xl · Spend Plan Source",
     "ppt · Funding by Stream",
-    "locked cycle (projection)"
+    "locked cycle (projection)",
+    "locked view (drill)"
   ],
   "mand": [
     "engine (tiers)",
@@ -38,7 +42,8 @@
     "xl · Decision Bands",
     "drill · 1-N by Band",
     "ppt · Funding by Stream",
-    "locked cycle (projection)"
+    "locked cycle (projection)",
+    "locked view (drill)"
   ],
   "funded": [
     "engine (tiers)",
@@ -46,7 +51,8 @@
     "xl · Funding Streams",
     "xl · Decision Bands",
     "drill · 1-N by Band",
-    "locked cycle (projection)"
+    "locked cycle (projection)",
+    "locked view (drill)"
   ],
   "ufr1": [
     "engine (tiers)",
@@ -57,7 +63,8 @@
     "xl · Unfunded Requirements",
     "drill · 1-N by Band",
     "ppt · KPI slide",
-    "ppt · Funding by Stream"
+    "ppt · Funding by Stream",
+    "locked view (drill)"
   ],
   "ufr2": [
     "engine (tiers)",
@@ -68,25 +75,30 @@
     "xl · Unfunded Requirements",
     "drill · 1-N by Band",
     "ppt · KPI slide",
-    "ppt · Funding by Stream"
+    "ppt · Funding by Stream",
+    "locked view (drill)"
   ],
   "trim": [
     "engine (tiers)",
     "xl · Funding Streams",
-    "xl · PMO Matrix"
+    "xl · PMO Matrix",
+    "locked view (drill)"
   ],
   "beyond": [
     "engine (tiers)",
     "dashboard (screen)",
     "xl · Funding Streams",
-    "xl · PMO Matrix"
+    "xl · PMO Matrix",
+    "locked view (drill)"
   ],
   "mcTotal": [
     "engine (tiers)",
     "dashboard (screen)",
-    "ppt · KPI slide"
+    "ppt · KPI slide",
+    "locked view (drill)"
   ],
   "mcShort": [
-    "engine (tiers)"
+    "engine (tiers)",
+    "locked view (drill)"
   ]
 }

@@ -1882,6 +1882,97 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'spruills', 'and none for a year it never held', String(D.USAF[cur + 2]), 'undefined');
 }
 
+
+// ═══ PPBE CYCLES — A LOCKED VIEW IS READ-ONLY AND LEAVES NO TRACE ═════════════════════════
+// Viewing a cycle sets the whole working store aside and puts a throwaway copy on the page with
+// the cycle's years in it, so every panel reads the lock through the ordinary path. Everything
+// below is about the two things that must then be true: nothing changed on the copy can look
+// kept or reach anything durable, and leaving returns the working plan byte for byte.
+{
+  const name = 'PPBE cycles — a locked view is read-only and leaves no trace';
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15]), it('D', 'MxS', [40, 20, 5])],
+    disc: [150, 60, 30], mand: [40, 20, 10], order: ['A', 'B', 'C', 'D'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  const cur = +ev('MS.cur');
+  const key = 'PB|' + cur;
+  // a second planned year, the lock, and then the working plan moves on
+  ev(`MS.years[MS.cur]=S; MS.base=MS.cur;
+      var y1=JSON.parse(JSON.stringify(S)); y1.asks={A:[200,100,40]}; delete y1.pmoOrder; MS.years[MS.cur+1]=y1;
+      blCyc='PB'; blYr=MS.cur; cycLock();
+      setAsk('B',0,'123'); S.mc['A']=true; save(); 'ok'`);
+  const settled = () => ev(`(function(){ var m=JSON.parse(JSON.stringify(MS)); Object.keys(m.years).forEach(function(y){ delete m.years[y].pmoOrder; });
+    m.ts=0; (m.log||[]).forEach(function(e){ e.ts=0; }); return JSON.stringify(m); })()`);
+  const lm0 = ev(`flowCfg().rules.lm`);
+  const before = settled(), ls0 = ev(`localStorage.getItem(_AP.key)`), lock0 = ev(`JSON.stringify(CYCDB)`);
+  const title0 = ev('document.title'), dirty0 = ev('DIRTY'), shadow0 = ev('JSON.stringify(_jrnlShadow)');
+  chk(name, 'fixture', 'the working plan has moved on since the lock', ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([123, 40, 10]));
+  chk(name, 'fixture', 'and is dirty', dirty0, true);
+  ev(`cycView('${key}'); 'ok'`);
+  chk(name, 'view', 'the view is on', ev('CYCVIEW'), key);
+  chk(name, 'view', 'the board shows the locked plan: B as it was', ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([80, 40, 10]));
+  chk(name, 'view', 'and A unstarred', ev(`!!S.mc.A`), false);
+  chk(name, 'view', 'on the year the plan was on', +ev('MS.cur'), cur);
+  chk(name, 'view', 'every year on the drill is the cycle’s, so every panel reads the lock', ev(`JSON.stringify(MS.years[MS.cur+1].asks.A)`), JSON.stringify([200, 100, 40]));
+  chk(name, 'view', 'the chart of accounts prints the locked ask', ev(`coaRows().filter(function(r){ return r.id==='B'; })[0].ask`), 130);
+  chk(name, 'view', 'the header says so', /VIEWING PB\d\d/.test(ev(`document.getElementById('cycTag').textContent`)), true);
+  chk(name, 'view', 'the board carries the banner', /VIEWING PB\d\d \(LOCKED\)/.test(ev(`document.getElementById('list').textContent`)), true);
+  chk(name, 'view', 'the title says so, for every export that prints it', /LOCKED VIEW/.test(ev('document.title')), true);
+  chk(name, 'view', 'and every file name says so', /\[PB\d\d LOCKED\]\.xlsx$/.test(ev(`expName('SPMT Breakouts.xlsx')`)), true);
+  // writes are refused, and revert
+  ev(`setAsk('B',0,'999'); 'ok'`);
+  chk(name, 'writes', 'an edit is refused and reverts on screen', ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([80, 40, 10]));
+  chk(name, 'writes', 'and the status says it was not kept', /not kept/i.test(ev(`document.getElementById('shareStat').innerHTML`)), true);
+  chk(name, 'writes', 'save() returns false', ev('save()'), false);
+  chk(name, 'writes', 'persist() returns false', ev('persist()'), false);
+  chk(name, 'writes', 'browser storage is untouched', ev(`localStorage.getItem(_AP.key)`) === ls0, true);
+  chk(name, 'writes', 'the lock itself is untouched', ev(`JSON.stringify(CYCDB)`) === lock0, true);
+  chk(name, 'writes', 'a board file cannot be built from a view', ev(`(function(){ try{ buildSavedHtml(); return 'built'; }catch(e){ return 'refused'; } })()`), 'refused');
+  chk(name, 'writes', 'a board cannot be loaded over a view', ev(`applyStore({base:MS.base, cur:MS.cur, years:{}})`), false);
+  chk(name, 'writes', 'a lock cannot be taken from a view', ev(`blCyc='BES'; blYr=MS.cur; cycLock(); blGet('BES|'+MS.cur)`), null);
+  chk(name, 'writes', 'the cycle on screen cannot be deleted', ev(`blLock('${key}',false); blDelete('${key}'); !!blGet('${key}')`), true);
+  ev(`blLock('${key}',true); flowCfg().rules.lm='VIEWEDIT'; 'ok'`);   // an MS-level edit, to be lost with the view
+  // years stay inside the cycle
+  ev(`switchYear(MS.cur+1); 'ok'`);
+  chk(name, 'years', 'a year the cycle holds opens, as the cycle held it', +ev('MS.cur') + ':' + ev(`JSON.stringify(itemById('A').ask)`), (cur + 1) + ':' + JSON.stringify([200, 100, 40]));
+  chk(name, 'years', 'still on view', ev('CYCVIEW'), key);
+  ev(`switchYear(MS.cur+3); 'ok'`);
+  chk(name, 'years', 'a year the cycle never held is refused, not created', +ev('MS.cur') + ':' + ev(`MS.years[MS.cur+3]===undefined`), (cur + 1) + ':true');
+  chk(name, 'years', 'and the status says which years it holds', /holds no FY/.test(ev(`document.getElementById('shareStat').innerHTML`)), true);
+  // leave
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'leave', 'the view is off', ev('CYCVIEW'), '');
+  chk(name, 'leave', 'the working plan is back, byte for byte', settled() === before, true);
+  chk(name, 'leave', 'on the year it was on', +ev('MS.cur'), cur);
+  chk(name, 'leave', 'with the board wired to it', ev('MS.years[MS.cur]===S'), true);
+  chk(name, 'leave', 'B as the working plan has it', ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([123, 40, 10]));
+  chk(name, 'leave', 'an edit to the board’s own settings made while viewing did not survive', ev(`flowCfg().rules.lm`), lm0);
+  chk(name, 'leave', 'the title and the file names are back', ev('document.title') === title0 && !/LOCKED/.test(ev(`expName('x.xlsx')`)), true);
+  chk(name, 'leave', 'the header is back to the working tag', ev(`document.getElementById('cycTag').textContent`), 'PB' + String(cur).slice(-2));
+  chk(name, 'leave', 'the dirty flag is what it was', ev('DIRTY'), dirty0);
+  chk(name, 'leave', 'and the journal carries nothing from the view', ev(`JSON.stringify(MS.jrnl||[]).indexOf('999')<0 && JSON.stringify(MS.jrnl||[]).indexOf('VIEWEDIT')<0`), true);
+  // THE JOURNAL'S SHADOW is the one thing save() touches that persist() does not guard: a save
+  // that ran on the view would take its shadow from the lock, and the first real save afterwards
+  // would journal the difference as edits nobody made, in the current user's name.
+  chk(name, 'leave', 'the journal’s shadow was never taken from the view', ev('JSON.stringify(_jrnlShadow)') === shadow0, true);
+  const j0 = +ev('(MS.jrnl||[]).length');
+  chk(name, 'leave', 'a later save still works', ev(`setAsk('C',0,'61'); save()`), true);
+  chk(name, 'leave', 'and journals that edit alone — no phantom entries carrying the lock’s values',
+    ev(`(MS.jrnl||[]).length>${j0} && (MS.jrnl||[]).slice(${j0}).every(function(e){ return JSON.stringify(e.p).indexOf('C')>=0; })`), true);
+  // a migrated one-year cycle holds no plan to show
+  ev(`var L={}; L['POM|'+MS.cur]={fy:MS.cur, ap:mySlug(), ts:5, by:'legacy', locked:true, svc:SVC.slice(), disc:[1,2,3], mand:[0,0,0], bands:[], reqs:[], pmo:{}};
+      MS.baselines=L; cycMigrateLegacy(); cycView('POM|'+MS.cur); 'ok'`);
+  chk(name, 'partial', 'a migrated one-year cycle cannot be viewed, and says why', ev('CYCVIEW') + ':' + /holds no plan to show/.test(ev(`document.getElementById('shareStat').innerHTML`)), ':true');
+  // a cycle that never held the year on screen opens on the first year it holds
+  ev(`switchYear(MS.cur+3); cycView('${key}'); 'ok'`);
+  chk(name, 'open', 'a cycle that never held the year on screen opens on the first year it holds', +ev('MS.cur'), cur);
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'open', 'and leaving returns to the year that was on screen', +ev('MS.cur'), cur + 3);
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

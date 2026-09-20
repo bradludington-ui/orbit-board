@@ -111,6 +111,10 @@ const ORDER = ['ask', 'discBA', 'mandBA', 'disc', 'mand', 'funded', 'ufr1', 'ufr
 // ---- harvest -------------------------------------------------------------------------------------
 const { ev } = boot(BOARD ? { html: (await import('node:fs')).readFileSync(BOARD, 'utf8') } : {});
 seed(ev, FIX);
+// seed() pushes the fixture in AFTER boot's applyState, so the baseline the board rebuilds from on
+// every applyState is still empty -- the same harness artefact every suite corrects. The locked
+// view (1c) applies state, and without this it would rebuild an empty board for every surface after it.
+ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
 ev(`S.awards['A']={mode:'single',d:FYMON[1][0],day:1};
     S.awards['B']={mode:'single',d:FYMON[2][0],day:1}; save(); render(); 'ok'`);
 
@@ -174,6 +178,29 @@ const add = (name, kind, tol, cells) => surfaces.push({ name, kind, tol, cells }
     o.discBA=sum(P.disc); o.mandBA=sum(P.mand);
     return o; })())`));
   add('locked cycle (projection)', 'store', 0.5, p);
+}
+
+// 1c. THE LOCKED CYCLE ON THE DRILL -- the same lock, put on screen read-only, and the engine read
+//     off it. Every quantity must be the engine's: a view that reads differently is a second board.
+{
+  const v = JSON.parse(ev(`JSON.stringify((function(){
+    cycView('PB|'+MS.cur);
+    var Tt=tiers(), t=tierTotals(Tt), o={ask:0,disc:0,mand:0,ufr1:0,ufr2:0,trim:0,beyond:0};
+    S.order.forEach(function(id){ var it=itemById(id), p=Tt[id];
+      o.ask+=askTot(it); o.disc+=p.dT; o.mand+=p.mT;
+      o.ufr1+=discUnfTotOf(it,p); o.ufr2+=unfTotOf(it,p);
+      o.trim+=trimTotOf(it); o.beyond+=beyondTotOf(it,p); });
+    o.funded=o.disc+o.mand; o.discBA=discTot(); o.mandBA=mandTot();
+    o.mcTotal=t.mcTot;
+    var s=0; S.order.forEach(function(id){ if(!S.mc[id]) return; var it=itemById(id); s+=mcShortSvcOf(it,Tt[id]).reduce(function(a,b){return a+b;},0); });
+    o.mcShort=s;
+    o.viewing=CYCVIEW;
+    cycLeave();
+    o.left=CYCVIEW;
+    return o; })())`));
+  if (v.viewing !== 'PB|' + ev('MS.cur') || v.left !== '') throw new Error('the locked view did not open and close cleanly: ' + JSON.stringify([v.viewing, v.left]));
+  delete v.viewing; delete v.left;
+  add('locked view (drill)', 'visual', 0.5, v);
 }
 
 // 2. THE DASHBOARD, as rendered. Read off the DOM, because a figure that is computed correctly and

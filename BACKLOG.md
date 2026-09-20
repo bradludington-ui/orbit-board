@@ -326,7 +326,29 @@ mutation: a bulk set that reaches a requirement which never offered the field is
 
 ## 8. PPBE cycles across the FYDP — lock a cycle's five-year spend plan, allocate the next cycle's deltas, report and compare by cycle
 
-**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stages 2–6 open**
+**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stages 3–6 open**
+
+### Stage 2, as built (v1.72)
+
+- **A view is the whole store set aside.** `cycView(key)` stashes `MS`, `S`, the dirty flag and
+  the title, puts a deep copy on the page with the cycle's years in it, and applies the year
+  through `applyState`. Every panel and export reads the lock through the ordinary path — the
+  chart of accounts, the flow's plan years, the Spruills, the ACE tie-out — because `MS.years`
+  *is* the lock while the view is on. No second renderer.
+- **Nothing edited can look kept or reach anything durable.** `save()` and `persist()` refuse and
+  put the pristine year back; `buildSavedHtml` throws; the outbound gates, `applyStore`,
+  `cycLock`, retagging, the year-level mutators, the service list and the live push refuse.
+  `switchYear` stays inside the cycle and refuses a year it never held. A migrated one-year cycle
+  cannot be viewed and says why. A cycle that never held the year on screen opens on its first.
+- **Everything says so.** A gold banner on the board with *Leave the view*, the header tag, the
+  FY menu label, `document.title` (printed by several exports), every file name
+  (`… [PB27 LOCKED].xlsx`), a note in the cycles panel, and *View* / *Leave view* buttons there
+  and in 🎯 Budget year.
+- **Leaving restores the stashed objects themselves**, so the working plan is back byte for byte,
+  on the year it was on, dirty flag as it was, journal untouched.
+- **Proved by** *PPBE cycles — a locked view is read-only and leaves no trace* (audit-board),
+  fifteen `view-*` mutations, and a trace-matrix surface that reads all twelve quantities off the
+  view and expects the engine's.
 
 ### Stage 1, as built (v1.71)
 
