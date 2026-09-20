@@ -706,6 +706,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   const name = 'handoff — out';
   const sc = handoffSc();
   const { ev } = boot(); seed(ev, sc); handoffSeed(ev, sc);
+  // a locked cycle, so the store below has something to lose
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
   const boardFp = fpOf(ev);
   const html = ev(String.raw`(function(){
     const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline()};
@@ -727,17 +729,19 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
    'minInc','rcnAsg','si','wbs','ptype','obCat'].forEach(k =>
     chk(name, 'content', `${k} travelled intact`,
       P.ev(`JSON.stringify(S['${k}']||{})`), ev(`JSON.stringify(S['${k}']||{})`)));
-  ['bands','rcn','baselines','snaps','ppbe','pmos'].forEach(k =>
+  ['bands','rcn','snaps','ppbe','pmos','cycle','cycleRef'].forEach(k =>
     chk(name, 'content', `${k} travelled intact`,
       P.ev(`JSON.stringify(MS['${k}']||null)`), ev(`JSON.stringify(MS['${k}']||null)`)));
   // The three side databases are their own globals, packed separately by buildSavedHtml(). A copy
   // that dropped one is a copy whose execution read-outs, cost estimate or reprogramming tracker
   // are simply EMPTY -- which reads as a programme with nothing in it rather than as a broken file.
-  ['EXDB','ACEDB','RPDB'].forEach(k =>
+  ['EXDB','ACEDB','RPDB','CYCDB'].forEach(k =>
     chk(name, 'content', `${k} travelled intact`,
       P.ev(`JSON.stringify(${k}||null)`), ev(`JSON.stringify(${k}||null)`)));
   chk(name, 'content', 'and the reprogramming log is not merely present but populated',
     P.ev(`(RPDB.entries||[]).length`), 1);
+  chk(name, 'content', 'and the locked cycle is not merely present but populated',
+    P.ev(`Object.keys(CYCDB.cycles).length`), 1);
 
   // AN INVARIANT, ASSERTED SO AN EQUIVALENCE CLAIM CANNOT ROT. applyState() rebuilds DATA.items
   // from BASE_ITEMS plus the S.custom objects THEMSELVES, so itemById() on a custom requirement

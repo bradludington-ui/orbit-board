@@ -326,7 +326,34 @@ mutation: a bulk set that reaches a requirement which never offered the field is
 
 ## 8. PPBE cycles across the FYDP — lock a cycle's five-year spend plan, allocate the next cycle's deltas, report and compare by cycle
 
-**Asked 19 Sep 2026 · STRATEGY PROPOSED, decisions open · not built**
+**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stages 2–6 open**
+
+### Stage 1, as built (v1.71)
+
+- **The store.** `CYCDB` — its own browser-storage key per appropriation (`_AP.key+'-cyc'`, so a
+  PMO copy's carries the publish stamp), packed into the saved file as `cycDb.byAp[slug]`, stripped
+  from a manager package by `pkgStrip`, merged on import like an approved estimate (a key not held
+  is taken, a held one left alone and said). It travels into office copies with the other three
+  stores rather than being withheld as proposed: copies already carry the execution store, which is
+  far larger, and one rule for four stores beat two rules.
+- **The lock.** `cycLock()` copies `cycWindowYears()` — `base`…`base+4` plus the year on screen,
+  each only where a plan exists — whole, and projects each year from its own state through
+  `aceWithYear`. A blank window year is recorded as *no plan* (the proposal's default). The entry
+  carries cycle, year, base, window, note, `from` (the working tag at the time), who and when.
+- **The working plan** carries `MS.cycle` and `MS.cycleRef`; locking an untagged plan tags it; the
+  header shows the tag and, when they differ, the reference. The 📌 panel is now *PPBE cycles*:
+  tag picker, reference picker, lock controls with the years it will take, the cycles held with the
+  years each holds, and the one-year compare against the board now.
+- **Unlocking** keeps its confirm and is stamped (`unlocks[]`, who and when) — **confirmed by the
+  office 19 Sep 2026**, as were the cycle names (POM · BES · PB · DoN, with a note per lock) and
+  the workflow the model rests on: one cycle in play at a time, each arriving at its point in the
+  year, locked individually and then adjusted. Nothing in code restricts locking to the manager
+  board; a copy can lock into its own store, and nothing merges that back.
+- **Legacy.** A one-year baseline migrates once as a `partial` cycle; the old container goes.
+- **Proved by** *PPBE cycles — the lock is the window, frozen* (audit-board), the import suite's
+  intact checks (tag, reference and store into a copy), thirteen `cycle-*` mutations, a coverage
+  entry for `cycProjOf`, and a trace-matrix surface that reads ask, BA, disc, mand and Funded back
+  out of the lock.
 
 ### What was asked
 

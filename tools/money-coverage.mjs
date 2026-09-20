@@ -58,6 +58,8 @@ const REGISTRY = {
   exportReprog: { money: true,  what: 'the ATR/BTR reprogramming log' },
   execSynopsis: { money: true,  what: 'the Executive Funding Synopsis' },
   exportAceTieout: { money: true, what: 'the ACE tie-out' },
+  cycProjOf:    { money: true,  what: 'a locked PPBE cycle’s projection — value, allocation and funding per requirement, per year',
+                  via: ['cycLock', 'cycWindowYears', 'cycMigrateLegacy'] },
 
   // surfaces that carry no arithmetic of their own -- each needs a reason, not a shrug
   exportProposedOrder: { money: false, reason:

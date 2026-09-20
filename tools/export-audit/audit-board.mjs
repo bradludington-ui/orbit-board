@@ -1768,6 +1768,120 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     /const svc=crData\(\), idx=/.test(ev('String(crExportRows)')), true);
 }
 
+
+// ═══ PPBE CYCLES — THE LOCK IS THE WINDOW, FROZEN ══════════════════════════════════════════
+// A lock copies every window year that holds a plan, projects each from ITS OWN state, and never
+// changes afterwards; the working plan is untouched and gets its tag and reference. The year on
+// screen sits OUTSIDE the window here (base = cur+1), the way FY27 does once the base rolls to
+// FY28, and three window years are deliberately blank. Then the file, the import, the legacy
+// migration and the Spruills are each made to prove they read the lock and nothing else.
+{
+  const name = 'PPBE cycles — the lock is the window, frozen';
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15]), it('D', 'MxS', [40, 20, 5])],
+    disc: [150, 60, 30], mand: [40, 20, 10], order: ['A', 'B', 'C', 'D'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  const cur = +ev('MS.cur');
+  // two more planned years: cur+1 with A's value doubled, cur+5 (the last window year) without D
+  ev(`MS.years[MS.cur]=S; MS.base=MS.cur+1;
+      var y1=JSON.parse(JSON.stringify(S)); y1.asks={A:[200,100,40]}; delete y1.pmoOrder; MS.years[MS.cur+1]=y1;
+      var y5=JSON.parse(JSON.stringify(S)); y5.order=['A','B','C']; y5.removed=['D']; delete y5.pmoOrder; MS.years[MS.cur+5]=y5;
+      'ok'`);
+  const held = [cur, cur + 1, cur + 5];
+  chk(name, 'window', 'the years a lock takes: the window where planned, and the year on screen outside it',
+    ev('JSON.stringify(cycWindowYears())'), JSON.stringify(held));
+  ev(`blCyc='PB'; blYr=MS.cur; blNote='  as briefed  '; cycLock(); 'ok'`);
+  const key = 'PB|' + cur;
+  const c = () => JSON.parse(ev(`JSON.stringify(blGet('${key}')||null)`));
+  const C0 = c();
+  chk(name, 'lock', 'the cycle exists and is locked', !!(C0 && C0.locked), true);
+  chk(name, 'lock', 'it holds exactly the planned window years, whole', Object.keys(C0.years).join(','), held.join(','));
+  chk(name, 'lock', 'and a projection for each', Object.keys(C0.proj).join(','), held.join(','));
+  chk(name, 'lock', 'the note is kept, trimmed', C0.note, 'as briefed');
+  chk(name, 'lock', 'the base and the window are recorded', C0.base + ':' + C0.window.join(','), (cur + 1) + ':' + held.join(','));
+  chk(name, 'lock', 'the working plan takes the tag, being untagged', ev('MS.cycle'), key);
+  chk(name, 'lock', 'and reads its deltas against the lock', ev('MS.cycleRef'), key);
+  chk(name, 'lock', 'the board on screen is unchanged: still the year it was on', +ev('MS.cur'), cur);
+  chk(name, 'lock', 'with its own order intact', ev('JSON.stringify(S.order)'), JSON.stringify(sc.order));
+  // each projection is ITS year's plan
+  const askOf = (fy, id) => JSON.stringify(((C0.proj[fy].reqs.find(r => r.id === id)) || {}).ask);
+  chk(name, 'projection', `FY${(cur + 1) % 100}’s projection carries FY${(cur + 1) % 100}’s value of A, not the screen year’s`, askOf(cur + 1, 'A'), JSON.stringify([200, 100, 40]));
+  chk(name, 'projection', 'the year on screen keeps its own', askOf(cur, 'A'), JSON.stringify([100, 50, 20]));
+  chk(name, 'projection', `FY${(cur + 5) % 100} has no D`, C0.proj[cur + 5].reqs.some(r => r.id === 'D') ? 'D present' : 'absent', 'absent');
+  const fundNow = JSON.parse(ev(`JSON.stringify((function(){ var T=tiers(); return S.order.map(function(id){ var p=T[id]; return p.d.map(function(v,i){ return v+p.m[i]; }); }); })())`));
+  chk(name, 'projection', 'funded is the lane draw, d+m per service, requirement by requirement',
+    JSON.stringify(C0.proj[cur].reqs.map(r => r.fund)), JSON.stringify(fundNow));
+  chk(name, 'projection', 'and disc and mand are stored apart, adding to it',
+    C0.proj[cur].reqs.every(r => r.fund.every((v, i) => Math.abs(v - (r.d[i] + r.m[i])) < 1e-9)) ? 'yes' : 'no', 'yes');
+  chk(name, 'projection', 'the PMO roll-up funded is its requirements added',
+    JSON.stringify(C0.proj[cur].pmo.PSM.fund),
+    JSON.stringify([0, 1, 2].map(i => C0.proj[cur].reqs.filter(r => r.grp === 'PSM').reduce((a, r) => a + r.fund[i], 0))));
+  chk(name, 'projection', 'the budget authority of the year is carried', JSON.stringify([C0.proj[cur].disc, C0.proj[cur].mand]), JSON.stringify([sc.disc, sc.mand]));
+  // immutability
+  const frozen = JSON.stringify(C0.years[cur]);
+  ev(`setAsk('B',0,'1'); S.mc['A']=true; save(); 'ok'`);
+  const C1 = c();
+  chk(name, 'frozen', 'editing the board leaves the locked year byte-identical', JSON.stringify(C1.years[cur]) === frozen ? 'unchanged' : 'CHANGED', 'unchanged');
+  chk(name, 'frozen', 'because the lock is a copy, not a reference', ev(`blGet('${key}').years[MS.cur]===MS.years[MS.cur]`), false);
+  chk(name, 'frozen', 'and the projection did not move either', JSON.stringify(C1.proj[cur].reqs.map(r => r.ask)), JSON.stringify(C0.proj[cur].reqs.map(r => r.ask)));
+  // a second lock under the same key is refused while locked; delete is refused while locked
+  ev(`cycLock(); 'ok'`);
+  chk(name, 'locked', 'a second lock under a locked key is refused', c().ts, C0.ts);
+  ev(`blDelete('${key}'); 'ok'`);
+  chk(name, 'locked', 'delete is refused while locked', !!c(), true);
+  ev(`blLock('${key}', false); 'ok'`);
+  chk(name, 'unlock', 'an unlock is stamped with who and when', (c().unlocks || []).length + ':' + ((c().unlocks || [{}])[0].by || ''), '1:' + ev('whoAmI()'));
+  chk(name, 'unlock', 'and the cycle is open', c().locked, false);
+  chk(name, 'header', 'the header names the working cycle', /PB\d\d/.test(ev(`document.getElementById('cycTag').textContent`)), true);
+  // save → reopen: the store, the tag and the reference travel in the file
+  const html = ev('buildSavedHtml()');
+  const R = boot({ html });
+  chk(name, 'file', 'the locked cycles come back from a saved file, byte for byte', R.ev('JSON.stringify(CYCDB)'), ev('JSON.stringify(CYCDB)'));
+  chk(name, 'file', 'so does the working plan’s tag', R.ev('MS.cycle'), ev('MS.cycle'));
+  chk(name, 'file', 'and its reference', R.ev('MS.cycleRef'), ev('MS.cycleRef'));
+  chk(name, 'file', 'a package for a manager does not carry the store', ev(`JSON.stringify(pkgStrip({cycDb:{byAp:{}}, years:{}}))`), JSON.stringify({ years: {} }));
+  // import: a cycle held here is never replaced by one arriving in a file; one not held is taken
+  const imp = JSON.parse(ev(`(function(){
+      var mine=blGet('${key}'); var inc={cycDb:{byAp:{}}}; var slot={cycles:{}}; inc.cycDb.byAp[mySlug()]=slot;
+      var theirs=JSON.parse(JSON.stringify(mine)); theirs.ts=mine.ts+1; theirs.note='THEIRS';
+      slot.cycles['${key}']=theirs;
+      slot.cycles['BES|'+(MS.cur+1)]=JSON.parse(JSON.stringify(mine));
+      var said=importStores(inc);
+      return JSON.stringify({said:said, note:blGet('${key}').note, took:!!blGet('BES|'+(MS.cur+1))}); })()`));
+  chk(name, 'import', 'a cycle held here is left alone', imp.note, 'as briefed');
+  chk(name, 'import', 'a cycle not held here is taken', imp.took, true);
+  chk(name, 'import', 'and both are said in words', imp.said.some(x => /left alone/.test(x)) && imp.said.some(x => /came across/.test(x)), true);
+  ev(`blLock('BES|'+(MS.cur+1), false); blDelete('BES|'+(MS.cur+1)); 'ok'`);
+  // delete, once unlocked, and the reference clears
+  ev(`blDelete('${key}'); 'ok'`);
+  chk(name, 'delete', 'an unlocked cycle can be deleted', c(), null);
+  chk(name, 'delete', 'and a reference to it is cleared, not left dangling', ev('MS.cycleRef'), '');
+  // legacy: a one-year baseline becomes a partial cycle, once
+  const lk = 'POM|' + cur;
+  ev(`var L={}; L['${lk}']={fy:MS.cur, ap:mySlug(), ts:5, by:'legacy', locked:true, svc:SVC.slice(), disc:[1,2,3], mand:[0,0,0], bands:[],
+        reqs:[{id:'A', title:'A', grp:'PSM', ccar:'', pid:'', band:'', mc:false, ask:[100,50,20], alloc:[100,50,20]}],
+        pmo:{PSM:{ask:[100,50,20], alloc:[100,50,20], n:1}}};
+      MS.baselines=L; cycMigrateLegacy(); 'ok'`);
+  const M = JSON.parse(ev(`JSON.stringify(blGet('${lk}')||null)`));
+  chk(name, 'legacy', 'a one-year baseline becomes a cycle', !!M, true);
+  chk(name, 'legacy', 'marked partial, holding that one year’s projection and no state',
+    M.partial + ':' + Object.keys(M.proj).join(',') + ':' + Object.keys(M.years).length, 'true:' + cur + ':0');
+  chk(name, 'legacy', 'its lock, author and stamp carried', M.locked + ':' + M.by + ':' + M.ts, 'true:legacy:5');
+  chk(name, 'legacy', 'the legacy container is gone once carried', ev('MS.baselines===undefined'), true);
+  chk(name, 'legacy', 'the Spruills can read it for the year it holds', ev(`JSON.stringify((blPmoAlloc('${lk}','PSM',MS.cur)||{}).alloc)`), JSON.stringify([100, 50, 20]));
+  ev(`blLock('${lk}', false); blDelete('${lk}'); cycMigrateLegacy(); 'ok'`);
+  chk(name, 'legacy', 'a migrated cycle deleted on purpose does not come back on the next load', ev(`blGet('${lk}')`), null);
+  // the Spruills reads every year the cycle holds, and none it does not
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); spFund='bl|PB|'+MS.cur; 'ok'`);
+  const D = JSON.parse(ev(`JSON.stringify(pmoDetail('PSM',[MS.cur, MS.cur+1, MS.cur+2, MS.cur+5]).filter(function(b){ return b.name===APPN; })[0].ctl)`));
+  const P1 = JSON.parse(ev(`JSON.stringify(cycProj('PB|'+MS.cur, MS.cur+1).pmo.PSM.alloc)`));
+  chk(name, 'spruills', 'a cycle gives the PMO its control for every year it holds', [D.USAF[cur + 1], D.ANG[cur + 1], D.STOVL[cur + 1]].join(','), P1.join(','));
+  chk(name, 'spruills', 'and none for a year it never held', String(D.USAF[cur + 2]), 'undefined');
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

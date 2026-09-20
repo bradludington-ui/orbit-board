@@ -675,7 +675,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 <div id="subBanner"></div>
 <div class="hdr">
   <div class="brand"><div class="eyebrow">SUSTAINMENT PORTFOLIO MANAGEMENT TOOL — SPMT</div>
-  <h1 style="margin-top:0"><span id="fyTag">FY27</span> <span id="appnLbl">O&M PRIORITIZATION</span> BOARD <span id="bldTag" style="font-size:9px;color:var(--dim);font-weight:600;letter-spacing:.5px;vertical-align:middle"></span></h1></div>
+  <h1 style="margin-top:0"><span id="fyTag">FY27</span> <span id="appnLbl">O&M PRIORITIZATION</span> BOARD <span id="cycTag" style="font-size:12px;color:var(--gold);font-weight:700;vertical-align:middle;margin-right:6px"></span><span id="bldTag" style="font-size:9px;color:var(--dim);font-weight:600;letter-spacing:.5px;vertical-align:middle"></span></h1></div>
   <div class="hsp">
     <span class="savestate" id="saveState"></span>
     <button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place.">💾 Save</button>
@@ -977,7 +977,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
 
 <div class="modal-bg" id="blPanel" onclick="if(event.target===this)toggleBl()">
   <div class="modal" style="width:1120px">
-    <h3>📌 PPBE SPEND-PLAN BASELINES — freeze a year’s plan and PMO allocations under a cycle
+    <h3>📌 PPBE CYCLES — lock the five-year spend plan under a cycle, tag the working plan, read its deltas
       <button class="x" onclick="toggleBl()">✕ Close</button></h3>
     <div id="blBody"></div>
   </div>
@@ -1188,6 +1188,32 @@ function switchAppn(a){
     +'Ask the portfolio team for a copy of the '+((_SLUGMAP[a]&&_SLUGMAP[a].t)||a)+' board if you '
     +'need it \u2014 each one is published separately.'); return; }
   if(a&&a!==APPN&&APPNS[a]){ try{liveLeaving();}catch(e){} try{localStorage.setItem("prio27appn",a);}catch(e){} location.reload(); } }
+// ── PPBE CYCLES: THE LOCKED FIVE-YEAR PLANS ──────────────────────────────────────────────────
+// A cycle is the FYDP window frozen under a PPBE cycle key ('PB|2027' reads PB27): every year in
+// the window that held a plan, copied whole, plus a per-year projection (the shape the one-year
+// baselines had) for the compare and the Spruills. Its own store, like EXDB and ACEDB, for the
+// same reason: it is history, it is large, and a refusal from browser storage must never take the
+// working plan down with it. PER APPROPRIATION -- a cycle is one drill's plan -- so the key carries
+// the appropriation, and the file packs every appropriation's store under cycDb.byAp the way
+// appns packs the boards. A PMO copy's key carries the publish stamp, exactly as _AP.key does.
+const CYC_KEY=_AP.key+'-cyc';
+let CYCDB=(function(){
+  let ls=null; try{ ls=JSON.parse(localStorage.getItem(CYC_KEY)||'null'); }
+  catch(e){ _bootLost.push('the locked PPBE cycles held in browser storage'); }
+  const fb=(PUB&&PUB.cycDb&&PUB.cycDb.byAp)? (PUB.cycDb.byAp[_AP.slug]||null) : null;
+  let pick=null;
+  if(ls&&fb) pick=((fb.ts||0)>(ls.ts||0))? fb : ls;
+  else pick=ls||fb;
+  return (pick&&pick.cycles&&typeof pick.cycles==='object')? pick : {ts:0, cycles:{}};
+})();
+function persistCyc(){ CYCDB.ts=Date.now(); return lsSet(CYC_KEY, JSON.stringify(CYCDB), 'The locked PPBE cycles'); }
+// every appropriation's cycle store this browser holds, for the file
+function cycByAp(){
+  const out={}; out[_AP.slug]=CYCDB;
+  Object.keys(_SLUGMAP).forEach(function(k){ if(k===_AP.slug) return;
+    try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'-cyc')||'null'); if(s2&&s2.cycles) out[k]=s2; }catch(e){} });
+  return out;
+}
 document.title="FY27 "+_AP.t+" Prioritization Board (Consolidated)";
 let PUBS=(PUB&&PUB.appns)? PUB.appns : {};
 if(PUB&&PUB.appns) PUB=PUBS[_AP.slug]||null;
@@ -1297,7 +1323,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.70 (19 Sep 2026)';
+const BUILD='v1.71 (19 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3849,6 +3875,9 @@ function applyStore(raw){
   syncSvc();
   _vpDone=false;
   if(!MS.ppbe) MS.ppbe={};   // official PPBE budget positions: {'PB|2027': {svc:{[ce:]{fy:$}}}}
+  if(typeof MS.cycle!=='string') MS.cycle='';        // the PPBE cycle the working plan is tagged as ('BES|2028')
+  if(typeof MS.cycleRef!=='string') MS.cycleRef='';  // the locked cycle its deltas are read against
+  cycMigrateLegacy();      // one-year baselines from before cycles held the window
   FYMON = fyMonths(MS.cur);
   applyState(MS.years[MS.cur]);
   MS.years[MS.cur]=S;
@@ -4525,7 +4554,7 @@ function fileByOf(p){
 let LASTKNOWN=0;   // ts of the file state we started from (collision baseline)
 function buildSavedHtml(){
   save();
-  PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const json = JSON.stringify({appns:PUBS, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB}).replace(/</g,'\\u003c');
+  PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const json = JSON.stringify({appns:PUBS, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:{ts:CYCDB.ts||0, byAp:cycByAp()}}).replace(/</g,'\\u003c');
   return SRC0.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
                       (m,a,b)=>a+json+b);
 }
@@ -5595,7 +5624,7 @@ function pkgSig(o){
 // holds them and minus the consolidated's own ledger.
 function pkgStrip(store){
   const out=JSON.parse(JSON.stringify(store||{}));
-  delete out.execDb; delete out.aceDb; delete out.rpDb;
+  delete out.execDb; delete out.aceDb; delete out.rpDb; delete out.cycDb;
   delete out.sync;
   return out;
 }
@@ -6094,6 +6123,23 @@ function importStores(inc){
       +(r.updated? ', '+r.updated+' updated':'')+(r.buried? ', '+r.buried+' already deleted here':'')
       +'.');
     else said.push('The reprogramming log was already current.');
+  }
+  // ---- the locked PPBE cycles: a key we do not hold is TAKEN, a key we hold is LEFT ALONE and
+  // reported. A lock is a fixed point, like an approved estimate; nothing arriving through a
+  // different door may silently replace one.
+  const cy=(inc.cycDb && inc.cycDb.byAp)? inc.cycDb.byAp[mySlug()] : null;
+  if(cy && cy.cycles && Object.keys(cy.cycles).length){
+    const took=[], kept=[];
+    Object.keys(cy.cycles).forEach(function(k){
+      if(CYCDB.cycles[k]){ if((CYCDB.cycles[k].ts||0)!==(cy.cycles[k].ts||0)) kept.push(k); return; }
+      CYCDB.cycles[k]=cy.cycles[k]; took.push(k);
+    });
+    if(took.length){ persistCyc(); said.push(took.length+' locked PPBE cycle'+(took.length===1?'':'s')
+      +' came across ('+esc(took.map(blLbl).join(', '))+').'); }
+    if(kept.length) said.push('⚠ '+kept.length+' locked cycle'+(kept.length===1?'':'s')+' in that file '
+      +(kept.length===1?'differs':'differ')+' from the one'+(kept.length===1?'':'s')+' held here and '
+      +(kept.length===1?'was':'were')+' left alone ('+esc(kept.map(blLbl).join(', '))
+      +'). A lock is replaced deliberately, never by an import.');
   }
   return said;
 }
@@ -13374,76 +13420,153 @@ function aceRows(set, slug, years){
 }
 let ppOpen=false, ppCyc='PB', ppYr=null, ppSvcIdx=0;
 
-// ============================ PPBE SPEND-PLAN BASELINES =====================================
-// One fiscal year's spend plan, frozen under one PPBE cycle. Everything needed to read it back
-// later is copied in, so a baseline still renders after requirements are renamed, re-banded or
-// removed from the working board.
-let blOpen=false, blCyc='PB', blYr=null, blCmp='';        // blCmp: which baseline the panel compares
-function blStore(){ if(!MS.baselines || typeof MS.baselines!=='object') MS.baselines={}; return MS.baselines; }
+// ============================ PPBE CYCLES: THE LOCKED FIVE-YEAR PLANS ======================
+// A cycle is the FYDP window frozen under a PPBE cycle key -- 'PB|2027' reads PB27: every year in
+// the window that held a plan, copied WHOLE (so the drill can render it through the same
+// applyState every other year goes through), plus a per-year PROJECTION -- the shape the one-year
+// baselines had -- for the compare and the Spruills. The store is CYCDB, its own key beside EXDB
+// and ACEDB. The working plan carries a tag (MS.cycle, 'BES|2028') and a reference (MS.cycleRef,
+// the locked cycle its deltas are read against). Lock PB27, retag as BES28, and what is allocated
+// from then on is BES28's delta -- nothing is copied INTO the working plan, it already is PB27's
+// plan, continuing. Before 19 Sep 2026 a "baseline" froze ONE fiscal year under a cycle; those
+// migrate (cycMigrateLegacy) as cycles holding one projection and no state, marked partial.
+let blOpen=false, blCyc='PB', blYr=null, blCmp='', blNote='';   // blCmp: which cycle the panel compares
+function blStore(){ if(!CYCDB.cycles || typeof CYCDB.cycles!=='object') CYCDB.cycles={}; return CYCDB.cycles; }
 function blKey(cyc, yr){ return cyc+'|'+yr; }
 function blLbl(key){ const p=String(key).split('|'); return p[0]+String(p[1]).slice(-2); }
 function blList(){ return Object.keys(blStore()).sort(); }
 function blGet(key){ return blStore()[key]||null; }
-// Snapshot the year on screen. Nothing is read from the live board after this.
-function blSnapshot(){
+// The projection a cycle holds for one fiscal year, or null when it never captured that year.
+function cycProj(key, fy){ const c=blGet(key); return (c && c.proj && c.proj[fy])? c.proj[fy] : null; }
+// THE YEARS A LOCK TAKES: the FYDP window, and the year on screen when it sits outside it (FY27
+// once the base has rolled to FY28), each only where a plan exists. A year nobody has planned is
+// not captured as an empty plan: the cycle says it held no plan for that year, which is the truth.
+function cycWindowYears(){
+  const b=+MS.base||+MS.cur, seen={};
+  for(let y=b; y<=b+4; y++) seen[y]=1;
+  seen[+MS.cur]=1;
+  return Object.keys(seen).map(Number).filter(function(y){ return !!MS.years[y]; }).sort(function(a,b){ return a-b; });
+}
+// ONE YEAR'S PROJECTION, of the year on screen. Nothing is read from the live board after this.
+// alloc is the ALLOCATION (the control a PMO is given; fsrc rows resolve to their draw); fund is
+// what the lanes actually paid -- d+m from tiers(), the figure every other surface calls Funded.
+function cycProjOf(){
   const T=tiers();
   const reqs=[], pmo={};
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
-    const alloc=(S.fsrc||{})[id]
-      ? SVC.map((sv,i)=>((T[id]||{d:[],m:[]}).d[i]||0)+((T[id]||{d:[],m:[]}).m[i]||0))
-      : svcAlloc(it).slice();
+    const p=T[id]||{d:[],m:[]};
+    const d=SVC.map((sv,i)=>p.d[i]||0), m=SVC.map((sv,i)=>p.m[i]||0);
+    const fund=SVC.map((sv,i)=>d[i]+m[i]);
+    const alloc=(S.fsrc||{})[id]? fund.slice() : svcAlloc(it).slice();
     const ask=it.ask.slice();
-    reqs.push({id, title:dispTitle(it), grp:grpOf(it), ccar:ccarOf(it)||'', pid:pidOf(it)||'',
-               band:BAND_OF(id), mc:!!S.mc[id], ask, alloc});
-    if(!pmo[grpOf(it)]) pmo[grpOf(it)]={ask:SVC.map(_=>0), alloc:SVC.map(_=>0), n:0};
-    pmo[grpOf(it)].n++;
-    SVC.forEach((sv,i)=>{ pmo[grpOf(it)].ask[i]+=ask[i]||0; pmo[grpOf(it)].alloc[i]+=alloc[i]||0; });
+    const g=grpOf(it);
+    reqs.push({id, title:dispTitle(it), grp:g, ccar:ccarOf(it)||'', pid:pidOf(it)||'',
+               band:BAND_OF(id), mc:!!S.mc[id], ask, alloc, d, m, fund});
+    if(!pmo[g]) pmo[g]={ask:SVC.map(_=>0), alloc:SVC.map(_=>0), fund:SVC.map(_=>0), n:0};
+    pmo[g].n++;
+    SVC.forEach((sv,i)=>{ pmo[g].ask[i]+=ask[i]||0; pmo[g].alloc[i]+=alloc[i]||0; pmo[g].fund[i]+=fund[i]; });
   });
-  return {cyc:blCyc, cycYr:(blYr||MS.cur), fy:MS.cur, ap:mySlug(), ts:Date.now(), by:whoAmI(), locked:true,
+  return {fy:MS.cur, ap:mySlug(), ts:Date.now(), by:whoAmI(),
           svc:SVC.slice(), disc:(S.discSvc||[]).slice(), mand:(S.mandSvc||[]).slice(),
           bands:JSON.parse(JSON.stringify(BANDS_LIST())), reqs, pmo};
 }
-function blCapture(){
+// LOCK. Every window year that holds a plan is copied whole and projected, under one key.
+function cycLock(){
   const yr=blYr||MS.cur, key=blKey(blCyc, yr);
   const had=blGet(key);
   if(had && had.locked){
     setStat('⚠ <b>'+esc(blLbl(key))+'</b> is locked. Unlock it first if you really mean to replace it.');
     return;
   }
-  if(!confirm('Baseline '+FYL()+'’s spend plan as '+blLbl(key)+'?\n\n'
-    +S.order.length+' requirements, their allocations by service, the PMO roll-up and the budget '
-    +'authority as it stands are copied and LOCKED.\n\n'
-    +(had? 'This replaces the existing '+blLbl(key)+' baseline.\n\n' : '')
-    +'The working board is not changed.')) return;
-  blStore()[key]=blSnapshot();
-  blCmp=key;
+  MS.years[MS.cur]=S;
+  const ys=cycWindowYears();
+  if(!ys.length){ setStat('⚠ Nothing to lock — no year in the FYDP window holds a plan.'); return; }
+  const b=+MS.base||+MS.cur, win=[]; for(let y=b; y<=b+4; y++) win.push(y);
+  const blank=win.filter(y=>ys.indexOf(y)<0);
+  if(!confirm('Lock the FYDP window as '+blLbl(key)+'?\n\n'
+    +'FY'+ys.map(y=>y%100).join(', FY')+' — every requirement, its value, allocation and funding by '
+    +'service, the PMO roll-up and the budget authority of each year — are copied whole and LOCKED.'
+    +(blank.length? '\n\nFY'+blank.map(y=>y%100).join(', FY')+' hold'+(blank.length===1?'s':'')
+      +' no plan yet and will be recorded as such.' : '')
+    +(had? '\n\nThis replaces the existing '+blLbl(key)+' cycle.' : '')
+    +'\n\nThe working board is not changed.')) return;
+  const years={}, proj={};
+  // the projection first: aceWithYear leaves the year normalised, and the copy taken after it is
+  // the same object applyState will hand back later
+  ys.forEach(y=>{ proj[y]=aceWithYear(y, cycProjOf); years[y]=JSON.parse(JSON.stringify(MS.years[y])); });
+  blStore()[key]={cyc:blCyc, cycYr:yr, base:b, window:ys.slice(), ap:mySlug(), ts:Date.now(), by:whoAmI(),
+                  note:(blNote||'').trim(), from:MS.cycle||'', locked:true, partial:false, years:years, proj:proj};
+  persistCyc();
+  MS.cycleRef=key;
+  if(!MS.cycle) MS.cycle=key;      // an untagged working plan IS the plan just locked, until it is retagged
+  blCmp=key; blNote='';
   save(); render();
-  setStat('📌 <b>'+esc(blLbl(key))+'</b> baselined and locked — '+FYL()+'’s spend plan '
-    +'and PMO allocations are frozen. It is now a Budget source in the Spruills.');
+  setStat('🔒 <b>'+esc(blLbl(key))+'</b> locked — FY'+ys.map(y=>y%100).join(', FY')+' frozen. It is the '
+    +'reference the working plan’s deltas are read against, and a Budget source in the Spruills.'
+    +(MS.cycle===key? ' The working plan is still tagged '+esc(blLbl(key))+' — retag it when the next cycle opens.' : ''));
 }
 function blLock(key,on){
   const b=blGet(key); if(!b) return;
-  if(!on && !confirm('Unlock '+blLbl(key)+'?\n\nA baseline is meant to be a fixed point in time. '
-    +'Unlocking lets it be overwritten.')) return;
-  b.locked=!!on; save(); render();
+  if(!on && !confirm('Unlock '+blLbl(key)+'?\n\nA locked cycle is meant to be a fixed point in time. '
+    +'Unlocking lets it be overwritten or deleted. The unlock is stamped with your name.')) return;
+  b.locked=!!on;
+  if(!Array.isArray(b.unlocks)) b.unlocks=[];
+  b.unlocks.push({ts:Date.now(), by:whoAmI(), on:!!on});
+  persistCyc(); render();
 }
 function blDelete(key){
   const b=blGet(key); if(!b) return;
   if(b.locked){ setStat('⚠ <b>'+esc(blLbl(key))+'</b> is locked — unlock it before deleting.'); return; }
-  if(!confirm('Delete the '+blLbl(key)+' baseline?\n\nIt cannot be recovered.')) return;
+  if(!confirm('Delete the '+blLbl(key)+' cycle?\n\nIt cannot be recovered.')) return;
   delete blStore()[key];
   if(blCmp===key) blCmp='';
-  save(); render();
+  if(MS.cycleRef===key){ MS.cycleRef=''; save(); }
+  persistCyc(); render();
 }
-// What a baseline says one PMO is allocated, by service — the PMO-level control the Spruills needs.
-function blPmoAlloc(key, pmoKey){
-  const b=blGet(key); if(!b) return null;
-  const p=(b.pmo||{})[pmoKey]; if(!p) return null;
-  return {svc:b.svc||[], alloc:p.alloc||[], ask:p.ask||[], fy:b.fy};
+// What a cycle says one PMO is allocated for one year, by service — the PMO-level control the
+// Spruills needs, for every year the cycle holds.
+function blPmoAlloc(key, pmoKey, fy){
+  const P=cycProj(key, fy||MS.cur); if(!P) return null;
+  const p=(P.pmo||{})[pmoKey]; if(!p) return null;
+  return {svc:P.svc||[], alloc:p.alloc||[], ask:p.ask||[], fund:p.fund||p.alloc||[], fy:P.fy};
+}
+// A ONE-YEAR BASELINE from before cycles held the window becomes a cycle holding that one year's
+// projection and no state: comparable, a Spruills source, not viewable on the drill, and marked
+// partial so nothing pretends otherwise. Idempotent; the legacy container goes once carried, or a
+// cycle deleted on purpose would come back from it on the next load.
+function cycMigrateLegacy(){
+  const L=MS.baselines; if(!L || typeof L!=='object') return 0;
+  let n=0;
+  Object.keys(L).forEach(function(k){
+    const b=L[k];
+    if(b && typeof b==='object' && !CYCDB.cycles[k]){
+      const p=String(k).split('|'), fy=+b.fy||+MS.cur;
+      const proj={}; proj[fy]=b;
+      CYCDB.cycles[k]={cyc:p[0], cycYr:parseInt(p[1],10)||fy, base:null, window:[fy], ap:b.ap||mySlug(),
+                       ts:b.ts||0, by:b.by||'', note:'migrated from a one-year baseline', from:'',
+                       locked:b.locked!==false, partial:true, years:{}, proj:proj};
+      n++;
+    }
+  });
+  delete MS.baselines;
+  if(n) persistCyc();
+  return n;
+}
+function cycSetWorking(cyc, yr){
+  const cur=MS.cycle? MS.cycle.split('|') : ['', String(MS.cur)];
+  const c=(cyc===null)? cur[0] : String(cyc||'');
+  const y=(yr===null)? (parseInt(cur[1],10)||MS.cur) : (parseInt(yr,10)||MS.cur);
+  MS.cycle= c? blKey(c, y) : '';
+  save(); render();
+  setStat(MS.cycle? '🏷 Working plan tagged <b>'+esc(blLbl(MS.cycle))+'</b>'
+    +(MS.cycleRef? ' — deltas read against '+esc(blLbl(MS.cycleRef)) : '') : '🏷 Working plan untagged.');
 }
 function toggleBl(){ blOpen=!blOpen; render(); }
 function blBody(){
+  // the header tag, kept current on every render whether or not the panel is open
+  { const t=document.getElementById('cycTag');
+    if(t) t.textContent= MS.cycle? (blLbl(MS.cycle)+((MS.cycleRef&&MS.cycleRef!==MS.cycle)? ' · vs '+blLbl(MS.cycleRef) : '')) : ''; }
   const bg=document.getElementById('blPanel'), el=document.getElementById('blBody');
   if(!bg||!el) return;
   bg.className='modal-bg'+(blOpen?' open':'');
@@ -13451,47 +13574,82 @@ function blBody(){
   if(blYr===null) blYr=MS.cur;
   const keys=blList();
   const money=v=> Math.abs(v||0)<500? '<span class="z">—</span>' : fM(v);
+  const fyl=y=>'FY'+(y%100);
+  const ys=cycWindowYears();
+  const b0=+MS.base||+MS.cur, win=[]; for(let y=b0;y<=b0+4;y++) win.push(y);
+  const blank=win.filter(y=>ys.indexOf(y)<0);
+  const wc=MS.cycle? MS.cycle.split('|') : ['', String(MS.cur)];
 
-  let h='<div class="fr" style="gap:6px;flex-wrap:wrap;margin-bottom:8px">'
-    +'<span style="font-size:10px;color:var(--mut);font-weight:800;letter-spacing:.5px">CYCLE</span>'
+  // ---- the working plan: what it is tagged, and what its deltas are read against
+  let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">'
+    +'<span>Working plan is tagged</span>'
+    +'<select style="font-size:10px;padding:3px 6px" onchange="cycSetWorking(this.value, null)" title="The PPBE cycle the plan you are editing belongs to. Lock PB27, retag as BES28, and what you allocate from then on is BES28’s delta.">'
+    +'<option value=""'+(wc[0]?'':' selected')+'>(untagged)</option>'
+    +PPBE_CYCLES.map(c=>'<option value="'+c+'"'+(wc[0]===c?' selected':'')+'>'+c+'</option>').join('')+'</select>'
+    +'<input style="width:64px" value="'+esc(wc[1])+'" title="cycle year" onchange="cycSetWorking(null, this.value)">'
+    +'<span style="margin-left:14px">deltas read against</span>'
+    +'<select style="font-size:10px;padding:3px 6px" onchange="MS.cycleRef=this.value;save();render()" title="The locked cycle the working plan’s changes are measured from">'
+    +'<option value=""'+(MS.cycleRef?'':' selected')+'>(none)</option>'
+    +keys.map(k=>'<option value="'+k+'"'+(MS.cycleRef===k?' selected':'')+'>'+esc(blLbl(k))+'</option>').join('')+'</select>'
+    +'</div>';
+
+  // ---- lock the window
+  h+='<div class="fr" style="gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">'
     +PPBE_CYCLES.map(c=>'<button class="btn '+(blCyc===c?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="blCyc=\''+c+'\';render()">'+c+'</button>').join(' ')
     +' <label style="font-size:10px">year <input style="width:64px" value="'+blYr+'" onchange="blYr=parseInt(this.value)||blYr;render()"></label>'
     +' <b style="color:var(--gold)">'+esc(blLbl(blKey(blCyc,blYr)))+'</b>'
-    +'<span style="flex:1"></span>'
-    +'<button class="btn pub" onclick="blCapture()" title="freeze '+FYL()+'’s spend plan and PMO allocations under this cycle">📌 Baseline '+FYL()+' as '+esc(blLbl(blKey(blCyc,blYr)))+'</button>'
-    +'</div>';
+    +' <input style="width:250px;font-size:10px" placeholder="note (optional) — e.g. as briefed to the PEO 3 Oct" value="'+esc(blNote||'')+'" onchange="blNote=this.value">'
+    +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="cycLock()">🔒 Lock '+(ys.length? ys.map(fyl).join(', ') : 'nothing')+' as '+esc(blLbl(blKey(blCyc,blYr)))+'</button>'
+    +'</div>'
+    +'<div class="hint" style="margin-bottom:10px">A lock copies the FYDP window — '+fyl(b0)+'–'+fyl(b0+4)
+    +((ys.indexOf(+MS.cur)>=0 && win.indexOf(+MS.cur)<0)? ' and '+fyl(MS.cur)+' on screen' : '')
+    +' — whole, every year that holds a plan.'
+    +(blank.length? ' <b>'+blank.map(fyl).join(', ')+' hold'+(blank.length===1?'s':'')+' no plan yet</b> and will be recorded as such, not as an empty plan.' : '')
+    +' The working board is not changed by a lock.</div>';
 
   if(!keys.length){
-    h+='<div class="hint">No baselines yet. A baseline freezes one fiscal year’s spend plan — every '
-      +'requirement’s value and allocation by service, the PMO roll-up, the band each sat in, and the '
-      +'budget authority of the moment — under a PPBE cycle. Once locked it never changes, so you can '
-      +'come back to exactly what the position was. A baseline also becomes a <b>Budget source</b> in '
-      +'the Spruills, which is what gives a PMO a control tagged to a cycle.</div>';
+    h+='<div class="hint">No cycles locked yet. Lock PB27 when its allocations are final; then tag the '
+      +'working plan BES28 and allocate its deltas. A locked cycle never changes, so you can come back '
+      +'to exactly what the position was and compare against it, and it is a <b>Budget source</b> in '
+      +'the Spruills for every year it holds.</div>';
     el.innerHTML=h; return;
   }
 
-  h+='<table class="po"><thead><tr><th>Cycle</th><th>Captured</th><th>By</th><th class="n">FY</th>'
-    +'<th class="n">Reqs</th><th class="n">'+FYL()+' Requirement</th><th class="n">Allocated</th>'
-    +'<th class="n">Disc BA</th><th class="n">Mand BA</th><th></th><th></th></tr></thead><tbody>';
+  // ---- the cycles held
+  h+='<table class="po"><thead><tr><th>Cycle</th><th>Locked</th><th>By</th><th>Years held</th>'
+    +'<th class="n">Reqs</th><th class="n">'+FYL()+' Requirement</th><th class="n">'+FYL()+' Funded</th>'
+    +'<th class="n">Disc BA</th><th class="n">Mand BA</th><th>Note</th><th></th><th></th></tr></thead><tbody>';
   keys.forEach(k=>{
-    const b=blGet(k);
-    const ask=(b.reqs||[]).reduce((a,r)=>a+r.ask.reduce((x,y)=>x+y,0),0);
-    const al=(b.reqs||[]).reduce((a,r)=>a+r.alloc.reduce((x,y)=>x+y,0),0);
-    h+='<tr'+(blCmp===k?' class="chg"':'')+'><td><b>'+esc(blLbl(k))+'</b></td>'
-      +'<td>'+esc(fmtTs(b.ts))+'</td><td>'+esc(b.by||'')+'</td><td class="n">FY'+(b.fy%100)+'</td>'
-      +'<td class="n">'+(b.reqs||[]).length+'</td>'
-      +'<td class="n">'+fM(ask)+'</td><td class="n">'+fM(al)+'</td>'
-      +'<td class="n">'+fM((b.disc||[]).reduce((x,y)=>x+y,0))+'</td>'
-      +'<td class="n">'+fM((b.mand||[]).reduce((x,y)=>x+y,0))+'</td>'
-      +'<td><button class="qb" onclick="blCmp=\''+k+'\';render()" title="compare this baseline with the board as it stands now">⇄ Compare</button></td>'
-      +'<td><button class="qb" onclick="blLock(\''+k+'\','+(b.locked?'false':'true')+')">'+(b.locked?'🔒 locked':'🔓 unlocked')+'</button>'
-      +(b.locked? '' : ' <button class="qb" style="color:var(--red)" onclick="blDelete(\''+k+'\')">✕</button>')+'</td></tr>';
+    const c=blGet(k), P=cycProj(k, MS.cur);
+    const held=Object.keys(c.proj||{}).map(Number).sort((a,b)=>a-b);
+    const ask=P? (P.reqs||[]).reduce((a,r)=>a+r.ask.reduce((x,y)=>x+y,0),0) : null;
+    const fund=P? (P.reqs||[]).reduce((a,r)=>a+(r.fund||r.alloc).reduce((x,y)=>x+y,0),0) : null;
+    h+='<tr'+(blCmp===k?' class="chg"':'')+'><td><b>'+esc(blLbl(k))+'</b>'
+      +(k===MS.cycleRef? ' <span class="chip" style="font-size:9px;padding:1px 6px">reference</span>':'')
+      +(c.from? '<div style="font-size:9px;color:var(--dim)">from '+esc(blLbl(c.from))+'</div>':'')+'</td>'
+      +'<td>'+esc(fmtTs(c.ts))+'</td><td>'+esc(c.by||'')+'</td>'
+      +'<td>'+(held.length? held.map(fyl).join(', ') : '—')
+      +(c.partial? ' <span style="color:var(--amber)" title="a one-year baseline from before cycles held the window: comparable, a Spruills source, not viewable on the drill">(one year, migrated)</span>':'')+'</td>'
+      +'<td class="n">'+(P? (P.reqs||[]).length : '<span class="z">—</span>')+'</td>'
+      +'<td class="n">'+(P? fM(ask) : '<span class="z">no '+FYL()+'</span>')+'</td>'
+      +'<td class="n">'+(P? fM(fund) : '<span class="z">—</span>')+'</td>'
+      +'<td class="n">'+(P? fM((P.disc||[]).reduce((x,y)=>x+y,0)) : '<span class="z">—</span>')+'</td>'
+      +'<td class="n">'+(P? fM((P.mand||[]).reduce((x,y)=>x+y,0)) : '<span class="z">—</span>')+'</td>'
+      +'<td style="font-size:10px;color:var(--dim)">'+esc(c.note||'')+'</td>'
+      +'<td><button class="qb" onclick="blCmp=\''+k+'\';render()" title="compare this cycle’s '+FYL()+' plan with the board as it stands now">⇄ Compare</button></td>'
+      +'<td><button class="qb" onclick="blLock(\''+k+'\','+(c.locked?'false':'true')+')">'+(c.locked?'🔒 locked':'🔓 unlocked')+'</button>'
+      +(c.locked? '' : ' <button class="qb" style="color:var(--red)" onclick="blDelete(\''+k+'\')">✕</button>')+'</td></tr>';
   });
   h+='</tbody></table>';
 
-  // ---- compare a baseline with the board as it stands ----
+  // ---- compare a cycle's plan for the year on screen with the board as it stands
   if(blCmp && blGet(blCmp)){
-    const b=blGet(blCmp);
+    const b=cycProj(blCmp, MS.cur);
+    if(!b){
+      const held=Object.keys(blGet(blCmp).proj||{}).map(Number).sort((a,b2)=>a-b2);
+      h+='<div class="hint" style="margin-top:12px"><b>'+esc(blLbl(blCmp))+'</b> holds no '+FYL()+' plan — it was '
+        +'locked with '+(held.length? held.map(fyl).join(', ') : 'no years')+'. Switch to one of those years to compare.</div>';
+    } else {
     const T=tiers();
     const nowAlloc=id=>{ const it=itemById(id); if(!it) return null;
       return (S.fsrc||{})[id]? SVC.map((sv,i)=>((T[id]||{d:[],m:[]}).d[i]||0)+((T[id]||{d:[],m:[]}).m[i]||0))
@@ -13499,9 +13657,9 @@ function blBody(){
     const sum=a=>(a||[]).reduce((x,y)=>x+y,0);
     // by PMO
     const pmos=[...new Set([...Object.keys(b.pmo||{}), ...S.order.map(id=>{const it=itemById(id);return it?grpOf(it):null;}).filter(Boolean)])].sort();
-    h+='<div class="pmoh" style="margin-top:14px">'+esc(blLbl(blCmp))+' baseline  ⇄  the board now  —  by PMO</div>'
-      +'<table class="po"><thead><tr><th>PMO</th><th class="n">Baselined allocation</th>'
-      +'<th class="n">Allocated now</th><th class="n">Change</th><th class="n">Baselined reqs</th><th class="n">Reqs now</th></tr></thead><tbody>';
+    h+='<div class="pmoh" style="margin-top:14px">'+esc(blLbl(blCmp))+' ('+FYL()+')  ⇄  the board now  —  by PMO</div>'
+      +'<table class="po"><thead><tr><th>PMO</th><th class="n">Locked allocation</th>'
+      +'<th class="n">Allocated now</th><th class="n">Change</th><th class="n">Locked reqs</th><th class="n">Reqs now</th></tr></thead><tbody>';
     let tb=0,tn=0;
     pmos.forEach(g=>{
       const was=sum(((b.pmo||{})[g]||{}).alloc);
@@ -13534,7 +13692,7 @@ function blBody(){
     h+='<div class="pmoh" style="margin-top:12px">Requirements that changed since '+esc(blLbl(blCmp))
       +' <span style="color:var(--dim);font-weight:400">('+moved.length+')</span></div>';
     h+= moved.length? '<div style="max-height:34vh;overflow:auto"><table class="po"><thead><tr>'
-        +'<th>PMO</th><th>Requirement</th><th class="n">Baselined</th><th class="n">Now</th><th class="n">Change</th><th></th>'
+        +'<th>PMO</th><th>Requirement</th><th class="n">Locked</th><th class="n">Now</th><th class="n">Change</th><th></th>'
         +'</tr></thead><tbody>'
         +moved.map(m=>{ const d=(m.now===null||m.was===null)? null : m.now-m.was;
           return '<tr><td>'+esc(m.g)+'</td><td>'+esc(m.t)+'</td>'
@@ -13544,14 +13702,15 @@ function blBody(){
               :'<b style="color:'+(d<0?'var(--red)':'var(--green)')+'">'+(d>0?'+':'−')+fM(Math.abs(d))+'</b>')+'</td>'
             +'<td style="color:var(--dim)">'+esc(m.why)+'</td></tr>'; }).join('')
         +'</tbody></table></div>'
-      : '<div class="hint">Nothing has moved — the board still matches this baseline.</div>';
+      : '<div class="hint">Nothing has moved — the board still matches this cycle for '+FYL()+'.</div>';
+    }
   }
 
-  h+='<div class="hint" style="margin-top:10px">A baseline is a fixed point in time: it copies the '
-    +'spend plan rather than pointing at it, so it still reads correctly after requirements are '
-    +'renamed, re-banded or removed. Locked baselines cannot be overwritten or deleted. Each one '
-    +'appears as a <b>Budget source</b> in the Spruills, where it gives a PMO a control tagged to '
-    +'that cycle.</div>';
+  h+='<div class="hint" style="margin-top:10px">A locked cycle is a fixed point in time: it copies every '
+    +'year’s plan rather than pointing at it, so it still reads correctly after requirements are '
+    +'renamed, re-banded or removed. Locked cycles cannot be overwritten or deleted. Each one is a '
+    +'<b>Budget source</b> in the Spruills, giving a PMO a control tagged to that cycle for every year '
+    +'it holds.</div>';
   el.innerHTML=h;
 }
 const PPBE_CYCLES=['POM','BES','PB','DoN'];
@@ -14051,11 +14210,15 @@ function pmoDetail(pmoKey, years){
     const ctl={}, ctlSvcLevel=(spFund!=='board' && !blSrc);
     svcs.forEach(sv=>{ ctl[sv]={}; });
     if(blSrc){
-      // the frozen plan: that PMO's allocation by service, reported against the year it captured
-      const BA=blPmoAlloc(blSrc, pmoKey), b0=blGet(blSrc);
+      // the frozen plan: that PMO's allocation by service, for EVERY year the cycle holds
+      const b0=blGet(blSrc);
       svcs.forEach(sv=>years.forEach(y=>{ ctl[sv][y]=undefined; }));
-      if(BA && b0 && slug===(b0.ap||mySlug())){        // a baseline belongs to the board that took it
-        (BA.svc||[]).forEach((sv,i)=>{ if(ctl[sv]) ctl[sv][b0.fy]=BA.alloc[i]||0; });
+      if(b0 && slug===(b0.ap||mySlug())){              // a cycle belongs to the board that locked it
+        Object.keys(b0.proj||{}).forEach(function(fy){
+          if(years.indexOf(+fy)<0) return;
+          const BA=blPmoAlloc(blSrc, pmoKey, +fy); if(!BA) return;
+          (BA.svc||[]).forEach((sv,i)=>{ if(ctl[sv]) ctl[sv][+fy]=BA.alloc[i]||0; });
+        });
       }
     } else if(!ctlSvcLevel){
       svcs.forEach(sv=>years.forEach(y=>{ ctl[sv][y]=bud[sv][y]; }));
@@ -14076,7 +14239,7 @@ function pmoDrillHtml(pmoKey, years){
   // labels come from the selectors, so the drill always states what it is reading
   const costSrc = (spAce==='board')? 'Board requirements' : spAce;
   const budSrc  = (spFund==='board')? 'Board allocation'
-    : (String(spFund).indexOf('bl|')===0? blLbl(spFund.slice(3))+' baseline' : ppLbl(spFund));
+    : (String(spFund).indexOf('bl|')===0? blLbl(spFund.slice(3))+' cycle' : ppLbl(spFund));
   const scope   = (spDrillSvc==='ALL')? 'all services' : spDrillSvc;
   const svcsOf  = b=> (spDrillSvc==='ALL')? b.svcs : b.svcs.filter(sv=>sv===spDrillSvc);
 
@@ -14232,7 +14395,7 @@ function spBody(){
       : '')
     +'&nbsp;&nbsp;<label style="font-size:10px">Budget source: <select onchange="spFund=this.value;render()" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--gold);font-weight:700;font-size:10px;padding:3px 4px">'
     +'<option value="board" '+(spFund==='board'?'selected':'')+'>Board budgets (working)</option>'
-    +blList().map(k=>'<option value="bl|'+k+'" '+(spFund==='bl|'+k?'selected':'')+'>'+blLbl(k)+' baseline (locked spend plan)</option>').join('')
+    +blList().map(k=>'<option value="bl|'+k+'" '+(spFund==='bl|'+k?'selected':'')+'>'+blLbl(k)+' cycle (locked plan)</option>').join('')
     +cycles.map(k=>'<option value="'+k+'" '+(spFund===k?'selected':'')+'>'+ppLbl(k)+' (official, by service)</option>').join('')
     +'</select></label>'
     +'&nbsp;<label style="font-size:10px">Cost data: <select onchange="setSpAce(this.value)" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:10px;padding:3px 4px">'
@@ -18451,7 +18614,7 @@ function syncBtns(){
        'spend plan + forecast only — mandatory withheld; board totals unchanged')+
     mi('◧ Discretionary + Mandatory',"setScen('')",scenView==='',
        'both pots — this board’s actual plan')+
-    mi('📌 Baseline this Spend Plan…',"mRun(toggleBl)",blOpen,blList().length? blList().length+' locked baseline'+(blList().length===1?'':'s') : 'freeze it under a PPBE cycle')+
+    mi('📌 PPBE cycles — lock the spend plan…',"mRun(toggleBl)",blOpen,(MS.cycle? 'working '+blLbl(MS.cycle)+' · ':'')+(blList().length? blList().length+' locked cycle'+(blList().length===1?'':'s') : 'lock the FYDP window under a cycle'))+
     // Beside the baseline, because they answer the same question a year apart: a baseline freezes
     // the PLAN under a PPBE cycle, a snapshot freezes the plan AND what has been obligated on a
     // date. Anyone reaching for one should see the other.

@@ -163,6 +163,19 @@ const add = (name, kind, tol, cells) => surfaces.push({ name, kind, tol, cells }
   add('engine (tiers)', 'requirement math', 0.5, e);
 }
 
+// 1b. A LOCKED CYCLE'S PROJECTION of this year -- what a PB lock says this year was, read back out
+//     of the store rather than the live engine. Funded there must be the lane draw here.
+{
+  const p = JSON.parse(ev(`JSON.stringify((function(){
+    MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock();
+    var P=cycProj('PB|'+MS.cur, MS.cur), o={ask:0,disc:0,mand:0,funded:0};
+    var sum=function(a){ return (a||[]).reduce(function(x,y){ return x+y; },0); };
+    P.reqs.forEach(function(r){ o.ask+=sum(r.ask); o.disc+=sum(r.d); o.mand+=sum(r.m); o.funded+=sum(r.fund); });
+    o.discBA=sum(P.disc); o.mandBA=sum(P.mand);
+    return o; })())`));
+  add('locked cycle (projection)', 'store', 0.5, p);
+}
+
 // 2. THE DASHBOARD, as rendered. Read off the DOM, because a figure that is computed correctly and
 //    displayed wrongly is still wrong on the screen someone is briefing from.
 {

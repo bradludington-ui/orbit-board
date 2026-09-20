@@ -4,21 +4,24 @@
     "xl · Funding Streams",
     "xl · Decision Bands",
     "drill · 1-N by Band",
-    "ppt · Funding by Stream"
+    "ppt · Funding by Stream",
+    "locked cycle (projection)"
   ],
   "discBA": [
     "engine (tiers)",
     "dashboard (screen)",
     "xl · Funding Streams",
     "ppt · KPI slide",
-    "ppt · Funding by Stream"
+    "ppt · Funding by Stream",
+    "locked cycle (projection)"
   ],
   "mandBA": [
     "engine (tiers)",
     "dashboard (screen)",
     "xl · Funding Streams",
     "ppt · KPI slide",
-    "ppt · Funding by Stream"
+    "ppt · Funding by Stream",
+    "locked cycle (projection)"
   ],
   "disc": [
     "engine (tiers)",
@@ -26,21 +29,24 @@
     "xl · Decision Bands",
     "drill · 1-N by Band",
     "xl · Spend Plan Source",
-    "ppt · Funding by Stream"
+    "ppt · Funding by Stream",
+    "locked cycle (projection)"
   ],
   "mand": [
     "engine (tiers)",
     "xl · Funding Streams",
     "xl · Decision Bands",
     "drill · 1-N by Band",
-    "ppt · Funding by Stream"
+    "ppt · Funding by Stream",
+    "locked cycle (projection)"
   ],
   "funded": [
     "engine (tiers)",
     "dashboard (screen)",
     "xl · Funding Streams",
     "xl · Decision Bands",
-    "drill · 1-N by Band"
+    "drill · 1-N by Band",
+    "locked cycle (projection)"
   ],
   "ufr1": [
     "engine (tiers)",

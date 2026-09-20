@@ -1471,6 +1471,25 @@ other surface calls Funded. Registered as `flow-plan-year-printed-the-allocation
 funds flow* in `audit-recon.mjs` and five `flow-*` mutations. Found by closing a coverage gap, which
 is what the gaps are recorded for.
 
+### PPBE cycles: a lock is the FYDP window, whole, in its own store
+
+A cycle (`PB|2027` reads PB27) is every year in the FYDP window that held a plan, copied whole
+under one key, plus a per-year projection — the shape the one-year baselines had — for the
+compare and the Spruills. `CYCDB` is its own store beside `EXDB` and `ACEDB`, per appropriation
+(`_AP.key+'-cyc'`), packed into the file as `cycDb.byAp` the way `appns` packs the boards, and
+merged on import the way an approved estimate is: a key not held is taken, a key held is left
+alone and said. The working plan carries `MS.cycle` (its tag) and `MS.cycleRef` (the lock its
+deltas are read against); locking an untagged plan tags it, because it *is* the plan just locked.
+`cycWindowYears()` is the lock's scope: `base`…`base+4` plus the year on screen, each only where
+`MS.years` holds it — a blank year is recorded as *no plan*, never as an empty one. The projection
+is taken per year through `aceWithYear`, so FY28's projection carries FY28's values, and the copy
+is taken *after* it so the stored year is the normalised object `applyState` hands back. `fund` in
+a projection is the lane draw (d+m) and `alloc` the allocation, kept apart on purpose — the flow
+already paid once for confusing them. One-year baselines from before migrate as `partial` cycles
+and the legacy container is deleted once carried, or a cycle deleted on purpose would come back on
+the next load. Guarded by *PPBE cycles — the lock is the window, frozen* in `audit-board.mjs`,
+thirteen `cycle-*` mutations, and a trace-matrix surface that reads Funded back out of the lock.
+
 ### The five money-coverage gaps are closed
 
 Each closed the same way: a check that derives the figure from the fixture (never from the code
