@@ -326,7 +326,27 @@ mutation: a bulk set that reaches a requirement which never offered the field is
 
 ## 8. PPBE cycles across the FYDP — lock a cycle's five-year spend plan, allocate the next cycle's deltas, report and compare by cycle
 
-**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stage 3 BUILT 20 Sep 2026 (v1.73) · stages 4–6 open**
+**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stage 3 BUILT 20 Sep 2026 (v1.73) · stage 4 BUILT 20 Sep 2026 (v1.74) · stages 5–6 open**
+
+### Stage 4, as built (v1.74)
+
+- **`fydpData(src)`** — one shape for the working plan (`aceWithYear(y, cycProjOf)` per held year
+  of `fydpWindow()`: `base`…`base+4` plus the year on screen) and for a locked cycle (its
+  projections **as locked**, never recomputed). Funded is the lane draw, Allocated is `svcAlloc`,
+  Unfunded is requirement less funded floored per service. A year not held prints — and is outside
+  the FYDP totals.
+- **The workbook** *📊 FYDP Spend Plan (Excel)*: By Requirement (rows with PMO, CCaR, band; per FY
+  Requirement / Allocated / Funded / Unfunded; FYDP totals; `Subtotal — <PMO>`; TOTAL), By PMO
+  (the subtotals and a count), By Service (with Disc BA / Mand BA). Titled with the source and the
+  span; the note says which years are held and, for a cycle, when and by whom it was locked.
+- **The panel** *📊 Five-year spend plan…* (FYDP Views): a source picker — the working plan, or
+  any locked cycle that holds a year — the PMO subtotals and the total across the window.
+- **Decision confirmed 20 Sep 2026:** requirement rows with PMO subtotals (not PMO rows only).
+- **Proved by** *the five-year spend plan* (audit-recon: the year on screen against
+  `boardFigures`, a second year against the engine under a swap, blank years, subtotals, TOTAL, By
+  PMO, By Service, the panel, then a PB lock and a moved value the locked report must not follow),
+  fourteen `fydp-*` mutations in both builds, and the trace-matrix surface *xl · FYDP Spend Plan*
+  (requirement, funded, TOTAL unfunded, both pots). The verifier and the export delta build it.
 
 ### Stage 3, as built (v1.73)
 

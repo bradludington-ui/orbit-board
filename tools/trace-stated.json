@@ -7,7 +7,8 @@
     "ppt · Funding by Stream",
     "locked cycle (projection)",
     "locked view (drill)",
-    "cycle deltas (panel, now)"
+    "cycle deltas (panel, now)",
+    "xl · FYDP Spend Plan"
   ],
   "discBA": [
     "engine (tiers)",
@@ -17,7 +18,8 @@
     "ppt · Funding by Stream",
     "locked cycle (projection)",
     "locked view (drill)",
-    "cycle deltas (panel, now)"
+    "cycle deltas (panel, now)",
+    "xl · FYDP Spend Plan"
   ],
   "mandBA": [
     "engine (tiers)",
@@ -27,7 +29,8 @@
     "ppt · Funding by Stream",
     "locked cycle (projection)",
     "locked view (drill)",
-    "cycle deltas (panel, now)"
+    "cycle deltas (panel, now)",
+    "xl · FYDP Spend Plan"
   ],
   "disc": [
     "engine (tiers)",
@@ -56,7 +59,8 @@
     "drill · 1-N by Band",
     "locked cycle (projection)",
     "locked view (drill)",
-    "cycle deltas (panel, now)"
+    "cycle deltas (panel, now)",
+    "xl · FYDP Spend Plan"
   ],
   "ufr1": [
     "engine (tiers)",
@@ -80,7 +84,8 @@
     "drill · 1-N by Band",
     "ppt · KPI slide",
     "ppt · Funding by Stream",
-    "locked view (drill)"
+    "locked view (drill)",
+    "xl · FYDP Spend Plan"
   ],
   "trim": [
     "engine (tiers)",

@@ -274,6 +274,22 @@ if (hasCycles) {
       return D? {ask:D.tot.askNow, funded:D.tot.fundNow, discBA:D.pots.discNow, mandBA:D.pots.mandNow, zero:Math.abs(D.tot.ask)+Math.abs(D.tot.fund)} : null; })())`));
     if (d) { if (d.zero > 0.5) throw new Error('the deltas against the lock just taken are not zero: ' + d.zero); delete d.zero; add('cycle deltas (panel, now)', 'visual', 0.5, d); }
   }
+  // 1e. THE FYDP SPEND PLAN -- the working plan's column for the year on screen. Funded on the report
+  //     IS the board's Funded for that year, and By Service carries the pots beside the draw.
+  if (ev(`typeof exportFydpPlan==='function'`)) {
+    const FY = 'FY' + (+ev('MS.cur') % 100), keepSrc = ev('fydpSrc');
+    ev(`fydpSrc='working'; 'ok'`);
+    const sheets = grab('exportFydpPlan');
+    ev(`fydpSrc=${JSON.stringify(keepSrc)}; 'ok'`);
+    const br = rowsOf(sheets.find(s => s.name === 'By Requirement')), bs = rowsOf(sheets.find(s => s.name === 'By Service'));
+    add('xl · FYDP Spend Plan', 'Excel', 0.5, {
+      ask:    cellAt(br, /^PMO$/, FY + ' Requirement', /^TOTAL$/),
+      funded: cellAt(br, /^PMO$/, FY + ' Funded', /^TOTAL$/),
+      ufr2:   cellAt(br, /^PMO$/, FY + ' Unfunded', /^TOTAL$/),
+      discBA: cellAt(bs, /^Service$/, FY + ' Disc BA', /^TOTAL$/),
+      mandBA: cellAt(bs, /^Service$/, FY + ' Mand BA', /^TOTAL$/),
+    });
+  }
   // A SCRATCH LOCK, when asked for: the verifier runs this on a real file, where 'PB|<year>' may
   // already be a real lock taken weeks ago (and would then read the plan as it stood, not as it
   // is). The scratch key is deleted again and the working plan's tags are put back.

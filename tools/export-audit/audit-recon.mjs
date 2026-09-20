@@ -1075,6 +1075,154 @@ const grabX = (fn) => w.eval(`(async function(){
     num(tot[cND]), _sum(['B', 'C', 'D', 'E'].map(_fundedOf)));
 }
 
+// ══ 17. THE FIVE-YEAR SPEND PLAN ═══════════════════════════════════════════════════════════════
+// One source, printed across its window. The working plan's column for the year on screen must be
+// the engine -- tiers() and svcAlloc(), the authorities every other surface states, read here off
+// boardFigures -- and a second planned year must be the engine under a year swap. A year the source
+// never held prints an em dash, never 0, and stays outside the FYDP totals. PMO subtotals are their
+// rows added, TOTAL is the subtotals added, By PMO IS the subtotals, By Service adds back to TOTAL
+// with the pots beside it, and the panel prints the same total. Then PB is locked and a value
+// changes: the locked cycle's report must still print the figure AS LOCKED while the working plan's
+// prints the new one. E is moved into PSM for this block so one subtotal spans two rows.
+{
+  const name = 'the five-year spend plan';
+  const cur = +ev('MS.cur'), key = 'PB|' + cur, fyl = y => 'FY' + (y % 100);
+  const snap = ev('JSON.stringify(S)'), base0 = ev('JSON.stringify(MS.base===undefined? null : MS.base)');
+  const A1 = [18000000, 4000000, 2000000, 8000000, 3000000, 5000002];      // A next year: doubled, odd dollar kept
+  ev(`S.grp['E']='PSM'; applyState(S); MS.years[MS.cur]=S; MS.base=MS.cur+1;
+      var y1=JSON.parse(JSON.stringify(S)); y1.asks={A:${JSON.stringify(A1)}}; delete y1.pmoOrder; MS.years[MS.cur+1]=y1; save(); 'ok'`);
+  // the engine's reading of a year: the lane draw, the allocation, the per-service unfunded
+  const ENGINE = `function(){ var T=tiers(), o={rows:{}, disc:(S.discSvc||[]).slice(), mand:(S.mandSvc||[]).slice()};
+      S.order.forEach(function(id){ var it=itemById(id), p=T[id]; if(!it||!p) return;
+        var d=SVC.map(function(_,i){ return p.d[i]||0; }), m=SVC.map(function(_,i){ return p.m[i]||0; });
+        var fund=d.map(function(v,i){ return v+m[i]; });
+        o.rows[id]={title:dispTitle(it), grp:grpOf(it), ask:it.ask.slice(), alloc:((S.fsrc||{})[id]? fund.slice() : svcAlloc(it).slice()), fund:fund, unf:unfSvcOf(it,p)}; });
+      return JSON.stringify(o); }`;
+  const E0 = JSON.parse(ev(`(${ENGINE})()`)), E1 = JSON.parse(ev(`aceWithYear(MS.cur+1, ${ENGINE})`));
+  const ids = Object.keys(F.rows);
+  ids.forEach(id => chk(name, 'authority', id + ': the engine read here is boardFigures’ lane draw', _sum(E0.rows[id].fund), _fundedOf(id)));
+  chk(name, 'authority', 'next year differs from this year, so a report that reads one year twice cannot pass', _sum(E1.rows.A.ask) !== _sum(E0.rows.A.ask) ? 'yes' : 'no', 'yes');
+  chk(name, 'fixture', 'the fixture allocates beyond the lanes somewhere, so Allocated and Funded differ',
+    _sum(ids.map(id => _sum(F.rows[id].beyond))) > 0.5 ? 'yes' : 'no', 'yes');
+  const y0 = cur, y1 = cur + 1, years = [cur, cur + 1, cur + 2, cur + 3, cur + 4, cur + 5];
+  const want = {};   // per requirement: per year and across the FYDP
+  ids.forEach(id => {
+    const r0 = { ask: _sum(F.rows[id].ask), alloc: _sum(E0.rows[id].alloc), fund: _fundedOf(id), unf: _sum(F.rows[id].unf) };
+    const r1 = { ask: _sum(E1.rows[id].ask), alloc: _sum(E1.rows[id].alloc), fund: _sum(E1.rows[id].fund), unf: _sum(E1.rows[id].unf) };
+    want[id] = { [y0]: r0, [y1]: r1, fydp: { ask: r0.ask + r1.ask, alloc: r0.alloc + r1.alloc, fund: r0.fund + r1.fund, unf: r0.unf + r1.unf } };
+  });
+  const K = ['ask', 'alloc', 'fund', 'unf'], KL = { ask: 'Requirement', alloc: 'Allocated', fund: 'Funded', unf: 'Unfunded' };
+  const sumOver = (some, y) => { const o = {}; K.forEach(k => { o[k] = _sum(some.map(id => (y === 'fydp' ? want[id].fydp : want[id][y])[k])); }); return o; };
+  const groups = {}; ids.forEach(id => { (groups[E0.rows[id].grp] ||= []).push(id); });
+  chk(name, 'fixture', 'PSM holds two requirements and the other offices one each', Object.keys(groups).map(g => g + ':' + groups[g].length).sort().join(' '), 'ATL:1 PSM:2 SE:1 TSS:1');
+  // ---- the working plan
+  ev(`fydpSrc='working'; 'ok'`);
+  const W = JSON.parse(await grabX('exportFydpPlan'));
+  chk(name, 'workbook', 'the working plan’s workbook builds', W.state, 'ok');
+  const br = W.sheets['By Requirement'] || [], bp = W.sheets['By PMO'] || [], bs = W.sheets['By Service'] || [];
+  chk(name, 'title', 'the title names the source and the span: the window from the base, plus the year on screen',
+    String((br[0] || [])[0] ?? ''), 'SPMT FYDP SPEND PLAN — THE WORKING PLAN — ' + fyl(cur) + '–' + fyl(cur + 5));
+  chk(name, 'title', 'the note says which years are held', /Years held: FY\d\d, FY\d\d\./.test(String((br[1] || [])[0] ?? '')), true);
+  const h = headerRow(br, 'PMO', 'Requirement', 'CCaR', 'Band');
+  chk(name, 'shape', 'By Requirement has its header', h >= 0 ? 'yes' : 'no', 'yes');
+  const col = (rows, hd, y, k) => colOf(rows, hd, (y === 'fydp' ? 'FYDP' : fyl(y)) + ' ' + KL[k]);
+  const rowBy = (rows, hd, ci, v) => rows.find((r, i) => i > hd && String((r || [])[ci] ?? '') === v) || [];
+  ids.forEach(id => {
+    const row = rowBy(br, h, 1, E0.rows[id].title);
+    chk(name, id, 'the row is on the sheet under its office', String(row[0] ?? ''), E0.rows[id].grp);
+    K.forEach(k => chk(name, id, fyl(y0) + ' ' + KL[k] + ' is the engine’s for the year on screen', num(row[col(br, h, y0, k)]), want[id][y0][k]));
+    K.forEach(k => chk(name, id, fyl(y1) + ' ' + KL[k] + ' is the engine’s under the year swap', num(row[col(br, h, y1, k)]), want[id][y1][k]));
+    K.forEach(k => chk(name, id, 'FYDP ' + KL[k] + ' is the two held years added', num(row[col(br, h, 'fydp', k)]), want[id].fydp[k]));
+    [cur + 2, cur + 5].forEach(y => chk(name, id, fyl(y) + ' is not held, so it prints — not 0', String(row[col(br, h, y, 'ask')] ?? ''), '—'));
+  });
+  Object.keys(groups).forEach(g => {
+    const row = rowBy(br, h, 0, 'Subtotal — ' + g);
+    [y0, y1, 'fydp'].forEach(y => K.forEach(k => chk(name, 'subtotal ' + g, (y === 'fydp' ? 'FYDP' : fyl(y)) + ' ' + KL[k] + ' is its rows added', num(row[col(br, h, y, k)]), sumOver(groups[g], y)[k])));
+    chk(name, 'subtotal ' + g, 'a year not held prints —', String(row[col(br, h, cur + 3, 'fund')] ?? ''), '—');
+  });
+  const tot = rowBy(br, h, 0, 'TOTAL');
+  [y0, y1, 'fydp'].forEach(y => K.forEach(k => chk(name, 'TOTAL', (y === 'fydp' ? 'FYDP' : fyl(y)) + ' ' + KL[k] + ' is the subtotals added', num(tot[col(br, h, y, k)]), sumOver(ids, y)[k])));
+  chk(name, 'TOTAL', 'the year on screen states the funded topline every other surface states', num(tot[col(br, h, y0, 'fund')]), _funded);
+  chk(name, 'TOTAL', 'a year not held prints —', String(tot[col(br, h, cur + 4, 'unf')] ?? ''), '—');
+  // ---- by PMO: the subtotals, and a count
+  const hp = headerRow(bp, 'PMO', 'Requirements');
+  Object.keys(groups).forEach(g => {
+    const row = rowBy(bp, hp, 0, g);
+    chk(name, 'by PMO', g + ' counts its requirements', num(row[colOf(bp, hp, 'Requirements')]), groups[g].length);
+    [y0, y1, 'fydp'].forEach(y => K.forEach(k => chk(name, 'by PMO', g + ': ' + (y === 'fydp' ? 'FYDP' : fyl(y)) + ' ' + KL[k] + ' is the subtotal', num(row[col(bp, hp, y, k)]), sumOver(groups[g], y)[k])));
+  });
+  const ptot = rowBy(bp, hp, 0, 'TOTAL');
+  chk(name, 'by PMO', 'TOTAL counts every requirement', num(ptot[colOf(bp, hp, 'Requirements')]), ids.length);
+  [y0, y1, 'fydp'].forEach(y => K.forEach(k => chk(name, 'by PMO', 'TOTAL ' + (y === 'fydp' ? 'FYDP' : fyl(y)) + ' ' + KL[k] + ' is By Requirement’s TOTAL', num(ptot[col(bp, hp, y, k)]), sumOver(ids, y)[k])));
+  // ---- by service: the vectors added over requirements, the pots beside them
+  const hs = headerRow(bs, 'Service', fyl(y0) + ' Requirement', fyl(y0) + ' Disc BA');
+  const sv0 = {}, sv1 = {};
+  F.svc.forEach((sv, i) => {
+    sv0[sv] = { ask: _sum(ids.map(id => F.rows[id].ask[i] || 0)), fund: _sum(ids.map(id => (F.rows[id].d[i] || 0) + (F.rows[id].m[i] || 0))),
+                unf: _sum(ids.map(id => F.rows[id].unf[i] || 0)), alloc: _sum(ids.map(id => E0.rows[id].alloc[i] || 0)), disc: F.discBA[i], mand: F.mandBA[i] };
+    sv1[sv] = { ask: _sum(ids.map(id => E1.rows[id].ask[i] || 0)), fund: _sum(ids.map(id => E1.rows[id].fund[i] || 0)),
+                unf: _sum(ids.map(id => E1.rows[id].unf[i] || 0)), alloc: _sum(ids.map(id => E1.rows[id].alloc[i] || 0)), disc: E1.disc[i] || 0, mand: E1.mand[i] || 0 };
+  });
+  const KS = { ask: 'Requirement', alloc: 'Allocated', fund: 'Funded', unf: 'Unfunded', disc: 'Disc BA', mand: 'Mand BA' };
+  F.svc.forEach(sv => {
+    const row = rowBy(bs, hs, 0, sv);
+    Object.keys(KS).forEach(k => chk(name, 'by service', sv + ': ' + fyl(y0) + ' ' + KS[k] + ' is the engine’s, this service only', num(row[colOf(bs, hs, fyl(y0) + ' ' + KS[k])]), sv0[sv][k]));
+    Object.keys(KS).forEach(k => chk(name, 'by service', sv + ': ' + fyl(y1) + ' ' + KS[k] + ' under the year swap', num(row[colOf(bs, hs, fyl(y1) + ' ' + KS[k])]), sv1[sv][k]));
+    chk(name, 'by service', sv + ': FYDP Funded is the held years added', num(row[colOf(bs, hs, 'FYDP Funded')]), sv0[sv].fund + sv1[sv].fund);
+    chk(name, 'by service', sv + ': a year not held prints —', String(row[colOf(bs, hs, fyl(cur + 2) + ' Funded')] ?? ''), '—');
+  });
+  const stot = rowBy(bs, hs, 0, 'TOTAL');
+  chk(name, 'by service', 'TOTAL ' + fyl(y0) + ' Funded is the services added, and the funded topline', num(stot[colOf(bs, hs, fyl(y0) + ' Funded')]), _funded);
+  chk(name, 'by service', 'TOTAL ' + fyl(y0) + ' Requirement is By Requirement’s TOTAL', num(stot[colOf(bs, hs, fyl(y0) + ' Requirement')]), sumOver(ids, y0).ask);
+  chk(name, 'by service', 'TOTAL ' + fyl(y0) + ' Unfunded is By Requirement’s TOTAL', num(stot[colOf(bs, hs, fyl(y0) + ' Unfunded')]), sumOver(ids, y0).unf);
+  chk(name, 'by service', 'TOTAL ' + fyl(y0) + ' Disc BA is the discretionary pots added', num(stot[colOf(bs, hs, fyl(y0) + ' Disc BA')]), _sum(F.discBA));
+  chk(name, 'by service', 'TOTAL ' + fyl(y0) + ' Mand BA is the mandatory pots added', num(stot[colOf(bs, hs, fyl(y0) + ' Mand BA')]), _sum(F.mandBA));
+  chk(name, 'by service', 'TOTAL FYDP Funded is both years’ funded', num(stot[colOf(bs, hs, 'FYDP Funded')]), sumOver(ids, 'fydp').fund);
+  // ---- the panel prints the same total, and — for a year not held
+  ev(`fydpOpen=true; fydpSrc='working'; render(); 'ok'`);
+  const panel = ev(`document.getElementById('fydpBody').innerHTML`);
+  const trow = (/<tr class="tot">([\s\S]*?)<\/tr>/.exec(panel) || [])[1] || '';
+  const cells = (trow.match(/<td class="n">([\s\S]*?)<\/td>/g) || []).map(c => c.replace(/<\/?td[^>]*>/g, ''));
+  const fm = n => ev(`fM(${n})`);
+  chk(name, 'panel', 'the TOTAL row has three cells per window year and three for the FYDP', cells.length, years.length * 3 + 3);
+  chk(name, 'panel', 'its ' + fyl(y0) + ' cells are requirement, funded, unfunded', cells.slice(0, 3).join('|'), [fm(sumOver(ids, y0).ask), fm(_funded), fm(sumOver(ids, y0).unf)].join('|'));
+  chk(name, 'panel', 'its ' + fyl(y1) + ' cells likewise', cells.slice(3, 6).join('|'), [fm(sumOver(ids, y1).ask), fm(sumOver(ids, y1).fund), fm(sumOver(ids, y1).unf)].join('|'));
+  chk(name, 'panel', 'a year not held prints — three times', cells.slice(6, 9).every(c => /—/.test(c)) ? 'yes' : cells.slice(6, 9).join('|'), 'yes');
+  chk(name, 'panel', 'its FYDP cells are the two held years added', cells.slice(-3).join('|'), [fm(sumOver(ids, 'fydp').ask), fm(sumOver(ids, 'fydp').fund), fm(sumOver(ids, 'fydp').unf)].join('|'));
+  chk(name, 'panel', 'PSM’s line counts its two requirements', /PSM \(2\)/.test(panel), true);
+  ev(`fydpOpen=false; render(); 'ok'`);
+  // ---- lock PB, then move a value: the locked report keeps the locked figure, the working plan follows the board
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  chk(name, 'lock', 'PB is locked over both planned years', ev(`cycHeld('${key}').join(',')`), y0 + ',' + y1);
+  const bAsk0 = _sum(F.rows.B.ask), bNew = F.rows.B.ask.slice(); bNew[0] += 100000;
+  ev(`S.asks['B']=${JSON.stringify(bNew)}; applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  const W2 = JSON.parse(await grabX('exportFydpPlan'));
+  chk(name, 'after', 'the working plan’s workbook builds again', W2.state, 'ok');
+  const br2 = W2.sheets['By Requirement'] || [], h2 = headerRow(br2, 'PMO', 'Requirement', 'CCaR', 'Band');
+  chk(name, 'after', 'the working plan is now labelled with its cycle tag', String((br2[0] || [])[0] ?? ''), 'SPMT FYDP SPEND PLAN — THE WORKING PLAN (' + ev(`blLbl('${key}')`).toUpperCase() + ') — ' + fyl(cur) + '–' + fyl(cur + 5));
+  chk(name, 'after', 'and B’s requirement on it moved with the board', num(rowBy(br2, h2, 1, E0.rows.B.title)[col(br2, h2, y0, 'ask')]), bAsk0 + 100000);
+  chk(name, 'after', 'so did TOTAL', num(rowBy(br2, h2, 0, 'TOTAL')[col(br2, h2, y0, 'ask')]), sumOver(ids, y0).ask + 100000);
+  ev(`fydpSrc='${key}'; 'ok'`);
+  const C = JSON.parse(await grabX('exportFydpPlan'));
+  chk(name, 'cycle', 'the locked cycle’s workbook builds', C.state, 'ok');
+  const bc = C.sheets['By Requirement'] || [], hc = headerRow(bc, 'PMO', 'Requirement', 'CCaR', 'Band');
+  chk(name, 'cycle', 'it is titled as the cycle, locked', String((bc[0] || [])[0] ?? ''), 'SPMT FYDP SPEND PLAN — ' + ev(`blLbl('${key}')`).toUpperCase() + ' (LOCKED) — ' + fyl(cur) + '–' + fyl(cur + 5));
+  chk(name, 'cycle', 'the note says when it was locked', /Locked /.test(String((bc[1] || [])[0] ?? '')), true);
+  chk(name, 'cycle', 'B’s requirement is the figure AS LOCKED, not the board’s', num(rowBy(bc, hc, 1, E0.rows.B.title)[col(bc, hc, y0, 'ask')]), bAsk0);
+  chk(name, 'cycle', 'and TOTAL is the locked total', num(rowBy(bc, hc, 0, 'TOTAL')[col(bc, hc, y0, 'ask')]), sumOver(ids, y0).ask);
+  chk(name, 'cycle', 'the locked cycle’s next year is the engine under the swap, as locked', num(rowBy(bc, hc, 1, E0.rows.A.title)[col(bc, hc, y1, 'ask')]), want.A[y1].ask);
+  chk(name, 'cycle', 'a year the lock never held prints —', String(rowBy(bc, hc, 0, 'TOTAL')[col(bc, hc, cur + 5, 'fund')] ?? ''), '—');
+  // the panel offers the cycle as a source, and picks the working plan again when it is gone
+  ev(`fydpOpen=true; render(); 'ok'`);
+  chk(name, 'source', 'the panel offers the locked cycle as a source', new RegExp('<option value="' + key.replace('|', '\\|') + '"[^>]*selected').test(ev(`document.getElementById('fydpBody').innerHTML`)), true);
+  ev(`fydpOpen=false; blLock('${key}', false); blDelete('${key}'); fydpOpen=true; render(); 'ok'`);
+  chk(name, 'source', 'a cycle deleted falls back to the working plan', ev('fydpSrc'), 'working');
+  // put the board back: nothing after this block sees a second year, a base, a lock or the moved value
+  ev(`fydpOpen=false; MS.cycle=''; MS.cycleRef=''; delete MS.years[MS.cur+1]; MS.base=${base0 === 'null' ? 'undefined' : base0};
+      applyState(JSON.parse(${JSON.stringify(snap)})); MS.years[MS.cur]=S; save(); render(); 'ok'`);
+  chk(name, 'restore', 'the board is as it was', _sum(JSON.parse(ev(`JSON.stringify(itemById('B').ask)`))), bAsk0);
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

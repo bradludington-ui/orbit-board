@@ -1560,6 +1560,30 @@ holding two years with the base on the second, so a delta read against the wrong
 by coincidence), thirteen `delta-*`/`retag-*`/`who-*` mutations, and a trace-matrix surface that
 reads the panel's 'Now' side and expects the engine.
 
+### The five-year spend plan: one shape for both sources
+
+`fydpData(src)` returns the same shape for the working plan and for a locked cycle: the years of
+the window (`fydpWindow()` — `base`…`base+4` plus the year on screen, the span a lock takes), the
+years actually held, and a projection per held year. The working plan is projected through
+`aceWithYear(y, cycProjOf)`, the very function a lock stores, so a working-plan report and a
+locked-cycle report are the same figures taken at different times, never two computations. A locked
+cycle's report reads its projection **as locked**: recomputing a lock with today's code would
+quietly restate a certified position, which is the one thing a lock exists to prevent. Funded is
+the lane draw (d + m); Allocated is `svcAlloc` (the draw itself for a funding-source row);
+Unfunded is requirement less funded, floored per service — the reading the board calls TOTAL
+unfunded — and never netted across services. A year the source never held prints an em dash in
+the workbook and on the panel, never 0, and stays outside the FYDP totals. The workbook (*📊 FYDP
+Spend Plan (Excel)*; *SPMT FYDP Spend Plan — PB27 — FY27–FY31 date.xlsx*, with the `[PB27
+LOCKED]` mark when a locked view is on screen) carries By Requirement (one row per requirement
+with PMO, CCaR and band, `Subtotal — <PMO>`, TOTAL), By PMO (the subtotals, with a count) and By
+Service (the projection's vectors added, Disc BA and Mand BA beside the draw); the panel (*📊
+Five-year spend plan…* under FYDP Views) shows the PMO subtotals and the total for a source
+picked from the working plan and every locked cycle that holds a year. Guarded by *the five-year
+spend plan* in audit-recon (the year on screen against `boardFigures`, a second held year against
+the engine under a year swap, blank years, subtotals, TOTAL, By PMO, By Service, the panel, then a
+PB lock and a moved value the locked report must not follow), fourteen `fydp-*` mutations, and the
+trace-matrix surface *xl · FYDP Spend Plan* (requirement, funded, TOTAL unfunded, both pots).
+
 ### A suite that dies is not a suite that caught something
 
 `mutate.mjs` counted every non-zero exit as a catch. Under heavy load (a gate's two sweeps beside

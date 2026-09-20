@@ -283,7 +283,7 @@ function crossFoots(sec, html, slug) {
   }
   check(sec, bad.length === 0, `every per-service breakout adds back to its figure (${rowsChecked} rows across ${blocks} blocks)`, bad.slice(0, 3).join(' | '));
   // the other workbooks build at all on this data
-  for (const fn of ['exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog']) {
+  for (const fn of ['exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan']) {
     let n = 0; try { n = grabSheets(ev, fn).length; } catch { n = 0; }
     check(sec, n > 0, `${fn} builds on this data`, n ? `${n} sheet(s)` : 'no sheets came back');
   }
@@ -293,7 +293,7 @@ function crossFoots(sec, html, slug) {
 function cellsOf(html, slug) {
   const { ev } = bootAs(html, SLUG_NAME[slug]);
   const cells = {};
-  for (const fn of ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog']) {
+  for (const fn of ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan']) {
     let sheets; try { sheets = grabSheets(ev, fn); } catch { continue; }
     for (const sh of sheets) {
       const rows = sh.rows || sh.data || [];

@@ -977,6 +977,13 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
   </div>
 </div>
 
+<div class="modal-bg" id="fydpPanel" onclick="if(event.target===this)toggleFydp()">
+  <div class="modal" style="width:1120px">
+    <h3>📊 FIVE-YEAR SPEND PLAN — one cycle, or the working plan, across its window
+      <button class="x" onclick="toggleFydp()">✕ Close</button></h3>
+    <div id="fydpBody"></div>
+  </div>
+</div>
 <div class="modal-bg" id="cycChgPanel" onclick="if(event.target===this)toggleCycChg()">
   <div class="modal" style="width:1120px">
     <h3>Δ CHANGES SINCE THE REFERENCE CYCLE — what moved, by how much, and who moved it
@@ -1332,7 +1339,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.73 (20 Sep 2026)';
+const BUILD='v1.74 (20 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -13603,6 +13610,210 @@ function cycSetWorking(cyc, yr){
   setStat(MS.cycle? '🏷 Working plan tagged <b>'+esc(blLbl(MS.cycle))+'</b>'
     +(MS.cycleRef? ' — deltas read against '+esc(blLbl(MS.cycleRef)) : '') : '🏷 Working plan untagged.');
 }
+// ============================ THE FIVE-YEAR SPEND PLAN ======================================
+// One source -- the working plan, or any locked cycle -- printed across its window: one row per
+// requirement with PMO subtotals and the portfolio total, then the same by PMO and by service.
+// ONE SHAPE FOR BOTH SOURCES. The working plan is projected year by year through aceWithYear with
+// the very function a lock uses (cycProjOf), so a working-plan report and a locked-cycle report
+// are the same figures taken at different times, never two computations. A locked cycle's report
+// reads the projection AS LOCKED: recomputing a lock with today's code would quietly restate a
+// certified position, which is the one thing a lock exists to prevent. Funded is the lane draw
+// (d + m); Unfunded is requirement less funded, floored PER SERVICE -- the reading the board calls
+// TOTAL unfunded -- and never netted across services. A year the source never held prints an em
+// dash, never 0, and stays outside the FYDP totals.
+let fydpOpen=false, fydpSrc='working';
+function toggleFydp(){ fydpOpen=!fydpOpen; render(); }
+function fydpSetSrc(v){ fydpSrc=v||'working'; render(); }
+// THE YEARS A REPORT COVERS: the FYDP window, and the year on screen when it sits outside it --
+// the same span a lock takes, so the report and the lock agree on what "the five years" are.
+function fydpWindow(){
+  const b=+MS.base||+MS.cur, out=[];
+  for(let y=b; y<=b+4; y++) out.push(y);
+  if(out.indexOf(+MS.cur)<0) out.push(+MS.cur);
+  return out.sort(function(a,b){ return a-b; });
+}
+function fydpData(src){
+  src=src||'working';
+  const out={src:src, label:'', years:[], held:[], proj:{}, svc:SVC.slice(), ts:0, by:''};
+  if(src==='working'){
+    out.label='the working plan'+(MS.cycle? ' ('+blLbl(MS.cycle)+')' : '');
+    out.years=fydpWindow();
+    out.years.forEach(function(y){ if(!MS.years[y]) return; out.proj[y]=aceWithYear(y, cycProjOf); out.held.push(y); });
+  } else {
+    const c=blGet(src); if(!c) return null;
+    out.label=blLbl(src)+' (locked)'; out.ts=c.ts||0; out.by=c.by||'';
+    const b=+c.base||+MS.base||+MS.cur;
+    for(let y=b; y<=b+4; y++) out.years.push(y);
+    Object.keys(c.proj||{}).map(Number).forEach(function(y){ if(out.years.indexOf(y)<0) out.years.push(y); });
+    out.years.sort(function(a,b){ return a-b; });
+    out.years.forEach(function(y){ if(c.proj && c.proj[y]){ out.proj[y]=c.proj[y]; out.held.push(y); } });
+    if(out.held.length && out.proj[out.held[0]].svc) out.svc=out.proj[out.held[0]].svc.slice();
+  }
+  return out;
+}
+const fydpSum=a=>(a||[]).reduce(function(x,y){ return x+(+y||0); },0);
+// Unfunded, per requirement: Σ[svc] max(0, ask − funded). The floor is per service so a service
+// with money to spare never offsets one that is short.
+function fydpUnf(r){ let u=0; (r.ask||[]).forEach(function(a,i){ u+=Math.max(0, (+a||0)-((r.fund||r.alloc||[])[i]||0)); }); return u; }
+function fydpRows(D){
+  const rows={}, order=[];
+  D.held.forEach(function(y){
+    (D.proj[y].reqs||[]).forEach(function(r,i){
+      if(!rows[r.id]){ rows[r.id]={id:r.id, title:r.title, grp:r.grp, ccar:r.ccar||'', band:r.band||'', rank:i+1, fy:{}}; order.push(r.id); }
+      const row=rows[r.id];
+      row.title=r.title; row.grp=r.grp; row.ccar=r.ccar||''; row.band=r.band||'';     // the latest year's naming
+      row.fy[y]={ask:fydpSum(r.ask), alloc:fydpSum(r.alloc), fund:fydpSum(r.fund||r.alloc), unf:fydpUnf(r)};
+    });
+  });
+  order.forEach(function(id){
+    const row=rows[id], t={ask:0, alloc:0, fund:0, unf:0};
+    D.held.forEach(function(y){ const f=row.fy[y]; if(!f) return; t.ask+=f.ask; t.alloc+=f.alloc; t.fund+=f.fund; t.unf+=f.unf; });
+    row.tot=t;
+  });
+  const byG={}; order.forEach(function(id){ const g=rows[id].grp||'(no PMO)'; (byG[g]=byG[g]||[]).push(id); });
+  const groups=pmoKeys(byG).map(function(g){ return {grp:g, ids:byG[g].slice().sort(function(a,b){ return rows[a].rank-rows[b].rank; })}; });
+  return {rows:rows, groups:groups, order:order};
+}
+// A subtotal over some rows: per held year, then across the years held.
+function fydpSub(ids, rows, D){
+  const out={fy:{}, tot:{ask:0, alloc:0, fund:0, unf:0}};
+  D.held.forEach(function(y){
+    const s={ask:0, alloc:0, fund:0, unf:0}; let n=0;
+    ids.forEach(function(id){ const f=(rows[id]||{fy:{}}).fy[y]; if(!f) return; n++; s.ask+=f.ask; s.alloc+=f.alloc; s.fund+=f.fund; s.unf+=f.unf; });
+    out.fy[y]=s; out.tot.ask+=s.ask; out.tot.alloc+=s.alloc; out.tot.fund+=s.fund; out.tot.unf+=s.unf;
+  });
+  return out;
+}
+// By service, per held year: the projection's vectors added over requirements, the pots beside them.
+function fydpSvc(D){
+  const out={};
+  D.svc.forEach(function(sv,i){
+    const row={svc:sv, fy:{}, tot:{ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}};
+    D.held.forEach(function(y){
+      const P=D.proj[y], s={ask:0, alloc:0, fund:0, unf:0, disc:(P.disc||[])[i]||0, mand:(P.mand||[])[i]||0};
+      (P.reqs||[]).forEach(function(r){
+        const a=(r.ask||[])[i]||0, al=(r.alloc||[])[i]||0, f=(r.fund||r.alloc||[])[i]||0;
+        s.ask+=a; s.alloc+=al; s.fund+=f; s.unf+=Math.max(0, a-f);
+      });
+      row.fy[y]=s; Object.keys(s).forEach(function(k){ row.tot[k]+=s[k]; });
+    });
+    out[sv]=row;
+  });
+  return out;
+}
+function exportFydpPlan(){
+  const D=fydpData(fydpSrc);
+  if(!D){ alert('That cycle is no longer held. Pick a source in 📊 Five-year spend plan.'); return; }
+  if(!D.held.length){ alert('No year of '+D.label+' holds a plan, so there is nothing to print.'); return; }
+  const R=fydpRows(D);
+  const H=2,B=1,N=3,NB=4,SEC=6,TI=7;
+  const fyl=function(y){ return 'FY'+(y%100); };
+  const span=fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1]);
+  const title='SPMT FYDP SPEND PLAN — '+D.label.toUpperCase()+' — '+span;
+  const cell=function(f,k,s){ return f? {v:f[k], s:(s||N)} : {v:'—', s:0}; };
+  const note={v:'One row per requirement, the years across; PMO subtotals and the portfolio total. Funded is the lane draw (discretionary + mandatory); Unfunded is requirement less funded, floored per service. A year the source never held prints —, not 0, and is outside the FYDP totals. Years held: '
+    +D.held.map(fyl).join(', ')+'.'+(D.ts? ' Locked '+fmtTs(D.ts)+(D.by? ' by '+D.by : '')+'.' : ' The working plan as it stands.'), s:0};
+  const sheets=[];
+  // ---------- 1. by requirement
+  {
+    const hdr=['PMO','Requirement','CCaR','Band'];
+    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); });
+    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded');
+    const rows=[[{v:title,s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
+    const put=function(lbl, r, s, sub){
+      const line=[sub? {v:lbl,s:B} : lbl, sub? '' : r.title, sub? '' : r.ccar, sub? '' : r.band];
+      D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',sub?NB:N), cell(f,'alloc',sub?NB:N), cell(f,'fund',sub?NB:N), cell(f,'unf',sub?NB:N)); });
+      line.push({v:s.tot.ask,s:sub?NB:N},{v:s.tot.alloc,s:sub?NB:N},{v:s.tot.fund,s:sub?NB:N},{v:s.tot.unf,s:sub?NB:N});
+      rows.push(line);
+    };
+    R.groups.forEach(function(g){
+      g.ids.forEach(function(id){ const r=R.rows[id]; put(r.grp, r, {fy:r.fy, tot:r.tot}, false); });
+      put('Subtotal — '+g.grp, {}, fydpSub(g.ids, R.rows, D), true);
+    });
+    rows.push([]);
+    put('TOTAL', {}, fydpSub(R.order, R.rows, D), true);
+    sheets.push({name:'By Requirement', cols:[10,44,16,14].concat(D.years.map(function(){ return [14,14,14,14]; }).flat()).concat([16,16,16,16]), freeze:4, rows:rows});
+  }
+  // ---------- 2. by PMO
+  {
+    const hdr=['PMO','Requirements'];
+    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); });
+    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded');
+    const rows=[[{v:title+' — BY PMO',s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
+    const put=function(lbl, n, s, st){
+      const line=[{v:lbl,s:st},{v:n,s:0}];
+      D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',st), cell(f,'alloc',st), cell(f,'fund',st), cell(f,'unf',st)); });
+      line.push({v:s.tot.ask,s:st},{v:s.tot.alloc,s:st},{v:s.tot.fund,s:st},{v:s.tot.unf,s:st});
+      rows.push(line);
+    };
+    R.groups.forEach(function(g){ put(g.grp, g.ids.length, fydpSub(g.ids, R.rows, D), N); });
+    rows.push([]);
+    put('TOTAL', R.order.length, fydpSub(R.order, R.rows, D), NB);
+    sheets.push({name:'By PMO', cols:[14,14].concat(D.years.map(function(){ return [14,14,14,14]; }).flat()).concat([16,16,16,16]), freeze:4, rows:rows});
+  }
+  // ---------- 3. by service
+  {
+    const V=fydpSvc(D);
+    const hdr=['Service'];
+    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded', fyl(y)+' Disc BA', fyl(y)+' Mand BA'); });
+    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded','FYDP Disc BA','FYDP Mand BA');
+    const rows=[[{v:title+' — BY SERVICE',s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
+    const K=['ask','alloc','fund','unf','disc','mand'];
+    const put=function(lbl, row, st){
+      const line=[{v:lbl,s:st}];
+      D.years.forEach(function(y){ const f=row.fy[y]; K.forEach(function(k){ line.push(cell(f,k,st)); }); });
+      K.forEach(function(k){ line.push({v:row.tot[k],s:st}); });
+      rows.push(line);
+    };
+    const tot={fy:{}, tot:{ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}};
+    D.held.forEach(function(y){ tot.fy[y]={ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}; });
+    D.svc.forEach(function(sv){ const r=V[sv]; put(sv, r, N);
+      D.held.forEach(function(y){ K.forEach(function(k){ tot.fy[y][k]+=r.fy[y][k]; }); });
+      K.forEach(function(k){ tot.tot[k]+=r.tot[k]; }); });
+    rows.push([]);
+    put('TOTAL', tot, NB);
+    sheets.push({name:'By Service', cols:[12].concat(D.years.map(function(){ return [14,14,14,14,13,13]; }).flat()).concat([16,16,16,16,15,15]), freeze:4, rows:rows});
+  }
+  const bytes=buildXlsx(sheets);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download=expName('SPMT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLbl(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+  a.click();
+  setStat('📊 FYDP spend plan exported — '+esc(D.label)+', '+span+', '+R.order.length+' requirements across '+D.held.length+' planned year'+(D.held.length===1?'':'s')+'.');
+}
+function fydpBody(){
+  const bg=document.getElementById('fydpPanel'), el=document.getElementById('fydpBody');
+  if(!bg||!el) return;
+  bg.className='modal-bg'+(fydpOpen?' open':'');
+  if(!fydpOpen){ el.innerHTML=''; return; }
+  let D=fydpData(fydpSrc); if(!D){ fydpSrc='working'; D=fydpData('working'); }
+  const fyl=function(y){ return 'FY'+(y%100); };
+  let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Source '
+    +'<select style="font-size:10px;padding:3px 6px" onchange="fydpSetSrc(this.value)" title="the working plan as it stands, or a locked cycle as it was locked">'
+    +'<option value="working"'+(fydpSrc==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+esc(blLbl(MS.cycle))+')':'')+'</option>'
+    +blList().filter(function(k){ return cycHeld(k).length; }).map(function(k){ return '<option value="'+k+'"'+(fydpSrc===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>'; }).join('')
+    +'</select> <b style="color:var(--gold)">'+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</b>'
+    +' <span style="color:var(--dim);font-size:10px">years held: '+(D.held.length? D.held.map(fyl).join(', ') : 'none')+(D.ts? ' · locked '+esc(fmtTs(D.ts))+(D.by? ' by '+esc(D.by):'') : '')+'</span>'
+    +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportFydpPlan()">📊 Export the workbook</button></div>';
+  if(!D.held.length){ h+='<div class="hint">No year of '+esc(D.label)+' holds a plan.</div>'; el.innerHTML=h; return; }
+  const R=fydpRows(D);
+  h+='<div style="max-height:60vh;overflow:auto"><table class="po"><thead><tr><th>PMO</th>'
+    +D.years.map(function(y){ return '<th class="n" colspan="3">'+fyl(y)+(D.held.indexOf(y)<0? ' <span class="z">no plan</span>':'')+'</th>'; }).join('')
+    +'<th class="n" colspan="3">FYDP</th></tr><tr><th></th>'
+    +D.years.map(function(){ return '<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th>'; }).join('')
+    +'<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th></tr></thead><tbody>';
+  const line=function(lbl, s, cls){
+    return '<tr'+(cls? ' class="'+cls+'"':'')+'><td><b>'+esc(lbl)+'</b></td>'
+      +D.years.map(function(y){ const f=s.fy[y]; return f? '<td class="n">'+fM(f.ask)+'</td><td class="n">'+fM(f.fund)+'</td><td class="n">'+fM(f.unf)+'</td>'
+        : '<td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td>'; }).join('')
+      +'<td class="n">'+fM(s.tot.ask)+'</td><td class="n">'+fM(s.tot.fund)+'</td><td class="n">'+fM(s.tot.unf)+'</td></tr>';
+  };
+  R.groups.forEach(function(g){ h+=line(g.grp+' ('+g.ids.length+')', fydpSub(g.ids, R.rows, D)); });
+  h+=line('TOTAL', fydpSub(R.order, R.rows, D), 'tot');
+  h+='</tbody></table></div>'
+    +'<div class="hint" style="margin-top:8px">The workbook carries every requirement’s row with Requirement, Allocated, Funded and Unfunded per year, the PMO subtotals, and the same by PMO and by service with the budget authority beside it. Funded is the lane draw; Unfunded is requirement less funded, floored per service. A locked cycle prints its figures as locked; the working plan prints them as they stand.</div>';
+  el.innerHTML=h;
+}
 // ============================ DELTAS AGAINST THE REFERENCE CYCLE ============================
 // The working plan is the reference cycle, continuing. What has changed since the lock is read by
 // comparing the year on screen to the lock's projection of the same year -- requirement by
@@ -18597,7 +18808,7 @@ function render(){
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
       +'checked it, or the unread part will be lost.'); }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -18924,6 +19135,7 @@ function syncBtns(){
   document.getElementById('dd_fydp').innerHTML=
     '<div class="mlbl">Views</div>'+
     mi('📐 Spruills — Reqs vs Funding…',"mRun(toggleSp)",spOpen,'ACE × PPBE cycle · all appns')+
+    mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'by requirement · PMO · service — a locked cycle or the working plan')+
     '<div class="msep"></div><div class="mlbl">Positions</div>'+
     mi('🏛 PPBE Budget Positions…',"mRun(toggleP2)",ppOpen,'POM · BES · PB · DoN')+
     '<div class="msep"></div><div class="mlbl">Bring data in</div>'+
@@ -18998,6 +19210,7 @@ function syncBtns(){
     '<div class="mlbl">Briefing products</div>'+
     mi('📊 Excel Workbook — full breakouts',"mRun(exportExcel)",false,'streams · forecast · CR · PMOs'+(DATA.costElems?' · CE':''))+
     mi('📈 ACE Tie-Out (Excel)',"mRun(exportAceTieout)",false,'mapping · PMO reconciliation · unclaimed lines')+
+    mi('📊 FYDP Spend Plan (Excel)',"mRun(exportFydpPlan)",false,(fydpSrc==='working'? 'the working plan' : blLbl(fydpSrc)+' (locked)')+' · by requirement, PMO, service')+
     // Under BRIEFING PRODUCTS, not Data: it is taken into a room and worked through, not loaded
     // into another system. It reaches every appropriation, so it says so on the menu - the rest of
     // this section answers for the board in front of you.
