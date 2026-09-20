@@ -1515,6 +1515,30 @@ same reason every suite does: the view applies state, and the board rebuilds fro
 view is read-only and leaves no trace*, fifteen `view-*` mutations, and a trace-matrix surface
 that reads all twelve quantities off the view and expects the engine's.
 
+### Verifying the file you brief from
+
+Everything else here proves the math on fixtures. `npm run verify:file -- <saved-board.html>`
+(`tools/verify-file.mjs`) opens the board someone actually briefs from, in the harness, and prints
+a certificate: **LOADS** (the state was adopted, not defaulted or refused; nothing reported
+unreadable; every id in the order resolves; every per-service vector has one figure per service;
+each side store came back whole; the year on screen came back whole, with normalisation reported
+apart from loss; a census of populated and empty containers), **SURVIVES** (save → reopen returns
+every value, the side stores travel byte for byte, a second save is stable), **TIES** (the lane
+identities per requirement per service, then the trace-matrix harvests from `trace-lib.mjs` held
+to the engine — on real data there is no fixture truth, so every surface is held to `tiers()` and
+the identities hold `tiers()` to itself), **CROSS-FOOTS** (the four summary sheets' total rows
+against the rows above them, every per-service breakout against its figure, every other workbook
+builds), and, when the working tree is a different build from the one that wrote the file,
+everything again **under the current build** with the same data injected, and **MOVED** — every
+figure addressed by sheet, row label and column header, diffed across the two builds. Every slot
+with a plan in it is examined (the boot is told which appropriation to open). Exit 1 on any FAIL;
+MOVED is a report. **The file is read, never copied into the repo**: keep it in the scratch folder
+or a temp directory; `.gitignore` refuses every other `.html` anyway. `--selftest` builds a
+synthetic saved file, certifies it, plants a ghost in the order and truncates the state, and must
+notice both — a verifier that cannot fail is a rumour — and that self-test is a stage of
+`validate:math`. The lock-and-view harvests run under a scratch cycle (`POM|2999`, deleted after)
+because on a real file `PB|<year>` may be a real lock taken weeks ago.
+
 ### The five money-coverage gaps are closed
 
 Each closed the same way: a check that derives the figure from the fixture (never from the code

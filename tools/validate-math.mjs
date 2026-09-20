@@ -143,6 +143,19 @@ for (const [lbl, env] of [['fuzz (card)', {}], ['fuzz (grid)', { BOARD: GRID }]]
   console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  ${lbl}`);
 }
 
+// ---- 5c. the file verifier's own proof ----------------------------------------------------------
+// The one tool that runs on the board people brief from (tools/verify-file.mjs). A verifier that
+// cannot fail is a rumour, so every night it certifies a synthetic saved file, then plants a ghost
+// in the priority order and truncates the saved state, and must notice both.
+{
+  const r = await run('verify-file (self-test)', 'node', [join(HERE, 'verify-file.mjs'), '--selftest'], {});
+  const ok = r.code === 0 && /VERIFIER SELF-TEST PASSED/.test(r.out || '');
+  note({ ...r, ok, detail: ok
+    ? 'a clean synthetic saved file holds; a planted ghost and a truncated state are both noticed'
+    : 'the verifier did not hold a clean file, or did not notice a planted loss' });
+  console.log(`  ${ok ? 'ok  ' : 'FAIL'}  verify-file (self-test)`);
+}
+
 // ---- 6. the sweeps, in parallel -------------------------------------------------------------------
 console.log('  ..    mutation sweeps (both builds, in parallel) — this is the long one');
 const [cardSweep, gridSweep] = await Promise.all([

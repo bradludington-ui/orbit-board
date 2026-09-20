@@ -38,7 +38,8 @@
     "fuzz": "node tools/roundtrip-fuzz.mjs",
     "delta": "node tools/export-delta.mjs",
     "defects": "node tools/math-defects.mjs",
-    "standards": "node tools/standards-check.mjs"
+    "standards": "node tools/standards-check.mjs",
+    "verify:file": "node tools/verify-file.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"
