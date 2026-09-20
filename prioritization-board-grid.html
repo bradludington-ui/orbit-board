@@ -1371,6 +1371,24 @@ function cycByAp(){
     try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'-cyc')||'null'); if(s2&&s2.cycles) out[k]=s2; }catch(e){} });
   return out;
 }
+// A PMO COPY CARRIES ONE CYCLE -- the reference the working plan's deltas are read against -- and
+// only its projection: no year states (size), no other locks (not the office's to see or use), and
+// nothing an office could put on the drill. The copy's rows still show Δ, its compare and its
+// five-year plan still read the cycle, and a lock taken on the copy goes into the copy's own store.
+function cycRefOnlyDb(){
+  const out={ts:CYCDB.ts||0, byAp:{}}, store={ts:CYCDB.ts||0, cycles:{}}, ref=cycDeltaRef();
+  if(ref){ const c=blGet(ref);
+    store.cycles[ref]={cyc:c.cyc, cycYr:c.cycYr, base:c.base, window:(c.window||[]).slice(), ap:c.ap, ts:c.ts, by:c.by, note:c.note||'', from:c.from||'',
+                       locked:true, partial:true, refOnly:true, years:{}, proj:JSON.parse(JSON.stringify(c.proj||{})), unlocks:[]}; }
+  out.byAp[_AP.slug]=store;
+  return out;
+}
+// The PMO copy's HTML: this board with the sandbox mode baked in and the cycle store cut to the reference.
+function pmoCopyHtml(mode){
+  return buildSavedHtml({refOnly:true}).replace(
+    /(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+    function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; });
+}
 document.title="FY27 "+_AP.t+" Prioritization Board (Consolidated)";
 let PUBS=(PUB&&PUB.appns)? PUB.appns : {};
 if(PUB&&PUB.appns) PUB=PUBS[_AP.slug]||null;
@@ -1480,7 +1498,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.75 (20 Sep 2026)';
+const BUILD='v1.76 (20 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4733,10 +4751,10 @@ function fileByOf(p){
   return p.by||'';
 }
 let LASTKNOWN=0;   // ts of the file state we started from (collision baseline)
-function buildSavedHtml(){
+function buildSavedHtml(opts){
   if(CYCVIEW){ cycRefuse('Building a board file'); throw new Error('a locked cycle is on screen — leave the view before saving or publishing'); }
   save();
-  PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const json = JSON.stringify({appns:PUBS, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:{ts:CYCDB.ts||0, byAp:cycByAp()}}).replace(/</g,'\\u003c');
+  PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const cycDb=(opts&&opts.refOnly)? cycRefOnlyDb() : {ts:CYCDB.ts||0, byAp:cycByAp()}; const json = JSON.stringify({appns:PUBS, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:cycDb}).replace(/</g,'\\u003c');
   return SRC0.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
                       (m,a,b)=>a+json+b);
 }
@@ -4809,9 +4827,7 @@ function publishPmoCopy(){
   // `ap` pins the appropriation: the copy opens as the board it was published from, whatever the
   // reader's browser last had selected.
   const mode={sandbox:true, by:who, ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()};
-  const html=buildSavedHtml().replace(
-    /(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
-    function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; });
+  const html=pmoCopyHtml(mode);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
   a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 PMO COPY \u2014 '
@@ -13795,6 +13811,30 @@ const fydpSum=a=>(a||[]).reduce(function(x,y){ return x+(+y||0); },0);
 // Unfunded, per requirement: Σ[svc] max(0, ask − funded). The floor is per service so a service
 // with money to spare never offsets one that is short.
 function fydpUnf(r){ let u=0; (r.ask||[]).forEach(function(a,i){ u+=Math.max(0, (+a||0)-((r.fund||r.alloc||[])[i]||0)); }); return u; }
+// THE OFFICIAL PPBE POSITION beside the plan: the position logged under the same cycle key (the
+// working plan's tag, or the locked cycle's key) in 🏛 PPBE Budget Positions, by service, for the
+// year -- read live from MS.ppbe, which a lock never copies, because the position is the
+// comptroller's figure and not the board's. null when nothing is logged for that cycle, service
+// and year, printed as an em dash and never 0, so an unlogged position cannot read as a position
+// of nothing.
+function fydpPosKey(D){ return (D.src==='working')? (MS.cycle||'') : D.src; }
+function fydpPos(D, sv, y){
+  const key=fydpPosKey(D); if(!key) return null;
+  const P=(MS.ppbe||{})[key]; if(!P) return null;
+  const N=ppNorm(P);
+  const logged=ppKeysOf(N, sv).some(function(k){ return !!((((N.val||{})[sv]||{})[k]||{})[y]); });
+  if(!logged) return null;
+  return ppSvcFy(N, sv, y).t;
+}
+// The position added over the services that log one for the year; null when none does.
+function fydpPosTot(D, y){
+  let t=0, n=0;
+  D.svc.forEach(function(sv){ const p=fydpPos(D, sv, y); if(p===null) return; n++; t+=p; });
+  return n? t : null;
+}
+// The cycles a report can read: any that holds a projection -- a full lock, a migrated one-year
+// baseline, or the reference a PMO copy carries. Viewing on the drill needs the years (cycHeld).
+function cycReportable(){ return blList().filter(function(k){ const c=blGet(k); return Object.keys((c&&c.proj)||{}).length>0; }); }
 function fydpRows(D){
   const rows={}, order=[];
   D.held.forEach(function(y){
@@ -13891,28 +13931,35 @@ function exportFydpPlan(){
     put('TOTAL', R.order.length, fydpSub(R.order, R.rows, D), NB);
     sheets.push({name:'By PMO', cols:[14,14].concat(D.years.map(function(){ return [14,14,14,14]; }).flat()).concat([16,16,16,16]), freeze:4, rows:rows});
   }
-  // ---------- 3. by service
+  // ---------- 3. by service, with the official PPBE position beside the plan
   {
-    const V=fydpSvc(D);
+    const V=fydpSvc(D), posKey=fydpPosKey(D);
     const hdr=['Service'];
-    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded', fyl(y)+' Disc BA', fyl(y)+' Mand BA'); });
-    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded','FYDP Disc BA','FYDP Mand BA');
-    const rows=[[{v:title+' — BY SERVICE',s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
+    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded', fyl(y)+' Disc BA', fyl(y)+' Mand BA', fyl(y)+' PPBE position', fyl(y)+' Requirement − position'); });
+    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded','FYDP Disc BA','FYDP Mand BA','FYDP PPBE position','FYDP Requirement − position');
+    const posNote=' PPBE position: the official position logged under '+(posKey? blLbl(posKey) : 'the plan’s cycle tag — none is set, so no position is printed')+' in 🏛 PPBE Budget Positions, by service and year, as it stands now; — where none is logged. Requirement − position is the plan’s requirement less it. The FYDP position is printed only when every held year logs one.';
+    const rows=[[{v:title+' — BY SERVICE',s:TI}],[{v:note.v+posNote,s:0}],[],hdr.map(function(v){ return {v:v,s:H}; })];
     const K=['ask','alloc','fund','unf','disc','mand'];
-    const put=function(lbl, row, st){
+    const pos=function(sv, y){ return sv===null? fydpPosTot(D, y) : fydpPos(D, sv, y); };   // one service, or the services added for TOTAL
+    const put=function(lbl, sv, row, st){
       const line=[{v:lbl,s:st}];
-      D.years.forEach(function(y){ const f=row.fy[y]; K.forEach(function(k){ line.push(cell(f,k,st)); }); });
+      let pT=0, pAll=true;
+      D.years.forEach(function(y){ const f=row.fy[y]; K.forEach(function(k){ line.push(cell(f,k,st)); });
+        const p=f? pos(sv, y) : null;
+        if(p===null){ if(f) pAll=false; line.push({v:'—',s:0},{v:'—',s:0}); }
+        else { pT+=p; line.push({v:p,s:st},{v:f.ask-p,s:st}); } });
       K.forEach(function(k){ line.push({v:row.tot[k],s:st}); });
+      if(D.held.length && pAll) line.push({v:pT,s:st},{v:row.tot.ask-pT,s:st}); else line.push({v:'—',s:0},{v:'—',s:0});
       rows.push(line);
     };
     const tot={fy:{}, tot:{ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}};
     D.held.forEach(function(y){ tot.fy[y]={ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}; });
-    D.svc.forEach(function(sv){ const r=V[sv]; put(sv, r, N);
+    D.svc.forEach(function(sv){ const r=V[sv]; put(sv, sv, r, N);
       D.held.forEach(function(y){ K.forEach(function(k){ tot.fy[y][k]+=r.fy[y][k]; }); });
       K.forEach(function(k){ tot.tot[k]+=r.tot[k]; }); });
     rows.push([]);
-    put('TOTAL', tot, NB);
-    sheets.push({name:'By Service', cols:[12].concat(D.years.map(function(){ return [14,14,14,14,13,13]; }).flat()).concat([16,16,16,16,15,15]), freeze:4, rows:rows});
+    put('TOTAL', null, tot, NB);
+    sheets.push({name:'By Service', cols:[12].concat(D.years.map(function(){ return [14,14,14,14,13,13,15,17]; }).flat()).concat([16,16,16,16,15,15,16,18]), freeze:4, rows:rows});
   }
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
@@ -13931,7 +13978,7 @@ function fydpBody(){
   let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Source '
     +'<select style="font-size:10px;padding:3px 6px" onchange="fydpSetSrc(this.value)" title="the working plan as it stands, or a locked cycle as it was locked">'
     +'<option value="working"'+(fydpSrc==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+esc(blLbl(MS.cycle))+')':'')+'</option>'
-    +blList().filter(function(k){ return cycHeld(k).length; }).map(function(k){ return '<option value="'+k+'"'+(fydpSrc===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>'; }).join('')
+    +cycReportable().map(function(k){ return '<option value="'+k+'"'+(fydpSrc===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>'; }).join('')
     +'</select> <b style="color:var(--gold)">'+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</b>'
     +' <span style="color:var(--dim);font-size:10px">years held: '+(D.held.length? D.held.map(fyl).join(', ') : 'none')+(D.ts? ' · locked '+esc(fmtTs(D.ts))+(D.by? ' by '+esc(D.by):'') : '')+'</span>'
     +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportFydpPlan()">📊 Export the workbook</button></div>';
@@ -13950,8 +13997,16 @@ function fydpBody(){
   };
   R.groups.forEach(function(g){ h+=line(g.grp+' ('+g.ids.length+')', fydpSub(g.ids, R.rows, D)); });
   h+=line('TOTAL', fydpSub(R.order, R.rows, D), 'tot');
-  h+='</tbody></table></div>'
-    +'<div class="hint" style="margin-top:8px">The workbook carries every requirement’s row with Requirement, Allocated, Funded and Unfunded per year, the PMO subtotals, and the same by PMO and by service with the budget authority beside it. Funded is the lane draw; Unfunded is requirement less funded, floored per service. A locked cycle prints its figures as locked; the working plan prints them as they stand.</div>';
+  h+='</tbody></table></div>';
+  { // the official position beside the plan, per held year
+    const pk=fydpPosKey(D), T=fydpSub(R.order, R.rows, D);
+    const gap=function(v){ return Math.abs(v)<0.5? '$0' : cycSgn(v); };
+    h+='<div class="hint fydppos" style="margin-top:6px">'+(pk
+      ? 'PPBE position <b>'+esc(blLbl(pk))+'</b> beside the plan: '+D.held.map(function(y){ const p=fydpPosTot(D, y);
+          return fyl(y)+' '+(p===null? '<span class="z">none logged</span>' : fM(p)+' · requirement − position '+gap(T.fy[y].ask-p)); }).join(' · ')
+      : 'No cycle tag on the working plan, so no PPBE position is printed beside it.')+'</div>';
+  }
+  h+='<div class="hint" style="margin-top:8px">The workbook carries every requirement’s row with Requirement, Allocated, Funded and Unfunded per year, the PMO subtotals, and the same by PMO and by service with the budget authority beside it. Funded is the lane draw; Unfunded is requirement less funded, floored per service. A locked cycle prints its figures as locked; the working plan prints them as they stand.</div>';
   el.innerHTML=h;
 }
 // ============================ COMPARING TWO CYCLES =========================================
@@ -14115,7 +14170,7 @@ function cycCmpBody(){
   bg.className='modal-bg'+(cycCmpOpen?' open':'');
   if(!cycCmpOpen){ el.innerHTML=''; return; }
   const fyl=y=>'FY'+(y%100);
-  const held=blList().filter(k=>cycHeld(k).length);
+  const held=cycReportable();
   if(cycCmpA && cycCmpA!=='working' && held.indexOf(cycCmpA)<0) cycCmpA='';
   if(cycCmpB!=='working' && held.indexOf(cycCmpB)<0) cycCmpB='working';
   const pick=(which, v)=>'<select style="font-size:10px;padding:3px 6px" onchange="cycCmpSet(\''+which+'\', this.value)">'

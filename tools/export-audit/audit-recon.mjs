@@ -1430,6 +1430,99 @@ const grabX = (fn) => w.eval(`(async function(){
   }
 }
 
+// ══ 19. THE PPBE POSITION BESIDE THE PLAN ══════════════════════════════════════════════════════
+// The official position logged under the plan's cycle (🏛 PPBE Budget Positions) is printed beside
+// the plan on the By Service sheet, by service and year, as it stands -- a lock never copies it,
+// because it is the comptroller's figure and not the board's. Re-derived here from the values
+// typed in: the position per service and year, the requirement less it, the services added for
+// TOTAL, a service or year with nothing logged printed as an em dash and kept out of the FYDP
+// position, the same figures on the locked cycle's report after the working plan is retagged, and
+// none at all for a working plan with no cycle tag.
+{
+  const name = 'the PPBE position beside the plan';
+  const cur = +ev('MS.cur'), key = 'PB|' + cur, fyl = y => 'FY' + (y % 100);
+  const snap = ev('JSON.stringify(S)'), base0 = ev('JSON.stringify(MS.base===undefined? null : MS.base)'), pp0 = ev('JSON.stringify(MS.ppbe||{})');
+  try {
+  const A1 = [18000000, 4000000, 2000000, 8000000, 3000000, 5000002];
+  ev(`MS.years[MS.cur]=S; MS.base=MS.cur+1;
+      var y1=JSON.parse(JSON.stringify(S)); y1.asks={A:${JSON.stringify(A1)}}; delete y1.pmoOrder; MS.years[MS.cur+1]=y1; save(); 'ok'`);
+  // the position, typed the way the panel types it: dollars per service and year, discretionary and mandatory
+  ev(`ppCyc='PB'; ppYr=MS.cur;
+      ppSetV('USAF','_all',MS.cur,'d','1000000'); ppSetV('USAF','_all',MS.cur,'m','200000');
+      ppSetV('ANG','_all',MS.cur,'d','300000'); ppSetV('USAF','_all',MS.cur+1,'d','1500000');
+      MS.cycle='${key}'; save(); 'ok'`);
+  const POS = { [cur]: { USAF: 1200000, ANG: 300000 }, [cur + 1]: { USAF: 1500000 } };
+  chk(name, 'fixture', 'the position is logged under the working plan’s tag', ev(`JSON.stringify(Object.keys(MS.ppbe))`) + ' ' + ev('MS.cycle'), JSON.stringify([key]) + ' ' + key);
+  chk(name, 'fixture', 'and reads back per service and year', ev(`ppSvcFy(MS.ppbe['${key}'],'USAF',MS.cur).t+':'+ppSvcFy(MS.ppbe['${key}'],'ANG',MS.cur).t+':'+ppSvcFy(MS.ppbe['${key}'],'USAF',MS.cur+1).t`), '1200000:300000:1500000');
+  const askSv = { [cur]: {}, [cur + 1]: {} };
+  F.svc.forEach((sv, i) => { askSv[cur][sv] = _sum(Object.keys(F.rows).map(id => F.rows[id].ask[i] || 0)); });
+  const asks1 = JSON.parse(ev(`aceWithYear(MS.cur+1, function(){ return JSON.stringify(S.order.map(function(id){ return itemById(id).ask; })); })`));
+  F.svc.forEach((sv, i) => { askSv[cur + 1][sv] = _sum(asks1.map(a => a[i] || 0)); });
+  const posOf = (y, sv) => (POS[y] || {})[sv] === undefined ? null : POS[y][sv];
+  const cellOf = (row, h, sheet, y, what) => { const c = colOf(sheet, h, (y === 'fydp' ? 'FYDP' : fyl(y)) + ' ' + what); return c < 0 ? undefined : row[c]; };
+  const readSheet = async (label) => {
+    const W = JSON.parse(await grabX('exportFydpPlan'));
+    chk(name, label, 'the workbook builds', W.state, 'ok');
+    const bs = W.sheets['By Service'] || [], hs = headerRow(bs, 'Service', fyl(cur) + ' PPBE position', fyl(cur) + ' Requirement − position');
+    chk(name, label, 'By Service carries the position columns', hs >= 0 ? 'yes' : 'no', 'yes');
+    return { bs, hs, note: String((bs[1] || [])[0] ?? ''), row: sv => bs.find((r, i) => i > hs && String((r || [])[0] ?? '') === sv) || [] };
+  };
+  // ---- the working plan, tagged PB
+  ev(`fydpSrc='working'; 'ok'`);
+  const W = await readSheet('working');
+  chk(name, 'working', 'the note names the cycle the position is read under', /logged under PB\d\d/.test(W.note), true);
+  F.svc.forEach(sv => {
+    const row = W.row(sv);
+    [cur, cur + 1].forEach(y => {
+      const p = posOf(y, sv);
+      chk(name, sv, fyl(y) + ' PPBE position is what was typed, or — when nothing was', p === null ? String(cellOf(row, W.hs, W.bs, y, 'PPBE position') ?? '') : num(cellOf(row, W.hs, W.bs, y, 'PPBE position')), p === null ? '—' : p);
+      chk(name, sv, fyl(y) + ' Requirement − position is the plan’s requirement less it, or —', p === null ? String(cellOf(row, W.hs, W.bs, y, 'Requirement − position') ?? '') : num(cellOf(row, W.hs, W.bs, y, 'Requirement − position')), p === null ? '—' : askSv[y][sv] - p);
+    });
+    chk(name, sv, fyl(cur + 2) + ' is not held, so the position prints —', String(cellOf(row, W.hs, W.bs, cur + 2, 'PPBE position') ?? ''), '—');
+    const both = posOf(cur, sv) !== null && posOf(cur + 1, sv) !== null;
+    chk(name, sv, 'the FYDP position is printed only when every held year logs one', both ? num(cellOf(row, W.hs, W.bs, 'fydp', 'PPBE position')) : String(cellOf(row, W.hs, W.bs, 'fydp', 'PPBE position') ?? ''), both ? posOf(cur, sv) + posOf(cur + 1, sv) : '—');
+    if (both) chk(name, sv, 'and the FYDP gap is the two years’ requirement less the two positions', num(cellOf(row, W.hs, W.bs, 'fydp', 'Requirement − position')), askSv[cur][sv] + askSv[cur + 1][sv] - posOf(cur, sv) - posOf(cur + 1, sv));
+  });
+  const tot = W.row('TOTAL');
+  const totAsk = y => _sum(F.svc.map(sv => askSv[y][sv]));
+  chk(name, 'TOTAL', fyl(cur) + ' position is the services that log one, added', num(cellOf(tot, W.hs, W.bs, cur, 'PPBE position')), 1500000);
+  chk(name, 'TOTAL', fyl(cur) + ' Requirement − position follows', num(cellOf(tot, W.hs, W.bs, cur, 'Requirement − position')), totAsk(cur) - 1500000);
+  chk(name, 'TOTAL', fyl(cur + 1) + ' position likewise', num(cellOf(tot, W.hs, W.bs, cur + 1, 'PPBE position')), 1500000);
+  chk(name, 'TOTAL', 'the FYDP position is both years’', num(cellOf(tot, W.hs, W.bs, 'fydp', 'PPBE position')), 3000000);
+  chk(name, 'TOTAL', 'and the FYDP gap is the requirement over both years less it', num(cellOf(tot, W.hs, W.bs, 'fydp', 'Requirement − position')), totAsk(cur) + totAsk(cur + 1) - 3000000);
+  // ---- the panel
+  ev(`fydpOpen=true; render(); 'ok'`);
+  const panel = ev(`document.getElementById('fydpBody').innerHTML`);
+  const fm = n => ev(`fM(${n})`);
+  chk(name, 'panel', 'the panel names the cycle and prints the position per held year', /PPBE position <b>PB\d\d<\/b> beside the plan/.test(panel) && panel.indexOf(fyl(cur) + ' ' + fm(1500000)) >= 0 && panel.indexOf(fyl(cur + 1) + ' ' + fm(1500000)) >= 0, true);
+  chk(name, 'panel', 'and the requirement less it', panel.indexOf('requirement − position ' + ev(`cycSgn(${totAsk(cur) - 1500000})`)) >= 0, true);
+  ev(`fydpOpen=false; render(); 'ok'`);
+  // ---- lock PB, retag the working plan BES: the locked report keeps PB’s position, the working plan has none to print
+  ev(`blCyc='PB'; blYr=MS.cur; cycLock(); MS.cycle='BES|'+(MS.cur+1); save(); fydpSrc='${key}'; 'ok'`);
+  const L = await readSheet('locked');
+  chk(name, 'locked', 'PB’s report reads PB’s position whatever the working plan is tagged', num(cellOf(L.row('USAF'), L.hs, L.bs, cur, 'PPBE position')) + ':' + num(cellOf(L.row('TOTAL'), L.hs, L.bs, cur, 'PPBE position')), '1200000:1500000');
+  chk(name, 'locked', 'and says so', /logged under PB\d\d/.test(L.note), true);
+  ev(`fydpSrc='working'; 'ok'`);
+  const B = await readSheet('retagged');
+  chk(name, 'retagged', 'the working plan, tagged BES with no position logged, prints —', String(cellOf(B.row('USAF'), B.hs, B.bs, cur, 'PPBE position') ?? '') + ':' + String(cellOf(B.row('TOTAL'), B.hs, B.bs, cur, 'PPBE position') ?? ''), '—:—');
+  chk(name, 'retagged', 'and names BES', /logged under BES\d\d/.test(B.note), true);
+  ev(`MS.cycle=''; save(); 'ok'`);
+  const U = await readSheet('untagged');
+  chk(name, 'untagged', 'with no cycle tag there is no position to read, and the note says why', String(cellOf(U.row('USAF'), U.hs, U.bs, cur, 'PPBE position') ?? '') + ' ' + (/none is set/.test(U.note)), '— true');
+  ev(`fydpOpen=true; render(); 'ok'`);
+  chk(name, 'untagged', 'the panel says so too', /No cycle tag on the working plan/.test(ev(`document.getElementById('fydpBody').innerHTML`)), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  } finally {
+    try {
+      ev(`fydpOpen=false; fydpSrc='working'; if(blGet('${key}')){ blLock('${key}', false); blDelete('${key}'); }
+          MS.ppbe=JSON.parse(${JSON.stringify(pp0)}); MS.cycle=''; MS.cycleRef=''; delete MS.years[MS.cur+1]; MS.base=${base0 === 'null' ? 'undefined' : base0};
+          applyState(JSON.parse(${JSON.stringify(snap)})); MS.years[MS.cur]=S; save(); render(); 'ok'`);
+    } catch (e) { failures.push({ scenario: name, where: 'harness', what: 'the restore threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' }); }
+    chk(name, 'restore', 'the board is as it was', ev(`S.order.join(',')`) + ' ' + ev(`blList().length`) + ' ' + ev(`Object.keys(MS.ppbe||{}).length`), 'A,B,C,D,E 0 0');
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

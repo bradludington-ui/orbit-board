@@ -297,7 +297,7 @@ function crossFoots(sec, html, slug) {
 // such cycle on the file is used, against the working plan. False when the file holds none.
 function cmpPrep(ev) {
   if (!ev(`typeof exportCycCompare==='function' && typeof blList==='function'`)) return false;
-  return !!ev(`(function(){ var ks=blList().filter(function(k){ return cycHeld(k).length; }); if(!ks.length) return false; cycCmpA=ks[0]; cycCmpB='working'; return true; })()`);
+  return !!ev(`(function(){ var ks=blList().filter(function(k){ var c=blGet(k); return Object.keys((c&&c.proj)||{}).length; }); if(!ks.length) return false; cycCmpA=ks[0]; cycCmpB='working'; return true; })()`);
 }
 
 // ============================== MOVED =============================================================

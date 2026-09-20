@@ -2076,6 +2076,50 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   ev(`cycChgOpen=false; switchYear(MS.cur-3); 'ok'`);
 }
 
+
+// ═══ PPBE CYCLES — A PMO COPY CARRIES THE REFERENCE PROJECTION, AND NOTHING ELSE OF THE STORE ═══
+// Two cycles are locked and the working plan moves on. The copy published for the offices must
+// carry ONE cycle, the reference, as a projection only: no year states, no other lock, nothing that
+// can be put on the drill -- and still read it: the rows' deltas, the compare and the five-year
+// plan on the copy must say what the board says. And the copy must be smaller than a full save.
+{
+  const name = 'PPBE cycles — a PMO copy carries the reference projection only';
+  const sc = { services: ['USAF', 'ANG', 'STOVL'],
+    items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15])],
+    disc: [200, 100, 40], mand: [80, 40, 20], order: ['A', 'B', 'C'] };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  const cur = +ev('MS.cur'), keyA = 'PB|' + cur, keyB = 'BES|' + (cur + 1);
+  ev(`MS.years[MS.cur]=S; MS.base=MS.cur+1;
+      var y1=JSON.parse(JSON.stringify(S)); delete y1.pmoOrder; MS.years[MS.cur+1]=y1;
+      blCyc='PB'; blYr=MS.cur; cycLock(); blCyc='BES'; blYr=MS.cur+1; cycLock();
+      MS.cycleRef='${keyA}'; save(); setAsk('B',0,'123'); 'ok'`);
+  const dB = +ev(`(function(){ _cycDeltaCache=null; return cycDelta(MS.cur).rows.B.ask; })()`);
+  chk(name, 'board', 'the board holds two locks and reads its deltas against PB', ev(`blList().join(',')`) + ' ' + dB, [keyA, keyB].sort().join(',') + ' 43');
+  const full = +ev(`buildSavedHtml().length`);
+  const html = ev(`pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline()})`);
+  chk(name, 'size', 'the copy is smaller than a full save: no year states, one cycle', html.length < full, true);
+  const pub = JSON.parse((/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(html) || [])[1] || '{}');
+  const slug = ev('_AP.slug');
+  chk(name, 'store', 'the copy packs one appropriation’s cycle store', Object.keys((pub.cycDb || {}).byAp || {}).join(','), slug);
+  const st = ((pub.cycDb || {}).byAp || {})[slug] || { cycles: {} };
+  chk(name, 'store', 'holding the reference cycle only', Object.keys(st.cycles || {}).join(','), keyA);
+  const c = (st.cycles || {})[keyA] || {};
+  chk(name, 'store', 'as a projection: no year states, marked partial and reference-only', JSON.stringify(Object.keys(c.years || { missing: 1 })) + ' ' + c.partial + ' ' + c.refOnly, '[] true true');
+  chk(name, 'store', 'with the projection of both years it held', Object.keys(c.proj || {}).sort().join(','), cur + ',' + (cur + 1));
+  const C = boot({ html });
+  chk(name, 'copy', 'the copy knows it is one', String(C.ev('SANDBOX')), 'true');
+  chk(name, 'copy', 'and holds the reference only', C.ev(`blList().join(',')`), keyA);
+  chk(name, 'copy', 'the rows read their deltas against it, as the board does', C.ev(`(function(){ var d=cycDelta(MS.cur); return d? String(d.rows.B.ask) : 'none'; })()`), String(dB));
+  chk(name, 'copy', 'the five-year plan reads it for both years', C.ev(`(function(){ var d=fydpData('${keyA}'); return d? d.held.join(',') : 'none'; })()`), cur + ',' + (cur + 1));
+  chk(name, 'copy', 'and offers it as a source', new RegExp('<option value="' + keyA.replace('|', '\\|') + '"').test(C.ev(`fydpOpen=true; render(); fydpOpen=false; document.getElementById('fydpBody').innerHTML`)), true);
+  chk(name, 'copy', 'the compare reads it', C.ev(`(function(){ var d=cycCmpData('${keyA}','working'); return d&&d.fy[MS.cur]&&d.fy[MS.cur].rows.B? String(d.fy[MS.cur].rows.B.d.ask) : 'none'; })()`), String(dB));
+  chk(name, 'copy', 'but it cannot be put on the drill: there is no state to show', C.ev(`(function(){ var s=''; try{ cycView('${keyA}'); }catch(e){ s='threw '+e.message; } return (CYCVIEW||'')+'|'+s; })()`), '|');
+  chk(name, 'copy', 'and the copy says why', /holds no plan to show/.test(C.ev(`document.getElementById('shareStat').innerHTML`)), true);
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

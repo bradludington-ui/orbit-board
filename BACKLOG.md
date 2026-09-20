@@ -326,7 +326,24 @@ mutation: a bulk set that reaches a requirement which never offered the field is
 
 ## 8. PPBE cycles across the FYDP — lock a cycle's five-year spend plan, allocate the next cycle's deltas, report and compare by cycle
 
-**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stage 3 BUILT 20 Sep 2026 (v1.73) · stage 4 BUILT 20 Sep 2026 (v1.74) · stage 5 BUILT 20 Sep 2026 (v1.75) · stage 6 open**
+**Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stage 3 BUILT 20 Sep 2026 (v1.73) · stage 4 BUILT 20 Sep 2026 (v1.74) · stage 5 BUILT 20 Sep 2026 (v1.75) · stage 6 BUILT 20 Sep 2026 (v1.76) · ALL STAGES BUILT**
+
+### Stage 6, as built (v1.76)
+
+- **The PPBE position beside the plan.** The FYDP spend plan's By Service sheet prints, per held
+  year and for the FYDP, the official position logged under the plan's cycle key (the working
+  plan's tag, or the locked cycle's key) and *Requirement − position*; a service or year with
+  nothing logged prints —, never 0; the FYDP position only when every held year logs one; no tag,
+  no position, and the note says so. The panel prints the same per year. The position is read live
+  from 🏛 PPBE Budget Positions — a lock never copies it.
+- **A PMO copy carries the reference projection only.** `publishPmoCopy` → `pmoCopyHtml` →
+  `buildSavedHtml({refOnly:true})`: the store in the copy holds one cycle, the reference, as a
+  projection (no year states, `partial`, `refOnly`), under the copy's own appropriation. Rows show Δ,
+  the compare and the five-year plan read it, the drill refuses it, the file is smaller. The
+  report pickers list every cycle that holds a projection (`cycReportable`); the view keeps
+  `cycHeld`.
+- **Proved by** *the PPBE position beside the plan* (audit-recon) and *PPBE cycles — a PMO copy
+  carries the reference projection only* (audit-board), eleven mutations in both builds.
 
 ### Stage 5, as built (v1.75)
 

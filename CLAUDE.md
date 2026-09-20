@@ -1606,6 +1606,32 @@ computation of the same figures. Guarded by *comparing two cycles* in audit-reco
 mutations, and the trace-matrix surface *xl · Cycle Comparison* (the lock just taken against the
 working plan: every Δ zero, and the B side the engine).
 
+### The PPBE position beside the plan, and what a PMO copy carries
+
+The By Service sheet of the FYDP spend plan prints, per held year and for the FYDP, the official
+PPBE position logged under the plan's cycle key (`fydpPosKey`: the working plan's tag, or the
+locked cycle's own key) in 🏛 PPBE Budget Positions, by service, and *Requirement − position*.
+It is read live from `MS.ppbe` — a lock never copies it, because the position is the comptroller's
+figure and not the board's — and a service or year with nothing logged prints an em dash, never
+0 (`fydpPos` returns null unless a cell is logged for that year); the FYDP position is printed
+only when every held year logs one; a working plan with no cycle tag prints none and the note says
+so. The panel prints the same per held year. Guarded by *the PPBE position beside the plan*
+(audit-recon: typed positions re-derived per service and year, the gap, TOTAL, blank years and
+services, the locked report after a retag, the untagged plan) and seven `fydp-position-*` /
+`fydp-panel-position-*` mutations.
+
+A PMO copy carries **one** cycle — the reference the working plan's deltas are read against — as
+a projection only (`cycRefOnlyDb`: `years:{}`, `partial:true`, `refOnly:true`), under the copy's
+own appropriation, and nothing else of the store: no year states (size), no other lock (not the
+office's to see), nothing that can be put on the drill (`cycView` refuses a cycle with no years).
+The copy's rows still show Δ, its compare and its five-year plan still read the cycle
+(`cycReportable` lists every cycle that holds a projection; `cycHeld` stays the test for the
+drill), and a lock taken on the copy goes into the copy's own store. `pmoCopyHtml(mode)` is the
+one builder (`buildSavedHtml({refOnly:true})`), used by `publishPmoCopy` and by the check. Guarded
+by *PPBE cycles — a PMO copy carries the reference projection only* (audit-board: the store in the
+file, the copy booted, its deltas, plan and compare, the refused view, the size) and four `copy-*`
+mutations.
+
 ### A suite that dies is not a suite that caught something
 
 `mutate.mjs` counted every non-zero exit as a catch. Under heavy load (a gate's two sweeps beside
