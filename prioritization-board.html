@@ -546,6 +546,19 @@ table.sp tr.lpct td{border-bottom:1px solid var(--line2);color:var(--mut)}
 table.sp tr.lreq td:first-child,table.sp tr.lctl td:first-child{font-weight:700;color:var(--ink)}
 .pmoblk{margin:10px 0 14px}
 .pmoh{font-size:10.5px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin-bottom:3px}
+/* ── THE FIVE-YEAR PLAN TABLE: a year is a block. Each year's three columns start at a 2px rule and
+   its header is centred over them, so the eye finds where one year ends and the next begins; the
+   PMO column is pinned to the left and never wraps, so a label reads on one line while the years
+   scroll under it. The cell markup is unchanged: the suites read this table by its cells. */
+.fydpt th:first-child,.fydpt td:first-child{position:sticky;left:0;z-index:2;background:var(--panel);white-space:nowrap;padding-right:16px;min-width:88px}
+.fydpt thead th:first-child{z-index:3;background:var(--panel2)}
+.fydpt tr.tot td:first-child{background:var(--panelA)}
+.fydpt td.n,.fydpt th.n{white-space:nowrap}
+.fydpt thead tr:first-child th+th{border-left:2px solid var(--edge);text-align:center;color:var(--ink);font-size:10px;font-weight:800;letter-spacing:.4px}
+.fydpt thead tr+tr th:nth-child(3n+2),.fydpt tbody td:nth-child(3n+2){border-left:2px solid var(--edge)}
+.fydpt thead tr+tr th:nth-child(3n+2){padding-left:10px}
+.fydpt tbody td:nth-child(3n+2){padding-left:10px}
+
 table.sp{border-collapse:collapse;width:100%;font-size:10.5px;table-layout:fixed}
 table.sp td:first-child,table.sp th:first-child{white-space:normal;overflow-wrap:anywhere}
 table.sp th{background:var(--panel2);color:var(--mut);font-size:9px;text-transform:uppercase;
@@ -1391,7 +1404,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.78 (21 Sep 2026)';
+const BUILD='v1.79 (21 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -13877,9 +13890,9 @@ function fydpBody(){
     +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportFydpPlan()">📊 Export the workbook</button></div>';
   if(!D.held.length){ h+='<div class="hint">No year of '+esc(D.label)+' holds a plan.</div>'; el.innerHTML=h; return; }
   const R=fydpRows(D);
-  h+='<div style="max-height:60vh;overflow:auto"><table class="po"><thead><tr><th>PMO</th>'
-    +D.years.map(function(y){ return '<th class="n" colspan="3">'+fyl(y)+(D.held.indexOf(y)<0? ' <span class="z">no plan</span>':'')+'</th>'; }).join('')
-    +'<th class="n" colspan="3">FYDP</th></tr><tr><th></th>'
+  h+='<div style="max-height:60vh;overflow:auto"><table class="po fydpt"><thead><tr><th>PMO</th>'
+    +D.years.map(function(y){ return '<th colspan="3">'+fyl(y)+(D.held.indexOf(y)<0? ' <span class="z">no plan</span>':'')+'</th>'; }).join('')
+    +'<th colspan="3">FYDP '+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</th></tr><tr><th></th>'
     +D.years.map(function(){ return '<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th>'; }).join('')
     +'<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th></tr></thead><tbody>';
   const line=function(lbl, s, cls){

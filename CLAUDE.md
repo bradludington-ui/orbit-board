@@ -1578,7 +1578,10 @@ LOCKED]` mark when a locked view is on screen) carries By Requirement (one row p
 with PMO, CCaR and band, `Subtotal — <PMO>`, TOTAL), By PMO (the subtotals, with a count) and By
 Service (the projection's vectors added, Disc BA and Mand BA beside the draw); the panel (*📊
 Five-year spend plan…* under FYDP Views) shows the PMO subtotals and the total for a source
-picked from the working plan and every locked cycle that holds a year. Guarded by *the five-year
+picked from the working plan and every locked cycle that holds a year. On the panel a year is a
+block (v1.79, asked for from the real board): each year's three columns start at a 2px rule in
+`--edge` with the year centred over them, the PMO column is pinned left and never wraps, and the
+cell markup is unchanged because the recon suite reads the table by its cells. Guarded by *the five-year
 spend plan* in audit-recon (the year on screen against `boardFigures`, a second held year against
 the engine under a year swap, blank years, subtotals, TOTAL, By PMO, By Service, the panel, then a
 PB lock and a moved value the locked report must not follow), fourteen `fydp-*` mutations, and the
