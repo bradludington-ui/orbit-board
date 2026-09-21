@@ -100,6 +100,15 @@ body{background:var(--bg);color:var(--ink);font-family:'Segoe UI',Arial,sans-ser
 .hdr{position:sticky;top:0;z-index:50;background:linear-gradient(180deg,var(--sink),var(--bg));border-bottom:1px solid var(--line);padding:8px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .hdr h1{font-size:15px;font-weight:700;letter-spacing:.4px}
 .hdr h1 span{color:var(--gold)}
+/* ── 1.4.11 NON-TEXT CONTRAST — a control's edge is discernible. --edge is each theme's --line walked
+   along its own lightness (hue and saturation kept) to the first step that clears 3:1 against EVERY
+   surface of that theme, so a button or a field reads as a thing with an end wherever it is placed;
+   --edge2 clears 4.5:1 for the hover. Dividers, panels and rows keep --line: they are not controls. */
+:root{--edge:#626f8b;--edge2:#808ca5}
+html[data-theme="navy"]{--edge:#657ca6;--edge2:#899bbb}
+html[data-theme="parchment"]{--edge:#948055;--edge2:#746443}
+html[data-theme="blueprint"]{--edge:#6483a0;--edge2:#4e677e}
+html[data-theme="harbor"]{--edge:#627185;--edge2:#4b5665}
 .btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 11px;font-size:11px;cursor:pointer;font-weight:600;transition:background .12s,border-color .12s,color .12s}
 .btn:hover{border-color:var(--line2);background:var(--line)}
 .btn.warn:hover{border-color:var(--red);color:var(--red)}
@@ -644,6 +653,24 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
   .nums{justify-items:start}
   .nums .b{text-align:left}
 }
+/* ── 1.4.11 applied: every control that drew its edge in --line draws it in --edge (states keep their own). */
+.btn,.qb,.mcb,.perb,.chip,.search,.rlg-in,.rank .ud button,.buys input,.rank input,.acts input,.addp input,.addp select,
+.svc-detail input,.clin-detail .ch select,.clin-detail input,.note-detail textarea,#fldBody textarea,.rchip,.rchip.add,.fitchip,
+.lanechip,.insp-f,input[type=date],input.q,input,select,textarea{border-color:var(--edge)}
+.btn:hover{border-color:var(--edge2)}
+/* ── 2.5.8 TARGET SIZE — every pointer target is at least 24×24 CSS px. Inline text targets (a title,
+   a CCaR, a PID) take vertical padding, which an inline box paints without moving its line, so the
+   layout is unchanged and the target is not; the record-name line and the pencil do the same with
+   negative margins that hand the space back. Chips, small fields and small buttons grow to 24px. */
+.tt span[onclick]{padding-top:5px;padding-bottom:5px}
+.ev span[onclick]{padding-top:7px;padding-bottom:7px}
+span.tedit[onclick],.tt span.tedit[onclick]{display:inline-block;min-width:25px;text-align:center;padding:8px 0;margin:-8px 0}
+.tt span.recname.edit[onclick]{padding:7px 0;margin:-6px 0 -7px}
+.rchip,.lanechip{min-height:24px;box-sizing:border-box;display:inline-flex;align-items:center}
+.rowtags .rchip{margin-top:0}
+input:not([type=checkbox]):not([type=radio]),select{min-height:24px;box-sizing:border-box}
+input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;vertical-align:middle}
+.qb,.mcb,.perb{min-height:24px;min-width:24px;box-sizing:border-box}
 </style>
 <script>
 /* The theme is applied HERE, before the body exists. Set from the main script it would paint the
@@ -1364,7 +1391,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.76 (20 Sep 2026)';
+const BUILD='v1.77 (21 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({

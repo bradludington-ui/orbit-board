@@ -2172,6 +2172,36 @@ buttons of all 115 rows — the most repeated finding on the board, and the cont
 dragging the priority order, so the standard and the job agreed. Rows are 83px and the stack is
 50px, so nothing grew. Measure before assuming a bigger control costs height.
 
+### 1.4.11 and 2.5.8 closed: every control has a discernible edge and a 24×24 target
+
+The last two open criteria, recorded on 16 Sep as *design decisions to be seen before they ship*,
+were closed on 21 Sep 2026 (v1.77) on the standing instruction to keep pressing. The baseline now
+records **0 findings** over all nine criteria, on a populated board, every theme, both builds.
+
+**1.4.11 Non-text Contrast** — a new token pair per theme, derived the way `--dim` was: each
+theme's `--line` walked along its own lightness, hue and saturation kept, to the first step that
+clears 3:1 against *every* surface of that theme (`--edge`: Midnight `#626f8b`, Navy `#657ca6`,
+Parchment `#948055`, Blueprint `#6483a0`, Harbor `#627185`; worst pair 3.06–3.10:1) and 4.5:1 for
+the hover (`--edge2`). One rule at the end of the stylesheet moves every control that drew its
+edge in `--line` or `--line2` to `--edge`: buttons, quick buttons, chips, fields, selects, text
+areas, the lane and fit chips, the grid's record-panel fields, date inputs. States keep their own
+colours (gold, blue, red, green). Dividers, panels and rows keep `--line`: they are not controls,
+and 1.4.11 is about controls.
+
+**2.5.8 Target Size** — every pointer target is now at least 24×24 CSS px, and the layout did
+not move for the largest group. An inline text target (the title, the CCaR and PID spans) takes
+vertical padding, which an inline box *paints without moving its line*, so the hit area grows and
+nothing else does; the record-name line (a block) and the pencil (inline-block) do the same with
+negative margins that hand the space back. Chips (`.rchip`, `.lanechip`) grow to 24px tall, small
+fields and selects get `min-height:24px`, checkboxes are 24×24, quick buttons at least 24×24.
+Measured after: the card row is 87px, was 83 — the chip line grew 4px; the grid row is 77px. Note
+that `[onclick]` weighs as a class, so `.tt span[onclick]` outranked `.recname.edit` until the
+specific rules named the attribute too — the first pass left the record name at 22px for exactly
+that reason.
+
+Proved by `npm run standards` (0 findings, baseline regenerated with `--emit`) and `verify:grid`
+(every panel and menu opens, no field clips its value).
+
 ### 1.4.3 closed: the dim ink clears 4.5:1 on every surface it is painted on
 
 All thirty *Contrast (Minimum)* findings in the 16 Sep baseline were one token: `--dim`, the
