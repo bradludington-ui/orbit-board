@@ -1644,6 +1644,17 @@ banner, a death is retried once and then reported as **CRASHED** with the suite 
 it wrote, the summary lists them, and a crash fails the sweep and the gate's sweep stage the way
 NOT APPLIED does. The nightly report's rule stands: a mutation without a verdict proved nothing.
 
+The first gate run with the hardened runner (v1.75, 21 Sep 2026) reported **thirteen CRASHED** on
+each build — every one a stage-1 or stage-2 cycle mutation (`cycle-*`, `view-load-allowed`) that
+the earlier gates had counted as *caught* only because the board suite died on it: a check read
+`.reqs` off a projection the mutation had removed, or the page threw inside `ev`. Nothing was
+wrong with the board; the suite had no verdict. The four *PPBE cycles* blocks of audit-board (and
+the stage-4 to stage-6 recon blocks, which were written that way) now wrap their body in
+`try { … } catch (e) { failures.push({ … 'the block threw: ' + message … }) }`, so a throw inside
+a block is a FAILING CHECK naming the block and the error, and only a death outside any block —
+boot, a syntax error, the process killed — remains a crash. The runner's crash report now keeps
+the error message (Node prints it above the stack, which the last lines alone lost).
+
 ### The five money-coverage gaps are closed
 
 Each closed the same way: a check that derives the figure from the fixture (never from the code

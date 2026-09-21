@@ -1275,7 +1275,10 @@ const runSuite = (path, file) => new Promise(done => {
     (err, stdout, stderr) => {
       if (!err) return done({ caught: false, crashed: false });
       const deliberate = /FAILING CHECK\(S\)|did not build/.test(String(stdout || ''));
-      const tail = String(stderr || stdout || '').split('\n').map(s => s.trim()).filter(Boolean).slice(-3).join(' | ').slice(0, 220);
+      // the message first (Node prints it above the stack, which the last lines alone would lose), then the tail
+      const lines = String(stderr || stdout || '').split('\n').map(s => s.trim()).filter(Boolean);
+      const msg = lines.find(l => /\bError\b|error:/.test(l)) || '';
+      const tail = [msg].concat(lines.slice(-2).filter(l => l !== msg)).filter(Boolean).join(' | ').slice(0, 220);
       done({ caught: deliberate, crashed: !deliberate, why: deliberate ? '' : (tail || ('exit ' + (err.code ?? err.signal ?? '?'))) });
     });
 });

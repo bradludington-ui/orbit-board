@@ -1777,6 +1777,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // migration and the Spruills are each made to prove they read the lock and nothing else.
 {
   const name = 'PPBE cycles — the lock is the window, frozen';
+  try {
   const sc = { services: ['USAF', 'ANG', 'STOVL'],
     items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15]), it('D', 'MxS', [40, 20, 5])],
     disc: [150, 60, 30], mand: [40, 20, 10], order: ['A', 'B', 'C', 'D'] };
@@ -1880,6 +1881,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const P1 = JSON.parse(ev(`JSON.stringify(cycProj('PB|'+MS.cur, MS.cur+1).pmo.PSM.alloc)`));
   chk(name, 'spruills', 'a cycle gives the PMO its control for every year it holds', [D.USAF[cur + 1], D.ANG[cur + 1], D.STOVL[cur + 1]].join(','), P1.join(','));
   chk(name, 'spruills', 'and none for a year it never held', String(D.USAF[cur + 2]), 'undefined');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH. On a mutated board a cycle can be
+    // missing where the block expects one, and reading it threw; the sweep then saw a suite that
+    // died, which proves nothing (CRASHED), where it should see a suite that noticed (a failure).
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -1890,6 +1897,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // kept or reach anything durable, and leaving returns the working plan byte for byte.
 {
   const name = 'PPBE cycles — a locked view is read-only and leaves no trace';
+  try {
   const sc = { services: ['USAF', 'ANG', 'STOVL'],
     items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15]), it('D', 'MxS', [40, 20, 5])],
     disc: [150, 60, 30], mand: [40, 20, 10], order: ['A', 'B', 'C', 'D'] };
@@ -1971,6 +1979,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'open', 'a cycle that never held the year on screen opens on the first year it holds', +ev('MS.cur'), cur);
   ev(`cycLeave(); 'ok'`);
   chk(name, 'open', 'and leaving returns to the year that was on screen', +ev('MS.cur'), cur + 3);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH. On a mutated board a cycle can be
+    // missing where the block expects one, and reading it threw; the sweep then saw a suite that
+    // died, which proves nothing (CRASHED), where it should see a suite that noticed (a failure).
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -1983,6 +1997,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // base sits on the second, so a delta read against the wrong year cannot pass by coincidence.
 {
   const name = 'PPBE cycles — the deltas against the reference';
+  try {
   const sc = { services: ['USAF', 'ANG', 'STOVL'],
     items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15]), it('D', 'MxS', [40, 20, 0]),
             it('E', 'PSM', [30, 10, 5]), it('F', 'AV', [20, 10, 5]), it('G', 'MxS', [12, 6, 3])],
@@ -2074,6 +2089,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   ev(`cycChgOpen=false; MS.cycleRef='${key}'; switchYear(MS.cur+3); cycChgOpen=true; render(); 'ok'`);
   chk(name, 'year', 'on a year the reference never held there is no delta, and the panel says which years it holds', ev('cycDelta(MS.cur)') === null && /holds no FY/.test(ev(`document.getElementById('cycChgBody').innerHTML`)), true);
   ev(`cycChgOpen=false; switchYear(MS.cur-3); 'ok'`);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH. On a mutated board a cycle can be
+    // missing where the block expects one, and reading it threw; the sweep then saw a suite that
+    // died, which proves nothing (CRASHED), where it should see a suite that noticed (a failure).
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -2084,6 +2105,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // plan on the copy must say what the board says. And the copy must be smaller than a full save.
 {
   const name = 'PPBE cycles — a PMO copy carries the reference projection only';
+  try {
   const sc = { services: ['USAF', 'ANG', 'STOVL'],
     items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15])],
     disc: [200, 100, 40], mand: [80, 40, 20], order: ['A', 'B', 'C'] };
@@ -2118,6 +2140,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'copy', 'the compare reads it', C.ev(`(function(){ var d=cycCmpData('${keyA}','working'); return d&&d.fy[MS.cur]&&d.fy[MS.cur].rows.B? String(d.fy[MS.cur].rows.B.d.ask) : 'none'; })()`), String(dB));
   chk(name, 'copy', 'but it cannot be put on the drill: there is no state to show', C.ev(`(function(){ var s=''; try{ cycView('${keyA}'); }catch(e){ s='threw '+e.message; } return (CYCVIEW||'')+'|'+s; })()`), '|');
   chk(name, 'copy', 'and the copy says why', /holds no plan to show/.test(C.ev(`document.getElementById('shareStat').innerHTML`)), true);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH. On a mutated board a cycle can be
+    // missing where the block expects one, and reading it threw; the sweep then saw a suite that
+    // died, which proves nothing (CRASHED), where it should see a suite that noticed (a failure).
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 {
