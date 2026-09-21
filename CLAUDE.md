@@ -2179,6 +2179,17 @@ buttons of all 115 rows — the most repeated finding on the board, and the cont
 dragging the priority order, so the standard and the job agreed. Rows are 83px and the stack is
 50px, so nothing grew. Measure before assuming a bigger control costs height.
 
+### A check that greps the serialised world fails on the clock
+
+The v1.80 gate's *suites* stage failed one check in the board suite — *the journal carries
+nothing from the view* — while the same suite passed before and after, and the sweeps passed
+341/341. The check searched `JSON.stringify(MS.jrnl)` for `'999'`, the value typed on the locked
+view, and found it in every entry's **timestamp**: the clock read `1789 99x xxx xxx` from 11:26Z
+to 14:13Z on 21 Sep 2026, and the stage ran at 12:35Z. Nothing was wrong with the board. The check
+now snapshots the journal's JSON before the view and requires it byte for byte after, and looks
+for the typed value only in an entry's before/after fields. Same family as the hand-kept menu list
+and the vacuous criterion: **a check must test the thing, not a substring of everything.**
+
 ### The cost estimate beside the five-year plan (v1.80)
 
 Asked for from the real board on 21 Sep 2026: the annual cost estimate as a column per year on the

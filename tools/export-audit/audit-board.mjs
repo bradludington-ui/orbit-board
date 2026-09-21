@@ -2052,6 +2052,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const title0 = ev('document.title'), dirty0 = ev('DIRTY'), shadow0 = ev('JSON.stringify(_jrnlShadow)');
   chk(name, 'fixture', 'the working plan has moved on since the lock', ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([123, 40, 10]));
   chk(name, 'fixture', 'and is dirty', dirty0, true);
+  // THE JOURNAL AS IT STOOD, to compare byte for byte after the view. The check this replaces
+  // searched the journal's JSON for '999' (the value typed on the view) -- and found it in every
+  // entry's TIMESTAMP whenever the clock read 1789 99x xxx xxx, which it did from 11:26Z to 14:13Z
+  // on 21 Sep 2026, when the v1.80 gate ran this suite. A check that greps the serialised world
+  // for a number is a check that fails on the clock.
+  const jrnl0 = ev('JSON.stringify(MS.jrnl||[])');
   ev(`cycView('${key}'); 'ok'`);
   chk(name, 'view', 'the view is on', ev('CYCVIEW'), key);
   chk(name, 'view', 'the board shows the locked plan: B as it was', ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([80, 40, 10]));
@@ -2094,7 +2100,8 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'leave', 'the title and the file names are back', ev('document.title') === title0 && !/LOCKED/.test(ev(`expName('x.xlsx')`)), true);
   chk(name, 'leave', 'the header is back to the working tag', ev(`document.getElementById('cycTag').textContent`), 'PB' + String(cur).slice(-2));
   chk(name, 'leave', 'the dirty flag is what it was', ev('DIRTY'), dirty0);
-  chk(name, 'leave', 'and the journal carries nothing from the view', ev(`JSON.stringify(MS.jrnl||[]).indexOf('999')<0 && JSON.stringify(MS.jrnl||[]).indexOf('VIEWEDIT')<0`), true);
+  chk(name, 'leave', 'and the journal is byte for byte what it was before the view', ev('JSON.stringify(MS.jrnl||[])') === jrnl0, true);
+  chk(name, 'leave', 'so it carries nothing typed on the view', ev(`JSON.stringify(MS.jrnl||[]).indexOf('VIEWEDIT')<0 && !(MS.jrnl||[]).some(function(e){ return JSON.stringify([e.before,e.after,e.b,e.a,e.v]).indexOf('999')>=0; })`), true);
   // THE JOURNAL'S SHADOW is the one thing save() touches that persist() does not guard: a save
   // that ran on the view would take its shadow from the lock, and the first real save afterwards
   // would journal the difference as edits nobody made, in the current user's name.
