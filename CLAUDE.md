@@ -2179,6 +2179,29 @@ buttons of all 115 rows — the most repeated finding on the board, and the cont
 dragging the priority order, so the standard and the job agreed. Rows are 83px and the stack is
 50px, so nothing grew. Measure before assuming a bigger control costs height.
 
+### The cost estimate beside the five-year plan (v1.80)
+
+Asked for from the real board on 21 Sep 2026: the annual cost estimate as a column per year on the
+five-year plan, by appropriation, PMO and service, with the estimate chosen the way the cycle is.
+`fydpAce` is the picker's choice (the latest set the first time it is asked, or *none*); the
+figures are that set's lines for **this appropriation** (`fydpAceLines`), read live from `ACEDB`
+— a lock never copies an estimate, so a locked cycle's report reads the estimate as it stands. By
+PMO it is the estimate PMO the board PMO draws from (`acePmoFor`, the same alignment the tie-out
+uses), and two board PMOs that share one estimate PMO print the figure once and name it on the
+other (`fydpAceShare`) rather than splitting it by a rule nobody agreed. By service it is the
+line's own service. By requirement it is only what the requirement **confirmed** in the tie-out —
+its claimed WBS lines read from that year's own state (`fydpAceReq`), blank when unconfirmed and
+blank for a year the plan holds no state for — and never a child line swept in by a prefix; a
+subtotal of requirement rows would double a shared line, so subtotals and TOTAL read the
+estimate's own PMO and appropriation figures, as the tie-out does. A year the estimate carries no
+figure for prints an em dash, never 0; a year the plan does not hold still prints the estimate;
+the FYDP estimate adds every window year the estimate carries. The panel gains the picker and a
+fourth column per year (`.fydpt.c4` moves the year rule to every fourth column). Guarded by *the
+cost estimate beside the plan* (audit-recon: six seeded lines including a child line, another
+appropriation's line, an alignment, a shared PMO, a suggested-only mapping and a year the plan
+does not hold; the three sheets, the panel, *none*, and a locked cycle) and ten `fydp-ace-*`
+mutations.
+
 ### The PMO menu never opened, and the menu check never looked (v1.78)
 
 Reported from the real board on 21 Sep 2026: clicking 🏢 PMO did nothing. `toggleMenu('pmo')`

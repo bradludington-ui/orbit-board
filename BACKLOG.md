@@ -324,6 +324,16 @@ mutation: a bulk set that reaches a requirement which never offered the field is
 
 ---
 
+## 9. The annual cost estimate beside the five-year spend plan
+
+**Asked 21 Sep 2026 · DONE, v1.80**
+
+The five-year spend plan (panel and workbook) carries the annual cost estimate as a column per
+year on every sheet — by requirement (confirmed tie-out lines only), PMO (the estimate's own PMO
+through the alignment, a shared PMO printed once), service, and the appropriation on TOTAL — with
+a *Cost estimate* picker beside the *Source* picker, defaulting to the latest set imported. See
+CLAUDE.md, *The cost estimate beside the five-year plan*.
+
 ## 8. PPBE cycles across the FYDP — lock a cycle's five-year spend plan, allocate the next cycle's deltas, report and compare by cycle
 
 **Asked 19 Sep 2026 · stage 1 BUILT 19 Sep 2026 (v1.71) · stage 2 BUILT 20 Sep 2026 (v1.72) · stage 3 BUILT 20 Sep 2026 (v1.73) · stage 4 BUILT 20 Sep 2026 (v1.74) · stage 5 BUILT 20 Sep 2026 (v1.75) · stage 6 BUILT 20 Sep 2026 (v1.76) · ALL STAGES BUILT**

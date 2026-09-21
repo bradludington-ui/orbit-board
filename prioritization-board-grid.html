@@ -668,9 +668,8 @@ table.sp tr.lreq td:first-child,table.sp tr.lctl td:first-child{font-weight:700;
 .fydpt tr.tot td:first-child{background:var(--panelA)}
 .fydpt td.n,.fydpt th.n{white-space:nowrap}
 .fydpt thead tr:first-child th+th{border-left:2px solid var(--edge);text-align:center;color:var(--ink);font-size:10px;font-weight:800;letter-spacing:.4px}
-.fydpt thead tr+tr th:nth-child(3n+2),.fydpt tbody td:nth-child(3n+2){border-left:2px solid var(--edge)}
-.fydpt thead tr+tr th:nth-child(3n+2){padding-left:10px}
-.fydpt tbody td:nth-child(3n+2){padding-left:10px}
+.fydpt:not(.c4) thead tr+tr th:nth-child(3n+2),.fydpt:not(.c4) tbody td:nth-child(3n+2){border-left:2px solid var(--edge);padding-left:10px}
+.fydpt.c4 thead tr+tr th:nth-child(4n+2),.fydpt.c4 tbody td:nth-child(4n+2){border-left:2px solid var(--edge);padding-left:10px}
 
 table.sp{border-collapse:collapse;width:100%;font-size:10.5px;table-layout:fixed}
 table.sp td:first-child,table.sp th:first-child{white-space:normal;overflow-wrap:anywhere}
@@ -1538,7 +1537,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.79 (21 Sep 2026)';
+const BUILD='v1.80 (21 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -13875,6 +13874,44 @@ function fydpPosTot(D, y){
 // The cycles a report can read: any that holds a projection -- a full lock, a migrated one-year
 // baseline, or the reference a PMO copy carries. Viewing on the drill needs the years (cycHeld).
 function cycReportable(){ return blList().filter(function(k){ const c=blGet(k); return Object.keys((c&&c.proj)||{}).length>0; }); }
+// THE ANNUAL COST ESTIMATE beside the plan. Which estimate is the reader's choice (fydpAce), exactly
+// as the source is; the figures are that set's lines for THIS appropriation, read live from ACEDB --
+// a lock never copies an estimate, and neither does a cycle's report. By PMO it is the estimate PMO a
+// board PMO draws from (acePmoFor: PSM read AV's line before 2026), and two board PMOs that share one
+// estimate PMO share one figure, printed once and named on the other rows rather than split by a
+// rule nobody agreed. By service it is the line's own service. By requirement it is only what the
+// requirement CONFIRMED in the tie-out (its claimed WBS lines, read from that year's own state),
+// blank otherwise -- and a subtotal of requirement rows would double a shared line, so subtotals and
+// TOTAL read the estimate's own PMO and appropriation figures, as the tie-out does. A year the
+// estimate carries no figure for prints an em dash, never 0.
+let fydpAce=null;   // null: the latest set the first time it is asked for; '': none
+function fydpAceKey(){
+  const keys=aceSetKeys().sort();
+  if(fydpAce===null) fydpAce= keys.length? keys[keys.length-1] : '';
+  if(fydpAce && !aceSet(fydpAce)) fydpAce= keys.length? keys[keys.length-1] : '';
+  return fydpAce;
+}
+function fydpSetAce(v){ fydpAce=v||''; render(); }
+function fydpAceLines(k){ const set=aceSet(k), ap=mySlug(); return set? (set.lines||[]).filter(function(l){ return l.ap===ap; }) : []; }
+function fydpAceYears(k){ const ys={}; fydpAceLines(k).forEach(function(l){ Object.keys(l.v||{}).forEach(function(y){ if(l.v[y]) ys[y]=1; }); }); return Object.keys(ys).map(Number).sort(function(a,b){ return a-b; }); }
+// the lines picked, added for one year: null when no picked line carries that year
+function fydpAceSum(k, y, pick){
+  let t=0, n=0;
+  fydpAceLines(k).forEach(function(l){ if(pick && !pick(l)) return; const v=(l.v||{})[y]; if(v===undefined||v===null) return; n++; t+=v; });
+  return n? t : null;
+}
+function fydpAceTot(k, y){ return fydpAceSum(k, y, null); }
+function fydpAcePmo(k, boardPmo, y){ const a=acePmoFor(k, boardPmo); return fydpAceSum(k, y, function(l){ return l.pmo===a; }); }
+function fydpAceSvc(k, sv, y){ return fydpAceSum(k, y, function(l){ return l.svc===sv; }); }
+// what one requirement confirmed, from the state of that year: null when unconfirmed or the year is not held
+function fydpAceReq(k, id, y, st){
+  const m=st && st.aceMap && st.aceMap[id]; if(!m || !m.ok || !Array.isArray(m.w) || !m.w.length) return null;
+  let t=0, n=0;
+  m.w.forEach(function(w){ const v=fydpAceSum(k, y, function(l){ return aceNormWbs(l.wbs)===aceNormWbs(w); }); if(v!==null){ n++; t+=v; } });
+  return n? t : null;
+}
+// board PMOs that share one estimate PMO: the figure is printed on the first and the rest name it
+function fydpAceShare(k, groups){ const seen={}, out={}; groups.forEach(function(g){ const a=acePmoFor(k, g.grp); if(seen[a]){ out[g.grp]=seen[a]; } else seen[a]=g.grp; }); return out; }
 function fydpRows(D){
   const rows={}, order=[];
   D.held.forEach(function(y){
@@ -13931,52 +13968,63 @@ function exportFydpPlan(){
   const span=fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1]);
   const title='SPMT FYDP SPEND PLAN — '+D.label.toUpperCase()+' — '+span;
   const cell=function(f,k,s){ return f? {v:f[k], s:(s||N)} : {v:'—', s:0}; };
+  // the cost estimate beside the plan: the chosen set, this appropriation, as it stands now
+  const AK=fydpAceKey(), hasAce=!!AK;
+  const stOf=function(y){ return D.src==='working'? (+y===+MS.cur? S : MS.years[y]) : (((blGet(D.src)||{}).years)||{})[y]; };
+  const aceCell=function(v,st){ return (v===null||v===undefined)? {v:'—',s:0} : (typeof v==='string'? {v:v,s:0} : {v:v,s:st}); };
+  const aceFydp=function(est,st){ let t=0,n=0,txt=null; D.years.forEach(function(y){ const v=est(y); if(typeof v==='string'){ txt=v; return; } if(v===null||v===undefined) return; n++; t+=v; }); return txt? {v:txt,s:0} : (n? {v:t,s:st} : {v:'—',s:0}); };
+  const share=hasAce? fydpAceShare(AK, R.groups) : {};
+  const aceGrp=function(g){ return function(y){ return share[g]? '(with '+share[g]+')' : fydpAcePmo(AK, g, y); }; };
+  const aceTotF=function(y){ return fydpAceTot(AK, y); };
   const note={v:'One row per requirement, the years across; PMO subtotals and the portfolio total. Funded is the lane draw (discretionary + mandatory); Unfunded is requirement less funded, floored per service. A year the source never held prints —, not 0, and is outside the FYDP totals. Years held: '
     +D.held.map(fyl).join(', ')+'.'+(D.ts? ' Locked '+fmtTs(D.ts)+(D.by? ' by '+D.by : '')+'.' : ' The working plan as it stands.'), s:0};
+  note.v+= hasAce
+    ? ' ACE estimate: '+AK+' for this appropriation, read as it stands now (a lock never copies an estimate). By requirement, only what the requirement confirmed in the tie-out — blank when unconfirmed — so subtotals and TOTAL read the estimate’s own PMO and appropriation figures rather than adding requirement rows; a board PMO that shares an estimate PMO with another shows the figure once and names it on the other. The FYDP estimate adds every window year the estimate carries, held or not. — where the estimate carries no figure.'
+    : ' No cost estimate is selected.';
   const sheets=[];
   // ---------- 1. by requirement
   {
     const hdr=['PMO','Requirement','CCaR','Band'];
-    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); });
-    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded');
+    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
+    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded'); if(hasAce) hdr.push('FYDP ACE estimate');
     const rows=[[{v:title,s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
-    const put=function(lbl, r, s, sub){
+    const put=function(lbl, r, s, sub, est){
       const line=[sub? {v:lbl,s:B} : lbl, sub? '' : r.title, sub? '' : r.ccar, sub? '' : r.band];
-      D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',sub?NB:N), cell(f,'alloc',sub?NB:N), cell(f,'fund',sub?NB:N), cell(f,'unf',sub?NB:N)); });
-      line.push({v:s.tot.ask,s:sub?NB:N},{v:s.tot.alloc,s:sub?NB:N},{v:s.tot.fund,s:sub?NB:N},{v:s.tot.unf,s:sub?NB:N});
+      D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',sub?NB:N), cell(f,'alloc',sub?NB:N), cell(f,'fund',sub?NB:N), cell(f,'unf',sub?NB:N)); if(hasAce) line.push(aceCell(est(y), sub?NB:N)); });
+      line.push({v:s.tot.ask,s:sub?NB:N},{v:s.tot.alloc,s:sub?NB:N},{v:s.tot.fund,s:sub?NB:N},{v:s.tot.unf,s:sub?NB:N}); if(hasAce) line.push(aceFydp(est, sub?NB:N));
       rows.push(line);
     };
     R.groups.forEach(function(g){
-      g.ids.forEach(function(id){ const r=R.rows[id]; put(r.grp, r, {fy:r.fy, tot:r.tot}, false); });
-      put('Subtotal — '+g.grp, {}, fydpSub(g.ids, R.rows, D), true);
+      g.ids.forEach(function(id){ const r=R.rows[id]; put(r.grp, r, {fy:r.fy, tot:r.tot}, false, function(y){ return fydpAceReq(AK, id, y, stOf(y)); }); });
+      put('Subtotal — '+g.grp, {}, fydpSub(g.ids, R.rows, D), true, aceGrp(g.grp));
     });
     rows.push([]);
-    put('TOTAL', {}, fydpSub(R.order, R.rows, D), true);
-    sheets.push({name:'By Requirement', cols:[10,44,16,14].concat(D.years.map(function(){ return [14,14,14,14]; }).flat()).concat([16,16,16,16]), freeze:4, rows:rows});
+    put('TOTAL', {}, fydpSub(R.order, R.rows, D), true, aceTotF);
+    sheets.push({name:'By Requirement', cols:[10,44,16,14].concat(D.years.map(function(){ return [14,14,14,14].concat(hasAce?[15]:[]); }).flat()).concat([16,16,16,16].concat(hasAce?[16]:[])), freeze:4, rows:rows});
   }
   // ---------- 2. by PMO
   {
     const hdr=['PMO','Requirements'];
-    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); });
-    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded');
+    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
+    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded'); if(hasAce) hdr.push('FYDP ACE estimate');
     const rows=[[{v:title+' — BY PMO',s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
-    const put=function(lbl, n, s, st){
+    const put=function(lbl, n, s, st, est){
       const line=[{v:lbl,s:st},{v:n,s:0}];
-      D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',st), cell(f,'alloc',st), cell(f,'fund',st), cell(f,'unf',st)); });
-      line.push({v:s.tot.ask,s:st},{v:s.tot.alloc,s:st},{v:s.tot.fund,s:st},{v:s.tot.unf,s:st});
+      D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',st), cell(f,'alloc',st), cell(f,'fund',st), cell(f,'unf',st)); if(hasAce) line.push(aceCell(est(y), st)); });
+      line.push({v:s.tot.ask,s:st},{v:s.tot.alloc,s:st},{v:s.tot.fund,s:st},{v:s.tot.unf,s:st}); if(hasAce) line.push(aceFydp(est, st));
       rows.push(line);
     };
-    R.groups.forEach(function(g){ put(g.grp, g.ids.length, fydpSub(g.ids, R.rows, D), N); });
+    R.groups.forEach(function(g){ put(g.grp, g.ids.length, fydpSub(g.ids, R.rows, D), N, aceGrp(g.grp)); });
     rows.push([]);
-    put('TOTAL', R.order.length, fydpSub(R.order, R.rows, D), NB);
-    sheets.push({name:'By PMO', cols:[14,14].concat(D.years.map(function(){ return [14,14,14,14]; }).flat()).concat([16,16,16,16]), freeze:4, rows:rows});
+    put('TOTAL', R.order.length, fydpSub(R.order, R.rows, D), NB, aceTotF);
+    sheets.push({name:'By PMO', cols:[14,14].concat(D.years.map(function(){ return [14,14,14,14].concat(hasAce?[15]:[]); }).flat()).concat([16,16,16,16].concat(hasAce?[16]:[])), freeze:4, rows:rows});
   }
   // ---------- 3. by service, with the official PPBE position beside the plan
   {
     const V=fydpSvc(D), posKey=fydpPosKey(D);
     const hdr=['Service'];
-    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded', fyl(y)+' Disc BA', fyl(y)+' Mand BA', fyl(y)+' PPBE position', fyl(y)+' Requirement − position'); });
-    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded','FYDP Disc BA','FYDP Mand BA','FYDP PPBE position','FYDP Requirement − position');
+    D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded', fyl(y)+' Disc BA', fyl(y)+' Mand BA', fyl(y)+' PPBE position', fyl(y)+' Requirement − position'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
+    hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded','FYDP Disc BA','FYDP Mand BA','FYDP PPBE position','FYDP Requirement − position'); if(hasAce) hdr.push('FYDP ACE estimate');
     const posNote=' PPBE position: the official position logged under '+(posKey? blLbl(posKey) : 'the plan’s cycle tag — none is set, so no position is printed')+' in 🏛 PPBE Budget Positions, by service and year, as it stands now; — where none is logged. Requirement − position is the plan’s requirement less it. The FYDP position is printed only when every held year logs one.';
     const rows=[[{v:title+' — BY SERVICE',s:TI}],[{v:note.v+posNote,s:0}],[],hdr.map(function(v){ return {v:v,s:H}; })];
     const K=['ask','alloc','fund','unf','disc','mand'];
@@ -13987,9 +14035,11 @@ function exportFydpPlan(){
       D.years.forEach(function(y){ const f=row.fy[y]; K.forEach(function(k){ line.push(cell(f,k,st)); });
         const p=f? pos(sv, y) : null;
         if(p===null){ if(f) pAll=false; line.push({v:'—',s:0},{v:'—',s:0}); }
-        else { pT+=p; line.push({v:p,s:st},{v:f.ask-p,s:st}); } });
+        else { pT+=p; line.push({v:p,s:st},{v:f.ask-p,s:st}); }
+        if(hasAce) line.push(aceCell(sv===null? fydpAceTot(AK, y) : fydpAceSvc(AK, sv, y), st)); });
       K.forEach(function(k){ line.push({v:row.tot[k],s:st}); });
       if(D.held.length && pAll) line.push({v:pT,s:st},{v:row.tot.ask-pT,s:st}); else line.push({v:'—',s:0},{v:'—',s:0});
+      if(hasAce) line.push(aceFydp(function(y){ return sv===null? fydpAceTot(AK, y) : fydpAceSvc(AK, sv, y); }, st));
       rows.push(line);
     };
     const tot={fy:{}, tot:{ask:0, alloc:0, fund:0, unf:0, disc:0, mand:0}};
@@ -13999,7 +14049,7 @@ function exportFydpPlan(){
       K.forEach(function(k){ tot.tot[k]+=r.tot[k]; }); });
     rows.push([]);
     put('TOTAL', null, tot, NB);
-    sheets.push({name:'By Service', cols:[12].concat(D.years.map(function(){ return [14,14,14,14,13,13,15,17]; }).flat()).concat([16,16,16,16,15,15,16,18]), freeze:4, rows:rows});
+    sheets.push({name:'By Service', cols:[12].concat(D.years.map(function(){ return [14,14,14,14,13,13,15,17].concat(hasAce?[15]:[]); }).flat()).concat([16,16,16,16,15,15,16,18].concat(hasAce?[16]:[])), freeze:4, rows:rows});
   }
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
@@ -14015,29 +14065,44 @@ function fydpBody(){
   if(!fydpOpen){ el.innerHTML=''; return; }
   let D=fydpData(fydpSrc); if(!D){ fydpSrc='working'; D=fydpData('working'); }
   const fyl=function(y){ return 'FY'+(y%100); };
+  const AK=fydpAceKey(), hasAce=!!AK, aceKeys=aceSetKeys().sort();
+  const aceTd=function(v){ return (v===null||v===undefined)? '<span class="z">—</span>' : (typeof v==='string'? '<span class="z">'+esc(v)+'</span>' : fM(v)); };
+  const aceFydpV=function(est){ let t=0,n=0,txt=null; D.years.forEach(function(y){ const v=est(y); if(typeof v==='string'){ txt=v; return; } if(v===null||v===undefined) return; n++; t+=v; }); return txt? txt : (n? t : null); };
   let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Source '
     +'<select style="font-size:10px;padding:3px 6px" onchange="fydpSetSrc(this.value)" title="the working plan as it stands, or a locked cycle as it was locked">'
     +'<option value="working"'+(fydpSrc==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+esc(blLbl(MS.cycle))+')':'')+'</option>'
     +cycReportable().map(function(k){ return '<option value="'+k+'"'+(fydpSrc===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>'; }).join('')
-    +'</select> <b style="color:var(--gold)">'+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</b>'
+    +'</select> Cost estimate '
+    +(aceKeys.length
+      ? '<select style="font-size:10px;padding:3px 6px" onchange="fydpSetAce(this.value)" title="the annual cost estimate printed beside the plan — this appropriation’s lines, as they stand now">'
+        +'<option value=""'+(hasAce?'':' selected')+'>none</option>'
+        +aceKeys.map(function(k){ return '<option value="'+esc(k)+'"'+(AK===k?' selected':'')+'>'+esc(k)+'</option>'; }).join('')+'</select>'
+      : '<span style="color:var(--dim);font-size:10px">none imported</span>')
+    +' <b style="color:var(--gold)">'+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</b>'
     +' <span style="color:var(--dim);font-size:10px">years held: '+(D.held.length? D.held.map(fyl).join(', ') : 'none')+(D.ts? ' · locked '+esc(fmtTs(D.ts))+(D.by? ' by '+esc(D.by):'') : '')+'</span>'
     +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportFydpPlan()">📊 Export the workbook</button></div>';
   if(!D.held.length){ h+='<div class="hint">No year of '+esc(D.label)+' holds a plan.</div>'; el.innerHTML=h; return; }
   const R=fydpRows(D);
-  h+='<div style="max-height:60vh;overflow:auto"><table class="po fydpt"><thead><tr><th>PMO</th>'
-    +D.years.map(function(y){ return '<th colspan="3">'+fyl(y)+(D.held.indexOf(y)<0? ' <span class="z">no plan</span>':'')+'</th>'; }).join('')
-    +'<th colspan="3">FYDP '+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</th></tr><tr><th></th>'
-    +D.years.map(function(){ return '<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th>'; }).join('')
-    +'<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th></tr></thead><tbody>';
-  const line=function(lbl, s, cls){
+  const share=hasAce? fydpAceShare(AK, R.groups) : {};
+  const aceGrp=function(g){ return function(y){ return share[g]? '(with '+share[g]+')' : fydpAcePmo(AK, g, y); }; };
+  const perY=hasAce? 4 : 3, estTh=hasAce? '<th class="n">Estimate</th>' : '';
+  h+='<div style="max-height:60vh;overflow:auto"><table class="po fydpt'+(hasAce?' c4':'')+'"><thead><tr><th>PMO</th>'
+    +D.years.map(function(y){ return '<th colspan="'+perY+'">'+fyl(y)+(D.held.indexOf(y)<0? ' <span class="z">no plan</span>':'')+'</th>'; }).join('')
+    +'<th colspan="'+perY+'">FYDP '+fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1])+'</th></tr><tr><th></th>'
+    +D.years.map(function(){ return '<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th>'+estTh; }).join('')
+    +'<th class="n">Requirement</th><th class="n">Funded</th><th class="n">Unfunded</th>'+estTh+'</tr></thead><tbody>';
+  const line=function(lbl, s, cls, est){
     return '<tr'+(cls? ' class="'+cls+'"':'')+'><td><b>'+esc(lbl)+'</b></td>'
-      +D.years.map(function(y){ const f=s.fy[y]; return f? '<td class="n">'+fM(f.ask)+'</td><td class="n">'+fM(f.fund)+'</td><td class="n">'+fM(f.unf)+'</td>'
-        : '<td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td>'; }).join('')
-      +'<td class="n">'+fM(s.tot.ask)+'</td><td class="n">'+fM(s.tot.fund)+'</td><td class="n">'+fM(s.tot.unf)+'</td></tr>';
+      +D.years.map(function(y){ const f=s.fy[y]; return (f? '<td class="n">'+fM(f.ask)+'</td><td class="n">'+fM(f.fund)+'</td><td class="n">'+fM(f.unf)+'</td>'
+        : '<td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td><td class="n"><span class="z">—</span></td>')
+        +(hasAce? '<td class="n">'+aceTd(est(y))+'</td>' : ''); }).join('')
+      +'<td class="n">'+fM(s.tot.ask)+'</td><td class="n">'+fM(s.tot.fund)+'</td><td class="n">'+fM(s.tot.unf)+'</td>'
+      +(hasAce? '<td class="n">'+aceTd(aceFydpV(est))+'</td>' : '')+'</tr>';
   };
-  R.groups.forEach(function(g){ h+=line(g.grp+' ('+g.ids.length+')', fydpSub(g.ids, R.rows, D)); });
-  h+=line('TOTAL', fydpSub(R.order, R.rows, D), 'tot');
+  R.groups.forEach(function(g){ h+=line(g.grp+' ('+g.ids.length+')', fydpSub(g.ids, R.rows, D), '', aceGrp(g.grp)); });
+  h+=line('TOTAL', fydpSub(R.order, R.rows, D), 'tot', function(y){ return fydpAceTot(AK, y); });
   h+='</tbody></table></div>';
+  if(hasAce) h+='<div class="hint" style="margin-top:6px">Cost estimate <b>'+esc(AK)+'</b> beside the plan: this appropriation’s lines as they stand, by the estimate’s own PMO (a board PMO that shares an estimate PMO shows it once); years the estimate carries: '+(fydpAceYears(AK).map(fyl).join(', ')||'none')+'. On the workbook a requirement’s row shows only what it confirmed in the tie-out.</div>';
   { // the official position beside the plan, per held year
     const pk=fydpPosKey(D), T=fydpSub(R.order, R.rows, D);
     const gap=function(v){ return Math.abs(v)<0.5? '$0' : cycSgn(v); };
