@@ -17,7 +17,7 @@
 import { chromium } from 'playwright-core';
 import { validate, contrast } from './vendor/validate_palette.mjs';
 import { boot, seed } from './export-audit/boot.mjs';
-import { writeFileSync, mkdtempSync, readFileSync } from 'node:fs';
+import { writeFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -34,6 +34,7 @@ const items = Array.from({ length: 12 }, (_, i) => ({
 const sc = { services: SVCN, items, disc: [6000000, 1500000, 800000],
              mand: [2000000, 500000, 300000], order: items.map(x => x.id), mc: { R0: true } };
 const dir = mkdtempSync(join(tmpdir(), 'spmt-col-'));
+process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });   // the copies are scratch; leave nothing behind
 const built = {};
 for (const f of ['prioritization-board.html', 'prioritization-board-grid.html']) {
   // Boot each build FROM ITS OWN BYTES -- boot.mjs resolves BOARD once at module load, so setting

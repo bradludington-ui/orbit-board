@@ -15,7 +15,7 @@
 //   node tools/panels-render.mjs
 import { chromium } from 'playwright-core';
 import { boot, seed } from './export-audit/boot.mjs';
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -64,6 +64,7 @@ const chk = (what, ok, detail) => { if (!ok) bad++;
   console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}${detail ? '   ' + detail : ''}`); };
 
 const dir = mkdtempSync(join(tmpdir(), 'spmt-panels-'));
+process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });   // the copies are scratch; leave nothing behind
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
                                   args: ['--no-sandbox'] });
 for (const f of ['prioritization-board.html', 'prioritization-board-grid.html']) {

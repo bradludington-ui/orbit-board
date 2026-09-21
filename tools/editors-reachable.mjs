@@ -19,7 +19,7 @@
 //   node tools/editors-reachable.mjs
 import { chromium } from 'playwright-core';
 import { boot, seed } from './export-audit/boot.mjs';
-import { writeFileSync, mkdtempSync, readFileSync } from 'node:fs';
+import { writeFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -35,6 +35,7 @@ const sc = { services:SVCN, items, disc:SVCN.map(()=>18000000), mand:SVCN.map(()
              order:items.map(x=>x.id) };
 
 const dir = mkdtempSync(join(tmpdir(),'spmt-view-'));
+process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });   // the copies are scratch; leave nothing behind
 const made = {};
 for (const f of ['prioritization-board.html','prioritization-board-grid.html']) {
   // Boot each build FROM ITS OWN BYTES. boot.mjs resolves BOARD once at module load, so setting

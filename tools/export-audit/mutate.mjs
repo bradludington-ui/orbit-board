@@ -7,7 +7,7 @@
 // Every mutation must match its target EXACTLY ONCE. A mutation that fails to apply is reported as
 // NOT APPLIED, never as caught or survived — otherwise a stale search string would masquerade as
 // proof that a line is covered.
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { execFileSync, execFile } from 'node:child_process';
 import { cpus } from 'node:os';
 import { tmpdir } from 'node:os';
@@ -1387,4 +1387,10 @@ if (skipped.length) {
   skipped.forEach(r => console.log(`  ${r.area}/${r.id}\n      ${r.by}`));
 }
 console.log('');
+// THE MUTATED BOARDS ARE KEPT ONLY WHEN THERE IS SOMETHING TO LOOK AT. A clean sweep leaves nothing
+// behind: 341 copies of a 3 MB board per sweep, two sweeps per gate, filled the disk with 27 GB of
+// finished sweeps in a day and slowed the gate that was running. A sweep with a survivor, a crash
+// or a stale target keeps its directory and says where, because that file is the evidence.
+if (survived.length || skipped.length || crashed.length) console.log(`\nmutated boards kept for inspection at ${dir}`);
+else { try { rmSync(dir, { recursive: true, force: true }); } catch {} }
 process.exit(survived.length || skipped.length || crashed.length ? 1 : 0);
