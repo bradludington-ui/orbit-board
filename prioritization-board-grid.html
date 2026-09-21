@@ -1525,7 +1525,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.77 (21 Sep 2026)';
+const BUILD='v1.78 (21 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -19232,10 +19232,12 @@ function syncBtns(){
   const hb=document.getElementById('hardBtn');
   if(hb){ hb.className='btn'+(hardOpen?' on':''); hb.textContent='⌨ Rank-entry'+(hardOpen?': ON':''); }
   const mi=(label,fn,chk,sub,cls)=>`<div class="mi${cls?' '+cls:''}" onclick="${fn}"><span class="chk">${chk?'✓':''}</span>${label}${sub?`<span class="sub">${sub}</span>`:''}</div>`;
-  ['fy','view','ay','by','fydp','tools','share','export'].forEach(m=>{
-    const el=document.getElementById('m_'+m);
-    if(el) el.className='menu'+(openMenu===m?' open':'');
-  });
+  // EVERY TOOLBAR MENU, READ OFF THE PAGE. A hand-kept list here left 🏢 PMO out when that menu
+  // was added (v1.67): toggleMenu('pmo') set the flag and nothing opened, on every board, for
+  // three days -- and the menu check kept a hand-kept list of its own, so it never looked. The
+  // markup is the list now; a menu added to the toolbar opens, or the check that reads the same
+  // markup says which one does not.
+  document.querySelectorAll('.menu[id^="m_"]').forEach(el=>{ el.className='menu'+(openMenu===el.id.slice(2)?' open':''); });
   const bf=document.getElementById('b_fy');
   if(bf) bf.textContent=FYL()+' ▾';                     // the CONTEXT label already says "Fiscal year"
   const ss=document.getElementById('saveState'), sb=document.getElementById('saveBtn');

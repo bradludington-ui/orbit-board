@@ -33,6 +33,7 @@ const MENUS = {
   'Active year': 'm_ay',
   'Budget year': 'm_by',
   'FYDP':        'm_fydp',
+  'PMO':         'm_pmo',
 };
 // The source stores these as escape sequences inside string literals, so decode before comparing.
 // Otherwise the check reports an item missing from a menu that plainly contains it, and a check

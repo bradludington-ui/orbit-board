@@ -2176,6 +2176,19 @@ buttons of all 115 rows — the most repeated finding on the board, and the cont
 dragging the priority order, so the standard and the job agreed. Rows are 83px and the stack is
 50px, so nothing grew. Measure before assuming a bigger control costs height.
 
+### The PMO menu never opened, and the menu check never looked (v1.78)
+
+Reported from the real board on 21 Sep 2026: clicking 🏢 PMO did nothing. `toggleMenu('pmo')`
+set the flag, but `syncBtns()` painted the `open` class from a hand-kept list of eight menu ids
+that predated the PMO menu (added in v1.67), so the ninth never opened — on every board, in both
+builds, for three days. Neither browser check noticed, because `panels-render.mjs` and
+`menu-paths.mjs` each kept a hand-kept list of their own with the same eight entries. The same
+failure as the vacuous 1.4.11 criterion and the stale mutation search string: **a check with a
+hand-kept list cannot fail on what the list forgot.** `syncBtns()` now reads the toolbar off the
+page (`.menu[id^="m_"]`), the PMO menu is in both check maps, and `panels-render.mjs` asserts that
+every menu in the file is in its map, so the next menu added to the toolbar either opens or fails
+the check by name.
+
 ### 1.4.11 and 2.5.8 closed: every control has a discernible edge and a 24×24 target
 
 The last two open criteria, recorded on 16 Sep as *design decisions to be seen before they ship*,

@@ -53,7 +53,7 @@ const INLINE = {
   rmPanel:  `rmOpen=true; render();`,
 };
 const MENUS = { tools: 'Tools', export: 'Export', share: 'File', view: 'Filter',
-                ay: 'Active year', by: 'Budget year', fydp: 'FYDP', fy: 'FY' };
+                ay: 'Active year', by: 'Budget year', fydp: 'FYDP', fy: 'FY', pmo: 'PMO' };
 // Visible text that should never contain an escape sequence. "&amp;" on screen means something
 // escaped text that was escaped already; "\\u{1F553}" means a JS escape was written straight into
 // markup, where nothing interprets it -- the Change Journal heading read exactly that for a while.
@@ -194,6 +194,13 @@ for (const f of ['prioritization-board.html', 'prioritization-board-grid.html'])
       ent ? `"${(r.text.slice(Math.max(0, ent.index - 26), ent.index + 26)).replace(/\s+/g, ' ')}"` : '');
   }
   chk('nothing threw while opening them', pageErrs.length === 0, pageErrs.slice(0, 2).join(' | '));
+  // EVERY MENU IN THE FILE IS IN THE MAP ABOVE. The PMO menu was added to the toolbar in v1.67 and
+  // to neither this map nor the board's own list, so it never opened and this check never looked:
+  // a check with a hand-kept list is a check that cannot fail on what the list forgot.
+  const inFile = await p.evaluate(() => [...document.querySelectorAll('.menu[id^="m_"]')].map(e => e.id.slice(2)));
+  const unlisted = inFile.filter(k => !(k in MENUS));
+  chk('every toolbar menu in the file is covered by this sweep', unlisted.length === 0,
+    unlisted.length ? 'not covered: ' + unlisted.join(', ') : inFile.length + ' menus');
   await ctx.close();
 }
 await b.close();
