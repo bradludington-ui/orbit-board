@@ -148,6 +148,7 @@ if (book.__err) { console.log('the workbook did not build: ' + book.__err); proc
 // stated precisely is most of the value of writing it down.
 {
   const name = '1 conservation';
+  try {
   Object.keys(F.rows).forEach(id => {
     const r = F.rows[id];
     F.svc.forEach((s, i) => {
@@ -175,6 +176,12 @@ if (book.__err) { console.log('the workbook did not build: ' + book.__err); proc
     chk(name, id, 'and the row total closes the same way',
       money(T(r.d) + T(r.m) + T(r.beyond) + T(r.trim)), money(T(r.ask)));
   });
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 2. CAPACITY ════════════════════════════════════════════════════════════════════════════════
@@ -182,6 +189,7 @@ if (book.__err) { console.log('the workbook did not build: ' + book.__err); proc
 // another's overdraw -- which a portfolio-level total would hide completely.
 {
   const name = '2 capacity';
+  try {
   F.svc.forEach((s, i) => {
     const d = Object.values(F.rows).reduce((a, r) => a + r.d[i], 0);
     const m = Object.values(F.rows).reduce((a, r) => a + r.m[i], 0);
@@ -190,6 +198,12 @@ if (book.__err) { console.log('the workbook did not build: ' + book.__err); proc
     chk(name, s, 'mandatory drawn never exceeds the mandatory BA',
       m <= F.mandBA[i] + 0.005 ? 'within' : `OVER by ${money(m - F.mandBA[i])}`, 'within');
   });
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // EVERY SHEET THIS SUITE READS MUST BE THERE. A renamed or dropped sheet would otherwise take its
@@ -234,6 +248,7 @@ crossFoot('3 cross-foot', 'Funding Streams', 2, 3, 3 + F.svc.length, 'TOTAL');
 // Decision Bands: the GRAND TOTAL against every requirement row in the detail table.
 {
   const name = '3 cross-foot', rows = book['Decision Bands'] || [];
+  try {
   const hdr = headerRow(rows, 'Rank', 'Band', 'PMO');
   const grand = rows.findIndex(r => /^GRAND TOTAL/.test(String((r || [])[0] ?? '').trim()));
   chk(name, 'Decision Bands', 'it has a detail table and a GRAND TOTAL',
@@ -257,6 +272,12 @@ crossFoot('3 cross-foot', 'Funding Streams', 2, 3, 3 + F.svc.length, 'TOTAL');
         `${head}: the grand total equals its ${seen} requirement rows`, money(sum), money(printed));
     }
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 4. THE SAME QUANTITY IS THE SAME NUMBER EVERYWHERE ═════════════════════════════════════════
@@ -265,6 +286,7 @@ crossFoot('3 cross-foot', 'Funding Streams', 2, 3, 3 + F.svc.length, 'TOTAL');
 // somebody is briefing one of them.
 {
   const name = '4 agreement';
+  try {
   const rowsOf = n => book[n] || [];
   const fs = rowsOf('Funding Streams'), fsT = 3 + F.svc.length;
   const cell = (rows, hdrRow, totRow, head) => {
@@ -390,6 +412,12 @@ crossFoot('3 cross-foot', 'Funding Streams', 2, 3, 3 + F.svc.length, 'TOTAL');
       tots.some(v => Math.abs(v - (board.disc + board.mand) / 1e6) < 0.06) ? 'matches'
         : `none of ${tots.join(', ')}`, 'matches');
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 5. EVERY ROW CHECKS ITSELF ═════════════════════════════════════════════════════════════════
@@ -468,6 +496,7 @@ const rowCloses = (name, wb) => {
 // exactly -- and its own columns must close.
 {
   const name = '6 unfunded sheet';
+  try {
   const rows = book['Unfunded Requirements'] || [];
   const hdr = headerRow(rows, 'FY27 Ask', 'Allocated');
   const tot = rows.findIndex(r => String((r || [])[0] ?? '').trim() === 'TOTAL');
@@ -488,11 +517,18 @@ const rowCloses = (name, wb) => {
     chk(name, 'agreement', 'its TOTAL Unfunded agrees with the board', money(g('TOTAL Unfunded')), money(unf));
     chk(name, 'agreement', 'its Unfunded vs DISC is ask − disc', money(g('Unfunded vs DISC')), money(ask - disc));
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 7. MISSION CRITICAL, WHICH IS A MEMO AND MUST NEVER BE ADDED TO A LANE ═════════════════════
 {
   const name = '7 mission critical';
+  try {
   const rows = book['Mission Critical'] || [];
   const hdr = headerRow(rows, 'Rank', 'PMO');
   const tot = rows.findIndex(r => String((r || [])[0] ?? '').trim() === 'TOTAL');
@@ -513,6 +549,12 @@ const rowCloses = (name, wb) => {
         && Math.abs(T(R.map(r => T(r.discUnf))) - netted) > 0.005) ? 'NETTED' : 'not netted',
       'not netted');
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 8. THE SAME TOTALS SURVIVE A SAVE, A REOPEN AND A PMO COPY ═════════════════════════════════
@@ -520,6 +562,7 @@ const rowCloses = (name, wb) => {
 // in front of someone. Same figures, three files.
 {
   const name = '8 survives the file';
+  try {
   const topline = ev(`(function(){ const T=tiers(), t=tierTotals(T);
     return [Math.round(t.dUsed), Math.round(t.mUsed), Math.round(t.uAmt)].join('/'); })()`);
   const reopened = boot({ html: ev('buildSavedHtml()') });
@@ -543,6 +586,12 @@ const rowCloses = (name, wb) => {
   chk(name, 'PMO copy', 'and the same unfunded total',
     money(cOf(copyBook['Funding Streams'] || [], 'TOTAL UNFUNDED')),
     money(cOf(book['Funding Streams'] || [], 'TOTAL UNFUNDED')));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 9. THE DECK ════════════════════════════════════════════════════════════════════════════════
@@ -552,6 +601,7 @@ const rowCloses = (name, wb) => {
 // beside is the single most expensive way for this to go wrong.
 {
   const name = '9 the deck';
+  try {
   const deck = (() => {
     ev(`globalThis.__t=[]; globalThis.__ti=[];
       if(!globalThis.__oT) globalThis.__oT=_pTbl; if(!globalThis.__oI) globalThis.__oI=_pTitle;
@@ -613,6 +663,12 @@ const rowCloses = (name, wb) => {
     const row = findRow(deck.tables[0], /Mission Critical total/);
     const v = row ? dollars((row || []).map(cel).filter(x => /\$/.test(x)).pop()) : null;
     near(v, board.mcValue, 'and the title slide agrees with both', 'title slide');
+  }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
 }
 
@@ -696,6 +752,7 @@ const rowCloses = (name, wb) => {
 // quantities sharing a word, and no check had ever opened that workbook.
 {
   const name = '11 every product';
+  try {
   const R = Object.values(F.rows);
   const truth = {
     ask:    T(R.map(r => T(r.ask))),
@@ -849,6 +906,12 @@ const rowCloses = (name, wb) => {
       });
     }
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -875,6 +938,7 @@ const grabX = (fn) => w.eval(`(async function(){
 // requirement. Recorded as a gap on 15 Sep: "the flow's own totals are compared to nothing".
 {
   const name = 'the funds flow';
+  try {
   const beyond = _sum(Object.keys(F.rows).map(id => _sum(F.rows[id].beyond)));
   chk(name, 'fixture', 'the fixture has dollars beyond both lanes, so the allocation and the draw differ',
     beyond > 0.5 ? 'yes' : 'no', 'yes');
@@ -907,6 +971,12 @@ const grabX = (fn) => w.eval(`(async function(){
     tf.length && tf.every(v => Math.abs(v - flow.grand) <= 0.005) ? 'yes' : JSON.stringify(tf), 'yes');
   chk(name, 'workbook', 'and the reconciliation block closes: US + other = total',
     cell('US service appropriations') + cell('Other sources'), flow.grand);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 13. THE CHART OF ACCOUNTS ══════════════════════════════════════════════════════════════════
@@ -922,6 +992,7 @@ const grabX = (fn) => w.eval(`(async function(){
 // this board's six -- and one override of the wrong length, which the sheet has to discard.
 {
   const name = 'the chart of accounts';
+  try {
   const askOf = id => _sum(F.rows[id].ask);
   const askTot = _sum(Object.keys(F.rows).map(askOf));
   const payloadC = _sum(sc.items.find(x => x.id === 'C').ask);
@@ -966,6 +1037,12 @@ const grabX = (fn) => w.eval(`(async function(){
   chk(name, 'consolidated', 'FF2’s override is the wrong length for Full Fund and is discarded: the shipped ask', ffAsk('Ev FF2'), _sum(FF.FF2));
   chk(name, 'consolidated', 'the Full Fund summary row counts two requirements', num(apRow('FULL FUND')[cN]), 2);
   chk(name, 'consolidated', 'and its requirement total is the two rows together', num(apRow('FULL FUND')[cAsk]), _sum(FF1_OVER) + _sum(FF.FF2));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 14. THE REPROGRAMMING LOG ══════════════════════════════════════════════════════════════════
@@ -974,6 +1051,7 @@ const grabX = (fn) => w.eval(`(async function(){
 // entries are re-derived here from their own amounts and signs.
 {
   const name = 'the reprogramming log';
+  try {
   const RP = [{ type: 'BTR', svc: 'USAF', amt: 1.5, dir: 'add' }, { type: 'BTR', svc: 'ANG', amt: 0.5, dir: 'deduct' },
               { type: 'ATR', svc: 'USAF', amt: 2.0, dir: 'add' }, { type: 'ATR', svc: 'STOVL', amt: 0.25, dir: 'deduct' }];
   const net = e => e.amt * (e.dir === 'deduct' ? -1 : 1);
@@ -997,6 +1075,12 @@ const grabX = (fn) => w.eval(`(async function(){
   chk(name, 'total', 'TOTAL BTR is the BTR subtotal', num(tot[cB]), netOf('BTR'));
   chk(name, 'total', 'TOTAL ATR is the ATR subtotal', num(tot[cA]), netOf('ATR'));
   chk(name, 'total', 'and the grand net is every entry, deducts negative', num(tot[cT]), netOf());
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 15. THE ACE TIE-OUT ════════════════════════════════════════════════════════════════════════
@@ -1009,6 +1093,7 @@ const grabX = (fn) => w.eval(`(async function(){
 // saying why. The sheet now states such lines and keeps them out of its total.
 {
   const name = 'the ACE tie-out';
+  try {
   const est = { PSM: 9500000, TSS: 1700000, ATL: 4000000, NOBODY: 333000 };
   const got = JSON.parse(await grabX('exportAceTieout'));
   chk(name, 'workbook', 'the tie-out builds against the seeded estimate', got.state, 'ok');
@@ -1045,6 +1130,12 @@ const grabX = (fn) => w.eval(`(async function(){
   chk(name, 'stray line', 'and says why', /no office on this board reports under it/.test(String(stray[1] ?? '')), true);
   chk(name, 'orphans', 'the WBS lines nothing claims are listed',
     orphan.filter((r, i) => i > 2 && r && r.length && /^FY/.test(String(r[0]))).map(r => String(r[1])).sort().join(','), '7.7,9.9');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 16. CR CASH NEEDS — THE SHEET CROSS-FOOTS ══════════════════════════════════════════════════
@@ -1053,6 +1144,7 @@ const grabX = (fn) => w.eval(`(async function(){
 // that prints it: every service row is crData's, TOTAL is the services added, CUMULATIVE runs.
 {
   const name = 'CR cash needs — the sheet cross-foots';
+  try {
   const cr = book['CR Cash Needs'] || [];
   const crd = JSON.parse(ev(`JSON.stringify(crData().map(function(s){ return {win:s.win, nodate:s.nodate, tot:s.tot}; }))`));
   const hdr = headerRow(cr, 'Service / Requirement', 'No date', 'TOTAL IN WINDOW');
@@ -1073,6 +1165,12 @@ const grabX = (fn) => w.eval(`(async function(){
   // only A carries an award date on this board; every other funded dollar has no date
   chk(name, 'No date', 'is the funded money of every requirement without an award date',
     num(tot[cND]), _sum(['B', 'C', 'D', 'E'].map(_fundedOf)));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 17. THE FIVE-YEAR SPEND PLAN ═══════════════════════════════════════════════════════════════
@@ -1086,6 +1184,7 @@ const grabX = (fn) => w.eval(`(async function(){
 // prints the new one. E is moved into PSM for this block so one subtotal spans two rows.
 {
   const name = 'the five-year spend plan';
+  try {
   const cur = +ev('MS.cur'), key = 'PB|' + cur, fyl = y => 'FY' + (y % 100);
   const snap = ev('JSON.stringify(S)'), base0 = ev('JSON.stringify(MS.base===undefined? null : MS.base)');
   const A1 = [18000000, 4000000, 2000000, 8000000, 3000000, 5000002];      // A next year: doubled, odd dollar kept
@@ -1221,6 +1320,12 @@ const grabX = (fn) => w.eval(`(async function(){
   ev(`fydpOpen=false; MS.cycle=''; MS.cycleRef=''; delete MS.years[MS.cur+1]; MS.base=${base0 === 'null' ? 'undefined' : base0};
       applyState(JSON.parse(${JSON.stringify(snap)})); MS.years[MS.cur]=S; save(); render(); 'ok'`);
   chk(name, 'restore', 'the board is as it was', _sum(JSON.parse(ev(`JSON.stringify(itemById('B').ask)`))), bAsk0);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 18. COMPARING TWO CYCLES ═══════════════════════════════════════════════════════════════════
@@ -1235,6 +1340,7 @@ const grabX = (fn) => w.eval(`(async function(){
 // only one side holds is stated, never compared.
 {
   const name = 'comparing two cycles';
+  try {
   const cur = +ev('MS.cur'), keyA = 'PB|' + cur, keyB = 'BES|' + (cur + 1), fyl = y => 'FY' + (y % 100);
   const snap = ev('JSON.stringify(S)'), base0 = ev('JSON.stringify(MS.base===undefined? null : MS.base)');
   // A missing year or row is a FAILING CHECK, never a throw: a suite that dies proves nothing, and
@@ -1428,6 +1534,12 @@ const grabX = (fn) => w.eval(`(async function(){
     } catch (e) { failures.push({ scenario: name, where: 'harness', what: 'the restore threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' }); }
     chk(name, 'restore', 'the board is as it was', ev(`S.order.join(',')`) + ' ' + ev(`blList().length`), 'A,B,C,D,E 0');
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ 19. THE PPBE POSITION BESIDE THE PLAN ══════════════════════════════════════════════════════
@@ -1440,6 +1552,7 @@ const grabX = (fn) => w.eval(`(async function(){
 // none at all for a working plan with no cycle tag.
 {
   const name = 'the PPBE position beside the plan';
+  try {
   const cur = +ev('MS.cur'), key = 'PB|' + cur, fyl = y => 'FY' + (y % 100);
   const snap = ev('JSON.stringify(S)'), base0 = ev('JSON.stringify(MS.base===undefined? null : MS.base)'), pp0 = ev('JSON.stringify(MS.ppbe||{})');
   try {
@@ -1520,6 +1633,12 @@ const grabX = (fn) => w.eval(`(async function(){
           applyState(JSON.parse(${JSON.stringify(snap)})); MS.years[MS.cur]=S; save(); render(); 'ok'`);
     } catch (e) { failures.push({ scenario: name, where: 'harness', what: 'the restore threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' }); }
     chk(name, 'restore', 'the board is as it was', ev(`S.order.join(',')`) + ' ' + ev(`blList().length`) + ' ' + ev(`Object.keys(MS.ppbe||{}).length`), 'A,B,C,D,E 0 0');
+  }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
 }
 

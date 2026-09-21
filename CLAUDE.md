@@ -1648,12 +1648,16 @@ The first gate run with the hardened runner (v1.75, 21 Sep 2026) reported **thir
 each build — every one a stage-1 or stage-2 cycle mutation (`cycle-*`, `view-load-allowed`) that
 the earlier gates had counted as *caught* only because the board suite died on it: a check read
 `.reqs` off a projection the mutation had removed, or the page threw inside `ev`. Nothing was
-wrong with the board; the suite had no verdict. The four *PPBE cycles* blocks of audit-board (and
-the stage-4 to stage-6 recon blocks, which were written that way) now wrap their body in
-`try { … } catch (e) { failures.push({ … 'the block threw: ' + message … }) }`, so a throw inside
-a block is a FAILING CHECK naming the block and the error, and only a death outside any block —
-boot, a syntax error, the process killed — remains a crash. The runner's crash report now keeps
-the error message (Node prints it above the stack, which the last lines alone lost).
+wrong with the board; the suite had no verdict. The second run (v1.76) found five more of the
+same kind in other blocks (`mipr-no-bulk-setter`, `fld-stale-stays-open`, `disc-mand-gated` in
+the board suite; `save-no-lt-escape`, `svc-check-order-blind` in the import suite). So **every
+scenario block** of audit-board, audit-import and audit-recon — a top-level `{ const name = … }`
+— now wraps its body in `try { … } catch (e) { failures.push({ … 'the block threw: ' + message
+… }) }` (a script did it; the four cycle blocks were first), so a throw inside a block is a
+FAILING CHECK naming the block and the error, and only a death outside any block — boot, a
+syntax error, the process killed — remains a crash. The runner's crash report now keeps the error
+message (Node prints it above the stack, which the last lines alone lost; and `TypeError` has no
+word boundary before `Error`, which the first regex assumed).
 
 ### The five money-coverage gaps are closed
 

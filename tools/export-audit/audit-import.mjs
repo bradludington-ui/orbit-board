@@ -74,6 +74,7 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
 // ── 1. same services, different ORDER: accepted, and every dollar follows its NAME ──────────────
 {
   const name = 'reorder';
+  try {
   const { ev } = boot(); seed(ev, base());
   // AFRC 1M, USAF 9M, ANG 2M — the same money, written in that board's order.
   const st = theirState(['AFRC', 'USAF', 'ANG'], [1000000, 9000000, 2000000]);
@@ -84,22 +85,36 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
   // same total, every dollar on the wrong service.
   chk(name, 'money', 'each dollar follows its service NAME, not its position',
     dvec(ev).join(','), [9000000, 2000000, 1000000].join(','));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ── 2. a DIFFERENT SET of services: refused, and the board is untouched ─────────────────────────
 {
   const name = 'different services';
+  try {
   const { ev } = boot(); seed(ev, base());
   const before = JSON.stringify(dvec(ev));
   const st = theirState(['STOVL', 'USMC-C', 'USN'], [5000000, 4000000, 3000000]);
   const ok = ev(`applyStore(${JSON.stringify(st)}) !== false`);
   chk(name, 'guard', 'the import is refused', String(ok), 'false');
   chk(name, 'money', 'the board is exactly as it was', JSON.stringify(dvec(ev)), before);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ── 3. no service list at all: caught on ARITY, which is the only tell left ─────────────────────
 {
   const name = 'no service list';
+  try {
   const { ev } = boot(); seed(ev, base());
   const before = JSON.stringify(dvec(ev));
   const st = { order: ['A'], alloc: {}, mc: {}, fsrc: {}, custom: [], removed: [],
@@ -107,16 +122,29 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
   const ok = ev(`applyStore(${JSON.stringify(st)}) !== false`);
   chk(name, 'guard', 'a differently-shaped state is refused', String(ok), 'false');
   chk(name, 'money', 'the board is exactly as it was', JSON.stringify(dvec(ev)), before);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ── 4. the board's OWN state: silent, always ────────────────────────────────────────────────────
 {
   const name = 'own state';
+  try {
   const { ev } = boot(); seed(ev, base());
   const before = JSON.stringify(dvec(ev));
   const ok = ev(`applyStore(JSON.parse(JSON.stringify(MS))) !== false`);
   chk(name, 'guard', 'reloading this board’s own state is accepted', String(ok), 'true');
   chk(name, 'money', 'and changes nothing', JSON.stringify(dvec(ev)), before);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ── 5. EXHAUSTIVENESS: no per-service vector may be left in the file's order ────────────────────
@@ -125,6 +153,7 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
 // the oracle walks the state generically, so it does not share svcRemapState's list of what to fix.
 {
   const name = 'exhaustive remap';
+  try {
   const { ev } = boot(); seed(ev, base());
   const N = MINE.length, ident = [0, 1, 2];
   const st = {
@@ -166,6 +195,12 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
   })(out.st, '');
   chk(name, 'exhaustive', 'every per-service vector was remapped'
     + (bad.length ? ' — left in file order: ' + bad.join(', ') : ''), bad.length, 0);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ── 6. a refusal leaves the store byte-identical ─────────────────────────────────────
@@ -180,6 +215,7 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
 // itself protects is the money, and that is covered above.
 {
   const name = 'refusal is clean';
+  try {
   const { ev } = boot(); seed(ev, base());
   const before = ev('JSON.stringify(MS)');
   const st = theirState(['STOVL', 'USMC-C', 'USN'], [5000000, 4000000, 3000000]);
@@ -187,6 +223,12 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
   chk(name, 'guard', 'applyStore reports the refusal to its caller', String(r), 'false');
   chk(name, 'state', 'the store is byte-identical to before', ev('JSON.stringify(MS)'), before);
   chk(name, 'state', 'and the board still renders', ev('(render(), "ok")'), 'ok');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ── 7. the service list hiding under a year ───────────────────────────────────────
@@ -196,6 +238,7 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
 // the first version of this guard.
 {
   const name = 'pack under a year';
+  try {
   const { ev } = boot(); seed(ev, base());
   const before = ev('JSON.stringify(MS)');
   const store = { base: 2027, cur: 2027, years: { 2027: {
@@ -211,6 +254,12 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
   mineStore.years[2027].discSvc = [9000000, 2000000, 1000000];
   chk(name, 'guard', 'the same shape with this board\u2019s services loads',
     String(ev(`applyStore(${JSON.stringify(mineStore)}) !== false`)), 'true');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -242,6 +291,7 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // file was built, downloaded and trusted.
 {
   const name = 'save → reopen';
+  try {
   const sc = base();
   const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
 
@@ -278,6 +328,12 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
   chk(name, 'store', 'the reopened board is the board that was saved', settled(re.ev), before);
   chk(name, 'store', 'and it rendered without throwing',
     re.errors.length ? re.errors[0].slice(0, 120) : 'ok', 'ok');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ the values most likely to be quietly mangled ════════════════════════════════════
@@ -292,6 +348,7 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // container the board writes -- nothing here had ever opened a saved board with buy lines.
 {
   const name = 'buy lines reopen once';
+  try {
   const sc = base();
   const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
   // The payload says the board has buy lines, the way a real board's baked template does. This
@@ -310,10 +367,17 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
   chk(name, 'reopen', 'nor on the open after that', count(b3), 1);
   chk(name, 'reopen', 'and the pack the next save would write carries it once',
     Number(b3.ev(`dataPackOf().items.filter(function(i){ return i.id==='BUY-AC'; }).length`)), 1);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 {
   const name = 'what survives';
+  try {
   const sc2 = base();
   const { ev } = boot(); seed(ev, sc2); asBooted(ev, sc2);
   ev(`
@@ -335,6 +399,12 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     got("S.titles['A']"), 'a "quoted" \u2014 title');
   chk(name, 'text', 'a note containing </script> and entities survives',
     got("S.notes['A']"), '</script> & <b>&amp;</b>');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ READING A WORKBOOK ══════════════════════════════════════════════════════════════════════════
@@ -347,6 +417,7 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // writer agree, and damaging that buffer gives realistically-corrupt files rather than invented ones.
 {
   const name = 'workbook reader';
+  try {
   const { w } = boot();
   const r = JSON.parse(await w.eval(`(async function(){
     const mk = () => { const b = buildXlsx([{name:'Pull', cols:[20,12], rows:[
@@ -417,6 +488,12 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
   says('entryCount', /claims \d+ entries/i);
   says('zipNotWorkbook', /no workbook part/i);
   says('danglingString', /shared-string table|points at text/i);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ MOVING A REQUIREMENT BETWEEN FISCAL YEARS ═══════════════════════════════════════════════════
@@ -429,6 +506,7 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // the normalise list and forgotten in the payload fails this check the day it is added.
 {
   const name = 'copy / move between years';
+  try {
   const src = readFileSync(BOARD, 'utf8');
   const listM = /\n  \['alloc','mc',([\s\S]*?)\]\n    \.forEach\(k=>\{ if\(!T\[k\]\) T\[k\]=\{\}; \}\);/.exec(src);
   const KEYS = listM ? ("['alloc','mc'," + listM[1] + "]").match(/'([a-zA-Z]+)'/g).map(x => x.slice(1, -1)) : [];
@@ -505,6 +583,12 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
   chk(name, 'move', 'and recorded as removed, so it is restorable', String(mv.removed), 'true');
   chk(name, 'move', 'it is on the target year', String(mv.inTarget), 'true');
   chk(name, 'move', 'and off every PMO ordering here', String(mv.inPmoOrder), 'false');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ THE PMO COPY, AND WHAT COMES BACK FROM IT ═══════════════════════════════════════════════════
@@ -517,6 +601,7 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // nothing lands on the board without being ticked.
 {
   const name = 'PMO copy';
+  try {
   // TWO REAL REQUIREMENTS. This block corrects a record number on B, and B has to be a requirement
   // the board actually has for that to mean anything: a bag key for an id not in S.order gets no
   // baseline when the copy is published, so it is not a field a programme office can propose --
@@ -608,11 +693,18 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
   chk(name, 'submittal', 'and the baseline holds the value each field started from',
     JSON.stringify((wire.base || {}).A && wire.base.A.asks),
     JSON.stringify([9000000, 2000000, 1000000]));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ── review: nothing lands without a tick, and a clash is visible ────────────────────────────────
 {
   const name = 'submittal review';
+  try {
   const sc = base();
   const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
   // The board moved on after the copy went out: it rewrote the SAME impact statement.
@@ -657,6 +749,12 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
   chk(name, 'apply', 'every applied change is in the change journal',
     ev("MS.jrnl.filter(function(e){ return e.p && e.p[0]==='cons'; }).length > 0") ? 'journalled' : 'silent',
     'journalled');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ THE HANDOFF, HELD TO "NOTHING IS LOST AND NOTHING IS INVENTED" ══════════════════════════════
@@ -704,6 +802,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 
 {
   const name = 'handoff — out';
+  try {
   const sc = handoffSc();
   const { ev } = boot(); seed(ev, sc); handoffSeed(ev, sc);
   // a locked cycle, so the store below has something to lose
@@ -750,10 +849,17 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   // holding, that line becomes load-bearing and this check fails first.
   chk(name, 'aliasing', 'itemById() on a custom requirement IS the stored object',
     ev(`itemById('NEW-1')===S.custom.filter(function(c){ return c.id==='NEW-1'; })[0]`), true);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 {
   const name = 'handoff — back';
+  try {
   const sc = handoffSc();
   // The office changes four things, including the value on the CUSTOM requirement.
   const { ev: pe } = (() => { const b = boot(); seed(b.ev, sc); handoffSeed(b.ev, sc); return b; })();
@@ -805,10 +911,17 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     X.ev(`S.cons['A']`), LONG);
   chk(name, 'fidelity', 'the requirement value keeps every dollar',
     X.ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([3100000,500000,250000,1000000,0,750000]));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 {
   const name = 'handoff — service alignment';
+  try {
   const sc = handoffSc();
   // Same services, listed in a different order: remap by NAME, never by position.
   const R = boot(); seed(R.ev, sc); handoffSeed(R.ev, sc);
@@ -834,10 +947,17 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     W.ev(`/different set of services/.test(window.__a)`) ? 'refused' : 'ACCEPTED', 'refused');
   chk(name, 'mismatch', 'nothing is held for review', W.ev('PMOSUBS.length===0'), true);
   chk(name, 'mismatch', 'and the board is untouched', W.ev(`JSON.stringify(itemById('A').ask)`), before);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 {
   const name = 'handoff — the review controls';
+  try {
   const sc = handoffSc();
 
   // ── THE PER-ROW TICK MUST ACTUALLY TICK ─────────────────────────────────────────────────────
@@ -935,10 +1055,17 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:2027,ts:Date.now(),by:'PMO',fromTs:1,
       svc:SVC.slice(), items:{A:{desc:'Prose only.'}}, base:{A:{desc:null}}},'s.json'); 'ok'`);
   chk(name, 'unscoped', 'saying no holds nothing', V.ev('PMOSUBS.length===0'), true);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 {
   const name = 'handoff — the copy has its own storage';
+  try {
   const sc = handoffSc();
   const { ev } = boot(); seed(ev, sc); handoffSeed(ev, sc);
   ev(`S.cons['A']='PORTFOLIO-V2 — what the copy should show.'; save(); 'ok'`);
@@ -1001,6 +1128,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   const pb = openWith(ev('SRC0'), dumpLs(d1));
   chk(name, 'their work', 'the portfolio board keeps its own key', pb.eval('_AP.key'), ev('_AP.key'));
   chk(name, 'their work', 'and is not a sandbox', String(pb.eval('SANDBOX')), 'false');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ anything that leaves a PMO copy says so ════════════════════════════════════════════════════
@@ -1010,6 +1143,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // name. Read the artefact the office would actually circulate, with the board's own reader.
 {
   const name = 'handoff — an export from a copy says it is one';
+  try {
   const sc = base();
   const { ev } = boot(); seed(ev, sc); asBooted(ev, sc);
   const html = ev(String.raw`(function(){
@@ -1063,6 +1197,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   chk(name, 'no double mark', 'a submittal built in a copy is not re-marked',
     boot({ html }).ev(`expName('SPMT SUBMITTAL - J Smith - 2026-09-13.json')`),
     'SPMT SUBMITTAL - J Smith - 2026-09-13.json');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ what is reviewed is what would land ════════════════════════════════════════════════════════
@@ -1073,6 +1213,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // spreadsheet that did not describe the board it produced.
 {
   const name = 'handoff — the review cannot promise what applying will not do';
+  try {
   const sc = base();
   const seedOne = () => { const b = boot(); seed(b.ev, sc); asBooted(b.ev, sc);
     b.ev(`window.__a=''; window.alert=function(m){ window.__a=m; };
@@ -1104,6 +1245,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     W.ev(`/wrong number of services/.test(window.__a)`) ? 'refused' : 'ACCEPTED', 'refused');
   chk(name, 'width', 'nothing is held for review', W.ev('PMOSUBS.length===0'), true);
   chk(name, 'width', 'and the board is untouched', W.ev(`JSON.stringify(itemById('A').ask)`), before);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ the change report is the record the team argues from ═══════════════════════════════════════
@@ -1112,6 +1259,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // the board's OWN workbook reader and compare every cell against the review it claims to describe.
 {
   const name = 'handoff — the change report';
+  try {
   const sc = base();
   sc.items.push(it('B', 'ATL', [3000000, 500000, 250000]));
   sc.order.push('B');
@@ -1203,6 +1351,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     return String(rr[4][c]||''); })()`);
   chk(name, 'fidelity', 'a long impact statement reaches the spreadsheet whole', cell.length, LONG.length);
   chk(name, 'fidelity', 'char for char', cell === LONG ? 'exact' : 'altered', 'exact');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ appropriation packages: the OTHER path that takes numbers this board did not compute ═══════
@@ -1212,6 +1366,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // for, through a door it never watched. Nothing covered pkgApply at all.
 {
   const name = 'appropriation package — services';
+  try {
   const OTHER = 'ff';                                  // a different appropriation on the same board
   const THEIRS = ['USAF', 'ANG', 'AFRC'];              // the services THAT appropriation holds
   // THE BOARD ON SCREEN CARRIES DIFFERENT SERVICES. That is the point of the distinction: two
@@ -1312,6 +1467,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     chk(name, 'match', 'and its figures land unchanged',
       JSON.stringify((readOther(ev) || {}).disc), JSON.stringify([11, 22, 33]));
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ the change journal is the safety net, and nothing tested it ════════════════════════════════
@@ -1320,6 +1481,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // proposal is accepted in error, and it was covered by nothing at all.
 {
   const name = 'the change journal';
+  try {
   const sc = base();
   sc.items.push(it('B', 'ATL', [3000000, 500000, 250000]));
   sc.order.push('B');
@@ -1405,6 +1567,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
         ev(`JSON.stringify({ccar:S.ccar, asks:S.asks})`), before);
     }
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ A SUBMITTAL CARRIES ONE OFFICE'S REQUIREMENTS, AND SEVERAL ARE REVIEWED TOGETHER ══════════
@@ -1415,6 +1583,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // refuse to SEND another office's row, and the board must refuse to REVIEW one that arrives anyway.
 {
   const name = 'scoped submittals';
+  try {
   const sc = { services: MINE,
     items: [it('A', 'AV', [900, 200, 100]), it('B', 'AV', [400, 100, 50]),
             it('C', 'PSM', [300, 80, 40]),  it('D', 'MxS', [200, 50, 25])],
@@ -1513,6 +1682,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   // away every untaken proposal the moment the first batch went in.
   chk(name, 'apply', 'nothing is left proposing what the board now says', after.left, 0);
   chk(name, 'apply', 'and the packages are still held rather than discarded', after.stillHeld, 2);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ A COPY PROPOSES A NEW REQUIREMENT ═══════════════════════════════════════════════════════
@@ -1523,6 +1698,7 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // twice. Each of those is a way to lose or double a requirement, so each is asserted.
 {
   const name = 'a copy proposes a new requirement';
+  try {
   const sc = { services: MINE,
     items: [it('A', 'AV', [900, 200, 100]), it('C', 'PSM', [300, 80, 40])],
     disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'C'] };
@@ -1657,6 +1833,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   const drop = ev(`(function(){ var m=''; window.alert=function(x){ m+=String(x); }; PMOSUBS.length=0;
     pmoTake(${JSON.stringify(foreignPkg)}, 'av.json'); return (PMOSUBS.length? 'held' : 'refused')+' '+(/another office owns/.test(m)? 'said' : 'silent'); })()`);
   chk(name, 'scope', 'a proposal for an office the package is not from is refused, and said', drop, 'refused said');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 {

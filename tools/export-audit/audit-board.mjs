@@ -311,6 +311,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // produce a total that ties while every individual mod is wrong.
 {
   const name = 'incremental funding residual';
+  try {
   const sc = {
     services: ['STOVL', 'CV', 'CTOL'],
     items: [it('A', 'ATL', [12000000, 4200000, 2361859])],
@@ -360,6 +361,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // so the totals are checked too — but they are not the point, and they are checked last.
   chk(name, 'residual', 'total scheduled equals total DISCRETIONARY allocated',
     Math.round(sum(r.sched)), Math.round(sum(r.alloc)));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -373,6 +380,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 //                  figure once the balance started reconciling against discretionary alone.
 {
   const name = 'spend forecast';
+  try {
   const sc = {
     services: ['STOVL', 'CV', 'CTOL'],
     items: [it('A', 'ATL', [12000000, 4200000, 2361859])],
@@ -455,6 +463,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       / (r.inc[0].reduce((a, b) => a + b, 0) + r.inc[1].reduce((a, b) => a + b, 0))).toFixed(4));
   chk(name, 'literal vs modelled', 'both conserve their own total',
     Math.round(f.modelled.m.reduce((a, b) => a + b, 0) + f.modelled.unsch), Math.round(f.modelled.tot));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -468,6 +482,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // less what rows 1..k drew, per service.
 {
   const name = 'cutlines';
+  try {
   const sc = {
     services: ['STOVL', 'CV', 'CTOL'],
     // B is directed to MANDATORY while its discretionary lane is still flush — the exact case the
@@ -528,6 +543,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   })()`);
   chk(name, 'cutline', 'the discretionary banner sits immediately above the first row that crosses',
     placed, firstNat);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ the absorb line ════════════════════════════════════════════════════════════════════════════
@@ -536,6 +557,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // allocation, not applied whole to every service.
 {
   const name = 'absorb';
+  try {
   const sc = {
     services: ['STOVL', 'CV', 'CTOL'],
     // A is the absorber and is fully funded; B and C strand money on different services, so the
@@ -582,6 +604,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     floor <= aTot + 0.005 ? 'ok' : `floor ${floor} > aTot ${aTot}`, 'ok');
   chk(name, 'absorbed', 'absorbed + unabsorbed is the whole portfolio shortfall',
     Math.round(r.ab.absorbedTot + r.ab.unabsorbedTot), Math.round(sum(r.u)));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ the on-screen marker on the spend forecast panel ════════════════════════════════════
@@ -590,6 +618,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // no export suite can reach it — exactly the class of figure this file exists for.
 {
   const name = 'forecast marker';
+  try {
   const sc = {
     services: ['USAF', 'ANG'],
     items: [it('A', 'ATL', [12000000, 1500000]), it('B', 'PSM', [3000000, 400000])],
@@ -618,6 +647,12 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     String(off).includes(tag) ? 'marked' : 'clean', 'clean');
   chk(name, 'panel', 'the marker comes back off with the toggle',
     String(back).includes(tag) ? 'marked' : 'clean', 'clean');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ converting the whole board to an explicit Split ═══════════════════════════════════
@@ -683,6 +718,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // thing it exists to collect.
 {
   const name = 'impact is always reachable';
+  try {
   const sc = { services: ['USAF', 'ANG', 'AFRC'],
     items: [it('A', 'PSM', [9000000, 2000000, 1000000])],
     disc: [9000000, 2000000, 1000000], mand: [0, 0, 0], order: ['A'] };
@@ -731,6 +767,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     wrote.found ? 'reachable' : 'no way in', 'reachable');
   chk(name, 'row', 'and no longer flagged as missing',
     /not written/.test(wrote.text || '') ? 'still flagged' : 'clean', 'clean');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ the Spruills grid must read the board's OWN requirements ═══════════════════════════
@@ -745,6 +787,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // would have agreed with the bug.
 {
   const name = 'Spruills reads the board it is on';
+  try {
   const sc = { services: ['USAF', 'ANG', 'AFRC'],
     items: [it('A', 'PSM', [9000000, 2000000, 1000000]),
             it('B', 'AV',  [4000000, 500000, 250000]),
@@ -780,6 +823,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     chk(name, 'spGather', 'and there is a row per PMO', Object.keys(own.rows).length,
       new Set(sc.items.map(i => i.grp)).size);
   }
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ recording a funding source must not change what a requirement is short ═════════════
@@ -794,6 +843,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // A and B here are the same requirement twice. Only the recorded source differs.
 {
   const name = 'a recorded funding source moves no money';
+  try {
   const sc = { services: ['USAF', 'ANG', 'AFRC'],
     items: [it('A', 'PSM', [9000000, 2000000, 1000000]),
             it('B', 'PSM', [9000000, 2000000, 1000000])],
@@ -826,6 +876,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'oracle', 'the trim is the ask less the allocation', plain.trim, 12000000 - 6600000);
   chk(name, 'oracle', 'nothing is beyond the lanes', plain.beyond, 0);
   chk(name, 'oracle', 'total unfunded is the trim', plain.unf, plain.trim);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ the pop-up editor saves what was typed, and opens where there is a panel to open it from ══
@@ -838,6 +894,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // not happen to route through it. The routing is then asserted per build.
 {
   const name = 'the pop-up editor';
+  try {
   const sc = { services: ['USAF', 'ANG', 'AFRC'],
     items: [it('A', 'PSM', [9000000, 2000000, 1000000])],
     disc: [9000000, 2000000, 1000000], mand: [0, 0, 0], order: ['A'] };
@@ -873,6 +930,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     hasPanel ? (isOpen() && !ev(`!!consOpen['A']`) ? 'pop-up' : 'wrong route')
              : (!isOpen() && ev(`!!consOpen['A']`) ? 'row' : 'wrong route'),
     hasPanel ? 'pop-up' : 'row');
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ══ MIPR type is asked for on an OGC, and never on a prime ═════════════════════════════
@@ -887,6 +950,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 //     it never asked for.
 {
   const name = 'MIPR type';
+  try {
   const sc = { services: ['USAF', 'ANG', 'AFRC'],
     items: [it('A', 'PSM', [9000000, 2000000, 1000000]), it('B', 'AV', [4000000, 500000, 250000])],
     disc: [9000000, 2000000, 1000000], mand: [0, 0, 0], order: ['A', 'B'] };
@@ -940,6 +1004,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   // and proves every container in it actually receives data. Restating it here would be a second
   // check of the same thing that could drift from the first -- and the tautology this replaced
   // ("'listed' : 'listed'") asserted nothing at all while looking like it did.
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ A BULK WRITE LANDS ONLY WHERE THE FIELD IS OFFERED ══════════════════════════════════════════════════════
@@ -952,6 +1022,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // applies to, and the default is everyone.
 {
   const name = 'a bulk write lands only where the field is offered';
+  try {
   const sc = {
     services: SVC3,
     items: [it('A', 'PSM', [100, 50, 40]), it('B', 'PSM', [80, 30, 20]), it('C', 'AV', [60, 20, 10])],
@@ -1013,6 +1084,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     ev(`recFields('C', itemById('C')).some(function(f){ return f.l==='Which awards to'; })`), true);
   chk(name, 'other kind', 'and MIPR type, off the same predicate',
     ev(`recFields('C', itemById('C')).some(function(f){ return f.l==='MIPR type'; })`), true);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ EVERY DOLLAR THE ENGINE PRODUCES IS A WHOLE DOLLAR ═════════════════════════════════
@@ -1028,6 +1105,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // enforces cannot be expressed with the tolerance the rule exists to eliminate.
 {
   const name = 'whole dollars — scalar allocations that do not divide';
+  try {
   // Chosen so no proration lands clean: none of these asks divide their allocation evenly, and
   // 13 across [1,3,7,11] is deliberately small enough that a lost dollar is the whole answer.
   const sc = {
@@ -1091,6 +1169,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     ev(`setAsk('B',1,'1.2345M'); itemById('B').ask[1]`), 1234500);
   chk(name, 'input', 'a typed allocation is stored as a whole dollar',
     ev(`setAlloc('C','777777777.49'); (S.alloc['C']||{}).v`), 777777777);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ DIRECTED IS NOT DRAWN ══════════════════════════════════════════════════════════════
@@ -1106,6 +1190,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // because the value it wanted was sitting in the next column.
 {
   const name = 'directed vs drawn — a lane too short for what was directed';
+  try {
   const SHORT = 6293317;
   const ASK = [246947793, 100813070, 63796828];
   const sc = {
@@ -1174,6 +1259,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'editor', 'the column total is what was DRAWN', money(cell.tot.own), p.dT);
   chk(name, 'editor', 'and the total states the DIRECTED sum the cells above it add up to',
     money(cell.tot.drew), ASK.reduce((a, b) => a + b, 0));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ A DIRECTED SPLIT STATES ITS OWN ALLOCATION ═════════════════════════════════════════
@@ -1195,6 +1286,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 //      still settable -- the v1.62 fix, which those requirements still need.
 {
   const name = 'a directed split states its own allocation';
+  try {
   const ASK = [1177300843, 244413277, 61976846];
   const DV  = [ 931629547, 244413277, 61976846];
   const MV  = [  56322052,         0,        0];
@@ -1320,6 +1412,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'control', 'a forced source draws its full ask with no allocation set', forced.full, forced.ask);
   chk(name, 'control', 'and typing an allocation moves the draw',
     forced.half, Math.round(forced.ask / 2));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -1342,6 +1440,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // so any surface still reading it prints a figure that is wrong by the whole shortfall.
 {
   const name = 'unfunded means the same thing on every surface';
+  try {
   const ASK = [1000, 300, 200];
   const DV  = [ 700, 300, 200];          // hand-directed below the ask on USAF only
   const SHORT = ASK[0] - DV[0];
@@ -1407,6 +1506,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   const mc = JSON.parse(mcLine);
   chk(name, 'scoreboard', 'the must-pay warning states the ask-based shortfall',
     mc.shown ? mc.amt : 'not shown', SHORT);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ EVERY REQUIREMENT'S DISC AND MAND ARE TYPED — NO MODE SWITCH FIRST ═════════════════
@@ -1419,6 +1524,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // the draw the lane walk was already producing, so only the typed service changes.
 {
   const name = 'every requirement takes a typed Disc and Mand';
+  try {
   const ASK = [1000, 300, 200];
   // THE DRAW MUST NOT EQUAL THE ASK, or a seed that re-bases on the ask is the IDENTITY and the
   // check that exists to catch it cannot. The first version of this fixture funded A in full; the
@@ -1482,6 +1588,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     chk(name, 'after', `${sv}: and its shortfall is untouched`, after.unf[i], before.unf[i]);
   });
   chk(name, 'after', 'the seed recorded the draw, not the ask', after.dv[0], TRIM_TO);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ THE PMO MENU IS THE ONE PLACE THE OFFICES ARE CHOSEN ═══════════════════════════════
@@ -1491,6 +1603,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // selected, or the board shows one office's requirements while looking like it shows all of them.
 {
   const name = 'the PMO menu';
+  try {
   const sc = {
     services: ['USAF', 'ANG', 'STOVL'],
     items: [it('A', 'AV', [900, 200, 100]), it('B', 'AV', [400, 100, 50]),
@@ -1623,6 +1736,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     ev(`/GROUPS\\.map/.test(String(recFields))`), true);
   chk(name, 'added office', 'the roll-ups order it after the configured ones',
     ev(`JSON.stringify(pmoKeys({SE:1, AV:1}))`), JSON.stringify(['AV', 'SE']));
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 // ═══ UNSPENT DISCRETIONARY vs THE TRIMS THAT COULD TAKE IT ══════════════════════════════
@@ -1636,6 +1755,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // service with spare lane money must not be shown covering another service's trim.
 {
   const name = 'trim absorption — what the remaining lane could take';
+  try {
   const sc = {
     services: SVC3,
     // A, B and C are all trimmed and all want USAF money. Only enough for one is left, so the
@@ -1698,6 +1818,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'scope', 'a requirement allocated its full ask is not listed at all',
     A.rows.some(r => r.id === 'D') ? 'D is listed' : 'ok', 'ok');
   chk(name, 'scope', 'every trimmed requirement IS listed', A.rows.length, 3);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
@@ -1716,6 +1842,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 //   F  funded in STOVL only, March    -> a row in STOVL and in no other service
 {
   const name = 'CR cash needs — the half-month placement';
+  try {
   const sc = {
     services: ['USAF', 'ANG', 'STOVL'],
     items: [it('A', 'PSM', [100, 50, 20]), it('B', 'AV', [80, 40, 10]), it('C', 'PSM', [60, 30, 15]),
@@ -1766,6 +1893,12 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
       (cr[stovl].items.find(x => x.id === r.id) || { wins: Array(12).fill(0) }).wins[w]); });
   chk(name, '1A9A', 'and it never takes the scenario: it is a formal return of the funded plan',
     /const svc=crData\(\), idx=/.test(ev('String(crExportRows)')), true);
+  } catch (e) {
+    // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
+    // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
+    // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
 }
 
 
