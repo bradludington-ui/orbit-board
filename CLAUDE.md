@@ -2190,10 +2190,12 @@ live push, and the tools' banners. Three things keep the old prefix on purpose a
 reader's theme and re-show every journal entry as unseen) and the package signature `spmtPkg`
 (every submittal and appropriation package already issued carries it, and `pmoTake` checks it).
 The file names `prioritization-board*.html` and the Routine names keep their names. The npm package
-became `orbit-board` (66da2dc) and the repository is renamed to `orbit-board` in GitHub Settings — the
-proxy refuses repository-settings writes from a session, so that step is done by hand; GitHub redirects
-the old address afterwards. Older exports on the share still say SPMT in their file names; nothing
-reads a file by that prefix.
+became `orbit-board` (66da2dc) and on 22 Sep 2026 the repository was renamed to
+`bradludington-ui/orbit-board`, by hand in GitHub Settings: the proxy refuses repository-settings
+writes from a session. GitHub redirects the old `spmt-prioritization-board` address, so an old clone
+or link still works, but a session's repository access is granted by NAME: after a rename the old
+name is refused and the new one must be attached (add_repo) before the API or a push will take it.
+Older exports on the share still say SPMT in their file names; nothing reads a file by that prefix.
 
 ### The logo: the O is the orbit (v1.82)
 
