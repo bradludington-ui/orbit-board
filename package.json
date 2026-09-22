@@ -1,5 +1,5 @@
 {
-  "name": "spmt-prioritization-board",
+  "name": "orbit-board",
   "private": true,
   "description": "Tooling for the ORBIT prioritization board. The board itself has no dependencies; these are for checks only.",
   "scripts": {
