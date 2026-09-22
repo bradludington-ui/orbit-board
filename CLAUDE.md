@@ -2189,7 +2189,10 @@ live push, and the tools' banners. Three things keep the old prefix on purpose a
 "tidied": the browser-storage keys `spmtTheme` and `spmtSeen` (renaming them would reset every
 reader's theme and re-show every journal entry as unseen) and the package signature `spmtPkg`
 (every submittal and appropriation package already issued carries it, and `pmoTake` checks it).
-The file names `prioritization-board*.html` and the Routine names keep their names. The npm package
+The file names `prioritization-board*.html` keep their names. The three Routines were renamed to
+ORBIT and their prompts name `orbit-board`, rules untouched; their ATTACHED repository is still the old
+URL, which only the Routine editor on claude.ai can change, and it clones through GitHub's redirect
+(tested 22 Sep: a shallow clone of the old URL lands on the current main). The npm package
 became `orbit-board` (66da2dc) and on 22 Sep 2026 the repository was renamed to
 `bradludington-ui/orbit-board`, by hand in GitHub Settings: the proxy refuses repository-settings
 writes from a session. GitHub redirects the old `spmt-prioritization-board` address, so an old clone
