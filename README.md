@@ -1,5 +1,7 @@
 # ORBIT — Out-year Requirements & Budget Integration Tool
 
+<img src="assets/logo/orbit-lockup.svg" alt="ORBIT — Out-year Requirements &amp; Budget Integration Tool" width="440">
+
 *The five-year spend plan across every appropriation.* Formerly SPMT, the Sustainment Portfolio
 Management Tool; renamed 22 Sep 2026 because it plans more than sustainment.
 
@@ -140,3 +142,12 @@ a single file, because saving rewrites the file's own embedded state. That makes
 data file, and it should be handled on the same terms as the budget detail inside it. Keep those on
 the share, not here. `tools/check.mjs` fails the build if board state is ever committed, and
 `.gitignore` keeps a stray saved copy from being staged by accident.
+
+## The logo
+
+`assets/logo/` holds the ORBIT mark: the wordmark in the board's own bold face with the O drawn as an
+orbit — a ring, a body at its centre and a satellite on the ring. `orbit-lockup.svg` (and `.png`,
+`-white.png`) carries the long name beneath it for brief covers and slides; `orbit-wordmark.svg` and
+`orbit-mark.svg` are one colour (`currentColor`) for anything smaller; `orbit-favicon.svg` has its colours
+baked in. The board itself carries the wordmark inline in its header and the mark as its favicon, so a saved
+board needs no file beside it. `gen.py` regenerates the set.

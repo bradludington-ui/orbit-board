@@ -2189,9 +2189,44 @@ live push, and the tools' banners. Three things keep the old prefix on purpose a
 "tidied": the browser-storage keys `spmtTheme` and `spmtSeen` (renaming them would reset every
 reader's theme and re-show every journal entry as unseen) and the package signature `spmtPkg`
 (every submittal and appropriation package already issued carries it, and `pmoTake` checks it).
-The repository, the file names `prioritization-board*.html`, and the *SPMT Interface Review*
-Routine keep their names. Older exports on the share still say SPMT in their file names; nothing
+The file names `prioritization-board*.html` and the Routine names keep their names. The npm package
+became `orbit-board` (66da2dc) and the repository is renamed to `orbit-board` in GitHub Settings — the
+proxy refuses repository-settings writes from a session, so that step is done by hand; GitHub redirects
+the old address afterwards. Older exports on the share still say SPMT in their file names; nothing
 reads a file by that prefix.
+
+### The logo: the O is the orbit (v1.82)
+
+Chosen on 22 Sep 2026 from three options rendered side by side (a separate five-bead mark, this one, and
+a monoline wordmark). The wordmark is ORBIT in outlines of Liberation Sans Bold — the metric twin of the
+Arial Bold the board already falls back to, so no file depends on an installed font — with the O drawn
+as an orbit: a ring the weight of the letter stems, a body at its centre, and a satellite on the ring
+at two o'clock with a gap masked out of the ring so it reads as a separate body. The O alone is the
+mark and the favicon. `assets/logo/` holds the set and `gen.py` regenerates it (fontTools; the header
+of the script says which generated file became which committed one).
+
+How it is carried, and why each way:
+- **Inline in the header of both builds** (`.brand .logo`, 30 px tall, colour from `--ink`, the
+  satellite from `--gold` through `--orbit-accent`). Inline because the board loads nothing from
+  anywhere: a `<link>` or `<img>` to an SVG beside the file would break the one-file rule, and a saved
+  board is `documentElement.outerHTML`, so an inline SVG travels with it. The mask id is `logoO`;
+  nothing else in the document may take it.
+- **The favicon is a `data:` URI** `<link rel="icon">` after the `<title>`, colours baked (ring
+  `#0f5a91`, satellite `#d4a24e`) because a favicon has no host colour to inherit. The SVG is
+  percent-encoded — `&`, `#`, `<`, `>` and the quotes. An `&amp;` left raw inside the attribute is
+  decoded by the HTML parser into a bare `&`, which is not XML, and the icon silently fails to load.
+- **One colour everywhere else.** `orbit-wordmark.svg` and `orbit-mark.svg` paint with `currentColor`
+  and take `var(--orbit-accent, currentColor)` for the satellite, so the same file prints in black,
+  sits on the navy theme in white, and shows the theme's accent only where the host page sets it.
+- **The lockup is for large uses only.** Its subtitle is about 9% of the wordmark height, so below
+  roughly 60 px tall it is illegible; the wordmark or the mark goes alone there. `orbit-lockup.png`
+  (navy ink) and `orbit-lockup-white.png` are 1600 px renders for slides that will not take an SVG.
+
+Two things moved with it. The eyebrow lost its "— ORBIT" suffix, since the wordmark beside it now
+says so; its hover text names the old name correctly as "Formerly SPMT" — v1.81's blanket rename had
+turned that one into "Formerly ORBIT", the one place the rename over-reached. And the header's brand
+block became a flex row (wordmark, then eyebrow over title), which kept the header at 47 px; the
+toolbar-fit, editors-reachable, panels, menus, colour and standards checks all hold with it.
 
 ### A check that greps the serialised world fails on the clock
 

@@ -31,3 +31,6 @@ package-lock.json
 
 # IA review screenshots. Run output, regenerated nightly.
 .ia-shots/
+
+# Logo generator output. Run output, not source: the chosen files are copied up a level and committed.
+assets/logo/generated/
