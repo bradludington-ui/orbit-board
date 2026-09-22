@@ -1,7 +1,7 @@
 {
   "name": "spmt-prioritization-board",
   "private": true,
-  "description": "Tooling for the SPMT prioritization board. The board itself has no dependencies; these are for checks only.",
+  "description": "Tooling for the ORBIT prioritization board. The board itself has no dependencies; these are for checks only.",
   "scripts": {
     "check": "npm run check:card --silent && npm run check:grid --silent && npm run parity --silent",
     "audit:export": "node tools/export-audit/audit.mjs",

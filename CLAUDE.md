@@ -1,4 +1,4 @@
-# SPMT — Sustainment Portfolio Management Tool
+# ORBIT — Out-year Requirements & Budget Integration Tool
 
 A single self-contained HTML application: the FY27 Consolidated Prioritization Board. One file,
 ~19,500 lines, 2.8 MB, no dependencies of any kind. It runs from a shared drive or a `file://` URL
@@ -1067,7 +1067,7 @@ could have:
   an ampersand read `Workforce &amp; Travel` on its chip. No total was wrong, so no arithmetic
   check could notice.
 - **`\u{1F553}` and `\u2696` written straight into markup.** A JS escape in an HTML attribute is
-  just text: the Change Journal and SPMT-vs-CCaR headings showed the escape itself.
+  just text: the Change Journal and ORBIT-vs-CCaR headings showed the escape itself.
 - **`.fr` was only ever declared inside `.addp`.** The other 33 rows using it fell back to
   `display:block`, so their `gap` did nothing, `justify-content` did nothing, and a child with
   `flex:1` did not grow. Declared once at top level; the bottom margin stays scoped to `.addp` so
@@ -1361,7 +1361,7 @@ npm run ia:shots      # 16 fixed views into .ia-shots/
 npm run ia            # both
 ```
 
-The **SPMT Interface Review** Routine fires at **08:00 UTC** (an hour after the math run, so they do
+The **SPMT Interface Review** Routine (the Routine keeps the name it was created under) fires at **08:00 UTC** (an hour after the math run, so they do
 not compete for the container) and reviews the board's visuals and information architecture: menu
 headers, dropdown grouping, where clickable items sit and how they are categorised. It also runs a
 **market scan** — a weekday-rotating look at what named commercial tools and published design
@@ -1573,7 +1573,7 @@ the lane draw (d + m); Allocated is `svcAlloc` (the draw itself for a funding-so
 Unfunded is requirement less funded, floored per service — the reading the board calls TOTAL
 unfunded — and never netted across services. A year the source never held prints an em dash in
 the workbook and on the panel, never 0, and stays outside the FYDP totals. The workbook (*📊 FYDP
-Spend Plan (Excel)*; *SPMT FYDP Spend Plan — PB27 — FY27–FY31 date.xlsx*, with the `[PB27
+Spend Plan (Excel)*; *ORBIT FYDP Spend Plan — PB27 — FY27–FY31 date.xlsx*, with the `[PB27
 LOCKED]` mark when a locked view is on screen) carries By Requirement (one row per requirement
 with PMO, CCaR and band, `Subtotal — <PMO>`, TOTAL), By PMO (the subtotals, with a count) and By
 Service (the projection's vectors added, Disc BA and Mand BA beside the draw); the panel (*📊
@@ -1599,7 +1599,7 @@ column** — and the rule is computed (`closes`), printed on the panel and on bo
 row), and asserted by the recon suite from the engine before and after the changes. For the year
 on screen the comparison must agree with `cycDelta` (stage 3): two paths, one answer. A year only
 one source holds is stated (*FY29 — not in PB27*) and carries no figures; the same source twice is
-refused. The workbook (*⇄ Cycle Comparison (Excel)*; *SPMT Cycle Comparison — PB27 vs WORKING —
+refused. The workbook (*⇄ Cycle Comparison (Excel)*; *ORBIT Cycle Comparison — PB27 vs WORKING —
 FY27–FY28 date.xlsx*) carries Compare (every requirement, PMO subtotals, TOTAL, CHECK), Changes
 (per year: added, removed and changed rows with what changed, Σ ROWS, TOTAL Δ, CHECK, the pots) and
 By PMO. The panel (*⇄ Compare two cycles…* under FYDP Views; the cycles panel's ⇄ Compare opens it
@@ -2178,6 +2178,20 @@ Fixed at the same time: the rank `▲`/`▼` arrows were 20×13px against WCAG 2
 buttons of all 115 rows — the most repeated finding on the board, and the control you use while
 dragging the priority order, so the standard and the job agreed. Rows are 83px and the stack is
 50px, so nothing grew. Measure before assuming a bigger control costs height.
+
+### The name: ORBIT, formerly SPMT (v1.81)
+
+Renamed on 22 Sep 2026 because the tool plans more than sustainment: **ORBIT — Out-year
+Requirements & Budget Integration Tool**, tagline *the five-year spend plan across every
+appropriation*. The rename is the DISPLAY name only — the eyebrow, the panel headings, the export
+file names and sheet titles, the pre-flight and reconciliation headings, the status line of a
+live push, and the tools' banners. Three things keep the old prefix on purpose and must not be
+"tidied": the browser-storage keys `spmtTheme` and `spmtSeen` (renaming them would reset every
+reader's theme and re-show every journal entry as unseen) and the package signature `spmtPkg`
+(every submittal and appropriation package already issued carries it, and `pmoTake` checks it).
+The repository, the file names `prioritization-board*.html`, and the *SPMT Interface Review*
+Routine keep their names. Older exports on the share still say SPMT in their file names; nothing
+reads a file by that prefix.
 
 ### A check that greps the serialised world fails on the clock
 

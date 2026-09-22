@@ -2068,7 +2068,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   chk(name, 'view', 'the header says so', /VIEWING PB\d\d/.test(ev(`document.getElementById('cycTag').textContent`)), true);
   chk(name, 'view', 'the board carries the banner', /VIEWING PB\d\d \(LOCKED\)/.test(ev(`document.getElementById('list').textContent`)), true);
   chk(name, 'view', 'the title says so, for every export that prints it', /LOCKED VIEW/.test(ev('document.title')), true);
-  chk(name, 'view', 'and every file name says so', /\[PB\d\d LOCKED\]\.xlsx$/.test(ev(`expName('SPMT Breakouts.xlsx')`)), true);
+  chk(name, 'view', 'and every file name says so', /\[PB\d\d LOCKED\]\.xlsx$/.test(ev(`expName('ORBIT Breakouts.xlsx')`)), true);
   // writes are refused, and revert
   ev(`setAsk('B',0,'999'); 'ok'`);
   chk(name, 'writes', 'an edit is refused and reverts on screen', ev(`JSON.stringify(itemById('B').ask)`), JSON.stringify([80, 40, 10]));

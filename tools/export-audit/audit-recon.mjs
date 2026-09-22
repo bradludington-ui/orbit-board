@@ -1220,7 +1220,7 @@ const grabX = (fn) => w.eval(`(async function(){
   chk(name, 'workbook', 'the working plan’s workbook builds', W.state, 'ok');
   const br = W.sheets['By Requirement'] || [], bp = W.sheets['By PMO'] || [], bs = W.sheets['By Service'] || [];
   chk(name, 'title', 'the title names the source and the span: the window from the base, plus the year on screen',
-    String((br[0] || [])[0] ?? ''), 'SPMT FYDP SPEND PLAN — THE WORKING PLAN — ' + fyl(cur) + '–' + fyl(cur + 5));
+    String((br[0] || [])[0] ?? ''), 'ORBIT FYDP SPEND PLAN — THE WORKING PLAN — ' + fyl(cur) + '–' + fyl(cur + 5));
   chk(name, 'title', 'the note says which years are held', /Years held: FY\d\d, FY\d\d\./.test(String((br[1] || [])[0] ?? '')), true);
   const h = headerRow(br, 'PMO', 'Requirement', 'CCaR', 'Band');
   chk(name, 'shape', 'By Requirement has its header', h >= 0 ? 'yes' : 'no', 'yes');
@@ -1298,14 +1298,14 @@ const grabX = (fn) => w.eval(`(async function(){
   const W2 = JSON.parse(await grabX('exportFydpPlan'));
   chk(name, 'after', 'the working plan’s workbook builds again', W2.state, 'ok');
   const br2 = W2.sheets['By Requirement'] || [], h2 = headerRow(br2, 'PMO', 'Requirement', 'CCaR', 'Band');
-  chk(name, 'after', 'the working plan is now labelled with its cycle tag', String((br2[0] || [])[0] ?? ''), 'SPMT FYDP SPEND PLAN — THE WORKING PLAN (' + ev(`blLbl('${key}')`).toUpperCase() + ') — ' + fyl(cur) + '–' + fyl(cur + 5));
+  chk(name, 'after', 'the working plan is now labelled with its cycle tag', String((br2[0] || [])[0] ?? ''), 'ORBIT FYDP SPEND PLAN — THE WORKING PLAN (' + ev(`blLbl('${key}')`).toUpperCase() + ') — ' + fyl(cur) + '–' + fyl(cur + 5));
   chk(name, 'after', 'and B’s requirement on it moved with the board', num(rowBy(br2, h2, 1, E0.rows.B.title)[col(br2, h2, y0, 'ask')]), bAsk0 + 100000);
   chk(name, 'after', 'so did TOTAL', num(rowBy(br2, h2, 0, 'TOTAL')[col(br2, h2, y0, 'ask')]), sumOver(ids, y0).ask + 100000);
   ev(`fydpSrc='${key}'; 'ok'`);
   const C = JSON.parse(await grabX('exportFydpPlan'));
   chk(name, 'cycle', 'the locked cycle’s workbook builds', C.state, 'ok');
   const bc = C.sheets['By Requirement'] || [], hc = headerRow(bc, 'PMO', 'Requirement', 'CCaR', 'Band');
-  chk(name, 'cycle', 'it is titled as the cycle, locked', String((bc[0] || [])[0] ?? ''), 'SPMT FYDP SPEND PLAN — ' + ev(`blLbl('${key}')`).toUpperCase() + ' (LOCKED) — ' + fyl(cur) + '–' + fyl(cur + 5));
+  chk(name, 'cycle', 'it is titled as the cycle, locked', String((bc[0] || [])[0] ?? ''), 'ORBIT FYDP SPEND PLAN — ' + ev(`blLbl('${key}')`).toUpperCase() + ' (LOCKED) — ' + fyl(cur) + '–' + fyl(cur + 5));
   chk(name, 'cycle', 'the note says when it was locked', /Locked /.test(String((bc[1] || [])[0] ?? '')), true);
   chk(name, 'cycle', 'B’s requirement is the figure AS LOCKED, not the board’s', num(rowBy(bc, hc, 1, E0.rows.B.title)[col(bc, hc, y0, 'ask')]), bAsk0);
   chk(name, 'cycle', 'and TOTAL is the locked total', num(rowBy(bc, hc, 0, 'TOTAL')[col(bc, hc, y0, 'ask')]), sumOver(ids, y0).ask);
@@ -1429,7 +1429,7 @@ const grabX = (fn) => w.eval(`(async function(){
   chk(name, 'workbook', 'the comparison builds', W.state, 'ok');
   const cs = W.sheets['Compare'] || [], ch = W.sheets['Changes'] || [], bp = W.sheets['By PMO'] || [];
   const la = ev(`blLbl('${keyA}')`), lb = 'WORKING';
-  chk(name, 'title', 'the title names A, B and the span', String((cs[0] || [])[0] ?? ''), 'SPMT CYCLE COMPARISON — ' + la + ' ⇄ ' + lb + ' — ' + fyl(cur) + '–' + fyl(cur + 1));
+  chk(name, 'title', 'the title names A, B and the span', String((cs[0] || [])[0] ?? ''), 'ORBIT CYCLE COMPARISON — ' + la + ' ⇄ ' + lb + ' — ' + fyl(cur) + '–' + fyl(cur + 1));
   const h = headerRow(cs, 'PMO', 'Requirement', 'CCaR', fyl(cur) + ' Δ Requirement');
   chk(name, 'shape', 'Compare has its header', h >= 0 ? 'yes' : 'no', 'yes');
   const colC = (rows, hd, y, side, k) => colOf(rows, hd, fyl(y) + ' ' + (side === 'd' ? 'Δ' : (side === 'a' ? la : lb)) + ' ' + KL[k]);
@@ -1509,14 +1509,14 @@ const grabX = (fn) => w.eval(`(async function(){
   chk(name, 'two locks', 'the workbook builds for two locks', W2.state, 'ok');
   const cs2 = W2.sheets['Compare'] || [], h2 = headerRow(cs2, 'PMO', 'Requirement', 'CCaR', fyl(cur) + ' Δ Requirement');
   const lB = ev(`blLbl('${keyB}')`);
-  chk(name, 'two locks', 'titled as the two cycles', String((cs2[0] || [])[0] ?? ''), 'SPMT CYCLE COMPARISON — ' + la + ' ⇄ ' + lB + ' — ' + fyl(cur) + '–' + fyl(cur + 1));
+  chk(name, 'two locks', 'titled as the two cycles', String((cs2[0] || [])[0] ?? ''), 'ORBIT CYCLE COMPARISON — ' + la + ' ⇄ ' + lB + ' — ' + fyl(cur) + '–' + fyl(cur + 1));
   chk(name, 'two locks', 'C’s row shows no change', num((cs2.find((r, i) => i > h2 && String((r || [])[1] ?? '') === title('C')) || [])[colOf(cs2, h2, fyl(cur) + ' Δ Requirement')]), 0);
   ev(`cycCmpB='working'; 'ok'`);
   const W3 = JSON.parse(await grabX('exportCycCompare'));
   const cs3 = W3.sheets['Compare'] || [], h3 = headerRow(cs3, 'PMO', 'Requirement', 'CCaR', fyl(cur) + ' Δ Requirement');
   chk(name, 'a year on one side', 'the sheet carries the year as not in PB, with no figures', String((cs3[h3] || []).find(c => /not in/.test(String(c ?? ''))) ?? ''), fyl(cur + 2) + ' — not in ' + la);
   chk(name, 'a year on one side', 'and its cells are —', String((cs3.find((r, i) => i > h3 && String((r || [])[0] ?? '') === 'TOTAL') || [])[(cs3[h3] || []).findIndex(c => /not in/.test(String(c ?? '')))] ?? ''), '—');
-  chk(name, 'a year on one side', 'the span runs to it', String((cs3[0] || [])[0] ?? ''), 'SPMT CYCLE COMPARISON — ' + la + ' ⇄ WORKING — ' + fyl(cur) + '–' + fyl(cur + 2));
+  chk(name, 'a year on one side', 'the span runs to it', String((cs3[0] || [])[0] ?? ''), 'ORBIT CYCLE COMPARISON — ' + la + ' ⇄ WORKING — ' + fyl(cur) + '–' + fyl(cur + 2));
   chk(name, 'a year on one side', 'the Changes sheet says so', (W3.sheets['Changes'] || []).some(r => String((r || [])[0] ?? '') === fyl(cur + 2) && String((r || [])[1] ?? '') === 'not in ' + la), true);
   // ---- the same source twice, and no A
   ev(`cycCmpA='working'; cycCmpB='working'; cycCmpOpen=true; render(); 'ok'`);

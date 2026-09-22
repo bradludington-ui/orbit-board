@@ -64,7 +64,7 @@ replaces the format; it does not loosen the guard.
 | `PMO_FIELDS` / `PMO_KEYS` | The 7 contributable fields: `desc`, `cons`, `notes`, `asks`, `ccar`, `pid`, `recNames` |
 | `pmoBaseline()` | Snapshot of those fields for every requirement, baked into the copy at publish |
 | `pmoSubmitBuild()` | Diffs each field against the baseline → `{id: {key: value}}`, **deltas only** |
-| `pmoSubmit()` | Drops ids absent from `PMODE.base`, warns, writes `SPMT SUBMITTAL - <name> - <date>.json` |
+| `pmoSubmit()` | Drops ids absent from `PMODE.base`, warns, writes `ORBIT SUBMITTAL - <name> - <date>.json` |
 | `pmoRows()` / `PMOPICK[id+'|'+key]` | Review model: one tickable row per changed field |
 | `addPanel` | Already promises added requirements "flow into the export with Ref NEW-#" — reuse that |
 

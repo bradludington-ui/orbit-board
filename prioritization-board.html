@@ -715,7 +715,7 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 <body>
 <div id="subBanner"></div>
 <div class="hdr">
-  <div class="brand"><div class="eyebrow">SUSTAINMENT PORTFOLIO MANAGEMENT TOOL — SPMT</div>
+  <div class="brand"><div class="eyebrow" title="ORBIT — the five-year spend plan across every appropriation. Formerly ORBIT.">OUT-YEAR REQUIREMENTS &amp; BUDGET INTEGRATION TOOL — ORBIT</div>
   <h1 style="margin-top:0"><span id="fyTag">FY27</span> <span id="appnLbl">O&M PRIORITIZATION</span> BOARD <span id="cycTag" style="font-size:12px;color:var(--gold);font-weight:700;vertical-align:middle;margin-right:6px"></span><span id="bldTag" style="font-size:9px;color:var(--dim);font-weight:600;letter-spacing:.5px;vertical-align:middle"></span></h1></div>
   <div class="hsp">
     <span class="savestate" id="saveState"></span>
@@ -908,7 +908,7 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 
 <div class="modal-bg" id="divPanel" onclick="if(event.target===this)toggleDiv()">
   <div class="modal" style="width:1080px;max-width:96vw;max-height:88vh">
-    <h3>⚖ SPMT vs CCaR <button class="x" onclick="toggleDiv()">✕ Close</button></h3>
+    <h3>⚖ ORBIT vs CCaR <button class="x" onclick="toggleDiv()">✕ Close</button></h3>
     <div id="divBody"></div>
   </div>
 </div>
@@ -1046,7 +1046,7 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 </div>
 <div class="modal-bg" id="qpePanel" onclick="if(event.target===this)toggleQpe()">
   <div class="modal" style="width:1120px;max-width:97vw">
-    <h3>📥 QPE COVERAGE — which columns come back, and which ones SPMT needs
+    <h3>📥 QPE COVERAGE — which columns come back, and which ones ORBIT needs
       <button class="x" onclick="toggleQpe()">✕ Close</button></h3>
     <div id="qpeBody"></div>
   </div>
@@ -1403,7 +1403,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.80 (21 Sep 2026)';
+const BUILD='v1.81 (22 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -2411,7 +2411,7 @@ function exportRlgPlan(){
                        cols:[10,16,11,8,46,40,15,11,34,10,30], rows:out}]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([wb],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('SPMT Funding Plan \u2014 '+(rlgLabel||'new requirement').replace(/[^A-Za-z0-9 ]+/g,' ').trim()
+  a.download=expName('ORBIT Funding Plan \u2014 '+(rlgLabel||'new requirement').replace(/[^A-Za-z0-9 ]+/g,' ').trim()
     +' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\u2b07 Exported the funding plan \u2014 '+rows.length+' line'+(rows.length===1?'':'s')
@@ -4978,7 +4978,7 @@ function pmoSubmit(){
              items:items, base:base, added:added};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
-  a.download=expName('SPMT SUBMITTAL - '+pmo.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
+  a.download=expName('ORBIT SUBMITTAL - '+pmo.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
     + who.replace(/[^A-Za-z0-9 _-]/g,'')+' - '
     + new Date().toISOString().slice(0,10)+'.json');
   a.click();
@@ -5123,7 +5123,7 @@ function pmoReport(){
   const blob=buildXlsx([sheet]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('SPMT SUBMITTAL REVIEW - '
+  a.download=expName('ORBIT SUBMITTAL REVIEW - '
     + (PMOSUBS.length===1? String(subFrom(PMOSUBS[0])).replace(/[^A-Za-z0-9 _-]/g,'')
                          : PMOSUBS.length+' offices')+' - '
     + new Date().toISOString().slice(0,10)+'.xlsx');
@@ -5816,7 +5816,7 @@ function pkgIssue(ap, quiet){
   const savedOk=save()!==false;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
-  a.download=expName('SPMT PACKAGE - '+(PKG_NAMES[ap]||ap)+' - issue '+seq+' - '+new Date().toISOString().slice(0,10)+'.json');
+  a.download=expName('ORBIT PACKAGE - '+(PKG_NAMES[ap]||ap)+' - issue '+seq+' - '+new Date().toISOString().slice(0,10)+'.json');
   a.click();
   // The staleness guard stands on this ledger entry, and save() only reaches browser storage.
   // Close the board without writing the file and the guard quietly stops protecting this
@@ -5893,7 +5893,7 @@ function pkgReturn(){
              baseSig:src? src.baseSig : '', ms:body};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
-  a.download=expName('SPMT PACKAGE - '+(PKG_NAMES[ap]||ap)+' - return '+pkg.seq+' - '+new Date().toISOString().slice(0,10)+'.json');
+  a.download=expName('ORBIT PACKAGE - '+(PKG_NAMES[ap]||ap)+' - return '+pkg.seq+' - '+new Date().toISOString().slice(0,10)+'.json');
   a.click();
   // Record that it went, so the panel can say so and the board is not silent about work already
   // handed back. Nothing else here changes state, so this is the only reason to save.
@@ -6030,7 +6030,7 @@ function pkgBody(){
 }
 function pkgApply(pkg, fname){
   if(!pkg || pkg.spmtPkg!==PKG_VER || !pkg.ap || !pkg.ms){
-    alert('That is not an SPMT appropriation package.'); return false;
+    alert('That is not an ORBIT appropriation package.'); return false;
   }
   const ap=pkg.ap, nm=PKG_NAMES[ap]||ap, inbound=pkg.dir==='return';
   // A single board can only hold its own appropriation. It has no _SLUGMAP and no PUBS, and
@@ -8862,7 +8862,7 @@ function togglePf(){ pfOpen=!pfOpen; render(); if(pfOpen) pfBody(); }
 function pfToggleOne(k){ pfShow[k]=!pfShow[k]; pfBody(); }
 function pfCopy(){
   const R=preflight(), L=[];
-  L.push('SPMT PRE-FLIGHT — '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100));
+  L.push('ORBIT PRE-FLIGHT — '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100));
   L.push(new Date().toLocaleString());
   R.find.forEach(function(f){
     L.push('');
@@ -9610,7 +9610,7 @@ function toggleDiv(){ divOpen=!divOpen; render(); if(divOpen) divBody(); }
 function divToggleOne(k){ divShow[k]=!divShow[k]; divBody(); }
 function divCopy(){
   const R=ccarDiv(), L=[];
-  L.push('SPMT vs CCaR — '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100));
+  L.push('ORBIT vs CCaR — '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100));
   L.push(new Date().toLocaleString());
   L.push(R.compared+' compared, '+R.agreed+' agree on amount');
   R.find.forEach(function(f){
@@ -11223,7 +11223,7 @@ function flowPng(){
         if(!b){ setStat('\u26a0 Could not build the image \u2014 use \u2b07 Export instead.'); return; }
         const a=document.createElement('a');
         a.href=URL.createObjectURL(b);
-        a.download=expName('SPMT Funds Flow '+flowCalc().label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()+' '+new Date().toISOString().slice(0,10)+'.png');
+        a.download=expName('ORBIT Funds Flow '+flowCalc().label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()+' '+new Date().toISOString().slice(0,10)+'.png');
         a.click();
         setStat('\u2b07 Saved a '+(w*SCALE)+'\u00d7'+(h*SCALE)+' PNG \u2014 drop it straight onto a slide.');
       },'image/png');
@@ -11610,7 +11610,7 @@ function exportFlow(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('SPMT Funds Flow - '+F.label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()
+  a.download=expName('ORBIT Funds Flow - '+F.label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()
     +' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('⬇ Exported: funds flow '+F.label+' — summary, prime detail, OGC detail.');
@@ -11909,7 +11909,7 @@ function exportExView(){
     const ex=EA[exA]; if(!ex){ alert('Nothing to export.'); return; }
     const A=exAgg(ex,exFy), W=A.W;
     const rows=[
-      [{v:'SPMT — Active Year Execution — '+APPN_LBL[exA]+' FY'+exFy,s:7}],
+      [{v:'ORBIT — Active Year Execution — '+APPN_LBL[exA]+' FY'+exFy,s:7}],
       ['Data through '+repYmOf(ex)+' · Service: '+exSvc+' · active year FY'+(W.AFY%100)+' (OCT '+(W.AFY-1)+' – SEP '+W.AFY+') · monthly cells = all plan-event $M (obligations + forecast); months before the current month are actuals'],
       [],
       ['PMO'].concat(W.MN).concat(['Approved ($M)','Obligated ($M)','Not Alloc ($M)','Obl %']).map(v=>({v,s:H}))
@@ -11932,7 +11932,7 @@ function exportExView(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('SPMT Active Year Execution - '+label+' '+dstr+'.xlsx');
+  a.download=expName('ORBIT Active Year Execution - '+label+' '+dstr+'.xlsx');
   a.click();
   setStat('\u2b07 Exported: Active Year Execution — '+label+'.');
 }
@@ -12432,7 +12432,7 @@ function bandExport(){
   const pack={spmtBands:1, from:apLabel(), ts:Date.now(), bands:BANDS_LIST()};
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pack,null,2)],{type:'application/json'}));
-  a.download=expName('SPMT decision bands - '+apLabel().replace(/[^A-Za-z0-9 &-]/g,'')+'.json');
+  a.download=expName('ORBIT decision bands - '+apLabel().replace(/[^A-Za-z0-9 &-]/g,'')+'.json');
   a.click();
   setStat('\u2b07 Ladder exported \u2014 share this file to put the same bands on another board.');
 }
@@ -12474,7 +12474,7 @@ function bandImport(inp){
 }
 let bandPanelOpen=false;
 /* ================= QPE COVERAGE: WHICH COLUMNS COME BACK, AND WHICH ONES MATTER ==============
-   Once CCaR is the system of record, SPMT is fed by the monthly QPE and every question it can
+   Once CCaR is the system of record, ORBIT is fed by the monthly QPE and every question it can
    answer depends on which of the 32 columns actually arrive filled in. A column that comes back
    empty does not fail: the import succeeds, the totals are right, and one feature quietly stops
    working. This says which, so it can be fixed in CCaR rather than discovered months later.
@@ -12484,14 +12484,14 @@ let bandPanelOpen=false;
    whether it is populated and whether anything reads it.
 
    THREE ANSWERS, AND THEY ARE DIFFERENT PROBLEMS:
-     NEEDED AND EMPTY      SPMT reads it and it is not there. That feature is off, silently.
-     SENT AND NOT RETURNED SPMT writes it on export and gets it back blank - the round trip loses
+     NEEDED AND EMPTY      ORBIT reads it and it is not there. That feature is off, silently.
+     SENT AND NOT RETURNED ORBIT writes it on export and gets it back blank - the round trip loses
                            it, which is a CCaR-side fix.
      RETURNED AND UNUSED   it is arriving and nothing here reads it. Not a fault; an opening.
 
-   WHAT SPMT WRITES IS DERIVED, NOT DECLARED - `qpeWrites()` runs the real export and looks. A
+   WHAT ORBIT WRITES IS DERIVED, NOT DECLARED - `qpeWrites()` runs the real export and looks. A
    hand-kept list of that would go stale the first time a column was added to the export, and this
-   repo has been bitten by hand-kept lists twice. What SPMT READS cannot be derived at runtime, so
+   repo has been bitten by hand-kept lists twice. What ORBIT READS cannot be derived at runtime, so
    it is declared below with a reason each, and the report says plainly that it is a declared list. */
 
 // column -> what depends on it. Declared: there is no way to ask the running page this.
@@ -12512,8 +12512,8 @@ const QPE_READS = {
   23: 'the WBS paragraph the execution pull reads',
   25: 'the CLIN'
 };
-// Held in SPMT with NO column in this file at all. These can never survive a round trip through
-// CCaR, whatever it returns - so SPMT stays the system of record for them, and that is a fact to
+// Held in ORBIT with NO column in this file at all. These can never survive a round trip through
+// CCaR, whatever it returns - so ORBIT stays the system of record for them, and that is a fact to
 // state rather than a gap to chase.
 const QPE_NOHOME = ['decision band', 'tier within the band', 'consequence text', 'mission-critical mark',
   'destination (who the money goes to)', 'cost-estimate mapping', 'funding-source override',
@@ -12613,7 +12613,7 @@ function qpeBody(){
       const pc=qpePct(r.n, r.of);
       h+='<tr><td>'+r.i+'</td><td style="text-align:left"><b>'+esc(r.name)+'</b></td>'
         +'<td style="text-align:left;white-space:normal;font-size:10px">'
-        +esc(r.why || (r.sent? 'nothing here reads it yet — SPMT writes it on export' : ''))+'</td>'
+        +esc(r.why || (r.sent? 'nothing here reads it yet — ORBIT writes it on export' : ''))+'</td>'
         +'<td>'+r.n.toLocaleString()+' of '+r.of.toLocaleString()
         +' <span style="color:var(--'+(pc===0?'red':pc<100?'gold':'green')+')">'+pc+'%</span></td></tr>';
     });
@@ -12621,21 +12621,21 @@ function qpeBody(){
   };
 
   block('Needed, and not fully there',
-    'SPMT reads these. Where one is short, that feature is degraded and nothing on screen says so.',
+    'ORBIT reads these. Where one is short, that feature is degraded and nothing on screen says so.',
     g.needEmpty, 'bad');
   block('Sent, and not coming back',
-    'SPMT writes these on the Spend Plan Source export and CCaR returns them empty — the round '
+    'ORBIT writes these on the Spend Plan Source export and CCaR returns them empty — the round '
     +'trip loses them. This is the list to take to whoever maintains CCaR.',
     g.sentLost, 'warn');
   block('Coming back, and not used yet',
-    'CCaR is returning these and nothing in SPMT reads them. Not a fault — an opening.',
+    'CCaR is returning these and nothing in ORBIT reads them. Not a fault — an opening.',
     g.backUnused, 'ok');
 
   h+='<div style="margin-top:12px;border-top:1px solid var(--line);padding-top:8px">'
     +'<div style="font-size:10px;font-weight:800;letter-spacing:.5px;color:var(--gold);'
     +'text-transform:uppercase">No column exists for these at all</div>'
     +'<div class="hint" style="margin-top:4px">'+QPE_NOHOME.map(esc).join(' · ')+'. '
-    +'These cannot survive a round trip through CCaR whatever it returns, so SPMT stays the system '
+    +'These cannot survive a round trip through CCaR whatever it returns, so ORBIT stays the system '
     +'of record for them. That is a fact to plan around, not a gap to chase.</div></div>';
 
   // WHAT THE EXPORT ACTUALLY WROTE, NAMED. qpeWrites() measures today's data, not the tool's
@@ -12651,7 +12651,7 @@ function qpeBody(){
     +'sent there is nothing to notice coming back. Right now that is: '+esc(empty.join(' · '))
     +'. Assign the classification behind one of those and it starts being exported, and this '
     +'report will then say whether CCaR gives it back.</div>';
-  h+='<div class="hint" style="margin-top:6px">Which columns SPMT WRITES is measured by running '
+  h+='<div class="hint" style="margin-top:6px">Which columns ORBIT WRITES is measured by running '
     +'the real export. Which columns it READS is a declared list held beside this report — there is '
     +'no way to ask a running page that, so if a feature starts reading a new column, add it there '
     +'or this report will not know.</div>';
@@ -13832,7 +13832,7 @@ function exportFydpPlan(){
   const H=2,B=1,N=3,NB=4,SEC=6,TI=7;
   const fyl=function(y){ return 'FY'+(y%100); };
   const span=fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1]);
-  const title='SPMT FYDP SPEND PLAN — '+D.label.toUpperCase()+' — '+span;
+  const title='ORBIT FYDP SPEND PLAN — '+D.label.toUpperCase()+' — '+span;
   const cell=function(f,k,s){ return f? {v:f[k], s:(s||N)} : {v:'—', s:0}; };
   // the cost estimate beside the plan: the chosen set, this appropriation, as it stands now
   const AK=fydpAceKey(), hasAce=!!AK;
@@ -13920,7 +13920,7 @@ function exportFydpPlan(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('SPMT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLbl(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+  a.download=expName('ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLbl(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('📊 FYDP spend plan exported — '+esc(D.label)+', '+span+', '+R.order.length+' requirements across '+D.held.length+' planned year'+(D.held.length===1?'':'s')+'.');
 }
@@ -14047,7 +14047,7 @@ function exportCycCompare(){
   const la=cycCmpLbl(D.a), lb=cycCmpLbl(D.b);
   const allY=D.years.concat(D.onlyA, D.onlyB).sort((x,y)=>x-y);
   const span=allY.length? fyl(allY[0])+'–'+fyl(allY[allY.length-1]) : 'no years';
-  const title='SPMT CYCLE COMPARISON — '+la+' ⇄ '+lb+' — '+span;
+  const title='ORBIT CYCLE COMPARISON — '+la+' ⇄ '+lb+' — '+span;
   const note={v:'A is '+cycCmpLong(D.a)+'; B is '+cycCmpLong(D.b)+'. Δ is B less A. Per year both hold, one row per requirement: Requirement, Allocated, Funded (the lane draw) and Unfunded (requirement less funded, floored per service), each as A, B, Δ. A requirement in B and not in A is ADDED; one in A and not in B is REMOVED; each carries its whole figure as Δ, so the rows account for the totals — the CHECK row says whether they do. Years compared: '+(D.years.map(fyl).join(', ')||'none')+'.'
     +(D.onlyA.length? ' Only in '+la+': '+D.onlyA.map(fyl).join(', ')+'.' : '')+(D.onlyB.length? ' Only in '+lb+': '+D.onlyB.map(fyl).join(', ')+'.' : ''), s:0};
   const dash={v:'—', s:0};
@@ -14131,7 +14131,7 @@ function exportCycCompare(){
   const bytes=buildXlsx(sheets);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('SPMT Cycle Comparison — '+la+' vs '+lb+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+  a.download=expName('ORBIT Cycle Comparison — '+la+' vs '+lb+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('⇄ Cycle comparison exported — '+esc(la)+' ⇄ '+esc(lb)+', '+D.years.length+' year'+(D.years.length===1?'':'s')+' compared.');
 }
@@ -15624,7 +15624,7 @@ function rpBody(){
     +'<button class="btn" style="font-size:10.5px;padding:4px 10px" onclick="exportReprog()">\ud83d\udcca Export ATR/BTR (Excel)</button>'
     +' <span class="hint">'+list.length+' of '+rpAll().length+' entries shown.</span></div>';
   h+='<div class="hint" style="margin-top:8px">This is a <b>tracker only</b>. Amounts are $M and nothing here '
-    +'changes budget authority, funding lanes, allocations or execution anywhere in SPMT \u2014 CCaR already accounts '
+    +'changes budget authority, funding lanes, allocations or execution anywhere in ORBIT \u2014 CCaR already accounts '
     +'for the money. Appropriation and fiscal year are properties of the entry, so any combination can be recorded '
     +'from any board.</div>';
   el.innerHTML=h;
@@ -15659,7 +15659,7 @@ function rpSummaryHtml(YS, APS){
     +'</div>';
   h+='<div class="hint" style="margin-top:8px">Net $M by appropriation and fiscal year \u2014 Deduct counts negative, '
     +'Add positive; the bracketed figure is the number of entries. Tracking only: none of this touches any other '
-    +'value in SPMT.</div>';
+    +'value in ORBIT.</div>';
   return h;
 }
 function bmBody(){
@@ -19395,8 +19395,8 @@ function syncBtns(){
     mi('⚖ Reprogramming Actions…',"mRun(toggleRp)",rpOpen,'ATR / BTR across the active years')+
     '<div class="msep"></div><div class="mlbl">Bring data in</div>'+
     mi('📥 Import CCaR QPE…',"mRun(()=>document.getElementById('srcFile').click())",false,'monthly CCaR pull (.xlsx)')+
-    mi('📈 QPE coverage…',"mRun(toggleQpe)",qpeOpen,'which columns come back filled in — and which SPMT needs')+
-    mi('⚖ SPMT vs CCaR…',"mRun(toggleDiv)",divOpen,'where the board and the last pull disagree');
+    mi('📈 QPE coverage…',"mRun(toggleQpe)",qpeOpen,'which columns come back filled in — and which ORBIT needs')+
+    mi('⚖ ORBIT vs CCaR…',"mRun(toggleDiv)",divOpen,'where the board and the last pull disagree');
   document.getElementById('dd_by').innerHTML=
     '<div class="mlbl">Views</div>'+
     mi('📅 '+FYL()+' Spend Plan Forecast…',"mRun(toggleFc)",fcOpen,'Oct '+((MS.cur-1)%100)+' – Sep '+(MS.cur%100)+' · $M')+
@@ -20350,7 +20350,7 @@ async function confPublish(quiet){
   const existing=(await confList(fy)).filter(function(a){ return a.title===name; })[0];
   const fd=new FormData();
   fd.append('file', new Blob([body], {type:'application/json'}), name);
-  fd.append('comment', 'SPMT '+(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' — '+(whoAmI()||'unknown'));
+  fd.append('comment', 'ORBIT '+(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' — '+(whoAmI()||'unknown'));
   fd.append('minorEdit', 'true');
   // X-Atlassian-Token is Confluence's XSRF guard. Content-Type is NOT set: the browser has to add
   // the multipart boundary itself, and setting it by hand produces a body Confluence cannot parse.
@@ -20727,7 +20727,7 @@ function liveBody(){
         +'title="the numeric id of the wiki page the attachments hang on — it is in the page URL">' : '')
       +(c.mode==='sp'? '<span class="rlg-lbl">Folder</span>'
         +'<input class="rlg-in" style="flex:1;min-width:260px" value="'+esc(c.dir)+'" '
-        +'placeholder="/sites/…/Shared Documents/SPMT/Data" onchange="liveSet(&quot;dir&quot;,this.value)" '
+        +'placeholder="/sites/…/Shared Documents/ORBIT/Data" onchange="liveSet(&quot;dir&quot;,this.value)" '
         +'title="the server-relative path of the library folder, as it appears after the site name in the address bar">' : '')
       +'</div>';
   }
@@ -20886,7 +20886,7 @@ function budRegBody(){
   if(orph)
     h+='<div class="hint" style="margin-top:4px;border-left:3px solid var(--red);padding-left:8px">'
       +'<b>'+orph+' requirement/service assignment'+(orph===1?'':'s')+' point at a budget the '
-      +'latest extract no longer lists.</b> Nothing in SPMT can catch that downstream \u2014 the '
+      +'latest extract no longer lists.</b> Nothing in ORBIT can catch that downstream \u2014 the '
       +'Spend Plan Source and the IDS batch both export the name, and CCaR is where it fails. '
       +'Re-assign them, or clear them here.</div>';
   if(ret.length){
@@ -23081,7 +23081,7 @@ function exportCoa(){
   const bytes=buildXlsx([s1,s2,s3]);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('SPMT Chart of Accounts '+FY+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+  a.download=expName('ORBIT Chart of Accounts '+FY+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
   setStat('\ud83d\udcd2 Chart of accounts exported \u2014 '+rows.length+' requirements across '
     +sum.length+' appropriation'+(sum.length===1?'':'s')+', '+open.length+' with something to settle.');

@@ -1,4 +1,7 @@
-# SPMT — Sustainment Portfolio Management Tool
+# ORBIT — Out-year Requirements & Budget Integration Tool
+
+*The five-year spend plan across every appropriation.* Formerly SPMT, the Sustainment Portfolio
+Management Tool; renamed 22 Sep 2026 because it plans more than sustainment.
 
 A prioritization board for building and defending a sustainment budget: rank requirements, see what
 the money covers, move funding between services and years, reconcile against execution data, and
@@ -50,7 +53,7 @@ only what it chose. Plus a reprogramming (ATR/BTR) tracker, prime CLIN drill, an
 realignment that always preserves a requirement's total.
 
 **Reconcile against reality.** Import a monthly CCaR QPE pull and compare it to the board — coverage
-reporting, SPMT-vs-CCaR reconciliation, obligation performance against OSD goals, and funds-flow
+reporting, ORBIT-vs-CCaR reconciliation, obligation performance against OSD goals, and funds-flow
 charts in four layouts.
 
 **Look across years.** FYDP views, rolling requirements forward, PPBE spend-plan baselines, annual

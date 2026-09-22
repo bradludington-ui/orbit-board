@@ -48,7 +48,7 @@ function sweepFacts(out) {
 const stages = [];
 const note = s => { stages.push(s); return s; };
 
-console.log(`SPMT MATH VALIDATION — ${started.toISOString()}`);
+console.log(`ORBIT MATH VALIDATION — ${started.toISOString()}`);
 console.log('='.repeat(96));
 
 // ---- 0. the defect register: is every defect this board has ALREADY shipped still guarded? ------

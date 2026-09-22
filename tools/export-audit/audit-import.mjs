@@ -1195,8 +1195,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 
   // A file that already says what it is must not say it twice.
   chk(name, 'no double mark', 'a submittal built in a copy is not re-marked',
-    boot({ html }).ev(`expName('SPMT SUBMITTAL - J Smith - 2026-09-13.json')`),
-    'SPMT SUBMITTAL - J Smith - 2026-09-13.json');
+    boot({ html }).ev(`expName('ORBIT SUBMITTAL - J Smith - 2026-09-13.json')`),
+    'ORBIT SUBMITTAL - J Smith - 2026-09-13.json');
   } catch (e) {
     // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
     // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one

@@ -1102,7 +1102,7 @@ const MUTATIONS = [
   { id: 'fydp-window-drops-screen-year', area: 'fydpWindow', what: 'the year on screen is left out of the report when it sits outside the window',
     find: "if(out.indexOf(+MS.cur)<0) out.push(+MS.cur);", repl: "" },
   { id: 'fydp-title-unlabelled', area: 'exportFydpPlan', what: 'the title no longer says which source was printed',
-    find: "const title='SPMT FYDP SPEND PLAN — '+D.label.toUpperCase()+' — '+span;", repl: "const title='SPMT FYDP SPEND PLAN — '+span;" },
+    find: "const title='ORBIT FYDP SPEND PLAN — '+D.label.toUpperCase()+' — '+span;", repl: "const title='ORBIT FYDP SPEND PLAN — '+span;" },
   { id: 'fydp-src-ignored', area: 'exportFydpPlan', what: 'the workbook always prints the working plan whatever source was picked',
     find: "const D=fydpData(fydpSrc);", repl: "const D=fydpData('working');" },
   { id: 'fydp-panel-funded-is-ask', area: 'fydpBody', what: 'the panel prints the requirement where Funded belongs',
