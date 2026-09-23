@@ -77,7 +77,7 @@ Every name reads as *service + appropriation + funding line + [Discretionary | M
    | Depot Standup Air Vehicle | Depot Standup (the PMO picks AV, PP or PSM) |
    | Depot Standup Propulsion | Depot Standup (the PMO picks AV, PP or PSM) |
    | JRE | the BAE line that names JRE, once one exists (CDS JRE requirements start next year); until then a JRE requirement is flagged for a hand pick |
-   | **Program Engineering Support** *(new, #8 in the list)* | PES |
+   | **Production Engineering Support** *(new, #8 in the list)* | PES |
 
    Matching ignores case and spacing. A Full Fund requirement with **no cost element** is flagged to
    have one set, not guessed. Anywhere a line is still open after this (a new appropriation's
@@ -99,11 +99,11 @@ name; with the whole file it will find the ordinary one, or flag it.
 1. **Keep the BAE list once, for the whole board:** stored beside the appropriations rather than
    inside one, written into the saved file, read by every appropriation. A board saved with the old
    layout is moved over when it opens, so a list already imported is not lost.
-2. Apply the rule above; read `NON AFRC NON ANG` as the active Air Force. Add **Program
+2. Apply the rule above; read `NON AFRC NON ANG` as the active Air Force. Add **Production
    Engineering Support** to the board's cost elements as **#8, right before Fixed JPO Support**
-   (Brad, 23 Sep), matched to `PES`. The list becomes: 1 Airframe PGSE, 2 Engine PGSE,
+   (Brad, 23 Sep; the name confirmed as *Production*, not Program), matched to `PES`. The list becomes: 1 Airframe PGSE, 2 Engine PGSE,
    3 Avionics PGSE, 4 Peculiar Training Equip, 5 Full Mission Simulators, 6 Pubs/Tech Data,
-   7 Other ILS Production, **8 Program Engineering Support**, 9 Fixed JPO Support, 10 Depot Standup
+   7 Other ILS Production, **8 Production Engineering Support**, 9 Fixed JPO Support, 10 Depot Standup
    Software, 11 Depot Standup Air Vehicle, 12 Depot Standup Propulsion, 13 JRE. A requirement's cost
    element is saved by name, not number, so no existing choice moves; only a number typed into the
    cost element prompt follows the new order (checked 23 Sep: that prompt is the one place the
@@ -122,7 +122,7 @@ name; with the whole file it will find the ordinary one, or flag it.
 3. ~~Spares TrngDev~~ — answered 23 Sep: part of the Spares board, a low-dollar pot, by hand only.
 4. ~~Full Fund default~~ — answered 23 Sep: the budget follows the cost element, one to one.
 5. ~~Cost element table~~ — answered 23 Sep: Depot Standup Software → Depot Software; both Depot
-   Standup cost elements → Depot Standup, with the PMO choosing AV, PP or PSM; PES is **Program
+   Standup cost elements → Depot Standup, with the PMO choosing AV, PP or PSM; PES is **Production
    Engineering Support**, a cost element the board is missing and gains in this version; JRE
    requirements (CDS) start next year, so JRE follows the BAE line that names it once one exists.
 
