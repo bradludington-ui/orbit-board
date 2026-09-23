@@ -46,7 +46,11 @@ Every name reads as *service + appropriation + funding line + [Discretionary | M
    `USAF O&M - ANG CAM`, `USAF O&M- BOS`, `USMC STOVL APN Spares Initial`, `USMC STOVL O&M -1A9A`,
    `USN APN Full Fund SUPT PES USN CV`. The PMO is read as the last word of the name
    (AV, MxS, PP, PSM, TSS, CDS, BOP, ATL, any case).
-2. **Hand-pick-only lines:** CONG and BOS (decided); OCO and Withhold proposed the same.
+2. **Hand-pick-only lines:** CONG, BOS, OCO and Withhold (all decided by Brad, 23 Sep). Never
+   chosen automatically, never taken over from last year or the CCaR pull; offered only when
+   Brad picks by hand.
+   **Out of scope entirely:** Modifications, RDT&E and Flyaway budgets (decided 23 Sep). They are
+   never offered, as today.
 3. **Service, PMO, then lane exactly;** where the office's names carry no lane, its one lane-less
    name takes both lanes; where no name fits, the line is flagged, never guessed.
 4. **The funding line**, where rules 1–3 still leave more than one (most of Full Fund): the line CCaR
@@ -76,10 +80,10 @@ name; with the whole file it will find the ordinary one, or flag it.
    appropriation; the audits check the rule's picks and the lane split; mutations prove each check bites.
 
 #### Needed before building
-1. **OCO and Withhold:** hand-pick only, like CONG and BOS?
-2. **Spares TrngDev** (`USMC STOVL APN Spares TrngDev AV`): part of the Spares board? Today it is
+1. ~~OCO and Withhold~~ — answered 23 Sep: by hand only.
+2. ~~Modifications, RDT&E, Flyaway~~ — answered 23 Sep: stay out.
+3. **Spares TrngDev** (`USMC STOVL APN Spares TrngDev AV`): part of the Spares board? Today it is
    ignored, like Modifications, RDT&E and Flyaway.
-3. **Modifications** (`USMC STOVL APN Modifications Discretionary AV`): stays out, like RDT&E?
 4. Optional: a usual Full Fund funding line per PMO, if there is one, would fill more of Full Fund
    automatically before rule 4 has to ask.
 
