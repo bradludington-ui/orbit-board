@@ -38,7 +38,6 @@
     "xl · Funding Streams",
     "xl · Decision Bands",
     "drill · 1-N by Band",
-    "xl · Spend Plan Source",
     "ppt · Funding by Stream",
     "locked cycle (projection)",
     "locked view (drill)"
@@ -62,7 +61,8 @@
     "locked view (drill)",
     "cycle deltas (panel, now)",
     "xl · FYDP Spend Plan",
-    "xl · Cycle Comparison"
+    "xl · Cycle Comparison",
+    "xl · Spend Plan Source"
   ],
   "ufr1": [
     "engine (tiers)",

@@ -4,11 +4,24 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.82**. Next: **v1.83**.
+Current version: **v1.83**. Next: **v1.84**.
 
 ## Open
 
-### 2. Spend Plan Source: full, verbatim BAE budget names, assigned automatically
+*(nothing open)*
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v1.83 — 23 Sep 2026: items 2 and 3, built together on Brad's "go"
+
+#### 2. Spend Plan Source: full, verbatim BAE budget names, assigned automatically
 - **Logged:** 23 Sep 2026, Brad. Photos of a Spend Plan Source export and of BAE names (USAF O&M,
   Marine Corps Full Fund, Spares, Modifications and O&M) are **examples only**: the logic must work
   from the structure of the names in whatever BAE file is imported, all 697 of them.
@@ -23,7 +36,7 @@ Current version: **v1.82**. Next: **v1.83**.
   5. **No BAE loaded: Budget left blank, with a warning** (decided 23 Sep), never a made-up name.
   6. **CONG and BOS only by hand** (decided 23 Sep); everything else automatic where it can be.
 
-#### What the code does today (read and measured 23 Sep)
+##### What the code does today (read and measured 23 Sep)
 - **The BAE list is not kept across appropriations.** The import keeps every appropriation's names,
   but stores them in the open appropriation's own store. Switching appropriation reloads the board
   with a different store, so a list imported on O&M is absent on Full Fund, Spares and OPN, and the
@@ -38,7 +51,7 @@ Current version: **v1.82**. Next: **v1.83**.
 - The BAE spelling is not uniform, so names are copied, never built: `O&M - ` / `O&M- ` / `O&M -1A9A`,
   `MxS` / `MXS`, `Full Mission Sims Discretionary TSS` on STOVL beside `Full Mission Sims TSS` on CV.
 
-#### The rule (structural, no list of names in the program)
+##### The rule (structural, no list of names in the program)
 Every name reads as *service + appropriation + funding line + [Discretionary | Mandatory] + PMO*.
 1. **No PMO in the name = a legacy budget, never usable** (decided by Brad, 23 Sep). It is never
    offered, never auto-assigned, and never taken over from last year's choice or from the CCaR pull:
@@ -95,7 +108,7 @@ Full Mission Simulators → `USN APN Full Fund SUPT USMC CV Full Mission Sims TS
 JPO Support → `USMC STOVL APN Full Fund SUPT FIXED JPO SUPT POA Discretionary BOP`. One (CV Spares PP) found none because the photo shows only its CONG
 name; with the whole file it will find the ordinary one, or flag it.
 
-#### Proposed fix
+##### Proposed fix
 1. **Keep the BAE list once, for the whole board:** stored beside the appropriations rather than
    inside one, written into the saved file, read by every appropriation. A board saved with the old
    layout is moved over when it opens, so a list already imported is not lost.
@@ -116,7 +129,7 @@ name; with the whole file it will find the ordinary one, or flag it.
 7. Tests: the round-trip fuzz fills the BAE list and proves it survives save, reopen and a switch of
    appropriation; the audits check the rule's picks and the lane split; mutations prove each check bites.
 
-#### Needed before building — nothing; every question answered 23 Sep
+##### Needed before building — nothing; every question answered 23 Sep
 1. ~~OCO and Withhold~~ — answered 23 Sep: by hand only.
 2. ~~Modifications, RDT&E, Flyaway~~ — answered 23 Sep: stay out.
 3. ~~Spares TrngDev~~ — answered 23 Sep: part of the Spares board, a low-dollar pot, by hand only.
@@ -126,7 +139,7 @@ name; with the whole file it will find the ordinary one, or flag it.
    Engineering Support**, a cost element the board is missing and gains in this version; JRE
    requirements (CDS) start next year, so JRE follows the BAE line that names it once one exists.
 
-### 3. Two Spend Plans: list every requirement, including the ones neither plan funds
+#### 3. Two Spend Plans: list every requirement, including the ones neither plan funds
 - **Logged:** 23 Sep 2026, Brad, with a photo of requirement #98 of 151: FY27 requirement $50,000,000
   (USMC-B $21M, USMC-C $4M, USN $25M), allocated $0, unfunded $50,000,000, MC shortage, band 7.
 - **What Brad sees:** #98 does not appear in the Two Spend Plans list or its export. It looks as if
@@ -153,13 +166,3 @@ name; with the whole file it will find the ordinary one, or flag it.
 - **Needed before building:** nothing. Unfunded requirements stay **in rank order**, as on the board
   (decided by Brad, 23 Sep).
 
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
-
-*(nothing yet under this process)*

@@ -794,6 +794,10 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   EXDB={ts:1700000000001, all:{'A':{oblig:1234567, comm:7654321}}};
   ACEDB={ts:1700000000002, sets:{'FY27':{'A':{pt:42}}}};
   RPDB={ts:1700000000003, entries:[{id:'r1', k:'ATR', fy:2027, amt:2500000, note:'depot line'}]};
+  // the BAE budget list, board-wide since v1.83 -- it rides beside the stores, not inside one
+  BUDDB={ts:1700000000004, files:[{dept:'USAF', file:'USAF BAE.xlsx', ts:1700000000004, n:2}],
+         rows:['USAF O&M - ANG CAM Discretionary AV','USMC STOVL APN Full Fund SUPT OTHER ILS Discretionary PSM'].map(budParseName)};
+  _budRegCache=null;
   S.alloc['B']={m:'t',v:3900001}; S.band['A']='pdm'; seedSplit('C');
   S.awards['A']={mode:'single',d:FYMON[2][0],day:7};
   S.custom.push({id:'NEW-1',grp:'PSM',sect:'new',custom:true,title:'Added here',event:'e',
@@ -834,13 +838,15 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   // The three side databases are their own globals, packed separately by buildSavedHtml(). A copy
   // that dropped one is a copy whose execution read-outs, cost estimate or reprogramming tracker
   // are simply EMPTY -- which reads as a programme with nothing in it rather than as a broken file.
-  ['EXDB','ACEDB','RPDB','CYCDB'].forEach(k =>
+  ['EXDB','ACEDB','RPDB','CYCDB','BUDDB'].forEach(k =>
     chk(name, 'content', `${k} travelled intact`,
       P.ev(`JSON.stringify(${k}||null)`), ev(`JSON.stringify(${k}||null)`)));
   chk(name, 'content', 'and the reprogramming log is not merely present but populated',
     P.ev(`(RPDB.entries||[]).length`), 1);
   chk(name, 'content', 'and the locked cycle is not merely present but populated',
     P.ev(`Object.keys(CYCDB.cycles).length`), 1);
+  chk(name, 'content', 'and the BAE budget list is not merely present but read',
+    P.ev(`budReg().length`), 2);
 
   // AN INVARIANT, ASSERTED SO AN EQUIVALENCE CLAIM CANNOT ROT. applyState() rebuilds DATA.items
   // from BASE_ITEMS plus the S.custom objects THEMSELVES, so itemById() on a custom requirement
@@ -1838,6 +1844,43 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ THE BAE LIST IS ONE LIST FOR THE WHOLE BOARD (v1.83) ═════════════════════════════════════
+// It used to sit inside the open appropriation's store, so a list imported on O&M was absent on
+// Full Fund, Spares and OPN. Now it is its own store, written into the saved file beside the
+// appropriations -- and a board saved the OLD way, with its list inside one appropriation's store,
+// must still find it from any appropriation, without a re-import.
+{
+  const name = 'the BAE list — one list, every appropriation';
+  try {
+  const sc = handoffSc();
+  const { ev } = boot(); seed(ev, sc);
+  const NAMES = ['USAF O&M - ANG CAM Discretionary AV', 'USMC STOVL APN Full Fund SUPT OTHER ILS Discretionary PSM',
+                 'USMC STOVL APN Spares Initial Discretionary PP'];
+  ev(`BUDDB={ts:1700000000005, files:[], rows:${JSON.stringify(NAMES)}.map(budParseName)}; _budRegCache=null; save(); 'ok'`);
+  const html = ev('buildSavedHtml()');
+  const pub = JSON.parse(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(html)[1]);
+  chk(name, 'saved file', 'the list is written beside the appropriations', (pub.budDb && pub.budDb.rows || []).length, 3);
+  chk(name, 'saved file', 'and not inside any one of them',
+    Object.keys(pub.appns || {}).filter(k => pub.appns[k] && pub.appns[k].budgets).length, 0);
+  const R = boot({ html });
+  chk(name, 'reopened', 'the reopened board holds the whole list', R.ev('budReg().length'), 3);
+  chk(name, 'reopened', 'names exactly as imported', R.ev(`JSON.stringify(budReg().map(function(b){ return b.n; }))`), JSON.stringify(NAMES));
+  // THE OLD LAYOUT: no board-wide store, the list inside the FULL FUND appropriation's store --
+  // opened as O&M, which is the appropriation switch that used to lose it.
+  pub.budDb = { ts: 0, rows: [], files: [] };
+  const om = Object.keys(pub.appns || {})[0];
+  pub.appns.ff = Object.assign({}, pub.appns[om], { budgets: { ts: 1700000000006, files: [], rows: NAMES.map(n => ({ n })) } });
+  const old = html.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
+    (m, a, b) => a + JSON.stringify(pub).replace(/</g, '\\u003c') + b);
+  const O = boot({ html: old });
+  chk(name, 'old layout', 'a list saved inside another appropriation is found from this one', O.ev('budReg().length'), 3);
+  chk(name, 'old layout', 'and read by today’s rules', O.ev(`JSON.stringify(budReg().map(function(b){ return b.ap; }))`), '["om","ff","sp"]');
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
   }
 }
 

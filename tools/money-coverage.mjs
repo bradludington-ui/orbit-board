@@ -40,9 +40,9 @@ const REGISTRY = {
   trimAbsorb:   { money: true,  what: 'unspent discretionary against the trims that could take it — '
                                     + 'read as an instruction to type a figure into an allocation box' },
   forecast:     { money: true,  what: 'the spend forecast — when funded dollars land' },
-  srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column',
-                  via: ['srcSvcOf'] },
-  exportSrc:    { money: true,  what: 'the Spend Plan Source workbook', via: ['srcSvcOf', 'srcRowsOf'] },
+  srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column, one line per service per lane',
+                  via: ['srcLaneOf', 'srcSvcOf'] },
+  exportSrc:    { money: true,  what: 'the Spend Plan Source workbook', via: ['srcLaneOf', 'srcSvcOf', 'srcRowsOf'] },
   crExportRows: { money: true,  what: 'the 1A9A CR cash return' },
   exportExcel:  { money: true,  what: 'the breakouts workbook — lanes, bands, matrices, unfunded' },
   exportCSV:    { money: true,  what: 'the Priority Drill' },

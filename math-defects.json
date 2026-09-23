@@ -25,14 +25,14 @@
    "surface": "Spend Plan Source, and every send plan derived from it",
    "symptom": "A send plan carried dollars that no lane had actually paid for — unfunded money left the building with an obligation date against it.",
    "cause": "srcSvcOf() used the ALLOCATION as its basis. An allocation is an intention; only the discretionary draw is money that exists.",
-   "fix": "SRC_BASIS='disc'. The spend plan sends what discretionary funded — p.d — and nothing else. No auto flows, no assumptions.",
+   "fix": "SRC_BASIS='disc' (v1.58): the spend plan sent what discretionary funded, never the allocation. Since v1.83 (the owner's decision, 23 Sep 2026) it sends what BOTH lanes paid -- p.d and p.m -- each lane on its own line with its own budget, and still never the allocation.",
    "guarded": true,
    "checks": [
     "Spend Plan Source"
    ],
    "mutations": [
     "src-basis-allocation",
-    "src-basis-disc-plus-mand"
+    "src-drops-mandatory"
    ]
   },
   {

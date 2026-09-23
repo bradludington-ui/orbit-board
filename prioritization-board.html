@@ -1190,6 +1190,23 @@ let ACEDB = (function(){
   else pick=ls||fb;
   return (pick&&pick.sets)? pick : {ts:0, sets:{}};
 })();
+// ---- The BAE budget list: ONE list for the whole board, in its own store (v1.83) ------------
+// It used to live inside the open appropriation's store (MS.budgets). Switching appropriation
+// reloads the board with a different store, so a list imported on O&M was simply absent on Full
+// Fund, Spares and OPN -- and the Spend Plan Source fell back to names CCaR rejects. Every row
+// carries its own appropriation (b.ap), so one list serves all four. It is written into the saved
+// file beside the other stores. A board saved before this still holds its list inside one
+// appropriation's store; budSrc() reads it from there until the next import writes it here.
+let BUDDB = (function(){
+  let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27buddb')||'null'); }
+  catch(e){ _bootLost.push('the imported BAE budget list held in browser storage'); }
+  const fb=(PUB&&PUB.budDb)||null;
+  let pick=null;
+  if(ls&&fb) pick=((fb.ts||0)>(ls.ts||0))? fb : ls;
+  else pick=ls||fb;
+  return (pick&&Array.isArray(pick.rows))? pick : {ts:0, rows:[], files:[]};
+})();
+function persistBud(){ return lsSet('prio27buddb', JSON.stringify(BUDDB), 'The imported BAE budget list'); }
 // ---- Reprogramming actions: a standalone tracker, independent of every other store --------
 let RPDB = (function(){
   let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27reprog')||'null'); }
@@ -1407,7 +1424,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.82 (22 Sep 2026)';
+const BUILD='v1.83 (23 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4663,7 +4680,7 @@ let LASTKNOWN=0;   // ts of the file state we started from (collision baseline)
 function buildSavedHtml(opts){
   if(CYCVIEW){ cycRefuse('Building a board file'); throw new Error('a locked cycle is on screen — leave the view before saving or publishing'); }
   save();
-  PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const cycDb=(opts&&opts.refOnly)? cycRefOnlyDb() : {ts:CYCDB.ts||0, byAp:cycByAp()}; const json = JSON.stringify({appns:PUBS, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:cycDb}).replace(/</g,'\\u003c');
+  PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const cycDb=(opts&&opts.refOnly)? cycRefOnlyDb() : {ts:CYCDB.ts||0, byAp:cycByAp()}; const json = JSON.stringify({appns:PUBS, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:cycDb, budDb:BUDDB}).replace(/</g,'\\u003c');
   return SRC0.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
                       (m,a,b)=>a+json+b);
 }
@@ -7778,33 +7795,39 @@ const SRC_XTRA=[
   {fill:false, fmt:SRC_FMT_MON}                   // Month, shown MMM-YYYY, still a real date
 ];
 const SRC_GRAIN='svc';    // 'svc' one row per requirement per funded service | 'req' one per requirement
-const SRC_BASIS='disc';   // 'disc' what DISCRETIONARY paid | 'ask' the full requirement
+const SRC_BASIS='funded'; // 'funded' what the lanes PAID, each lane on its own line | 'ask' the full requirement
 const SRC_YEARS='cur';    // 'cur' the active year | 'all' every year the board holds
-// ---- WHAT THE SPEND PLAN SOURCE SENDS, per service. ONE implementation, three readers: the export
-// itself, the CCaR reconciliation's board-side amount, and the per-service budget check beside it.
-// Stated once because a rule written out more than once drifts, and here the drift would be the
-// export disagreeing with the reconciliation that exists to check it.
+// ---- WHAT THE SPEND PLAN SOURCE SENDS, per service and per LANE. ONE implementation, three
+// readers: the export itself, the CCaR reconciliation's board-side amount, and the per-line budget
+// check beside it. Stated once because a rule written out more than once drifts, and here the drift
+// would be the export disagreeing with the reconciliation that exists to check it.
 //
-// IT IS WHAT DISCRETIONARY ACTUALLY PAID -- p.d out of the lane walk -- and nothing else.
+// IT IS WHAT THE LANES ACTUALLY PAID -- p.d and p.m out of the lane walk -- EACH LANE ON ITS OWN
+// LINE, with its own budget. The owner's decision, 23 Sep 2026: a requirement funded with both
+// discretionary and mandatory money has two budgets, so the file carries both lines.
 //
-// It used to be svcAlloc(it), the ALLOCATION BASIS the lane engine works FROM. That is not what is
-// funded: a requirement the lanes could not reach is still carried at its full allocation, so the
-// workbook printed money with an obligation date against dollars that were never coming. Measured
-// on a three-requirement fixture it sent 285 where 210 was funded -- one wholly unfunded
-// requirement, exported in full. A spend plan that lists unfunded dollars is a plan for money that
-// does not exist, and it reconciles perfectly against itself the whole way.
+// IT IS STILL NEVER THE ALLOCATION. It used to be svcAlloc(it), the ALLOCATION BASIS the lane
+// engine works FROM. That is not what is funded: a requirement the lanes could not reach is still
+// carried at its full allocation, so the workbook printed money with an obligation date against
+// dollars that were never coming. Measured on a three-requirement fixture it sent 285 where 210 was
+// funded -- one wholly unfunded requirement, exported in full. A spend plan that lists unfunded
+// dollars is a plan for money that does not exist. That defect is in the register and guarded.
 //
-// NOT disc+mand either: this office sends discretionary. Mandatory is reported beside it and never
-// inside it.
+// Until v1.83 this sent DISCRETIONARY ONLY, with mandatory reported beside it. The owner reversed
+// that: the OBBBA Mandatory budgets are CCaR budgets like any other, and a mandatory dollar that
+// never reaches the file is a dollar CCaR never sees.
 //
-// p.d is INVARIANT under the discretionary-only view, because tiers() draws discretionary before it
-// ever touches mandatory -- withholding the mandatory pot cannot change a discretionary draw. So
-// this export cannot disagree with itself between the two views, and needs no [DISC-ONLY] marker:
-// there is no second answer for it to be mistaken for.
+// The walk is tiers() WITHOUT a scenario, so the "discretionary only" view -- a parameter, never a
+// mode -- cannot empty the mandatory lines: this export is the same answer under either view.
+function srcLaneOf(it, T, lane){
+  const p=(T||{})[it.id];
+  if(!p) return SVC.map(_=>0);
+  return (lane==='mand'? p.m : p.d).slice();
+}
 function srcSvcOf(it, T){
   if(SRC_BASIS==='ask') return (it.ask||[]).slice();
-  const p=(T||{})[it.id];
-  return p? p.d.slice() : SVC.map(_=>0);
+  const d=srcLaneOf(it, T, 'disc'), m=srcLaneOf(it, T, 'mand');
+  return d.map(function(v,i){ return (+v||0)+(+m[i]||0); });
 }
 // The importer reads the service back out of the Budget cell, so write it the way that file spells
 // it. STOVL and USMC-B are both the B model; the source calls it USMC STOVL.
@@ -7853,12 +7876,17 @@ function srcGapNote(){
   const gaps=[];
   if(budReg().length){
     const bs=budAutoStats();
-    if(bs.many) gaps.push('<b>'+bs.many+'</b> requirement/service pair'+(bs.many===1?'':'s')
-      +' have no <b>Budget</b> yet — several BAE names fit and the tool will not choose for you '
-      +'(pick one in the ⋯ menu on the requirement)');
+    if(bs.many) gaps.push('<b>'+bs.many+'</b> line'+(bs.many===1?' has':'s have')+' no <b>Budget</b> \u2014 more '
+      +'than one BAE name fits and nothing on the board decides between them (pick one in the record panel)');
+    if(bs.none) gaps.push('<b>'+bs.none+'</b> line'+(bs.none===1?' has':'s have')+' no <b>Budget</b> \u2014 no BAE '
+      +'name fits the service, PMO, lane'+(mySlug()==='ff'? ' and cost element' : '')+' (check the requirement, or pick by hand)');
+    if(bs.legacy) gaps.push('<b>'+bs.legacy+'</b> line'+(bs.legacy===1?' points':'s point')+' at a <b>legacy budget</b> '
+      +'(no PMO in the name) and '+(bs.legacy===1?'is':'are')+' left blank \u2014 pick again');
+    if(bs.hand) gaps.push('<b>'+bs.hand+'</b> line'+(bs.hand===1?' is':'s are')+' on a CONG, BOS, OCO, Withhold or '
+      +'TrngDev budget, which is only ever chosen by hand \u2014 confirm '+(bs.hand===1?'it still applies':'they still apply'));
   } else {
-    gaps.push('no <b>Budget Extract</b> imported — the Budget column holds a generated name, not a '
-      +'BAE one (🔧 Tools → Import Budget Extract)');
+    gaps.push('no <b>Budget Extract</b> imported \u2014 the <b>Budget column is blank</b>, because CCaR rejects any '
+      +'name that is not a BAE name exactly (\u2692 Tools \u203a Import Budget Extract, once: it is kept in the saved board)');
   }
   if(!ccarIdx()){
     gaps.push('no <b>CCaR Records</b> imported — Title falls back to the requirement name and OPR is blank');
@@ -8029,13 +8057,17 @@ function aceParse(rows, label){
    Control No is unique and tidy and matches NOTHING (0 of 196), CCaR No matches 73%. One key in
    the owner's file carries two records with different titles, so the count of records behind a key
    is kept and an ambiguous one is shown rather than resolved. */
-const BUD_EXCLUDE = /flyaway|rdt\s*&?\s*e/i;      // the owner's rule: never requirement budgets
-const BUD_APPN = [[/O&M/i,'om'], [/Full\s+Fund\s+Supt/i,'ff'], [/Spares\s+Initial/i,'sp'], [/\bOPN\b/i,'opn']];
+// The owner's rule: never requirement budgets. Modifications joined Flyaway and RDT&E on 23 Sep 2026.
+const BUD_EXCLUDE = /flyaway|rdt\s*&?\s*e|\bmodifications\b/i;
+const BUD_APPN = [[/O&M/i,'om'], [/Full\s+Fund\s+Supt/i,'ff'], [/Spares\s+(?:Initial|TrngDev)/i,'sp'], [/\bOPN\b/i,'opn']];
 // Order matters and is not alphabetical. "USAF O&M - AFRC CAM Discretionary AV" is an AFRC budget
 // sitting under the Air Force department, and "USN APN Full Fund SUPT USMC CV AV" is a USMC CV
 // budget sitting under the Navy -- so the more specific service is tested first, or every one of
 // them would be read as USAF or USN.
 const BUD_SVC = [
+  // "USAF O&M NON AFRC NON ANG" is the ACTIVE Air Force: it contains the word ANG, and read as
+  // ANG it was a candidate for every ANG requirement. First, so nothing below sees it.
+  [/NON\s+AFRC\s+NON\s+ANG/i, ['USAF']],
   [/\bANG\b/i,          ['ANG']],
   [/\bAFRC\b/i,         ['AFRC']],
   [/USMC\s*CV/i,        ['USMC-C']],
@@ -8052,32 +8084,121 @@ function budParseName(raw){
   GROUPS.forEach(function(g){ if(new RegExp('\\b'+g+'\\s*$','i').test(n)) pmo=g; });
   let svc=[]; for(let i=0;i<BUD_SVC.length;i++){ if(BUD_SVC[i][0].test(n)){ svc=BUD_SVC[i][1].slice(); break; } }
   const dm=/discretionary/i.test(n)? 'disc' : (/mandator/i.test(n)? 'mand' : '');
-  return {n:n, ap:ap, pmo:pmo, svc:svc, dm:dm};
+  // THE FUNDING LINE: what is left once the appropriation, the service, the lane and the PMO are
+  // taken off -- CAM, CONG, 1A9A FL, DEPOT SOFTWARE, OTHER ILS. Reduced to capitals and digits,
+  // because the extracts do not spell it the same way twice (PES MxS beside PES MXS).
+  let rest=n;
+  for(let i=0;i<BUD_APPN.length;i++){ const mm=BUD_APPN[i][0].exec(n); if(mm){ rest=n.slice(mm.index+mm[0].length); break; } }
+  rest=rest.replace(BUD_FAM_DROP,' ').replace(/\bOBBBA\b|\bMandatory\b|\bDiscretionary\b/gi,' ');
+  if(pmo) rest=rest.replace(new RegExp('\\b'+pmo+'\\s*$','i'),' ');
+  return {n:n, ap:ap, pmo:pmo, svc:svc, dm:dm, line:budNorm(rest), hand:BUD_HAND.test(n)};
 }
-function budReg(){ return (MS.budgets&&Array.isArray(MS.budgets.rows))? MS.budgets.rows : []; }
-// Candidates for one requirement on one service, narrowed as far as the board's own facts allow.
-// It deliberately does NOT guess past that point -- see the measured counts above.
-function budCandidates(id, svc){
+// Where the list is held: the board-wide store, or -- on a board saved before v1.83 -- the newest
+// list found inside any appropriation's own store. Read-only; the next import writes BUDDB.
+let _budLegacySrc;
+function budSrc(){
+  if(BUDDB && Array.isArray(BUDDB.rows) && BUDDB.rows.length) return BUDDB;
+  if(_budLegacySrc===undefined){
+    let best=null;
+    const take=function(b){ if(b && Array.isArray(b.rows) && b.rows.length && (!best || (b.ts||0)>(best.ts||0))) best=b; };
+    try{ take(MS.budgets); }catch(e){}
+    // every appropriation's store the saved file carried (PUB itself is narrowed to this one at boot)
+    try{ if(typeof PUBS!=='undefined' && PUBS) Object.keys(PUBS).forEach(function(k){ const s=PUBS[k]; if(s) take(s.budgets); }); }catch(e){}
+    try{ Object.keys(_SLUGMAP||{}).forEach(function(k){
+      try{ const s=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s) take(s.budgets); }catch(e){} }); }catch(e){}
+    _budLegacySrc=best;
+  }
+  return _budLegacySrc || {ts:0, rows:[], files:[]};
+}
+// The list, every name RE-READ by today's rules -- so a list imported under an older rule (before
+// the legacy, hand-pick or NON ANG rules) is judged by the current one without a re-import.
+let _budRegCache=null;
+function budReg(){
+  const src=budSrc(), raw=src.rows||[];
+  if(_budRegCache && _budRegCache.raw===raw && _budRegCache.n===raw.length && _budRegCache.ts===src.ts) return _budRegCache.rows;
+  const rows=[];
+  raw.forEach(function(b){ if(!b || !b.n) return; const p=budParseName(b.n); if(!p) return; p.gone=b.gone? 1 : 0; rows.push(p); });
+  _budRegCache={raw:raw, n:raw.length, ts:src.ts, rows:rows};
+  return rows;
+}
+// ---- THE RULE (v1.83) -----------------------------------------------------------------------
+// Read from the STRUCTURE of the name, never from a list of names -- the program holds no copy of
+// any extract. Every BAE name is  service + appropriation + funding line + [lane] + PMO.
+// The owner's decisions, 23 Sep 2026:
+//   1. NO PMO IN THE NAME = A LEGACY BUDGET, never usable: never offered, never filled in, and a
+//      requirement that arrives pointing at one is flagged for a fresh pick.
+//   2. CONG, BOS, OCO, Withhold and Spares TrngDev are HAND-PICK ONLY: offered, never automatic.
+//      Modifications, RDT&E and Flyaway are out entirely (BUD_EXCLUDE).
+//   3. Service and PMO must match, and the LANE must match exactly -- discretionary dollars to a
+//      Discretionary name, mandatory to a Mandatory one. Where an office's names carry no lane, its
+//      one lane-less name takes both lanes.
+//   4. THE FUNDING LINE. On O&M the hand-pick rule leaves CAM, which is the default. On Full Fund
+//      the budget follows the requirement's COST ELEMENT, one to one (BUD_CE_LINE).
+//   5. Where that still leaves more than one, the line CCaR already files this record under, from
+//      the last Spend Plan Source pull, decides -- if exactly one of them is on it.
+//   Nothing is guessed: a line with no single answer is left blank and listed before the export.
+// Measured on every example name the owner sent (USAF O&M, Marine Corps O&M, Spares, Full Fund):
+// 16 of 20 cases resolve on rules 1-3, and all 56 Full Fund service x PMO x cost element
+// combinations resolve on rule 4.
+const BUD_HAND=/\b(?:CONG|BOS|OCO|Withhold|TrngDev)\b/i;
+const BUD_CE_LINE={'Airframe PGSE':'AIRFRAME PGSE', 'Engine PGSE':'ENGINE PGSE', 'Avionics PGSE':'AVIONICS PGSE',
+  'Peculiar Training Equip':'PEC TRNG', 'Full Mission Simulators':'FULL MISSION SIMS', 'Pubs/Tech Data':'PUBS TECH DATA',
+  'Other ILS Production':'OTHER ILS', 'Production Engineering Support':'PES', 'Fixed JPO Support':'FIXED JPO SUPT POA',
+  'Depot Standup Software':'DEPOT SOFTWARE', 'Depot Standup Air Vehicle':'DEPOT STANDUP',
+  'Depot Standup Propulsion':'DEPOT STANDUP', 'JRE':'JRE'};
+function budNorm(s){ return String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim(); }
+// A name that can be used at all: it reads as a budget and it carries a PMO.
+function budUsable(n){ const p=budParseName(n); return !!(p && p.pmo); }
+// Every name a PERSON may choose for this requirement, service and lane: this appropriation, this
+// service and PMO, this lane or none -- never a legacy or retired name. Hand-pick lines included.
+function budPickList(id, svc, lane){
   const it=itemById(id); if(!it) return [];
   const pmo=grpOf(it)||'';
-  const rows=budReg().filter(function(b){
-    if(b.ap!==mySlug()) return false;
-    if(pmo && b.pmo && b.pmo!==pmo) return false;
-    if(svc && b.svc.length && b.svc.indexOf(svc)<0) return false;
+  return budReg().filter(function(b){
+    if(b.ap!==mySlug() || !b.pmo || b.gone) return false;
+    if(pmo && b.pmo!==pmo) return false;
+    if(svc && b.svc.indexOf(svc)<0) return false;
+    if(lane && b.dm && b.dm!==lane) return false;
     return true;
   });
-  // Discretionary / Mandatory only narrows when the requirement is wholly one or the other; a
-  // requirement drawing both would have its budget picked by a coin toss otherwise.
-  const T=tiers(), pt=T[id];
-  if(pt){
-    const d=pt.dT||0, m=pt.mT||0;
-    const want = (d>0.5&&m<=0.5)? 'disc' : ((m>0.5&&d<=0.5)? 'mand' : '');
-    if(want){
-      const narrowed=rows.filter(function(b){ return b.dm===want || !b.dm; });
-      if(narrowed.length) return narrowed;
-    }
+}
+// What the rule may fill in on its own: the pick list without the hand-pick lines, then on Full
+// Fund the line the cost element names, then the lane exactly -- or, where the office's names carry
+// no lane, its lane-less name.
+function budCandidates(id, svc, lane){
+  let pool=budPickList(id, svc, lane).filter(function(b){ return !b.hand; });
+  if(mySlug()==='ff' && DATA.costElems){
+    const L=BUD_CE_LINE[(S.costElem||{})[id]||''];
+    if(!L) return [];
+    pool=pool.filter(function(b){ return L==='JRE'? /(^| )JRE( |$)/.test(b.line) : b.line===L; });
   }
-  return rows;
+  if(!lane) return pool;
+  const exact=pool.filter(function(b){ return b.dm===lane; });
+  return exact.length? exact : pool.filter(function(b){ return !b.dm; });
+}
+// Rule 5's evidence: the budget names CCaR files this record under, from the last pull. One read of
+// the pull per import and year, not one per line.
+let _budCcMemo=null;
+function budCcarBuds(id){
+  const it=itemById(id); if(!it) return null;
+  const num=ccarNorm(ccarOf(it)); if(!num) return null;
+  const key=((typeof EXDB!=='undefined' && EXDB)? (EXDB.ts||0) : 0)+'|'+MS.cur;
+  if(!_budCcMemo || _budCcMemo.key!==key){
+    let by={}; try{ by=divCcarSide().by||{}; }catch(e){}
+    _budCcMemo={key:key, by:by};
+  }
+  const c=_budCcMemo.by[num]; return c? c.buds : null;
+}
+// The (service, lane) pairs that carry money on this requirement -- exactly the lines the Spend
+// Plan Source writes, so exactly the pairs that need a budget.
+function budPairs(id, T){
+  const p=(T||tiers())[id]; if(!p) return [];
+  const out=[];
+  SVC.forEach(function(sv,i){
+    if((+(p.d||[])[i]||0)>0.005) out.push({svc:sv, lane:'disc'});
+    if((+(p.m||[])[i]||0)>0.005) out.push({svc:sv, lane:'mand'});
+  });
+  return out;
 }
 // One line per FUNDED service. A service with no money on this requirement is not asked about,
 // and a service whose candidates come to exactly one is stated rather than asked -- an answered
@@ -8091,8 +8212,9 @@ function budCandidates(id, svc){
 // funds and an exception has to be settable.
 function budRecFields(id, it){
   if(!budReg().length) return [];
+  const pairs=budPairs(id);
+  if(!pairs.length) return [];
   const funded=budFundedSvcs(id);
-  if(!funded.length) return [];
   const cands=budFamCands(id), cur=budFamOf(id);
   const covOf=function(f){ return funded.filter(function(sv){ return !!f.svcs[sv]; }); };
   const out=[];
@@ -8106,39 +8228,44 @@ function budRecFields(id, it){
         return '<option value="'+esc(f.k)+'"'+(cur===f.k?' selected':'')+'>'
           +esc(f.lbl)+'  \u2014  '+esc(tag)+'</option>';
       }).join('');
-  // WHAT IT RESOLVED TO, per service, stated rather than left to be discovered. A funded service
-  // with nothing against it is named in amber: that is a blank cell in a file CCaR refuses.
-  const bits=funded.map(function(sv){
-    const n=budAsgOf(id, sv) || budForRow(id, sv);
-    return '<span style="white-space:nowrap"><b>'+esc(sv)+'</b> '
-      +(n? '<span style="color:var(--green)" title="'+esc(n)+'">'+esc(budFamStrip(n))+'</span>'
-         : '<span style="color:var(--amber)">not set</span>')+'</span>';
+  // WHAT EACH LINE RESOLVED TO, stated rather than left to be discovered. One entry per service and
+  // lane that carries money -- a requirement drawing both pots shows two per service. A line with
+  // nothing against it is amber: a blank cell in a file CCaR refuses. A legacy choice is red.
+  const laneTag=function(q){ return q.lane==='mand'? ' <span style="color:var(--purp)">mand</span>' : ''; };
+  const bits=pairs.map(function(q){
+    const chosen=budAsgOf(id, q.svc, q.lane), n=budForRow(id, q.svc, q.lane);
+    let v;
+    if(chosen && !budUsable(chosen)) v='<span style="color:var(--red)" title="'+esc(chosen)+'">legacy budget \u2014 pick again</span>';
+    else if(n) v='<span style="color:var(--green)" title="'+esc(n)+'">'+esc(budFamStrip(n))+'</span>';
+    else v='<span style="color:var(--amber)">not set</span>';
+    return '<span style="white-space:nowrap"><b>'+esc(q.svc)+'</b>'+laneTag(q)+' '+v+'</span>';
   }).join(' \u00b7 ');
-  const done=funded.filter(function(sv){ return !!(budAsgOf(id,sv)||budForRow(id,sv)); }).length;
-  out.push(recF('Budget', done===funded.length,
+  const done=pairs.filter(function(q){ return !!budForRow(id, q.svc, q.lane); }).length;
+  out.push(recF('Budget', done===pairs.length,
     recSel('setBudFam(&quot;'+id+'&quot;,this.value)',
       'One budget for the requirement \u2014 the per-service variant is assigned for you',
       opts)
     +'<div class="hint" style="margin-top:3px;line-height:1.5">'+bits
     +' <button class="qb" style="font-size:8.5px;margin-left:4px" '
     +'onclick="budToggleSvc(&quot;'+id+'&quot;)" '
-    +'title="override one service on its own">'
-    +(budSvcOpen[id]?'hide':'per service\u2026')+'</button></div>',
-    cur==='*'? 'the services are on DIFFERENT budgets \u2014 pick one here, or set them below'
-             : (done===funded.length? '' : (funded.length-done)+' of '+funded.length+' services not set')));
+    +'title="choose one line on its own">'
+    +(budSvcOpen[id]?'hide':'per line\u2026')+'</button></div>',
+    cur==='*'? 'the lines are on DIFFERENT budgets \u2014 pick one here, or set them below'
+             : (done===pairs.length? '' : (pairs.length-done)+' of '+pairs.length+' lines not set')));
 
   if(!budSvcOpen[id]) return out;
-  funded.forEach(function(sv){
-    const cand=budCandidates(id, sv);
-    const chosen=budAsgOf(id, sv);
-    out.push(recF('\u21b3 '+sv, !!(chosen||budForRow(id,sv)),
-      recSel('setBudAsg(&quot;'+id+'&quot;,&quot;'+esc(sv)+'&quot;,this.value)',
-        'Which budget this service\u2019s share is funded from',
-        '<option value="">'+(cand.length? '\u2014 choose one of '+cand.length+' \u2014'
-                                        : '\u2014 none match \u2014')+'</option>'
+  pairs.forEach(function(q){
+    const cand=budPickList(id, q.svc, q.lane);
+    const chosen=budAsgOf(id, q.svc, q.lane), auto=budForRow(id, q.svc, q.lane);
+    out.push(recF('\u21b3 '+q.svc+(q.lane==='mand'?' mand':''), !!auto,
+      recSel('setBudAsg(&quot;'+id+'&quot;,&quot;'+esc(q.svc)+'&quot;,this.value,&quot;'+q.lane+'&quot;)',
+        'Which budget this line is funded from. Blank lets the rule decide.',
+        '<option value="">'+(chosen? '\u2014 let the rule decide \u2014'
+            : (auto? '\u2014 automatic: '+esc(budFamStrip(auto))+' \u2014'
+                   : (cand.length? '\u2014 choose one of '+cand.length+' \u2014' : '\u2014 none match \u2014')))+'</option>'
         +cand.map(function(b){ return '<option value="'+esc(b.n)+'"'+(chosen===b.n?' selected':'')
-          +'>'+esc(b.n)+(b.gone?'  (retired)':'')+'</option>'; }).join('')),
-      cand.length? '' : 'no budget name matches this requirement'));
+          +'>'+esc(b.n)+(b.hand?'  (by hand only)':'')+'</option>'; }).join('')),
+      cand.length? '' : 'no budget name matches this line'));
   });
   return out;
 }
@@ -8191,8 +8318,8 @@ function budFamCands(id){
   if(pt){ const d=pt.dT||0, m=pt.mT||0;
     want=(d>0.5&&m<=0.5)? 'disc' : ((m>0.5&&d<=0.5)? 'mand' : ''); }
   let rows=Object.keys(F).map(function(k){ return F[k]; }).filter(function(f){
-    if(f.ap!==mySlug()) return false;
-    if(pmo && f.pmo && f.pmo!==pmo) return false;
+    if(f.ap!==mySlug() || !f.pmo) return false;       // no PMO: a legacy budget, never offered
+    if(pmo && f.pmo!==pmo) return false;
     return funded.some(function(sv){ return !!f.svcs[sv]; });
   });
   if(want){
@@ -8220,12 +8347,18 @@ function budFamOf(id){
 // ASSIGN THE FAMILY AND LET THE PER-SERVICE VARIANT FOLLOW. A service the family does not carry is
 // left exactly as it was and reported \u2014 measured, only 119 of 278 requirements have a family
 // covering everything they fund, so clearing the rest would lose real answers.
+function budClearSvc(id, sv){
+  const A=(S.budgetAsg||{})[id]; if(!A) return;
+  delete A[sv]; delete A[sv+'|disc']; delete A[sv+'|mand'];
+  if(!Object.keys(A).length) delete S.budgetAsg[id];
+}
+// A family carries one lane (or none), so it lands on the lines of that lane -- a Discretionary
+// family on the discretionary lines, a lane-less one on both.
 function setBudFam(id, k){
   if(!S.budgetAsg) S.budgetAsg={};
-  const funded=budFundedSvcs(id);
+  const pairs=budPairs(id);
   if(!k){
-    if(S.budgetAsg[id]){ funded.forEach(function(sv){ delete S.budgetAsg[id][sv]; });
-      if(!Object.keys(S.budgetAsg[id]).length) delete S.budgetAsg[id]; }
+    pairs.forEach(function(q){ budClearSvc(id, q.svc); });
     save(); render();
     setStat('\u2717 Budget cleared on <b>'+esc(dispTitle(itemById(id)))+'</b>.');
     return;
@@ -8234,14 +8367,16 @@ function setBudFam(id, k){
   if(!f){ setStat('\u26a0 That budget is no longer in the list \u2014 re-import the extract.'); return; }
   if(!S.budgetAsg[id]) S.budgetAsg[id]={};
   const set=[], miss=[];
-  funded.forEach(function(sv){
-    if(f.svcs[sv]){ S.budgetAsg[id][sv]=f.svcs[sv]; set.push(sv); }
-    else miss.push(sv);
+  pairs.forEach(function(q){
+    const tag=q.svc+(q.lane==='mand'?' mand':'');
+    if(f.svcs[q.svc] && (!f.dm || f.dm===q.lane)){ S.budgetAsg[id][q.svc+'|'+q.lane]=f.svcs[q.svc]; set.push(tag); }
+    else miss.push(tag);
   });
+  if(!Object.keys(S.budgetAsg[id]).length) delete S.budgetAsg[id];
   save(); render();
-  setStat('\u2713 <b>'+esc(f.lbl)+'</b> assigned on '+set.length+' service'+(set.length===1?'':'s')
+  setStat('\u2713 <b>'+esc(f.lbl)+'</b> assigned on '+set.length+' line'+(set.length===1?'':'s')
     +(set.length? ' \u2014 '+set.map(esc).join(', ') : '')
-    +(miss.length? '. <b style="color:var(--amber)">No variant for '+miss.map(esc).join(', ')
+    +(miss.length? '. <b style="color:var(--amber)">Not for '+miss.map(esc).join(', ')
        +'</b> \u2014 set '+(miss.length===1?'it':'them')+' individually below.' : '.'));
 }
 // Called by the consolidated board's appropriation switcher, which RELOADS - so this is fire and
@@ -8596,37 +8731,62 @@ function budDiff(incoming){
   return {depts:Object.keys(depts).sort(), added:added, same:same, gone:gone,
           outside:outside, goneUse:goneUse, incoming:incoming};
 }
-function budAsgOf(id, svc){ return (((S.budgetAsg||{})[id])||{})[svc] || ''; }
-function setBudAsg(id, svc, name){
+// A budget is chosen per SERVICE AND LANE (v1.83): a requirement funded from both pots carries a
+// discretionary line and a mandatory line, each on its own budget. Stored under 'svc|disc' and
+// 'svc|mand'. A choice stored before v1.83 sits under the bare service and still counts for any
+// lane its own name fits -- a Discretionary name for the discretionary line, a lane-less one for both.
+function budAsgOf(id, svc, lane){
+  const A=((S.budgetAsg||{})[id])||{};
+  if(lane){ const v=A[svc+'|'+lane]; if(v) return v; }
+  const old=A[svc]||'';
+  if(!lane || !old) return old;
+  const p=budParseName(old);
+  return (!p || !p.dm || p.dm===lane)? old : '';
+}
+function setBudAsg(id, svc, name, lane){
   if(!S.budgetAsg) S.budgetAsg={};
   if(!S.budgetAsg[id]) S.budgetAsg[id]={};
-  if(name) S.budgetAsg[id][svc]=name; else delete S.budgetAsg[id][svc];
+  const k=lane? svc+'|'+lane : svc;
+  if(name) S.budgetAsg[id][k]=name; else delete S.budgetAsg[id][k];
   if(!Object.keys(S.budgetAsg[id]).length) delete S.budgetAsg[id];
   save(); render();
 }
 // What the export prints in the Budget column. A chosen name wins; otherwise the sole candidate,
 // if there is exactly one; otherwise nothing -- printing one of several would be a guess wearing
 // the clothes of a fact.
-function budForRow(id, svc){
-  const chosen=budAsgOf(id, svc);
-  if(chosen) return chosen;
-  const c=budCandidates(id, svc);
-  return c.length===1? c[0].n : '';
+// THE budget for one line: a person's choice if it is usable, else the rule's single answer, else
+// the one CCaR already has this record under, else blank. A choice pointing at a legacy name (no
+// PMO) is not used -- the line goes blank and the pre-flight names it.
+function budForRow(id, svc, lane){
+  lane=lane||'disc';
+  const chosen=budAsgOf(id, svc, lane);
+  if(chosen) return budUsable(chosen)? chosen : '';
+  const c=budCandidates(id, svc, lane);
+  if(c.length===1) return c[0].n;
+  if(c.length>1){
+    const on=budCcarBuds(id);
+    if(on){ const hit=c.filter(function(b){ return !!on[b.n]; }); if(hit.length===1) return hit[0].n; }
+  }
+  return '';
 }
 // How many requirement/service pairs could be settled without anyone choosing.
+// Every line the Spend Plan Source will write, counted by how its budget is settled.
 function budAutoStats(){
-  let one=0, many=0, none=0;
+  let one=0, many=0, none=0, legacy=0, hand=0;
+  const T=tiers();
   (S.order||[]).forEach(function(id){
-    const it=itemById(id); if(!it) return;
-    const a=svcAlloc(it)||[];
-    SVC.forEach(function(sv,i){
-      if(!(+a[i]>0)) return;
-      if(budAsgOf(id,sv)) { one++; return; }
-      const c=budCandidates(id, sv);
-      if(c.length===1) one++; else if(c.length>1) many++; else none++;
+    if(!itemById(id)) return;
+    budPairs(id, T).forEach(function(q){
+      const chosen=budAsgOf(id, q.svc, q.lane);
+      if(chosen){
+        if(!budUsable(chosen)){ legacy++; return; }
+        one++; if(BUD_HAND.test(chosen)) hand++; return;
+      }
+      if(budForRow(id, q.svc, q.lane)){ one++; return; }
+      if(budCandidates(id, q.svc, q.lane).length) many++; else none++;
     });
   });
-  return {one:one, many:many, none:none};
+  return {one:one, many:many, none:none, legacy:legacy, hand:hand};
 }
 
 /* ---- IDS batch import ---------------------------------------------------------------------
@@ -8677,7 +8837,7 @@ function idsReqRows(){
       if(ask<=0.005 && app<=0.005) return;             // this service is not on this requirement
       pairs++;
       if(!ctl.v){ skip.push({id:id, svc:sv, ask:ask, app:app, why:ctl.why}); return; }
-      const bud=budForRow(id, sv);
+      const bud=budForRow(id, sv, 'disc');
       if(!bud){ skip.push({id:id, svc:sv, ask:ask, app:app,
         why: budReg().length? 'no single budget name for '+sv+' \u2014 assign it in Classify requirements'
                             : 'no Budget Extract (BAE) imported, so no budget name exists'}); return; }
@@ -8794,7 +8954,7 @@ function preflight(){
 
   // ---- FIX -------------------------------------------------------------------
   {
-    const unb=[], cons=[], award=[], pid=[], retired=[];
+    const unb=[], cons=[], award=[], pid=[], retired=[], legacy=[];
     let fundedCount=0;
     let retiredNames={};
     try{ budRetired().forEach(function(b){ retiredNames[b.n]=1; }); }catch(e){}
@@ -8807,9 +8967,12 @@ function preflight(){
       if(d && d.consReq && !((S.cons||{})[id]||'').trim()) cons.push({id:id, label:pfName(id)});
       if(funded>0.005 && !(S.awards||{})[id]) award.push({id:id, label:pfName(id)});
       if(funded>0.005 && !((S.pid||{})[id]||'').trim()) pid.push({id:id, label:pfName(id)});
-      SVC.forEach(function(sv){
-        let a=null; try{ a=budAsgOf(id, sv); }catch(e){}
-        if(a && retiredNames[a]) retired.push({id:id, label:pfName(id), sub:sv});
+      // every stored choice, under whatever lane it sits
+      Object.keys(((S.budgetAsg||{})[id])||{}).forEach(function(k){
+        const a=S.budgetAsg[id][k]; if(!a) return;
+        const sub=k.replace('|disc',' disc').replace('|mand',' mand');
+        if(retiredNames[a]) retired.push({id:id, label:pfName(id), sub:sub});
+        else if(budReg().length && !budUsable(a)) legacy.push({id:id, label:pfName(id), sub:sub});
       });
     });
     addGap('fix','band','Not yet banded',
@@ -8835,6 +8998,9 @@ function preflight(){
     add('fix','retired','Assigned to a budget no longer in the list',
       'The budget was not in the last import from CCaR. The assignment still points at it, so the '
       +'line has nowhere to land.', retired);
+    add('fix','legacy','Assigned to a legacy budget',
+      'A budget name with no PMO in it is a legacy budget and is never used, so the line is left '
+      +'blank in the Spend Plan Source until another budget is picked.', legacy);
   }
 
   // ---- WORTH KNOWING ---------------------------------------------------------
@@ -9489,9 +9655,12 @@ async function importBud(inp){
     // A name that comes BACK in a later extract stops being retired.
     const kept=D.outside.concat(incoming.map(function(b){ b.gone=0; return b; }))
       .concat(D.gone.map(function(b){ b.gone=1; return b; }));
-    const files=((MS.budgets&&MS.budgets.files)||[]).filter(function(x){ return x.dept!==D.depts.join(','); });
+    const files=(budSrc().files||[]).filter(function(x){ return x.dept!==D.depts.join(','); });
     files.push({dept:D.depts.join(','), file:f.name, ts:Date.now(), n:incoming.length});
-    MS.budgets={ts:Date.now(), file:f.name, files:files, rows:kept};
+    // ONE LIST FOR THE WHOLE BOARD (v1.83), in its own store and in the saved file -- not inside
+    // this appropriation's store, where the other three could not see it.
+    BUDDB={ts:Date.now(), file:f.name, files:files, rows:kept};
+    persistBud(); _budRegCache=null;
     save(); render();
     const mine=kept.filter(function(b){ return b.ap===mySlug(); }).length;
     const st=budAutoStats();
@@ -9573,10 +9742,8 @@ function ccarDiv(){
     const cb=divOne(c.buds);
     if(cb){
       const mine={};
-      SVC.forEach(function(sv,i){
-        const v=+(srcSvcOf(it, DT)[i])||0;
-        if(v<=0.005) return;
-        let n=null; try{ n=budForRow(id, sv); }catch(e){}
+      budPairs(id, DT).forEach(function(q){
+        let n=null; try{ n=budForRow(id, q.svc, q.lane); }catch(e){}
         if(n) mine[n]=1;
       });
       const bn=divOne(mine);
@@ -10405,7 +10572,7 @@ function flowPlanHas(fy){ return !!(MS.years && MS.years[fy]); }
 // same reason: money is held per service and no coarser grain can say which service it is.
 // THE BASIS IS THE LANE DRAW -- what discretionary and mandatory actually paid -- which is the
 // figure every other surface calls Funded. It was the allocation, under a comment claiming that
-// matched the Spend Plan Source; it did not (SRC_BASIS is 'disc'), and on the reconciliation
+// matched the Spend Plan Source; it did not (SRC_BASIS was 'disc' then), and on the reconciliation
 // fixture the flow printed 29,752,779 against a Funded of 23,300,000: the 6,452,779 beyond both
 // lanes counted as funding, and with one requirement allocated at twice its ask the flow printed
 // 4,875,000 above the total requirement. A funds flow that exceeds the funded topline is exactly
@@ -11951,6 +12118,7 @@ function srcRowsOf(fy, St, T){
     const it=itemById(id); if(!it) return;
     const ask=it.ask||[], alc=(St.fsrc&&St.fsrc[id])? null : null;
     const vals=srcSvcOf(it, T);
+    const lanes={disc:srcLaneOf(it, T, 'disc'), mand:srcLaneOf(it, T, 'mand')};
     const aw=(St.awards||{})[id];
     const when=aw? (aw.mode==='inc'? ((aw.inc||[])[0]||{}).d : aw.d) : '';
     // the award date where there is one; 31 August of the fiscal year where there is not
@@ -11958,15 +12126,16 @@ function srcRowsOf(fy, St, T){
     // A record Title only when the join is unambiguous; the requirement's own name otherwise, so
     // the column is never blank and never a coin toss between two records sharing a number.
     const recT=ccarTitleOf(it);
-    const emit=(svc, amt, clin)=>{
+    const emit=(svc, amt, clin, lane)=>{
       const r=new Array(SRC_NCOL).fill('');
       r[0]={v:fy, s:srcXf(1)};
       r[2]=ccarOf(it)||'';
       r[3]=recT || dispTitle(it) || '';
-      // With no BAE registry loaded, keep the synthesised name so nothing regresses. With one
-      // loaded, a blank means "choose one" -- printing a name that exists in no extract would be
-      // the guess this whole feature is built to avoid.
-      r[4]=svc? (budReg().length? budForRow(id, svc) : srcBudget(svc)) : '';
+      // THE BUDGET IS THE BAE NAME, VERBATIM, for this service AND LANE -- or blank. CCaR rejects
+      // any name that is not exactly a BAE name, so with no BAE list loaded the cell is BLANK and
+      // the export says so before it writes the file (the owner's rule, 23 Sep 2026). It used to
+      // print a made-up "USAF O&M", which is a name CCaR refuses every time.
+      r[4]=(svc && budReg().length)? budForRow(id, svc, lane||'disc') : '';
       r[7]=it.event||'';
       if(dt){
         r[8]={v:dt, s:srcXf(2)};
@@ -12010,11 +12179,16 @@ function srcRowsOf(fy, St, T){
       // same function - so the workbook and this file can never disagree about which CLIN a
       // dollar belongs to. An empty split means the grid says nothing here: emit it whole rather
       // than inventing a division nobody entered.
+      // ONE LINE PER SERVICE PER LANE (v1.83): the discretionary draw and the mandatory draw each go
+      // out on their own line with their own budget, discretionary first. Together they are exactly
+      // what the lanes paid -- never the allocation.
       SVC.forEach((sv,i)=>{
-        const v=+vals[i]||0; if(!v) return;
-        const parts=clinSplit(id, i, v);
-        if(!parts.length){ emit(sv, v, null); return; }
-        parts.forEach(p=>{ if(Math.abs(p.part)>0.005) emit(sv, p.part, p.c); });
+        (SRC_BASIS==='ask'? [['',vals]] : [['disc',lanes.disc],['mand',lanes.mand]]).forEach(function(L){
+          const lane=L[0], v=+L[1][i]||0; if(!v) return;
+          const parts=clinSplit(id, i, v);
+          if(!parts.length){ emit(sv, v, null, lane); return; }
+          parts.forEach(p=>{ if(Math.abs(p.part)>0.005) emit(sv, p.part, p.c, lane); });
+        });
       });
     }
   });
@@ -12047,6 +12221,24 @@ function exportSrc(){
   });
   const n=sheets.reduce((a,sh)=>a+sh.rows.length-1,0);
   if(!n){ alert('No requirements to export for '+MS.cur+'.'); return; }
+  // SAY IT BEFORE THE FILE EXISTS: a line with a blank Budget is a line CCaR refuses. Counted off the
+  // rows about to be written, so the warning and the file cannot disagree.
+  const blank=[]; sheets.forEach(function(sh){ sh.rows.slice(1).forEach(function(r){
+    if(!String(r[4]||'').trim()) blank.push(String(r[3]||'').trim()); }); });
+  if(blank.length){
+    const who={}; blank.forEach(function(t){ who[t]=(who[t]||0)+1; });
+    const names=Object.keys(who), NL=String.fromCharCode(10);
+    const msg=(budReg().length
+        ? blank.length+' of '+n+' line'+(n===1?'':'s')+' ha'+(blank.length===1?'s':'ve')+' no Budget, so CCaR will refuse '
+          +(blank.length===1?'it':'them')+':'
+        : 'No BAE budget list is loaded, so the Budget column is blank on every line and CCaR will refuse '
+          +'the file. Import it once from Tools > Import Budget Extract; it is kept in the saved board.')
+      +(budReg().length? NL+NL+names.slice(0,12).map(function(t){ return '  '+t+(who[t]>1?'  ('+who[t]+' lines)':''); }).join(NL)
+          +(names.length>12? NL+'  ... and '+(names.length-12)+' more' : '') : '')
+      +NL+NL+'Export anyway?';
+    if(!confirm(msg)){ setStat('\u270b Spend Plan Source not exported \u2014 '+blank.length+' line'
+      +(blank.length===1?'':'s')+' without a Budget.'); return; }
+  }
   const bytes=buildXlsx(sheets, SRC_XTRA);
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -12054,7 +12246,7 @@ function exportSrc(){
   a.click();
   setStat('⬇ Exported '+n+' row'+(n===1?'':'s')+' across '+sheets.length+' tab'
     +(sheets.length===1?'':'s')+' in the Spend Plan Source layout — '
-    +(SRC_BASIS==='ask'?'requested':'funded discretionary')+' amounts, FY'
+    +(SRC_BASIS==='ask'?'requested':'funded (discretionary and mandatory, each on its own line)')+' amounts, FY'
     +(SRC_YEARS==='all'?' (all years)':String(MS.cur).slice(-2))
     +'. Columns the board does not hold are blank.'
     +(srcGapNote()? ' ⚠ '+srcGapNote()+'.' : '')
@@ -12949,19 +13141,35 @@ function scenOn(){ return scenView==='disc'; }
 // the mandatory BA as the CURRENT VIEW sees it -- zero when the pot is withheld
 function scenMand(i){ return scenOn()? 0 : (S.mandSvc[i]||0); }
 function setScen(v){ scenView = (scenView===v? '' : v); render(); }
-let planOpen=false, planOnly='';        // '' | 'moved' | 'cutA' | 'partA'
+let planOpen=false, planOnly='';        // '' | 'moved' | 'cutA' | 'partA' | 'none'
 function togglePlans(){ planOpen=!planOpen; render(); }
 function setPlanOnly(v){ planOnly=(planOnly===v)?'':v; render(); }
+// A row's status on one plan. A requirement funded by NEITHER plan says so in those words -- not
+// "not in this plan", which means the requirement asked this plan for nothing while the other paid.
+function planStLbl(x, key){
+  if(x.neither) return x.askT>0.5? 'NOT FUNDED \u2014 either plan' : 'NO REQUIREMENT';
+  return ({full:'Funded',part:'PARTIAL',cut:'NOT FUNDED',none:'NOT IN THIS PLAN'})[x[key].st];
+}
 function planRows(R){
   return S.order.map(id=>{
     const it=itemById(id); if(!it) return null;
     const a=R.A[id], b=R.B[id];
-    // A row is dropped only when NEITHER plan asks for it - a UFR. A requirement with nothing
-    // directed to discretionary asks Plan A for nothing, and that row is the whole point of
-    // this comparison: zero under A, funded under B, the difference is what mandatory bought.
-    if(!a||!b||(a.st==='none'&&b.st==='none')) return null;
+    if(!a||!b) return null;
+    // EVERY REQUIREMENT IS LISTED, IN RANK ORDER (v1.83). A requirement that neither plan funds --
+    // nothing allocated, or forced to UFR -- used to be dropped from the panel and every tab, and the
+    // TOTAL line then said it "asks for nothing". The owner found a $50M requirement missing that
+    // way: it asked for plenty and got nothing. It is now a row like any other, NOT FUNDED under
+    // both plans, with its whole requirement UNFUNDED.
+    // UNFUNDED is per service and floored: the requirement less what THIS plan funds, never netted
+    // across services -- the board's own two readings (vs discretionary on Plan A, vs both on B).
+    const ask=SVC.map(function(sv,i){ return +((it.ask||[])[i])||0; });
+    const unf=function(p){ return SVC.map(function(sv,i){ return Math.max(0, ask[i]-(+(p.got||[])[i]||0)); }); };
+    const ua=unf(a), ub=unf(b);
+    const sum=function(v){ return v.reduce(function(t,x){ return t+x; },0); };
     return {id, it, a, b, rank:a.rank, gain:b.gotT-a.gotT,
-            moved:(a.st!==b.st), title:dispTitle(it), pmo:grpOf(it)};
+            moved:(a.st!==b.st), title:dispTitle(it), pmo:grpOf(it),
+            ask:ask, askT:sum(ask), ua:ua, ub:ub, uaT:sum(ua), ubT:sum(ub),
+            neither:(a.st==='none' && b.st==='none')};
   }).filter(Boolean);
 }
 function planBody(){
@@ -12974,6 +13182,7 @@ function planBody(){
   if(planOnly==='moved') rows=rows.filter(r=>r.moved || r.gain>0.5);
   else if(planOnly==='cutA') rows=rows.filter(r=>r.a.st==='cut');
   else if(planOnly==='partA') rows=rows.filter(r=>r.a.st==='part');
+  else if(planOnly==='none') rows=rows.filter(r=>r.neither && r.askT>0.5);
 
   let wiHtml='';
   if(R.wi){
@@ -13077,6 +13286,7 @@ function planBody(){
     +chip('moved','Changes between the plans', all.filter(r=>r.moved||r.gain>0.5).length)
     +chip('partA','Partly funded under A', all.filter(r=>r.a.st==='part').length)
     +chip('cutA','Cut under A', all.filter(r=>r.a.st==='cut').length)
+    +chip('none','Not funded by either plan', all.filter(r=>r.neither && r.askT>0.5).length)
     +'<span style="flex:1"></span>'
     +'<button class="btn" onclick="exportPlans()">⬇ Export both plans</button></div>';
 
@@ -13094,38 +13304,41 @@ function planBody(){
     return '<b>'+BAND_LBL_AT(i)+'</b> '+esc((b&&b.n)||'unnamed');
   };
   h+='<div style="max-height:44vh;overflow:auto"><table class="po"><thead>'
-    +'<tr><th colspan="5"></th><th class="n grpb" colspan="3">Plan A \u2014 discretionary only</th>'
-    +'<th class="n grpb" colspan="3">Plan B \u2014 disc + mandatory</th>'
+    +'<tr><th colspan="6"></th><th class="n grpb" colspan="4">Plan A \u2014 discretionary only</th>'
+    +'<th class="n grpb" colspan="4">Plan B \u2014 disc + mandatory</th>'
     +'<th class="n grpb" colspan="2">Allocated to each pot</th></tr>'
-    +'<tr><th>#</th><th>Band / Priority</th><th>PMO</th><th>Requirement</th><th class="n">Allocated</th>'
-    +'<th class="n grpb">Funded from disc</th><th class="n">Short</th><th>Status</th>'
-    +'<th class="n grpb">Funded disc + mand</th><th class="n">Short</th><th>Status</th>'
+    +'<tr><th>#</th><th>Band / Priority</th><th>PMO</th><th>Requirement</th><th class="n">'+FYL()+' requirement</th><th class="n">Allocated</th>'
+    +'<th class="n grpb">Funded from disc</th><th class="n">Short</th><th class="n">Unfunded</th><th>Status</th>'
+    +'<th class="n grpb">Funded disc + mand</th><th class="n">Short</th><th class="n">Unfunded</th><th>Status</th>'
     +'<th class="n grpb">Disc allocated</th><th class="n grpb">Mand allocated</th></tr></thead><tbody>'
     +rows.map(r=>'<tr'+(r.moved?' class="chg"':'')+'>'
       +'<td><b>'+r.rank+'</b></td><td style="white-space:nowrap">'+bandTxt(r.id)+'</td>'
       +'<td>'+esc(r.pmo)+'</td><td>'+esc(r.title)+'</td>'
+      +'<td class="n">'+(r.askT>0.5? fM(r.askT):'<span class="z">\u2014</span>')+'</td>'
       +'<td class="n">'+fM(r.a.wantT)+'</td>'
       +'<td class="n grpb">'+(r.a.gotT>0.5? fM(r.a.gotT):'<span class="z">\u2014</span>')+'</td>'
       +'<td class="n">'+(r.a.short>0.5? '<span style="color:var(--red)">'+fM(r.a.short)+'</span>':'<span class="z">\u2014</span>')+'</td>'
-      +'<td>'+PILL[r.a.st]+'</td>'
+      +'<td class="n">'+(r.uaT>0.5? fM(r.uaT):'<span class="z">\u2014</span>')+'</td>'
+      +'<td>'+(r.neither&&r.askT>0.5? PILL.cut : PILL[r.a.st])+'</td>'
       +'<td class="n grpb">'+(r.b.gotT>0.5? fM(r.b.gotT):'<span class="z">\u2014</span>')+'</td>'
       +'<td class="n">'+(r.b.short>0.5? '<span style="color:var(--red)">'+fM(r.b.short)+'</span>':'<span class="z">\u2014</span>')+'</td>'
-      +'<td>'+PILL[r.b.st]+'</td>'
+      +'<td class="n">'+(r.ubT>0.5? fM(r.ubT):'<span class="z">\u2014</span>')+'</td>'
+      +'<td>'+(r.neither&&r.askT>0.5? PILL.cut : PILL[r.b.st])+'</td>'
       +'<td class="n grpb">'+(fsDirected(r.id,T2).d>0.5? fM(fsDirected(r.id,T2).d):'<span class="z">\u2014</span>')+'</td>'
       +'<td class="n grpb">'+(fsDirected(r.id,T2).m>0.5? '<b style="color:var(--purp)">'+fM(fsDirected(r.id,T2).m)+'</b>':'<span class="z">\u2014</span>')+'</td>'
       +'</tr>').join('')
     +'</tbody></table></div>';
-  h+='<div class="hint" style="margin-top:6px"><b>ALLOCATED</b> is what this board gave the '
+  h+='<div class="hint" style="margin-top:6px"><b>UNFUNDED</b> is the requirement less what that '
+    +'plan funds, per service. <b>ALLOCATED</b> is what this board gave the '
     +'requirement. <b>FUNDED</b> is how much of that each plan\u2019s top line actually reaches, '
     +'walking from rank 1 \u2014 equal above the cut, short below it. <b>MANDATORY</b> is the '
     +'difference between the two, which is the mandatory money the requirement is carrying.</div>';
 
-  const nZero=S.order.filter(id=>{ const it=itemById(id); if(!it) return false;
-    return planWant(it).reduce((a,b)=>a+b,0)<=0.5; }).length;
-  h+=(nZero? '<div class="hint" style="margin-top:8px;border-left:2px solid var(--line2);padding-left:8px">'
-    +'<b>'+nZero+'</b> of the '+S.order.length+' requirements on this board ask for nothing — no '
-    +FYL()+' value, a zero allocation, or forced to UFR — so they are in neither plan. '
-    +'The '+(S.order.length-nZero)+' that do ask for something are all listed above.</div>' : '')
+  const nNeither=all.filter(r=>r.neither && r.askT>0.5).length;
+  h+=(nNeither? '<div class="hint" style="margin-top:8px;border-left:2px solid var(--line2);padding-left:8px">'
+    +'<b>'+nNeither+'</b> of the '+all.length+' requirements are funded by <b>neither</b> plan \u2014 nothing '
+    +'allocated, or forced to UFR. They are listed above in rank order, NOT FUNDED under both, with their '
+    +'whole requirement unfunded.</div>' : '')
     +'<div class="hint" style="margin-top:8px">Each plan is a fresh walk down your priority order '
     +'against its own top line, service lane by service lane, funding what you allocated until that '
     +'lane runs out. <b>Nothing here changes an allocation or the order</b> — reorder or re-allocate '
@@ -13152,7 +13365,9 @@ function exportPlans(){
     +'from rank 1. SHORT is what THIS PLAN asked for and did not get, so on Plan A a requirement '
     +'part-funded from mandatory is not short \u2014 Plan A was never asked for that part. Where '
     +'a plan is not asked for a requirement at all the status says NOT IN THIS PLAN, which is not '
-    +'the same as asked and refused.';
+    +'the same as asked and refused. EVERY REQUIREMENT IS LISTED, in rank order: one funded by '
+    +'neither plan says NOT FUNDED \u2014 EITHER PLAN. UNFUNDED is the requirement less what this '
+    +'plan funds, per service.';
   /* THE BAND NUMBER IS ITS POSITION IN THE LADDER, and a band id the ladder no longer carries must
      say so rather than showing the fallback. An early ladder used ids this one does not have, and
      BAND_DEF silently answers with the first 'skip' band - a must-pay arriving as a nice-to-have
@@ -13191,6 +13406,7 @@ function exportPlans(){
     +'engine on the rest. FUNDED is what each plan\u2019s top line then reaches. A funded figure '
     +'below its allocated one means that plan ran out before it got there.';
   const sheet=(name,key,budget,tt,cut,pot)=>{
+    const uk=(key==='a')? 'ua' : 'ub';
     const r=[[{v:expTitle()+' \u2014 '+name,s:TI}],
       [{v:'Every figure on this tab is funded from '+pot+'.',s:0}],
       [{v:DEFN,s:0}],
@@ -13199,10 +13415,14 @@ function exportPlans(){
       [{v:'FUNDED BY THIS PLAN',s:B},...SVC.map((sv,i)=>({v:rows.reduce((a,x)=>a+(x[key].got[i]||0),0),s:NB})),{v:tt.got,s:NB}],
       [{v:'LEFT ON THE TABLE',s:B},...SVC.map((sv,i)=>({v:Math.max(0,R[key==='a'?'A':'B'].__rem[i]),s:N})),{v:tt.left,s:NB}],
       [{v:'NOT COVERED',s:B},...SVC.map((sv,i)=>({v:rows.reduce((a,x)=>a+Math.max(0,(x[key].want[i]||0)-(x[key].got[i]||0)),0),s:tt.short>0.5?NR:N})),{v:tt.short,s:tt.short>0.5?NR:NB}],
+      // THE REQUIREMENT AND WHAT IS LEFT OF IT, per service, over EVERY requirement on the board --
+      // including the ones this plan funds nothing of, which used to be off the tab entirely.
+      [{v:FYL()+' REQUIREMENT',s:B},...SVC.map((sv,i)=>({v:rows.reduce((a,x)=>a+(x.ask[i]||0),0),s:N})),{v:rows.reduce((a,x)=>a+x.askT,0),s:NB}],
+      [{v:'UNFUNDED',s:B},...SVC.map((sv,i)=>({v:rows.reduce((a,x)=>a+(x[uk][i]||0),0),s:N})),{v:rows.reduce((a,x)=>a+x[uk+'T'],0),s:NB}],
       []];
     if(cut) r.push([{v:'The plan runs out at #'+cut.rank+' \u2014 '+dispTitle(itemById(cut.id)),s:B}],[]);
-    r.push(['Rank','Band / Priority','PMO','Requirement','CCaR','PID',
-      'Allocated','Disc allocated','Mand allocated','Funded from '+pot,'Short','Status',
+    r.push(['Rank','Band / Priority','PMO','Requirement','CCaR','PID',FYL()+' Requirement',
+      'Allocated','Disc allocated','Mand allocated','Funded from '+pot,'Short','Unfunded','Status',
       // "<SVC> asked", NOT "<SVC> allocated". These columns are p.want -- what THIS PLAN asked for
       // per service -- while the Allocated column beside them is fsDirected(), what the board
       // DIRECTED to the pots. Two different quantities wearing the same word: they did not add up
@@ -13216,20 +13436,23 @@ function exportPlans(){
       const p=x[key];
       const dr=fsDirected(x.id, T);
       r.push([{v:x.rank,s:0}, {v:bandCell(x.id),s:0}, x.pmo, x.title, {v:ccarOf(x.it),s:1}, {v:pidOf(x.it),s:0},
+        {v:x.askT,s:N},
         {v:dr.d+dr.m,s:N},{v:dr.d,s:N},{v:dr.m,s:N},{v:p.gotT,s:N},{v:p.short,s:p.short>0.5?NR:N},
-        {v:({full:'Funded',part:'PARTIAL',cut:'NOT FUNDED',none:'NOT IN THIS PLAN'})[p.st],
-         s:p.st==='full'?0:1},
+        {v:x[uk+'T'],s:x[uk+'T']>0.5?NR:N},
+        {v:planStLbl(x, key), s:(p.st==='full'&&!x.neither)?0:1},
         ...SVC.map((sv,i)=>({v:p.want[i]||0,s:N})), ...SVC.map((sv,i)=>({v:p.got[i]||0,s:N}))]);
     });
-    r.push([{v:'TOTAL \u2014 '+rows.length+' of '+S.order.length+' requirements ('
-      +(S.order.length-rows.length)+' ask for nothing and are in neither plan)',s:SEC},'','','','','',
+    const nNeither=rows.filter(function(x){ return x.neither && x.askT>0.5; }).length;
+    r.push([{v:'TOTAL \u2014 '+rows.length+' of '+S.order.length+' requirements'
+      +(nNeither? ' ('+nNeither+' funded by neither plan)' : ''),s:SEC},'','','','','',
+      {v:rows.reduce(function(t,x){ return t+x.askT; },0),s:NB},
       {v:rows.reduce(function(t,x){ const d=fsDirected(x.id, T); return t+d.d+d.m; },0),s:NB},
       {v:rows.reduce(function(t,x){ return t+fsDirected(x.id, T).d; },0),s:NB},
       {v:rows.reduce(function(t,x){ return t+fsDirected(x.id, T).m; },0),s:NB},
-      {v:tt.got,s:NB},{v:tt.short,s:NB},'',
+      {v:tt.got,s:NB},{v:tt.short,s:NB},{v:rows.reduce(function(t,x){ return t+x[uk+'T']; },0),s:NB},'',
       ...SVC.map((sv,i)=>({v:rows.reduce((a,x)=>a+(x[key].want[i]||0),0),s:NB})),
       ...SVC.map((sv,i)=>({v:rows.reduce((a,x)=>a+(x[key].got[i]||0),0),s:NB}))]);
-    return {name, cols:[7,30,9,46,13,15,15,15,15,17,14,13,...SVC.map(_=>13),...SVC.map(_=>13)], rows:r};
+    return {name, cols:[7,30,9,46,13,15,15,15,15,15,17,14,15,22,...SVC.map(_=>13),...SVC.map(_=>13)], rows:r};
   };
   /* MAND ALLOCATED IS WHAT WAS DIRECTED, NOT B FUNDED MINUS A FUNDED, and the difference is not
      academic. This column was first built as B-A on the reasoning that A reaches only the
@@ -13240,7 +13463,7 @@ function exportPlans(){
      discretionary top line runs out before a requirement the two stop being the same number.
      The question "how much mandatory money does this requirement have" is answered by the
      allocation, so that is what is read. */
-  const cmp={name:'A vs B', cols:[7,30,9,46,13,26,15,15,15,17,19,14,14],
+  const cmp={name:'A vs B', cols:[7,30,9,46,13,26,15,15,15,15,17,19,15,24,24],
     rows:[[{v:'What the mandatory top line changes',s:TI}],
       [{v:'MAND ALLOCATED is the mandatory money DIRECTED to the requirement \u2014 what was typed '
         +'in, not a difference between two plans. A FUNDED is what the discretionary top line alone '
@@ -13251,17 +13474,15 @@ function exportPlans(){
       [{v:'Difference \u2014 what mandatory pays for',s:SEC},'','',{v:R.bT.got-R.aT.got,s:NB}],[],
       // CCaR and the AWARD DATES sit between the requirement and the money, because that is the
       // order the question is asked in: which record is this, when does it obligate, how much.
-      ['Rank','Band / Priority','PMO','Requirement','CCaR','Award date(s)','Allocated','Disc allocated','Mand allocated',
-       'A funded (disc)','B funded (disc + mand)','A status','B status'].map(v=>({v,s:H}))]};
+      ['Rank','Band / Priority','PMO','Requirement','CCaR','Award date(s)',FYL()+' Requirement','Allocated','Disc allocated','Mand allocated',
+       'A funded (disc)','B funded (disc + mand)','B unfunded','A status','B status'].map(v=>({v,s:H}))]};
   rows.forEach(function(x){ const dr=fsDirected(x.id, T);
     cmp.rows.push([{v:x.rank,s:0},{v:bandCell(x.id),s:0},x.pmo,x.title,
-      {v:ccarOf(x.it),s:1},{v:awdDateLbl(x.id),s:0},{v:dr.d+dr.m,s:N},
+      {v:ccarOf(x.it),s:1},{v:awdDateLbl(x.id),s:0},{v:x.askT,s:N},{v:dr.d+dr.m,s:N},
       {v:dr.d,s:N},{v:dr.m,s:dr.m>0.5?NB:N},
-      {v:x.a.gotT,s:N},{v:x.b.gotT,s:N},
-      {v:({full:'Funded',part:'PARTIAL',cut:'NOT FUNDED',none:'NOT IN THIS PLAN'})[x.a.st],
-       s:x.a.st==='full'?0:1},
-      {v:({full:'Funded',part:'PARTIAL',cut:'NOT FUNDED',none:'NOT IN THIS PLAN'})[x.b.st],
-       s:x.b.st==='full'?0:1}]); });
+      {v:x.a.gotT,s:N},{v:x.b.gotT,s:N},{v:x.ubT,s:x.ubT>0.5?NR:N},
+      {v:planStLbl(x,'a'), s:(x.a.st==='full'&&!x.neither)?0:1},
+      {v:planStLbl(x,'b'), s:(x.b.st==='full'&&!x.neither)?0:1}]); });
   cmp.rows.push([]);
   cmp.rows.push([{v:'A requirement with no band shows \u201cnot banded\u201d rather than a blank, '
     +'and one carrying a band this ladder no longer has is marked rather than shown as the '
@@ -17877,10 +18098,14 @@ function matBulk(){
               get:function(it){ const k=budFamOf(it.id); return k==='*'? '' : k; },
               set:function(id,v){ setBudFam(id, v); }};
   SVC.forEach(function(sv){
-    out['\u21b3 '+sv]={opts:budReg().filter(function(b){ return b.ap===mySlug(); })
+    out['\u21b3 '+sv]={opts:budReg().filter(function(b){ return b.ap===mySlug() && !!b.pmo && !b.gone; })
                                  .map(function(b){ return [b.n,b.n]; }),
-              get:function(it){ return budAsgOf(it.id, sv); },
-              set:function(id,v){ setBudAsg(id, sv, v); }};
+              get:function(it){ return budAsgOf(it.id, sv, 'disc') || budAsgOf(it.id, sv, 'mand'); },
+              // THE LANE FOLLOWS THE NAME: a Mandatory name is the mandatory line's budget, a
+              // Discretionary one the discretionary line's, a lane-less one serves both. Blank clears
+              // every lane on that service.
+              set:function(id,v){ if(!v){ budClearSvc(id, sv); return; }
+                const p=budParseName(v); setBudAsg(id, sv, v, (p&&p.dm)||''); }};
   });
   return out;
 }
@@ -18252,9 +18477,12 @@ function editRecName(id){
     save(); render(); flash(id);
   });
 }
+// #8, Production Engineering Support, added 23 Sep 2026 right before Fixed JPO Support: the PES
+// budgets on Full Fund. A requirement's cost element is SAVED BY NAME, so inserting one moves no
+// existing choice; only a number typed into the cost element prompt follows the new order.
 const COST_ELEMS=['Airframe PGSE','Engine PGSE','Avionics PGSE','Peculiar Training Equip','Full Mission Simulators',
-  'Pubs/Tech Data','Other ILS Production','Fixed JPO Support','Depot Standup Software','Depot Standup Air Vehicle',
-  'Depot Standup Propulsion','JRE'];
+  'Pubs/Tech Data','Other ILS Production','Production Engineering Support','Fixed JPO Support','Depot Standup Software',
+  'Depot Standup Air Vehicle','Depot Standup Propulsion','JRE'];
 function setCE(id, val){
   if(!S.costElem) S.costElem={};
   if(val) S.costElem[id]=val; else delete S.costElem[id];
@@ -20855,7 +21083,7 @@ function budRegBody(){
       +'extracts cover different departments and do not overlap \u2014 import both.</div>';
     return;
   }
-  const cfg=(MS.budgets||{});
+  const cfg=budSrc();
   const ret=budRetired(), orph=budOrphanCount();
   let h='';
   // ---- where it came from

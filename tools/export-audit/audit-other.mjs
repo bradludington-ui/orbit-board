@@ -201,7 +201,9 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
-// ══ THE SPEND PLAN SOURCE SENDS WHAT DISCRETIONARY PAID, AND NOTHING ELSE ═══════════════
+// ══ THE SPEND PLAN SOURCE SENDS WHAT THE LANES PAID, EACH LANE ON ITS OWN LINE ═════════════
+// Discretionary only until v1.83; the owner then ruled that a requirement funded from both pots
+// carries both lines. It is still never the allocation -- that defect is in the register.
 // Every expectation here is computed from the SCENARIO's own numbers, never read back out of the
 // board: a lane walk this suite performs itself. An oracle that asks the code under test will
 // agree with it.
@@ -252,15 +254,23 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   };
   const N = totalsOf(srcAmounts('')), D = totalsOf(srcAmounts('disc'));
 
-  chk(name, 'amount', 'the Amount column totals what DISCRETIONARY paid', N.t, discTotal);
-  // The two numbers that must NOT come out, each a real defect this replaced:
+  chk(name, 'amount', 'the Amount column totals what the lanes PAID, discretionary + mandatory', N.t, fundedTotal);
+  // The two numbers that must NOT come out, each a real defect:
   chk(name, 'amount', 'it is not the allocation basis, which carries unfunded dollars',
     N.t === sum(ITEMS.map(it => sum(it.ask))) ? 'allocation basis (unfunded money exported)' : 'no', 'no');
-  chk(name, 'amount', 'and it is not disc+mand either', N.t === fundedTotal ? 'disc+mand' : 'no', 'no');
+  chk(name, 'amount', 'and it is not discretionary alone -- the mandatory lines are there',
+    N.t === discTotal ? 'discretionary only (mandatory dropped)' : 'no', 'no');
   chk(name, 'amount', 'a wholly unfunded requirement contributes no money at all',
     N.by['R3 event'] || 0, 0);
-  chk(name, 'amount', 'a straddling requirement sends only its discretionary draw',
-    N.by['R2 event'] || 0, discOf.R2);
+  chk(name, 'amount', 'a straddling requirement sends its discretionary AND its mandatory draw',
+    N.by['R2 event'] || 0, fundedOf.R2);
+  // ...ON SEPARATE LINES: R2 draws both pots on both services, so it is four lines, each carrying
+  // one lane's money -- never one line per service with the two lanes summed into it.
+  const r2 = (srcAmounts('')[0].rows || []).slice(1).filter(r => txt(r[3]) === 'R2 event').map(r => numOf(r[9])).sort((a, b) => a - b);
+  chk(name, 'lines', 'a requirement drawing both pots on both services is four lines', r2.length, 4);
+  chk(name, 'lines', 'each line is one lane on one service', JSON.stringify(r2), JSON.stringify([20, 20, 20, 40]));
+  chk(name, 'budget', 'with no BAE list loaded, every Budget cell is BLANK -- never a made-up name',
+    (srcAmounts('')[0].rows || []).slice(1).filter(r => txt(r[4]).trim()).length, 0);
   // p.d cannot move with the view -- tiers() draws discretionary before it touches mandatory -- so
   // this export needs no [DISC-ONLY] marker. That is a property to hold, not a coincidence.
   chk(name, 'view', 'identical under the discretionary-only view', D.t, N.t);
@@ -344,6 +354,195 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       chk(name, 'money', `rank ${txt(r[0])}: Disc allocated + Mand allocated = Allocated`, d + m, a);
     });
     chk(name, 'money', 'and there were rows to check', seen, 3);
+  }
+}
+
+// ═══ THE BUDGET NAMES — verbatim, per service AND lane, by the owner's rule (v1.83) ═════════════
+// The owner's rule of 23 Sep 2026, checked line by line on the Spend Plan Source: a requirement
+// drawing both pots carries a line per lane per service, each on its own budget; CAM is automatic
+// and CONG only ever by hand; an office's lane-less name serves both lanes; OCO is never automatic;
+// a name with no PMO is a LEGACY budget and is never used, even when it was chosen. Every line's
+// amount is DISTINCT, so the amount identifies the line, and the budget it must carry is written
+// here from the scenario -- never read back from the board.
+{
+  const name = 'budget names — the owner’s rule';
+  try {
+  const SV = ['USAF', 'ANG', 'STOVL'];
+  const mkI = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false,
+    title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  // Walk: USAF disc 117 = A 101 + D 11 + E 5. ANG disc 57 all to A; A's other 23 and all of B (17)
+  // and C (29) spill to mandatory (69). STOVL disc 37 to A; A's other 13 to mandatory.
+  const sc = { services: SV,
+    items: [mkI('A', 'AV', [101, 80, 50]), mkI('B', 'MxS', [0, 17, 0]), mkI('C', 'CDS', [0, 29, 0]),
+            mkI('D', 'PP', [11, 0, 0]), mkI('E', 'AV', [5, 0, 0])],
+    disc: [117, 57, 37], mand: [0, 69, 13], order: ['A', 'B', 'C', 'D', 'E'] };
+  const OM = ['USAF O&M - ANG', 'USAF O&M - ANG CAM', 'USAF O&M - ANG CAM Discretionary AV',
+    'USAF O&M - ANG CAM OBBBA Mandatory AV', 'USAF O&M - ANG CAM Discretionary MxS',
+    'USAF O&M - ANG CAM OBBBA Mandatory MxS', 'USAF O&M - ANG CAM CDS', 'USAF O&M - ANG CAM CONG CDS', 'USAF O&M NON AFRC NON ANG',
+    'USAF O&M- BOS', 'USAF O&M- CAM', 'USAF O&M- CAM Discretionary AV', 'USAF O&M - CAM OBBBA Mandatory AV',
+    'USAF O&M- CAM CONG AV', 'USAF O&M- CAM Discretionary PP', 'USMC STOVL O&M -1A9A',
+    'USMC STOVL O&M -1A9A FL Discretionary AV', 'USMC STOVL O&M -1A9A AV', 'USMC STOVL O&M -1A9B AV',
+    'USMC STOVL O&M - 1A9A (OCO) AV', 'USMC STOVL O&M -1A9A CDS'];
+  const FF = ['USMC STOVL APN Full Fund SUPT', 'USMC STOVL APN Full Fund SUPT OTHER ILS Discretionary AV',
+    'USMC STOVL APN Full Fund SUPT Depot Software Discretionary AV', 'USMC STOVL APN Full Fund SUPT Depot Standup Discretionary AV',
+    'USMC STOVL APN Full Fund SUPT PES Discretionary AV', 'USMC STOVL APN Full Fund SUPT CONG AV'];
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // D was pointed at a LEGACY name by hand; E at a CONG budget by hand. A carries CCaR JSF1, and the
+  // last pull files it under 1A9B -- the one fact that settles A's STOVL mandatory line, where two
+  // ordinary lane-less 1A9x names fit.
+  ev(`BUDDB={ts:1700000000009, files:[], rows:${JSON.stringify(OM.concat(FF))}.map(budParseName).filter(Boolean)};
+      _budRegCache=null;
+      S.budgetAsg={D:{'USAF|disc':'USAF O&M- CAM'}, E:{'USAF|disc':'USAF O&M- CAM CONG AV'}};
+      S.ccar={A:'JSF1'};
+      globalThis.__dcs=divCcarSide; divCcarSide=function(){ return {by:{'JSF1':{buds:{'USMC STOVL O&M -1A9B AV':1}}}, rows:1}; };
+      _budCcMemo=null; 'ok'`);
+  const pack = JSON.parse(ev(`(function(){ var got='[]';
+    if(!globalThis.__ob3) globalThis.__ob3=buildXlsx;
+    buildXlsx=function(sheets){ got=JSON.stringify(sheets); return new Uint8Array(0); };
+    try{ exportSrc(); }catch(e){ got='[]'; }
+    buildXlsx=globalThis.__ob3; return got; })()`));
+  const lines = ((pack[0] || {}).rows || []).slice(1).map(r => ({ amt: numOf(r[9]), bud: txt(r[4]) }));
+  chk(name, 'lines', 'one line per service per lane that carries money', lines.length, 9);
+  chk(name, 'lines', 'and together they are exactly what the lanes paid', lines.reduce((t, l) => t + l.amt, 0), 293);
+  const WANT = [
+    [101, 'USAF O&M- CAM Discretionary AV',       'USAF discretionary AV takes CAM Discretionary, never CONG'],
+    [57,  'USAF O&M - ANG CAM Discretionary AV',   'ANG discretionary AV: the ANG Discretionary name'],
+    [23,  'USAF O&M - ANG CAM OBBBA Mandatory AV', 'the same requirement’s ANG MANDATORY line: its own budget'],
+    [37,  'USMC STOVL O&M -1A9A FL Discretionary AV', 'STOVL discretionary AV: the one Discretionary name'],
+    [13,  'USMC STOVL O&M -1A9B AV',               'STOVL mandatory AV: two lane-less names fit, never OCO; the CCaR pull decides'],
+    [17,  'USAF O&M - ANG CAM OBBBA Mandatory MxS', 'ANG mandatory MxS: the Mandatory name'],
+    [29,  'USAF O&M - ANG CAM CDS',                'ANG CDS: the office’s lane-less CAM name serves the mandatory line, never CONG'],
+    [11,  '',                                      'a LEGACY name chosen by hand is never used: the line is blank'],
+    [5,   'USAF O&M- CAM CONG AV',                 'a CONG budget chosen by hand is honoured'],
+  ];
+  WANT.forEach(([amt, bud, why]) => {
+    const l = lines.filter(x => Math.abs(x.amt - amt) < 0.005);
+    chk(name, 'budget', `$${amt} line — ${why}`, l.length === 1 ? l[0].bud : `${l.length} lines`, bud);
+  });
+  // THE PARSER, on the names the owner's own extracts carry
+  const P = n => JSON.parse(ev(`JSON.stringify(budParseName(${JSON.stringify(n)}))`));
+  chk(name, 'parse', '“NON AFRC NON ANG” is the active Air Force, not ANG', JSON.stringify((P('USAF O&M NON AFRC NON ANG') || {}).svc), '["USAF"]');
+  chk(name, 'parse', 'Spares TrngDev is a Spares budget', (P('USMC STOVL APN Spares TrngDev AV') || {}).ap, 'sp');
+  chk(name, 'parse', 'and hand-pick only', (P('USMC STOVL APN Spares TrngDev AV') || {}).hand, true);
+  chk(name, 'parse', 'Modifications are out entirely', P('USMC STOVL APN Modifications Discretionary AV'), null);
+  chk(name, 'parse', 'the funding line is read off the name', (P('USN APN Full Fund SUPT USMC CV Full Mission Sims TSS') || {}).line, 'FULL MISSION SIMS');
+  // THE PICK LIST offers the hand-pick lines the rule never chooses, and never a legacy name
+  const pick = JSON.parse(ev(`JSON.stringify(budPickList('A','USAF','disc').map(function(b){ return b.n; }))`));
+  chk(name, 'pick list', 'a person may still choose CONG', pick.includes('USAF O&M- CAM CONG AV'), true);
+  chk(name, 'pick list', 'but never a legacy name', pick.some(n => !JSON.parse(ev(`JSON.stringify(budUsable(${JSON.stringify(n)}))`))), false);
+  chk(name, 'pick list', 'and a mandatory line is never offered a Discretionary name',
+    JSON.parse(ev(`JSON.stringify(budPickList('A','ANG','mand').filter(function(b){ return b.dm==='disc'; }).length)`)), 0);
+  // THE WARNING COMES BEFORE THE FILE. D's line has no budget, so the export must stop and ask --
+  // and when the answer is no, no workbook is built at all.
+  const warned = JSON.parse(ev(`(function(){ var built=false, msg='';
+    var oc=window.confirm; window.confirm=function(m){ msg=String(m); return false; };
+    if(!globalThis.__ob5) globalThis.__ob5=buildXlsx;
+    buildXlsx=function(){ built=true; return new Uint8Array(0); };
+    try{ exportSrc(); }catch(e){}
+    buildXlsx=globalThis.__ob5; window.confirm=oc;
+    return JSON.stringify({built:built, msg:msg}); })()`));
+  chk(name, 'warning', 'a line without a Budget stops the export and says so', /no Budget/.test(warned.msg), true);
+  chk(name, 'warning', 'and naming the requirement', warned.msg.includes(ev(`dispTitle(itemById('D'))`)), true);
+  chk(name, 'warning', 'declined, no file is written', warned.built, false);
+  // THE PRE-FLIGHT names the legacy choice
+  const pf = JSON.parse(ev(`JSON.stringify((preflight().find||[]).filter(function(f){ return f.k==='legacy'; }).map(function(f){ return f.rows.map(function(r){ return r.id; }); }))`));
+  chk(name, 'pre-flight', 'the legacy choice is listed for a fresh pick', JSON.stringify(pf), '[["D"]]');
+  // FULL FUND follows the COST ELEMENT, one to one
+  const ff = ce => ev(`(function(){ var ms=mySlug, dc=DATA.costElems; mySlug=function(){ return 'ff'; }; DATA.costElems=true;
+    S.costElem={}; if(${JSON.stringify(ce)}) S.costElem.A=${JSON.stringify(ce)};
+    try{ return budForRow('A','STOVL','disc'); } finally { mySlug=ms; DATA.costElems=dc; S.costElem={}; } })()`);
+  chk(name, 'full fund', 'Other ILS Production → OTHER ILS', ff('Other ILS Production'), 'USMC STOVL APN Full Fund SUPT OTHER ILS Discretionary AV');
+  chk(name, 'full fund', 'Depot Standup Software → Depot Software', ff('Depot Standup Software'), 'USMC STOVL APN Full Fund SUPT Depot Software Discretionary AV');
+  chk(name, 'full fund', 'Depot Standup Air Vehicle → Depot Standup', ff('Depot Standup Air Vehicle'), 'USMC STOVL APN Full Fund SUPT Depot Standup Discretionary AV');
+  chk(name, 'full fund', 'Production Engineering Support → PES', ff('Production Engineering Support'), 'USMC STOVL APN Full Fund SUPT PES Discretionary AV');
+  chk(name, 'full fund', 'no cost element: nothing is guessed', ff(''), '');
+  chk(name, 'cost element', 'Production Engineering Support is #8, right before Fixed JPO Support',
+    ev(`COST_ELEMS.indexOf('Production Engineering Support')+':'+COST_ELEMS.indexOf('Fixed JPO Support')`), '7:8');
+  ev(`divCcarSide=globalThis.__dcs; 'ok'`);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ THE TWO SPEND PLANS LIST EVERY REQUIREMENT (v1.83) ═══════════════════════════════════════
+// A requirement neither plan funds -- nothing allocated -- was dropped from the panel and every tab,
+// and the TOTAL line called it one that "asks for nothing". The owner found a $50M requirement
+// missing that way. Every requirement is now a row, in rank order, and each tab's UNFUNDED line
+// ties to the board's own two readings: Plan A to "vs discretionary", Plan B to the total.
+{
+  const name = 'the two spend plans — every requirement listed';
+  try {
+  const SV = ['USAF', 'ANG', 'STOVL'];
+  const mk = (id, ask) => ({ id, grp: 'PSM', team: 'PSM', sect: '', custom: false,
+    title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const { ev, errors } = boot();
+  seed(ev, { services: SV,
+    items: [mk('A', [900, 200, 100]), mk('B', [400, 100, 50]), mk('C', [300, 80, 40]), mk('U', [21, 4, 25]), mk('Z', [0, 0, 0])],
+    disc: [1000, 250, 120], mand: [400, 100, 50], order: ['A', 'B', 'C', 'U', 'Z'] });
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // U: nothing allocated to either pot -- the owner's #98. Z: a requirement worth nothing.
+  ev(`S.fsrc['U']={m:'split', dv:[0,0,0], mv:[0,0,0]}; 'ok'`);
+  const sheets = JSON.parse(ev(`(function(){ var got='[]';
+    if(!globalThis.__ob4) globalThis.__ob4=buildXlsx;
+    buildXlsx=function(sh){ got=JSON.stringify(sh); return new Uint8Array(0); };
+    try{ exportPlans(); }catch(e){ got='[]'; }
+    buildXlsx=globalThis.__ob4; return got; })()`));
+  // the oracle: the board's own two unfunded readings, per service and floored
+  const board = JSON.parse(ev(`(function(){ var T=tiers(), u1=0, u2=0;
+    S.order.forEach(function(id){ var it=itemById(id), p=T[id]||{d:[],m:[]};
+      SVC.forEach(function(sv,i){ var a=+(it.ask||[])[i]||0, d=+(p.d||[])[i]||0, m=+(p.m||[])[i]||0;
+        u1+=Math.max(0,a-d); u2+=Math.max(0,a-d-m); }); });
+    return JSON.stringify({u1:u1, u2:u2}); })()`));
+  chk(name, 'oracle', 'the scenario: unfunded vs discretionary', board.u1, 850);
+  chk(name, 'oracle', 'the scenario: unfunded against both lanes', board.u2, 300);
+  [['PLAN A', board.u1], ['PLAN B', board.u2]].forEach(([tag, want]) => {
+    const sh = (sheets || []).find(x => String(x.name).startsWith(tag));
+    chk(name, tag, 'the tab is in the workbook', sh ? 'found' : 'missing', 'found');
+    if (!sh) return;
+    const h = sh.rows.findIndex(r => txt((r || [])[0]) === 'Rank');
+    const hdr = (sh.rows[h] || []).map(txt), at = k => hdr.indexOf(k);
+    const body = sh.rows.slice(h + 1).filter(r => /^\d+$/.test(txt((r || [])[0])));
+    chk(name, tag, 'one column width per heading', sh.cols.length >= hdr.length, true);
+    chk(name, tag, 'EVERY requirement on the board is a row', body.length, 5);
+    // located by RANK, the board's own order -- U is fourth, Z fifth
+    const rowOf = rk => (body.find(r => txt(r[0]) === String(rk)) || []);
+    const U = rowOf(4), Z = rowOf(5);
+    chk(name, tag, 'the fourth row is the unallocated requirement', txt(U[3]), ev(`dispTitle(itemById('U'))`));
+    chk(name, tag, 'the unallocated requirement is listed', U.length ? 'listed' : 'missing', 'listed');
+    chk(name, tag, 'its FY requirement is stated', numOf(U[at('FY27 Requirement')]), 50);
+    chk(name, tag, 'all of it unfunded', numOf(U[at('Unfunded')]), 50);
+    chk(name, tag, 'and it says so in words', txt(U[at('Status')]), 'NOT FUNDED — either plan');
+    chk(name, tag, 'a requirement worth nothing says that instead', txt(Z[at('Status')]), 'NO REQUIREMENT');
+    const unfRow = sh.rows.find(r => txt((r || [])[0]) === 'UNFUNDED') || [];
+    chk(name, tag, 'the UNFUNDED line ties to the board', numOf(unfRow[unfRow.length - 1]), want);
+    chk(name, tag, 'and the rows add up to it', body.reduce((t, r) => t + (numOf(r[at('Unfunded')]) || 0), 0), want);
+    const tot = sh.rows.find(r => /^TOTAL/.test(txt((r || [])[0]))) || [];
+    chk(name, tag, 'the TOTAL line counts every requirement, and names the unfunded one correctly',
+      txt(tot[0]), 'TOTAL — 5 of 5 requirements (1 funded by neither plan)');
+    chk(name, tag, 'nothing calls it a requirement that asks for nothing', /ask for nothing/i.test(txt(tot[0])), false);
+  });
+  const cmp = (sheets || []).find(x => x.name === 'A vs B');
+  if (cmp) {
+    const h = cmp.rows.findIndex(r => txt((r || [])[0]) === 'Rank');
+    const hdr = (cmp.rows[h] || []).map(txt), at = k => hdr.indexOf(k);
+    const body = cmp.rows.slice(h + 1).filter(r => /^\d+$/.test(txt((r || [])[0])));
+    chk(name, 'A vs B', 'one column width per heading', cmp.cols.length, hdr.length);
+    chk(name, 'A vs B', 'every requirement is a row', body.length, 5);
+    const U = body.find(r => txt(r[0]) === '4') || [];
+    chk(name, 'A vs B', 'the unallocated requirement: B unfunded is its whole requirement', numOf(U[at('B unfunded')]), 50);
+    chk(name, 'A vs B', 'and both statuses say NOT FUNDED — either plan', txt(U[at('A status')]) + ' | ' + txt(U[at('B status')]),
+      'NOT FUNDED — either plan | NOT FUNDED — either plan');
+  } else chk(name, 'A vs B', 'the comparison tab is in the workbook', 'missing', 'found');
+  // THE PANEL lists them too, with a filter of their own
+  const panel = ev(`(function(){ planOpen=true; planOnly=''; planBody(); var h=(document.getElementById('planBody')||{}).innerHTML||''; planOpen=false; planBody(); return h; })()`);
+  chk(name, 'panel', 'the panel lists the unallocated requirement', panel.includes(ev(`esc(dispTitle(itemById('U')))`)), true);
+  chk(name, 'panel', 'with a “not funded by either plan” filter counting it', /Not funded by either plan<span class="n">1<\/span>/.test(panel), true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
   }
 }
 

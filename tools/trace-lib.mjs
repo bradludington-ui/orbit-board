@@ -220,12 +220,13 @@ if (hasCycles) {
   });
 }
 
-// 5. THE SPEND PLAN SOURCE — states one quantity: what discretionary paid.
+// 5. THE SPEND PLAN SOURCE — states one quantity: what the lanes PAID, discretionary + mandatory,
+//    each lane on its own line (v1.83; it was discretionary only until the owner ruled otherwise).
 {
   const sheets = grab('exportSrc');
   const rows = rowsOf(sheets[0]).slice(1);
   let t = 0; rows.forEach(r => { const a = num(r[9]); if (!isNaN(a)) t += a; });
-  add('xl · Spend Plan Source', 'Excel', 0.5, { disc: rows.length ? t : undefined });
+  add('xl · Spend Plan Source', 'Excel', 0.5, { funded: rows.length ? t : undefined });
 }
 
 // 6. THE DECK. Abbreviated to $M/$B on the slide, so it is compared at that resolution -- the

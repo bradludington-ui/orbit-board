@@ -2200,6 +2200,71 @@ or link still works, but a session's repository access is granted by NAME: after
 name is refused and the new one must be attached (add_repo) before the API or a push will take it.
 Older exports on the share still say SPMT in their file names; nothing reads a file by that prefix.
 
+### v1.83: BAE budget names by rule, both lanes in the Spend Plan Source, every requirement on the Two Spend Plans
+
+The first version built from `NEXT-VERSION.md` (items 2 and 3). Every rule below is the owner's,
+decided item by item on 23 Sep 2026; the photos he sent were examples, and the program holds NO
+list of budget names -- it reads the structure of whatever BAE file is imported.
+
+**The BAE list is one list for the whole board** (`BUDDB`, key `prio27buddb`, saved as `budDb`
+beside `execDb`/`aceDb`/`rpDb`/`cycDb`). It used to be `MS.budgets` inside the open appropriation's
+store; switching appropriation reloads the board with a different store, so a list imported on
+O&M was absent on Full Fund, Spares and OPN and the export fell back to made-up names. A board saved
+before v1.83 keeps its list inside one appropriation's store; `budSrc()` reads the newest such list
+from `PUBS` (every appropriation the file carried -- NOT `PUB`, which is narrowed to the open one at
+boot) and localStorage until the next import writes `BUDDB`. `budReg()` re-parses every stored name
+by today's rules, so an old import is judged by the new rule without a re-import (TrngDev names,
+which the old import discarded, do need one re-import).
+
+**The rule** (`budParseName`, `budPickList`, `budCandidates`, `budForRow`), every name read as
+*service + appropriation + funding line + [lane] + PMO*:
+1. No PMO in the name = a LEGACY budget: never offered, never filled in; a stored choice pointing at
+   one is not printed and the pre-flight lists it (gap `legacy`).
+2. CONG, BOS, OCO, Withhold and Spares TrngDev (`BUD_HAND`) are offered by hand, never automatic.
+   Modifications, RDT&E, Flyaway are out (`BUD_EXCLUDE`). TrngDev is part of Spares (`BUD_APPN`).
+3. Service and PMO match; the lane matches EXACTLY; where an office's names carry no lane its one
+   lane-less name serves both. `USAF O&M NON AFRC NON ANG` is the active Air Force (first in `BUD_SVC`).
+4. The funding line: on O&M the hand rule leaves CAM; on Full Fund the COST ELEMENT decides, one to
+   one, through `BUD_CE_LINE` (Depot Standup Software -> Depot Software; both other Depot Standup
+   cost elements -> Depot Standup, the PMO choosing AV/PP/PSM; Production Engineering Support -> PES;
+   JRE -> whichever line names JRE once one exists).
+5. Still more than one: the budget CCaR files the record under in the last Spend Plan Source pull
+   (`budCcarBuds`, memoised per `EXDB.ts` and year) decides if exactly one candidate is on it.
+Nothing is guessed. Measured on every example name the owner sent: 16 of 20 cases resolve on 1-3,
+all 56 Full Fund service x PMO x cost element combinations on 4.
+
+**A budget is per service AND lane.** `S.budgetAsg[id]['svc|disc']` / `['svc|mand']`; a choice stored
+before v1.83 under the bare service still counts for any lane its own name fits (`budAsgOf`).
+
+**The Spend Plan Source now carries mandatory dollars** (`SRC_BASIS='funded'`): one line per service
+per lane, discretionary first, each with its own verbatim BAE name. This REVERSES the pre-v1.83 rule
+("this office sends discretionary") at the owner's explicit decision; the registered defect it grew
+out of -- the allocation basis, unfunded money exported -- is still guarded (`src-basis-allocation`,
+now aimed at `srcLaneOf`), and `src-drops-mandatory` guards the new basis. The trace matrix states
+the file as FUNDED, not discretionary drawn. With no BAE list loaded the Budget cell is BLANK (it
+used to print a made-up `USAF O&M`, which CCaR always rejects), and `exportSrc` asks before writing
+any file that has a blank Budget, naming the requirements; declined, no file is built. The CCaR
+reconciliation compares on the same funded basis, so until a file with the mandatory lines reaches
+CCaR, requirements carrying mandatory money will show as differences there.
+
+**Two Spend Plans lists every requirement**, in rank order. `planRows` dropped any requirement
+neither plan funded, and the TOTAL line then said those "ask for nothing" -- the owner found a $50M
+requirement missing that way. Each tab adds FY Requirement and Unfunded (requirement less what that
+plan funds, per service, floored) and an UNFUNDED summary line: on a board with no funding-source
+overrides Plan A's ties to UNFUNDED vs DISC and Plan B's to TOTAL unfunded. `planStLbl` says NOT
+FUNDED -- EITHER PLAN (or NO REQUIREMENT for a zero ask); the panel has a "Not funded by either plan"
+filter.
+
+**Cost elements:** Production Engineering Support is #8, before Fixed JPO Support. Saved by name, so
+no stored choice moved; only a number typed into the cost element prompt follows the new order.
+
+Tests: audit-other gains *budget names -- the owner's rule* (every line's budget, amounts distinct
+so each line is identified, the CCaR tiebreak, legacy and CONG choices, the parser, the pick list,
+the warning, Full Fund by cost element) and *the two spend plans -- every requirement listed*;
+audit-import proves the list travels in the saved file, not inside an appropriation, and that an old
+layout's list is found from another appropriation. 29 new or replaced mutations, 5 re-aimed: 368
+in all, 11 equivalent.
+
 ### How changes ship: queued, then one version on "go" (from 23 Sep 2026)
 
 Brad asked for fewer one-off updates. Every change he asks for is logged in `NEXT-VERSION.md` —
