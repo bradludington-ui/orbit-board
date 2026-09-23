@@ -40,8 +40,12 @@ Current version: **v1.82**. Next: **v1.83**.
 
 #### The rule (structural, no list of names in the program)
 Every name reads as *service + appropriation + funding line + [Discretionary | Mandatory] + PMO*.
-1. **Headings are not budgets:** a name with no PMO and no lane (`USAF O&M - ANG CAM`,
-   `USMC STOVL APN Spares Initial`, `USMC STOVL O&M -1A9A`) is never assigned.
+1. **No PMO in the name = a legacy budget, never usable** (decided by Brad, 23 Sep). It is never
+   offered, never auto-assigned, and never taken over from last year's choice or from the CCaR pull:
+   a requirement that arrives pointing at one is flagged for a fresh pick. Examples:
+   `USAF O&M - ANG CAM`, `USAF O&M- BOS`, `USMC STOVL APN Spares Initial`, `USMC STOVL O&M -1A9A`,
+   `USN APN Full Fund SUPT PES USN CV`. The PMO is read as the last word of the name
+   (AV, MxS, PP, PSM, TSS, CDS, BOP, ATL, any case).
 2. **Hand-pick-only lines:** CONG and BOS (decided); OCO and Withhold proposed the same.
 3. **Service, PMO, then lane exactly;** where the office's names carry no lane, its one lane-less
    name takes both lanes; where no name fits, the line is flagged, never guessed.
@@ -50,7 +54,7 @@ Every name reads as *service + appropriation + funding line + [Discretionary | M
    (both already recorded by the board), else picked once from only the lines that exist for that
    service and PMO.
 
-**Measured on every example name sent (20 cases):** 16 resolve to exactly one name with nothing
+**Measured on every example name sent (20 cases, the legacy rule applied):** 16 resolve to exactly one name with nothing
 chosen — all USAF O&M, all Marine Corps O&M, Spares, and Full Fund BOP. For example:
 ANG discretionary AV → `USAF O&M - ANG CAM Discretionary AV`; ANG CDS → `USAF O&M - ANG CAM CDS`;
 STOVL O&M PSM → `USMC STOVL O&M -1A9A AT ATF Discretionary PSM`; STOVL Spares PP →
