@@ -60,8 +60,8 @@ Every name reads as *service + appropriation + funding line + [Discretionary | M
    name takes both lanes; where no name fits, the line is flagged, never guessed.
 4. **The funding line.** O&M: CAM (hand-pick lines aside). **Full Fund: the requirement's cost
    element, one to one** (decided by Brad, 23 Sep). The board already holds a cost element per Full
-   Fund requirement and carries it forward each year; a fixed table ties each of its 12 cost elements
-   to the words the BAE names use:
+   Fund requirement and carries it forward each year; a fixed table ties each of its cost elements
+   to the words the BAE names use (all rows confirmed by Brad, 23 Sep):
 
    | Cost element on the board | Funding line in the BAE name |
    |---|---|
@@ -73,10 +73,11 @@ Every name reads as *service + appropriation + funding line + [Discretionary | M
    | Pubs/Tech Data | PUBS/TECH DATA |
    | Other ILS Production | OTHER ILS |
    | Fixed JPO Support | FIXED JPO SUPT POA |
-   | Depot Standup Software | Depot Software *(to confirm)* |
-   | Depot Standup Air Vehicle | Depot Standup *(to confirm)* |
-   | Depot Standup Propulsion | Depot Standup *(to confirm)* |
-   | JRE | *none seen yet (to confirm)* |
+   | Depot Standup Software | Depot Software |
+   | Depot Standup Air Vehicle | Depot Standup (the PMO picks AV, PP or PSM) |
+   | Depot Standup Propulsion | Depot Standup (the PMO picks AV, PP or PSM) |
+   | JRE | the BAE line that names JRE, once one exists (CDS JRE requirements start next year); until then a JRE requirement is flagged for a hand pick |
+   | **Production Engineering Support** *(new cost element)* | PES |
 
    Matching ignores case and spacing. A Full Fund requirement with **no cost element** is flagged to
    have one set, not guessed. Anywhere a line is still open after this (a new appropriation's
@@ -98,7 +99,9 @@ name; with the whole file it will find the ordinary one, or flag it.
 1. **Keep the BAE list once, for the whole board:** stored beside the appropriations rather than
    inside one, written into the saved file, read by every appropriation. A board saved with the old
    layout is moved over when it opens, so a list already imported is not lost.
-2. Apply the rule above; read `NON AFRC NON ANG` as the active Air Force.
+2. Apply the rule above; read `NON AFRC NON ANG` as the active Air Force. Add **Production
+   Engineering Support** to the board's cost elements (13th, after JRE), matched to `PES`; a board
+   saved without it loads unchanged.
 3. Split each service's line by lane in the Spend Plan Source, each with its own budget, keeping the
    dollars whole — the lines still add to the funded total, held by the trace matrix and a mutation.
 4. Print the name exactly as the BAE cell holds it (the leading indent trimmed, nothing else).
@@ -107,18 +110,15 @@ name; with the whole file it will find the ordinary one, or flag it.
 7. Tests: the round-trip fuzz fills the BAE list and proves it survives save, reopen and a switch of
    appropriation; the audits check the rule's picks and the lane split; mutations prove each check bites.
 
-#### Needed before building (only the cost element table is left)
+#### Needed before building — nothing; every question answered 23 Sep
 1. ~~OCO and Withhold~~ — answered 23 Sep: by hand only.
 2. ~~Modifications, RDT&E, Flyaway~~ — answered 23 Sep: stay out.
 3. ~~Spares TrngDev~~ — answered 23 Sep: part of the Spares board, a low-dollar pot, by hand only.
 4. ~~Full Fund default~~ — answered 23 Sep: the budget follows the cost element, one to one.
-5. **Confirm the cost element table** (rule 4):
-   a. Depot Standup Software → the `Depot Software` budgets?
-   b. Depot Standup Air Vehicle and Depot Standup Propulsion → both the `Depot Standup` budgets,
-      with the PMO choosing AV, PP or PSM? And which cost element does `Depot Standup ... PSM` belong to?
-   c. `PES` budgets (`... PES Discretionary AV`, `... PES MxS`) match no cost element on the board.
-      Is PES a cost element the board is missing, or is it chosen by hand?
-   d. JRE: which Full Fund budget line does it use? None appears in the examples.
+5. ~~Cost element table~~ — answered 23 Sep: Depot Standup Software → Depot Software; both Depot
+   Standup cost elements → Depot Standup, with the PMO choosing AV, PP or PSM; PES is **Production
+   Engineering Support**, a cost element the board is missing and gains in this version; JRE
+   requirements (CDS) start next year, so JRE follows the BAE line that names it once one exists.
 
 ## Withdrawn
 
