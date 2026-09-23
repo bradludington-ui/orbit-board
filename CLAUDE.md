@@ -2200,6 +2200,16 @@ or link still works, but a session's repository access is granted by NAME: after
 name is refused and the new one must be attached (add_repo) before the API or a push will take it.
 Older exports on the share still say SPMT in their file names; nothing reads a file by that prefix.
 
+### How changes ship: queued, then one version on "go" (from 23 Sep 2026)
+
+Brad asked for fewer one-off updates. Every change he asks for is logged in `NEXT-VERSION.md` —
+what he sees, what testing showed, what is still needed, and the proposed fix — and NOTHING in the
+board files changes until he says **go**. On go: build every open item, run `npm run validate:math`
+once, bump `BUILD` once, push once, and move the items to *Shipped* under the version. Logging an
+item commits `NEXT-VERSION.md` alone, so the list survives a container reset; that is not a release.
+Investigating an item before go (reading code, running a throwaway test outside the tracked tree) is
+fine and makes the entry better — changing the board is not.
+
 ### The logo: the O is the orbit (v1.82)
 
 Chosen on 22 Sep 2026 from three options rendered side by side (a separate five-bead mark, this one, and
