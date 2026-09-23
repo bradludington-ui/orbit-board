@@ -58,17 +58,40 @@ Every name reads as *service + appropriation + funding line + [Discretionary | M
    so an ordinary Spares requirement still goes to its *Spares Initial* name automatically.
 3. **Service, PMO, then lane exactly;** where the office's names carry no lane, its one lane-less
    name takes both lanes; where no name fits, the line is flagged, never guessed.
-4. **The funding line**, where rules 1–3 still leave more than one (most of Full Fund): the line CCaR
-   already has this record under from the last Spend Plan Source pull, else last year's choice
-   (both already recorded by the board), else picked once from only the lines that exist for that
-   service and PMO.
+4. **The funding line.** O&M: CAM (hand-pick lines aside). **Full Fund: the requirement's cost
+   element, one to one** (decided by Brad, 23 Sep). The board already holds a cost element per Full
+   Fund requirement and carries it forward each year; a fixed table ties each of its 12 cost elements
+   to the words the BAE names use:
+
+   | Cost element on the board | Funding line in the BAE name |
+   |---|---|
+   | Airframe PGSE | Airframe PGSE |
+   | Engine PGSE | ENGINE PGSE |
+   | Avionics PGSE | Avionics PGSE |
+   | Peculiar Training Equip | PEC TRNG |
+   | Full Mission Simulators | Full Mission Sims |
+   | Pubs/Tech Data | PUBS/TECH DATA |
+   | Other ILS Production | OTHER ILS |
+   | Fixed JPO Support | FIXED JPO SUPT POA |
+   | Depot Standup Software | Depot Software *(to confirm)* |
+   | Depot Standup Air Vehicle | Depot Standup *(to confirm)* |
+   | Depot Standup Propulsion | Depot Standup *(to confirm)* |
+   | JRE | *none seen yet (to confirm)* |
+
+   Matching ignores case and spacing. A Full Fund requirement with **no cost element** is flagged to
+   have one set, not guessed. Anywhere a line is still open after this (a new appropriation's
+   pattern, say), the fallback is the line CCaR already files the record under, then last year's
+   choice, then a one-time pick from only the lines that exist for that service and PMO.
 
 **Measured on every example name sent (20 cases, the legacy rule applied):** 16 resolve to exactly one name with nothing
 chosen — all USAF O&M, all Marine Corps O&M, Spares, and Full Fund BOP. For example:
 ANG discretionary AV → `USAF O&M - ANG CAM Discretionary AV`; ANG CDS → `USAF O&M - ANG CAM CDS`;
 STOVL O&M PSM → `USMC STOVL O&M -1A9A AT ATF Discretionary PSM`; STOVL Spares PP →
-`USMC STOVL APN Spares Initial Discretionary PP`. Three Full Fund cases leave four names each and
-need the funding line (rule 4). One (CV Spares PP) found none because the photo shows only its CONG
+`USMC STOVL APN Spares Initial Discretionary PP`. With the cost element added (rule 4), **all 56 service + PMO +
+cost element combinations in the Full Fund examples resolve to exactly one name**, e.g. STOVL PSM
+on Other ILS Production → `USMC STOVL APN Full Fund SUPT OTHER ILS Discretionary PSM`, CV TSS on
+Full Mission Simulators → `USN APN Full Fund SUPT USMC CV Full Mission Sims TSS`, STOVL BOP on Fixed
+JPO Support → `USMC STOVL APN Full Fund SUPT FIXED JPO SUPT POA Discretionary BOP`. One (CV Spares PP) found none because the photo shows only its CONG
 name; with the whole file it will find the ordinary one, or flag it.
 
 #### Proposed fix
@@ -84,12 +107,18 @@ name; with the whole file it will find the ordinary one, or flag it.
 7. Tests: the round-trip fuzz fills the BAE list and proves it survives save, reopen and a switch of
    appropriation; the audits check the rule's picks and the lane split; mutations prove each check bites.
 
-#### Needed before building (all answered except the optional one)
+#### Needed before building (only the cost element table is left)
 1. ~~OCO and Withhold~~ — answered 23 Sep: by hand only.
 2. ~~Modifications, RDT&E, Flyaway~~ — answered 23 Sep: stay out.
 3. ~~Spares TrngDev~~ — answered 23 Sep: part of the Spares board, a low-dollar pot, by hand only.
-4. Optional: a usual Full Fund funding line per PMO, if there is one, would fill more of Full Fund
-   automatically before rule 4 has to ask.
+4. ~~Full Fund default~~ — answered 23 Sep: the budget follows the cost element, one to one.
+5. **Confirm the cost element table** (rule 4):
+   a. Depot Standup Software → the `Depot Software` budgets?
+   b. Depot Standup Air Vehicle and Depot Standup Propulsion → both the `Depot Standup` budgets,
+      with the PMO choosing AV, PP or PSM? And which cost element does `Depot Standup ... PSM` belong to?
+   c. `PES` budgets (`... PES Discretionary AV`, `... PES MxS`) match no cost element on the board.
+      Is PES a cost element the board is missing, or is it chosen by hand?
+   d. JRE: which Full Fund budget line does it use? None appears in the examples.
 
 ## Withdrawn
 
