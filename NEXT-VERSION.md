@@ -150,8 +150,8 @@ name; with the whole file it will find the ordinary one, or flag it.
   5. Tests: an audit check that every requirement on the board appears on each sheet, a trace-matrix
      link for the new unfunded figure, and mutations that drop a row or restore the old label, so a
      skipped requirement can never pass silently again.
-- **Needed before building:** nothing. Proposed: unfunded requirements stay in rank order, as on the
-  board, rather than grouped at the bottom. Say if they should be grouped instead.
+- **Needed before building:** nothing. Unfunded requirements stay **in rank order**, as on the board
+  (decided by Brad, 23 Sep).
 
 ## Withdrawn
 
