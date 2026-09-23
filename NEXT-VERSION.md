@@ -8,7 +8,25 @@ Current version: **v1.83**. Next: **v1.84**.
 
 ## Open
 
-*(nothing open)*
+### 4. A PMO copy still offers Save and says "unsaved changes"
+- **Logged:** 23 Sep 2026, found while checking the PMO guide against a v1.83 grid copy; Brad
+  asked for it to be logged.
+- **What an office sees:** the header of a PMO copy shows `💾 Save` and "• unsaved changes" as soon
+  as anything is edited, and the line under the toolbar says "Make changes and 💾 Save to pass it
+  on". Pressing Save (or File ▸ Save a copy…) is refused with "Saving to the shared file is turned
+  off here". The refusal is right; the invitation to press it is wrong, on the one copy whose only
+  way out is ✉ Submit input.
+- **What is needed:** on a PMO copy, the header and the status line point to ✉ Submit input (and
+  say the work is kept in this browser), never to Save. The portfolio board is unchanged.
+- **Until then:** the PMO guide tells offices to expect the Save button and ignore it.
+
+### 5. A refused appropriation switch leaves the box showing the other appropriation
+- **Logged:** 23 Sep 2026, same check; Brad asked for it to be logged.
+- **What an office sees:** on a PMO copy, picking another appropriation in the Appropriation box is
+  refused ("This PMO copy holds the O&M portfolio only …"), as it should be, but the box keeps
+  showing the name picked (say FULL FUND) while the board underneath is still O&M.
+- **What is needed:** after the refusal the box shows the copy's own appropriation again.
+- **Until then:** the PMO guide says to refresh the page if the box shows the wrong name.
 
 ## Withdrawn
 
