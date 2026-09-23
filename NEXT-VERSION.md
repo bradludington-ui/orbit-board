@@ -126,6 +126,33 @@ name; with the whole file it will find the ordinary one, or flag it.
    Engineering Support**, a cost element the board is missing and gains in this version; JRE
    requirements (CDS) start next year, so JRE follows the BAE line that names it once one exists.
 
+### 3. Two Spend Plans: list every requirement, including the ones neither plan funds
+- **Logged:** 23 Sep 2026, Brad, with a photo of requirement #98 of 151: FY27 requirement $50,000,000
+  (USMC-B $21M, USMC-C $4M, USN $25M), allocated $0, unfunded $50,000,000, MC shortage, band 7.
+- **What Brad sees:** #98 does not appear in the Two Spend Plans list or its export. It looks as if
+  requirements are being skipped.
+- **What the code does (read and tested 23 Sep):** the list keeps a requirement only if at least one
+  plan funds some of it. A requirement funded under neither plan is dropped from the on-screen
+  panel, both plan sheets and the A-vs-B sheet, with no line naming it. On a test board with three
+  requirements, one of them wholly unfunded, both sheets list two, and the TOTAL line reads
+  "2 of 3 requirements (1 ask for nothing and are in neither plan)". **That label is wrong:** the
+  dropped requirement asks for money; it just gets none. No column shows a requirement's full value
+  or its unfunded amount, so the list cannot show what is left unfunded. Its "Not covered" figure
+  counts only allocated dollars a plan ran out before reaching.
+- **Proposed fix:**
+  1. List **every requirement**, in the board's priority order, on the screen panel and on all three
+     sheets. One funded by neither plan is marked **NOT FUNDED — either plan**.
+  2. Add **FY27 Requirement** and **Unfunded** (requirement minus what that plan funds) to every row,
+     and an **UNFUNDED** line in each sheet's summary that ties to the board's own unfunded total.
+  3. The TOTAL line counts all of them ("151 of 151 requirements") and names the unfunded ones
+     correctly.
+  4. A **Not funded** filter in the panel, beside the existing moved / cut / partial ones.
+  5. Tests: an audit check that every requirement on the board appears on each sheet, a trace-matrix
+     link for the new unfunded figure, and mutations that drop a row or restore the old label, so a
+     skipped requirement can never pass silently again.
+- **Needed before building:** nothing. Proposed: unfunded requirements stay in rank order, as on the
+  board, rather than grouped at the bottom. Say if they should be grouped instead.
+
 ## Withdrawn
 
 ### 1. PIDs show up in the CCaR column of the Excel workbook
