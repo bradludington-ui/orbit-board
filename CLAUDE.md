@@ -2328,6 +2328,71 @@ and the consolidated take (nothing named, a bad number, O&M only with Full Fund 
 untouched, a conflict declined, send back merged and its conflict named). 36 new mutations, 2
 re-aimed: 404 in all.
 
+### v1.85: the five-year spend plan by PMO, every appropriation, each read by its own board
+
+Built from `NEXT-VERSION.md` item 8 on the owner's "go" (24 Sep 2026).
+
+**A tab per PMO after the three sheets** (`fydpPmoSheets`). By Requirement, By PMO and By Service do
+not change -- a test proves they are byte-for-byte what an O&M-only board prints. Each PMO tab holds
+one block per appropriation the office has requirements in, in `APPN_SLUGS` order: the office's CCaR
+records (grouped case- and space-insensitively, so " jsf5594 " is JSF5594), the requirements under
+each, "No CCaR record" last, then the block total. Requirement and Allocation (the Allocated figure)
+per year, FYDP totals at the right. Every line comes from `fydpRows`/`fydpSub`, the functions the By
+Requirement and By PMO sheets use, so the tie is structural. The span is the report's span (base + 4,
+plus the year on screen when it sits outside the window), the same as the other three sheets. No
+total across appropriations. The tab names the source; each block names its own, and says so when an
+appropriation's working plan is tagged under a different cycle than this board's.
+
+**The other appropriations are read, never recomputed.** The engine runs on one appropriation per
+page (DATA, SVC, BASE_ITEMS are constants of the drill), so a Full Fund figure worked out on the O&M
+page would be a second engine. Instead `fydpGather` opens each as its own board: SRC0 in a
+`sandbox="allow-scripts"` srcdoc frame (`fydpFrame`), with a shim that runs before any board line and
+replaces `localStorage` with an in-memory COPY (`fydpFrameMem`: this browser's keys less the live-view
+ones, `prio27appn` set to the target), the file's slot for that appropriation and its packed cycles in
+pubState, and `fydpProbeReply()` answering by postMessage once the board has opened. The frame's
+origin is opaque, so the browser itself keeps it out of this page, this browser's storage, IndexedDB,
+the file, the folder and downloads (proved in Chromium by `tools/fydp-frames.mjs`, in verify:grid).
+- **Which copy:** the one that appropriation's board would open -- browser storage, the file's when
+  newer (`fydpStoreLocal`), the shared folder's when the team works out of it and it is newer
+  (`fydpStoreFolder`; the frame cannot reach the folder, so that copy is handed in).
+- **Checked before a figure is used** (`fydpTake`): the appropriation asked for, this BUILD, a clean
+  opening (`_bootLost`), the very saved state chosen (its `ts`), and a D whose held years all carry a
+  projection. Any failure REFUSES the block and every tab says so ("⚠ FULL FUND IS NOT ON THIS TAB --
+  why. Its figures are missing here, not zero."). No lock under the chosen cycle is refused, never
+  replaced by the working plan. An appropriation with nothing is said, not hidden.
+- **Synchronous when nothing has to be opened**, asynchronous otherwise: `fydpGather` counts answers
+  and calls back once (`fydpWhen` takes a value or a promise). `_fydpBusy` turns away a second export
+  while frames are open. A PMO copy opens nothing and prints its own appropriation.
+- **The harness stands a second board in for the frame** (`boot.mjs` sets `w.fydpFrame`): booted from
+  the exact HTML the page built, shim included, answering at once -- so every tool that captures a
+  workbook synchronously still does, and `__fydpFrames` records what each frame did. `boot({appn})`
+  opens an appropriation by setting storage before the page parses; the older trick of injecting a
+  script into the HTML leaks into SRC0 and every frame then opens that appropriation (the check
+  caught it: "the frame opened O&M instead").
+- **The frame's pub object is built key by key** (`pub.execDb=EXDB` ...) so the short find strings of
+  the older `handoff-copy-drops-*` mutations still match once.
+
+**Data-loss fix found on the way: a save kept only the cycle stores this browser held.** `cycByAp()`
+read other appropriations' cycles from browser storage alone, so a consolidated file opened on O&M in
+a browser that had never opened Full Fund, then saved, lost Full Fund's locked cycles (measured: cycDb
+went from om+ff to om). `CYC_FILE` keeps the file's packed stores from boot and `cycStoreOf()` picks
+the newer of the two by the boot rule.
+
+**A PMO copy's five-year workbook is stamped on every sheet.** Its file name carried the
+`[PMO COPY date]` stamp, but the sheets did not carry the "◨ PMO COPY (snapshot of …, NOT the current
+plan)" banner every other copy export has (the guide said they all did). The three sheets and the PMO
+tabs now do; the portfolio board's are unchanged.
+
+Tests: audit-import gains six v1.85 blocks on a three-appropriation file built board by board (Full
+Fund and O&M lock PB27 then change; Spares locks nothing; OPN empty; a second year with a different
+trim): every block total against its own board's By PMO, every requirement line against its own By
+Requirement, records and totals footed, em dashes, each requirement once, the first three sheets
+unchanged, storage/PUBS/MS/CYCDB byte-identical; the PB27 report tying to each own PB27 report with
+Spares refused on every tab; wrong state, wrong appropriation, failed frame, bad shape, other build,
+unreadable copy all refused; newest copy wins both ways; the cycle-tag warning; the late path (status,
+a second export turned away, the same workbook, the board freed); the cycle-loss fix both ways; a PMO
+copy, with every sheet stamped. 25 new mutations: 429 in all.
+
 ### How changes ship: queued, then one version on "go" (from 23 Sep 2026)
 
 Brad asked for fewer one-off updates. Every change he asks for is logged in `NEXT-VERSION.md` —

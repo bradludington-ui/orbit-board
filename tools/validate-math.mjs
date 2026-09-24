@@ -126,7 +126,7 @@ for (const [lbl, env] of [['suites (card)', {}], ['suites (grid)', { BOARD: GRID
 {
   const r = await run('browser checks', 'npm', ['run', 'verify:grid', '--silent']);
   note({ ...r, ok: r.code === 0, detail: r.code === 0
-    ? 'controls, inspector, toolbar, editors, colours, menus and panels all clean'
+    ? 'controls, inspector, toolbar, editors, colours, menus, panels and the sealed frames all clean'
     : 'a rendered surface failed — clipped value, unopened panel, or a width that scrolls' });
   console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  browser checks`);
 }

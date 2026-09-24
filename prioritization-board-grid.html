@@ -1437,12 +1437,28 @@ let CYCDB=(function(){
   else pick=ls||fb;
   return (pick&&pick.cycles&&typeof pick.cycles==='object')? pick : {ts:0, cycles:{}};
 })();
+// THE OTHER APPROPRIATIONS' CYCLES AS THE FILE CARRIED THEM. Until v1.85 a save packed only the
+// cycle stores this browser held, so a consolidated file opened on O&M in a browser that had never
+// opened Full Fund, then saved, came out WITHOUT Full Fund's locked cycles -- measured: the file's
+// cycDb went from om+ff to om alone. A lock is a point in time; it cannot be taken again later.
+const CYC_FILE=(PUB&&PUB.cycDb&&PUB.cycDb.byAp&&typeof PUB.cycDb.byAp==='object')? PUB.cycDb.byAp : {};
 function persistCyc(){ CYCDB.ts=Date.now(); return lsSet(CYC_KEY, JSON.stringify(CYCDB), 'The locked PPBE cycles'); }
-// every appropriation's cycle store this browser holds, for the file
+// One other appropriation's cycle store, chosen as its own board chooses at opening: browser
+// storage, or the file's copy when that is newer. {c, bad}: c null when neither holds one; bad when
+// browser storage holds one that cannot be read (its board falls back to the file's, and says so).
+function cycStoreOf(k){
+  let ls=null, bad=false;
+  try{ ls=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'-cyc')||'null'); }catch(e){ bad=true; }
+  if(!(ls&&ls.cycles&&typeof ls.cycles==='object')) ls=null;
+  let fb=CYC_FILE[k]||null;
+  if(!(fb&&fb.cycles&&typeof fb.cycles==='object')) fb=null;
+  return {c:(ls&&fb)? (((fb.ts||0)>(ls.ts||0))? fb : ls) : (ls||fb), bad:bad};
+}
+// every appropriation's cycle store, for the file
 function cycByAp(){
   const out={}; out[_AP.slug]=CYCDB;
   Object.keys(_SLUGMAP).forEach(function(k){ if(k===_AP.slug) return;
-    try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key+'-cyc')||'null'); if(s2&&s2.cycles) out[k]=s2; }catch(e){} });
+    const c=cycStoreOf(k).c; if(c) out[k]=c; });
   return out;
 }
 // A PMO COPY CARRIES ONE CYCLE -- the reference the working plan's deltas are read against -- and
@@ -1572,7 +1588,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.84 (24 Sep 2026)';
+const BUILD='v1.85 (24 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -14592,6 +14608,7 @@ function fydpSvc(D){
   return out;
 }
 function exportFydpPlan(){
+  if(_fydpBusy){ setStat('📊 The five-year spend plan is still opening the other appropriations — it downloads as soon as they answer.'); return; }
   const D=fydpData(fydpSrc);
   if(!D){ alert('That cycle is no longer held. Pick a source in 📊 Five-year spend plan.'); return; }
   if(!D.held.length){ alert('No year of '+D.label+' holds a plan, so there is nothing to print.'); return; }
@@ -14600,6 +14617,9 @@ function exportFydpPlan(){
   const fyl=function(y){ return 'FY'+(y%100); };
   const span=fyl(D.years[0])+'–'+fyl(D.years[D.years.length-1]);
   const title='ORBIT FYDP SPEND PLAN — '+D.label.toUpperCase()+' — '+span;
+  // A PMO COPY'S WORKBOOK SAYS SO ACROSS THE TOP OF EVERY SHEET, as its other exports do (v1.85). The
+  // file name was stamped already; the sheets were not, and a sheet copied out of the workbook lost it.
+  const cpy=function(t){ return SANDBOX? '◨ PMO COPY (snapshot of '+expStamp()+', NOT the current plan)  —  '+t : t; };
   const cell=function(f,k,s){ return f? {v:f[k], s:(s||N)} : {v:'—', s:0}; };
   // the cost estimate beside the plan: the chosen set, this appropriation, as it stands now
   const AK=fydpAceKey(), hasAce=!!AK;
@@ -14620,7 +14640,7 @@ function exportFydpPlan(){
     const hdr=['PMO','Requirement','CCaR','Band'];
     D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
     hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded'); if(hasAce) hdr.push('FYDP ACE estimate');
-    const rows=[[{v:title,s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
+    const rows=[[{v:cpy(title),s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
     const put=function(lbl, r, s, sub, est){
       const line=[sub? {v:lbl,s:B} : lbl, sub? '' : r.title, sub? '' : r.ccar, sub? '' : r.band];
       D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',sub?NB:N), cell(f,'alloc',sub?NB:N), cell(f,'fund',sub?NB:N), cell(f,'unf',sub?NB:N)); if(hasAce) line.push(aceCell(est(y), sub?NB:N)); });
@@ -14640,7 +14660,7 @@ function exportFydpPlan(){
     const hdr=['PMO','Requirements'];
     D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
     hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded'); if(hasAce) hdr.push('FYDP ACE estimate');
-    const rows=[[{v:title+' — BY PMO',s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
+    const rows=[[{v:cpy(title+' — BY PMO'),s:TI}],[note],[],hdr.map(function(v){ return {v:v,s:H}; })];
     const put=function(lbl, n, s, st, est){
       const line=[{v:lbl,s:st},{v:n,s:0}];
       D.years.forEach(function(y){ const f=s.fy[y]; line.push(cell(f,'ask',st), cell(f,'alloc',st), cell(f,'fund',st), cell(f,'unf',st)); if(hasAce) line.push(aceCell(est(y), st)); });
@@ -14659,7 +14679,7 @@ function exportFydpPlan(){
     D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded', fyl(y)+' Disc BA', fyl(y)+' Mand BA', fyl(y)+' PPBE position', fyl(y)+' Requirement − position'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
     hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded','FYDP Disc BA','FYDP Mand BA','FYDP PPBE position','FYDP Requirement − position'); if(hasAce) hdr.push('FYDP ACE estimate');
     const posNote=' PPBE position: the official position logged under '+(posKey? blLbl(posKey) : 'the plan’s cycle tag — none is set, so no position is printed')+' in 🏛 PPBE Budget Positions, by service and year, as it stands now; — where none is logged. Requirement − position is the plan’s requirement less it. The FYDP position is printed only when every held year logs one.';
-    const rows=[[{v:title+' — BY SERVICE',s:TI}],[{v:note.v+posNote,s:0}],[],hdr.map(function(v){ return {v:v,s:H}; })];
+    const rows=[[{v:cpy(title+' — BY SERVICE'),s:TI}],[{v:note.v+posNote,s:0}],[],hdr.map(function(v){ return {v:v,s:H}; })];
     const K=['ask','alloc','fund','unf','disc','mand'];
     const pos=function(sv, y){ return sv===null? fydpPosTot(D, y) : fydpPos(D, sv, y); };   // one service, or the services added for TOTAL
     const put=function(lbl, sv, row, st){
@@ -14684,12 +14704,309 @@ function exportFydpPlan(){
     put('TOTAL', null, tot, NB);
     sheets.push({name:'By Service', cols:[12].concat(D.years.map(function(){ return [14,14,14,14,13,13,15,17].concat(hasAce?[15]:[]); }).flat()).concat([16,16,16,16,15,15,16,18].concat(hasAce?[16]:[])), freeze:4, rows:rows});
   }
-  const bytes=buildXlsx(sheets);
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLbl(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
-  a.click();
-  setStat('📊 FYDP spend plan exported — '+esc(D.label)+', '+span+', '+R.order.length+' requirements across '+D.held.length+' planned year'+(D.held.length===1?'':'s')+'.');
+  // ---------- 4. a tab per PMO, every appropriation (v1.85) -- the others are opened, never recomputed
+  const finish=function(A){
+    const P=fydpPmoSheets(D, A, sheets.map(function(s){ return s.name; }));
+    P.sheets.forEach(function(s){ sheets.push(s); });
+    const bytes=buildXlsx(sheets);
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    a.download=expName('ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLbl(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+    a.click();
+    setStat('📊 FYDP spend plan exported — '+esc(D.label)+', '+span+', '+R.order.length+' requirements across '+D.held.length+' planned year'+(D.held.length===1?'':'s')+'.'+P.said);
+  };
+  let got=null, later=false, waiting=[];
+  _fydpBusy=true;
+  try{
+    waiting=fydpGather(D, function(A){
+      _fydpBusy=false;
+      if(!later){ got=A; return; }
+      try{ finish(A); }
+      catch(e){ setStat('⚠ The five-year spend plan could not be built — <b>'+esc((e&&e.message)||String(e))+'</b>. Nothing was downloaded.'); }
+    });
+  }catch(e){ _fydpBusy=false; throw e; }
+  if(got){ finish(got); return; }
+  later=true;
+  setStat('📊 Opening '+esc(waiting.join(', '))+' for the PMO tabs — each opens as its own board, read-only, in a sealed frame. The workbook downloads when '+(waiting.length===1? 'it answers' : 'they answer')+'.');
+}
+// ============================ THE SPEND PLAN BY PMO, EVERY APPROPRIATION (v1.85) ===========
+// After By Requirement, By PMO and By Service -- which do not change -- the workbook carries a tab
+// per programme office. Each tab holds one block per appropriation the office has requirements in,
+// in the board's appropriation order, and each block lists the office's CCaR records with the
+// requirements that roll up to each beneath it, "No CCaR record" last. Requirement and Allocation
+// (the board's Allocated) sit side by side for every fiscal year of the source, the FYDP total at
+// the far right, the block's total at the bottom. Appropriations are never added together: they
+// are different money.
+//
+// THE OTHER APPROPRIATIONS ARE READ, NOT RECOMPUTED HERE. The lane engine runs on one appropriation
+// per page -- DATA, SVC and the baseline are constants of the drill that is open -- so a Full Fund
+// figure worked out on the O&M page would need a second engine, and a second engine is a second
+// answer. Each is opened instead the way its own board opens: this very program, in a frame, told
+// which appropriation to open and handed a COPY of what this browser holds, the file's state as it
+// was opened, and -- when the team works out of the shared folder -- the folder's copy when that is
+// newer. That board's own fydpData() answers, so a Full Fund block IS Full Fund's report, and ties
+// to the dollar to the By PMO sheet its own board prints for the same source.
+//
+// NOTHING A READER HOLDS CAN CHANGE BY READING IT. The frame is sandbox="allow-scripts" and nothing
+// else: its origin is opaque, so the browser itself keeps it out of this page, this browser's
+// storage, the file, the folder and downloads. Its storage is the copy it was handed, in memory,
+// gone with the frame.
+//
+// A BLOCK THAT CANNOT BE READ SAYS SO ON EVERY TAB and prints no figures: no lock under the chosen
+// cycle (never the working plan instead), a frame that does not answer, a copy written by a newer
+// board, a folder that cannot be read, a board that opened a different saved state than the one
+// chosen here. An appropriation that is missing must never read as an office with nothing in it.
+const FYDP_FRAME_WAIT=120000;
+let _fydpBusy=false;
+// Whichever is in hand: a value now, or a promise of one. Keeps the export synchronous when nothing
+// has to be opened, and in the harness, whose frames answer at once.
+function fydpWhen(x, ok, bad){
+  if(x && typeof x.then==='function') x.then(function(v){ try{ ok(v); }catch(e){ bad(e); } }, bad);
+  else { try{ ok(x); }catch(e){ bad(e); } }
+}
+// One other appropriation's saved state as its own board opens it: browser storage, then the file's
+// copy when that is newer. {st, why}: st null when neither holds one; why says what stopped it.
+function fydpStoreLocal(k){
+  let st=null;
+  try{ const s=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s&&(s.years||Array.isArray(s.order))) st=s; }
+  catch(e){ return {st:null, why:'its saved state in this browser could not be read'}; }
+  const pb=PUBS[k];
+  if(pb&&(pb.years||Array.isArray(pb.order))&&(pb.ts||0)>((st&&st.ts)||0)) st=pb;
+  return {st:st, why:''};
+}
+// The shared folder's copy, when the team works out of the folder and that copy is newer -- as the
+// appropriation's own board adopts it on opening. Reads only. The answer in hand when the folder is
+// not the store; a promise of it when it is.
+function fydpStoreFolder(k, got){
+  if(got.why || !driveStoreOn()) return got;
+  return (async function(){
+    let dir;
+    try{ dir=await driveDir(false,'read'); }
+    catch(e){ return {st:null, why:'the shared folder could not be read ('+((e&&e.message)||String(e))+'), so its newest copy is unknown'}; }
+    let j=null;
+    try{ j=JSON.parse(await driveRead(dir, driveName((got.st&&got.st.cur)||MS.cur, k))); }catch(e){ j=null; }
+    if(!j || !j.store) return got;
+    const theirs=+((j.store&&j.store.ts)||j.ts||0);
+    if(theirs<=((got.st&&+got.st.ts)||0)) return got;
+    if(liveTooNew(j)) return {st:null, why:'the shared folder holds a newer copy, written by a newer version of the board'};
+    if(!_hasPack(j.store)) return got;     // its board never adopts a copy that carries no requirement data
+    return {st:j.store, why:'', folder:true};
+  })();
+}
+// What the frame finds in browser storage: a copy of this browser's, less the live-view keys (a frame
+// never joins the shared folder or claims an editing lock), told which appropriation to open -- and
+// the folder's copy of it, when that is the newest, since the frame cannot reach the folder itself.
+function fydpFrameMem(k, folderSt){
+  const M={};
+  for(let i=0; i<localStorage.length; i++){
+    const key=localStorage.key(i);
+    if(key===null || key===LIVE_KEY_LS || key===LIVE_CFG_LS) continue;
+    M[key]=localStorage.getItem(key);
+  }
+  M['prio27appn']=APPN_LBL[k];
+  if(folderSt) M[_SLUGMAP[k].key]=JSON.stringify(folderSt);
+  return M;
+}
+// The frame's program: this board as it was opened, with the file's state the frame should find, and
+// a first script that gives the frame its storage -- the copy, in memory -- before any line of the
+// board runs, then answers with fydpProbeReply() once the board has opened. null if the board's own
+// source has no script to go in front of.
+function fydpFrameHtml(src, M, pub, nonce){
+  const shim='<script>(function(){var M='+JSON.stringify(M).replace(/</g,'\\u003c')+';'
+    +'var own=function(k){return Object.prototype.hasOwnProperty.call(M,k);};'
+    +'var S={getItem:function(k){return own(k)?M[k]:null;},setItem:function(k,v){M[k]=String(v);},'
+    +'removeItem:function(k){delete M[k];},clear:function(){M={};},'
+    +'key:function(i){var a=Object.keys(M);return (i>=0&&i<a.length)?a[i]:null;}};'
+    +'Object.defineProperty(S,"length",{get:function(){return Object.keys(M).length;}});'
+    +'Object.defineProperty(window,"localStorage",{value:S,configurable:true});'
+    +'try{Object.defineProperty(window,"indexedDB",{value:undefined,configurable:true});}catch(e){}'
+    +'window.alert=function(){};window.confirm=function(){return false;};window.prompt=function(){return null;};'
+    +'window.__fydpFrame='+JSON.stringify({src:src, nonce:nonce}).replace(/</g,'\\u003c')+';'
+    +'window.addEventListener("load",function(){var F=window.__fydpFrame;if(F.done)return;F.done=true;var r;'
+    +'try{r=fydpProbeReply(F.src);}catch(e){r={err:String((e&&e.message)||e)};}'
+    +'r.nonce=F.nonce;parent.postMessage(r,"*");});})();<\/script>';
+  const body=SRC0.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
+    function(m,a,b){ return a+JSON.stringify(pub).replace(/</g,'\\u003c')+b; });
+  const at=body.search(/<script\b/i);
+  return at<0? null : body.slice(0,at)+shim+body.slice(at);
+}
+// IN THE FRAME: what this board prints for the source, handed back as data. Nothing else leaves.
+function fydpProbeReply(src){
+  return {ap:mySlug(), ts:+(MS.ts||0), by:MS.by||'', cycle:MS.cycle||'', shell:!!IS_SHELL, build:BUILD,
+          lost:_bootLost.slice(), restoreErr:_bootRestoreErr||'', D:IS_SHELL? null : fydpData(src)};
+}
+// Open one frame and wait for its answer. Resolves, never rejects; the frame is removed either way.
+function fydpFrame(html, nonce){
+  return new Promise(function(res){
+    let fr=null, tm=null, done=false;
+    const fin=function(r){
+      if(done) return; done=true; clearTimeout(tm); window.removeEventListener('message', on);
+      try{ if(fr && fr.parentNode) fr.parentNode.removeChild(fr); }catch(e){}
+      res(r);
+    };
+    const on=function(e){
+      if(!fr || e.source!==fr.contentWindow) return;
+      const d=e.data; if(!d || typeof d!=='object' || d.nonce!==nonce) return;
+      fin(d);
+    };
+    window.addEventListener('message', on);
+    try{
+      fr=document.createElement('iframe');
+      fr.setAttribute('sandbox','allow-scripts');
+      fr.setAttribute('aria-hidden','true'); fr.setAttribute('tabindex','-1');
+      fr.style.cssText='position:fixed;left:-20000px;top:0;width:1400px;height:900px;border:0;visibility:hidden';
+      fr.srcdoc=html;
+      document.body.appendChild(fr);
+    }catch(e){ fin({err:(e&&e.message)||String(e)}); return; }
+    tm=setTimeout(function(){ fin({err:'it did not answer within '+Math.round(FYDP_FRAME_WAIT/1000)+' seconds'}); }, FYDP_FRAME_WAIT);
+  });
+}
+// The frame's answer, checked before a figure of it is used: the appropriation asked for, this build,
+// a clean opening, and the very saved state chosen here (want: its stamp).
+function fydpTake(a, r, want, src){
+  if(!r || typeof r!=='object'){ a.why='its board did not answer'; return; }
+  if(r.err){ a.why='its board could not be opened ('+r.err+')'; return; }
+  if(r.ap!==a.k){ a.why='the frame opened '+appnName(r.ap)+' instead'; return; }
+  if(r.build!==BUILD){ a.why='the frame ran a different build ('+r.build+')'; return; }
+  if((r.lost||[]).length || r.restoreErr){ a.why='its board could not read '+((r.lost||[]).join(', ')||'its saved state'); return; }
+  if(+r.ts!==+want){ a.why='its board opened a different saved state than the newest one here'; return; }
+  if(r.shell){ a.none=true; a.why='holds no requirements on this board'; return; }
+  const X=r.D;
+  if(!X){ a.why=(src==='working')? 'its board holds no working plan' : 'has no '+blLbl(src)+' lock'; return; }
+  if(X.src!==src || !Array.isArray(X.held) || !Array.isArray(X.years) || !X.years.length
+     || X.held.some(function(y){ return !X.proj || !X.proj[y] || !Array.isArray(X.proj[y].reqs); })){
+    a.why='its board answered in a shape this one cannot read'; return; }
+  if(!X.held.length){ a.none=true; a.why='holds no plan in '+(src==='working'? 'its window' : blLbl(src)); return; }
+  a.D=X; a.cycle=r.cycle||''; a.ts=+r.ts||0; a.by=r.by||'';
+}
+// Every appropriation for the PMO tabs, in the board's order: [{k, D, why, none, own, skip}]. The one
+// open is the D the first three sheets print. done(A) is called once, when every frame has answered
+// -- at once when none has to be opened. Returns the names of those being opened.
+function fydpGather(D, done){
+  const src=D.src, waiting=[];
+  const A=APPN_SLUGS.map(function(k){ return {k:k, D:null, why:'', none:false, own:k===mySlug(), skip:false, cycle:'', ts:0, by:''}; });
+  let left=1;
+  const one=function(){ if(--left===0) done(A); };
+  A.forEach(function(a){
+    if(a.own){ a.D=D; a.cycle=MS.cycle||''; return; }
+    // a PMO copy carries one appropriation, and so does a board without appropriation slots
+    if(SANDBOX || typeof _SLUGMAP==='undefined' || !_SLUGMAP[a.k]){ a.skip=true; return; }
+    const loc=fydpStoreLocal(a.k);
+    if(loc.why){ a.why=loc.why; return; }
+    if(!loc.st && !pkgPackOf(a.k)){ a.none=true; a.why='holds no requirements on this board'; return; }
+    if(src!=='working'){
+      const cs=cycStoreOf(a.k);
+      if(cs.bad){ a.why='its locked cycles in this browser could not be read'; return; }
+      const c=cs.c && cs.c.cycles[src];
+      if(!c || !Object.keys(c.proj||{}).length){ a.why='has no '+blLbl(src)+' lock'; return; }
+    }
+    left++; waiting.push(appnName(a.k));
+    let over=false;
+    const fin=function(){ if(over) return; over=true; one(); };
+    const fail=function(e){ if(over) return; a.D=null; a.why='its board could not be opened ('+((e&&e.message)||String(e))+')'; fin(); };
+    fydpWhen(fydpStoreFolder(a.k, loc), function(got){
+      if(got.why){ a.why=got.why; fin(); return; }
+      // the board-wide stores as this board holds them now, and this appropriation's slots as the file had them
+      const pub={appns:{}, cycDb:{ts:0, byAp:{}}};
+      pub.execDb=EXDB; pub.aceDb=ACEDB; pub.rpDb=RPDB; pub.budDb=BUDDB;
+      if(PUBS[a.k]) pub.appns[a.k]=PUBS[a.k];
+      if(CYC_FILE[a.k]) pub.cycDb.byAp[a.k]=CYC_FILE[a.k];
+      const nonce='fydp-'+a.k+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
+      const html=fydpFrameHtml(src, fydpFrameMem(a.k, got.folder? got.st : null), pub, nonce);
+      if(!html){ a.why='this board could not build a frame for it'; fin(); return; }
+      const want=(got.st && +got.st.ts) || 0;
+      fydpWhen(fydpFrame(html, nonce), function(r){ fydpTake(a, r, want, src); fin(); }, fail);
+    }, fail);
+  });
+  one();
+  return waiting;
+}
+// The tabs. A: fydpGather's answer; taken: the sheet names already used. {sheets, said}: said is what
+// the status line adds.
+function fydpPmoSheets(D, A, taken){
+  const H=2,B=1,N=3,NB=4,SEC=6,TI=7;
+  const fyl=function(y){ return 'FY'+(y%100); };
+  const spanOf=function(X){ return fyl(X.years[0])+'–'+fyl(X.years[X.years.length-1]); };
+  const cell=function(f,k,s){ return f? {v:f[k], s:s} : {v:'—', s:0}; };
+  const nm=function(a){ return appnName(a.k); };
+  const got=A.filter(function(a){ return a.D && a.D.held.length; }).map(function(a){ return {a:a, R:fydpRows(a.D)}; });
+  const union={}; got.forEach(function(g){ g.R.groups.forEach(function(x){ union[x.grp]=1; }); });
+  const pmos=pmoKeys(union);
+  const refused=A.filter(function(a){ return !a.D && !a.skip && !a.none; });
+  const none=A.filter(function(a){ return !a.D && a.none; });
+  const skipped=A.filter(function(a){ return a.skip; });
+  const srcOf=function(a){
+    const X=a.D;
+    if(X.src!=='working') return X.label+(X.ts? ', locked '+fmtTs(X.ts)+(X.by? ' by '+X.by : '') : '');
+    return X.label+(a.own? ', as it stands on this board' : ', its newest saved copy'+(a.ts? ' ('+fmtTs(a.ts)+(a.by? ', '+a.by : '')+')' : ''));
+  };
+  const note='One block per appropriation this office holds requirements in, each read by that appropriation’s own board from '
+    +(D.src==='working'? 'its working plan' : blLbl(D.src)+' as locked')+', so each block ties to the By PMO sheet that board prints. '
+    +'Under each CCaR record, the requirements that roll up to it; requirements with no CCaR record last. Requirement and Allocation '
+    +'(the board’s Allocated) for each fiscal year, the FYDP total at the right, each block’s total at the bottom. A year the plan never '
+    +'held prints —, not 0, and is outside the totals. Appropriations are not added together.';
+  const readLine='Read: '+got.map(function(g){ return nm(g.a)+' — '+srcOf(g.a); }).join(' · ')
+    +(none.length? '. '+none.map(function(a){ return nm(a)+' '+a.why; }).join('; ') : '')
+    +(skipped.length? '. This PMO copy carries '+appnName(mySlug())+' only' : '')+'.';
+  const used={}; (taken||[]).forEach(function(n){ used[String(n).toLowerCase()]=1; });
+  const tab=function(p){
+    let n=String(p).replace(/[\[\]:*?\/\\]/g,'-').replace(/^'+|'+$/g,'').trim().slice(0,31)||'PMO';
+    if(n.toLowerCase()==='history') n='History (PMO)';
+    let t=n, i=2;
+    while(used[t.toLowerCase()]){ const sfx=' ('+(i++)+')'; t=n.slice(0,31-sfx.length)+sfx; }
+    used[t.toLowerCase()]=1;
+    return t;
+  };
+  const sheets=pmos.map(function(p){
+    const head=p+' — FYDP SPEND PLAN BY APPROPRIATION — '+D.label.toUpperCase();
+    const rows=[[{v:SANDBOX? '◨ PMO COPY (snapshot of '+expStamp()+', NOT the current plan)  —  '+head : head, s:TI}], [{v:note, s:0}], [{v:readLine, s:0}]];
+    refused.forEach(function(a){ rows.push([{v:'⚠ '+nm(a).toUpperCase()+' IS NOT ON THIS TAB — '+a.why+'. Its figures are missing here, not zero.', s:B}]); });
+    const without=got.filter(function(g){ return !g.R.groups.some(function(x){ return x.grp===p; }); }).map(function(g){ return nm(g.a); });
+    if(without.length) rows.push([{v:'No '+p+' requirements in '+without.join(', ')+'.', s:0}]);
+    rows.push([]);
+    let nY=0;
+    got.forEach(function(g){
+      const grp=g.R.groups.filter(function(x){ return x.grp===p; })[0]; if(!grp) return;
+      const X=g.a.D, R=g.R;
+      nY=Math.max(nY, X.years.length);
+      const warn=(X.src==='working' && g.a.cycle!==(MS.cycle||''))
+        ? ' — ⚠ its working plan is tagged '+(g.a.cycle? blLbl(g.a.cycle) : 'with no cycle')+', this one '+(MS.cycle? blLbl(MS.cycle) : 'with none') : '';
+      rows.push([{v:appnLbl(g.a.k)+' — '+X.label+' — '+spanOf(X)+warn, s:SEC}]);
+      const hdr=['CCaR record','Requirement'];
+      X.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocation'); });
+      hdr.push('FYDP Requirement','FYDP Allocation');
+      rows.push(hdr.map(function(v){ return {v:v, s:H}; }));
+      const put=function(c0, c1, s, st){
+        const L=[c0, c1];
+        X.years.forEach(function(y){ const f=s.fy[y]; L.push(cell(f,'ask',st), cell(f,'alloc',st)); });
+        L.push({v:s.tot.ask, s:st}, {v:s.tot.alloc, s:st});
+        rows.push(L);
+      };
+      // records in the order their first requirement ranks, one record however its id is cased or spaced
+      const recs=[], by={}, loose=[];
+      grp.ids.forEach(function(id){
+        const c=String(R.rows[id].ccar||'').replace(/\s+/g,' ').trim();
+        if(!c){ loose.push(id); return; }
+        const key=c.toUpperCase();
+        if(!by[key]){ by[key]={lbl:c, ids:[]}; recs.push(key); }
+        by[key].ids.push(id);
+      });
+      const rec=function(lbl, ids){
+        put({v:lbl, s:B}, ids.length+' requirement'+(ids.length===1?'':'s'), fydpSub(ids, R.rows, X), NB);
+        ids.forEach(function(id){ const r=R.rows[id]; put('', r.title, {fy:r.fy, tot:r.tot}, N); });
+      };
+      recs.forEach(function(key){ rec(by[key].lbl, by[key].ids); });
+      if(loose.length) rec('No CCaR record', loose);
+      put({v:'Total — '+nm(g.a), s:B}, grp.ids.length+' requirement'+(grp.ids.length===1?'':'s'), fydpSub(grp.ids, R.rows, X), NB);
+      rows.push([]);
+    });
+    const cols=[18,46]; for(let i=0; i<nY; i++) cols.push(14,14); cols.push(16,16);
+    return {name:tab(p), cols:cols, freeze:'C1', rows:rows};
+  });
+  let said=' A tab for each of '+pmos.length+' PMO'+(pmos.length===1?'':'s')+(got.length? ' — '+got.map(function(g){ return nm(g.a); }).join(', ') : '')+'.';
+  if(none.length) said+=' '+esc(none.map(function(a){ return nm(a)+' '+a.why; }).join('; '))+'.';
+  if(refused.length) said+=' ⚠ <b>Not read</b>: '+refused.map(function(a){ return '<b>'+esc(nm(a))+'</b> ('+esc(a.why)+')'; }).join('; ')+' — every PMO tab says so.';
+  return {sheets:sheets, said:said};
 }
 function fydpBody(){
   const bg=document.getElementById('fydpPanel'), el=document.getElementById('fydpBody');
@@ -14745,6 +15062,7 @@ function fydpBody(){
       : 'No cycle tag on the working plan, so no PPBE position is printed beside it.')+'</div>';
   }
   h+='<div class="hint" style="margin-top:8px">The workbook carries every requirement’s row with Requirement, Allocated, Funded and Unfunded per year, the PMO subtotals, and the same by PMO and by service with the budget authority beside it. Funded is the lane draw; Unfunded is requirement less funded, floored per service. A locked cycle prints its figures as locked; the working plan prints them as they stand.</div>';
+  h+='<div class="hint" style="margin-top:6px">After those three sheets the workbook carries <b>a tab per PMO</b>: one block for each appropriation the office holds requirements in — '+APPN_SLUGS.map(appnName).join(', ')+' — its CCaR records with the requirements that roll up to each beneath, Requirement and Allocation by year, row totals at the right and block totals at the bottom. Each other appropriation is opened as its own board, read-only in a sealed frame, from the same source'+(SANDBOX? ' (a PMO copy carries this appropriation only)' : '')+'; one that cannot be read is named on every tab, never left out quietly.</div>';
   el.innerHTML=h;
 }
 // ============================ COMPARING TWO CYCLES =========================================
@@ -20126,7 +20444,7 @@ function syncBtns(){
   document.getElementById('dd_fydp').innerHTML=
     '<div class="mlbl">Views</div>'+
     mi('📐 Spruills — Reqs vs Funding…',"mRun(toggleSp)",spOpen,'ACE × PPBE cycle · all appns')+
-    mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'by requirement · PMO · service — a locked cycle or the working plan')+
+    mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'by requirement · PMO · service · a tab per PMO — a locked cycle or the working plan')+
     mi('⇄ Compare two cycles…',"mRun(toggleCycCmp)",cycCmpOpen,'A ⇄ B per year · added, removed, changed · the rows account for the totals')+
     '<div class="msep"></div><div class="mlbl">Positions</div>'+
     mi('🏛 PPBE Budget Positions…',"mRun(toggleP2)",ppOpen,'POM · BES · PB · DoN')+
@@ -20202,7 +20520,7 @@ function syncBtns(){
     '<div class="mlbl">Briefing products</div>'+
     mi('📊 Excel Workbook — full breakouts',"mRun(exportExcel)",false,'streams · forecast · CR · PMOs'+(DATA.costElems?' · CE':''))+
     mi('📈 ACE Tie-Out (Excel)',"mRun(exportAceTieout)",false,'mapping · PMO reconciliation · unclaimed lines')+
-    mi('📊 FYDP Spend Plan (Excel)',"mRun(exportFydpPlan)",false,(fydpSrc==='working'? 'the working plan' : blLbl(fydpSrc)+' (locked)')+' · by requirement, PMO, service')+
+    mi('📊 FYDP Spend Plan (Excel)',"mRun(exportFydpPlan)",false,(fydpSrc==='working'? 'the working plan' : blLbl(fydpSrc)+' (locked)')+' · by requirement, PMO, service, a tab per PMO')+
     mi('⇄ Cycle Comparison (Excel)',"mRun(exportCycCompare)",false,(cycCmpA? cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB) : 'pick A in ⇄ Compare two cycles')+' · compare, changes, by PMO')+
     // Under BRIEFING PRODUCTS, not Data: it is taken into a room and worked through, not loaded
     // into another system. It reaches every appropriation, so it says so on the menu - the rest of

@@ -7,7 +7,10 @@ export const BOARD = process.env.BOARD
 
 // `html` boots a board from a STRING rather than from disk -- what buildSavedHtml() hands back,
 // so a saved file can be reopened and compared against the board that wrote it.
-export function boot({ svc, items, quiet = true, html = null } = {}) {
+// `appn` opens that appropriation ('FULL FUND') the way a browser that last chose it would: set in
+// browser storage before the page parses, so nothing is added to the page's own source -- a board
+// booted that way still saves, publishes and opens its frames from a clean SRC0.
+export function boot({ svc, items, quiet = true, html = null, appn = null } = {}) {
   const vc = new VirtualConsole();
   const errors = [];
   vc.on('jsdomError', e => errors.push(e.message));
@@ -17,6 +20,7 @@ export function boot({ svc, items, quiet = true, html = null } = {}) {
     runScripts: 'dangerously',
     virtualConsole: vc,
     url: 'https://example.invalid/board.html',
+    beforeParse(win) { if (appn) { try { win.localStorage.setItem('prio27appn', appn); } catch {} } },
   });
   const w = dom.window;
   // Things the page touches that jsdom does not implement. None of them are on the math path.
@@ -32,6 +36,30 @@ export function boot({ svc, items, quiet = true, html = null } = {}) {
                    'TransformStream', 'DecompressionStream', 'CompressionStream']) {
     if (typeof globalThis[g] === 'function') w[g] = globalThis[g];
   }
+
+  // THE OTHER APPROPRIATIONS' FRAMES (v1.85). The five-year plan opens each other appropriation in a
+  // sandboxed srcdoc frame, which jsdom does not run. Here the frame is a second board booted from
+  // the very HTML the page built for it -- its storage shim included, so it reads the copy it was
+  // handed and nothing else -- asked the same question, and answering at once, so every tool that
+  // captures a workbook synchronously still does. What each frame did is kept on __fydpFrames for
+  // the suites. The browser path itself (the iframe, postMessage, storage untouched) is checked in
+  // Chromium by tools/fydp-frames.mjs.
+  w.__fydpFrames = [];
+  w.fydpFrame = (html, nonce) => {
+    let r, c = null, keys = [];
+    try {
+      c = boot({ html, quiet });
+      const F = c.w.__fydpFrame;
+      if (!F) throw new Error('the frame shim did not run');
+      F.done = true;
+      r = JSON.parse(c.w.eval(`JSON.stringify(fydpProbeReply(${JSON.stringify(F.src)}))`));
+      keys = JSON.parse(c.w.eval('JSON.stringify((function(){ var o=[]; for(var i=0;i<localStorage.length;i++) o.push(localStorage.key(i)); return o; })())'));
+    } catch (e) { r = { err: String((e && e.message) || e) }; }
+    w.__fydpFrames.push({ nonce, err: r.err || '', errors: c ? c.errors.slice() : [], keys, bytes: html.length });
+    try { if (c) c.w.close(); } catch {}
+    r.nonce = nonce;
+    return { then(ok) { ok(r); return this; } };
+  };
 
   const ev = code => w.eval(code);
   return { dom, w, ev, errors };

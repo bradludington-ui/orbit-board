@@ -4,11 +4,45 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.84**. Next: **v1.85**.
+Current version: **v1.85**. Next: **v1.86**.
 
 ## Open
 
-### 8. Five-year spend plan: a tab per PMO, every appropriation, records with their requirements
+_Nothing open. Log the next change here._
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v1.85 — 24 Sep 2026: item 8, built on Brad's "go"
+
+What shipped differs from the log in these places, all stated here:
+- **The five years are the report's span:** the base year plus four, and — only in the weeks after the
+  base rolls forward — the year on screen as well, exactly as on the three sheets before the tabs. So
+  every PMO tab ties to By PMO to the dollar, including the far-right totals.
+- **The other appropriations are read, not recomputed.** Each is opened as its own board, read-only,
+  in a sealed frame the browser keeps away from storage, the file and the folder, from the newest copy
+  its own board would open. The export waits a few seconds for them and the status line says which
+  are being opened. A Full Fund block is therefore Full Fund's own report.
+- **An appropriation that cannot be read is named on every tab** with the reason ("its figures are
+  missing here, not zero"): no lock under the chosen cycle, a copy written by a newer board, a shared
+  folder that cannot be read, or a board that opened a different copy than the newest one here.
+- **A working plan tagged under a different cycle** than the board you export from is flagged on its
+  block (e.g. "⚠ its working plan is tagged PB27, this one BES28").
+- **CCaR records are matched however they are typed:** " jsf5594 " and "JSF5594" are one record.
+- **A PMO copy prints its own appropriation only.**
+- **Also fixed on the way — a data-loss bug:** a consolidated file opened on one appropriation in a
+  browser that had never opened another, then saved, dropped the other appropriation's **locked
+  cycles** from the file. Saves now keep them (the newer of this browser's copy and the file's).
+- **Also fixed:** a five-year workbook exported from a PMO copy was stamped in its file name but not
+  on its sheets; every sheet now carries the "◨ PMO COPY (snapshot of …, NOT the current plan)" banner.
+
+#### 8. Five-year spend plan: a tab per PMO, every appropriation, records with their requirements
 - **Logged:** 24 Sep 2026, Brad: *"I need that report to pull by pmo so I need a pmo specific tab for
   each pmo that has requirements ... underneath that I need a list of their records so for instance
   jsf5594 then underneath that record I need to see the individual requirements listed that roll up
@@ -64,16 +98,6 @@ Current version: **v1.84**. Next: **v1.85**.
 - Mutations for each of the above, and the full math gate.
 - **Help and training:** a slide for the portfolio team (Session B, the products) and a line in the
   road-show notes.
-
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v1.84 — 24 Sep 2026: items 4, 5, 6 and 7, built together on Brad's "go"
 
