@@ -99,6 +99,35 @@ Current version: **v1.83**. Next: **v1.84**.
 - Road-show deck: Session A slides on what you send back, the Lead Financial Manager checklist,
   "What travels"; Session B slides on review, and ranking.
 
+### 7. Take one appropriation back from a consolidated file
+- **Logged:** 24 Sep 2026, Brad: *"I sent my O&M Lead the consolidated file and he is updating the
+  O&M section. I need to be able to import only the O&M data when he's done."*
+- **What the code does today (tested 24 Sep, v1.83 grid, example data):** ⬅ Import a previous board…
+  on a consolidated `.html` seeds **all four** appropriations from that file. Measured: a Full Fund
+  change made on the owner's board after the file went out was **replaced by the Lead's copy** of
+  Full Fund. The only warning is the general "This REPLACES everything on this board" confirm.
+  Execution data, cost estimates, the reprogramming log and locked cycles follow their own merge
+  rules and were not the problem.
+- **Works today, no change needed (tested the same way):** the Lead, in his consolidated copy,
+  uses 📁 File ▾ → 🔁 Appropriation packages… → ⬆ Issue on the O&M row, and sends the `.json` it
+  saves. Importing that on the owner's board replaced **O&M only**, after a preview of every change;
+  Full Fund kept the owner's later edit, and execution, cost estimates and the reprogramming log
+  were untouched. Caveat: it takes the Lead's O&M whole, so O&M edits the owner made meanwhile are
+  replaced (the preview lists them). The button is named for the other direction ("Issue"), which
+  is why this needs doing properly.
+- **What is needed:**
+  1. Importing a consolidated `.html` asks **which appropriations to take**, one tick box each, with
+     the same per-appropriation preview a package gets; nothing ticked by default, and appropriations
+     not ticked are left exactly as they are.
+  2. The Lead's side gets a clearly named **⬆ Send this appropriation back…** in a consolidated
+     copy, carrying what the appropriation looked like when the file was sent, so the owner's board
+     can say which of its own changes would be replaced (the check a return package already has).
+  3. Tests: a whole-file import with one box ticked changes only that appropriation, byte for byte;
+     the other three, the BAE list, execution, cost estimates, reprogramming and cycles are
+     unchanged; a conflict is flagged when the owner changed the same appropriation meanwhile.
+- **Help and training:** add the hand-off to the road-show deck (Session B) and a short note in the
+  help for appropriation leads.
+
 ## Withdrawn
 
 ### 1. PIDs show up in the CCaR column of the Excel workbook
