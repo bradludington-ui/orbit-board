@@ -28,6 +28,77 @@ Current version: **v1.83**. Next: **v1.84**.
 - **What is needed:** after the refusal the box shows the copy's own appropriation again.
 - **Until then:** the PMO guide says to refresh the page if the box shows the wrong name.
 
+### 6. The PMO copy does the legwork: every field but the allocation, the office's own ranking, new requirements
+- **Logged:** 24 Sep 2026, Brad: *"For the sandbox, I need them to be able to add requirements for the
+  PMO, prioritize within their PMO, and be able to edit all available items within the requirement
+  except for the discretionary and mandatory allocations. I need them to be able to send me completely
+  updated requirements. We can always update in the master live file but I need them to do most of
+  the legwork."* Help files and training are updated in the same version.
+- **Decided 24 Sep (Brad):** the decision band and ★ Mission Critical travel like any other field.
+  An accepted office ranking is **stored as that office's own ranking** on the live board; the
+  master list changes only when the portfolio team moves rows by hand.
+
+##### What the code does today (measured 24 Sep on a v1.83 grid PMO copy)
+- A submittal carries **8 fields**: description, impact if not funded, note, requirement value by
+  service, CCaR record, PID, CCaR record name, MIPR type. Everything else an office edits in its copy
+  is kept in the copy and not sent (the PMO guide says so).
+- **Adding a requirement** already works: it travels whole as a proposal once its mandatory fields
+  are filled (v1.7x, backlog #1).
+- **The office's own ranking** can be changed in the copy (🏢 PMO ▾ → your office, then drag) and is
+  never sent.
+- **DISC and MAND** can be typed in the copy and are not sent, so an office can believe it edited an
+  allocation it did not.
+- **A promise the board does not keep:** in office view the hint says "⇪ Apply PMO Ranks syncs it
+  when you choose". There is no such control in either build, nor anywhere in the repository's
+  history. With "store it only" decided, the hint is simply wrong and is reworded.
+
+##### What travels in v1.84
+| Field | Store | Today | v1.84 |
+|---|---|---|---|
+| Description, impact, note, requirement value, CCaR record, PID, record name, MIPR type | desc, cons, notes, asks, ccar, pid, recNames, mipr | sent | sent |
+| Title / plan event | titles | kept in the copy | **sent** |
+| PMO (reassigning a requirement) | grp | kept | **sent** (scope by the office that owned it when the copy was published, so a hand-over is not dropped as "another office's") |
+| Prime contract / OGC | ptype | kept | **sent** |
+| Obligation category | obCat | kept | **sent** |
+| WBS | wbs, clinWbs | kept | **sent** |
+| RCN / EEIC | rcnAsg, rcnSvc | kept | **sent** |
+| Navy SI code | si | kept | **sent** |
+| Goes to / which awards to | dest | kept | **sent** |
+| Cost element (Full Fund) | costElem | kept | **sent** |
+| BAE budget, per service and lane | budgetAsg | kept | **sent** |
+| Award / obligation date, CR half-month | awards, crHalf | kept | **sent** |
+| Minimum useful increment | minInc | kept | **sent** |
+| UPL mark | upl | kept | **sent** |
+| Decision band | band | kept | **sent** (decided 24 Sep) |
+| ★ Mission Critical | mc | kept | **sent** (decided 24 Sep) |
+| The office's own ranking | pmoOrder[office] | kept | **sent**; applied as that office's ranking only |
+| **Discretionary and mandatory allocation** | alloc, fsrc | kept | **locked in the copy, never sent** |
+| Prime CLIN drill (allocation to CLINs) | clinAlloc, clinMeta, clinNew, clinRm | kept | not sent: allocation, and the CLIN grid feeds nothing |
+| Shortfall absorber, ACE mapping | absorber, aceMap | kept | not sent: funding mechanics and the portfolio's reconciliation |
+
+##### How it works, end to end
+1. **In the copy**, every field above is editable on the office's own requirements, and on new ones.
+   DISC and MAND show read-only, labelled as the portfolio team's allocation.
+2. **The submittal** carries each changed field with the value it had when the copy was published
+   (so a conflict can be seen), plus the office's ranking when it changed, plus new requirements whole
+   with every field.
+3. **Submittal review** shows each field beside the board's current value, ticked field by field as
+   today. The ranking is one row: the office's order before and after, applied as a whole.
+4. **✔ Apply** writes only the ticked fields. The allocation stores are never written by a submittal.
+
+##### Can't-fail checks for the build
+- Round trip: every field above, set in a copy, arrives in review with the right before and after
+  values and lands exactly on apply, on both builds; a conflict is flagged for each.
+- A maximal submittal (every field, every requirement, a new ranking, a proposal) never changes a
+  single allocation value (alloc, fsrc), and applying the ranking never moves the master order.
+- An untouched copy still submits nothing ("Nothing to send yet").
+- New mutations for each new field and for the allocation lock; the full math gate as always.
+
+##### Help and training, same version
+- PMO copy guide (web page and PDF): steps 4 and 5, "What travels", troubleshooting.
+- Road-show deck: Session A slides on what you send back, the Lead Financial Manager checklist,
+  "What travels"; Session B slides on review, and ranking.
+
 ## Withdrawn
 
 ### 1. PIDs show up in the CCaR column of the Excel workbook
