@@ -4,11 +4,32 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.83**. Next: **v1.84**.
+Current version: **v1.84**. Next: **v1.85**.
 
 ## Open
 
-### 4. A PMO copy still offers Save and says "unsaved changes"
+*(nothing open)*
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v1.84 — 24 Sep 2026: items 4, 5, 6 and 7, built together on Brad's "go"
+
+What shipped differs from the log in two places, both stated here:
+- **The UPL mark stays with the portfolio team.** It turned out to be the funding realignment's own
+  marker, keyed by funding pool rather than by requirement, so it is not a field of the requirement.
+- **The minimum useful increment now travels** (it was deliberately held back before v1.84), because
+  the owner asked for every field except the allocation.
+- **Also fixed on the way:** an appropriation package's preview could say "nothing changed" when it
+  would replace notes, descriptions or record fields; it now names every container that differs.
+
+#### 4. A PMO copy still offers Save and says "unsaved changes"
 - **Logged:** 23 Sep 2026, found while checking the PMO guide against a v1.83 grid copy; Brad
   asked for it to be logged.
 - **What an office sees:** the header of a PMO copy shows `💾 Save` and "• unsaved changes" as soon
@@ -20,7 +41,7 @@ Current version: **v1.83**. Next: **v1.84**.
   say the work is kept in this browser), never to Save. The portfolio board is unchanged.
 - **Until then:** the PMO guide tells offices to expect the Save button and ignore it.
 
-### 5. A refused appropriation switch leaves the box showing the other appropriation
+#### 5. A refused appropriation switch leaves the box showing the other appropriation
 - **Logged:** 23 Sep 2026, same check; Brad asked for it to be logged.
 - **What an office sees:** on a PMO copy, picking another appropriation in the Appropriation box is
   refused ("This PMO copy holds the O&M portfolio only …"), as it should be, but the box keeps
@@ -28,7 +49,7 @@ Current version: **v1.83**. Next: **v1.84**.
 - **What is needed:** after the refusal the box shows the copy's own appropriation again.
 - **Until then:** the PMO guide says to refresh the page if the box shows the wrong name.
 
-### 6. The PMO copy does the legwork: every field but the allocation, the office's own ranking, new requirements
+#### 6. The PMO copy does the legwork: every field but the allocation, the office's own ranking, new requirements
 - **Logged:** 24 Sep 2026, Brad: *"For the sandbox, I need them to be able to add requirements for the
   PMO, prioritize within their PMO, and be able to edit all available items within the requirement
   except for the discretionary and mandatory allocations. I need them to be able to send me completely
@@ -99,7 +120,7 @@ Current version: **v1.83**. Next: **v1.84**.
 - Road-show deck: Session A slides on what you send back, the Lead Financial Manager checklist,
   "What travels"; Session B slides on review, and ranking.
 
-### 7. Take one appropriation back from a consolidated file
+#### 7. Take one appropriation back from a consolidated file
 - **Logged:** 24 Sep 2026, Brad: *"I sent my O&M Lead the consolidated file and he is updating the
   O&M section. I need to be able to import only the O&M data when he's done."*
 - **What the code does today (tested 24 Sep, v1.83 grid, example data):** ⬅ Import a previous board…
@@ -128,14 +149,6 @@ Current version: **v1.83**. Next: **v1.84**.
 - **Help and training:** add the hand-off to the road-show deck (Session B) and a short note in the
   help for appropriation leads.
 
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v1.83 — 23 Sep 2026: items 2 and 3, built together on Brad's "go"
 

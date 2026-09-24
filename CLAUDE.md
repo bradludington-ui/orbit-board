@@ -336,8 +336,8 @@ the tier, `natM`/`natU`, the totals and the Mission Critical memo are identical 
 from. `audit-import.mjs`'s `handoff — out` block asserts that identity rather than assuming it.
 
 **Inbound.** `pmoSubmit()` builds a package of only the contributable fields — narrative, impact,
-requirement value, CCaR / PID / record name. The minimum useful increment is deliberately NOT
-contributable: it is a funding decision, not a programme fact. The package carries three things
+requirement value, CCaR / PID / record name. **Since v1.84 every field on the requirement travels
+except the allocation** (see *v1.84* below); a copy published before v1.84 still sends only these. The package carries three things
 besides the edits, and each one was added because it was missing:
 
 - `svc` — the sandbox's service list. Without it a submittal is exactly the positional-import
@@ -2264,6 +2264,69 @@ the warning, Full Fund by cost element) and *the two spend plans -- every requir
 audit-import proves the list travels in the saved file, not inside an appropriation, and that an old
 layout's list is found from another appropriation. 29 new or replaced mutations, 5 re-aimed: 368
 in all, 11 equivalent.
+
+### v1.84: the PMO copy does the legwork; one appropriation comes back from a consolidated file
+
+Built from `NEXT-VERSION.md` items 4-7 on the owner's "go" (24 Sep 2026).
+
+**Every field but the allocation travels** (item 6; Brad: offices "edit all available items within
+the requirement except for the discretionary and mandatory allocations ... do most of the legwork").
+`PMO_FIELDS` gained the plan event (`titles`), PMO (`grp`), band, Mission Critical, prime/OGC,
+obligation category, WBS, RCN/EEIC (and by service), Navy SI code, destination, cost element, BAE
+budget assignment, award date, CR half-month and minimum useful increment. The band and the star
+travel by the owner's decision. What stays: `alloc`, `fsrc`, the CLIN drill, the shortfall absorber,
+the ACE mapping and the realignment's UPL marks (keyed by funding pool, not requirement -- the log
+listed UPL as sent; it is not a requirement field).
+- **A copy says which field set it carries** (`PMODE.pv`, `PMO_PV=2`). A copy published before v1.84
+  has a baseline of the first eight fields only; comparing the rest against it would offer every
+  band, WBS and award date already on the board as a proposal nobody wrote. `pmoKeysOf()` sends the
+  old eight for an old copy. `pmoVal()` reads absent, empty (`{}`, `[]`, `''`) and `false` as one
+  value for the same reason.
+- **Checked at the door, field by field** (`pmoNorm`, in `pmoTake`): a band this board lacks, an SI
+  code it does not know, a WBS vector of the wrong width is LEFT OUT AND NAMED, never shaped to fit.
+  WBS vectors are positional and are remapped with the asks when the services arrive reordered.
+- **Scope by the office at publication** (`pmoHomeOf`): a copy that hands a requirement to another
+  office must send the hand-over; reading the office *now* dropped it as "another office's".
+- **The office's own ranking travels** (`PMODE.ord` at publish, `pmoRankBuild`, `pkg.rank`), compared
+  on the requirements both lists hold. It is ONE review row, applied whole by `pmoApplyRank()` to
+  `S.pmoOrder[office]` only -- the master list never moves (owner: "store it only"). `pmoOrder` is
+  outside the journal's captured walk, so the apply adds its own entry; it must NOT call
+  `jrnlSync()` first, which would fold every field the same batch already applied into the shadow
+  and lose their entries.
+- **The allocation is locked in a copy** (`allocLocked()` at the top of every writer a person can
+  reach: `setAlloc`, `resetAlloc`, `setFsrc`, `setFsrcSvc`, `setSvc`, `zeroPMO`, `restorePMO`,
+  `zeroSpread`, `realignAll`, `convertAllToSplit`, `clinToRow`, and rank-entry's restore). The copy
+  also injects a style that dims or hides those controls, found by the writer their handler calls --
+  the grid draws its inspector AFTER the shared `render()`, so a pass at the end of render would miss
+  it. The old "⇪ Apply PMO Ranks" hint promised a control that never existed; it now says what is true.
+
+**A copy points to Submit input, never Save** (item 4): the header button becomes ✉ Submit input,
+the save indicator says the work is kept in this browser, File ▸ Save says it is off, and the opening
+line no longer says "Save to pass it on". **A refused appropriation switch puts the box back** (item 5).
+
+**One appropriation back from a consolidated file** (item 7). Importing a consolidated `.html` used to
+seed all four slots, so a file sent to the O&M lead came back and replaced Full Fund, Spares and OPN
+with what they had been when it left (measured). Now `consTakePick()` asks which to take (numbers or
+ALL; nothing by default) and `consTakeApply()` takes each one the way a returned package is taken:
+the services guard, a conflict check, a preview, locked baselines and the package ledger kept. The
+board-wide stores come across only when the whole file is taken. The shell still takes everything.
+A lead working in a consolidated copy can instead **⬆ Send back** one appropriation (`pkgSendBack`):
+a return package with no signature, carrying the ledger number the file had.
+- **"What did I change since the file left?" is read from the change journal** (`pkgMineSince`): the
+  newest entry both journals share marks when the file was saved; every later entry this board has
+  and the file does not is a change the take would discard. Not a signature: two copies of one store
+  that went through different boots are not byte-identical, and a conflict that fires on every
+  import is one people click through. `pkgApply()` uses it for any return without a signature.
+- **The preview names every container** (`pkgDiff`): it was written for the order and the money, and
+  previewed a package that changed only notes as "nothing changed". Seed flags (`*Seeded`) are skipped.
+
+Tests: audit-import gains four v1.84 blocks -- every field set in a real published copy, carried,
+reviewed (conflict included) and applied, with the allocation and the master list proved unmoved and
+every allocation door refused; an old copy sends the old eight; malformed fields named; the copy's
+header, status line, File menu, appropriation box and office hint; a proposal carrying every field;
+and the consolidated take (nothing named, a bad number, O&M only with Full Fund and the stores
+untouched, a conflict declined, send back merged and its conflict named). 36 new mutations, 2
+re-aimed: 404 in all.
 
 ### How changes ship: queued, then one version on "go" (from 23 Sep 2026)
 

@@ -1884,6 +1884,274 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
   }
 }
 
+// ═══ v1.84 — THE COPY DOES THE LEGWORK ═══════════════════════════════════════════════════════
+// Brad, 24 Sep 2026: offices add requirements, rank within their own office, and edit every field on a
+// requirement except the discretionary and mandatory allocation, and send it all back. Each field is
+// set in a real published copy, carried by a real submittal, reviewed and applied on the board; the
+// allocation is proved untouched at every step, and an old copy is proved to send only the old set.
+const v184Sc = () => ({ services: MINE,
+  items: [it('A', 'AV', [900, 200, 100]), it('B', 'AV', [400, 100, 50]),
+          it('C', 'PSM', [300, 80, 40]),  it('D', 'AV', [200, 50, 25])],
+  disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B', 'C', 'D'] });
+const v184Board = () => {
+  const B = boot(); seed(B.ev, v184Sc()); asBooted(B.ev, v184Sc());
+  B.ev(`applyState(S); save(); 'ok'`);
+  return B;
+};
+// publish through the real menu path, capturing the file it would have saved
+const v184Publish = (ev) => ev(`(function(){ let cap=null; const _B=window.Blob;
+  window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+  window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+  try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+const v184Submit = (P, pmo) => JSON.parse(P.ev(`(function(){
+  try{ localStorage.setItem('prio27who','J. Smith'); localStorage.setItem('prio27pmo','${pmo}'); }catch(e){}
+  let cap=null; const _B=window.Blob;
+  window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+  globalThis.__al=[]; const _a=window.alert; window.alert=function(m){ globalThis.__al.push(String(m)); };
+  try{ pmoSubmit(); }catch(e){ globalThis.__al.push('THREW '+e.message); } window.Blob=_B; window.alert=_a;
+  return JSON.stringify({pkg: cap? JSON.parse(cap) : null, alerts: globalThis.__al}); })()`));
+const MONEY = `JSON.stringify({alloc:S.alloc||{}, fsrc:S.fsrc||{}, order:S.order})`;
+{
+  const name = 'v1.84 — the copy sends every field but the allocation';
+  try {
+  const { ev } = v184Board();
+  // THE BOARD ALREADY HOLDS VALUES IN THE NEW FIELDS. A copy that sent them back unedited would offer
+  // every one of them as a proposal nobody wrote.
+  const BANDS = JSON.parse(ev(`(function(){ S.band.B=BANDS_LIST()[1].id; S.awards.B={mode:'single', d:'2026-11', day:5};
+    if(!S.costElem) S.costElem={}; S.costElem.C='Fixed JPO Support'; save();
+    return JSON.stringify(BANDS_LIST().map(function(b){ return b.id; })); })()`));
+  const html = v184Publish(ev);
+  chk(name, 'publish', 'the copy is written', html.length > 1000, true);
+  const P = boot({ html });
+  chk(name, 'publish', 'it says which field set it was published with', P.ev('PMODE.pv'), 2);
+  chk(name, 'publish', 'and carries the office rankings as they stood', P.ev(`(PMODE.ord.AV||[]).join(',')`), 'A,B,D');
+  // cleared and unticked are "absent", not a change: a {} budget and a false star send nothing
+  const P0 = boot({ html });
+  P0.ev(`S.budgetAsg=S.budgetAsg||{}; S.budgetAsg.B={}; S.mc=S.mc||{}; S.mc.D=false; save(); 'ok'`);
+  const quiet = v184Submit(P0, 'AV');
+  chk(name, 'untouched copy', 'sends nothing', quiet.pkg ? 'sent' : 'nothing', 'nothing');
+  chk(name, 'untouched copy', 'and says so', quiet.alerts.some(a => /Nothing to send yet/.test(a)), true);
+
+  // EVERY FIELD, EDITED IN THE COPY THE WAY THE PANELS WRITE IT
+  const moneyBefore = P.ev(MONEY);
+  P.ev(`(function(){
+    S.titles.A='A renamed'; S.band.A='${BANDS[2]}'; if(!S.mc) S.mc={}; S.mc.A=true;
+    if(!S.ptype) S.ptype={}; S.ptype.A='OGC'; if(!S.obCat) S.obCat={}; S.obCat.A='DESA Contract';
+    if(!S.wbs) S.wbs={}; S.wbs.A=[{w:'1.2.3'}]; if(!S.rcnAsg) S.rcnAsg={}; S.rcnAsg.A='r1';
+    if(!S.rcnSvc) S.rcnSvc={}; S.rcnSvc.A={USAF:'r1'}; if(!S.si) S.si={}; S.si.A='LA';
+    if(!S.dest) S.dest={}; S.dest.A={to:'lm', end:''}; if(!S.costElem) S.costElem={}; S.costElem.A='Airframe PGSE';
+    if(!S.budgetAsg) S.budgetAsg={}; S.budgetAsg.A={'USAF|disc':'USAF O&M - CAM Discretionary AV'};
+    S.awards.A={mode:'single', d:'2026-12', day:9}; if(!S.crHalf) S.crHalf={}; S.crHalf.A={'2026-12':1};
+    if(!S.minInc) S.minInc={}; S.minInc.A=12345;
+    setGrp('D','PSM');                                  // a hand-over to another office
+    S.pmoOrder.AV=['B','A'];                            // AV's own ranking, re-ordered
+    save(); return 'ok'; })()`);
+  // THE ALLOCATION CANNOT BE MOVED FROM A COPY, by any door a person can reach
+  const tried = JSON.parse(P.ev(`(function(){ globalThis.__al=[]; const _a=window.alert;
+    window.alert=function(m){ globalThis.__al.push(String(m)); }; window.confirm=function(){ return true; };
+    setFsrcSvc('A','d',0,'999'); setAlloc('A','5'); resetAlloc('B'); setFsrc('B','split');
+    filter='AV'; zeroPMO(); restorePMO(); filter='ALL'; convertAllToSplit(); clinToRow('A');
+    window.alert=_a; return JSON.stringify(globalThis.__al); })()`));
+  chk(name, 'allocation', 'every allocation door in a copy is refused', tried.filter(a => /set by the portfolio team/.test(a)).length, 8);
+  // restorePMO also resets the order, so the order is compared without the ranking edit above
+  chk(name, 'allocation', 'and not a dollar or a rank moved', P.ev(MONEY), moneyBefore);
+  chk(name, 'allocation', 'the copy dims those controls', P.ev(`[...document.querySelectorAll('style')].some(function(s){ return /setFsrcSvc\\(/.test(s.textContent); })`), true);
+
+  const sub = v184Submit(P, 'AV');
+  chk(name, 'submit', 'the package is built', sub.pkg ? 'built' : 'nothing', 'built');
+  const pk = sub.pkg || { items: {} };
+  const WANT = ['titles','band','mc','ptype','obCat','wbs','rcnAsg','rcnSvc','si','dest','costElem','budgetAsg','awards','crHalf','minInc'];
+  chk(name, 'submit', 'every field edited on A travels', WANT.filter(k => (pk.items.A || {})[k] === undefined).join(',') || 'all', 'all');
+  chk(name, 'submit', 'the allocation never does', Object.keys(pk.items).filter(id => pk.items[id].alloc !== undefined || pk.items[id].fsrc !== undefined).length, 0);
+  chk(name, 'submit', 'the hand-over travels, not dropped as another office’s', (pk.items.D || {}).grp, 'PSM');
+  chk(name, 'submit', 'nothing unedited is proposed (B and C stay home)', Object.keys(pk.items).sort().join(','), 'A,D');
+  chk(name, 'submit', 'the office ranking travels', pk.rank ? pk.rank.order.join(',') : 'none', 'B,A');
+  chk(name, 'submit', 'with what it was', pk.rank ? pk.rank.was.join(',') : 'none', 'A,B,D');
+  chk(name, 'submit', 'the package names its field set', pk.pv, 2);
+
+  // ── AT THE BOARD ─────────────────────────────────────────────────────────────────────────
+  ev(`S.band.A='${BANDS[3]}'; save(); 'ok'`);            // this board changed A's band meanwhile
+  ev(`window.alert=function(){}; window.confirm=function(){ return true }; PMOSUBS=[]; PMOPICK={};
+      pmoTake(${JSON.stringify(pk)}, 'av.json'); 'ok'`);
+  const rows = JSON.parse(ev(`JSON.stringify(pmoRows().map(function(r){ return r.id+'|'+r.key+(r.conflict?'!':''); }))`));
+  chk(name, 'review', 'every field is a row', WANT.filter(k => !rows.some(r => r.startsWith('A|' + k))).join(',') || 'all', 'all');
+  chk(name, 'review', 'the band this board also changed is a conflict', rows.indexOf('A|band!') >= 0, true);
+  chk(name, 'review', 'the hand-over is a row', rows.some(r => r.startsWith('D|grp')), true);
+  chk(name, 'review', 'the ranking is one row', rows.filter(r => r.startsWith('__rank|AV|__rank')).length, 1);
+  chk(name, 'review', 'and not a conflict, since this board has not re-ranked AV', rows.indexOf('__rank|AV|__rank') >= 0, true);
+  chk(name, 'review', 'the ranking reads as titles in order', ev(`pmoFmtVal('__rank',['B','A'])`), '1. B · 2. A');
+  chk(name, 'review', 'Mission Critical reads as words', ev(`pmoFmtVal('mc',true)`), '★ Mission Critical');
+  chk(name, 'review', 'a band reads as its name', ev(`pmoFmtVal('band','${BANDS[2]}')===BANDS_LIST()[2].n`), true);
+  const moneyBoard = ev(`JSON.stringify({alloc:S.alloc||{}, fsrc:S.fsrc||{}, order:S.order})`);
+  ev(`window.confirm=function(){ return true }; subPickAll(true); pmoApply(); 'ok'`);
+  const got = JSON.parse(ev(`(function(){ return JSON.stringify({ titles:S.titles.A, band:S.band.A, mc:!!(S.mc||{}).A,
+    ptype:(S.ptype||{}).A, obCat:(S.obCat||{}).A, wbs:(S.wbs||{}).A, rcnAsg:(S.rcnAsg||{}).A, rcnSvc:(S.rcnSvc||{}).A,
+    si:(S.si||{}).A, dest:(S.dest||{}).A, costElem:(S.costElem||{}).A, budgetAsg:(S.budgetAsg||{}).A,
+    awards:(S.awards||{}).A, crHalf:(S.crHalf||{}).A, minInc:(S.minInc||{}).A,
+    grpD:grpOf(itemById('D')), av:S.pmoOrder.AV, psm:S.pmoOrder.PSM, left:pmoRows().length,
+    jr:(MS.jrnl||[]).some(function(e){ return e.p && e.p[0]==='pmoOrder' && e.p[1]==='AV'; }) }); })()`));
+  chk(name, 'apply', 'the plan event lands', got.titles, 'A renamed');
+  chk(name, 'apply', 'the band lands over this board’s change, as ticked', got.band, BANDS[2]);
+  chk(name, 'apply', 'Mission Critical lands', got.mc, true);
+  chk(name, 'apply', 'the record fields land', [got.ptype, got.obCat, got.rcnAsg, got.si, got.costElem, got.minInc].join('|'),
+    'OGC|DESA Contract|r1|LA|Airframe PGSE|12345');
+  chk(name, 'apply', 'the structured fields land whole', JSON.stringify([got.wbs, got.rcnSvc, got.dest, got.budgetAsg, got.awards, got.crHalf]),
+    JSON.stringify([[{w:'1.2.3'}], {USAF:'r1'}, {to:'lm', end:''}, {'USAF|disc':'USAF O&M - CAM Discretionary AV'},
+      {mode:'single', d:'2026-12', day:9}, {'2026-12':1}]));
+  chk(name, 'apply', 'the hand-over lands, and moves its office rank with it', got.grpD + ' ' + (got.psm || []).includes('D') + ' ' + (got.av || []).includes('D'), 'PSM true false');
+  chk(name, 'apply', 'the office ranking lands as the office’s own order', (got.av || []).join(','), 'B,A');
+  chk(name, 'apply', 'the ranking is in the change journal', got.jr, true);
+  chk(name, 'apply', 'the allocation and the master list did not move', ev(`JSON.stringify({alloc:S.alloc||{}, fsrc:S.fsrc||{}, order:S.order})`), moneyBoard);
+  chk(name, 'apply', 'nothing is left to review', got.left, 0);
+
+  // AN OLD COPY SENDS THE OLD FIELD SET, AND NO RANKING
+  const P1 = boot({ html });
+  P1.ev(`delete PMODE.pv; delete PMODE.ord; S.titles.A='old copy rename'; S.band.A='${BANDS[2]}'; setDesc('A','old copy desc'); S.pmoOrder.AV=['B','A','D']; save(); 'ok'`);
+  const old = v184Submit(P1, 'AV');
+  chk(name, 'old copy', 'sends the eight fields it knows', old.pkg ? Object.keys(old.pkg.items.A || {}).join(',') : 'nothing', 'desc');
+  chk(name, 'old copy', 'and no ranking', old.pkg && old.pkg.rank ? 'ranking' : 'none', 'none');
+  chk(name, 'old copy', 'and says so', old.pkg ? old.pkg.pv : 'none', 1);
+
+  // WHAT ARRIVES MALFORMED IS NAMED AND LEFT OUT, never guessed into shape
+  const bad = JSON.parse(JSON.stringify(pk));
+  bad.items.A = { band: 'no-such-band', wbs: [{ w: 'x', v: [1, 2] }], desc: 'kept' };
+  const al = JSON.parse(ev(`(function(){ globalThis.__al=[]; window.alert=function(m){ globalThis.__al.push(String(m)); };
+    PMOSUBS=[]; PMOPICK={}; pmoTake(${JSON.stringify(bad)}, 'bad.json');
+    return JSON.stringify({al:globalThis.__al, keys:Object.keys((PMOSUBS[0]||{items:{}}).items.A||{}).sort()}); })()`));
+  chk(name, 'door', 'a band this board does not have, and a WBS of the wrong width, are left out', al.keys.join(','), 'desc');
+  chk(name, 'door', 'and named', al.al.some(a => /could\s+not be read/.test(a) && /Decision band/.test(a) && /WBS/.test(a)), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v1.84 — a copy points to Submit input, and keeps its own appropriation';
+  try {
+  const { ev } = v184Board();
+  chk(name, 'board', 'the live board still offers Save', ev(`syncBtns(); document.getElementById('saveBtn').textContent`), '💾 Save');
+  const P = boot({ html: v184Publish(ev) });
+  P.ev(`syncBtns(); openMenu='share'; syncBtns(); 'ok'`);
+  chk(name, 'copy', 'the header button submits', P.ev(`document.getElementById('saveBtn').textContent+'|'+document.getElementById('saveBtn').getAttribute('onclick')`), '✉ Submit input|pmoSubmit()');
+  chk(name, 'copy', 'the save indicator says where the work is', /kept in this browser/.test(P.ev(`document.getElementById('saveState').innerHTML`)), true);
+  chk(name, 'copy', 'File › Save says it is off here, and where to go instead', /Save<span class="sub">turned off in a PMO copy — use ✉ Submit input/.test(P.ev(`document.getElementById('dd_share').innerHTML`)), true);
+  chk(name, 'copy', 'the opening line points to Submit input', /Submit input/.test(P.ev(`document.getElementById('shareStat').innerHTML`)), true);
+  chk(name, 'copy', 'and never to Save', /Save to pass it on/.test(P.ev(`document.getElementById('shareStat').innerHTML`)), false);
+  const box = P.ev(`(function(){ window.alert=function(){}; const s=document.getElementById('appnSel');
+    const other=[...s.options].map(function(o){ return o.value; }).filter(function(v){ return v!==APPN; })[0];
+    s.value=other; switchAppn(other); return s.value+'|'+APPN; })()`);
+  chk(name, 'copy', 'a refused switch puts the appropriation box back', box.split('|')[0], box.split('|')[1]);
+  P.ev(`filter='AV'; render(); 'ok'`);
+  chk(name, 'copy', 'the office view no longer promises a control that does not exist', /Apply PMO Ranks/.test(P.ev('document.body.innerHTML')), false);
+  chk(name, 'copy', 'and says the office ranking travels', /travels back with/.test(P.ev('document.body.innerHTML')), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v1.84 — a proposal carries every field';
+  try {
+  const { ev } = v184Board();
+  const BANDS = JSON.parse(ev(`JSON.stringify(BANDS_LIST().map(function(b){ return b.id; }))`));
+  const P = boot({ html: v184Publish(ev) });
+  const prop = JSON.parse(P.ev(`(function(){
+    const n={id:'NEW-AV-1', grp:'AV', team:'AV', sect:'new', custom:true, title:'Test cell', event:'Test cell',
+      ccar:'', fy26:SVC.map(function(){ return 0; }), ask:[100,0,0], alloc:null};
+    S.custom.push(n); DATA.items.push(n); S.order.push(n.id);
+    S.band[n.id]='${BANDS[1]}'; if(!S.mc) S.mc={}; S.mc[n.id]=true; if(!S.costElem) S.costElem={}; S.costElem[n.id]='PES';
+    if(!S.budgetAsg) S.budgetAsg={}; S.budgetAsg[n.id]={'USAF|disc':'USAF O&M - CAM Discretionary AV'};
+    if(!S.si) S.si={}; S.si[n.id]='EN'; if(!S.crHalf) S.crHalf={}; S.crHalf[n.id]={'2026-12':1};
+    return JSON.stringify(pmoProposalOf(n.id)); })()`));
+  chk(name, 'copy', 'the proposal carries the band, the star and the record fields',
+    [prop.band, prop.mc, prop.costElem, prop.si].join('|'), BANDS[1] + '|true|PES|EN');
+  const pkg = { spmtPkg: 1, dir: 'submit', ap: 'om', ts: Date.now(), by: 'J. Smith', pmo: 'AV', svc: MINE, items: {}, base: {}, added: [prop] };
+  ev(`window.alert=function(){}; window.confirm=function(){ return true }; PMOSUBS=[]; PMOPICK={};
+      pmoTake(${JSON.stringify(pkg)}, 'p.json'); subPickAll(true); pmoApply(); 'ok'`);
+  const got = JSON.parse(ev(`(function(){ const c=S.custom.filter(function(x){ return x.from && x.from.nid==='NEW-AV-1'; })[0]; if(!c) return '{}';
+    return JSON.stringify({band:S.band[c.id], mc:!!(S.mc||{})[c.id], ce:(S.costElem||{})[c.id], si:(S.si||{})[c.id],
+      b:(S.budgetAsg||{})[c.id], cr:(S.crHalf||{})[c.id]}); })()`));
+  chk(name, 'board', 'the accepted requirement has them all',
+    JSON.stringify(got), JSON.stringify({band:BANDS[1], mc:true, ce:'PES', si:'EN', b:{'USAF|disc':'USAF O&M - CAM Discretionary AV'}, cr:{'2026-12':1}}));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+{
+  const name = 'v1.84 — take one appropriation from a consolidated file';
+  try {
+  const sc = v184Sc();
+  // YOUR board: O&M from the fixture, and a Full Fund slot of its own
+  const { ev } = v184Board();
+  ev(`(function(){ const ff=JSON.parse(JSON.stringify(MS)); const y=ff.years[ff.cur]; y.notes=y.notes||{};
+      y.notes.A='FF as sent'; ff.ts=Date.now(); lsSet(_SLUGMAP.ff.key, JSON.stringify(ff), 'ff'); PUBS.ff=ff;
+      EXDB={ts:1000, all:{om:{x:1}}}; return 'ok'; })()`);
+  const sent = ev('buildSavedHtml()');
+  // THE O&M LEAD works in that file, and touches Full Fund by accident
+  const L = boot({ html: sent }); seed(L.ev, sc); asBooted(L.ev, sc);
+  L.ev(`(function(){ applyState(S); setDesc('A','LEAD EDIT'); save();
+      const ff=JSON.parse(localStorage.getItem(_SLUGMAP.ff.key)||'null')||JSON.parse(JSON.stringify(PUBS.ff));
+      ff.years[ff.cur].notes.A='FF touched by the lead'; ff.ts=Date.now(); lsSet(_SLUGMAP.ff.key, JSON.stringify(ff), 'ff'); PUBS.ff=ff;
+      EXDB={ts:Date.now(), all:{om:{y:2}}}; return 'ok'; })()`);
+  const leadHtml = L.ev('buildSavedHtml()');
+  const leadFull = JSON.parse(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(leadHtml)[1]);
+  // MEANWHILE you changed Full Fund
+  ev(`(function(){ const ff=JSON.parse(localStorage.getItem(_SLUGMAP.ff.key)); ff.years[ff.cur].notes.A='FF changed here later';
+      ff.ts=Date.now(); lsSet(_SLUGMAP.ff.key, JSON.stringify(ff), 'ff'); PUBS.ff=ff; return 'ok'; })()`);
+  const lsOM = () => JSON.parse(ev(`localStorage.getItem(_SLUGMAP.om.key)||'null'`));
+  const ffNote = () => ev(`(JSON.parse(localStorage.getItem(_SLUGMAP.ff.key)).years[MS.cur].notes||{}).A`);
+  const take = (answer, confirmAll) => JSON.parse(ev(`(function(){ globalThis.__cf=[]; globalThis.__al=[];
+    window.prompt=function(){ return ${JSON.stringify(answer)}; };
+    window.confirm=function(m){ globalThis.__cf.push(String(m)); return ${confirmAll ? 'true' : "!/^CONFLICT/.test(String(m))"}; };
+    window.alert=function(m){ globalThis.__al.push(String(m)); };
+    consTakePick(${JSON.stringify(leadFull)}, ${JSON.stringify(leadHtml)}, 'lead.html');
+    return JSON.stringify({cf:globalThis.__cf, al:globalThis.__al}); })()`));
+  const omBefore = ev(`localStorage.getItem(_SLUGMAP.om.key)`);
+  let t = take('', true);
+  chk(name, 'nothing named', 'nothing is taken', ev(`localStorage.getItem(_SLUGMAP.om.key)`) === omBefore, true);
+  t = take('7', true);
+  chk(name, 'nothing named', 'a number not on the list takes nothing, and says so', ev(`localStorage.getItem(_SLUGMAP.om.key)`) === omBefore && t.al.length > 0, true);
+  t = take('1', true);
+  const om1 = lsOM();
+  chk(name, 'O&M only', 'the lead’s O&M is taken', ((om1.years[om1.cur] || {}).desc || {}).A, 'LEAD EDIT');
+  chk(name, 'O&M only', 'Full Fund keeps the change made here', ffNote(), 'FF changed here later');
+  chk(name, 'O&M only', 'the preview named what it replaced', t.cf.some(c => /REPLACES O&M/.test(c) && /descriptions/.test(c)), true);
+  chk(name, 'O&M only', 'and said nothing else changes', t.cf.some(c => /Nothing else on this board changes/.test(c)), true);
+  chk(name, 'O&M only', 'the board-wide stores were left as this board has them', ev('EXDB.ts'), 1000);
+  // YOUR OWN O&M EDIT AFTER THE FILE LEFT IS A CONFLICT, and declining it keeps it
+  const B2 = v184Board();
+  B2.ev(`(function(){ const ff=JSON.parse(JSON.stringify(MS)); ff.ts=Date.now(); lsSet(_SLUGMAP.ff.key, JSON.stringify(ff), 'ff'); PUBS.ff=ff; return 'ok'; })()`);
+  const sent2 = B2.ev('buildSavedHtml()');
+  const L2 = boot({ html: sent2 }); seed(L2.ev, sc); asBooted(L2.ev, sc);
+  L2.ev(`applyState(S); setDesc('A','LEAD EDIT'); save(); 'ok'`);
+  const lead2 = L2.ev('buildSavedHtml()');
+  const full2 = JSON.parse(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/.exec(lead2)[1]);
+  B2.ev(`jrnlSync(); setNote('B','mine, after sending'); save(); 'ok'`);
+  const c2 = JSON.parse(B2.ev(`(function(){ globalThis.__cf=[]; window.prompt=function(){ return '1'; };
+    window.confirm=function(m){ globalThis.__cf.push(String(m)); return !/^CONFLICT/.test(String(m)); }; window.alert=function(){};
+    consTakePick(${JSON.stringify(full2)}, ${JSON.stringify(lead2)}, 'lead.html');
+    return JSON.stringify({cf:globalThis.__cf, note:(JSON.parse(localStorage.getItem(_SLUGMAP.om.key)).years[MS.cur].notes||{}).B||'',
+      desc:(JSON.parse(localStorage.getItem(_SLUGMAP.om.key)).years[MS.cur].desc||{}).A||''}); })()`));
+  chk(name, 'conflict', 'your edit since the file left is named', c2.cf.some(m => /^CONFLICT/.test(m) && /note/i.test(m)), true);
+  chk(name, 'conflict', 'and declining keeps it', c2.note + '|' + c2.desc, 'mine, after sending|');
+  // SEND BACK: the lead saves just O&M as a return package; your board takes O&M and nothing else
+  const back = JSON.parse(L2.ev(`(function(){ let cap=null; const _B=window.Blob;
+    window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+    try{ pkgSendBack('om'); }catch(e){} window.Blob=_B; return cap||'null'; })()`));
+  chk(name, 'send back', 'the lead’s copy saves one appropriation as a return', back ? back.dir + '|' + back.ap + '|' + back.via : 'none', 'return|om|consolidated');
+  const B3 = v184Board();
+  const r3 = JSON.parse(B3.ev(`(function(){ globalThis.__cf=[]; window.confirm=function(m){ globalThis.__cf.push(String(m)); return true; }; window.alert=function(){};
+    const ok=pkgApply(${JSON.stringify(back)}, 'back.json'); return JSON.stringify({ok:ok, desc:(S.desc||{}).A||'', cf:globalThis.__cf}); })()`));
+  chk(name, 'send back', 'it merges into O&M', r3.ok + '|' + r3.desc, 'true|LEAD EDIT');
+  chk(name, 'send back', 'after a preview that names the change', r3.cf.some(m => /descriptions/.test(m)), true);
+  // your own O&M edit since the file left is named before a send-back replaces it
+  const r4 = JSON.parse(B2.ev(`(function(){ globalThis.__cf=[]; window.confirm=function(m){ globalThis.__cf.push(String(m)); return false; }; window.alert=function(){};
+    const ok=pkgApply(${JSON.stringify(back)}, 'back.json'); return JSON.stringify({ok:ok, note:(S.notes||{}).B||'', cf:globalThis.__cf}); })()`));
+  chk(name, 'send back', 'a change made here since is named as a conflict', r4.cf.some(m => /^CONFLICT/.test(m) && /since that copy was saved/.test(m)), true);
+  chk(name, 'send back', 'and declining keeps it', r4.ok + '|' + r4.note, 'false|mine, after sending');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
