@@ -8,7 +8,63 @@ Current version: **v1.84**. Next: **v1.85**.
 
 ## Open
 
-*(nothing open)*
+### 8. Five-year spend plan: a tab per PMO, every appropriation, records with their requirements
+- **Logged:** 24 Sep 2026, Brad: *"I need that report to pull by pmo so I need a pmo specific tab for
+  each pmo that has requirements ... underneath that I need a list of their records so for instance
+  jsf5594 then underneath that record I need to see the individual requirements listed that roll up
+  ... the requirement for each fiscal year and the allocation right next to it ... 5 years which
+  includes the base year plus four ... summary totals for each row at the far right ... summaries for
+  each column at the bottom. It also needs to reference the ppbe cycle ... Within each pmo's tab I want
+  to see all appropriations ... grouped by appropriation ... so that that's not one large listing."*
+- **What Brad needs:**
+  1. **One tab per PMO** that has requirements in any appropriation (tab name = the PMO, e.g. TSS).
+  2. **Inside each tab, one table per appropriation** the PMO has requirements in — O&M, Full Fund,
+     Initial Spares, OPN — each its own block with its own heading, never one long list.
+  3. **Rows, in each block:** each **CCaR record** (e.g. JSF5594) as a roll-up line, with **the
+     requirements filed under it** listed beneath it.
+  4. **Columns:** for each of the five years (base year plus four), **Requirement** and **Allocation**
+     side by side; at the far right, the **five-year totals** of each; at the bottom of each block,
+     the **column totals**.
+  5. **The PPBE cycle** the figures come from, named at the top of the tab and on each block.
+  6. Every appropriation, every time the report is pulled.
+
+##### What the code does today (read 24 Sep, v1.84)
+- 📚 FYDP ▾ → 📊 Five-year spend plan… and ⬇ Export ▾ → 📊 FYDP Spend Plan (Excel) print **the open
+  appropriation only**, from one source (the working plan, or a locked PPBE cycle), in three sheets:
+  By Requirement (PMO groups, CCaR as a column), By PMO, By Service. Per year: Requirement,
+  Allocated, Funded, Unfunded (and the ACE estimate when one is chosen).
+- There is **no per-PMO tab** and **no grouping by CCaR record**.
+- **Locked cycles** are stored for all four appropriations, so a locked cycle can be read for every
+  appropriation. **The working plan** is computed only for the appropriation on screen; the other
+  three would have to be computed without switching the board.
+
+##### How it would work (proposed; say if any of it is wrong)
+- **Added to the existing workbook**, after By Requirement / By PMO / By Service, which stay as they
+  are: one sheet per PMO, in the board's PMO order.
+- **Allocation** is the board's *Allocated* figure for that year — what the RECORD panel shows as
+  ALLOCATED (discretionary + mandatory for a requirement on Split). Funded and Unfunded stay on the
+  existing sheets.
+- **Source:** whatever is chosen in 📊 Five-year spend plan — the working plan (with its PPBE tag, and
+  the reference cycle if one is set) or a locked cycle. With a locked cycle chosen, an appropriation
+  that has no lock under that cycle says so in its block rather than quietly printing the working plan.
+- **A requirement with no CCaR record** is listed under *No CCaR record* at the end of its block.
+- **A year the source does not hold** prints an em dash, never 0, and stays out of the totals (the
+  existing report's rule).
+- **No grand total across appropriations** on a PMO tab: the money in the four blocks is not the same
+  kind of money. Say if you want one.
+
+##### Can't-fail checks for the build
+- **Ties to the dollar:** for every PMO and appropriation, each year's Requirement and Allocation
+  totals on the PMO tab equal that PMO's subtotal on the appropriation's own By PMO sheet; each
+  record line equals the sum of the requirements under it; each row's five-year total equals its
+  years; each block's bottom line equals its rows.
+- **Nothing moves:** computing the other appropriations never changes any appropriation's stored
+  plan, the one on screen, or anything the board saves (byte-for-byte before and after).
+- **Every requirement appears exactly once**, under its own PMO, appropriation and record.
+- Mutations for each of the above, and the full math gate.
+- **Help and training:** a slide for the portfolio team (Session B, the products) and a line in the
+  road-show notes.
+
 
 ## Withdrawn
 
