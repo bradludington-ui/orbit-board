@@ -8,7 +8,43 @@ Current version: **v1.85**. Next: **v1.86**.
 
 ## Open
 
-_Nothing open. Log the next change here._
+### 9. The help guide inside the tool, in every board and every PMO copy
+- **Logged:** 25 Sep 2026, Brad: *"Can we add the help file to the tool itself so that when we push
+  it out, everyone has access to it?"*
+- **What Brad needs:** the PMO copy guide travels inside the board file, so everyone who opens a
+  board or a PMO copy has it, with no link to share and no PDF to send alongside.
+
+##### What the tool does today (read 25 Sep, v1.85)
+- **No help panel.** The only help in the tool is typing `help` in the command bar, which lists
+  example commands.
+- The guide is a **private web page** (shared from its Share menu) plus a **PDF for Teams**, both kept
+  by hand beside the board. They can drift from the board between versions.
+- A PMO copy's top bar carries **🏢 set your office** and **✉ Submit input**, and nothing that says how
+  the copy works.
+
+##### How it would work (proposed; say if any of it is wrong)
+- **📖 Help** in the header of both builds opens the guide in a panel over the board.
+- **In a PMO copy**, the bar across the top also gets **📖 How this copy works**. The guide **opens by
+  itself the first time a copy is opened**, once, remembered in the browser like the office.
+- **It works offline, like the rest of the board:** the board's own fonts and colours, light and dark,
+  nothing loaded from the internet.
+- **Two parts:** *For programme offices* (the PMO copy guide as published today, plus the five-year
+  plan by office) and *For the portfolio team* (publishing a copy, taking submittals, the consolidated
+  take, the five-year plan by PMO). A PMO copy opens on the first part.
+- **The version on the guide is the board's own**, so it can never say a different version from the
+  board it is in.
+- **One source:** the web page and the Teams PDF are produced from the guide inside the board, so all
+  three say the same thing.
+
+##### Can't-fail checks for the build
+- **Every menu path and button the guide names exists** in that build and does what the guide says
+  (checked by machine against the board's own menus, both builds). A guide that describes a control
+  the board does not have is the error this item exists to prevent.
+- **It opens everywhere:** portfolio board and PMO copy, grid and card, both themes, laptop width,
+  nothing clipped; the first-open in a copy happens once and never again.
+- **Nothing moves:** opening, reading or closing help changes nothing stored and no figure.
+- **No network:** the panel loads nothing from outside the file.
+- The accessibility baseline holds (keyboard, focus, contrast), and the full math gate.
 
 ## Withdrawn
 
