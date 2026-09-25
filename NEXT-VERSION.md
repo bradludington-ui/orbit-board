@@ -24,8 +24,13 @@ Current version: **v1.85**. Next: **v1.86**.
 
 ##### How it would work (proposed; say if any of it is wrong)
 - **📖 Help** in the header of both builds opens the guide in a panel over the board.
-- **In a PMO copy**, the bar across the top also gets **📖 How this copy works**. The guide **opens by
-  itself the first time a copy is opened**, once, remembered in the browser like the office.
+- **In a PMO copy**, the bar across the top also gets **📖 How this copy works**. The guide **never
+  opens by itself** (Brad, 25 Sep: *"I don't want it to automatically pop up but I want it to be
+  available"*); it opens only from those buttons.
+- **Size** (measured 25 Sep): the office guide is about 2,850 words in 11 sections, ~22 KB of text,
+  11 pages as the Teams PDF. With a portfolio-team part of similar length the whole guide adds roughly
+  40–50 KB to a board file of ~3.1 MB, about 1.5%. The panel opens on a contents list so a reader
+  jumps straight to the section they need.
 - **It works offline, like the rest of the board:** the board's own fonts and colours, light and dark,
   nothing loaded from the internet.
 - **Two parts:** *For programme offices* (the PMO copy guide as published today, plus the five-year
@@ -41,7 +46,7 @@ Current version: **v1.85**. Next: **v1.86**.
   (checked by machine against the board's own menus, both builds). A guide that describes a control
   the board does not have is the error this item exists to prevent.
 - **It opens everywhere:** portfolio board and PMO copy, grid and card, both themes, laptop width,
-  nothing clipped; the first-open in a copy happens once and never again.
+  nothing clipped; it never opens unless someone presses a 📖 button.
 - **Nothing moves:** opening, reading or closing help changes nothing stored and no figure.
 - **No network:** the panel loads nothing from outside the file.
 - The accessibility baseline holds (keyboard, focus, contrast), and the full math gate.
