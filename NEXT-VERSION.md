@@ -52,6 +52,70 @@ Current version: **v1.85**. Next: **v1.86**.
 - **No network:** the panel loads nothing from outside the file.
 - The accessibility baseline holds (keyboard, focus, contrast), and the full math gate.
 
+### 10. Mandatory back in every consolidated spend plan: forecasts, charts, exports
+- **Logged:** 25 Sep 2026, Brad: *"Let's add mandatory allocations back into all spend plan forecasts,
+  exported charts/graphs, and any other place where we're looking at a consolidated spend plan and not
+  solely focused on reviewing the two distinct pots of funding."*
+- **What Brad needs:** wherever the board shows WHEN money lands (a consolidated spend plan), the
+  mandatory allocation is in it and lands in the months, like discretionary. Only the views whose job
+  is to compare the two pots stay discretionary-only: Two Spend Plans, the Two-Plan Forecast's Plan A,
+  the DISCRETIONARY FIT strip, and the Mission Critical measure against discretionary.
+
+##### What testing showed (read and measured 25 Sep, v1.85)
+1. **No spend-plan view leaves mandatory out of its TOTALS, but mandatory often never reaches a
+   MONTH.** An award schedule's increments are discretionary dollars; mandatory "rides the same
+   dates" only in a service that also has a discretionary increment. A service paid only from
+   mandatory (its discretionary used up) has no increment to ride, so all of its mandatory lands in
+   **UNSCHEDULED** ("No date" on the CR views). Measured: one requirement, $900 discretionary (USAF)
+   and $300 mandatory (ANG, no discretionary), increments $500 Nov + $400 Feb: the forecast puts **$900
+   in the months and $300 in UNSCHEDULED**. The same happens on the RCN-EEIC and SI by Month sheets,
+   the Excel PMO tabs' spend plan block, CR Cash Needs and the CR panel.
+2. **There is nowhere to schedule mandatory.** The award block's *Balance to schedule* and *put on
+   last* count discretionary only.
+3. **The award block contradicts itself.** Switching a requirement to increments seeds them with
+   discretionary + mandatory, while the balance counts discretionary only — so a split requirement shows
+   over-scheduled by its mandatory the moment it is switched, and correcting it to match drops a
+   mandatory-only service into UNSCHEDULED.
+4. **Two rules for when a dollar lands.** The CR views spread the whole funded amount by the
+   increments' proportions, so discretionary not yet on a date is inflated into the CR windows; the
+   forecast and month sheets leave it in UNSCHEDULED.
+5. **The ◨ Discretionary only switch** (🎯 Budget year ▾ → Spend plan basis; off every time the board
+   opens) is not followed everywhere: the CR panel's *By PMO* ignores it while *By Service* follows it;
+   the Excel PMO-tab spend plan ignores it inside a workbook stamped `[DISC-ONLY]`; the fit chart
+   ignores it.
+6. **Already both pots:** the Spend Plan Source (a line per lane since v1.83), the funds flow, the
+   five-year plan, the PowerPoint tables. The PowerPoint deck has **no charts** at all today.
+
+##### How it would work (proposed; say if any of it is wrong)
+- **Mandatory lands on the requirement's own dates.** In a service with no increment of its own, its
+  mandatory follows the requirement's increment dates in the same proportions as the requirement's
+  increments overall. Nothing new to type. A requirement with no date at all stays in UNSCHEDULED.
+- **The award block schedules the whole funded amount:** Balance to schedule and put on last cover
+  discretionary + mandatory per service, with the two shown separately; seeding and balance agree.
+- **One rule for when a dollar lands**, shared by the forecast tab, the month sheets, the PMO-tab spend
+  plan and the CR views. The CR figures will move where discretionary was not yet on a date (it stops
+  being spread into the windows and shows as No date) — this reaches the **1A9A CR Cash Return**.
+- **The ◨ switch moves every spend-plan view together**, or none; the CR panel By PMO, the PMO-tab
+  spend plan and the fit chart follow it.
+
+##### Questions for Brad (defaults in brackets)
+1. Mandatory rides the requirement's dates [yes], rather than separate mandatory increments to type?
+2. Keep the ◨ Discretionary only switch as a what-if, fixed so everything obeys it [keep]?
+3. The 1A9A CR return adopts the same rule, so undated discretionary shows as No date rather than
+   spread into the windows [yes]?
+4. Add a spend-plan chart (month by month, both pots) to the PowerPoint deck [no, unless asked]?
+
+##### Can't-fail checks for the build
+- **Every funded dollar, discretionary and mandatory, is in exactly one month or in UNSCHEDULED** on
+  every spend-plan surface, and the surfaces agree to the dollar month by month (forecast tab, month
+  sheets, PMO-tab spend plan, CR windows for Oct–Mar).
+- **UNSCHEDULED holds only money with no date**: a requirement with no date, or discretionary not yet
+  on one. A mandatory-only service on a dated requirement is never in it.
+- **The pot-comparison views do not move** (Two Spend Plans, Plan A, the fit strip, Mission Critical).
+- **The ◨ switch moves every spend-plan surface together** and the [DISC-ONLY] marker with them.
+- Mutations for each, the full math gate, and help/training updated (the award block wording, the
+  deck's spend-plan slides).
+
 ## Withdrawn
 
 ### 1. PIDs show up in the CCaR column of the Excel workbook
