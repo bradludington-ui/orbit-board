@@ -33,9 +33,10 @@ Current version: **v1.85**. Next: **v1.86**.
   jumps straight to the section they need.
 - **It works offline, like the rest of the board:** the board's own fonts and colours, light and dark,
   nothing loaded from the internet.
-- **Two parts:** *For programme offices* (the PMO copy guide as published today, plus the five-year
-  plan by office) and *For the portfolio team* (publishing a copy, taking submittals, the consolidated
-  take, the five-year plan by PMO). A PMO copy opens on the first part.
+- **Two parts, both included** (Brad, 25 Sep: *"Include both"*): *For programme offices* (the PMO
+  copy guide as published today, plus the five-year plan by office) and *For the portfolio team*
+  (publishing a copy, taking submittals, the consolidated take, the five-year plan by PMO). A PMO
+  copy opens on the first part.
 - **The version on the guide is the board's own**, so it can never say a different version from the
   board it is in.
 - **One source:** the web page and the Teams PDF are produced from the guide inside the board, so all
