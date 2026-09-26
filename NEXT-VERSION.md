@@ -98,12 +98,16 @@ Current version: **v1.85**. Next: **v1.86**.
 - **The ◨ switch moves every spend-plan view together**, or none; the CR panel By PMO, the PMO-tab
   spend plan and the fit chart follow it.
 
-##### Questions for Brad (defaults in brackets)
-1. Mandatory rides the requirement's dates [yes], rather than separate mandatory increments to type?
-2. Keep the ◨ Discretionary only switch as a what-if, fixed so everything obeys it [keep]?
-3. The 1A9A CR return adopts the same rule, so undated discretionary shows as No date rather than
-   spread into the windows [yes]?
-4. Add a spend-plan chart (month by month, both pots) to the PowerPoint deck [no, unless asked]?
+##### Brad's answers (26 Sep)
+1. **Mandatory rides the requirement's own dates** — no separate mandatory increments to type. *Yes.*
+2. **Keep the ◨ Discretionary only switch** as a what-if, fixed so every spend-plan view obeys it. *Yes.*
+3. **The 1A9A CR Cash Return adopts the same rule**: discretionary not yet on a date shows as No date,
+   not spread into the windows. *Yes.* Its figures will move where that was happening; the build
+   states by how much on a real-shaped board before it ships.
+4. **Add a spend-plan chart to the PowerPoint deck.** *Yes.* Proposed: one slide, a column per month
+   (Oct–Sep) stacked discretionary and mandatory, UNSCHEDULED as its own column at the end, with the
+   month figures printed beneath so every bar's value is stated. Drawn from the same forecast the
+   board's forecast tab shows, and marked ◨ DISCRETIONARY ONLY when the switch is on.
 
 ##### Can't-fail checks for the build
 - **Every funded dollar, discretionary and mandatory, is in exactly one month or in UNSCHEDULED** on
@@ -113,6 +117,8 @@ Current version: **v1.85**. Next: **v1.86**.
   on one. A mandatory-only service on a dated requirement is never in it.
 - **The pot-comparison views do not move** (Two Spend Plans, Plan A, the fit strip, Mission Critical).
 - **The ◨ switch moves every spend-plan surface together** and the [DISC-ONLY] marker with them.
+- **The deck's chart ties to the dollar** to the forecast tab: every month, each pot, UNSCHEDULED and
+  the total; it opens in PowerPoint without a repair prompt.
 - Mutations for each, the full math gate, and help/training updated (the award block wording, the
   deck's spend-plan slides).
 
