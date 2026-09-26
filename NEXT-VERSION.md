@@ -181,9 +181,17 @@ the editors are below the fold on every requirement, including ⚠ Impact, the f
 exists to collect.
 
 ##### How it would work (proposed; say if any of it is wrong)
-- **Straight under the title, one row of four equal buttons:** ⚠ Impact · 📄 Description · 📝 Note ·
-  📋 Record, each saying its state in the button itself (e.g. *⚠ Impact — not written* in amber,
-  *📄 Description* marked once written). They leave the bottom of the panel.
+- **Straight under the title, one row of three equal buttons**, each saying its state in the button
+  itself; they leave the bottom of the panel (Brad, 26 Sep, after seeing the mock-up):
+  - **⚠ Impact statement** (renamed from *Impact*) — *written* / *not written*, amber when missing.
+  - **📄 Description & note** — Description and Note combined: one pop-up with the **description
+    area first and the note area underneath**, one Save. Each is still kept, submitted by a PMO copy,
+    reviewed and exported as its own field; a Save only writes the one(s) that changed.
+  - **📋 Requirement edit** (renamed from *Record*) — says how many of its fields are still to fill
+    (e.g. *6 of 7 not set*), amber while any are.
+- **One name everywhere:** the pop-up titles, the board's messages that say "📋 Record" or name the
+  Impact field, the card build's chips (which open the same combined Description & note pop-up), the
+  guide and the deck all use *Impact statement*, *Description & note* and *Requirement edit*.
 - **Less at the top, not more:** the two chip rows become one quiet line (★ MC · PMO); the band echo
   goes, because the Decision band field below already shows and sets it; the ⚙ *from the lane walk*
   note moves down beside the money it describes.
@@ -193,9 +201,11 @@ exists to collect.
 - **Help and training** follow (the guide and deck say the editors are "at the bottom").
 
 ##### Can't-fail checks for the build
-- **Every control still there and still working:** the panel's controls before and after are the same
-  set, each opening the same editor and writing the same field (the editors-reachable and row-controls
-  checks), both themes.
+- **Every control still there and still working:** the panel's controls before and after reach the
+  same editors and write the same fields (the editors-reachable and row-controls checks), both themes.
+- **The combined pop-up loses nothing:** description and note are saved, journalled, submitted from a
+  PMO copy and exported exactly as two separate fields; saving one never blanks or re-stamps the other;
+  an old name ("📋 Record", "Impact —") is left nowhere on screen.
 - **Above the fold on a laptop:** the four editors are visible without scrolling at 1366×768 and
   1440×900, for a requirement with and without an award schedule; nothing clipped; the toolbar-fit and
   accessibility checks hold (keyboard order follows the new layout).
