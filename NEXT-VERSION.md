@@ -165,6 +165,42 @@ Current version: **v1.85**. Next: **v1.86**.
 - **Every destination list is A to Z** (checked on every picker, both builds).
 - The data-loss fuzz covers the new store; mutations; the full math gate; help and training updated.
 
+### 12. The requirement panel: its editors at the top, without clutter
+- **Logged:** 26 Sep 2026, Brad: *"On the requirement pop up, most of the editable selection material
+  is at the bottom of the pop up. I need to bring those to the top so that they're not as hidden.
+  Let's move them to the top but let's make sure it doesn't look cluttered at the top."*
+
+##### What the panel does today (grid build, RECORD panel, read and photographed 26 Sep, v1.85)
+From the top: the title (✎ rename) · a row of status chips (☆ MC, PMO) · a second row echoing the
+row's chips (band, funding) · the ⚙ *from the lane walk* chip · six money boxes (requirement,
+allocated, discretionary, mandatory, unfunded, MC shortage) · CCaR record and PID · Decision band ·
+the By service table · Planning (minimum useful increment, shortfall absorber) · the award / obligation
+schedule · and last, under *Open on the row*, the four editors: **📝 Note, 📄 Description, 📋 Record,
+⚠ Impact**. On a laptop the panel shows about 610 px of its ~820 px (more with an award schedule), so
+the editors are below the fold on every requirement, including ⚠ Impact, the field the PMO workflow
+exists to collect.
+
+##### How it would work (proposed; say if any of it is wrong)
+- **Straight under the title, one row of four equal buttons:** ⚠ Impact · 📄 Description · 📝 Note ·
+  📋 Record, each saying its state in the button itself (e.g. *⚠ Impact — not written* in amber,
+  *📄 Description* marked once written). They leave the bottom of the panel.
+- **Less at the top, not more:** the two chip rows become one quiet line (★ MC · PMO); the band echo
+  goes, because the Decision band field below already shows and sets it; the ⚙ *from the lane walk*
+  note moves down beside the money it describes.
+- **Then, in order:** the money boxes · CCaR record, PID and Decision band together · By service ·
+  Planning · the award schedule. Nothing is removed from the panel and nothing changes what it does.
+- **The card build** keeps its row layout; this is the grid build's RECORD panel.
+- **Help and training** follow (the guide and deck say the editors are "at the bottom").
+
+##### Can't-fail checks for the build
+- **Every control still there and still working:** the panel's controls before and after are the same
+  set, each opening the same editor and writing the same field (the editors-reachable and row-controls
+  checks), both themes.
+- **Above the fold on a laptop:** the four editors are visible without scrolling at 1366×768 and
+  1440×900, for a requirement with and without an award schedule; nothing clipped; the toolbar-fit and
+  accessibility checks hold (keyboard order follows the new layout).
+- **Nothing moves:** opening the panel changes no figure; the inspector still agrees with the engine.
+
 ## Withdrawn
 
 ### 1. PIDs show up in the CCaR column of the Excel workbook
