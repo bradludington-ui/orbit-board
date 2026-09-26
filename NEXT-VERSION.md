@@ -296,13 +296,12 @@ exists to collect.
   appropriation · several boards · appropriation packages) · *Export* (one appropriation · PMO copy ·
   review submittals) · *Team* (as today).
 
-##### Questions for Brad (defaults in brackets)
-1. A full import **replaces** whatever the new board holds, after one confirmation that says so [yes —
-   it is meant for a fresh new version; a board with work of its own gets the per-appropriation
-   conflict check first].
+##### Brad's answers (26 Sep): yes to all three
+1. A full import **replaces** whatever the new board holds, after one confirmation that says so; a board
+   with work of its own gets the per-appropriation conflict check first.
 2. **Export one appropriation** makes a full working board (editable, saveable), not a package or a PMO
-   copy [yes].
-3. Keep **Appropriation packages** and **Import several boards at once** alongside, under Import [yes].
+   copy.
+3. **Appropriation packages** and **Import several boards at once** stay, under Import.
 
 ##### Can't-fail checks for the build
 - **Nothing is lost in a full import:** every container in the previous file arrives unchanged —
