@@ -258,6 +258,62 @@ exists to collect.
 - **The filter** shows exactly the flagged requirements and composes with the other filters.
 - Mutations; the full math gate; help and training (the guide's portfolio-team part and the deck).
 
+### 14. Importing and exporting boards: a full import for new versions, one appropriation in or out, and the PMO copy under File
+- **Logged:** 26 Sep 2026, Brad: *"I need first to be able to import a full dashboard from a previous file
+  that way when the new version comes out it's seamless. I also need the ability to import or export
+  appropriation specific dashboards. The pmo copy export is in a random drop-down and needs to be moved
+  over to the file drop-down."*
+
+##### What the board does today (read 26 Sep, v1.85)
+- **📁 File ▾ → Bring work in** holds ⬅ *Import a previous board…*, 🔁 *Appropriation packages…* and ⇊
+  *Import several boards at once…*. A consolidated file imported with ⬅ asks which appropriations to take
+  (numbers, or ALL), with a confirmation for each.
+- **A full import (ALL) is not complete.** It takes the four appropriations, execution data, cost
+  estimates and the reprogramming log, but **leaves behind the BAE list and the locked cycles of every
+  appropriation except the one open** (read in `importStores`: it takes `cycDb.byAp` for the open
+  appropriation only, and never reads `budDb`). On a new version opened on another machine, those would
+  be missing.
+- **There is no "export one appropriation".** The only one-appropriation files are packages (a hand-out
+  and return with a ledger) and PMO copies (a sandbox). Importing one appropriation works from a
+  consolidated file (v1.84) or a single-appropriation file.
+- **📤 Publish PMO copy…** and **✉ Review submittals…** live under 🎯 Budget year ▾ → Programme offices.
+
+##### How it would work (proposed; say if any of it is wrong)
+- **⬅ Import a full board (new version)** in 📁 File ▾: pick the previous file; one confirmation that
+  lists what comes across; then **everything** in it — all four appropriations, every locked cycle for
+  every appropriation, the BAE list, execution data, cost estimates, the reprogramming log, PPBE positions,
+  destinations (item 11) — lands on the new board, and a report says what arrived, appropriation by
+  appropriation and store by store. Built for opening a new version and carrying on where the old one
+  left off; a file saved by any earlier version back to v1.80 is accepted.
+- **⬇ Export one appropriation…** — pick O&M, Full Fund, Initial Spares or OPN: a working board file
+  holding only that appropriation (its plan, its locked cycles, and the board-wide lists it needs), which
+  opens and saves like any board — for an appropriation lead.
+- **⬅ Import one appropriation…** — take one appropriation from any board file (consolidated or
+  single), with the conflict check and preview v1.84 already has; nothing else on the board changes.
+- **📁 File ▾ gains the PMO copy:** 📤 *Publish PMO copy…* and ✉ *Review submittals…* move there from
+  🎯 Budget year ▾; in a PMO copy, ✉ *Submit input…* moves there too (the bar button stays).
+- **The File menu, grouped:** *Save* (💾 Save · ⬇ Save a copy) · *Import* (full board · one
+  appropriation · several boards · appropriation packages) · *Export* (one appropriation · PMO copy ·
+  review submittals) · *Team* (as today).
+
+##### Questions for Brad (defaults in brackets)
+1. A full import **replaces** whatever the new board holds, after one confirmation that says so [yes —
+   it is meant for a fresh new version; a board with work of its own gets the per-appropriation
+   conflict check first].
+2. **Export one appropriation** makes a full working board (editable, saveable), not a package or a PMO
+   copy [yes].
+3. Keep **Appropriation packages** and **Import several boards at once** alongside, under Import [yes].
+
+##### Can't-fail checks for the build
+- **Nothing is lost in a full import:** every container in the previous file arrives unchanged —
+  each appropriation's plan (every year), every locked cycle of every appropriation, the BAE list,
+  execution data, cost estimates, the reprogramming log, PPBE positions, destinations — checked store by
+  store with the file verifier, from files saved by earlier versions (v1.80 onward, built from the
+  project's own history) into the new one; the figures every export prints are the same before and after.
+- **One appropriation out and back in** changes that appropriation only, and round-trips unchanged.
+- **The moved menu items** open the same actions (menu-path check); no old path is left pointing at
+  nothing; help and training updated.
+
 ## Withdrawn
 
 ### 1. PIDs show up in the CCaR column of the Excel workbook
