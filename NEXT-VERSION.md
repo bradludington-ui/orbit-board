@@ -122,6 +122,49 @@ Current version: **v1.85**. Next: **v1.86**.
 - Mutations for each, the full math gate, and help/training updated (the award block wording, the
   deck's spend-plan slides).
 
+### 11. Destinations: one list for every appropriation, in alphabetical order
+- **Logged:** 26 Sep 2026, Brad: *"When I create destinations, I need it to span all appropriations not
+  just the one I'm building on. I also need it to be in alphabetical order to make it easier to look
+  them up. In the main file, I've added about 30 destinations and it's making it hard to search."*
+- **What Brad needs:** a destination added once (🛠 Tools ▾ → 📍 Destinations…) is there on O&M, Full
+  Fund, Initial Spares and OPN; every list of destinations reads A to Z.
+
+##### What the code does today (read 26 Sep, v1.85)
+- The list lives **inside each appropriation's own saved plan** (`MS.flow.ents`), so a destination
+  added on O&M does not exist on Full Fund. Switching appropriation reloads the board with that
+  appropriation's own list.
+- It is kept **in the order added**: the eight seeded ones (Lockheed Martin, Pratt & Whitney, the Navy
+  activities, DLA, OC-ALC), then each new one at the bottom. Every picker shows that order: the
+  Destinations panel, **Goes to** and **Which awards to** in 📋 Record, and the row's destination
+  selectors.
+- A requirement stores its destination by an internal key (`x1`, `x2`, …) numbered **per
+  appropriation**, so `x1` on O&M and `x1` on Full Fund can be two different places.
+
+##### How it would work (proposed; say if any of it is wrong)
+- **One list for the whole board**, kept in the saved file beside the BAE list (the v1.83 pattern),
+  so every appropriation and every PMO copy reads the same destinations.
+- **The four lists are merged once**, the first time v1.86 opens the file. Same name (ignoring case
+  and extra spaces) = one destination; different names stay separate. Where the two appropriations
+  hold the same name with different details (kind, or match terms), the match terms are combined and
+  the difference is named for you to settle.
+- **Keys become unique across the board.** Each appropriation's requirements are re-pointed to the
+  merged keys the first time that appropriation opens on v1.86, so no requirement loses or changes
+  its destination.
+- **A to Z everywhere a destination is picked or listed** (the panel, Goes to, Which awards to, the
+  row selectors), ignoring case, with "Not yet assigned" and "Split between destinations" kept at the
+  end where they are today. The funds flow chart keeps its own order.
+
+##### Can't-fail checks for the build
+- **No requirement in any appropriation or year loses or changes its destination** through the merge
+  and re-keying (checked destination by destination, before and after), and the funds flow prints the
+  same dollars to the same destinations.
+- **Two different destinations are never merged**; only exact name matches (ignoring case and
+  spacing) are, and each merge is listed.
+- **Added once, seen everywhere:** a destination added on one appropriation is on the others after a
+  switch, after save and reopen, and in a PMO copy.
+- **Every destination list is A to Z** (checked on every picker, both builds).
+- The data-loss fuzz covers the new store; mutations; the full math gate; help and training updated.
+
 ## Withdrawn
 
 ### 1. PIDs show up in the CCaR column of the Excel workbook
