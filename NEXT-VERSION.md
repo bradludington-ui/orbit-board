@@ -211,6 +211,53 @@ exists to collect.
   accessibility checks hold (keyboard order follows the new layout).
 - **Nothing moves:** opening the panel changes no figure; the inspector still agrees with the engine.
 
+### 13. Find, in the main view, where a typed allocation is more than it draws — and fix it
+- **Logged:** 26 Sep 2026, Brad: *"I need a better way to quickly identify where we've over allocated
+  funding ... there's a requirement that shows that we've allocated an amount but then it tells us that
+  only x amount has been drawn from it. I need a quicker way within the dashboard main view to identify
+  quickly and easily where those issues are happening so that we can adjust and make corrections."*
+  Options talked through and mocked up 26 Sep; Brad chose **A, B and C**, **mandatory as well as
+  discretionary**, and **set to drawn** as the fix.
+
+##### What the board does today (read 26 Sep, v1.85)
+- A typed Disc or Mand figure is paid only as far as (1) that service's lane still holds money at the
+  requirement's rank and (2) the requirement value for that service allows. The rest is unfunded.
+- The only place it shows is the **"drew $…" line under the figure in the requirement's By service
+  table** (card build: the row expander), one requirement at a time. There is no count, no filter and
+  nothing on the list.
+
+##### What will be built
+- **A · The counter.** A fourth chip in the DISCRETIONARY FIT strip, beside *fits in disc / spills to
+  mand / unfunded*: **▲ not drawn N · $X** — how many requirements are set higher than they draw, and
+  the total not drawn, discretionary and mandatory together. One click filters the list to just those
+  (again, or ✕ clear, to come back). **🔧 fix list** sits beside it.
+- **B · The flag on the row.** Every affected requirement carries **▲ $… not drawn** in the list (both
+  builds; the RECORD panel echoes it). Hovering it names each service and lane, what was typed, what was
+  drawn and why.
+- **C · The fix list.** One line per service and lane on each affected requirement, in priority order:
+  typed, drawn, not drawn, and **why** — *"USAF discretionary ran out above this rank"*, *"USAF mandatory
+  ran out above this rank"*, or *"the USN requirement value stops at $X"* (typed above the requirement).
+  Per line: **set to drawn** and **open**; at the foot, **set all to drawn**, which first says how many
+  lines and how much it will change.
+- **What "set to drawn" changes, measured 26 Sep:** it lowers the typed figure to what was paid. **No
+  funded dollar moves, and neither unfunded total moves** (TOTAL and vs DISC, per requirement and
+  overall). What changes is the *explanation* of the unfunded money: it stops counting as "allocated but
+  no lane could pay it" — the **portfolio shortfall** in the fit strip and the **lane short** line in the
+  By service table — and counts as never allocated. Example: a requirement typed at $4.0M USAF and $1.0M
+  ANG that drew nothing; after set to drawn, its UFR stays $5.0M, and the board's shortfall fell from
+  $6.0M to $2.0M (USAF) and $2.0M to $1.0M (ANG). The panel says this in one line; each fix is journalled
+  and the typed figure can be retyped.
+
+##### Can't-fail checks for the build
+- **The counter, the flags and the list agree** with each other and with the By service table's "drew"
+  lines, to the dollar, for every requirement, service and lane; nothing is flagged that drew in full;
+  a requirement on the lane walk (nothing typed) is never flagged.
+- **Set to drawn / set all to drawn moves no funded dollar and neither unfunded total**, on every
+  requirement and every total (checked before and after, both builds); the typed figure equals what was
+  drawn afterwards; the flag and the line disappear; the shortfall moves by exactly the amount set.
+- **The filter** shows exactly the flagged requirements and composes with the other filters.
+- Mutations; the full math gate; help and training (the guide's portfolio-team part and the deck).
+
 ## Withdrawn
 
 ### 1. PIDs show up in the CCaR column of the Excel workbook
