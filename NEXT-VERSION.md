@@ -8,7 +8,55 @@ Current version: **v1.86**. Next: **v1.87**.
 
 ## Open
 
-_Nothing queued. New changes are logged here until the next go._
+### 15. The math gate: stop a test run at its first failed check during the mutation sweep
+- **Logged:** 27 Sep 2026, Brad: *"Once we're done let's figure out how we can shorten the processing
+  time. I'm not sure if it's something I can fix on my end or if it's on your end"*; *"Yes"* to logging
+  this for v1.87. It is on the testing side; nothing on Brad's end changes. Tests only: the board is
+  not touched.
+
+##### What the gate does today (measured 27 Sep, v1.86)
+- The mutation sweep plants each of 485 deliberate mistakes in the board, on both builds, and runs the
+  test suites until one catches it. A mistake counts as caught as soon as **one** check fails -- but
+  each suite still runs **every** check to its end before reporting.
+- Suite times on the clean card board: import 67 s, board 13 s, recon 5.5 s, the other three 8 s
+  together. Most mistakes reach the import suite.
+- The v1.86 gate took 5.9 hours (the sweeps 332 and 351 minutes). The next one also has the catch
+  record from v1.86 (each mistake tries the suite that caught it last time first), expected ~4–4½ hours.
+
+##### What would be built
+- When the sweep runs a suite, the suite stops at its first failed check and reports it as caught.
+  Every other run -- `npm run audit`, the gate's own suite stage, a run by hand -- still reports every
+  failure, as now.
+- Estimated saving: another 20–30% of the gate.
+
+##### Can't-fail checks for the build
+- **The verdict for every mistake is identical** with and without the early stop: the full sweep run
+  both ways once, on both builds, compared mistake by mistake (caught, survived, crashed, equivalent).
+- The early stop can never switch on outside the sweep; a block that throws still counts as caught.
+- The full math gate.
+
+### 16. The math gate: slim the import suite
+- **Logged:** 27 Sep 2026, with item 15 (same request, same *"Yes"*). Tests only: the board is not
+  touched.
+
+##### What the suite does today (measured 27 Sep, v1.86)
+- 67 of the 94 seconds all suites take together; about 105 boards opened, across 52 test blocks of
+  1–8 seconds each (the longest: the destination lists merging, 8 s; every appropriation read by its own
+  board, 6 s; the PMO copy's own storage, 6 s). Opening boards is most of it.
+- The full-import test rebuilds boards saved by v1.80, v1.83 and v1.85 from the project's history.
+
+##### What would be built
+- Blocks that only read a board share one; each older version's saved file is built once per run, not
+  once per block. Every check keeps its name, its wording and what it proves.
+- Estimated: 67 s → about 35 s. With item 15, the gate on this machine lands around 2–3 hours.
+
+##### Can't-fail checks for the build
+- **Every check still runs and still means the same thing:** the list of checks and their verdicts on
+  the clean boards, before and after, compared one by one.
+- **A shared board cannot carry one block's changes into another:** a guard fails the suite if a block
+  that shares a board changes it.
+- **The sweep catches exactly the same mistakes** as before; peak memory stays under the sweep's cap.
+- The full math gate.
 
 ## Withdrawn
 
