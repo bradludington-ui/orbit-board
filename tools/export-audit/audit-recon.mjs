@@ -13,9 +13,10 @@
 //   agreement      the same quantity is the same number in every artefact that prints it
 //
 // A wrong algorithm can still satisfy an audit written against itself. It cannot satisfy these.
-import { boot, seed } from './boot.mjs';
+import { boot, seed, stopAtFirstFailure } from './boot.mjs';
 
 let failures = [];
+stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
 // EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
 // a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
 // five mutations aimed at it survived. chk() records every scenario it hears from; at the summary,

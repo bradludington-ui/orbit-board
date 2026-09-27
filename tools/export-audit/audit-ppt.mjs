@@ -5,10 +5,11 @@
 //
 // Slide cells are pre-formatted money strings, so every expectation is formatted with the page's
 // own fSM() and compared as text — which is exactly what a reader sees on the slide.
-import { boot, seed } from './boot.mjs';
+import { boot, seed, stopAtFirstFailure } from './boot.mjs';
 
 const EPS = 0.005;
 const failures = [];
+stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
 // EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
 // a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
 // five mutations aimed at it survived. chk() records every scenario it hears from; at the summary,

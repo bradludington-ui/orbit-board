@@ -1,11 +1,12 @@
 // Audit the Excel Workbook export against tiers(), which is the board's own per-requirement
 // discretionary / mandatory / unfunded truth. Every check compares a number the workbook prints
 // against the same number recomputed from tiers().
-import { boot, seed, capture, num, cv } from './boot.mjs';
+import { boot, seed, capture, num, cv, stopAtFirstFailure } from './boot.mjs';
 import { inflateRawSync } from 'node:zlib';
 
 const EPS = 0.005;
 let failures = [];
+stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
 // EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
 // a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
 // five mutations aimed at it survived. chk() records every scenario it hears from; at the summary,

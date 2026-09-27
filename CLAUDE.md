@@ -2715,6 +2715,40 @@ browser". 56 new mutations: 485 in all, every one applying exactly once on both 
   both builds (11 equivalent), 356.7 min -- the sweeps 332 and 351 min against 562 and 581 the run
   before, with no catch record yet to order by. The next sweep has one.
 
+### v1.87: the math gate, shortened (tests only)
+
+Built from `NEXT-VERSION.md` items 15 and 16 on Brad's "go" (27 Sep 2026). The board changes only its
+BUILD; everything else is the test harness.
+
+**Item 16 -- the import suite, 65 s → 38 s, and it was a bug.** Profiled with `--cpu-prof`: 26 of its 65
+seconds, and most of its garbage collection, were `keepBoards()` -- added in v1.86 to keep the boards
+later blocks reuse -- spreading `Object.values()` over each kept variable. `V186L` is a whole saved
+board FILE, a 3.2 MB string, and spreading a string gives one entry per character: 3.2 million, after
+every block. It now spreads objects only. Peak memory 1.8 GB → 0.9 GB. The logged plan (share boards
+between blocks, with a guard) was not needed, so not built. Proof: `SUITE_CHECKS=<file>` makes
+audit-import record every check -- scenario, place, claim, verdict, what it read -- and on both clean
+builds all 1,030 came out in the same order with the same verdicts and the same values once clock stamps
+and random destination keys are masked (15 values vary run to run for that reason alone).
+
+**Item 15 -- the sweep stops a suite at its first failed check.** `stopAtFirstFailure(failures)` in
+`boot.mjs`, called once by each of the six sweep suites on its `failures` list; it acts only when
+`MUT_FIRST_FAIL=1`, which only `mutate.mjs` sets for the suites it runs. The first push writes the line
+the sweep reads ("N FAILING CHECK(S)") with a synchronous `writeSync(1, …)` -- a `console.log` into a
+pipe can be lost to `process.exit` -- and exits 1. Safe because no suite ever removes or reassigns a
+recorded failure (checked: every `failures` is only ever pushed to). One difference in kind, accepted: a
+mutated board that fails a check and would LATER crash the suite now reads as caught rather than
+CRASHED; a caught check is a catch. Proof: twelve mutations, two from each catching suite of the v1.86
+gate, each caught by the same suite, 49 s for all twelve (the v1.86 gate averaged ~86 s a mutation);
+then the whole gate's catch record against v1.86's, mutation by mutation (below).
+
+With the catch record (v1.86) the sweep now usually costs one suite, run to its first failure.
+
+**The gate that passed v1.87** (27 Sep, 21:47–23:25 UTC): every stage clean, 474/474 caught on both builds
+(11 equivalent), **98.1 min** -- sweeps 89 and 94 min (v1.86: 332 and 351; the run before: 562 and 581).
+Its catch record matched v1.86's mutation by mutation on both builds: none missing, none new, none
+caught by a different suite. (The same suite is partly by construction -- the record orders the
+suites; what the comparison proves is that nothing slipped and nothing crashed.)
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

@@ -11,7 +11,7 @@
 // all still present, every total reconciles and nothing on the board looks wrong.
 //
 // This suite drives the real adoption path, applyStore(), the way an import does.
-import { boot, seed, BOARD, capture, cv, bootMark, bootRelease, settleBoards } from './boot.mjs';
+import { boot, seed, BOARD, capture, cv, bootMark, bootRelease, settleBoards, stopAtFirstFailure } from './boot.mjs';
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { JSDOM, VirtualConsole } from 'jsdom';
@@ -35,11 +35,12 @@ const dumpLs = (w) => { const o = {}; const ls = w.localStorage;
   for (let i = 0; i < ls.length; i++) { const k = ls.key(i); o[k] = ls.getItem(k); } return o; };
 
 let failures = [];
+stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
 // The boards a later block reuses: V185W, V186L and V14 are built once and read by the blocks after.
 // Each is read through a guard -- a block above its `let` line runs while it is still uninitialised.
 const keepBoards = () => [() => V185W, () => V186L, () => V14]
   .map(f => { try { return f(); } catch { return null; } })
-  .flatMap(v => !v ? [] : [v, ...Object.values(v)])
+  .flatMap(v => (!v || typeof v !== 'object') ? [] : [v, ...Object.values(v)])   // never a string: V186L is a whole board file, and spreading one made 3.2 million entries a block
   .filter(x => x && typeof x === 'object' && x.w).map(x => x.w);
 // EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
 // a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
@@ -48,10 +49,15 @@ const keepBoards = () => [() => V185W, () => V186L, () => V14]
 import { readFileSync as _selfRead } from 'node:fs';
 import { fileURLToPath as _selfPath } from 'node:url';
 const SEEN = new Set();
+// SUITE_CHECKS=<file> records EVERY check -- name, place, claim, verdict, and what was read -- so a
+// change to the suite itself can be proved to have kept every check and its verdict (v1.87).
+import { appendFileSync as _ckAppend } from 'node:fs';
+const CHECKS = process.env.SUITE_CHECKS || '';
 const chk = (scenario, where, what, got, want) => {
   SEEN.add(scenario);
   const ok = (typeof got === 'number' && typeof want === 'number')
     ? Math.abs(got - want) <= 0.005 : String(got) === String(want);
+  if (CHECKS) _ckAppend(CHECKS, JSON.stringify([scenario, where, what, ok, String(got).slice(0, 400)]) + '\n');
   if (!ok) failures.push({ scenario, where, what, got, want });
 };
 

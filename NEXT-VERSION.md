@@ -4,11 +4,39 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.86**. Next: **v1.87**.
+Current version: **v1.87**. Next: **v1.88**.
 
 ## Open
 
-### 15. The math gate: stop a test run at its first failed check during the mutation sweep
+_Nothing queued. New changes are logged here until the next go._
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v1.87 — 27 Sep 2026: items 15 and 16, built on Brad's "go" — the math gate, shortened
+
+The board is unchanged apart from its version: this is the testing side only.
+
+What shipped differs from the log in these places, all stated here:
+- **The import suite (16) was slow because of a bug, not because of its size.** Measured: 26 of its 65
+  seconds went to a helper added in v1.86 that, after every test block, turned a whole saved board file
+  (3.2 MB of text) into a list of 3.2 million single characters and threw it away. Fixed: 65 s → 38 s,
+  and half the memory. Sharing boards between blocks, as logged, was not needed, so it was not built.
+  Proof: all 1,030 of the suite's checks, on both builds, run in the same order with the same results.
+- **The early stop (15)** was built as logged. Twelve planted mistakes, two from each test suite that
+  catches them, were each caught by the same suite as in the v1.86 check, in about 8 seconds each
+  instead of ~86.
+- **The result:** the full check that passed v1.87 took **1 hour 38 minutes** -- v1.86's took 5 hours 57,
+  and the run before that 9 hours 42. Every planted mistake was caught on both builds (474 of 474),
+  each by the same test as in v1.86. Nothing about what is checked changed.
+
+#### 15. The math gate: stop a test run at its first failed check during the mutation sweep
 - **Logged:** 27 Sep 2026, Brad: *"Once we're done let's figure out how we can shorten the processing
   time. I'm not sure if it's something I can fix on my end or if it's on your end"*; *"Yes"* to logging
   this for v1.87. It is on the testing side; nothing on Brad's end changes. Tests only: the board is
@@ -35,7 +63,7 @@ Current version: **v1.86**. Next: **v1.87**.
 - The early stop can never switch on outside the sweep; a block that throws still counts as caught.
 - The full math gate.
 
-### 16. The math gate: slim the import suite
+#### 16. The math gate: slim the import suite
 - **Logged:** 27 Sep 2026, with item 15 (same request, same *"Yes"*). Tests only: the board is not
   touched.
 
@@ -57,15 +85,6 @@ Current version: **v1.86**. Next: **v1.87**.
   that shares a board changes it.
 - **The sweep catches exactly the same mistakes** as before; peak memory stays under the sweep's cap.
 - The full math gate.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v1.86 — 26 Sep 2026: items 9–14, built on Brad's "go"
 

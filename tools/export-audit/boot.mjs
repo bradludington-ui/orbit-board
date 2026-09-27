@@ -1,6 +1,6 @@
 // Boot the real board in jsdom and hand back a window we can drive.
 import { JSDOM, VirtualConsole } from 'jsdom';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeSync } from 'node:fs';
 import { setFlagsFromString } from 'node:v8';
 import { runInNewContext } from 'node:vm';
 
@@ -20,6 +20,24 @@ export const BOARD = process.env.BOARD
 // four of them at once (the mutation sweep) no longer fitted in the machine. bootMark() before a
 // block, bootRelease(mark, keep) after it: every board opened since the mark is closed except `keep`.
 const OPEN = [];
+// STOP AT THE FIRST FAILED CHECK -- IN THE MUTATION SWEEP ONLY (v1.87). The sweep asks one thing of a
+// suite: does ANY check fail on this mutated board? The first failure answers it; running the rest
+// was most of a caught mutation's cost. mutate.mjs sets MUT_FIRST_FAIL=1 for the suites it runs, and
+// each suite hands its failures list here. Nothing else sets it, so `npm run audit`, the gate's own
+// suite stage and a run by hand still report every failure. No suite ever removes a recorded failure,
+// so stopping at the first cannot turn a failing run into a passing one. The line is the one the
+// sweep already reads ("N FAILING CHECK(S)"), written synchronously so exiting cannot lose it.
+export function stopAtFirstFailure(failures) {
+  if (process.env.MUT_FIRST_FAIL !== '1') return failures;
+  failures.push = function (...xs) {
+    const n = Array.prototype.push.apply(this, xs);
+    let first = ''; try { first = JSON.stringify(xs[0]).slice(0, 400); } catch { first = String(xs[0]); }
+    writeSync(1, `\n${this.length} FAILING CHECK(S) -- stopped at the first (MUT_FIRST_FAIL)\n\n--- ${first}\n`);
+    process.exit(1);
+    return n;
+  };
+  return failures;
+}
 export const bootMark = () => OPEN.length;
 export function bootRelease(mark, keep = []) {
   const kept = new Set(keep);

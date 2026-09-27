@@ -1732,7 +1732,7 @@ const runSuite = (path, file) => new Promise(done => {
   // default ceiling before collecting, and audit-import alone reached 5-6 GB -- more than the machine
   // has for four. Its live set is ~1.2 GB now that its boards are freed (boot.mjs, settleBoards); a
   // run that truly needs more dies loudly and is reported CRASHED, never read as a catch.
-  const env = { ...process.env, BOARD: file,
+  const env = { ...process.env, BOARD: file, MUT_FIRST_FAIL: '1',   // a suite stops at its first failed check (boot.mjs)
     NODE_OPTIONS: ((process.env.NODE_OPTIONS || '') + ' --max-old-space-size=2560').trim() };
   execFile(process.execPath, [path], { env, maxBuffer: 1 << 26 },
     (err, stdout, stderr) => {

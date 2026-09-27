@@ -9,9 +9,10 @@
 // that tells someone where the money runs out. Its oracle is derived here, from the scenario's own
 // inputs, never read back from tiers() — an oracle that asks the code under test what the answer
 // is will agree with it, including when it is wrong.
-import { boot, seed } from './boot.mjs';
+import { boot, seed, stopAtFirstFailure } from './boot.mjs';
 
 const failures = [];
+stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
 // EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
 // a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
 // five mutations aimed at it survived. chk() records every scenario it hears from; at the summary,
