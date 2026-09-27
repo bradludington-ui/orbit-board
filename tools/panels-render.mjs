@@ -41,6 +41,11 @@ const SPECIAL = {
   subPanel:  `subOpenReview();`,
   // The pop-up editor for the three written fields. It needs a requirement to be editing.
   fldPanel:  `openFld(S.order[0], 'cons');`,
+  // v1.86: the fix list for what is set higher than it draws -- a split typed past the requirement
+  // value on the last row, so the panel has a line to show -- and the guide, open on its contents.
+  ndPanel:   `S.fsrc[S.order[S.order.length-1]]={m:'split', dv:SVC.map(function(){ return 9e11; }), mv:SVC.map(function(){ return 0; })};
+              ndOpen=true; render();`,
+  helpPanel: `openHelp('');`,
   // uiPrompt only falls through to this panel where window.prompt throws (Electron). A browser
   // answers the native prompt, so drive the fallback path itself.
   uipPanel:  `_uipCb=function(){}; document.getElementById('uipMsg').textContent='Name this scenario';

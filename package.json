@@ -28,7 +28,7 @@
     "panels": "node tools/panels-render.mjs",
     "frames": "node tools/fydp-frames.mjs",
     "menus": "node tools/menu-paths.mjs",
-    "audit:suites": "npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy",
+    "audit:suites": "node tools/export-audit/boot-same.mjs && npm run audit:export && npm run audit:ppt && npm run audit:other && npm run audit:board && npm run audit:import && npm run audit:recon && npm run audit:legacy",
     "coverage:money": "node tools/money-coverage.mjs",
     "validate:math": "node tools/validate-math.mjs",
     "trace": "node tools/trace-matrix.mjs",

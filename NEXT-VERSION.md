@@ -4,11 +4,70 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.85**. Next: **v1.86**.
+Current version: **v1.86**. Next: **v1.87**.
 
 ## Open
 
-### 9. The help guide inside the tool, in every board and every PMO copy
+_Nothing queued. New changes are logged here until the next go._
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v1.86 — 26 Sep 2026: items 9–14, built on Brad's "go"
+
+What shipped differs from the log in these places, all stated here:
+- **Destinations (11).** Where two appropriations spelled one place differently ("Raytheon", "RAYTHEON"),
+  the first spelling the board read is the one kept. An unnamed "New destination" nobody used is not
+  carried over. A destination a **locked cycle** names cannot be removed (a lock is a fixed point), and
+  the panel says where each one is used. A new destination reads first in the panel, ready to name.
+- **The requirement panel (12).** The quiet line under the title also shows the cost element, and
+  ▲ not drawn when there is one. On the card build, 📄 Description & note opens the same pop-up (it used
+  to open under the row), and the row chip reads ⚠ Impact statement · not written.
+- **Mandatory in the spend plans (10).** An increment stays **discretionary dollars**, so the award
+  block's *Balance to schedule* is discretionary's, with a *Mandatory — rides these dates* row beside it
+  showing where mandatory lands; switching a requirement to increments now seeds discretionary only.
+  On the CR views a date outside the fiscal year counts as No date (as the forecast already did), and
+  By PMO's TOTAL IN WINDOW now counts only the windows (it was counting every funded dollar). The fit
+  chart's table follows the ◨ switch with the chart.
+- **The 1A9A movement, measured before shipping** on the populated test board (six services, 36
+  requirements, single dates and two-increment schedules, some discretionary left undated): the return's
+  in-window total moved from **$7,171,260 to $7,151,178 (−$20,082)**, one requirement more appears (a
+  mandatory-only service that now lands in a window), and the 1–15 windows moved Oct +$18,877,
+  Nov −$67,928, Dec +$187,500, Jan −$233,531, Feb +$75,000. Across all six services the CR panel's
+  No date fell from $13.8M to $10.7M: mandatory that had nowhere to land now has a month.
+- **Not drawn (13).** The fix list also says how much of the portfolio shortfall each fix moves (none
+  where a figure was typed above the requirement value — that was never payable), and the confirmation
+  for set all to drawn states it. The counter reads the funded plan even under ◨. A PMO copy shows the
+  list but offers no fix. The filter is also under 🔍 Filter ▾.
+- **Import and export (14).** A file older than v1.80 is refused, saying why. An appropriation or a list
+  the file does not carry is **kept**, not cleared, and the report says so. *Import a previous board*
+  is now **⬅ Import one appropriation…** (the same checks); submittal files load from ✉ Review
+  submittals, which is now always in 📁 File ▾. **Two data-loss bugs fixed on the way:** taking one
+  appropriation's file replaced the board's execution data for all four with that one's; and an
+  appropriation taken back arrived without the cycles locked on it.
+- **The guide (9)** is 3,812 words in 22 sections (office part 12, portfolio part 10), about 26 KB of the
+  file; all of v1.86 together adds 85 KB to a 3.1 MB board (2.7%). The web guide and the Teams PDF are
+  now made from it, so the three always say the same thing. On a phone-width window the header button
+  shows 📖 alone so the header does not scroll sideways.
+- **Found while testing, fixed before shipping:** the not-drawn fix list ran long requirement names into
+  the Service column (it now sizes its columns to what they hold); and the new RECORD-panel buttons' edges
+  were too faint to meet the contrast standard in every theme (they now use the board's control edge).
+- **The testing got faster on the way.** The final check before a version (every planted mistake
+  must be caught, on both builds) had grown to ~10 hours. The test harness now loads a board ~5x
+  faster, with the board it sees proven identical either way, and remembers which test caught each
+  planted mistake. The v1.86 check took 5.9 hours, and later ones should be shorter. No change to
+  what is checked or to the board.
+- **A check fixed, not the board:** since v1.85, `npm run check` flagged the board for "an external script
+  or stylesheet is linked" when none is: its pattern ran 9,000 characters across the board's own code.
+  It now reads one tag at a time, and still catches a real one.
+
+#### 9. The help guide inside the tool, in every board and every PMO copy
 - **Logged:** 25 Sep 2026, Brad: *"Can we add the help file to the tool itself so that when we push
   it out, everyone has access to it?"*
 - **What Brad needs:** the PMO copy guide travels inside the board file, so everyone who opens a
@@ -52,7 +111,7 @@ Current version: **v1.85**. Next: **v1.86**.
 - **No network:** the panel loads nothing from outside the file.
 - The accessibility baseline holds (keyboard, focus, contrast), and the full math gate.
 
-### 10. Mandatory back in every consolidated spend plan: forecasts, charts, exports
+#### 10. Mandatory back in every consolidated spend plan: forecasts, charts, exports
 - **Logged:** 25 Sep 2026, Brad: *"Let's add mandatory allocations back into all spend plan forecasts,
   exported charts/graphs, and any other place where we're looking at a consolidated spend plan and not
   solely focused on reviewing the two distinct pots of funding."*
@@ -122,7 +181,7 @@ Current version: **v1.85**. Next: **v1.86**.
 - Mutations for each, the full math gate, and help/training updated (the award block wording, the
   deck's spend-plan slides).
 
-### 11. Destinations: one list for every appropriation, in alphabetical order
+#### 11. Destinations: one list for every appropriation, in alphabetical order
 - **Logged:** 26 Sep 2026, Brad: *"When I create destinations, I need it to span all appropriations not
   just the one I'm building on. I also need it to be in alphabetical order to make it easier to look
   them up. In the main file, I've added about 30 destinations and it's making it hard to search."*
@@ -165,7 +224,7 @@ Current version: **v1.85**. Next: **v1.86**.
 - **Every destination list is A to Z** (checked on every picker, both builds).
 - The data-loss fuzz covers the new store; mutations; the full math gate; help and training updated.
 
-### 12. The requirement panel: its editors at the top, without clutter
+#### 12. The requirement panel: its editors at the top, without clutter
 - **Logged:** 26 Sep 2026, Brad: *"On the requirement pop up, most of the editable selection material
   is at the bottom of the pop up. I need to bring those to the top so that they're not as hidden.
   Let's move them to the top but let's make sure it doesn't look cluttered at the top."*
@@ -211,7 +270,7 @@ exists to collect.
   accessibility checks hold (keyboard order follows the new layout).
 - **Nothing moves:** opening the panel changes no figure; the inspector still agrees with the engine.
 
-### 13. Find, in the main view, where a typed allocation is more than it draws — and fix it
+#### 13. Find, in the main view, where a typed allocation is more than it draws — and fix it
 - **Logged:** 26 Sep 2026, Brad: *"I need a better way to quickly identify where we've over allocated
   funding ... there's a requirement that shows that we've allocated an amount but then it tells us that
   only x amount has been drawn from it. I need a quicker way within the dashboard main view to identify
@@ -258,7 +317,7 @@ exists to collect.
 - **The filter** shows exactly the flagged requirements and composes with the other filters.
 - Mutations; the full math gate; help and training (the guide's portfolio-team part and the deck).
 
-### 14. Importing and exporting boards: a full import for new versions, one appropriation in or out, and the PMO copy under File
+#### 14. Importing and exporting boards: a full import for new versions, one appropriation in or out, and the PMO copy under File
 - **Logged:** 26 Sep 2026, Brad: *"I need first to be able to import a full dashboard from a previous file
   that way when the new version comes out it's seamless. I also need the ability to import or export
   appropriation specific dashboards. The pmo copy export is in a random drop-down and needs to be moved
@@ -312,15 +371,6 @@ exists to collect.
 - **One appropriation out and back in** changes that appropriation only, and round-trips unchanged.
 - **The moved menu items** open the same actions (menu-path check); no old path is left pointing at
   nothing; help and training updated.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v1.85 — 24 Sep 2026: item 8, built on Brad's "go"
 

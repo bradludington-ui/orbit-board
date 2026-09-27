@@ -829,9 +829,27 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   const names = Object.keys(both.body);
   chk(name, 'scope', 'the two views build the same sheets',
     names.join('|'), Object.keys(disc.body).join('|'));
-  names.filter(n => !FAMILY.includes(n)).forEach(n =>
+  // A PMO TAB IS HALF IN THE FAMILY (v1.86). Its last block -- the office's requirements and the months
+  // their money obligates in -- is a spend plan, and follows the view with the rest; everything above
+  // it is the office's money by portion, and must not move. So the tab is cut at that block's title.
+  const PMO_TAB = n => /^PMO /.test(n) && n !== 'PMO Matrix';   // one tab per office; the matrix is the roll-up
+  const cutAt = (body) => { const rows = JSON.parse(body);
+    const k = rows.findIndex(r => /Requirements \(Disc\/Mand Funded Portions\)/.test(String(((r || [])[0] || {}).v || (r || [])[0] || '')));
+    return { head: JSON.stringify(k < 0 ? rows : rows.slice(0, k)), block: k < 0 ? [] : rows.slice(k) }; };
+  const numsOf = rows => JSON.stringify(rows.map(r => (r || []).map(c => { const v = (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+    return typeof v === 'number' ? v : null; })));
+  names.filter(n => !FAMILY.includes(n) && !PMO_TAB(n)).forEach(n =>
     chk(name, 'scope', n + ': NOT moved by the toggle',
       both.body[n] === disc.body[n] ? 'same' : 'differs', 'same'));
+  const pmoTabs = names.filter(PMO_TAB);
+  chk(name, 'scope', 'the workbook has PMO tabs to check', pmoTabs.length > 0, true);
+  pmoTabs.forEach(n => {
+    const a = cutAt(both.body[n]), b = cutAt(disc.body[n]);
+    chk(name, 'scope', n + ': everything above its spend plan is NOT moved by the toggle', a.head === b.head ? 'same' : 'differs', 'same');
+    chk(name, 'scope', n + ': its spend plan is there', a.block.length > 3 && b.block.length > 3, true);
+    chk(name, 'scope', n + ': its spend plan FIGURES move with the toggle', numsOf(a.block) === numsOf(b.block) ? 'same' : 'differs', 'differs');
+    chk(name, 'scope', n + ': and say they are the what-if', [a.block, b.block].map(bl => /\u25e8 DISCRETIONARY ONLY/.test(JSON.stringify(bl[0]))).join(','), 'false,true');
+  });
   // Assert presence rather than filtering on it: a build where monSheet returned null would make
   // a .filter() skip these two checks entirely and the suite would still read green.
   FAMILY.forEach(n => {

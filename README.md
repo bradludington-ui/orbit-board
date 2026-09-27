@@ -25,16 +25,17 @@ Current build: **v1.32 (12 Sep 2026)** · ~19,500 lines · 2.8 MB.
 
 Same application, same numbers, same exports; only the presentation differs, and a parity check in
 CI-style tooling keeps it that way. Pick whichever reads better for you. To move a board between
-them, use **📁 File → ⬅ Import a previous board…** and select the other file — import already reads
-another board's `.html` and lifts its state out. They also share browser storage, so an unsaved
+them, use **📁 File → ⬅ Import a full board (new version)…** and select the other file — import reads
+another board's `.html` and lifts everything out of it: all four appropriations, locked cycles and lists. They also share browser storage, so an unsaved
 draft shows up in whichever one you open.
 
 ## Getting started
 
 1. Open `prioritization-board.html` (cards) or `prioritization-board-grid.html` (grid).
 2. It opens as an empty **shell** — the program with no data in it.
-3. Use **📁 File → ⬅ Import a previous board…** and pick your saved board file. Requirements,
-   budgets, every fiscal year, PPBE positions and logs all load from it.
+3. Use **📁 File → ⬅ Import a full board (new version)…** and pick your saved board file. Requirements,
+   budgets, every fiscal year, PPBE positions, locked cycles, logs and lists all load from it.
+   **⬅ Import one appropriation…** takes just one, and changes nothing else.
 4. **💾 Save** writes everything back into the file you are working from.
 
 Use **Chrome or Edge**. Saving in place relies on the File System Access API; in other browsers the

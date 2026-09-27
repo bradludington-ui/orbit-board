@@ -158,7 +158,9 @@ console.log('\noffline');
   if (external.length) fail(`external references: ${external.join(', ')}`);
   else pass(`no external hosts (${new Set(urls).size} namespace URIs only)`);
 
-  if (/<script[^>]+src=|<link[^>]+href=["']http/i.test(short)) fail('an external script or stylesheet is linked');
+  // one tag at a time: `[^>]+` alone ran from a "<script" inside the board's own code to a "src=" 9,000
+  // characters later (v1.85 flagged itself). An attribute list is never that long.
+  if (/<script\b[^>]{0,400}\ssrc\s*=|<link\b[^>]{0,400}\shref\s*=\s*["']?https?:/i.test(short)) fail('an external script or stylesheet is linked');
   else pass('no linked scripts or stylesheets');
 }
 

@@ -39,7 +39,7 @@ const REGISTRY = {
   mcCalc:       { money: true,  what: 'Mission Critical total and shortage' },
   trimAbsorb:   { money: true,  what: 'unspent discretionary against the trims that could take it — '
                                     + 'read as an instruction to type a figure into an allocation box' },
-  forecast:     { money: true,  what: 'the spend forecast — when funded dollars land' },
+  forecast:     { money: true,  what: 'the spend forecast — when funded dollars land', via: ['landSvc'] },
   srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column, one line per service per lane',
                   via: ['srcLaneOf', 'srcSvcOf'] },
   exportSrc:    { money: true,  what: 'the Spend Plan Source workbook', via: ['srcLaneOf', 'srcSvcOf', 'srcRowsOf'] },
@@ -52,7 +52,7 @@ const REGISTRY = {
   // The five below were recorded gaps from 15 Sep 2026 and were closed on 19 Sep 2026, each with a
   // check that derives the figure from the fixture and a mutation inside the surface that the check
   // catches. Closing the funds flow found a shipped defect (flow-plan-year-printed-the-allocation).
-  crData:       { money: true,  what: 'CR cash needs by half-month window' },
+  crData:       { money: true,  what: 'CR cash needs by half-month window', via: ['crBuckets', 'landSvc'] },
   exportFlow:   { money: true,  what: 'the funds flow', via: ['flowCalc', 'flowPlanRecs'] },
   exportCoa:    { money: true,  what: 'chart of accounts', via: ['coaRows', 'coaSummary', 'coaAsk'] },
   exportReprog: { money: true,  what: 'the ATR/BTR reprogramming log' },
@@ -74,6 +74,9 @@ const REGISTRY = {
   exportIdsReq:  { money: false, reason: 'IDS requirement text: identity and prose, no dollar columns.' },
   exportRlgPlan: { money: false, reason: 'RLG plan narrative fields, no dollar columns.' },
   exportExView:  { money: false, reason: 'writes the saved VIEW (filters, sort, open panel), not figures.' },
+  exportOneAppn: { money: false, reason: 'writes a working board holding one appropriation: its saved state copied '
+    + 'verbatim, computing nothing. That the figures survive is checked by reopening the file and comparing '
+    + 'every total (audit-import, v1.86).' },
 };
 
 // ---- each top-level function's body span ---------------------------------------------------------

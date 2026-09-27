@@ -11,8 +11,9 @@
 // all still present, every total reconciles and nothing on the board looks wrong.
 //
 // This suite drives the real adoption path, applyStore(), the way an import does.
-import { boot, seed, BOARD } from './boot.mjs';
+import { boot, seed, BOARD, capture, cv, bootMark, bootRelease, settleBoards } from './boot.mjs';
 import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
 // boot.mjs cannot help here: the board reads browser storage DURING its own boot script, so the
@@ -34,6 +35,12 @@ const dumpLs = (w) => { const o = {}; const ls = w.localStorage;
   for (let i = 0; i < ls.length; i++) { const k = ls.key(i); o[k] = ls.getItem(k); } return o; };
 
 let failures = [];
+// The boards a later block reuses: V185W, V186L and V14 are built once and read by the blocks after.
+// Each is read through a guard -- a block above its `let` line runs while it is still uninitialised.
+const keepBoards = () => [() => V185W, () => V186L, () => V14]
+  .map(f => { try { return f(); } catch { return null; } })
+  .flatMap(v => !v ? [] : [v, ...Object.values(v)])
+  .filter(x => x && typeof x === 'object' && x.w).map(x => x.w);
 // EVERY NAMED SCENARIO MUST RUN. A block appended after process.exit() never executes and reads as
 // a pass -- the proposal scenario in audit-import.mjs sat there for a whole verification round and
 // five mutations aimed at it survived. chk() records every scenario it hears from; at the summary,
@@ -72,7 +79,8 @@ const theirState = (services, disc) => ({
 const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.round))'));
 
 // ── 1. same services, different ORDER: accepted, and every dollar follows its NAME ──────────────
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'reorder';
   try {
   const { ev } = boot(); seed(ev, base());
@@ -91,10 +99,13 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ── 2. a DIFFERENT SET of services: refused, and the board is untouched ─────────────────────────
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'different services';
   try {
   const { ev } = boot(); seed(ev, base());
@@ -109,10 +120,13 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ── 3. no service list at all: caught on ARITY, which is the only tell left ─────────────────────
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'no service list';
   try {
   const { ev } = boot(); seed(ev, base());
@@ -128,10 +142,13 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ── 4. the board's OWN state: silent, always ────────────────────────────────────────────────────
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'own state';
   try {
   const { ev } = boot(); seed(ev, base());
@@ -145,13 +162,16 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ── 5. EXHAUSTIVENESS: no per-service vector may be left in the file's order ────────────────────
 // Every vector is filled with the FILE's own service indices [0,1,2]. After a remap by name each
 // one must read back as the map. A vector svcRemapState() forgot stays [0,1,2] and fails here --
 // the oracle walks the state generically, so it does not share svcRemapState's list of what to fix.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'exhaustive remap';
   try {
   const { ev } = boot(); seed(ev, base());
@@ -201,7 +221,9 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ── 6. a refusal leaves the store byte-identical ─────────────────────────────────────
 // Refusing is only useful if it refuses CLEANLY: a guard that rejects the file after half-writing
@@ -213,7 +235,8 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
 // that forbids committing a populated board. So the callers' `if(applyStore(...)===false) return;`
 // lines are reviewed, not covered. What they protect is a misleading status line; what the guard
 // itself protects is the money, and that is covered above.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'refusal is clean';
   try {
   const { ev } = boot(); seed(ev, base());
@@ -229,14 +252,17 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ── 7. the service list hiding under a year ───────────────────────────────────────
 // A teammate sends a STATE file, not a store. normalizeStore() nests it under years.<fy>, taking
 // its dataPack down with it -- so a guard reading only raw.dataPack found nothing to compare and
 // waved the file through. That is the commonest shape there is, and it was the shape that got past
 // the first version of this guard.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'pack under a year';
   try {
   const { ev } = boot(); seed(ev, base());
@@ -260,7 +286,9 @@ const dvec = (ev) => JSON.parse(ev('JSON.stringify((S.discSvc||[]).map(Math.roun
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 
 // A real board has its requirements in DATA when BASE_ITEMS is captured at boot, so dataPackOf()
@@ -289,7 +317,8 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // pubState script tag of SRC0; reopening that file is the ONLY way a save is ever read back. So the
 // invariant is simply: what comes back is what went in. Nothing tested this before -- the saved
 // file was built, downloaded and trusted.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'save → reopen';
   try {
   const sc = base();
@@ -334,7 +363,9 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ the values most likely to be quietly mangled ════════════════════════════════════
 // A whole-store comparison passes the moment both sides are equally wrong, so name the fields that
@@ -346,7 +377,8 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // each id once, so the priority list looked right; every surface that walks DATA.items counted the
 // buy lines twice, then three times. Found by the round-trip fuzz the day it learned to fill every
 // container the board writes -- nothing here had ever opened a saved board with buy lines.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'buy lines reopen once';
   try {
   const sc = base();
@@ -373,9 +405,12 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'what survives';
   try {
   const sc2 = base();
@@ -405,7 +440,9 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ READING A WORKBOOK ══════════════════════════════════════════════════════════════════════════
 // xlsxRead() is a hand-rolled ZIP+XLSX parser, and every offset it follows comes out of the file
@@ -415,7 +452,8 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 //
 // The fixture is built by the board's OWN writer, so a workbook that round-trips proves reader and
 // writer agree, and damaging that buffer gives realistically-corrupt files rather than invented ones.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'workbook reader';
   try {
   const { w } = boot();
@@ -494,7 +532,9 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ MOVING A REQUIREMENT BETWEEN FISCAL YEARS ═══════════════════════════════════════════════════
 // yearCopy() carries a requirement and everything attached to it into another year. Its own comment
@@ -504,7 +544,8 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 //
 // The key list is read out of the BOARD'S OWN SOURCE, not restated here, so a container added to
 // the normalise list and forgotten in the payload fails this check the day it is added.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'copy / move between years';
   try {
   const src = readFileSync(BOARD, 'utf8');
@@ -589,7 +630,9 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ THE PMO COPY, AND WHAT COMES BACK FROM IT ═══════════════════════════════════════════════════
 // A copy published for a programme office: everything works on screen, nothing reaches the team's
@@ -599,7 +642,8 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
 // it can read all of it. What these checks protect is the part that IS enforceable: that the copy
 // cannot write outward, that a submittal carries only what a PMO is invited to propose, and that
 // nothing lands on the board without being ticked.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'PMO copy';
   try {
   // TWO REAL REQUIREMENTS. This block corrects a record number on B, and B has to be a requirement
@@ -699,10 +743,13 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ── review: nothing lands without a tick, and a clash is visible ────────────────────────────────
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'submittal review';
   try {
   const sc = base();
@@ -755,7 +802,9 @@ const settled = (ev) => { const m = JSON.parse(ev('JSON.stringify(MS)'));
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ THE HANDOFF, HELD TO "NOTHING IS LOST AND NOTHING IS INVENTED" ══════════════════════════════
 // Two directions, one standard: the copy a programme office receives must compute exactly what this
@@ -804,7 +853,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
                  ccar:'',fy26:SVC.map(function(){return 0;}), ask:[500000,0,0,0,0,0], alloc:null});
   S.order.push('NEW-1'); applyState(S); save(); 'ok'`); };
 
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'handoff — out';
   try {
   const sc = handoffSc();
@@ -861,9 +911,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'handoff — back';
   try {
   const sc = handoffSc();
@@ -923,9 +976,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'handoff — service alignment';
   try {
   const sc = handoffSc();
@@ -959,9 +1015,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'handoff — the review controls';
   try {
   const sc = handoffSc();
@@ -1067,9 +1126,12 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'handoff — the copy has its own storage';
   try {
   const sc = handoffSc();
@@ -1140,14 +1202,17 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ anything that leaves a PMO copy says so ════════════════════════════════════════════════════
 // The amber banner is on SCREEN. A workbook mailed on from a copy carried none of it: an 11-sheet
 // export off a November copy was indistinguishable from one off the live board this morning -- same
 // filename, same title row -- so a superseded cutline could be briefed onward under this board's own
 // name. Read the artefact the office would actually circulate, with the board's own reader.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'handoff — an export from a copy says it is one';
   try {
   const sc = base();
@@ -1209,7 +1274,9 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ what is reviewed is what would land ════════════════════════════════════════════════════════
 // The review, the spreadsheet and pmoApply() all read the same package, but only pmoApply() put a
@@ -1217,7 +1284,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // damaged transfer is all it takes -- and one carrying a negative and a NaN was REPORTED as
 // "USAF $-5,000,000 · AFRC $NaN" and APPLIED as zeroes. The team would have signed off a
 // spreadsheet that did not describe the board it produced.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'handoff — the review cannot promise what applying will not do';
   try {
   const sc = base();
@@ -1257,13 +1325,16 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ the change report is the record the team argues from ═══════════════════════════════════════
 // "A pre-audit change report ... so that my team and I fully understand and know what updates have
 // been made." A byte count proves it downloaded, not that it says anything true. Read it back with
 // the board's OWN workbook reader and compare every cell against the review it claims to describe.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'handoff — the change report';
   try {
   const sc = base();
@@ -1363,14 +1434,17 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ appropriation packages: the OTHER path that takes numbers this board did not compute ═══════
 // applyStore() is where the service-alignment guard lives, and pkgApply() calls it ONLY for the
 // appropriation you are currently viewing. A package for any other one was written straight into
 // that appropriation's storage key and its PUBS slot -- the same positional hazard the guard exists
 // for, through a door it never watched. Nothing covered pkgApply at all.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'appropriation package — services';
   try {
   const OTHER = 'ff';                                  // a different appropriation on the same board
@@ -1479,13 +1553,16 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ the change journal is the safety net, and nothing tested it ════════════════════════════════
 // pmoApply()'s confirmation says, in as many words: "Each one is recorded in the change journal, so
 // it can be found and undone later." That sentence is the recourse when a programme office's
 // proposal is accepted in error, and it was covered by nothing at all.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'the change journal';
   try {
   const sc = base();
@@ -1579,7 +1656,9 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ A SUBMITTAL CARRIES ONE OFFICE'S REQUIREMENTS, AND SEVERAL ARE REVIEWED TOGETHER ══════════
 // One office at a time meant a pass and a spreadsheet per office, with no view of the round. Several
@@ -1587,7 +1666,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // requirements it OWNS (grpOf) and to nothing else, so two packages can never contest one field.
 // That is the property the whole feature rests on, so it is checked from both ends -- the copy must
 // refuse to SEND another office's row, and the board must refuse to REVIEW one that arrives anyway.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'scoped submittals';
   try {
   const sc = { services: MINE,
@@ -1694,7 +1774,9 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ═══ A COPY PROPOSES A NEW REQUIREMENT ═══════════════════════════════════════════════════════
 // BACKLOG entry 1. A requirement added on a PMO copy travels back WHOLE, flagged as new, for the
@@ -1702,7 +1784,8 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
 // filled; on accept it is created the way addReq() creates one, at the bottom of the consolidated
 // listing, with the office's own ask values; and the same submittal imported twice cannot add it
 // twice. Each of those is a way to lose or double a requirement, so each is asserted.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'a copy proposes a new requirement';
   try {
   const sc = { services: MINE,
@@ -1845,14 +1928,17 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     // that died. Only a death outside any block — boot, a syntax error, the process killed — is a crash.
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ═══ THE BAE LIST IS ONE LIST FOR THE WHOLE BOARD (v1.83) ═════════════════════════════════════
 // It used to sit inside the open appropriation's store, so a list imported on O&M was absent on
 // Full Fund, Spares and OPN. Now it is its own store, written into the saved file beside the
 // appropriations -- and a board saved the OLD way, with its list inside one appropriation's store,
 // must still find it from any appropriation, without a re-import.
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'the BAE list — one list, every appropriation';
   try {
   const sc = handoffSc();
@@ -1882,7 +1968,9 @@ const handoffSeed = (ev, sc) => { asBooted(ev, sc); ev(`
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ═══ v1.84 — THE COPY DOES THE LEGWORK ═══════════════════════════════════════════════════════
 // Brad, 24 Sep 2026: offices add requirements, rank within their own office, and edit every field on a
@@ -1911,7 +1999,8 @@ const v184Submit = (P, pmo) => JSON.parse(P.ev(`(function(){
   try{ pmoSubmit(); }catch(e){ globalThis.__al.push('THREW '+e.message); } window.Blob=_B; window.alert=_a;
   return JSON.stringify({pkg: cap? JSON.parse(cap) : null, alerts: globalThis.__al}); })()`));
 const MONEY = `JSON.stringify({alloc:S.alloc||{}, fsrc:S.fsrc||{}, order:S.order})`;
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.84 — the copy sends every field but the allocation';
   try {
   const { ev } = v184Board();
@@ -2023,8 +2112,11 @@ const MONEY = `JSON.stringify({alloc:S.alloc||{}, fsrc:S.fsrc||{}, order:S.order
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
-{
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.84 — a copy points to Submit input, and keeps its own appropriation';
   try {
   const { ev } = v184Board();
@@ -2046,8 +2138,11 @@ const MONEY = `JSON.stringify({alloc:S.alloc||{}, fsrc:S.fsrc||{}, order:S.order
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
-{
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.84 — a proposal carries every field';
   try {
   const { ev } = v184Board();
@@ -2074,8 +2169,11 @@ const MONEY = `JSON.stringify({alloc:S.alloc||{}, fsrc:S.fsrc||{}, order:S.order
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
-{
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.84 — take one appropriation from a consolidated file';
   try {
   const sc = v184Sc();
@@ -2150,7 +2248,9 @@ const MONEY = `JSON.stringify({alloc:S.alloc||{}, fsrc:S.fsrc||{}, order:S.order
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
 // ══ v1.85 — THE FIVE-YEAR SPEND PLAN BY PMO, EVERY APPROPRIATION ══════════════════════════════════
 // Three appropriations in one file, each built on its OWN board: Full Fund and O&M lock PB27 and then
@@ -2216,7 +2316,8 @@ const v185Memo = (real0) => { const memo = new Map();
     if (!memo.has(key)) real0(h, n).then(r => memo.set(key, JSON.stringify(r)));
     const r = JSON.parse(memo.get(key)); r.nonce = n; return { then(ok) { ok(r); return this; } }; }; };
 let V185W = null;     // the scenario, built once for the blocks below
-{
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.85 — every appropriation, read by its own board, ties to the dollar';
   try {
   const F = v185Board(null, 'FULL FUND', V185.ff, { F: { m: 't', v: 600 } }, { G: { m: 't', v: 400 } }, true, { H: { m: 't', v: 200 } });
@@ -2318,8 +2419,11 @@ let V185W = null;     // the scenario, built once for the blocks below
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
-{
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.85 — a locked cycle is read as locked, and a missing lock is said';
   try {
   const { C, W, own } = V185W;
@@ -2346,8 +2450,11 @@ let V185W = null;     // the scenario, built once for the blocks below
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
-{
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.85 — a block that cannot be trusted is refused, never printed';
   try {
   const { O } = V185W;
@@ -2393,8 +2500,11 @@ let V185W = null;     // the scenario, built once for the blocks below
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
-{
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.85 — the frames answer later, and the export waits for them';
   try {
   const { file, W } = V185W;
@@ -2417,8 +2527,11 @@ let V185W = null;     // the scenario, built once for the blocks below
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
-{
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.85 — a save keeps the other appropriations’ locked cycles';
   try {
   const { F } = V185W;
@@ -2441,8 +2554,11 @@ let V185W = null;     // the scenario, built once for the blocks below
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
-{
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const name = 'v1.85 — a PMO copy prints its own appropriation, and opens nothing';
   try {
   const { O } = V185W;
@@ -2460,16 +2576,752 @@ let V185W = null;     // the scenario, built once for the blocks below
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 
-{
+// ═══ v1.86 — ONE DESTINATION LIST FOR THE WHOLE BOARD ═══════════════════════════════════════════
+// Brad, 25 Sep 2026: a destination added on one appropriation has to be there on all of them, and the
+// list has to read A to Z -- the main file holds about thirty. Until v1.86 each appropriation kept its
+// own list inside its own plan and numbered its own keys, so x1 on O&M and x1 on Full Fund could be two
+// different places. The can't-fail: merging the lists moves no requirement, in any appropriation, any
+// year or any locked cycle, off its destination or onto another one. The fixture is a file exactly as
+// v1.85 wrote it -- a list per plan, no board list -- built so that the merge has to re-point keys,
+// including one old key that becomes ANOTHER destination's key (a second pass would move it again).
+const V186DEF = JSON.parse(boot().ev('JSON.stringify(flowDefEnts())'));
+const V186OM = V186DEF.map(e => e.k === 'pw' ? { ...e, n: 'Boeing', t: 'BOEING' } : e).concat([
+  { k: 'x1', n: 'Raytheon', kind: 'other', t: 'RTX' }, { k: 'x2', n: '  zeta  works', kind: 'other', t: '' },
+  { k: 'x3', n: 'Pratt & Whitney', kind: 'prime', t: 'PW' }, { k: 'x4', n: 'New destination', kind: 'other', t: '' }]);
+const V186FF = V186DEF.map(e => e.k === 'lm' ? { ...e, n: 'Lockheed Martin Aeronautics' } : e).concat([
+  { k: 'x1', n: 'RAYTHEON', kind: 'gov', t: 'RAYTHEON, RAY' }, { k: 'x2', n: 'Acme Corp', kind: 'other', t: '' },
+  { k: 'x3', n: 'Zeta Works', kind: 'other', t: 'ZETA' }]);
+const d = (to, end = '') => ({ to, end });
+const v186Legacy = (html, appn, sc, list, d27, d28, lock, after27) => {
+  const B = boot({ html, appn }); seed(B.ev, sc); asBooted(B.ev, sc);
+  B.ev(`(function(){ _destReady=false; applyState(S); MS.years[MS.cur]=S;
+    MS.flow={ents:${JSON.stringify(list)}}; S.dest=${JSON.stringify(d27)};
+    const y2=JSON.parse(JSON.stringify(S)); y2.dest=${JSON.stringify(d28)}; MS.years[MS.cur+1]=y2;
+    MS.cycle='BES|2028'; save(); ${lock ? "blCyc='PB'; blYr=MS.cur; cycLock();" : ''}
+    Object.assign(S.dest, ${JSON.stringify(after27 || {})}); save(); return 'ok'; })()`);
+  return B;
+};
+const V186RE = /(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/;
+const v186Pub = (html) => JSON.parse(html.match(V186RE)[2]);
+// what v1.85 wrote: no board list, a list in each plan, cycles written against their plan's list
+const v186AsV185 = (html) => {
+  const J = v186Pub(html);
+  delete J.destDb;
+  Object.values(J.appns || {}).forEach(st => { if (st.flow) delete st.flow.dv; });
+  Object.values((J.cycDb || {}).byAp || {}).forEach(c => { delete c.dv; delete c.ents; });
+  return html.replace(V186RE, (_, a, b, c) => a + JSON.stringify(J).replace(/</g, '\\u003c') + c);
+};
+// every requirement's destination BY NAME, in every year the plan holds and every locked cycle
+const v186Names = (ev) => JSON.parse(ev(`(function(){
+  const nm=function(st){ const o={}; Object.keys((st&&st.dest)||{}).sort().forEach(function(id){ const x=st.dest[id];
+    o[id]=(flowEntName(x.to)||'?'+x.to)+(x.end? ' > '+(flowEntName(x.end)||'?'+x.end) : ''); }); return o; };
+  const out={};
+  Object.keys(MS.years).sort().forEach(function(fy){ out['FY'+fy]=nm(+fy===+MS.cur? S : MS.years[fy]); });
+  Object.keys(CYCDB.cycles||{}).sort().forEach(function(c){ Object.keys(CYCDB.cycles[c].years||{}).sort().forEach(function(fy){
+    out[c+' FY'+fy]=nm(CYCDB.cycles[c].years[fy]); }); });
+  return JSON.stringify(out); })()`));
+const v186Ls = (ev) => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+const v186AZ = (ev) => JSON.parse(ev('JSON.stringify(flowEntsAZ().map(function(e){ return e.n; }))'));
+const V186OM_WANT = {
+  FY2027: { A: 'Boeing', B: 'Boeing', C: 'NAWCAD Patuxent River > Boeing', D: 'Pratt & Whitney', E: 'zeta works' },
+  FY2028: { A: 'Raytheon', D: 'Lockheed Martin' },
+  'PB|2027 FY2027': { A: 'Boeing', B: 'Raytheon', C: 'NAWCAD Patuxent River > Boeing', D: 'Pratt & Whitney', E: 'zeta works' },
+  'PB|2027 FY2028': { A: 'Raytheon', D: 'Lockheed Martin' } };
+const V186FF_WANT = { FY2027: { F: 'Raytheon', G: 'Acme Corp', H: 'zeta works' }, FY2028: { F: 'Lockheed Martin Aeronautics' } };
+const V186AZ_WANT = ['Acme Corp', 'Boeing', 'Defense Logistics Agency', 'FRC East, Cherry Point', 'Lockheed Martin',
+  'Lockheed Martin Aeronautics', 'NAWCAD Lakehurst', 'NAWCAD Patuxent River', 'NAWCWD China Lake', 'OC-ALC Oklahoma City',
+  'Pratt & Whitney', 'Raytheon', 'zeta works'];
+// the first spelling seen is the one kept: opened from Full Fund first, its spellings lead
+const v186Spell = (o) => JSON.parse(JSON.stringify(o).replace(/"Raytheon"/g, '"RAYTHEON"').replace(/zeta works/g, 'Zeta Works')
+  .replace(/"(Raytheon|RAYTHEON)"/g, '"RAYTHEON"'));
+let V186L = null;
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — the four lists become one, and no requirement moves';
+  try {
+  const F = v186Legacy(null, 'FULL FUND', V185.ff, V186FF, { F: d('x1'), G: d('x2'), H: d('x3') }, { F: d('lm') }, false, {});
+  const O = v186Legacy(F.ev('buildSavedHtml()'), null, V185.om, V186OM,
+    { A: d('pw'), B: d('x1'), C: d('pax', 'pw'), D: d('x3'), E: d('x2') }, { A: d('x1'), D: d('lm') }, true, { B: d('pw') });
+  const L = v186AsV185(O.ev('buildSavedHtml()'));
+  const LJ = v186Pub(L);
+  chk(name, 'fixture', 'the file is what v1.85 wrote: a list in each plan and none for the board',
+    [!!LJ.destDb, !!LJ.appns.om.flow.dv, !!LJ.appns.ff.flow.dv, LJ.appns.om.flow.ents.length, LJ.appns.ff.flow.ents.length, !!LJ.cycDb.byAp.om.dv].join(','),
+    'false,false,false,12,11,false');
+  chk(name, 'fixture', 'and O&M holds a locked cycle', Object.keys(LJ.cycDb.byAp.om.cycles).join(','), 'PB|2027');
+  V186L = L;
+
+  // (i) O&M OPENED FIRST, in a browser that has never held this board
+  const A = boot({ html: L });
+  chk(name, 'O&M first', 'every requirement keeps its destination, every year and the locked cycle', JSON.stringify(v186Names(A.ev)), JSON.stringify(V186OM_WANT));
+  chk(name, 'O&M first', 'the list is both appropriations’ names, each once, A to Z', JSON.stringify(v186AZ(A.ev)), JSON.stringify(V186AZ_WANT));
+  chk(name, 'O&M first', 'two different names are never merged (Lockheed Martin and Lockheed Martin Aeronautics)',
+    A.ev(`flowEntsAZ().filter(function(e){ return /^lockheed/i.test(e.n); }).length`), 2);
+  chk(name, 'O&M first', 'a name that differs only in case or spacing is merged (Raytheon, zeta works)',
+    A.ev(`flowEnts().filter(function(e){ return /^(raytheon|zeta works)$/i.test(e.n); }).length`), 2);
+  chk(name, 'O&M first', 'an unnamed placeholder nobody used is not carried', A.ev(`flowEnts().some(function(e){ return e.n==='New destination'; })`), false);
+  chk(name, 'O&M first', 'match terms are combined', A.ev(`[destByName('Raytheon').t, destByName('zeta works').t].join(' | ')`), 'RTX, RAYTHEON, RAY | ZETA');
+  chk(name, 'O&M first', 'the kind the two disagree on is named for you to settle',
+    A.ev(`JSON.stringify(DESTDB.conflicts.map(function(c){ return flowEntName(c.k)+'|'+c.from+'|'+c.kind; }))`), '["Raytheon|ff|gov"]');
+  chk(name, 'O&M first', 'and the panel says so', /Named with a different kind on another appropriation: Raytheon \(Full Fund had Government activity\)/.test(A.ev('flowEntEditor()')), true);
+  chk(name, 'O&M first', 'the funds flow keeps the order destinations were added, not A to Z',
+    A.ev(`flowEnts().map(function(e){ return e.n; }).slice(0,3).join('|')`), 'Lockheed Martin|Boeing|NAWCAD Patuxent River');
+
+  // (ii) FULL FUND FIRST, then O&M in the same browser: here O&M's old "pw" (renamed Boeing) is not
+  // the board's Pratt & Whitney, and its x3 IS -- so x3 becomes pw while pw becomes something else.
+  const Fb = boot({ html: L, appn: 'FULL FUND' });
+  chk(name, 'Full Fund first', 'every Full Fund requirement keeps its destination', JSON.stringify(v186Names(Fb.ev)), JSON.stringify(v186Spell(V186FF_WANT)));
+  const Ob = boot({ html: L, appn: 'O&M', ls: v186Ls(Fb.ev) });
+  chk(name, 'Full Fund first', 'O&M opened after it in the same browser: every requirement keeps its destination',
+    JSON.stringify(v186Names(Ob.ev)), JSON.stringify(v186Spell(V186OM_WANT)));
+  chk(name, 'Full Fund first', 'where an old key is another destination’s new one', Ob.ev(`S.dest.D.to+'|'+(S.dest.A.to!=='pw')`), 'pw|true');
+  chk(name, 'Full Fund first', 'the same places, A to Z, in Full Fund’s spelling', JSON.stringify(v186AZ(Ob.ev)), JSON.stringify(v186Spell(V186AZ_WANT)));
+  // REOPENED BEFORE ANYTHING IS SAVED: the plan is read again from its old list; the cycles, already
+  // kept re-pointed, must not be moved a second time
+  const Oc = boot({ html: L, appn: 'O&M', ls: v186Ls(Ob.ev) });
+  chk(name, 'reopened unsaved', 'every requirement still keeps its destination, the locked cycle included',
+    JSON.stringify(v186Names(Oc.ev)), JSON.stringify(v186Spell(V186OM_WANT)));
+  chk(name, 'reopened unsaved', 'on the same keys', Oc.ev(`JSON.stringify([S.dest, CYCDB.cycles['PB|2027'].years[2027].dest])`),
+    Ob.ev(`JSON.stringify([S.dest, CYCDB.cycles['PB|2027'].years[2027].dest])`));
+  const Fc = boot({ html: L, appn: 'FULL FUND', ls: v186Ls(Oc.ev) });
+  chk(name, 'reopened unsaved', 'and Full Fund, switched back to', JSON.stringify(v186Names(Fc.ev)), JSON.stringify(v186Spell(V186FF_WANT)));
+  chk(name, 'reopened unsaved', 'lands on the keys O&M uses for the same places',
+    Fc.ev(`S.dest.F.to+'|'+S.dest.H.to`), Oc.ev(`destByName('raytheon').k+'|'+destByName('zeta works').k`));
+
+  // SAVED, AND REOPENED IN ANOTHER BROWSER: the file carries the list
+  const L2 = A.ev('buildSavedHtml()');
+  chk(name, 'saved', 'the file carries the board list', (v186Pub(L2).destDb || { ents: [] }).ents.length, 13);
+  const A2 = boot({ html: L2 });
+  chk(name, 'saved', 'reopened, nothing moved', JSON.stringify(v186Names(A2.ev)), JSON.stringify(V186OM_WANT));
+  chk(name, 'saved', 'on the same keys, the same list', A2.ev(`JSON.stringify([MS.years, flowEnts()])`), A.ev(`JSON.stringify([MS.years, flowEnts()])`));
+  const F2 = boot({ html: L2, appn: 'FULL FUND' });
+  chk(name, 'saved', 'Full Fund from that file keeps its destinations', JSON.stringify(v186Names(F2.ev)), JSON.stringify(V186FF_WANT));
+  chk(name, 'saved', 'on the keys O&M uses for the same places', F2.ev(`S.dest.F.to+'|'+S.dest.G.to+'|'+S.dest.H.to`),
+    A.ev(`destByName('Raytheon').k+'|'+destByName('Acme Corp').k+'|'+destByName('zeta works').k`));
+  chk(name, 'saved', 'and sees the same list', JSON.stringify(v186AZ(F2.ev)), JSON.stringify(V186AZ_WANT));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — added once, there on every appropriation; picked A to Z; removed only when nothing points at it';
+  try {
+  const A = boot({ html: boot({ html: V186L }).ev('buildSavedHtml()') });
+  A.ev(`window.confirm=function(){ return true }; window.alert=function(){}; flowAddEnt(); flowSetEnt(flowEnts().length-1,'n','Aardvark Depot'); 'ok'`);
+  const k = A.ev(`destByName('Aardvark Depot').k`);
+  chk(name, 'add', 'a new destination gets a key of its own, not the next x', /^d[0-9a-z]{8,}$/.test(k), true);
+  chk(name, 'add', 'and reads first, A to Z', v186AZ(A.ev)[0], 'Aardvark Depot');
+  chk(name, 'pickers', 'the Goes to bulk list reads A to Z', A.ev(`JSON.stringify(matBulk()['Goes to'].opts.map(function(o){ return o[1].replace(/ \\(gov\\)$/,''); }))`),
+    JSON.stringify(['Aardvark Depot'].concat(V186AZ_WANT)));
+  chk(name, 'pickers', 'the panel reads A to Z', JSON.stringify([...A.ev('flowEntEditor()').matchAll(/<input[^>]*value="([^"]*)" onchange="flowSetEnt\(\d+,&quot;n&quot;/g)].map(m => m[1].replace(/&amp;/g, '&'))),
+    JSON.stringify(['Aardvark Depot'].concat(V186AZ_WANT)));
+  const L3 = A.ev('buildSavedHtml()');
+  const F = boot({ html: L3, appn: 'FULL FUND' });
+  chk(name, 'add', 'Full Fund, opened from the saved file, has it', F.ev(`!!destByName('Aardvark Depot')`), true);
+  chk(name, 'add', 'on the same key', F.ev(`destByName('Aardvark Depot').k`), k);
+  F.ev(`setDest('G','to','${k}'); 'ok'`);
+  chk(name, 'add', 'and a requirement there can go to it', F.ev(`flowEntName(S.dest.G.to)`), 'Aardvark Depot');
+
+  // REMOVING. What another appropriation or a locked cycle points at stays; what nothing points at goes,
+  // and a year that is not on screen is cleared too.
+  const del = (ev, n) => ev(`(function(){ globalThis.__al=[]; window.alert=function(m){ globalThis.__al.push(String(m)); };
+    const i=flowEnts().indexOf(destByName(${JSON.stringify(n)})); flowDelEnt(i); return JSON.stringify([!!destByName(${JSON.stringify(n)}), globalThis.__al.join(' ')]); })()`);
+  const acme = JSON.parse(del(A.ev, 'Acme Corp'));
+  chk(name, 'remove', 'one Full Fund uses is not removed', acme[0], true);
+  chk(name, 'remove', 'and it says where', /requirements point at it on Full Fund \(1\)/.test(acme[1]), true);
+  const boe = JSON.parse(del(A.ev, 'Boeing'));
+  chk(name, 'remove', 'one a locked cycle names is not removed', boe[0] + '|' + /on O&M locked PB27 \(2\)\./.test(boe[1]), 'true|true');
+  A.ev(`MS.years[2028].dest.A={to:'${k}', end:''}; save(); 'ok'`);
+  const aa = JSON.parse(del(A.ev, 'Aardvark Depot'));
+  chk(name, 'remove', 'one only this plan uses is removed', aa[0], false);
+  chk(name, 'remove', 'and cleared from a year not on screen', A.ev(`JSON.stringify(MS.years[2028].dest.A||null)`), 'null');
+  const ok = JSON.parse(del(A.ev, 'OC-ALC Oklahoma City'));
+  chk(name, 'remove', 'one nothing uses is removed', ok[0], false);
+  const L4 = A.ev('buildSavedHtml()');
+  const F4 = boot({ html: L4, appn: 'FULL FUND' });
+  chk(name, 'remove', 'and does not come back from Full Fund’s old list', F4.ev(`!!destByName('OC-ALC Oklahoma City')`), false);
+  chk(name, 'remove', 'while Full Fund keeps every destination it uses', JSON.stringify(v186Names(F4.ev)), JSON.stringify(V186FF_WANT));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — a PMO copy reads the board list, and its submittal lands on the right place';
+  try {
+  const A = boot({ html: V186L });
+  const html = v184Publish(A.ev);
+  chk(name, 'publish', 'the copy is written', html.length > 1000, true);
+  const P = boot({ html });
+  chk(name, 'copy', 'it holds the whole board list, A to Z', JSON.stringify(v186AZ(P.ev)), JSON.stringify(V186AZ_WANT));
+  P.ev(`window.confirm=function(){ return true }; flowAddEnt(); flowSetEnt(flowEnts().length-1,'n','Office Depot'); setDest('A','to',destByName('Office Depot').k);
+        setDest('B','to',destByName('Acme Corp').k); save(); 'ok'`);
+  chk(name, 'copy', 'and never writes the board’s own list in this browser', Object.keys(v186Ls(P.ev)).includes('prio27destdb'), false);
+  const sub = v184Submit(P, 'AV');
+  chk(name, 'submit', 'the submittal carries the copy’s list', Array.isArray((sub.pkg || {}).dest), true);
+  A.ev(`window.alert=function(){}; window.confirm=function(){ return true }; PMOSUBS=[]; PMOPICK={};
+        pmoTake(${JSON.stringify(sub.pkg)}, 'av.json'); subPickAll(true); pmoApply(); 'ok'`);
+  chk(name, 'take', 'a destination the office added lands under its own name', A.ev(`flowEntName(S.dest.A.to)`), 'Office Depot');
+  chk(name, 'take', 'and one from Full Fund’s list under its name', A.ev(`flowEntName(S.dest.B.to)`), 'Acme Corp');
+  // A COPY PUBLISHED ON v1.85 sends O&M's old keys and no list: x1 was Raytheon there
+  const old = JSON.parse(JSON.stringify(sub.pkg));
+  delete old.dest; old.items = { D: { dest: d('x1', 'x3') } }; old.base = { D: { dest: d('x3') } }; old.added = [];
+  delete old.rank;
+  A.ev(`PMOSUBS=[]; PMOPICK={}; pmoTake(${JSON.stringify(old)}, 'old.json'); 'ok'`);
+  chk(name, 'old copy', 'what it started from reads as what the board holds, so it is no conflict',
+    A.ev(`JSON.stringify(pmoRows().map(function(r){ return r.id+'|'+r.key+(r.conflict?'!':''); }))`), '["D|dest"]');
+  A.ev(`subPickAll(true); pmoApply(); 'ok'`);
+  chk(name, 'old copy', 'its old keys are read through O&M’s old list', A.ev(`flowEntName(S.dest.D.to)+' > '+flowEntName(S.dest.D.end)`), 'Raytheon > Pratt & Whitney');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+
+// ═══ v1.86 — MANDATORY IN EVERY CONSOLIDATED SPEND PLAN ══════════════════════════════════════════
+// Brad, 25-26 Sep 2026: wherever the board shows WHEN money lands, the mandatory allocation is in it
+// and lands in the months like discretionary. Mandatory rides the requirement's own dates; one rule
+// places every dollar on every surface; the ◨ switch moves them all together; the 1A9A adopts the
+// rule; the deck gets a chart that ties to the forecast. The fixture is built so each case the rule
+// decides is present once: a mandatory-only service on a dated requirement (A's ANG), a single date
+// (B), discretionary not yet on a date (C's USN), no date at all (D), and a date in the next year (E).
+const V10SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
+const v10It = (id, grp, ask) => ({ ...it(id, grp, ask), title: 'Req ' + id, event: 'Req ' + id });
+const V10 = { services: V10SV,
+  items: [v10It('A', 'AV', [900, 300, 0, 0, 0, 0]), v10It('B', 'AV', [0, 0, 0, 600, 0, 0]), v10It('C', 'PSM', [0, 0, 0, 0, 0, 1200]),
+          v10It('D', 'PSM', [0, 0, 0, 0, 500, 0]), v10It('E', 'TSS', [0, 0, 250, 0, 0, 0])],
+  disc: [900, 0, 250, 400, 500, 1000], mand: [0, 300, 0, 200, 0, 200], order: ['A', 'B', 'C', 'D', 'E'] };
+const v10Board = () => {
+  const B = boot(); seed(B.ev, V10); asBooted(B.ev, V10);
+  B.ev(`(function(){ applyState(S); MS.years[MS.cur]=S;
+    S.awards.A={mode:'inc', inc:[{d:FYMON[1][0], sv:[500,0,0,0,0,0]}, {d:FYMON[4][0], sv:[400,0,0,0,0,0]}]};
+    S.awards.B={mode:'single', d:FYMON[2][0]};
+    S.awards.C={mode:'inc', inc:[{d:FYMON[0][0], sv:[0,0,0,0,0,300]}]};
+    S.awards.E={mode:'inc', inc:[{d:MS.cur+'-10', sv:[0,0,250,0,0,0]}]};
+    save(); return 'ok'; })()`);
+  return B;
+};
+const r2 = v => Math.round(v * 100) / 100;
+const V10FC = { m: [500, 666.67, 600, 0, 533.33, 0, 0, 0, 0, 0, 0, 0], u: 1450 };
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — every funded dollar lands in a month or UNSCHEDULED, by one rule';
+  try {
+  const { ev } = v10Board();
+  chk(name, 'fixture', 'the lanes drew what the fixture means', ev(`JSON.stringify(['A','B','C','D','E'].map(function(id){ const p=tiers()[id]; return [p.dT, p.mT]; }))`),
+    JSON.stringify([[900, 300], [400, 200], [1000, 200], [500, 0], [250, 0]]));
+  const F = JSON.parse(ev(`JSON.stringify((function(){ const F=forecast(); const t={m:FYMON.map(function(){return 0;}),u:0,tot:0};
+    F.rollRows.forEach(function(b){ b.m.forEach(function(v,i){ t.m[i]+=v; }); t.u+=b.unsch; t.tot+=b.tot; }); return t; })())`));
+  chk(name, 'forecast', 'the months and UNSCHEDULED', JSON.stringify({ m: F.m.map(r2), u: r2(F.u) }), JSON.stringify(V10FC));
+  chk(name, 'forecast', 'every funded dollar is in exactly one of them', r2(F.m.reduce((a, b) => a + b, 0) + F.u), r2(F.tot));
+  chk(name, 'forecast', 'and that is every dollar drawn', r2(F.tot), 3750);
+  chk(name, 'mandatory', 'a service paid only from mandatory, on a dated requirement, lands on its dates (A’s ANG: Nov and Feb, 5:4)',
+    ev(`JSON.stringify((function(){ const s=monSpreadOf('A', tiers().A); return [s.m[1][1], s.m[1][4], s.unsch[1]].map(function(v){ return Math.round(v*100)/100; }); })())`),
+    JSON.stringify([166.67, 133.33, 0]));
+  chk(name, 'mandatory', 'UNSCHEDULED holds only money with no date: C’s undated discretionary, D, and E’s next-year date',
+    ev(`JSON.stringify(['A','B','C','D','E'].map(function(id){ const s=monSpreadOf(id, tiers()[id]); return Math.round(s.unsch.reduce(function(a,b){ return a+b; },0)); }))`),
+    JSON.stringify([0, 0, 700, 500, 250]));
+  chk(name, 'mandatory', 'C’s mandatory rides its own increment with the discretionary that is dated', ev(`Math.round(monSpreadOf('C', tiers().C).m[5][0])`), 500);
+  // THE SURFACES AGREE, month by month, to the dollar
+  const MS10 = JSON.parse(ev(`JSON.stringify((function(){ const m=FYMON.map(function(){return 0;}); let u=0;
+    S.order.forEach(function(id){ const s=monSpreadOf(id, tiers()[id]); s.m.forEach(function(r){ r.forEach(function(v,k){ m[k]+=v; }); }); u+=s.unsch.reduce(function(a,b){return a+b;},0); });
+    return {m:m, u:u}; })())`));
+  chk(name, 'agree', 'the month sheets’ spread equals the forecast, every month and UNSCHEDULED',
+    JSON.stringify({ m: MS10.m.map(r2), u: r2(MS10.u) }), JSON.stringify(V10FC));
+  const cr = JSON.parse(ev(`JSON.stringify(crData(null).map(function(s){ return {win:s.win.map(function(v){ return Math.round(v*100)/100; }), nd:Math.round(s.nodate*100)/100, tot:Math.round(s.tot*100)/100}; }))`));
+  const crMon = [0, 1, 2, 3, 4, 5].map(k => r2(cr.reduce((a, s) => a + s.win[2 * k] + s.win[2 * k + 1], 0)));
+  chk(name, 'agree', 'the CR windows, folded to months, equal the forecast October to March', JSON.stringify(crMon), JSON.stringify(V10FC.m.slice(0, 6)));
+  chk(name, 'agree', 'CR No date equals the forecast’s UNSCHEDULED', r2(cr.reduce((a, s) => a + s.nd, 0)), V10FC.u);
+  chk(name, 'CR', 'USN: only what is dated is a cash need; the undated discretionary is No date', JSON.stringify([cr[5].win[0], cr[5].nd, cr[5].tot]), JSON.stringify([500, 700, 500]));
+  // THE 1A9A ADOPTS THE RULE: C's undated $700 is no longer spread into October
+  const x = JSON.parse(ev(`JSON.stringify(crExportRows().map(function(r){ return [r.id, r.wins.map(Math.round)]; }))`));
+  chk(name, '1A9A', 'the return carries B in December and C in October at what is dated',
+    JSON.stringify(x.map(r => [r[0], r[1].reduce((a, b) => a + b, 0), r[1].findIndex(v => v > 0)])), JSON.stringify([['B', 600, 4], ['C', 500, 0]]));
+  // BY PMO, the same rule, and TOTAL IN WINDOW is what lands in the windows
+  ev(`crBy='pmo'; 'ok'`);
+  const bp = JSON.parse(ev(`JSON.stringify((function(){ const R=crRows(); return R.keys.map(function(k,i){ const b=R.data[i]; return [k, Math.round(b.win.reduce(function(a,c){return a+c;},0)), Math.round(b.nodate), Math.round(b.tot)]; }); })())`));
+  chk(name, 'CR by PMO', 'each office’s windows, No date and TOTAL IN WINDOW', JSON.stringify(bp), JSON.stringify([['PSM', 500, 1200, 500], ['AV', 1800, 0, 1800], ['TSS', 0, 250, 0]]));
+  ev(`crBy='svc'; 'ok'`);
+  // THE PMO TABS' SPEND PLAN, in the workbook
+  const sheets = JSON.parse(capture(ev));
+  const block = n => { const sh = sheets.find(s => s.name === n); if (!sh) return null;
+    const rows = sh.rows.map(r => (r || []).map(cv)); const h = rows.findIndex(r => r[0] === 'Rank' && r.includes('Unscheduled'));
+    const tot = rows.slice(h + 1).find(r => /^TOTAL/.test(String(r[0])));
+    return tot ? rows[h].map((k, i) => [k, tot[i]]).filter(([k]) => /^(OCT|NOV|DEC|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP) \d\d$|^Unscheduled$/.test(String(k))).map(([, v]) => r2(+v || 0)) : null; };
+  const tabs = ['PMO AV', 'PMO PSM', 'PMO TSS'].map(block);
+  chk(name, 'agree', 'the PMO tabs’ spend plans add to the forecast, every month and Unscheduled',
+    JSON.stringify(tabs.every(Boolean) ? tabs[0].map((v, i) => r2(tabs[0][i] + tabs[1][i] + tabs[2][i])) : tabs),
+    JSON.stringify(V10FC.m.concat([V10FC.u])));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — the award block schedules the whole funded amount, and seeds what it counts';
+  try {
+  const { ev } = v10Board();
+  ev(`toggleAwdInc('B', 0); 'ok'`);
+  chk(name, 'seed', 'switching to increments seeds discretionary, which is what an increment is', ev(`JSON.stringify(S.awards.B.inc[0].sv)`), JSON.stringify([0, 0, 0, 400, 0, 0]));
+  const h = ev(`awardBlockHtml(itemById('B'))`);
+  chk(name, 'block', 'the discretionary balance is clear the moment it is switched', /Balance to schedule — discretionary[\s\S]*?✓ \$0/.test(h), true);
+  chk(name, 'block', 'and the mandatory has its own row, riding the dates', /Mandatory \\u2014 rides these dates|Mandatory — rides these dates/.test(h) && />\$200</.test(h), true);
+  chk(name, 'block', 'nothing moved: B still lands whole in December', ev(`JSON.stringify(monSpreadOf('B', tiers().B).m[3].map(Math.round))`), JSON.stringify([0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
+  ev(`S.awards.A.inc[1].sv[0]=100; save(); 'ok'`);
+  ev(`fillLastAwd('A'); 'ok'`);
+  chk(name, 'put on last', 'clears the discretionary balance, and with mandatory riding every funded dollar has a date',
+    ev(`JSON.stringify([S.awards.A.inc[1].sv[0], Math.round(monSpreadOf('A', tiers().A).unsch.reduce(function(a,b){ return a+b; },0))])`), JSON.stringify([400, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — the ◨ switch moves every spend plan together, and the pot views stay put';
+  try {
+  const { ev } = v10Board();
+  const pots = () => ev(`JSON.stringify((function(){ const P=planCompute(); const T=tiers(); return {plan:[P.aTop, P.bTop], mc:mcCalc(T).need, fit:tierTotals(T).dUsed,
+    A:(function(){ const F=forecast(function(id){ const r=P.A[id]; return r? {d:(r.got||[]).slice(), m:SVC.map(function(){return 0;}), dT:(r.got||[]).reduce(function(a,b){return a+(b||0);},0), mT:0} : null; });
+      return F.rollRows.reduce(function(a,b){ b.m.forEach(function(v,i){ a[i]+=Math.round(v); }); a[12]+=Math.round(b.unsch); return a; }, Array(13).fill(0)); })()}; })())`);
+  const both = pots();
+  ev(`setScen('disc'); 'ok'`);
+  const disc = pots();
+  chk(name, 'pots', 'Two Spend Plans, Plan A, the fit strip and Mission Critical do not move with the switch', disc, both);
+  chk(name, 'pots', 'Plan A keeps the discretionary rule: a service with no increment of its own is UNSCH, not spread', JSON.parse(both).A.join(','),
+    [1000, 500, 400, 0, 400, 0, 0, 0, 0, 0, 0, 0, 750].join(','));
+  const fc = JSON.parse(ev(`JSON.stringify(forecast().rollRows.reduce(function(a,b){ b.m.forEach(function(v,i){ a[i]+=Math.round(v); }); a[12]+=Math.round(b.unsch); return a; }, Array(13).fill(0)))`));
+  chk(name, 'switch', 'the forecast withholds mandatory', fc.join(','), [300, 500, 400, 0, 400, 0, 0, 0, 0, 0, 0, 0, 1450].join(','));
+  ev(`crBy='pmo'; 'ok'`);
+  chk(name, 'switch', 'so does the CR panel by PMO', ev(`JSON.stringify((function(){ const R=crRows(); return R.keys.map(function(k,i){ return [k, Math.round(R.data[i].tot)]; }); })())`),
+    JSON.stringify([['PSM', 300], ['AV', 1300], ['TSS', 0]]));
+  ev(`crBy='svc'; gsOpen=true; render(); 'ok'`);
+  // the fit chart's table: TOTAL row, Mand BA and Mand drawn -- both withheld under the switch
+  const fitTot = () => ev(`JSON.stringify((function(){ const t=document.querySelector('#gsBody tr.tot'); return t? [...t.children].map(function(c){ return c.textContent; }) : null; })())`);
+  chk(name, 'switch', 'and the fit chart and its table: mandatory withheld, and it says so',
+    ev(`/\\u25e8 DISCRETIONARY ONLY/.test(document.getElementById('gsBody').innerHTML)`) + ' ' + JSON.stringify(JSON.parse(fitTot()).slice(7, 9)),
+    'true ' + JSON.stringify([ev('fM(0)'), ev('fM(0)')]));
+  const sheets = JSON.parse(capture(ev));
+  const av = sheets.find(s => s.name === 'PMO AV');
+  const rows = av.rows.map(r => (r || []).map(cv));
+  const t = rows.findIndex(r => /Requirements \(Disc\/Mand Funded Portions\)/.test(String(r[0])));
+  const h = rows.findIndex((r, i) => i > t && r[0] === 'Rank');
+  const tot = rows.slice(h + 1).find(r => /^TOTAL/.test(String(r[0])));
+  chk(name, 'switch', 'and the PMO tab’s spend plan, marked as the what-if', /◨ DISCRETIONARY ONLY/.test(String(rows[t][0])) + ' ' + tot[rows[h].indexOf('NOV ' + String(ev('MS.cur-1')).slice(-2))], 'true 500');
+  ev(`setScen(''); 'ok'`);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — the deck’s spend-plan chart ties to the forecast to the dollar';
+  try {
+  const { ev } = v10Board();
+  const deck = (on) => { ev(`setScen(${JSON.stringify(on ? 'disc' : '')}); window.__sl=null; if(!window.__bp) window.__bp=buildPptx;
+    buildPptx=function(s){ window.__sl=s; return window.__bp(s); }; exportPPT(); buildPptx=window.__bp; 'ok'`);
+    return JSON.parse(ev('JSON.stringify(window.__sl)')); };
+  const sl = deck(false);
+  const ch = sl.find(x => /Spend Plan by Month/.test(x));
+  chk(name, 'chart', 'the deck carries the chart slide, third', sl.indexOf(ch), 2);
+  const bars = [...ch.matchAll(/descr="([^"]+)"/g)].map(m => m[1].replace(/&amp;/g, '&'));
+  const val = (lbl, pot) => { const b = bars.find(x => x.startsWith(lbl + ' — ' + pot + ' ')); return b ? +b.split(' $')[1].replace(/,/g, '') : 0; };
+  const M = JSON.parse(ev('JSON.stringify(FYMON.map(function(x){ return x[1]; }))'));
+  const got = M.concat(['UNSCHEDULED']).map(l => val(l, 'discretionary') + val(l, 'mandatory'));
+  chk(name, 'chart', 'every month and UNSCHEDULED is the forecast’s, to the dollar', got.join(','), V10FC.m.concat([V10FC.u]).map(Math.round).join(','));
+  chk(name, 'chart', 'each pot, per bar', JSON.stringify(['OCT', 'NOV', 'DEC', 'FEB'].map(p => M.find(m => m.startsWith(p))).map(l => [val(l, 'discretionary'), val(l, 'mandatory')])),
+    JSON.stringify([[300, 200], [500, 167], [400, 200], [400, 133]]));
+  chk(name, 'chart', 'the figures are printed beneath every bar, and the total', /<a:t>TOTAL<\/a:t>/.test(ch) && (ch.match(/<a:tr /g) || []).length === 4, true);
+  chk(name, 'chart', 'no what-if marker on the funded plan', /DISCRETIONARY ONLY/.test(ch), false);
+  const sl2 = deck(true);
+  const ch2 = sl2.find(x => /Spend Plan by Month/.test(x));
+  chk(name, 'switch', 'under the switch it says so, and carries no mandatory', /◨ DISCRETIONARY ONLY/.test(ch2) + ' ' + /mandatory \$/.test(ch2), 'true false');
+  ev(`setScen(''); 'ok'`);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+
+
+// ═══ v1.86 — SET HIGHER THAN IT DRAWS: FOUND, FLAGGED AND FIXED ══════════════════════════════════
+// Brad, 26 Sep 2026: A (the counter in the fit strip, which filters), B (the flag on the row), C (the
+// fix list with set to drawn), mandatory as well as discretionary. The fixture has every reason a typed
+// figure goes undrawn -- a discretionary lane dry above the rank (B's USAF and ANG), a mandatory lane
+// dry (B's ANG), a figure typed above the requirement value (C's AFRC) -- and two that must NOT be
+// flagged: a requirement on the lane walk that is short (D) and a split that drew in full (A, E).
+const V13 = { services: MINE,
+  items: [it('A', 'AV', [300, 0, 0]), it('B', 'AV', [400, 300, 0]), it('C', 'PSM', [0, 0, 300]), it('D', 'PSM', [100, 0, 0]), it('E', 'TSS', [0, 0, 100])],
+  disc: [500, 150, 1000], mand: [0, 60, 0], order: ['A', 'B', 'C', 'D', 'E'],
+  fsrc: { A: { m: 'split', dv: [300, 0, 0], mv: [0, 0, 0] }, B: { m: 'split', dv: [400, 200, 0], mv: [0, 100, 0] },
+          C: { m: 'split', dv: [0, 0, 500], mv: [0, 0, 0] }, E: { m: 'split', dv: [0, 0, 100], mv: [0, 0, 0] } } };
+const v13Board = (html) => {
+  const B = boot(html ? { html } : {}); seed(B.ev, V13); asBooted(B.ev, V13);
+  B.ev(`applyState(S); S.fsrc=${JSON.stringify(V13.fsrc)}; MS.years[MS.cur]=S; save(); render(); 'ok'`);
+  return B;
+};
+// every funded dollar, both unfunded readings and the shortfall, per requirement and service
+const v13Money = (ev) => JSON.parse(ev(`JSON.stringify((function(){ const T=tiers(); const o={};
+  S.order.forEach(function(id){ const it=itemById(id), p=T[id]; o[id]={d:p.d, m:p.m, unf:unfSvcOf(it,p), unf1:discUnfSvcOf(it,p)}; });
+  return {req:o, sh:svcShort(T).map(function(x){ return x.s+' '+Math.round(x.short); })}; })())`));
+const V13LINES = [['B', 'USAF', 'd', 400, 200, 'USAF discretionary ran out above this rank'],
+                  ['B', 'ANG', 'd', 200, 150, 'ANG discretionary ran out above this rank'],
+                  ['B', 'ANG', 'm', 100, 60, 'ANG mandatory ran out above this rank'],
+                  ['C', 'AFRC', 'd', 500, 300, 'the AFRC requirement value stops at $300']];
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — a typed figure higher than it draws is counted, flagged and listed, and they agree';
+  try {
+  const { ev } = v13Board();
+  const N = JSON.parse(ev('JSON.stringify(ndData())'));
+  chk(name, 'list', 'every line, in priority order, with why', JSON.stringify(N.list.map(g => [g.id, V13.services[g.i], g.lane, g.typed, g.drew, g.why])), JSON.stringify(V13LINES));
+  chk(name, 'list', 'nothing that drew in full, and nothing on the lane walk', Object.keys(N.ids).sort().join(','), 'B,C');
+  chk(name, 'A · counter', 'two requirements, $490 not drawn, in the fit strip', ev(`(function(){ const t=document.getElementById('fitBar').textContent; return /▲ not drawn 2 · /.test(t) && t.indexOf(fMc(490))>=0; })()`), true);
+  chk(name, 'A · counter', 'and the fix list beside it', ev(`/\\ud83d\\udd27 fix list/.test(document.getElementById('fitBar').textContent)`), true);
+  const flags = JSON.parse(ev(`JSON.stringify(S.order.map(function(id){ const r=document.getElementById('row-'+id); const m=r && r.textContent.match(/▲ (\\S+) not drawn/); return m? m[1] : ''; }))`));
+  chk(name, 'B · flag', 'the rows that are set higher carry the flag, with the amount', JSON.stringify(flags), JSON.stringify(['', ev('fMc(290)'), ev('fMc(200)'), '', '']));
+  chk(name, 'B · flag', 'its hover names each service and lane, typed, drawn and why',
+    ev(`(function(){ const c=[...document.querySelectorAll('#row-B .rchip')].find(function(x){ return /not drawn/.test(x.textContent); }); return c? c.getAttribute('title') : ''; })()`),
+    'USAF Disc: typed $400, drew $200 \u2014 USAF discretionary ran out above this rank\nANG Disc: typed $200, drew $150 \u2014 ANG discretionary ran out above this rank\nANG Mand: typed $100, drew $60 \u2014 ANG mandatory ran out above this rank\nClick for the fix list.');
+  // THE BY SERVICE TABLE'S "drew" LINES ARE THE SAME FACT: one per line, per requirement
+  // the card shows them in the row's By service table, the grid in the RECORD panel's
+  chk(name, 'agree', 'each requirement shows one "drew" line per listed line in its By service table',
+    ev(`JSON.stringify(S.order.map(function(id){ let h;
+      if(fldHasPanel()){ setCur(id); h=document.getElementById('inspector').innerHTML; } else h=svcTable(itemById(id));
+      return (h.match(/>drew \\$/g)||[]).length; }))`), JSON.stringify([0, 3, 1, 0, 0]));
+  ev(`ndOpen=true; render(); 'ok'`);
+  chk(name, 'C · fix list', 'one row per line, and the total', ev(`(function(){ const t=document.querySelector('#ndBody table'); if(!t) return 'none';
+    return (t.querySelectorAll('tr').length-2)+' '+(t.querySelector('tr.tot').textContent.indexOf(fM(490))>=0); })()`), '4 true');
+  ev(`ndOpen=false; render(); 'ok'`);
+  // THE FILTER shows exactly the flagged requirements, and composes with the others
+  const shown = () => ev(`JSON.stringify([...document.querySelectorAll('#list .row')].map(function(r){ return r.id.replace('row-',''); }))`);
+  ev(`laneFilter='nd'; render(); 'ok'`);
+  chk(name, 'filter', 'shows exactly the flagged requirements', shown(), JSON.stringify(['B', 'C']));
+  ev(`svcFilter=2; render(); 'ok'`);
+  chk(name, 'filter', 'and composes with a service filter', shown(), JSON.stringify(['C']));
+  ev(`svcFilter=-1; laneFilter=''; render(); 'ok'`);
+  // the ◨ switch is a what-if; what is not drawn is the funded plan's -- every line, what it drew and
+  // why, not just how many (under the switch B's ANG mandatory would draw nothing, not $60)
+  const ndFunded = ev('JSON.stringify(ndData().list)');
+  ev(`setScen('disc'); 'ok'`);
+  chk(name, 'switch', 'the ◨ switch does not change what is flagged, what it drew, or why', ev('JSON.stringify(ndData().list)'), ndFunded);
+  ev(`setScen(''); 'ok'`);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — set to drawn moves no funded dollar and neither unfunded total, only the shortfall';
+  try {
+  const { ev } = v13Board();
+  const before = v13Money(ev);
+  chk(name, 'fixture', 'the shortfall before', JSON.stringify(before.sh), JSON.stringify(['USAF 300', 'ANG 90']));
+  const j0 = +ev('(MS.jrnl||[]).length');
+  const g0 = JSON.parse(ev('JSON.stringify(ndData().list[0])'));
+  ev(`window.confirm=function(){ return true }; ndSetDrawn(0); 'ok'`);
+  const one = v13Money(ev);
+  chk(name, 'one line', 'the typed figure is now what was drawn', ev('S.fsrc.B.dv[0]'), 200);
+  chk(name, 'one line', 'no funded dollar moved, and neither unfunded reading, anywhere',
+    JSON.stringify(Object.fromEntries(Object.entries(one.req).map(([k, v]) => [k, [v.d, v.m, v.unf, v.unf1]]))),
+    JSON.stringify(Object.fromEntries(Object.entries(before.req).map(([k, v]) => [k, [v.d, v.m, v.unf, v.unf1]]))));
+  chk(name, 'one line', 'the shortfall fell by exactly what the line said', JSON.stringify(one.sh) + ' ' + g0.short, JSON.stringify(['USAF 100', 'ANG 90']) + ' 200');
+  chk(name, 'one line', 'the line is gone and the rest remain', ev('JSON.stringify(ndData().list.map(function(g){ return g.id+SVC[g.i]+g.lane; }))'), JSON.stringify(['BANGd', 'BANGm', 'CAFRCd']));
+  chk(name, 'one line', 'and it is journalled', ev(`(MS.jrnl||[]).slice(${j0}).some(function(e){ return e.p && e.p[0]==='fsrc'; })`), true);
+  // A MANDATORY LINE, on its own: the mandatory figure is the one set
+  const kM = JSON.parse(ev('JSON.stringify(ndData().list.map(function(g){ return g.id+SVC[g.i]+g.lane; }))')).indexOf('BANGm');
+  const gM = JSON.parse(ev(`JSON.stringify(ndData().list[${kM}])`));
+  ev(`ndSetDrawn(${kM}); 'ok'`);
+  chk(name, 'mandatory line', 'the mandatory figure is set, and only it', ev('JSON.stringify([S.fsrc.B.dv[1], S.fsrc.B.mv[1]])'), '[200,60]');
+  chk(name, 'mandatory line', 'the shortfall fell by exactly what the line said', JSON.stringify(v13Money(ev).sh) + ' ' + gM.short, JSON.stringify(['USAF 100', 'ANG 50']) + ' 40');
+  const N = JSON.parse(ev('JSON.stringify(ndData())'));
+  ev(`globalThis.__cf=''; window.confirm=function(m){ globalThis.__cf=String(m); return true; }; ndSetAll(); 'ok'`);
+  chk(name, 'all', 'the confirmation names the lines, the requirements and the total',
+    ev('globalThis.__cf').split('\n')[0], `Set all 2 lines on 2 requirements to what they drew?`);
+  chk(name, 'all', 'and what the shortfall falls by', ev('globalThis.__cf').indexOf('falls by ' + ev(`fM(${N.shortAll})`)) > 0 && N.shortAll === 50, true);
+  const after = v13Money(ev);
+  chk(name, 'all', 'no funded dollar moved, and neither unfunded reading, anywhere',
+    JSON.stringify(Object.fromEntries(Object.entries(after.req).map(([k, v]) => [k, [v.d, v.m, v.unf, v.unf1]]))),
+    JSON.stringify(Object.fromEntries(Object.entries(before.req).map(([k, v]) => [k, [v.d, v.m, v.unf, v.unf1]]))));
+  chk(name, 'all', 'the shortfall is D’s alone now: typed above the requirement value was never payable', JSON.stringify(after.sh), JSON.stringify(['USAF 100']));
+  chk(name, 'all', 'nothing is flagged, listed or counted', ev(`JSON.stringify([ndData().n, ndData().list.length, document.querySelectorAll('#list .rchip').length && [...document.querySelectorAll('#list .rchip')].filter(function(c){ return /not drawn/.test(c.textContent); }).length])`), '[0,0,0]');
+  chk(name, 'all', 'every typed figure is what it drew', ev(`JSON.stringify([S.fsrc.B.dv, S.fsrc.B.mv, S.fsrc.C.dv])`), JSON.stringify([[200, 150, 0], [0, 60, 0], [0, 0, 300]]));
+  // A PMO COPY CANNOT SET THE ALLOCATION: the list is there, the fixes are not
+  const html = v184Publish(v13Board().ev);
+  const P = boot({ html });
+  P.ev(`ndOpen=true; render(); 'ok'`);
+  chk(name, 'copy', 'a PMO copy lists them but offers no fix', P.ev(`[document.querySelectorAll('#ndBody tr').length>2, /set to drawn|set all to drawn/.test(document.getElementById('ndBody').innerHTML)].join(',')`), 'true,false');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+
+
+// ═══ v1.86 — A FULL BOARD FOR A NEW VERSION; ONE APPROPRIATION OUT AND BACK IN ═════════════════════
+// Brad, 26 Sep 2026: "I need first to be able to import a full dashboard from a previous file that way
+// when the new version comes out it's seamless. I also need the ability to import or export
+// appropriation specific dashboards." The can't-fail is that nothing is lost: every container in the
+// previous file arrives unchanged, from files written BY the earlier versions themselves -- v1.80, v1.83
+// and v1.85, taken from this project's own history -- and the figures the new board prints from the
+// import are the figures it prints from that file's state opened directly.
+const V14RE = /(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/;
+const v14Pub = (html) => JSON.parse(html.match(V14RE)[2]);
+const v14With = (html, J) => html.replace(V14RE, (_, a, b, c) => a + JSON.stringify(J).replace(/</g, '\\u003c') + c);
+const v14Old = (rev) => execFileSync('git', ['show', rev + ':prioritization-board.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString();
+const v14Ls = (ev) => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+// the rich board: three appropriations, two years each, cycles on two, and every board-wide store
+const v14Rich = () => {
+  const F = v185Board(null, 'FULL FUND', V185.ff, { F: { m: 't', v: 600 } }, { G: { m: 't', v: 400 } }, true, { H: { m: 't', v: 200 } });
+  const P = v185Board(F.ev('buildSavedHtml()'), 'INITIAL SPARES', V185.sp, { I: { m: 't', v: 100 } }, { J: { m: 't', v: 60 } }, false, {});
+  const O = v185Board(P.ev('buildSavedHtml()'), null, V185.om, { A: { m: 't', v: 1000 } }, { B: { m: 't', v: 300 } }, true, { E: { m: 't', v: 150 } });
+  O.ev(`(function(){
+    BUDDB={ts:Date.now(), rows:[{ap:'om', svc:'USAF', name:'USAF O&M - CAM Discretionary AV', amt:1234}, {ap:'ff', svc:'ANG', name:'ANG FF Support', amt:567}], files:['bae.xlsx']}; persistBud();
+    EXDB={ts:Date.now(), all:{om:{fy:2026, rows:[['JSF5594', 812345]]}, ff:{fy:2026, rows:[['JSF7000', 43210]]}}}; persistExdb();
+    ACEDB={ts:Date.now(), sets:{'ACE27':{fp:'fp-1', locked:true, appn:{om:{pmo:{AV:{2027:900}}}}, lines:[]}}}; persistAce();
+    RPDB={ts:Date.now(), entries:[{id:'rp1', ts:Date.now(), ap:'om', amt:25000, what:'BTR to FF'}]}; persistRp();
+    if(!MS.ppbe) MS.ppbe={}; MS.ppbe['PB|2027']={USAF:{2027:1100}};
+    flowAddEnt(); flowSetEnt(flowEnts().length-1,'n','Zulu Depot'); setDest('A','to',destByName('Zulu Depot').k);
+    save(); return 'ok'; })()`);
+  return O;
+};
+// what a store says, with each destination read as its name so a re-pointed key is not a difference
+const v14Plan = (ev, k) => ev(`(function(){ const st=(${JSON.stringify(k)}===mySlug())? MS : pkgStoreOf(${JSON.stringify(k)}); if(!st) return 'none';
+  const L=(st.flow && Array.isArray(st.flow.ents))? st.flow.ents : flowDefEnts();
+  const nm=function(key){ const e=L.filter(function(x){ return x.k===key; })[0] || flowEnt(key); return e? e.n : (key||''); };
+  const Y=JSON.parse(JSON.stringify(st.years||{}));
+  Object.keys(Y).forEach(function(fy){ const D=Y[fy].dest||{}; Object.keys(D).forEach(function(id){ D[id]={to:nm(D[id].to), end:nm(D[id].end)}; }); });
+  return JSON.stringify({years:Y, ppbe:st.ppbe||{}, cycle:st.cycle||'', cur:st.cur, base:st.base, pack:!!st.dataPack}); })()`);
+const v14Cyc = (ev, k) => ev(`(function(){ const c=(${JSON.stringify(k)}===mySlug())? CYCDB : cycStoreOf(${JSON.stringify(k)}).c; if(!c || !c.cycles) return '{}';
+  const o={}; Object.keys(c.cycles).sort().forEach(function(key){ o[key]=Object.keys((c.cycles[key]||{}).years||{}).sort().join(',')+'|'+JSON.stringify((c.cycles[key]||{}).proj||{}); });
+  return JSON.stringify(o); })()`);
+const v14Stores = (ev) => ev(`JSON.stringify({bud:BUDDB.rows, ex:EXDB.all, ace:ACEDB.sets, rp:RPDB.entries})`);
+// what the open appropriation PRINTS: its lanes, and each requirement's value, discretionary,
+// mandatory and unfunded per service, from the lane walk -- the figures a brief is read from
+const v14Figures = (ev) => ev(`JSON.stringify((function(){ const T=tiers(), X=tierTotals(T);
+  return {ap:APPN, disc:S.discSvc, mand:S.mandSvc, tot:[X.dUsed, X.mUsed, X.uAmt, X.u1Amt, X.u2Amt, X.mcNeed].map(function(v){ return Math.round(+v||0); }),
+    rows:S.order.map(function(id){ const it=itemById(id), p=T[id];
+      return [id, (it.ask||[]).map(function(v){ return Math.round(+v||0); }), p.d.map(Math.round), p.m.map(Math.round), unfSvcOf(it,p).map(Math.round)]; })}; })())`);
+let V14 = null;
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — a full board comes across whole, from files written by v1.80, v1.83 and v1.85';
+  try {
+  const O = v14Rich();
+  const L86 = O.ev('buildSavedHtml()');
+  V14 = { O, L86 };
+  for (const [ver, rev] of [['v1.80', '68b02e9'], ['v1.83', '84dcaf9'], ['v1.85', '77882d9']]) {
+    // THE OLD VERSION WRITES ITS OWN FILE: its program, given the state, saves it the way it saved
+    const old = boot({ html: v14With(v14Old(rev), v14Pub(L86)) });
+    const Lold = old.ev('buildSavedHtml()');
+    const J = v14Pub(Lold);
+    chk(name, ver, 'the fixture file carries three appropriations', Object.keys(J.appns || {}).sort().join(','), 'ff,om,sp');
+    // A NEW BOARD, EMPTY, TAKES IT
+    const N = boot();
+    const ok = N.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(m){ globalThis.__al=String(m); };
+      return fullImportText(${JSON.stringify(Lold)}, 'board ${ver}.html'); })()`);
+    chk(name, ver, 'the import runs', ok, true);
+    const N2 = boot({ ls: v14Ls(N.ev) });
+    chk(name, ver, 'and reopens with a report of what arrived', /Full board imported/.test(N2.ev(`document.getElementById('shareStat').innerHTML`)), true);
+    // EVERY CONTAINER THE FILE CARRIES, UNCHANGED
+    const X = boot({ html: v14With(readFileSync(BOARD, 'utf8'), J) });   // the same state, opened directly by the new version
+    for (const k of ['om', 'ff', 'sp']) {
+      chk(name, ver, `${k}: its plan, every year, arrived unchanged`, v14Plan(N2.ev, k), v14Plan(X.ev, k));
+      chk(name, ver, `${k}: its locked cycles arrived unchanged`, v14Cyc(N2.ev, k), JSON.stringify((() => { const c = ((J.cycDb || {}).byAp || {})[k]; const o = {};
+        Object.keys((c && c.cycles) || {}).sort().forEach(key => { o[key] = Object.keys((c.cycles[key] || {}).years || {}).sort().join(',') + '|' + JSON.stringify((c.cycles[key] || {}).proj || {}); }); return o; })()));
+    }
+    const st = JSON.parse(v14Stores(N2.ev));
+    chk(name, ver, 'the BAE list', JSON.stringify(st.bud), JSON.stringify(J.budDb ? J.budDb.rows : JSON.parse(v14Stores(X.ev)).bud));
+    chk(name, ver, 'execution data', JSON.stringify(st.ex), JSON.stringify((J.execDb || {}).all || {}));
+    chk(name, ver, 'cost estimates', JSON.stringify(st.ace), JSON.stringify((J.aceDb || {}).sets || {}));
+    chk(name, ver, 'the reprogramming log', JSON.stringify(st.rp), JSON.stringify((J.rpDb || {}).entries || []));
+    chk(name, ver, 'the destination list names every destination the plans use', N2.ev(`!!destByName('Zulu Depot')`), true);
+    // THE FIGURES THE NEW BOARD PRINTS ARE THE SAME, imported or opened directly
+    const nums = (ev) => JSON.stringify(JSON.parse(capture(ev)).map(sh => [sh.name, sh.rows.map(r => (r || []).map(c => { const v = cv(c); return typeof v === 'number' ? Math.round(v * 100) / 100 : null; }))]));
+    chk(name, ver, 'every figure the workbook prints is the same as the file opened directly', nums(N2.ev), nums(X.ev));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — a full import replaces, after asking about work the board would lose';
+  try {
+  const { L86 } = V14;
+  // a board with work of its own on O&M since the file was saved
+  const B = boot({ html: L86 });
+  B.ev(`S.titles.A='changed here'; save(); 'ok'`);
+  const asked = JSON.parse(B.ev(`(function(){ const q=[]; window.confirm=function(m){ q.push(String(m).split('\\n')[0]); return false; };
+    const r=fullImportText(${JSON.stringify(L86)}, 'b.html'); return JSON.stringify([r, q]); })()`));
+  chk(name, 'conflict', 'it names the appropriation with work, and a No imports nothing', JSON.stringify(asked), JSON.stringify([false, ['CONFLICT — O&M']]));
+  chk(name, 'conflict', 'and nothing changed', B.ev(`S.titles.A`), 'changed here');
+  // too old a file is refused, saying so
+  const old = JSON.parse(B.ev(`(function(){ let a=''; window.alert=function(m){ a=String(m); };
+    const r=fullImportText(${JSON.stringify(L86.replace(/const BUILD='v1\.\d+/, "const BUILD='v1.79"))}, 'old.html'); return JSON.stringify([r, /v1\\.80 onward/.test(a)]); })()`));
+  chk(name, 'version', 'a file older than v1.80 is refused, and the message says why', JSON.stringify(old), '[false,true]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — one appropriation out, worked on, and back in, changing only itself';
+  try {
+  const { O } = V14;
+  const B = boot({ ls: v14Ls(O.ev), html: O.ev('buildSavedHtml()') });
+  const before = { om: v14Plan(B.ev, 'om'), sp: v14Plan(B.ev, 'sp'), st: v14Stores(B.ev) };
+  const F1 = B.ev(`oneAppnHtml('ff')`);
+  const J1 = v14Pub(F1);
+  chk(name, 'out', 'the file holds Full Fund alone', Object.keys(J1.appns).join(',') + '|' + J1.only, 'ff|FULL FUND');
+  chk(name, 'out', 'its locked cycles, its execution data and its BAE rows, and no other appropriation’s',
+    JSON.stringify([Object.keys(J1.cycDb.byAp), Object.keys(J1.execDb.all), J1.budDb.rows.map(r => r.ap)]), JSON.stringify([['ff'], ['ff'], ['ff']]));
+  // IT OPENS ON FULL FUND, as a working board, in a browser that has never held this board
+  const W = boot({ html: F1 });
+  chk(name, 'open', 'it opens on Full Fund, with its plan', W.ev(`APPN+'|'+S.order.join(',')`), 'FULL FUND|F,G,H');
+  // and prints exactly what the whole board prints for Full Fund, opened on it in the same browser
+  const FF = boot({ ls: v14Ls(B.ev), html: O.ev('buildSavedHtml()'), appn: 'FULL FUND' });
+  chk(name, 'open', 'every figure is the one the whole board prints for Full Fund', v14Figures(W.ev), v14Figures(FF.ev));
+  W.ev(`S.titles.F='Renamed by the Full Fund lead'; save(); blCyc='BES'; blYr=MS.cur; cycLock(); save(); 'ok'`);
+  // the lead also imports a newer CCaR pull for Full Fund: the file's execution data is newer than the
+  // board's, so taking it back must merge it -- Full Fund's replaced, every other appropriation's kept
+  W.ev(`EXDB.all.ff={fy:2026, rows:[['JSF7000', 55555]]}; EXDB.ts=Date.now()+5000; persistExdb(); save(); 'ok'`);
+  const F2 = W.ev('buildSavedHtml()');
+  // BACK IN, as one appropriation
+  B.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+    const txt=${JSON.stringify(F2)}; const st=JSON.parse(txt.match(/<script type="application\\/json" id="pubState">([\\s\\S]*?)<\\/script>/)[1]);
+    consTakeApply(st, txt, 'ff.html', ['ff'], true); return 'ok'; })()`);
+  const B2 = boot({ ls: v14Ls(B.ev), html: O.ev('buildSavedHtml()') });
+  chk(name, 'in', 'Full Fund came back with the lead’s change', B2.ev(`JSON.stringify(((pkgStoreOf('ff').years||{})[pkgStoreOf('ff').cur]||{}).titles)`).indexOf('Renamed by the Full Fund lead') >= 0, true);
+  chk(name, 'in', 'and the cycle the lead locked', Object.keys(JSON.parse(v14Cyc(B2.ev, 'ff'))).some(k => /^BES\|/.test(k)), true);
+  chk(name, 'in', 'O&M did not change', v14Plan(B2.ev, 'om'), before.om);
+  chk(name, 'in', 'Initial Spares did not change', v14Plan(B2.ev, 'sp'), before.sp);
+  const st2 = JSON.parse(v14Stores(B2.ev)), st0 = JSON.parse(before.st);
+  const exBut = (x) => JSON.stringify(Object.keys(x || {}).filter(k => k !== 'ff').sort().map(k => [k, x[k]]));
+  chk(name, 'in', 'the lead’s newer execution pull for Full Fund came back with it', JSON.stringify((st2.ex || {}).ff), JSON.stringify({ fy: 2026, rows: [['JSF7000', 55555]] }));
+  chk(name, 'in', 'and every other appropriation’s execution data is as it was', exBut(st2.ex), exBut(st0.ex));
+  chk(name, 'in', 'and O&M’s is there at all', !!(st2.ex && st2.ex.om), true);
+  chk(name, 'in', 'the BAE list, the cost estimates and the log did not change', JSON.stringify([st2.bud, st2.ace, st2.rp]), JSON.stringify([st0.bud, st0.ace, st0.rp]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — the File menu, grouped, and the PMO copy under it';
+  try {
+  const { O } = V14;
+  const B = boot({ html: O.ev('buildSavedHtml()') });
+  const lab = JSON.parse(B.ev(`JSON.stringify([...document.querySelectorAll('#dd_share .mlbl')].map(function(n){ return n.textContent; }))`));
+  chk(name, 'File', 'Save, Import, Export, Team', lab.join(' | '), 'Save | Import | Export | Team');
+  const items = B.ev(`document.getElementById('dd_share').textContent`);
+  const order = ['Save', 'Save a copy', 'Import a full board (new version)', 'Import one appropriation', 'Import several boards at once', 'Appropriation packages',
+    'Export one appropriation', 'Publish PMO copy', 'Live view'].map(t => items.indexOf(t));
+  chk(name, 'File', 'every entry is there, in that order', order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1])), true);
+  chk(name, 'Budget year', 'the PMO copy is no longer under Budget year', /Publish PMO copy|Review submittals|Submit input/.test(B.ev(`document.getElementById('dd_by').textContent`)), false);
+  const P = boot({ html: v184Publish(B.ev) });
+  chk(name, 'copy', 'in a copy, ✉ Submit input is under File, and the bar button stays',
+    /Submit input/.test(P.ev(`document.getElementById('dd_share').textContent`)) + ' ' + /Submit input/.test(P.ev(`document.getElementById('subBanner').textContent`)), 'true true');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+
+
+// ═══ v1.86 — THE GUIDE, INSIDE THE FILE ══════════════════════════════════════════════════════════
+// Brad, 25 Sep 2026: "Can we add the help file to the tool itself so that when we push it out, everyone
+// has access to it?" -- "I don't want it to automatically pop up but I want it to be available" --
+// "Include both". It opens only from a 📖 button, on its contents; it carries the board's own version;
+// it loads nothing from outside the file; and reading it changes nothing. (Every menu path and button
+// it names is checked against both builds' real menus by tools/menu-paths.mjs, in a browser.)
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.86 — the help guide: in the file, opened only from 📖, and it changes nothing';
+  try {
+  const { ev } = v184Board();
+  const shut = () => !/\bopen\b/.test(ev(`document.getElementById('helpPanel').className`));
+  chk(name, 'never by itself', 'the board opens with the guide closed', shut(), true);
+  chk(name, 'never by itself', 'and only a 📖 button opens it', ev(`JSON.stringify([...document.querySelectorAll('[onclick]')].filter(function(e){ return e.getAttribute('onclick').indexOf('openHelp(')>=0; }).map(function(e){ return e.id || e.textContent.trim(); }))`), JSON.stringify(['helpBtn']));
+  const doc = ev(`document.getElementById('helpDoc').innerHTML`);
+  chk(name, 'offline', 'it loads nothing from outside the file', /https?:\/\/|<img|<link|<script|<iframe|url\(/i.test(doc), false);
+  chk(name, 'size', 'it adds under 60 KB to the file', doc.length < 60000, true);
+  const money = () => ev(`JSON.stringify({ms:MS.years, ls:(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; })()})`);
+  const before = money();
+  ev(`openHelp(''); 'ok'`);
+  chk(name, 'opens', 'on its contents, both parts', ev(`JSON.stringify([...document.querySelectorAll('#helpBody .hx-ph')].map(function(e){ return e.textContent; }))`),
+    JSON.stringify(['For programme offices', 'For the portfolio team']));
+  chk(name, 'opens', 'carrying the board’s own version', ev(`document.getElementById('helpVer').textContent===BUILD`), true);
+  const secs = JSON.parse(ev(`JSON.stringify(helpSections().map(function(s){ return [s.part, s.id, s.t]; }))`));
+  chk(name, 'opens', 'the offices’ part and the portfolio team’s part are both there', [secs.filter(s => s[0] === 'office').length > 8, secs.filter(s => s[0] === 'team').length > 8].join(','), 'true,true');
+  // EVERY SECTION OPENS, under its own title, with this build's paragraphs only
+  const build = ev(`fldHasPanel()? 'grid' : 'card'`);
+  let bad = [];
+  const other = [];
+  secs.forEach(([, id, t]) => { ev(`helpGo(${JSON.stringify(id)}); 'ok'`);
+    const h2 = ev(`(document.querySelector('#helpBody h2')||{}).textContent||''`);
+    if (h2 !== t) bad.push(id + ': ' + h2);
+    if (ev(`[...document.querySelectorAll('#helpBody [data-b]')].some(function(n){ return n.getAttribute('data-b')!==${JSON.stringify(build)}; })`)) other.push(id); });
+  chk(name, 'sections', 'every section opens under its own title', bad.join('; ') || 'all', 'all');
+  chk(name, 'sections', 'and no section carries a paragraph written for the other build', other.join(', ') || 'none', 'none');
+  ev(`helpGo('o-find'); 'ok'`);
+  chk(name, 'sections', 'a section reads this build’s way of working, not the other’s',
+    /RECORD<\/b> panel on the right/.test(ev(`document.getElementById('helpBody').innerHTML`)) === (build === 'grid'), true);
+  ev(`helpGo('o-what'); 'ok'`);
+  ev(`(function(){ const a=document.querySelector('#helpBody a[data-go]'); if(a) a.onclick(); return 'ok'; })()`);
+  chk(name, 'sections', 'a link inside the guide goes to its section', ev(`(document.querySelector('#helpBody h2')||{}).textContent`), 'Send it back');
+  ev(`document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape'})); 'ok'`);
+  chk(name, 'closes', 'Esc closes it', shut(), true);
+  chk(name, 'nothing moves', 'opening, reading and closing it changes nothing stored and no figure', money(), before);
+  // A PMO COPY: the guide is there, closed, and its bar opens it on the offices' part
+  const P = boot({ html: v184Publish(ev) });
+  chk(name, 'copy', 'a PMO copy opens with the guide closed', /\bopen\b/.test(P.ev(`document.getElementById('helpPanel').className`)), false);
+  chk(name, 'copy', 'its bar carries 📖 How this copy works', /How this copy works/.test(P.ev(`document.getElementById('subBanner').textContent`)), true);
+  P.ev(`(function(){ const b=[...document.querySelectorAll('#subBanner button')].find(function(x){ return /How this copy works/.test(x.textContent); }); b.click(); return 'ok'; })()`);
+  chk(name, 'copy', 'and it opens on the offices’ part', P.ev(`(document.querySelector('#helpBody .hx-part.on .hx-ph')||{}).textContent`), 'For programme offices');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
   // A name built by concatenation ('convert to split — ' + label) is heard only in its finished
   // forms, so a literal that any heard scenario STARTS WITH has run. A dead block's literal has none.
   named.forEach(n => { if (![...SEEN].some(s => s === n || s.startsWith(n))) failures.push({ scenario: n, where: 'harness',
     what: 'this scenario never ran — is its block after process.exit()?', got: 'never ran', want: 'ran' }); });
-}
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 console.log('\n' + '='.repeat(96));
 if (!failures.length) { console.log('ALL CHECKS PASSED'); process.exit(0); }
 const by = {};

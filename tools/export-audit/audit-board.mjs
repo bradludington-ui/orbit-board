@@ -907,21 +907,54 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     return e? /\\bopen\\b/.test(e.className) : false; })()`);
 
   // 1. the save path, driven directly, in whichever build this is
-  for (const [kind, store, text] of [['cons', 'cons', 'Depot line stops in March.'],
-                                     ['desc', 'desc', 'Sustains the fielded capability.'],
-                                     ['note', 'notes', 'Agreed at the Sep SFWG.']]) {
-    ev(`openFld('A','${kind}'); "ok"`);
-    chk(name, kind, 'opens on the requirement', isOpen(), true);
-    chk(name, kind, 'loads what is already stored',
-      ev(`(document.getElementById('fldVal')||{}).value===undefined? 'no field' : 'present'`), 'present');
-    ev(`document.getElementById('fldVal').value=${JSON.stringify(text)}; fldSave(); "ok"`);
-    chk(name, kind, 'saves what was typed', ev(`(S.${store}||{})['A']||''`), text);
-    chk(name, kind, 'and closes once saved', isOpen(), false);
-  }
-  // A requirement removed out from under the editor must not leave it open on nothing.
-  ev(`openFld('A','note'); "ok"`);
-  ev(`fldOpen={id:'GONE', kind:'note'}; fldBody(); "ok"`);
-  chk(name, 'stale', 'it closes when its requirement is gone', isOpen(), false);
+  ev(`openFld('A','cons'); "ok"`);
+  chk(name, 'cons', 'opens on the requirement', isOpen(), true);
+  chk(name, 'cons', 'titled with the one name the board uses', ev(`document.getElementById('fldTitle').textContent.indexOf('\u26a0 Impact statement')===0`), true);
+  chk(name, 'cons', 'loads what is already stored',
+    ev(`(document.getElementById('fld-cons')||{}).value===undefined? 'no field' : 'present'`), 'present');
+  ev(`document.getElementById('fld-cons').value='Depot line stops in March.'; fldSave(); "ok"`);
+  chk(name, 'cons', 'saves what was typed', ev(`(S.cons||{})['A']||''`), 'Depot line stops in March.');
+  chk(name, 'cons', 'and closes once saved', isOpen(), false);
+
+  // DESCRIPTION & NOTE: one pop-up, two fields. The description first, the note under it, one Save
+  // -- and each still its own field: kept, journalled and sent as itself.
+  ev(`openFld('A','dn'); "ok"`);
+  chk(name, 'desc & note', 'one pop-up holds both, the description first',
+    ev(`[...document.querySelectorAll('#fldBody textarea')].map(function(t){ return t.id; }).join(',')`), 'fld-desc,fld-note');
+  chk(name, 'desc & note', 'titled Description & note', ev(`document.getElementById('fldTitle').textContent.indexOf('\ud83d\udcc4 Description & note')===0`), true);
+  ev(`document.getElementById('fld-desc').value='Sustains the fielded capability.';
+      document.getElementById('fld-note').value='Agreed at the Sep SFWG.'; fldSave(); "ok"`);
+  chk(name, 'desc & note', 'saves both, each to its own field', ev(`[(S.desc||{}).A, S.notes.A].join(' | ')`), 'Sustains the fielded capability. | Agreed at the Sep SFWG.');
+  chk(name, 'desc & note', 'and closes once saved', isOpen(), false);
+  // SAVING ONE NEVER RE-STAMPS OR BLANKS THE OTHER. The note is held exactly as an import left it,
+  // spacing and all; a save that wrote it back would trim it and journal it as an edit nobody made.
+  ev(`S.notes.A='Agreed at the Sep SFWG.  '; save(); "ok"`);
+  const j0 = ev(`(MS.jrnl||[]).length`);
+  ev(`openFld('A','dn'); document.getElementById('fld-desc').value='Sustains the fielded fleet.'; fldSave(); "ok"`);
+  chk(name, 'desc & note', 'a changed description is written', ev(`(S.desc||{}).A`), 'Sustains the fielded fleet.');
+  chk(name, 'desc & note', 'the unchanged note is not written at all', ev(`JSON.stringify(S.notes.A)`), JSON.stringify('Agreed at the Sep SFWG.  '));
+  chk(name, 'desc & note', 'and the journal records the description alone',
+    ev(`JSON.stringify((MS.jrnl||[]).slice(${j0}).map(function(e){ return (e.p||[])[0]; }))`), '["desc"]');
+  ev(`openFld('A','dn'); document.getElementById('fld-desc').value=''; fldSave(); "ok"`);
+  chk(name, 'desc & note', 'clearing the description leaves the note', ev(`[JSON.stringify((S.desc||{}).A||null), JSON.stringify(S.notes.A)].join(' | ')`),
+    'null | ' + JSON.stringify('Agreed at the Sep SFWG.  '));
+  ev(`openFld('A','dn'); fldSave(); "ok"`);
+  chk(name, 'desc & note', 'a Save with nothing changed writes nothing and closes', isOpen() + ' ' + ev(`(MS.jrnl||[]).length`) + ' ' + ev(`JSON.stringify(S.notes.A)`),
+    'false ' + ev(`(MS.jrnl||[]).length`) + ' ' + JSON.stringify('Agreed at the Sep SFWG.  '));
+  // A requirement removed out from under the editor must not leave it open on nothing -- for every
+  // kind of editor the board HAS. (v1.86: this read kind 'note', which v1.86 retired; an unknown kind
+  // closes the editor by another line, so the check passed with the guard removed, and the gate's
+  // sweep said so. The kinds now come from the board, and there must be some.)
+  const kinds = JSON.parse(ev('JSON.stringify(Object.keys(FLD_DEF))'));
+  chk(name, 'stale', 'the board has editor kinds to check', kinds.length >= 2, true);
+  const stale = kinds.filter(k => {
+    ev(`openFld('A',${JSON.stringify(k)}); "ok"`);
+    const opened = isOpen();
+    let err = '';
+    try { ev(`fldOpen={id:'GONE', kind:${JSON.stringify(k)}}; fldBody(); "ok"`); } catch (e) { err = String(e.message || e); }
+    return !opened || err || isOpen();
+  });
+  chk(name, 'stale', 'each kind opens, then closes when its requirement is gone', stale.join(',') || 'all', 'all');
 
   // 2. the routing, which is the half that differs
   const hasPanel = ev('fldHasPanel()');
@@ -930,6 +963,18 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     hasPanel ? (isOpen() && !ev(`!!consOpen['A']`) ? 'pop-up' : 'wrong route')
              : (!isOpen() && ev(`!!consOpen['A']`) ? 'row' : 'wrong route'),
     hasPanel ? 'pop-up' : 'row');
+  ev(`fldClose(); consOpen['A']=false; render(); "ok"`);
+  // the description and the note open the one pop-up in BOTH builds (v1.86)
+  for (const fn of ['toggleDesc', 'toggleNote']) {
+    ev(`${fn}('A'); "ok"`);
+    chk(name, 'routing', `${fn} opens Description & note, in either build`, isOpen() && ev(`fldOpen && fldOpen.kind`) === 'dn', true);
+    ev(`fldClose(); "ok"`);
+  }
+  // ONE NAME EVERYWHERE: nothing on screen still says the old ones
+  ev(`S.cons={}; S.band.A=BANDS_LIST()[0].id; render(); if(typeof inspectorBody==='function') inspectorBody(); "ok"`);
+  const shown = ev(`(function(){ var b=document.body.cloneNode(true); b.querySelectorAll('script,style').forEach(function(x){ x.remove(); }); return b.textContent; })()`);   // what a person can read, not the code
+  chk(name, 'names', 'no "📋 Record", "Impact —", "CONSEQUENCE" or "REQUIREMENT RECORD" is left on screen',
+    ['\ud83d\udccb Record', 'Impact \u2014', 'CONSEQUENCE', 'REQUIREMENT RECORD'].filter(t => shown.indexOf(JSON.parse('"' + t + '"')) >= 0).join(',') || 'none', 'none');
   } catch (e) {
     // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
     // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one

@@ -7,7 +7,7 @@
 // Every mutation must match its target EXACTLY ONCE. A mutation that fails to apply is reported as
 // NOT APPLIED, never as caught or survived — otherwise a stale search string would masquerade as
 // proof that a line is covered.
-import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, rmSync, mkdirSync } from 'node:fs';
 import { execFileSync, execFile } from 'node:child_process';
 import { cpus } from 'node:os';
 import { tmpdir } from 'node:os';
@@ -50,19 +50,20 @@ const DREW_WHY_FIND = "const drewWhy = (drawnV, capV) => (typeof capV === 'numbe
 const MUTATIONS = [
   // ---- the lane engine: the basis for every printed figure ------------------------------------
   // ---- the spend forecast: where the money lands, month by month -------------------------------
-  { id: 'fc-weights-not-dollars', area: 'monSpreadOf', what: 'increments back to weights against the whole funded amount',
-    find: '          const dAmt=w[j]*dScale;          // discretionary: literally this increment',
-    repl: '          const dAmt=fsv*w[j]/wsum;        // discretionary: literally this increment' },
-  { id: 'fc-drops-unscheduled', area: 'monSpreadOf', what: 'unscheduled discretionary silently dropped instead of held',
-    find: '        unsch[i]+=Math.max(0, dsv-dPlaced);',
-    repl: '        unsch[i]+=0;' },
+  // v1.86: every spend plan places its money through landSvc(), so these land there.
+  { id: 'fc-weights-not-dollars', area: 'landSvc', what: 'increments back to weights against the whole funded amount',
+    find: '      const dv=w[j]*dScale;              // discretionary: literally this increment',
+    repl: '      const dv=(dsv+msv)*w[j]/wsum;      // discretionary: literally this increment' },
+  { id: 'fc-drops-unscheduled', area: 'landSvc', what: 'unscheduled discretionary silently dropped instead of held',
+    find: '    out.ud=Math.max(0, dsv-dPlaced);',
+    repl: '    out.ud=0;' },
   { id: 'fc-plan-literal', area: 'forecast', what: 'a modelled plan spreads increments as dollars, stranding its topline in UNSCHEDULED',
     find: '  const literal = !fundOf;', repl: '  const literal = true;' },
   { id: 'fc-board-weighted', area: 'forecast', what: "the board's own forecast goes back to weights, inflating every month",
     find: '  const literal = !fundOf;', repl: '  const literal = false;' },
-  { id: 'fc-mand-not-carried', area: 'monSpreadOf', what: 'mandatory left out of the forecast entirely',
-    find: '          const mAmt=msv*w[j]/wsum;        // mandatory: no increments of its own, rides the same dates',
-    repl: '          const mAmt=0;                    // mandatory: no increments of its own, rides the same dates' },
+  { id: 'fc-mand-not-carried', area: 'landSvc', what: 'mandatory left out of the forecast entirely',
+    find: '      const mv=msv*mw[j]/msum;           // mandatory: rides the dates, in their proportions',
+    repl: '      const mv=0;                        // mandatory: rides the dates, in their proportions' },
 
   // ---- the month-by-month sheets: the blocks and their ALL SERVICES roll-up --------------------
   { id: 'mon-grand-skips-none', area: 'monSheet', what: 'ALL SERVICES stops counting the unassigned bucket',
@@ -383,8 +384,8 @@ const MUTATIONS = [
   // only the routing differs, so a mutation here cannot survive on whichever build does not route
   // through it in the UI.
   { id: 'fld-save-drops-edit', area: 'fldSave', what: 'the pop-up reports a save and writes nothing',
-    find: "  const id=fldOpen.id, v=a.value;",
-    repl: "  const id=fldOpen.id, v=D.get(fldOpen.id);" },
+    find: "  const vals=D.parts.map(function(p){ const a=document.getElementById('fld-'+p.k); return a? a.value : null; });",
+    repl: "  const vals=D.parts.map(function(p){ const a=document.getElementById('fld-'+p.k); return a? p.get(fldOpen.id) : null; });" },
   { id: 'fld-stale-stays-open', area: 'fldBody', what: 'the editor stays open on a requirement that has gone',
     find: "  if(!it) fldOpen=null;                      // removed out from under the editor",
     repl: "  // removed out from under the editor" },
@@ -544,8 +545,8 @@ const MUTATIONS = [
     find: "    keys.forEach(function(k){\n      let now=pmoVal(S,k,id);",
     repl: "    ['desc','cons','notes','asks','ccar','pid','recNames','mc','band','alloc'].forEach(function(k){\n      let now=pmoVal(S,k,id);" },
   { id: 'pmo-no-baseline', area: 'pmoSubmit', what: 'the submittal leaves its baseline behind, so no conflict can ever be seen',
-    find: '             items:items, base:base, added:added};',
-    repl: '             items:items, base:{}, added:added};' },
+    find: '             items:items, base:base, added:added, dest:flowEnts()};',
+    repl: '             items:items, base:{}, added:added, dest:flowEnts()};' },
   { id: 'pmo-conflict-blind', area: 'pmoRows', what: 'a field this board changed too is applied without a word',
     find: '                 conflict: was!==undefined && !pmoSame(now, was)});',
     repl: '                 conflict: false});' },
@@ -950,19 +951,20 @@ const MUTATIONS = [
     repl: `  GROUPS.forEach(function(g){ counts[g]=DATA.items.filter(function(i){ return i.grp===g; }).length; });` },
 
   // ---- CR cash needs: crData's own arithmetic ------------------------------------------------------
-  { id: 'cr-half-ignored', area: 'crData', what: 'a requirement flipped to the 16-EOM half is placed in the 1-15 half anyway',
-    find: "      const half=(S.crHalf[id]&&S.crHalf[id][e.ym])?1:0;", repl: "      const half=0;" },
-  { id: 'cr-nodate-dropped', area: 'crData', what: 'funded money with no award date vanishes instead of landing in the no-date bucket',
-    find: "    if(!scheduled) SVC.forEach((s,i)=>{ if(fSv[i]>0.005) svc[i].nodate+=fSv[i]; });",
-    repl: "    if(!scheduled) SVC.forEach((s,i)=>{ if(fSv[i]>0.005) svc[i].nodate+=0; });" },
-  { id: 'cr-inc-equal-split', area: 'crData', what: 'increments are split equally instead of by their own per-service amounts',
-    find: "            const amt=fSv[i]*w[j]/wsum;", repl: "            const amt=fSv[i]/w.length;" },
-  { id: 'cr-tot-untallied', area: 'crData', what: 'a service’s TOTAL IN WINDOW stops counting what lands',
-    find: "        svc[i].win[w]+=e.amts[i]; svc[i].tot+=e.amts[i];", repl: "        svc[i].win[w]+=e.amts[i];" },
-  { id: 'cr-window-not-doubled', area: 'crData', what: 'the window index forgets there are two halves per month, so November lands in the second half of October',
-    find: "      const w=mi[e.ym]*2+half;", repl: "      const w=mi[e.ym]+half;" },
-  { id: 'cr-zero-weight-lost', area: 'crData', what: 'an incremental award with no weights loses its money instead of reporting it as undated',
-    find: "          if(wsum<=0){ svc[i].nodate+=fSv[i]; return; }", repl: "          if(wsum<=0){ return; }" },
+  // v1.86: crData is crBuckets() by service, and the placement is landSvc()'s.
+  { id: 'cr-half-ignored', area: 'crBuckets', what: 'a requirement flipped to the 16-EOM half is placed in the 1-15 half anyway',
+    find: "          const half=(S.crHalf[id]&&S.crHalf[id][a.d])?1:0;", repl: "          const half=0;" },
+  { id: 'cr-nodate-dropped', area: 'crBuckets', what: 'funded money with no award date vanishes instead of landing in the no-date bucket',
+    find: "        b.nodate+=L.ud+L.um;", repl: "        b.nodate+=0;" },
+  { id: 'cr-inc-equal-split', area: 'landSvc', what: 'increments are split equally instead of by their own per-service amounts',
+    find: "    const w=aw.inc.map(function(x){ return wOf(x, i); });", repl: "    const w=aw.inc.map(function(){ return 1; });" },
+  { id: 'cr-tot-untallied', area: 'crBuckets', what: 'a service’s TOTAL IN WINDOW stops counting what lands',
+    find: "          b.win[w]+=amt; b.tot+=amt;", repl: "          b.win[w]+=amt;" },
+  { id: 'cr-window-not-doubled', area: 'crBuckets', what: 'the window index forgets there are two halves per month, so November lands in the second half of October',
+    find: "          const w=mi[a.d]*2+half;", repl: "          const w=mi[a.d]+half;" },
+  { id: 'cr-zero-weight-lost', area: 'landSvc', what: 'an incremental award with no weights loses its money instead of reporting it as undated',
+    find: "      if(!(msum>0)){ mw=aw.inc.map(function(){ return 1; }); msum=mw.length; }   // dates with no amounts on any",
+    repl: "      if(!(msum>0)){ return out; }   // dates with no amounts on any" },
 
   // ---- the funds flow: a plan year is the lane draw, and every total closes -------------------------
   { id: 'flow-plan-year-allocation', area: 'flowPlanRecs', what: 'a plan year is answered from the allocation, so the flow counts money beyond both lanes as funding',
@@ -1198,8 +1200,8 @@ const MUTATIONS = [
   { id: 'cycle-file-drops-store', area: 'buildSavedHtml', what: 'the saved file does not carry the locked cycles',
     find: ", cycDb:cycDb, budDb:BUDDB}", repl: ", budDb:BUDDB}" },
   { id: 'cycle-import-replaces-lock', area: 'importStores', what: 'an import overwrites a cycle held here',
-    find: "      if(CYCDB.cycles[k]){ if((CYCDB.cycles[k].ts||0)!==(cy.cycles[k].ts||0)) kept.push(k); return; }",
-    repl: "      if(CYCDB.cycles[k]){ kept.push(k); }" },
+    find: "      if(st.cycles[k]){ if((st.cycles[k].ts||0)!==(cy.cycles[k].ts||0)) kept.push(k); return; }",
+    repl: "      if(st.cycles[k]){ kept.push(k); }" },
   { id: 'cycle-delete-leaves-reference', area: 'blDelete', what: 'deleting the reference cycle leaves the reference dangling',
     find: "  if(MS.cycleRef===key){ MS.cycleRef=''; save(); }", repl: "  /* left dangling */" },
   { id: 'cycle-spruills-one-year', area: 'pmoDetail', what: 'the Spruills reads a cycle for the year on screen only',
@@ -1447,8 +1449,8 @@ const MUTATIONS = [
     find: "  pick.forEach(function(k){\n    const nm=_SLUGMAP[k].t, inc=",
     repl: "  pick=APPN_SLUGS.filter(function(k){ return !!(fullSt.appns||{})[k]; }); pick.forEach(function(k){\n    const nm=_SLUGMAP[k].t, inc=" },
   { id: 'take-stores-always', area: 'consTakeApply', what: "a partial take still carries execution and the other board-wide stores",
-    find: "  if(all && !skipped.length){ const carried=importStores(fullSt);",
-    repl: "  if(true){ const carried=importStores(fullSt);" },
+    find: "  if(all && !skipped.length){ const carried=importStores(fullSt).concat(cyc);",
+    repl: "  if(true){ const carried=importStores(fullSt).concat(cyc);" },
   { id: 'take-bad-number-silent', area: 'consTakePick', what: "a number that is not on the list is ignored without a word",
     find: "        if(bad.length){ alert('Nothing was imported: ",
     repl: "        if(bad.length){ return; alert('Nothing was imported: " },
@@ -1540,6 +1542,153 @@ const MUTATIONS = [
   { id: 'pmo-tab-copy-unstamped', area: 'fydpPmoSheets', what: "a PMO copy's PMO tabs do not say they are a snapshot",
     find: "    const rows=[[{v:SANDBOX? '◨ PMO COPY (snapshot of '+expStamp()+', NOT the current plan)  —  '+head : head, s:TI}], [{v:note, s:0}], [{v:readLine, s:0}]];",
     repl: "    const rows=[[{v:head, s:TI}], [{v:note, s:0}], [{v:readLine, s:0}]];" },
+
+  // ═══ v1.86 ═══════════════════════════════════════════════════════════════════════════════════
+  // ---- item 11: one destination list for every appropriation -----------------------------------
+  { id: 'dest-legacy-by-key', area: 'destMigrate', what: "an appropriation's old list is matched by KEY, so x1 on O&M and x1 on Full Fund are taken for the same place",
+    find: "      const al=destFold(L.list, ap, L.v186, destRefs(states));",
+    repl: "      const al=destFold(L.list, ap, true, destRefs(states));" },
+  { id: 'dest-not-repointed', area: 'destMigrate', what: 'the lists are merged but the requirements keep their old keys, so they point at other places',
+    find: "      destRemap(states, al);\n      if(al.fresh) keep=true;",
+    repl: "      if(al.fresh) keep=true;" },
+  { id: 'dest-cycles-twice', area: 'destMigrate', what: 'the locked cycles are re-pointed again on every opening, moving an old key that became another destination’s',
+    find: "      if(CYCDB.dv && Array.isArray(CYCDB.ents)) al=destFold(CYCDB.ents, ap, true, destRefs(states));",
+    repl: "      if(false) al=destFold(CYCDB.ents, ap, true, destRefs(states));" },
+  { id: 'dest-not-az', area: 'flowEntsAZ', what: 'the pickers and the panel read in the order destinations were added, not A to Z',
+    find: "    return String(a.n||'').trim().localeCompare(String(b.n||'').trim(), undefined, {sensitivity:'base', numeric:true}); });",
+    repl: "    return 0; });" },
+  { id: 'dest-delete-ignores-elsewhere', area: 'flowDelEnt', what: 'a destination another appropriation uses is deleted, leaving its requirements pointing at nothing',
+    find: "  if(Object.keys(elsewhere).length){\n    alert(e.n+' is not removed.",
+    repl: "  if(false){\n    alert(e.n+' is not removed." },
+  { id: 'dest-delete-one-year', area: 'flowDelEnt', what: 'a delete clears the year on screen only, leaving the other years pointing at nothing',
+    find: "  // Every year this appropriation holds, not only the one on screen (v1.86).\n  const seen=[];\n  [S].concat(destStoreStates(MS)).forEach(function(st){",
+    repl: "  // Every year this appropriation holds, not only the one on screen (v1.86).\n  const seen=[];\n  [S].forEach(function(st){" },
+  { id: 'dest-deleted-resurrects', area: 'destFold', what: 'a destination deleted here comes back from another appropriation’s old list',
+    find: "      if(!hit && !used) return;          // read before, and deleted here since",
+    repl: "      /* read before, and deleted here since */" },
+  { id: 'dest-copy-shares-key', area: 'DESTDB', what: 'a PMO copy reads and writes the board’s own destination list in the same browser',
+    find: "const DEST_KEY='prio27destdb'+((PMODE&&PMODE.sandbox)? '-pmo'+(PMODE.ts||0) : '');",
+    repl: "const DEST_KEY='prio27destdb';" },
+  { id: 'dest-old-copy-untranslated', area: 'destPkgIn', what: 'a submittal from a copy published before the move is read with today’s keys, landing on other places',
+    find: "  else { const sg=DESTDB.lsig[pkg.ap||mySlug()]; al=(sg && DESTDB.lmap[sg])||{}; }",
+    repl: "  else { al={}; }" },
+  { id: 'dest-submit-no-list', area: 'pmoSubmit', what: 'a submittal leaves the copy’s list behind, so a destination the office added arrives as a bare key',
+    find: "             items:items, base:base, added:added, dest:flowEnts()};\n  if(rank) pkg.rank=rank;",
+    repl: "             items:items, base:base, added:added};\n  if(rank) pkg.rank=rank;" },
+  { id: 'dest-file-no-list', area: 'buildSavedHtml', what: 'the saved file leaves the board list behind',
+    find: "JSON.stringify({appns:PUBS, destDb:DESTDB, execDb:EXDB",
+    repl: "JSON.stringify({appns:PUBS, execDb:EXDB" },
+  // ---- item 12: the written editors, and one name each ------------------------------------------
+  { id: 'fld-dn-writes-both', area: 'fldSave', what: 'saving the description re-writes the unchanged note, re-stamping it as an edit',
+    find: "  const todo=D.parts.filter(function(p, i){ return !fldSame(vals[i], p.get(id)); });",
+    repl: "  const todo=D.parts.slice();" },
+  { id: 'fld-dn-blanks-other', area: 'fldSave', what: 'saving one of the two fields blanks the other',
+    find: "  D.parts.forEach(function(p, i){ if(todo.indexOf(p)>=0) window[p.set](id, vals[i]); });",
+    repl: "  D.parts.forEach(function(p, i){ window[p.set](id, todo.indexOf(p)>=0? vals[i] : ''); });" },
+  { id: 'fld-dn-note-first', area: 'FLD_DEF', what: 'the pop-up puts the note first and the description under it',
+    find: "  dn:  { lbl:'\\ud83d\\udcc4 Description & note', parts:[FLD_PARTS.desc, FLD_PARTS.note] }",
+    repl: "  dn:  { lbl:'\\ud83d\\udcc4 Description & note', parts:[FLD_PARTS.note, FLD_PARTS.desc] }" },
+  { id: 'fld-impact-old-name', area: 'FLD_DEF', what: 'the impact pop-up keeps its old name',
+    find: "  cons:{ lbl:'\\u26a0 Impact statement', parts:[FLD_PARTS.cons] },",
+    repl: "  cons:{ lbl:'\\u26a0 Impact if not funded', parts:[FLD_PARTS.cons] }," },
+  { id: 'rec-old-name', area: 'recPanel', what: 'the requirement edit pop-up keeps its old name',
+    find: "    <h3>📋 REQUIREMENT EDIT", repl: "    <h3>📋 REQUIREMENT RECORD" },
+  // ---- item 10: mandatory in every consolidated spend plan ---------------------------------------
+  { id: 'fc-mand-only-unscheduled', area: 'landSvc', what: 'a service paid only from mandatory, on a dated requirement, goes back to UNSCHEDULED',
+    find: "    let mw=w, msum=wsum;",
+    repl: "    if(!(wsum>0)){ out.ud=dsv; out.um=msv; return out; }\n    let mw=w, msum=wsum;" },
+  { id: 'fc-mand-rides-evenly', area: 'landSvc', what: 'mandatory with no increment of its own is split evenly across the dates, not in the requirement’s proportions',
+    find: "      mw=aw.inc.map(function(x){ return SVC.reduce(function(a,s,k){ return a+wOf(x,k); }, 0); });",
+    repl: "      mw=aw.inc.map(function(){ return 1; });" },
+  { id: 'cr-back-to-weights', area: 'crBuckets', what: 'the CR views spread the whole funded amount by the increments again, inflating undated discretionary into the windows',
+    find: "        const L=landSvc(aw, i, dsv, msv, true);\n        b.nodate+=L.ud+L.um;",
+    repl: "        const L=landSvc(aw, i, dsv, msv, false);\n        b.nodate+=L.ud+L.um;" },
+  { id: 'cr-pmo-ignores-view', area: 'crRows', what: 'the CR panel By PMO walks the funded plan whatever the switch says',
+    find: "  return crBuckets(scenOpt(), crBy==='svc'? 'svc' : 'pmo');",
+    repl: "  return crBuckets(crBy==='svc'? scenOpt() : null, crBy==='svc'? 'svc' : 'pmo');" },
+  { id: 'oblig-ignores-view', area: 'exportExcel', what: 'the PMO tabs’ spend plan reads the funded plan inside a [DISC-ONLY] workbook',
+    find: "      const p=Tv[id]; if(!p) return;", repl: "      const p=T[id]; if(!p) return;" },
+  { id: 'fit-ignores-view', area: 'svcSummary', what: 'the fit chart and its table ignore the switch',
+    find: "  // together; the Mission Critical measure is against discretionary and does not move with it.\n  const T=tiers(null, scenOpt());",
+    repl: "  // together; the Mission Critical measure is against discretionary and does not move with it.\n  const T=tiers();" },
+  { id: 'awd-seed-disc-mand', area: 'toggleAwdInc', what: 'switching to increments seeds discretionary + mandatory against a discretionary balance, reading over-scheduled at once',
+    find: "    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round(p.d[i]||0))}]};",
+    repl: "    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round((p.d[i]||0)+(p.m[i]||0)))}]};" },
+  { id: 'ppt-chart-mand-dropped', area: 'spendPlanByMonth', what: 'the deck’s chart leaves mandatory out of the months',
+    find: "      L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined){ out.ud+=a.dv; out.um+=a.mv; } else { out.d[k]+=a.dv; out.m[k]+=a.mv; } });",
+    repl: "      L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined){ out.ud+=a.dv; out.um+=a.mv; } else { out.d[k]+=a.dv; } });" },
+  { id: 'ppt-chart-unsched-dropped', area: 'spendPlanByMonth', what: 'the deck’s chart drops the money with no date',
+    find: "      out.ud+=L.ud; out.um+=L.um;", repl: "      /* no date, no column */" },
+  { id: 'ppt-chart-ignores-view', area: 'spendPlanByMonth', what: 'the deck’s chart shows the funded plan under the switch',
+    find: "function spendPlanByMonth(){\n  const T=tiers(null, scenOpt());", repl: "function spendPlanByMonth(){\n  const T=tiers();" },
+  { id: 'ppt-chart-no-marker', area: 'exportPPT', what: 'the deck’s chart does not say it is the what-if',
+    find: "    slides.push(_pSlide(hdr('Spend Plan by Month \\u2014 '+FYL()+(scenOn()? '  \\u25e8 DISCRETIONARY ONLY (what-if)' : ''),",
+    repl: "    slides.push(_pSlide(hdr('Spend Plan by Month \\u2014 '+FYL()," },
+  // ---- item 13: what is set higher than it draws ------------------------------------------------------
+  { id: 'nd-mand-ignored', area: 'ndData', what: 'a typed mandatory figure higher than it draws is not found',
+    find: "      if(drewGap(tM, dM)){", repl: "      if(false){" },
+  { id: 'nd-why-lane-always', area: 'ndData', what: 'a figure typed above the requirement value is blamed on the lane',
+    find: "        const atAsk=dD>=bs[i]-0.005;", repl: "        const atAsk=false;" },
+  { id: 'nd-count-lines', area: 'ndData', what: 'the counter counts lines as requirements',
+    find: "  return (_ndCache={list:list, ids:ids, n:Object.keys(ids).length,", repl: "  return (_ndCache={list:list, ids:ids, n:list.length," },
+  { id: 'nd-follows-view', area: 'ndData', what: 'what is not drawn is read from the what-if, so every typed mandatory figure lights up under ◨',
+    find: "  const T=tiers(), MR=masterRanks(), list=[], ids={};\n  let shortAll=0;", repl: "  const T=tiers(null, scenOpt()), MR=masterRanks(), list=[], ids={};\n  let shortAll=0;" },
+  { id: 'nd-line-short-zero', area: 'ndData', what: 'a line says it moves none of the shortfall',
+    find: "          short:Math.max(0, u-Math.max(0, Math.min(dD+tM, ask)-dD-dM)),", repl: "          short:0," },
+  { id: 'nd-shortall-missing', area: 'ndData', what: 'set all to drawn says the shortfall does not move',
+    find: "    if(any) SVC.forEach(function(sv, i){ shortAll+=t.u[i]||0; });", repl: "    /* the shortfall is not counted */" },
+  { id: 'nd-filter-shows-all', area: 'render', what: 'the not-drawn filter shows every requirement',
+    find: "    if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t))) return;", repl: "    if(laneFilter==='nd'? false : (laneFilter && !fitPass(t))) return;" },
+  { id: 'nd-row-flag-missing', area: 'rowChipsHtml', what: 'the row carries no flag',
+    find: "  h+=ndRowChip(id);      // v1.86: a typed figure higher than it draws", repl: "  /* no flag */" },
+  { id: 'nd-set-wrong-lane', area: 'ndSetDrawn', what: 'set to drawn lowers the discretionary figure whichever lane the line is',
+    find: "  setFsrcSvc(g.id, g.lane, g.i, String(Math.round(g.drew)));", repl: "  setFsrcSvc(g.id, 'd', g.i, String(Math.round(g.drew)));" },
+  { id: 'nd-setall-noop', area: 'ndSetAll', what: 'set all to drawn writes back what was typed',
+    find: "  N.list.forEach(function(g){ const fo=S.fsrc[g.id]; if(fo && Array.isArray(fo[g.lane==='d'?'dv':'mv'])) fo[g.lane==='d'?'dv':'mv'][g.i]=Math.round(g.drew); });",
+    repl: "  N.list.forEach(function(g){ const fo=S.fsrc[g.id]; if(fo && Array.isArray(fo[g.lane==='d'?'dv':'mv'])) fo[g.lane==='d'?'dv':'mv'][g.i]=Math.round(g.typed); });" },
+  { id: 'nd-copy-offers-fix', area: 'ndBody', what: 'a PMO copy offers set to drawn on an allocation it cannot change',
+    find: "      +'<td style=\"white-space:nowrap\">'+(locked? '' : '<button class=\"qb\" onclick=\"ndSetDrawn('+k+')\">set to drawn</button> ')",
+    repl: "      +'<td style=\"white-space:nowrap\">'+'<button class=\"qb\" onclick=\"ndSetDrawn('+k+')\">set to drawn</button> '" },
+  // ---- item 14: a full board, and one appropriation out and back in -----------------------------------
+  { id: 'full-cycles-open-only', area: 'fullImportText', what: 'a full import takes the open appropriation’s locked cycles only',
+    find: "    if(k===mySlug()) CYCDB=next;\n    lsSet(_SLUGMAP[k].key+'-cyc', JSON.stringify(next), 'The locked PPBE cycles for '+_SLUGMAP[k].t);",
+    repl: "    if(k===mySlug()){ CYCDB=next; lsSet(_SLUGMAP[k].key+'-cyc', JSON.stringify(next), 'The locked PPBE cycles for '+_SLUGMAP[k].t); }" },
+  { id: 'full-bae-left', area: 'fullImportText', what: 'a full import leaves the BAE list behind',
+    find: "  if(has.bud){ BUDDB=JSON.parse(JSON.stringify(J.budDb)); BUDDB.ts=now; persistBud(); }", repl: "  /* BAE list */" },
+  { id: 'full-exec-left', area: 'fullImportText', what: 'a full import leaves the execution data behind',
+    find: "  if(has.ex){ EXDB=JSON.parse(JSON.stringify(J.execDb)); EXDB.ts=now; persistExdb(); }", repl: "  /* execution */" },
+  { id: 'full-ace-left', area: 'fullImportText', what: 'a full import leaves the cost estimates behind',
+    find: "  if(has.ace){ ACEDB=JSON.parse(JSON.stringify(J.aceDb)); ACEDB.ts=now; persistAce(); }", repl: "  /* cost estimates */" },
+  { id: 'full-rp-left', area: 'fullImportText', what: 'a full import leaves the reprogramming log behind',
+    find: "  if(has.rp){ RPDB=JSON.parse(JSON.stringify(J.rpDb)); RPDB.ts=now; persistRp(); }", repl: "  /* reprogramming */" },
+  { id: 'full-no-conflict-check', area: 'fullImportText', what: 'a full import discards the board’s own work without asking',
+    find: "    if(mine.length && !confirm('CONFLICT \u2014 '+_SLUGMAP[k].t", repl: "    if(false && !confirm('CONFLICT \u2014 '+_SLUGMAP[k].t" },
+  { id: 'full-any-version', area: 'fullImportText', what: 'a file older than v1.80 is taken as if it were current',
+    find: "  if(!bv || bv[0]<FULL_MIN[0] || (bv[0]===FULL_MIN[0] && bv[1]<FULL_MIN[1])){", repl: "  if(!bv){" },
+  { id: 'full-report-lost', area: 'boot', what: 'the report of what a full import brought is overwritten on opening',
+    find: "    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid) setStat('No saved state in this copy",
+    repl: "    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL)) setStat('No saved state in this copy" },
+  { id: 'one-exec-replaces-all', area: 'importStores', what: 'one appropriation’s execution data replaces every appropriation’s',
+    find: "      Object.keys(ex.all).forEach(function(k){ EXDB.all[k]=ex.all[k]; });", repl: "      EXDB.all=ex.all;" },
+  { id: 'one-cycles-not-taken', area: 'consTakeApply', what: 'an appropriation taken back arrives without the cycles locked on it',
+    find: "  const cyc=cycTake(fullSt, (all && !skipped.length)? tookK.filter(function(k){ return k!==mySlug(); }) : tookK);", repl: "  const cyc=[];" },
+  { id: 'one-export-carries-all', area: 'oneAppnHtml', what: 'the one-appropriation file carries every appropriation',
+    find: "  out.appns[k]=J.appns[k];", repl: "  out.appns=J.appns;" },
+  { id: 'one-export-all-bae', area: 'oneAppnHtml', what: 'the one-appropriation file carries every appropriation’s BAE rows',
+    find: "{rows:(((J.budDb||{}).rows)||[]).filter(function(b){ return b && b.ap===k; })}", repl: "{rows:(((J.budDb||{}).rows)||[])}" },
+  { id: 'one-opens-elsewhere', area: 'APPN', what: 'a file exported for one appropriation opens on another',
+    find: "    if(!here) return PUB.only;", repl: "    if(false) return PUB.only;" },
+  // ---- item 9: the guide inside the file ----------------------------------------------------------------
+  { id: 'help-opens-itself', area: 'openHelp', what: 'the guide opens by itself',
+    find: "let helpOpen=false, helpAt='';", repl: "let helpOpen=true, helpAt='';" },
+  { id: 'help-both-builds', area: 'helpSections', what: 'the guide shows both builds’ paragraphs',
+    find: "  box.querySelectorAll('[data-b]').forEach(function(n){ if(n.getAttribute('data-b')!==build) n.remove(); });", repl: "  /* both builds */" },
+  { id: 'help-version-fixed', area: 'helpBody', what: 'the guide states a version of its own',
+    find: "  const v=document.getElementById('helpVer'); if(v) v.textContent=BUILD;", repl: "  const v=document.getElementById('helpVer'); if(v) v.textContent='v1.85';" },
+  { id: 'help-esc-ignored', area: 'helpClose', what: 'Esc does not close the guide',
+    find: "document.addEventListener('keydown', function(e){ if(e.key==='Escape' && helpOpen){ e.preventDefault(); helpClose(); } });", repl: "" },
+  { id: 'one-appn-trim-shifted', area: 'oneAppnHtml', what: 'an appropriation exported alone carries an allocation that is not the board’s',
+    find: "  out.appns[k]=J.appns[k];", repl: "  out.appns[k]=JSON.parse(JSON.stringify(J.appns[k]).replace(/\"m\":\"t\",\"v\":(\\d+)/g, function(x,v){ return '\"m\":\"t\",\"v\":'+(+v+7); }));" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
@@ -1567,8 +1716,25 @@ const JOBS = Math.max(1, Number(process.env.MUT_JOBS) || Math.ceil(cpus().length
 // sweeps and passed both times the suite was run on it by hand. A suite that cannot run must not
 // read like a suite that caught something, so a death is retried once and then reported as CRASHED,
 // which fails the sweep the way NOT APPLIED does.
+// THE SUITE THAT CAUGHT IT LAST TIME GOES FIRST (v1.86). The order above is a cost decision made
+// blind: every mutation pays for each suite that runs before its catcher, and ~40% of them run all
+// the way to import. The last sweep of this build knows who caught each one; trying that suite first
+// usually makes a mutation cost one suite. The verdict cannot change -- every suite is still tried,
+// in the order above, until one catches -- only how soon. Kept in .math-reports (not committed); with
+// none, or for a mutation it has not seen, the order above.
+const CATCHERS = join(HERE, '..', '..', '.math-reports', 'catchers-' + BOARD.split('/').pop().replace(/\.html$/, '') + '.json');
+let LAST = {};
+try { LAST = JSON.parse(readFileSync(CATCHERS, 'utf8')) || {}; } catch { LAST = {}; }
+const orderFor = (id) => { const first = LAST[id];
+  return first && SUITES.some(s => s[0] === first) ? [...SUITES.filter(s => s[0] === first), ...SUITES.filter(s => s[0] !== first)] : SUITES; };
 const runSuite = (path, file) => new Promise(done => {
-  execFile(process.execPath, [path], { env: { ...process.env, BOARD: file }, maxBuffer: 1 << 26 },
+  // Each suite is capped at 2.5 GB of heap (v1.86). Four run at once; uncapped, V8 grew each toward its
+  // default ceiling before collecting, and audit-import alone reached 5-6 GB -- more than the machine
+  // has for four. Its live set is ~1.2 GB now that its boards are freed (boot.mjs, settleBoards); a
+  // run that truly needs more dies loudly and is reported CRASHED, never read as a catch.
+  const env = { ...process.env, BOARD: file,
+    NODE_OPTIONS: ((process.env.NODE_OPTIONS || '') + ' --max-old-space-size=2560').trim() };
+  execFile(process.execPath, [path], { env, maxBuffer: 1 << 26 },
     (err, stdout, stderr) => {
       if (!err) return done({ caught: false, crashed: false });
       const deliberate = /FAILING CHECK\(S\)|did not build/.test(String(stdout || ''));
@@ -1600,7 +1766,7 @@ async function runOne(m) {
   writeFileSync(file, src.replace(m.find, m.repl));
 
   let caughtBy = null, crashed = null;
-  for (const [suite, path] of SUITES) {
+  for (const [suite, path] of orderFor(m.id)) {
     let r = await runSuite(path, file);
     if (r.crashed) r = await runSuite(path, file);          // once more: load, not the mutation, may have killed it
     if (r.crashed) { crashed = { suite, why: r.why }; break; }
@@ -1631,6 +1797,13 @@ async function runOne(m) {
   let next = 0;
   const worker = async () => { while (next < queue.length) await runOne(queue[next++]); };
   await Promise.all(Array.from({ length: JOBS }, worker));
+// what caught what, for the next sweep of this build to try first (see orderFor)
+try {
+  mkdirSync(join(HERE, '..', '..', '.math-reports'), { recursive: true });
+  const by = { ...LAST };                     // merged, so a sweep of a few does not forget the rest
+  results.filter(r => r.status === 'caught').forEach(r => { by[r.id] = r.by; });
+  writeFileSync(CATCHERS, JSON.stringify(by, null, 1));
+} catch {}
 }
 // Completion order is not list order. Restore it so two runs of the same sweep read the same.
 results.sort((a, b) => picked.findIndex(x => x.id === a.id) - picked.findIndex(x => x.id === b.id));

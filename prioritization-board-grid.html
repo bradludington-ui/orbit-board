@@ -115,6 +115,8 @@ html[data-theme="harbor"]{--edge:#627185;--edge2:#4b5665}
 .btn.warn:hover{border-color:var(--red);color:var(--red)}
 .btn.on{background:var(--gold);color:var(--onGold);border-color:var(--gold)}
 .hsp{margin-left:auto;display:flex;gap:8px;align-items:center}
+/* v1.86: on a phone-width window the guide's button is its 📖 alone, so the header does not scroll sideways */
+@media (max-width:420px){ .hsp{gap:4px} #helpBtn .hlp-t{display:none} }
 .hdr .brand{display:flex;align-items:center;gap:12px}
 /* The ORBIT wordmark: an inline SVG so the saved file carries it; one colour from --ink, the satellite from --gold. */
 .brand .logo{height:30px;width:auto;flex:none;color:var(--ink);--orbit-accent:var(--gold)}
@@ -298,6 +300,17 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-bd{padding:10px 11px}
 .insp-ttl{font-size:14px;font-weight:800;line-height:1.25;margin-bottom:5px}
 .insp-g{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:9px 0}
+/* v1.86: the three written editors sit straight under the title, each saying its state, and one quiet
+   line says what the requirement is -- the two chip rows that used to stand there are gone */
+.insp-meta{font-size:10.5px;color:var(--mut);font-weight:600;margin:2px 0 8px}
+.insp-acts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 6px}
+.insp-act{display:flex;flex-direction:column;align-items:flex-start;gap:1px;background:var(--sink);border:1px solid var(--edge);border-radius:6px;padding:5px 7px;cursor:pointer;font:inherit;color:inherit;text-align:left;min-height:38px;min-width:0}
+.insp-act:hover{border-color:var(--blue)}
+.insp-act:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.insp-act .a1{font-size:10.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.insp-act .a2{font-size:9px;color:var(--dim)}
+.insp-act.warn{border-color:var(--amber)}
+.insp-act.warn .a1,.insp-act.warn .a2{color:var(--amber)}
 .insp-f{background:var(--sink);border:1px solid var(--line2);border-radius:6px;padding:4px 8px}
 .insp-f .fl{font-size:8px;letter-spacing:.11em;text-transform:uppercase;color:var(--mut);font-weight:800}
 .insp-f .fv{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -742,6 +755,11 @@ table.sp tr.tot td{font-weight:800;background:var(--panelA);border-bottom:1px so
 .fctab th{background:var(--panel2);color:var(--dim);font-size:8.5px;letter-spacing:.4px;padding:4px 6px;text-align:right;border-bottom:1px solid var(--line)}
 .fctab td{padding:3px 6px;text-align:right;border-bottom:1px solid var(--lineSoft);font-variant-numeric:tabular-nums}
 .fctab tr.tot td{background:var(--sink);font-weight:800;color:var(--gold)}
+/* v1.86: the not-drawn fix list sizes its columns to what they hold -- a long requirement name wraps in
+   its own column instead of running into the service beside it */
+.fctab.ndtab{table-layout:auto}
+.fctab.ndtab td:first-child{text-align:left;width:1%;white-space:nowrap;overflow-wrap:normal}
+.fctab.ndtab td:nth-child(2){white-space:normal;min-width:190px}
 input[type=date]{background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:10.5px;padding:3px 5px;font-family:inherit;color-scheme:dark}
 input[type=date]:focus{outline:none;border-color:var(--gold)}
 .mlbl{font-size:9px;color:var(--dim);padding:8px 12px 3px;letter-spacing:.5px;font-weight:800}
@@ -800,6 +818,31 @@ span.tedit[onclick],.tt span.tedit[onclick]{display:inline-block;min-width:25px;
 input:not([type=checkbox]):not([type=radio]),select{min-height:24px;box-sizing:border-box}
 input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;vertical-align:middle}
 .qb,.mcb,.perb{min-height:24px;min-width:24px;box-sizing:border-box}
+
+/* 📖 HELP (v1.86): the guide, inside the file. The board's own tokens, so it reads in both themes. */
+#helpPanel .modal{width:980px;max-width:98vw}
+#helpBody{max-height:76vh;overflow:auto;line-height:1.55;font-size:12.5px;padding-right:4px}
+#helpBody h2{font-size:16px;margin:2px 0 10px}
+#helpBody h4{font-size:12.5px;margin:14px 0 4px;color:var(--gold)}
+#helpBody p,#helpBody ul{margin:0 0 9px;max-width:76ch}
+#helpBody a{color:var(--blue);cursor:pointer;text-decoration:underline}
+.hx-lead{color:var(--mut);margin:0 0 10px;max-width:80ch}
+.hx-toc{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hx-part{border:1px solid var(--line2);border-radius:8px;padding:10px 12px;background:var(--sink)}
+.hx-part.on{border-color:var(--gold)}
+.hx-ph{font-weight:800;font-size:13px}
+.hx-ps{font-size:10.5px;color:var(--dim);margin-bottom:6px}
+.hx-part ol{margin:0;padding-left:20px}
+.hx-part li{margin:3px 0}
+.hx-nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;font-size:11px;color:var(--dim)}
+.hx-note{border-left:3px solid var(--amber);background:var(--sink);padding:7px 10px;margin:8px 0 10px;border-radius:0 6px 6px 0;max-width:76ch}
+.hx-eg{border:1px dashed var(--line2);padding:7px 10px;margin:6px 0 10px;border-radius:6px;max-width:76ch}
+.hx-t{border-collapse:collapse;width:100%;font-size:11.5px;margin-bottom:8px}
+.hx-t th,.hx-t td{border-bottom:1px solid var(--line2);padding:4px 6px;text-align:left;vertical-align:top}
+.hx-dl dt{font-weight:800;margin-top:8px}
+.hx-dl dd{margin:2px 0 0 14px}
+.kb{border:1px solid var(--line2);border-radius:4px;padding:0 5px;font-size:11px;font-family:ui-monospace,Consolas,monospace}
+@media (max-width:720px){.hx-toc{grid-template-columns:1fr}}
 </style>
 <script>
 /* The theme is applied HERE, before the body exists. Set from the main script it would paint the
@@ -837,6 +880,7 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
   <div class="hsp">
     <span class="savestate" id="saveState"></span>
     <button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place.">💾 Save</button>
+    <button class="btn" id="helpBtn" onclick="openHelp(SANDBOX? 'office' : '')" title="How this board works — the guide, inside the file" aria-label="Help">📖<span class="hlp-t"> Help</span></button>
     <div class="menu" id="m_share"><button class="btn" id="b_share" onclick="toggleMenu('share')">📁 File ▾</button><div class="mdd" id="dd_share"></div></div>
   </div>
 </div>
@@ -859,6 +903,7 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
  </div>
   <span class="dragnote" id="dragNote"></span>
   <input type="file" id="stateFile" accept=".json,.txt,.html,.htm" style="display:none" onchange="importState(this)">
+  <input type="file" id="fullFile" accept=".html,.htm" style="display:none" onchange="importFullBoard(this)">
   <input type="file" id="multiFile" accept=".html,.htm" multiple style="display:none" onchange="importBoards(this)">
   <input type="file" id="srcFile" accept=".xlsx" style="display:none" onchange="importSrc(this)">
   <input type="file" id="aceFile" accept=".xlsx" style="display:none" onchange="importAce(this)">
@@ -994,9 +1039,157 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
   </div>
 </div>
 
+<div class="modal-bg" id="ndPanel" onclick="if(event.target===this)ndOpen=false,render()">
+  <div class="modal" style="width:1180px;max-width:98vw">
+    <h3>▲ SET HIGHER THAN IT DRAWS <button class="x" onclick="ndOpen=false;render()">✕ Close</button></h3>
+    <div id="ndBody"></div>
+  </div>
+</div>
+<div class="modal-bg" id="helpPanel" onclick="if(event.target===this)helpClose()">
+  <div class="modal" role="dialog" aria-label="Help">
+    <h3>📖 HELP — ORBIT <span id="helpVer" style="font-weight:600;letter-spacing:0;text-transform:none;color:var(--mut)"></span> <button class="x" onclick="helpClose()">✕ Close</button></h3>
+    <div id="helpBody"></div>
+  </div>
+</div>
+<template id="helpDoc">
+<section data-part="office" data-id="o-what" data-t="What this file is">
+<p>It is a snapshot of the whole portfolio for one appropriation — every requirement, in priority order, with what the discretionary and mandatory lanes cover and what falls short. You can move rows, retype figures and watch the cutline move. None of it reaches the portfolio team’s board.</p>
+<div class="hx-note"><b>Read this once.</b> Your copy is a sandbox. Nothing you do in it changes the real board, and nothing you do in it is automatically seen by anyone. The only thing that travels is the submittal file you build in <a data-go="o-send">Send it back</a>. If you need the funded plan for a brief, ask the portfolio team — not this copy, which is dated the day it was published.</div>
+<p>You will know it is the PMO copy by the bar across the very top of the screen. It always starts <b>◨ PMO COPY</b>, says who published it and when, and carries three buttons: <b class="bt" data-q="#subBanner">🏢 set your office</b>, <b class="bt" data-q="#subBanner">✉ Submit input</b> and <b class="bt" data-q="#subBanner">📖 How this copy works</b>, which opens this guide.</p>
+<p>The copy holds one appropriation: the one it was published from, named in the title under ORBIT. If you need another appropriation’s board, ask the portfolio team for that copy — each one is published separately.</p>
+</section>
+<section data-part="office" data-id="o-open" data-t="Open it">
+<p>Download the file from Teams to your own machine first, then open it — double-click, or right-click and choose <b>Open with → Microsoft Edge</b>. Opening it straight from the Teams preview will not work properly.</p>
+<p>It is a single file. There is nothing to install, and it does not talk to the network — this guide is inside it too.</p>
+</section>
+<section data-part="office" data-id="o-name" data-t="Put your name in, and set your office">
+<p><b>Your name.</b> Go to <span class="mp" data-m="share">📁 File ▾ › ✎ My editor name…</span> and enter your name or initials. It travels with the submittal so the portfolio team knows whose input they are reading. If you skip this, the copy asks for your name the first time you change anything.</p>
+<p><b>Your office.</b> Press <b class="bt" data-q="#subBanner">🏢 set your office</b> in the bar at the top, then type your office’s name or its number from the list. The button then shows your office — for example <b>🏢 AV</b>. A submittal carries that office’s requirements only, so check it before you start; press the button again to change it.</p>
+</section>
+<section data-part="office" data-id="o-find" data-t="Find your requirements">
+<p>Use the <b>🏢 PMO ▾</b> button in the toolbar and pick your office. The list then holds only your office’s requirements, numbered 1, 2, 3… in your office’s own order. The small <i>master #13</i> under the office badge is where that requirement sits in the whole portfolio. To see everything again, choose <b>All programme offices</b> from the same button.</p>
+<p>You can also type into the search box above the list.</p>
+<p data-b="grid"><b>Click any row.</b> Its full record opens in the <b>RECORD</b> panel on the right — everything about the selected requirement lives there. On a laptop-sized screen the panel slides over the list instead; press <b>✕ Close</b> or <span class="kb">Esc</span> to put it away. With a row selected, <span class="kb">J</span> and <span class="kb">K</span> step to the next and previous requirement.</p>
+<p data-b="card"><b>Each row is the requirement.</b> <b>⊞ SVC</b> on a row opens it by service, with its award schedule underneath; the row’s <b>⋯</b> menu holds everything else you can write.</p>
+</section>
+<section data-part="office" data-id="o-explore" data-t="Explore, and take your time">
+<p>This is the part people underuse. With <b>All programme offices</b> showing, drag a row by its <b>⠿</b> handle, or use its <b>▲ ▼</b> arrows, and watch the discretionary fit, the cutline and the unfunded total move. Try your requirement two ranks higher. Try it below the line.</p>
+<p><b>With only your office showing, moving a row sets your office’s own ranking.</b> That ranking is sent back with your submittal. The portfolio order and the cutline do not move — switch back to all offices to see the money move.</p>
+<p>You cannot break anything. Moving rows in the whole portfolio is not sent — that order is the portfolio team’s call. Your work is saved in your own browser, so closing the tab and coming back later is safe. It is not saved to the file or to Teams.</p>
+<div class="hx-note"><b>If you are sent a newer copy.</b> Your work belongs to the copy you did it in. A newer copy opens showing the portfolio as it stood when that one was published — it will not carry your work across, and your older copy still has it. So submit before you switch to a new copy.</div>
+</section>
+<section data-part="office" data-id="o-update" data-t="Update your requirements">
+<p>Everything on your office’s requirements is yours to update <b>except the money itself</b>: the DISC and MAND allocation is the portfolio team’s, and it is greyed out in your copy. Everything you change travels back with your submittal.</p>
+<p data-b="grid">Select a requirement; the three written fields are the buttons straight under its title in the RECORD panel, each saying whether it is done: <b>⚠ Impact statement</b> (<i>written</i> or <i>not written</i>, amber until it is), <b>📄 Description &amp; note</b> and <b>📋 Requirement edit</b> (<i>6 of 7 not set</i>, amber while any are). Each opens a box to type in; press <b>✔ Save</b> when you are done.</p>
+<p data-b="card">On the row: the <b>⚠ Impact statement</b> chip (it says <i>not written</i> until it is), and in the row’s <b>⋯</b> menu, <b>📄 Description &amp; note…</b> and <b>📋 Requirement edit…</b>, which says how many of its fields are still to fill. Each opens a box to type in; press <b>✔ Save</b> when you are done.</p>
+<h4>⚠ Impact statement — what happens if this is not funded</h4>
+<p>The single most valuable thing you can give the portfolio team. Be concrete: name the date something stops, the number of aircraft or people affected, and the consequence that follows. This is the sentence read aloud in a room where someone is deciding what to cut.</p>
+<div class="hx-eg"><b>Useful:</b> If this is not funded, the depot line stops in March 27. Forty aircraft lose scheduled induction through the summer and the backlog carries into FY28 at roughly 1.4× cost.<br><b>Not useful:</b> This requirement is critical and must be funded.</div>
+<h4>📄 Description &amp; note</h4>
+<p>One box opens with two areas. <b>The description</b>, first, is what the requirement actually is, in plain language — a reader outside your office sees it on the spend plan, and it is often the only explanation they get. <b>The note</b>, underneath, is context for the reviewer: caveats, taskers, where a number came from. They are kept and sent as two separate fields, and <b>✔ Save</b> writes only the one you changed.</p>
+<h4>Requirement value, by service</h4>
+<p data-b="grid">The <b>BY SERVICE</b> table in the RECORD panel has a <b>REQ</b> column you can type into — one row per service. Type the new figure and press <span class="kb">Tab</span>. The <b>↺</b> beside the total puts the published values back.</p>
+<p data-b="card"><b>⊞ SVC</b> on the row opens the by-service table; its top row is the requirement value, one box per service. Type the new figure and press <span class="kb">Tab</span>. <b>↺ orig</b> puts the published values back.</p>
+<div class="hx-note"><b>This one is money.</b> A changed requirement value moves the unfunded total and can move the cutline. Expect the portfolio team to ask where the number came from.</div>
+<h4>Everything else on the requirement</h4>
+<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date and the minimum useful increment. In <b>📋 Requirement edit</b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element, the budget names and the MIPR type.</p>
+</section>
+<section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
+<p>If your office has a requirement the board does not, propose it from your copy: <span class="mp" data-m="by">🎯 Budget year ▾ › ＋ Add Requirement…</span>. Set PMO to your office, type the title, and enter the value by service (or one total, spread evenly). It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
+<p>It travels whole in your submittal, flagged as new, once every mandatory field is filled: in 📋 Requirement edit — prime contract / OGC, PMO, obligation category, WBS and <i>Goes to</i> (and, for an OGC, <i>Which awards to</i> and the MIPR type); the description and the impact statement; the requirement value by service; and the projected award date. If any are blank when you submit, the copy names the requirement and what it still needs, holds that one back, and sends everything else.</p>
+</section>
+<section data-part="office" data-id="o-send" data-t="Send it back">
+<p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, at the top right of the header where Save is on the portfolio board, or under <span class="mp" data-m="share">📁 File ▾ › ✉ Submit input…</span>. If you have not set your office yet, it asks for it first.</p>
+<p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the line under the toolbar confirms it. Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
+<p>If you edited a requirement that belongs to another office, the copy names it and leaves it out; raise it with that office instead.</p>
+</section>
+<section data-part="office" data-id="o-export" data-t="Exporting from your copy, and the five-year plan">
+<p>You can export the workbook and the slides from <b>⬇ Export ▾</b> for your own working. Every file you export is stamped, in the file name and across the top of the first sheet, with the date the copy was published — <b>◨ PMO COPY (snapshot of …, NOT the current plan)</b>. Please leave the stamp on: a copy is out of date the moment the portfolio team moves a dollar, and the stamp is what stops a file from November being briefed in February as the current plan.</p>
+<p><span class="mp" data-m="fydp">📚 FYDP ▾ › 📊 Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation, with a tab for each office: each CCaR record with the requirements that roll up to it, requirement and allocation for each year, totals at the right and the bottom.</p>
+</section>
+<section data-part="office" data-id="o-travels" data-t="What travels, and what does not">
+<table class="hx-t"><tr><th>Field</th><th>Sent?</th><th>Why</th></tr>
+<tr><td>Impact statement, description, note</td><td>Sent</td><td>Yours to write — nobody else can.</td></tr>
+<tr><td>Requirement value, by service</td><td>Sent</td><td>You know your costs. Reviewed carefully.</td></tr>
+<tr><td>Plan event, decision band, ★ Mission Critical</td><td>Sent</td><td>Reviewed like any other field.</td></tr>
+<tr><td>CCaR record, PID, record name, MIPR type</td><td>Sent</td><td>Record-keeping corrections.</td></tr>
+<tr><td>Everything in 📋 Requirement edit</td><td>Sent</td><td>A PMO change hands the requirement to that office.</td></tr>
+<tr><td>Award / obligation date, minimum useful increment</td><td>Sent</td><td>You know when it awards and what still buys something.</td></tr>
+<tr><td>Your office’s own ranking</td><td>Sent</td><td>It sets your office’s order, not the portfolio’s.</td></tr>
+<tr><td>A requirement you added</td><td>Sent whole</td><td>As a proposal, once every mandatory field is filled.</td></tr>
+<tr><td>Allocation — DISC and MAND</td><td>Locked</td><td>The funding decision itself.</td></tr>
+<tr><td>The portfolio priority order</td><td>Not sent</td><td>The portfolio team ranks the whole list.</td></tr>
+<tr><td>Another office’s requirements</td><td>Not sent</td><td>Each office submits for its own.</td></tr></table>
+</section>
+<section data-part="office" data-id="o-after" data-t="What happens after you send it">
+<p>The portfolio team opens your submittal on the real board. Nothing is applied automatically — every field arrives unticked, side by side with what the board says today. They export a change report, review it, and accept field by field; a new requirement, and your office’s ranking, are each accepted or declined as a whole. If they changed the same field since your copy was published, it is flagged as a conflict before anyone decides. So a proposal may be accepted, amended or declined — if it matters, say why in the note.</p>
+</section>
+<section data-part="office" data-id="o-wrong" data-t="If something goes wrong">
+<dl class="hx-dl">
+<dt>The file opens as text, or nothing happens</dt><dd>Download it to your machine first, then right-click → Open with → Microsoft Edge.</dd>
+<dt>“Put your name in first”</dt><dd><span class="mp" data-m="share">📁 File ▾ › ✎ My editor name…</span>, then submit again.</dd>
+<dt>“Nothing to send yet”</dt><dd>You have not changed anything the submittal carries for your office. Moving rows in the whole portfolio does not count. If you did edit something, check 🏢 in the top bar names the right office.</dd>
+<dt>“…belongs to another programme office, so it is NOT being sent”</dt><dd>You edited a requirement your office does not own. Everything else still goes.</dd>
+<dt>“…missing mandatory fields and is NOT being sent”</dt><dd>A requirement you added is not complete; fill in what the message lists and submit again.</dd>
+<dt>The DISC and MAND boxes are greyed out</dt><dd>Working as intended: the allocation is the portfolio team’s decision.</dd>
+<dt>💾 Save says it is turned off</dt><dd>Working as intended. A PMO copy cannot save over the team’s board. Your work is already kept in your browser; use ✉ Submit input to send it.</dd>
+<dt>I closed the tab — is my work gone?</dt><dd>No. It is kept in your browser on that machine, against that copy. Reopen the same file in the same browser.</dd>
+<dt>My requirement is not in the list</dt><dd>Check 🏢 PMO ▾ is set to your office or to All programme offices, and that the search box is empty. If it is genuinely absent, propose it.</dd>
+<dt>The figures look out of date</dt><dd>They may be. The bar at the top says when the copy was published. Ask for a fresh copy before briefing anything from it.</dd>
+</dl>
+</section>
+<section data-part="team" data-id="t-board" data-t="The board, its menus and its file">
+<p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box on the toolbar. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
+<p>The toolbar reads left to right: what you are looking at (<b>🔍 Filter ▾</b>, <b>🏢 PMO ▾</b>), the year that is executing (<b>📈 Active year ▾</b>), the year you are building (<b>🎯 Budget year ▾</b>), the out-years (<b>📚 FYDP ▾</b>), the shape of the board (<b>🛠 Tools ▾</b>) and what goes out (<b>⬇ Export ▾</b>). <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team.</p>
+<p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines.</p>
+</section>
+<section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
+<p><span class="mp" data-m="share">📁 File ▾ › 📤 Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
+<p>Put it on Teams or in the shared folder and tell the offices which appropriation it is. Each office’s work is kept in its own browser against that copy, so publish a new copy only when there is a reason to — offices should submit from the old one before they move to the new.</p>
+<p>The copy carries this guide, and opens it from <b>📖 How this copy works</b> in its top bar; it never opens by itself.</p>
+</section>
+<section data-part="team" data-id="t-subs" data-t="Taking submittals back">
+<p><span class="mp" data-m="share">📁 File ▾ › ✉ Review submittals…</span> opens the review. Load each office’s <i>ORBIT SUBMITTAL … .json</i> with <b>⬅ Load a submittal file…</b> in the review; load them all and review them together.</p>
+<p>Every proposed field arrives <b>unticked</b>, beside what the board says today. A field this board changed too since the copy was published is marked as a <b>conflict</b>. <b>📄 Export change report</b> gives the whole round as a workbook for the SFWG. Tick what you accept — a new requirement and an office’s ranking are each taken whole or not at all — then <b>✔ Apply ticked</b>. The allocation never travels in a submittal, and nothing is applied until you apply it.</p>
+</section>
+<section data-part="team" data-id="t-full" data-t="A new version: import the full board">
+<p>When a new version of ORBIT comes out, open the new file and use <span class="mp" data-m="share">📁 File ▾ › ⬅ Import a full board (new version)…</span>. Pick the board file you were working in. It takes <b>everything</b> that file carries: all four appropriations with every year, every locked cycle of every appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination list.</p>
+<p>One confirmation lists what comes across and says it <b>replaces</b> what the new board holds. If the new board already has work of its own on an appropriation, it names each change that would be lost and asks first. Anything the file does not carry — an appropriation it has no plan for, a list an older version did not save — is kept as the board has it, and the report says so. The board reopens with a report of what arrived. Files saved by v1.80 onward are accepted.</p>
+<p>Then press <b>💾 Save</b>, so the new file holds your work.</p>
+</section>
+<section data-part="team" data-id="t-one" data-t="One appropriation in or out">
+<p><span class="mp" data-m="share">📁 File ▾ › ⬇ Export one appropriation…</span> makes a working board file holding one appropriation: its plan, its locked cycles, its execution data and its BAE rows, with the destination list, cost estimates and reprogramming log. It opens on that appropriation, and edits and saves like any board — hand it to an appropriation lead.</p>
+<p><span class="mp" data-m="share">📁 File ▾ › ⬅ Import one appropriation…</span> takes appropriations back from any board file. It lists what the file holds and takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked cycles come with it. Nothing else on the board changes.</p>
+<p><span class="mp" data-m="share">📁 File ▾ › ⇊ Import several boards at once…</span> merges several board files in one go, and <span class="mp" data-m="share">📁 File ▾ › 🔁 Appropriation packages…</span> hands an appropriation to its manager and takes it back against a ledger.</p>
+</section>
+<section data-part="team" data-id="t-alloc" data-t="Allocating, and what does not draw">
+<p>A requirement’s allocation is typed per service as <b>Disc</b> and <b>Mand</b> dollars<span data-b="grid">, in the <b>BY SERVICE</b> table of the RECORD panel</span><span data-b="card">, in the rows <b>⊞ SVC</b> opens</span>. Whatever is left of the requirement value is that service’s UFR. A typed figure is paid only as far as that service’s lane still holds money at the requirement’s rank, and only up to the requirement value; the rest is not paid, and a <i>drew $…</i> line appears under the figure.</p>
+<p>To find every case at once, look at the <b>DISCRETIONARY FIT</b> strip above the list: <b>▲ not drawn N · $X</b> counts the requirements set higher than they draw, discretionary and mandatory together. Click it to filter the list to them (also <span class="mp" data-m="view">🔍 Filter ▾ › ▲ Set higher than it draws</span>). Each one carries a <b>▲ $… not drawn</b> flag on its row; hover it for each service and lane, what was typed, what was drawn and why.</p>
+<p><b>🔧 fix list</b>, beside the counter, lists every line in priority order with the reason — the service’s discretionary or mandatory ran out above this rank, or the figure was typed above the requirement value. <b>set to drawn</b> lowers the typed figure to what was paid; <b>set all to drawn</b> does every line, after saying how many and how much. <b>No funded dollar moves, and neither unfunded total moves</b>: the money stops counting as “allocated, but no lane could pay it” — the portfolio shortfall — and counts as never allocated. Each fix is journalled and can be typed again.</p>
+</section>
+<section data-part="team" data-id="t-spend" data-t="The spend plan: when the money lands">
+<p>Every spend plan places a requirement’s funded dollars by its award and obligation dates, by one rule, so the forecast, the month sheets, the PMO tabs, CR Cash Needs, the 1A9A return and the deck’s chart agree month by month:</p>
+<ul><li>An <b>increment</b> is discretionary dollars, placed as typed. Discretionary the increments have not yet placed is <b>UNSCHEDULED</b> until it has a date.</li>
+<li><b>Mandatory rides the requirement’s own dates</b> — in each service’s own increment proportions, or, in a service with no increment of its own, in the requirement’s overall proportions. There is nothing to type for it.</li>
+<li>A single award date places the whole funded amount in its month; no date at all is UNSCHEDULED.</li></ul>
+<p>The award block shows <b>Balance to schedule — discretionary</b> and a <b>Mandatory — rides these dates</b> row; <b>↵ put on last</b> clears the discretionary balance onto the last increment, and with mandatory riding, every funded dollar then has a date.</p>
+<p><span class="mp" data-m="by">🎯 Budget year ▾ › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="by">🎯 Budget year ▾ › ⚖ CR Cash Needs…</span> show it on screen. <span class="mp" data-m="by">🎯 Budget year ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="export">⬇ Export ▾ › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
+</section>
+<section data-part="team" data-id="t-dest" data-t="Destinations: one list for every appropriation">
+<p><span class="mp" data-m="tools">🛠 Tools ▾ › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
+<p>The <i>Used by</i> column counts requirements here and on the other appropriations. A destination another appropriation or a locked cycle points at cannot be removed until those requirements point elsewhere — a locked cycle is a fixed point, so one it names stays. Where two appropriations named the same place with a different kind, the panel says so for you to settle.</p>
+</section>
+<section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
+<p><span class="mp" data-m="fydp">📚 FYDP ▾ › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints.</p>
+</section>
+<section data-part="team" data-id="t-names" data-t="The requirement’s written fields">
+<p data-b="grid">In the RECORD panel the three written fields sit straight under the title: <b>⚠ Impact statement</b>, <b>📄 Description &amp; note</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit</b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, planning, and the award schedule.</p>
+<p data-b="card">On a row: the <b>⚠ Impact statement</b> chip, and in the <b>⋯</b> menu <b>📄 Description &amp; note…</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit…</b>, which says how many of its fields are still to fill.</p>
+</section>
+</template>
 <div class="modal-bg" id="recPanel" onclick="if(event.target===this)recOpen=null,render()">
   <div class="modal" style="width:760px;max-width:95vw">
-    <h3>📋 REQUIREMENT RECORD
+    <h3>📋 REQUIREMENT EDIT
       <button class="x" onclick="recOpen=null;render()">✕ Close</button></h3>
     <div id="recBody"></div>
   </div>
@@ -1350,6 +1543,32 @@ let BUDDB = (function(){
   return (pick&&Array.isArray(pick.rows))? pick : {ts:0, rows:[], files:[]};
 })();
 function persistBud(){ return lsSet('prio27buddb', JSON.stringify(BUDDB), 'The imported BAE budget list'); }
+// ---- Destinations: ONE list for the whole board, in its own store (v1.86) -----------------------
+// Each appropriation used to keep its own list inside its own plan, so a destination added on O&M
+// did not exist on Full Fund. The list lives here now, saved in the file beside the BAE list; each
+// plan still carries a copy of the list its keys were written against (see destMigrate, which reads
+// every plan through that copy and folds the old per-appropriation lists in by name). A PMO copy
+// keeps its own, keyed to its publish stamp like its plan, so it can never write the board's.
+const DEST_KEY='prio27destdb'+((PMODE&&PMODE.sandbox)? '-pmo'+(PMODE.ts||0) : '');
+let DESTDB = (function(){
+  let ls=null; try{ ls=JSON.parse(localStorage.getItem(DEST_KEY)||'null'); }
+  catch(e){ _bootLost.push('the destination list held in browser storage'); }
+  const fb=(PUB&&PUB.destDb)||null;
+  let pick=null;
+  if(ls&&fb) pick=((fb.ts||0)>(ls.ts||0))? fb : ls;
+  else pick=ls||fb;
+  const d=(pick&&Array.isArray(pick.ents))? pick : {ts:0, ents:[]};
+  d.ents=d.ents.filter(function(e){ return e && typeof e==='object' && e.k; });
+  ['lmap','lsig'].forEach(function(f){ if(!d[f] || typeof d[f]!=='object' || Array.isArray(d[f])) d[f]={}; });
+  ['conflicts','gone'].forEach(function(f){ if(!Array.isArray(d[f])) d[f]=[]; });
+  return d;
+})();
+// var, not let: flowEnts() can be asked for before the lines that would declare these have run
+var _destReady=false, _destOthers=false, _destBusy=false;
+// WHAT A FULL IMPORT BROUGHT (v1.86). The import reloads the board to open what it wrote, so the
+// report it owes is kept across the reload and said on the first render after it.
+var _impRep=(function(){ try{ const r=localStorage.getItem('prio27impRep'); if(r) localStorage.removeItem('prio27impRep'); return r; }catch(e){ return null; } })(), _impSaid=false;
+function persistDest(){ DESTDB.ts=Date.now(); return lsSet(DEST_KEY, JSON.stringify(DESTDB), 'The destination list'); }
 // ---- Reprogramming actions: a standalone tracker, independent of every other store --------
 let RPDB = (function(){
   let ls=null; try{ ls=JSON.parse(localStorage.getItem('prio27reprog')||'null'); }
@@ -1386,9 +1605,17 @@ const APPNS = {"O&M": {"services":[],"items":[],"budget":[]}, "FULL FUND": {"ser
 // Reading the office's own stored choice first let a copy open as a DIFFERENT appropriation than
 // the numbers it carries -- an empty board under a full banner, on a machine where somebody had
 // once looked at another drill.
+// A FILE EXPORTED FOR ONE APPROPRIATION (v1.86) opens on it -- unless the choice this browser has
+// stored names an appropriation it holds work for, which is a person's own choice to respect.
 const APPN=(function(){
   if(PMODE && PMODE.sandbox && APPNS[PMODE.ap]) return PMODE.ap;
-  try{const a=localStorage.getItem("prio27appn"); return APPNS[a]? a:"O&M";}catch(e){return "O&M";}})();
+  let a=null; try{ a=localStorage.getItem("prio27appn"); }catch(e){}
+  if(PUB && PUB.only && APPNS[PUB.only]){
+    const SL={"O&M":"om","FULL FUND":"ff","INITIAL SPARES":"sp","OPN":"opn"};
+    let here=false; try{ here=!!(a && SL[a] && (((PUB.appns||{})[SL[a]]) || localStorage.getItem("prio27"+SL[a]))); }catch(e){}
+    if(!here) return PUB.only;
+  }
+  return APPNS[a]? a : "O&M";})();
 const _AP={"O&M":{slug:"om",key:"prio27om",sf:"prio-state-om.json",exp:"FY27 O&M Priority Drill",t:"O&M"},"FULL FUND":{slug:"ff",key:"prio27ff",sf:"prio-state-ff.json",exp:"FY27 Full Fund Priority Drill",t:"Full Fund"},"INITIAL SPARES":{slug:"sp",key:"prio27sp",sf:"prio-state-sp.json",exp:"FY27 Initial Spares Priority Drill",t:"Initial Spares"},"OPN":{slug:"opn",key:"prio27opn",sf:"prio-state-opn.json",exp:"FY27 OPN Priority Drill",t:"OPN"}}[APPN];
 const _SLUGMAP={om:{key:"prio27om",t:"O&M"},ff:{key:"prio27ff",t:"Full Fund"},sp:{key:"prio27sp",t:"Initial Spares"},opn:{key:"prio27opn",t:"OPN"}};
 // ── A PMO COPY GETS ITS OWN BROWSER STORAGE ───────────────────────────────────────────────────
@@ -1588,7 +1815,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.85 (24 Sep 2026)';
+const BUILD='v1.86 (26 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -1713,6 +1940,128 @@ const directedLine = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
 const drewTip = (directedV, drawnV, capV) => drewGap(directedV, drawnV)
   ? ' \u2014 '+fM(drawnV)+' of it could be drawn ('+drewWhy(drawnV, capV)+'); '+fM(directedV-drawnV)
     + ' could not and shows as this service\u2019s UFR' : '';
+/* ---- SET HIGHER THAN IT DRAWS (v1.86) --------------------------------------------------------------
+   Brad, 26 Sep 2026: "I need a quicker way within the dashboard main view to identify quickly and
+   easily where those issues are happening so that we can adjust and make corrections." A typed Disc or
+   Mand figure is paid only as far as that service's lane still holds money at the requirement's rank,
+   and only up to its requirement value; the rest is unfunded. That used to show only as the "drew"
+   line under the figure in one requirement's By service table. It is found here once, for the whole
+   board, and read by the fit strip's counter, the row flag and the fix list -- so the three cannot
+   disagree with each other, or with the "drew" lines, which make the same test (drewGap) against the
+   same cap (basisSvcOf). Discretionary and mandatory both.
+   AGAINST THE FUNDED PLAN, whatever the ◨ switch says: withholding mandatory is a what-if, and under it
+   every typed mandatory figure would read as not drawn.
+   Each line carries `short`: how much of the portfolio shortfall ("allocated, but no lane could pay
+   it") setting that one line to what it drew moves to never allocated -- 0 where the figure was typed
+   above the requirement value, which was never payable. Setting every line on a requirement clears
+   all of its shortfall, so `shortAll` is simply what those requirements carry now. */
+function ndData(){
+  if(_ndCache) return _ndCache;
+  const T=tiers(), MR=masterRanks(), list=[], ids={};
+  let shortAll=0;
+  S.order.forEach(function(id){
+    const it=itemById(id), t=T[id], fo=(S.fsrc||{})[id];
+    if(!it || !t || !fo || fo.m!=='split' || !Array.isArray(fo.dv)) return;   // nothing typed: the lane walk draws what it can
+    const bs=basisSvcOf(it);
+    let any=false;
+    SVC.forEach(function(sv, i){
+      const tD=+fo.dv[i]||0, dD=t.d[i]||0, tM=+((fo.mv||[])[i])||0, dM=t.m[i]||0, ask=(it.ask||[])[i]||0;
+      const u=t.u[i]||0;
+      if(drewGap(tD, dD)){
+        const atAsk=dD>=bs[i]-0.005;
+        list.push({id:id, rank:MR[id], i:i, lane:'d', typed:tD, drew:dD, gap:tD-dD,
+          short:Math.max(0, u-Math.max(0, Math.min(dD+tM, ask)-dD-dM)),
+          why: atAsk? 'the '+sv+' requirement value stops at '+fM(bs[i]) : sv+' discretionary ran out above this rank'});
+        any=true;
+      }
+      if(drewGap(tM, dM)){
+        const atAsk=dM>=bs[i]-dD-0.005;
+        list.push({id:id, rank:MR[id], i:i, lane:'m', typed:tM, drew:dM, gap:tM-dM,
+          short:Math.max(0, u-Math.max(0, Math.min(tD+dM, ask)-dD-dM)),
+          why: atAsk? 'the '+sv+' requirement value stops at '+fM(bs[i]) : sv+' mandatory ran out above this rank'});
+        any=true;
+      }
+    });
+    if(any) SVC.forEach(function(sv, i){ shortAll+=t.u[i]||0; });
+  });
+  // in priority order, then service, then discretionary before mandatory
+  list.sort(function(a,b){ return (a.rank||9e9)-(b.rank||9e9) || a.i-b.i || (a.lane<b.lane? -1 : (a.lane>b.lane? 1 : 0)); });
+  list.forEach(function(g){ ids[g.id]=(ids[g.id]||0)+g.gap; });
+  return (_ndCache={list:list, ids:ids, n:Object.keys(ids).length, tot:list.reduce(function(a,g){ return a+g.gap; },0), shortAll:shortAll});
+}
+// A · the counter, in the DISCRETIONARY FIT strip, and the way into the fix list beside it
+function ndStripChip(){
+  const N=ndData(), on=laneFilter==='nd';
+  return '<span class="lanechip '+(on?'on':'')+'" style="'+(on? 'color:var(--amber);background:var(--panel);' : '')+(N.n? 'border-color:var(--amber)' : '')+'" '
+    +'onclick="laneFilter=laneFilter===\'nd\'?\'\':\'nd\';render()" '
+    +'title="requirements set higher than they draw — a typed Disc or Mand figure more than the lane or the requirement value could pay, discretionary and mandatory together. Click to filter the list to them.">'
+    +'▲ not drawn <b style="color:'+(N.n?'var(--amber)':'var(--dim)')+'">'+N.n+'</b>'+(N.n? ' · <b style="color:var(--amber)">'+fMc(N.tot)+'</b>' : '')+'</span>'
+    +(N.n? '<span class="lanechip" onclick="ndOpen=true;ndFocus=\'\';render()" title="every case in one list, with the fix beside each">🔧 fix list</span>' : '');
+}
+// B · the flag on the row. Hover names each service and lane; a click opens the fix list on it.
+function ndRowChip(id){
+  const N=ndData(), g=N.ids[id]; if(!g) return '';
+  const lines=N.list.filter(function(x){ return x.id===id; })
+    .map(function(x){ return SVC[x.i]+' '+(x.lane==='d'?'Disc':'Mand')+': typed '+fM(x.typed)+', drew '+fM(x.drew)+' — '+x.why; });
+  return '<span class="rchip" style="border-color:var(--amber);color:var(--amber);font-weight:800" '
+    +'onclick="ndOpen=true;ndFocus=&quot;'+id+'&quot;;render()" title="'+esc(lines.join('\n')+'\nClick for the fix list.')+'">'
+    +'▲ '+fMc(g)+' not drawn</span>';
+}
+// C · the fix list
+function ndBody(){
+  const bg=document.getElementById('ndPanel'), el=document.getElementById('ndBody'); if(!bg||!el) return;
+  bg.className='modal-bg'+(ndOpen?' open':'');
+  if(!ndOpen){ el.innerHTML=''; return; }
+  const N=ndData(), L=N.list;
+  const locked=(typeof SANDBOX!=='undefined' && SANDBOX);
+  let h='<div class="hint" style="margin-bottom:8px">Each line is one service and lane on a requirement where the figure typed is more than '
+    +'could be drawn; the difference is not paid, and is already part of that service’s UFR. <b>Set to drawn</b> lowers the typed figure '
+    +'to what was paid: <b>no funded dollar moves, and neither unfunded total moves</b> — the money stops counting as “allocated, but no '
+    +'lane could pay it” (the portfolio shortfall, and <i>lane short</i> in the By service table) and counts as never allocated. Each fix '
+    +'is journalled, and the figure can be typed again.'
+    +(locked? ' <b>In a PMO copy the allocation is the portfolio team’s, so these cannot be set here.</b>' : '')+'</div>';
+  if(!L.length){ el.innerHTML=h+'<div style="padding:10px;color:var(--green);font-weight:700">✓ Nothing is set higher than it draws.</div>'; return; }
+  h+='<table class="fctab ndtab" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th>'
+    +'<th style="text-align:left">Service</th><th style="text-align:left">Lane</th><th>Typed</th><th>Drawn</th><th>Not drawn</th>'
+    +'<th style="text-align:left">Why</th><th></th></tr>';
+  L.forEach(function(g, k){ const it=itemById(g.id);
+    h+='<tr'+(ndFocus===g.id? ' style="outline:2px solid var(--amber)"' : '')+'><td>'+(g.rank||'—')+'</td>'
+      +'<td style="text-align:left">'+esc(dispTitle(it))+'</td><td style="text-align:left">'+esc(SVC[g.i])+'</td>'
+      +'<td style="text-align:left">'+(g.lane==='d'? '<span style="color:var(--green)">Discretionary</span>' : '<span style="color:var(--purp)">Mandatory</span>')+'</td>'
+      +'<td>'+fM(g.typed)+'</td><td>'+fM(g.drew)+'</td><td style="color:var(--amber);font-weight:800">'+fM(g.gap)+'</td>'
+      +'<td style="text-align:left;font-size:10.5px;white-space:normal;min-width:230px">'+esc(g.why)+'</td>'
+      +'<td style="white-space:nowrap">'+(locked? '' : '<button class="qb" onclick="ndSetDrawn('+k+')">set to drawn</button> ')
+      +'<button class="qb" onclick="ndOpenRow(&quot;'+g.id+'&quot;)">open</button></td></tr>'; });
+  h+='<tr class="tot"><td></td><td style="text-align:left">'+N.n+' requirement'+(N.n===1?'':'s')+' · '+L.length+' line'+(L.length===1?'':'s')+'</td>'
+    +'<td></td><td></td><td></td><td></td><td style="color:var(--amber)">'+fM(N.tot)+'</td><td></td>'
+    +'<td>'+(locked? '' : '<button class="btn" style="font-size:10px;padding:3px 9px" onclick="ndSetAll()">set all to drawn</button>')+'</td></tr></table>';
+  el.innerHTML=h;
+}
+function ndSetDrawn(k){
+  const g=ndData().list[k]; if(!g) return;
+  if(allocLocked()) return;
+  const it=itemById(g.id);
+  setFsrcSvc(g.id, g.lane, g.i, String(Math.round(g.drew)));
+  setStat('▲ '+esc(dispTitle(it))+' — '+esc(SVC[g.i])+' '+(g.lane==='d'?'discretionary':'mandatory')+' set to what it drew, <b>'
+    +fM(Math.round(g.drew))+'</b>. No funded dollar moved and neither unfunded total moved'
+    +(g.short>0.5? '; '+fM(g.short)+' of the portfolio shortfall now counts as never allocated.' : '.'));
+}
+function ndSetAll(){
+  const N=ndData(); if(!N.list.length) return;
+  if(allocLocked()) return;
+  if(!confirm('Set all '+N.list.length+' line'+(N.list.length===1?'':'s')+' on '+N.n+' requirement'+(N.n===1?'':'s')+' to what they drew?\n\n'
+    +'The typed figures fall by '+fM(N.tot)+' in all. No funded dollar moves, and neither unfunded total moves. '
+    +(N.shortAll>0.5? 'The portfolio shortfall falls by '+fM(N.shortAll)+', which counts as never allocated instead.' : 'The portfolio shortfall does not move.'))) return;
+  N.list.forEach(function(g){ const fo=S.fsrc[g.id]; if(fo && Array.isArray(fo[g.lane==='d'?'dv':'mv'])) fo[g.lane==='d'?'dv':'mv'][g.i]=Math.round(g.drew); });
+  save(); render();
+  setStat('▲ '+N.list.length+' line'+(N.list.length===1?'':'s')+' on '+N.n+' requirement'+(N.n===1?'':'s')+' set to what they drew — '
+    +fM(N.tot)+' of typed figures that were never paid. No funded dollar moved.');
+}
+function ndOpenRow(id){
+  ndOpen=false; ndFocus='';
+  if(typeof setCur==='function') setCur(id); else open[id]=true;   // the card opens its By service table, where the "drew" lines are
+  goRow(id);
+}
 /* ---- WHOLE DOLLARS ---------------------------------------------------------------------------
    EVERY DOLLAR THE BOARD HOLDS IS A WHOLE DOLLAR. Money used to be stored as a float and rounded
    only FOR DISPLAY, so a requirement could be short by a third of a cent, print as fully funded,
@@ -1793,9 +2142,10 @@ const fMc = v=>{ const a=Math.abs(v);
   return a>=1e9? '$'+(v/1e9).toFixed(2)+'B' : a>=1e6? '$'+(v/1e6).toFixed(1)+'M'
        : a>=1e3? '$'+Math.round(v/1e3)+'K' : '$'+Math.round(v); };
 let SHARED=null, rmOpen=false, mcOnly=false, filter='ALL', dragId=null, svcFilter=-1;
-let svcAll=false, gsOpen=true, scOpen=true, teamOpen=true, buysOpen=false, ceOpen=true, pmoSumOpen=true, open={}, noteOpen={}, descOpen={};
+let svcAll=false, gsOpen=true, scOpen=true, teamOpen=true, buysOpen=false, ceOpen=true, pmoSumOpen=true, open={};
 let taOpen=false;   // unspent discretionary vs the trims that could take it
-let laneFilter='';   // '' | 'disc' (fully discretionary) | 'mand' (spilling) | 'unf' (any unfunded)
+let laneFilter='';   // '' | 'disc' (fully discretionary) | 'mand' (spilling) | 'unf' (any unfunded) | 'nd' (set higher than it draws)
+let ndOpen=false, ndFocus='', _ndCache=null;   // the fix list, the requirement it opened on, and ndData() for this render
 const itemById = id => DATA.items.find(x=>x.id===id);
 /* WHAT A YEAR'S REQUIREMENT LIST IS: the shipped payload minus what was removed, plus what was
    added. applyState writes it into DATA.items for THIS board; the chart of accounts asks the same
@@ -4844,7 +5194,7 @@ let LASTKNOWN=0;   // ts of the file state we started from (collision baseline)
 function buildSavedHtml(opts){
   if(CYCVIEW){ cycRefuse('Building a board file'); throw new Error('a locked cycle is on screen — leave the view before saving or publishing'); }
   save();
-  PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const cycDb=(opts&&opts.refOnly)? cycRefOnlyDb() : {ts:CYCDB.ts||0, byAp:cycByAp()}; const json = JSON.stringify({appns:PUBS, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:cycDb, budDb:BUDDB}).replace(/</g,'\\u003c');
+  PUBS[_AP.slug]=MS; Object.keys(_SLUGMAP).forEach(k=>{ if(k===_AP.slug) return; try{ const s2=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); if(s2&&(s2.years||Array.isArray(s2.order))&&(!PUBS[k]||(s2.ts||0)>=(PUBS[k].ts||0))) PUBS[k]=s2; }catch(e){} }); const cycDb=(opts&&opts.refOnly)? cycRefOnlyDb() : {ts:CYCDB.ts||0, byAp:cycByAp()}; const json = JSON.stringify({appns:PUBS, destDb:DESTDB, execDb:EXDB, aceDb:ACEDB, rpDb:RPDB, cycDb:cycDb, budDb:BUDDB}).replace(/</g,'\\u003c');
   return SRC0.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/,
                       (m,a,b)=>a+json+b);
 }
@@ -4861,7 +5211,7 @@ function _fhGet(cb){ try{ const r=indexedDB.open('prio-fh',1); r.onupgradeneeded
 // asks is per-service dollars, so accepting one moves the cutline; the review makes that explicit.
 const PMO_FIELDS = [
   ['desc',     'Description'],
-  ['cons',     'Impact if not funded'],
+  ['cons',     'Impact statement'],
   ['notes',    'Note'],
   ['asks',     'Requirement value (by service)'],
   ['ccar',     'CCaR record'],
@@ -5101,7 +5451,7 @@ function pmoSubmitBuild(){
 // are demanded together or waived together; a mandatory field that cannot apply is a gate people
 // learn to work around.
 const PROPOSAL_MANDATORY=['Prime contract / OGC','PMO','Obligation category','WBS','Goes to',
-  'Which awards to (for an OGC)','MIPR type (for an OGC)','Description','Impact if not funded',
+  'Which awards to (for an OGC)','MIPR type (for an OGC)','Description','Impact statement',
   'Requirement value (by service)','Projected award date'];
 // Which requirements on this copy are proposals: added here, on the list, and unknown to the board
 // the copy was published from.
@@ -5121,7 +5471,7 @@ function pmoProposalGate(id){
     if(!miprOf(id)) miss.push('MIPR type');
   }
   if(!String((S.desc||{})[id]||'').trim()) miss.push('Description');
-  if(!String((S.cons||{})[id]||'').trim()) miss.push('Impact if not funded');
+  if(!String((S.cons||{})[id]||'').trim()) miss.push('Impact statement');
   if(!(askTot(it)>0)) miss.push('Requirement value (by service)');
   const aw=(S.awards||{})[id];
   if(!aw || !(aw.d || (Array.isArray(aw.inc) && aw.inc.length))) miss.push('Projected award date');
@@ -5283,7 +5633,7 @@ function pmoSubmit(){
              ap:(typeof mySlug==='function'? mySlug() : ''), fy:(PMODE&&PMODE.fy)||MS.cur,
              ts:Date.now(), by:who, pmo:pmo, fromTs:(PMODE&&PMODE.ts)||0, svc:SVC.slice(),
              pv:(pmoKeysOf(PMODE)===PMO_KEYS? PMO_PV : 1),
-             items:items, base:base, added:added};
+             items:items, base:base, added:added, dest:flowEnts()};
   if(rank) pkg.rank=rank;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([JSON.stringify(pkg)],{type:'application/json'}));
@@ -5617,6 +5967,7 @@ function pmoTake(pkg, fname){
         +'were matched up by name.');
     }
   }
+  destPkgIn(pkg);
   // ── WHAT IS REVIEWED MUST BE WHAT WOULD LAND ────────────────────────────────────────────────
   // The review, the spreadsheet and pmoApply() all read the package, but only pmoApply() used to
   // put a requirement value through the board's rule for one. A package carrying -5,000,000 and a
@@ -5789,7 +6140,8 @@ function subBody(){
   const pn=document.getElementById('subPanel'); if(pn) pn.style.display=subOpen?'flex':'none';
   const el=document.getElementById('subBody'); if(!el) return;
   if(!subOpen){ el.innerHTML=''; return; }
-  if(!PMOSUBS.length){ el.innerHTML='<div class="hint">No submittals loaded. Import them with \u{1F4C1} File \u203a Import \u2014 one per programme office, and they are reviewed together.</div>'; return; }
+  const load='<button class="qb" onclick="document.getElementById(&quot;stateFile&quot;).click()" title="an ORBIT SUBMITTAL \u2026 .json from a programme office">\u2b05 Load a submittal file\u2026</button>';
+  if(!PMOSUBS.length){ el.innerHTML='<div class="hint" style="margin-bottom:8px">No submittals loaded. Load each programme office\u2019s file \u2014 they are reviewed together.</div>'+load; return; }
   const rows=pmoRows(), MR=masterRanks();
   const nPick=rows.filter(function(r){ return PMOPICK[pickKey(r)] && !r.gone; }).length;
   const nConf=rows.filter(function(r){ return r.conflict; }).length;
@@ -5829,7 +6181,7 @@ function subBody(){
     +'<button class="qb" onclick="pmoReport()">\u{1F4C4} Export change report (.xlsx)</button>'
     +'<button class="qb" onclick="subPickAll(true)">Tick all</button>'
     +'<button class="qb" onclick="subPickAll(false)">Untick all</button>'
-    +'<button class="qb" onclick="subClearAll()">Clear the review</button>'
+    +'<button class="qb" onclick="subClearAll()">Clear the review</button>'+load
     +'<span style="flex:1"></span>'
     +'<button class="qb" '+(nPick?'style="border-color:var(--green);color:var(--green);font-weight:800"':'disabled style="opacity:.5"')
     +' onclick="pmoApply()">\u2714 Apply '+nPick+' ticked</button></div>';
@@ -5898,11 +6250,14 @@ function subBanner(){
     +' <button class="qb" style="margin-left:8px;border-color:currentColor;font-weight:800"'
     +' onclick="pickMyPmo()" title="a submittal carries this office\u2019s requirements only">'
     +(myPmo()? '\u{1F3E2} '+esc(myPmo()) : '\u{1F3E2} set your office')+'</button>'
-    // THE ACTION SITS WHERE THE INSTRUCTION IS. It is also in the Budget year menu, but a programme
+    // THE ACTION SITS WHERE THE INSTRUCTION IS. It is also in the File menu, but a programme
     // office opening this for the first time should not have to go looking under a menu named after
     // something else to do the one thing this copy is for.
     +' <button class="qb" style="margin-left:8px;border-color:currentColor;font-weight:800"'
-    +' onclick="pmoSubmit()">\u2709 Submit input</button></div>';
+    +' onclick="pmoSubmit()">\u2709 Submit input</button>'
+    // HOW THE COPY WORKS, one press away and never on its own (v1.86): the guide is inside the file
+    +' <button class="qb" style="margin-left:8px;border-color:currentColor;font-weight:800"'
+    +' onclick="openHelp(&quot;office&quot;)" title="the guide for programme offices, inside this file">\ud83d\udcd6 How this copy works</button></div>';
 }
 
 // ── ANYTHING THAT LEAVES A PMO COPY SAYS SO ───────────────────────────────────────────────────
@@ -6693,7 +7048,13 @@ function importStores(inc){
     const mine=+((typeof EXDB!=='undefined' && EXDB && EXDB.ts)||0), theirs=+(ex.ts||0);
     const n=Object.keys(ex.all).length;
     if(theirs>mine){
-      EXDB=ex; EXDB.ts=theirs||Date.now(); persistExdb();
+      // PER APPROPRIATION (v1.86): a file carrying one appropriation's execution data -- an
+      // appropriation exported on its own -- replaced the whole store, and every other appropriation's
+      // execution data went with it. What the file carries replaces this board's; what it does not
+      // carry is kept.
+      if(!EXDB || !EXDB.all) EXDB={ts:0, all:{}};
+      Object.keys(ex.all).forEach(function(k){ EXDB.all[k]=ex.all[k]; });
+      EXDB.ts=theirs||Date.now(); persistExdb();
       said.push('Execution data for '+n+' appropriation'+(n===1?'':'s')+' came across with it.');
     } else {
       said.push('This board\u2019s own execution data was KEPT \u2014 it is the same age or newer '
@@ -6735,20 +7096,37 @@ function importStores(inc){
   // ---- the locked PPBE cycles: a key we do not hold is TAKEN, a key we hold is LEFT ALONE and
   // reported. A lock is a fixed point, like an approved estimate; nothing arriving through a
   // different door may silently replace one.
-  const cy=(inc.cycDb && inc.cycDb.byAp)? inc.cycDb.byAp[mySlug()] : null;
-  if(cy && cy.cycles && Object.keys(cy.cycles).length){
+  said.push.apply(said, cycTake(inc, [mySlug()]));
+  return said;
+}
+// THE LOCKED CYCLES OF THE APPROPRIATIONS TAKEN (v1.86). Only the open appropriation's used to come
+// across, so an appropriation taken from a file -- exported on its own, say, and a cycle locked on it
+// meanwhile -- arrived without that lock. Each appropriation's store is its own: the open one's is
+// CYCDB, the others' are read and written where their own boards keep them.
+function cycTake(inc, aps){
+  const said=[];
+  (aps||[]).forEach(function(ap){
+    const cy=(inc && inc.cycDb && inc.cycDb.byAp)? inc.cycDb.byAp[ap] : null;
+    if(!cy || !cy.cycles || !Object.keys(cy.cycles).length) return;
+    const own=(ap===mySlug());
+    const st=own? CYCDB : (cycStoreOf(ap).c || {ts:0, cycles:{}});
+    if(!st.cycles || typeof st.cycles!=='object') st.cycles={};
     const took=[], kept=[];
     Object.keys(cy.cycles).forEach(function(k){
-      if(CYCDB.cycles[k]){ if((CYCDB.cycles[k].ts||0)!==(cy.cycles[k].ts||0)) kept.push(k); return; }
-      CYCDB.cycles[k]=cy.cycles[k]; took.push(k);
+      if(st.cycles[k]){ if((st.cycles[k].ts||0)!==(cy.cycles[k].ts||0)) kept.push(k); return; }
+      st.cycles[k]=cy.cycles[k]; took.push(k);
     });
-    if(took.length){ persistCyc(); said.push(took.length+' locked PPBE cycle'+(took.length===1?'':'s')
-      +' came across ('+esc(took.map(blLbl).join(', '))+').'); }
-    if(kept.length) said.push('⚠ '+kept.length+' locked cycle'+(kept.length===1?'':'s')+' in that file '
+    const nm=(aps.length>1 || !own)? ' for '+_SLUGMAP[ap].t : '';
+    if(took.length){
+      if(own) persistCyc();
+      else { st.ts=Date.now(); lsSet(_SLUGMAP[ap].key+'-cyc', JSON.stringify(st), 'The locked PPBE cycles for '+_SLUGMAP[ap].t); }
+      said.push(took.length+' locked PPBE cycle'+(took.length===1?'':'s')+nm+' came across ('+esc(took.map(blLbl).join(', '))+').');
+    }
+    if(kept.length) said.push('⚠ '+kept.length+' locked cycle'+(kept.length===1?'':'s')+nm+' in that file '
       +(kept.length===1?'differs':'differ')+' from the one'+(kept.length===1?'':'s')+' held here and '
       +(kept.length===1?'was':'were')+' left alone ('+esc(kept.map(blLbl).join(', '))
       +'). A lock is replaced deliberately, never by an import.');
-  }
+  });
   return said;
 }
 // Which appropriations to take from a consolidated file. Nothing is taken unless it is named.
@@ -6759,7 +7137,7 @@ function consTakePick(fullSt, txt, fname){
   uiPrompt('\u201c'+fname+'\u201d carries '+avail.length+' appropriation'+(avail.length===1?'':'s')+':\n\n'
     +avail.map(function(k,i){ const s2=fullSt.appns[k];
       return '  '+(i+1)+'. '+_SLUGMAP[k].t+(s2.ts? '   (saved '+fmtTs(s2.ts)+(s2.by? ' by '+s2.by : '')+')' : ''); }).join('\n')
-    +'\n\nWhich do you want to take? Type the numbers \u2014 for example 1, or 1,3 \u2014 or ALL.\n'
+    +'\n\nWhich do you want to take? Type its number \u2014 or several, for example 1,3 \u2014 or ALL.\n'
     +'Anything you do not name stays exactly as it is on this board. Leave it blank to take nothing.',
     '', function(v){
       if(v===null){ setStat('Nothing imported.'); return; }
@@ -6815,11 +7193,198 @@ function consTakeApply(fullSt, txt, fname, pick, all){
   });
   if(!taken.length){ setStat('Nothing imported'+(skipped.length? ' \u2014 '+esc(skipped.join(', '))
     +' left as '+(skipped.length===1? 'it is' : 'they are') : '')+'.'); return; }
-  let tail=' Execution data, cost estimates, the reprogramming log, locked cycles and the BAE list were left as this board has them.';
-  if(all && !skipped.length){ const carried=importStores(fullSt); tail=carried.length? ' '+carried.join(' ') : ''; }
+  // what each appropriation taken had locked comes with it (v1.86), whichever is open
+  const tookK=pick.filter(function(k){ return taken.indexOf(_SLUGMAP[k].t)>=0; });
+  const cyc=cycTake(fullSt, (all && !skipped.length)? tookK.filter(function(k){ return k!==mySlug(); }) : tookK);
+  let tail=' Execution data, cost estimates, the reprogramming log and the BAE list were left as this board has them.'
+    +(cyc.length? ' '+cyc.join(' ') : '');
+  if(all && !skipped.length){ const carried=importStores(fullSt).concat(cyc); tail=carried.length? ' '+carried.join(' ') : ''; }
   setStat('\u{1F9E9} Took '+esc(taken.join(', '))+' from \u201c'+esc(fname)+'\u201d'
     +(skipped.length? '; left '+esc(skipped.join(', '))+' as '+(skipped.length===1? 'it was' : 'they were') : '')+'.'+tail+' Reopening\u2026');
   location.reload();
+}
+// ---- A FULL BOARD, FOR A NEW VERSION (v1.86) ---------------------------------------------------------
+// Brad, 26 Sep 2026: "I need first to be able to import a full dashboard from a previous file that way
+// when the new version comes out it's seamless." Import one appropriation (v1.84) takes appropriations
+// and leaves the board-wide stores as they are; this takes EVERYTHING the file carries: all four
+// appropriations (every year, with their positions, snapshots and journals), every locked cycle of every
+// appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination
+// list. Brad's answers: it REPLACES what this board holds, after one confirmation that says so; a board
+// holding work of its own is asked, appropriation by appropriation, before any of it is discarded; and a
+// file saved by any version back to v1.80 is accepted. What the file does not carry -- an appropriation it
+// has no plan for, a store an older version did not write -- stays as this board has it, and the report
+// says so. The report is kept across the reload the import ends with, and said once the board is open.
+const FULL_MIN=[1,80];
+function fullBuildOf(txt){
+  const m=/const BUILD='v(\d+)\.(\d+)/.exec(txt);
+  return m? [+m[1], +m[2]] : null;
+}
+function importFullBoard(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  if(sandboxBlock('Importing a full board')){ inp.value=''; return; }
+  if(CYCVIEW){ cycRefuse('Importing a full board'); inp.value=''; return; }
+  const r=new FileReader();
+  r.onload=function(){
+    try{ fullImportText(String(r.result), f.name); }
+    catch(e){ alert('Could not read “'+f.name+'” — '+((e&&e.message)||e)+'.\n\nNothing was imported.'); }
+    inp.value='';
+  };
+  r.readAsText(f);
+}
+function fullImportText(txt, fname){
+  const m=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
+  if(!m){ alert('“'+fname+'” is not a board file.\n\nA full import takes a board .html saved from ORBIT. Nothing was imported.'); return false; }
+  const bv=fullBuildOf(txt);
+  if(!bv || bv[0]<FULL_MIN[0] || (bv[0]===FULL_MIN[0] && bv[1]<FULL_MIN[1])){
+    alert('“'+fname+'” was saved by '+(bv? 'v'+bv[0]+'.'+bv[1] : 'a version too old to say')+'.\n\n'
+      +'A full import reads files from v'+FULL_MIN[0]+'.'+FULL_MIN[1]+' onward. Use Import one appropriation for an older file. Nothing was imported.');
+    return false;
+  }
+  let J=null; try{ J=JSON.parse(m[1]); }catch(e){ J=null; }
+  if(!J || typeof J!=='object'){ alert('“'+fname+'” carries nothing that can be read. Nothing was imported.'); return false; }
+  const pks=extractPacks(txt)||{};
+  // a board saved for one appropriation carries its plan at the top level: it goes to its own slot
+  if(!J.appns && (J.years || Array.isArray(J.order))){ const one={}; one[_slugOfTitle(txt)||mySlug()]=J; J={appns:one}; }
+  const inc={};
+  APPN_SLUGS.forEach(function(k){
+    const s2=(J.appns||{})[k];
+    if(!_SLUGMAP[k] || !s2 || !(s2.years || Array.isArray(s2.order))) return;
+    const c=JSON.parse(JSON.stringify(s2));
+    if(!_hasPack(c) && pks[k]) c.dataPack=pks[k];
+    inc[k]=c;
+  });
+  const ks=Object.keys(inc);
+  if(!ks.length){ alert('“'+fname+'” carries no appropriation this board recognises. Nothing was imported.'); return false; }
+  // WORK OF THIS BOARD'S OWN, appropriation by appropriation, before anything is replaced
+  for(const k of ks){
+    const cur=pkgStoreOf(k); if(!cur) continue;
+    const mine=pkgMineSince(cur, inc[k]);
+    if(mine.length && !confirm('CONFLICT — '+_SLUGMAP[k].t+'\n\nYou changed '+_SLUGMAP[k].t+' on THIS board after that file was saved. '
+        +'A full import replaces it and DISCARDS these changes of yours:\n\n'+pkgMineLines(mine)+'\n\nReplace it anyway and lose the above?')){
+      setStat('Nothing imported — '+esc(_SLUGMAP[k].t)+' has work of this board’s own that you kept.');
+      return false;
+    }
+  }
+  const cyc=(J.cycDb && J.cycDb.byAp && typeof J.cycDb.byAp==='object')? J.cycDb.byAp : null;
+  const nYr=function(st){ return Object.keys(st.years||{}).length || (Array.isArray(st.order)? 1 : 0); };
+  const nCy=function(k){ const c=cyc && cyc[k]; return (c && c.cycles)? Object.keys(c.cycles).length : 0; };
+  const lines=ks.map(function(k){ return '  • '+_SLUGMAP[k].t+' — '+nYr(inc[k])+' year'+(nYr(inc[k])===1?'':'s')
+    +(nCy(k)? ', '+nCy(k)+' locked cycle'+(nCy(k)===1?'':'s') : ''); });
+  const has={ bud:!!(J.budDb && Array.isArray(J.budDb.rows)), ex:!!(J.execDb && J.execDb.all), ace:!!(J.aceDb && J.aceDb.sets),
+              rp:!!(J.rpDb && Array.isArray(J.rpDb.entries)), dest:!!(J.destDb && Array.isArray(J.destDb.ents)) };
+  if(has.bud) lines.push('  • The BAE list — '+J.budDb.rows.length+' row'+(J.budDb.rows.length===1?'':'s'));
+  if(has.ex) lines.push('  • Execution data — '+Object.keys(J.execDb.all).length+' appropriation'+(Object.keys(J.execDb.all).length===1?'':'s'));
+  if(has.ace) lines.push('  • Cost estimates — '+Object.keys(J.aceDb.sets).length);
+  if(has.rp) lines.push('  • The reprogramming log — '+J.rpDb.entries.length+' entr'+(J.rpDb.entries.length===1?'y':'ies'));
+  if(has.dest) lines.push('  • The destination list — '+J.destDb.ents.length);
+  const keptAp=APPN_SLUGS.filter(function(k){ return _SLUGMAP[k] && !inc[k] && pkgStoreOf(k); });
+  const keptSt=[['bud','the BAE list'],['ex','execution data'],['ace','cost estimates'],['rp','the reprogramming log'],['dest','the destination list']]
+    .filter(function(p){ return !has[p[0]]; }).map(function(p){ return p[1]; });
+  if(!confirm('Import everything from “'+fname+'” (saved by v'+bv[0]+'.'+bv[1]+')?\n\n'
+      +'This REPLACES what this board holds with what the file holds:\n\n'+lines.join('\n')+'\n\n'
+      +((keptAp.length || keptSt.length)? 'Kept as this board has it, because the file does not carry it: '
+        +keptAp.map(function(k){ return _SLUGMAP[k].t; }).concat(keptSt).join(', ')+'.\n\n' : '')
+      +'It is built for opening a new version and carrying on where the old one left off. Proceed?')){
+    setStat('Nothing imported.'); return false;
+  }
+  const now=Date.now();
+  // the plans, each into its own slot
+  ks.forEach(function(k){
+    const cur=pkgStoreOf(k), next=pkgStrip(inc[k]);
+    if(cur && cur.sync) next.sync=cur.sync;
+    next.ts=now;
+    lsSet(_SLUGMAP[k].key, JSON.stringify(next), _SLUGMAP[k].t+' board data');
+    if(typeof PUBS!=='undefined' && PUBS) PUBS[k]=next;
+  });
+  // every locked cycle of every appropriation the file carries cycles for
+  const cyTook=[];
+  if(cyc) Object.keys(cyc).forEach(function(k){
+    const c=cyc[k]; if(!_SLUGMAP[k] || !c || !c.cycles || typeof c.cycles!=='object') return;
+    const next=JSON.parse(JSON.stringify(c)); next.ts=now;
+    if(k===mySlug()) CYCDB=next;
+    lsSet(_SLUGMAP[k].key+'-cyc', JSON.stringify(next), 'The locked PPBE cycles for '+_SLUGMAP[k].t);
+    if(Object.keys(next.cycles).length) cyTook.push(_SLUGMAP[k].t+' '+Object.keys(next.cycles).sort().map(blLbl).join(', '));
+  });
+  // the board-wide stores the file carries
+  if(has.bud){ BUDDB=JSON.parse(JSON.stringify(J.budDb)); BUDDB.ts=now; persistBud(); }
+  if(has.ex){ EXDB=JSON.parse(JSON.stringify(J.execDb)); EXDB.ts=now; persistExdb(); }
+  if(has.ace){ ACEDB=JSON.parse(JSON.stringify(J.aceDb)); ACEDB.ts=now; persistAce(); }
+  if(has.rp){ RPDB=JSON.parse(JSON.stringify(J.rpDb)); RPDB.ts=now; persistRp(); }
+  if(has.dest){
+    const d=JSON.parse(JSON.stringify(J.destDb));
+    ['lmap','lsig'].forEach(function(f2){ if(!d[f2] || typeof d[f2]!=='object' || Array.isArray(d[f2])) d[f2]={}; });
+    ['conflicts','gone'].forEach(function(f2){ if(!Array.isArray(d[f2])) d[f2]=[]; });
+    DESTDB=d; persistDest();
+  }
+  const rep='⬅ <b>Full board imported</b> from “'+esc(fname)+'” (v'+bv[0]+'.'+bv[1]+'): '
+    +esc(ks.map(function(k){ return _SLUGMAP[k].t+' ('+nYr(inc[k])+' year'+(nYr(inc[k])===1?'':'s')+')'; }).join(', '))+'.'
+    +(cyTook.length? ' Locked cycles: '+esc(cyTook.join('; '))+'.' : '')
+    +(lines.length>ks.length? ' '+esc(lines.slice(ks.length).map(function(l){ return l.replace(/^\s*•\s*/,''); }).join('; '))+'.' : '')
+    +((keptAp.length || keptSt.length)? ' Kept as this board had it: '+esc(keptAp.map(function(k){ return _SLUGMAP[k].t; }).concat(keptSt).join(', '))+'.' : '');
+  try{ localStorage.setItem('prio27impRep', rep); }catch(e){}
+  setStat(rep+' Reopening…');
+  location.reload();
+  return true;
+}
+// ---- ONE APPROPRIATION OUT, AS A WORKING BOARD (v1.86) --------------------------------------------------
+// Brad, 26 Sep 2026: "the ability to import or export appropriation specific dashboards" -- a full
+// working board (it opens, edits and saves like any board), not a package with a ledger and not a PMO
+// copy in a sandbox. It holds one appropriation: its plan (every year, positions, snapshots), its locked
+// cycles, its execution data and its rows of the BAE list; and the board-wide documents it reads whole --
+// the destination list, the cost estimates (each approved one fingerprinted, so it is never cut) and the
+// reprogramming log. It opens on that appropriation. Taken back with Import one appropriation, which
+// checks it like any file and takes its cycles with it.
+function appnsOnlyIn(html, name){
+  const i=html.indexOf('const APPNS = '); if(i<0) return html;
+  const j=html.indexOf('{', i); if(j<0) return html;
+  let d=0, inS=false, esq=false, end=-1;
+  for(let k=j;k<html.length;k++){
+    const c=html[k];
+    if(inS){ if(esq) esq=false; else if(c==='\\') esq=true; else if(c==='"') inS=false; continue; }
+    if(c==='"') inS=true; else if(c==='{') d++; else if(c==='}'){ d--; if(!d){ end=k; break; } }
+  }
+  if(end<0) return html;
+  let A=null; try{ A=JSON.parse(html.slice(j,end+1)); }catch(e){ return html; }
+  Object.keys(A).forEach(function(n){ if(n!==name) A[n]={services:[], items:[], budget:[]}; });
+  return html.slice(0,j)+JSON.stringify(A).replace(/<\//g,'<\\/')+html.slice(end+1);
+}
+function oneAppnHtml(k){
+  const full=buildSavedHtml();
+  const RE=/(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/;
+  const J=JSON.parse(full.match(RE)[2]);
+  if(!J.appns || !J.appns[k]) return null;
+  const out={appns:{}, only:APPN_LBL[k], destDb:J.destDb, aceDb:J.aceDb, rpDb:J.rpDb,
+             execDb:{ts:(J.execDb&&J.execDb.ts)||0, all:{}}, cycDb:{ts:(J.cycDb&&J.cycDb.ts)||0, byAp:{}},
+             budDb:Object.assign({}, J.budDb||{}, {rows:(((J.budDb||{}).rows)||[]).filter(function(b){ return b && b.ap===k; })})};
+  out.appns[k]=J.appns[k];
+  if(J.execDb && J.execDb.all && J.execDb.all[k]) out.execDb.all[k]=J.execDb.all[k];
+  if(J.cycDb && J.cycDb.byAp && J.cycDb.byAp[k]) out.cycDb.byAp[k]=J.cycDb.byAp[k];
+  return appnsOnlyIn(full.replace(RE, function(m0,a,b,c){ return a+JSON.stringify(out).replace(/</g,'\\u003c')+c; }), APPN_LBL[k]);
+}
+function exportOneAppn(){
+  if(sandboxBlock('Exporting an appropriation')) return;
+  if(CYCVIEW){ cycRefuse('Exporting an appropriation'); return; }
+  const avail=APPN_SLUGS.filter(function(k){ if(!_SLUGMAP[k]) return false;
+    if(k===mySlug()) return !!(DATA.items && DATA.items.length);
+    const st=pkgStoreOf(k); return !!(st && (st.years || Array.isArray(st.order)) && _hasPack(st)); });
+  if(!avail.length){ alert('No appropriation on this board holds requirements yet, so there is nothing to export.'); return; }
+  uiPrompt('Export one appropriation as a working board file — which one?\n\n'
+    +avail.map(function(k,i){ return '  '+(i+1)+'. '+_SLUGMAP[k].t; }).join('\n')
+    +'\n\nType its number. The file opens and saves like any board, holding that appropriation alone.', '', function(v){
+      if(v===null) return;
+      const n=parseInt(String(v).trim(),10), k=avail[n-1];
+      if(!k){ alert('“'+v+'” is not one of the numbers listed. Nothing was exported.'); return; }
+      let html=null;
+      try{ html=oneAppnHtml(k); }catch(e){ alert('It could not be exported — '+((e&&e.message)||e)); return; }
+      if(!html){ alert(_SLUGMAP[k].t+' could not be found on this board. Nothing was exported.'); return; }
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+      a.download=expName('ORBIT — '+_SLUGMAP[k].t+' only — '+new Date().toISOString().slice(0,10)+'.html');
+      a.click();
+      setStat('⬇ '+esc(_SLUGMAP[k].t)+' exported as a working board of its own — its plan, its locked cycles, its execution '
+        +'data and its BAE rows, with the destination list, cost estimates and reprogramming log. Take it back with '
+        +'📁 File → ⬅ Import one appropriation.');
+    });
 }
 function importState(inp){
   const f=inp.files&&inp.files[0];
@@ -7668,49 +8233,69 @@ function setRcnAsg(id,k){
            : '\ud83c\udff7 '+esc(dispTitle(it))+' has no RCN/EEIC assigned.');
 }
 
-/* Per-SERVICE, per-MONTH spread of a requirement's FUNDED dollars, by obligation date.
-   forecast() already does this spread but sums the services into one bag; these tabs need the
-   service dimension, so the rules are mirrored here EXACTLY -- increments weighted per service,
-   a single award date placing that service's whole funded amount, and anything without a usable
-   date landing in UNSCHEDULED rather than being dropped or guessed into a month. */
+/* THE ONE RULE FOR WHEN A FUNDED DOLLAR LANDS (v1.86). Every spend-plan surface -- the forecast panel,
+   the month-by-month sheets, the PMO tabs' spend plan, the CR windows and the 1A9A return, the deck's
+   chart -- places a requirement's money through this, one service at a time, so no two of them can
+   disagree about which month a dollar is in. Until v1.86 there were four copies of it and two rules:
+   the CR views spread the whole funded amount by the increments' proportions, so discretionary not
+   yet on a date was inflated into the windows while the forecast held it as UNSCHEDULED.
+   - AN INCREMENT IS DISCRETIONARY DOLLARS, placed as typed. Scheduled past what discretionary holds,
+     the shape is kept and the total scaled back to it: a spread never places more than was drawn.
+     Discretionary not yet on a date is UNSCHEDULED, never spread into the months.
+   - MANDATORY HAS NO INCREMENTS OF ITS OWN; it rides the requirement's own dates. In a service with
+     increments, in their proportions. In a service with none -- its discretionary used up, so nobody
+     typed one -- in the proportions of the requirement's increments overall (Brad, 26 Sep 2026: "yes";
+     nothing new to type). Until v1.86 that second case sent it all to UNSCHEDULED: measured, $900
+     discretionary on USAF and $300 mandatory on ANG, increments Nov and Feb, forecast $900 in the
+     months and $300 unscheduled.
+   - A single award date places the whole funded amount in its month; no date, UNSCHEDULED.
+   `literal` is false only for a MODELLED plan (the Two-Plan Forecast), whose dollars are not the ones
+   the increments were typed against: there an increment is a shape, and discretionary is spread by it
+   in full. Returns {at:[{d, j, dv, mv}], ud, um}: each placement's month key -- which may fall outside
+   the fiscal year, the caller decides what that means -- and what is left undated, by pot. */
+function landSvc(aw, i, dsv, msv, literal){
+  const out={at:[], ud:0, um:0};
+  dsv=dsv||0; msv=msv||0;
+  if(!(dsv+msv>0)) return out;
+  if(aw && aw.mode==='inc' && aw.inc && aw.inc.length){
+    const wOf=function(x, k){ return Array.isArray(x.sv)? (x.sv[k]||0) : ((x.v||0)/SVC.length); };
+    const w=aw.inc.map(function(x){ return wOf(x, i); });
+    const wsum=w.reduce(function(a,b){ return a+b; }, 0);
+    let mw=w, msum=wsum;
+    if(!(wsum>0)){
+      // no increment of its own: the requirement's increments overall set the proportions
+      mw=aw.inc.map(function(x){ return SVC.reduce(function(a,s,k){ return a+wOf(x,k); }, 0); });
+      msum=mw.reduce(function(a,b){ return a+b; }, 0);
+      if(!(msum>0)){ mw=aw.inc.map(function(){ return 1; }); msum=mw.length; }   // dates with no amounts on any
+    }
+    const dScale = !(wsum>0)? 0 : (literal===false? dsv/wsum : (wsum>dsv? dsv/wsum : 1));
+    let dPlaced=0;
+    aw.inc.forEach(function(x, j){
+      const dv=w[j]*dScale;              // discretionary: literally this increment
+      const mv=msv*mw[j]/msum;           // mandatory: rides the dates, in their proportions
+      dPlaced+=dv;
+      if(dv>0 || mv>0) out.at.push({d:x.d, j:j, dv:dv, mv:mv});
+    });
+    // Discretionary the increments never scheduled -- the figure the award block's balance reports.
+    // It is undated, not missing.
+    out.ud=Math.max(0, dsv-dPlaced);
+    return out;
+  }
+  if(aw && aw.d){ out.at.push({d:aw.d, j:-1, dv:dsv, mv:msv}); return out; }
+  out.ud=dsv; out.um=msv;
+  return out;
+}
+/* Per-SERVICE, per-MONTH spread of a requirement's FUNDED dollars, by obligation date: landSvc() for
+   each service, with a date outside the fiscal year counted in UNSCHEDULED like no date at all. */
 function monSpreadOf(id, p){
   const mi={}; FYMON.forEach(function(x,i){ mi[x[0]]=i; });
   const m=SVC.map(function(){ return FYMON.map(function(){ return 0; }); });
   const unsch=SVC.map(function(){ return 0; });
   const aw=(S.awards||{})[id];
   SVC.forEach(function(sv,i){
-    const dsv=(p.d[i]||0), msv=(p.m[i]||0), fsv=dsv+msv;
-    if(fsv<=0.005) return;
-    if(aw && aw.mode==='inc' && aw.inc && aw.inc.length){
-      const w=aw.inc.map(function(x){ return Array.isArray(x.sv)? (x.sv[i]||0) : ((x.v||0)/SVC.length); });
-      const wsum=w.reduce(function(a,b){ return a+b; },0);
-      if(wsum>0){
-        // AN INCREMENT IS DISCRETIONARY DOLLARS, not a weight. It used to be a weight against the
-        // whole funded amount, which meant a $3.2M November increment forecast as $4.7M once the
-        // balance started reconciling against discretionary alone. What you type is what lands.
-        //
-        // Over-scheduled is the one case that cannot be taken literally: forecasting more than was
-        // drawn would break the conservation this function exists to keep (every funded dollar shows
-        // up in a month or in UNSCHEDULED, never dropped). There the shape is kept and the total
-        // scaled back to what discretionary actually holds.
-        const dScale = wsum>dsv? (dsv/wsum) : 1;
-        let dPlaced=0;
-        aw.inc.forEach(function(x,j){
-          const k=mi[x.d];
-          const dAmt=w[j]*dScale;          // discretionary: literally this increment
-          const mAmt=msv*w[j]/wsum;        // mandatory: no increments of its own, rides the same dates
-          dPlaced+=dAmt;
-          if(k===undefined) unsch[i]+=dAmt+mAmt; else m[i][k]+=dAmt+mAmt;
-        });
-        // Discretionary the increments never scheduled — the same figure the Balance to schedule
-        // row reports. It is unscheduled, not missing.
-        unsch[i]+=Math.max(0, dsv-dPlaced);
-        return;
-      }
-      unsch[i]+=fsv; return;
-    }
-    if(aw && aw.d && mi[aw.d]!==undefined){ m[i][mi[aw.d]]+=fsv; return; }
-    unsch[i]+=fsv;
+    const L=landSvc(aw, i, p.d[i]||0, p.m[i]||0, true);
+    L.at.forEach(function(a){ const k=mi[a.d]; if(k===undefined) unsch[i]+=a.dv+a.mv; else m[i][k]+=a.dv+a.mv; });
+    unsch[i]+=L.ud+L.um;
   });
   return {m:m, unsch:unsch};
 }
@@ -7851,10 +8436,13 @@ function toggleAwdInc(id, funded){
     const d=(aw.inc&&aw.inc[0]&&aw.inc[0].d)||aw.d||null;
     if(d) S.awards[id]={mode:'single', d:d}; else delete S.awards[id];
   } else {
-    // to incremental: seed one increment at the set award date with the per-service funded amounts
+    // to incremental: seed one increment at the set award date with the per-service DISCRETIONARY
+    // amounts -- what an increment is. It used to seed discretionary + mandatory, against a balance
+    // that counts discretionary alone, so a split requirement read over-scheduled by its mandatory the
+    // moment it was switched. Mandatory needs nothing typed: it rides this date (landSvc).
     const d=(aw&&aw.d)||FYMON[0][0];
     const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
-    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round(p.d[i]+p.m[i]))}]};
+    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round(p.d[i]||0))}]};
   }
   save(); render(); flash(id);
 }
@@ -7916,45 +8504,16 @@ function forecast(fundOf){
   const mi={}; FYMON.forEach(([k],i)=>mi[k]=i);
   const mk=()=>({m:FYMON.map(_=>0), unsch:0, tot:0});
   const byPMO={}, roll={};
+  // Every funded dollar is in a month or in UNSCHEDULED, placed by landSvc(): the rule the month
+  // sheets, the PMO tabs, the CR views and the deck's chart use too.
   const bump=(bag,id,p)=>{
     const aw=S.awards[id];
-    const funded=p.dT+p.mT;
-    bag.tot+=funded;
-    if(aw){
-      if(aw.mode==='inc' && aw.inc && aw.inc.length){
-        // PER-SERVICE: each service's funded dollars spread by that service's own increment amounts
-        let placed=false;
-        SVC.forEach((s,i)=>{
-          const dsv=p.d[i]||0, msv=p.m[i]||0, fsv=dsv+msv;
-          if(fsv<=0) return;
-          const w=aw.inc.map(x=>Array.isArray(x.sv)? (x.sv[i]||0) : ((x.v||0)/SVC.length));
-          const wsum=w.reduce((a,b)=>a+b,0);
-          if(wsum>0){
-            // SAME RULE AS monSpreadOf, and it has to stay that way: an increment is DISCRETIONARY
-            // dollars placed as typed, mandatory rides the same dates in the same proportions, and
-            // discretionary not yet on a date is UNSCHEDULED rather than inflated into the months.
-            // Two copies of this spread exist on purpose (this one takes a fundOf override); the
-            // moment they disagree the workbook disagrees with itself about when a dollar lands.
-            const dScale = literal? (wsum>dsv? (dsv/wsum) : 1) : (dsv/wsum);
-            let dPlaced=0;
-            aw.inc.forEach((x,j)=>{
-              const k=mi[x.d];
-              const dAmt=w[j]*dScale, mAmt=msv*w[j]/wsum;
-              dPlaced+=dAmt;
-              if(k===undefined) bag.unsch+=dAmt+mAmt; else bag.m[k]+=dAmt+mAmt;
-            });
-            // Only a literal spread can leave a remainder; a weighted one has placed all of it.
-            if(literal) bag.unsch+=Math.max(0, dsv-dPlaced);
-            placed=true;
-          } else bag.unsch+=fsv;
-        });
-        if(placed||SVC.some((s,i)=>p.d[i]+p.m[i]>0)) return;
-      } else if(aw.d && mi[aw.d]!==undefined){
-        bag.m[mi[aw.d]]+=funded;               // DEFAULT: full funded amount at the set award date
-        return;
-      }
-    }
-    bag.unsch+=funded;
+    bag.tot+=p.dT+p.mT;
+    SVC.forEach((s,i)=>{
+      const L=landSvc(aw, i, p.d[i]||0, p.m[i]||0, literal);
+      L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined) bag.unsch+=a.dv+a.mv; else bag.m[k]+=a.dv+a.mv; });
+      bag.unsch+=L.ud+L.um;
+    });
   };
   S.order.forEach(id=>{
     const it=itemById(id), p=fund(id); if(!it||!p) return;
@@ -7974,6 +8533,25 @@ function forecast(fundOf){
   });
   const rollRows=[...Object.keys(roll).filter(k=>k!=='__MISC__').map(k=>roll[k]), ...(roll['__MISC__']?[roll['__MISC__']]:[])];
   return {byPMO, rollRows, T};
+}
+// THE BOARD'S SPEND PLAN BY MONTH, THE TWO POTS APART (v1.86) -- for the deck's chart. The same
+// placement as forecast() (landSvc, literal, following the view), kept by pot: {d:[], m:[]} a month
+// each, and what has no date in the fiscal year {ud, um}. Its months add, pot by pot, to exactly what
+// the forecast's TOTAL row prints; that is the chart's whole promise.
+function spendPlanByMonth(){
+  const T=tiers(null, scenOpt());
+  const mi={}; FYMON.forEach(([k],i)=>mi[k]=i);
+  const out={d:FYMON.map(_=>0), m:FYMON.map(_=>0), ud:0, um:0};
+  S.order.forEach(id=>{
+    const it=itemById(id), p=T[id]; if(!it||!p) return;
+    const aw=(S.awards||{})[id];
+    SVC.forEach((s,i)=>{
+      const L=landSvc(aw, i, p.d[i]||0, p.m[i]||0, true);
+      L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined){ out.ud+=a.dv; out.um+=a.mv; } else { out.d[k]+=a.dv; out.m[k]+=a.mv; } });
+      out.ud+=L.ud; out.um+=L.um;
+    });
+  });
+  return out;
 }
 // ============ CONTINUING RESOLUTION CASH VIEW (Oct 1 – Mar 31, half-month windows) ============
 const CR_EOM=[31,30,31,31,28,31];
@@ -8017,61 +8595,54 @@ function crWins(){
 // view the mandatory lanes are empty, so what would have spilled into them shows as unfunded and
 // never reaches a window. The scenario is a PARAMETER and must never become a mode -- callers pass
 // it, so each call site states for itself whether it is showing the funded plan or a what-if.
-function crData(scen){
+//
+// BY SERVICE OR BY PMO, FROM THE ONE LANDING RULE (v1.86). A dollar is in a half-month window when
+// landSvc() lands it October to March; in No date when it lands nowhere in the fiscal year -- no award
+// date, discretionary not yet on one, or a date outside the year; and in neither when it lands April
+// to September, which is not a CR cash need. TOTAL IN WINDOW is what lands in the windows, By Service
+// and By PMO alike: By PMO used to add every funded dollar, the undated and the after-March included,
+// under the same heading.
+function crBuckets(scen, by){
   const T=tiers(null, scen||null);
   const ms=FYMON.slice(0,6);
   const mi={}; ms.forEach(([ym],i)=>mi[ym]=i);
-  const svc=SVC.map(_=>({win:Array(12).fill(0), nodate:0, tot:0, items:[]}));
-  const MR=masterRanks();
+  const inFy={}; FYMON.forEach(([ym])=>inFy[ym]=1);
+  const mk=()=>({win:Array(12).fill(0), nodate:0, tot:0, items:[]});
+  const bags={}, MR=masterRanks();
+  const bagOf=k=> bags[k]||(bags[k]=mk());
   S.order.forEach(id=>{
     const it=itemById(id), p=T[id]; if(!it||!p) return;
-    const fSv=SVC.map((s,i)=>p.d[i]+p.m[i]);
-    if(fSv.every(v=>v<=0.005)) return;
-    const aw=S.awards[id];
-    // placements: [{ym, amts[]}] within Oct–Mar
-    const pl=[];
-    let scheduled=false;
-    if(aw){
-      if(aw.mode==='inc' && aw.inc && aw.inc.length){
-        scheduled=true;
-        SVC.forEach((s,i)=>{
-          if(fSv[i]<=0) return;
-          const w=aw.inc.map(x=>Array.isArray(x.sv)? (x.sv[i]||0) : ((x.v||0)/SVC.length));
-          const wsum=w.reduce((a,b)=>a+b,0);
-          if(wsum<=0){ svc[i].nodate+=fSv[i]; return; }
-          aw.inc.forEach((x,j)=>{
-            if(mi[x.d]===undefined) return;                 // outside Oct–Mar: no CR cash need
-            const amt=fSv[i]*w[j]/wsum;
-            if(amt<=0.005) return;
-            let e=pl.find(q=>q.ym===x.d);
-            if(!e){ e={ym:x.d, amts:SVC.map(_=>0)}; pl.push(e); }
-            e.amts[i]+=amt;
-          });
+    const aw=(S.awards||{})[id];
+    // a CLIN-backed prime is shared across the offices that own its CLINs, per service
+    const parts=(by==='pmo')? pmoSharesOf(it).map(([g,frac])=>[g, i=>(frac? frac[i] : 1)]) : null;
+    const rows={};
+    SVC.forEach((s,i)=>{
+      (parts || [[i, ()=>1]]).forEach(([key, f])=>{
+        const dsv=(p.d[i]||0)*f(i), msv=(p.m[i]||0)*f(i);
+        if(!(dsv+msv>0)) return;
+        const b=bagOf(key);
+        const L=landSvc(aw, i, dsv, msv, true);
+        b.nodate+=L.ud+L.um;
+        L.at.forEach(a=>{
+          const amt=a.dv+a.mv;
+          if(!inFy[a.d]){ b.nodate+=amt; return; }      // dated outside the fiscal year: no date in it
+          if(mi[a.d]===undefined) return;               // April to September: not a CR cash need
+          const half=(S.crHalf[id]&&S.crHalf[id][a.d])?1:0;
+          const w=mi[a.d]*2+half;
+          b.win[w]+=amt; b.tot+=amt;
+          let r=rows[key];
+          if(!r){ r=rows[key]={id, rank:MR[id], title:dispTitle(it), ccar:ccarOf(it), wins:Array(12).fill(0), months:[]}; b.items.push(r); }
+          r.wins[w]+=amt;
+          if(!r.months.includes(a.d)) r.months.push(a.d);
         });
-      } else if(aw.d){
-        scheduled=true;
-        if(mi[aw.d]!==undefined) pl.push({ym:aw.d, amts:fSv.slice()});
-      }
-    }
-    if(!scheduled) SVC.forEach((s,i)=>{ if(fSv[i]>0.005) svc[i].nodate+=fSv[i]; });
-    if(!pl.length) return;
-    const rows=SVC.map(_=>null);
-    pl.forEach(e=>{
-      const half=(S.crHalf[id]&&S.crHalf[id][e.ym])?1:0;
-      const w=mi[e.ym]*2+half;
-      SVC.forEach((s,i)=>{
-        if(e.amts[i]<=0.005) return;
-        svc[i].win[w]+=e.amts[i]; svc[i].tot+=e.amts[i];
-        if(!rows[i]) rows[i]={id, rank:MR[id], title:dispTitle(it), ccar:ccarOf(it), wins:Array(12).fill(0), months:[]};
-        rows[i].wins[w]+=e.amts[i];
-        if(!rows[i].months.includes(e.ym)) rows[i].months.push(e.ym);
       });
     });
-    rows.forEach((r,i)=>{ if(r) svc[i].items.push(r); });
   });
-  svc.forEach(sv=>sv.items.sort((a,b)=>(a.rank||9e9)-(b.rank||9e9)));
-  return svc;
+  Object.values(bags).forEach(b=>b.items.sort((a,c)=>(a.rank||9e9)-(c.rank||9e9)));
+  if(by==='pmo'){ const keys=GROUPS.filter(g=>bags[g]); return {keys, data:keys.map(g=>bags[g])}; }
+  return {keys:SVC.slice(), data:SVC.map((s,i)=>bags[i]||mk())};
 }
+function crData(scen){ return crBuckets(scen, 'svc').data; }
 // ---- the 1A9A CRA return -----------------------------------------------------------------
 // Measured from the template. Do not adjust by taste: re-measure with tools/inspect_cr_template.py.
 const CR_SVCS=['STOVL','USMC-C','USN'];        // this return is these three combined, and no others
@@ -10801,70 +11372,327 @@ function flowDefEnts(){ return [
   {k:'dla',  n:'Defense Logistics Agency',   kind:'gov',   t:'DLA'},
   {k:'okc',  n:'OC-ALC Oklahoma City',       kind:'gov',   t:'OKC, OKLAHOMA'}
 ]; }
+// THE LIST IS THE BOARD'S (v1.86): DESTDB, in the order destinations were added -- the funds flow
+// reads that order. Everywhere a person picks or browses one it is shown A to Z (flowEntsAZ).
 function flowEnts(){
-  const C=flowCfg();
-  if(!Array.isArray(C.ents) || !C.ents.length) C.ents=flowDefEnts();
-  return C.ents;
+  destMigrate();
+  return DESTDB.ents;
+}
+function flowEntsAZ(){
+  return flowEnts().slice().sort(function(a,b){
+    return String(a.n||'').trim().localeCompare(String(b.n||'').trim(), undefined, {sensitivity:'base', numeric:true}); });
+}
+// Two destinations are the same destination when their NAMES match, ignoring case and extra
+// spaces. One nobody has named yet is never merged with another.
+function destName(n){ return String(n||'').replace(/\s+/g,' ').trim().toLowerCase(); }
+function destNamed(n){ const x=destName(n); return !!x && x!=='new destination'; }
+// A KEY MEANS SOMETHING ONLY BESIDE THE LIST IT WAS WRITTEN AGAINST, so every plan carries that list
+// (flow.ents) wherever it travels -- the saved file, the shared folder, a package, a PMO copy -- and is
+// read through it when it opens here. From v1.86 that is the board's own list (marked flow.dv), whose
+// keys are the eight seeded ones or made unique when a destination is added, so on such a list a key
+// the board holds IS that destination, renamed or not. Before v1.86 each appropriation numbered its
+// own (x1, x2...), and x1 on O&M and x1 on Full Fund could be two different places: there only the
+// NAME is trusted, and what each old key became is kept against that exact list (DESTDB.lmap, by its
+// signature), so every later reading of it -- the same plan reopened before it is saved, its locked
+// cycles, a submittal from a PMO copy published before the move -- lands every requirement the same
+// way, whatever has been renamed or deleted since.
+const DEST_SEED=(function(){ const o={}; flowDefEnts().forEach(function(e){ o[e.k]=destName(e.n); }); return o; })();
+function destNewKey(){
+  let k; do{ k='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+  while(DESTDB.ents.some(function(e){ return e.k===k; }) || DESTDB.gone.indexOf(k)>=0);
+  return k;
+}
+function destHas(k){ return DESTDB.ents.filter(function(e){ return e.k===k; })[0]||null; }
+function destByName(n){
+  if(!destNamed(n)) return null;
+  const x=destName(n); return DESTDB.ents.filter(function(e){ return destName(e.n)===x; })[0]||null;
+}
+function destSig(list){
+  const s=JSON.stringify((list||[]).map(function(e){ return [String((e&&e.k)||''), destName(e&&e.n)]; }));
+  let h=0x811c9dc5; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h, 0x01000193)>>>0; }
+  return ('0000000'+h.toString(16)).slice(-8)+'.'+(list||[]).length;
+}
+// The list a plan's keys were written against, and whether it is a v1.86 one. A plan from before
+// that never opened the funds flow carries no list: its keys can only be the seeded ones.
+function destListOf(st){
+  const F=st&&st.flow;
+  if(F && F.dv && Array.isArray(F.ents)) return {list:F.ents, v186:true};
+  return {list:(F && Array.isArray(F.ents) && F.ents.length)? F.ents : flowDefEnts(), v186:false};
+}
+// Match terms are combined; a different KIND is kept as the board has it and named for the owner.
+function destJoin(hit, e, from){
+  const toks=flowToks(hit.t);
+  flowToks(e.t).forEach(function(t){ if(!toks.some(function(x){ return x.toUpperCase()===t.toUpperCase(); })) toks.push(t); });
+  hit.t=toks.join(', ');
+  const kd=(e.kind==='prime'||e.kind==='gov')? e.kind : 'other';
+  if(kd!==(hit.kind||'other') && !DESTDB.conflicts.some(function(c){ return c.k===hit.k && c.from===from && c.kind===kd; }))
+    DESTDB.conflicts.push({k:hit.k, from:from, kind:kd});
+}
+// The keys a plan's requirements point at, in every state given.
+function destRefs(states){
+  const r={};
+  states.forEach(function(st){ const D=st&&st.dest; if(!D || typeof D!=='object') return;
+    Object.keys(D).forEach(function(id){ const v=D[id]; if(v && typeof v==='object'){ if(v.to) r[v.to]=1; if(v.end) r[v.end]=1; } }); });
+  return r;
+}
+// Read one list into the board's. Returns {its key: board key} for every key that differs, and
+// {fresh:true} on the result when a key was made that a later reading could not make again (so the
+// store must be kept). `refs` are the keys its requirements use: a destination deleted here comes back
+// only while something still points at it.
+function destFold(list, from, v186, refs){
+  const al={};
+  let fresh=false;
+  const sg=v186? '' : destSig(list);
+  const lm=v186? null : (DESTDB.lmap[sg]||(DESTDB.lmap[sg]={}));
+  (list||[]).forEach(function(e){
+    if(!e || typeof e!=='object' || !e.k) return;
+    const used=!!(refs&&refs[e.k]);
+    let hit=null, first=true;
+    if(v186){
+      hit=destHas(e.k);
+      if(!hit && DESTDB.gone.indexOf(e.k)>=0 && !used) return;
+    } else if(Object.prototype.hasOwnProperty.call(lm, e.k)){
+      first=false;
+      hit=destHas(lm[e.k]);
+      if(!hit && !used) return;          // read before, and deleted here since
+    }
+    if(hit){ if(v186 && hit.k!==e.k) destJoin(hit, e, from); }
+    else {
+      hit=destByName(e.n);
+      if(hit){ if(first) destJoin(hit, e, from); }
+      else {
+        if(!used && !destNamed(e.n)) return;       // an unnamed placeholder nobody uses is not carried
+        let k=String(e.k);
+        const free=!destHas(k) && DESTDB.gone.indexOf(k)<0;
+        if(!(free && (v186 || DEST_SEED[k]===destName(e.n)))){ k=destNewKey(); fresh=true; }
+        hit={k:k, n:String(e.n==null?'':e.n).replace(/\s+/g,' ').trim(), kind:(e.kind==='prime'||e.kind==='gov')? e.kind : 'other', t:String(e.t||'')};
+        DESTDB.ents.push(hit);
+      }
+    }
+    if(lm && lm[e.k]!==hit.k){ lm[e.k]=hit.k; if(hit.k!==e.k) fresh=true; }
+    if(hit.k!==e.k) al[e.k]=hit.k;
+  });
+  if(!v186 && from) DESTDB.lsig[from]=sg;
+  Object.defineProperty(al, 'fresh', {value:fresh, enumerable:false});
+  return al;
+}
+// Re-point every destination the given states name. Returns how many were changed.
+function destRemap(states, al){
+  if(!Object.keys(al||{}).length) return 0;
+  let n=0; const seen=[];
+  states.forEach(function(st){
+    if(!st || seen.indexOf(st)>=0) return; seen.push(st);
+    const D=st.dest; if(!D || typeof D!=='object') return;
+    Object.keys(D).forEach(function(id){ const v=D[id]; if(!v || typeof v!=='object') return;
+      if(v.to && al[v.to]){ v.to=al[v.to]; n++; }
+      if(v.end && al[v.end]){ v.end=al[v.end]; n++; } });
+  });
+  return n;
+}
+function destStoreStates(st){ return Object.keys((st&&st.years)||{}).map(function(y){ return st.years[y]; }); }
+function destCycStates(){
+  const out=[];
+  Object.keys((CYCDB&&CYCDB.cycles)||{}).forEach(function(k){ out.push.apply(out, destStoreStates(CYCDB.cycles[k])); });
+  return out;
+}
+// READING A PLAN THROUGH ITS LIST, once, whenever the plan on screen is not already the board's:
+// at opening, and after anything replaces it wholesale (an import, the shared folder, a package).
+// Its keys are re-pointed and it takes the board's list, in memory; the next save writes it, and
+// until then a reopen reads the same list the same way. Its locked cycles, written against that
+// list too, are re-pointed with it -- ONCE, marked, and kept at once, because an old key can be
+// another destination's new one and a second pass would move it again. The other appropriations'
+// lists are read too, for the names only; their plans keep their own keys until they open.
+function destMigrate(){
+  if(!_destReady || _destBusy || typeof MS==='undefined' || !MS) return;
+  const ap=mySlug();
+  const mine=!!(MS.flow && MS.flow.dv && MS.flow.ents===DESTDB.ents);
+  const cyc=!CYCDB || !CYCDB.cycles || (CYCDB.dv && CYCDB.ents===DESTDB.ents);
+  if((mine || CYCVIEW) && (cyc || CYCVIEW) && _destOthers && DESTDB.ents.length) return;
+  _destBusy=true;
+  try{
+    let keep=false;
+    if(!CYCVIEW && !mine){
+      const L=destListOf(MS), states=destStoreStates(MS);
+      if(typeof S!=='undefined' && S) states.push(S);
+      const al=destFold(L.list, ap, L.v186, destRefs(states));
+      destRemap(states, al);
+      if(al.fresh) keep=true;
+      // flowCfg(), not a bare object: the list used to be asked for through it on every render, and
+      // that is what gave a plan its funds-flow settings -- a plan saved without them would read
+      // them back as defaults on reopening, a value that did not survive the trip
+      const C=flowCfg();
+      C.ents=DESTDB.ents; C.dv=1;
+    }
+    if(!CYCVIEW && !cyc){
+      const states=destCycStates();
+      let al;
+      if(CYCDB.dv && Array.isArray(CYCDB.ents)) al=destFold(CYCDB.ents, ap, true, destRefs(states));
+      else { const sg=DESTDB.lsig[ap]; al=Object.assign({}, (sg && DESTDB.lmap[sg])||{}); }
+      const n=destRemap(states, al);
+      CYCDB.dv=1; CYCDB.ents=DESTDB.ents;
+      if(n){ keep=true; persistCyc(); }
+    }
+    if(!_destOthers){
+      _destOthers=true;
+      APPN_SLUGS.forEach(function(o){
+        if(o===ap) return;
+        let st=null; try{ st=pkgStoreOf(o); }catch(e){ st=null; }
+        if(!st || st===MS) return;
+        const L=destListOf(st);
+        if(L.v186 || (st.flow && Array.isArray(st.flow.ents) && st.flow.ents.length)){
+          const al=destFold(L.list, o, L.v186, destRefs(destStoreStates(st)));
+          if(al.fresh) keep=true;
+        }
+      });
+    }
+    if(!DESTDB.ents.length){
+      flowDefEnts().forEach(function(e){ DESTDB.ents.push(e); });
+      if(MS.flow) MS.flow.ents=DESTDB.ents;
+    }
+    if(keep) persistDest();
+  } finally { _destBusy=false; }
+}
+// A SUBMITTAL FROM A PMO COPY names destinations by the copy's list. A copy on v1.86 sends that list
+// with it; one published before carries the appropriation's old list, read as it was read here.
+function destPkgIn(pkg){
+  const refs={};
+  const each=function(fn){
+    [pkg.items, pkg.base].forEach(function(m){ Object.keys(m||{}).forEach(function(id){ if(m[id] && m[id].dest && typeof m[id].dest==='object') fn(m[id].dest); }); });
+    (pkg.added||[]).forEach(function(a){ if(a && a.dest && typeof a.dest==='object') fn(a.dest); });
+  };
+  each(function(d){ if(d.to) refs[d.to]=1; if(d.end) refs[d.end]=1; });
+  let al;
+  if(Array.isArray(pkg.dest)){ al=destFold(pkg.dest, pkg.ap||mySlug(), true, refs); if(al.fresh) persistDest(); }
+  else { const sg=DESTDB.lsig[pkg.ap||mySlug()]; al=(sg && DESTDB.lmap[sg])||{}; }
+  each(function(d){ if(d.to && al[d.to] && al[d.to]!==d.to) d.to=al[d.to]; if(d.end && al[d.end] && al[d.end]!==d.end) d.end=al[d.end]; });
 }
 function flowEnt(k){ return flowEnts().filter(function(e){ return e.k===k; })[0] || null; }
 // How many requirements point at this destination, on either hop. Asked before a delete, because
 // the money would otherwise move to "Not yet assigned" with nothing said.
 function flowEntUse(k){
-  let n=0;
-  Object.keys(S.dest||{}).forEach(function(id){
-    const d=S.dest[id]||{};
-    if(d.to===k || d.end===k) n++;
+  let n=0; const seen=[];
+  [S].concat(destStoreStates(MS)).forEach(function(st){
+    if(!st || seen.indexOf(st)>=0) return; seen.push(st);
+    Object.keys(st.dest||{}).forEach(function(id){ const d=st.dest[id]||{}; if(d.to===k || d.end===k) n++; });
   });
   return n;
 }
+// Everywhere ELSE that points at it, {where: requirements}: the other appropriations' plans and
+// their locked cycles, and this appropriation's own locked cycles -- history a delete here would
+// otherwise leave naming nothing. A plan or cycle not yet opened on v1.86 still names destinations
+// by its appropriation's old keys, so it is read through that list.
+// Read once for the whole list, {board key: {where: requirements}}: each other plan is a large parse.
+function flowEntUseMap(){
+  const out={};
+  const add=function(where, states, tr){
+    states.forEach(function(ys){ Object.keys((ys&&ys.dest)||{}).forEach(function(id){ const d=ys.dest[id]||{};
+      const seen={};
+      [d.to, d.end].forEach(function(x){ const k=x? tr(x) : ''; if(!k || seen[k]) return; seen[k]=1;
+        const o=out[k]||(out[k]={}); o[where]=(o[where]||0)+1; }); }); });
+  };
+  const same=function(x){ return x; };
+  const viaOld=function(m){ return function(x){ return Object.prototype.hasOwnProperty.call(m, x)? m[x] : ''; }; };
+  Object.keys((CYCDB&&CYCDB.cycles)||{}).sort().forEach(function(c){
+    add(appnName(mySlug())+' locked '+blLbl(c), destStoreStates(CYCDB.cycles[c]), same);
+  });
+  APPN_SLUGS.forEach(function(ap){
+    if(ap===mySlug()) return;
+    let st=null; try{ st=pkgStoreOf(ap); }catch(x){ st=null; }
+    if(st && st.years){
+      const L=destListOf(st);
+      add(appnName(ap), destStoreStates(st), L.v186? same : viaOld(DESTDB.lmap[destSig(L.list)]||{}));
+    }
+    let cs=null; try{ cs=cycStoreOf(ap).c; }catch(x){ cs=null; }
+    if(cs && cs.cycles){
+      const sg=DESTDB.lsig[ap];
+      const tr=(cs.dv && Array.isArray(cs.ents))? same : viaOld((sg && DESTDB.lmap[sg])||{});
+      Object.keys(cs.cycles).sort().forEach(function(c){ add(appnName(ap)+' locked '+blLbl(c), destStoreStates(cs.cycles[c]), tr); });
+    }
+  });
+  return out;
+}
+function flowEntUseElse(k, M){ return ((M||flowEntUseMap())[k])||{}; }
+function flowEntUseElseTxt(U){ return Object.keys(U).map(function(w){ return w+' ('+U[w]+')'; }).join(', '); }
 function flowSetEnt(i, field, v){
   const L=flowEnts(), e=L[i]; if(!e) return;
-  if(field==='kind'){ e.kind=(v==='prime'?'prime':(v==='gov'?'gov':'other')); }
+  if(field==='kind'){ e.kind=(v==='prime'?'prime':(v==='gov'?'gov':'other'));
+    DESTDB.conflicts=DESTDB.conflicts.filter(function(c){ return c.k!==e.k; }); }
   else e[field]=String(v==null?'':v);
-  save(); render();
+  persistDest(); save(); render();
 }
 function flowAddEnt(){
   const L=flowEnts();
-  let n=1; while(L.some(function(e){ return e.k==='x'+n; })) n++;
-  L.push({k:'x'+n, n:'New destination', kind:'other', t:''});
-  save(); render();
-  setStat('📍 Added a destination — name it, and give it match terms if you want the '
-    +'chart to recognise it in the source file as well.');
+  L.push({k:destNewKey(), n:'New destination', kind:'other', t:''});
+  persistDest(); save(); render();
+  setTimeout(function(){ const el=document.querySelector('[data-destnew]'); if(el){ try{ el.focus(); el.select(); }catch(e){} } }, 0);
+  setStat('📍 Added a destination for every appropriation — name it, and give it match terms if you '
+    +'want the chart to recognise it in the source file as well.');
 }
 function flowDelEnt(i){
   const L=flowEnts(), e=L[i]; if(!e) return;
-  const used=flowEntUse(e.k);
+  const used=flowEntUse(e.k), elsewhere=flowEntUseElse(e.k);
+  if(Object.keys(elsewhere).length){
+    alert(e.n+' is not removed.\n\nThe list is shared by every appropriation, and requirements point at it on '
+      +flowEntUseElseTxt(elsewhere)+'.\n\nPoint a working plan\u2019s requirements elsewhere first. A locked cycle is '
+      +'a fixed point, so a destination one of them names stays on the list.');
+    return;
+  }
   if(!confirm('Remove '+e.n+'?\n\n'
       +(used? used+' requirement'+(used===1?'':'s')+' point'+(used===1?'s':'')+' at it. '
         +'Removing it clears them, and that money moves to "Not yet assigned" in the funds flow.\n\n'
         : 'Nothing points at it.\n\n')
       +'Remove it?')) return;
   // clear the references rather than leave them dangling: a destination key with no entity behind
-  // it resolves to the unassigned branch anyway, but silently — this makes it a stated outcome
-  Object.keys(S.dest||{}).forEach(function(id){
-    const d=S.dest[id]||{};
-    if(d.to===e.k) d.to='';
-    if(d.end===e.k) d.end='';
-    if(!d.to && !d.end) delete S.dest[id];
+  // it resolves to the unassigned branch anyway, but silently — this makes it a stated outcome.
+  // Every year this appropriation holds, not only the one on screen (v1.86).
+  const seen=[];
+  [S].concat(destStoreStates(MS)).forEach(function(st){
+    if(!st || seen.indexOf(st)>=0) return; seen.push(st);
+    Object.keys(st.dest||{}).forEach(function(id){
+      const d=st.dest[id]||{};
+      if(d.to===e.k) d.to='';
+      if(d.end===e.k) d.end='';
+      if(!d.to && !d.end) delete st.dest[id];
+    });
   });
   L.splice(i,1);
-  save(); render();
+  if(DESTDB.gone.indexOf(e.k)<0) DESTDB.gone.push(e.k);
+  DESTDB.conflicts=DESTDB.conflicts.filter(function(c){ return c.k!==e.k; });
+  persistDest(); save(); render();
   setStat('📍 Removed <b>'+esc(e.n)+'</b>'
     +(used? ' and cleared it from '+used+' requirement'+(used===1?'':'s')+' — that money is now '
        +'<b>not yet assigned</b>.' : '.'));
 }
 function flowResetEnts(){
+  const keep={}; flowDefEnts().forEach(function(e){ keep[e.k]=1; });
+  const UM=flowEntUseMap();
+  const busy=flowEnts().filter(function(e){ return !keep[e.k]; })
+    .map(function(e){ const U=flowEntUseElse(e.k, UM); return Object.keys(U).length? e.n+' \u2014 '+flowEntUseElseTxt(U) : ''; })
+    .filter(Boolean);
+  if(busy.length){
+    alert('The list is not reset.\n\nIt is shared by every appropriation, and these destinations are in use '
+      +'elsewhere:\n\n  '+busy.join('\n  ')+'\n\nPoint a working plan\u2019s requirements elsewhere first. A '
+      +'locked cycle is a fixed point, so a destination one of them names stays on the list.');
+    return;
+  }
   if(!confirm('Reset the destination list to the seeded one?\n\n'
-    +'Destinations you added are removed and any requirement pointing at one is cleared.')) return;
-  flowCfg().ents=flowDefEnts();
+    +'It is shared by every appropriation. Destinations you added are removed and any requirement on '
+    +'this appropriation pointing at one is cleared.')) return;
+  DESTDB.ents.forEach(function(e){ if(!keep[e.k] && DESTDB.gone.indexOf(e.k)<0) DESTDB.gone.push(e.k); });
+  DESTDB.ents=flowDefEnts(); DESTDB.conflicts=[];
+  flowCfg().ents=DESTDB.ents; flowCfg().dv=1;
   const valid={}; flowEnts().forEach(function(e){ valid[e.k]=1; });
-  Object.keys(S.dest||{}).forEach(function(id){
-    const d=S.dest[id]||{};
-    if(d.to && !valid[d.to]) d.to='';
-    if(d.end && !valid[d.end]) d.end='';
-    if(!d.to && !d.end) delete S.dest[id];
+  const seen=[];
+  [S].concat(destStoreStates(MS)).forEach(function(st){
+    if(!st || seen.indexOf(st)>=0) return; seen.push(st);
+    Object.keys(st.dest||{}).forEach(function(id){
+      const d=st.dest[id]||{};
+      if(d.to && !valid[d.to]) d.to='';
+      if(d.end && !valid[d.end]) d.end='';
+      if(!d.to && !d.end) delete st.dest[id];
+    });
   });
-  save(); render();
+  persistDest(); save(); render();
 }
 function flowEntName(k){ const e=flowEnt(k); return e? e.n : ''; }
 const DEST_NONE='unassigned';
@@ -11280,8 +12108,9 @@ function flowResetCats(){ flowCfg().cats=flowDefCats(); save(); render(); }
 // placed. A destination with no terms is only ever reached by logging it on a requirement.
 function flowEntEditor(){
   const L=flowEnts();
+  const cf=(DESTDB.conflicts||[]).filter(function(c){ return flowEnt(c.k); });
   let h='<div style="border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin:8px 0;background:var(--panel2)">'
-    +'<div style="font-size:9.5px;color:var(--dim);margin-bottom:7px">Where money can go. '
+    +'<div style="font-size:9.5px;color:var(--dim);margin-bottom:7px">One list for every appropriation, A to Z. Where money can go. '
     +'<b>Kind</b> decides which requirements can route <i>through</i> it: only a <b>government '
     +'activity</b> offers the second hop, because only a MIPR passes through one on its way to a '
     +'contractor.</div>'
@@ -11293,9 +12122,14 @@ function flowEntEditor(){
     +'<th style="text-align:left;width:20%">Kind</th>'
     +'<th style="text-align:left;width:26%">Match terms (optional)</th>'
     +'<th style="width:17%">Used by</th><th style="width:7%"></th></tr>';
-  L.forEach(function(e,i){
-    const used=flowEntUse(e.k);
-    h+='<tr><td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%" '
+  const UM=flowEntUseMap();
+  // A to Z, but a destination nobody has named yet reads first, ready to be named -- among thirty it
+  // would otherwise land somewhere under N
+  const AZ=flowEntsAZ();
+  AZ.filter(function(e){ return !destNamed(e.n); }).concat(AZ.filter(function(e){ return destNamed(e.n); })).forEach(function(e){
+    const i=L.indexOf(e), used=flowEntUse(e.k), U=flowEntUseElse(e.k, UM), uT=flowEntUseElseTxt(U);
+    h+='<tr><td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%'
+      +(destNamed(e.n)? '"' : ';outline:2px solid var(--amber)" data-destnew="1"')+' '
       +'value="'+esc(e.n)+'" onchange="flowSetEnt('+i+',&quot;n&quot;,this.value)"></td>'
       +'<td style="text-align:left"><select class="btn" style="font-size:9.5px;padding:3px 6px" '
       +'onchange="flowSetEnt('+i+',&quot;kind&quot;,this.value)">'
@@ -11304,10 +12138,16 @@ function flowEntEditor(){
       +'</select></td>'
       +'<td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%" '
       +'value="'+esc(e.t||'')+'" onchange="flowSetEnt('+i+',&quot;t&quot;,this.value)"></td>'
-      +'<td style="font-size:9.5px;color:'+(used?'var(--ink)':'var(--dim)')+'">'+(used||'—')+'</td>'
+      +'<td style="font-size:9.5px;color:'+((used||uT)?'var(--ink)':'var(--dim)')+'" title="requirements pointing at it: here, and on the other appropriations">'
+      +(used||(uT?'':'—'))+(uT? (used?' · ':'')+esc(uT) : '')+'</td>'
       +'<td><button class="qb" style="color:var(--red)" onclick="flowDelEnt('+i+')" title="remove">✕</button></td></tr>';
   });
-  h+='</table><div style="margin-top:7px">'
+  h+='</table>'
+    +(cf.length? '<div style="font-size:9.5px;color:var(--amber);margin-top:6px">\u26a0 Named with a different kind on another appropriation: '
+      +cf.map(function(c){ const e=flowEnt(c.k); return esc(e.n)+' ('+esc(c.from==='import'? 'an imported file' : appnName(c.from))+' had '
+        +esc({prime:'Contractor', gov:'Government activity', other:'Other'}[c.kind]||c.kind)+')'; }).join(' \u00b7 ')
+      +'. The kind shown here is the one in use; set it to settle.</div>' : '')
+    +'<div style="margin-top:7px">'
     +'<button class="btn" style="font-size:9.5px;padding:4px 9px" onclick="flowAddEnt()">+ add a destination</button> '
     +'<button class="btn" style="font-size:9.5px;padding:4px 9px" onclick="flowResetEnts()">reset the list</button>'
     +'</div></div>';
@@ -14226,7 +15066,7 @@ function setMinInc(id,v){ const n=parseAmt(v); if(n===null||n<=0) delete S.minIn
 function setCons(id,v){ v=(v||'').trim(); if(v) S.cons[id]=v; else delete S.cons[id]; save(); render(); }
 let consOpen={};
 function toggleCons(id){ if(fldHasPanel()){ openFld(id,'cons'); return; } consOpen[id]=!consOpen[id]; render(); }
-// ONE POP-UP FOR THE THREE WRITTEN FIELDS. Note, Description and Impact used to expand the row in
+// THE POP-UP FOR THE WRITTEN FIELDS. Note, Description and Impact used to expand the row in
 // place. That is right on a board with nowhere else to put them, and wrong on one where the RECORD
 // panel is two inches away: the edit belongs with the rest of the requirement's fields, not wedged
 // into the middle of the priority list.
@@ -14236,20 +15076,28 @@ function toggleCons(id){ if(fldHasPanel()){ openFld(id,'cons'); return; } consOp
 // thing that actually differs, so asking for it keeps one implementation instead of two that drift.
 let fldOpen=null;                 // {id, kind}, or null when nothing is being edited
 function fldHasPanel(){ return !!document.getElementById('inspector'); }
-const FLD_DEF={
-  cons:{ lbl:'\u26a0 Impact if not funded', set:'setCons',
+// DESCRIPTION AND NOTE SHARE ONE POP-UP (v1.86), the description first and the note under it, one
+// Save -- but not one field. Each is still kept, journalled, submitted from a PMO copy, reviewed and
+// exported as itself, and a Save writes only the box whose text changed, so saving the description
+// never re-stamps the note as edited, or blanks it.
+const FLD_PARTS={
+  cons:{ k:'cons', lbl:'', set:'setCons',
          get:function(id){ return (S.cons||{})[id]||''; },
          ph:function(it){ const b=BAND_DEF(it.id);
            return 'If this is NOT funded, what happens and when? '
              +(b && b.consReq? 'Required for '+b.n+' \u2014 this text becomes the UFR justification.'
                              : 'Feeds the UFR if this falls below the line.'); } },
-  desc:{ lbl:'\ud83d\udcc4 Description', set:'setDesc',
+  desc:{ k:'desc', lbl:'Description \u2014 what shows on the spend plan read-out', set:'setDesc',
          get:function(id){ return (S.desc||{})[id]||''; },
          ph:function(it){ return 'What is '+dispTitle(it)+' for? Plain-language description \u2014 this '
              +'is what shows up on the spend plan read-out.'; } },
-  note:{ lbl:'\ud83d\udcdd Note', set:'setNote',
+  note:{ k:'note', lbl:'Note \u2014 for the board, not the read-out', set:'setNote',
          get:function(id){ return S.notes[id]||''; },
          ph:function(it){ return 'Notes for '+dispTitle(it)+' \u2014 decisions, caveats, taskers\u2026'; } }
+};
+const FLD_DEF={
+  cons:{ lbl:'\u26a0 Impact statement', parts:[FLD_PARTS.cons] },
+  dn:  { lbl:'\ud83d\udcc4 Description & note', parts:[FLD_PARTS.desc, FLD_PARTS.note] }
 };
 function openFld(id, kind){ fldOpen={id:id, kind:kind}; fldBody(); }
 function fldClose(){ fldOpen=null; fldBody(); }
@@ -14266,22 +15114,88 @@ function fldBody(){
   if(t) t.innerHTML=esc(D.lbl)+'  <span style="font-weight:600;text-transform:none;letter-spacing:0;'
     +'color:var(--mut)">'+esc(dispTitle(it))+'</span>'
     +'<button class="x" onclick="fldClose()">\u2715 Close</button>';
-  el.innerHTML='<textarea id="fldVal" style="width:100%;min-height:190px" placeholder="'
-    +esc(D.ph(it))+'">'+esc(D.get(it.id))+'</textarea>'
+  const two=D.parts.length>1;
+  el.innerHTML=D.parts.map(function(p, i){
+      return (p.lbl? '<label for="fld-'+p.k+'" style="display:block;font-size:9.5px;font-weight:800;letter-spacing:.06em;'
+          +'text-transform:uppercase;color:var(--mut);margin:'+(i? '10px' : '0')+' 0 4px">'+esc(p.lbl)+'</label>' : '')
+        +'<textarea id="fld-'+p.k+'" style="width:100%;min-height:'+(two? (i? 110 : 150) : 190)+'px" placeholder="'
+        +esc(p.ph(it))+'">'+esc(p.get(it.id))+'</textarea>'; }).join('')
     +'<div class="fr" style="margin-top:9px">'
     +'<button class="btn pub" onclick="fldSave()">\u2714 Save</button>'
     +'<button class="btn" onclick="fldClose()">Cancel</button>'
-    +'<span class="hint">Saved against this requirement and written into the board.</span></div>';
-  setTimeout(function(){ try{ document.getElementById('fldVal').focus(); }catch(e){} }, 50);
+    +'<span class="hint">'+(two? 'Each is kept as its own field; only what you changed is written.'
+                               : 'Saved against this requirement and written into the board.')+'</span></div>';
+  setTimeout(function(){ try{ document.getElementById('fld-'+D.parts[0].k).focus(); }catch(e){} }, 50);
 }
+// the text as a textarea hands it back, for asking whether it changed
+function fldSame(a, b){ return String(a==null?'':a).replace(/\r\n?/g,'\n')===String(b==null?'':b).replace(/\r\n?/g,'\n'); }
 function fldSave(){
   if(!fldOpen) return;
-  const D=FLD_DEF[fldOpen.kind], a=document.getElementById('fldVal');
-  if(!D||!a) return;
-  const id=fldOpen.id, v=a.value;
+  const D=FLD_DEF[fldOpen.kind];
+  if(!D) return;
+  const id=fldOpen.id;
+  // every box is read BEFORE the pop-up closes: the setter renders, and render() draws it away
+  const vals=D.parts.map(function(p){ const a=document.getElementById('fld-'+p.k); return a? a.value : null; });
+  if(vals.some(function(v){ return v===null; })) return;
   fldOpen=null;              // close FIRST: the setter renders, and render() draws this panel
-  window[D.set](id, v);
+  const todo=D.parts.filter(function(p, i){ return !fldSame(vals[i], p.get(id)); });
+  if(!todo.length){ fldBody(); return; }
+  D.parts.forEach(function(p, i){ if(todo.indexOf(p)>=0) window[p.set](id, vals[i]); });
 }
+// ---- 📖 HELP: THE GUIDE, INSIDE THE FILE (v1.86) --------------------------------------------------------
+// Brad, 25 Sep 2026: "Can we add the help file to the tool itself so that when we push it out, everyone
+// has access to it?" -- and -- "I don't want it to automatically pop up but I want it to be available."
+// The guide travels in the board file, every board and every PMO copy, so there is no link to share and
+// no PDF to send with it, and it can never say a different version from the board it is in. Two parts,
+// for programme offices and for the portfolio team. It opens ONLY from a 📖 button, on its contents;
+// it loads nothing from outside the file, keeps nothing, and moves no figure. Where the two builds
+// differ -- the grid's RECORD panel, the card's row -- a paragraph says which build it is for (data-b),
+// and only this build's shows. Every menu path it names is marked (.mp, data-m) and every button (.bt,
+// data-q), and tools/menu-paths.mjs checks each against the menus and bars of both builds. The web page
+// and the Teams PDF are made from this same text.
+let helpOpen=false, helpAt='';
+const HELP_PARTS=[['office','For programme offices','Working in a PMO copy, and sending your input back'],
+                  ['team','For the portfolio team','Copies and submittals, a new version, allocating, the spend plan']];
+function openHelp(at){ helpOpen=true; helpAt=at||''; helpBody(); }
+function helpClose(){ helpOpen=false; helpAt=''; helpBody(); }
+function helpGo(at){ helpAt=at||''; helpBody(); const b=document.getElementById('helpBody'); if(b) b.scrollTop=0; }
+function helpSections(){
+  const t=document.getElementById('helpDoc'); if(!t || !t.content) return [];
+  const build=fldHasPanel()? 'grid' : 'card';
+  const box=document.createElement('div'); box.appendChild(t.content.cloneNode(true));
+  box.querySelectorAll('[data-b]').forEach(function(n){ if(n.getAttribute('data-b')!==build) n.remove(); });
+  return [...box.querySelectorAll('section')].map(function(s){
+    return {id:s.getAttribute('data-id'), part:s.getAttribute('data-part'), t:s.getAttribute('data-t'), el:s}; });
+}
+function helpBody(){
+  const bg=document.getElementById('helpPanel'), el=document.getElementById('helpBody'); if(!bg||!el) return;
+  bg.className='modal-bg'+(helpOpen?' open':'');
+  if(!helpOpen){ el.innerHTML=''; return; }
+  const v=document.getElementById('helpVer'); if(v) v.textContent=BUILD;
+  const all=helpSections();
+  const s=all.filter(function(x){ return x.id===helpAt; })[0];
+  if(!s){
+    // THE CONTENTS, both parts. A PMO copy opens on the offices' part.
+    const on=(helpAt==='office' || helpAt==='team')? helpAt : (SANDBOX? 'office' : '');
+    el.innerHTML='<p class="hx-lead">This guide is part of the board file, so it matches the board you have open: '
+      +esc(BUILD)+'. Pick a section; <b>‹ Contents</b> brings you back here.</p><div class="hx-toc">'
+      +HELP_PARTS.map(function(p){
+        return '<div class="hx-part'+(on===p[0]?' on':'')+'"><div class="hx-ph">'+esc(p[1])+'</div><div class="hx-ps">'+esc(p[2])+'</div><ol>'
+          +all.filter(function(x){ return x.part===p[0]; }).map(function(x){
+            return '<li><a href="#" onclick="helpGo(&quot;'+x.id+'&quot;);return false">'+esc(x.t)+'</a></li>'; }).join('')
+          +'</ol></div>'; }).join('')+'</div>';
+    return;
+  }
+  const same=all.filter(function(x){ return x.part===s.part; }), i=same.indexOf(s);
+  const P=HELP_PARTS.filter(function(p){ return p[0]===s.part; })[0];
+  const nav='<div class="hx-nav"><a href="#" onclick="helpGo(&quot;'+s.part+'&quot;);return false">‹ Contents</a><span>'+esc(P? P[1] : '')+' · '+(i+1)+' of '+same.length+'</span>'
+    +(i>0? '<a href="#" onclick="helpGo(&quot;'+same[i-1].id+'&quot;);return false">← '+esc(same[i-1].t)+'</a>' : '')
+    +(i<same.length-1? '<a href="#" onclick="helpGo(&quot;'+same[i+1].id+'&quot;);return false">'+esc(same[i+1].t)+' →</a>' : '')+'</div>';
+  el.innerHTML=nav+'<h2>'+esc(s.t)+'</h2>'+s.el.innerHTML;
+  el.querySelectorAll('a[data-go]').forEach(function(a){ a.setAttribute('href','#');
+    a.onclick=function(){ helpGo(a.getAttribute('data-go')); return false; }; });
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape' && helpOpen){ e.preventDefault(); helpClose(); } });
 function consBox(it){
   const b=BAND_DEF(it.id);
   return `<div class="note-detail cons"><textarea placeholder="If this is NOT funded, what happens and when? ${b.consReq?'Required for '+esc(b.n)+' — this text becomes the UFR justification.':'Feeds the UFR if this falls below the line.'}"
@@ -16817,50 +17731,9 @@ function toggleCr(){
   render();
 }
 function crRows(){
-  // generalized: bucket rows by Service or by PMO (prime contracts roll to owning PMOs)
-  if(crBy==='svc') return {keys:SVC.slice(), data:crData(scenOpt())};
-  const T=tiers();
-  const ms=FYMON.slice(0,6);
-  const mi={}; ms.forEach(([ym],i)=>mi[ym]=i);
-  const mk=()=>({win:Array(12).fill(0), nodate:0, tot:0, items:[]});
-  const byG={}; const MR=masterRanks();
-  S.order.forEach(id=>{
-    const it=itemById(id), p=T[id]; if(!it||!p) return;
-    pmoSharesOf(it).forEach(([g,frac])=>{
-      const fSv=SVC.map((s,i)=>(p.d[i]+p.m[i])*(frac?frac[i]:1));
-      const fT=fSv.reduce((a,b)=>a+b,0);
-      if(fT<=0.005) return;
-      if(!byG[g]) byG[g]=mk();
-      const bag=byG[g];
-      const aw=S.awards[id];
-      bag.tot+=fT;
-      const row={id, rank:MR[id], title:dispTitle(it), ccar:ccarOf(it), wins:Array(12).fill(0), months:[]};
-      let placed=false;
-      if(aw){
-        if(aw.mode==='inc'&&aw.inc&&aw.inc.length){
-          SVC.forEach((s,i)=>{
-            if(fSv[i]<=0) return;
-            const w=aw.inc.map(x=>Array.isArray(x.sv)?(x.sv[i]||0):((x.v||0)/SVC.length));
-            const ws=w.reduce((a,b)=>a+b,0);
-            if(ws<=0){ bag.nodate+=fSv[i]; return; }
-            aw.inc.forEach((x,j)=>{ if(mi[x.d]===undefined) return;
-              const half=(S.crHalf[id]&&S.crHalf[id][x.d])?1:0;
-              const wi=mi[x.d]*2+half; const amt=fSv[i]*w[j]/ws;
-              bag.win[wi]+=amt; row.wins[wi]+=amt; placed=true; });
-          });
-        } else if(aw.d && mi[aw.d]!==undefined){
-          const half=(S.crHalf[id]&&S.crHalf[id][aw.d])?1:0;
-          const wi=mi[aw.d]*2+half;
-          bag.win[wi]+=fT; row.wins[wi]+=fT; placed=true;
-        } else if(aw.d){ /* outside window */ }
-        else bag.nodate+=fT;
-      } else bag.nodate+=fT;
-      if(placed) bag.items.push(row);
-    });
-  });
-  Object.values(byG).forEach(b=>b.items.sort((a,c)=>(a.rank||9e9)-(c.rank||9e9)));
-  const keys=GROUPS.filter(g=>byG[g]);
-  return {keys, data:keys.map(g=>byG[g])};
+  // By Service or by PMO (prime contracts roll to owning PMOs). BOTH follow the view (v1.86): By PMO
+  // used to walk the funded plan whatever the switch said, beside a By Service that followed it.
+  return crBuckets(scenOpt(), crBy==='svc'? 'svc' : 'pmo');
 }
 function crBody(){
   const el=document.getElementById('crBody');
@@ -16907,7 +17780,8 @@ function crBody(){
   h+='<tr class="tot"><td style="text-align:left">TOTAL</td>'+totF.map(cell).join('')+'<td style="border-left:1px solid var(--amber)">'+(totND>5e3?fM2(totND):'\u2014')+'</td><td style="border-left:1px solid var(--gold)">'+fM2(totT)+'</td></tr>';
   h+='<tr class="tot" style="opacity:.9"><td style="text-align:left">CUMULATIVE (cash needed through\u2026)</td>'+totF.map(v=>{cum+=v;return '<td>'+fM2(cum)+'</td>';}).join('')+'<td></td><td></td></tr></table>';
   el.innerHTML=h
-    +'<div class="hint" style="margin-top:8px">Cash = funded dollars (Disc + Mand drawn) placed by each requirement\u2019s obligation dates. Month-dated obligations default to the 1\u201315 window \u2014 click a service to open its requirements, then click any amount to flip it to the 16\u2013EOM half. "No date" = funded but no award/obligation date set (fix in the requirement\u2019s detail view). Obligations after March fall outside the CR window and are excluded.</div>';
+    +'<div class="hint" style="margin-top:8px">Cash = funded dollars (Disc + Mand drawn) placed by each requirement\u2019s obligation dates, the same way the forecast places them: increments are discretionary dollars as typed, and mandatory lands on the requirement\u2019s own dates. Month-dated obligations default to the 1\u201315 window \u2014 click a row to open its requirements, then click any amount to flip it to the 16\u2013EOM half. "No date" = funded with no date in this fiscal year: no award date, discretionary the increments have not yet placed, or a date outside the year (fix in the requirement\u2019s award schedule). Obligations after March fall outside the CR window and are excluded.'
+      +(scenOn()? ' <b style="color:var(--amber)">\u25e8 '+esc(SCEN_TAG)+' \u2014 a what-if.</b>' : '')+'</div>';
 }
 let fcOpen=false;
 function toggleFc(){
@@ -17325,6 +18199,7 @@ function scoreboard(){
     lc('disc','fits in disc',FC.disc,'var(--green)')+
     lc('mand','spills to mand',FC.mand,'var(--purp)')+
     lc('unf','unfunded',FC.unf,'var(--red)')+
+    ndStripChip()+
     (laneFilter? '<span class="lanechip" onclick="laneFilter=\'\';render()">\u2715 clear</span>':'')+
     absorbLine(AB);
   const sh=svcShort(T);
@@ -17684,7 +18559,7 @@ function fitChartSvg(T){
     SVC.forEach((sv,i)=>{ d[i]+=p.d[i]; m[i]+=p.m[i]; u[i]+=uv[i]; });
     it.ask.forEach((v,i)=>ask[i]+=v);
   });
-  const dBA=SVC.map((sv,i)=>(S.discSvc||[])[i]||0), mBA=SVC.map((sv,i)=>(S.mandSvc||[])[i]||0);
+  const dBA=SVC.map((sv,i)=>(S.discSvc||[])[i]||0), mBA=SVC.map((sv,i)=>scenMand(i));
   const max=Math.max(1, ...SVC.map((sv,i)=>Math.max(ask[i], dBA[i]+mBA[i])));
   // W sets the aspect, not the drawn size: the chart fills the width of its section (see
   // .chartwrap in the stylesheet). Wider intrinsic geometry means more plot per unit of height,
@@ -17786,7 +18661,9 @@ function svcSummary(){
   document.getElementById('gsArrow').textContent = gsOpen? '▾':'▸';
   const el=document.getElementById('gsBody');
   if(!gsOpen){ el.innerHTML=''; return; }
-  const T=tiers();
+  // THE CHART AND ITS TABLE FOLLOW THE ◨ SWITCH (v1.86), with every other view that shows both pots
+  // together; the Mission Critical measure is against discretionary and does not move with it.
+  const T=tiers(null, scenOpt());
   const d=SVC.map(_=>0), m=SVC.map(_=>0), u=SVC.map(_=>0), ask=SVC.map(_=>0);
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
@@ -17819,15 +18696,17 @@ function svcSummary(){
       <td style="color:var(--green)">${fM(dRem)}</td>
       <td style="color:var(--red);font-weight:700">${fM(mc[i])}</td>
       <td style="color:var(--amber);font-weight:700">${fM(mct[i])}</td>
-      <td title="effective ${s} mandatory BA — edit in 💰 Budget Management">${fM(S.mandSvc[i])}</td>
+      <td title="effective ${s} mandatory BA — edit in 💰 Budget Management">${fM(scenMand(i))}</td>
       <td style="color:var(--purp)">${fM(m[i])}</td>
       <td style="color:var(--purp)">${fM(mRem)}</td>
       <td style="color:${u[i]>0.5?'var(--red)':'var(--dim)'}">${fM(u[i])}</td></tr>`;
   });
   const Dt=d.reduce((a,b)=>a+b,0), MCt=mc.reduce((a,b)=>a+b,0), MCTt=mct.reduce((a,b)=>a+b,0), Mt=m.reduce((a,b)=>a+b,0), Ut=u.reduce((a,b)=>a+b,0), At=ask.reduce((a,b)=>a+b,0);
-  const DB=discTot(), MB=mandTot();
+  const DB=discTot(), MB=scenOn()? 0 : mandTot();
   const DR=T.__rem.dRem.reduce((a,b)=>a+Math.max(0,b),0), MRm=T.__rem.mRem.reduce((a,b)=>a+Math.max(0,b),0);
-  el.innerHTML=chart+`<table><tr><th>Service</th><th>${FYL()} Ask</th><th>Disc BA</th><th>Disc funded</th><th>Disc remaining</th><th style="color:var(--red)">★ Mission Critical need</th><th>Mission Critical Total</th><th>Mand BA</th><th>Mand drawn</th><th>Mand remaining</th><th>Unfunded</th></tr>
+  el.innerHTML=(scenOn()? '<div class="hint" style="margin:4px 0;color:var(--amber);font-weight:700">\u25e8 '+esc(SCEN_TAG)
+      +' \u2014 a what-if: mandatory is set aside, so what it would have paid shows as unfunded.</div>' : '')
+    +chart+`<table><tr><th>Service</th><th>${FYL()} Ask</th><th>Disc BA</th><th>Disc funded</th><th>Disc remaining</th><th style="color:var(--red)">★ Mission Critical need</th><th>Mission Critical Total</th><th>Mand BA</th><th>Mand drawn</th><th>Mand remaining</th><th>Unfunded</th></tr>
     ${rows}
     <tr class="tot"><td>TOTAL</td><td>${fM(At)}</td><td>${fM(DB)}</td><td>${fM(Dt)}</td><td>${fM(DR)}</td><td style="color:var(--red)">${fM(MCt)}</td><td style="color:var(--amber)">${fM(MCTt)}</td><td>${fM(MB)}</td><td>${fM(Mt)}</td><td>${fM(MRm)}</td><td>${fM(Ut)}</td></tr></table>
   <div style="padding:4px 14px 8px;font-size:9px;color:var(--dim)">LANE MODEL: walking the priority order, each service's allocation draws from that service's discretionary lane until it is exhausted, then spills into that service's mandatory lane — requirements and even single services can use both pots at once. ★ Mission Critical need (red) = the above-discretionary SHORTFALL of MC items; Mission Critical Total (amber) = the full dollars of all ★ MC requirements for that service. Unfunded = what neither lane could cover for that service.</div>`;
@@ -17963,7 +18842,7 @@ function pmoReassignHint(){
   const sel=(typeof curRow!=='undefined' && curRow && itemById(curRow))? curRow : null;
   if(sel && typeof toggleRec==='function'){ toggleRec(sel); return; }
   alert('A requirement\u2019s PMO is set on its own record.\n\n'
-    +'Open any requirement\u2019s \ud83d\udccb Record \u2014 the PMO field is the second one, under '
+    +'Open any requirement\u2019s \ud83d\udccb Requirement edit \u2014 the PMO field is the second one, under '
     +'\u201cWhat it is\u201d.\n\n'
     +'The move applies to '+FYL()+' only: the source file keeps its own answer and the record says '
     +'so. Its per-office rank travels with it, landing last in the office it joins.');
@@ -18008,9 +18887,10 @@ function awardBlockHtml(it){
       const aw=S.awards[it.id];
       const Tw=tiers(), pw=Tw[it.id]||{dT:0,mT:0};
       const funded=pw.dT+pw.mT;
-      // THE INCREMENT BALANCE TRACKS DISCRETIONARY ALONE. That is the pot being rationed and
-      // re-drilled; mandatory is spillover and is not what anyone is deciding an increment against.
-      // On a row with no mandatory draw these are the same number, which is most rows.
+      // THE BLOCK SCHEDULES THE WHOLE FUNDED AMOUNT (v1.86), the two pots shown apart. An increment is
+      // discretionary dollars, so the balance to schedule is discretionary's; mandatory needs nothing
+      // typed, because it rides these dates (landSvc) -- its own row says where it lands. So once the
+      // discretionary balance is clear, every funded dollar has a date.
       const discAl=pw.dT;
       const isInc=aw&&aw.mode==='inc';
       const incSum=isInc? (aw.inc||[]).reduce((a,x)=>a+incTot(x),0) : 0;
@@ -18025,7 +18905,7 @@ function awardBlockHtml(it){
       ${isInc? (()=>{
         const svTots=SVC.map((s,i)=>(aw.inc||[]).reduce((a,x)=>a+((x.sv||[])[i]||0),0));
         const fSv=SVC.map((s,i)=>pw.d[i]||0);              // discretionary allocated, per service
-        const mSv=SVC.map((s,i)=>pw.m[i]||0);              // mandatory, carried but not tracked here
+        const mSv=SVC.map((s,i)=>pw.m[i]||0);              // mandatory: rides the dates, its own row below
         return `<div style="margin-top:4px;overflow-x:auto"><table style="border-collapse:collapse;font-size:10px">
         <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${s}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--blue);padding:2px 6px" title="allocated dollars still unscheduled after this increment — the last one has to clear it">Remaining</th><th></th></tr>
         ${(()=>{ let run=discAl; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); return `<tr>
@@ -18037,17 +18917,20 @@ function awardBlockHtml(it){
         <tr><td style="padding:2px 6px;color:var(--dim);font-weight:700">Σ by service</td>
           ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${s}: increments ${fM(svTots[i])} vs funded ${fM(fSv[i])}">${fM(svTots[i])}</td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:${Math.abs(incSum-discAl)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td><td></td></tr>
-        <tr><td style="padding:2px 6px;color:var(--blue);font-weight:800" title="what the final mod still has to obligate, per service">Balance to schedule</td>
+        <tr><td style="padding:2px 6px;color:var(--blue);font-weight:800" title="discretionary the increments have not yet put on a date, per service">Balance to schedule — discretionary</td>
           ${SVC.map((s,i)=>{ const r=fSv[i]-svTots[i];
             return `<td style="padding:2px 6px;text-align:right;font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${s}: allocated ${fM(fSv[i])} less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'\u2014':fM(r)}</td>`; }).join('')}
           <td style="padding:2px 6px;font-weight:800;color:${Math.abs(discAl-incSum)<1?'var(--green)':(discAl-incSum<0?'var(--red)':'var(--blue)')}">${Math.abs(discAl-incSum)<1?'\u2713 $0':fM(discAl-incSum)}</td>
-          <td colspan="2" style="padding:2px 6px">${(Math.abs(discAl-incSum)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd('${it.id}')" title="put the whole remaining balance on the last increment, per service — the residual mod">\u21b5 put on last</button>`:''}</td></tr>
+          <td colspan="2" style="padding:2px 6px">${(Math.abs(discAl-incSum)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd('${it.id}')" title="put the remaining discretionary balance on the last increment, per service — the residual mod. Mandatory already rides the dates, so this schedules the whole funded amount.">\u21b5 put on last</button>`:''}</td></tr>
+        ${pw.mT>0.5? `<tr><td style="padding:2px 6px;color:var(--purp);font-weight:800" title="mandatory has no increments of its own: it lands on these dates, in each service's own increment proportions, or the requirement's where a service has none">Mandatory \u2014 rides these dates</td>
+          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${mSv[i]>0.5?'var(--purp)':'var(--dim)'}" title="${s}: ${fM(mSv[i])} of mandatory, ${svTots[i]>0.5? 'in the proportions of this service\u2019s increments' : 'in the proportions of the requirement\u2019s increments overall'}">${mSv[i]>0.5? fM(mSv[i]) : '\u2014'}</td>`).join('')}
+          <td style="padding:2px 6px;font-weight:800;color:var(--purp)">${fM(pw.mT)}</td><td colspan="2" style="padding:2px 6px;font-size:9px;color:var(--dim)">dated \u2713</td></tr>`:''}
         </table>
         <span style="display:inline-block;margin-top:4px">
           <input type="date" id="awdM-${it.id}" min="${fyMin()}" max="${fyMax()}" title="pick the new increment's date from the calendar">
           <button class="qb" onclick="addAwd('${it.id}')" title="add an increment at the picked date">＋ add date</button></span>
         <span style="font-size:9.5px;color:${Math.abs(incSum-discAl)<1?'var(--green)':'var(--amber)'};margin-left:8px">increments ${fM(incSum)} vs <b>discretionary allocated</b> ${fM(discAl)}${Math.abs(incSum-discAl)<1?' ✓':''}</span>
-        ${pw.mT>0.5? `<div style="font-size:9.5px;color:var(--dim);margin-top:2px">\u2139 ${fM(pw.mT)} of mandatory is also allocated here. These increments are <b>discretionary dollars</b> and the forecast places them as typed; the mandatory has no increments of its own, so it rides these same dates in the same proportions. Anything left on the Balance to schedule row forecasts as UNSCHEDULED.</div>`:''}
+        ${pw.mT>0.5? `<div style="font-size:9.5px;color:var(--dim);margin-top:2px">\u2139 ${fM(pw.mT)} of mandatory is also allocated here. These increments are <b>discretionary dollars</b> and every spend plan places them as typed; the mandatory has no increments of its own, so it lands on these same dates \u2014 in each service\u2019s own increment proportions, or, in a service with no increment, in the requirement\u2019s overall proportions. Nothing to type for it. Only discretionary left on the Balance to schedule row forecasts as UNSCHEDULED.</div>`:''}
         ${(Math.abs(discAl-incSum)>=1)? `<div style="font-size:9.5px;color:var(--blue);margin-top:2px">\u2139 ${fM(Math.max(0,discAl-incSum))} of discretionary is not on a date yet \u2014 it forecasts as UNSCHEDULED until it is.</div>`:''}
       </div>`;})():''}
     </div>`;
@@ -18060,11 +18943,6 @@ function svcTable(it){
   return '';
 }
 
-function noteBox(it){
-  const n=S.notes[it.id]||'';
-  return `<div class="note-detail"><textarea placeholder="Notes for ${esc(it.title)} — decisions, caveats, taskers…"
-    onchange="setNote('${it.id}',this.value)">${esc(n)}</textarea></div>`;
-}
 function setSvc(id,i,val){
   if(allocLocked()) return;
   const it=itemById(id);
@@ -18181,6 +19059,7 @@ function rowChipsHtml(it){
   { const ce=(S.costElem||{})[id];   // the store does not exist on a board without cost elements
     if(ce) h+='<span class="rchip" onclick="pickCostElem(&quot;'+id+'&quot;)" '
       +'title="cost element \u2014 click to change">'+esc(chipClip(ce))+'</span>'; }
+  h+=ndRowChip(id);      // v1.86: a typed figure higher than it draws
   h+='</div>';
   return h;
 }
@@ -18252,16 +19131,12 @@ function pickCostElem(id){
   });
 }
 function toggleDetail(id){ open[id]=!open[id]; render(); }
-function toggleNote(id){ if(fldHasPanel()){ openFld(id,'note'); return; } noteOpen[id]=!noteOpen[id]; render(); }
-function toggleDesc(id){ if(fldHasPanel()){ openFld(id,'desc'); return; } descOpen[id]=!descOpen[id]; render(); }
+// ONE POP-UP FOR BOTH, in both builds (v1.86): the card build used to open each under its row.
+function toggleNote(id){ openFld(id,'dn'); }
+function toggleDesc(id){ openFld(id,'dn'); }
 // Description = what this requirement IS, in plain words. Distinct from Notes, which carry
 // decisions, caveats and taskers. The description is what a spend-plan reader needs, so it is
 // carried into the exports that the printed spend plan will be built from.
-function descBox(it){
-  const d=(S.desc||{})[it.id]||'';
-  return `<div class="note-detail desc"><textarea placeholder="What is ${esc(it.title)} for? Plain-language description — this is what shows up on the spend plan read-out."
-    onchange="setDesc('${it.id}',this.value)">${esc(d)}</textarea></div>`;
-}
 function setDesc(id,val){
   if(!S.desc) S.desc={};
   val=(val||'').trim();
@@ -18685,7 +19560,7 @@ function recFields(id, it){
     recSel('setDest(&quot;'+id+'&quot;,&quot;to&quot;,this.value)',
       'Who receives this money first — a prime, or a government activity we MIPR to',
       '<option value=""'+(destOf(it).to?'':' selected')+'>— not logged —</option>'
-      +flowEnts().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).to===e.k?' selected':'')
+      +flowEntsAZ().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).to===e.k?' selected':'')
         +'>'+esc(e.n)+(e.kind==='gov'?' (gov)':'')+'</option>'; }).join(''))));
   if(destIsOgc(it))
     F.push(recF('MIPR type', miprOf(id),
@@ -18706,7 +19581,7 @@ function recFields(id, it){
       recSel('setDest(&quot;'+id+'&quot;,&quot;end&quot;,this.value)',
         'The ultimate recipient, when that activity awards our money on a commercial contract',
         '<option value=""'+(destOf(it).end?'':' selected')+'>— stops there —</option>'
-        +flowEnts().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).end===e.k?' selected':'')
+        +flowEntsAZ().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).end===e.k?' selected':'')
           +'>'+esc(e.n)+'</option>'; }).join(''))));
   return F;
 }
@@ -18812,7 +19687,7 @@ function matBulk(){
   out['Obligation category']={opts:OB_CATS.map(function(c){ return [c,c]; }),
               get:function(it){ return obCatOf(it.id); },
               set:function(id,v){ setObCat(id,v); }};
-  out['Goes to']={opts:flowEnts().map(function(e){ return [e.k, e.n+(e.kind==='gov'?' (gov)':'')]; }),
+  out['Goes to']={opts:flowEntsAZ().map(function(e){ return [e.k, e.n+(e.kind==='gov'?' (gov)':'')]; }),
               get:function(it){ return destOf(it).to; },
               set:function(id,v){ setDest(id,'to',v); }};
   // APPLIES. A bulk write used to land on every row matRows() returned, whether or not that
@@ -18822,7 +19697,7 @@ function matBulk(){
   // saying so. 'Which awards to' had done the same since it shipped. An entry with no applies()
   // applies to every requirement; the two that do not are keyed on destIsOgc, the same predicate
   // the record panel uses to offer them, so the sweep and the panel can never disagree.
-  out['Which awards to']={opts:flowEnts().map(function(e){ return [e.k,e.n]; }),
+  out['Which awards to']={opts:flowEntsAZ().map(function(e){ return [e.k,e.n]; }),
               applies:function(it){ return destIsOgc(it); },
               get:function(it){ return destOf(it).end; },
               set:function(id,v){ setDest(id,'end',v); }};
@@ -19759,7 +20634,57 @@ function exportPPT(){
     rows.push([{t:'TOTAL',b:1,c:_PPT.GOLD,align:'l',...TOTF},{t:fSM(sum(allAsk)),b:1,c:'FFFFFF',...TOTF},{t:fSM(dBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aD)),b:1,c:'FFFFFF',...TOTF},{t:fSM(mBA),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aM)),b:1,c:'FFFFFF',...TOTF},{t:fSM(sum(aU1)),b:1,c:_PPT.GOLD,...TOTF},{t:fSM(sum(aU)),b:1,c:_PPT.GOLD,...TOTF}]);
     slides.push(_pSlide(hdr('Funding by Stream and Service','Lane model: each service exhausts its discretionary lane, then spills to its mandatory lane. Unf vs DISC counts the discretionary lane alone; TOTAL Unf counts both pots. Trims are unfunded in each.')+_pTbl(4,MX,1500000,CW,[3,2,2,2,2,2,2.2,2.2],rows)));
   }
-  // ---- 3: PMO rollup ----
+  // ---- 3: THE SPEND PLAN BY MONTH, AS A CHART (v1.86) ----
+  // Brad, 26 Sep 2026: the deck had no chart at all. One column per month, October to September,
+  // discretionary with mandatory stacked on it, and UNSCHEDULED as its own column at the end -- money
+  // funded with no date yet. Every bar's figures are printed beneath it, so nothing is read off a
+  // bar's height, and each bar carries its exact dollars as alt text. Drawn from spendPlanByMonth(),
+  // which places the money the way the board's forecast does, and it follows the ◨ switch like every
+  // other spend plan -- saying so in its title when it is on. Plain shapes, not a chart part: nothing
+  // for PowerPoint to repair, and it reads the same printed in greyscale (solid, then hatched-on-top
+  // is the order, and the table names each).
+  {
+    const SP=spendPlanByMonth();
+    const cols=FYMON.map((x,k)=>({l:x[1], d:SP.d[k], m:SP.m[k], un:false}))
+      .concat([{l:'UNSCHEDULED', d:SP.ud, m:SP.um, un:true}]);
+    const tD=cols.reduce((a,c)=>a+c.d,0), tM=cols.reduce((a,c)=>a+c.m,0);
+    const max=Math.max(1, ...cols.map(c=>c.d+c.m));
+    const LW=1.5, UW=1.25, TW=1.25, units=LW+12+UW+TW, u=CW/units;
+    const yTop=1500000, yB=4250000, HH=yB-yTop;
+    const $=v=>'$'+Math.round(v).toLocaleString('en-US');
+    let sid=200, shapes='';
+    const rect=(x,y,w,h,fill,descr,dash)=>{ sid++;
+      return '<p:sp><p:nvSpPr><p:cNvPr id="'+sid+'" name="bar '+sid+'"'+(descr? ' descr="'+_xesc(descr)+'"' : '')+'/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>'
+        +'<p:spPr><a:xfrm><a:off x="'+Math.round(x)+'" y="'+Math.round(y)+'"/><a:ext cx="'+Math.max(1,Math.round(w))+'" cy="'+Math.max(1,Math.round(h))+'"/></a:xfrm>'
+        +'<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="'+fill+'"/></a:solidFill>'
+        +(dash? '<a:ln w="12700"><a:solidFill><a:srgbClr val="'+_PPT.AMBER+'"/></a:solidFill><a:prstDash val="dash"/></a:ln>'
+              : '<a:ln w="6350"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln>')
+        +'</p:spPr></p:sp>'; };
+    cols.forEach((c,j)=>{
+      const cw=c.un? UW*u : u, x0=MX+(LW+j)*u, bw=cw*0.62, bx=x0+(cw-bw)/2;
+      const hd=c.d/max*HH, hm=c.m/max*HH;
+      if(c.d>0.5) shapes+=rect(bx, yB-hd, bw, hd, _PPT.GREEN, c.l+' \u2014 discretionary '+$(c.d), c.un);
+      if(c.m>0.5) shapes+=rect(bx, yB-hd-hm, bw, hm, _PPT.PURP, c.l+' \u2014 mandatory '+$(c.m), c.un);
+    });
+    shapes+=rect(MX+LW*u, yB, (12+UW)*u, 9525, _PPT.LINE, '');
+    const key=_pText(198,MX,yTop,LW*u-60000,1300000,
+        _pPara(_pRun('\u25a0 ',{sz:1000,b:1,c:_PPT.GREEN})+_pRun('Discretionary',{sz:850,c:_PPT.INK}))
+      + _pPara(_pRun('\u25a0 ',{sz:1000,b:1,c:_PPT.PURP})+_pRun('Mandatory',{sz:850,c:_PPT.INK}))
+      + _pPara(_pRun('\u2506 ',{sz:1000,b:1,c:_PPT.AMBER})+_pRun('UNSCHEDULED = funded, no date yet',{sz:800,c:_PPT.DIM})));
+    const cell=v=>({t:v>0.5? fSM(v) : '\u2014', sz:700, c:v>0.5? _PPT.INK : _PPT.DIM});
+    const rows=[[{t:'',...H,sz:700}].concat(cols.map(c=>({t:c.l==='UNSCHEDULED'? 'UNSCHED' : c.l,...H,sz:700,align:'r'})), [{t:'TOTAL',...H,sz:700,align:'r'}]),
+      [{t:'Discretionary',sz:750,b:1,c:_PPT.GREEN,align:'l'}].concat(cols.map(c=>cell(c.d)), [{t:fSM(tD),sz:750,b:1,c:_PPT.GREEN}]),
+      [{t:'Mandatory',sz:750,b:1,c:_PPT.PURP,align:'l'}].concat(cols.map(c=>cell(c.m)), [{t:fSM(tM),sz:750,b:1,c:_PPT.PURP}]),
+      [{t:'Total',sz:750,b:1,c:_PPT.GOLD,align:'l',...TOTF}].concat(cols.map(c=>({t:(c.d+c.m)>0.5? fSM(c.d+c.m) : '\u2014',sz:700,b:1,c:'FFFFFF',...TOTF})),
+        [{t:fSM(tD+tM),sz:750,b:1,c:_PPT.GOLD,...TOTF}])];
+    slides.push(_pSlide(hdr('Spend Plan by Month \u2014 '+FYL()+(scenOn()? '  \u25e8 DISCRETIONARY ONLY (what-if)' : ''),
+        'When the funded dollars land, by award and obligation date: discretionary, with mandatory stacked on it. '
+        +'UNSCHEDULED is funded money with no date yet. '+(scenOn()? 'Mandatory is withheld in this what-if, so none shows. ' : '')
+        +'Every bar\u2019s figures are printed beneath it.')
+      +key+shapes
+      +_pTbl(199,MX,4380000,CW,[LW].concat(FYMON.map(_=>1),[UW,TW]),rows)));
+  }
+  // ---- 4: PMO rollup ----
   // The same share model as the workbook's PMO Matrix: a CLIN-backed prime is split across the
   // offices that own its CLINs, weighted PER SERVICE, and rows are ordered by pmoKeys so an office
   // that is not on the configured list still appears rather than taking its money with it. The two
@@ -19812,7 +20737,7 @@ function exportPPT(){
       }
     }
   }
-  // ---- 4+: Mission Critical ----
+  // ---- 5+: Mission Critical ----
   {
     // EVERY must-pay, listed against its REQUIREMENT value so the rows add to the printed total.
     // The old filter kept rows with a non-zero allocation, so a starred requirement zeroed out on
@@ -19833,7 +20758,7 @@ function exportPPT(){
       slides.push(_pSlide(hdr('Mission Critical — Must-Pay Requirements'+(mcIts.length>PAGE?' ('+(pg+1)+' of '+Math.min(3,Math.ceil(mcIts.length/PAGE))+')':''),'\u2605 Mission Critical means this must be paid this year. Requirement is the full ask; Short vs Disc is that ask less what the DISCRETIONARY lane paid. Mandatory is not netted off \u2014 it does not cover the commitment.')+_pTbl(4,MX,1500000,CW,[1,1.4,5,1.6,1.9,1.8],rows)));
     }
   }
-  // ---- 5+: Unfunded requirements ----
+  // ---- 6+: Unfunded requirements ----
   {
     const uIts=S.order.map(itemById).filter(it=>it&&unf2(it)>0.005)
       .sort((a,b)=>unf2(b)-unf2(a));
@@ -20100,13 +21025,14 @@ function hardList(){
 }
 function render(){
   _cycDeltaCache=null;                      // the deltas are read fresh on every render
+  _ndCache=null;                            // and so is what is set higher than it draws
   if(_bootLost.length){                     // first render: there is a status bar now
     const lost=_bootLost.slice(); _bootLost.length=0;
     try{ setStat('\u26a0 <b>Could not read '+lost.length+' item'+(lost.length===1?'':'s')+' on opening:</b> '
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
       +'checked it, or the unread part will be lost.'); }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -20170,7 +21096,7 @@ function render(){
     if(filter!=='ALL'&&grpOf(it)!==filter) return;
     if(q && !((dispTitle(it)+' '+it.title+' '+it.event+' '+ccarOf(it)).toLowerCase().includes(q))) return;
     if(mcOnly && !S.mc[id]) return;
-    if(laneFilter && !fitPass(t)) return;
+    if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t))) return;
     if(ptypeFilter && ptypeOf(id)!==ptypeFilter) return;
     if(svcFilter>=0 && (T[id].d[svcFilter]+T[id].m[svcFilter]+T[id].u[svcFilter])<=0.005) return;
     const a=S.alloc[id];
@@ -20218,8 +21144,6 @@ function render(){
       ${showDetail? svcTable(it):''}
       ${clinApplies(id)&&clinOpen[id]? clinTable(it):''}
       ${consOpen[id]? consBox(it):''}
-      ${descOpen[id]? descBox(it):''}
-      ${noteOpen[id]? noteBox(it):''}
     </div>`;
   });
   if(!h) h='<div style="color:var(--dim);padding:30px;text-align:center">No requirements match.</div>';
@@ -20367,7 +21291,7 @@ function syncBtns(){
       mi('⚙ Manage programme offices…',"mRun(togglePmo)",pmoOpen,
          GROUPS.length+' office'+(GROUPS.length===1?'':'s')+' — add, rename, reorder')+
       mi('⇄ Reassign a requirement…',"mRun(pmoReassignHint)",false,
-         'open any requirement’s 📋 Record and set its PMO there')+
+         'open any requirement’s 📋 Requirement edit and set its PMO there')+
       ((filter!=='ALL'||ptypeFilter)? '<div class="msep"></div>'
         +mi('✕ Show every office',"filter='ALL';ptypeFilter='';render()",false,'clear this selection') : '');
   })();
@@ -20378,6 +21302,7 @@ function syncBtns(){
     mi('◧ Fully discretionary only',"laneFilter=laneFilter==='disc'?'':'disc';render()",laneFilter==='disc','every service paid from discretionary')+
     mi('◨ Spilling into mandatory',"laneFilter=laneFilter==='mand'?'':'mand';render()",laneFilter==='mand','any mandatory draw')+
     mi('◩ Any unfunded portion',"laneFilter=laneFilter==='unf'?'':'unf';render()",laneFilter==='unf','the lanes could not cover it')+
+    mi('▲ Set higher than it draws',"laneFilter=laneFilter==='nd'?'':'nd';render()",laneFilter==='nd',(function(){ const N=ndData(); return N.n? N.n+' requirement'+(N.n===1?'':'s')+' · '+fMc(N.tot)+' not drawn' : 'none'; })())+
     '<div class="msep"></div>'+
     mi('★ Mission Critical only',"mcOnly=!mcOnly;render()",mcOnly)+
     // Prime Contracts and OGC moved to the 🏢 PMO menu, beside the offices. They answer the same
@@ -20407,16 +21332,7 @@ function syncBtns(){
     (function(){ const n=S.order.filter(id=>!S.fsrc[id]).length;
       return mi('⚙ Convert all to Split…',"mRun(convertAllToSplit)",false,
         n? n+' still on the automatic lane walk' : 'all requirements carry an explicit split'); })()+
-    '<div class="msep"></div><div class="mlbl">Programme offices</div>'+
-    (SANDBOX
-      ? mi('✉ Submit input…',"mRun(pmoSubmit)",false,
-           myPmo()? 'send '+esc(myPmo())+'’s descriptions, impacts and values back'
-                  : 'pick your office, then send your input back')
-      : mi('📤 Publish PMO copy…',"mRun(publishPmoCopy)",false,
-           'a working snapshot they cannot save over')
-        + (PMOSUBS.length? mi('✉ Review submittals…',"mRun(subOpenReview)",subOpen,
-             PMOSUBS.length+' held — '+esc(PMOSUBS.map(subFrom).join(', '))
-             +' — nothing applied yet') : ''))+
+    // The PMO copy, its submittals and a copy's ✉ Submit input moved to 📁 File ▾ → Export (v1.86).
     mi('📋 Two Spend Plans…',"mRun(togglePlans)",planOpen,'discretionary only vs the whole top line')+
     '<div class="msep"></div><div class="mlbl">Spend plan basis</div>'+
     mi('◨ Discretionary only',"setScen('disc')",scenView==='disc',
@@ -20459,11 +21375,26 @@ function syncBtns(){
     '<div class="mlbl">Save</div>'+
     mi('💾 Save',"mRun(saveInPlace)",false,(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place')+
     mi('⬇ Save a copy…',"mRun(publishState)",false,(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy' : 'downloads a duplicate')+
-    '<div class="msep"></div><div class="mlbl">Bring work in</div>'+
-    mi('⬅ Import a previous board…',"mRun(()=>document.getElementById('stateFile').click())",false,'.html or .json — never touches execution data')+
-    mi('🔁 Appropriation packages…',"mRun(togglePkg)",pkgOpen,
-       (typeof APPNS!=='undefined')? 'hand an appropriation to its manager, take it back' : 'load what you were issued, send your work back')
+    // GROUPED BY WHAT THE FILE DOES (v1.86): save it, bring work in, send work out, work as a team. The
+    // PMO copy lived under Budget year, where nobody looking for a file to send would find it.
+    '<div class="msep"></div><div class="mlbl">Import</div>'+
+    mi('⬅ Import a full board (new version)…',"mRun(()=>document.getElementById('fullFile').click())",false,'everything in a previous board file \u2014 all four appropriations, every locked cycle, the lists')+
+    mi('⬅ Import one appropriation…',"mRun(()=>document.getElementById('stateFile').click())",false,'from any board file \u2014 checked and previewed first; nothing else changes')
     +(typeof APPNS!=='undefined'? mi('⇊ Import several boards at once…',"mRun(()=>document.getElementById('multiFile').click())",false,'pick every board .html together'):'')
+    +mi('🔁 Appropriation packages…',"mRun(togglePkg)",pkgOpen,
+       (typeof APPNS!=='undefined')? 'hand an appropriation to its manager, take it back' : 'load what you were issued, send your work back')
+    +'<div class="msep"></div><div class="mlbl">Export</div>'
+    +mi('⬇ Export one appropriation…',"mRun(exportOneAppn)",false,'a working board file holding that appropriation alone')
+    +(SANDBOX
+      ? mi('✉ Submit input…',"mRun(pmoSubmit)",false,
+           myPmo()? 'send '+esc(myPmo())+'’s descriptions, impacts and values back'
+                  : 'pick your office, then send your input back')
+      : mi('📤 Publish PMO copy…',"mRun(publishPmoCopy)",false,
+           'a working snapshot the offices cannot save over')
+        // always here now, so the way to load the first submittal is where the guide says it is
+        + mi('✉ Review submittals…',"mRun(subOpenReview)",subOpen,
+             PMOSUBS.length? PMOSUBS.length+' held — '+esc(PMOSUBS.map(subFrom).join(', '))+' — nothing applied yet'
+                           : 'load each office’s submittal file and review them together'))
     +'<div class="msep"></div><div class="mlbl">Team</div>'
     +mi('📡 Live view\u2026',"mRun(toggleLive)",liveCfg().on, (function(){ const c=liveCfg();
           const set=(c.mode==='drive')? !!c.folder : !!c.url;
@@ -23783,7 +24714,9 @@ function exportExcel(){
     S.order.forEach(id=>{
       const it=itemById(id); if(!it) return;
       const sh=(SHARES[id]||[]).find(r=>r[0]===g); if(!sh) return;
-      const p=T[id]; if(!p) return;
+      // THE VIEW, like the month sheets and CR Cash Needs (v1.86): this block is a spend plan, and in a
+      // workbook stamped [DISC-ONLY] it read the funded plan while its neighbours read the what-if.
+      const p=Tv[id]; if(!p) return;
       const frac=sh[1], f=i=>(frac? frac[i] : 1);
       const dv=p.d.map((v,i)=>v*f(i)), mv=p.m.map((v,i)=>v*f(i));
       const uv=unfSvcOf(it,p).map((v,i)=>v*f(i));
@@ -23805,7 +24738,7 @@ function exportExcel(){
     const SUMC=k=>picked.reduce((a,r)=>a+k(r),0);
     const rows=[[],
       [{v:g+' \u2014 '+FYL()+' Requirements (Disc/Mand Funded Portions) with UFR and Planned '
-        +'Obligation Dates',s:TI}]];
+        +'Obligation Dates'+(scenOn()? '   \u2014   \u25e8 '+SCEN_TAG+' (WHAT-IF, not the funded plan)' : ''),s:TI}]];
     // THE BAND ROW. Every cell a band covers is emitted with the band's own style -- an empty cell
     // with a fill -- because a merge paints only what is there: label the first column alone and the
     // colour stops after it.
@@ -24125,43 +25058,39 @@ function inspectorBody(){
     + '<div class="insp-bd">'
     + '<div class="insp-ttl">' + esc(dispTitle(it))
       + ' <span class="tedit" style="cursor:pointer" onclick="editTitle(\'' + id + '\')" title="rename requirement">\u270e</span></div>'
-    + '<div class="rowchips" style="margin-bottom:2px">'
-      // STATUS, NOT AN EDITOR. \u2605 MC is a triage decision made while scanning the list, so the ROW
-      // owns it; repeating the toggle here would be the duplication we just removed, facing the
-      // other way. It still shows, because the record should say what a requirement is.
-      + '<span class="rchip" style="' + (S.mc[id] ? 'border-color:var(--amber);color:var(--amber)' : '')
-        + '" title="\u2605 Mission Critical \u2014 set it on the row">'
-        + (S.mc[id] ? '\u2605 MC' : '\u2606 not MC') + '</span>'
-      + '<span class="rchip">' + esc(grpOf(it)) + '</span>'
-      + '</div>'
-    + (function(){ const keep = rowChipId; rowChipId = null;
-         // Same rule for the band and funding chips: shown here, set on the row. Blanking rowChipId
-         // stops this call re-opening a picker the row already has open; stripping the handlers
-         // stops it BEING a picker.
-         // THE CURSOR HAS TO COME OFF TOO, AND NOT EVERY CHIP WEARS IT INLINE. Stripping the
-         // handler and replacing `cursor:pointer` catches only the chips that set it in a style
-         // ATTRIBUTE. The impact chip takes its pointer from the .rchip class, so it kept looking
-         // clickable in the RECORD panel while doing nothing -- the one field the whole PMO
-         // workflow exists to collect, offering a click that goes nowhere. A class on the wrapper
-         // settles it for every chip, including the next one somebody adds.
-         const html = '<span class="chipsro">'
-                    + rowChipsHtml(it).replace(/ onclick="[^"]*"/g, '')
-                                      .replace(/cursor:pointer/g, 'cursor:default')
-                    + '</span>';
-         rowChipId = keep; return html; })()
-    // FUNDING IS STILL SETTABLE HERE. The chips above are status only, but Split is now the one
-    // setting there is, so a requirement left on the legacy lane walk needs a way to convert -- and
-    // with the row's picker gone this is the only per-requirement way to do it.
-    // THE CHIP STATES WHERE THE FIGURES CAME FROM; it is no longer a gate. Typing into any Disc or
-    // Mand box below converts the requirement on the spot, seeded from the draw it already had, so
-    // the only thing left to offer is doing it without changing a figure.
-    + (fo ? '' : '<div class="rowchips" style="margin-bottom:2px">'
-        + '<span class="rchip" style="border-color:var(--gold);color:var(--gold);cursor:pointer"'
-        + ' onclick="setFsrc(\'' + id + '\',\'split\')"'
-        + ' title="these figures still come from the automatic lane walk, so they move when the'
-        + ' order or a topline changes. Typing into any Disc or Mand box below pins this'
-        + ' requirement where it stands; this does the same without changing a figure.">'
-        + '\u2699 from the lane walk \u2014 pin these figures</span></div>')
+    // WHAT IT IS, IN ONE QUIET LINE. \u2605 MC is a triage decision made while scanning the list, so the
+    // ROW owns it; this says it, it does not set it. The band is not echoed: its own field below
+    // shows and sets it (v1.86 -- the two chip rows that stood here pushed the editors off the screen).
+    + '<div class="insp-meta">' + (S.mc[id] ? '<span style="color:var(--amber)">\u2605 Mission Critical</span>' : '\u2606 not Mission Critical')
+      + ' \u00b7 ' + esc(grpOf(it))
+      + (((S.costElem||{})[id]) ? ' \u00b7 ' + esc((S.costElem||{})[id]) : '')
+      + (ndData().ids[id] ? ' \u00b7 ' + ndRowChip(id) : '') + '</div>'
+    // THE WRITTEN EDITORS, AT THE TOP (v1.86, Brad: "bring those to the top so that they're not as
+    // hidden"). They sat last, under "Open on the row", below the fold on a laptop for every
+    // requirement -- the impact statement included, the one field the PMO workflow exists to collect.
+    // Each button says its own state, so an unwritten one reads amber without opening anything. The
+    // impact handler is spelled the way the card build's row chip spells it, so one mutation covers
+    // that route in both builds.
+    + (function(){
+        const w=((S.cons||{})[id]||'').trim(), dsc=((S.desc||{})[id]||'').trim(), nt=((S.notes||{})[id]||'').trim();
+        const _b=BAND_OF(id), _req=(_b!==null && BAND_DEF(id).consReq);
+        const C=recCount(id, it);
+        const act=function(on, warn, tip, a1, a2){ return '<button type="button" class="insp-act'+(warn?' warn':'')+'" '+on
+          +'title="'+esc(tip)+'"><span class="a1">'+a1+'</span><span class="a2">'+a2+'</span></button>'; };
+        return '<div class="insp-acts">'
+          + act('onclick="toggleCons(&quot;'+id+'&quot;)" ', !w,
+                w? 'what happens if this is not funded \u2014 click to edit'
+                 : (_req? 'this band requires a statement of what happens if it is not funded'
+                        : 'say what happens if this is not funded'),
+                '\u26a0 Impact statement', w? 'written' : (_req? 'required \u2014 not written' : 'not written'))
+          + act('onclick="toggleDesc(\''+id+'\')" ', false,
+                'the description and the note, in one pop-up \u2014 each kept as its own field',
+                '\ud83d\udcc4 Description & note',
+                (dsc&&nt)? 'both written' : (dsc? 'description written' : (nt? 'note written' : 'both empty')))
+          + act('onclick="toggleRec(\''+id+'\')" ', C.un>0,
+                'what this requirement is: PMO, category, WBS, destination, budget per service\u2026',
+                '\ud83d\udccb Requirement edit', C.un? C.un+' of '+C.n+' not set' : 'all '+C.n+' set')
+          + '</div>'; })()
     + '<div class="insp-g">'
       + cycDeltaInsp(id)
       + inspField(FYL() + ' requirement', fM(askTot(it)), 'big')
@@ -24174,20 +25103,24 @@ function inspectorBody(){
                   ? '<span style="color:var(--amber)">' + fM(mcShort) + '</span>'
                   : (S.mc[id] ? 'covered' : '\u2014'), (S.mc[id] && mcShort > 0.005) ? '' : 'empty')
       + '</div>'
+    // FUNDING IS STILL SETTABLE HERE, beside the money it describes. Split is the one setting there
+    // is, so a requirement left on the legacy lane walk needs a way to convert -- and with the row's
+    // picker gone this is the only per-requirement way to do it. Typing into any Disc or Mand box
+    // below converts it on the spot too; this does it without changing a figure.
+    + (fo ? '' : '<div class="rowchips" style="margin-bottom:2px">'
+        + '<span class="rchip" style="border-color:var(--gold);color:var(--gold);cursor:pointer"'
+        + ' onclick="setFsrc(\'' + id + '\',\'split\')"'
+        + ' title="these figures still come from the automatic lane walk, so they move when the'
+        + ' order or a topline changes. Typing into any Disc or Mand box below pins this'
+        + ' requirement where it stands; this does the same without changing a figure.">'
+        + '\u2699 from the lane walk \u2014 pin these figures</span></div>')
+    // CCaR RECORD, PID AND THE DECISION BAND, together: what files it and what rule funds it
     + '<div class="insp-g">'
       + '<div class="insp-f' + (ccar ? '' : ' empty') + '" style="cursor:pointer" onclick="editCcar(\'' + id + '\')">'
         + '<div class="fl">CCaR record</div><div class="fv">' + (ccar ? esc(ccar) : '+ assign') + '</div></div>'
       + '<div class="insp-f' + (pid ? '' : ' empty') + '" style="cursor:pointer" onclick="editPid(\'' + id + '\')">'
         + '<div class="fl">PID</div><div class="fv">' + (pid ? esc(pid) : '+ assign') + '</div></div>'
-      + '</div>'
-    // THE BAND IS A REAL FIELD HERE, not the chip. The strip above is rowChipsHtml with every
-    // onclick stripped and cursor:pointer rewritten -- deliberately, so the panel's own fields own
-    // the controls and no chip up there offers a click that goes nowhere. Making the band editable
-    // therefore means giving it a field, not un-stripping the echo: un-stripping would make every
-    // chip in that strip live again, which is the defect .chipsro was introduced to fix.
-    + '<div class="insp-lbl">Classification</div>'
-    + '<div class="insp-g">'
-      + '<div class="insp-f' + (BAND_OF(id)===null ? ' empty' : '') + '">'
+      + '<div class="insp-f' + (BAND_OF(id)===null ? ' empty' : '') + '" style="grid-column:1 / -1">'
         + '<div class="fl">Decision band</div>'
         + '<div class="fv"><select style="width:100%" onchange="setBand(&quot;'+id+'&quot;,this.value)"'
         + ' title="the funding rule travels with the band — manage the ladder in ⚖ Bands">'
@@ -24225,30 +25158,6 @@ function inspectorBody(){
         + '</div></div>'
       + '</div>'
     + awardBlockHtml(it)
-    + '<div class="insp-lbl">Open on the row</div>'
-    + '<div class="rowchips">'
-      + '<span class="rchip" style="cursor:pointer" onclick="toggleNote(\'' + id + '\')">\ud83d\udcdd Note</span>'
-      + '<span class="rchip" style="cursor:pointer" onclick="toggleDesc(\'' + id + '\')">\ud83d\udcc4 Description</span>'
-      + '<span class="rchip" style="cursor:pointer" onclick="toggleRec(\'' + id + '\')">\ud83d\udccb Record</span>'
-      // WHAT HAPPENS IF THIS IS NOT FUNDED lives here now. It was a chip on the row, and the row in
-      // this build carries identity, money and the band only -- but the panel strips every onclick
-      // from its echo of the row chips, so dropping it there would have left the field with no way
-      // in at all. That is the one thing the PMO workflow exists to collect, so it moves rather
-      // than disappears, and it still says which state it is in.
-      + (function(){
-          const _w=((S.cons||{})[id]||'').trim();
-          const _b=BAND_OF(id), _req=(_b!==null && BAND_DEF(id).consReq);
-          // The handler is written the way the card build writes its row chip -- entity-quoted --
-          // so ONE mutation covers the impact route in both builds. mutate.mjs has no way to scope
-          // a mutation to a build, so a second spelling here would read as NOT APPLIED on one of
-          // them, which is a check that stopped covering anything.
-          return '<span class="rchip' + (_w? '' : ' warn') + '" style="cursor:pointer" '
-            + 'onclick="toggleCons(&quot;'+id+'&quot;)" ' + 'title="'
-            + (_w? 'what happens if this is not funded \u2014 click to edit'
-                 : (_req? 'this band requires a statement of what happens if it is not funded'
-                        : 'say what happens if this is not funded')) + '">'
-            + '\u26a0 ' + (_w? 'Impact' : (_req? 'CONSEQUENCE' : 'Impact \u2014 not written')) + '</span>'; })()
-      + '</div>'
     + '</div>';
 }
 
@@ -24283,7 +25192,8 @@ render = function(){ _renderCards.apply(this, arguments); try{ gridAfterRender()
 // The PMO-copy banner is written once at boot, not on every render: it is a property of the FILE,
 // not of the board's state, and nothing that happens on screen can change it.
 try{ const _b=document.getElementById('subBanner'); if(_b) _b.innerHTML=subBanner(); }catch(e){}
-
+// the destination list is read once everything it reads has been declared
+_destReady=true; destMigrate();
 render();
 /* THE CHART OF ACCOUNTS — appropriation → PMO → requirement → CCaR record.
    O&M → BOP → Travel → the CCaR record and its record title.
@@ -24494,7 +25404,9 @@ if(_bootRestoreErr){
   setStat('\u26a0 <b>This board could not read its saved state from browser storage</b> \u2014 '
     +esc(_bootRestoreErr)+'. What you are looking at is the <b>empty default</b>, not your work. '
     +'Your saved <b>.html file is a separate copy and is not affected</b>: open it with '
-    +'\ud83d\udcc1 File \u2192 \u2b05 Import a previous board. Do not save over anything until you have.');
+    +'\ud83d\udcc1 File \u2192 \u2b05 Import a full board. Do not save over anything until you have.');
+} else if(_impRep){                         // what a full import brought, now that it is open
+  setStat(_impRep); _impRep=null; _impSaid=true;
 } else if(Object.keys(bandOrphans()).length){
   const O=bandOrphans();
   const list=Object.keys(O).sort().map(function(k){ return '<b>'+esc(k)+'</b> \u00d7'+O[k]; }).join(', ');
@@ -24505,7 +25417,7 @@ if(_bootRestoreErr){
     +(Object.keys(O).length>1?'them':'it')+'. The original value is kept, not overwritten: re-band '
     +(Object.keys(O).length>1?'them':'it')+' on the row, or add the band back under \u2696 Bands.');
 } else if(typeof IS_SHELL!=='undefined' && IS_SHELL){
-  setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a previous board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it.');
+  setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it.');
 } else if(pubActive()) setStat((typeof SANDBOX!=='undefined' && SANDBOX)
     ? '\u25e8 <b>PMO copy</b>'+(PMODE&&PMODE.by? ' published by <b>'+esc(PMODE.by)+'</b>':'')
       +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
@@ -24558,11 +25470,11 @@ try{ setTimeout(function(){
 }, 60); }catch(e){}
 loadShared(st=>{
   if(st===undefined){
-    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL)) setStat('No saved state in this copy — make sure you opened the latest board file from the shared drive (💾 Save bakes the state into the file). ⬅ Import also works with a .json state file.');
+    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid) setStat('No saved state in this copy — make sure you opened the latest board file from the shared drive (💾 Save bakes the state into the file). ⬅ Import also works with a .json state file.');
     return;
   }
   if(!st||!(st.years||Array.isArray(st.order))){
-    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL)) setStat('No shared state file found next to the board — use 💾 Save to create one.');
+    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid) setStat('No shared state file found next to the board — use 💾 Save to create one.');
     return;
   }
   SHARED=st;

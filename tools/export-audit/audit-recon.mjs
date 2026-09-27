@@ -618,8 +618,18 @@ const rowCloses = (name, wb) => {
   const dollars = v => { const m = /\$?\s*(-?[\d,.]+)\s*M/i.exec(String(v));
     return m ? parseFloat(m[1].replace(/,/g, '')) * 1e6 : null; };
   const findRow = (tbl, re) => (tbl || []).find(r => re.test((r || []).map(cel).join(' | ')));
+  // EACH TABLE BY WHAT IT IS, NOT WHERE IT FALLS: v1.86 put the spend plan by month in as slide 3,
+  // and every table after it moved up one. A table is named by a header only it carries, or a row.
+  const hdrOf = t => ((t || [])[0] || []).map(cel).map(x => x.trim().toLowerCase());
+  const tblBy = pred => { const i = deck.tables.findIndex(t => { try { return pred(t); } catch { return false; } }); return i < 0 ? null : i; };
+  const TB = {
+    title:  tblBy(t => !!findRow(t, /Mission Critical total/)),
+    stream: tblBy(t => hdrOf(t).includes('disc funded')),
+    pmo:    tblBy(t => hdrOf(t).includes('★ mc req')),
+    mc:     tblBy(t => !!findRow(t, /TOTAL ★ MISSION CRITICAL/)),
+    ufr:    tblBy(t => !!findRow(t, /TOTAL UNFUNDED/)) };
   const cellIn = (tbl, rowRe, head) => {
-    const t = deck.tables[tbl]; if (!t) return null;
+    const t = tbl == null ? null : deck.tables[tbl]; if (!t) return null;
     const hdr = (t[0] || []).map(cel).map(x => x.trim());
     const c = hdr.findIndex(x => x.toLowerCase() === head.toLowerCase());
     const row = findRow(t, rowRe);
@@ -638,29 +648,32 @@ const rowCloses = (name, wb) => {
       : `${got === null ? 'not found' : '$' + (got / 1e6).toFixed(1) + 'M'} vs $${(want / 1e6).toFixed(1)}M`,
     'agrees');
   chk(name, 'shape', 'the deck has its five slides', deck.titles.length >= 5 ? 'yes' : deck.titles.length, 'yes');
-  near(cellIn(1, /^TOTAL/, 'FY27 Ask'), board.ask, 'the stream table’s ask agrees with the board', 'Funding by Stream');
-  near(cellIn(1, /^TOTAL/, 'Disc Funded'), board.disc, 'its discretionary agrees', 'Funding by Stream');
-  near(cellIn(1, /^TOTAL/, 'Mand Drawn'), board.mand, 'its mandatory agrees', 'Funding by Stream');
-  near(cellIn(1, /^TOTAL/, 'TOTAL Unf'), board.unf, 'its TOTAL unfunded agrees', 'Funding by Stream');
-  near(cellIn(1, /^TOTAL/, 'Unf vs DISC'), board.discUnf,
+  chk(name, 'shape', 'each table is found, and each is a different one',
+    JSON.stringify(Object.keys(TB).map(k => TB[k] == null ? k + ' missing' : new Set(Object.values(TB)).size === 5 ? 'ok' : k + ' shared')),
+    JSON.stringify(Object.keys(TB).map(() => 'ok')));
+  near(cellIn(TB.stream, /^TOTAL/, 'FY27 Ask'), board.ask, 'the stream table’s ask agrees with the board', 'Funding by Stream');
+  near(cellIn(TB.stream, /^TOTAL/, 'Disc Funded'), board.disc, 'its discretionary agrees', 'Funding by Stream');
+  near(cellIn(TB.stream, /^TOTAL/, 'Mand Drawn'), board.mand, 'its mandatory agrees', 'Funding by Stream');
+  near(cellIn(TB.stream, /^TOTAL/, 'TOTAL Unf'), board.unf, 'its TOTAL unfunded agrees', 'Funding by Stream');
+  near(cellIn(TB.stream, /^TOTAL/, 'Unf vs DISC'), board.discUnf,
     'its unfunded-vs-discretionary agrees', 'Funding by Stream');
-  near(cellIn(2, /^TOTAL/, 'FY27 Ask'), board.ask, 'the PMO table’s ask agrees', 'Funding by PMO');
-  near(cellIn(2, /^TOTAL/, 'Discretionary'), board.disc, 'its discretionary agrees', 'Funding by PMO');
-  near(cellIn(2, /^TOTAL/, 'Mandatory'), board.mand, 'its mandatory agrees', 'Funding by PMO');
-  near(cellIn(2, /^TOTAL/, 'Unfunded'), board.unf, 'its unfunded agrees', 'Funding by PMO');
-  near(cellIn(2, /^TOTAL/, '★ MC req'), board.mcValue, 'its MC memo agrees', 'Funding by PMO');
-  near(cellIn(2, /^TOTAL/, '★ MC short'), board.mcShort, 'its MC shortfall agrees', 'Funding by PMO');
-  near(cellIn(3, /TOTAL ★ MISSION CRITICAL/, 'Requirement (must-pay)'), board.mcValue,
+  near(cellIn(TB.pmo, /^TOTAL/, 'FY27 Ask'), board.ask, 'the PMO table’s ask agrees', 'Funding by PMO');
+  near(cellIn(TB.pmo, /^TOTAL/, 'Discretionary'), board.disc, 'its discretionary agrees', 'Funding by PMO');
+  near(cellIn(TB.pmo, /^TOTAL/, 'Mandatory'), board.mand, 'its mandatory agrees', 'Funding by PMO');
+  near(cellIn(TB.pmo, /^TOTAL/, 'Unfunded'), board.unf, 'its unfunded agrees', 'Funding by PMO');
+  near(cellIn(TB.pmo, /^TOTAL/, '★ MC req'), board.mcValue, 'its MC memo agrees', 'Funding by PMO');
+  near(cellIn(TB.pmo, /^TOTAL/, '★ MC short'), board.mcShort, 'its MC shortfall agrees', 'Funding by PMO');
+  near(cellIn(TB.mc, /TOTAL ★ MISSION CRITICAL/, 'Requirement (must-pay)'), board.mcValue,
     'the MC slide agrees with the PMO slide', 'Mission Critical');
-  near(cellIn(3, /TOTAL ★ MISSION CRITICAL/, 'Short vs Disc'), board.mcShort,
+  near(cellIn(TB.mc, /TOTAL ★ MISSION CRITICAL/, 'Short vs Disc'), board.mcShort,
     'and so does its shortfall', 'Mission Critical');
   {
-    const row = findRow(deck.tables[4], /TOTAL UNFUNDED/);
+    const row = TB.ufr == null ? null : findRow(deck.tables[TB.ufr], /TOTAL UNFUNDED/);
     const v = row ? dollars((row || []).map(cel).filter(x => /\$/.test(x)).pop()) : null;
     near(v, board.unf, 'the UFR slide agrees with the stream table', 'Unfunded');
   }
   {
-    const row = findRow(deck.tables[0], /Mission Critical total/);
+    const row = TB.title == null ? null : findRow(deck.tables[TB.title], /Mission Critical total/);
     const v = row ? dollars((row || []).map(cel).filter(x => /\$/.test(x)).pop()) : null;
     near(v, board.mcValue, 'and the title slide agrees with both', 'title slide');
   }

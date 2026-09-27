@@ -65,6 +65,15 @@ for (const f of ['prioritization-board.html', 'prioritization-board-grid.html'])
       applyState(S); save(); 'ok'`);
   const file = join(dir, f);
   writeFileSync(file, ev('buildSavedHtml()'));
+  // and a PMO copy of it, published the way the menu publishes one: the guide's office part names
+  // the copy's controls, and some of them -- ✉ Submit input under File, the bar's buttons -- exist
+  // only in a copy
+  const copyHtml = ev(`(function(){ let cap=null; const _B=window.Blob;
+    window.Blob=function(pt,o){ if(!cap && o && o.type==='text/html') cap=String(pt[0]); return new _B(pt,o); };
+    window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+    try{ publishPmoCopy(); }catch(e){} window.Blob=_B; return cap||''; })()`);
+  const copyFile = join(dir, 'copy-' + f);
+  writeFileSync(copyFile, copyHtml);
 
   const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 } });
   const p = await ctx.newPage();
@@ -108,6 +117,45 @@ for (const f of ['prioritization-board.html', 'prioritization-board-grid.html'])
     chk(`"${menu} › ${item}" is really in that menu`,
       needle.length >= 3 && have.toLowerCase().includes(needle.toLowerCase()),
       needle.length >= 3 ? '' : 'could not read an item name');
+  }
+
+  // THE GUIDE INSIDE THE FILE (v1.86) NAMES MENU PATHS AND BUTTONS, and each must exist in this build:
+  // the portfolio team's part on the board, the offices' part in a PMO copy. It is marked up for this:
+  // a path is .mp with the menu in data-m and the item after its last "›"; a button is .bt, found by
+  // data-q. Checked against the rendered page, both builds. It must also never open by itself.
+  for (const [where, url, part] of [['board', file, 'team'], ['PMO copy', copyFile, 'office']]) {
+    const ctx2 = await b.newContext({ viewport: { width: 1920, height: 1080 } });
+    const p2 = await ctx2.newPage();
+    await p2.goto('file://' + url);
+    await p2.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('.row').length > 0, null, { timeout: 40000 });
+    await p2.waitForTimeout(300);
+    const g = await p2.evaluate((part) => {
+      const shut = !/\bopen\b/.test((document.getElementById('helpPanel') || {}).className || '');
+      const secs = (typeof helpSections === 'function') ? helpSections().filter(s => s.part === part) : [];
+      const menus = {}; document.querySelectorAll('.menu').forEach(m => { menus[m.id] = (m.textContent || '').replace(/\s+/g, ' '); });
+      const vis = el => { if (!el) return false; const c = el.getBoundingClientRect(); return c.width > 0 && c.height > 0; };
+      const paths = [], btns = [];
+      secs.forEach(s => {
+        s.el.querySelectorAll('.mp').forEach(e => paths.push({ sec: s.t, m: e.getAttribute('data-m'), text: e.textContent }));
+        s.el.querySelectorAll('.bt').forEach(e => { const q = e.getAttribute('data-q'); const t = document.querySelector(q);
+          btns.push({ sec: s.t, q, text: e.textContent, have: t ? (t.textContent || '').replace(/\s+/g, ' ') : null, shown: vis(t) }); });
+      });
+      return { shut, n: secs.length, menus, paths, btns };
+    }, part);
+    await ctx2.close();
+    chk(`${where}: the guide does not open by itself`, g.shut);
+    chk(`${where}: the guide’s ${part} part is in the file`, g.n > 0, g.n + ' section(s)');
+    for (const r of g.paths) {
+      const item = strip(r.text.split('›').pop()), have = strip(g.menus['m_' + r.m] || '');
+      const needle = item.split(' ').slice(0, 3).join(' ');
+      chk(`${where} guide, “${r.sec}”: ${r.text.replace(/\s+/g, ' ').trim()}`, needle.length >= 3 && have.toLowerCase().includes(needle.toLowerCase()),
+        g.menus['m_' + r.m] === undefined ? 'no menu #m_' + r.m : '');
+    }
+    for (const r of g.btns) {
+      const want = strip(r.text);
+      chk(`${where} guide, “${r.sec}”: the ${r.text.trim()} button`, !!r.have && r.shown && strip(r.have).toLowerCase().includes(want.toLowerCase()),
+        r.have === null ? r.q + ' missing' : (!r.shown ? 'not shown' : ''));
+    }
   }
 }
 await b.close();

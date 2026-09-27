@@ -2557,6 +2557,164 @@ remains is colour and geometry, which are local fixes.
 > decision applied to hundreds of controls, and keying by handler reported it as 240 findings
 > nobody could review.
 
+### v1.86: one destination list, the editors on top, mandatory in the months, what does not draw, full imports, and the guide inside the file
+
+Built from `NEXT-VERSION.md` items 9–14 on the owner's "go" (26 Sep 2026).
+
+**Destinations are one list for the board** (item 11). `DESTDB` is its own store (`prio27destdb`,
+`destDb` in the file; a PMO copy's key carries its publish stamp). A requirement names a destination by
+KEY, and a key means something only beside the list it was written against, so **every plan still
+carries that list** (`MS.flow.ents`, the board's own from v1.86, marked `flow.dv`) wherever it travels --
+file, shared folder, package, PMO copy -- and `destMigrate()` reads a plan through it when it opens:
+- A v1.86 list: keys are the eight seeded ones or made unique (`destNewKey`), so a key the board holds
+  IS that destination, renamed or not; anything else is folded by NAME (case- and space-insensitive).
+- A list from before v1.86 numbered its own (x1, x2...): only the name is trusted. What each old key
+  became is kept against that exact list (`DESTDB.lmap` by `destSig`, `lsig[ap]`), so every later
+  reading -- the same plan reopened unsaved, its locked cycles, a submittal from a copy published before
+  the move (`destPkgIn`) -- lands the same way, whatever was renamed or deleted since.
+- **Locked cycles are re-pointed ONCE and marked** (`CYCDB.dv`, kept at once): an old key can be another
+  destination's new one (O&M's renamed `pw` and its re-added Pratt & Whitney), and a second pass would
+  move it again. The test builds exactly that chain and reopens unsaved.
+- `flowEntsAZ()` for the panel and every picker (a placeholder reads first in the panel, focused);
+  `flowEnts()` keeps insertion order for the funds flow. Delete and reset are refused while another
+  appropriation or a locked cycle points at the destination (`flowEntUseMap`, one parse per store);
+  deleted keys are tombstoned (`gone`) so a stale list cannot bring them back.
+- The migration calls `flowCfg()`, not a bare object: the fuzz caught a plan saved without its funds-flow
+  settings reading them back as defaults.
+
+**The RECORD panel's written editors are at the top** (item 12, grid). Under the title: one quiet line
+(★ MC · PMO · cost element · ▲ not drawn), then three buttons that say their state -- **⚠ Impact
+statement**, **📄 Description & note**, **📋 Requirement edit** (N of M not set). The money, the ⚙ lane-walk
+chip, CCaR record + PID + Decision band, By service, Planning and the award schedule follow; "Open on the
+row" is gone. Description and note share one pop-up (`FLD_DEF.dn`, parts `FLD_PARTS`), description first,
+one Save that writes **only the part whose text changed** (`fldSame`), so the note is never re-stamped or
+blanked. Both builds' `toggleDesc`/`toggleNote` open it; the card's in-place boxes are gone. One name
+everywhere: pop-up titles, the card's row chip and menu, `PMO_FIELDS`, the proposal gate, the messages
+("📋 Requirement edit"). `editors-reachable.mjs` now proves the three buttons are on screen, unclipped, at
+1366×768 and 1440×900, with and without an award schedule.
+
+**Mandatory lands in the months, by one rule** (item 10). `landSvc(aw, i, dsv, msv, literal)` is the
+single placement, per service, used by `monSpreadOf`, `forecast`, `crBuckets` (CR by service and by PMO,
+`crData` is its by-service view) and `spendPlanByMonth`: an increment is discretionary dollars placed as
+typed (scaled back only if over-scheduled); undated discretionary is UNSCHEDULED; **mandatory rides the
+requirement's own dates** -- its own increments' proportions, or, in a service with none, the requirement's
+overall proportions (measured before: a mandatory-only service on a dated requirement went wholly to
+UNSCHEDULED). The CR views stopped spreading the whole funded amount by weights (which inflated undated
+discretionary into the windows) and By PMO's TOTAL IN WINDOW now counts only the windows. The 1A9A adopts
+the rule: on the populated fixture its in-window total moved $7,171,260 → $7,151,178 (−$20,082) and one
+more requirement appears. The award block shows *Balance to schedule — discretionary* and a *Mandatory —
+rides these dates* row; `toggleAwdInc` seeds discretionary only (it seeded d+m against a d balance). The
+◨ switch now moves the CR panel By PMO, the PMO tabs' spend-plan block (marked in its title) and the fit
+chart with its table (`svcSummary`); the pot views (Two Spend Plans, Plan A, the fit strip, MC) do not
+move -- `audit.mjs` cuts each PMO tab at its spend-plan block to prove both halves. The deck gains **Spend
+Plan by Month** (slide 3): shapes, not a chart part (nothing to repair), a column per month plus
+UNSCHEDULED, disc with mand stacked, exact dollars as each bar's alt text, a table of every figure
+beneath; it ties to `forecast()` to the dollar.
+
+**What does not draw is found, flagged and fixed** (item 13). `ndData()` (cached per render, against the
+FUNDED plan whatever the ◨ switch says) lists every split line where the typed Disc or Mand is more than
+drew -- `drewGap` against `basisSvcOf`, the test the "drew" lines make -- with why (a lane ran out above
+this rank, or the requirement value stops at $X) and `short`, the shortfall setting that line moves.
+**A**: ▲ not drawn N · $X in the fit strip filters the list (`laneFilter='nd'`, composes with the rest;
+also 🔍 Filter ▾); 🔧 fix list beside it. **B**: ▲ $… not drawn on the row (both builds) and in the RECORD
+panel's line, hover for each line. **C**: `ndBody` lists them in priority order; set to drawn
+(`ndSetDrawn` → `setFsrcSvc`) and set all to drawn (confirm names lines, requirements, total and the exact
+shortfall it moves). Proved: no funded dollar and neither unfunded reading moves; the shortfall falls by
+exactly what each line says; a copy lists them and offers no fix.
+
+**Full imports, one appropriation out and in, the PMO copy under File** (item 14). 📁 File ▾ is grouped
+Save · Import · Export · Team. `fullImportText()` (⬅ Import a full board (new version)) replaces what the
+board holds with everything the file carries -- all four plans, every appropriation's locked cycles, BAE
+list, execution data, cost estimates, reprogramming log, destination list -- after asking per
+appropriation about work it would lose (`pkgMineSince`) and one confirmation listing it all; refuses files
+before v1.80 (`fullBuildOf`); keeps and reports what the file does not carry; the report survives the
+reload (`prio27impRep`, said in the opening-message chain, guarded from the "No saved state" line). Tested
+from files WRITTEN BY v1.80, v1.83 and v1.85 themselves (`git show`, the old program saving the fixture's
+state): every plan, cycle and store arrives unchanged and every workbook figure equals the file opened
+directly. `oneAppnHtml(k)`/`exportOneAppn` write a working board holding one appropriation (its plan,
+cycles, execution data and BAE rows; destinations, cost estimates and the log whole; `only` in pubState,
+and `APPN` opens on it unless this browser holds work for the stored choice; other packs blanked in
+`APPNS`). **Two data-loss paths closed on the way:** `importStores` replaced the whole execution store
+with a file's (one appropriation's file wiped the other three) -- it now merges per appropriation; and an
+appropriation taken back arrived without the cycles locked on it -- `cycTake` takes them for every
+appropriation taken. 📤 Publish PMO copy, ✉ Review submittals (always there; its panel loads submittal
+files) and a copy's ✉ Submit input moved from 🎯 Budget year ▾.
+
+**The guide is inside the file** (item 9). 📖 Help in the header (both builds) and 📖 How this copy works in
+a copy's bar open `#helpPanel` on a contents list of two parts, *For programme offices* and *For the
+portfolio team* (`<template id="helpDoc">`, ~4,000 words, no network, the board's tokens, BUILD as its
+version, Esc closes). It never opens by itself and stores nothing. Paragraphs that differ by build carry
+`data-b` and only this build's show. Every menu path it names is `.mp[data-m]` and every button `.bt[data-q]`;
+`menu-paths.mjs` checks each against the rendered menus and bars of both builds -- the team part on the
+board, the office part in a published copy. The web guide and the PDF are made from this text.
+
+Tests: audit-import gains the v1.86 blocks (destinations ×3, spend plan ×4, not drawn ×2, full import and
+one appropriation ×4, help ×1); audit-board the combined pop-up and the names; audit.mjs the PMO tabs
+under the switch; editors-reachable the fold; the export-one block also proves the exported board prints every figure
+the whole board prints for that appropriation (`v14Figures`). `boot({ls})` reopens a board in "the same
+browser". 56 new mutations: 485 in all, every one applying exactly once on both builds.
+
+**Checks that changed with it** -- each one a finding, so none of it is re-learned:
+- `check.mjs`'s "an external script or stylesheet is linked" reads ONE tag (`[^>]{0,400}`). Its old
+  `[^>]+` ran from a `<script` inside v1.85's frame code to a `src=` 9,000 characters later, so
+  `npm run check` has failed on a clean board since v1.85. The gate runs `parity`, not `check`, which is
+  how it went unseen: run `npm run check` before a commit, as the section above says. It still catches a
+  real `<script src>` and `<link href="http…">` (tried both, and one split across lines).
+- `audit-recon.mjs` (9 the deck) finds each deck table by a header or a row only it carries (`TB`), not
+  by position: the spend plan by month table moved every index up one, and every check read "not found".
+  It also checks the five are found and are five different tables. The v1.86 presweep did not depend on
+  it (every catch came from audit-import or audit-board).
+- `panels-render.mjs` opens `ndPanel` (with a line in it) and `helpPanel`.
+- `row-controls.mjs` pairs handlers with single-quoted ids normalised, so the grid's 📄 and 📋 buttons keep
+  `toggleDesc('id')`/`toggleRec('id')` -- the card menu's spelling. The impact button keeps `&quot;`, the
+  card row chip's spelling, so one mutation covers that route in both builds.
+- `money-coverage.mjs` registers `exportOneAppn` as carrying no arithmetic: it copies state.
+  `one-appn-trim-shifted` proves the figures check sees a changed allocation. A first attempt that
+  shifted `discSvc` in the exported plan SURVIVED: a board rebuilds `discSvc` from its Budget Management
+  base when it opens, so that field is a cache and never a source. Aim a money mutation at a source.
+- Found by the browser checks and fixed: `.insp-act` edges use `--edge` (they were `--line2`, 1.7–2.3:1 in
+  every theme); below 420px the header's `#helpBtn` shows 📖 alone and `.hsp` tightens to 4px (the new button
+  made both builds scroll 19px at 320px); the fix list is `.fctab.ndtab`, sized to its content (the shared
+  `.fctab` is fixed-layout and ran long names into the Service column -- no check saw that; a screenshot did).
+- The presweep found three tests too weak to see their own feature break, each now stronger: the ◨
+  check on what does not draw compared a COUNT of lines (a line's drawn figure could change unseen --
+  now the whole list); the guide check confirmed this build's paragraphs were there but not that the
+  other build's were gone (now every section); and the one-appropriation round trip never ran the
+  execution merge, because `importStores` takes execution data only when the file's is NEWER and the
+  lead's never was (now the lead imports a newer pull: Full Fund's comes back, O&M's is kept). A test
+  of a guarded path has to meet the guard.
+- **The first v1.86 gate crawled and was stopped** (26 Sep, 6½ hours in, ~95 of 485 mutations a
+  build): four sweep suites at once no longer fitted in 16 GB. audit-import peaked at 5.3 GB (v1.85's:
+  4.1 GB) because NO board it opened was ever freed -- every one of ~105 was alive at the end. The
+  cause, measured: a board created in a top-level `{ }` block of a module is kept for the life of the
+  module; the same code inside a function lets it go. So each block now runs as
+  `await (async () => { ... })();` (same text and indentation, so the self-check still hears every
+  `const name`), closes its boards at the end (`bootMark`/`bootRelease`, keeping V185W, V186L and V14,
+  which later blocks read) and lets the loop turn (`settleBoards`). Peak 5.3 GB → 1.2–1.8 GB. The sweep
+  also caps each suite at 2.5 GB of heap (`mutate.mjs` runSuite), so a run that needs more dies loudly
+  and is reported CRASHED. Other suites keep the bare-block pattern; each boots few boards.
+- **The gate that then ran** (26–27 Sep, 9.7 h) failed on one old mutation, `fld-stale-stays-open`:
+  audit-board's stale-editor check opened kind `'note'`, which v1.86 retired, and an unknown kind closes
+  the editor by another line. It now takes the kinds from `FLD_DEF` and checks each.
+- **Why 9.7 hours, and what cut it** (Brad, 27 Sep: "let's figure out how we can shorten the
+  processing time"). Timed on the clean card build: import 150 s, board 36 s, the other four 35 s
+  together; a mutation pays for every suite before the one that catches it, so ~2.4 min each, 485 of
+  them, twice, on 4 cores. Two changes, neither touching what a catch means:
+  1. **Boot sets the program in rather than parsing it** (`boot.mjs`, `splitProgram`). 634 of every
+     687 ms of a boot was jsdom's parser reading the 3.1 MB inline program a character at a time.
+     The page is parsed with a placeholder and the program set in as one script element; what
+     follows it is held out while it runs, so the source it records (`SRC0`) is the parser's to the
+     character. `tools/export-audit/boot-same.mjs` proves page, SRC0, saved file (clock held) and
+     errors identical both ways, both builds, shipped / seeded / reopened / PMO copy -- and
+     `audit:suites` runs it first. Suites: 220 s → 94 s (import 150 → 67, board 36 → 13).
+     `BOOT_PARSE=1` forces the old parse.
+  2. **The sweep tries the suite that caught each mutation last time first** (`mutate.mjs`,
+     `orderFor`; `.math-reports/catchers-<build>.json`, merged, never committed). Every suite is
+     still tried until one catches; only the order changes. Measured on four: 198 s → 149 s.
+  **The gate that passed v1.86** (27 Sep, 13:05–19:02 UTC): every stage clean, 474/474 caught on
+  both builds (11 equivalent), 356.7 min -- the sweeps 332 and 351 min against 562 and 581 the run
+  before, with no catch record yet to order by. The next sweep has one.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

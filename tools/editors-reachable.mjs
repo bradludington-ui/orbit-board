@@ -46,6 +46,7 @@ for (const f of ['prioritization-board.html','prioritization-board-grid.html']) 
   seed(ev, sc);
   ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
       S.order.forEach(function(id,i){ if(i%3!==2) S.desc[id]='A description.'; });
+      S.awards.R004={mode:'inc', d:FYMON[1][0], inc:[1,3,5,7].map(function(k){ return {d:FYMON[k][0], day:1, sv:SVC.map(function(){ return 100000; })}; })};
       applyState(S); save(); 'ok'`);
   const out = join(dir, f);
   writeFileSync(out, ev('buildSavedHtml()'));
@@ -123,6 +124,47 @@ for (const [f, file] of Object.entries(made)) {
     await ctx.close();
   }
 }
+// THE WRITTEN EDITORS ARE ABOVE THE FOLD ON A LAPTOP (v1.86). They sat last on the RECORD panel, under
+// "Open on the row", below the fold for every requirement -- the impact statement included, the one
+// field the PMO workflow exists to collect. Now they sit straight under the title: at the two laptop
+// sizes people use, with and without an award schedule (which makes the panel longer), all three must
+// be on screen without scrolling, and none clipped.
+{
+  console.log('\nprioritization-board-grid.html — the three written editors, above the fold');
+  for (const [w, h] of [[1366, 768], [1440, 900]]) {
+    for (const id of ['R003', 'R004']) {
+      const ctx = await b.newContext({ viewport:{width:w, height:h} });
+      const p = await ctx.newPage();
+      const errs = [];
+      p.on('pageerror', e => errs.push(e.message));
+      await p.goto('file://' + made['prioritization-board-grid.html']);
+      await p.waitForFunction(()=>typeof render==='function' && document.querySelectorAll('.row').length>0, null, {timeout:30000});
+      await p.click('#row-' + id);
+      await p.waitForTimeout(300);
+      const r = await p.evaluate(() => {
+        const acts = [...document.querySelectorAll('#inspector .insp-act')];
+        const ins = document.querySelector('#inspector');
+        const box = ins ? ins.getBoundingClientRect() : null;
+        return { n: acts.length, award: !!document.querySelector('#inspector input[onchange^="setAwdIncDate("]'),
+          labels: acts.map(a => a.querySelector('.a1').textContent),
+          seen: acts.map(a => { const c = a.getBoundingClientRect();
+            return c.top >= 0 && c.bottom <= innerHeight && (!box || (c.top >= box.top && c.bottom <= box.bottom)) && c.width > 0; }),
+          clipped: acts.map(a => { const t = a.querySelector('.a1'); return t.scrollWidth > t.clientWidth + 1; }) };
+      });
+      const fails = [];
+      if (r.n !== 3) fails.push(`${r.n} editor button(s), not 3`);
+      if (r.labels.join('|') !== '\u26a0 Impact statement|\ud83d\udcc4 Description & note|\ud83d\udccb Requirement edit') fails.push('labels read ' + r.labels.join(' | '));
+      if (r.seen.some(v => !v)) fails.push('not all on screen without scrolling');
+      if (r.clipped.some(v => v)) fails.push('a label is cut off');
+      if (id === 'R004' && !r.award) fails.push('the award schedule did not render, so the long panel was not measured');
+      if (errs.length) fails.push(errs[0]);
+      if (fails.length) bad++;
+      console.log(`  ${fails.length?'FAIL':'ok  '} ${w}x${h}  ${id === 'R004' ? 'with an award schedule   ' : 'without an award schedule'}`
+        + (fails.length ? '\n         ' + fails.join('; ') : ''));
+      await ctx.close();
+    }
+  }
+}
 await b.close();
-console.log(bad ? `\n${bad} width(s) failed\n` : '\nEvery editor is reachable at every width, and neither build scrolls sideways\n');
+console.log(bad ? `\n${bad} width(s) failed\n` : '\nEvery editor is reachable at every width, neither build scrolls sideways, and the written editors are above the fold\n');
 process.exit(bad ? 1 : 0);

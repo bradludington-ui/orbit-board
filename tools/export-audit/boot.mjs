@@ -1,6 +1,8 @@
 // Boot the real board in jsdom and hand back a window we can drive.
 import { JSDOM, VirtualConsole } from 'jsdom';
 import { readFileSync } from 'node:fs';
+import { setFlagsFromString } from 'node:v8';
+import { runInNewContext } from 'node:vm';
 
 export const BOARD = process.env.BOARD
   || new URL('../../prioritization-board.html', import.meta.url).pathname;
@@ -10,19 +12,86 @@ export const BOARD = process.env.BOARD
 // `appn` opens that appropriation ('FULL FUND') the way a browser that last chose it would: set in
 // browser storage before the page parses, so nothing is added to the page's own source -- a board
 // booted that way still saves, publishes and opens its frames from a clean SRC0.
-export function boot({ svc, items, quiet = true, html = null, appn = null } = {}) {
+// `ls` is what the browser already holds ({key: value}), for "the same browser, reopened": each
+// jsdom window has storage of its own.
+// EVERY BOARD THIS PROCESS OPENS (v1.86), so a suite can close the ones a block has finished with. A
+// jsdom window is a whole board -- ~3 MB of page and everything it built -- and one left open is kept
+// for the life of the process. audit-import boots ~100 of them; unclosed, one run peaked at 5.3 GB and
+// four of them at once (the mutation sweep) no longer fitted in the machine. bootMark() before a
+// block, bootRelease(mark, keep) after it: every board opened since the mark is closed except `keep`.
+const OPEN = [];
+export const bootMark = () => OPEN.length;
+export function bootRelease(mark, keep = []) {
+  const kept = new Set(keep);
+  for (let i = OPEN.length - 1; i >= mark; i--) {
+    if (kept.has(OPEN[i])) continue;
+    try { OPEN[i].close(); } catch {}
+    OPEN.splice(i, 1);
+  }
+}
+// A CLOSED BOARD IS FREED ONLY WHEN NOTHING HOLDS IT, AFTER A FEW COLLECTIONS WITH THE LOOP TURNING.
+// Two things held them in audit-import (measured: every one of its ~105 boards alive at the end, +10
+// MB a block, 1.6 GB live, peaks of 5-6 GB). A board created in a TOP-LEVEL `{ }` block of a module is
+// kept for the life of the module -- the identical code inside a function lets it go -- so each block
+// runs as `await (async () => { ... })();`. And a disposed V8 context goes only over several cycles
+// with the loop turning between them, which a suite running top to bottom never does:
+// settleBoards() after a bootRelease() gives it those turns.
+setFlagsFromString('--expose-gc');
+const collect = runInNewContext('gc');
+export async function settleBoards(rounds = 1) {
+  for (let k = 0; k < rounds; k++) { collect(); await new Promise(r => setImmediate(r)); }
+}
+// THE PROGRAM, SET IN RATHER THAN PARSED (v1.86). A board is ~3.2 MB, ~3.1 MB of it one inline
+// <script> -- the program -- which is the last thing in <body>. jsdom's HTML parser reads a script
+// body one character at a time: 634 ms of every 687 ms boot was that, not running the board. So the
+// page is parsed with a placeholder where the program sits and the program is then put in its place
+// as a script element whose text is set whole; jsdom runs it at that moment, exactly where the
+// parser would have, with every element before it already built. The page ends up the same, byte for
+// byte -- the program's first line records its own source (SRC0), and every save and PMO copy is
+// built from it -- which tools/export-audit/boot-same.mjs proves (audit:suites runs it first). A page not shaped like a board
+// (no pubMode block, or anything but </body></html> after the program) takes the ordinary parse,
+// and BOOT_PARSE=1 forces it everywhere.
+const PH = '<script type="text/x-orbit-program"></script>';
+function splitProgram(src) {
+  if (process.env.BOOT_PARSE === '1') return null;
+  const pm = src.indexOf('id="pubMode"'); if (pm < 0) return null;
+  const a = src.indexOf('<script>', pm), b = src.lastIndexOf('</script>');
+  if (a < 0 || b < a || !/^\s*<\/body>\s*<\/html>\s*$/.test(src.slice(b + 9))) return null;
+  return { page: src.slice(0, a) + PH + src.slice(b + 9), code: src.slice(a + 8, b) };
+}
+export function boot({ svc, items, quiet = true, html = null, appn = null, ls = null } = {}) {
   const vc = new VirtualConsole();
   const errors = [];
   vc.on('jsdomError', e => errors.push(e.message));
   if (!quiet) vc.sendTo(console);
 
-  const dom = new JSDOM(html != null ? html : readFileSync(BOARD, 'utf8'), {
+  const src = html != null ? html : readFileSync(BOARD, 'utf8');
+  const split = splitProgram(src);
+  const dom = new JSDOM(split ? split.page : src, {
     runScripts: 'dangerously',
     virtualConsole: vc,
     url: 'https://example.invalid/board.html',
-    beforeParse(win) { if (appn) { try { win.localStorage.setItem('prio27appn', appn); } catch {} } },
+    beforeParse(win) {
+      if (ls) for (const k of Object.keys(ls)) { try { win.localStorage.setItem(k, ls[k]); } catch {} }
+      if (appn) { try { win.localStorage.setItem('prio27appn', appn); } catch {} }
+    },
   });
   const w = dom.window;
+  if (split) {
+    const ph = w.document.querySelector('script[type="text/x-orbit-program"]');
+    const sc = w.document.createElement('script');
+    sc.textContent = split.code;
+    // what the parser had not reached yet when it ran the program -- the whitespace after it, inside
+    // <body> and after it -- comes out while the program runs and goes back after, so SRC0 is the
+    // parser's, character for character
+    const later = [];
+    for (let n = ph; n && n !== w.document.documentElement; n = n.parentNode)
+      for (let x = n.nextSibling; x; x = x.nextSibling) later.push([n.parentNode, x]);
+    later.forEach(([, x]) => x.remove());
+    ph.replaceWith(sc);                     // connected, so jsdom runs it now
+    later.forEach(([parent, x]) => parent.appendChild(x));
+  }
+  OPEN.push(w);
   // Things the page touches that jsdom does not implement. None of them are on the math path.
   w.URL.createObjectURL = () => 'blob:stub';
   w.URL.revokeObjectURL = () => {};
@@ -56,7 +125,7 @@ export function boot({ svc, items, quiet = true, html = null, appn = null } = {}
       keys = JSON.parse(c.w.eval('JSON.stringify((function(){ var o=[]; for(var i=0;i<localStorage.length;i++) o.push(localStorage.key(i)); return o; })())'));
     } catch (e) { r = { err: String((e && e.message) || e) }; }
     w.__fydpFrames.push({ nonce, err: r.err || '', errors: c ? c.errors.slice() : [], keys, bytes: html.length });
-    try { if (c) c.w.close(); } catch {}
+    try { if (c) { c.w.close(); const i = OPEN.indexOf(c.w); if (i >= 0) OPEN.splice(i, 1); } } catch {}
     r.nonce = nonce;
     return { then(ok) { ok(r); return this; } };
   };
