@@ -2830,6 +2830,14 @@ Two things the first sweep of those mutations taught, both now built in:
   sweep therefore also looks for that stub -- an attribute value ending in a planted quote -- which both
   engines leave behind.
 
+**The gate that passed v1.88** (29 Sep, 20:11–21:03 UTC): every stage clean, **52.4 min**, one sweep of
+516 mutations (474 from v1.87 plus the 42 above), 516/516 caught, 11 equivalent; the sweep took 49.0 min
+at four suites at a time. (v1.87's gate, two builds, took 98.1.) The run before it failed on one thing
+only: two older mutations (`impact-band-gated`, `clin-writes-the-money`) still searched for the
+hand-quoted handlers the encoding had rewritten, so they matched nothing -- NOT APPLIED, which fails the
+gate by design. Retargeted to the `jsa()` spelling, both caught; the board did not change between the runs.
+**When a change rewrites handler text, search `mutate.mjs` for the old spelling before the gate.**
+
 **Not covered by the door:** the workbook imports (`importSrc`, `importAce`, `importBud`,
 `importCcarRecs`). They are `.xlsx` files read cell by cell, not board state, and their amounts already go
 through `parseAmt`; their text is drawn through the same escaping, and the hostile fixture plants values in

@@ -78,7 +78,8 @@ written by the v1.87 grid, and every plan, cycle, list and figure comes across u
 appropriation, several boards at once, a package, a submittal, a band ladder, and the shared folder -- now
 reads the whole file first and refuses it, all of it, with one message saying what and where, if it
 carries what no board writes. Separately, the board now draws any text as text: a test board with
-script-shaped text planted in 109 places, opened on every screen, runs none of it (the v1.87 board ran 65).
+script-shaped text planted in 109 places, opened on every screen, runs none of it. On the v1.87 board the
+same test finds 65 places where planted text became markup or code.
 
 What shipped differs from the log in these places, all stated here:
 - **Fields the board does not know are kept, not dropped.** The log said "dropped, not refused". Building
@@ -100,6 +101,10 @@ What shipped differs from the log in these places, all stated here:
   CCaR records). They are read cell by cell, not as board files, and their amounts already go through the
   board's number reader. Their text is drawn through the same escaping, and the test board plants text in
   the stores they fill.
+- **The final check** passed on 29 Sep (4:11–5:03 pm Eastern): **52 minutes**, every stage clean, all 516
+  planted mistakes caught (v1.87's took 1 hour 38 minutes, across two builds). The run before it failed
+  on two of the older planted mistakes, whose search text the new encoding had changed; they were
+  re-aimed, both caught, and the board did not change between the two runs.
 - **The limits, measured against a real board:** files up to 64 MB (a populated board is 3.3 MB), text up
   to 200,000 characters in one field (the longest measured was 74), nesting to 64 levels (8 measured).
 
