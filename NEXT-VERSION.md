@@ -8,7 +8,77 @@ Current version: **v1.87**. Next: **v1.88**.
 
 ## Open
 
-_Nothing queued. New changes are logged here until the next go._
+### 17. One board file: retire the card build, keep the grid
+- **Logged:** 29 Sep 2026, Brad: *"I also want to get rid of the duplication of files. The grid file is
+  the only one I use now. No need to maintain two files."* Decided.
+
+##### What there is today (read 29 Sep, v1.87)
+- Two complete copies of the program: `prioritization-board.html` (card layout, ~25,100 lines) and
+  `prioritization-board-grid.html` (grid layout, ~25,500 lines). Every change is made twice; a parity
+  check keeps their shared logic identical, with 4 declared differences.
+- 21 of the 33 test tools name the card file, and every check runs on both builds -- the final math
+  gate runs its whole mutation sweep twice. Two tools exist only to keep the copies in step: the parity
+  check and the card-versus-grid controls comparison.
+- The README and CLAUDE.md describe two builds; the card file is the tools' default.
+
+##### What would be built
+- The card file is deleted from the repository (it stays in the project's history). The grid file is
+  the one program, and every tool, script and document points at it.
+- Checks that only existed to compare the two are retired or re-aimed: parity goes; the controls check
+  compares the grid against its own recorded list of controls, so a control can still never vanish
+  unnoticed.
+- The grid file keeps a few card-only code paths that are now unreachable. They are left alone in this
+  version (removing them is risk for no visible gain) and noted for later.
+- The final check runs once instead of twice: expected well under an hour on this machine.
+
+##### Can't-fail checks for the build
+- Every test that ran on the grid build still runs, with the same result; nothing that checked the grid
+  is lost with the card file.
+- A board saved by the card build opens in the grid build with everything in it (same saved format):
+  proved by importing one.
+- The full math gate.
+
+##### Brad's decision needed
+- **The file's name:** keep `prioritization-board-grid.html` (recommended: nothing anyone has saved or
+  linked changes), or rename it `prioritization-board.html`.
+
+### 18. A diagnostics file for support (recommended by Claude — say yes or no)
+- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation, not
+  yet approved.
+- **Why:** when the road show puts PMO copies in many hands, "it doesn't work" will need facts. The
+  board is offline by design and must never phone home.
+- **What:** 📁 File ▾ → *Save diagnostics…* writes a small plain-text file the person can read before
+  sending: version, browser, how much browser storage is in use, counts (requirements per
+  appropriation, locked cycles, submittals held), and the last warnings and errors the board showed.
+  **Never** a dollar figure, a requirement title, a name or any budget data -- checked by a test that
+  fills a board with recognisable values and proves none appears in the file.
+
+### 19. One way to tell the user something (recommended by Claude — say yes or no)
+- **Logged:** 29 Sep 2026, same source; not yet approved.
+- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
+  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
+  read it.
+- **What:** one helper for status-line messages that keeps an important one (an import's result, a
+  refusal, a warning) until it is read, instead of letting the next message replace it; import and
+  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
+  they are the data-loss guards and must keep stopping the user.
+
+### 20. One place for each field's name and label (recommended by Claude — say yes or no)
+- **Logged:** 29 Sep 2026, same source; not yet approved.
+- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
+  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
+  went hollow when one name changed in one place and not another.
+- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
+  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
+  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
+  Later versions extend it as fields are touched, never as a big-bang rewrite.
+
+##### Considered and not recommended now
+- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
+  arguments**: worthwhile later, once there is one file, as a version of its own.
+- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
+  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
+  and measured first.
 
 ## Withdrawn
 
