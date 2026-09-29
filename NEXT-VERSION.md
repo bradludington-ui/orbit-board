@@ -42,9 +42,51 @@ Current version: **v1.87**. Next: **v1.88**.
 - **The file keeps its name:** `prioritization-board-grid.html`. Nothing anyone has saved or linked
   changes.
 
-### 18. A diagnostics file for support
+### 21. Imported files treated as untrusted: checked at every way in, and nothing in them can run
+- **Logged:** 29 Sep 2026, from the engineering review Brad shared (its #1 and #2). Brad: *"Should we
+  make these updates? Offer your real opinion not what you think I want"*; Claude recommended this,
+  narrowed; Brad: *"Yes, update the log that way."* **Approved for v1.88.**
+- **Why it matters here:** not because an attack is likely, but because of the can't-fail on the math.
+  A deliberately crafted file could run code inside the board that quietly changes figures that are
+  then briefed. The everyday benefit is accidental bad files -- truncated or hand-edited -- getting a
+  clear refusal instead of a partial import.
+
+##### What the board does today (read 29 Sep, v1.87)
+- **Already in place:** a full import refuses files older than v1.80; a state written for a different
+  set of services is refused; every import is previewed and asks before discarding work; nothing a
+  submittal proposes is applied until it is ticked; amounts are checked as finite numbers in places.
+- **The gaps:** the escaping helper `esc()` covers `&`, `<` and `"` but not the single quote; ten click
+  handlers build their code by inserting a requirement id directly; ids that arrive in an imported
+  board or a submittal are not checked; there is no file-size limit.
+
+##### What would be built
+- **One check at every way a file comes in** -- a full board, one appropriation, several boards at once,
+  an appropriation package, a submittal: requirement ids must be made of safe characters; amounts must
+  be real, finite numbers within range; text has a length limit and files a size limit. **Fields the
+  board does not know are dropped, not refused** -- refusing them would reject genuine files written by
+  older and newer versions, which the full import is built to accept (v1.80 onward). Anything refused
+  gets one clear message saying what and why; nothing is imported partly and silently.
+- **Nothing in a file can run:** the escaping covers the single quote, and click handlers no longer carry
+  a requirement id inside their code.
+- **The format written down:** the checks are, in effect, a description of the saved file; it is
+  recorded in CLAUDE.md so later versions change it deliberately.
+
+##### Can't-fail checks for the build
+- **A hostile file does nothing:** a test plants script-shaped text and hostile ids in every field of
+  every file type and proves nothing runs, nothing is stored that should not be, and every figure is
+  unchanged.
+- **Every genuine file still imports exactly as before:** the existing tests of files written by v1.80,
+  v1.83, v1.85 and v1.86 pass unchanged, figure for figure; a board with no hostile content opens,
+  saves and exports identically.
+- Mutations for each check; the full math gate.
+
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 18. A diagnostics file for support — build before the road show
 - **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation.
-  **Approved by Brad, 29 Sep, for v1.88.**
+ **Deferred by Brad, 29 Sep 2026:** not in v1.88.
 - **Why:** when the road show puts PMO copies in many hands, "it doesn't work" will need facts. The
   board is offline by design and must never phone home.
 - **What:** 📁 File ▾ → *Save diagnostics…* writes a small plain-text file the person can read before
@@ -53,8 +95,8 @@ Current version: **v1.87**. Next: **v1.88**.
   **Never** a dollar figure, a requirement title, a name or any budget data -- checked by a test that
   fills a board with recognisable values and proves none appears in the file.
 
-### 19. One way to tell the user something
-- **Logged:** 29 Sep 2026, same source. **Approved by Brad, 29 Sep, for v1.88.**
+#### 19. One way to tell the user something
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
 - **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
   prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
   read it.
@@ -63,8 +105,8 @@ Current version: **v1.87**. Next: **v1.88**.
   export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
   they are the data-loss guards and must keep stopping the user.
 
-### 20. One place for each field's name and label
-- **Logged:** 29 Sep 2026, same source. **Approved by Brad, 29 Sep, for v1.88.**
+#### 20. One place for each field's name and label
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
 - **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
   pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
   went hollow when one name changed in one place and not another.
@@ -73,12 +115,18 @@ Current version: **v1.87**. Next: **v1.88**.
   messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
   Later versions extend it as fields are touched, never as a big-bang rewrite.
 
-##### Considered and not recommended now
+#### Considered and not recommended
 - **Rewriting the board into separate modules**, and **making the money engine take its inputs as
   arguments**: worthwhile later, once there is one file, as a version of its own.
 - **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
   would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
   and measured first.
+- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
+  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
+  for the live board, copies and submittals already cover what it asks for.
+- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
+  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
+  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
 
 ## Withdrawn
 
