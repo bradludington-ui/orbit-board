@@ -393,8 +393,8 @@ const MUTATIONS = [
     find: "  if(!it) fldOpen=null;                      // removed out from under the editor",
     repl: "  // removed out from under the editor" },
   { id: 'impact-band-gated', area: 'rowChipsHtml', what: 'the impact statement is reachable only where a band demands one',
-    find: `onclick="toggleCons(&quot;'+id+'&quot;)" `,
-    repl: `data-x="'+id+'" ` },
+    find: `onclick="toggleCons('+jsa(id)+')" `,
+    repl: `data-x="'+esc(id)+'" ` },
 
   // ---- the handoff, both directions: the no-fail path ------------------------------------------
   // The first two put back the defects found by auditing this feature after it was built.
@@ -1270,9 +1270,9 @@ const MUTATIONS = [
 
   { id: 'clin-writes-the-money', area: 'clinTable', what: 'the CLIN drill offers to overwrite a hand-typed split from the grid',
     find: `      +(clinSplitRow(pid)? ''
-        : '<button class="qb" onclick="clinToRow(\\''+pid+'\\')"`,
+        : '<button class="qb" onclick="clinToRow('+jsa(pid)+')"`,
     repl: `      +(false? ''
-        : '<button class="qb" onclick="clinToRow(\\''+pid+'\\')"` },
+        : '<button class="qb" onclick="clinToRow('+jsa(pid)+')"` },
 
 
   // ── v1.83: THE BAE BUDGET RULE, THE LANE SPLIT AND EVERY REQUIREMENT ON THE TWO SPEND PLANS ──
