@@ -96,6 +96,7 @@ and a timestamp, and a save that would clobber newer work stops and says so firs
 |---|---|
 | `prioritization-board-grid.html` | The application. Source of truth. |
 | `CLAUDE.md` | How to work on it — read this before editing. |
+| `AGENTS.md` | The short rules for any coding agent (Codex and others), pointing to `CLAUDE.md`. |
 | `tools/check.mjs` | Invariant checks for the board. |
 | `tools/row-controls.mjs` | Lists every control a user reaches for one requirement; checks it against `tools/row-controls.json`. |
 | `tools/export-audit/` | Drives the real exports in jsdom and checks every printed figure. |
