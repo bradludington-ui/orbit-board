@@ -4,81 +4,11 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.87**. Next: **v1.88**.
+Current version: **v1.88**. Next: **v1.89**.
 
 ## Open
 
-### 17. One board file: retire the card build, keep the grid
-- **Logged:** 29 Sep 2026, Brad: *"I also want to get rid of the duplication of files. The grid file is
-  the only one I use now. No need to maintain two files."* Decided.
-
-##### What there is today (read 29 Sep, v1.87)
-- Two complete copies of the program: `prioritization-board.html` (card layout, ~25,100 lines) and
-  `prioritization-board-grid.html` (grid layout, ~25,500 lines). Every change is made twice; a parity
-  check keeps their shared logic identical, with 4 declared differences.
-- 21 of the 33 test tools name the card file, and every check runs on both builds -- the final math
-  gate runs its whole mutation sweep twice. Two tools exist only to keep the copies in step: the parity
-  check and the card-versus-grid controls comparison.
-- The README and CLAUDE.md describe two builds; the card file is the tools' default.
-
-##### What would be built
-- The card file is deleted from the repository (it stays in the project's history). The grid file is
-  the one program, and every tool, script and document points at it.
-- Checks that only existed to compare the two are retired or re-aimed: parity goes; the controls check
-  compares the grid against its own recorded list of controls, so a control can still never vanish
-  unnoticed.
-- The grid file keeps a few card-only code paths that are now unreachable. They are left alone in this
-  version (removing them is risk for no visible gain) and noted for later.
-- The final check runs once instead of twice: expected well under an hour on this machine.
-
-##### Can't-fail checks for the build
-- Every test that ran on the grid build still runs, with the same result; nothing that checked the grid
-  is lost with the card file.
-- A board saved by the card build opens in the grid build with everything in it (same saved format):
-  proved by importing one.
-- The full math gate.
-
-##### Brad's decision (29 Sep 2026)
-- **The file keeps its name:** `prioritization-board-grid.html`. Nothing anyone has saved or linked
-  changes.
-
-### 21. Imported files treated as untrusted: checked at every way in, and nothing in them can run
-- **Logged:** 29 Sep 2026, from the engineering review Brad shared (its #1 and #2). Brad: *"Should we
-  make these updates? Offer your real opinion not what you think I want"*; Claude recommended this,
-  narrowed; Brad: *"Yes, update the log that way."* **Approved for v1.88.**
-- **Why it matters here:** not because an attack is likely, but because of the can't-fail on the math.
-  A deliberately crafted file could run code inside the board that quietly changes figures that are
-  then briefed. The everyday benefit is accidental bad files -- truncated or hand-edited -- getting a
-  clear refusal instead of a partial import.
-
-##### What the board does today (read 29 Sep, v1.87)
-- **Already in place:** a full import refuses files older than v1.80; a state written for a different
-  set of services is refused; every import is previewed and asks before discarding work; nothing a
-  submittal proposes is applied until it is ticked; amounts are checked as finite numbers in places.
-- **The gaps:** the escaping helper `esc()` covers `&`, `<` and `"` but not the single quote; ten click
-  handlers build their code by inserting a requirement id directly; ids that arrive in an imported
-  board or a submittal are not checked; there is no file-size limit.
-
-##### What would be built
-- **One check at every way a file comes in** -- a full board, one appropriation, several boards at once,
-  an appropriation package, a submittal: requirement ids must be made of safe characters; amounts must
-  be real, finite numbers within range; text has a length limit and files a size limit. **Fields the
-  board does not know are dropped, not refused** -- refusing them would reject genuine files written by
-  older and newer versions, which the full import is built to accept (v1.80 onward). Anything refused
-  gets one clear message saying what and why; nothing is imported partly and silently.
-- **Nothing in a file can run:** the escaping covers the single quote, and click handlers no longer carry
-  a requirement id inside their code.
-- **The format written down:** the checks are, in effect, a description of the saved file; it is
-  recorded in CLAUDE.md so later versions change it deliberately.
-
-##### Can't-fail checks for the build
-- **A hostile file does nothing:** a test plants script-shaped text and hostile ids in every field of
-  every file type and proves nothing runs, nothing is stored that should not be, and every figure is
-  unchanged.
-- **Every genuine file still imports exactly as before:** the existing tests of files written by v1.80,
-  v1.83, v1.85 and v1.86 pass unchanged, figure for figure; a board with no hostile content opens,
-  saves and exports identically.
-- Mutations for each check; the full math gate.
+Nothing open. Log the next change here.
 
 ## Later
 
@@ -136,6 +66,114 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v1.88 — 29 Sep 2026: items 17 and 21, built on Brad's "go"
+
+**One board file.** The card build is gone from the repository (the last one stays in the history). The
+grid file keeps its name, and every tool, script and the final check now run once, on it. A board saved by
+the card build still opens in the grid: the tests import one written by the last card build, and one
+written by the v1.87 grid, and every plan, cycle, list and figure comes across unchanged.
+
+**A file from someone else is data, never code.** Every way a file comes in -- a full board, one
+appropriation, several boards at once, a package, a submittal, a band ladder, and the shared folder -- now
+reads the whole file first and refuses it, all of it, with one message saying what and where, if it
+carries what no board writes. Separately, the board now draws any text as text: a test board with
+script-shaped text planted in 109 places, opened on every screen, runs none of it (the v1.87 board ran 65).
+
+What shipped differs from the log in these places, all stated here:
+- **Fields the board does not know are kept, not dropped.** The log said "dropped, not refused". Building
+  it showed that dropping has a data-loss cost the log did not weigh: a field written by a NEWER version
+  would be lost when the file went back to it. Nothing reads an unknown field, so keeping it is safe. The
+  one exception is three names that can reach inside the program (`__proto__`, `constructor`,
+  `prototype`); no board writes them, and a file carrying one is refused.
+- **Click handlers still name the requirement, through one encoder, instead of reading it from the page.**
+  The log said handlers would "no longer carry a requirement id inside their code". The encoder (`jsa`)
+  gives the same guarantee -- whatever a value holds, it reaches the handler as one piece of text -- and it
+  covers every value in a handler, not only ids: office and service names, CLIN keys, cycle keys. About
+  190 handlers were converted, and a check now fails if one is ever written the old way.
+- **More than the log listed was fixed.** The test board found about 40 further places that wrote a
+  service name, an office name, an id, a cost-estimate name or a band colour onto the screen unescaped.
+  Each is fixed.
+- **The shared folder is a way in too.** Not in the log's list; its copies are written by other people's
+  boards, so they go through the same check.
+- **Not covered by the check:** the Excel workbook imports (execution data, cost estimates, the BAE list,
+  CCaR records). They are read cell by cell, not as board files, and their amounts already go through the
+  board's number reader. Their text is drawn through the same escaping, and the test board plants text in
+  the stores they fill.
+- **The limits, measured against a real board:** files up to 64 MB (a populated board is 3.3 MB), text up
+  to 200,000 characters in one field (the longest measured was 74), nesting to 64 levels (8 measured).
+
+#### 17. One board file: retire the card build, keep the grid
+- **Logged:** 29 Sep 2026, Brad: *"I also want to get rid of the duplication of files. The grid file is
+  the only one I use now. No need to maintain two files."* Decided.
+
+##### What there is today (read 29 Sep, v1.87)
+- Two complete copies of the program: `prioritization-board.html` (card layout, ~25,100 lines) and
+  `prioritization-board-grid.html` (grid layout, ~25,500 lines). Every change is made twice; a parity
+  check keeps their shared logic identical, with 4 declared differences.
+- 21 of the 33 test tools name the card file, and every check runs on both builds -- the final math
+  gate runs its whole mutation sweep twice. Two tools exist only to keep the copies in step: the parity
+  check and the card-versus-grid controls comparison.
+- The README and CLAUDE.md describe two builds; the card file is the tools' default.
+
+##### What would be built
+- The card file is deleted from the repository (it stays in the project's history). The grid file is
+  the one program, and every tool, script and document points at it.
+- Checks that only existed to compare the two are retired or re-aimed: parity goes; the controls check
+  compares the grid against its own recorded list of controls, so a control can still never vanish
+  unnoticed.
+- The grid file keeps a few card-only code paths that are now unreachable. They are left alone in this
+  version (removing them is risk for no visible gain) and noted for later.
+- The final check runs once instead of twice: expected well under an hour on this machine.
+
+##### Can't-fail checks for the build
+- Every test that ran on the grid build still runs, with the same result; nothing that checked the grid
+  is lost with the card file.
+- A board saved by the card build opens in the grid build with everything in it (same saved format):
+  proved by importing one.
+- The full math gate.
+
+##### Brad's decision (29 Sep 2026)
+- **The file keeps its name:** `prioritization-board-grid.html`. Nothing anyone has saved or linked
+  changes.
+
+#### 21. Imported files treated as untrusted: checked at every way in, and nothing in them can run
+- **Logged:** 29 Sep 2026, from the engineering review Brad shared (its #1 and #2). Brad: *"Should we
+  make these updates? Offer your real opinion not what you think I want"*; Claude recommended this,
+  narrowed; Brad: *"Yes, update the log that way."* **Approved for v1.88.**
+- **Why it matters here:** not because an attack is likely, but because of the can't-fail on the math.
+  A deliberately crafted file could run code inside the board that quietly changes figures that are
+  then briefed. The everyday benefit is accidental bad files -- truncated or hand-edited -- getting a
+  clear refusal instead of a partial import.
+
+##### What the board does today (read 29 Sep, v1.87)
+- **Already in place:** a full import refuses files older than v1.80; a state written for a different
+  set of services is refused; every import is previewed and asks before discarding work; nothing a
+  submittal proposes is applied until it is ticked; amounts are checked as finite numbers in places.
+- **The gaps:** the escaping helper `esc()` covers `&`, `<` and `"` but not the single quote; ten click
+  handlers build their code by inserting a requirement id directly; ids that arrive in an imported
+  board or a submittal are not checked; there is no file-size limit.
+
+##### What would be built
+- **One check at every way a file comes in** -- a full board, one appropriation, several boards at once,
+  an appropriation package, a submittal: requirement ids must be made of safe characters; amounts must
+  be real, finite numbers within range; text has a length limit and files a size limit. **Fields the
+  board does not know are dropped, not refused** -- refusing them would reject genuine files written by
+  older and newer versions, which the full import is built to accept (v1.80 onward). Anything refused
+  gets one clear message saying what and why; nothing is imported partly and silently.
+- **Nothing in a file can run:** the escaping covers the single quote, and click handlers no longer carry
+  a requirement id inside their code.
+- **The format written down:** the checks are, in effect, a description of the saved file; it is
+  recorded in CLAUDE.md so later versions change it deliberately.
+
+##### Can't-fail checks for the build
+- **A hostile file does nothing:** a test plants script-shaped text and hostile ids in every field of
+  every file type and proves nothing runs, nothing is stored that should not be, and every figure is
+  unchanged.
+- **Every genuine file still imports exactly as before:** the existing tests of files written by v1.80,
+  v1.83, v1.85 and v1.86 pass unchanged, figure for figure; a board with no hostile content opens,
+  saves and exports identically.
+- Mutations for each check; the full math gate.
 
 ### v1.87 — 27 Sep 2026: items 15 and 16, built on Brad's "go" — the math gate, shortened
 

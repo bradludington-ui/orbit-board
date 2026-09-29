@@ -97,10 +97,10 @@ for (const [lbl, env] of [['trace matrix', { BOARD: GRID }]]) {
 }
 
 // ---- 3. the suites ------------------------------------------------------------------------------
-// THE GATE IS THE EXIT CODE, not a count of banner lines. audit:suites chains SEVEN suites but only
-// SIX print "ALL CHECKS PASSED" -- audit:legacy closes with its own sentence ("every legacy Force
-// setting computes exactly as before"), which is why the healthy total is 6 and not 7 (12 while
-// there were two builds). A gate written against 7 fails every night on a board that is perfectly fine,
+// THE GATE IS THE EXIT CODE, not a count of banner lines. audit:suites chains EIGHT suites but only
+// SEVEN print "ALL CHECKS PASSED" -- audit:legacy closes with its own sentence ("every legacy Force
+// setting computes exactly as before"), which is why the healthy total is 7 and not 8 (v1.88 added
+// audit:hostile; 12 of the old seven's banners while there were two builds). A gate written against 7 fails every night on a board that is perfectly fine,
 // and a nightly job that cries wolf is one nobody reads. The chain already exits non-zero if any
 // suite fails; the banner count is reported as a fact, and the legacy marker is asserted separately
 // so that suite cannot go quiet unnoticed.
@@ -108,8 +108,8 @@ for (const [lbl, env] of [['suites', { BOARD: GRID }]]) {
   const r = await run(lbl, 'npm', ['run', 'audit:suites', '--silent'], env);
   const passed = (r.out.match(/ALL CHECKS PASSED/g) || []).length;
   const legacy = /every legacy Force setting computes exactly as before/.test(r.out);
-  const ok = r.code === 0 && legacy && passed >= 6;
-  note({ ...r, ok, detail: ok ? `all 7 suites clean (${passed} banners + the legacy line)`
+  const ok = r.code === 0 && legacy && passed >= 7;
+  note({ ...r, ok, detail: ok ? `all 8 suites clean (${passed} banners + the legacy line)`
     : `exit ${r.code}, ${passed} banner(s), legacy line ${legacy ? 'present' : 'MISSING'}` });
   console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${lbl}  (${passed} banners${legacy ? ' + legacy' : ', LEGACY LINE MISSING'})`);
 }
@@ -120,7 +120,7 @@ for (const [lbl, env] of [['suites', { BOARD: GRID }]]) {
 {
   const r = await run('browser checks', 'npm', ['run', 'verify:grid', '--silent']);
   note({ ...r, ok: r.code === 0, detail: r.code === 0
-    ? 'controls, inspector, toolbar, editors, colours, menus, panels and the sealed frames all clean'
+    ? 'controls, inspector, toolbar, editors, colours, menus, panels, the sealed frames and the hostile board all clean'
     : 'a rendered surface failed — clipped value, unopened panel, or a width that scrolls' });
   console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  browser checks`);
 }

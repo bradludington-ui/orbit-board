@@ -301,6 +301,18 @@ for (let round = 1; round <= ROUNDS; round++) {
       `${x.path}\n          saved ${x.before}\n          read  ${x.after}`));
   } catch (e) { fail(round, 'save → reopen', 'threw', String(e.message).slice(0, 150)); }
 
+  // ---- TRIP 1b: the saved file passes the import door (v1.88). Every container filled with awkward
+  // values -- quotes, markup, a literal </script>, a long string -- is exactly what a genuine board can
+  // write, and inboundCheck() must never refuse what a board writes: a file it refused would be a board
+  // that cannot come back in. The same holds for the PMO copy made from it.
+  try {
+    const why = ev('inboundCheck(buildSavedHtml())');
+    trips++;
+    if (why) fail(round, 'import door', 'the board\'s own saved file was refused at the door', why);
+    const copy = ev(`(function(){ try{ return pmoCopyHtml({sandbox:true, pmo:'PSM'}); }catch(e){ return ''; } })()`);
+    if (copy) { const w2 = ev(`inboundCheck(${JSON.stringify(copy)})`); if (w2) fail(round, 'import door', 'a PMO copy of it was refused at the door', w2); }
+  } catch (e) { fail(round, 'import door', 'threw', String(e.message).slice(0, 150)); }
+
   // ---- TRIP 2: save → reopen → save again. The second save must equal the first: a value that
   // survives one trip but is re-encoded on the next is lost on the third.
   try {

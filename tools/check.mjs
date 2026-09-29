@@ -187,6 +187,31 @@ console.log('\noffline');
   else pass(`all ${names.size} inline handler names resolve`);
 }
 
+// ---- a value reaches handler code only through jsa() (v1.88) -----------------------------------
+// Ids, keys, and service and office names arrive in files from other people. Written into an inline
+// handler by hand -- onclick="f('+id+')" -- a quote in one ends the string and the rest of it is code
+// that runs inside the board. v1.88 routed every such value through jsa(), which makes it a JSON string
+// and escapes that for the attribute; this fails on a value concatenated into handler code any other way:
+// straight after an opening quote the handler wrote (\' or &quot;), straight before its closing one,
+// or into a template literal's quotes. A literal continuing a literal ("…,'\n +'&quot;m&quot;") is not a
+// value, so a closing quote preceded by the end of another literal is let through.
+{
+  console.log('\nhandler values');
+  const bad = [];
+  const at = i => src.slice(0, i).split('\n').length;
+  const comment = i => /^\s*(\/\/|\*|\/\*)/.test(lines[at(i) - 1] || '');
+  const prevChar = i => { let j = i - 1; while (j >= 0 && /\s/.test(src[j])) j--; return src[j]; };
+  for (const m of src.matchAll(/(\\'|&quot;)'\s*\+/g)) if (!comment(m.index)) bad.push([at(m.index), 'a value written straight after a quote the handler opened']);
+  for (const m of src.matchAll(/\+\s*'(\\'|&quot;)/g))
+    if (!comment(m.index) && !/['"`]/.test(prevChar(m.index))) bad.push([at(m.index), 'a value written straight before a quote the handler closes']);
+  for (const m of src.matchAll(/\('"\s*\+/g))
+    if (!comment(m.index) && !/_api\/web\//.test(lines[at(m.index) - 1])) bad.push([at(m.index), 'a value written into a quoted handler argument']);
+  lines.forEach((l, i) => { if (/\bon[a-z]+="[^"]*'\$\{/.test(l) && !/^\s*\/\//.test(l)) bad.push([i + 1, 'a template value inside a handler’s quotes']); });
+  if (bad.length) fail(`${bad.length} value(s) reach inline handler code without jsa(): `
+    + bad.slice(0, 8).map(([n, w]) => `line ${n} (${w})`).join('; '));
+  else pass('every value written into an inline handler goes through jsa()');
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);

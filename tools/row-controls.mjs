@@ -67,7 +67,7 @@ async function inventory(page, file) {
       // Identify by what it DOES, not where it sits: the handler name plus its label. A control
       // that moves to another column is the same control; one whose handler vanished is not.
       const h = (el.getAttribute('onclick') || el.getAttribute('onchange') || '')
-        .replace(/'[^']*'/g, "'…'").replace(/\s+/g, ' ').trim();
+        .replace(/"(?:[^"\\]|\\.)*"/g, "'…'").replace(/'(?:[^'\\]|\\.)*'/g, "'…'").replace(/\s+/g, ' ').trim();
       out.push([el.tagName.toLowerCase(), h || '(' + (el.getAttribute('draggable') ? 'draggable' : el.type || '') + ')',
                 (el.getAttribute('title') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 44)].join(' | '));
     }));
@@ -90,7 +90,9 @@ if (!inv) { console.error('row-A did not render'); process.exit(2); }
 // field name in a handler never makes two builds of the same control look different. A MULTISET,
 // not a set: the split editor carries two inputs per service with the same handler, and losing one
 // of the pair is losing a control.
-const fold = h => h.replace(/"[^"]*"/g, '"…"').replace(/'[^']*'/g, "'…'");
+// Both quote styles fold to one: v1.88 writes every value into a handler through jsa(), which quotes
+// with double quotes where the hand-written handlers used single ones -- the same control either way.
+const fold = h => h.replace(/"(?:[^"\\]|\\.)*"/g, "'…'").replace(/'(?:[^'\\]|\\.)*'/g, "'…'");
 const unwrap = h => { const m = /^rowMenuRun\([^,]+,\(\)=>\{(.+)\}\)$/.exec(h); return m ? m[1].trim() : h; };
 const fn = x => fold(unwrap(x.split(' | ')[1]));
 const tally = list => list.reduce((m, x) => (m[fn(x)] = (m[fn(x)] || 0) + 1, m), {});

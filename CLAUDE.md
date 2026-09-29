@@ -2747,6 +2747,94 @@ Its catch record matched v1.86's mutation by mutation on both builds: none missi
 caught by a different suite. (The same suite is partly by construction -- the record orders the
 suites; what the comparison proves is that nothing slipped and nothing crashed.)
 
+### v1.88: one board file, and a file from someone else is data -- never code, never a false figure
+
+Built from `NEXT-VERSION.md` items 17 and 21 on Brad's "go" (29 Sep 2026).
+
+**Item 17 -- one build.** See the top of this file. The card build is gone; every tool, script and the
+gate run once, on the grid. `parity.mjs` is retired; `row-controls.mjs --check` holds the grid against
+`tools/row-controls.json` (a control that vanishes, or appears unrecorded, fails; `--record` for a
+deliberate change). The full-import test imports files written by the v1.87 card build and the v1.87
+grid, built from the history, beside v1.80, v1.83 and v1.85.
+
+**Item 21 -- the door.** `inboundCheck(txt)` (beside `fullImportText`) reads a WHOLE file before any of it
+is used and returns '' or one sentence saying what is wrong and where. `inRefuse(fname, why)` is the one
+message ("“x” was not imported: … Nothing on this board was changed."). It is called at every way a file
+comes in: `importFullBoard`/`fullImportText` (a full board), `importState` (a board, one appropriation
+from a consolidated file, a JSON state, a package, a submittal -- all routed there), `importBoards`
+(several at once: ONE refused file refuses the batch, nothing is taken), `bandImport` (a band ladder),
+and every read of the shared folder through `driveParse()` (the store, peers, locks, execution data,
+cost estimates, the reprogramming log, a restored copy, the five-year plan's folder copy) and the legacy
+sidecar state file. `inTooBig(f)` refuses on the file's size before a byte is read. It only READS: a file
+it passes goes on exactly as before, which is why the v1.80-v1.87 full-import tests pass unchanged
+through it.
+
+#### What a file may carry (the saved format, as the door enforces it)
+- At most `IN_MAX_BYTES` (64 MB) of text; nested at most `IN_MAX_DEPTH` (64) deep. A populated board
+  measured 3.3 MB and 8 deep.
+- No field named `__proto__`, `constructor` or `prototype` anywhere: no board writes one, and copying an
+  object that carries one (`Object.assign`) re-parents it.
+- Every number finite and within ±`IN_MAX_NUM` (1e15; timestamps are ~1.8e12). Every AMOUNT -- a
+  requirement's `ask`/`fy26`, a data pack's `budget`, a plan's `discSvc`/`mandSvc`/`discBA`/`mandBA`/
+  `absorbFloor`, `bm.disc`/`bm.mand`/`bm.adds[].vec`, `asks`, `minInc`, `alloc` (a number, or `.v` a
+  number or a vector), `fsrc` (`dv`, `mv`, `d`, `mnd`), a submittal's `asks` and proposed `ask` -- is a
+  number within ±`IN_MAX_AMT` (1e13), or text the board has always read as one ("1,234,567"). Words, an
+  object, a boolean in an amount's place are refused: `money()` and friends would have read them as 0.
+- No text longer than `IN_MAX_TEXT` (200,000 characters; the longest measured was 74).
+- A requirement id -- in a data pack's `items`, a plan's `order`, `removed` and `custom`, the keys of
+  the per-requirement maps (`IN_ID_MAPS`), a submittal's `items`/`base` keys and proposed `nid` -- is text
+  of 1-80 characters with no quote mark, `<`, `>`, backquote, backslash, `|` or control character. Ids
+  must be TEXT: `id.startsWith` runs on every one, and a number there throws.
+- A service name (`services`, `svc`) and an office name (`pmos`, an item's `grp`, a plan's `grp`
+  reassignments, a proposed requirement's `grp`) has at most 200 characters and no double quote, `<`,
+  `>`, backquote, backslash or control character (an apostrophe and `&` are fine: "O&M", "Brad's").
+- A band's `c` is a `#hex` colour; its `id` follows the name rule.
+- These shapes are recognised wherever they sit -- a board, a cycle, a snapshot, a package, a submittal.
+- **Fields the door does not recognise are LEFT AS THEY ARE**, neither refused nor dropped. The log said
+  "dropped"; that was changed while building it, and said so in the ship notes: nothing reads an unknown
+  field, so it is inert, and dropping it would lose a NEWER version's data when the file went back to it
+  -- the data-loss can't-fail. The three prototype names are the exception, and they are refused.
+
+**Item 21 -- the drawing.** A board saved before v1.88 was never checked, so the board also has to draw
+hostile text as text. `esc()` now covers the single quote. `jsa(v)` -- `esc(JSON.stringify(String(v)))`
+-- is the ONLY way a value goes into inline handler code: ~190 hand-written `\''+id+'\'`,
+`&quot;'+id+'&quot;`, `'${id}'` and `q(id)` sites were converted, and `check.mjs` fails on a value
+concatenated into handler code any other way ("handler values"). The hostile fixture found a further ~40
+places that wrote a service name, an office name, a requirement id (the row's own `id=` attribute), a
+cost-estimate name or a band colour into HTML unescaped; each is escaped, and `readableOn()` turns a
+band colour that is not a hex colour into the neutral grey instead of writing it into a `style`.
+The log said handlers would read the id from a data attribute instead; the encoder was built instead,
+because it closes the same hole for every value in a handler (keys, service and office names, cycle
+keys), not just requirement ids, with a one-line change per site and a static check behind it.
+
+**The proof.** `audit-hostile.mjs` (jsdom, the eighth suite, last in the sweep's order): every hostile
+shape at every door its file type uses -- refused with the message, and browser storage and the whole
+store byte-identical afterwards; every file the board writes (its own saved file, a PMO copy, a
+submittal from it, an appropriation package, one appropriation exported, a band ladder) passes; and the hostile board
+(`hostile.mjs`) swept screen by screen -- every requirement, row menu, pop-up, record and WBS panel, the
+CLIN drill, 41 panels and 9 menus -- with every inline handler read as TOKENS: one that calls `__pw`
+outside a string literal is a planted value that became code. `tools/hostile-render.mjs` runs the same
+sweep in Chromium (in `verify:grid`), where a planted `<img onerror>` would also fire; on the v1.87 board
+it finds 65 places. Both also require each planted field to be SEEN on screen, so a field that is never
+drawn cannot pass by not being looked at. The data-loss fuzz gained a trip: every randomly filled board it
+saves, and a PMO copy of it, must pass the door. 42 mutations (`door-*`, `esc-quote`, `jsa-*`, `draw-*`).
+
+Two things the first sweep of those mutations taught, both now built in:
+- **`IN_KEY_BAD` is a `Set`.** It was an object literal, and `door-proto` and `door-constructor` survived:
+  `obj['__proto__']` and `obj['constructor']` answer from `Object.prototype` whether listed or not, so
+  the check worked by accident -- and would have refused a genuine key named `toString` or `valueOf`. A
+  test now passes a file carrying those keys.
+- **jsdom drops markup inside a `<select>`.** `draw-rec-office` (office names written raw into the
+  record panel's `<option>`s) survived: Chromium builds the injected `<img>` and `hostile-render.mjs` saw
+  it, but jsdom's parser discards tags inside a select and keeps only the cut-off `value="grp'"`. The
+  sweep therefore also looks for that stub -- an attribute value ending in a planted quote -- which both
+  engines leave behind.
+
+**Not covered by the door:** the workbook imports (`importSrc`, `importAce`, `importBud`,
+`importCcarRecs`). They are `.xlsx` files read cell by cell, not board state, and their amounts already go
+through `parseAmt`; their text is drawn through the same escaping, and the hostile fixture plants values in
+the stores they fill (execution rows, cost estimates, the BAE list).
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

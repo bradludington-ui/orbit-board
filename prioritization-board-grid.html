@@ -1815,7 +1815,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.87 (27 Sep 2026)';
+const BUILD='v1.88 (29 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -2004,7 +2004,7 @@ function ndRowChip(id){
   const lines=N.list.filter(function(x){ return x.id===id; })
     .map(function(x){ return SVC[x.i]+' '+(x.lane==='d'?'Disc':'Mand')+': typed '+fM(x.typed)+', drew '+fM(x.drew)+' — '+x.why; });
   return '<span class="rchip" style="border-color:var(--amber);color:var(--amber);font-weight:800" '
-    +'onclick="ndOpen=true;ndFocus=&quot;'+id+'&quot;;render()" title="'+esc(lines.join('\n')+'\nClick for the fix list.')+'">'
+    +'onclick="ndOpen=true;ndFocus='+jsa(id)+';render()" title="'+esc(lines.join('\n')+'\nClick for the fix list.')+'">'
     +'▲ '+fMc(g)+' not drawn</span>';
 }
 // C · the fix list
@@ -2031,7 +2031,7 @@ function ndBody(){
       +'<td>'+fM(g.typed)+'</td><td>'+fM(g.drew)+'</td><td style="color:var(--amber);font-weight:800">'+fM(g.gap)+'</td>'
       +'<td style="text-align:left;font-size:10.5px;white-space:normal;min-width:230px">'+esc(g.why)+'</td>'
       +'<td style="white-space:nowrap">'+(locked? '' : '<button class="qb" onclick="ndSetDrawn('+k+')">set to drawn</button> ')
-      +'<button class="qb" onclick="ndOpenRow(&quot;'+g.id+'&quot;)">open</button></td></tr>'; });
+      +'<button class="qb" onclick="ndOpenRow('+jsa(g.id)+')">open</button></td></tr>'; });
   h+='<tr class="tot"><td></td><td style="text-align:left">'+N.n+' requirement'+(N.n===1?'':'s')+' · '+L.length+' line'+(L.length===1?'':'s')+'</td>'
     +'<td></td><td></td><td></td><td></td><td style="color:var(--amber)">'+fM(N.tot)+'</td><td></td>'
     +'<td>'+(locked? '' : '<button class="btn" style="font-size:10px;padding:3px 9px" onclick="ndSetAll()">set all to drawn</button>')+'</td></tr></table>';
@@ -2092,7 +2092,9 @@ function _ratio(a,b){ const l1=_lum(a), l2=_lum(b);
 const _hex=c=>'#'+[c.r,c.g,c.b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,'0')).join('');
 function readableOn(hue, bg, need){
   const c=_rgb(hue), g=_rgb(bg);
-  if(!c||!g) return hue;                       // not a hex we understand: leave it alone
+  // not a hex we understand: leave a theme token alone, and anything else -- a band colour is text from
+  // a file, and it is written into a style attribute -- becomes the neutral band grey (v1.88)
+  if(!c||!g) return /^var\(--[A-Za-z0-9-]+\)$/.test(String(hue))? hue : '#8892a4';
   if(_ratio(c,g) >= (need||4.5)) return hue;   // already legible here
   const toBlack = _lum(g) > 0.18;              // light ground: darken. dark ground: lighten.
   for(let k=0.04; k<=1.0001; k+=0.04){
@@ -2332,7 +2334,7 @@ function aceBody(){
     const d=bd-est;
     // A combined row is stated as combined. Splitting one estimate across two board PMOs would be
     // a number nobody produced.
-    const lbl=present.join(' + ')+(present.length>1
+    const lbl=present.map(esc).join(' + ')+(present.length>1
       ? '<span style="color:var(--dim);font-size:8.5px"> \u00b7 one line in '+esc(k)+'</span>' : '');
     h+='<tr><td style="text-align:left;font-weight:700">'+lbl+'</td>'
       +'<td>'+(est>0.5? fM0(est):'\u2014')+'</td><td>'+fM0(bd)+'</td>'
@@ -2407,7 +2409,7 @@ function aceBody(){
         +'<td style="text-align:left">'+esc(r.pmo)+'</td>'
         +'<td style="text-align:left" title="'+esc(r.rec)+'">'
         +(alignApplies()? '<span class="cedit" style="color:var(--dim);margin-right:5px" '
-           +'onclick="aceToggleExp(&quot;'+r.id+'&quot;,'+r.fy+')" '
+           +'onclick="aceToggleExp('+jsa(r.id)+','+r.fy+')" '
            +'title="show how this requirement breaks down, and what each line is funded under">'
            +(xo?'\u25be':'\u25b8')+'</span>' : '')
         +esc(r.title)+'</td>'
@@ -2415,9 +2417,9 @@ function aceBody(){
         +(wl.length>2? ' title="'+esc(wl.join(', '))+'"':'')+'>'+wcell+'</td>'
         +'<td>'+fM0(r.f)+'</td>'
         +'<td>'+state
-        +(r.hasSug&&!r.ok? ' <button class="qb" onclick="aceConfirmY(&quot;'+r.id+'&quot;,&quot;'+esc(k)+'&quot;,'+r.fy+')" title="accept this exact match">\u2713</button>':'')
-        +((!r.hasSug&&r.roll.length&&!r.ok)? ' <button class="qb" onclick="aceConfirmRollY(&quot;'+r.id+'&quot;,&quot;'+esc(k)+'&quot;,'+r.fy+')" title="claim every estimate line beneath this number">\u2713</button>':'')
-        +(r.ok? ' <button class="qb" onclick="aceUnmapY(&quot;'+r.id+'&quot;,'+r.fy+')" title="undo">\u21a9</button>':'')
+        +(r.hasSug&&!r.ok? ' <button class="qb" onclick="aceConfirmY('+jsa(r.id)+','+jsa(k)+','+r.fy+')" title="accept this exact match">\u2713</button>':'')
+        +((!r.hasSug&&r.roll.length&&!r.ok)? ' <button class="qb" onclick="aceConfirmRollY('+jsa(r.id)+','+jsa(k)+','+r.fy+')" title="claim every estimate line beneath this number">\u2713</button>':'')
+        +(r.ok? ' <button class="qb" onclick="aceUnmapY('+jsa(r.id)+','+r.fy+')" title="undo">\u21a9</button>':'')
         +'</td></tr>';
       if(xo && alignApplies()) h+=aceExpandRows(r, multi);
     });
@@ -3420,7 +3422,7 @@ function rlgBody(){
             const on=!!rlgUplUse[x.key];
             h+='<tr'+(on?' class="rlg-pot"':'')+'>'
               +'<td><button class="btn'+(on?' on':'')+'" style="font-size:9px;padding:1px 7px" '
-              +'onclick="rlgToggleUplUse(&quot;'+esc(x.key).replace(/"/g,'&quot;')+'&quot;)" '
+              +'onclick="rlgToggleUplUse('+jsa(x.key)+')" '
               +'title="count this toward the new requirement before anything is moved">'
               +(on?'\u2713':'use')+'</button></td>'
               +'<td><b>FY'+(x.fy%100)+'</b></td><td>'+fM2(x.v)+'</td>'
@@ -3467,7 +3469,7 @@ function rlgBody(){
       h+='<span class="rlg-svc'+(over?' bad':'')+'">'
         +'<span class="rlg-lbl">'+esc(sv)+'</span>'
         +'<input class="rlg-in" style="width:74px" value="'+(rlgSvcNeed[sv]||'')+'" '
-        +'placeholder="0" onchange="rlgSetSvc(&quot;'+esc(sv)+'&quot;,this.value)" '
+        +'placeholder="0" onchange="rlgSetSvc('+jsa(sv)+',this.value)" '
         +'title="what this service owes on the new requirement, in $M">'
         +'<span class="rlg-avail'+(over?' bad':'')+'">'+fM2(sup[i])+' can move</span>'
         +'</span>';
@@ -3591,13 +3593,13 @@ function rlgBody(){
     shown.slice(0,120).forEach(function(x){
       h+='<tr'+(x.upl?' class="rlg-pot"':'')+'>'
         +'<td><button class="btn'+(x.upl?' on':'')+'" style="font-size:9px;padding:1px 7px" '
-        +'onclick="rlgToggleUpl(&quot;'+esc(x.key).replace(/"/g,'&quot;')+'&quot;,'
+        +'onclick="rlgToggleUpl('+jsa(x.key)+','
         +(x.fy==null?'null':x.fy)+')" '
         +'title="mark this as a UPL pot — its money is treated as free and taken first">'
         +(x.upl?'\u2713 UPL':'mark')+'</button>'
         +(rlgUplYearsOf(x.name).length>1
           ? '<button class="qb" style="font-size:8.5px;margin-left:3px" '
-            +'onclick="rlgToggleUplAll(&quot;'+esc(x.name).replace(/"/g,'&quot;')+'&quot;)" '
+            +'onclick="rlgToggleUplAll('+jsa(x.name)+')" '
             +'title="mark this requirement as a UPL pot in every active year it appears in">'
             +'all yrs</button>' : '')
         +'</td>'
@@ -3627,7 +3629,7 @@ function rlgBody(){
   h+='<div class="rlg-chips">'
     +U.slice(0,14).map(function(u){
         return '<button class="btn'+(rlgCredits[u.id]?' on':'')+'" style="font-size:9.5px;padding:3px 8px" '
-          +'onclick="rlgToggleCredit(&quot;'+u.id+'&quot;)" title="'+esc(u.name)+'">'
+          +'onclick="rlgToggleCredit('+jsa(u.id)+')" title="'+esc(u.name)+'">'
           +(rlgCredits[u.id]?'✓ ':'')+esc(u.name.slice(0,26))+' · '+fM2(u.v)
           +(u.whole?'':' <span style="opacity:.7">(gap)</span>')+'</button>'; }).join('')
     +rlgManual.map(function(m,i){
@@ -3656,7 +3658,7 @@ function rlgBody(){
   h+='<div class="rlg-row" style="margin-top:8px"><span class="rlg-lbl">Rank by</span>'
     +RLG_STRATS.map(function(t){
         return '<button class="btn'+(rlgStrat===t.k?' on':'')+'" style="font-size:10px;padding:3px 9px" '
-          +'onclick="rlgSet(&quot;strat&quot;,&quot;'+t.k+'&quot;)" title="'+esc(t.d)+'">'+esc(t.n)+'</button>'; }).join('')
+          +'onclick="rlgSet(&quot;strat&quot;,'+jsa(t.k)+')" title="'+esc(t.d)+'">'+esc(t.n)+'</button>'; }).join('')
     +'<span class="rlg-lbl" style="margin-left:8px">Protect ranks 1–</span>'
     +'<input class="rlg-in" style="width:60px" value="'+rlgFloor+'" '
     +'onchange="rlgSet(&quot;floor&quot;,this.value)" title="nothing at or above this rank is offered">'
@@ -3821,7 +3823,7 @@ function rlgBody(){
         +(pk.part? ' <span style="color:var(--amber);font-size:8.5px">unobligated portion</span>':'')+'</td>'
         +'<td>'+fM2(pk.v)+'</td>'
         +'<td style="text-align:left;color:var(--dim)">'+esc(pk.band||'—')+'</td>'
-        +'<td>'+((pk.id && rlgTo)? '<button class="qb" onclick="xferYear(&quot;'+pk.id+'&quot;,'
+        +'<td>'+((pk.id && rlgTo)? '<button class="qb" onclick="xferYear('+jsa(pk.id)+','
           +'&quot;m&quot;,'+rlgTo+')" title="move this requirement to FY'+(rlgTo%100)+'">→ FY'
           +(rlgTo%100)+'</button>' : '<span style="color:var(--dim);font-size:8.5px">'
           +(pk.id? 'choose a year' : 'execution row')+'</span>')+'</td></tr>';
@@ -3879,7 +3881,7 @@ function rcnBody(){
       +'onchange="rcnSet('+i+',&quot;t&quot;,this.value)"></td>'
       +RCN_SVCS.map(function(sv){
           return '<td><input type="checkbox"'+(svc.indexOf(sv)>=0?' checked':'')
-            +' onchange="rcnToggleSvc('+i+',&quot;'+sv+'&quot;)" title="'+esc(sv)+' can use this combo"></td>'; }).join('')
+            +' onchange="rcnToggleSvc('+i+','+jsa(sv)+')" title="'+esc(sv)+' can use this combo"></td>'; }).join('')
       +'<td>'+(n||'\u2014')+'</td>'
       +'<td><button class="qb" onclick="rcnDel('+i+')" title="remove this combo">\u2715</button></td></tr>';
   });
@@ -4837,7 +4839,7 @@ function rollBody(){
     +'<table class="fctab" style="width:100%">';
   rows.forEach(function(it){
     h+='<tr><td style="width:26px;text-align:center">'
-      +'<input type="checkbox"'+(rollPick[it.id]?' checked':'')+' onchange="rollTogglePick(&quot;'+it.id+'&quot;)"></td>'
+      +'<input type="checkbox"'+(rollPick[it.id]?' checked':'')+' onchange="rollTogglePick('+jsa(it.id)+')"></td>'
       +'<td style="text-align:left"><span style="color:var(--dim)">'+esc(grpOf(it))+'</span> '
       +esc(exClip(dispTitle(it)))+(it.custom? ' <span style="font-size:8px;color:var(--gold)">added</span>':'')+'</td></tr>';
   });
@@ -5012,7 +5014,7 @@ function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && e.p
 function jrnlUndo(i){
   const e=(MS.jrnl||[])[i];
   if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, or the value is too large to have been recorded in full.'); return; }
-  if(!confirm('Put '+jrnlLabel(e)+' back to what it was before '+esc(e.by||'?')+' changed it?\n\nThis is recorded in the journal too.')) return;
+  if(!confirm('Put '+jrnlLabel(e)+' back to what it was before '+(e.by||'?')+' changed it?\n\nThis is recorded in the journal too.')) return;
   const fy=e.fy||MS.cur;
   if(!jrnlSet(fy, e.p, e.a)){ setStat('⚠ That value could not be put back — the shape of the state has moved on since.'); return; }
   if(fy===MS.cur) applyState(MS.years[MS.cur]);
@@ -6204,7 +6206,7 @@ function subBody(){
         +'<td style="text-align:center">'+(r.taken
           ? '<span title="already added to this board as '+esc(r.taken)+'" style="color:var(--green)">✓</span>'
           : '<input type="checkbox" '+(PMOPICK[key]?'checked':'')
-            +' onchange="subPick('+r.src+',\''+r.id+'\',\''+r.key+'\',this.checked)">')+'</td>'
+            +' onchange="subPick('+r.src+','+jsa(r.id)+','+jsa(r.key)+',this.checked)">')+'</td>'
         +'<td style="text-align:left"><b>'+esc(r.from)+'</b>'
           +(r.scoped? '' : '<br><span style="color:var(--amber);font-size:9px;font-weight:800">UNSCOPED</span>')+'</td>'
         +'<td style="text-align:left"><b style="color:var(--green)">NEW</b> '+esc(a.title||a.nid)
@@ -6219,7 +6221,7 @@ function subBody(){
       +'<td style="text-align:center">'+(r.gone
         ? '<span title="this board no longer has that requirement" style="color:var(--red)">\u2715</span>'
         : '<input type="checkbox" '+(PMOPICK[key]?'checked':'')
-          +' onchange="subPick('+r.src+',\''+r.id+'\',\''+r.key+'\',this.checked)">')+'</td>'
+          +' onchange="subPick('+r.src+','+jsa(r.id)+','+jsa(r.key)+',this.checked)">')+'</td>'
       +'<td style="text-align:left"><b>'+esc(r.from)+'</b>'
         +(r.scoped? '' : '<br><span style="color:var(--amber);font-size:9px;font-weight:800">UNSCOPED</span>')+'</td>'
       +'<td style="text-align:left">'+(r.it? '<b>#'+(MR[r.id]||'')+'</b> '+esc(recName(r.it)||dispTitle(r.it))
@@ -6388,10 +6390,16 @@ function importBoards(inp){
   const files=[...(inp.files||[])];
   if(!files.length) return;
   if(!confirm('Import '+files.length+' board file(s) into this consolidated board?\n\nEach file is matched to its appropriation automatically (O&M / Full Fund / Initial Spares) and REPLACES that appropriation\u2019s current data here — all fiscal years included.')){ inp.value=''; return; }
+  // THE DOOR (v1.88): one refused file stops the whole batch, before anything is written. Taking the
+  // others and skipping it would be the partial import the check exists to prevent.
+  const tooBig=files.map(f=>[f.name, inTooBig(f)]).filter(x=>x[1]);
+  if(tooBig.length){ inRefuse(tooBig[0][0], tooBig[0][1]+(files.length>1? ' (so none of the '+files.length+' files was taken)' : '')); inp.value=''; return; }
   const results=[]; let pending=files.length;
   const finish=()=>{
     if(--pending>0) return;
     inp.value='';
+    const refused=results.filter(r=>r.bad);
+    if(refused.length){ inRefuse(refused[0].name, refused[0].bad+(files.length>1? ' (so none of the '+files.length+' files was taken)' : '')); return; }
     let applied=false;
     results.forEach(r=>{
       if(!r.slug||!r.st) return;
@@ -6400,8 +6408,8 @@ function importBoards(inp){
       if(r.slug===_AP.slug){ applied = applyStore(r.st)!==false; }
     });
     if(applied){ persist(); render(); }
-    const ok=results.filter(r=>r.slug&&r.st).map(r=>_SLUGMAP[r.slug].t+' \u2190 '+r.name);
-    const bad=results.filter(r=>!r.slug||!r.st).map(r=>r.name+' ('+r.why+')');
+    const ok=results.filter(r=>r.slug&&r.st).map(r=>_SLUGMAP[r.slug].t+' \u2190 '+esc(r.name));
+    const bad=results.filter(r=>!r.slug||!r.st).map(r=>esc(r.name)+' ('+esc(r.why)+')');
     setStat((ok.length? '\u2b05 Imported: '+ok.join(' · ')+'. Switch appropriations from the dropdown to see each. \ud83d\udcbe Save to bake all of it into this file.':'')
       +(bad.length? ' <span style="color:var(--amber)">Skipped: '+bad.join(' · ')+'</span>':''));
   };
@@ -6409,6 +6417,8 @@ function importBoards(inp){
     const r=new FileReader();
     r.onload=()=>{
       const rec={name:f.name, slug:null, st:null, why:''};
+      rec.bad=inboundCheck(r.result);
+      if(rec.bad){ results.push(rec); finish(); return; }
       try{
         const txt=r.result;
         let slug=null;
@@ -6830,10 +6840,10 @@ function pkgBody(){
         +'<td style="text-align:left;font-size:9.5px;color:var(--dim)">'+(led.issuedTs? esc(fmtTs(led.issuedTs))+(led.issuedBy? ' \u00b7 '+esc(led.issuedBy):'') : '\u2014')+'</td>'
         +'<td style="text-align:left;font-size:9.5px;color:var(--dim)">'+(led.retTs? '#'+led.retSeq+' \u00b7 '+esc(fmtTs(led.retTs))+(led.retBy? ' \u00b7 '+esc(led.retBy):'') : '\u2014')+'</td>'
         +'<td><button class="btn" style="font-size:9.5px;padding:3px 9px"'+(st?'':' disabled')
-        +' onclick="pkgIssue(&quot;'+ap+'&quot;)">\u2b06 Issue'+(led.seq? ' #'+(led.seq+1):'')+'</button> '
+        +' onclick="pkgIssue('+jsa(ap)+')">\u2b06 Issue'+(led.seq? ' #'+(led.seq+1):'')+'</button> '
         +'<button class="btn" style="font-size:9.5px;padding:3px 9px"'+(st?'':' disabled')
         +' title="you were sent this whole file to work on one appropriation: save just that one, for the board it came from"'
-        +' onclick="pkgSendBack(&quot;'+ap+'&quot;)">\u2b06 Send back</button></td></tr>';
+        +' onclick="pkgSendBack('+jsa(ap)+')">\u2b06 Send back</button></td></tr>';
     });
     h+='</table>';
     h+='<div style="margin-top:9px">'
@@ -7203,6 +7213,167 @@ function consTakeApply(fullSt, txt, fname, pick, all){
     +(skipped.length? '; left '+esc(skipped.join(', '))+' as '+(skipped.length===1? 'it was' : 'they were') : '')+'.'+tail+' Reopening\u2026');
   location.reload();
 }
+// ---- EVERY FILE THAT COMES IN IS CHECKED AT THE DOOR (v1.88) ------------------------------------------
+// A full board, one appropriation from a consolidated file, several boards at once, a package, a
+// submittal, a band ladder: each is somebody else's file, and each used to be read as it came. The board
+// draws what it holds as HTML and does its arithmetic on what it holds as numbers, so a file carrying
+// markup in an id, or text where an amount belongs, could put code into the board or quietly change a
+// figure that is then briefed. inboundCheck() reads the WHOLE file before any of it is used, at every way
+// a file comes in, and refuses the file -- all of it, with one message that says what and where -- rather
+// than taking part of it. It only reads: a file it passes goes on exactly as before, so every genuine file
+// imports as it always did (the v1.80-v1.87 import tests are unchanged and pass).
+//
+// What it holds a file to -- in effect the saved format, written down in CLAUDE.md ("What a file may
+// carry"), so a later version changes it deliberately:
+//   - at most IN_MAX_BYTES of text, nested no deeper than IN_MAX_DEPTH;
+//   - no field named __proto__, constructor or prototype: no board writes one, and one reaches inside the
+//     program when the object it sits in is copied;
+//   - every number finite and within +/-IN_MAX_NUM; every AMOUNT -- a requirement's value by service, the
+//     budget, the lanes, an allocation, a split, a proposed value -- a number within +/-IN_MAX_AMT, or,
+//     where the board has always read one, a figure written as text ("1,234,567");
+//   - no piece of text longer than IN_MAX_TEXT;
+//   - every requirement id free of quote marks, < >, backslash, | and control characters (80 at most);
+//     every service and office name free of double quotes, < >, backslash and control characters; a
+//     band's colour a #hex colour.
+// FIELDS IT DOES NOT RECOGNISE ARE LEFT AS THEY ARE, neither refused nor dropped. Nothing reads them, so
+// they are inert, and a field a NEWER version wrote has to survive a trip through this one -- dropping it
+// would lose that version's data when the file goes back.
+const IN_MAX_BYTES=64*1024*1024, IN_MAX_DEPTH=64, IN_MAX_TEXT=200000, IN_MAX_NUM=1e15, IN_MAX_AMT=1e13;
+const IN_ID_BAD=/[\u0000-\u001f\u007f<>"'`\\|]/, IN_NAME_BAD=/[\u0000-\u001f\u007f<>"`\\]/;
+// A Set, not an object: an object answers IN_KEY_BAD['constructor'] and ['__proto__'] from Object.prototype
+// whether they are listed or not -- and would also refuse a genuine key named toString or valueOf.
+const IN_KEY_BAD=new Set(['__proto__', 'constructor', 'prototype']);
+// the per-requirement maps: every key in these is a requirement id
+const IN_ID_MAPS=['mc','notes','desc','cons','minInc','titles','ccar','pid','costElem','grp','band','alloc','fsrc','awards','asks','recNames'];
+function inShow(v){ const s=String(v); return '“'+(s.length>60? s.slice(0,60)+'…' : s).replace(/[\u0000-\u001f\u007f]/g,'?')+'”'; }
+function inIdWhy(v, what){
+  if(typeof v!=='string') return what+' is not text ('+inShow(JSON.stringify(v))+')';
+  if(!v.length || v.length>80) return what+' '+(v.length? inShow(v)+' is longer than 80 characters' : 'is empty');
+  if(IN_ID_BAD.test(v)) return what+' '+inShow(v)+' contains a character an id may not carry (a quote mark, < >, a backslash, | or an invisible control character)';
+  return '';
+}
+function inNameWhy(v, what){
+  if(typeof v!=='string') return what+' is not text ('+inShow(JSON.stringify(v))+')';
+  if(v.length>200) return what+' '+inShow(v)+' is longer than 200 characters';
+  if(IN_NAME_BAD.test(v)) return what+' '+inShow(v)+' contains a character a name may not carry (double quotes, < >, a backslash or an invisible control character)';
+  return '';
+}
+function inAmtWhy(v, where){
+  if(v===null || v===undefined || v==='') return '';
+  if(typeof v==='number') return (isFinite(v) && Math.abs(v)<=IN_MAX_AMT)? '' : 'the amount at '+where+' is not a real figure ('+inShow(v)+')';
+  if(typeof v==='string'){ const n=Number(v.replace(/[$,\s]/g,'')); if(v.trim() && isFinite(n) && Math.abs(n)<=IN_MAX_AMT) return ''; }
+  return 'the amount at '+where+' is not a figure ('+inShow(typeof v==='object'? JSON.stringify(v) : v)+')';
+}
+function inAmtsWhy(a, where){
+  if(a===undefined || a===null) return '';
+  if(!Array.isArray(a)) return 'the amounts at '+where+' are not a list of figures';
+  for(let i=0;i<a.length;i++){ const w=inAmtWhy(a[i], where+'['+i+']'); if(w) return w; }
+  return '';
+}
+// The shapes that carry ids, names and amounts, recognised wherever they sit in the file: a requirement
+// list (a data pack), a year's plan (in a board, a cycle, a snapshot, a package), a band ladder, an office
+// or service list, a submittal.
+function inShapeWhy(o, path){
+  if(Array.isArray(o)) return '';
+  let w='';
+  const eachKey=function(m, fn){ if(!m || typeof m!=='object' || Array.isArray(m)) return ''; const ks=Object.keys(m);
+    for(let i=0;i<ks.length;i++){ const r=fn(ks[i], m[ks[i]]); if(r) return r; } return ''; };
+  const itemWhy=function(it, at){
+    if(!it || typeof it!=='object') return 'the requirement at '+at+' is not a requirement';
+    return inIdWhy(it.id, 'the requirement id at '+at)
+      || ((it.grp!==undefined && it.grp!==null && it.grp!=='')? inNameWhy(it.grp, 'the office at '+at+'.grp') : '')
+      || inAmtsWhy(it.ask, at+'.ask') || inAmtsWhy(it.fy26, at+'.fy26');
+  };
+  if(Array.isArray(o.items) && (Array.isArray(o.services) || Array.isArray(o.budget))){
+    if(Array.isArray(o.services)) for(let i=0;i<o.services.length;i++) if((w=inNameWhy(o.services[i], 'the service name at '+path+'.services['+i+']'))) return w;
+    for(let i=0;i<o.items.length;i++) if((w=itemWhy(o.items[i], path+'.items['+i+']'))) return w;
+    if((w=inAmtsWhy(o.budget, path+'.budget'))) return w;
+  }
+  if(Array.isArray(o.order) && ('discSvc' in o || 'alloc' in o || 'custom' in o || 'mc' in o)){
+    for(let i=0;i<o.order.length;i++) if((w=inIdWhy(o.order[i], 'the requirement id at '+path+'.order['+i+']'))) return w;
+    if(Array.isArray(o.removed)) for(let i=0;i<o.removed.length;i++) if((w=inIdWhy(o.removed[i], 'the requirement id at '+path+'.removed['+i+']'))) return w;
+    if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if((w=itemWhy(o.custom[i], path+'.custom['+i+']'))) return w;
+    for(const k of IN_ID_MAPS) if((w=eachKey(o[k], function(id){ return IN_ID_BAD.test(id)? inIdWhy(id, 'the requirement id keying '+path+'.'+k) : ''; }))) return w;
+    if((w=inAmtsWhy(o.discSvc, path+'.discSvc') || inAmtsWhy(o.mandSvc, path+'.mandSvc')
+        || inAmtWhy(o.discBA, path+'.discBA') || inAmtWhy(o.mandBA, path+'.mandBA') || inAmtWhy(o.absorbFloor, path+'.absorbFloor'))) return w;
+    if(o.bm && typeof o.bm==='object'){
+      if((w=inAmtsWhy(o.bm.disc, path+'.bm.disc') || inAmtsWhy(o.bm.mand, path+'.bm.mand'))) return w;
+      if(Array.isArray(o.bm.adds)) for(let i=0;i<o.bm.adds.length;i++) if(o.bm.adds[i] && (w=inAmtsWhy(o.bm.adds[i].vec, path+'.bm.adds['+i+'].vec'))) return w;
+    }
+    if((w=eachKey(o.asks, function(id, v){ return inAmtsWhy(v, path+'.asks.'+id); }))) return w;
+    if((w=eachKey(o.minInc, function(id, v){ return inAmtWhy(v, path+'.minInc.'+id); }))) return w;
+    if((w=eachKey(o.alloc, function(id, a){ const at=path+'.alloc.'+id;
+      if(a===null || typeof a!=='object') return inAmtWhy(a, at);
+      return Array.isArray(a.v)? inAmtsWhy(a.v, at+'.v') : inAmtWhy(a.v, at+'.v'); }))) return w;
+    if((w=eachKey(o.fsrc, function(id, f){ const at=path+'.fsrc.'+id; if(!f || typeof f!=='object') return '';
+      return inAmtsWhy(f.dv, at+'.dv') || inAmtsWhy(f.mv, at+'.mv') || inAmtWhy(f.d, at+'.d') || inAmtWhy(f.mnd, at+'.mnd'); }))) return w;
+    if((w=eachKey(o.grp, function(id, g){ return (g===null || g==='')? '' : inNameWhy(g, 'the office at '+path+'.grp.'+id); }))) return w;
+  }
+  if(Array.isArray(o.bands)) for(let i=0;i<o.bands.length;i++){ const b=o.bands[i], at=path+'.bands['+i+']';
+    if(!b || typeof b!=='object') continue;
+    if(b.id!==undefined && b.id!==null && (w=inNameWhy(String(b.id), 'the band id at '+at))) return w;
+    if(b.c!==undefined && b.c!==null && b.c!=='' && !/^#[0-9a-fA-F]{3,8}$/.test(String(b.c))) return 'the colour of the band at '+at+' is not a colour ('+inShow(b.c)+')'; }
+  if(Array.isArray(o.pmos)) for(let i=0;i<o.pmos.length;i++) if((w=inNameWhy(o.pmos[i], 'the office name at '+path+'.pmos['+i+']'))) return w;
+  if(Array.isArray(o.svc)) for(let i=0;i<o.svc.length;i++) if((w=inNameWhy(o.svc[i], 'the service name at '+path+'.svc['+i+']'))) return w;
+  if(o.spmtPkg && o.dir==='submit'){
+    for(const bag of ['items','base']) if((w=eachKey(o[bag], function(id, one){ const at=path+'.'+bag+'.'+id;
+      return inIdWhy(id, 'the requirement id at '+at) || (one && typeof one==='object'? inAmtsWhy(one.asks, at+'.asks') : ''); }))) return w;
+    if(Array.isArray(o.added)) for(let i=0;i<o.added.length;i++){ const a=o.added[i], at=path+'.added['+i+']';
+      if(!a || typeof a!=='object') continue;
+      if((a.nid!==undefined && a.nid!==null && a.nid!=='' && (w=inIdWhy(a.nid, 'the proposed requirement id at '+at)))
+         || (a.grp!==undefined && a.grp!==null && a.grp!=='' && (w=inNameWhy(a.grp, 'the office at '+at+'.grp')))
+         || (w=inAmtsWhy(a.ask, at+'.ask'))) return w; }
+  }
+  return '';
+}
+// Walk the whole of one parsed payload. Iterative, so a file nested thousands deep is refused rather
+// than ending the page with a stack overflow.
+function inWalk(root, label){
+  const stack=[[root, label, 0]];
+  let n=0;
+  while(stack.length){
+    const top=stack.pop(), v=top[0], path=top[1], d=top[2];
+    if(++n>5e6) return label+' holds more entries than any board writes';
+    if(typeof v==='number'){ if(!isFinite(v) || Math.abs(v)>IN_MAX_NUM) return 'the figure at '+path+' is not a real number ('+inShow(v)+')'; continue; }
+    if(typeof v==='string'){ if(v.length>IN_MAX_TEXT) return 'the text at '+path+' is '+v.length.toLocaleString()+' characters long; the limit is '+IN_MAX_TEXT.toLocaleString(); continue; }
+    if(!v || typeof v!=='object') continue;
+    if(d>IN_MAX_DEPTH) return label+' is nested deeper than any board writes (at '+path+')';
+    const w=inShapeWhy(v, path); if(w) return w;
+    if(Array.isArray(v)){ for(let i=v.length-1;i>=0;i--) stack.push([v[i], path+'['+i+']', d+1]); continue; }
+    const ks=Object.keys(v);
+    for(let i=ks.length-1;i>=0;i--){ const k=ks[i];
+      if(IN_KEY_BAD.has(k)) return 'it carries a field named '+inShow(k)+' (at '+path+'), which no board writes';
+      stack.push([v[k], path+'.'+k, d+1]); }
+  }
+  return '';
+}
+// '' when the file may be read; otherwise why not, in one sentence. A file that cannot be parsed at all
+// is left to the importer that reads it, which already says so in its own words.
+function inboundCheck(txt){
+  const t=(txt===null || txt===undefined)? '' : String(txt);
+  if(t.length>IN_MAX_BYTES) return 'it is '+(t.length/1048576).toFixed(1)+' MB, and the board takes files up to '+(IN_MAX_BYTES/1048576)+' MB';
+  const parts=[];
+  if(/^\s*</.test(t) || t.indexOf('id="pubState"')>=0){
+    const m=t.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
+    if(m){ let J; try{ J=JSON.parse(m[1]); }catch(e){ J=undefined; } if(J!==undefined) parts.push(['the saved state', J]); }
+    const pk=extractPacks(t);
+    if(pk) Object.keys(pk).forEach(function(k){ parts.push(['the requirement list'+(k==='only'? '' : ' ('+k+')'), pk[k]]); });
+  } else {
+    let J; try{ J=JSON.parse(t); }catch(e){ J=undefined; }
+    if(J!==undefined) parts.push(['the file', J]);
+  }
+  for(let i=0;i<parts.length;i++){ const w=inWalk(parts[i][1], parts[i][0]); if(w) return w; }
+  return '';
+}
+// The size, from the file itself, before a byte of it is read into the page.
+function inTooBig(f){ return (f && f.size>IN_MAX_BYTES)? 'it is '+(f.size/1048576).toFixed(1)+' MB, and the board takes files up to '+(IN_MAX_BYTES/1048576)+' MB' : ''; }
+// The one message a refused file gets, whichever way it came in.
+function inRefuse(fname, why){
+  alert('“'+fname+'” was not imported: '+why+'.\n\nA board, a PMO copy, a package or a submittal written by ORBIT never carries that, '
+    +'so the file is damaged or was not written by ORBIT. Nothing on this board was changed.');
+  setStat('⚠ Nothing imported — “'+esc(fname)+'” was refused: '+esc(why)+'.');
+  return false;
+}
 // ---- A FULL BOARD, FOR A NEW VERSION (v1.86) ---------------------------------------------------------
 // Brad, 26 Sep 2026: "I need first to be able to import a full dashboard from a previous file that way
 // when the new version comes out it's seamless." Import one appropriation (v1.84) takes appropriations
@@ -7223,6 +7394,7 @@ function importFullBoard(inp){
   const f=inp.files&&inp.files[0]; if(!f) return;
   if(sandboxBlock('Importing a full board')){ inp.value=''; return; }
   if(CYCVIEW){ cycRefuse('Importing a full board'); inp.value=''; return; }
+  const big=inTooBig(f); if(big){ inRefuse(f.name, big); inp.value=''; return; }
   const r=new FileReader();
   r.onload=function(){
     try{ fullImportText(String(r.result), f.name); }
@@ -7232,6 +7404,7 @@ function importFullBoard(inp){
   r.readAsText(f);
 }
 function fullImportText(txt, fname){
+  const bad=inboundCheck(txt); if(bad) return inRefuse(fname, bad);
   const m=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
   if(!m){ alert('“'+fname+'” is not a board file.\n\nA full import takes a board .html saved from ORBIT. Nothing was imported.'); return false; }
   const bv=fullBuildOf(txt);
@@ -7389,8 +7562,12 @@ function exportOneAppn(){
 function importState(inp){
   const f=inp.files&&inp.files[0];
   if(!f) return;
+  const big=inTooBig(f); if(big){ inRefuse(f.name, big); inp.value=''; return; }
   const r=new FileReader();
   r.onload=()=>{
+    // THE DOOR (v1.88): a board, a consolidated file, a package, a submittal and a state file all come
+    // in here, and all of them are checked whole before any route below reads a field of one.
+    const bad=inboundCheck(r.result); if(bad){ inRefuse(f.name, bad); inp.value=''; return; }
     try{
       let txt=r.result, st=null, fromBoard=false, fullSt=null;
       // An appropriation package is neither a board nor a plain state file, and it has its own
@@ -7972,7 +8149,7 @@ function coaPanelBody(){
       +'<span style="color:var(--mut);font-size:9.5px">'+used+' requirement'+(used===1?'':'s')
       +' in '+FYL()+' · '+gs.length+' grouping'+(gs.length===1?'':'s')+'</span>'
       +'<span style="flex:1"></span>'
-      +'<button class="btn" onclick="coaAddGroup(&quot;'+esc(p)+'&quot;)">＋ grouping</button>'
+      +'<button class="btn" onclick="coaAddGroup('+jsa(p)+')">＋ grouping</button>'
       +'</div>'
       +(gs.length? gs.map(function(g){
         const i=gi(g), recs=(g.ccar||[]);
@@ -8033,7 +8210,7 @@ function coaPanelBody(){
           +(e.reqs.length===1?'':'s')+'</td>'
           +'<td>'+(D.groups.length
             ? '<select class="cesel" style="font-size:9.5px" '
-              +'onchange="coaFileInto(&quot;'+esc(e.no)+'&quot;,this.value)">'
+              +'onchange="coaFileInto('+jsa(e.no)+',this.value)">'
               +'<option value="">file into…</option>'+opts+'</select>'
             : '<span style="color:var(--dim);font-size:9.5px">make a grouping first</span>')
           +'</td></tr>';
@@ -9371,12 +9548,12 @@ function budRecFields(id, it){
   }).join(' \u00b7 ');
   const done=pairs.filter(function(q){ return !!budForRow(id, q.svc, q.lane); }).length;
   out.push(recF('Budget', done===pairs.length,
-    recSel('setBudFam(&quot;'+id+'&quot;,this.value)',
+    recSel('setBudFam('+jsa(id)+',this.value)',
       'One budget for the requirement \u2014 the per-service variant is assigned for you',
       opts)
     +'<div class="hint" style="margin-top:3px;line-height:1.5">'+bits
     +' <button class="qb" style="font-size:8.5px;margin-left:4px" '
-    +'onclick="budToggleSvc(&quot;'+id+'&quot;)" '
+    +'onclick="budToggleSvc('+jsa(id)+')" '
     +'title="choose one line on its own">'
     +(budSvcOpen[id]?'hide':'per line\u2026')+'</button></div>',
     cur==='*'? 'the lines are on DIFFERENT budgets \u2014 pick one here, or set them below'
@@ -9387,7 +9564,7 @@ function budRecFields(id, it){
     const cand=budPickList(id, q.svc, q.lane);
     const chosen=budAsgOf(id, q.svc, q.lane), auto=budForRow(id, q.svc, q.lane);
     out.push(recF('\u21b3 '+q.svc+(q.lane==='mand'?' mand':''), !!auto,
-      recSel('setBudAsg(&quot;'+id+'&quot;,&quot;'+esc(q.svc)+'&quot;,this.value,&quot;'+q.lane+'&quot;)',
+      recSel('setBudAsg('+jsa(id)+','+jsa(q.svc)+',this.value,'+jsa(q.lane)+')',
         'Which budget this line is funded from. Blank lets the rule decide.',
         '<option value="">'+(chosen? '\u2014 let the rule decide \u2014'
             : (auto? '\u2014 automatic: '+esc(budFamStrip(auto))+' \u2014'
@@ -10206,7 +10383,7 @@ function pfBody(){
       const open=!!pfShow[f.k];
       h+='<div style="border:1px solid var(--line);border-left:3px solid '+SEV[sev].c
         +';border-radius:5px;padding:9px 12px;margin-bottom:6px">'
-        +'<div class="fr" style="gap:10px;cursor:pointer" onclick="pfToggleOne(\''+f.k+'\')">'
+        +'<div class="fr" style="gap:10px;cursor:pointer" onclick="pfToggleOne('+jsa(f.k)+')">'
         +'<b style="color:'+SEV[sev].c+'">'+f.rows.length+'</b>'
         +'<b style="flex:1">'+f.t+'</b>'
         +'<span style="color:var(--dim);font-size:11px">'+(open?'▾ hide':'▸ show')+'</span></div>'
@@ -10956,7 +11133,7 @@ function divBody(){
     const col=(f.k==='amt'||f.k==='bud')? 'var(--red)' : (f.k==='nonum'? 'var(--dim)' : 'var(--amber)');
     h+='<div style="border:1px solid var(--line);border-left:3px solid '+col
       +';border-radius:5px;padding:9px 12px;margin-bottom:6px">'
-      +'<div class="fr" style="gap:10px;cursor:pointer" onclick="divToggleOne(\''+f.k+'\')">'
+      +'<div class="fr" style="gap:10px;cursor:pointer" onclick="divToggleOne('+jsa(f.k)+')">'
       +'<b style="color:'+col+'">'+f.rows.length+'</b><b style="flex:1">'+f.t+'</b>'
       +'<span style="color:var(--dim);font-size:11px">'+(open?'▾ hide':'▸ show')+'</span></div>'
       +'<div class="hint" style="margin-top:3px">'+f.why+'</div>';
@@ -12283,7 +12460,7 @@ function flowBand(x0,y0,h0,x1,y1,h1,fill,op){
     +' L'+x1+','+(y1+h1).toFixed(1)+' C'+m+','+(y1+h1).toFixed(1)+' '+m+','+(y0+h0).toFixed(1)+' '+x0+','+(y0+h0).toFixed(1)
     +' Z" fill="'+fill+'" opacity="'+(op==null?1:op)+'"/>';
 }
-function flowHit(key){ return '<g style="cursor:pointer" onclick="flowPick(\''+String(key).replace(/'/g,"\\'")+'\')">'; }
+function flowHit(key){ return '<g style="cursor:pointer" onclick="flowPick('+jsa(key)+')">'; }
 function flowSel_(key){ return flowSel===key; }
 // the ordered view models every layout draws from, so the three can never disagree
 function flowView(F){
@@ -12890,10 +13067,10 @@ function flowHtml(){
     +'<span style="font-size:9px;color:var(--dim);font-weight:800;letter-spacing:.8px;width:74px">APPROPRIATION</span>'
     +chip(selA.length===FLOW_APPNS.length,'ALL','flowAllAppns()','Every appropriation')
     +FLOW_APPNS.map(a=>chip(selA.indexOf(a)>=0 && selA.length<FLOW_APPNS.length,APPN_LBL[a],
-        'flowToggleAppn(\''+a+'\')','Toggle '+APPN_LBL[a]+' in and out of the chart')).join('')
+        'flowToggleAppn('+jsa(a)+')','Toggle '+APPN_LBL[a]+' in and out of the chart')).join('')
     +'</div>'
     +'<div style="margin-bottom:8px">'
-    +FLOW_LAYOUTS.map(function(L){ return '<button class="btn '+(flowLayout()===L[0]?'on':'')+'" style="font-size:10px;padding:4px 11px" onclick="flowSetLayout(\''+L[0]+'\')" title="Chart layout">'+L[1]+'</button>'; }).join(' ')
+    +FLOW_LAYOUTS.map(function(L){ return '<button class="btn '+(flowLayout()===L[0]?'on':'')+'" style="font-size:10px;padding:4px 11px" onclick="flowSetLayout('+jsa(L[0])+')" title="Chart layout">'+L[1]+'</button>'; }).join(' ')
     +'<span style="display:inline-block;width:10px"></span>'
     +' <button class="btn '+(flowShowEvents()?'on':'')+'" style="font-size:10px;padding:4px 11px" '
     +'title="Show or hide the plan-event count on every box \u2014 useful while reconciling, clutter on a slide" '
@@ -12919,7 +13096,7 @@ function flowHtml(){
     +chip(!(F.cats||[]).some(c=>flowSubOnFor(c.k)),'NONE','flowSubAll(false)','Collapse every breakout')
     +(F.cats||[]).map(function(c){
         const L=flowSubOf(c.k);
-        return chip(flowSubOnFor(c.k), c.n, 'flowSetSubShow(&quot;'+c.k+'&quot;,'+(flowSubOnFor(c.k)?'false':'true')+')',
+        return chip(flowSubOnFor(c.k), c.n, 'flowSetSubShow('+jsa(c.k)+','+(flowSubOnFor(c.k)?'false':'true')+')',
           L? ('Break '+c.n+' out into '+L.length+' rungs. The chart makes room for it — every layout '
               +'resizes so nothing overlaps.') : 'No breakout defined for this category');
       }).join('')
@@ -13023,7 +13200,7 @@ function flowHtml(){
       +(flowSubOf('work')||[]).map(function(l,i){
          const B=F.ext.by.work, S=(B&&B.sub&&B.sub.by[l.k])||{v:0};
          const last=(i===(flowSubOf('work')||[]).length-1);
-         const ch=(f)=>'onchange="flowSubSet(&quot;work&quot;,&quot;'+l.k+'&quot;,&quot;'+f+'&quot;,this.value)"';
+         const ch=(f)=>'onchange="flowSubSet(&quot;work&quot;,'+jsa(l.k)+','+jsa(f)+',this.value)"';
          return '<tr><td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%" value="'+esc(l.n)+'" '+ch('n')+'></td>'
            +'<td style="text-align:left">'+(last? '<span style="color:var(--dim)">— the remainder —</span>'
                : '<input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%" value="'+esc(l.t)+'" '+ch('t')+'>')+'</td>'
@@ -13057,7 +13234,7 @@ function flowHtml(){
   const money1=v=>v? (v/1e6).toFixed(1) : '';
   const otherIn=(y,k,v)=>'$<input class="btn" style="font-size:10px;padding:3px 6px;width:92px;text-align:right" '
     +'value="'+money1(v)+'" placeholder="0.0" title="FY'+y+' \u2014 enter in $M" '
-    +'onchange="flowSetOther('+y+',\''+k+'\',this.value)">M';
+    +'onchange="flowSetOther('+y+','+jsa(k)+',this.value)">M';
   h+='<div style="margin:12px 0 2px">'
     +'<div style="font-size:9.5px;font-weight:800;color:var(--gold);letter-spacing:.4px;margin-bottom:5px">'
     +'OTHER SOURCES \u2014 type these in, per fiscal year, in $M</div>'
@@ -13321,13 +13498,13 @@ function exBody(){
   const pct=v=> (v*100).toFixed(1)+'%';
   const PBG='background:rgba(125,140,175,.16)';
   let h='<div style="margin-bottom:6px">'
-    +APPN_SLUGS.map(s=>'<button class="btn '+(exView==='appn'&&exA===s?'on':'')+'"'+(EA[s]?'':' disabled title="not in the last import"')+' style="font-size:10px;padding:4px 12px;font-weight:700'+(EA[s]?'':';opacity:.35')+'" onclick="exSetA(\''+s+'\')">'+APPN_LBL[s]+'</button>').join(' ')
+    +APPN_SLUGS.map(s=>'<button class="btn '+(exView==='appn'&&exA===s?'on':'')+'"'+(EA[s]?'':' disabled title="not in the last import"')+' style="font-size:10px;padding:4px 12px;font-weight:700'+(EA[s]?'':';opacity:.35')+'" onclick="exSetA('+jsa(s)+')">'+APPN_LBL[s]+'</button>').join(' ')
     +' <button class="btn '+(exView==='summary'?'on':'')+'" style="font-size:10px;padding:4px 12px;font-weight:700" onclick="exSetView(\'summary\')">SUMMARY</button>'
 
     +('<span style="display:inline-block;width:14px"></span>'
     +'<select class="btn" style="font-size:10px;padding:4px 8px" onchange="exSetSvc(this.value)" title="Filter by Service">'
     +'<option value="ALL"'+(exSvc==='ALL'?' selected':'')+'>ALL SERVICES</option>'
-    +EX_SVCS.map(s=>'<option value="'+s+'"'+(exSvc===s?' selected':'')+'>'+s+'</option>').join('')
+    +EX_SVCS.map(s=>'<option value="'+esc(s)+'"'+(exSvc===s?' selected':'')+'>'+esc(s)+'</option>').join('')
     +'</select>'
     +' <button class="btn" style="font-size:10px;padding:4px 12px" onclick="exportExView()">⬇ Export this view</button>')
     +'</div>';
@@ -13377,14 +13554,14 @@ function exBody(){
     +'<tr><th style="text-align:left">PMO</th>'+MN.map((x,k)=>'<th'+(PAST[k]?' style="'+PBG+'"':'')+'>'+x+'</th>').join('')+'<th style="border-left:1px solid var(--line)">Approved</th><th>Obligated</th><th>Not Alloc</th><th style="border-left:1px solid var(--gold)">Obl %</th></tr>';
   Object.keys(byP).sort().forEach(g=>{
     const P=byP[g], pp=P.tot>0? P.obl/P.tot:0;
-    h+='<tr><td style="text-align:left;font-weight:800;cursor:pointer;color:var(--gold)" onclick="exX[\''+g+'\']=!exX[\''+g+'\'];render()">'+(exX[g]?'\u25be ':'\u25b8 ')+g+' <span style="color:var(--dim);font-size:8.5px">'+Object.keys(P.titles).length+' titles</span></td>'
+    h+='<tr><td style="text-align:left;font-weight:800;cursor:pointer;color:var(--gold)" onclick="exX['+jsa(g)+']=!exX['+jsa(g)+'];render()">'+(exX[g]?'\u25be ':'\u25b8 ')+g+' <span style="color:var(--dim);font-size:8.5px">'+Object.keys(P.titles).length+' titles</span></td>'
       +P.m.map((v,k)=>'<td'+(PAST[k]?' style="'+PBG+'"':'')+'>'+(Math.abs(v)>5e3?fM2(v):'\u2014')+'</td>').join('')
       +'<td style="border-left:1px solid var(--line)">'+fM2(P.tot)+'</td><td style="color:var(--green)">'+fM2(P.obl)+'</td><td style="color:'+(P.tot-P.obl>5e3?'var(--amber)':'var(--dim)')+'">'+fM2(P.tot-P.obl)+'</td>'
       +'<td style="border-left:1px solid var(--gold);font-weight:800;color:'+(goal!==null&&pp<goal?'var(--red)':'var(--green)')+'">'+pct(pp)+'</td></tr>';
     if(exX[g]){
       Object.keys(P.titles).sort().forEach(t=>{
         const T=P.titles[t], tk=g+'|'+t;
-        h+='<tr style="opacity:.94"><td style="text-align:left;padding-left:20px;font-size:9px;cursor:pointer" onclick="exXT[\''+tk.replace(/'/g,"\\'")+'\']=!exXT[\''+tk.replace(/'/g,"\\'")+'\'];render()" title="'+esc(t)+'">'+(exXT[tk]?'\u25be ':'\u25b8 ')+esc(exClip(t))+'</td>'
+        h+='<tr style="opacity:.94"><td style="text-align:left;padding-left:20px;font-size:9px;cursor:pointer" onclick="exXT['+jsa(tk)+']=!exXT['+jsa(tk)+'];render()" title="'+esc(t)+'">'+(exXT[tk]?'\u25be ':'\u25b8 ')+esc(exClip(t))+'</td>'
           +T.m.map((v,k)=>'<td style="font-size:8.5px'+(PAST[k]?';'+PBG:'')+'">'+(Math.abs(v)>5e3?fM2(v):'\u2014')+'</td>').join('')
           +'<td style="font-size:9px">'+fM2(T.tot)+'</td><td style="font-size:9px;color:var(--green)">'+fM2(T.obl)+'</td><td style="font-size:9px;color:var(--amber)">'+(T.tot-T.obl>5e3?fM2(T.tot-T.obl):'\u2014')+'</td>'
           +'<td style="font-size:9px;font-weight:700">'+pct(T.tot>0?T.obl/T.tot:0)+'</td></tr>';
@@ -13418,7 +13595,7 @@ function exBody(){
     +'<button class="btn obl-step" onclick="exCyclePmo(-1)" title="previous office">\u2039</button>'
     +['ALL'].concat(_exPmoList).map(function(g){
         return '<button class="btn'+(exPmo===g?' on':'')+'" style="font-size:10px;padding:3px 9px" '
-          +'onclick="exSetPmo(&quot;'+esc(g)+'&quot;)">'+esc(g==='ALL'?'All PMOs':g)+'</button>'; }).join('')
+          +'onclick="exSetPmo('+jsa(g)+')">'+esc(g==='ALL'?'All PMOs':g)+'</button>'; }).join('')
     +'<button class="btn obl-step" onclick="exCyclePmo(1)" title="next office">\u203a</button>'
     +'<span class="obl-fig">Approved <b>'+fM2(sTot)+'</b> \u00b7 Obligated <b style="color:var(--green)">'
       +fM2(sObl)+'</b> \u00b7 <b style="color:'+(sGoal!==null&&sPct<sGoal?'var(--red)':'var(--green)')+'">'
@@ -13430,7 +13607,7 @@ function exBody(){
     +'<div class="obl-box"><table class="fctab obl-svc">'
     +'<colgroup><col style="width:26%"><col style="width:19%"><col style="width:19%"><col style="width:19%"><col style="width:17%"></colgroup>'
     +'<tr><th style="text-align:left">Service</th><th>Appr</th><th>Obl</th><th>Not&nbsp;Alloc</th><th>%</th></tr>'
-    +(Object.keys(sByS).length? Object.keys(sByS).sort().map(sv=>{const B=sByS[sv];return '<tr><td style="text-align:left;font-weight:700">'+sv+'</td><td>'+fM2(B.tot)+'</td><td style="color:var(--green)">'+fM2(B.obl)+'</td><td style="color:var(--amber)">'+(B.tot-B.obl>5e3?fM2(B.tot-B.obl):'\u2014')+'</td><td style="font-weight:700">'+pct(B.tot>0?B.obl/B.tot:0)+'</td></tr>';}).join('')
+    +(Object.keys(sByS).length? Object.keys(sByS).sort().map(sv=>{const B=sByS[sv];return '<tr><td style="text-align:left;font-weight:700">'+esc(sv)+'</td><td>'+fM2(B.tot)+'</td><td style="color:var(--green)">'+fM2(B.obl)+'</td><td style="color:var(--amber)">'+(B.tot-B.obl>5e3?fM2(B.tot-B.obl):'\u2014')+'</td><td style="font-weight:700">'+pct(B.tot>0?B.obl/B.tot:0)+'</td></tr>';}).join('')
       : '<tr><td colspan="5" style="text-align:left;color:var(--dim)">Nothing in this office for FY'+(exFy%100)+'.</td></tr>')
     +'</table></div></section>'
     +'<section class="obl-half">'
@@ -14032,8 +14209,10 @@ function bandExport(){
 }
 function bandImport(inp){
   const f=inp.files&&inp.files[0]; if(!f) return;
+  const big=inTooBig(f); if(big){ inRefuse(f.name, big); inp.value=''; return; }
   const rd=new FileReader();
   rd.onload=()=>{
+    const bad=inboundCheck(rd.result); if(bad){ inRefuse(f.name, bad); inp.value=''; return; }
     let pack=null;
     try{ pack=JSON.parse(rd.result); }catch(e){}
     const list=(pack&&Array.isArray(pack.bands))? pack.bands : (Array.isArray(pack)? pack : null);
@@ -14321,7 +14500,7 @@ function bandPanelBody(){
       +'</div></div>'
     +'<span class="ud"><button onclick="bandMove('+i+',-1)" title="higher precedence">\u25b2</button>'
     +'<button onclick="bandMove('+i+',1)" title="lower precedence">\u25bc</button></span>'
-    +(bandParentOf(b,L)? '' : '<button class="qb" onclick="bandAdd(\''+esc(b.id)+'\')" '
+    +(bandParentOf(b,L)? '' : '<button class="qb" onclick="bandAdd('+jsa(b.id)+')" '
        +'title="add a sub-band under this one \u2014 4a, 4b \u2014 whose money rolls up to it">\uff0b<sub>ab</sub></button>')
     +'<button class="qb" onclick="bandRen('+i+')" title="rename">\u270e</button>'
     +'<button class="qb" style="color:var(--red)" onclick="bandDel('+i+')" title="remove this band">\u2715</button>'
@@ -14589,7 +14768,7 @@ function planBody(){
       const pct=wiPct(plan, id);
       return '<td><input class="btn" style="font-size:10px;padding:3px 6px;width:62px;text-align:right" '
         +'value="'+(pct===null? '' : pct)+'" placeholder="100" '
-        +'onchange="wiSet(&quot;'+plan+'&quot;,&quot;'+id+'&quot;,this.value)" '
+        +'onchange="wiSet('+jsa(plan)+','+jsa(id)+',this.value)" '
         +'title="Percent of this prime’s own ask. Blank leaves it exactly as the board has it."> '
         +'<span style="font-size:9px;color:var(--dim)">%</span></td>';
     };
@@ -14678,7 +14857,7 @@ function planBody(){
       +'</table></div>'
     +'</div>';
 
-  const chip=(k,lbl,cnt)=>'<span class="chip '+(planOnly===k?'on':'')+'" onclick="setPlanOnly(\''+k+'\')">'+lbl+'<span class="n">'+cnt+'</span></span>';
+  const chip=(k,lbl,cnt)=>'<span class="chip '+(planOnly===k?'on':'')+'" onclick="setPlanOnly('+jsa(k)+')">'+lbl+'<span class="n">'+cnt+'</span></span>';
   const all=planRows(R);
   h+='<div class="fr" style="gap:6px;margin:2px 0 8px;flex-wrap:wrap">'
     +chip('moved','Changes between the plans', all.filter(r=>r.moved||r.gain>0.5).length)
@@ -15182,15 +15361,15 @@ function helpBody(){
       +HELP_PARTS.map(function(p){
         return '<div class="hx-part'+(on===p[0]?' on':'')+'"><div class="hx-ph">'+esc(p[1])+'</div><div class="hx-ps">'+esc(p[2])+'</div><ol>'
           +all.filter(function(x){ return x.part===p[0]; }).map(function(x){
-            return '<li><a href="#" onclick="helpGo(&quot;'+x.id+'&quot;);return false">'+esc(x.t)+'</a></li>'; }).join('')
+            return '<li><a href="#" onclick="helpGo('+jsa(x.id)+');return false">'+esc(x.t)+'</a></li>'; }).join('')
           +'</ol></div>'; }).join('')+'</div>';
     return;
   }
   const same=all.filter(function(x){ return x.part===s.part; }), i=same.indexOf(s);
   const P=HELP_PARTS.filter(function(p){ return p[0]===s.part; })[0];
-  const nav='<div class="hx-nav"><a href="#" onclick="helpGo(&quot;'+s.part+'&quot;);return false">‹ Contents</a><span>'+esc(P? P[1] : '')+' · '+(i+1)+' of '+same.length+'</span>'
-    +(i>0? '<a href="#" onclick="helpGo(&quot;'+same[i-1].id+'&quot;);return false">← '+esc(same[i-1].t)+'</a>' : '')
-    +(i<same.length-1? '<a href="#" onclick="helpGo(&quot;'+same[i+1].id+'&quot;);return false">'+esc(same[i+1].t)+' →</a>' : '')+'</div>';
+  const nav='<div class="hx-nav"><a href="#" onclick="helpGo('+jsa(s.part)+');return false">‹ Contents</a><span>'+esc(P? P[1] : '')+' · '+(i+1)+' of '+same.length+'</span>'
+    +(i>0? '<a href="#" onclick="helpGo('+jsa(same[i-1].id)+');return false">← '+esc(same[i-1].t)+'</a>' : '')
+    +(i<same.length-1? '<a href="#" onclick="helpGo('+jsa(same[i+1].id)+');return false">'+esc(same[i+1].t)+' →</a>' : '')+'</div>';
   el.innerHTML=nav+'<h2>'+esc(s.t)+'</h2>'+s.el.innerHTML;
   el.querySelectorAll('a[data-go]').forEach(function(a){ a.setAttribute('href','#');
     a.onclick=function(){ helpGo(a.getAttribute('data-go')); return false; }; });
@@ -15199,7 +15378,7 @@ document.addEventListener('keydown', function(e){ if(e.key==='Escape' && helpOpe
 function consBox(it){
   const b=BAND_DEF(it.id);
   return `<div class="note-detail cons"><textarea placeholder="If this is NOT funded, what happens and when? ${b.consReq?'Required for '+esc(b.n)+' — this text becomes the UFR justification.':'Feeds the UFR if this falls below the line.'}"
-    onchange="setCons('${it.id}',this.value)">${esc((S.cons||{})[it.id]||'')}</textarea></div>`;
+    onchange="setCons(${jsa(it.id)},this.value)">${esc((S.cons||{})[it.id]||'')}</textarea></div>`;
 }
 var _vpDone=false;
 let spOpen=false, spBy='pmo', spFund='board', spAce='board', spPrior=false, spPmo='ALL', spSvc='ALL';
@@ -15698,7 +15877,8 @@ function fydpStoreFolder(k, got){
     try{ dir=await driveDir(false,'read'); }
     catch(e){ return {st:null, why:'the shared folder could not be read ('+((e&&e.message)||String(e))+'), so its newest copy is unknown'}; }
     let j=null;
-    try{ j=JSON.parse(await driveRead(dir, driveName((got.st&&got.st.cur)||MS.cur, k))); }catch(e){ j=null; }
+    try{ j=driveParse(await driveRead(dir, driveName((got.st&&got.st.cur)||MS.cur, k))); }
+    catch(e){ if(e && e.refused) return {st:null, why:e.message}; j=null; }
     if(!j || !j.store) return got;
     const theirs=+((j.store&&j.store.ts)||j.ts||0);
     if(theirs<=((got.st&&+got.st.ts)||0)) return got;
@@ -15935,7 +16115,7 @@ function fydpBody(){
   let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Source '
     +'<select style="font-size:10px;padding:3px 6px" onchange="fydpSetSrc(this.value)" title="the working plan as it stands, or a locked cycle as it was locked">'
     +'<option value="working"'+(fydpSrc==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+esc(blLbl(MS.cycle))+')':'')+'</option>'
-    +cycReportable().map(function(k){ return '<option value="'+k+'"'+(fydpSrc===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>'; }).join('')
+    +cycReportable().map(function(k){ return '<option value="'+esc(k)+'"'+(fydpSrc===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>'; }).join('')
     +'</select> Cost estimate '
     +(aceKeys.length
       ? '<select style="font-size:10px;padding:3px 6px" onchange="fydpSetAce(this.value)" title="the annual cost estimate printed beside the plan — this appropriation’s lines, as they stand now">'
@@ -16143,10 +16323,10 @@ function cycCmpBody(){
   const held=cycReportable();
   if(cycCmpA && cycCmpA!=='working' && held.indexOf(cycCmpA)<0) cycCmpA='';
   if(cycCmpB!=='working' && held.indexOf(cycCmpB)<0) cycCmpB='working';
-  const pick=(which, v)=>'<select style="font-size:10px;padding:3px 6px" onchange="cycCmpSet(\''+which+'\', this.value)">'
+  const pick=(which, v)=>'<select style="font-size:10px;padding:3px 6px" onchange="cycCmpSet('+jsa(which)+', this.value)">'
     +(which==='A'? '<option value=""'+(v?'':' selected')+'>— pick —</option>' : '')
     +'<option value="working"'+(v==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+esc(blLbl(MS.cycle))+')':'')+'</option>'
-    +held.map(k=>'<option value="'+k+'"'+(v===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>').join('')+'</select>';
+    +held.map(k=>'<option value="'+esc(k)+'"'+(v===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>').join('')+'</select>';
   let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">A '+pick('A', cycCmpA)+' ⇄ B '+pick('B', cycCmpB)
     +' <span style="color:var(--dim);font-size:10px">Δ is B less A</span>'
     +(cycCmpA && cycCmpA!==cycCmpB? ' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportCycCompare()">⇄ Export the workbook</button>' : '')+'</div>';
@@ -16451,12 +16631,12 @@ function blBody(){
     +'<span style="margin-left:14px">deltas read against</span>'
     +'<select style="font-size:10px;padding:3px 6px" onchange="MS.cycleRef=this.value;save();render()" title="The locked cycle the working plan’s changes are measured from">'
     +'<option value=""'+(MS.cycleRef?'':' selected')+'>(none)</option>'
-    +keys.map(k=>'<option value="'+k+'"'+(MS.cycleRef===k?' selected':'')+'>'+esc(blLbl(k))+'</option>').join('')+'</select>'
+    +keys.map(k=>'<option value="'+esc(k)+'"'+(MS.cycleRef===k?' selected':'')+'>'+esc(blLbl(k))+'</option>').join('')+'</select>'
     +'</div>';
 
   // ---- lock the window
   h+='<div class="fr" style="gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">'
-    +PPBE_CYCLES.map(c=>'<button class="btn '+(blCyc===c?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="blCyc=\''+c+'\';render()">'+c+'</button>').join(' ')
+    +PPBE_CYCLES.map(c=>'<button class="btn '+(blCyc===c?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="blCyc='+jsa(c)+';render()">'+c+'</button>').join(' ')
     +' <label style="font-size:10px">year <input style="width:64px" value="'+blYr+'" onchange="blYr=parseInt(this.value)||blYr;render()"></label>'
     +' <b style="color:var(--gold)">'+esc(blLbl(blKey(blCyc,blYr)))+'</b>'
     +' <input style="width:250px;font-size:10px" placeholder="note (optional) — e.g. as briefed to the PEO 3 Oct" value="'+esc(blNote||'')+'" onchange="blNote=this.value">'
@@ -16497,10 +16677,10 @@ function blBody(){
       +'<td class="n">'+(P? fM((P.disc||[]).reduce((x,y)=>x+y,0)) : '<span class="z">—</span>')+'</td>'
       +'<td class="n">'+(P? fM((P.mand||[]).reduce((x,y)=>x+y,0)) : '<span class="z">—</span>')+'</td>'
       +'<td style="font-size:10px;color:var(--dim)">'+esc(c.note||'')+'</td>'
-      +'<td>'+(held.length? (CYCVIEW===k? '<button class="qb on" onclick="cycLeave()">↩ Leave view</button> ' : '<button class="qb" onclick="cycView(\''+k+'\')" title="put this locked plan on the drill, read only">👁 View</button> ') : '')
-      +'<button class="qb" onclick="cycCmpOpenWith(\''+k+'\',\'working\')" title="compare this cycle with the working plan, or with another cycle, year by year">⇄ Compare</button></td>'
-      +'<td><button class="qb" onclick="blLock(\''+k+'\','+(c.locked?'false':'true')+')">'+(c.locked?'🔒 locked':'🔓 unlocked')+'</button>'
-      +(c.locked? '' : ' <button class="qb" style="color:var(--red)" onclick="blDelete(\''+k+'\')">✕</button>')+'</td></tr>';
+      +'<td>'+(held.length? (CYCVIEW===k? '<button class="qb on" onclick="cycLeave()">↩ Leave view</button> ' : '<button class="qb" onclick="cycView('+jsa(k)+')" title="put this locked plan on the drill, read only">👁 View</button> ') : '')
+      +'<button class="qb" onclick="cycCmpOpenWith('+jsa(k)+',\'working\')" title="compare this cycle with the working plan, or with another cycle, year by year">⇄ Compare</button></td>'
+      +'<td><button class="qb" onclick="blLock('+jsa(k)+','+(c.locked?'false':'true')+')">'+(c.locked?'🔒 locked':'🔓 unlocked')+'</button>'
+      +(c.locked? '' : ' <button class="qb" style="color:var(--red)" onclick="blDelete('+jsa(k)+')">✕</button>')+'</td></tr>';
   });
   h+='</tbody></table>';
 
@@ -16713,7 +16893,7 @@ function ppBody(){
     +'</select>'
     +' <b style="color:var(--gold);margin-left:8px">'+ppLbl(ppKey())+'</b>'
     +(MS.ppbe[ppKey()]?' <button class="qb" style="color:var(--red)" onclick="ppDel()">\u2715 delete position</button>':'')
-    +'<span style="float:right;font-size:9.5px;color:var(--dim)">Logged: '+(logged.length? logged.map(k=>'<span class="chip" style="font-size:9px;padding:2px 7px" onclick="ppCyc=\''+k.split('|')[0]+'\';ppYr='+k.split('|')[1]+';render()">'+ppLbl(k)+'</span>').join(' '):'none yet')+'</span></div>';
+    +'<span style="float:right;font-size:9.5px;color:var(--dim)">Logged: '+(logged.length? logged.map(k=>'<span class="chip" style="font-size:9px;padding:2px 7px" onclick="ppCyc='+jsa(k.split('|')[0])+';ppYr=Number('+jsa(k.split('|')[1])+');render()">'+esc(ppLbl(k))+'</span>').join(' '):'none yet')+'</span></div>';
 
   {
     const hidden=ppOutside(P, yrs);
@@ -16755,7 +16935,7 @@ function ppBody(){
   const nCol=yrs.length+2;
   const inp=(k,y,which,v)=>'<input style="width:76px;font-size:9.5px" value="'+(v?Math.round(v).toLocaleString():'')
     +'" placeholder="0" onfocus="this.select()" title="FY'+y+' '+(which==='d'?'Discretionary':'Mandatory')+'" '
-    +'onchange="ppSetV(\''+esc(sv).replace(/'/g,"\\'")+'\',\''+k+'\','+y+',\''+which+'\',this.value)">';
+    +'onchange="ppSetV('+jsa(sv)+','+jsa(k)+','+y+','+jsa(which)+',this.value)">';
   const five=v=>/^\d{5}$/.test(String(v||''));
 
   h+='<div style="overflow-x:auto"><table class="fctab"><tr>'
@@ -16769,18 +16949,18 @@ function ppBody(){
     if(kind==='rcn' && !l.legacy){
       lbl='<span style="font-size:9px;color:var(--dim)">RCN</span> '
         +'<input style="width:62px;font-size:9.5px'+(l.rcn&&!five(l.rcn)?';border-color:var(--amber)':'')+'" value="'+esc(l.rcn||'')
-        +'" placeholder="12345" title="Requirement Control Number \u2014 5 digits" onchange="ppLineSet(\''+esc(sv).replace(/'/g,"\\'")+'\',\''+l.k+'\',\'rcn\',this.value)"> '
+        +'" placeholder="12345" title="Requirement Control Number \u2014 5 digits" onchange="ppLineSet('+jsa(sv)+','+jsa(l.k)+',\'rcn\',this.value)"> '
         +'<span style="font-size:9px;color:var(--dim)">EEIC</span> '
         +'<input style="width:62px;font-size:9.5px'+(l.eeic&&!five(l.eeic)?';border-color:var(--amber)':'')+'" value="'+esc(l.eeic||'')
-        +'" placeholder="54321" title="EEIC \u2014 5 digits" onchange="ppLineSet(\''+esc(sv).replace(/'/g,"\\'")+'\',\''+l.k+'\',\'eeic\',this.value)">'
-        +' <button class="qb" style="color:var(--red)" title="remove this line" onclick="ppLineDel(\''+esc(sv).replace(/'/g,"\\'")+'\',\''+l.k+'\')">\u2715</button>';
+        +'" placeholder="54321" title="EEIC \u2014 5 digits" onchange="ppLineSet('+jsa(sv)+','+jsa(l.k)+',\'eeic\',this.value)">'
+        +' <button class="qb" style="color:var(--red)" title="remove this line" onclick="ppLineDel('+jsa(sv)+','+jsa(l.k)+')">\u2715</button>';
     } else if(kind==='none'){
       lbl='<b>'+esc(sv)+'</b> <span style="font-size:9px;color:var(--dim)">\u2014 logged at service level</span>';
     } else {
       lbl='<b>'+esc(ppLineLbl(sv,l))+'</b>'
         +(l.legacy? ' <span style="font-size:9px;color:var(--amber)">carried over</span>' : '')
         +(kind==='si'||kind==='ce'||l.legacy
-          ? ' <button class="qb" style="color:var(--red)" title="remove this line" onclick="ppLineDel(\''+esc(sv).replace(/'/g,"\\'")+'\',\''+l.k+'\')">\u2715</button>' : '');
+          ? ' <button class="qb" style="color:var(--red)" title="remove this line" onclick="ppLineDel('+jsa(sv)+','+jsa(l.k)+')">\u2715</button>' : '');
     }
     let tD=0,tM=0;
     yrs.forEach(y=>{ const c=ppCell(P,sv,l.k,y); tD+=c.d; tM+=c.m; });
@@ -16805,7 +16985,7 @@ function ppBody(){
   });
 
   if(kind==='rcn')
-    h+='<tr><td style="text-align:left" colspan="'+nCol+'"><button class="btn" style="font-size:9.5px;padding:3px 9px" onclick="ppLineAdd(\''+esc(sv).replace(/'/g,"\\'")+'\')">+ add an RCN / EEIC line</button>'
+    h+='<tr><td style="text-align:left" colspan="'+nCol+'"><button class="btn" style="font-size:9.5px;padding:3px 9px" onclick="ppLineAdd('+jsa(sv)+')">+ add an RCN / EEIC line</button>'
       +(lines.length? '' : ' <span style="font-size:9px;color:var(--dim)">none logged for '+esc(sv)+' under '+ppLbl(ppKey())+' yet</span>')+'</td></tr>';
 
   h+='<tr class="tot"><td style="text-align:left">'+esc(sv)+' TOTAL</td>'
@@ -17066,7 +17246,7 @@ function pmoDrillHtml(pmoKey, years){
     +'<button class="btn '+(spDrillSvc==='ALL'?'on':'')+'" style="font-size:10px;padding:3px 10px" '
       +'onclick="setSpDrillSvc(\'ALL\')" title="summary across every service">All services</button> '
     +svcAll.map(sv=>'<button class="btn '+(spDrillSvc===sv?'on':'')+'" style="font-size:10px;padding:3px 10px" '
-      +'onclick="setSpDrillSvc(\''+sv+'\')">'+esc(sv)+'</button>').join(' ')
+      +'onclick="setSpDrillSvc('+jsa(sv)+')">'+esc(sv)+'</button>').join(' ')
     +'</div>';
 
   const grand={req:{}, ctl:{}};
@@ -17187,14 +17367,14 @@ function spBody(){
     +' <button class="btn '+(spPrior?'on':'')+'" style="font-size:10px;padding:4px 10px" title="show the two fiscal years before the active year" onclick="setSpPrior(!spPrior)">\u25c0 prior 2 FY</button>'
     +((ACEDB.sets||{})[spAce]? (spBy==='pmo'
         ? ' <select class="btn" style="font-size:10px;padding:4px 8px" onchange="setSpPmo(this.value)" title="filter the cost estimate to one PMO">'
-          +['ALL'].concat(acePmoKeys()).map(g=>'<option value="'+g+'" '+(spPmo===g?'selected':'')+'>'+(g==='ALL'?'All PMOs':g)+'</option>').join('')+'</select>'
+          +['ALL'].concat(acePmoKeys()).map(g=>'<option value="'+esc(g)+'" '+(spPmo===g?'selected':'')+'>'+esc(g==='ALL'?'All PMOs':g)+'</option>').join('')+'</select>'
         : ' <select class="btn" style="font-size:10px;padding:4px 8px" onchange="setSpSvc(this.value)" title="filter the cost estimate to one service">'
-          +['ALL'].concat(SVC).map(g=>'<option value="'+g+'" '+(spSvc===g?'selected':'')+'>'+(g==='ALL'?'All services':g)+'</option>').join('')+'</select>')
+          +['ALL'].concat(SVC).map(g=>'<option value="'+esc(g)+'" '+(spSvc===g?'selected':'')+'>'+esc(g==='ALL'?'All services':g)+'</option>').join('')+'</select>')
       : '')
     +'&nbsp;&nbsp;<label style="font-size:10px">Budget source: <select onchange="spFund=this.value;render()" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--gold);font-weight:700;font-size:10px;padding:3px 4px">'
     +'<option value="board" '+(spFund==='board'?'selected':'')+'>Board budgets (working)</option>'
-    +blList().map(k=>'<option value="bl|'+k+'" '+(spFund==='bl|'+k?'selected':'')+'>'+blLbl(k)+' cycle (locked plan)</option>').join('')
-    +cycles.map(k=>'<option value="'+k+'" '+(spFund===k?'selected':'')+'>'+ppLbl(k)+' (official, by service)</option>').join('')
+    +blList().map(k=>'<option value="bl|'+esc(k)+'" '+(spFund==='bl|'+k?'selected':'')+'>'+esc(blLbl(k))+' cycle (locked plan)</option>').join('')
+    +cycles.map(k=>'<option value="'+esc(k)+'" '+(spFund===k?'selected':'')+'>'+esc(ppLbl(k))+' (official, by service)</option>').join('')
     +'</select></label>'
     +'&nbsp;<label style="font-size:10px">Cost data: <select onchange="setSpAce(this.value)" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:10px;padding:3px 4px">'
     +'<option value="board" '+(spAce==='board'?'selected':'')+'>Board requirements (current)</option>'
@@ -17495,9 +17675,9 @@ function posBody(){
       +'<td style="text-align:left;font-size:10px;white-space:normal">'+posExecLine(s)+'</td>'
       +'<td style="white-space:nowrap">'
       +(s.locked
-        ? '<button class="btn" style="font-size:10px;padding:3px 8px" onclick="posLock(&quot;'+k+'&quot;,false)">🔓 Unlock</button>'
-        : '<button class="btn" style="font-size:10px;padding:3px 8px" onclick="posLock(&quot;'+k+'&quot;,true)">🔒 Lock</button>'
-          +' <button class="btn warn" style="font-size:10px;padding:3px 8px" onclick="posDelete(&quot;'+k+'&quot;)">Delete</button>')
+        ? '<button class="btn" style="font-size:10px;padding:3px 8px" onclick="posLock('+jsa(k)+',false)">🔓 Unlock</button>'
+        : '<button class="btn" style="font-size:10px;padding:3px 8px" onclick="posLock('+jsa(k)+',true)">🔒 Lock</button>'
+          +' <button class="btn warn" style="font-size:10px;padding:3px 8px" onclick="posDelete('+jsa(k)+')">Delete</button>')
       +'</td></tr>';
   });
   h+='</table>';
@@ -17576,7 +17756,6 @@ function rpBody(){
   rpMigrate();
   const YS=rpYears(), APS=rpAppns();
   const chip=(on,lbl,fn)=>'<button class="btn '+(on?'on':'')+'" style="font-size:10px;padding:4px 11px" onclick="'+fn+'">'+lbl+'</button> ';
-  const q=v=>"'"+(''+v).replace(/'/g,"\\'")+"'";
   let h='<div style="margin-bottom:8px">'
     +'<span class="tlbl">Fiscal year</span> '
     +chip(rpFy==='ALL','All',"rpSetFy('ALL')")
@@ -17584,7 +17763,7 @@ function rpBody(){
     +'<span class="tsep" style="display:inline-block;vertical-align:middle"></span> '
     +'<span class="tlbl">Appropriation</span> '
     +chip(rpAp==='ALL','All',"rpSetAp('ALL')")
-    +APS.map(a=>chip(rpAp===a,esc(a),'rpSetAp('+q(a)+')')).join('')
+    +APS.map(a=>chip(rpAp===a,esc(a),'rpSetAp('+jsa(a)+')')).join('')
     +'<span class="tsep" style="display:inline-block;vertical-align:middle"></span> '
     +chip(rpView==='log','\u2261 Log',"rpSetView('log')")
     +chip(rpView==='summary','\u03a3 Summary',"rpSetView('summary')")
@@ -17592,9 +17771,9 @@ function rpBody(){
   if(rpView==='summary'){ el.innerHTML=h+rpSummaryHtml(YS, APS); return; }
 
   const list=rpFiltered();
-  const sel=(id,f,cur,opts)=>'<select onchange="rpSetField('+q(id)+',\''+f+'\',this.value)" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:9.5px">'
+  const sel=(id,f,cur,opts)=>'<select onchange="rpSetField('+jsa(id)+','+jsa(f)+',this.value)" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:9.5px">'
     +opts.map(o=>'<option value="'+esc(o[0])+'" '+((''+(cur==null?'':cur))===(''+o[0])?'selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select>';
-  const ti=(id,f,v,w)=>'<input style="width:'+w+'px;font-size:9.5px" value="'+esc(v||'')+'" onchange="rpSetField('+q(id)+',\''+f+'\',this.value)">';
+  const ti=(id,f,v,w)=>'<input style="width:'+w+'px;font-size:9.5px" value="'+esc(v||'')+'" onchange="rpSetField('+jsa(id)+','+jsa(f)+',this.value)">';
   const APPROVALS=[['Pending','Pending'],['Approved','Approved'],['Denied','Denied'],['N/A','N/A']];
   const STATUS=[['Pending','Pending'],['Submitted','Submitted'],['Approved','Approved'],['Executed','Executed'],['Denied','Denied'],['Withdrawn','Withdrawn']];
   h+='<div style="overflow-x:auto"><table class="fctab"><tr><th>Appn</th><th>FY</th><th>Type</th><th>Service</th><th>APPN code</th>'
@@ -17609,14 +17788,14 @@ function rpBody(){
       +'<td>'+sel(r.id,'svc',''+r.svc,SVCS.map((sv,i)=>[''+i,sv]))+'</td>'
       +'<td>'+ti(r.id,'appn',r.appn,52)+'</td><td>'+ti(r.id,'pec',r.pec,68)+'</td><td>'+ti(r.id,'bpac',r.bpac,60)+'</td>'
       +'<td style="text-align:left">'+ti(r.id,'title',r.title,180)+'</td>'
-      +'<td><input style="width:70px;text-align:right;font-weight:700" value="'+(r.amtM||0)+'" onchange="rpSetField('+q(r.id)+',\'amtM\',this.value)"></td>'
+      +'<td><input style="width:70px;text-align:right;font-weight:700" value="'+(r.amtM||0)+'" onchange="rpSetField('+jsa(r.id)+',\'amtM\',this.value)"></td>'
       +'<td>'+sel(r.id,'dir',r.dir,[['deduct','Deduct'],['add','Add']])+'</td>'
       +'<td>'+sel(r.id,'pool',r.pool,[['disc','Disc'],['mand','Mand']])+'</td>'
       +'<td>'+sel(r.id,'status',r.status||'Pending',STATUS)+'</td>'
       +'<td>'+sel(r.id,'hac',r.hac,APPROVALS)+'</td><td>'+sel(r.id,'sac',r.sac,APPROVALS)+'</td>'
       +'<td>'+sel(r.id,'hasc',r.hasc,APPROVALS)+'</td><td>'+sel(r.id,'sasc',r.sasc,APPROVALS)+'</td>'
       +'<td style="text-align:left">'+ti(r.id,'remarks',r.remarks,220)+'</td>'
-      +'<td><button class="qb" style="color:var(--red)" onclick="rpDelEntry('+q(r.id)+')">\u2715</button></td></tr>';
+      +'<td><button class="qb" style="color:var(--red)" onclick="rpDelEntry('+jsa(r.id)+')">\u2715</button></td></tr>';
   });
   h+='</table></div>';
   h+='<div style="margin-top:8px"><button class="btn" style="font-size:10.5px;padding:4px 10px" onclick="rpAddEntry()">\uff0b Add entry</button> '
@@ -17668,7 +17847,7 @@ function bmBody(){
   // The seed sits ABOVE the rows it writes into, so what it changes is the next thing read.
   let h=bmPpRow();
   h+='<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:2px 0 4px">FUNDING SOURCES — '+FYL()+' (per service; effective budget = base + sources ± applied ATR/BTR)</div>';
-  h+='<div style="overflow-x:auto"><table class="fctab"><tr><th style="text-align:left">Source</th><th>Pool</th>'+SVC.map(s=>'<th>'+s+'</th>').join('')+'<th style="border-left:1px solid var(--gold)">Total</th><th></th></tr>';
+  h+='<div style="overflow-x:auto"><table class="fctab"><tr><th style="text-align:left">Source</th><th>Pool</th>'+SVC.map(s=>'<th>'+esc(s)+'</th>').join('')+'<th style="border-left:1px solid var(--gold)">Total</th><th></th></tr>';
   h+='<tr><td style="text-align:left;font-weight:800;color:var(--green)">Discretionary (base)</td><td style="color:var(--dim)">disc</td>'
     +SVC.map((s,i)=>'<td>'+inp(S.bm.disc[i],"bmSetBase('disc',"+i+",this.value)")+'</td>').join('')
     +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--green)">'+fM(S.bm.disc.reduce((a,b)=>a+b,0))+'</td><td></td></tr>';
@@ -17756,7 +17935,7 @@ function crBody(){
     +'<table class="fctab">'+hd;
   keys.forEach((s,i)=>{
     const sv=D[i];
-    h+='<tr><td style="text-align:left;font-weight:800;cursor:pointer;color:var(--gold)" onclick="crX[\''+s+'\']=!crX[\''+s+'\'];render()" title="click to show '+s+'\u2019s requirements individually">'+(crX[s]?'\u25be ':'\u25b8 ')+s+' <span style="color:var(--dim);font-size:8.5px">'+sv.items.length+' reqs</span></td>'
+    h+='<tr><td style="text-align:left;font-weight:800;cursor:pointer;color:var(--gold)" onclick="crX['+jsa(s)+']=!crX['+jsa(s)+'];render()" title="click to show '+esc(s)+'\u2019s requirements individually">'+(crX[s]?'\u25be ':'\u25b8 ')+esc(s)+' <span style="color:var(--dim);font-size:8.5px">'+sv.items.length+' reqs</span></td>'
       +fold(sv.win).map(cell).join('')
       +'<td style="border-left:1px solid var(--amber);color:'+(sv.nodate>5e3?'var(--amber)':'var(--dim)')+'">'+(sv.nodate>5e3?fM2(sv.nodate):'\u2014')+'</td>'
       +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--gold)">'+fM2(sv.tot)+'</td></tr>';
@@ -17767,7 +17946,7 @@ function crBody(){
             if(v<=5e3) return '<td style="color:var(--line2)">\u2014</td>';
             if(monthly) return '<td>'+fM2(v)+'</td>';
             const ym=wins[w].ym;
-            return '<td><span style="cursor:pointer;color:var(--ink);border-bottom:1px dashed var(--dim)" onclick="crToggle(\''+r.id+'\',\''+ym+'\')" title="click to move this requirement\u2019s cash to the other half of the month">'+fM2(v)+'</span></td>';
+            return '<td><span style="cursor:pointer;color:var(--ink);border-bottom:1px dashed var(--dim)" onclick="crToggle('+jsa(r.id)+','+jsa(ym)+')" title="click to move this requirement\u2019s cash to the other half of the month">'+fM2(v)+'</span></td>';
           }).join('')
           +'<td></td><td style="border-left:1px solid var(--gold);font-size:9px">'+fM2(r.wins.reduce((a,b)=>a+b,0))+'</td></tr>';
       });
@@ -18161,7 +18340,7 @@ function scoreboard(){
     <div class="rm" style="color:var(--amber)">${fM(mcTot)} <span style="font-size:9px;color:var(--dim)">allocated to ${mcN} must-pay requirement${mcN===1?'':'s'}</span></div>
     <div class="sub" title="${esc(mcSvc.bySvc.map(x=>x.s+': must-pay '+fM(x.tot)+' vs disc BA '+fM(x.ba)+(x.need>0.5? ' → need '+fM(x.need) : (x.tot>x.ba? ' (lane not spent out — no need)':''))).join(' · '))}">${
       mcNeed>0.5? '<b style="color:var(--red)">★ MC need '+fM(mcNeed)+'</b> above the discretionary BA'
-                  +(mcSvc.bySvc.filter(x=>x.need>0.5).length? ' <span style="font-size:9px;color:var(--dim)">('+mcSvc.bySvc.filter(x=>x.need>0.5).map(x=>x.s).join(', ')+')</span>':'')
+                  +(mcSvc.bySvc.filter(x=>x.need>0.5).length? ' <span style="font-size:9px;color:var(--dim)">('+mcSvc.bySvc.filter(x=>x.need>0.5).map(x=>esc(x.s)).join(', ')+')</span>':'')
         : (mcN? '<span style="color:var(--green)">✓ no MC need — discretionary covers the must-pays in every service lane</span>'
               : '<span style="color:var(--dim)">nothing flagged must-pay yet — use ★ MC on a requirement</span>')}</div>
     <div class="sub"><b style="color:var(--amber)">Program floor (Discretionary BA + MC need): ${fM(floor)}</b></div>
@@ -18192,7 +18371,7 @@ function scoreboard(){
       <span class="bar"><i style="width:${pct}%;background:${dry?'var(--red)':'var(--green)'}"></i></span></div>`;
   }).join('');
   const lc=(k,lbl,cnt,col)=>`<span class="lanechip ${laneFilter===k?'on':''}" style="${laneFilter===k?'color:'+col+';background:var(--panel)':''}"
-      onclick="laneFilter=laneFilter==='${k}'?'':'${k}';render()" title="click to filter the list">${lbl} <b style="color:${col}">${cnt}</b></span>`;
+      onclick="laneFilter=laneFilter===${jsa(k)}?'':${jsa(k)};render()" title="click to filter the list">${lbl} <b style="color:${col}">${cnt}</b></span>`;
   document.getElementById('fitBar').innerHTML =
     '<span class="lb">DISCRETIONARY FIT</span>'+chips+
     '<span style="width:6px"></span>'+
@@ -18204,7 +18383,7 @@ function scoreboard(){
     absorbLine(AB);
   const sh=svcShort(T);
   document.getElementById('svcWarn').innerHTML = sh.length?
-    '<span style="color:var(--amber);font-weight:800;font-size:10.5px">△ unfunded by service: '+sh.map(x=>x.s+' '+fM(x.short)).join('  ·  ')+'</span>' : '';
+    '<span style="color:var(--amber);font-weight:800;font-size:10.5px">△ unfunded by service: '+sh.map(x=>esc(x.s)+' '+fM(x.short)).join('  ·  ')+'</span>' : '';
   const sco=document.getElementById('scores');
   document.getElementById('scArrow').textContent = scOpen? '▾':'▸';
   if(scOpen){
@@ -18690,13 +18869,13 @@ function svcSummary(){
   let rows='';
   SVC.forEach((s,i)=>{
     const dRem=Math.max(0,T.__rem.dRem[i]), mRem=Math.max(0,T.__rem.mRem[i]);
-    rows+=`<tr><td>${s}</td><td>${fM(ask[i])}</td>
-      <td title="effective ${s} discretionary BA (base + funding sources ± ATR/BTR) — edit in 💰 Budget Management">${fM(S.discSvc[i])}</td>
+    rows+=`<tr><td>${esc(s)}</td><td>${fM(ask[i])}</td>
+      <td title="effective ${esc(s)} discretionary BA (base + funding sources ± ATR/BTR) — edit in 💰 Budget Management">${fM(S.discSvc[i])}</td>
       <td style="color:var(--green)">${fM(d[i])}</td>
       <td style="color:var(--green)">${fM(dRem)}</td>
       <td style="color:var(--red);font-weight:700">${fM(mc[i])}</td>
       <td style="color:var(--amber);font-weight:700">${fM(mct[i])}</td>
-      <td title="effective ${s} mandatory BA — edit in 💰 Budget Management">${fM(scenMand(i))}</td>
+      <td title="effective ${esc(s)} mandatory BA — edit in 💰 Budget Management">${fM(scenMand(i))}</td>
       <td style="color:var(--purp)">${fM(m[i])}</td>
       <td style="color:var(--purp)">${fM(mRem)}</td>
       <td style="color:${u[i]>0.5?'var(--red)':'var(--dim)'}">${fM(u[i])}</td></tr>`;
@@ -18898,37 +19077,37 @@ function awardBlockHtml(it){
       <b style="font-size:10px;color:var(--gold);letter-spacing:.5px">📅 AWARD / OBLIGATION</b>
       &nbsp;<label style="font-size:10.5px">Award date:
         <input type="date" ${isInc?'disabled style="opacity:.5"':''} value="${!isInc&&aw? awDateVal(aw.d,aw.day):''}" min="${fyMin()}" max="${fyMax()}"
-          onchange="setAwdDateFull('${it.id}',this.value)" title="click to pick the award/obligation date from the calendar — the day sets the CR half-month window"></label>
-      ${(!isInc&&aw&&aw.d)?`<button class="qb" onclick="setAwdDateFull('${it.id}','')" title="clear the award date">✕</button>`:''}
+          onchange="setAwdDateFull(${jsa(it.id)},this.value)" title="click to pick the award/obligation date from the calendar — the day sets the CR half-month window"></label>
+      ${(!isInc&&aw&&aw.d)?`<button class="qb" onclick="setAwdDateFull(${jsa(it.id)},'')" title="clear the award date">✕</button>`:''}
       <span style="font-size:9.5px;color:var(--dim)">${!isInc? (aw&&aw.d? ((aw.day?'day '+aw.day+' (baseline) · ':'')+'full funded amount ('+fM(funded)+') forecasts in this month'):'no date — funded amount shows as UNSCHEDULED in the forecast'):''}</span>
-      &nbsp;&nbsp;<label style="font-size:10.5px;cursor:pointer"><input type="checkbox" ${isInc?'checked':''} onchange="toggleAwdInc('${it.id}',${Math.round(funded)})"> <b style="color:${isInc?'var(--green)':'var(--dim)'}">Incremental funding</b></label>
+      &nbsp;&nbsp;<label style="font-size:10.5px;cursor:pointer"><input type="checkbox" ${isInc?'checked':''} onchange="toggleAwdInc(${jsa(it.id)},${Math.round(funded)})"> <b style="color:${isInc?'var(--green)':'var(--dim)'}">Incremental funding</b></label>
       ${isInc? (()=>{
         const svTots=SVC.map((s,i)=>(aw.inc||[]).reduce((a,x)=>a+((x.sv||[])[i]||0),0));
         const fSv=SVC.map((s,i)=>pw.d[i]||0);              // discretionary allocated, per service
         const mSv=SVC.map((s,i)=>pw.m[i]||0);              // mandatory: rides the dates, its own row below
         return `<div style="margin-top:4px;overflow-x:auto"><table style="border-collapse:collapse;font-size:10px">
-        <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${s}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--blue);padding:2px 6px" title="allocated dollars still unscheduled after this increment — the last one has to clear it">Remaining</th><th></th></tr>
+        <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${esc(s)}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--blue);padding:2px 6px" title="allocated dollars still unscheduled after this increment — the last one has to clear it">Remaining</th><th></th></tr>
         ${(()=>{ let run=discAl; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); return `<tr>
-          <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" onchange="setAwdIncDate('${it.id}',${i},this.value)" title="click for the calendar — this increment's obligation date (day sets the CR half-month window)"></td>
-          ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc('${it.id}',${i},${si},this.value)" onfocus="this.select()" title="${s} increment for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}"></td>`).join('')}
+          <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" onchange="setAwdIncDate(${jsa(it.id)},${i},this.value)" title="click for the calendar — this increment's obligation date (day sets the CR half-month window)"></td>
+          ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc(${jsa(it.id)},${i},${si},this.value)" onfocus="this.select()" title="${s} increment for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}"></td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:var(--gold);white-space:nowrap">${fM(incTot(a))}</td>
           <td style="padding:2px 6px;font-weight:800;white-space:nowrap;color:${Math.abs(run)<1?'var(--green)':(run<0?'var(--red)':'var(--blue)')}" title="${Math.abs(run)<1?'fully scheduled at this increment':(run<0? fM(-run)+' MORE has been scheduled than is allocated':fM(run)+' of the allocation is still unscheduled after this increment')}">${Math.abs(run)<1?'\u2713 $0':fM(run)}</td>
-          <td><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd('${it.id}',${i})" title="remove increment">✕</button></td></tr>`; }).join(''); })()}
+          <td><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd(${jsa(it.id)},${i})" title="remove increment">✕</button></td></tr>`; }).join(''); })()}
         <tr><td style="padding:2px 6px;color:var(--dim);font-weight:700">Σ by service</td>
-          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${s}: increments ${fM(svTots[i])} vs funded ${fM(fSv[i])}">${fM(svTots[i])}</td>`).join('')}
+          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${esc(s)}: increments ${fM(svTots[i])} vs funded ${fM(fSv[i])}">${fM(svTots[i])}</td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:${Math.abs(incSum-discAl)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td><td></td></tr>
         <tr><td style="padding:2px 6px;color:var(--blue);font-weight:800" title="discretionary the increments have not yet put on a date, per service">Balance to schedule — discretionary</td>
           ${SVC.map((s,i)=>{ const r=fSv[i]-svTots[i];
-            return `<td style="padding:2px 6px;text-align:right;font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${s}: allocated ${fM(fSv[i])} less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'\u2014':fM(r)}</td>`; }).join('')}
+            return `<td style="padding:2px 6px;text-align:right;font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${esc(s)}: allocated ${fM(fSv[i])} less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'\u2014':fM(r)}</td>`; }).join('')}
           <td style="padding:2px 6px;font-weight:800;color:${Math.abs(discAl-incSum)<1?'var(--green)':(discAl-incSum<0?'var(--red)':'var(--blue)')}">${Math.abs(discAl-incSum)<1?'\u2713 $0':fM(discAl-incSum)}</td>
-          <td colspan="2" style="padding:2px 6px">${(Math.abs(discAl-incSum)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd('${it.id}')" title="put the remaining discretionary balance on the last increment, per service — the residual mod. Mandatory already rides the dates, so this schedules the whole funded amount.">\u21b5 put on last</button>`:''}</td></tr>
+          <td colspan="2" style="padding:2px 6px">${(Math.abs(discAl-incSum)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd(${jsa(it.id)})" title="put the remaining discretionary balance on the last increment, per service — the residual mod. Mandatory already rides the dates, so this schedules the whole funded amount.">\u21b5 put on last</button>`:''}</td></tr>
         ${pw.mT>0.5? `<tr><td style="padding:2px 6px;color:var(--purp);font-weight:800" title="mandatory has no increments of its own: it lands on these dates, in each service's own increment proportions, or the requirement's where a service has none">Mandatory \u2014 rides these dates</td>
-          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${mSv[i]>0.5?'var(--purp)':'var(--dim)'}" title="${s}: ${fM(mSv[i])} of mandatory, ${svTots[i]>0.5? 'in the proportions of this service\u2019s increments' : 'in the proportions of the requirement\u2019s increments overall'}">${mSv[i]>0.5? fM(mSv[i]) : '\u2014'}</td>`).join('')}
+          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${mSv[i]>0.5?'var(--purp)':'var(--dim)'}" title="${esc(s)}: ${fM(mSv[i])} of mandatory, ${svTots[i]>0.5? 'in the proportions of this service\u2019s increments' : 'in the proportions of the requirement\u2019s increments overall'}">${mSv[i]>0.5? fM(mSv[i]) : '\u2014'}</td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:var(--purp)">${fM(pw.mT)}</td><td colspan="2" style="padding:2px 6px;font-size:9px;color:var(--dim)">dated \u2713</td></tr>`:''}
         </table>
         <span style="display:inline-block;margin-top:4px">
           <input type="date" id="awdM-${it.id}" min="${fyMin()}" max="${fyMax()}" title="pick the new increment's date from the calendar">
-          <button class="qb" onclick="addAwd('${it.id}')" title="add an increment at the picked date">＋ add date</button></span>
+          <button class="qb" onclick="addAwd(${jsa(it.id)})" title="add an increment at the picked date">＋ add date</button></span>
         <span style="font-size:9.5px;color:${Math.abs(incSum-discAl)<1?'var(--green)':'var(--amber)'};margin-left:8px">increments ${fM(incSum)} vs <b>discretionary allocated</b> ${fM(discAl)}${Math.abs(incSum-discAl)<1?' ✓':''}</span>
         ${pw.mT>0.5? `<div style="font-size:9.5px;color:var(--dim);margin-top:2px">\u2139 ${fM(pw.mT)} of mandatory is also allocated here. These increments are <b>discretionary dollars</b> and every spend plan places them as typed; the mandatory has no increments of its own, so it lands on these same dates \u2014 in each service\u2019s own increment proportions, or, in a service with no increment, in the requirement\u2019s overall proportions. Nothing to type for it. Only discretionary left on the Balance to schedule row forecasts as UNSCHEDULED.</div>`:''}
         ${(Math.abs(discAl-incSum)>=1)? `<div style="font-size:9.5px;color:var(--blue);margin-top:2px">\u2139 ${fM(Math.max(0,discAl-incSum))} of discretionary is not on a date yet \u2014 it forecasts as UNSCHEDULED until it is.</div>`:''}
@@ -19010,7 +19189,7 @@ function chipPick(kind, id, label, cur, items, setter, title, col){
   const style = (!unset && col)? ' style="border-color:'+col+';color:'+col+'"' : '';
   let h='<span class="menu chipm'+(isOpen?' open':'')+'">'
     +'<span class="rchip'+(unset?' add':'')+'"'+style
-    +' onclick="toggleChip(&quot;'+kind+'&quot;,&quot;'+id+'&quot;,event)" title="'+esc(title||'')+'">'
+    +' onclick="toggleChip('+jsa(kind)+','+jsa(id)+',event)" title="'+esc(title||'')+'">'
     +esc(label)+'</span>';
   if(isOpen){
     h+='<span class="mdd" onclick="event.stopPropagation()">';
@@ -19018,8 +19197,8 @@ function chipPick(kind, id, label, cur, items, setter, title, col){
       if(o.sep!==undefined){ h+='<div class="msep"></div><div class="mlbl">'+esc(o.sep)+'</div>'; return; }
       const on=(o.on!==undefined)? !!o.on
              : (String(o.v)===String(cur===null||cur===undefined?'':cur));
-      h+='<div class="mi" onclick="chipRun(function(){'+(o.set||setter)+'(&quot;'+id+'&quot;,&quot;'
-        +String(o.v).replace(/&/g,'&amp;').replace(/"/g,'')+'&quot;);})">'
+      h+='<div class="mi" onclick="chipRun(function(){'+(o.set||setter)+'('+jsa(id)+','
+        +jsa(String(o.v))+');})">'
         +'<span class="chk">'+(on?'\u2713':'')+'</span>'+esc(o.n)
         +(o.sub? '<span class="sub">'+esc(o.sub)+'</span>':'')+'</div>';
     });
@@ -19057,7 +19236,7 @@ function rowChipsHtml(it){
   // badge -- so nothing is lost by reading it off the panel instead. The CARD build keeps both,
   // because it has no panel to move them to.
   { const ce=(S.costElem||{})[id];   // the store does not exist on a board without cost elements
-    if(ce) h+='<span class="rchip" onclick="pickCostElem(&quot;'+id+'&quot;)" '
+    if(ce) h+='<span class="rchip" onclick="pickCostElem('+jsa(id)+')" '
       +'title="cost element \u2014 click to change">'+esc(chipClip(ce))+'</span>'; }
   h+=ndRowChip(id);      // v1.86: a typed figure higher than it draws
   h+='</div>';
@@ -19075,13 +19254,13 @@ function rowMenuHtml(it){
   const id=it.id;
   // desc, note, bd, wantCons and hasCons went with the entries that used them: in this build those
   // fields are edited from the RECORD panel, so the menu no longer reads any of them.
-  const mi=(label,fn,sub,cls)=>'<div class="mi'+(cls?' '+cls:'')+'" onclick="rowMenuRun(\''+id+'\',()=>{'+fn+'})">'
+  const mi=(label,fn,sub,cls)=>'<div class="mi'+(cls?' '+cls:'')+'" onclick="rowMenuRun('+jsa(id)+',()=>{'+fn+'})">'
     +'<span class="chk"></span>'+label+(sub?'<span class="sub">'+sub+'</span>':'')+'</div>';
   const ys=(()=>{ const out=[]; for(let y=MS.base;y<MS.base+5;y++) if(y!==MS.cur) out.push(y);
     Object.keys(MS.years).map(Number).forEach(y=>{ if(y!==MS.cur&&out.indexOf(y)<0) out.push(y); });
     return out.sort(); })();
-  return '<div class="menu rowmenu'+(rowMenuId===id?' open':'')+'" id="rm_'+id+'">'
-    +'<button class="qb rmbtn" onclick="toggleRowMenu(\''+id+'\',event)" title="more actions for this requirement">⋯</button>'
+  return '<div class="menu rowmenu'+(rowMenuId===id?' open':'')+'" id="rm_'+esc(id)+'">'
+    +'<button class="qb rmbtn" onclick="toggleRowMenu('+jsa(id)+',event)" title="more actions for this requirement">⋯</button>'
     +'<div class="mdd" onclick="event.stopPropagation()">'
     // DESCRIPTION, NOTE, RECORD and the plan-event rename all live on the RECORD inspector in this
     // build, so the menu no longer offers them: one editor each. What stays here is what the
@@ -19091,23 +19270,23 @@ function rowMenuHtml(it){
     // these fields are edited from the panel, and one route each is the whole point.
     // Reachable here as well as on the row, because the row only shows the record name when it
     // differs from the plan event — and after a rename that makes them match, it would vanish.
-    +mi('✎ Rename the CCaR record name','editRecName(\''+id+'\')',
+    +mi('✎ Rename the CCaR record name','editRecName('+jsa(id)+')',
         (S.recNames||{})[id]? 'renamed' : '')
     // THE RECORD IS A FORM AND LIVES IN A PANEL. What a requirement IS -- PMO, obligation
     // category, WBS, RCN/EEIC, SI, budget per service, destination -- used to hang here as up to
     // sixteen more rows, six of them added by the BAE registry alone. The unset count rides on the
     // entry so a blank field in the Spend Plan Source export is visible without opening anything.
     +'<div class="msep"></div><div class="mlbl">Allocation</div>'
-    +mi('↺ Reset to the full requirement','resetAlloc(\''+id+'\')')
+    +mi('↺ Reset to the full requirement','resetAlloc('+jsa(id)+')')
     +(ys.length? '<div class="msep"></div><div class="mlbl">Move between fiscal years</div>'
       +'<div class="mi" style="padding-top:2px"><span class="chk"></span>'
-      +'<select class="cesel" style="margin:0;max-width:200px" onchange="rowMenuId=null;xferYear(\''+id+'\',this.value)">'
+      +'<select class="cesel" style="margin:0;max-width:200px" onchange="rowMenuId=null;xferYear('+jsa(id)+',this.value)">'
       +'<option value="">— copy or move to… —</option>'
       +'<optgroup label="COPY to (stays here)">'+ys.map(y=>'<option value="c'+y+'">FY'+(y%100)+(MS.years[y]?'':' (new)')+'</option>').join('')+'</optgroup>'
       +'<optgroup label="MOVE to (leaves '+FYL()+')">'+ys.map(y=>'<option value="m'+y+'">FY'+(y%100)+(MS.years[y]?'':' (new)')+'</option>').join('')+'</optgroup>'
       +'</select></div>' : '')
     +'<div class="msep"></div>'
-    +mi((it.custom?'✕ Delete this added requirement':'✕ Remove from the board'),'removeReq(\''+id+'\')',
+    +mi((it.custom?'✕ Delete this added requirement':'✕ Remove from the board'),'removeReq('+jsa(id)+')',
         it.custom?'':'restorable','warn')
     +'</div></div>';
 }
@@ -19460,36 +19639,36 @@ function recFields(id, it){
   const F=[];
   F.push(recSec('What it is'));
   F.push(recF('Prime contract / OGC', ptypeOf(id),
-    recBtn('togglePtype(&quot;'+id+'&quot;)', esc(ptypeOf(id))||'Set prime or OGC…',
+    recBtn('togglePtype('+jsa(id)+')', esc(ptypeOf(id))||'Set prime or OGC…',
            'Switch between a prime contract and an other-government-cost requirement')));
   F.push(recF('PMO', grpOf(it)===it.grp,
-    recSel('setGrp(&quot;'+id+'&quot;,this.value)',
+    recSel('setGrp('+jsa(id)+',this.value)',
       'Move this requirement to another PMO — this fiscal year only',
-      GROUPS.map(function(g){ return '<option value="'+g+'"'+(grpOf(it)===g?' selected':'')+'>'+g
+      GROUPS.map(function(g){ return '<option value="'+esc(g)+'"'+(grpOf(it)===g?' selected':'')+'>'+esc(g)
         +(g===it.grp?' (from the file)':'')+'</option>'; }).join('')),
     grpOf(it)===it.grp? '' : 'moved from '+esc(it.grp)+' for '+FYL()));
   F.push(recF('Obligation category', obCatOf(id),
-    recSel('setObCat(&quot;'+id+'&quot;,this.value)',
+    recSel('setObCat('+jsa(id)+',this.value)',
       'How this money leaves the building — printed in the Spend Plan Source export',
       '<option value="">— not set —</option>'
       +OB_CATS.map(function(c){ return '<option value="'+esc(c)+'"'+(obCatOf(id)===c?' selected':'')
         +'>'+esc(c)+'</option>'; }).join(''))));
   if(DATA.costElems) F.push(recF('Cost element', (S.costElem||{})[id],
-    recBtn('pickCostElem(&quot;'+id+'&quot;)', esc((S.costElem||{})[id])||'Choose a cost element…',
+    recBtn('pickCostElem('+jsa(id)+')', esc((S.costElem||{})[id])||'Choose a cost element…',
            'The cost element this requirement is budgeted against')));
 
   F.push(recSec('Work breakdown'));
   if(ptypeOf(id)==='PRIME'){
     F.push(recF('WBS', true,
-      recBtn('recOpen=null;toggleClin(&quot;'+id+'&quot;)', 'Open the 🧾 CLIN drill',
+      recBtn('recOpen=null;toggleClin('+jsa(id)+')', 'Open the 🧾 CLIN drill',
              'A prime is broken down per CLIN, so the WBS is logged there'),
       'logged per CLIN — one thing, one place'));
   } else {
     F.push(recF('WBS', wbsReq(id).length,
-      recBtn('recOpen=null;wbsQuick(&quot;'+id+'&quot;)', esc(wbsLabel('req',id,''))||'Add a WBS paragraph…',
+      recBtn('recOpen=null;wbsQuick('+jsa(id)+')', esc(wbsLabel('req',id,''))||'Add a WBS paragraph…',
              'The WBS paragraph this requirement books work against')));
     if(wbsReq(id).length) F.push(recF('Split by service', wbsReq(id).length>1,
-      recBtn('recOpen=null;toggleWbs(&quot;req&quot;,&quot;'+id+'&quot;,&quot;&quot;)',
+      recBtn('recOpen=null;toggleWbs(&quot;req&quot;,'+jsa(id)+',&quot;&quot;)',
              wbsReq(id).length>1? wbsReq(id).length+' lines' : 'one line — split it…',
              'Break the allocation across several WBS paragraphs, per service')));
   }
@@ -19508,7 +19687,7 @@ function recFields(id, it){
     const rdone=rsv.filter(function(sv){ return !!rcnAsgOf(id, sv); }).length;
     const rmix=rsv.length>1 && rsv.some(function(sv){ return rcnAsgOf(id,sv)!==rcnAsgOf(id,rsv[0]); });
     acct.push(recF('RCN / EEIC', rsv.length? rdone===rsv.length : !!rcnAsgOf(id),
-      recSel('setRcnAsg(&quot;'+id+'&quot;,this.value)',
+      recSel('setRcnAsg('+jsa(id)+',this.value)',
         'Which RCN + EEIC this requirement is funded under — USAF, ANG and AFRC only',
         '<option value="">'+(rmix? '— the services differ —'
                                   : '— not assigned —')+'</option>'
@@ -19526,7 +19705,7 @@ function recFields(id, it){
       // marker already says what a classification grid needs to know.
       (rsv.length? rbits
           +' <button class="qb" style="font-size:8.5px;margin-left:4px" '
-          +'onclick="rcnToggleSvcRow(&quot;'+id+'&quot;)" '
+          +'onclick="rcnToggleSvcRow('+jsa(id)+')" '
           +'title="give one service its own combination">'
           +(rcnSvcOpen[id]?'hide':'per service…')+'</button>' : '')
       +(rmix? '<div style="margin-top:2px">the services are on DIFFERENT combinations — set them below</div>'
@@ -19536,7 +19715,7 @@ function recFields(id, it){
     if(rcnSvcOpen[id]) rsv.forEach(function(sv){
       const chosen=((S.rcnSvc||{})[id]||{})[sv]||'';
       acct.push(recF('↳ '+sv, !!rcnAsgOf(id, sv),
-        recSel('setRcnSvc(&quot;'+id+'&quot;,&quot;'+esc(sv)+'&quot;,this.value)',
+        recSel('setRcnSvc('+jsa(id)+','+jsa(sv)+',this.value)',
           'The RCN + EEIC this service’s share is funded under',
           '<option value="">— use the requirement’s own —</option>'
           +rcnReg().filter(function(e){
@@ -19548,7 +19727,7 @@ function recFields(id, it){
     });
   }
   if(siEligible(it)) acct.push(recF('Navy SI code', siOf(it),
-    recSel('setSi(&quot;'+id+'&quot;,this.value)', 'Special Interest code for the 1A9A cash return',
+    recSel('setSi('+jsa(id)+',this.value)', 'Special Interest code for the 1A9A cash return',
       '<option value=""'+(siOf(it)?'':' selected')+'>— none —</option>'
       +SI_CODES.map(function(c){ return '<option value="'+c[0]+'"'+(siOf(it)===c[0]?' selected':'')+'>'
         +c[0]+' — '+c[1]+(siDefault(it)===c[0]?' (derived)':'')+'</option>'; }).join(''))));
@@ -19557,14 +19736,14 @@ function recFields(id, it){
 
   F.push(recSec('Where the money goes'));
   F.push(recF('Goes to', destOf(it).to,
-    recSel('setDest(&quot;'+id+'&quot;,&quot;to&quot;,this.value)',
+    recSel('setDest('+jsa(id)+',&quot;to&quot;,this.value)',
       'Who receives this money first — a prime, or a government activity we MIPR to',
       '<option value=""'+(destOf(it).to?'':' selected')+'>— not logged —</option>'
       +flowEntsAZ().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).to===e.k?' selected':'')
         +'>'+esc(e.n)+(e.kind==='gov'?' (gov)':'')+'</option>'; }).join(''))));
   if(destIsOgc(it))
     F.push(recF('MIPR type', miprOf(id),
-      recSel('setMipr(&quot;'+id+'&quot;,this.value)',
+      recSel('setMipr('+jsa(id)+',this.value)',
         'How this OGC is funded \u2014 Direct Cite or Reimbursable. The board records which; how and '
         +'when the money is sent is decided outside it.',
         '<option value=""'+(miprOf(id)?'':' selected')+'>\u2014 not set \u2014</option>'
@@ -19578,7 +19757,7 @@ function recFields(id, it){
   // above, on purpose: the two are satisfied or waived together.
   if(destIsOgc(it))
     F.push(recF('Which awards to', destOf(it).end,
-      recSel('setDest(&quot;'+id+'&quot;,&quot;end&quot;,this.value)',
+      recSel('setDest('+jsa(id)+',&quot;end&quot;,this.value)',
         'The ultimate recipient, when that activity awards our money on a commercial contract',
         '<option value=""'+(destOf(it).end?'':' selected')+'>— stops there —</option>'
         +flowEntsAZ().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).end===e.k?' selected':'')
@@ -19606,8 +19785,7 @@ function recBody(){
   const step=function(d){
     if(at<0||!ord.length) return '';
     const t=ord[(at+d+ord.length)%ord.length];
-    return '<button class="btn" style="font-size:10px;padding:3px 9px" onclick="recOpen=&quot;'
-      +t+'&quot;;render()" title="'+esc(dispTitle(itemById(t))||t)+'">'+(d<0?'↑ prev':'next ↓')
+    return '<button class="btn" style="font-size:10px;padding:3px 9px" onclick="recOpen='+jsa(t)+';render()" title="'+esc(dispTitle(itemById(t))||t)+'">'+(d<0?'↑ prev':'next ↓')
       +'</button>';
   };
   const C=recCount(id, it);
@@ -19807,7 +19985,7 @@ function matBody(){
     });
     if(!n) return;
     h+='<button class="btn'+(matMissing===c?' on':'')+'" style="font-size:9.5px;padding:3px 8px" '
-      +'onclick="matSet(&quot;missing&quot;,&quot;'+(matMissing===c?'':esc(c))+'&quot;)" '
+      +'onclick="matSet(&quot;missing&quot;,'+jsa(matMissing===c?'':c)+')" '
       +'title="show only the requirements missing this">'+esc(c)+' <b style="color:'
       +(un? 'var(--amber)':'var(--green)')+'">'+un+'</b> of '+n+'</button>';
   });
@@ -19820,7 +19998,7 @@ function matBody(){
     +GROUPS.map(function(g){
         const n=all.filter(function(it){ return grpOf(it)===g; }).length;
         if(!n) return '';
-        return '<option value="'+g+'"'+(matPmo===g?' selected':'')+'>'+g+' ('+n+')</option>'; }).join('')
+        return '<option value="'+esc(g)+'"'+(matPmo===g?' selected':'')+'>'+esc(g)+' ('+n+')</option>'; }).join('')
     +'</select>'
     +(matMissing? '<span class="rlg-lbl">missing</span><b>'+esc(matMissing)+'</b>'
        +'<button class="btn" style="font-size:9.5px;padding:2px 8px" '
@@ -19928,16 +20106,16 @@ function wbsBody(){
     const t=r.v.reduce(function(a,b2){ return a+b2; },0);
     h+='<tr><td style="text-align:left"><input class="btn" style="font-size:10px;padding:3px 6px;width:96%"'
       +' value="'+esc(r.w)+'" placeholder="1.2.3"'
-      +' onchange="wbsSetNum(&quot;'+K+'&quot;,&quot;'+A+'&quot;,&quot;'+B+'&quot;,'+i+',this.value)"></td>'
+      +' onchange="wbsSetNum('+jsa(K)+','+jsa(A)+','+jsa(B)+','+i+',this.value)"></td>'
       +SVC.map(function(sv,j){
           return '<td>'+(R.whole
             ? '<span style="color:var(--dim)">'+fM(r.v[j])+'</span>'
             : '<input class="reqin" style="width:78px" placeholder="0" value="'
               +(r.v[j]? Math.round(r.v[j]).toLocaleString():'')+'"'
-              +' onchange="wbsSetVal(&quot;'+K+'&quot;,&quot;'+A+'&quot;,&quot;'+B+'&quot;,'+i+','+j+',this.value)">')
+              +' onchange="wbsSetVal('+jsa(K)+','+jsa(A)+','+jsa(B)+','+i+','+j+',this.value)">')
             +'</td>'; }).join('')
       +'<td style="border-left:1px solid var(--gold);font-weight:700">'+fM(t)+'</td>'
-      +'<td><button class="qb" onclick="wbsDel(&quot;'+K+'&quot;,&quot;'+A+'&quot;,&quot;'+B+'&quot;,'+i+')" title="Remove this WBS">✕</button></td></tr>';
+      +'<td><button class="qb" onclick="wbsDel('+jsa(K)+','+jsa(A)+','+jsa(B)+','+i+')" title="Remove this WBS">✕</button></td></tr>';
   });
   h+='<tr class="tot"><td style="text-align:left">ALLOCATION TO SPLIT</td>'
     +parent.map(function(v){ return '<td>'+fM(v)+'</td>'; }).join('')
@@ -19953,7 +20131,7 @@ function wbsBody(){
       +fM(R.rem.reduce(function(a,b2){ return a+b2; },0))+'</td><td></td></tr>';
   }
   h+='</table></div>';
-  h+='<div style="margin-top:8px"><button class="btn" onclick="wbsAdd(&quot;'+K+'&quot;,&quot;'+A+'&quot;,&quot;'+B+'&quot;)">＋ Add WBS</button></div>';
+  h+='<div style="margin-top:8px"><button class="btn" onclick="wbsAdd('+jsa(K)+','+jsa(A)+','+jsa(B)+')">＋ Add WBS</button></div>';
   h+='<div class="hint" style="margin-top:8px">'
     +(R.whole
       ? 'One WBS takes this whole allocation — nothing to split, and nothing to keep in step when the allocation changes. Add a second to split it by service.'
@@ -19982,26 +20160,26 @@ function clinTable(it){
   const rows=L.map(c=>{
     const v=clinVec(pid,c), rt=v.reduce((a,b)=>a+b,0), at=clinAskTot(c), d=rt-at;
     return '<tr>'
-      +'<td class="cl"><span class="cedit" onclick="clinSetField(\''+pid+'\',\''+c.key+'\',\'clin\')" '
+      +'<td class="cl"><span class="cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'clin\')" '
         +'title="click to change the CLIN number">'+esc(c.clin)+'</span>'
         +(c.added? '<span class="cnew">NEW</span>' : (c.edited? '<span class="cmod" title="changed from the board data">✎</span>':''))+'</td>'
-      +'<td class="cd"><span class="cedit" onclick="clinSetField(\''+pid+'\',\''+c.key+'\',\'desc\')" '
+      +'<td class="cd"><span class="cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'desc\')" '
         +'title="'+esc(c.desc||'')+' — click to rename">'+esc(c.desc||'— no description —')+'</span></td>'
-      +'<td class="cc"><span class="cedit" onclick="clinSetField(\''+pid+'\',\''+c.key+'\',\'ccar\')" '
+      +'<td class="cc"><span class="cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'ccar\')" '
         +'title="click to set the CCaR record">'+esc(c.ccar||'+ CCaR')+'</span></td>'
       +'<td class="cr"><input class="reqin" value="'+(at? Math.round(at).toLocaleString():'')+'" placeholder="0" '
-        +'onchange="clinSetReq(\''+pid+'\',\''+c.key+'\',this.value)" onfocus="this.select()" '
+        +'onchange="clinSetReq('+jsa(pid)+','+jsa(c.key)+',this.value)" onfocus="this.select()" '
         +'title="what this CLIN asks for — spread across services in its current shape"></td>'
       +SVC.map((sv,j)=>'<td><input value="'+(v[j]? Math.round(v[j]).toLocaleString():'')+'" placeholder="0"'
-        +' onchange="setClinSvc(\''+pid+'\',\''+c.key+'\','+j+',this.value)" onfocus="this.select()"'
+        +' onchange="setClinSvc('+jsa(pid)+','+jsa(c.key)+','+j+',this.value)" onfocus="this.select()"'
         +' title="'+esc(sv+' — CLIN '+c.clin+' · requested '+fM(c.ask[j]||0))+'"></td>').join('')
       +'<td class="ct">'+fM(rt)+'</td>'
       +(Math.abs(d)<0.5? '<td class="ok">—</td>' : '<td class="off">'+(d>0?'+':'−')+fMc(Math.abs(d))+'</td>')
-      +'<td class="cw"><span class="cedit" onclick="toggleWbs(&quot;clin&quot;,&quot;'+pid+'&quot;,&quot;'+c.key+'&quot;)" '
+      +'<td class="cw"><span class="cedit" onclick="toggleWbs(&quot;clin&quot;,'+jsa(pid)+','+jsa(c.key)+')" '
         +'title="log the WBS for this CLIN — several are allowed, split by service">'
         +esc(wbsLabel('clin',pid,c.key)||'+ WBS')+'</span></td>'
       +(rcnApplies()? '<td class="cw"><select class="cesel" style="max-width:180px" '
-        +'onchange="setRcnClin(&quot;'+pid+'&quot;,&quot;'+c.key+'&quot;,this.value)" '
+        +'onchange="setRcnClin('+jsa(pid)+','+jsa(c.key)+',this.value)" '
         +'title="One line of accounting funds a CLIN, so it carries ONE RCN/EEIC — whatever the '
         +'WBS beneath it are">'
         +'<option value="">— none —</option>'
@@ -20009,7 +20187,7 @@ function clinTable(it){
             return '<option value="'+esc(e.k)+'"'+(rcnOfClin(pid,c.key)===e.k?' selected':'')+'>'
               +esc(rcnLabel(e.k)||'(blank)')+'</option>'; }).join('')
         +'</select></td>' : '')
-      +'<td class="cx"><button class="qb" onclick="clinRemove(\''+pid+'\',\''+c.key+'\')" '
+      +'<td class="cx"><button class="qb" onclick="clinRemove('+jsa(pid)+','+jsa(c.key)+')" '
         +'title="'+(c.added?'delete this added CLIN':'remove this CLIN (restorable)')+'">✕</button></td>'
       +'</tr>';
   }).join('');
@@ -20018,15 +20196,15 @@ function clinTable(it){
     +'<div class="ch"><b>🧾 CLIN ALLOCATION BY SERVICE</b>'
       +'<span style="color:var(--dim);font-size:10px">'+L.length+' line'+(L.length===1?'':'s')+' · requested '+fM(primeReq(pid))+'</span>'
       +'<span style="flex:1"></span>'
-      +'<button class="qb" onclick="clinAdd(\''+pid+'\')" title="add a CLIN to this contract">＋ Add CLIN</button>'
-      +'<button class="qb" onclick="clinFromRow(\''+pid+'\')" title="spread each service’s row allocation across the CLINs in the shape of their requests">↓ Fill from row</button>'
+      +'<button class="qb" onclick="clinAdd('+jsa(pid)+')" title="add a CLIN to this contract">＋ Add CLIN</button>'
+      +'<button class="qb" onclick="clinFromRow('+jsa(pid)+')" title="spread each service’s row allocation across the CLINs in the shape of their requests">↓ Fill from row</button>'
       // NOT OFFERED ON A DIRECTED SPLIT. There the Disc and Mand dollars ARE the allocation, typed
       // by hand, and a button that overwrote them from this grid would be exactly what the grid is
       // not allowed to be: an input to the funding math. The grid is a visual breakout of where
       // cash is planned to land, and it feeds nothing.
       +(clinSplitRow(pid)? ''
-        : '<button class="qb" onclick="clinToRow(\''+pid+'\')" title="set the row allocation to what this grid adds up to, per service">↑ Apply grid to row</button>')
-      +'<button class="qb" onclick="clinResetGrid(\''+pid+'\')" title="every CLIN allocation back to its requested amount — numbers, names and additions are kept">↺ Reset allocations</button>'
+        : '<button class="qb" onclick="clinToRow('+jsa(pid)+')" title="set the row allocation to what this grid adds up to, per service">↑ Apply grid to row</button>')
+      +'<button class="qb" onclick="clinResetGrid('+jsa(pid)+')" title="every CLIN allocation back to its requested amount — numbers, names and additions are kept">↺ Reset allocations</button>'
     +'</div>'
     +'<div class="cscroll"><table class="clingrid">'
       +'<thead><tr><th>CLIN</th><th>Description</th><th>CCaR</th><th>Request</th>'
@@ -20043,7 +20221,7 @@ function clinTable(it){
         +SVC.map((sv,j)=>dcell(diff[j])).join('')+dcell(diffT)+'<td></td><td></td>'+CPAD+'<td></td></tr>'
       +'</tfoot></table></div>'
     +(gone.length? '<div class="crestore"><b>'+gone.length+' removed:</b> '
-        +gone.map(g=>'<span class="rtag" onclick="clinRestore(\''+pid+'\',\''+g.key+'\')" '
+        +gone.map(g=>'<span class="rtag" onclick="clinRestore('+jsa(pid)+','+jsa(g.key)+')" '
           +'title="'+esc(g.desc||'')+' — click to put it back">↩ '+esc(g.clin)+'</span>').join(' ')+'</div>' : '')
     +'<div class="svc-hint">'
       +'Click a CLIN number, description or CCaR to change it. ＋ Add CLIN puts a new line on this '
@@ -20154,15 +20332,15 @@ function pmoMatrix(){
     SVC.forEach((s,i)=>{ allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=uvAll[i]; });
   });
   const shorts=[];
-  SVC.forEach((s,i)=>{ if(allU[i]>0.5) shorts.push('△ '+s+' unfunded '+fM(allU[i])); });
+  SVC.forEach((s,i)=>{ if(allU[i]>0.5) shorts.push('△ '+esc(s)+' unfunded '+fM(allU[i])); });
   document.getElementById('pmWarn').innerHTML = shorts.length?
     '<span style="background:var(--tintA);color:var(--tintAi);font-weight:800;font-size:10px;border:1px solid var(--amber);border-radius:4px;padding:2px 8px;margin-left:6px">'+shorts.join('  ·  ')+'</span>':'';
   if(!pmoSumOpen){ el.innerHTML=''; return; }
-  const h1=`<tr><th rowspan="2" style="vertical-align:bottom">PMO</th>${SVC.map(s=>`<th colspan="2" style="text-align:center;border-left:1px solid var(--line)">${s}</th>`).join('')}<th colspan="2" style="text-align:center;border-left:1px solid var(--gold)">TOTAL</th><th rowspan="2" style="vertical-align:bottom">★ MC need<br>(above Disc)</th></tr>`;
+  const h1=`<tr><th rowspan="2" style="vertical-align:bottom">PMO</th>${SVC.map(s=>`<th colspan="2" style="text-align:center;border-left:1px solid var(--line)">${esc(s)}</th>`).join('')}<th colspan="2" style="text-align:center;border-left:1px solid var(--gold)">TOTAL</th><th rowspan="2" style="vertical-align:bottom">★ MC need<br>(above Disc)</th></tr>`;
   const h2=`<tr>${SVC.map(_=>'<th style="border-left:1px solid var(--line);color:var(--green)">Disc</th><th style="color:var(--purp)">Mand</th>').join('')}<th style="border-left:1px solid var(--gold);color:var(--green)">Disc</th><th style="color:var(--purp)">Mand</th></tr>`;
   const row=(k,a,cls,color)=>{
     const dT=a.disc.reduce((x,y)=>x+y,0), mT=a.mand.reduce((x,y)=>x+y,0);
-    return `<tr${cls?' class="'+cls+'"':''}><td style="font-weight:800">${color?`<span class="pmodot" style="background:${color}"></span>`:''}${k}${a.n?` <span style="color:var(--dim);font-size:9px">${a.n}</span>`:''}</td>
+    return `<tr${cls?' class="'+cls+'"':''}><td style="font-weight:800">${color?`<span class="pmodot" style="background:${color}"></span>`:''}${esc(k)}${a.n?` <span style="color:var(--dim);font-size:9px">${a.n}</span>`:''}</td>
       ${SVC.map((s,i)=>`<td style="border-left:1px solid var(--lineSoft);color:var(--green)">${a.disc[i]?fM(a.disc[i]):'—'}</td><td style="color:var(--purp)">${a.mand[i]?fM(a.mand[i]):'—'}</td>`).join('')}
       <td style="border-left:1px solid var(--gold);color:var(--green);font-weight:700">${fM(dT)}</td><td style="color:var(--purp);font-weight:700">${fM(mT)}</td>
       <td style="color:var(--amber)">${a.mc?fM(a.mc):'—'}</td></tr>`;
@@ -20291,19 +20469,19 @@ function ceSummary(){
     const uv=unfSvcOf(it2,p);            // ask-based, like every other unfunded figure here
     SVC.forEach((s,i)=>{ allD[i]+=p.d[i]; allM[i]+=p.m[i]; allU[i]+=uv[i]; }); });
   const shorts=[];
-  SVC.forEach((s,i)=>{ if(allU[i]>0.5) shorts.push('△ '+s+' unfunded '+fM(allU[i])); });
+  SVC.forEach((s,i)=>{ if(allU[i]>0.5) shorts.push('△ '+esc(s)+' unfunded '+fM(allU[i])); });
   document.getElementById('ceWarn').innerHTML = shorts.length?
     '<span style="background:var(--tintA);color:var(--tintAi);font-weight:800;font-size:10px;border:1px solid var(--amber);border-radius:4px;padding:2px 8px;margin-left:6px">'+shorts.join('  ·  ')+'</span>' : '';
   const tabs = ['ALL',...pmosPresent].map(g=>
-    `<span class="chip ${ceTab===g?'on':''}" onclick="ceTab='${g}';render()" style="font-size:11px;padding:4px 11px">${g==='ALL'?'Cost Element (ALL PMOs)':g}</span>`).join(' ');
+    `<span class="chip ${ceTab===g?'on':''}" onclick="ceTab=${jsa(g)};render()" style="font-size:11px;padding:4px 11px">${g==='ALL'?'Cost Element (ALL PMOs)':g}</span>`).join(' ');
   const keys=[...COST_ELEMS.filter(c=>byCE[c]), ...(byCE['— Unassigned —']? ['— Unassigned —']:[])];
   const tot=mk();
   keys.forEach(k=>{ const a=byCE[k]; a.disc.forEach((v,i)=>tot.disc[i]+=v); a.mand.forEach((v,i)=>tot.mand[i]+=v); tot.mc+=a.mc; tot.n+=a.n; });
-  const h1=`<tr><th rowspan="2" style="vertical-align:bottom">Cost Element</th>${SVC.map(s=>`<th colspan="2" style="text-align:center;border-left:1px solid var(--line)">${s}</th>`).join('')}<th colspan="2" style="text-align:center;border-left:1px solid var(--gold)">TOTAL</th><th rowspan="2" style="vertical-align:bottom">★ MC need<br>(above Disc)</th></tr>`;
+  const h1=`<tr><th rowspan="2" style="vertical-align:bottom">Cost Element</th>${SVC.map(s=>`<th colspan="2" style="text-align:center;border-left:1px solid var(--line)">${esc(s)}</th>`).join('')}<th colspan="2" style="text-align:center;border-left:1px solid var(--gold)">TOTAL</th><th rowspan="2" style="vertical-align:bottom">★ MC need<br>(above Disc)</th></tr>`;
   const h2=`<tr>${SVC.map(_=>'<th style="border-left:1px solid var(--line);color:var(--green)">Disc</th><th style="color:var(--purp)">Mand</th>').join('')}<th style="border-left:1px solid var(--gold);color:var(--green)">Disc</th><th style="color:var(--purp)">Mand</th></tr>`;
   const row=(k,a,cls)=>{
     const dT=a.disc.reduce((x,y)=>x+y,0), mT=a.mand.reduce((x,y)=>x+y,0);
-    return `<tr${cls?' class="'+cls+'"':''}><td>${k}${a.n?` <span style="color:var(--dim);font-size:9px">${a.n}</span>`:''}</td>
+    return `<tr${cls?' class="'+cls+'"':''}><td>${esc(k)}${a.n?` <span style="color:var(--dim);font-size:9px">${a.n}</span>`:''}</td>
       ${SVC.map((s,i)=>`<td style="border-left:1px solid var(--lineSoft);color:var(--green)">${a.disc[i]?fM(a.disc[i]):'—'}</td><td style="color:var(--purp)">${a.mand[i]?fM(a.mand[i]):'—'}</td>`).join('')}
       <td style="border-left:1px solid var(--gold);color:var(--green);font-weight:700">${fM(dT)}</td><td style="color:var(--purp);font-weight:700">${fM(mT)}</td>
       <td style="color:var(--amber)">${a.mc?fM(a.mc):'—'}</td></tr>`;
@@ -20813,7 +20991,7 @@ function teamSummary(){
     if(S.mc[id]) a.mc+=p.spill;
     SVC.forEach((s,i)=>a.svc[i]+=p.d[i]+p.m[i]);
   });
-  const row=(nm,a,cls)=>`<tr><td><span class="teamtag ${cls}">${nm}</span> <span style="color:var(--dim);font-size:9px">${a.n} reqs</span></td>
+  const row=(nm,a,cls)=>`<tr><td><span class="teamtag ${cls}">${esc(nm)}</span> <span style="color:var(--dim);font-size:9px">${a.n} reqs</span></td>
     <td>${fM(a.ask)}</td>
     <td style="color:var(--green)">${fM(a.disc)}</td>
     <td style="color:var(--amber)">${fM(a.mc)}</td>
@@ -20822,7 +21000,7 @@ function teamSummary(){
     ${a.svc.map(v=>`<td style="color:var(--ink);font-weight:700">${fM(v)}</td>`).join('')}</tr>`;
   const tot=mk();
   ['ATL','BTL'].forEach(k=>{const a=agg[k]; tot.ask+=a.ask; tot.disc+=a.disc; tot.mc+=a.mc; tot.mand+=a.mand; tot.unf+=a.unf; tot.n+=a.n; a.svc.forEach((v,i)=>tot.svc[i]+=v);});
-  el.innerHTML=`<table><tr><th>Team</th><th>FY27 Ask</th><th>Disc drawn</th><th>★ MC need</th><th>Mand drawn</th><th>Unfunded</th>${SVC.map(s=>`<th>${s} funded</th>`).join('')}</tr>
+  el.innerHTML=`<table><tr><th>Team</th><th>FY27 Ask</th><th>Disc drawn</th><th>★ MC need</th><th>Mand drawn</th><th>Unfunded</th>${SVC.map(s=>`<th>${esc(s)} funded</th>`).join('')}</tr>
     ${row('ATL',agg.ATL,'atl')}
     ${row('BTL',agg.BTL,'btl')}
     <tr class="tot"><td>TOTAL</td><td>${fM(tot.ask)}</td><td>${fM(tot.disc)}</td><td>${fM(tot.mc)}</td><td>${fM(tot.mand)}</td><td>${fM(tot.unf)}</td>${tot.svc.map(v=>`<td>${fM(v)}</td>`).join('')}</tr></table>
@@ -20864,16 +21042,16 @@ function buysPanel(){
     const dis=b.locked? 'disabled style="opacity:.55;cursor:not-allowed"' : '';
     let rows='';
     SVC.forEach((s,i)=>{
-      rows+=`<tr><td>${s}</td>
-        <td><input class="qty" value="${b.base[i]||0}" onchange="setBuy('${t}','base',${i},this.value)" onfocus="this.select()" title="baseline quantity (reference)"></td>
-        <td><input class="qty" value="${b.adj[i]||0}" onchange="setBuy('${t}','adj',${i},this.value)" onfocus="this.select()" title="adjusted quantity — drives the total"></td>
-        <td><input ${dis} value="${b.cost[i]? Math.round(b.cost[i]).toLocaleString():''}" placeholder="unit cost" onchange="setBuy('${t}','cost',${i},this.value)" onfocus="this.select()"></td>
+      rows+=`<tr><td>${esc(s)}</td>
+        <td><input class="qty" value="${b.base[i]||0}" onchange="setBuy(${jsa(t)},'base',${i},this.value)" onfocus="this.select()" title="baseline quantity (reference)"></td>
+        <td><input class="qty" value="${b.adj[i]||0}" onchange="setBuy(${jsa(t)},'adj',${i},this.value)" onfocus="this.select()" title="adjusted quantity — drives the total"></td>
+        <td><input ${dis} value="${b.cost[i]? Math.round(b.cost[i]).toLocaleString():''}" placeholder="unit cost" onchange="setBuy(${jsa(t)},'cost',${i},this.value)" onfocus="this.select()"></td>
         <td style="font-weight:800;color:var(--gold)">${fM((b.adj[i]||0)*(b.cost[i]||0))}</td></tr>`;
     });
     const totQ=b.adj.reduce((a,x)=>a+(x||0),0);
     const totC=SVC.reduce((a,s,i)=>a+(b.adj[i]||0)*(b.cost[i]||0),0);
     return `<div class="bt">${label}
-      <button class="cpb" onclick="toggleBuyLock('${t}')">${b.locked?'🔒 PRICES LOCKED — click to unlock':'🔓 Lock prices'}</button>
+      <button class="cpb" onclick="toggleBuyLock(${jsa(t)})">${b.locked?'🔒 PRICES LOCKED — click to unlock':'🔓 Lock prices'}</button>
       <span style="color:var(--dim);font-size:10px;font-weight:600">feeds the "${label.includes('AIRCRAFT')?'Aircraft':'Engine'} Buy" requirement below</span></div>
     <table><tr><th>Service</th><th>Baseline Qty</th><th>Adjusted Qty</th><th>Unit Cost ${b.locked?'🔒':''}</th><th>Total (Adj × Cost)</th></tr>
       ${rows}
@@ -21110,16 +21288,16 @@ function render(){
     const inpVal = changed? Math.round(eff(it)).toLocaleString():'';
     const note=S.notes[id];
     const showDetail = svcAll || open[id];
-    h+=`<div class="row t-${t.tier} ${id.startsWith('BUY-')?'buy':''}" id="row-${id}" ${canDrag?'draggable="true"':''}
-        ondragstart="dstart(event,'${id}')" ondragend="dend(event)" ondragover="dover(event,'${id}')" ondragleave="dleave(event)" ondrop="ddrop(event,'${id}')">
+    h+=`<div class="row t-${t.tier} ${id.startsWith('BUY-')?'buy':''}" id="row-${esc(id)}" ${canDrag?'draggable="true"':''}
+        ondragstart="dstart(event,${jsa(id)})" ondragend="dend(event)" ondragover="dover(event,${jsa(id)})" ondragleave="dleave(event)" ondrop="ddrop(event,${jsa(id)})">
       <div class="rank"><span class="grip">⠿</span>
-        <input value="${hardOpen? liveRank[id] : rank}" ${hardOpen?'style="border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)"':''} onchange="setRank('${id}',this.value)" onfocus="this.select()" title="${hardOpen? 'RANK-ENTRY MODE — type the target rank; the row stays put here but moves in the real order (box shows its current rank)' : (pmoMode()? filter+'’s own rank (master unaffected)' : 'master rank')}">
-        <span class="ud"><button onclick="bump('${id}',-1)">▲</button><button onclick="bump('${id}',1)">▼</button></span></div>
-      <div><div class="gchip" style="background:${GCOLOR[grpOf(it)]}">${grpOf(it)}</div>
-        ${ptypeOf(id)?`<div style="margin-top:2px"><span onclick="togglePtype('${id}')" style="cursor:pointer;display:inline-block;font-size:8px;font-weight:800;letter-spacing:.4px;padding:1px 6px;border-radius:3px;${ptypeOf(id)==='PRIME'?'background:var(--gold);color:var(--onGold)':'background:var(--line2);color:var(--mut)'}" title="classification — click to switch between Prime Contract and OGC">${ptypeOf(id)==='PRIME'?PRIME_ICON+' PRIME':'OGC'}</span></div>`:''}
-        <div class="pmor">${pmoMode()? 'master #'+MR[id] : grpOf(it)+' #'+PR[id]}</div></div>
-      <div><div class="tt"><span onclick="toggleDetail('${id}')" title="click here, or ⊞ By service, to break this requirement out by service">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${it.team}</span>`:''}<span class="tedit ${S.titles[id]?'ren':''}" onclick="editTitle('${id}')" title="${S.titles[id]?'renamed — was: '+esc(it.event||it.title)+' (click to edit)':'rename requirement'}">✎</span>${it.custom?'<span class="sect-new">ADDED</span>':''}${recName(it)&&recName(it)!==dispTitle(it)?`<span class="recname edit" onclick="editRecName('${id}')" title="CCaR Record Name — the requirement as the source file files it${(S.recNames||{})[id]?'. Renamed — the file says: '+esc(recNameSrc(it)):''}. Click to rename.">${esc(recName(it))}${(S.recNames||{})[id]?' \u270e':''}</span>`:''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched \u2014 this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">\u2691 ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' \u00b7 +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}</div>
-        <div class="ev">${(it.event && dispTitle(it)!==it.event)? esc(it.event)+'  ·  ' : ''}<span onclick="editCcar('${id}')" style="cursor:pointer;color:${ccarOf(it)?'var(--gold)':'var(--dim)'};font-weight:700" title="click to assign the CCaR record (up to 12 characters)">${ccarOf(it)? esc(ccarOf(it)) : '+ CCaR'}</span>  ·  <span onclick="editPid('${id}')" style="cursor:pointer;color:${pidOf(it)?'var(--blue,#6aa6e8)':'var(--dim)'};font-weight:700" title="click to assign the PID number (up to 20 characters)">${pidOf(it)? 'PID '+esc(pidOf(it)) : '+ PID'}</span>${S.awards[id]? (S.awards[id].mode==='inc'? `  ·  <span style="color:var(--green);font-weight:700" title="incremental funding — ${(S.awards[id].inc||[]).length} increment(s); edit in the detail view">📅 INC ×${(S.awards[id].inc||[]).length}</span>` : `  ·  <span style="color:var(--green);font-weight:700" title="award/obligation date — full funded amount forecasts in this month${S.awards[id].day?'; day '+S.awards[id].day+' sets the CR half-month window':''}">📅 ${S.awards[id].day? S.awards[id].day+' ':''}${esc(ymLbl(S.awards[id].d))}</span>`) : ''}</div>
+        <input value="${hardOpen? liveRank[id] : rank}" ${hardOpen?'style="border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)"':''} onchange="setRank(${jsa(id)},this.value)" onfocus="this.select()" title="${hardOpen? 'RANK-ENTRY MODE — type the target rank; the row stays put here but moves in the real order (box shows its current rank)' : (pmoMode()? filter+'’s own rank (master unaffected)' : 'master rank')}">
+        <span class="ud"><button onclick="bump(${jsa(id)},-1)">▲</button><button onclick="bump(${jsa(id)},1)">▼</button></span></div>
+      <div><div class="gchip" style="background:${GCOLOR[grpOf(it)]}">${esc(grpOf(it))}</div>
+        ${ptypeOf(id)?`<div style="margin-top:2px"><span onclick="togglePtype(${jsa(id)})" style="cursor:pointer;display:inline-block;font-size:8px;font-weight:800;letter-spacing:.4px;padding:1px 6px;border-radius:3px;${ptypeOf(id)==='PRIME'?'background:var(--gold);color:var(--onGold)':'background:var(--line2);color:var(--mut)'}" title="classification — click to switch between Prime Contract and OGC">${ptypeOf(id)==='PRIME'?PRIME_ICON+' PRIME':'OGC'}</span></div>`:''}
+        <div class="pmor">${pmoMode()? 'master #'+MR[id] : esc(grpOf(it))+' #'+PR[id]}</div></div>
+      <div><div class="tt"><span onclick="toggleDetail(${jsa(id)})" title="click here, or ⊞ By service, to break this requirement out by service">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${it.team}</span>`:''}<span class="tedit ${S.titles[id]?'ren':''}" onclick="editTitle(${jsa(id)})" title="${S.titles[id]?'renamed — was: '+esc(it.event||it.title)+' (click to edit)':'rename requirement'}">✎</span>${it.custom?'<span class="sect-new">ADDED</span>':''}${recName(it)&&recName(it)!==dispTitle(it)?`<span class="recname edit" onclick="editRecName(${jsa(id)})" title="CCaR Record Name — the requirement as the source file files it${(S.recNames||{})[id]?'. Renamed — the file says: '+esc(recNameSrc(it)):''}. Click to rename.">${esc(recName(it))}${(S.recNames||{})[id]?' \u270e':''}</span>`:''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched \u2014 this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">\u2691 ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' \u00b7 +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}</div>
+        <div class="ev">${(it.event && dispTitle(it)!==it.event)? esc(it.event)+'  ·  ' : ''}<span onclick="editCcar(${jsa(id)})" style="cursor:pointer;color:${ccarOf(it)?'var(--gold)':'var(--dim)'};font-weight:700" title="click to assign the CCaR record (up to 12 characters)">${ccarOf(it)? esc(ccarOf(it)) : '+ CCaR'}</span>  ·  <span onclick="editPid(${jsa(id)})" style="cursor:pointer;color:${pidOf(it)?'var(--blue,#6aa6e8)':'var(--dim)'};font-weight:700" title="click to assign the PID number (up to 20 characters)">${pidOf(it)? 'PID '+esc(pidOf(it)) : '+ PID'}</span>${S.awards[id]? (S.awards[id].mode==='inc'? `  ·  <span style="color:var(--green);font-weight:700" title="incremental funding — ${(S.awards[id].inc||[]).length} increment(s); edit in the detail view">📅 INC ×${(S.awards[id].inc||[]).length}</span>` : `  ·  <span style="color:var(--green);font-weight:700" title="award/obligation date — full funded amount forecasts in this month${S.awards[id].day?'; day '+S.awards[id].day+' sets the CR half-month window':''}">📅 ${S.awards[id].day? S.awards[id].day+' ':''}${esc(ymLbl(S.awards[id].d))}</span>`) : ''}</div>
         ${note?`<div class="note-snip">📝 ${esc(note.length>110?note.slice(0,110)+'…':note)}</div>`:''}
         ${rowChipsHtml(it)}${cycDeltaChip(id)}</div>
       <div class="nums">
@@ -21132,13 +21310,13 @@ function render(){
       <div class="acts">
         <span class="optz">
           ${isSvc?'<span class="mode-tag">SVC</span>':''}
-          ${clinApplies(id)? `<button class="clinbtn ${clinOpen[id]?'on':''}" onclick="toggleClin('${id}')" title="CLIN drill — allocate this prime contract line by line, by service">🧾</button>`:''}
+          ${clinApplies(id)? `<button class="clinbtn ${clinOpen[id]?'on':''}" onclick="toggleClin(${jsa(id)})" title="CLIN drill — allocate this prime contract line by line, by service">🧾</button>`:''}
         </span>
-        <button class="qb ${showDetail?'on':''}" onclick="toggleDetail('${id}')" title="Show this requirement broken out by service — edit the ${FYL()} requirement and the allocation for each service individually.">⊞ SVC</button>
-        <button class="mcb ${S.mc[id]?'on':''}" onclick="S.mc['${id}']=!S.mc['${id}'];save();render()" title="★ Mission Critical — this must be paid this year">★ MC</button>
+        <button class="qb ${showDetail?'on':''}" onclick="toggleDetail(${jsa(id)})" title="Show this requirement broken out by service — edit the ${FYL()} requirement and the allocation for each service individually.">⊞ SVC</button>
+        <button class="mcb ${S.mc[id]?'on':''}" onclick="S.mc[${jsa(id)}]=!S.mc[${jsa(id)}];save();render()" title="★ Mission Critical — this must be paid this year">★ MC</button>
         ${rowSplit? `<input disabled style="opacity:.8;border-color:var(--gold);color:var(--gold);font-weight:800" value="${Math.round(svcAlloc(it).reduce((x,y)=>x+y,0)).toLocaleString()}" title="allocation = the Disc and Mand dollars you directed, per service, in the ⚙ Split editor. A Split states its own allocation; there is no second figure to set here.${CLINS[id]? ' The CLIN grid is a visual breakout only and feeds none of this.':''}">`
         : `<input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
-          onchange="setAlloc('${id}',this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is a visual breakout only and feeds none of this; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">`}
+          onchange="setAlloc(${jsa(id)},this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is a visual breakout only and feeds none of this; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">`}
         ${rowMenuHtml(it)}
       </div>
       ${showDetail? svcTable(it):''}
@@ -21162,7 +21340,7 @@ function render(){
     rp.innerHTML='<div class="fr"><b style="color:var(--red);font-size:11px">REMOVED REQUIREMENTS</b> <button class="btn" onclick="restoreAll()">↩ Restore all</button></div>'+
       '<div style="max-height:38vh;overflow:auto">'+
       S.removed.map(id=>{const it=BASE_ITEMS.find(x=>x.id===id)||{title:id,grp:''};
-        return `<div class="fr" style="margin-bottom:4px"><span style="font-size:11px"><b>${grpOf(it)}</b> — ${esc(it.title)}</span><button class="qb" onclick="restoreReq('${id}')">↩ restore</button></div>`;}).join('')+'</div>';
+        return `<div class="fr" style="margin-bottom:4px"><span style="font-size:11px"><b>${esc(grpOf(it))}</b> — ${esc(it.title)}</span><button class="qb" onclick="restoreReq(${jsa(id)})">↩ restore</button></div>`;}).join('')+'</div>';
   } else { rp.style.display='none'; rp.innerHTML=''; }
 }
 let openMenu=null;
@@ -21266,7 +21444,7 @@ function syncBtns(){
       // added an office goes looking for it, and an absence reads as “it did not work” rather
       // than “there is nothing in it yet”. The count says which it is.
       keys.filter(function(g){ return counts[g]; }).map(function(g){
-        return mi(esc(g)+' '+cnt(counts[g]),"setPmoFilter('"+g.replace(/'/g,"\\'")+"')",filter===g,
+        return mi(esc(g)+' '+cnt(counts[g]),"setPmoFilter("+jsa(g)+")",filter===g,
                   GROUPS.indexOf(g)<0? 'from the source file — not on the configured list':'');
       }).join('')+
       // AN OFFICE WITH NOTHING IN IT IS STILL OFFERED, under its own heading. Hiding it -- which the
@@ -21278,7 +21456,7 @@ function syncBtns(){
         if(!empty.length) return '';
         return '<div class="msep"></div><div class="mlbl">Configured, nothing in them yet</div>'
           + empty.map(function(g){
-              return mi(esc(g),"setPmoFilter('"+g.replace(/'/g,"\\'")+"')",filter===g,
+              return mi(esc(g),"setPmoFilter("+jsa(g)+")",filter===g,
                         'no requirements in '+FYL()); }).join('');
       })()+
       ((nP||nO)? '<div class="msep"></div><div class="mlbl">By contract type</div>' : '')+
@@ -21309,7 +21487,7 @@ function syncBtns(){
     // question -- whose requirements am I looking at -- and a control with two homes is a control
     // somebody changes in one place and looks for in the other.
     mi('Any service',"svcFilter=-1;render()",svcFilter<0)+
-    SVC.map((s,i)=>mi(s+' — funded requirements only',`svcFilter=${i};render()`,svcFilter===i)).join('')+
+    SVC.map((s,i)=>mi(esc(s)+' — funded requirements only',`svcFilter=${i};render()`,svcFilter===i)).join('')+
     (nFilt? '<div class="msep"></div>'+mi('✕ Clear all filters',"mcOnly=false;svcFilter=-1;ptypeFilter='';laneFilter='';document.getElementById('q').value='';render()",false,'back to the full list'):'');
   // Menus follow the PPBE horizon: what is executing now · the year being built · the out-years
   const addOpen=document.getElementById('addPanel').style.display==='block';
@@ -21346,7 +21524,7 @@ function syncBtns(){
     (CYCVIEW
       ? mi('↩ Leave the locked view',"mRun(cycLeave)",true,'back to the working plan'+(MS.cycle? ' — '+blLbl(MS.cycle) : ''))
       : blList().filter(function(k){ return cycHeld(k).length; }).map(function(k){
-          return mi('👁 View '+blLbl(k)+' (locked)…',"mRun(function(){ cycView('"+k+"'); })",false,
+          return mi('👁 View '+blLbl(k)+' (locked)…',"mRun(function(){ cycView("+jsa(k)+"); })",false,
                     'read only · FY'+cycHeld(k).map(function(v){ return v%100; }).join(', FY')); }).join(''))+
     // Beside the baseline, because they answer the same question a year apart: a baseline freezes
     // the PLAN under a PPBE cycle, a snapshot freezes the plan AND what has been obligated on a
@@ -21366,10 +21544,10 @@ function syncBtns(){
     mi('🏛 PPBE Budget Positions…',"mRun(toggleP2)",ppOpen,'POM · BES · PB · DoN')+
     '<div class="msep"></div><div class="mlbl">Bring data in</div>'+
     mi('📈 ACE tie-out…',"mRun(toggleAce)",aceOpen,
-       aceSetKeys().length? aceSetKeys().sort().join(', ')+' loaded' : 'no estimate imported yet')+
+       aceSetKeys().length? aceSetKeys().sort().map(esc).join(', ')+' loaded' : 'no estimate imported yet')+
     mi('📥 Import Annual Cost Estimate…',"mRun(()=>document.getElementById('aceFile').click())",false,
        Object.keys(ACEDB.sets||{}).length
-         ? 'held: '+Object.keys(ACEDB.sets).sort().map(k=>k+((ACEDB.sets[k]||{}).locked?' 🔒':'')).join(' · ')
+         ? 'held: '+Object.keys(ACEDB.sets).sort().map(k=>esc(k)+((ACEDB.sets[k]||{}).locked?' 🔒':'')).join(' · ')
          : 'ACE workbook (.xlsx)');
   document.getElementById('dd_share').innerHTML=
     '<div class="mlbl">Save</div>'+
@@ -21807,7 +21985,7 @@ async function drivePoll(quiet){
     if(/\.lock\.json$/i.test(n)){
       const ap=n.slice(want.length).replace(/\.lock\.json$/i,'');
       try{
-        const j=JSON.parse(await (await ent.getFile()).text());
+        const j=driveParse(await (await ent.getFile()).text());
         if(j && j.by && (Date.now()-(+j.ts||0))<LIVE_LOCK_STALE) locks[ap]={by:j.by, ts:+j.ts||0};
       }catch(e){ /* an unreadable lock is no lock */ }
       continue;
@@ -21815,7 +21993,7 @@ async function drivePoll(quiet){
     const ap=n.slice(want.length).replace(/\.json$/i,'');
     if(!ap || ap===mySlug()) continue;   // your own board is the live one
     try{
-      const j=JSON.parse(await (await ent.getFile()).text());
+      const j=driveParse(await (await ent.getFile()).text());
       // A peer on a newer format is SHOWN as such rather than half-read. The figures would look
       // plausible either way, which is exactly why this is not left to chance.
       peers[ap]={by:(j&&j.by)||'', ts:(j&&j.ts)||0, fy:(j&&j.fy)||MS.cur,
@@ -21859,9 +22037,16 @@ function driveStoreOn(){ const c=liveCfg(); return !!(c.store && c.mode==='drive
 async function driveStoreRead(dir, ap){
   try{
     const txt=await driveRead(dir, driveName(MS.cur, ap));
-    const j=JSON.parse(txt);
+    const j=driveParse(txt);
     return (j && j.store)? j : null;
-  }catch(e){ return null; }
+  }catch(e){ if(e && e.refused) LIVEDB.err=e.message; return null; }
+}
+// A copy in the shared folder was written by somebody else's board: it goes through the same door as a
+// file handed over (inboundCheck, v1.88), and one that fails it is treated as unreadable, never half-read.
+function driveParse(txt){
+  const bad=inboundCheck(txt);
+  if(bad){ const e=new Error('a copy in the shared folder was refused: '+bad); e.refused=true; throw e; }
+  return JSON.parse(txt);
 }
 // ADOPT THE FOLDER'S COPY, but never over unsaved work and never a copy that is older than ours.
 async function driveStorePull(quiet){
@@ -22010,7 +22195,7 @@ async function driveRestore(i){
   try{
     const dir=await driveDir(true);
     const txt=await snapRead(dir, x.name);
-    const j=JSON.parse(txt);
+    const j=driveParse(txt);
     if(liveTooNew(j)){ setStat(liveTooNewMsg(j, 'That copy')); return; }
     if(!_hasPack(j.store)){ setStat('⚠ That copy carries no requirement data — nothing was changed.'); return; }
     // the copy standing now goes to history too, so this restore is itself reversible
@@ -22047,7 +22232,7 @@ async function driveExecPull(quiet){
   if(!driveStoreOn()) return false;
   try{
     const dir=await driveDir(false,'read');
-    const j=JSON.parse(await driveRead(dir, DRIVE_EXEC));
+    const j=driveParse(await driveRead(dir, DRIVE_EXEC));
     if(!j||!j.exec) return false;
     if(+(j.ts||0) <= +((EXDB&&EXDB.ts)||0)) return false;      // ours is current or newer
     EXDB=j.exec; EXDB.ts=+(j.ts||Date.now());
@@ -22100,7 +22285,7 @@ async function driveAcePush(quiet){
       // Already there and the SAME estimate? Writing 1.44 MB again would say nothing and would
       // change the file's timestamp, which is the only thing anyone reading it has to go on.
       let cur=null;
-      try{ cur=JSON.parse(await driveRead(dir, driveAceName(k))); }catch(e){ cur=null; }
+      try{ cur=driveParse(await driveRead(dir, driveAceName(k))); }catch(e){ cur=null; }
       if(cur && cur.fp && set.fp && cur.fp===set.fp){ same++; continue; }
       await driveWrite(dir, driveAceName(k), JSON.stringify({v:1, key:k, fp:set.fp||'',
         by:whoAmI()||'unknown', ts:Date.now(), lines:(set.lines||[]).length, set:set}));
@@ -22130,7 +22315,7 @@ async function driveAcePull(quiet){
       const n=ent.name;
       if(n.indexOf(DRIVE_ACE_PRE)!==0 || !/\.json$/i.test(n)) continue;
       let j=null;
-      try{ j=JSON.parse(await driveRead(dir, n)); }catch(e){ continue; }
+      try{ j=driveParse(await driveRead(dir, n)); }catch(e){ continue; }
       if(!j || !j.key || !j.set || !j.set.lines) continue;   // a half-written file is not an estimate
       const have=ACEDB.sets[j.key];
       if(!have){ ACEDB.sets[j.key]=j.set; took.push(j.key); continue; }
@@ -22217,7 +22402,7 @@ async function driveRpPush(quiet){
     // READ BEFORE WRITE. Writing our list alone would drop every entry somebody else added since
     // we loaded - which is the exact loss this whole function exists to prevent.
     let cur=null;
-    try{ cur=JSON.parse(await driveRead(dir, DRIVE_RP)); }catch(e){ cur=null; }
+    try{ cur=driveParse(await driveRead(dir, DRIVE_RP)); }catch(e){ cur=null; }
     if(cur) rpMerge(cur);
     RPDB.ts=Date.now();
     await driveWrite(dir, DRIVE_RP, JSON.stringify({v:1, by:whoIs()||'unknown',
@@ -22235,7 +22420,7 @@ async function driveRpPull(quiet){
   if(!driveStoreOn()) return false;
   try{
     const dir=await driveDir(false,'read');
-    const j=JSON.parse(await driveRead(dir, DRIVE_RP));
+    const j=driveParse(await driveRead(dir, DRIVE_RP));
     if(!j||!Array.isArray(j.entries)) return false;
     const n=rpMerge(j);
     if(n.added||n.updated||n.buried){
@@ -22540,7 +22725,7 @@ function liveBody(){
   h+='<div class="fr" style="flex-wrap:wrap;gap:6px;margin-top:8px">'
     +'<span class="rlg-lbl">Store it in</span>'
     +LIVE_MODES.map(function(m){ return '<button class="btn'+(c.mode===m.k?' on':'')+'" '
-      +'style="font-size:10px;padding:3px 10px" onclick="liveSet(&quot;mode&quot;,&quot;'+m.k+'&quot;)" '
+      +'style="font-size:10px;padding:3px 10px" onclick="liveSet(&quot;mode&quot;,'+jsa(m.k)+')" '
       +'title="'+esc(m.d)+'">'+esc(m.n)+'</button>'; }).join('')
     +'</div>';
   if(c.mode==='drive'){
@@ -22843,7 +23028,7 @@ function budRegBody(){
   h+='<div class="rlg-cap" style="margin-top:10px">THE LIST</div>';
   h+='<div class="fr" style="margin-bottom:4px">'
     +aps.map(function(a){ return '<button class="btn'+(fap===a?' on':'')+'" '
-      +'style="font-size:10px;padding:3px 9px" onclick="budSetFilter(&quot;'+a+'&quot;)">'
+      +'style="font-size:10px;padding:3px 9px" onclick="budSetFilter('+jsa(a)+')">'
       +esc(APPN_LBL[a]||a)+' '+byAp[a]+'</button>'; }).join('')
     +'</div>';
   const rows=reg.filter(function(b){ return b.ap===fap; })
@@ -23067,7 +23252,13 @@ function setAlloc(id,val){
   save(); render(); flash(id);
 }
 function flash(id){ const el=document.getElementById('row-'+id); if(el){el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),500);} }
-function esc(s){return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');}
+function esc(s){return (''+s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+// A VALUE WRITTEN INTO AN INLINE HANDLER GOES THROUGH jsa(), AND NOTHING ELSE DOES (v1.88). Ids, keys,
+// service and office names arrive in files from other people; written into onclick="f('A')" by hand, a
+// quote in one ends the string and the rest of it is code. jsa() makes it a JSON string literal and then
+// escapes that for the attribute, so whatever the value holds it reaches the handler as one string and
+// nothing else. tools/check.mjs fails on a value concatenated into handler code any other way.
+function jsa(v){ return esc(JSON.stringify(v===null||v===undefined? '' : String(v))); }
 
 // Freeze ONE requirement's current lane draw as an explicit per-service split. The dollars do not
 // move: tiers() re-reads exactly what it just produced. Nor does any unfunded reading, because both
@@ -23791,7 +23982,7 @@ function exportAceTieout(){
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 ACE Tie-Out '+k+' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
-  setStat('\ud83d\udcc8 ACE Tie-Out workbook exported \u2014 <b>'+k+'</b>, '+scopeLbl
+  setStat('\ud83d\udcc8 ACE Tie-Out workbook exported \u2014 <b>'+esc(k)+'</b>, '+scopeLbl
     +'. Confirmed mappings carry a figure; suggestions do not.');
 }
 function exportExcel(){
@@ -25008,7 +25199,7 @@ function inspectorBody(){
       return '<input class="' + kind + '" value="' + (val ? Math.round(val).toLocaleString() : '')
         + '" placeholder="0" onfocus="this.select()" title="' + esc(sname) + ' \u2014 dollars directed to '
         + (kind === 'd' ? 'DISCRETIONARY' : 'MANDATORY') + esc(drewTip(val, drew, cap))
-        + '" onchange="setFsrcSvc(\'' + id + '\',\'' + kind + '\',' + i + ',this.value)">'
+        + '" onchange="setFsrcSvc('+jsa(id)+','+jsa(kind)+',' + i + ',this.value)">'
         + drewLine(val, drew, cap);
     };
     // REQ IS THE REQUIREMENT VALUE, and it is edited here now -- this column absorbed the row
@@ -25016,7 +25207,7 @@ function inspectorBody(){
     const reqCell = '<input class="q" value="' + (ask ? Math.round(ask).toLocaleString() : '')
       + '" placeholder="0" onfocus="this.select()" title="' + esc(sname) + ' \u2014 ' + FYL()
       + ' requirement value. Editing it moves the unfunded deltas with it."'
-      + ' onchange="setAsk(\'' + id + '\',' + i + ',this.value)">';
+      + ' onchange="setAsk('+jsa(id)+',' + i + ',this.value)">';
     return '<tr><td class="l">' + esc(sname) + '</td>'
       + '<td>' + reqCell + '</td>'
       // Not yet converted: the box holds what the lane walk drew, which is exactly what the first
@@ -25040,7 +25231,7 @@ function inspectorBody(){
     + '<tr><th class="l">Service</th><th>Req</th><th>Disc</th><th>Mand</th><th>UFR</th></tr>'
     + SVC.map(svcRow).join('')
     + '<tr class="tot"><td class="l">TOTAL</td><td class="ro">' + fM(askTot(it))
-    + (it.custom ? '' : ' <button class="qb" onclick="resetAsk(\'' + id + '\')"'
+    + (it.custom ? '' : ' <button class="qb" onclick="resetAsk('+jsa(id)+')"'
         + ' title="restore the originally requested amounts">\u21ba</button>') + '</td>'
     // The total is what was DRAWN -- that is the money. When the column above it was directed
     // higher, say so here too, or the column does not add up to its own total on screen.
@@ -25057,7 +25248,7 @@ function inspectorBody(){
       + '<span style="color:var(--dim);font-size:10px">' + (pos>=0? (pos+1) : '—') + ' of ' + ids.length + '</span></div>'
     + '<div class="insp-bd">'
     + '<div class="insp-ttl">' + esc(dispTitle(it))
-      + ' <span class="tedit" style="cursor:pointer" onclick="editTitle(\'' + id + '\')" title="rename requirement">\u270e</span></div>'
+      + ' <span class="tedit" style="cursor:pointer" onclick="editTitle('+jsa(id)+')" title="rename requirement">\u270e</span></div>'
     // WHAT IT IS, IN ONE QUIET LINE. \u2605 MC is a triage decision made while scanning the list, so the
     // ROW owns it; this says it, it does not set it. The band is not echoed: its own field below
     // shows and sets it (v1.86 -- the two chip rows that stood here pushed the editors off the screen).
@@ -25078,16 +25269,16 @@ function inspectorBody(){
         const act=function(on, warn, tip, a1, a2){ return '<button type="button" class="insp-act'+(warn?' warn':'')+'" '+on
           +'title="'+esc(tip)+'"><span class="a1">'+a1+'</span><span class="a2">'+a2+'</span></button>'; };
         return '<div class="insp-acts">'
-          + act('onclick="toggleCons(&quot;'+id+'&quot;)" ', !w,
+          + act('onclick="toggleCons('+jsa(id)+')" ', !w,
                 w? 'what happens if this is not funded \u2014 click to edit'
                  : (_req? 'this band requires a statement of what happens if it is not funded'
                         : 'say what happens if this is not funded'),
                 '\u26a0 Impact statement', w? 'written' : (_req? 'required \u2014 not written' : 'not written'))
-          + act('onclick="toggleDesc(\''+id+'\')" ', false,
+          + act('onclick="toggleDesc('+jsa(id)+')" ', false,
                 'the description and the note, in one pop-up \u2014 each kept as its own field',
                 '\ud83d\udcc4 Description & note',
                 (dsc&&nt)? 'both written' : (dsc? 'description written' : (nt? 'note written' : 'both empty')))
-          + act('onclick="toggleRec(\''+id+'\')" ', C.un>0,
+          + act('onclick="toggleRec('+jsa(id)+')" ', C.un>0,
                 'what this requirement is: PMO, category, WBS, destination, budget per service\u2026',
                 '\ud83d\udccb Requirement edit', C.un? C.un+' of '+C.n+' not set' : 'all '+C.n+' set')
           + '</div>'; })()
@@ -25109,20 +25300,20 @@ function inspectorBody(){
     // below converts it on the spot too; this does it without changing a figure.
     + (fo ? '' : '<div class="rowchips" style="margin-bottom:2px">'
         + '<span class="rchip" style="border-color:var(--gold);color:var(--gold);cursor:pointer"'
-        + ' onclick="setFsrc(\'' + id + '\',\'split\')"'
+        + ' onclick="setFsrc('+jsa(id)+',\'split\')"'
         + ' title="these figures still come from the automatic lane walk, so they move when the'
         + ' order or a topline changes. Typing into any Disc or Mand box below pins this'
         + ' requirement where it stands; this does the same without changing a figure.">'
         + '\u2699 from the lane walk \u2014 pin these figures</span></div>')
     // CCaR RECORD, PID AND THE DECISION BAND, together: what files it and what rule funds it
     + '<div class="insp-g">'
-      + '<div class="insp-f' + (ccar ? '' : ' empty') + '" style="cursor:pointer" onclick="editCcar(\'' + id + '\')">'
+      + '<div class="insp-f' + (ccar ? '' : ' empty') + '" style="cursor:pointer" onclick="editCcar('+jsa(id)+')">'
         + '<div class="fl">CCaR record</div><div class="fv">' + (ccar ? esc(ccar) : '+ assign') + '</div></div>'
-      + '<div class="insp-f' + (pid ? '' : ' empty') + '" style="cursor:pointer" onclick="editPid(\'' + id + '\')">'
+      + '<div class="insp-f' + (pid ? '' : ' empty') + '" style="cursor:pointer" onclick="editPid('+jsa(id)+')">'
         + '<div class="fl">PID</div><div class="fv">' + (pid ? esc(pid) : '+ assign') + '</div></div>'
       + '<div class="insp-f' + (BAND_OF(id)===null ? ' empty' : '') + '" style="grid-column:1 / -1">'
         + '<div class="fl">Decision band</div>'
-        + '<div class="fv"><select style="width:100%" onchange="setBand(&quot;'+id+'&quot;,this.value)"'
+        + '<div class="fv"><select style="width:100%" onchange="setBand('+jsa(id)+',this.value)"'
         + ' title="the funding rule travels with the band — manage the ladder in ⚖ Bands">'
         + '<option value=""' + (BAND_OF(id)===null?' selected':'') + '>— no band —</option>'
         + BANDS_LIST().map(function(b,i){ return '<option value="'+esc(b.id)+'"'
@@ -25141,14 +25332,14 @@ function inspectorBody(){
         + '<div class="fl">Minimum useful increment</div>'
         + '<div class="fv"><input style="width:100%;text-align:right" placeholder="' + fM(askTot(it)) + '"'
           + ' value="' + ((S.minInc||{})[id] ? Math.round(S.minInc[id]).toLocaleString() : '') + '"'
-          + ' onfocus="this.select()" onchange="setMinInc(\'' + id + '\',this.value)"'
+          + ' onfocus="this.select()" onchange="setMinInc('+jsa(id)+',this.value)"'
           + ' title="the least this still buys something at \u2014 blank means the full requirement.'
           + ' Only needed for band 0-2 items that fall below the line."></div></div>'
       + '<div class="insp-f' + (S.absorb === id ? '' : ' empty') + '">'
         + '<div class="fl">\u2691 Shortfall absorber</div>'
         + '<div class="fv"><label style="font-size:10.5px;cursor:pointer;font-weight:600">'
           + '<input type="checkbox"' + (S.absorb === id ? ' checked' : '')
-          + ' onchange="setAbsorber(\'' + id + '\',this.checked)"> absorb</label>'
+          + ' onchange="setAbsorber('+jsa(id)+',this.checked)"> absorb</label>'
           + (S.absorb === id
             ? '<input style="width:100%;text-align:right;margin-top:2px" placeholder="floor $0"'
               + ' value="' + (S.absorbFloor ? Math.round(S.absorbFloor).toLocaleString() : '') + '"'
@@ -25438,13 +25629,15 @@ function loadShared(cb){
     try{
       const x=new XMLHttpRequest();
       x.open('GET', STATEFILE+'?t='+Date.now(), true);
-      x.onload=()=>{ try{ cb(x.responseText? JSON.parse(x.responseText):null); }catch(e){ cb(null); } };
+      // the sidecar was written by somebody else's board: through the door, like any file (v1.88)
+      x.onload=()=>{ try{ cb(x.responseText? (inboundCheck(x.responseText)? null : JSON.parse(x.responseText)) : null); }catch(e){ cb(null); } };
       x.onerror=()=>cb(undefined);
       x.send();
     }catch(e){ cb(undefined); }
   } else {
     try{
-      fetch(STATEFILE,{cache:'no-store'}).then(r=>r.ok?r.json():null).then(cb).catch(()=>cb(undefined));
+      fetch(STATEFILE,{cache:'no-store'}).then(r=>r.ok?r.text():null)
+        .then(t=>cb(t===null? null : (inboundCheck(t)? null : JSON.parse(t)))).catch(()=>cb(undefined));
     }catch(e){ cb(undefined); }
   }
 }
