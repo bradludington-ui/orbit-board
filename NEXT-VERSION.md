@@ -38,13 +38,13 @@ Current version: **v1.87**. Next: **v1.88**.
   proved by importing one.
 - The full math gate.
 
-##### Brad's decision needed
-- **The file's name:** keep `prioritization-board-grid.html` (recommended: nothing anyone has saved or
-  linked changes), or rename it `prioritization-board.html`.
+##### Brad's decision (29 Sep 2026)
+- **The file keeps its name:** `prioritization-board-grid.html`. Nothing anyone has saved or linked
+  changes.
 
-### 18. A diagnostics file for support (recommended by Claude — say yes or no)
-- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation, not
-  yet approved.
+### 18. A diagnostics file for support
+- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation.
+  **Approved by Brad, 29 Sep, for v1.88.**
 - **Why:** when the road show puts PMO copies in many hands, "it doesn't work" will need facts. The
   board is offline by design and must never phone home.
 - **What:** 📁 File ▾ → *Save diagnostics…* writes a small plain-text file the person can read before
@@ -53,8 +53,8 @@ Current version: **v1.87**. Next: **v1.88**.
   **Never** a dollar figure, a requirement title, a name or any budget data -- checked by a test that
   fills a board with recognisable values and proves none appears in the file.
 
-### 19. One way to tell the user something (recommended by Claude — say yes or no)
-- **Logged:** 29 Sep 2026, same source; not yet approved.
+### 19. One way to tell the user something
+- **Logged:** 29 Sep 2026, same source. **Approved by Brad, 29 Sep, for v1.88.**
 - **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
   prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
   read it.
@@ -63,8 +63,8 @@ Current version: **v1.87**. Next: **v1.88**.
   export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
   they are the data-loss guards and must keep stopping the user.
 
-### 20. One place for each field's name and label (recommended by Claude — say yes or no)
-- **Logged:** 29 Sep 2026, same source; not yet approved.
+### 20. One place for each field's name and label
+- **Logged:** 29 Sep 2026, same source. **Approved by Brad, 29 Sep, for v1.88.**
 - **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
   pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
   went hollow when one name changed in one place and not another.
