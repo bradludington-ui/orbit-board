@@ -3092,7 +3092,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 const V14RE = /(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/;
 const v14Pub = (html) => JSON.parse(html.match(V14RE)[2]);
 const v14With = (html, J) => html.replace(V14RE, (_, a, b, c) => a + JSON.stringify(J).replace(/</g, '\\u003c') + c);
-const v14Old = (rev) => execFileSync('git', ['show', rev + ':prioritization-board.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString();
+// the card build until v1.87 (retired in v1.88, so it lives only in the history); pass the file for another
+const v14Old = (rev, file = 'prioritization-board.html') => execFileSync('git', ['show', rev + ':' + file], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString();
 const v14Ls = (ev) => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
 // the rich board: three appropriations, two years each, cycles on two, and every board-wide store
 const v14Rich = () => {
@@ -3129,14 +3130,17 @@ const v14Figures = (ev) => ev(`JSON.stringify((function(){ const T=tiers(), X=ti
 let V14 = null;
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
-  const name = 'v1.86 — a full board comes across whole, from files written by v1.80, v1.83 and v1.85';
+  const name = 'v1.86 — a full board comes across whole, from files written by v1.80, v1.83, v1.85 and v1.87 (both builds)';
   try {
   const O = v14Rich();
   const L86 = O.ev('buildSavedHtml()');
   V14 = { O, L86 };
-  for (const [ver, rev] of [['v1.80', '68b02e9'], ['v1.83', '84dcaf9'], ['v1.85', '77882d9']]) {
+  // v1.88: the card build is retired, so the last file it could ever write -- v1.87's -- has to come across
+  // whole into the grid, and so does the v1.87 grid file every board in use today was saved by.
+  for (const [ver, rev, file] of [['v1.80', '68b02e9'], ['v1.83', '84dcaf9'], ['v1.85', '77882d9'],
+                                   ['v1.87 card', '1589749'], ['v1.87 grid', '1589749', 'prioritization-board-grid.html']]) {
     // THE OLD VERSION WRITES ITS OWN FILE: its program, given the state, saves it the way it saved
-    const old = boot({ html: v14With(v14Old(rev), v14Pub(L86)) });
+    const old = boot({ html: v14With(v14Old(rev, file), v14Pub(L86)) });
     const Lold = old.ev('buildSavedHtml()');
     const J = v14Pub(Lold);
     chk(name, ver, 'the fixture file carries three appropriations', Object.keys(J.appns || {}).sort().join(','), 'ff,om,sp');

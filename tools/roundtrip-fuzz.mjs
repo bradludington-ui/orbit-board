@@ -37,7 +37,7 @@ const argv = process.argv;
 const argOf = (k, d) => { const i = argv.indexOf(k); return i > 0 ? argv[i + 1] : d; };
 const SEED0 = Number(argOf('--seed', String((Math.random() * 1e9) | 0)));
 const ROUNDS = Number(argOf('--rounds', '3'));
-const BOARD = process.env.BOARD || join(ROOT, 'prioritization-board.html');
+const BOARD = process.env.BOARD || join(ROOT, 'prioritization-board-grid.html');
 const SRC = readFileSync(BOARD, 'utf8');
 
 // A seeded PRNG, so --seed replays a run exactly. Math.random() cannot be replayed and a failure

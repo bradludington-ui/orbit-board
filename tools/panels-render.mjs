@@ -72,7 +72,7 @@ const dir = mkdtempSync(join(tmpdir(), 'spmt-panels-'));
 process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });   // the copies are scratch; leave nothing behind
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
                                   args: ['--no-sandbox'] });
-for (const f of ['prioritization-board.html', 'prioritization-board-grid.html']) {
+for (const f of ['prioritization-board-grid.html']) {
   console.log('\n' + f);
   const { ev } = boot({ html: readFileSync(resolve(ROOT, f), 'utf8') });
   seed(ev, sc);

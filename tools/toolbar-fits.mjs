@@ -7,7 +7,7 @@ import { chromium } from 'playwright-core';
 import { resolve } from 'node:path';
 const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
 let bad=0;
-for(const f of ['prioritization-board.html','prioritization-board-grid.html']){
+for(const f of ['prioritization-board-grid.html']){
  console.log('\n'+f);
  for(const w of [1920,1512,1280,1152,1024,960,900,820]){
   const p=await b.newPage({viewport:{width:w,height:900}});

@@ -29,7 +29,7 @@ const both = (label, opts, after) => {
   console.log(`${ok ? 'same' : 'DIFF'}  ${label.padEnd(40)} parse ${r.parse.ms.toFixed(0)} ms · fast ${r.fast.ms.toFixed(0)} ms` + (ok ? '' : '  ' + ['src0', 'dom', 'saved', 'errors'].filter(k => !same(k)).join(',')) + (r.fast.errors ? '  errors: ' + r.fast.errors.slice(0, 80) : ''));
   return r.fast.saved;
 };
-for (const f of ['prioritization-board.html', 'prioritization-board-grid.html']) {
+for (const f of ['prioritization-board-grid.html']) {
   process.env.BOARD = new URL('../../' + f, import.meta.url).pathname;
   const html = readFileSync(process.env.BOARD, 'utf8');
   both(f + ' as shipped', { html });

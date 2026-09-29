@@ -4,37 +4,34 @@ A single self-contained HTML application: the FY27 Consolidated Prioritization B
 ~19,500 lines, 2.8 MB, no dependencies of any kind. It runs from a shared drive or a `file://` URL
 on machines with no internet route.
 
-## There are TWO builds, and they must not diverge
+## One build: `prioritization-board-grid.html` (since v1.88)
 
-| File | Look | Default theme |
-|---|---|---|
-| `prioritization-board.html` | cards — one panel per requirement | Midnight |
-| `prioritization-board-grid.html` | grid + docked inspector | Harbor |
+The board is **`prioritization-board-grid.html`** — a grid of requirements with a docked RECORD
+inspector, Harbor by default. It is the only program file; every tool, script and check points at it.
 
-They are the same application. Everything except presentation — lanes, Mission Critical,
-per-service flooring, every export — **must stay byte-identical**, because two copies of a
-19,500-line file will otherwise drift and someone will brief the wrong number.
+**Until v1.87 there were two builds** of the same application: this grid and a card layout
+(`prioritization-board.html`, one panel per requirement, Midnight by default). Everything except
+presentation had to stay byte-identical, `tools/parity.mjs` diffed every top-level function between
+them against a declared allowlist, every suite ran twice, and the final gate swept its planted mistakes
+through both. Brad, 29 Sep 2026: *"The grid file is the only one I use now. No need to maintain two
+files."* v1.88 deleted the card file (it stays in the history — `git show 1589749:prioritization-board.html`
+is the last one), retired `parity.mjs` and `parity-allow.json`, and turned the card-versus-grid controls
+comparison into a check of the grid against its own recorded list (`tools/row-controls.json`; see
+`npm run controls`). The file kept its name so nothing anyone saved or linked changes.
 
-`tools/parity.mjs` enforces that. It extracts every top-level function from both files and diffs
-them by name; anything that differs has to be named in `tools/parity-allow.json` with a reason.
-`npm run check` runs it. **If you change one build, change the other** — or if the difference is
-genuinely presentational, allowlist it and say why.
+What that leaves behind, on purpose:
 
-The grid build's additions are all *appended*, never *edited in*. In particular the inspector hangs
-off `render()` by wrapping it:
-
-```js
-const _renderCards = render;
-render = function(){ _renderCards.apply(this, arguments); gridAfterRender(); };
-```
-
-That is on purpose. `render()` stays byte-identical in both builds, so a change to the card build's
-row template copies straight across with no merge. Keep it that way — the moment you edit
-`render()` in the grid build, every future change costs a hand-merge.
-
-Moving data between the two is the existing **File → Import**, which already reads another board's
-`.html` and lifts its state out. They also share their `localStorage` key, so a draft shows up in
-whichever one you open.
+- **Card-only code paths in the grid file.** `render()` still draws the card row template and the grid
+  wraps it (`const _renderCards = render; render = function(){ _renderCards.apply(this, arguments);
+  gridAfterRender(); };`); the in-file guide still carries paragraphs marked `data-b="card"` that the
+  grid never shows; comments still say "both builds". They are unreachable or harmless and were left
+  alone in v1.88 — removing them is risk for no visible gain. Take them out as a version of their own.
+- **The saved format is shared.** A board saved by any card build opens in the grid: the full-import test
+  (`audit-import.mjs`, "a full board comes across whole") builds files written by the v1.80, v1.83,
+  v1.85 and v1.87 card builds, and by the v1.87 grid, from this project's history and imports each one.
+- **Historical sections below** describe work done while there were two builds ("both builds", "the
+  card's row expander", `parity-allow.json`). They are kept as the record of why the code is the way it
+  is; read "the grid" wherever they say "both".
 
 ## This file is the source of truth
 
@@ -54,13 +51,13 @@ Two consequences:
 ## Before every commit
 
 ```
-npm run check          # invariants over BOTH builds, then parity between them
-node tools/check.mjs
+npm run check          # the invariants, on the board (tools/check.mjs)
 ```
 
 It holds the invariants the lost suite held: the script parses, the six appropriation tables agree,
-the save path can still find its target, no board data is committed, and nothing external is
-referenced. It exits non-zero on failure.
+the save path can still find its target, no board data is committed, nothing external is
+referenced, and (v1.88) no inline handler writes a value into its code without `jsa()`. It exits
+non-zero on failure.
 
 ### Seeing the board
 
@@ -998,6 +995,8 @@ This is not hypothetical. Removing the impact chip from the grid row left that b
 to write the impact statement at all** — the field the whole PMO submittal workflow exists to
 collect — and `npm run audit` stayed green, because the check that guards it ran against the card.
 `npm run audit:grid` failed immediately. **Twelve "ALL CHECKS PASSED" lines is the healthy count.**
+**Since v1.88 there is one build:** `npm run audit` runs the chain once, on the grid, and **six** banners
+plus the legacy line is the healthy count. `audit:grid` is gone with the card build.
 
 The check itself now follows the build rather than pinning one spot: it looks for the `toggleCons`
 handler on the row **and** in the RECORD panel, and prints which one answered. A surface that moves
@@ -1417,8 +1416,7 @@ the previous view's panel.
 ### The trace matrix — one quantity, every surface that states it
 
 ```
-npm run trace          # card build
-npm run trace:grid     # grid build
+npm run trace
 ```
 
 The same dollars travel from the requirement math to a dashboard tile, a panel, a workbook column, a

@@ -428,7 +428,8 @@ const ownOk = report.ok;
 let withHtml = null, withLabel = '';
 if (WITH) { withHtml = readFileSync(resolve(WITH), 'utf8'); withLabel = basename(WITH); }
 else {
-  const cand = join(ROOT, saved.flavour === 'grid' ? 'prioritization-board-grid.html' : 'prioritization-board.html');
+  // One build since v1.88: a file saved by the retired card build is compared against the grid, which reads it.
+  const cand = join(ROOT, 'prioritization-board-grid.html');
   const cur = readSaved(readFileSync(cand, 'utf8'));
   if (cur.build !== saved.build) { withHtml = readFileSync(cand, 'utf8'); withLabel = `${basename(cand)} (${cur.build})`; }
   else console.log(`\nthe working tree is the same build (${cur.build}); nothing to compare it with — pass --with to force`);

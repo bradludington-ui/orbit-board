@@ -5,7 +5,7 @@ import { setFlagsFromString } from 'node:v8';
 import { runInNewContext } from 'node:vm';
 
 export const BOARD = process.env.BOARD
-  || new URL('../../prioritization-board.html', import.meta.url).pathname;
+  || new URL('../../prioritization-board-grid.html', import.meta.url).pathname;
 
 // `html` boots a board from a STRING rather than from disk -- what buildSavedHtml() hands back,
 // so a saved file can be reopened and compared against the board that wrote it.

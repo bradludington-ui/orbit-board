@@ -15,9 +15,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
-// Which build to sweep. There are two now, and parity.mjs proves their math is byte-identical,
-// so a clean sweep of one covers both — but 'proves' is worth checking rather than trusting.
-const BOARD = process.env.BOARD || join(HERE, '..', '..', 'prioritization-board.html');
+// Which board to sweep. One build since v1.88 (the card build was retired): the grid file.
+const BOARD = process.env.BOARD || join(HERE, '..', '..', 'prioritization-board-grid.html');
 const SUITES = [
   ['excel', join(HERE, 'audit.mjs')],
   ['ppt', join(HERE, 'audit-ppt.mjs')],
@@ -1704,10 +1703,11 @@ console.log(`\nmutation sweep — ${picked.length} mutation(s), ${SUITES.length}
 
 // MUTATIONS RUN CONCURRENTLY; the SUITES within one mutation stay sequential, because the loop
 // short-circuits on the first catch and running them in parallel would pay for suites it does not
-// need. One sweep on its own was using a single core of four while the box sat idle -- and
-// validate-math runs two sweeps (one per build) side by side, so half the default here is the
-// right share. MUT_JOBS overrides it.
-const JOBS = Math.max(1, Number(process.env.MUT_JOBS) || Math.ceil(cpus().length / 2));
+// need. One sweep on its own was using a single core of four while the box sat idle. Until v1.88
+// validate-math ran two sweeps (one per build) side by side and each took half the cores; with one
+// build there is one sweep, and it takes them all -- the same four suites at a time the box has
+// always carried, each capped at 2.5 GB of heap. MUT_JOBS overrides it.
+const JOBS = Math.max(1, Number(process.env.MUT_JOBS) || cpus().length);
 // A DELIBERATE FAILURE PRINTS ITS BANNER. Every suite that finds a mutation says so -- "N FAILING
 // CHECK(S)", or recon's "the workbook did not build" -- and exits 1. An uncaught exception also
 // exits 1, and a signal or the box running short of something exits otherwise; none of those proved

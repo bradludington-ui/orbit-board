@@ -37,7 +37,7 @@ const sc = { services:SVCN, items, disc:SVCN.map(()=>18000000), mand:SVCN.map(()
 const dir = mkdtempSync(join(tmpdir(),'spmt-view-'));
 process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });   // the copies are scratch; leave nothing behind
 const made = {};
-for (const f of ['prioritization-board.html','prioritization-board-grid.html']) {
+for (const f of ['prioritization-board-grid.html']) {
   // Boot each build FROM ITS OWN BYTES. boot.mjs resolves BOARD once at module load, so setting
   // process.env.BOARD here would be ignored and both fixtures would silently be the same build --
   // which is exactly what happened first time round, and the grid fixture then failed at every

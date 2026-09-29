@@ -22,7 +22,7 @@ import { dirname, join } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
-const BOARD = process.env.BOARD || join(ROOT, 'prioritization-board.html');
+const BOARD = process.env.BOARD || join(ROOT, 'prioritization-board-grid.html');
 const src = readFileSync(BOARD, 'utf8');
 const mutSrc = readFileSync(join(HERE, 'export-audit', 'mutate.mjs'), 'utf8');
 

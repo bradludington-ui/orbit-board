@@ -36,7 +36,7 @@ const sc = { services: SVCN, items, disc: [6000000, 1500000, 800000],
 const dir = mkdtempSync(join(tmpdir(), 'spmt-col-'));
 process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });   // the copies are scratch; leave nothing behind
 const built = {};
-for (const f of ['prioritization-board.html', 'prioritization-board-grid.html']) {
+for (const f of ['prioritization-board-grid.html']) {
   // Boot each build FROM ITS OWN BYTES -- boot.mjs resolves BOARD once at module load, so setting
   // process.env.BOARD here would silently give both fixtures the same build.
   const { ev } = boot({ html: readFileSync(resolve(ROOT, f), 'utf8') });
@@ -98,7 +98,7 @@ const chk = (what, ok, detail) => { if (!ok) bad++;
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
                                   args: ['--no-sandbox'] });
 
-for (const file of ['prioritization-board.html', 'prioritization-board-grid.html']) {
+for (const file of ['prioritization-board-grid.html']) {
   console.log('\n' + file + ' — the default theme');
   for (const [what, pre, wantGet, wantAttr] of DEFAULTS) {
     const ctx = await b.newContext();
@@ -121,7 +121,7 @@ for (const file of ['prioritization-board.html', 'prioritization-board-grid.html
       `themeGet '${r.get}' · painted ${r.attr}`);
   }
 }
-for (const file of ['prioritization-board.html', 'prioritization-board-grid.html']) {
+for (const file of ['prioritization-board-grid.html']) {
   console.log('\n' + file);
   for (const [k, nm] of THEMES) {
     const ctx = await b.newContext({ viewport: { width: 1700, height: 900 } });

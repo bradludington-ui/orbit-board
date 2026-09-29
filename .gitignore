@@ -1,7 +1,8 @@
 # The repo holds the PROGRAM, never a working board. A saved board is the program and the budget
 # data fused into one file, so a stray copy dropped in here must not be stageable by accident.
 *.html
-!prioritization-board.html
+# One build since v1.88: the card build (prioritization-board.html) was retired and is no longer an
+# exception, so a copy dropped back in cannot be committed by accident.
 !prioritization-board-grid.html
 
 # Working files
@@ -11,7 +12,8 @@
 !package.json
 # Named one by one on purpose, like the boards above: a stray state file dropped in tools/
 # must still be unstageable by accident.
-!tools/parity-allow.json
+# The controls a user reaches for one requirement, recorded so one cannot vanish unnoticed (row-controls.mjs).
+!tools/row-controls.json
 # Which surface states which quantity, pinned so a figure that vanishes off a briefing product
 # fails the trace matrix instead of scoring as silence. Regenerate with trace-matrix.mjs --emit.
 !tools/trace-stated.json

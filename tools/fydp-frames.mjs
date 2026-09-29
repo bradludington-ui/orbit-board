@@ -71,7 +71,7 @@ async function exportPlan(p) {
 }
 
 const b = await chromium.launch({ executablePath: CHROME });
-for (const build of ['prioritization-board-grid.html', 'prioritization-board.html']) {
+for (const build of ['prioritization-board-grid.html']) {
   console.log(`\n${build}`);
   const ctx = await b.newContext({ acceptDownloads: true });
   const p = await ctx.newPage();

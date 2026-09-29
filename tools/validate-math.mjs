@@ -17,6 +17,8 @@ import { dirname, join } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
+// ONE BUILD SINCE v1.88. Every stage below used to run twice, once per build, and a parity stage
+// proved the two had not drifted. The card build is retired: each stage runs once, on the grid file.
 const GRID = join(ROOT, 'prioritization-board-grid.html');
 const started = new Date();
 
@@ -69,7 +71,7 @@ console.log('='.repeat(96));
 }
 
 // ---- 1. coverage: is there anything whose money nothing is checking? ----------------------------
-for (const [lbl, env] of [['coverage (card)', {}], ['coverage (grid)', { BOARD: GRID }]]) {
+for (const [lbl, env] of [['coverage', { BOARD: GRID }]]) {
   const r = await run(lbl, 'node', [join(HERE, 'money-coverage.mjs')], env);
   const gaps = N(r.out, /(\d+) recorded gap\(s\) outstanding/);
   note({ ...r, ok: r.code === 0, detail: r.code === 0
@@ -84,7 +86,7 @@ for (const [lbl, env] of [['coverage (card)', {}], ['coverage (grid)', { BOARD: 
 // a reader can only trust any of them if they match. One broken link names itself here -- quantity,
 // surface, got, want -- instead of being found by someone comparing a deck to a workbook in a
 // meeting.
-for (const [lbl, env] of [['trace matrix (card)', {}], ['trace matrix (grid)', { BOARD: GRID }]]) {
+for (const [lbl, env] of [['trace matrix', { BOARD: GRID }]]) {
   const r = await run(lbl, 'node', [join(HERE, 'trace-matrix.mjs')], env);
   const cells = N(r.out, /(\d+) populated cells/);
   const broken = N(r.out, /(\d+) BROKEN LINK/);
@@ -94,15 +96,15 @@ for (const [lbl, env] of [['trace matrix (card)', {}], ['trace matrix (grid)', {
   console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  ${lbl}  (${cells ?? '?'} cells)`);
 }
 
-// ---- 3. the suites, on both builds --------------------------------------------------------------
+// ---- 3. the suites ------------------------------------------------------------------------------
 // THE GATE IS THE EXIT CODE, not a count of banner lines. audit:suites chains SEVEN suites but only
 // SIX print "ALL CHECKS PASSED" -- audit:legacy closes with its own sentence ("every legacy Force
-// setting computes exactly as before"), which is why the healthy total across both builds has always
-// been 12 and not 14. A gate written against 7 fails every night on a board that is perfectly fine,
+// setting computes exactly as before"), which is why the healthy total is 6 and not 7 (12 while
+// there were two builds). A gate written against 7 fails every night on a board that is perfectly fine,
 // and a nightly job that cries wolf is one nobody reads. The chain already exits non-zero if any
 // suite fails; the banner count is reported as a fact, and the legacy marker is asserted separately
 // so that suite cannot go quiet unnoticed.
-for (const [lbl, env] of [['suites (card)', {}], ['suites (grid)', { BOARD: GRID }]]) {
+for (const [lbl, env] of [['suites', { BOARD: GRID }]]) {
   const r = await run(lbl, 'npm', ['run', 'audit:suites', '--silent'], env);
   const passed = (r.out.match(/ALL CHECKS PASSED/g) || []).length;
   const legacy = /every legacy Force setting computes exactly as before/.test(r.out);
@@ -110,14 +112,6 @@ for (const [lbl, env] of [['suites (card)', {}], ['suites (grid)', { BOARD: GRID
   note({ ...r, ok, detail: ok ? `all 7 suites clean (${passed} banners + the legacy line)`
     : `exit ${r.code}, ${passed} banner(s), legacy line ${legacy ? 'present' : 'MISSING'}` });
   console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${lbl}  (${passed} banners${legacy ? ' + legacy' : ', LEGACY LINE MISSING'})`);
-}
-
-// ---- 4. the two builds must not diverge ----------------------------------------------------------
-{
-  const r = await run('parity', 'npm', ['run', 'parity', '--silent']);
-  note({ ...r, ok: r.code === 0, detail: r.code === 0 ? 'the two builds share their logic'
-    : 'UNDECLARED DIVERGENCE between the card and grid builds' });
-  console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  parity`);
 }
 
 // ---- 5. what only a browser can see --------------------------------------------------------------
@@ -135,7 +129,7 @@ for (const [lbl, env] of [['suites (card)', {}], ['suites (grid)', { BOARD: GRID
 // Data loss. A random seed every night, printed so a failure is replayable; the fuzz fills every
 // container the board writes -- it reads the set from the board's source and fails if one is left
 // empty -- and drives save/reopen, the second save, the year copy and the PMO round trip.
-for (const [lbl, env] of [['fuzz (card)', {}], ['fuzz (grid)', { BOARD: GRID }]]) {
+for (const [lbl, env] of [['fuzz', { BOARD: GRID }]]) {
   const r = await run(lbl, 'node', [join(HERE, 'roundtrip-fuzz.mjs')], env);
   const seed = (/seed (\d+)/.exec(r.out || '') || [])[1] || '?';
   note({ ...r, ok: r.code === 0, detail: r.code === 0
@@ -157,13 +151,10 @@ for (const [lbl, env] of [['fuzz (card)', {}], ['fuzz (grid)', { BOARD: GRID }]]
   console.log(`  ${ok ? 'ok  ' : 'FAIL'}  verify-file (self-test)`);
 }
 
-// ---- 6. the sweeps, in parallel -------------------------------------------------------------------
-console.log('  ..    mutation sweeps (both builds, in parallel) — this is the long one');
-const [cardSweep, gridSweep] = await Promise.all([
-  run('sweep (card)', 'node', [join(HERE, 'export-audit', 'mutate.mjs')]),
-  run('sweep (grid)', 'node', [join(HERE, 'export-audit', 'mutate.mjs')], { BOARD: GRID }),
-]);
-for (const r of [cardSweep, gridSweep]) {
+// ---- 6. the sweep ----------------------------------------------------------------------------------
+console.log('  ..    mutation sweep — this is the long one');
+const sweep = await run('sweep', 'node', [join(HERE, 'export-audit', 'mutate.mjs')], { BOARD: GRID });
+for (const r of [sweep]) {
   const f = sweepFacts(r.out);
   const ok = r.code === 0 && f.survived === 0 && f.notApplied === 0 && f.crashed === 0;
   note({ ...r, ok, facts: f, detail: `${f.caught}/${f.of} caught · ${f.survived} survived · `

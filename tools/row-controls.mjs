@@ -1,17 +1,23 @@
 // What can you actually DO to a requirement? Enumerate it from the rendered page rather than from
-// anyone's memory of the template, so "the grid keeps every control the cards had" is a measured
-// claim. Also useful on its own: it is the inventory of a requirement's affordances.
+// anyone's memory of the template, and hold it against a RECORDED list, so "no control vanished"
+// is a measured claim. Also useful on its own: it is the inventory of a requirement's affordances.
 //
-// SCOPE IS THE REQUIREMENT, NOT THE ROW. The grid build moved every edit of the selected
-// requirement onto the docked RECORD inspector, so comparing row-to-row reported relocated
-// controls as lost. What must never happen is a control disappearing from the BUILD, so the grid
-// side counts the row plus the inspector -- which is exactly the surface a user reaches for one
-// requirement. A control that moves is fine; one whose handler vanished is not.
+// SCOPE IS THE REQUIREMENT, NOT THE ROW. The grid build keeps every edit of the selected
+// requirement on the docked RECORD inspector, so the inventory counts the row plus the inspector --
+// exactly the surface a user reaches for one requirement. A control that moves is fine; one whose
+// handler vanished is not.
 //
-//   node tools/row-controls.mjs [path-to-html]           print the inventory
-//   node tools/row-controls.mjs --diff A.html B.html     compare two builds
+// ONE BUILD SINCE v1.88. This used to compare the card build against the grid build. With the card
+// build retired, the grid is held against its own recorded list (tools/row-controls.json): a control
+// that disappears, or one that appears without being recorded, fails. A deliberate change is made
+// by re-recording, which puts the before and after in the commit's diff.
+//
+//   node tools/row-controls.mjs [--board FILE]            print the inventory
+//   node tools/row-controls.mjs --check [--board FILE]    compare against the recorded list
+//   node tools/row-controls.mjs --record [--board FILE]   write the recorded list (a deliberate change)
 import { chromium } from 'playwright-core';
 import { resolve } from 'node:path';
+import { readFileSync, writeFileSync } from 'node:fs';
 
 const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const HERE = new URL('.', import.meta.url).pathname;
@@ -70,58 +76,53 @@ async function inventory(page, file) {
 }
 
 const args = process.argv.slice(2);
+const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null; };
+const FILE = resolve(opt('--board') || HERE + '../prioritization-board-grid.html');
+const RECORD = HERE + 'row-controls.json';
 const browser = await chromium.launch({ executablePath: CHROME });
 const page = await browser.newPage({ viewport: { width: 1700, height: 1000 } });
+const inv = await inventory(page, FILE);
+await browser.close();
+if (!inv) { console.error('row-A did not render'); process.exit(2); }
 
-if (args[0] === '--diff') {
-  const a = await inventory(page, resolve(args[1])); const b = await inventory(page, resolve(args[2]));
-  if (!a || !b) { console.error('row-A did not render in one of the builds'); process.exit(2); }
-  // Compare on the HANDLER, not the whole line: a control that moved to the inspector is wrapped
-  // in different markup and re-worded, but it is the same control while it still calls the same
-  // function. A handler that appears on neither surface is a control the build lost.
-  // rowMenuRun(id, ()=>{X}) is only the menu's invocation wrapper -- the control is X. Unwrap it so
-  // a control that moved OUT of the menu still matches the one that used to sit in it.
-  const unwrap = h => { const m = /^rowMenuRun\([^,]+,\(\)=>\{(.+)\}\)$/.exec(h);
-                        return m ? m[1].trim() : h; };
-  const fn = x => unwrap(x.split(' | ')[1]);
-  // Controls the grid build RETIRED rather than moved. Named with a reason, so a disappearance is
-  // a decision on the record rather than something a loose comparison quietly absorbed.
-  // Controls the grid REPLACED with a different handler that does the same job. The capability has
-  // to still be present -- the replacement is looked up in the other build, so this cannot hide a
-  // control that simply vanished.
-  const REPLACED = {};
-  REPLACED['toggleChip("fund","A",event)'] = ["setFsrc('\u2026','\u2026')",
-    'the row picker offered one option once auto (lanes) was dropped, so the inspector converts a '
-    + 'requirement to Split in a single click instead'];
-  REPLACED['toggleChip("band","A",event)'] = ['setBand("A",this.value)',
-    'the band is STATED on the row and SET on the RECORD panel. It is the field the whole funding '
-    + 'ladder hangs off and the one most easily changed by brushing past a chip while dragging 115 '
-    + 'rows into order, so the grid build keeps one editor for it rather than a picker and a select'];
-  const RETIRED = {};
-  RETIRED["toggleDetail('\u2026')"] = 'the row expander is retired in the grid build; everything it '
-    + 'edited moved to the docked inspector, so the disclosure toggle has nothing left to disclose';
-  const sa = new Set(a.map(fn)), sb = new Set(b.map(fn));
-  const replacedBy = x => { const r = REPLACED[fn(x)]; return (r && sb.has(r[0])) ? r : null; };
-  const lost     = a.filter(x => !sb.has(fn(x)) && !RETIRED[fn(x)] && !replacedBy(x));
-  const retired  = a.filter(x => !sb.has(fn(x)) &&  RETIRED[fn(x)]);
-  const replaced = a.filter(x => !sb.has(fn(x)) && !RETIRED[fn(x)] &&  replacedBy(x));
-  const gained  = b.filter(x => !sa.has(fn(x)));
-  console.log(`\nrow controls — ${args[1].split('/').pop()} vs ${args[2].split('/').pop()}`);
-  console.log(`  ${a.length} controls before · ${b.length} after`);
-  if (lost.length)   { console.log(`\n  LOST (${lost.length}) —`);   lost.forEach(x => console.log('    FAIL  ' + x)); }
-  if (retired.length){ console.log(`\n  retired on purpose (${retired.length}) —`);
-    retired.forEach(x => console.log('    ok    ' + x + '\n            ' + RETIRED[fn(x)])); }
-  if (replaced.length){ console.log(`\n  replaced (${replaced.length}) —`);
-    replaced.forEach(x => console.log('    ok    ' + x + '\n            → ' + replacedBy(x)[0]
-      + '  ' + replacedBy(x)[1])); }
-  if (gained.length) { console.log(`\n  added (${gained.length}) —`); gained.forEach(x => console.log('    new   ' + x)); }
-  await browser.close();
-  if (lost.length) { console.log('\n  the grid build must not drop a control the cards had\n'); process.exit(1); }
-  console.log('\n  no control lost\n');
+// Compare on the HANDLER, not the whole line: a control that is re-worded or moved is the same
+// control while it still calls the same function. Every quoted argument is folded, so an id or a
+// field name in a handler never makes two builds of the same control look different. A MULTISET,
+// not a set: the split editor carries two inputs per service with the same handler, and losing one
+// of the pair is losing a control.
+const fold = h => h.replace(/"[^"]*"/g, '"…"').replace(/'[^']*'/g, "'…'");
+const unwrap = h => { const m = /^rowMenuRun\([^,]+,\(\)=>\{(.+)\}\)$/.exec(h); return m ? m[1].trim() : h; };
+const fn = x => fold(unwrap(x.split(' | ')[1]));
+const tally = list => list.reduce((m, x) => (m[fn(x)] = (m[fn(x)] || 0) + 1, m), {});
+const build = (/const BUILD='([^']+)'/.exec(readFileSync(FILE, 'utf8')) || [])[1] || '?';
+
+if (args.includes('--record')) {
+  writeFileSync(RECORD, JSON.stringify({ note: 'The controls a user reaches for ONE requirement (row + RECORD '
+    + 'inspector) on the grid build, seeded with the row-controls.mjs fixture. Written by `node tools/row-controls.mjs '
+    + '--record`; checked by `npm run controls`. Re-record only for a deliberate change, and say why in the commit.',
+    board: FILE.split('/').pop(), build, controls: inv }, null, 1) + '\n');
+  console.log(`\nrecorded ${inv.length} controls from ${FILE.split('/').pop()} (${build}) -> tools/row-controls.json\n`);
+} else if (args.includes('--check')) {
+  let rec = null;
+  try { rec = JSON.parse(readFileSync(RECORD, 'utf8')); } catch { rec = null; }
+  if (!rec || !Array.isArray(rec.controls)) { console.log('\n  FAIL  tools/row-controls.json is missing or unreadable\n'); process.exit(1); }
+  const was = tally(rec.controls), now = tally(inv);
+  const lost = [], added = [];
+  for (const k of new Set([...Object.keys(was), ...Object.keys(now)])) {
+    const d = (now[k] || 0) - (was[k] || 0);
+    if (d < 0) lost.push([k, -d]); else if (d > 0) added.push([k, d]);
+  }
+  console.log(`\nrequirement controls — ${FILE.split('/').pop()} (${build}) against the list recorded from ${rec.build}`);
+  console.log(`  ${rec.controls.length} recorded · ${inv.length} now`);
+  if (lost.length)  { console.log(`\n  LOST (${lost.length}) —`);  lost.forEach(([k, n]) => console.log(`    FAIL  ${k}${n > 1 ? '  ×' + n : ''}`)); }
+  if (added.length) { console.log(`\n  NOT RECORDED (${added.length}) —`); added.forEach(([k, n]) => console.log(`    FAIL  ${k}${n > 1 ? '  ×' + n : ''}`)); }
+  if (lost.length || added.length) {
+    console.log('\n  a requirement control changed. If that was deliberate, re-record with');
+    console.log('  `node tools/row-controls.mjs --record` and say why in the commit; if not, it is a lost control.\n');
+    process.exit(1);
+  }
+  console.log('\n  every recorded control is present, and nothing unrecorded appeared\n');
 } else {
-  const file = args[0] || HERE + '../prioritization-board.html';
-  const inv = await inventory(page, resolve(file));
   console.log(`\n${inv.length} interactive controls on a requirement row:\n`);
   inv.forEach(x => console.log('  ' + x));
-  await browser.close();
 }

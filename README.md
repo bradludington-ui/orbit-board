@@ -14,24 +14,22 @@ any kind — not a single script, stylesheet, or font is loaded from anywhere. O
 and it runs, including from a shared drive or a `file://` path on a machine with no route to the
 internet.
 
-Current build: **v1.32 (12 Sep 2026)** · ~19,500 lines · 2.8 MB.
+The board is `prioritization-board-grid.html`: a dense table of requirements with a docked record
+inspector. ~25,500 lines · 3.2 MB. The version is stamped in its header (`BUILD`).
 
-## Two looks, one application
+## One file (since v1.88)
 
-| File | Look |
-|---|---|
-| `prioritization-board.html` | **Cards** — one panel per requirement. The original. |
-| `prioritization-board-grid.html` | **Grid** — a dense table with a docked record inspector. |
-
-Same application, same numbers, same exports; only the presentation differs, and a parity check in
-CI-style tooling keeps it that way. Pick whichever reads better for you. To move a board between
-them, use **📁 File → ⬅ Import a full board (new version)…** and select the other file — import reads
-another board's `.html` and lifts everything out of it: all four appropriations, locked cycles and lists. They also share browser storage, so an unsaved
-draft shows up in whichever one you open.
+Until v1.87 there were two looks of the same application: this grid, and a card layout
+(`prioritization-board.html`, one panel per requirement). Every change was made twice and checked for
+parity. The grid is the one in use, so v1.88 retired the card file; it remains in the project's
+history. **A board saved by the card build opens in the grid with everything in it** — use
+**📁 File → ⬅ Import a full board (new version)…** and pick the card file; the two always shared one
+saved format, and the tests import a board written by the last card build to prove it. They also
+shared browser storage, so a draft left in the card build is already in the grid.
 
 ## Getting started
 
-1. Open `prioritization-board.html` (cards) or `prioritization-board-grid.html` (grid).
+1. Open `prioritization-board-grid.html`.
 2. It opens as an empty **shell** — the program with no data in it.
 3. Use **📁 File → ⬅ Import a full board (new version)…** and pick your saved board file. Requirements,
    budgets, every fiscal year, PPBE positions, locked cycles, logs and lists all load from it.
@@ -96,32 +94,27 @@ and a timestamp, and a save that would clobber newer work stops and says so firs
 
 | | |
 |---|---|
-| `prioritization-board.html` | The application, card layout. Source of truth. |
-| `prioritization-board-grid.html` | The same application, grid layout. |
+| `prioritization-board-grid.html` | The application. Source of truth. |
 | `CLAUDE.md` | How to work on it — read this before editing. |
-| `tools/check.mjs` | Invariant checks for one build. |
-| `tools/parity.mjs` | Proves the two builds have not diverged. |
-| `tools/row-controls.mjs` | Lists every control on a requirement row; diffs two builds. |
+| `tools/check.mjs` | Invariant checks for the board. |
+| `tools/row-controls.mjs` | Lists every control a user reaches for one requirement; checks it against `tools/row-controls.json`. |
 | `tools/export-audit/` | Drives the real exports in jsdom and checks every printed figure. |
 
 ```
 npm run check
 ```
 
-Runs the invariant checks over **both** builds and then the parity check. The invariants verify that
-the script parses, the appropriation tables agree across all six places they are declared, the save
-path still works, no board data has been committed, and nothing external is referenced.
-
-Parity extracts every top-level function from both files and diffs them by name. Anything that
-differs must be listed in `tools/parity-allow.json` with a reason, so divergence between the two
-looks is a deliberate, reviewed act rather than something discovered months later in a briefing.
+Runs the invariant checks. They verify that the script parses, the appropriation tables agree across
+all six places they are declared, the save path still works, no board data has been committed,
+nothing external is referenced, and no click handler writes a value into its code unencoded.
 
 ```
-node tools/row-controls.mjs --diff prioritization-board.html prioritization-board-grid.html
+npm run controls
 ```
 
-Enumerates every interactive control on a requirement row from the rendered page and compares the
-two builds, so "the grid keeps everything the cards had" is measured rather than assumed.
+Enumerates every interactive control on a requirement's row and RECORD inspector from the rendered
+page and compares it with the recorded list, so a control that disappears fails rather than going
+unnoticed. A deliberate change is re-recorded with `node tools/row-controls.mjs --record`.
 
 ## The HTML is the source
 

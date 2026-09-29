@@ -15,7 +15,7 @@ const args = process.argv.slice(2);
 const out = args[0] || 'board.png';
 const flag = n => args.includes('--' + n);
 const opt = (n, d) => { const i = args.indexOf('--' + n); return i >= 0 ? args[i + 1] : d; };
-const BOARD = resolve(opt('board', join(HERE, '..', '..', 'prioritization-board.html')));
+const BOARD = resolve(opt('board', join(HERE, '..', '..', 'prioritization-board-grid.html')));
 
 const SVC = ['STOVL', 'USMC CV', 'USN'];
 const mk = (id, grp, ask) => ({

@@ -27,7 +27,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
 const argOf = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : d; };
 const REF = argOf('--ref', 'HEAD');
-const BOARD = argOf('--board', 'prioritization-board.html');
+const BOARD = argOf('--board', 'prioritization-board-grid.html');
 const TOL = Number(argOf('--tol', '0.005'));
 
 // A FIXED fixture. Deterministic on purpose: the whole point is that the INPUT is constant so any

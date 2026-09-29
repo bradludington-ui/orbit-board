@@ -38,7 +38,7 @@ const full = process.argv.includes('--full');
 // Every theme, because contrast is the one thing that changes with the palette and a reader who
 // picked Parchment is owed the same floor as one who left it on Harbor.
 const THEMES = ['harbor', '', 'navy', 'parchment', 'blueprint'];
-const BUILDS = ['prioritization-board.html', 'prioritization-board-grid.html'];
+const BUILDS = ['prioritization-board-grid.html'];
 
 // ---- the criteria, named so a finding can be cited -----------------------------------------------
 const SC = {
