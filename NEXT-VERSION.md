@@ -4,71 +4,141 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.91**. Next: **v1.92**.
+Current version: **v1.92**. Next: **v1.93**.
 
 ## Open
 
-#### 18. A diagnostics file for support — build before the road show
-- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation. Deferred
-  from v1.88; **moved to Open for v1.92 on 30 Sep 2026, at Brad's request.**
-- **Found (v1.91):** when something goes wrong on someone's machine there is no way to learn what without
-  their board. The one message that asks for a report ("the RECORD panel could not be drawn … Save a copy
-  and report it") asks for *Save a copy*, which carries every dollar and title on the board. The board
-  keeps no record of what went wrong: its warning messages (about 80 of them) each replace the one before, an unexpected
-  script error is caught by nothing, and what was lost at start-up is said once and not kept.
-- **What will be built:**
-  - **📁 File ▾ → 🩺 Save diagnostics…**, on the live board and in a PMO copy. It opens a box showing
-    exactly the text that will be saved; *Save* writes it as a small plain-text file (*ORBIT diagnostics -
-    2026-10-01.txt*) and *Cancel* writes nothing. Nothing is sent anywhere: the person sends the file.
-  - **What it holds:** the board version; whether it is the live board, a PMO copy (with its publish date
-    and office) or a one-appropriation file; the browser and window size; how the file was opened (from
-    disk, a shared folder, Live view); browser storage in use, and any write the browser refused this
-    session; **counts only** — requirements per appropriation and fiscal year, locked cycles, snapshots,
-    submittals held, BAE rows, CCaR records, months of execution data; and the last 50 warnings and script
-    errors this session, each with its time.
-  - **The board starts keeping that short list when it opens:** every warning it shows, anything lost at
-    start-up, and any unexpected script error. It lives in memory only, never in the saved file or in
-    browser storage.
-  - **Never a dollar figure, a requirement title, a person's name, a CCaR record, a PID or a budget name.**
-    Each warning is kept with its figures replaced by # and every title, name and quoted value taken out.
-    The office code (AV, PSM) is kept, because it says whose copy it is (Claude's recommendation; say if it
-    should go too).
-  - The "RECORD panel could not be drawn" message points to *Save diagnostics* instead of *Save a copy*.
-- **What does not change:** anything the board saves, exports or calculates; the board still uses no
-  network at all; messages and confirm prompts stay as they are (item 19 stays in Later).
-- **Checks:** a board filled with recognisable values (figures, titles, names, CCaR records, PIDs, budget
-  names) is driven through the warnings that name them and a planted script error, and none of those values
-  appears in the file, while the version and the counts do; the file is exactly what the box showed;
-  *Cancel* writes nothing; it works in a PMO copy and on a board whose RECORD panel failed to draw;
-  mutations that let a figure or a title through are caught.
+#### 38. The IDS batch: four questions waiting on Brad (from item 37)
+- **Logged:** 30 Sep 2026, when item 37 shipped in v1.92. Nothing is built for these until Brad answers;
+  the file keeps today's behaviour meanwhile.
+  - **ORG:** the real ORG number, and whether it is one for every JSF budget or changes by appropriation,
+    service or office (if it changes, one file per ORG). Today: typed once per appropriation, 1 by default.
+  - **Unfunded requirements and the budget ceiling:** whether a requirement with nothing allocated is sent
+    with Approved 0 (it is), and whether the Budget Extract carries each budget's approved amount, so the
+    template's rule 12 (total Approved within the budget's available) can be checked before the file goes.
+  - **The other tabs:** whether the file should also carry the template's Instructions and Action-list tabs
+    (never the Example tab), and whether CCaR's import accepts the extra *Not exported* sheet.
+  - **For the CCaR administrators:** the template's Action list says Update adds a line CCaR does not have;
+    its rule 10 says Update needs the line to exist. If the second, *Forget* in the IDS box is the way back
+    for a batch exported and never uploaded.
 
-#### 36. The keyboard reaches every menu item and the last mouse-only controls
-- **Logged:** 30 Sep 2026, at Brad's request: the keyboard debt v1.91 recorded, and what checking it found.
-- **Found (v1.91, checked in the browser):**
-  - **Menu items are mouse-only.** Enter opens 📁 File, but Tab skips its 13 items and goes on to the mode
-    buttons; the same for Reports & exports (25 items), Data (8), Setup (19) and a row's ⋯ menu. So every
-    export, import and setup action needs a mouse. v1.91's keyboard check did not see it: it measures with
-    the menus closed.
-  - **The 12 findings v1.91 recorded as debt** (70 places): the four panel headers under Funding detail
-    (Budget authority & posture, Funding by service, Unspent discretionary, PMO funding), which open and
-    close their panels, and the discretionary-fit chips that filter the list (by service, by lane, ▲ not
-    drawn, 🔧 fix list).
-  - **A scan of the board's markup** finds 49 clickable spots that are not controls, besides the 41
-    backdrops that close a box (each box also has its own ✕ Close button). The ones not above sit in panels
-    and boxes the check never opens.
-- **What will be built:**
-  - **Menu items become real buttons.** Tab and Shift+Tab move through an open menu, Enter or Space runs
-    an item, and Esc closes the menu with focus back on its button. The same for a row's ⋯ menu. No ARIA
-    menu roles, so nothing promises arrow keys it does not have (the same choice as the mode buttons).
-  - The four Funding detail headers become buttons that say whether their panel is open, and the fit chips
-    buttons that say whether their filter is on.
-  - Every other clickable spot the scan finds becomes a button or a link, backdrops excepted.
-- **What does not change:** what any item does, the menus' contents and order, and every figure.
-- **Checks:** `npm run standards` opens every menu, every Funding detail panel and every box before it
-  measures, and its baseline goes back to **0**; `npm run check` fails on any new clickable element in the
-  board's markup that the keyboard cannot reach, backdrops excepted; the keyboard check adds Tab through
-  every item of every menu, Enter to run one and Esc to close, and the Funding detail headers and fit chips
-  with Enter. Each new check fails on the v1.91 board first.
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 19. One way to tell the user something
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
+  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
+  read it.
+- **What:** one helper for status-line messages that keeps an important one (an import's result, a
+  refusal, a warning) until it is read, instead of letting the next message replace it; import and
+  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
+  they are the data-loss guards and must keep stopping the user.
+
+#### 20. One place for each field's name and label
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
+  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
+  went hollow when one name changed in one place and not another.
+- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
+  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
+  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
+  Later versions extend it as fields are touched, never as a big-bang rewrite.
+
+#### Considered and not recommended
+- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
+  arguments**: worthwhile later, once there is one file, as a version of its own.
+- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
+  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
+  and measured first.
+- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
+  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
+  for the live board, copies and submittals already cover what it asks for.
+- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
+  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
+  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
+
+#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
+- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
+  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
+  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
+  would matter. Revisit only if that limit changes.
+- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
+  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
+- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
+  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
+  clean-up version already noted in CLAUDE.md.
+- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
+  offers no way to close it. Item 23 covers the case that loses work.
+- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
+  or wrong figures; the rest guard cosmetic steps.
+- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
+  requirements is 4.4 MB, and the check takes files up to 64 MB.
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v1.92 — 30 Sep 2026: items 18, 36 and 37, built on Brad's "go"
+
+**The IDS Batch Import carries every dollar the board funds.** Each requirement gets a line per service per
+lane, the same lines as the RECORD panel's BAE budget section and on the same budgets: the discretionary
+money on the discretionary budget, the mandatory draw on the mandatory budget, and a requirement with no
+money yet on the budget its *not funded yet* line names, with nothing approved. Each line says **Add** or
+**Update**: the board keeps a record of every batch it exported, and a line it has sent before goes as an
+Update. The file ID fills itself in — the date and the next number not yet issued on this board — and a
+number once used is never offered again.
+
+**The keyboard reaches everything the mouse can.** Every menu item (File, Reports & exports, Data, Setup,
+Filter, FY, PMO, the Fund tools and a row's ⋯) is reached with Tab and run with Enter; Esc closes the menu
+and leaves you on its button. The Funding detail headers, the service and lane chips and every other
+clickable spot work from the keyboard and say whether they are on or open. Pressing one no longer throws
+the keyboard back to the top of the page, and **typing a figure in a row and pressing Tab now moves on to
+the next field** (it went to the top of the page before, in v1.91 too).
+
+**📁 File › 🩺 Save diagnostics…** makes a small text file for support instead of sending the board: the
+version, what kind of file it is, the browser, counts, and the last 50 warnings and script errors, with
+**no dollar figure, title, name, CCaR record, PID or budget name** in it. The box shows exactly what will be
+saved; nothing is sent anywhere.
+
+What shipped differs from what was logged in these places, all stated here:
+- **The RECORD panel's *not funded yet* line names the budget the IDS batch will use (37).** It showed an
+  empty picker when nothing was chosen; it now shows the rule's budget ("no money yet · automatic by rule",
+  first choice "— the rule: *name* —"), so the panel and the file always name the same budget. A chosen
+  budget that is no longer in the BAE list holds the line back, in the panel and in the file.
+- **Most of the clickable chips are keyboard controls, not new `<button>` elements (36)**, so none of them
+  moved or changed look; `npm run check` holds every one to it. Menu items and the Funding detail headers
+  are real buttons, as logged.
+- **The boxes are checked by the panels check, not the accessibility run (36).** The accessibility run opens
+  every menu and every Funding detail panel; `npm run panels`, which already opens every box, now fails on
+  any control inside one that the keyboard cannot reach.
+- **Two keyboard faults the new checks found, fixed though not logged (36):** pressing a chip, Funding
+  detail, a row's ⋯ or a menu item that redraws the board lost the keyboard's place; and a figure typed in a
+  row and left with Tab lost it too. Both now keep it. After a mouse click nothing is moved, so typing can
+  never land in a field just left.
+- **Three contrast faults the fuller measurement found, fixed (36):** the pickers' and menus' borders, and a
+  selected row's input boxes in Fund.
+- **A warning is a message with a warning sign or that says something could not be done (18).** The board
+  has about 270 messages; the ordinary ones ("Saved", "Exported") are not kept.
+- **The file also drops any word the board's own program never uses (18)**, which takes out a file name or
+  the name of somebody who saved a copy elsewhere, on top of the logged cleaning. It also says what is on
+  screen, where Save writes, whether Live view is on, and counts journal entries and IDS batches.
+- **📁 File has a fifth group, *Support* (18).** Esc in the box is Cancel. The status line of the "RECORD
+  panel could not be drawn" message points to Save diagnostics too, not only the panel.
+
+**The final check** passed on 30 Sep (6:10–7:20 pm Eastern): **70 minutes**, every stage clean, all 593
+planted mistakes caught, 28 of them new in this version (11 more in the list change nothing by design, as
+before). **Its first run did not pass** (4:14–5:31 pm): one planted mistake got through — two copies in the
+shared folder's history saved in the same second sharing a name. The board handles that correctly; the
+test that should have caught the mistake only looked when the two copies really did land in the same
+second, and on a busy machine they did not. The test now holds the clock still, so it catches it every
+time. (A second run was cut short when the session's machine restarted.)
 
 #### 37. The IDS Batch Import carries both lanes, and knows what it has sent before
 - **Logged:** 30 Sep 2026, from Brad's IDS Batch Import Req template, walked through column by column.
@@ -134,68 +204,67 @@ Current version: **v1.91**. Next: **v1.92**.
     line CCaR does not have, rule 10 says Update needs the line to exist. If Update adds, a batch exported
     but never uploaded does no harm; if not, *forget this batch* is the way back.
 
-## Later
+#### 36. The keyboard reaches every menu item and the last mouse-only controls
+- **Logged:** 30 Sep 2026, at Brad's request: the keyboard debt v1.91 recorded, and what checking it found.
+- **Found (v1.91, checked in the browser):**
+  - **Menu items are mouse-only.** Enter opens 📁 File, but Tab skips its 13 items and goes on to the mode
+    buttons; the same for Reports & exports (25 items), Data (8), Setup (19) and a row's ⋯ menu. So every
+    export, import and setup action needs a mouse. v1.91's keyboard check did not see it: it measures with
+    the menus closed.
+  - **The 12 findings v1.91 recorded as debt** (70 places): the four panel headers under Funding detail
+    (Budget authority & posture, Funding by service, Unspent discretionary, PMO funding), which open and
+    close their panels, and the discretionary-fit chips that filter the list (by service, by lane, ▲ not
+    drawn, 🔧 fix list).
+  - **A scan of the board's markup** finds 49 clickable spots that are not controls, besides the 41
+    backdrops that close a box (each box also has its own ✕ Close button). The ones not above sit in panels
+    and boxes the check never opens.
+- **What will be built:**
+  - **Menu items become real buttons.** Tab and Shift+Tab move through an open menu, Enter or Space runs
+    an item, and Esc closes the menu with focus back on its button. The same for a row's ⋯ menu. No ARIA
+    menu roles, so nothing promises arrow keys it does not have (the same choice as the mode buttons).
+  - The four Funding detail headers become buttons that say whether their panel is open, and the fit chips
+    buttons that say whether their filter is on.
+  - Every other clickable spot the scan finds becomes a button or a link, backdrops excepted.
+- **What does not change:** what any item does, the menus' contents and order, and every figure.
+- **Checks:** `npm run standards` opens every menu, every Funding detail panel and every box before it
+  measures, and its baseline goes back to **0**; `npm run check` fails on any new clickable element in the
+  board's markup that the keyboard cannot reach, backdrops excepted; the keyboard check adds Tab through
+  every item of every menu, Enter to run one and Esc to close, and the Funding detail headers and fit chips
+  with Enter. Each new check fails on the v1.91 board first.
 
-Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
-
-#### 19. One way to tell the user something
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
-  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
-  read it.
-- **What:** one helper for status-line messages that keeps an important one (an import's result, a
-  refusal, a warning) until it is read, instead of letting the next message replace it; import and
-  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
-  they are the data-loss guards and must keep stopping the user.
-
-#### 20. One place for each field's name and label
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
-  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
-  went hollow when one name changed in one place and not another.
-- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
-  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
-  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
-  Later versions extend it as fields are touched, never as a big-bang rewrite.
-
-#### Considered and not recommended
-- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
-  arguments**: worthwhile later, once there is one file, as a version of its own.
-- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
-  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
-  and measured first.
-- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
-  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
-  for the live board, copies and submittals already cover what it asks for.
-- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
-  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
-  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
-
-#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
-- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
-  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
-  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
-  would matter. Revisit only if that limit changes.
-- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
-  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
-- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
-  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
-  clean-up version already noted in CLAUDE.md.
-- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
-  offers no way to close it. Item 23 covers the case that loses work.
-- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
-  or wrong figures; the rest guard cosmetic steps.
-- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
-  requirements is 4.4 MB, and the check takes files up to 64 MB.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
+#### 18. A diagnostics file for support — build before the road show
+- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation. Deferred
+  from v1.88; **moved to Open for v1.92 on 30 Sep 2026, at Brad's request.**
+- **Found (v1.91):** when something goes wrong on someone's machine there is no way to learn what without
+  their board. The one message that asks for a report ("the RECORD panel could not be drawn … Save a copy
+  and report it") asks for *Save a copy*, which carries every dollar and title on the board. The board
+  keeps no record of what went wrong: its warning messages (about 80 of them) each replace the one before, an unexpected
+  script error is caught by nothing, and what was lost at start-up is said once and not kept.
+- **What will be built:**
+  - **📁 File ▾ → 🩺 Save diagnostics…**, on the live board and in a PMO copy. It opens a box showing
+    exactly the text that will be saved; *Save* writes it as a small plain-text file (*ORBIT diagnostics -
+    2026-10-01.txt*) and *Cancel* writes nothing. Nothing is sent anywhere: the person sends the file.
+  - **What it holds:** the board version; whether it is the live board, a PMO copy (with its publish date
+    and office) or a one-appropriation file; the browser and window size; how the file was opened (from
+    disk, a shared folder, Live view); browser storage in use, and any write the browser refused this
+    session; **counts only** — requirements per appropriation and fiscal year, locked cycles, snapshots,
+    submittals held, BAE rows, CCaR records, months of execution data; and the last 50 warnings and script
+    errors this session, each with its time.
+  - **The board starts keeping that short list when it opens:** every warning it shows, anything lost at
+    start-up, and any unexpected script error. It lives in memory only, never in the saved file or in
+    browser storage.
+  - **Never a dollar figure, a requirement title, a person's name, a CCaR record, a PID or a budget name.**
+    Each warning is kept with its figures replaced by # and every title, name and quoted value taken out.
+    The office code (AV, PSM) is kept, because it says whose copy it is (Claude's recommendation; say if it
+    should go too).
+  - The "RECORD panel could not be drawn" message points to *Save diagnostics* instead of *Save a copy*.
+- **What does not change:** anything the board saves, exports or calculates; the board still uses no
+  network at all; messages and confirm prompts stay as they are (item 19 stays in Later).
+- **Checks:** a board filled with recognisable values (figures, titles, names, CCaR records, PIDs, budget
+  names) is driven through the warnings that name them and a planted script error, and none of those values
+  appears in the file, while the version and the counts do; the file is exactly what the box showed;
+  *Cancel* writes nothing; it works in a PMO copy and on a board whose RECORD panel failed to draw;
+  mutations that let a figure or a title through are caught.
 
 ### v1.91 — 30 Sep 2026: items 28–35, built on Brad's "go"
 

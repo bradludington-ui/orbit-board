@@ -3235,6 +3235,32 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
   await settleBoards();   // and let the loop turn: a closed board is freed only then
 })();
+// v1.92 (item 37): THE RECORD OF IDS BATCHES comes across in a full import -- it decides Add or Update for
+// the next batch, so a new version that dropped it would send every line as Add again, which IDS skips.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.92 — a full import brings the record of IDS batches';
+  try {
+  const B = boot({ html: V14.L86 });
+  const REC = { org: 21, issued: ['20260930-0001', '20260930-0002'],
+    sent: [{ fid: '20260930-0001', ts: 1790000000000, by: 'BLL', fy: 2027, lines: [{ bud: 'USAF O&M- CAM Discretionary AV', ctl: '1001', amt: 140, app: 100, act: 'Add' }] }] };
+  B.ev(`MS.ids=${JSON.stringify(REC)}; save(); 'ok'`);
+  const html = B.ev('buildSavedHtml()');
+  const N = boot();
+  const ok = N.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+    return fullImportText(${JSON.stringify(html)}, 'board.html'); })()`);
+  chk(name, 'import', 'the import runs', ok, true);
+  const N2 = boot({ ls: v14Ls(N.ev) });
+  chk(name, 'import', 'the batches sent and the ids issued arrive unchanged', N2.ev(`JSON.stringify({org:idsCfg().org, issued:idsCfg().issued, sent:idsCfg().sent})`),
+    JSON.stringify({ org: REC.org, issued: REC.issued, sent: REC.sent }));
+  chk(name, 'import', 'so the line goes as Update, and the next file id is -0003', N2.ev(`idsSentFor(2027)[idsKey(2027,'USAF O&M- CAM Discretionary AV','1001')]? 'Update' : 'Add'`)
+    + ' ' + N2.ev(`idsNextSeq('20260930')`), 'Update 3');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const name = 'v1.86 — one appropriation out, worked on, and back in, changing only itself';
@@ -3286,7 +3312,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const { O } = V14;
   const B = boot({ html: O.ev('buildSavedHtml()') });
   const lab = JSON.parse(B.ev(`JSON.stringify([...document.querySelectorAll('#dd_share .mlbl')].map(function(n){ return n.textContent; }))`));
-  chk(name, 'File', 'Save, Import, Export, Team', lab.join(' | '), 'Save | Import | Export | Team');
+  // v1.92 (item 18): a fifth group, Support, for 🩺 Save diagnostics
+  chk(name, 'File', 'Save, Import, Export, Team, Support', lab.join(' | '), 'Save | Import | Export | Team | Support');
   const items = B.ev(`document.getElementById('dd_share').textContent`);
   const order = ['Save', 'Save a copy', 'Import a full board (new version)', 'Import one appropriation', 'Import several boards at once', 'Appropriation packages',
     'Export one appropriation', 'Publish PMO copy', 'Live view'].map(t => items.indexOf(t));
@@ -3574,11 +3601,19 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     // PUTTING AN EARLIER COPY BACK, THEN SAVING. The copy standing now goes into the history whatever
     // the spacing, and Save then writes: on v1.88 the base was the old copy's own time, so Save found a
     // "newer" copy in the folder and refused, every time.
-    await pause(20); R.ev(`S.notes.A='BEFORE RESTORE'; save(); 'ok'`); await push(R.ev);
+    // THE CLOCK STANDS STILL across the save and the put-back (v1.92), so the history copy each keeps
+    // lands in the SAME second -- the case a reused name loses a copy in. Left to the wall clock, the two
+    // fell in one second only when the machine was quick, and the math gate, running four suites at once,
+    // let the reused-name mutation through.
+    await pause(20);
+    R.ev(`globalThis.__now0=Date.now; globalThis.__t0=Date.now(); Date.now=function(){ return globalThis.__t0; }; 'ok'`);
+    R.ev(`S.notes.A='BEFORE RESTORE'; save(); 'ok'`); await push(R.ev);
     await R.ev('driveHistShow()');
     const h1 = hist(), standing = copyNote('A');
     R.ev(`globalThis.__yes=true; 'ok'`); await R.ev('driveRestore(0)');
-    chk(name, 'folder, restore', 'the copy standing now is kept in the history first', (hist() > h1) + '|' + standing, 'true|BEFORE RESTORE');
+    R.ev(`Date.now=globalThis.__now0; 'ok'`);
+    chk(name, 'folder, restore', 'the copy standing now is kept in the history first, under a name of its own, in the same second',
+      (hist() > h1) + '|' + standing, 'true|BEFORE RESTORE');
     const rp = await push(R.ev);
     chk(name, 'folder, restore', 'and Save then writes the copy put back', String(rp) + '|' + (copyNote('A') !== 'BEFORE RESTORE'), 'true|true');
   }

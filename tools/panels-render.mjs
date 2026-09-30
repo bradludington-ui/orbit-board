@@ -101,13 +101,37 @@ for (const f of ['prioritization-board-grid.html']) {
   await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('.row').length > 0,
     null, { timeout: 40000 });
 
+  // v1.92 (item 36): EVERY CONTROL INSIDE A BOX IS ONE THE KEYBOARD REACHES. The static rule in
+  // check.mjs reads the markup; this reads what each box actually drew. A visible element with a
+  // click handler must be a native control or carry role and tabindex="0" -- a <div onclick> or a
+  // <span onclick> is a control a keyboard user can see and cannot use. Backdrops and handlers that
+  // only stop a click travelling to the backdrop are not controls.
+  await p.evaluate(() => {
+    const NATIVE = new Set(['BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'SUMMARY', 'OPTION']);
+    window.__kbOff = root => {
+      const out = [];
+      if (!root) return out;
+      root.querySelectorAll('[onclick]').forEach(el => {
+        const h = (el.getAttribute('onclick') || '').trim();
+        if (/^event\.stopPropagation\(\);?$/.test(h)) return;
+        if (el.classList.contains('modal-bg')) return;
+        if (!el.getClientRects().length || getComputedStyle(el).visibility === 'hidden') return;
+        if (NATIVE.has(el.tagName) || (el.tagName === 'A' && el.hasAttribute('href'))) return;
+        if (el.tabIndex >= 0 && el.getAttribute('role')) return;
+        out.push('<' + el.tagName.toLowerCase() + '> "' + (el.textContent || el.getAttribute('title') || '')
+          .replace(/\s+/g, ' ').trim().slice(0, 30) + '" → ' + h.slice(0, 40));
+      });
+      return out;
+    };
+  });
+
   // Closing is not a matter of removing the class: render() reads each panel's OPEN FLAG and puts
   // it straight back. Reset the flags, re-render, then strip whatever survived.
   const FALSE = ['aceOpen','bandPanelOpen','blOpen','bmOpen','budOpen','coaPanelOpen','crOpen','divOpen',
     'edOpen','entOpen','exOpen','exwOpen','fcOpen','flowEntOpen','flowOpen','flowRepOpen','flowRuleOpen',
     'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
     'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rpOpen','rmOpen','spOpen','subOpen',
-    'svcPanelOpen','addOpen','budRegOpen'];
+    'svcPanelOpen','addOpen','budRegOpen','diagOpen'];
   const NUL = ['recOpen', 'wbsOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {
     const set = (n, v) => { try { (0, eval)(n + '=' + v); } catch (_) {} };
@@ -147,7 +171,7 @@ for (const f of ['prioritization-board-grid.html']) {
           clipped.push(`"${inp.value}" needs ${inp.scrollWidth}px in ${inp.clientWidth}px`);
       });
       return { disp: cs.display, h: el.getBoundingClientRect().height,
-               text: el.innerText || '', clipped };
+               text: el.innerText || '', clipped, kb: window.__kbOff(el) };
     }, { id, setup });
     const open = !r.err && r.disp !== 'none' && r.h > 10;
     chk(`${id} opens`, open, r.err || (open ? '' : `display:${r.disp} height:${r.h}`));
@@ -156,6 +180,7 @@ for (const f of ['prioritization-board-grid.html']) {
     chk(`${id} shows no escaped entity`, !ent,
       ent ? `"${(r.text.slice(Math.max(0, ent.index - 26), ent.index + 26)).replace(/\s+/g, ' ')}"` : '');
     chk(`${id} clips none of its own fields`, r.clipped.length === 0, r.clipped.slice(0, 3).join('; '));
+    chk(`${id}: every control in it is one the keyboard reaches`, r.kb.length === 0, r.kb.slice(0, 3).join('; '));
   }
 
   for (const { id, fn } of panels) {
@@ -177,7 +202,7 @@ for (const f of ['prioritization-board-grid.html']) {
         if (over > 1) clipped.push(`"${inp.value}" needs ${inp.scrollWidth}px in ${inp.clientWidth}px`);
       });
       return { disp: cs.display, vis: cs.visibility, h: md ? md.getBoundingClientRect().height : 0,
-               text: md ? (md.innerText || '') : '', clipped };
+               text: md ? (md.innerText || '') : '', clipped, kb: window.__kbOff(md) };
     }, { id, setup });
     const open = !r.err && r.disp !== 'none' && r.vis !== 'hidden' && r.h > 10;
     chk(`${id} opens`, open, r.err || (open ? '' : `display:${r.disp} height:${r.h}`));
@@ -186,6 +211,7 @@ for (const f of ['prioritization-board-grid.html']) {
     chk(`${id} shows no escaped entity`, !ent,
       ent ? `"${(r.text.slice(Math.max(0, ent.index - 26), ent.index + 26)).replace(/\s+/g, ' ')}"` : '');
     chk(`${id} clips none of its own fields`, r.clipped.length === 0, r.clipped.slice(0, 3).join('; '));
+    chk(`${id}: every control in it is one the keyboard reaches`, r.kb.length === 0, r.kb.slice(0, 3).join('; '));
   }
   await closeAll();
 
@@ -199,7 +225,7 @@ for (const f of ['prioritization-board-grid.html']) {
       const c = document.getElementById('m_' + k), dd = document.getElementById('dd_' + k);
       if (!c || !dd) return { err: 'no #m_' + k };
       const out = { open: c.classList.contains('open'), h: dd.getBoundingClientRect().height,
-               text: dd.innerText || '' };
+               text: dd.innerText || '', kb: window.__kbOff(dd) };
       if (prep) { uiMode = 'review'; uiApply(); }
       return out;
     }, [k, PREP[k] || '']);
@@ -210,6 +236,7 @@ for (const f of ['prioritization-board-grid.html']) {
     const ent = ENTS.exec(r.text || '');
     chk(`the ${label} menu shows no escaped entity`, !ent,
       ent ? `"${(r.text.slice(Math.max(0, ent.index - 26), ent.index + 26)).replace(/\s+/g, ' ')}"` : '');
+    chk(`the ${label} menu: every item in it is one the keyboard reaches`, r.kb.length === 0, r.kb.slice(0, 3).join('; '));
   }
   chk('nothing threw while opening them', pageErrs.length === 0, pageErrs.slice(0, 2).join(' | '));
   // EVERY MENU IN THE FILE IS IN THE MAP ABOVE. The PMO menu was added to the toolbar in v1.67 and
@@ -223,5 +250,5 @@ for (const f of ['prioritization-board-grid.html']) {
 }
 await b.close();
 console.log(bad ? `\n${bad} panel check(s) failed\n`
-                : '\nEvery panel and menu opens, nothing shows an escaped entity, and no field clips its own value\n');
+                : '\nEvery panel and menu opens, nothing shows an escaped entity, no field clips its own value, and the keyboard reaches every control in them\n');
 process.exit(bad ? 1 : 0);

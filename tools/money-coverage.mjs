@@ -71,7 +71,10 @@ const REGISTRY = {
   // surfaces that carry no arithmetic of their own -- each needs a reason, not a shrug
   exportProposedOrder: { money: false, reason:
     'writes the ORDER — rank and identity only. It moves no dollars and prints none.' },
-  exportIdsReq:  { money: false, reason: 'IDS requirement text: identity and prose, no dollar columns.' },
+  // v1.92 (item 37): this said "no dollar columns" and excused the IDS file from every money check. It has two,
+  // Req. Amount and Req. Approved, and until v1.92 the Approved column carried the discretionary draw alone.
+  exportIdsReq:  { money: true,  what: 'the IDS Batch Import — Req. Amount and Req. Approved, a line per service per lane',
+                   via: ['idsReqRows', 'idsLineBud'] },
   exportRlgPlan: { money: false, reason: 'RLG plan narrative fields, no dollar columns.' },
   exportExView:  { money: false, reason: 'writes the saved VIEW (filters, sort, open panel), not figures.' },
   exportOneAppn: { money: false, reason: 'writes a working board holding one appropriation: its saved state copied '

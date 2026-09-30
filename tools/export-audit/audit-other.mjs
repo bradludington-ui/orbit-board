@@ -703,6 +703,244 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// ═══ THE IDS BATCH: BOTH LANES, AND A RECORD OF WHAT WAS SENT (v1.92, item 37) ═════════════════════
+// Every line the file carries is written here from the scenario, never read back from the board. The
+// walk (order A B D C F H): USAF disc 120 = A 100 + B 20; USAF mand 60 all to B; C's 40 and H's 10 find
+// nothing. ANG disc 30 to A; ANG mand 40 = A 20 + D 20, D short 10. STOVL disc 10 to F, F short 15.
+// So: A USAF discretionary only; A ANG and B USAF both lanes; D ANG mandatory only; C unfunded, sharing A's
+// control number; F discretionary and partly unfunded; H unfunded with no CCaR number at all; E unfunded
+// on its own control number, so its line is named only by its "not funded yet" line in the RECORD panel.
+{
+  const name = 'v1.92 — the IDS batch: both lanes, and a record of what was sent';
+  try {
+  const J = JSON.stringify;
+  const SV = ['USAF', 'ANG', 'STOVL'];
+  const mkI = (id, ask, ccar) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false,
+    title: id + ' title', event: id + ' event', ccar, fy26: ask.map(() => 0), ask, alloc: null });
+  const sc = { services: SV,
+    items: [mkI('A', [100, 50, 0], 'JSF1'), mkI('B', [80, 0, 0], 'JSF2'), mkI('D', [0, 30, 0], 'JSF3'),
+            mkI('C', [40, 0, 0], 'JSF1'), mkI('F', [0, 0, 25], 'JSF5'), mkI('H', [10, 0, 0], ''),
+            mkI('E', [0, 20, 0], 'JSF4')],
+    disc: [120, 30, 10], mand: [60, 40, 0], order: ['A', 'B', 'D', 'C', 'F', 'H', 'E'] };
+  const UD = 'USAF O&M- CAM Discretionary AV', UM = 'USAF O&M - CAM OBBBA Mandatory AV',
+    AD = 'USAF O&M - ANG CAM Discretionary AV', AM = 'USAF O&M - ANG CAM OBBBA Mandatory AV',
+    SD = 'USMC STOVL O&M -1A9A FL Discretionary AV', CONG = 'USAF O&M- CAM CONG AV';
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  const REC = n => ({ t: 'Record ' + n, o: 'OPR', p: 'AV', d: 1, k: String(1000 + n) });
+  ev(`MS.ccarIdx={rows:{JSF1:${J(REC(1))}, JSF2:${J(REC(2))}, JSF3:${J(REC(3))}, JSF4:${J(REC(4))}, JSF5:${J(REC(5))}, JSF6:${J(REC(6))}}};
+      BUDDB={ts:1700000000031, files:[], rows:${J([UD, UM, AD, AM, SD, CONG])}.map(budParseName).filter(Boolean)};
+      _budRegCache=null; S.budgetAsg={}; S.ccar={}; MS.ids={org:21}; save(); render(); 'ok'`);
+  const DAY = ev('idsDay()');
+  // THE FILE, as exported (and the export's side effects on the record)
+  const exportIt = () => JSON.parse(ev(`(function(){ var got=null, o=buildXlsx;
+    buildXlsx=function(s){ got=s; return new Uint8Array(0); };
+    try{ exportIdsReq(); }catch(e){ got=[{name:'THREW '+e.message, rows:[]}]; } buildXlsx=o; return JSON.stringify(got); })()`));
+  const linesOf = sheets => (((sheets || [])[0] || {}).rows || []).slice(1).map(r => r.map(c => c && typeof c === 'object' ? c.v : c));
+  const show = L => L.map(r => `${r[4]} · ${r[5]} · ${r[6]}/${r[7]} · ${r[1]} · ${r[8]}`).join(' | ');
+  const rowsNow = () => JSON.parse(ev(`JSON.stringify(idsReqRows())`));
+
+  // BOTH LANES, EACH ON ITS OWN BUDGET
+  const WANT = [
+    [AD, 1001, 30, 30],     // A ANG discretionary: 50 asked, 20 of it paid by mandatory -> 30/30
+    [AD, 1004, 20, 0],      // E ANG, no money: its not-funded-yet line, the discretionary rule's budget
+    [AM, 1001, 20, 20],     // A ANG mandatory: Amount = Approved = the mandatory draw
+    [AM, 1003, 30, 20],     // D ANG mandatory only: the whole requirement rides its one line, 10 short
+    [UM, 1002, 60, 60],     // B USAF mandatory
+    [UD, 1001, 140, 100],   // A USAF discretionary 100/100 + C unfunded 40/0 on the same control number
+    [UD, 1002, 20, 20],     // B USAF discretionary: 80 asked, 60 of it paid by mandatory
+    [SD, 1005, 25, 10],     // F STOVL discretionary: the unfunded 15 rides the discretionary line
+  ];
+  let R = rowsNow();
+  chk(name, 'lines', 'a line per service per lane, each on its own budget, Amounts and Approveds as written',
+    R.rows.map(r => `${r.bud} · ${r.ctl} · ${r.amt}/${r.app}`).join(' | '),
+    WANT.map(w => `${w[0]} · ${w[1]} · ${w[2]}/${w[3]}`).join(' | '));
+  chk(name, 'lines', 'the mandatory draws are in the file: every dollar the board funds, less none',
+    R.rows.reduce((t, r) => t + r.app, 0), 260);
+  chk(name, 'lines', 'the file’s Amounts plus what is held back add to every requirement on the board',
+    R.rows.reduce((t, r) => t + r.amt, 0) + R.skip.reduce((t, k) => t + k.ask, 0), 355);
+  chk(name, 'lines', 'and its Approveds plus what is held back to what the board funds',
+    R.rows.reduce((t, r) => t + r.app, 0) + R.skip.reduce((t, k) => t + k.app, 0),
+    +ev(`(function(){ var T=tiers(), n=0; S.order.forEach(function(id){ var t=T[id]; if(!t) return;
+      (t.d||[]).forEach(function(v){ n+=v; }); (t.m||[]).forEach(function(v){ n+=v; }); }); return n; })()`));
+  chk(name, 'lines', 'no Amount below its Approved', R.rows.filter(r => r.amt + 0.005 < r.app).length, 0);
+  chk(name, 'held back', 'a requirement with no CCaR number is held back, named with its lane',
+    R.skip.map(k => `${k.id} ${k.svc} ${k.lane || 'unfunded'} ${k.ask}/${k.app} · ${k.why}`).join(' | '),
+    'H USAF unfunded 10/0 · no CCaR number on the requirement');
+  // EVERY LINE IS ONE THE RECORD PANEL NAMES: its budget, from the panel as drawn
+  const panelSays = JSON.parse(ev(`(function(){ var out=[];
+    S.order.forEach(function(id){ setCur(id); var ctl=ccarCtlOf(itemById(id)).v; if(!ctl) return;
+      [].slice.call(document.querySelectorAll('#inspector table.budtab select')).forEach(function(s){
+        var t=s.getAttribute('title')||'', m=/(?:The file prints|the IDS batch files it under): (.+)$/.exec(t);
+        if(m) out.push(m[1]+' · '+ctl); }); });
+    return JSON.stringify(out.filter(function(v,i,a){ return a.indexOf(v)===i; }).sort()); })()`));
+  chk(name, 'panel', 'every line’s budget is the one the RECORD panel names for it',
+    J(R.rows.map(r => `${r.bud} · ${r.ctl}`).sort()), J(panelSays));
+  // A LANE-LESS BUDGET SERVING BOTH LANES folds them into one line: IDS takes a control number once per budget
+  ev(`S.budgetAsg.B={USAF:${J(CONG)}}; save(); render(); 'ok'`);
+  R = rowsNow();
+  chk(name, 'one budget', 'B’s two lanes on one lane-less budget are one line, both lanes’ money in it',
+    R.rows.filter(r => r.ctl === '1002').map(r => `${r.bud} ${r.amt}/${r.app}`).join(' | '), CONG + ' 80/80');
+  ev(`delete S.budgetAsg.B; save(); render(); 'ok'`);
+  // A BUDGET CHOSEN ON A "NOT FUNDED YET" LINE is the one its IDS line goes under -- chosen in the panel
+  chk(name, 'unfunded', 'E’s not-funded-yet line takes a mandatory budget from its picker', ev(`(function(){ setCur('E');
+    var s=document.querySelector('#inspector select[aria-label="BAE budget, ANG not funded yet"]'); if(!s) return 'no picker';
+    s.value=${J(AM)}; if(s.value!==${J(AM)}) return 'not offered'; s.dispatchEvent(new Event('change')); return 'ok'; })()`), 'ok');
+  chk(name, 'unfunded', 'and E’s line goes under it', rowsNow().rows.filter(r => r.ctl === '1004').map(r => `${r.bud} ${r.amt}/${r.app}`).join(' | '), AM + ' 20/0');
+  ev(`delete S.budgetAsg.E; save(); render(); 'ok'`);
+
+  // THE FIRST EXPORT: ALL ADD, AND RECORDED
+  let F1 = linesOf(exportIt());
+  chk(name, 'first', 'the first batch: every line Add, “New Requirement”, ORG 21, the working year',
+    F1.map(r => r[1] + '/' + r[8] + '/' + r[2] + '/' + r[3]).filter((v, i, a) => a.indexOf(v) === i).join(', '),
+    'Add/New Requirement/21/2027');
+  chk(name, 'first', 'Ref No runs 1..N', F1.map(r => r[0]).join(','), WANT.map((_, i) => i + 1).join(','));
+  chk(name, 'first', 'the file id is today’s first', ev(`idsCfg().issued.join(',')`), DAY + '-0001');
+  chk(name, 'first', 'and the batch is recorded, line by line',
+    ev(`JSON.stringify(idsCfg().sent.map(function(b){ return b.fid+':'+b.lines.length; }))`), J([DAY + '-0001:8']));
+  // THE SAME LINES AGAIN: ALL UPDATE, AND THE ID MOVES ON BY ITSELF
+  chk(name, 'again', 'the next file id is taken by itself', ev('idsFileId()'), DAY + '-0002');
+  let F2 = linesOf(exportIt());
+  chk(name, 'again', 'the same lines again: every one Update, “Updated requirement”',
+    F2.map(r => r[1] + '/' + r[8]).filter((v, i, a) => a.indexOf(v) === i).join(', '), 'Update/Updated requirement');
+  // A NEW REQUIREMENT IS ADD; A LINE THAT VANISHED IS LISTED, NOT DELETED
+  ev(`DATA.items.push(${J(mkI('G', [0, 0, 5], 'JSF6'))}); S.order.push('G');
+      itemById('F').ccar=''; save(); render(); 'ok'`);
+  const S3 = exportIt(), F3 = linesOf(S3);
+  chk(name, 'third', 'a new requirement goes as Add, the rest as Update',
+    F3.map(r => `${r[5]}:${r[1]}`).sort().join(' '), ['1001:Update', '1001:Update', '1001:Update', '1002:Update', '1002:Update', '1003:Update', '1004:Update', '1006:Add'].join(' '));
+  const notEx = ((S3[1] || {}).rows || []).map(r => r.map(c => c && typeof c === 'object' ? c.v : c).join(' | ')).join(' || ');
+  chk(name, 'third', 'a line sent before and missing now is listed on Not exported, for a Delete by hand',
+    /SENT BEFORE, NOT IN THIS BATCH[\s\S]*USMC STOVL O&M -1A9A FL Discretionary AV \| 1005 \| 25 \| 10 \| \d{8}-0002/.test(notEx), true);
+  // FORGET A BATCH THAT WAS NEVER UPLOADED: ITS LINES GO BACK TO ADD
+  ev(`window.confirm=function(){ return true; }; idsForget(${J(DAY + '-0003')}); 'ok'`);
+  R = rowsNow();
+  chk(name, 'forget', 'the forgotten batch’s only line goes back to Add; the others stay Update',
+    R.rows.map(r => `${r.ctl}:${r.act}`).sort().join(' '), ['1001:Update', '1001:Update', '1001:Update', '1002:Update', '1002:Update', '1003:Update', '1004:Update', '1006:Add'].join(' '));
+  chk(name, 'forget', 'and its file id stays used', ev(`idsCfg().issued.join(',')`), [1, 2, 3].map(n => DAY + '-000' + n).join(','));
+  // A TYPED SEQUENCE WINS FOR THE DAY; ONE ALREADY ISSUED IS REFUSED
+  ev(`idsSet('seq','7'); 'ok'`);
+  chk(name, 'file id', 'a typed sequence is used', ev('idsFileId()'), DAY + '-0007');
+  exportIt();
+  chk(name, 'file id', 'and after it the next is taken by itself again', ev('idsFileId()'), DAY + '-0008');
+  const refused = JSON.parse(ev(`(function(){ var n=idsCfg().issued.length, msg=''; idsSet('seq','2');
+    var oa=window.alert; window.alert=function(m){ msg=String(m); };
+    var o=buildXlsx, built=false; buildXlsx=function(){ built=true; return new Uint8Array(0); };
+    try{ exportIdsReq(); }catch(e){} buildXlsx=o; window.alert=oa;
+    return JSON.stringify({built:built, issued:idsCfg().issued.length-n, said:/already been issued/.test(msg)}); })()`));
+  chk(name, 'file id', 'an id this board already issued is refused, and nothing is written or recorded', J(refused), J({ built: false, issued: 0, said: true }));
+  ev(`idsSet('seq',''); 'ok'`);
+  // ANOTHER APPROPRIATION'S IDS COUNT: A1 IS UNIQUE ACROSS EVERY FILE
+  ev(`(function(){ var k=Object.keys(_SLUGMAP).filter(function(x){ return x!==_AP.slug; })[0];
+    localStorage.setItem(_SLUGMAP[k].key, JSON.stringify({years:{}, ids:{issued:[${J(DAY + '-0020')}]}})); })(); 'ok'`);
+  chk(name, 'file id', 'an id issued in another appropriation is never handed out again', ev('idsFileId()'), DAY + '-0021');
+  // THE RECORD TRAVELS WITH THE BOARD, AND NOT INTO A PMO COPY
+  const kept = ev(`JSON.stringify({i:idsCfg().issued, s:idsCfg().sent.map(function(b){ return b.fid; })})`);
+  const RB = boot({ html: ev('buildSavedHtml()') });
+  chk(name, 'saved', 'the record and the issued ids come back from a saved file',
+    RB.ev(`JSON.stringify({i:idsCfg().issued, s:idsCfg().sent.map(function(b){ return b.fid; })})`), kept);
+  const copy = ev(`(function(){ var h=buildSavedHtml({refOnly:true}); var m=/<script type="application\\/json" id="pubState">([\\s\\S]*?)<\\/script>/.exec(h);
+    var st=JSON.parse(m[1]).appns[_AP.slug]; return JSON.stringify({sent:!!(st.ids&&st.ids.sent), issued:((st.ids||{}).issued||[]).length}); })()`);
+  chk(name, 'copy', 'a PMO copy carries the ids issued (-0001, -0002, -0003, -0007) but not the record of batches', copy, J({ sent: false, issued: 4 }));
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ SAVE DIAGNOSTICS HOLDS NO FIGURE, TITLE OR NAME (v1.92, item 18) ═══════════════════════════════
+// A board filled with values nobody could mistake -- two titles, one of them made only of words the program
+// itself uses, plan events, a CCaR record, a PID, a budget name, two people, a figure -- is driven through
+// real warnings that name them (a budget choice cleared, a store the browser refused, a store unreadable on
+// opening, a RECORD panel that failed to draw) and a planted script error, and one message names everything at
+// once along with a file and a person the board never held. None of those values may reach the file, and
+// none the board holds may stay in the list it keeps in memory. The version and the counts must be there.
+// The file is exactly what the box showed; Cancel and Esc write nothing; a PMO copy says what it is and
+// whose, and keeps the same values out; a one-appropriation file says so.
+{
+  const name = 'v1.92 — Save diagnostics holds no figure, title or name';
+  try {
+  const J = JSON.stringify;
+  const SV = ['USAF', 'ANG', 'STOVL'];
+  const T1 = 'Zanzibar Widget Retrofit', T2 = 'Quokka Harness Overhaul', T3 = 'Engine Sustainment Support', EVT = 'Kestrel Plan Event';
+  const BUD = 'USAF O&M- CAM Discretionary AV', P1 = 'Brunhilde Okonkwo', P2 = 'Thaddeus Moonbeam';
+  const mkI = (id, title, ask, ccar) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title, event: EVT + ' ' + id, ccar,
+    fy26: ask.map(() => 0), ask, alloc: null });
+  const sc = { services: SV, items: [mkI('A', T1, [7654321, 50, 0], 'JSF77341'), mkI('B', T2, [80, 0, 0], 'JSF2'), mkI('C', T3, [30, 0, 0], 'JSF3')],
+    disc: [120, 30, 10], mand: [60, 40, 0], order: ['A', 'B', 'C'] };
+  // what must never be in the file, and the part of each that would give it away
+  const NEVER = [T1, T2, T3, 'Zanzibar', 'Quokka', 'Kestrel', 'JSF77341', '77341', 'PIDQX4471', 'QX4471', '7,654,321', '7654321',
+    BUD, P1, 'Okonkwo', P2, 'Moonbeam', 'Vellichor', 'Grindlewald', 'Program Support Office', 'Contracting Office Lambda'];
+  // what the board holds, or quoted, or a figure: none of it may stay even in the list kept in memory
+  const NEVER_KEPT = [T1, T2, T3, EVT, 'JSF77341', 'PIDQX4471', '7,654,321', BUD, P1, P2, 'Program Support Office', 'Contracting Office Lambda'];
+  const leaks = (txt, list) => list.filter(v => String(txt).toLowerCase().indexOf(v.toLowerCase()) >= 0).join(', ') || 'none';
+  const { ev } = boot({ ls: { prio27execdb: '{not json', prio27who: P1 } });
+  seed(ev, sc);
+  ev(`S.pid={A:'PIDQX4471'}; MS.jrnl=(MS.jrnl||[]).concat([{t:1, by:${J(P2)}, id:'A', f:'title', a:'x', b:'y'}]);
+      BUDDB={ts:1, files:[], rows:[budParseName(${J(BUD)})].filter(Boolean)}; _budRegCache=null;
+      S.budgetAsg={A:{'USAF|d':${J(BUD)}}}; save(); render(); 'ok'`);
+  // execution data holds strings of its own (its POC column): a name made only of the program's own words
+  ev(`EXDB.all={om:{asOf:'2027-03', hdr:[], read:1, noFy:0, rows:{2027:[(function(){ var r=[]; for(var c=0;c<32;c++) r.push('');
+      r[0]=2027; r[1]='2027-03'; r[2]='JSF77341'; r[9]=7654321; r[14]='Contracting Office Lambda'; return r; })()]}}}; _diagSec=null; 'ok'`);
+  // the real warnings
+  ev(`budClearAll('A'); 'ok'`);
+  ev(`(function(){ var o=Storage.prototype.setItem; Storage.prototype.setItem=function(){ var e=new Error('full'); e.name='QuotaExceededError'; throw e; };
+      try{ persistExdb(); }finally{ Storage.prototype.setItem=o; } })(); 'ok'`);
+  ev(`(function(){ var o=inspectorBody; inspectorBody=function(){ throw new Error('cannot draw '+dispTitle(itemById('A'))+' at $7,654,321'); };
+      try{ render(); }finally{ inspectorBody=o; } })(); 'ok'`);
+  chk(name, 'record', 'a RECORD panel that failed to draw points to Save diagnostics, not Save a copy',
+    ev(`(function(){ var t=document.getElementById('inspector').textContent; return /Save diagnostics/.test(t) && !/Save a copy/.test(t); })()`), true);
+  // one message naming everything, and a script error nothing caught
+  ev(`setStat('⚠ Could not read <b>Vellichor Budget Export.xlsx</b> — the shared folder holds a newer save by Ophelia Grindlewald (10:42). '
+      +'$7,654,321 for Zanzibar Widget Retrofit (Kestrel Plan Event A) and Engine Sustainment Support, "Program Support Office", '
+      +'CCaR JSF77341, PID PIDQX4471, budget USAF O&M- CAM Discretionary AV, by Brunhilde Okonkwo and Thaddeus Moonbeam, '
+      +'POC Contracting Office Lambda'); 'ok'`);
+  ev(`window.dispatchEvent(new ErrorEvent('error', {message:'TypeError: Zanzibar Widget Retrofit has 7654321', lineno:12345, colno:67})); 'ok'`);
+  const kept = ev(`JSON.stringify(DIAG.log)`);
+  chk(name, 'kept', 'the list kept in memory holds no title, record, PID, budget, person, quoted value or figure the board holds', leaks(kept, NEVER_KEPT), 'none');
+  // THE BOX, AND THE FILE IT WRITES
+  ev(`window.__saved=[]; window.__dl=[]; (function(){ var B0=Blob; window.Blob=function(p, o){ window.__saved.push(p.map(String).join('')); return new B0(p, o); };
+      HTMLAnchorElement.prototype.click=function(){ window.__dl.push(this.download||''); }; })(); toggleDiag(); 'ok'`);
+  const shown = ev(`document.getElementById('diagPre').textContent`);
+  chk(name, 'file', 'none of the values reaches the file', leaks(shown, NEVER), 'none');
+  const has = w => shown.indexOf(w) >= 0;
+  chk(name, 'file', 'the version, the board and the counts are there',
+    J([has(ev('BUILD')), has('This file:          the live board'), has('FY27 3 on the board, 0 removed'), has('CCaR records:       3 of 3'),
+       has('Writes refused:     1 this session'), has('The imported execution data — QuotaExceededError'),
+       has('Unread on opening:  the imported CCaR execution data held in browser storage'), has('Journal entries:'),
+       has('Execution data:     O&M 1 plan events in 1 month(s)')]),
+    J([true, true, true, true, true, true, true, true, true]));
+  chk(name, 'file', 'each warning is there, cleaned, and the script error with where it happened',
+    J([/budget choice cleared on … — every line follows the rule again/.test(shown), /The RECORD panel could not be drawn/.test(shown),
+       /\$# for …/.test(shown), /ERROR {4}TypeError: … has #  \[line 12345:67\]/.test(shown), /1 script error/.test(shown)]),
+    J([true, true, true, true, true]));
+  ev(`setStat('⚠ Something that happened after the box was opened'); 'ok'`);
+  ev(`document.getElementById('diagSave').click(); 'ok'`);
+  const saved = JSON.parse(ev(`JSON.stringify(window.__saved)`)), dl = JSON.parse(ev(`JSON.stringify(window.__dl)`));
+  chk(name, 'file', 'Save writes one file, named for the day, and it is exactly what the box showed',
+    J([saved.length, /^ORBIT diagnostics - \d{4}-\d{2}-\d{2}\.txt$/.test(dl[0] || ''), saved[0] === shown]), J([1, true, true]));
+  ev(`toggleDiag(); document.querySelector('#diagPanel .btn:not(#diagSave)').click();
+      toggleDiag(); document.dispatchEvent(new KeyboardEvent('keydown', {key:'Escape', bubbles:true})); 'ok'`);
+  chk(name, 'cancel', 'Cancel and Esc close the box and write nothing',
+    ev(`JSON.stringify([window.__saved.length, window.__dl.length, diagOpen, document.getElementById('diagPanel').className])`), J([1, 1, false, 'modal-bg']));
+  // A PMO COPY: it says so, and whose; its own warnings are cleaned the same way
+  const copyHtml = ev(`pmoCopyHtml({sandbox:true, by:${J(P1)}, ts:1790000000000, fy:MS.cur, ap:APPN, base:pmoBaseline(), pv:PMO_PV, ord:{}})`);
+  const C = boot({ html: copyHtml, ls: { prio27pmo: 'AV' } });
+  C.ev(`setStat('⚠ Could not submit Zanzibar Widget Retrofit for Brunhilde Okonkwo: $7,654,321'); toggleDiag(); 'ok'`);
+  const cs = C.ev(`document.getElementById('diagPre').textContent`);
+  chk(name, 'copy', 'a PMO copy says it is one, when it was published and whose it is -- the office code stays',
+    /This file: {10}a PMO copy, published \d{4}-\d{2}-\d{2}, office AV/.test(cs), true);
+  chk(name, 'copy', 'and none of the values reaches its file', leaks(cs, NEVER), 'none');
+  // A ONE-APPROPRIATION FILE
+  const O = boot({ html: ev(`oneAppnHtml('om')`) });
+  chk(name, 'one', 'a one-appropriation file says so', /This file: {10}a one-appropriation file \(O&M\)/.test(O.ev(`diagReport()`)), true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
 // ═══ THE TWO SPEND PLANS LIST EVERY REQUIREMENT (v1.83) ═══════════════════════════════════════
 // A requirement neither plan funds -- nothing allocated -- was dropped from the panel and every tab,
 // and the TOTAL line called it one that "asks for nothing". The owner found a $50M requirement

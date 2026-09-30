@@ -39,7 +39,7 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 | Before every commit | `npm run check` | `all checks passed` |
 | After a change | `npm run audit` | 8 suites: 7 `ALL CHECKS PASSED` banners plus the legacy line |
 | After a change that moves anything on screen | `npm run verify:grid` | exit 0 |
-| After a change to anything a person operates | `npm run standards` | no NEW finding (2.1.1 Keyboard included) |
+| After a change to anything a person operates | `npm run standards` and `npm run keys` | no NEW finding (the baseline is empty since v1.92); every keyboard check `ok` |
 | Before a version ships | `npm run validate:math` (~1 hour) | `MATH VALIDATION PASSED` |
 
 - In the math check, a mutation that is **NOT APPLIED** fails the run. If you rewrite a line that a
@@ -73,6 +73,12 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   shown, never a figure, and is this browser's setting, never written into the file. `npm run controls`
   records each control with its surface (row or RECORD panel) and fails on one added or moved; `npm run
   layout` holds the modes. See the v1.90 and v1.91 sections of `CLAUDE.md`.
+- Put a click handler on anything that is not a native control without `role="button" tabindex="0"`, or
+  redraw a control someone is using without keeping their place. `npm run check` fails on the first; `npm
+  run keys` and `npm run panels` on the rest. See the v1.92 section of `CLAUDE.md`.
+- Put a raw value into the diagnostics list (`DIAG`) or the diagnostics file. Every entry goes through
+  `diagClean()`, and the file holds counts, never a figure, title, name, CCaR record, PID or budget name.
+  `audit-other.mjs` proves it, and its mutations must stay caught.
 - Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity` and `spmtDetail`, or
   the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.

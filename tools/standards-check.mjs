@@ -215,6 +215,8 @@ const PROBE = () => {
     if (native || el.tabIndex >= 0) continue;
     const h = el.getAttribute('onclick') || '';
     if (/event\.target\s*===?\s*this/.test(h)) continue;
+    // v1.92: a menu's box stops a click inside it closing the menu; that is not a control
+    if (/^\s*event\.stopPropagation\(\)\s*;?\s*$/.test(h)) continue;
     // the whole handler, arguments folded (the 2.5.8 key's rule): "scOpen=!scOpen;render()" and
     // "gsOpen=!gsOpen;render()" are two different controls, and naming only render() hid which
     const fn = h.replace(/'[^']*'/g, "'…'").replace(/"[^"]*"/g, '"…"').replace(/\s+/g, ' ').trim().slice(0, 60);
@@ -271,8 +273,24 @@ for (const build of BUILDS) {
       _budRegCache = null;
       const id = curRow || gridIds()[0]; if (!S.budgetAsg) S.budgetAsg = {};
       S.budgetAsg[id] = { 'USAF|disc': 'USAF O&M- CAM CONG PSM' }; render(); } catch (e) {} });
+    // v1.92 (item 36): EVERY FUNDING DETAIL PANEL OPEN, not only the ones the board opens by default -- a
+    // header that was a clickable div, and the panel under it, were measured by nothing while closed.
+    await page.evaluate(() => { try { ['scOpen', 'gsOpen', 'taOpen', 'pmoSumOpen', 'siOpen', 'ceOpen', 'teamOpen', 'buysOpen']
+      .forEach(function(n){ try { (0, eval)(n + '=true'); } catch (e) {} }); render(); } catch (e) {} });
     await page.waitForTimeout(300);
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    // v1.92 (item 36): AND WITH EACH MENU OPEN. v1.91 measured with every menu closed, so it never saw that no
+    // menu item could be reached from the keyboard. Each toolbar menu in turn (the Fund tools' in Fund), then
+    // a row's ⋯ menu.
+    for (const m of ['share', 'reports', 'data', 'setup', 'view', 'fy', 'pmo', 'basis', 'modetools', '(row)']) {
+      await page.evaluate(m => { try {
+        if (m === 'basis' || m === 'modetools') { uiMode = 'fund'; uiApply(); render(); }
+        if (m === '(row)') { openMenu = null; syncBtns(); rowMenuId = gridIds()[0]; render(); }
+        else { rowMenuId = null; openMenu = m; syncBtns(); } } catch (e) {} }, m);
+      await page.waitForTimeout(150);
+      for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    }
+    await page.evaluate(() => { try { openMenu = null; rowMenuId = null; uiMode = 'review'; uiApply(); syncBtns(); render(); } catch (e) {} });
 
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.
