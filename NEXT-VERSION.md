@@ -70,6 +70,70 @@ Current version: **v1.91**. Next: **v1.92**.
   every item of every menu, Enter to run one and Esc to close, and the Funding detail headers and fit chips
   with Enter. Each new check fails on the v1.91 board first.
 
+#### 37. The IDS Batch Import carries both lanes, and knows what it has sent before
+- **Logged:** 30 Sep 2026, from Brad's IDS Batch Import Req template, walked through column by column.
+  **Approved by Brad, 30 Sep: Claude's recommendations on both lanes, Add/Update from a record of what
+  was sent, and automatic file IDs.** Three questions are still open (below).
+- **Found (v1.91):** Reports & exports › 📤 IDS Batch Import already writes the template's own sheet —
+  the A1 file ID, the eight headings, the column widths, the freeze — and a *Not exported* sheet naming
+  every line held back and why. What it puts in the columns falls short:
+  - **Only discretionary money goes.** Every line is filed under the service's discretionary budget, and
+    Req. Approved is the discretionary draw alone. On a test board $230 was allocated and the file carried
+    $150: the $80 drawn from mandatory was in no line, and no mandatory budget was named.
+  - **A service funded only from mandatory is held back** with "pick one under BAE budget in the RECORD
+    panel", but the panel draws no discretionary line for that service, so there is nothing to pick.
+  - **Every line is "Add"**, one action for the file. IDS skips an Add whose control number is already on
+    that budget and year, so a changed amount sent again changes nothing, and says nothing.
+  - **The file ID's sequence is typed by hand**, and a second export on the same day repeats the first
+    one's ID unless someone remembers to raise it; IDS refuses an ID it has seen.
+  - **Its figures are checked by nothing.** `tools/money-coverage.mjs` excuses it as having "no dollar
+    columns"; it has two.
+- **What will be built:**
+  - **A line per service per lane, as the Spend Plan Source does, and every line is one the RECORD panel's
+    BAE budget section shows,** on the budget that section names:
+    - a service drawing discretionary: a **discretionary** line — Approved is the discretionary draw, and
+      Amount carries the rest of the requirement, the unfunded part included; and, if it also draws
+      mandatory, a **mandatory** line whose Amount and Approved are both the mandatory draw;
+    - a service drawing only mandatory: one **mandatory** line, whose Amount carries the whole requirement;
+    - a service with no money: one line, Approved 0, on the budget its *not funded yet* line names.
+    For every requirement and service, the Amounts add up to the requirement exactly, and no Amount is
+    below its Approved. Lines that land on the same budget and control number are still added into one
+    (IDS allows a control number once per budget and year).
+  - **A record of every batch exported**, kept in the saved board: the file ID, the date, who, and each
+    line (year, budget, control number, amounts). A line is **Add** the first time it goes and **Update**
+    after that, with the template's own comments — *New Requirement* / *Updated requirement*. The one
+    Action picker goes. A line sent before and missing now (a requirement removed, a budget changed) is
+    listed on the *Not exported* sheet as sent before and not in this batch — **Delete stays by hand in
+    CCaR.** A batch that was exported but never uploaded can be forgotten from the IDS panel, and its lines
+    go back to Add.
+  - **The file ID moves on by itself:** the next unused sequence for the day, from every ID this board has
+    issued; still editable, and an ID it has already issued is refused.
+  - The IDS panel says *Approved* (both lanes), and its hint names the RECORD panel's BAE budget as well as
+    Classify requirements.
+- **What does not change:** the sheet's layout and headings, the ORG and Budget FY columns, the control
+  number lookup (from the CCaR records file, never guessed), the *Not exported* sheet, pre-flight's use of
+  the same reasoning, and every other export. PMO copies do not carry the record of batches.
+- **Checks:** a test board with discretionary-only, mandatory-only, both-lane, partly unfunded and unfunded
+  services, two requirements sharing a control number, and a lane-less budget serving both lanes: every
+  line's budget is the one the RECORD panel names; each requirement's Amounts add to its requirement; each
+  Approved is its lane's draw; the file's Approved plus what was held back equals what the board funds;
+  Ref No runs 1..N with one ORG and one year. The batch record: a first export is all Add, the same lines
+  again are Update, a new requirement is Add, a vanished line is listed, a forgotten batch returns its
+  lines to Add, and the record survives save, reopen and a full import. Two exports on one day get -0001
+  and -0002. `money-coverage` counts the IDS file as a money export, and mutations on each rule are caught.
+- **Still open (the build keeps today's behaviour for these until Brad answers):**
+  - **ORG:** the real ORG number, and whether it is one for every JSF budget or changes by appropriation,
+    service or office (if it changes, one file per ORG).
+  - **Unfunded requirements and the budget ceiling:** whether a requirement with nothing allocated is sent
+    with Approved 0 (today it is); and whether the Budget Extract carries each budget's approved amount, so
+    rule 12 (total Approved within the budget's available) can be checked before the file is written.
+  - **The other tabs:** whether the file should also carry the template's Instructions and Action-list tabs
+    (never the Example tab), and whether CCaR's import accepts the extra *Not exported* sheet or it should
+    be a separate file.
+  - **For the CCaR admins:** the template contradicts itself on Update — its Action list says Update adds a
+    line CCaR does not have, rule 10 says Update needs the line to exist. If Update adds, a batch exported
+    but never uploaded does no harm; if not, *forget this batch* is the way back.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
