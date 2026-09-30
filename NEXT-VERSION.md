@@ -10,7 +10,7 @@ Current version: **v1.90**. Next: **v1.91**.
 
 #### 28. The RECORD panel's "lane short" figure is cut off
 - **Logged:** 30 Sep 2026, at Brad's request. Found while building item 27, and left alone there because
-  that change was layout-only. Not yet approved to build.
+  that change was layout-only. **Approved by Brad, 30 Sep: two lines** (Claude's recommendation).
 - **Found (measured on v1.90; v1.89 is the same):** in the RECORD panel's *By service* table, when a
   service was allocated money no lane could pay, a small red note under its UFR figure reads *lane short
   $…*. The UFR column is pinned at 78px and its cells hide what overflows, and the note is 8px bold on
@@ -19,11 +19,11 @@ Current version: **v1.90**. Next: **v1.91**.
   every width from 1024 to 1920 and in every density. *lane short $150,000* shows as *$150,00*, and
   *$1,168,856* as *$1,168,8*. The number underneath is right, and nothing saved or exported is
   affected, but the figure you read on screen is wrong. It is money, so treat it as one.
-- **What would be built (recommended):** the note on two lines, *lane short* and then the figure on a
+- **What will be built:** the note on two lines, *lane short* and then the figure on a
   line of its own, at 9.5px (the panel's label size since v1.90), with the whole sentence in its
   tooltip. A nine-digit figure ($123,456,789) then fits the 78px column, and the Req, Disc and Mand
   boxes keep their widths. A row with a note gets about 11px taller.
-  - *The alternative:* widen the UFR column to about 92px and keep one line. That takes about 14px from
+  - *Not chosen:* widening the UFR column to about 92px and keeping one line. That took about 14px from
     the three money boxes, and a nine-digit figure would still not fit.
 - **What does not change:** the figure itself and how it is worked out, every other cell of the table,
   and every export.
