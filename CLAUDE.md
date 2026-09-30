@@ -3029,6 +3029,11 @@ counts ⠿ (`gripDown`) as the drag control.
 **Not changed, and noticed:** the RECORD panel's by-service table clips its "lane short …" note in the
 UFR column on a narrow panel. It did the same in v1.89; it is not this item's to fix.
 
+**The gate that passed v1.90** (30 Sep, 11:07–12:19 UTC, its first run on the commit that shipped): every
+stage clean, **72.6 min**; one sweep of 564 mutations (560 from v1.89 plus the 4 above), 553/553 caught,
+11 equivalent, the sweep 67.9 min; fuzz seed 568732149. A run on the branch before the PR (09:48–10:59
+UTC) had passed the same way in 70.9 min, fuzz seed 793644620.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

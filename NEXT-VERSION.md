@@ -110,7 +110,10 @@ What shipped differs from the approved prototype in these places, all stated her
 - **A status message shows beside the save state until the next one (27)**; the prototype showed a board
   at rest, with no message.
 
-**The final check** GATE_PLACEHOLDER
+**The final check** passed on 30 Sep (7:07–8:19 am Eastern), on its first run: **73 minutes**, every
+stage clean, all 553 planted mistakes caught, 4 of them new in this version and 4 moved to the new
+layout (11 more in the list change nothing by design, as before). The same check had passed on the
+branch before the PR, in 71 minutes.
 
 #### 27. The board's layout: context bar, workspace modes, a denser, clearer row
 - **Logged:** 30 Sep 2026. **Approved by Brad, 30 Sep, exactly as prototyped** ("A") after a Stage 1
