@@ -34,13 +34,13 @@ shared browser storage, so a draft left in the card build is already in the grid
 3. Use **📁 File → ⬅ Import a full board (new version)…** and pick your saved board file. Requirements,
    budgets, every fiscal year, PPBE positions, locked cycles, logs and lists all load from it.
    **⬅ Import one appropriation…** takes just one, and changes nothing else.
-4. **💾 Save** writes everything back into the file you are working from.
+4. **Save** (top right) writes everything back into the file you are working from.
 
 Use **Chrome or Edge**. Saving in place relies on the File System Access API; in other browsers the
 board falls back to downloading a copy that you then have to move over the original yourself.
 
 The board covers four appropriations — **O&M, Full Fund, Initial Spares, OPN** — switched from the
-toolbar, each with its own state.
+Appropriation box at the top left, each with its own state.
 
 ## What it does
 
