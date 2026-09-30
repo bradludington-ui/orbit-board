@@ -1141,7 +1141,7 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 <section data-part="team" data-id="t-board" data-t="The board, its menus and its file">
 <p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box on the toolbar. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
 <p>The toolbar reads left to right: what you are looking at (<b>🔍 Filter ▾</b>, <b>🏢 PMO ▾</b>), the year that is executing (<b>📈 Active year ▾</b>), the year you are building (<b>🎯 Budget year ▾</b>), the out-years (<b>📚 FYDP ▾</b>), the shape of the board (<b>🛠 Tools ▾</b>) and what goes out (<b>⬇ Export ▾</b>). <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team.</p>
-<p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines.</p>
+<p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the top bar says <i>↶ work kept aside</i>, and one click puts it back.</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
 <p><span class="mp" data-m="share">📁 File ▾ › 📤 Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
@@ -1472,6 +1472,10 @@ let PUB = null;
 const _bootLost = [];
 try{ PUB = JSON.parse(document.getElementById('pubState').textContent); }
 catch(e){ _bootLost.push('the saved board state in this file'); }
+// WHEN THIS FILE WAS LAST SAVED, read the way the collision guard reads the file on disk (fileTsOf:
+// a consolidated file's newest appropriation), before PUB is narrowed to this board's appropriation.
+// Save compares the file against this number when the board is showing the file's own state (v1.89).
+const PUB_FILE_TS = (function(){ try{ return fileTsOf(PUB); }catch(e){ return 0; } })();
 // ── PMO COPY (sandbox) ────────────────────────────────────────────────────────────
 // A copy published for a programme office. Everything on screen still WORKS -- drag the order,
 // retype a value, watch the cutline move -- and persist() still writes to that reader's own browser
@@ -1815,7 +1819,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.88 (29 Sep 2026)';
+const BUILD='v1.89 (30 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4573,6 +4577,45 @@ function yearHas(id, y){
 //
 // Returns {ok, status}: 'copied', or 'exists' when the target year already holds it and the
 // caller asked to skip. `opts.skipExisting` is what makes a bulk roll safe to repeat.
+//
+// EVERY KIND OF DATA A YEAR KEEPS PER REQUIREMENT, keyed by its id (v1.89). ONE list, read by
+// yearCopy() (what a copy carries), reqPurge() (what an added requirement leaving a year takes with
+// it) and newReqSeq() (which numbers a year has ever used). It was yearCopy's own normalise list;
+// removeReq() kept a second, shorter one of nine, so deleting an added requirement left the other
+// twenty-odd behind -- and the next one added under the same number inherited all of them: band,
+// award dates, destination, PID, impact statement, WBS, the UPL mark. `upl` is keyed 'r|<id>'.
+// A container added to the board and not to this list fails the round-trip fuzz by name.
+const REQ_MAPS=['alloc','mc','notes','desc','titles','ccar','pid','costElem','fsrc','asks','awards','grp','si','dest',
+   'wbs','clinWbs','rcnAsg','rcnSvc','clinRcn','aceMap','upl','obCat','budgetAsg','ptype','recNames',
+   'clinAlloc','clinMeta','clinNew','clinRm','crHalf','band','cons','minInc','mipr'];
+// Everything one year state holds under one requirement's id: every REQ_MAPS container, the UPL mark
+// and the what-if levels. Only for an added requirement leaving a year for good -- a requirement from
+// the board's data keeps its data while removed, so Restore brings it back whole (item 25).
+function reqPurge(T, id){
+  REQ_MAPS.forEach(function(k){ const bag=T[k]; if(bag && typeof bag==='object') delete bag[k==='upl'? 'r|'+id : id]; });
+  if(T.whatif) ['a','b'].forEach(function(p){ if(T.whatif[p]) delete T.whatif[p][id]; });
+}
+// THE NEXT NUMBER FOR AN ADDED REQUIREMENT IN YEAR STATE T (the working year when T is omitted), and
+// it is never one the year has used before (v1.89). One past the highest REMAINING added requirement
+// reused the number of the newest the moment it was deleted, and a new NEW-3 then read the old NEW-3's
+// data wherever any was left -- which on a board saved before v1.89 is almost everywhere. So the next
+// number is past every number anywhere in the year: the added requirements (the LAST segment of the
+// id, so NEW-3, NEW-PSM-3 and NEW-AV-3 all count), every NEW- key in every per-requirement container,
+// the order, the removed list, the office rankings -- and the highest ever handed out, kept in
+// T.newSeq and saved with the board, which is what still counts once a purge has removed the rest.
+function newReqSeq(T){
+  T=T||S;
+  let n=Math.max(0, parseInt(T.newSeq)||0);
+  const seg=function(id){ const m=/^NEW-(?:.*-)?(\d+)$/.exec(String(id||'')); return m? parseInt(m[1]) : 0; };
+  (T.custom||[]).forEach(function(x){ n=Math.max(n, parseInt(String(x.id||'').split('-').pop())||0); });
+  REQ_MAPS.forEach(function(k){ const bag=T[k];
+    if(bag && typeof bag==='object') Object.keys(bag).forEach(function(key){ n=Math.max(n, seg(k==='upl'? key.replace(/^r\|/,'') : key)); }); });
+  if(T.whatif) ['a','b'].forEach(function(p){ Object.keys(T.whatif[p]||{}).forEach(function(key){ n=Math.max(n, seg(key)); }); });
+  (T.order||[]).concat(T.removed||[]).forEach(function(id){ n=Math.max(n, seg(id)); });
+  Object.keys(T.pmoOrder||{}).forEach(function(g){ (Array.isArray(T.pmoOrder[g])? T.pmoOrder[g] : []).forEach(function(id){ n=Math.max(n, seg(id)); }); });
+  T.newSeq=n+1;
+  return n+1;
+}
 function yearCopy(id, y, mode, opts){
   opts=opts||{};
   const it=itemById(id); if(!it) return {ok:false, status:'gone'};
@@ -4589,10 +4632,7 @@ function yearCopy(id, y, mode, opts){
   // `if(!bag) return;`, so a container missing HERE makes its cp() call do nothing at all — and a
   // container here with no cp() below arrives on the target created and empty. Either way the data
   // stays behind, silently, looking exactly like a year nobody has filled in yet.
-  ['alloc','mc','notes','desc','titles','ccar','pid','costElem','fsrc','asks','awards','grp','si','dest',
-   'wbs','clinWbs','rcnAsg','rcnSvc','clinRcn','aceMap','upl','obCat','budgetAsg','ptype','recNames',
-   'clinAlloc','clinMeta','clinNew','clinRm','crHalf','band','cons','minInc','mipr']
-    .forEach(k=>{ if(!T[k]) T[k]={}; });
+  REQ_MAPS.forEach(k=>{ if(!T[k]) T[k]={}; });
   if(!Array.isArray(T.order)) T.order=[];
   if(!Array.isArray(T.custom)) T.custom=[];
   if(!Array.isArray(T.removed)) T.removed=[];
@@ -4608,8 +4648,7 @@ function yearCopy(id, y, mode, opts){
   };
   let tid=id;
   if(isCustom){
-    const n=T.custom.length? Math.max(...T.custom.map(x=>parseInt((x.id||'').split('-').pop())||0))+1 : 1;
-    tid='NEW-'+n;
+    tid='NEW-'+newReqSeq(T);           // never a number the target year has used (v1.89)
     // BOTH names travel verbatim. Baking dispTitle into `title` was right when the display fell
     // back to the record name; now it writes the PLAN EVENT into the record-name slot and the
     // record name is gone.
@@ -4662,6 +4701,9 @@ function yearCopy(id, y, mode, opts){
     if(isCustom){
       S.custom=S.custom.filter(x=>x.id!==id);
       DATA.items=DATA.items.filter(x=>x.id!==id);
+      // It lives in the other year now, under its own number there. What it held here goes with it;
+      // left behind, it was data nobody could see (v1.89).
+      reqPurge(S, id);
     } else if(!S.removed.includes(id)) S.removed.push(id);
     S.order=S.order.filter(x=>x!==id);
     Object.keys(S.pmoOrder||{}).forEach(g=>{ if(Array.isArray(S.pmoOrder[g])) S.pmoOrder[g]=S.pmoOrder[g].filter(x=>x!==id); });
@@ -4894,9 +4936,10 @@ function setBaseYear(){
 let _bootRestoreErr='';        // set when the browser-storage restore threw; surfaced after boot
 let FYMON = fyMonths(BASE_FY_DEFAULT);
 applyStore({base:BASE_FY_DEFAULT, cur:BASE_FY_DEFAULT, ts:0, years:{[BASE_FY_DEFAULT]:firstYearState()}});
+let _bootOwn=false;            // this browser held its own copy of this board when it opened
 try{
   const st = JSON.parse(localStorage.getItem(_AP.key)||'null');
-  if(st) applyStore(st);
+  if(st){ applyStore(st); _bootOwn=true; }
 }catch(e){
   // NOT a silent catch. Reaching here means the board could not read its own saved state, and the
   // fallback is the empty default — which on screen is indistinguishable from every requirement
@@ -4904,9 +4947,46 @@ try{
   // parse tells you nothing about the .html save.
   _bootRestoreErr = (e && e.message) || String(e);
 }
-if(PUB && (PUB.years||Array.isArray(PUB.order)) && (PUB.ts||0) > (MS.ts||0)) applyStore(PUB);
+// WHICH COPY OPENS, AND WHAT SAVE CHECKS AGAINST (v1.89).
+// The newer of the two opens -- this browser's copy or the file's saved state -- as it always has.
+// What changed is what happens to the other one:
+// - The FILE is newer, and this browser holds work never written to a saved copy (edited after the
+//   copy it came from was last loaded or saved): that work is KEPT ASIDE before the file replaces
+//   it, and one click puts it back. It used to be replaced with no message at all. If there is no
+//   room to keep it, the file is NOT opened and the board says so: work that could not be kept
+//   would be work lost.
+// - THIS BROWSER'S copy is newer: it opens, and Save checks the file against the saved copy it came
+//   from. It checked against the file's own time -- the file it had just declined to show -- so a
+//   colleague's save made after this browser's copy was last saved was never noticed, and the next
+//   Save wrote over it. No clock difference was needed.
+// Which saved copy that was is this browser's own knowledge (baseGet), like the save file's handle,
+// and never part of the board.
+let _keptMeta=null, _bootKept=null, _bootHeld=null, _bootMoved=0, _bootSaid=false;
+const _bootBase=baseGet();
+// The save of the file the state on screen came from: its time AS AN IDENTITY. Save asks whenever the
+// file on disk is any other save -- later or earlier -- never only when its time is later.
+let LASTKNOWN=+_bootBase.file||0;
+let _baseDirty=!!_bootBase.dirty;    // mirrors baseGet().dirty, so save() writes it only when it changes
+try{ _keptMeta=keptCopy(); _keptMeta=_keptMeta? _keptMeta.meta : null; }catch(e){ _keptMeta=null; }
+if(PUB && (PUB.years||Array.isArray(PUB.order))){
+  const fileTs=+(PUB.ts||0), ours=+(MS.ts||0);
+  if(fileTs > ours){
+    const own=_bootOwn && ownUnsaved(MS, PUB, _bootBase);
+    if(own && !keepAside(MS, {why:'file', by:PUB.by||'', ts:fileTs}, _bootBase)) _bootHeld={by:PUB.by||'', ts:fileTs};
+    else {
+      if(own) _bootKept={by:PUB.by||'', ts:fileTs};
+      applyStore(PUB);
+      LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+    }
+  } else if(fileTs===ours){
+    // the file's own state is what is on screen
+    LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+  } else if(LASTKNOWN && PUB_FILE_TS!==LASTKNOWN) _bootMoved=PUB_FILE_TS;   // saved by someone since
+}
 
 let DIRTY=false;
+// Written to a downloaded copy, not yet to the shared file (v1.89): still unsaved, and the header says which.
+let _dlOnly=false;
 // Fail loudly rather than throwing out of the caller: the work is still in memory and still
 // correct on screen, and a file save keeps it — the file does not use browser storage at all.
 let _persistFail=false;
@@ -4962,8 +5042,10 @@ function jrnlAdd(e){
   if(MS.jrnl.length>JRNL_MAX) MS.jrnl=MS.jrnl.slice(-JRNL_MAX);
 }
 // A structural walk. Objects and arrays are descended; anything else is compared as a value.
+// PAST JRNL_PER_SAVE THE WALK COUNTS INSTEAD OF RECORDING (v1.89): it stopped there, blind, and every
+// change after the 200th in one save went unrecorded with no mark that anything had. `out.more` is
+// the count, which jrnlCapture writes as one summary line.
 function jrnlWalk(a, b, path, out){
-  if(out.length>=JRNL_PER_SAVE) return;
   const both=(x)=>x&&typeof x==='object';
   if(Array.isArray(a)&&Array.isArray(b)){
     const n=Math.max(a.length,b.length);
@@ -4978,6 +5060,7 @@ function jrnlWalk(a, b, path, out){
   }
   const sa=jrnlSize(a), sb=jrnlSize(b);
   if(sa===sb && JSON.stringify(a===undefined?null:a)===JSON.stringify(b===undefined?null:b)) return;
+  if(out.length>=JRNL_PER_SAVE){ out.more=(out.more||0)+1; return; }
   out.push({p:path, a:jrnlVal(a), b:jrnlVal(b)});
 }
 function jrnlCapture(){
@@ -4985,12 +5068,20 @@ function jrnlCapture(){
   const now=jrnlSnap();
   if(!_jrnlShadow){ _jrnlShadow=now; return; }
   const out=[];
-  try{ jrnlWalk(_jrnlShadow, now, [], out); }catch(e){ out.length=0; }
+  let failed='';
+  try{ jrnlWalk(_jrnlShadow, now, [], out); }catch(e){ failed=(e&&e.message)||String(e); }
   const t=Date.now(), by=whoAmI()||'unknown';
   out.forEach(d=>{
     const fy=+d.p[0]||MS.cur;
     jrnlAdd({t:t, by:by, fy:fy, p:d.p.slice(1), a:d.a, b:d.b});
   });
+  // WHAT COULD NOT BE RECORDED IS RECORDED AS SUCH (v1.89), one line each, never merged with the line
+  // before (f): changes past the per-save limit, and a walk that failed -- which used to drop every
+  // entry of that save, silently. Neither can be undone from the journal, and jrnlUndoable says so.
+  if(out.more) jrnlAdd({t:t, by:by, fy:MS.cur, p:['(more)'], a:null, f:1,
+    b:out.more+' more change'+(out.more===1?'':'s')+' in this save, past the first '+JRNL_PER_SAVE+' \u2014 not recorded one by one, and not undoable from here'});
+  if(failed) jrnlAdd({t:t, by:by, fy:MS.cur, p:['(unrecorded)'], a:null, f:1,
+    b:'the changes in this save could not all be recorded ('+failed+')'});
   _jrnlShadow=now;
 }
 // PUTTING A VALUE BACK. An entry carries its own path, so undo needs no per-field knowledge.
@@ -5009,11 +5100,11 @@ function jrnlSet(fy, path, v){
   else node[k]=JSON.parse(JSON.stringify(v));
   return true;
 }
-function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && e.p[0]!=='(load)'
+function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && !/^\(/.test(String(e.p[0]))
   && !(e.a&&e.a._b) && !(e.b&&e.b._b)); }
 function jrnlUndo(i){
   const e=(MS.jrnl||[])[i];
-  if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, or the value is too large to have been recorded in full.'); return; }
+  if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, a line saying what could not be recorded, or the value is too large to have been recorded in full.'); return; }
   if(!confirm('Put '+jrnlLabel(e)+' back to what it was before '+(e.by||'?')+' changed it?\n\nThis is recorded in the journal too.')) return;
   const fy=e.fy||MS.cur;
   if(!jrnlSet(fy, e.p, e.a)){ setStat('⚠ That value could not be put back — the shape of the state has moved on since.'); return; }
@@ -5039,6 +5130,7 @@ const JRNL_NAMES={alloc:'allocation', asks:'ask', band:'decision band', tier:'ti
 function jrnlLabel(e){
   if(!e||!Array.isArray(e.p)) return 'a change';
   if(e.p[0]==='(load)') return 'loaded: '+esc(String(e.b||''));
+  if(e.p[0]==='(more)' || e.p[0]==='(unrecorded)') return '<b>'+esc(String(e.b||''))+'</b>';
   const c=JRNL_NAMES[e.p[0]]||e.p[0];
   let who='';
   if(e.p.length>1){
@@ -5083,7 +5175,8 @@ function jrnlBody(){
     .filter(x=>!q || (jrnlLabel(x.e)+' '+(x.e.by||'')).replace(/<[^>]+>/g,'').toLowerCase().indexOf(q)>=0)
     .reverse();
   let h='<div class="hint" style="margin-bottom:8px">Every field that changed in this file, newest first — '
-    +'what it was, what it became, and who did it. Kept to the most recent '+JRNL_MAX+' changes, and it '
+    +'what it was, what it became, and who did it. A save of more than '+JRNL_PER_SAVE+' changes records the first '
+    +JRNL_PER_SAVE+' one by one and one line saying how many more. Kept to the most recent '+JRNL_MAX+' changes, and it '
     +'travels with the board, so everybody sees the same history.</div>';
   h+='<div class="fr" style="flex-wrap:wrap;gap:8px;margin-bottom:8px">'
     +'<input class="rlg-in" style="flex:1;min-width:220px" placeholder="filter by requirement, field or person…" '
@@ -5120,7 +5213,8 @@ function jrnlBody(){
 }
 function save(){
   if(CYCVIEW) return cycRefuse('Saving');
-  DIRTY=true;
+  DIRTY=true; _dlOnly=false;
+  try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}
   jrnlCapture();
   MS.ts=Date.now();
   MS.by=whoAmI();
@@ -5192,7 +5286,83 @@ function fileByOf(p){
   if(p.appns){ let t=0,b=''; Object.keys(p.appns).forEach(k=>{ const s=p.appns[k]; if(s&&s.ts>t){ t=s.ts; b=s.by||''; } }); return b; }
   return p.by||'';
 }
-let LASTKNOWN=0;   // ts of the file state we started from (collision baseline)
+// ---- WHICH SAVED COPY THIS BROWSER'S WORK CAME FROM (v1.89) --------------------------------------
+// {file: the saved-file time (fileTsOf) the state on screen was last loaded from or written to,
+//  folder: {'<appropriation>|<year>': the same for each shared-folder copy}}. Kept beside the board's
+// own browser storage and never inside the board: like the save file's handle, it means nothing on
+// another machine, and it must not travel in a saved file, a PMO copy or a package.
+function baseGet(){ try{ const b=JSON.parse(localStorage.getItem(_AP.key+'.base')||'null'); return (b && typeof b==='object')? b : {}; }catch(e){ return {}; } }
+function baseSet(patch){ try{ localStorage.setItem(_AP.key+'.base', JSON.stringify(Object.assign(baseGet(), patch))); return true; }catch(e){ return false; } }
+// Does this browser's copy hold work no saved copy has? From v1.89 the browser records it (`dirty`):
+// set by every save() to browser storage, cleared when the work is written to the file or the folder
+// or replaced by a saved copy. A flag, never a comparison of times -- two computers' clocks disagree,
+// and a colleague's clock an hour slow must not make their save look older than it is. A copy last
+// opened before v1.89 recorded nothing, so the journal answers: a change it has that the other lacks.
+function ownUnsaved(own, other, base){
+  if(base && ('dirty' in base)) return !!base.dirty;
+  try{ return pkgMineSince(own, other).length>0; }catch(e){ return true; }
+}
+// ---- WORK KEPT ASIDE (v1.89) ---------------------------------------------------------------------
+// Before a newer saved copy -- the file's, or the shared folder's -- replaces work this browser holds
+// and no saved copy has, that work is kept here, whole, under this board's own storage key plus
+// '.kept', with where it came from, so putting it back also puts back what Save must check against.
+// One copy is kept; a later one replaces it. It is only ever removed by putting it back or by saying so.
+function keepAside(store, meta, base){
+  try{
+    const m={t:Date.now(), why:meta.why||'', by:meta.by||'', ts:+meta.ts||0, base:base||baseGet()};
+    localStorage.setItem(_AP.key+'.kept', JSON.stringify(m)+'\n'+JSON.stringify(store));
+    _keptMeta=m; return true;
+  }catch(e){ return false; }
+}
+function keptCopy(){
+  try{ const s=localStorage.getItem(_AP.key+'.kept'); if(!s) return null;
+    const i=s.indexOf('\n'); return {meta:JSON.parse(s.slice(0,i)), raw:s.slice(i+1)}; }catch(e){ return null; }
+}
+function keptWhere(m){ return (m&&m.why)==='folder'? 'the shared folder' : 'the saved file'; }
+function keptPutBack(){
+  const k=keptCopy();
+  if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
+  if(!confirm('Put back the work this browser kept aside on '+fmtTs(k.meta.t)+'?\n\n'
+    +'What is on screen now is replaced by it. What is on screen now is still in '+keptWhere(k.meta)
+    +' it came from, and 💾 Save will ask before writing over that.')) return;
+  let st; try{ st=JSON.parse(k.raw); }catch(e){ setStat('⚠ The work kept aside could not be read ('+esc(e.message)+'). It is still kept; nothing was changed.'); return; }
+  if(applyStore(st)===false) return;
+  // Its checkpoint comes back with it: Save compares against the copy THIS work came from, so writing
+  // it over the newer copy that displaced it is always asked first.
+  const b=k.meta.base||{};
+  LASTKNOWN=+b.file||0;
+  try{ _driveBase=Object.assign({}, b.folder||{}); }catch(e){}
+  _baseDirty=true; baseSet({file:LASTKNOWN, folder:b.folder||{}, dirty:true});
+  try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){}
+  _keptMeta=null;
+  persist(); DIRTY=true; render();
+  setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. 💾 Save will ask before it writes over '
+    +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+' saved after it.');
+}
+function keptDiscard(){
+  const k=keptCopy(); if(!k){ _keptMeta=null; render(); return; }
+  if(!confirm('Discard the work this browser kept aside on '+fmtTs(k.meta.t)+'?\n\nThis cannot be undone.')) return;
+  try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){}
+  _keptMeta=null; render();
+  setStat('The work kept aside on '+esc(fmtTs(k.meta.t))+' was discarded.');
+}
+// The file DOES hold a saved state, and this browser's own copy is newer: say that, instead of "no
+// saved state in this copy", which was the message this case got (v1.89).
+function bootOwnMsg(){
+  if(!(PUB && (PUB.years||Array.isArray(PUB.order)))) return '';
+  return 'Opened with <b>this browser\u2019s copy</b> of the board \u2014 it has changes made after this file was last saved ('
+    +esc(fmtTs(PUB.ts))+(PUB.by? ' by '+esc(PUB.by) : '')+'). \ud83d\udcbe Save writes them into the file.';
+}
+// Open the file's version after all (offered when this browser's work could not be kept aside).
+function bootTakeFile(){
+  if(!(PUB && (PUB.years||Array.isArray(PUB.order)))) return;
+  if(!confirm('Open the saved file\u2019s version and replace what is on screen?\n\n'
+    +'This browser\u2019s own work is NOT kept \u2014 only in a copy you saved yourself.')) return;
+  if(applyStore(PUB)===false) return;
+  LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+  persist(); DIRTY=false; render();
+  setStat('\ud83d\udce6 Opened the saved file\u2019s version \u2014 last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>' : '')+' '+esc(fmtTs(PUB.ts))+'.');
+}
 function buildSavedHtml(opts){
   if(CYCVIEW){ cycRefuse('Building a board file'); throw new Error('a locked cycle is on screen — leave the view before saving or publishing'); }
   save();
@@ -5863,7 +6033,11 @@ function pmoApply(){
     .filter(function(v,i,a){ return a.indexOf(v)===i; });
   if(!confirm('Apply '+rows.length+' change'+(rows.length===1?'':'s')+' from '+offices.join(', ')+'?'
     + (nConf? '\n\n\u26a0 '+nConf+' of them overwrite a field THIS BOARD changed since the copy went out.' : '')
-    + '\n\nEach one is recorded in the change journal, so it can be found and undone later.')) return;
+    + '\n\nEach one is recorded in the change journal, so it can be found and undone later'
+    // v1.89: true only up to the journal's per-save limit, and the question now says where it stops.
+    + (rows.length>JRNL_PER_SAVE? ' \u2014 the first '+JRNL_PER_SAVE+' one by one. Past that, the journal records one line '
+       +'saying how many more, and those cannot be undone from it one at a time.' : '.'))) return;
+  const t0=Date.now();          // entries from this apply are read back by time: the journal trims from the front
   let n=0;
   rows.forEach(function(r){
     // The requirement value goes through the same path a typed edit takes. jrnlSet() writes the
@@ -5888,8 +6062,12 @@ function pmoApply(){
   // there for the next pass. Clearing them here would throw away every untaken proposal the moment
   // the first batch was applied.
   const left=pmoRows().length;
+  // WHAT THE JOURNAL ACTUALLY HOLDS, read back rather than promised (v1.89).
+  const more=(MS.jrnl||[]).filter(function(e){ return e.p && e.p[0]==='(more)' && (e.t||0)>=t0; })[0];
   setStat('\u2714 Applied '+n+' change'+(n===1?'':'s')+' from <b>'+esc(offices.join(', '))+'</b>. '
-    + 'Every one is in the change journal. '
+    + (more? 'The first '+JRNL_PER_SAVE+' are in the change journal one by one; the rest are recorded there as one line \u2014 <b>'
+             +esc(String(more.b))+'</b>. '
+           : 'Every one is in the change journal. ')
     + (left? left+' proposed change'+(left===1?'':'s')+' still held for review.'
            : 'Nothing is left to review.'));
   if(typeof subBody==='function') subBody();
@@ -6331,26 +6509,45 @@ async function saveInPlaceFile(){
       h=await window.showSaveFilePicker({suggestedName:FNAME, types:[{description:'Prioritization Board', accept:{'text/html':['.html']}}]});
     }
     FH=h; _fhPut(h);
-    // COLLISION GUARD: has someone saved this file since we loaded it?
-    try{
-      const cur=await h.getFile();
-      const txt=await cur.text();
+    // COLLISION GUARD: has anyone saved this file since the copy on screen was loaded from it or
+    // written to it (LASTKNOWN, v1.89)? A FILE THAT CANNOT BE READ CANNOT BE CHECKED, SO IT IS NEVER
+    // WRITTEN OVER. This used to sit in a try with an empty catch: a file mid-sync in Teams or
+    // OneDrive, or one that would not parse, skipped the check and was overwritten unasked.
+    let txt;
+    try{ txt=await (await h.getFile()).text(); }
+    catch(e){
+      setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” could not be read to check whether anyone saved it after you ('
+        +esc((e&&e.message)||String(e))+'), so it was not written over. If it is syncing, try again in a moment, or use '
+        +'<b>⬇ Save a copy</b>.');
+      return;
+    }
+    if(txt.length){                    // an empty file is one the picker just made: nothing in it to lose
       const mm=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
-      const p=mm? JSON.parse(mm[1]) : null;
+      let p; try{ p=mm? JSON.parse(mm[1]) : undefined; }catch(e){ p=undefined; }
+      if(p===undefined){
+        FH=null; try{ _fhPut(null); }catch(e){}      // the next Save asks which file, rather than failing here again
+        setStat('⛔ <b>Not saved.</b> “'+esc(h.name||FNAME)+'” is not a board ORBIT can read, so it was not written over. '
+          +'Press 💾 Save again and pick the board file itself, or use <b>⬇ Save a copy</b>.');
+        return;
+      }
       const fts=fileTsOf(p);
-      if(fts>LASTKNOWN && fts>0){
+      if(fts>0 && fts!==LASTKNOWN){
         const by=fileByOf(p)||'someone';
-        if(!confirm('⚠ HOLD ON — '+by+' saved this file at '+fmtTs(fts)+', AFTER you loaded your copy.\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\nCancel — don\u2019t save (then use ⬅ Import on the current file, or reopen it, to pick up their changes first).')){
-          setStat('Save canceled — '+esc(by)+'\u2019s changes are untouched. Reopen or ⬅ Import this file to load their version, then redo your edits.');
+        // Nothing recorded: this browser's copy was last opened before v1.89, or came from elsewhere.
+        const q = LASTKNOWN
+          ? '⚠ HOLD ON — '+by+' saved this file at '+fmtTs(fts)+'. That is not the save the copy you are working from came from, so their changes are not on your screen.'
+          : '⚠ HOLD ON — this file was last saved by '+by+' at '+fmtTs(fts)+', and this browser cannot tell whether that was before or after the copy you are working from.';
+        if(!confirm(q+'\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\nCancel — don’t save (then use ⬅ Import on the current file, or reopen it, to pick up their changes first).')){
+          setStat('Save canceled — '+esc(by)+'’s changes are untouched. Reopen or ⬅ Import this file to load their version, then redo your edits.');
           return;
         }
       }
-    }catch(e){}
+    }
     const w=await h.createWritable();
     await w.write(buildSavedHtml());
     await w.close();
-    LASTKNOWN=MS.ts;
-    DIRTY=false; syncBtns();
+    LASTKNOWN=MS.ts; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+    _dlOnly=false; DIRTY=false; syncBtns();
     setStat('💾 Saved in place by <b>'+esc(MS.by||whoAmI())+'</b> — "'+(h.name||FNAME)+'" now carries this state. '+fmtTs(Date.now()));
   }catch(e){
     if(e&&e.name==='AbortError'){ setStat('Save canceled — nothing written.'); return; }
@@ -6361,7 +6558,11 @@ async function saveInPlaceFile(){
 function publishState(){
   if(sandboxBlock('Downloading a copy of the board')||cycBlock('Downloading a copy of the board')) return;
   const html=buildSavedHtml();
-  DIRTY=false; try{ syncBtns(); }catch(e){}
+  // A DOWNLOAD IS NOT THE SHARED FILE (v1.89). This cleared "unsaved changes", so the header read as
+  // saved while the file everyone opens still lacked the work -- including after an in-place save
+  // that FAILED and fell back to downloading. The work is still unsaved as far as the shared file is
+  // concerned, and the header now says it is downloaded but not there yet.
+  _dlOnly=true; try{ syncBtns(); }catch(e){}
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
   a.download=expName(FNAME);
@@ -15894,7 +16095,8 @@ function fydpFrameMem(k, folderSt){
   const M={};
   for(let i=0; i<localStorage.length; i++){
     const key=localStorage.key(i);
-    if(key===null || key===LIVE_KEY_LS || key===LIVE_CFG_LS) continue;
+    // nor the work a browser kept aside (v1.89): a whole second store, which no frame ever reads
+    if(key===null || key===LIVE_KEY_LS || key===LIVE_CFG_LS || /\.kept$/.test(key)) continue;
     M[key]=localStorage.getItem(key);
   }
   M['prio27appn']=APPN_LBL[k];
@@ -21391,8 +21593,11 @@ function syncBtns(){
   // the button beside it sends it back.
   const _sb=(typeof SANDBOX!=='undefined' && SANDBOX);
   if(ss) ss.innerHTML = _sb ? (DIRTY ? '<b>● kept in this browser</b>' : 'PMO copy · your work is kept in this browser')
-        : DIRTY ? '<b>● unsaved changes</b>'
+        : DIRTY ? (_dlOnly? '<b>● downloaded — not on the shared file yet</b>' : '<b>● unsaved changes</b>')
         : (MS.ts ? 'saved '+shortTs(MS.ts)+(MS.by?' · '+esc(MS.by):'') : 'not saved to a file yet');
+  // v1.89: while work is kept aside, the header says so -- an opening message can be replaced by the next.
+  if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <a style="color:var(--gold);cursor:pointer" onclick="keptPutBack()" '
+    +'title="Work this browser held that no saved copy had, kept aside '+esc(shortTs(_keptMeta.t))+'. Click to put it back.">\u21b6 work kept aside</a>';
   if(sb && _sb){
     sb.className='btn pri'; sb.textContent='\u2709 Submit input'; sb.setAttribute('onclick','pmoSubmit()');
     sb.title='Send your office\u2019s changes to the portfolio team as a small submittal file. Your work is already kept in this browser.';
@@ -21553,6 +21758,9 @@ function syncBtns(){
     '<div class="mlbl">Save</div>'+
     mi('💾 Save',"mRun(saveInPlace)",false,(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place')+
     mi('⬇ Save a copy…',"mRun(publishState)",false,(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy' : 'downloads a duplicate')+
+    // v1.89: work this browser kept aside when a newer saved copy replaced it. Here as long as it is kept.
+    (_keptMeta? mi('\u21b6 Put back work kept aside\u2026',"mRun(keptPutBack)",false,'kept '+shortTs(_keptMeta.t)+' \u00b7 from before '+keptWhere(_keptMeta)+' replaced it')
+      +mi('\u2715 Discard work kept aside\u2026',"mRun(keptDiscard)",false,'cannot be undone') : '')+
     // GROUPED BY WHAT THE FILE DOES (v1.86): save it, bring work in, send work out, work as a team. The
     // PMO copy lived under Budget year, where nobody looking for a file to send would find it.
     '<div class="msep"></div><div class="mlbl">Import</div>'+
@@ -21923,23 +22131,34 @@ async function snapList(dir, fy, ap){
   out.sort((a,b)=>a.stamp<b.stamp?1:(a.stamp>b.stamp?-1:0));
   return out;
 }
-// Best effort, always. A folder that will not take a snapshot must not stop somebody saving.
-async function snapKeep(dir, fy, ap, text){
+// Best effort on an ordinary save: a folder that will not take a snapshot must not stop somebody
+// saving -- but it must SAY so (v1.89), where it used to fail in silence. Returns what happened:
+// 'kept'; 'recent' (one was kept within the last ten minutes, so the copy being replaced -- this
+// board's own earlier save -- is covered by it); 'none' (nothing to keep); 'failed'. `force` keeps one
+// whatever the last one's age: writing over SOMEBODY ELSE'S copy, or putting an old one back, is
+// exactly when the one being replaced has to be in the history.
+async function snapKeep(dir, fy, ap, text, force){
   try{
-    if(!text) return false;
+    if(!text) return 'none';
     const have=await snapList(dir, fy, ap);
-    if(have.length){
+    if(have.length && !force){
       const s0=have[0].stamp;
       const t0=new Date(+s0.slice(0,4), +s0.slice(4,6)-1, +s0.slice(6,8),
                         +s0.slice(9,11), +s0.slice(11,13), +s0.slice(13,15)).getTime();
-      if(Date.now()-t0 < SNAP_GAP) return false;      // one per ten minutes is enough history
+      if(Date.now()-t0 < SNAP_GAP) return 'recent';   // one per ten minutes is enough history
     }
     const h=await snapDir(dir, true);
-    await driveWrite(h, snapName(fy, ap, Date.now()), text);
+    // A NAME IS NEVER REUSED (v1.89). Names carry the time to the second, so two copies kept in the same
+    // second -- a forced one right after an ordinary one -- shared a name, and the second replaced the
+    // first: somebody's copy gone from the history. The next free second is taken instead.
+    const taken=new Set(have.map(function(x){ return x.name; }));
+    let t=Date.now(), nm=snapName(fy, ap, t);
+    for(let i=0; i<600 && taken.has(nm); i++){ t+=1000; nm=snapName(fy, ap, t); }
+    await driveWrite(h, nm, text);
     const after=await snapList(dir, fy, ap);
     for(let i=SNAP_KEEP;i<after.length;i++){ try{ await h.removeEntry(after[i].name); }catch(e){} }
-    return true;
-  }catch(e){ return false; }
+    return 'kept';
+  }catch(e){ return 'failed'; }
 }
 async function snapRead(dir, name){
   const h=await snapDir(dir, false);
@@ -22031,15 +22250,28 @@ async function driveRelease(){
 // Published copies became the work itself. Everything below exists to make that safe rather than
 // merely possible.
 const DRIVE_EXEC='spmt-exec.json';
-let _driveBase={};          // ap -> the ts this board last read or wrote, per appropriation
+// '<appropriation>|<year>' -> the time of the shared-folder copy the work on screen was last loaded from
+// or written to. Kept in this browser beside the board (baseGet().folder, v1.89). It lived in memory
+// only, so a reopen forgot it and took the folder's CURRENT copy as the one the work came from: a
+// colleague's save made in between was then written over by the next Save, never noticed.
+let _driveBase=Object.assign({}, baseGet().folder||{});
+function driveBaseKey(ap){ return ap+'|'+MS.cur; }
+function driveBaseOf(ap){ return +(_driveBase[driveBaseKey(ap)]||0); }
+function driveBaseSet(ap, ts, clean){ _driveBase[driveBaseKey(ap)]=+ts||0;
+  const p={folder:_driveBase}; if(clean){ _baseDirty=false; p.dirty=false; } baseSet(p); }
 function driveStoreOn(){ const c=liveCfg(); return !!(c.store && c.mode==='drive'); }
-// What is in the folder for one appropriation, or null. Reads only; decides nothing.
+// What is in the folder for one appropriation: the copy, or null when there is NONE. Reads only;
+// decides nothing. Anything else that stops it being read -- the folder mid-sync, a damaged copy, one
+// refused at the door -- THROWS (v1.89). It returned null, "nothing there", and a save then wrote over
+// a copy it had never looked at, keeping no history of it either.
 async function driveStoreRead(dir, ap){
-  try{
-    const txt=await driveRead(dir, driveName(MS.cur, ap));
-    const j=driveParse(txt);
-    return (j && j.store)? j : null;
-  }catch(e){ if(e && e.refused) LIVEDB.err=e.message; return null; }
+  let txt;
+  try{ txt=await driveRead(dir, driveName(MS.cur, ap)); }
+  catch(e){ if(e && e.name==='NotFoundError') return null; throw e; }
+  let j;
+  try{ j=driveParse(txt); }catch(e){ if(e && e.refused) LIVEDB.err=e.message; throw e; }
+  if(!j || !j.store) throw new Error('the folder\u2019s copy is not a saved board');
+  return j;
 }
 // A copy in the shared folder was written by somebody else's board: it goes through the same door as a
 // file handed over (inboundCheck, v1.88), and one that fails it is treated as unreadable, never half-read.
@@ -22059,7 +22291,14 @@ async function driveStorePull(quiet){
       +'</b>. Open 📡 Live view and press Reconnect.');
     render(); return false;
   }
-  const j=await driveStoreRead(dir, mySlug());
+  let j;
+  try{ j=await driveStoreRead(dir, mySlug()); }
+  catch(e){
+    LIVEDB.err=(e&&e.message)||String(e);
+    if(!quiet) setStat('\u26a0 The shared folder\u2019s copy of '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
+      +' could not be read \u2014 <b>'+esc(LIVEDB.err)+'</b>. Nothing was loaded; this board is showing its own copy.');
+    render(); return false;
+  }
   if(!j){ if(!quiet) setStat('The shared folder holds nothing for '
     +esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)+' yet. Save to put it there.');
     return false; }
@@ -22069,7 +22308,16 @@ async function driveStorePull(quiet){
     render(); return false;
   }
   const theirs=+((j.store&&j.store.ts)||j.ts||0), ours=+(MS.ts||0);
-  if(theirs<=ours){ _driveBase[mySlug()]=theirs; return false; }   // ours is current
+  const base=driveBaseOf(mySlug());
+  if(theirs<=ours){
+    // NOT NEWER THAN WHAT IS ON SCREEN -- but newer than the copy this work came from means somebody
+    // saved after it, and what is on screen does not have their changes (v1.89). Said now, and Save
+    // will not write over it without a choice. With nothing recorded (a board last opened before
+    // v1.89) there is no telling, and the folder's copy is taken as the base, as it always was.
+    if(!base) driveBaseSet(mySlug(), theirs);
+    else if(theirs!==base){ driveClashSay(j, false); render(); }
+    return false;
+  }
   if(DIRTY){
     // UNSAVED WORK BEATS A NEWER FOLDER COPY. Adopting here would look exactly like the board
     // losing what somebody had just typed.
@@ -22091,19 +22339,31 @@ async function driveStorePull(quiet){
       +' It needs to be saved once from a board that holds the requirements.');
     render(); return false;
   }
+  // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+  // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+  const own=ownUnsaved(MS, j.store, baseGet());
+  if(own && !keepAside(MS, {why:'folder', by:j.by||'', ts:theirs}, baseGet())){
+    setStat('\u26a0 <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())+' to the shared folder '
+      +esc(liveAge(theirs))+', but this browser holds work no saved copy has and there is no room to keep it aside \u2014 '
+      +'so their copy was <b>not loaded</b>. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then '
+      +'<a style="color:var(--blue);cursor:pointer" onclick="driveResolve(\'theirs!\')">load theirs without keeping yours here</a>.');
+    render(); return false;
+  }
   if(IS_SHELL){
     applyStore(j.store);
-    _driveBase[mySlug()]=theirs;
+    driveBaseSet(mySlug(), theirs, true);
     persist();
     setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' from the shared folder \u2014 reopening\u2026');
     try{ location.reload(); }catch(e){}
     return true;
   }
   applyStore(j.store);
-  _driveBase[mySlug()]=theirs;
+  driveBaseSet(mySlug(), theirs, true);
   persist(); render();
-  if(!quiet) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
-    +' from the shared folder — saved by <b>'+esc(j.by||'unknown')+'</b> '+esc(liveAge(theirs))+'.');
+  if(!quiet || own) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
+    +' from the shared folder — saved by <b>'+esc(j.by||'unknown')+'</b> '+esc(liveAge(theirs))+'.'
+    +(own? ' This browser held work no saved copy had; it is <b>kept aside</b>: '
+      +'<a style="color:var(--blue);cursor:pointer" onclick="keptPutBack()">put it back</a> (or from \ud83d\udcc1 File, any time).' : ''));
   return true;
 }
 // WRITE BACK, after checking nobody moved it underneath us.
@@ -22112,16 +22372,21 @@ async function driveStorePush(quiet){
   if(!driveStoreOn()) return false;
   const dir=await driveDir(true);
   const ap=mySlug();
-  const cur=await driveStoreRead(dir, ap);
-  const theirs=cur? +((cur.store&&cur.store.ts)||cur.ts||0) : 0;
-  const base=+(_driveBase[ap]||0);
-  if(theirs && base && theirs>base){
-    setStat('⛔ <b>'+esc((cur&&cur.by)||'someone')+'</b> saved '+esc(APPN_LBL[ap]||ap)
-      +' to the shared folder '+esc(liveAge(theirs))+', after you loaded it. '
-      +'<b>Nothing was written.</b> Reload to take their copy, or use 📡 Live view to see what '
-      +'they hold before you decide.');
+  // A COPY THAT CANNOT BE READ IS NEVER WRITTEN OVER (v1.89): it cannot be checked, and it cannot be
+  // kept in the history either.
+  let cur;
+  try{ cur=await driveStoreRead(dir, ap); }
+  catch(e){
+    setStat('\u26d4 The shared folder\u2019s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)+' could not be read \u2014 <b>'
+      +esc((e&&e.message)||String(e))+'</b>. <b>Nothing was written</b>: a copy that cannot be read is never written over. '
+      +'If the folder is syncing, try again in a moment; if the copy is damaged, put an earlier one back from '
+      +'\ud83d\udce1 Live view \u2192 \u21b6 Earlier copies, then Save.');
     render(); return false;
   }
+  const theirs=cur? +((cur.store&&cur.store.ts)||cur.ts||0) : 0;
+  // SAVED BY SOMEBODY AFTER THE COPY THIS WORK CAME FROM. With nothing recorded there is no telling,
+  // so that asks too (v1.89) -- it used to write over it, which is the case that loses work unseen.
+  if(theirs && theirs!==driveBaseOf(ap)){ driveClashSay(cur, true); render(); return false; }
   if(DATA.items&&DATA.items.length) MS.dataPack=dataPackOf();
   // A BOARD WITH NO REQUIREMENTS HAS NOTHING TO SHARE. Its empty copy would be "newer" than every
   // full one on the share - the one thing the pull above must never take.
@@ -22135,20 +22400,77 @@ async function driveStorePush(quiet){
   // KEEP WHAT IS ABOUT TO BE REPLACED. `cur` was read at the top of this function; writing it to
   // history before the overwrite is the difference between a bad save being annoying and being
   // the end of the FY position.
-  try{ if(cur) await snapKeep(dir, MS.cur, ap, JSON.stringify(cur)); }catch(e){}
+  const hist=cur? await snapKeep(dir, MS.cur, ap, JSON.stringify(cur)) : 'none';
   await driveWrite(dir, driveName(MS.cur, ap), body);
   await driveHeartbeat(dir);
-  _driveBase[ap]=MS.ts;
+  driveBaseSet(ap, MS.ts, true);          // written: nothing on screen is unsaved any more
   // BROWSER STORAGE MUST MATCH THE FOLDER. A save that wrote only to the share left this machine's
   // own copy one step behind, so a reopen that could not reach the folder for a moment - or opened
   // in a browser that never had the handle - showed the previous state and read as data loss.
   persist();
-  DIRTY=false; try{ syncBtns(); }catch(e){}
+  _dlOnly=false; DIRTY=false; try{ syncBtns(); }catch(e){}
   LIVEDB.pub=Date.now(); LIVEDB.err='';
-  if(!quiet) setStat('✅ Saved '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)
+  // A HISTORY COPY THAT COULD NOT BE KEPT IS SAID, quiet save or not (v1.89): it failed in silence.
+  const histNote = hist==='failed' ? ' \u26a0 The copy it replaced could not be kept in the folder\u2019s history.' : '';
+  if(!quiet || histNote) setStat('✅ Saved '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)
     +' to the shared folder — '+Math.round(body.length/1024)+' KB. Everyone sees it on their '
-    +'next refresh.');
+    +'next refresh.'+histNote);
   render();
+  return true;
+}
+// SOMEBODY SAVED AFTER THE COPY THIS WORK CAME FROM (v1.89). Neither copy is dropped without a choice:
+// load theirs, with this browser's work kept aside; or save this one over theirs, with theirs kept in
+// the folder's history. The refusal this replaces said "Reload to take their copy" -- and a reload then
+// took the folder's newer time as the one the work came from, and the next Save wrote over them.
+function driveClashSay(j, refused){
+  const ap=mySlug(), theirs=+((j&&j.store&&j.store.ts)||(j&&j.ts)||0);
+  setStat('\u26d4 <b>'+esc((j&&j.by)||'someone')+'</b> saved '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)
+    +' to the shared folder '+esc(liveAge(theirs))+', after the copy you are working from. '
+    +(refused? '<b>Nothing was written.</b> ' : 'What is on screen does not have their changes. ')
+    +'<a style="color:var(--blue);cursor:pointer" onclick="driveResolve(\'theirs\')">Load theirs</a> '
+    +'(your work is kept aside, and one click puts it back) \u00b7 '
+    +'<a style="color:var(--blue);cursor:pointer" onclick="driveResolve(\'mine\')">Save yours over theirs</a> '
+    +'(theirs is kept in the folder\u2019s history).');
+}
+// 'theirs': keep this browser's work aside, then load the folder's copy. 'theirs!': load it without
+// keeping (offered only when there is no room to keep, after the person has saved a copy themselves).
+// 'mine': keep their copy in the folder's history -- forced, whatever the spacing -- then save over it.
+async function driveResolve(which){
+  if(sandboxBlock('Writing to the shared folder')||cycBlock('Loading a board')) return false;
+  const ap=mySlug(), lbl=(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100);
+  let dir, j;
+  try{ dir=await driveDir(true); j=await driveStoreRead(dir, ap); }
+  catch(e){ setStat('\u26a0 The shared folder\u2019s copy of '+esc(lbl)+' could not be read \u2014 <b>'+esc((e&&e.message)||String(e))
+    +'</b>. Nothing was changed.'); render(); return false; }
+  if(!j){ driveBaseSet(ap, 0); return await driveStorePush(false); }     // gone: nothing left to choose between
+  const theirs=+((j.store&&j.store.ts)||j.ts||0), by=j.by||'someone';
+  if(which==='mine'){
+    if(!confirm('Save your copy of '+lbl+' over the one '+by+' saved '+liveAge(theirs)+'?\n\n'
+      +'Theirs is kept in the shared folder\u2019s history (\ud83d\udce1 Live view \u2192 \u21b6 Earlier copies) and can be put back from there.')) return false;
+    if(await snapKeep(dir, MS.cur, ap, JSON.stringify(j), true)!=='kept'){
+      setStat('\u26d4 Their copy could not be kept in the shared folder\u2019s history, so <b>nothing was written</b>. '
+        +'Try again, or use \u2b07 Save a copy.'); render(); return false; }
+    driveBaseSet(ap, theirs);          // decided: theirs is the copy being replaced, and it is in the history
+    return await driveStorePush(false);
+  }
+  if(liveTooNew(j)){ setStat(liveTooNewMsg(j, APPN_LBL[ap]||ap)); render(); return false; }
+  if(!_hasPack(j.store)){ setStat('\u26a0 The shared folder\u2019s copy of '+esc(lbl)+' carries no requirement data, so it was not loaded.'); render(); return false; }
+  let kept=false;
+  if(which==='theirs'){
+    kept=keepAside(MS, {why:'folder', by:by, ts:theirs}, baseGet());
+    if(!kept){
+      setStat('\u26a0 There is no room in this browser to keep your work aside, so their copy was <b>not loaded</b>. '
+        +'Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then '
+        +'<a style="color:var(--blue);cursor:pointer" onclick="driveResolve(\'theirs!\')">load theirs without keeping yours here</a>.');
+      render(); return false;
+    }
+  } else if(!confirm('Load '+by+'\u2019s copy of '+lbl+' and replace what is on screen?\n\n'
+    +'Your work is NOT kept in this browser \u2014 only in a copy you saved yourself.')) return false;
+  if(applyStore(j.store)===false) return false;
+  driveBaseSet(ap, theirs, true);
+  persist(); DIRTY=false; render();
+  setStat('\u2b07 Loaded <b>'+esc(by)+'</b>\u2019s copy of '+esc(lbl)+'.'
+    +(kept? ' Your work is <b>kept aside</b>: <a style="color:var(--blue);cursor:pointer" onclick="keptPutBack()">put it back</a> (or from \ud83d\udcc1 File, any time).' : ''));
   return true;
 }
 // PUTTING A SNAPSHOT BACK. It writes the CURRENT copy to history first, so a restore is itself
@@ -22199,10 +22521,17 @@ async function driveRestore(i){
     if(liveTooNew(j)){ setStat(liveTooNewMsg(j, 'That copy')); return; }
     if(!_hasPack(j.store)){ setStat('⚠ That copy carries no requirement data — nothing was changed.'); return; }
     // the copy standing now goes to history too, so this restore is itself reversible
-    try{ const now=await driveStoreRead(dir, mySlug());
-         if(now) await snapKeep(dir, MS.cur, mySlug(), JSON.stringify(now)); }catch(e){}
-    applyStore(j.store);
-    _driveBase[mySlug()]=+((j.store&&j.store.ts)||j.ts||0);
+    // Kept whatever the last one's age (v1.89): the ten-minute spacing could skip it, which made the
+    // promise above untrue. A copy that cannot be read or kept stops the restore rather than being lost.
+    let now=null;
+    try{ now=await driveStoreRead(dir, mySlug()); }
+    catch(e){ setStat('\u26a0 The copy in the folder now could not be read \u2014 <b>'+esc((e&&e.message)||String(e))+'</b> \u2014 so nothing was put back.'); return; }
+    if(now && await snapKeep(dir, MS.cur, mySlug(), JSON.stringify(now), true)!=='kept'){
+      setStat('\u26a0 The copy in the folder now could not be kept in the history, so nothing was put back.'); return; }
+    if(applyStore(j.store)===false) return;
+    // WHAT SAVE WILL WRITE OVER IS THE COPY STANDING NOW, and it is in the history. The base was the
+    // old copy's own time, so Save found a "newer" copy in the folder and refused, every time.
+    driveBaseSet(mySlug(), now? +((now.store&&now.store.ts)||now.ts||0) : 0);
     persist();
     try{ jrnlSync('restored the copy from '+pretty); }catch(e){}
     DIRTY=true;
@@ -23348,8 +23677,21 @@ function addReq(){
   const tot=parseAmt(document.getElementById('naTot').value);
   let ask;
   if(svcSum>0) ask=svcVals;
-  else if(tot!==null&&tot>0) ask=SVC.map(_=>tot/SVC.length);
+  // A TOTAL IS SPREAD WITH apportion(), NEVER BY DIVIDING IT (v1.89). tot/SVC.length left a fraction
+  // on every service: the workbook printed 999,999.9999999999 and an unfunded row of
+  // $1.000000000000007, and the reopen rounded each service by itself, so $1,000,000 typed across
+  // six services came back as $1,000,002. apportion() gives whole dollars that add up to exactly what
+  // was typed; the dollars left over go to the first services in the list (Brad, 30 Sep 2026: $100
+  // across three is 34 / 33 / 33).
+  else if(tot!==null&&tot>0) ask=apportion(tot, SVC.map(function(){ return 1; }));
   else { alert('Set the FY27 requirement value — either by service or as one total.'); return; }
+  // WHOLE DOLLARS OR NOTHING. Nothing above can produce a cent today; this is what stops the next
+  // path that does from putting one on the board, where every export would carry it.
+  if(!ask.every(Number.isInteger)){
+    alert('This requirement was not added: its value by service ('+ask.join(' / ')+') is not in whole dollars. '
+      +'Nothing on the board was changed.');
+    return;
+  }
   const g=document.getElementById('naGrp').value;
   const ev=(document.getElementById('naEvent').value||'').trim();
   const cc=(document.getElementById('naCcar').value||'').trim().slice(0,12);
@@ -23371,29 +23713,30 @@ function addReq(){
   SVC.forEach((s,i)=>document.getElementById('naSvc'+i).value='');
   save(); render(); flash(it.id);
 }
-// The next number for an added requirement, read off the LAST segment of every custom id so
-// NEW-3, NEW-PSM-3 and NEW-AV-3 all count.
-function newReqSeq(){
-  return S.custom.length? Math.max(...S.custom.map(function(x){ return parseInt((x.id||'').split('-').pop())||0; }))+1 : 1;
-}
+// The next number for an added requirement is newReqSeq(), beside yearCopy(): never one used before.
+//
+// TWO KINDS OF REMOVE, and they keep different things (v1.89).
+// - An ADDED requirement is deleted for good, and everything held under its id goes with it
+//   (reqPurge). It used to clear nine containers and leave the rest for the next one added under the
+//   same number to inherit.
+// - A requirement from the BOARD'S DATA is only set aside: it keeps every field -- allocation, MC star,
+//   note, renamed title, CLIN breakdown, cost element -- so Restore brings it back exactly as it was,
+//   which is what the confirmation promises. Those six were deleted here until v1.89, and a restored
+//   requirement came back unfunded. While removed it is in neither DATA.items nor the order, and no
+//   total or export reads these containers by key, so what it keeps counts nowhere (audit-board proves
+//   it against a board that never had it).
 function removeReq(id){
   const it=itemById(id);
   if(!it) return;
   const note = it.custom? '(This ad-hoc requirement is deleted for good.)'
                         : '(Restore any time from the Removed list.)';
   if(!confirm('Remove "'+it.title+'" from the drill?\n'+note)) return;
-  if(it.custom){ S.custom=S.custom.filter(x=>x.id!==id); }
+  if(it.custom){ S.custom=S.custom.filter(x=>x.id!==id); reqPurge(S, id); }
   else if(!S.removed.includes(id)) S.removed.push(id);
   const i=DATA.items.findIndex(x=>x.id===id);
   if(i>=0) DATA.items.splice(i,1);
   S.order=S.order.filter(x=>x!==id);
   Object.keys(S.pmoOrder).forEach(g=>{ S.pmoOrder[g]=S.pmoOrder[g].filter(x=>x!==id); });
-  delete S.alloc[id]; delete S.mc[id]; delete S.notes[id]; delete S.titles[id];
-  if(S.clinAlloc) delete S.clinAlloc[id];
-  if(S.clinMeta) delete S.clinMeta[id];
-  if(S.clinNew) delete S.clinNew[id];
-  if(S.clinRm) delete S.clinRm[id];
-  if(S.costElem) delete S.costElem[id];
   save(); render();
 }
 function restoreReq(id){ S.removed=S.removed.filter(x=>x!==id); applyState(S); save(); render(); }
@@ -25376,7 +25719,18 @@ document.addEventListener('keydown', function(e){
 });
 
 const _renderCards = render;
-render = function(){ _renderCards.apply(this, arguments); try{ gridAfterRender(); }catch(e){} };
+// A RECORD PANEL THAT FAILED TO REDRAW IS EMPTIED, NEVER LEFT STANDING (v1.89). This catch was empty:
+// the panel kept the previous render's figures beside rows that had moved on, and nothing said so.
+render = function(){ _renderCards.apply(this, arguments);
+  try{ gridAfterRender(); }
+  catch(e){
+    const why=(e&&e.message)||String(e);
+    try{ const el=document.getElementById('inspector');
+      if(el) el.innerHTML='<div class="insp-empty">The record panel could not be drawn ('+esc(why)+'), so it is empty '
+        +'rather than showing figures from before. Click the row again; if this repeats, \u2b07 Save a copy and report it.</div>'; }catch(e2){}
+    try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures.'); }catch(e2){}
+  }
+};
 /* ================= end grid-build additions =================================================== */
 
 
@@ -25587,7 +25941,6 @@ function exportCoa(){
 }
 
 const pubActive = ()=> PUB && (PUB.years||Array.isArray(PUB.order)) && (MS.ts||0)<=(PUB.ts||0);
-LASTKNOWN = (PUB&&PUB.ts)||0;
 // FIRST, because it outranks every other opening message: the board is showing defaults and the
 // reader has no other way to know that is not their data. Never let the ordinary "opened with the
 // saved state" line overwrite it.
@@ -25596,6 +25949,25 @@ if(_bootRestoreErr){
     +esc(_bootRestoreErr)+'. What you are looking at is the <b>empty default</b>, not your work. '
     +'Your saved <b>.html file is a separate copy and is not affected</b>: open it with '
     +'\ud83d\udcc1 File \u2192 \u2b05 Import a full board. Do not save over anything until you have.');
+} else if(_bootHeld){
+  // v1.89. The file is newer, and this browser's own work could not be kept aside -- so the file was
+  // NOT opened. Its own copy is on screen, and Save asks before writing over the file.
+  _bootSaid=true;
+  setStat('\u26a0 <b>The saved file is newer</b> \u2014 '+esc(_bootHeld.by||'someone')+' saved it '+esc(fmtTs(_bootHeld.ts))
+    +' \u2014 but this browser holds work that is in no saved copy, and there is no room to keep it aside. So the board is '
+    +'showing <b>this browser\u2019s copy</b>, not the file\u2019s, and \ud83d\udcbe Save will ask before it writes over the file. '
+    +'To see the file\u2019s version, \u2b07 Save a copy of yours first, then '
+    +'<a style="color:var(--blue);cursor:pointer" onclick="bootTakeFile()">open the file\u2019s version</a>.');
+} else if(_bootKept){
+  _bootSaid=true;
+  setStat('\ud83d\udce6 Opened with the saved board state \u2014 last saved by <b>'+esc(_bootKept.by||'someone')+'</b> '+esc(fmtTs(_bootKept.ts))
+    +'. This browser held work that no saved copy had; it is <b>kept aside</b>, not lost: '
+    +'<a style="color:var(--blue);cursor:pointer" onclick="keptPutBack()">put it back</a> (or from \ud83d\udcc1 File, any time).');
+} else if(_bootMoved){
+  _bootSaid=true;
+  setStat('\u26a0 Opened <b>this browser\u2019s copy</b>, which has changes made since it was last saved. The file has been saved '
+    +'since then as well \u2014 by <b>'+esc((PUB&&PUB.by)||'someone')+'</b> '+esc(fmtTs(_bootMoved))+' \u2014 and what is on screen '
+    +'does not have those changes. \ud83d\udcbe Save will ask before it writes over them; to take theirs instead, \u2b05 Import the file.');
 } else if(_impRep){                         // what a full import brought, now that it is open
   setStat(_impRep); _impRep=null; _impSaid=true;
 } else if(Object.keys(bandOrphans()).length){
@@ -25663,11 +26035,11 @@ try{ setTimeout(function(){
 }, 60); }catch(e){}
 loadShared(st=>{
   if(st===undefined){
-    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid) setStat('No saved state in this copy — make sure you opened the latest board file from the shared drive (💾 Save bakes the state into the file). ⬅ Import also works with a .json state file.');
+    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid && !_bootSaid) setStat(bootOwnMsg()||'No saved state in this copy — make sure you opened the latest board file from the shared drive (💾 Save bakes the state into the file). ⬅ Import also works with a .json state file.');
     return;
   }
   if(!st||!(st.years||Array.isArray(st.order))){
-    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid) setStat('No shared state file found next to the board — use 💾 Save to create one.');
+    if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid && !_bootSaid) setStat(bootOwnMsg()||'No shared state file found next to the board — use 💾 Save to create one.');
     return;
   }
   SHARED=st;

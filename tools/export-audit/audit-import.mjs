@@ -555,8 +555,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const name = 'copy / move between years';
   try {
   const src = readFileSync(BOARD, 'utf8');
-  const listM = /\n  \['alloc','mc',([\s\S]*?)\]\n    \.forEach\(k=>\{ if\(!T\[k\]\) T\[k\]=\{\}; \}\);/.exec(src);
-  const KEYS = listM ? ("['alloc','mc'," + listM[1] + "]").match(/'([a-zA-Z]+)'/g).map(x => x.slice(1, -1)) : [];
+  // v1.89: the list is REQ_MAPS, the one list of what a year keeps per requirement, which yearCopy()
+  // normalises from and delete and move-to-year purge by.
+  const listM = /const REQ_MAPS=(\[[^\]]*\]);/.exec(src);
+  const KEYS = listM ? listM[1].match(/'([a-zA-Z]+)'/g).map(x => x.slice(1, -1)) : [];
   chk(name, 'oracle', 'the container list was read from the board', KEYS.length > 25 ? 'read' : KEYS.length, 'read');
 
   const { ev } = boot(); seed(ev, base());
@@ -3319,6 +3321,296 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   }
   bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
   await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
+
+// v1.89, ITEM 23: SAVING NEVER SILENTLY OVERWRITES SOMEBODY'S WORK.
+// Reproduced on v1.88, all of it silent: a board reopened while this browser held edits never saved to
+// the file showed the browser's copy, and treated the FILE's time as the point it had loaded from -- so
+// a colleague's save made in between was written over by the next Save, unasked (no clock difference
+// needed); when the file was the newer one, the browser's own work was replaced with no message; a file
+// that could not be read skipped the check and was overwritten; the shared folder, reopened, did the
+// same with a colleague's folder copy, and treated a copy it could not read as no copy at all.
+// Every case here is driven through the board's own paths -- open, Save, the folder's pull and push --
+// against a stand-in for the file on disk and one for the shared folder, and every one either keeps
+// both sides or asks.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.89 — saving never silently overwrites somebody’s work';
+  try {
+  const SVC = ['USAF', 'ANG', 'AFRC'];
+  const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+  const pause = ms => new Promise(r => setTimeout(r, ms));
+  const lsOf = ev => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+  // Every question the board asks is recorded, and answered as the test says.
+  const wire = (ev, name) => ev(`localStorage.setItem('prio27who', ${JSON.stringify(name)}); globalThis.__q=[]; globalThis.__yes=false;
+    window.confirm=function(q){ globalThis.__q.push(String(q)); return globalThis.__yes; }; window.alert=function(){};
+    URL.createObjectURL=function(){ return 'blob:x'; }; URL.revokeObjectURL=function(){}; 'ok'`);
+  const status = ev => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const header = ev => ev(`(document.getElementById('saveState')||{}).textContent||''`);
+  // THE FILE ON DISK: what Save reads, then writes. `fail` makes reading it throw, as a file mid-sync does.
+  const disk = (w, content) => { const f = { name: 'Board.html', content, writes: 0, fail: false };
+    w.__disk = { name: f.name, requestPermission: async () => 'granted',
+      getFile: async () => { if (f.fail) throw new Error('the file is being synced'); return { text: async () => f.content }; },
+      createWritable: async () => { let buf = ''; return { write: async x => { buf += String(x); }, close: async () => { f.content = buf; f.writes++; } }; } };
+    w.eval(`FH=globalThis.__disk; window.showSaveFilePicker=function(){ throw new Error('the picker was opened'); }; 'ok'`);
+    return f; };
+  const saveNow = async (ev, yes) => { ev(`globalThis.__q=[]; globalThis.__yes=${!!yes}; 'ok'`); await ev('saveInPlaceFile()'); return JSON.parse(ev('JSON.stringify(globalThis.__q)')); };
+  const note = (ev, id) => ev(`String(S.notes[${JSON.stringify(id)}]||'')`);
+  // The file everyone shares, saved once.
+  const A = boot(); seed(A.ev, { services: SVC, items: [mk('A', [900, 200, 100]), mk('B', [400, 100, 50])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B'] });
+  A.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+  const F1 = A.ev('buildSavedHtml()');
+  await pause(20);
+  // Brad opens it and saves it in place, so this browser knows which save its work came from.
+  const brad = () => { const B = boot({ html: F1 }); wire(B.ev, 'Brad'); return B; };
+  const colleague = (skew) => { const C = boot({ html: F1 }); wire(C.ev, 'Colleague');
+    return C.ev(`(function(){ var real=Date.now; Date.now=function(){ return real()+(${skew || 0}); };
+      S.notes.B='COLLEAGUE NOTE'; save(); var h=buildSavedHtml(); Date.now=real; return h; })()`); };
+
+  // 1. THE COLLEAGUE SAVED FIRST; BRAD'S BROWSER HOLDS LATER EDITS, NEVER SAVED TO THE FILE.
+  {
+    const F2 = colleague(0); await pause(20);
+    const B = brad(); B.ev(`S.notes.A='BRAD NOTE'; save(); 'ok'`);
+    const R = boot({ html: F2, ls: lsOf(B.ev) }); wire(R.ev, 'Brad');
+    const at = 'colleague saved first';
+    chk(name, at, 'the board opens this browser’s copy, the newer one', note(R.ev, 'A') + '|' + note(R.ev, 'B'), 'BRAD NOTE|');
+    chk(name, at, 'and says the file was saved by somebody since', /saved since then as well/.test(status(R.ev)) && /Colleague/.test(status(R.ev)), true);
+    const f = disk(R.w, F2);
+    const q = await saveNow(R.ev, false);
+    chk(name, at, 'Save asks before it writes over their save', q.length === 1 && /HOLD ON/.test(q[0]) && /Colleague/.test(q[0]), true);
+    chk(name, at, 'and, told no, writes nothing', f.writes + '|' + (f.content === F2), '0|true');
+    const q2 = await saveNow(R.ev, true);
+    chk(name, at, 'told yes, it writes', f.writes + '|' + /BRAD NOTE/.test(f.content), '1|true');
+    const q3 = await saveNow(R.ev, false);
+    chk(name, at, 'and its own save is the one the next Save checks against: no question', q3.length + '|' + f.writes, '0|2');
+  }
+  // 2. THE FILE IS NEWER: the colleague saved AFTER Brad's browser-only edits.
+  {
+    const B = brad(); B.ev(`S.notes.A='BRAD NOTE'; save(); 'ok'`); const lsB = lsOf(B.ev); await pause(20);
+    const F2 = colleague(0);
+    const R = boot({ html: F2, ls: lsB }); wire(R.ev, 'Brad');
+    const at = 'the file is newer';
+    chk(name, at, 'the board opens the file, the newer one', note(R.ev, 'A') + '|' + note(R.ev, 'B'), '|COLLEAGUE NOTE');
+    chk(name, at, 'Brad’s work is kept aside, not lost', /BRAD NOTE/.test(R.ev(`localStorage.getItem(_AP.key+'.kept')||''`)), true);
+    chk(name, at, 'and the board says so', /kept aside, not lost/.test(status(R.ev)), true);
+    chk(name, at, 'the header says so for as long as it is kept', /work kept aside/.test(header(R.ev)), true);
+    chk(name, at, 'and 📁 File offers to put it back', /Put back work kept aside/.test(R.ev(`document.getElementById('dd_share')? document.getElementById('dd_share').textContent : ''`)), true);
+    R.ev(`globalThis.__yes=true; keptPutBack(); 'ok'`);
+    chk(name, at, 'one click puts it back', note(R.ev, 'A') + '|' + note(R.ev, 'B') + '|' + R.ev(`String(localStorage.getItem(_AP.key+'.kept')===null)`), 'BRAD NOTE||true');
+    const f = disk(R.w, F2);
+    const q = await saveNow(R.ev, false);
+    chk(name, at, 'and Save, put back, asks before writing over the colleague’s file', q.length === 1 && /HOLD ON/.test(q[0]) && f.writes === 0, true);
+  }
+  // 3. THE COLLEAGUE'S CLOCK IS AN HOUR SLOW: their later save carries an earlier time.
+  {
+    const B = brad(); B.ev(`S.notes.A='BRAD NOTE'; save(); 'ok'`); await pause(20);
+    const F2 = colleague(-3600e3);
+    const R = boot({ html: F2, ls: lsOf(B.ev) }); wire(R.ev, 'Brad');
+    const at = 'a clock an hour slow';
+    chk(name, at, 'the board shows this browser’s copy, and says the file was saved since', note(R.ev, 'A') + '|' + /saved since then as well/.test(status(R.ev)), 'BRAD NOTE|true');
+    const f = disk(R.w, F2);
+    const q = await saveNow(R.ev, false);
+    chk(name, at, 'Save still asks: a save that is not the one this work came from, earlier or later', q.length === 1 && f.writes === 0, true);
+  }
+  // 4. NOBODY ELSE SAVED: Save writes, and asks nothing.
+  {
+    const R = boot({ html: F1 }); wire(R.ev, 'Brad');
+    R.ev(`S.notes.A='mine'; save(); 'ok'`);
+    const f = disk(R.w, F1);
+    const q = await saveNow(R.ev, false);
+    chk(name, 'nobody else saved', 'Save writes without asking', q.length + '|' + f.writes, '0|1');
+    chk(name, 'nobody else saved', 'and the header says saved', /unsaved|downloaded/.test(header(R.ev)), false);
+    // A FILE THAT CANNOT BE READ is never written over.
+    f.fail = true; R.ev(`S.notes.A='again'; save(); 'ok'`);
+    const q2 = await saveNow(R.ev, true);
+    chk(name, 'a file that cannot be read', 'is not written over, and nothing is asked', q2.length + '|' + f.writes, '0|1');
+    chk(name, 'a file that cannot be read', 'and the board says why', /Not saved/.test(status(R.ev)) && /could not be read/.test(status(R.ev)), true);
+    // A FILE THAT IS NOT A BOARD is never written over either, and the next Save asks which file.
+    f.fail = false; f.content = '<html><body>somebody else’s page</body></html>';
+    await saveNow(R.ev, true);
+    chk(name, 'a file that is not a board', 'is not written over', f.writes + '|' + /somebody else/.test(f.content), '1|true');
+    chk(name, 'a file that is not a board', 'the board says so, and forgets that file', /not a board ORBIT can read/.test(status(R.ev)) + '|' + R.ev('String(FH===null)'), 'true|true');
+    // AN EMPTY FILE is one the picker just made: nothing in it to lose.
+    const g = disk(R.w, '');
+    await saveNow(R.ev, false);
+    chk(name, 'a new, empty file', 'is written', g.writes, 1);
+  }
+  // 5. A BROWSER COPY LAST OPENED BEFORE v1.89 recorded nothing; the journal decides.
+  {
+    const B = brad(); B.ev(`S.notes.A='BRAD NOTE'; save(); 'ok'`); const lsB = lsOf(B.ev); await pause(20);
+    const F2 = colleague(0);
+    Object.keys(lsB).filter(k => /\.base$/.test(k)).forEach(k => delete lsB[k]);
+    const R = boot({ html: F2, ls: lsB }); wire(R.ev, 'Brad');
+    chk(name, 'before v1.89, with work', 'work the file’s journal does not have is kept aside', /BRAD NOTE/.test(R.ev(`localStorage.getItem(_AP.key+'.kept')||''`)), true);
+    const C = boot({ html: F1 }); wire(C.ev, 'Brad'); const lsC = lsOf(C.ev);
+    Object.keys(lsC).filter(k => /\.base$/.test(k)).forEach(k => delete lsC[k]);
+    lsC[C.ev('_AP.key')] = C.ev('JSON.stringify(MS)');
+    const R2 = boot({ html: F2, ls: lsC });
+    chk(name, 'before v1.89, nothing unsaved', 'a copy the file already holds opens the file, keeping nothing', R2.ev(`String(localStorage.getItem(_AP.key+'.kept')===null)`) + '|' + note(R2.ev, 'B'), 'true|COLLEAGUE NOTE');
+  }
+  // 6. NO ROOM TO KEEP IT: the newer file is NOT opened; the browser's work stays on screen.
+  {
+    const B = brad(); B.ev(`S.notes.A='BRAD NOTE'; save(); 'ok'`); const lsB = lsOf(B.ev); await pause(20);
+    const F2 = colleague(0);
+    const dom = new JSDOM(F2, { runScripts: 'dangerously', virtualConsole: new VirtualConsole(), url: 'https://example.invalid/board.html',
+      beforeParse(w) { Object.keys(lsB).forEach(k => { try { w.localStorage.setItem(k, lsB[k]); } catch (e) {} });
+        const orig = w.Storage.prototype.setItem;
+        w.Storage.prototype.setItem = function (k, v) { if (/\.kept$/.test(k)) throw new w.DOMException('full', 'QuotaExceededError'); return orig.call(this, k, v); }; } });
+    const ev = code => dom.window.eval(code);
+    chk(name, 'no room to keep it', 'the file is not opened: this browser’s work stays on screen', note(ev, 'A') + '|' + note(ev, 'B'), 'BRAD NOTE|');
+    chk(name, 'no room to keep it', 'and the board says why', /no room to keep it aside/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`)), true);
+    try { dom.window.close(); } catch (e) {}
+  }
+  // 7. A DOWNLOAD IS NOT THE SHARED FILE.
+  {
+    const R = boot({ html: F1 }); wire(R.ev, 'Brad');
+    R.ev(`S.notes.A='mine'; save(); publishState(); 'ok'`);
+    chk(name, 'a download', 'the header says it is downloaded, not on the shared file yet', /downloaded — not on the shared file yet/.test(header(R.ev)), true);
+    chk(name, 'a download', 'and the work still counts as unsaved', R.ev('String(DIRTY)'), 'true');
+  }
+  // 8. THE SHARED FOLDER. One stand-in folder, shared by two browsers.
+  {
+    const root = { files: {}, dirs: {}, fail: {} };
+    const dirOf = st => ({ kind: 'directory', name: 'shared', queryPermission: async () => 'granted', requestPermission: async () => 'granted',
+      getFileHandle: async (n, o) => { if (!(n in st.files)) { if (o && o.create) st.files[n] = ''; else { const e = new Error('not found'); e.name = 'NotFoundError'; throw e; } }
+        return { kind: 'file', name: n,
+          getFile: async () => { if (st.fail[n]) throw new Error('locked while it syncs'); return { text: async () => st.files[n] }; },
+          createWritable: async () => { let buf = ''; return { write: async x => { buf += String(x); }, close: async () => { st.files[n] = buf; } }; } }; },
+      getDirectoryHandle: async (n, o) => { if (st.fail['dir:' + n]) throw new Error('cannot make ' + n);
+        if (!st.dirs[n]) { if (o && o.create) st.dirs[n] = { files: {}, dirs: {}, fail: {} }; else { const e = new Error('not found'); e.name = 'NotFoundError'; throw e; } }
+        return dirOf(st.dirs[n]); },
+      removeEntry: async n => { delete st.files[n]; },
+      values: async function* () { for (const n of Object.keys(st.files)) yield { kind: 'file', name: n }; } });
+    const folder = dirOf(root);
+    const connect = (ev, w) => { w.__fold = folder;
+      ev(`_liveCfg=Object.assign(liveCfg(), {store:true, mode:'drive', on:false}); _driveDir=globalThis.__fold; 'ok'`); };
+    const push = async ev => { ev(`globalThis.__q=[]; 'ok'`); return await ev('driveStorePush(false)'); };
+    const copyNote = (id) => { const k = Object.keys(root.files).find(n => /^spmt-\d+-.+\.json$/.test(n) && !/lock/.test(n)); const j = k ? JSON.parse(root.files[k]) : null;
+      return j ? String((((j.store || {}).years || {})[j.store.cur] || {}).notes?.[id] || '') : ''; };
+    const hist = () => Object.keys((root.dirs.history || { files: {} }).files).length;
+    // Brad saves to the folder, then keeps working in his browser; the colleague saves after that.
+    const P = boot({ html: F1 }); wire(P.ev, 'Brad'); connect(P.ev, P.w);
+    P.ev(`S.notes.A='BRAD PUSHED'; save(); 'ok'`);
+    chk(name, 'folder', 'Brad’s first save to the folder goes in', String(await push(P.ev)), 'true');
+    await pause(20);
+    const Q = boot({ html: F1 }); wire(Q.ev, 'Colleague'); connect(Q.ev, Q.w);
+    await Q.ev('driveStorePull(true)');
+    Q.ev(`S.notes.B='COLLEAGUE PUSHED'; save(); 'ok'`);
+    chk(name, 'folder', 'the colleague loads it, and saves after it', String(await push(Q.ev)) + '|' + copyNote('B'), 'true|COLLEAGUE PUSHED');
+    await pause(20);
+    P.ev(`S.notes.A='BRAD LATER'; save(); 'ok'`);
+    const R = boot({ html: F1, ls: lsOf(P.ev) }); wire(R.ev, 'Brad'); connect(R.ev, R.w);
+    await R.ev('driveStorePull(false)');
+    chk(name, 'folder, reopened', 'a colleague saved after the copy this work came from: the board says so on opening',
+      /after the copy you are working from/.test(status(R.ev)) && note(R.ev, 'A') === 'BRAD LATER', true);
+    const pushed = await push(R.ev);
+    chk(name, 'folder, reopened', 'and Save does not write over their copy unasked', String(pushed) + '|' + copyNote('B'), 'false|COLLEAGUE PUSHED');
+    // CHOICE ONE: save mine over theirs -- theirs goes into the folder's history first.
+    const h0 = hist();
+    R.ev(`globalThis.__yes=true; 'ok'`); await R.ev(`driveResolve('mine')`);
+    chk(name, 'folder, reopened', '“Save yours over theirs” keeps theirs in the history, then writes', (hist() > h0) + '|' + copyNote('A'), 'true|BRAD LATER');
+    // CHOICE TWO, on the colleague's side now: load theirs, with this browser's work kept aside.
+    Q.ev(`S.notes.B='COLLEAGUE AGAIN'; save(); 'ok'`);
+    const qp = await push(Q.ev);
+    chk(name, 'folder, the other side', 'the colleague’s next Save is stopped the same way', String(qp), 'false');
+    Q.ev(`globalThis.__yes=true; 'ok'`); await Q.ev(`driveResolve('theirs')`);
+    chk(name, 'folder, the other side', '“Load theirs” loads Brad’s copy and keeps the colleague’s work aside',
+      note(Q.ev, 'A') + '|' + /COLLEAGUE AGAIN/.test(Q.ev(`localStorage.getItem(_AP.key+'.kept')||''`)), 'BRAD LATER|true');
+    // A FOLDER COPY THAT CANNOT BE READ is never written over.
+    const nm = Object.keys(root.files).find(n => /^spmt-\d+-.+\.json$/.test(n) && !/lock/.test(n));
+    const before = root.files[nm]; root.fail[nm] = true;
+    R.ev(`S.notes.A='WHILE LOCKED'; save(); 'ok'`);
+    const pl = await push(R.ev);
+    chk(name, 'folder, unreadable', 'a copy that cannot be read is not written over', String(pl) + '|' + (root.files[nm] === before), 'false|true');
+    chk(name, 'folder, unreadable', 'and the board says so', /could not be read/.test(status(R.ev)) && /Nothing was written/.test(status(R.ev)), true);
+    root.fail[nm] = false;
+    // A HISTORY COPY THAT COULD NOT BE KEPT is said. (An ordinary save; the one it replaces is Brad's own.)
+    await R.ev('driveStorePull(true)');
+    root.dirs.history.files = {};                    // no recent copy, so this save would keep one
+    root.fail['dir:history'] = true;
+    R.ev(`S.notes.A='NO HISTORY'; save(); 'ok'`);
+    const ph = await push(R.ev);
+    chk(name, 'folder, history', 'a save whose history copy fails still saves, and says the copy was not kept',
+      String(ph) + '|' + /could not be kept in the folder/.test(status(R.ev)), 'true|true');
+    root.fail['dir:history'] = false;
+    // PUTTING AN EARLIER COPY BACK, THEN SAVING. The copy standing now goes into the history whatever
+    // the spacing, and Save then writes: on v1.88 the base was the old copy's own time, so Save found a
+    // "newer" copy in the folder and refused, every time.
+    await pause(20); R.ev(`S.notes.A='BEFORE RESTORE'; save(); 'ok'`); await push(R.ev);
+    await R.ev('driveHistShow()');
+    const h1 = hist(), standing = copyNote('A');
+    R.ev(`globalThis.__yes=true; 'ok'`); await R.ev('driveRestore(0)');
+    chk(name, 'folder, restore', 'the copy standing now is kept in the history first', (hist() > h1) + '|' + standing, 'true|BEFORE RESTORE');
+    const rp = await push(R.ev);
+    chk(name, 'folder, restore', 'and Save then writes the copy put back', String(rp) + '|' + (copyNote('A') !== 'BEFORE RESTORE'), 'true|true');
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// v1.89, ITEM 26: THE CHANGE JOURNAL SAYS WHEN IT COULD NOT RECORD EVERYTHING.
+// One save recorded at most 200 changes and dropped the rest with no mark -- 240 edits left 200 entries
+// -- while a PMO apply of more than 200 fields promised "Each one is recorded in the change journal, so
+// it can be found and undone later". A walk that failed dropped every entry of its save, silently. And
+// a RECORD panel that failed to redraw kept the previous figures, the error swallowed.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.89 — the change journal says when it could not record everything';
+  try {
+  const SVC = ['USAF', 'ANG', 'AFRC'], N = 70;
+  const items = Array.from({ length: N }, (_, k) => ({ id: 'R' + k, grp: 'PSM', team: 'PSM', sect: '', custom: false,
+    title: 'Req ' + k, event: 'E' + k, ccar: '', fy26: [0, 0, 0], ask: [1000, 500, 250], alloc: null }));
+  const sc = { services: SVC, items, disc: [40000, 20000, 9000], mand: [5000, 2000, 1000], order: items.map(i => i.id) };
+  const mkB = () => { const b = boot(); seed(b.ev, sc);
+    b.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save();
+      jrnlSync(); window.alert=function(){}; globalThis.__q=[]; window.confirm=function(q){ globalThis.__q.push(String(q)); return true; }; 'ok'`); return b; };
+  const { ev } = mkB();
+  // 240 EDITS IN ONE SAVE
+  const before = ev('JSON.stringify(MS)');
+  const n0 = +ev('(MS.jrnl||[]).length');
+  ev(`(function(){ for(var k=0;k<60;k++){ S.notes['R'+k]='note '+k; S.desc['R'+k]='d '+k; S.cons['R'+k]='c '+k; S.pid['R'+k]='P'+k; } save(); return 'ok'; })()`);
+  const added = JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).slice(${n0}))`));
+  const summary = added.filter(e => e.p && e.p[0] === '(more)');
+  chk(name, '240 edits in one save', 'the first 200 are recorded one by one, and one line says how many more',
+    `${added.filter(e => e.p && e.p[0] !== '(more)').length} + ${summary.length}: ${summary.length ? summary[0].b.split(' ')[0] : '-'}`, '200 + 1: 40');
+  chk(name, '240 edits in one save', 'that line is not offered as something to undo', ev(`String(jrnlUndoable((MS.jrnl||[])[(MS.jrnl||[]).length-1]))`), 'false');
+  chk(name, '240 edits in one save', 'and the journal shows it as what it is', /40 more changes/.test(ev(`jrnlLabel((MS.jrnl||[])[(MS.jrnl||[]).length-1])`)), true);
+  chk(name, '240 edits in one save', 'a package import still sees the changes made here since',
+    ev(`String(pkgMineSince(MS, ${before}).length>0)`), 'true');
+  // A WALK THAT FAILS is recorded as such, never dropped in silence.
+  ev(`globalThis.__jw=jrnlWalk; jrnlWalk=function(){ throw new Error('walk failed'); }; S.notes.R1='after'; save(); jrnlWalk=globalThis.__jw; 'ok'`);
+  chk(name, 'recording fails', 'the journal gets a line saying this save could not all be recorded',
+    ev(`String(((MS.jrnl||[])[(MS.jrnl||[]).length-1]||{}).p[0])`) + '|' + /walk failed/.test(ev(`String(((MS.jrnl||[])[(MS.jrnl||[]).length-1]||{}).b)`)), '(unrecorded)|true');
+  // A PMO APPLY OF MORE THAN 200 FIELDS: the question says where the journal stops, and the result says what it holds.
+  const O = mkB();
+  const html = O.ev(String.raw`(function(){ const mode={sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, base:pmoBaseline()};
+    return buildSavedHtml().replace(/(<script type="application\/json" id="pubMode">)[\s\S]*?(<\/script>)/,
+      function(m,a,b){ return a + JSON.stringify(mode).replace(/</g,'\\u003c') + b; }); })()`);
+  const P = boot({ html });
+  P.ev(`localStorage.setItem('prio27who','PMO'); localStorage.setItem('prio27pmo','PSM');
+    for(var k=0;k<${N};k++){ S.desc['R'+k]='office desc '+k; S.cons['R'+k]='office impact '+k; S.notes['R'+k]='office note '+k; } save(); 'ok'`);
+  const wire = P.ev(`(function(){ var cap=null; var _B=window.Blob; window.Blob=function(parts,opts){ cap=parts&&parts[0]; return new _B(parts,opts); };
+    try{ pmoSubmit(); }catch(e){} window.Blob=_B; return cap; })()`);
+  O.ev(`pmoTake(${JSON.stringify(JSON.parse(wire))}, 's.json'); PMOPICK={}; pmoRows().forEach(function(r){ PMOPICK[pickKey(r)]=true; });
+    globalThis.__q=[]; pmoApply(); 'ok'`);
+  const q = JSON.parse(O.ev('JSON.stringify(globalThis.__q)'));
+  chk(name, 'a PMO apply of 210 fields', 'the question says the journal records the first 200 one by one',
+    q.length === 1 && /the first 200 one by one/.test(q[0]), true);
+  chk(name, 'a PMO apply of 210 fields', 'and the result says what it recorded past them',
+    /recorded there as one line/.test(O.ev(`(document.getElementById('shareStat')||{}).textContent`)), true);
+  // THE RECORD PANEL, when it cannot be drawn, is emptied and says so.
+  ev(`globalThis.__ib=inspectorBody; inspectorBody=function(){ throw new Error('panel broke'); }; render(); inspectorBody=globalThis.__ib; 'ok'`);
+  chk(name, 'the RECORD panel', 'a panel that cannot be drawn is emptied, not left showing old figures',
+    /could not be drawn/.test(ev(`document.getElementById('inspector').textContent`)) && !/\$/.test(ev(`document.getElementById('inspector').textContent`)), true);
+  chk(name, 'the RECORD panel', 'and the board says so', /RECORD panel could not be drawn/.test(ev(`(document.getElementById('shareStat')||{}).textContent`)), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
 })();
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs

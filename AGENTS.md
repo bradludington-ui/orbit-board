@@ -58,6 +58,11 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 
 ## Do not
 
+- Add a kind of per-requirement data without putting it on `REQ_MAPS` in the board: delete, move-to-year
+  and copy-to-year all read that one list, and the round-trip fuzz fails by name on one that is missing.
+- Write over a saved copy -- the file, or the shared folder's -- that could not be read, or decide whether
+  work is unsaved by comparing two computers' clocks. See the v1.89 section of `CLAUDE.md`.
+
 - Rename the browser-storage keys `spmtTheme` and `spmtSeen`, or the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.
 - Work in this repository while another agent is changing it: one agent at a time, so changes do not

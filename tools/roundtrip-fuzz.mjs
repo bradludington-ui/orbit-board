@@ -254,12 +254,13 @@ const emptyContainers = ev => {
   return [...WRITTEN].filter(k => !filled.has(k) && !EXCUSED[k]).sort();
 };
 
-// The year-copy normalise list, read from yearCopy() itself rather than repeated here. Its own
-// comment says that list and the cp() payload must stay in step; TRIP 3 checks every container on
-// it, so a container added there without a cp() fails here the first night.
+// The year-copy normalise list, read from the board rather than repeated here. Its own comment says
+// that list and the cp() payload must stay in step; TRIP 3 checks every container on it, so a
+// container added there without a cp() fails here the first night. Since v1.89 it is REQ_MAPS, the
+// one list of what a year keeps per requirement, which delete and move-to-year purge as well.
 const YEAR_CONTAINERS = (() => {
-  const m = /(\[[^\]]*\])\s*\.forEach\(k=>\{ if\(!T\[k\]\) T\[k\]=\{\}; \}\);/.exec(SRC);
-  if (!m) throw new Error('could not find the yearCopy normalise list in the board — its shape changed');
+  const m = /const REQ_MAPS=(\[[^\]]*\]);/.exec(SRC);
+  if (!m) throw new Error('could not find REQ_MAPS, the per-requirement container list, in the board — its shape changed');
   return JSON.parse(m[1].replace(/'/g, '"').replace(/,\s*\]/, ']'));
 })();
 
@@ -447,6 +448,51 @@ for (let round = 1; round <= ROUNDS; round++) {
           `copy held ${JSON.stringify(typed[id][k])?.slice(0, 70)}\n          offered  ${JSON.stringify(offered[id][k])?.slice(0, 70)}`);
     }
   } catch (e) { fail(round, 'PMO copy', 'threw', String(e.message).slice(0, 150)); }
+
+  // ---- TRIP 5 (v1.89): an added requirement deleted, another added. Everything this board holds
+  // under ANY requirement is copied onto an added one -- every container populate() filled, found by
+  // looking, not from a list -- then it is deleted and another is added. Nothing of it may be left
+  // anywhere, the new one may not share its number or inherit a field, and every container it held
+  // must be on REQ_MAPS: one that is not is a kind of data deleting an added requirement leaves
+  // behind, which is exactly how nine of the thirty-four were purged and the rest inherited.
+  try {
+    const r = JSON.parse(ev(`(function(){
+      window.confirm=function(){ return true; }; window.alert=function(){};
+      var add=function(t){ _addPanelSvc=null; syncAddPanel(); var n0=S.custom.length;
+        document.getElementById('naTitle').value=t; document.getElementById('naTot').value='1000';
+        SVC.forEach(function(s,i){ document.getElementById('naSvc'+i).value=''; });
+        document.getElementById('naGrp').value=GROUPS[0]; addReq();
+        return S.custom.length>n0? S.custom[S.custom.length-1].id : ''; };
+      var held=function(id){ var out=[];
+        Object.keys(S).forEach(function(k){ var bag=S[k]; if(!bag || typeof bag!=='object' || Array.isArray(bag)) return;
+          if(Object.prototype.hasOwnProperty.call(bag, id) || (k==='upl' && Object.prototype.hasOwnProperty.call(bag, 'r|'+id))) out.push(k); });
+        if(S.whatif) ['a','b'].forEach(function(p){ if((S.whatif[p]||{})[id]!==undefined) out.push('whatif.'+p); });
+        return out; };
+      var D=add('Doomed'); if(!D) return JSON.stringify({err:'the form added nothing'});
+      var others=S.order.filter(function(x){ return x!==D; }).concat(S.removed||[]);
+      Object.keys(S).forEach(function(k){ var bag=S[k]; if(!bag || typeof bag!=='object' || Array.isArray(bag)) return;
+        var from=others.filter(function(x){ return Object.prototype.hasOwnProperty.call(bag, x); })[0];
+        if(from!==undefined) bag[D]=JSON.parse(JSON.stringify(bag[from]));
+        if(k==='upl'){ var u=others.filter(function(x){ return bag['r|'+x]!==undefined; })[0]; if(u!==undefined) bag['r|'+D]=bag['r|'+u]; } });
+      if(S.whatif) ['a','b'].forEach(function(p){ var b=S.whatif[p]||{}; var w=others.filter(function(x){ return b[x]!==undefined; })[0]; if(w!==undefined) b[D]=b[w]; });
+      applyState(S); save();
+      var before=held(D);
+      var offList=before.filter(function(k){ return k.indexOf('whatif.')!==0 && REQ_MAPS.indexOf(k)<0; });
+      removeReq(D);
+      var left=held(D);
+      var N=add('Fresh');
+      return JSON.stringify({D:D, N:N, before:before, offList:offList, left:left, inherits:held(N).filter(function(k){ return k!=='fsrc'; })}); })()`));
+    trips++;
+    if (r.err) fail(round, 'delete → add', 'the trip could not run', r.err);
+    else {
+      if (r.before.length < 20) fail(round, 'delete → add', 'too little was copied onto the added requirement to prove anything', r.before.join(', '));
+      if (r.offList.length) fail(round, 'delete → add', `${r.offList.length} container(s) hold data per requirement and are not on REQ_MAPS`,
+        r.offList.join(', ') + '\n          deleting an added requirement leaves these behind; add each to REQ_MAPS in the board');
+      if (r.left.length) fail(round, 'delete → add', `deleting ${r.D} left data behind`, r.left.join(', '));
+      if (r.N === r.D) fail(round, 'delete → add', 'the next requirement added reused the deleted number', r.N);
+      if (r.inherits.length) fail(round, 'delete → add', `${r.N} inherited data it was never given`, r.inherits.join(', '));
+    }
+  } catch (e) { fail(round, 'delete → add', 'threw', String(e.message).slice(0, 150)); }
 
   console.log(`  round ${round}: ${sc.items.length} requirements, ${trips} trip(s) driven`
     + `   ${failures.filter(f => f.round === round).length ? 'FAILURES' : 'clean'}`);

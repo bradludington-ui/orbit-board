@@ -2334,6 +2334,276 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   }
 }
 
+// v1.89, ITEM 22: A REQUIREMENT ADDED BY ITS TOTAL IS WHOLE DOLLARS THAT ADD UP TO THAT TOTAL.
+// addReq() divided the total by the number of services and kept the fraction. Before a reopen the
+// workbook printed 999,999.9999999999 and an unfunded row of $1.000000000000007, with two sheets
+// disagreeing about one requirement; the reopen then rounded each service by itself, so $1,000,000
+// typed across six came back as $1,000,002. Driven through the form, the way a person adds one.
+// The oracle is arithmetic, not apportion(): floor(total/n) each, one more for the first total%n.
+// Compared as TEXT: chk() allows 0.005 on numbers, which 999,999.9999999999 passes.
+{
+  const name = 'whole dollars — a requirement added by its total';
+  try {
+  const SV6 = ['USAF', 'ANG', 'AFRC', 'STOVL', 'CV', 'USN'];
+  const want = (tot, n) => Array.from({ length: n }, (_, i) => Math.floor(tot / n) + (i < tot % n ? 1 : 0));
+  const board = n => {
+    const svcs = SV6.slice(0, n);
+    const { ev } = boot();
+    seed(ev, { services: svcs, items: [it('A', 'ATL', svcs.map(() => 9000)), it('B', 'PSM', svcs.map(() => 4000))],
+      disc: svcs.map(() => 5000000), mand: svcs.map(() => 100000), order: ['A', 'B'], mc: { B: true } });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        applyState(S); save(); window.alert=function(m){ globalThis.__al=String(m); }; 'ok'`);
+    return ev;
+  };
+  const addByTotal = (ev, title, tot) => JSON.parse(ev(`(function(){ _addPanelSvc=null; syncAddPanel();
+      var n0=S.custom.length; globalThis.__al='';
+      document.getElementById('naTitle').value=${JSON.stringify(title)};
+      document.getElementById('naTot').value=${JSON.stringify(String(tot))};
+      document.getElementById('naGrp').value=GROUPS[0]; addReq();
+      var c=S.custom.length>n0? S.custom[S.custom.length-1] : null;
+      return JSON.stringify(c? {id:c.id, ask:c.ask, item:(itemById(c.id)||{}).ask} : null); })()`));
+  for (const [n, totals] of [[6, [1000000, 5, 100]], [3, [100, 1000000]], [1, [7]]]) {
+    const ev = board(n);
+    const added = totals.map(tot => [tot, addByTotal(ev, 'By total ' + tot, tot)]);
+    const R = boot({ html: ev('buildSavedHtml()') });
+    for (const [tot, g] of added) {
+      const at = `${n} service(s), $${tot.toLocaleString()} typed`;
+      chk(name, at, 'the requirement was added', !!g, true);
+      if (!g) continue;
+      chk(name, at, 'every service a whole dollar', g.ask.every(Number.isInteger) && g.item.every(Number.isInteger), true);
+      chk(name, at, 'the services add up to exactly the total typed', String(sum(g.ask)), String(tot));
+      chk(name, at, 'the dollars left over go to the first services in the list', JSON.stringify(g.ask), JSON.stringify(want(tot, n)));
+      chk(name, at, 'and a reopen reads back exactly those, not a rounding of them',
+        R.ev(`JSON.stringify((S.custom.filter(function(c){ return c.id===${JSON.stringify(g.id)}; })[0]||{}).ask||null)`), JSON.stringify(want(tot, n)));
+    }
+    if (n !== 6) continue;
+    // EVERY EXPORT, EVERY FIGURE. A cell formatted to show whole dollars that holds a fraction prints
+    // one number and carries another -- 999,999.9999999999 reads as 1,000,000 until a sum is taken.
+    // The only fractions a workbook may hold are in cells formatted to show them: the built-in
+    // two-decimal styles (10, 11 -- the forecast's $M) or an export's own format with a point or a %.
+    ev(`MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working'; 'ok'`);
+    const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan', 'exportCycCompare'];
+    const sweep = JSON.parse(ev(`(function(){ var res={};
+      ${JSON.stringify(EXPORTS)}.forEach(function(fn){
+        var cap=null, ex=[], o=buildXlsx, r={sheets:0, cells:0, bad:[]};
+        buildXlsx=function(sh, extra){ cap=sh; ex=extra||[]; return new Uint8Array(0); };
+        try{ window[fn](); }catch(e){ r.bad.push('threw: '+e.message); }
+        buildXlsx=o;
+        (cap||[]).forEach(function(sh){ r.sheets++; (sh.rows||[]).forEach(function(row,ri){ (row||[]).forEach(function(c,ci){
+          var v=(c&&typeof c==='object'&&'v' in c)? c.v : c, s=(c&&typeof c==='object'&&c.s)||0;
+          if(typeof v!=='number') return; r.cells++;
+          var x=s>=16? ex[s-16] : null;
+          var decimals = s===10 || s===11 || !!(x && x.fmt && (x.fmt.indexOf('.')>=0 || x.fmt.indexOf('%')>=0));
+          if(!decimals && !Number.isInteger(v)) r.bad.push(sh.name+' row '+(ri+1)+' col '+(ci+1)+' = '+v);
+        }); }); });
+        res[fn]=r; });
+      return JSON.stringify(res); })()`));
+    for (const fn of EXPORTS) {
+      const r = sweep[fn] || { sheets: 0, cells: 0, bad: ['not run'] };
+      chk(name, 'every export', `${fn} ran and wrote figures, so the sweep below looked at something`, r.sheets > 0 && r.cells > 0, true);
+      chk(name, 'every export', `${fn}: every figure shown as whole dollars is one`, r.bad.slice(0, 3).join('; ') || 'none', 'none');
+    }
+    // THE REFUSAL. Nothing can produce a cent through the form today, so the guard is proved by
+    // standing in for the spread with one that does: the requirement must not be added at all.
+    const n0 = ev('S.custom.length+"/"+DATA.items.length');
+    ev(`globalThis.__apx=apportion; apportion=function(t,w){ return w.map(function(){ return t/w.length; }); }; 'ok'`);
+    const refused = addByTotal(ev, 'Would carry cents', 100);
+    ev(`apportion=globalThis.__apx; 'ok'`);
+    chk(name, 'refusal', 'a value that is not whole dollars is never put on the board', refused === null && ev('S.custom.length+"/"+DATA.items.length') === n0, true);
+    chk(name, 'refusal', 'and the person is told why', /not in whole dollars/.test(ev('globalThis.__al')), true);
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// v1.89, ITEM 24: AN ADDED REQUIREMENT NEVER INHERITS A DELETED ONE'S DATA.
+// The next number was one past the highest REMAINING added requirement, so deleting NEW-3 and adding
+// another made a new NEW-3; delete cleared nine containers and the new one inherited the rest -- band,
+// award dates, destination, PID, impact statement, WBS, the UPL mark -- on screen, through save and
+// reopen, and on four workbook sheets. Every container on the board's own REQ_MAPS is filled on the
+// newest added requirement from SAMPLE below, and the two lists must match both ways: a container
+// taken off REQ_MAPS, or added to it without a sample here, fails by name. (A container the board
+// writes and REQ_MAPS lacks is caught by the round-trip fuzz, which fills every container there is.)
+// 'ZZDEL' marks every value that must be gone from the plan and the exports once it is deleted. The
+// change journal keeps the record of the deletion -- that is its job -- so the check reads the year's
+// plan and the workbooks, never the journal.
+{
+  const name = 'an added requirement never inherits the data of a deleted one';
+  try {
+  const SVC = ['USAF', 'ANG', 'AFRC'];
+  const SAMPLE = `{alloc:{m:'t', v:500}, mc:true, notes:'ZZDEL note', desc:'ZZDEL desc', titles:'ZZDEL title',
+    ccar:'ZZDEL1', pid:'ZZDEL-PID', costElem:'ZZDEL-CE', fsrc:{m:'split', dv:[11,12,13], mv:[1,2,3]}, asks:[7,8,9],
+    awards:{mode:'single', d:FYMON[2][0], day:9}, grp:GROUPS[1], si:'LA', dest:{to:flowEnts()[0].k, end:'ZZDEL end'},
+    wbs:[{w:'9.9.9', v:[]}], clinWbs:{n1:[{w:'4.5.6', v:[]}]}, rcnAsg:'ZZDEL-RCN', rcnSvc:{USAF:'ZZDEL-RCNS'},
+    clinRcn:{n1:'ZZDEL-RCNC'}, aceMap:{w:['1.1.9'], ok:true}, upl:1, obCat:OB_CATS[1], budgetAsg:{USAF:'ZZDEL-BAE'},
+    ptype:'PRIME', recNames:'ZZDEL record', clinAlloc:{n1:[5,6,7]}, clinMeta:{n1:{ask:[5,6,7], desc:'ZZDEL clin'}},
+    clinNew:[{key:'n1', clin:'3099', desc:'ZZDEL new clin', ccar:'', ask:[1,1,1]}], clinRm:['0001'],
+    crHalf:(function(){ var o={}; o[FYMON[2][0]]=1; return o; })(), band:'pdm', cons:'ZZDEL impact', minInc:250, mipr:'direct'}`;
+  const mk = () => {
+    const { ev } = boot();
+    seed(ev, { services: SVC, items: [it('A', 'ATL', [900, 200, 100]), it('B', 'PSM', [400, 100, 50])],
+      disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B'] });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        applyState(S); save(); window.confirm=function(){ return true; }; window.alert=function(){};
+        globalThis.__add=function(t){ _addPanelSvc=null; syncAddPanel(); var n0=S.custom.length;
+          document.getElementById('naTitle').value=t; document.getElementById('naTot').value='';
+          SVC.forEach(function(s,i){ document.getElementById('naSvc'+i).value=String(100*(i+1)); });
+          document.getElementById('naGrp').value=GROUPS[0]; addReq();
+          return S.custom.length>n0? S.custom[S.custom.length-1].id : ''; };
+        // every container, the UPL mark and the what-if levels that hold something under this id
+        globalThis.__held=function(id, st){ st=st||S; var out=[];
+          REQ_MAPS.forEach(function(k){ var bag=st[k]; if(bag && typeof bag==='object'
+            && Object.prototype.hasOwnProperty.call(bag, k==='upl'? 'r|'+id : id)) out.push(k); });
+          if(st.whatif) ['a','b'].forEach(function(p){ if((st.whatif[p]||{})[id]!==undefined) out.push('whatif.'+p); });
+          return out; };
+        globalThis.__fill=function(id){ var V=${SAMPLE};
+          Object.keys(V).forEach(function(k){ if(!S[k] || typeof S[k]!=='object') S[k]={};
+            if(k==='upl') S.upl['r|'+id]=1; else S[k][id]=JSON.parse(JSON.stringify(V[k])); });
+          if(!S.whatif || typeof S.whatif!=='object') S.whatif={a:{}, b:{}};
+          S.whatif.a=S.whatif.a||{}; S.whatif.b=S.whatif.b||{}; S.whatif.a[id]=40; S.whatif.b[id]=60;
+          applyState(S); save(); return JSON.stringify(Object.keys(V).sort()); };
+        'ok'`);
+    return ev;
+  };
+  const ev = mk();
+  const nm = [ev(`__add('First')`), ev(`__add('Second')`), ev(`__add('Doomed')`)];
+  chk(name, 'setup', 'three requirements added, numbered from one', nm.join(','), 'NEW-1,NEW-2,NEW-3');
+  const sample = JSON.parse(ev(`__fill('NEW-3')`));
+  const list = JSON.parse(ev('JSON.stringify(REQ_MAPS.slice().sort())'));
+  chk(name, 'the list', 'every container on REQ_MAPS has a value to fill here, and nothing here is off it',
+    JSON.stringify({ offList: sample.filter(k => !list.includes(k)), noSample: list.filter(k => !sample.includes(k)) }),
+    JSON.stringify({ offList: [], noSample: [] }));
+  const held0 = JSON.parse(ev(`JSON.stringify(__held('NEW-3'))`));
+  chk(name, 'setup', 'every container took its value, so a leftover in any of them would be seen',
+    list.filter(k => !held0.includes(k)).join(',') || 'all', 'all');
+  // DELETE, THEN ADD. The new number is not the old one, and nothing of the old one is anywhere.
+  ev(`removeReq('NEW-3'); 'ok'`);
+  chk(name, 'delete', 'deleting an added requirement removes everything held under its number',
+    ev(`JSON.stringify(__held('NEW-3'))`), '[]');
+  const n4 = ev(`__add('Fresh')`);
+  chk(name, 'add', 'the next one added never reuses the deleted number', n4, 'NEW-4');
+  chk(name, 'add', 'and holds nothing but the split it is born with',
+    ev(`JSON.stringify(__held(${JSON.stringify(n4)}).filter(function(k){ return k!=='fsrc'; }))`), '[]');
+  chk(name, 'plan', 'the year’s plan holds none of the deleted text', ev(`JSON.stringify(S).indexOf('ZZDEL')`), '-1');
+  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan'];
+  const inExports = JSON.parse(ev(`(function(){ var hits=[];
+    ${JSON.stringify(EXPORTS)}.forEach(function(fn){ var cap=null, o=buildXlsx;
+      buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
+      try{ window[fn](); }catch(e){ hits.push(fn+' threw '+e.message); } buildXlsx=o;
+      if(JSON.stringify(cap||[]).indexOf('ZZDEL')>=0) hits.push(fn); });
+    return JSON.stringify(hits); })()`));
+  chk(name, 'exports', 'no workbook carries any of the deleted text', inExports.join(', ') || 'none', 'none');
+  // SAVE AND REOPEN. The highest number handed out is saved with the board, so a reopened board
+  // that deletes its newest added requirement still never hands its number out again.
+  const R = boot({ html: ev('buildSavedHtml()') });
+  R.ev(`window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  chk(name, 'reopen', 'the reopened plan holds none of the deleted text either', R.ev(`JSON.stringify(S).indexOf('ZZDEL')`), '-1');
+  R.ev(`removeReq(${JSON.stringify(n4)}); _addPanelSvc=null; syncAddPanel();
+    document.getElementById('naTitle').value='After reopen';
+    SVC.forEach(function(s,i){ document.getElementById('naSvc'+i).value='10'; });
+    document.getElementById('naGrp').value=GROUPS[0]; addReq(); 'ok'`);
+  chk(name, 'reopen', 'the newest deleted after a reopen: its number is still never reused',
+    R.ev('S.custom[S.custom.length-1].id'), 'NEW-5');
+  // A PROPOSAL ACCEPTED FROM AN OFFICE is numbered the same way.
+  ev(`__fill(${JSON.stringify(n4)}); removeReq(${JSON.stringify(n4)}); 'ok'`);
+  const got = JSON.parse(ev(`(function(){ var ok=pmoAcceptProposal({prop:{nid:'NEW-PSM-1', title:'Proposed', grp:GROUPS[0], ask:[100,200,300]}, src:0, from:'PSM', by:'Office'});
+    var id=S.custom[S.custom.length-1].id; return JSON.stringify({ok:ok, id:id, held:__held(id).filter(function(k){ return k!=='fsrc'; })}); })()`));
+  chk(name, 'proposal', 'a proposal accepted after a delete gets a new number and inherits nothing',
+    JSON.stringify(got), JSON.stringify({ ok: true, id: 'NEW-5', held: [] }));
+  // MOVED TO ANOTHER YEAR: it goes, with everything it held; nothing stays behind in this year.
+  const mv = ev(`__add('Moving')`);
+  ev(`__fill(${JSON.stringify(mv)}); 'ok'`);
+  const moved = JSON.parse(ev(`(function(){ var y=MS.cur+1, r=yearCopy(${JSON.stringify(mv)}, y, 'm'); applyState(S); save();
+    var T=MS.years[y]; return JSON.stringify({ok:r.ok, left:__held(${JSON.stringify(mv)}), band:(T.band||{})[r.tid]||'', desc:(T.desc||{})[r.tid]||''}); })()`));
+  chk(name, 'move', 'moving an added requirement to another year leaves nothing of it behind',
+    JSON.stringify(moved.left), '[]');
+  chk(name, 'move', 'because it arrived there with its data', moved.ok + ' ' + moved.band + ' ' + moved.desc, 'true pdm ZZDEL desc');
+  // A BOARD SAVED BEFORE v1.89 already holds leftovers under numbers no requirement has. The next
+  // number is past them, so they can never be inherited; they are left where they are.
+  const L = mk();
+  L(`__add('Only'); S.band['NEW-7']='pdm'; S.desc['NEW-7']='ZZDEL leftover'; if(!S.upl) S.upl={}; S.upl['r|NEW-9']=1; save(); 'ok'`);
+  const ln = L(`__add('Next')`);
+  chk(name, 'leftovers', 'a board already holding leftovers numbers past them', ln, 'NEW-10');
+  chk(name, 'leftovers', 'and the new one carries none of them', L(`JSON.stringify(__held(${JSON.stringify(ln)}).filter(function(k){ return k!=='fsrc'; }))`), '[]');
+  // A LOCKED CYCLE compared with the plan: the deleted one is REMOVED and the new one ADDED, never
+  // one requirement that "changed".
+  const C = mk();
+  const c1 = C(`__add('Locked in')`);
+  C(`MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); removeReq(${JSON.stringify(c1)}); 'ok'`);
+  const c2 = C(`__add('After the lock')`);
+  const kinds = JSON.parse(C(`(function(){ var d=cycCmpData('PB|'+MS.cur,'working'), r=d&&d.fy[MS.cur]? d.fy[MS.cur].rows : {};
+    return JSON.stringify({a:(r[${JSON.stringify(c1)}]||{}).kind||'', b:(r[${JSON.stringify(c2)}]||{}).kind||''}); })()`));
+  chk(name, 'cycle compare', 'the locked one reads as removed, the new one as added', `${kinds.a} ${kinds.b} ${c1 !== c2}`, 'removed added true');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// v1.89, ITEM 25: RESTORE BRINGS BACK WHAT REMOVE TOOK.
+// Removing a requirement from the board's data deleted its allocation, MC star, note, renamed title,
+// CLIN breakdown and cost element while the confirmation said "Restore any time"; restored, it came
+// back unfunded. Remove now keeps them. The other half of the property is the one that makes keeping
+// them safe: while removed, what it keeps counts NOWHERE. Proved against a board that never had it --
+// every figure of every workbook must be identical.
+{
+  const name = 'restore brings back what remove took';
+  try {
+  const SVC = ['USAF', 'ANG', 'AFRC'];
+  const EXPORTS = ['exportExcel', 'exportCSV', 'exportSrc', 'exportPlans', 'exportFlow', 'exportCoa', 'exportReprog', 'exportFydpPlan'];
+  const setup = `S.alloc.A={m:'t', v:700}; S.mc.A=true; S.notes.A='kept note'; S.titles.A='ZZKEEP renamed';
+    if(!S.costElem) S.costElem={}; S.costElem.A='ZZKEEP-CE';
+    if(!S.clinAlloc) S.clinAlloc={}; S.clinAlloc.A={n1:[50,20,10]};
+    if(!S.clinMeta) S.clinMeta={}; S.clinMeta.A={n1:{ask:[60,20,10], desc:'ZZKEEP clin'}};
+    if(!S.clinNew) S.clinNew={}; S.clinNew.A=[{key:'n1', clin:'3001', desc:'ZZKEEP new clin', ccar:'', ask:[60,20,10]}];
+    if(!S.clinRm) S.clinRm={}; S.clinRm.A=['0002'];
+    S.band.A='pdm'; S.desc.A='ZZKEEP desc'; S.awards.A={mode:'single', d:FYMON[3][0], day:4};
+    S.alloc.C={m:'s', v:[300,50,20]}; S.mc.C=true; S.awards.C={mode:'single', d:FYMON[5][0], day:2};`;
+  const board = (items, order) => {
+    const { ev } = boot();
+    seed(ev, { services: SVC, items, disc: [2000, 600, 300], mand: [500, 150, 80], order });
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        applyState(S); ${setup} applyState(S); save(); window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+    return ev;
+  };
+  const three = [it('A', 'ATL', [900, 200, 100]), it('B', 'PSM', [400, 100, 50]), it('C', 'AV', [500, 90, 40])];
+  const X = board(three, ['A', 'B', 'C']);
+  const Y = board(three.filter(x => x.id !== 'A'), ['B', 'C']);
+  const fields = `JSON.stringify({alloc:S.alloc.A||null, mc:!!S.mc.A, note:S.notes.A||null, title:S.titles.A||null,
+    ce:(S.costElem||{}).A||null, clin:[(S.clinAlloc||{}).A||null, (S.clinMeta||{}).A||null, (S.clinNew||{}).A||null, (S.clinRm||{}).A||null]})`;
+  const before = X(fields);
+  X(`removeReq('A'); 'ok'`);
+  chk(name, 'removed', 'it is off the board', X(`String(S.order.indexOf('A')<0 && !itemById('A') && S.removed.indexOf('A')>=0)`), 'true');
+  chk(name, 'removed', 'and keeps every field while it is', X(fields), before);
+  // Every numeric cell of every workbook, addressed by sheet and position, against the board that
+  // never had it; and none of its text anywhere.
+  const cells = ev => JSON.parse(ev(`(function(){ var out={};
+    ${JSON.stringify(EXPORTS)}.forEach(function(fn){ var cap=null, o=buildXlsx;
+      buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
+      try{ window[fn](); }catch(e){ out[fn+' threw']=String(e.message); } buildXlsx=o;
+      (cap||[]).forEach(function(sh){ (sh.rows||[]).forEach(function(r,ri){ (r||[]).forEach(function(c,ci){
+        var v=(c&&typeof c==='object'&&'v' in c)? c.v : c;
+        if(typeof v==='number') out[fn+' ▸ '+sh.name+' ▸ '+ri+','+ci]=v;
+        else if(typeof v==='string' && v.indexOf('ZZKEEP')>=0) out[fn+' ▸ '+sh.name+' ▸ '+ri+','+ci+' text']=v;
+      }); }); }); });
+    return JSON.stringify(out); })()`));
+  const cx = cells(X), cy = cells(Y);
+  const diff = [...new Set([...Object.keys(cx), ...Object.keys(cy)])].filter(k => cx[k] !== cy[k]);
+  chk(name, 'removed', 'the workbooks compared hold enough figures to mean something', Object.keys(cy).length > 200, true);
+  chk(name, 'removed', 'while removed, every figure of every workbook is what a board that never had it prints',
+    diff.slice(0, 3).map(k => `${k}: ${cx[k]} vs ${cy[k]}`).join('; ') || `all ${Object.keys(cy).length} equal`, `all ${Object.keys(cy).length} equal`);
+  const lanes = `(function(){ var T=tiers(), s=0; Object.keys(T).forEach(function(k){ s+=(T[k].d||[]).concat(T[k].m||[]).reduce(function(a,b){ return a+b; },0); }); return String(s); })()`;
+  chk(name, 'removed', 'and the lane walk counts it nowhere', X(lanes), Y(lanes));
+  // SAVED WHILE REMOVED, REOPENED, RESTORED: exactly as it was.
+  const R = boot({ html: X('buildSavedHtml()') });
+  R.ev(`restoreReq('A'); 'ok'`);
+  chk(name, 'restore', 'restored after a save and reopen, it has everything it had', R.ev(fields), before);
+  chk(name, 'restore', 'and draws its allocation again', R.ev(`String(((tiers().A||{}).d||[]).concat((tiers().A||{}).m||[]).reduce(function(a,b){ return a+b; },0)>0)`), 'true');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

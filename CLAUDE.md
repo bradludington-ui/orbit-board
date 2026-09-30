@@ -23,7 +23,8 @@ What that leaves behind, on purpose:
 
 - **Card-only code paths in the grid file.** `render()` still draws the card row template and the grid
   wraps it (`const _renderCards = render; render = function(){ _renderCards.apply(this, arguments);
-  gridAfterRender(); };`); the in-file guide still carries paragraphs marked `data-b="card"` that the
+  gridAfterRender(); };` -- since v1.89 a `gridAfterRender` that throws empties the RECORD panel and
+  says so, rather than leaving the previous figures standing); the in-file guide still carries paragraphs marked `data-b="card"` that the
   grid never shows; comments still say "both builds". They are unreachable or harmless and were left
   alone in v1.88 — removing them is risk for no visible gain. Take them out as a version of their own.
 - **The saved format is shared.** A board saved by any card build opens in the grid: the full-import test
@@ -130,7 +131,8 @@ requirement was fully funded.
 dollars that sum to **exactly** the total, by largest remainder: floor every share, then hand the
 leftover dollars out one at a time to the biggest fractions. Rounding each share independently does
 *not* do this — six services rounded on their own can miss the total by several dollars. Every
-proration goes through it: `svcAlloc`, the legacy whole-requirement split inside `tiers()`, budget
+proration goes through it: `svcAlloc`, the legacy whole-requirement split inside `tiers()`, a
+requirement added by its total (`addReq`, from v1.89 -- it divided, and kept the cents), budget
 authority seeding, award increments, `zeroSpread`, the absorber floor.
 
 The check for this rule is `Number.isInteger`, **not a tolerance**, and that matters: every other
@@ -2057,15 +2059,19 @@ The file is its own database.
 - `buildSavedHtml()` takes `SRC0` and **regex-replaces the `pubState` script tag** with the current
   state as JSON.
 - `saveInPlace()` writes that back over the file itself via the File System Access API
-  (`showSaveFilePicker`), caching the handle in IndexedDB (`prio-fh`), with a timestamp collision
-  guard that warns when a colleague saved after you loaded.
+  (`showSaveFilePicker`), caching the handle in IndexedDB (`prio-fh`), with a collision guard that asks
+  whenever the file on disk is any save other than the one the work on screen came from (`LASTKNOWN`,
+  v1.89 -- see that section: it compared against the file's own time, and a reopen made that wrong).
+  A file it cannot read, or that is not a board, is never written over.
 
 So: **the `pubState` tag's exact literal shape is load-bearing.** Reformat it and `Save` silently
 writes a file containing the *old* state. `check.mjs` guards this.
 
 `localStorage` is a convenience cache only — the file is the record. Keys: `prio27om`, `prio27ff`,
 `prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog`, `prio27appn`, `prio27who`,
-`spmtTheme`, `spmtSidecar`.
+`spmtTheme`, `spmtSidecar`; and, per appropriation key, since v1.89: `<key>.base` (which saved copy
+the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
+aside when a newer saved copy replaced it). Neither is ever part of the board.
 
 ## Hand-edit points
 
@@ -2842,6 +2848,98 @@ gate by design. Retargeted to the `jsa()` spelling, both caught; the board did n
 `importCcarRecs`). They are `.xlsx` files read cell by cell, not board state, and their amounts already go
 through `parseAmt`; their text is drawn through the same escaping, and the hostile fixture plants values in
 the stores they fill (execution rows, cost estimates, the BAE list).
+
+### v1.89: whole dollars on every add, work that is never overwritten unasked, ids that never repeat
+
+Built from `NEXT-VERSION.md` items 22-26 on Brad's "go" (30 Sep 2026). They came from a technical
+review Brad shared; every finding was reproduced on the v1.88 board before it was logged, and every
+fix below has a check that was shown failing on v1.88 (or on a planted mistake) first.
+
+**Item 22 -- a requirement added by its total.** `addReq` spread a typed total with `tot/SVC.length`.
+The workbook printed 999,999.9999999999 and an unfunded row of $1.000000000000007 until the next
+reopen, which rounded each service by itself: $1,000,000 across six came back $1,000,002. It is
+`apportion(tot, equal weights)` now (the leftover dollars go to the first services -- Brad), and a
+requirement whose values are not whole dollars is refused. Boards saved before keep opening as they
+did (each service rounded). `audit-board.mjs` "whole dollars — a requirement added by its total" adds
+by total on 1-, 3- and 6-service boards through the form and, new, sweeps **every figure of all nine
+exports**: a cell formatted to show whole dollars must hold one. The only fractions any workbook may
+carry are in cells formatted to show them (the built-in two-decimal styles 10 and 11, the forecast's
+$M, or an export's own format with a point or a %). On v1.88 it found over two hundred such cells from one
+add; on a clean board, none.
+
+**Items 24 and 25 -- `REQ_MAPS`, and the two kinds of Remove.** `REQ_MAPS` (beside `yearCopy`) is the
+one list of what a year keeps per requirement. `yearCopy` normalises from it, `reqPurge(T, id)` purges
+by it (every container, the UPL mark keyed `'r|<id>'`, the what-if levels), and `newReqSeq(T)` counts
+by it. The next added requirement's number is past every number the year has ever held -- the added
+requirements, every `NEW-` key in any container, the order, the removed list, the office rankings --
+and past `T.newSeq`, the highest ever handed out, saved with the board: a purge removes the rest.
+It was one past the highest REMAINING, so deleting the newest reused its number, and delete cleared
+nine containers: the new requirement inherited twenty fields (band, award dates, destination, PID,
+impact statement, WBS, the UPL mark) on screen, through a reopen and on four workbook sheets. Moving an
+added requirement to another year now purges it here too (it left everything, allocation and star
+included); a locked-cycle compare now reads a deleted one as removed and the new one as added. Boards
+saved before v1.89 keep their leftovers, which the new numbering can no longer reach.
+Removing a requirement from the board's DATA deleted its allocation, MC star, note, renamed title, CLIN
+breakdown and cost element while its confirmation promised "Restore any time". It keeps them now,
+and they count nowhere while it is removed: `audit-board.mjs` proves every figure of eight workbooks
+identical to a board that never had it. Only an ADDED requirement's delete purges.
+The round-trip fuzz gained TRIP 5: everything the populated board holds under any requirement is
+copied onto an added one, which is deleted and replaced; a container that held it and is not on
+`REQ_MAPS` fails by name (proved on a board with `band` taken off the list). The fuzz and the
+year-copy check in `audit-import.mjs` read `REQ_MAPS` out of the board.
+
+**Item 23 -- saving never silently overwrites somebody's work.** Three facts about opening and saving
+that the fixes rest on:
+- **Which saved copy the work on screen came from** is kept in this browser beside the board
+  (`baseGet()`/`baseSet()`, key `<appropriation key>.base`: `file`, `folder` per appropriation and year,
+  `dirty`), never in it -- like the save file's handle, it means nothing on another machine, and it must
+  not travel in a saved file, a PMO copy or a package (which would also have broken every save → reopen
+  comparison). `LASTKNOWN` is its `file`; `_driveBase` its `folder`.
+- **Save compares by IDENTITY, not order.** It asks whenever the file (or the folder's copy) is any
+  save other than the one the work came from, earlier or later. A "later than" test let a colleague
+  whose clock is an hour slow be written over; the test for it is "a clock an hour slow".
+- **Unsaved work is a flag this browser keeps** (`dirty`: set by `save()`, cleared by a write to the
+  file or folder or by taking a saved copy), never a comparison of two computers' times. A browser
+  copy opened before v1.89 recorded nothing, so the journal decides (`ownUnsaved` → `pkgMineSince`).
+On opening, the newer copy still opens. If the file is newer and this browser holds work no saved copy
+has, that work is KEPT ASIDE first (`keepAside`, key `<appropriation key>.kept`, one copy, removed only
+by putting it back or discarding it) and the board says so; the header and 📁 File offer
+`keptPutBack()` for as long as it is kept, and putting it back restores its checkpoint, so the next
+Save asks before writing over the newer copy. No room to keep it: the file is NOT opened, and the
+board says why (`bootTakeFile()` opens it deliberately). If this browser's copy is newer, it opens, and
+the board says when the file has been saved by somebody since (`_bootMoved`); "No saved state in this
+copy" is no longer said of a file that has one (`bootOwnMsg`).
+`saveInPlaceFile` refuses to write over a file it cannot read, or one that is not a board (and forgets
+that handle, so the next Save asks which file); an empty file is a new one and is written. A download
+(`publishState`, and the fallback after a failed in-place save) no longer clears "unsaved": the header
+says "downloaded — not on the shared file yet" (`_dlOnly`).
+**The shared folder had the same flaw, found while building this.** Reopened, `driveStorePull` took the
+folder's CURRENT copy as the one the work came from, so the next Save wrote over a colleague's save;
+the refusal it did give said "Reload to take their copy", and a reload then wrote over them. Now the
+folder checkpoint persists, a colleague's save after it is said on opening, and Save stops with a
+choice (`driveClashSay`/`driveResolve`): **Load theirs** (this browser's work kept aside) or **Save yours
+over theirs** (theirs kept in the history first, forced, or nothing is written). `driveStoreRead`
+returns null only for a copy that is not there (`NotFoundError`) and throws otherwise -- it treated a
+copy mid-sync, damaged or refused as "none", and a Save wrote over it with no history. A history copy
+that fails (`snapKeep` now returns `'kept' | 'recent' | 'none' | 'failed'`) is said. Putting an old copy
+back keeps the standing one in the history whatever the ten-minute spacing, and sets the checkpoint to
+it -- Save after a restore was refused every time before. **History names never repeat**: two copies
+kept in the same second shared a name and the second replaced the first (the new test found it).
+`audit-import.mjs` "v1.89 — saving never silently overwrites somebody’s work" drives all of it
+against a stand-in file on disk and a stand-in shared folder (an in-memory directory handle with
+`getFileHandle`, `getDirectoryHandle`, `values`, `removeEntry`), in two browsers sharing one folder.
+
+**Item 26 -- the journal says what it could not record.** `jrnlWalk` counts past `JRNL_PER_SAVE`
+(`out.more`) instead of stopping blind, and `jrnlCapture` writes one line saying how many more
+(`p:['(more)']`), and one line when the walk fails (`['(unrecorded)']`; it dropped the whole save's
+entries). Neither is undoable (`jrnlUndoable`: any path starting with `(`). PMO Apply's question says
+where the journal stops when more than 200 fields are applied, and its result reads the journal back.
+A RECORD panel that fails to redraw is emptied and says so.
+
+**Mutations:** 33 new (`add-*` 4; `reqseq-*`, `reqmaps-*`, `delete-*`, `purge-*`, `move-leaves-data`,
+`remove-erases-fields` 8; `guard-*`, `boot-no-keep-aside`, `unsaved-flag-*`, `download-*`, `folder-*`,
+`snap-name-reused`, `restore-base-old` 14; `jrnl-*`, `apply-*`, `record-panel-stale` 7), all caught in
+their pre-sweep; `full-report-lost` retargeted to the opening message's new spelling. 560 in all.
 
 ## Colour: one token, one job
 
