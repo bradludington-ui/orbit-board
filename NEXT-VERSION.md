@@ -8,22 +8,71 @@ Current version: **v1.91**. Next: **v1.92**.
 
 ## Open
 
-Nothing open.
+#### 18. A diagnostics file for support — build before the road show
+- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation. Deferred
+  from v1.88; **moved to Open for v1.92 on 30 Sep 2026, at Brad's request.**
+- **Found (v1.91):** when something goes wrong on someone's machine there is no way to learn what without
+  their board. The one message that asks for a report ("the RECORD panel could not be drawn … Save a copy
+  and report it") asks for *Save a copy*, which carries every dollar and title on the board. The board
+  keeps no record of what went wrong: its warning messages (about 80 of them) each replace the one before, an unexpected
+  script error is caught by nothing, and what was lost at start-up is said once and not kept.
+- **What will be built:**
+  - **📁 File ▾ → 🩺 Save diagnostics…**, on the live board and in a PMO copy. It opens a box showing
+    exactly the text that will be saved; *Save* writes it as a small plain-text file (*ORBIT diagnostics -
+    2026-10-01.txt*) and *Cancel* writes nothing. Nothing is sent anywhere: the person sends the file.
+  - **What it holds:** the board version; whether it is the live board, a PMO copy (with its publish date
+    and office) or a one-appropriation file; the browser and window size; how the file was opened (from
+    disk, a shared folder, Live view); browser storage in use, and any write the browser refused this
+    session; **counts only** — requirements per appropriation and fiscal year, locked cycles, snapshots,
+    submittals held, BAE rows, CCaR records, months of execution data; and the last 50 warnings and script
+    errors this session, each with its time.
+  - **The board starts keeping that short list when it opens:** every warning it shows, anything lost at
+    start-up, and any unexpected script error. It lives in memory only, never in the saved file or in
+    browser storage.
+  - **Never a dollar figure, a requirement title, a person's name, a CCaR record, a PID or a budget name.**
+    Each warning is kept with its figures replaced by # and every title, name and quoted value taken out.
+    The office code (AV, PSM) is kept, because it says whose copy it is (Claude's recommendation; say if it
+    should go too).
+  - The "RECORD panel could not be drawn" message points to *Save diagnostics* instead of *Save a copy*.
+- **What does not change:** anything the board saves, exports or calculates; the board still uses no
+  network at all; messages and confirm prompts stay as they are (item 19 stays in Later).
+- **Checks:** a board filled with recognisable values (figures, titles, names, CCaR records, PIDs, budget
+  names) is driven through the warnings that name them and a planted script error, and none of those values
+  appears in the file, while the version and the counts do; the file is exactly what the box showed;
+  *Cancel* writes nothing; it works in a PMO copy and on a board whose RECORD panel failed to draw;
+  mutations that let a figure or a title through are caught.
+
+#### 36. The keyboard reaches every menu item and the last mouse-only controls
+- **Logged:** 30 Sep 2026, at Brad's request: the keyboard debt v1.91 recorded, and what checking it found.
+- **Found (v1.91, checked in the browser):**
+  - **Menu items are mouse-only.** Enter opens 📁 File, but Tab skips its 13 items and goes on to the mode
+    buttons; the same for Reports & exports (25 items), Data (8), Setup (19) and a row's ⋯ menu. So every
+    export, import and setup action needs a mouse. v1.91's keyboard check did not see it: it measures with
+    the menus closed.
+  - **The 12 findings v1.91 recorded as debt** (70 places): the four panel headers under Funding detail
+    (Budget authority & posture, Funding by service, Unspent discretionary, PMO funding), which open and
+    close their panels, and the discretionary-fit chips that filter the list (by service, by lane, ▲ not
+    drawn, 🔧 fix list).
+  - **A scan of the board's markup** finds 49 clickable spots that are not controls, besides the 41
+    backdrops that close a box (each box also has its own ✕ Close button). The ones not above sit in panels
+    and boxes the check never opens.
+- **What will be built:**
+  - **Menu items become real buttons.** Tab and Shift+Tab move through an open menu, Enter or Space runs
+    an item, and Esc closes the menu with focus back on its button. The same for a row's ⋯ menu. No ARIA
+    menu roles, so nothing promises arrow keys it does not have (the same choice as the mode buttons).
+  - The four Funding detail headers become buttons that say whether their panel is open, and the fit chips
+    buttons that say whether their filter is on.
+  - Every other clickable spot the scan finds becomes a button or a link, backdrops excepted.
+- **What does not change:** what any item does, the menus' contents and order, and every figure.
+- **Checks:** `npm run standards` opens every menu, every Funding detail panel and every box before it
+  measures, and its baseline goes back to **0**; `npm run check` fails on any new clickable element in the
+  board's markup that the keyboard cannot reach, backdrops excepted; the keyboard check adds Tab through
+  every item of every menu, Enter to run one and Esc to close, and the Funding detail headers and fit chips
+  with Enter. Each new check fails on the v1.91 board first.
 
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
-
-#### 18. A diagnostics file for support — build before the road show
-- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation.
- **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** when the road show puts PMO copies in many hands, "it doesn't work" will need facts. The
-  board is offline by design and must never phone home.
-- **What:** 📁 File ▾ → *Save diagnostics…* writes a small plain-text file the person can read before
-  sending: version, browser, how much browser storage is in use, counts (requirements per
-  appropriation, locked cycles, submittals held), and the last warnings and errors the board showed.
-  **Never** a dollar figure, a requirement title, a name or any budget data -- checked by a test that
-  fills a board with recognisable values and proves none appears in the file.
 
 #### 19. One way to tell the user something
 - **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
