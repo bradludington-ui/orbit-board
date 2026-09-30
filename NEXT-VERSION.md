@@ -122,6 +122,10 @@ What shipped differs from the log in these places, all stated here:
 - **Moving an added requirement to another year (24)** now takes all its data with it; it left all of
   it behind, allocation and MC star included.
 
+**The final check** passed on 29 Sep (9:19–10:25 pm Eastern), on its first run: **66 minutes**, every
+stage clean, all 549 planted mistakes caught, 33 of them new in this version (11 more in the list change
+nothing by design, as in v1.88).
+
 #### 22. Adding a requirement by its total spreads whole dollars
 - **Logged:** 30 Sep 2026. **Approved by Brad, 30 Sep.** Money: a can't-fail.
 - **Found (reproduced on v1.88):** *Add requirement* with one total instead of per-service values

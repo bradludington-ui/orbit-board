@@ -2941,6 +2941,10 @@ A RECORD panel that fails to redraw is emptied and says so.
 `snap-name-reused`, `restore-base-old` 14; `jrnl-*`, `apply-*`, `record-panel-stale` 7), all caught in
 their pre-sweep; `full-report-lost` retargeted to the opening message's new spelling. 560 in all.
 
+**The gate that passed v1.89** (30 Sep, 01:19–02:25 UTC, its first run): every stage clean, **66.2 min**;
+one sweep of 560 mutations (527 from v1.88 plus the 33 above), 549/549 caught, 11 equivalent, the sweep
+62.5 min at four suites at a time; fuzz seed 844746176.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:
