@@ -109,14 +109,15 @@ review got wrong, and what it asked for that is not being built, is at the end o
     number not saved; one kind missing from the list; delete skipping the purge.
 
 ### 25. Restore brings back what Remove took
-- **Logged:** 30 Sep 2026. Found during Claude's check; not in the review. **Awaiting Brad's answer.**
+- **Logged:** 30 Sep 2026. Found during Claude's check; not in the review. **Approved by Brad, 30 Sep.**
+  Data loss: a can't-fail.
 - **Found (reproduced on v1.88):** removing a requirement that came with the board's data (not one
   added at the drill) erases its allocation, MC star, note, renamed title, CLIN breakdown and cost
   element -- while the confirmation says "Restore any time from the Removed list". Restore brings the
   requirement back without them: with no allocation, so unfunded. Moving it to another year keeps
   them; only Remove erases. Each can be put back one at a time from the change journal, if you know to.
-- **Recommended:** Remove keeps them, and Restore returns the requirement exactly as it was.
-- **Alternative:** keep erasing them, and have the confirmation say so.
+- **What would be built:** Remove keeps them, and Restore returns the requirement exactly as it was.
+- **Brad's decision (30 Sep):** *"Keep them so restore brings it back."*
 - **Can't-fail checks:** remove, restore, save, reopen: allocation, MC star, note, title, CLIN
   breakdown and cost element as before. While removed, it counts in no total and appears on no export.
   Planted mistake that must be caught: Remove erasing them again.
