@@ -1,5 +1,78 @@
 {
   "notes": "Recorded Section 508 / WCAG findings. The run fails on anything NEW, and also when a recorded finding stops occurring without being struck off — a list of known holes that has stopped being true is worse than no list. Regenerate with --emit after a fix, and say in the commit which criterion was closed.",
-  "recorded": "2026-09-21",
-  "findings": []
+  "recorded": "2026-09-30",
+  "findings": [
+    {
+      "sc": "keys",
+      "key": "span | laneFilter=laneFilter===\"…\"?'…':\"…\";render()",
+      "n": 15,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | gsOpen=!gsOpen;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | pmoSumOpen=!pmoSumOpen;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | scOpen=!scOpen;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | svcFilter=0;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | svcFilter=1;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | svcFilter=2;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | svcFilter=3;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | svcFilter=4;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | svcFilter=5;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "div | taOpen=!taOpen;render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    },
+    {
+      "sc": "keys",
+      "key": "span | laneFilter=laneFilter==='…'?'…':'…';render()",
+      "n": 5,
+      "detail": "clickable, but a keyboard cannot reach it: not a control, and no tab stop"
+    }
+  ]
 }

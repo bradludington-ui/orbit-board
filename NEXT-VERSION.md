@@ -4,9 +4,141 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.90**. Next: **v1.91**.
+Current version: **v1.91**. Next: **v1.92**.
 
 ## Open
+
+Nothing open.
+
+## Later
+
+Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
+
+#### 18. A diagnostics file for support — build before the road show
+- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation.
+ **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Why:** when the road show puts PMO copies in many hands, "it doesn't work" will need facts. The
+  board is offline by design and must never phone home.
+- **What:** 📁 File ▾ → *Save diagnostics…* writes a small plain-text file the person can read before
+  sending: version, browser, how much browser storage is in use, counts (requirements per
+  appropriation, locked cycles, submittals held), and the last warnings and errors the board showed.
+  **Never** a dollar figure, a requirement title, a name or any budget data -- checked by a test that
+  fills a board with recognisable values and proves none appears in the file.
+
+#### 19. One way to tell the user something
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
+  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
+  read it.
+- **What:** one helper for status-line messages that keeps an important one (an import's result, a
+  refusal, a warning) until it is read, instead of letting the next message replace it; import and
+  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
+  they are the data-loss guards and must keep stopping the user.
+
+#### 20. One place for each field's name and label
+- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
+- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
+  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
+  went hollow when one name changed in one place and not another.
+- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
+  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
+  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
+  Later versions extend it as fields are touched, never as a big-bang rewrite.
+
+#### Considered and not recommended
+- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
+  arguments**: worthwhile later, once there is one file, as a version of its own.
+- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
+  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
+  and measured first.
+- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
+  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
+  for the live board, copies and submittals already cover what it asks for.
+- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
+  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
+  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
+
+#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
+- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
+  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
+  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
+  would matter. Revisit only if that limit changes.
+- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
+  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
+- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
+  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
+  clean-up version already noted in CLAUDE.md.
+- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
+  offers no way to close it. Item 23 covers the case that loses work.
+- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
+  or wrong figures; the rest guard cosmetic steps.
+- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
+  requirements is 4.4 MB, and the check takes files up to 64 MB.
+
+## Withdrawn
+
+### 1. PIDs show up in the CCaR column of the Excel workbook
+- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
+- What testing had shown, kept for the record: the export places the CCaR number and the PID in
+  their own columns on every sheet, including a requirement with a PID and no CCaR number.
+
+## Shipped
+
+### v1.91 — 30 Sep 2026: items 28–35, built on Brad's "go"
+
+**Everything the mouse can do in these places, the keyboard now can.** The status message beside the save
+state has a real **Message** button: Tab reaches it, Enter or Space opens a long message whole, Esc closes
+it, and it brings back a message hidden with ✕. A screen reader still hears a hidden message. In the
+RECORD panel the CCaR record, the PID and the ✎ plan-event name are buttons, so they can be changed from
+the keyboard for the first time. The five workspace modes are buttons that say which one is on.
+
+**The "lane short" figure is whole again**, on two lines, and **the board fits between 761 and 1023 pixels
+wide** in every mode: nothing runs off a row and the page no longer scrolls sideways. Below 760 pixels (a
+phone) the board is for reading and checking a requirement; rank and fund on a wider screen. Brief's label
+now says what it means: *Presentation view — requirements can’t be edited here*.
+
+**A requirement's BAE budget is set in the RECORD panel**, under By service, and only there: one line for
+each service and lane the requirement draws on, and a line marked *not funded yet* for a service with no
+money yet, so its budget is already chosen when money arrives. Each line says how its budget was settled
+(chosen, automatic by rule, from CCaR, not set, or a legacy budget to pick again) and shows the exact name
+the Spend Plan Source will print. *Budget for every line* sets them all at once; *clear* puts one line
+back to the rule; *Clear all* removes every choice on the requirement, including ones on lines no longer
+shown. No figure, budget rule or export changed; every Spend Plan Source line was checked against the
+panel after every step.
+
+What shipped differs from what was logged in these places, all stated here:
+- **The lane-walk "pin these figures" chip in the RECORD panel is a button too (29)**. It was click-only
+  like the three fields, and not on the list.
+- **The button reads *Message*, or *More* / *Less* when a long message is on its line (29)**, and ✕ now
+  sits after it, so Tab reaches them in reading order.
+- **On a phone the save-state group wraps (29).** The new button pushed the header 29 pixels sideways at
+  320 wide.
+- **The accessibility check's new keyboard test found 12 kinds of older click-only spot, in 70 places
+  (29)**, where the log said ~41: it counts by what a spot does, and leaves out the backdrops that close a
+  box. All 12 are recorded as known debt. The check also now shows a long message and opens Funding
+  detail before it measures, because v1.90's folded panels had hidden them from it.
+- **Brief's rows also ran off their edge at 761–936 pixels (31)** and were fixed with Rank's and Fund's;
+  the task bar wraps below 1100 pixels. The "below 760 pixels" sentence is in the in-board guide as well
+  as `CLAUDE.md`.
+- **The controls check also loads a budget list and one budget choice (32)**, so the new budget controls
+  are counted: 56 controls, the six new ones all in the RECORD panel, none lost.
+- **Money in the other lane (35).** The log said a budget chosen for one lane leaves the other lane's
+  line *not set*, named by the pre-flight. The board does what it did before, because the budget rule
+  was not to change: the chosen name is never used on the other lane, which takes the rule's automatic
+  answer. The line reads *not set* only where the rule has no single answer, and then the Spend Plan
+  Source names it before it writes the file.
+- **The panel shows the rule's budget in full (35)**, the name exactly as the file prints it; the old
+  picker showed a shortened form. A line's picker also offers *back to the rule*, which does what the
+  line's *clear* does, and once a family is chosen *Budget for every line* offers *none*, which is
+  *Clear all*.
+- **Esc closes the open message only while you are on it (29)**: pressed in a box or the drawer, Esc is
+  theirs, and focus stays where it was.
+- **The IDS message about a missing budget now points to the RECORD panel (35)**; it named Classify
+  requirements.
+
+**The final check** passed on 30 Sep (11:41 am–12:54 pm Eastern), on its first run: **73 minutes**, every
+stage clean, all 565 planted mistakes caught, 12 of them new in this version (11 more in the list change
+nothing by design, as before).
 
 #### 28. The RECORD panel's "lane short" figure is cut off
 - **Logged:** 30 Sep 2026, at Brad's request. Found while building item 27, and left alone there because
@@ -145,80 +277,6 @@ Current version: **v1.90**. Next: **v1.91**.
   lane leaves the line *not set* and named by the pre-flight; *clear all* clears an unseen choice on an
   unfunded line; all of it survives save and reopen, and a PMO copy's submittal carries it; Requirement
   edit no longer offers the picker; a mutation that makes *clear* leave a line set is caught.
-
-## Later
-
-Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
-
-#### 18. A diagnostics file for support — build before the road show
-- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation.
- **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** when the road show puts PMO copies in many hands, "it doesn't work" will need facts. The
-  board is offline by design and must never phone home.
-- **What:** 📁 File ▾ → *Save diagnostics…* writes a small plain-text file the person can read before
-  sending: version, browser, how much browser storage is in use, counts (requirements per
-  appropriation, locked cycles, submittals held), and the last warnings and errors the board showed.
-  **Never** a dollar figure, a requirement title, a name or any budget data -- checked by a test that
-  fills a board with recognisable values and proves none appears in the file.
-
-#### 19. One way to tell the user something
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** the board speaks in three ways -- 243 status-line messages, 77 pop-up alerts and 73 confirm
-  prompts -- and in v1.86 an import's report was overwritten by a later message before anyone could
-  read it.
-- **What:** one helper for status-line messages that keeps an important one (an import's result, a
-  refusal, a warning) until it is read, instead of letting the next message replace it; import and
-  export failures also written to the change journal. **Confirm prompts stay exactly as they are** --
-  they are the data-loss guards and must keep stopping the user.
-
-#### 20. One place for each field's name and label
-- **Logged:** 29 Sep 2026, same source. **Deferred by Brad, 29 Sep 2026:** not in v1.88.
-- **Why:** v1.86's renames (Impact statement, Description & note, Requirement edit) had to be made in
-  pop-up titles, row chips, menus, the field list, the proposal gate and messages separately, and a test
-  went hollow when one name changed in one place and not another.
-- **What (first slice):** the requirement's own fields -- the written fields and the Requirement edit
-  fields -- get one registry of name and label that the panel, pop-ups, submittal review, proposal gate,
-  messages and the in-file guide all read. A test fails if any of them spells a field's label itself.
-  Later versions extend it as fields are touched, never as a big-bang rewrite.
-
-#### Considered and not recommended
-- **Rewriting the board into separate modules**, and **making the money engine take its inputs as
-  arguments**: worthwhile later, once there is one file, as a version of its own.
-- **Drawing only the visible rows (virtualization):** a board of ~115 requirements redraws fine; it
-  would add risk to keyboard use, screen readers, drag-to-reorder and the exports. Only if lag is seen,
-  and measured first.
-- **A formal data model and rewrite** (the engineering review's #4): no. It would put the data and the
-  math at risk with nothing visible to show for it. The change journal, stable ids and separate state
-  for the live board, copies and submittals already cover what it asks for.
-- **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
-  thoroughly than asked -- storage failures are reported and the file is the record; money is whole
-  dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
-
-#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
-- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
-  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
-  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
-  would matter. Revisit only if that limit changes.
-- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
-  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
-- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
-  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
-  clean-up version already noted in CLAUDE.md.
-- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
-  offers no way to close it. Item 23 covers the case that loses work.
-- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
-  or wrong figures; the rest guard cosmetic steps.
-- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
-  requirements is 4.4 MB, and the check takes files up to 64 MB.
-
-## Withdrawn
-
-### 1. PIDs show up in the CCaR column of the Excel workbook
-- **Withdrawn 23 Sep 2026 by Brad:** the PID is in the right column now. No change.
-- What testing had shown, kept for the record: the export places the CCaR number and the PID in
-  their own columns on every sheet, including a requirement with a PID and no CCaR number.
-
-## Shipped
 
 ### v1.90 — 30 Sep 2026: item 27, built on Brad's "go"
 

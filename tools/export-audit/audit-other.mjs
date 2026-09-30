@@ -468,6 +468,241 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+// ═══ THE BAE BUDGET IN THE RECORD PANEL (v1.91, item 35) ══════════════════════════════════════════
+// Driven the way a person drives it: the rendered selects are changed and the rendered buttons are
+// clicked. After every step EVERY line of the Spend Plan Source is held against what the panel says that
+// line prints -- a panel showing one budget while the file carries another would be believed. The lines
+// are told apart by their amounts, which are all distinct. The fixture is the owner's-rule block's, plus
+// F: 16 of USAF asked after every USAF dollar is spent, so it starts unfunded and the steps below fund it
+// by moving the USAF lanes -- discretionary, mandatory, or both.
+{
+  const name = 'v1.91 — the BAE budget in the RECORD panel';
+  try {
+  const J = JSON.stringify;
+  const SV = ['USAF', 'ANG', 'STOVL'];
+  const mkI = (id, grp, ask) => ({ id, grp, team: grp, sect: '', custom: false,
+    title: id + ' title', event: id + ' event', ccar: '', fy26: ask.map(() => 0), ask, alloc: null });
+  const sc = { services: SV,
+    items: [mkI('A', 'AV', [101, 80, 50]), mkI('B', 'MxS', [0, 17, 0]), mkI('C', 'CDS', [0, 29, 0]),
+            mkI('D', 'PP', [11, 0, 0]), mkI('E', 'AV', [5, 0, 0]), mkI('F', 'AV', [16, 0, 0])],
+    disc: [117, 57, 37], mand: [0, 69, 13], order: ['A', 'B', 'C', 'D', 'E', 'F'] };
+  const OM = ['USAF O&M - ANG', 'USAF O&M - ANG CAM', 'USAF O&M - ANG CAM Discretionary AV',
+    'USAF O&M - ANG CAM OBBBA Mandatory AV', 'USAF O&M - ANG CAM Discretionary MxS',
+    'USAF O&M - ANG CAM OBBBA Mandatory MxS', 'USAF O&M - ANG CAM CDS', 'USAF O&M - ANG CAM CONG CDS', 'USAF O&M NON AFRC NON ANG',
+    'USAF O&M- BOS', 'USAF O&M- CAM', 'USAF O&M- CAM Discretionary AV', 'USAF O&M - CAM OBBBA Mandatory AV',
+    'USAF O&M- CAM CONG AV', 'USAF O&M- CAM Discretionary PP', 'USMC STOVL O&M -1A9A',
+    'USMC STOVL O&M -1A9A FL Discretionary AV', 'USMC STOVL O&M -1A9A AV', 'USMC STOVL O&M -1A9B AV',
+    'USMC STOVL O&M - 1A9A (OCO) AV', 'USMC STOVL O&M -1A9A CDS'];
+  const DISC_AV = 'USAF O&M- CAM Discretionary AV', MAND_AV = 'USAF O&M - CAM OBBBA Mandatory AV',
+    CONG_AV = 'USAF O&M- CAM CONG AV';
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  ev(`BUDDB={ts:1700000000011, files:[], rows:${J(OM)}.map(budParseName).filter(Boolean)};
+      _budRegCache=null; S.budgetAsg={}; S.ccar={}; save(); render(); 'ok'`);
+  const lanes = (d, m) => ev(`S.discSvc[0]=${d}; S.mandSvc[0]=${m}; render(); 'ok'`);
+  const asg = id => ev(`JSON.stringify((S.budgetAsg||{})[${J(id)}]||null)`);
+  // THE PANEL, as drawn: one entry per line
+  const panel = id => JSON.parse(ev(`(function(){ setCur(${J(id)});
+    var ins=document.getElementById('inspector');
+    var rows=[].slice.call(ins.querySelectorAll('table.budtab tr')).map(function(tr){
+      var th=tr.querySelector('th'), sel=tr.querySelector('select'), how=tr.querySelector('.budhow');
+      return {svc:th.firstChild.textContent, lane:th.querySelector('.budlane').textContent, value:sel.value,
+        title:sel.getAttribute('title')||'', first:sel.options[0].textContent,
+        how:how.className.replace('budhow','').trim(), clear:!!tr.querySelector('button')}; });
+    var all=ins.querySelector('.budfoot button'), fam=ins.querySelector('#budfam');
+    return JSON.stringify({rows:rows, clearAll:all? all.textContent : '', fam:fam? fam.value : null,
+      famOpts:fam? [].slice.call(fam.options).map(function(o){ return {v:o.value, t:o.textContent}; }) : [],
+      none:[].slice.call(ins.querySelectorAll('.budnone')).map(function(e){ return e.textContent; }).join(' | ')}); })()`));
+  const said = p => p.rows.map(r => r.lane + ':' + r.how + ':' + r.value).join(', ');
+  // A PERSON'S HANDS: change a rendered select, click a rendered button
+  const choose = (id, sel, value) => ev(`(function(){ setCur(${J(id)});
+    var s=document.querySelector(${J(sel)}); if(!s) return 'no such picker';
+    s.value=${J(value)}; if(s.value!==${J(value)}) return 'not offered';
+    s.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  const line = label => '#inspector select[aria-label=' + J('BAE budget, ' + label) + ']';
+  const click = (id, sel) => ev(`(function(){ setCur(${J(id)});
+    var b=document.querySelector(${J(sel)}); if(!b) return 'no such button'; b.click(); return 'ok'; })()`);
+  const clearBtn = label => '#inspector button[aria-label=' + J('Clear the ' + label + ' budget') + ']';
+  // THE FILE, as exported
+  const fileLines = () => {
+    const pack = JSON.parse(ev(`(function(){ var got='[]';
+      if(!globalThis.__ob7) globalThis.__ob7=buildXlsx;
+      buildXlsx=function(sheets){ got=JSON.stringify(sheets); return new Uint8Array(0); };
+      try{ exportSrc(); }catch(e){ got='[]'; }
+      buildXlsx=globalThis.__ob7; return got; })()`));
+    return ((pack[0] || {}).rows || []).slice(1).map(r => ({ t: txt(r[3]), amt: numOf(r[9]), bud: txt(r[4]) }));
+  };
+  const onFile = amt => { const l = fileLines().filter(x => Math.abs(x.amt - amt) < 0.005);
+    return l.length === 1 ? l[0].bud : `${l.length} lines`; };
+  // THE PANEL AND THE FILE AGREE, line for line: every funded line the panel draws for every requirement,
+  // at the amount the lane walk paid it and on the budget its picker says the file prints.
+  const agree = at => {
+    const file = fileLines();
+    const pan = JSON.parse(ev(`(function(){ var T=tiers(), out=[];
+      S.order.forEach(function(id){ setCur(id); var p=T[id]||{};
+        [].slice.call(document.querySelectorAll('#inspector table.budtab tr')).forEach(function(tr){
+          var lane=tr.querySelector('.budlane').textContent, i=SVC.indexOf(tr.querySelector('th').firstChild.textContent);
+          if(lane==='not funded yet') return;
+          var t=tr.querySelector('select').getAttribute('title')||'';
+          out.push({t:dispTitle(itemById(id)), amt:+(((lane==='mandatory')? p.m : p.d)||[])[i]||0,
+            bud:t.indexOf('The file prints: ')===0? t.slice(17) : ''}); }); });
+      return JSON.stringify(out); })()`));
+    const key = l => l.t + ' $' + Math.round(l.amt) + ' ' + (l.bud || '(blank)');
+    chk(name, at, 'every Spend Plan Source line is on the budget the panel names for it',
+      file.map(key).sort().join(' | '), pan.map(key).sort().join(' | '));
+  };
+
+  // THE LINES
+  let a = panel('A'), f = panel('F');
+  chk(name, 'lines', 'a requirement drawing both lanes shows a line per service per lane',
+    a.rows.map(r => r.svc + ' ' + r.lane).join(', '),
+    'USAF discretionary, ANG discretionary, ANG mandatory, STOVL discretionary, STOVL mandatory');
+  chk(name, 'lines', 'an unfunded requirement still shows its service, not funded yet',
+    f.rows.map(r => r.svc + ' ' + r.lane).join(', '), 'USAF not funded yet');
+  chk(name, 'lines', 'with nothing chosen, nothing to clear', f.rows[0].clear + ' · ' + (f.clearAll || 'no Clear all'), 'false · no Clear all');
+  const ud = a.rows.find(r => r.svc === 'USAF' && r.lane === 'discretionary') || {};
+  chk(name, 'rule', 'a line the rule settles says so, naming the budget the file prints', ud.how + ' · ' + ud.first,
+    'rule · — the rule: ' + DISC_AV + ' —');
+  const sm = a.rows.find(r => r.svc === 'STOVL' && r.lane === 'mandatory') || {};
+  chk(name, 'not set', 'two lane-less names fit STOVL mandatory and no CCaR settles it: not set', sm.how, 'unset');
+  chk(name, 'not set', 'and the file leaves that $13 line blank', onFile(13), '');
+  agree('start');
+  // FROM CCaR, AND A LEGACY CHOICE LEFT BY AN OLDER BOARD: the panel says what the file does in both
+  ev(`S.ccar.A='JSF1'; globalThis.__dcs7=divCcarSide;
+      divCcarSide=function(){ return {by:{'JSF1':{buds:{'USMC STOVL O&M -1A9B AV':1}}}, rows:1}; };
+      _budCcMemo=null; S.budgetAsg.D={'USAF|disc':'USAF O&M- CAM'}; save(); render(); 'ok'`);
+  const sc2 = panel('A').rows.find(r => r.svc === 'STOVL' && r.lane === 'mandatory') || {};
+  chk(name, 'from CCaR', 'the CCaR pull settles STOVL mandatory, and the panel says so', sc2.how + ' · ' + onFile(13),
+    'ccar · USMC STOVL O&M -1A9B AV');
+  const dl = panel('D').rows[0] || {};
+  chk(name, 'legacy', 'a legacy choice: the panel says pick again, and the file leaves the line blank', dl.how + ' · ' + onFile(11), 'legacy · ');
+  agree('from CCaR, and a legacy choice');
+  ev(`divCcarSide=globalThis.__dcs7; _budCcMemo=null; S.ccar={}; delete S.budgetAsg.D; save(); render(); 'ok'`);
+
+  // A CHOICE WITH NO MONEY YET, then the money
+  chk(name, 'unfunded', 'the unfunded line takes a budget from its picker', choose('F', line('USAF not funded yet'), CONG_AV), 'ok');
+  chk(name, 'unfunded', 'kept under the service alone: the name carries no lane', asg('F'), J({ USAF: CONG_AV }));
+  f = panel('F');
+  chk(name, 'unfunded', 'the panel shows it chosen, with a clear and a Clear all',
+    [f.rows[0].value, f.rows[0].how, f.rows[0].clear, f.clearAll].join(' · '), CONG_AV + ' · chosen · true · Clear all (1)');
+  agree('an unfunded choice');
+  lanes(133, 0);
+  chk(name, 'funded', 'funded in discretionary, the line uses the choice', said(panel('F')), 'discretionary:chosen:' + CONG_AV);
+  chk(name, 'funded', 'and the file prints it on F’s $16 line', onFile(16), CONG_AV);
+  agree('funded after the choice');
+
+  // A NAME CARRIES ITS OWN LANE
+  lanes(117, 0);
+  chk(name, 'lane', 'a mandatory name picked with no money yet', choose('F', line('USAF not funded yet'), MAND_AV), 'ok');
+  chk(name, 'lane', 'is kept for the mandatory lane, replacing the earlier choice', asg('F'), J({ 'USAF|mand': MAND_AV }));
+  chk(name, 'lane', 'and the unfunded line shows it chosen', said(panel('F')), 'not funded yet:chosen:' + MAND_AV);
+  lanes(133, 0);
+  f = panel('F');
+  chk(name, 'lane', 'funded in discretionary instead, the line follows the rule: never a mandatory name on it',
+    said(f) + ' · ' + onFile(16), 'discretionary:rule: · ' + DISC_AV);
+  chk(name, 'lane', 'and the choice waits, unseen on any line but counted', f.clearAll, 'Clear all (1)');
+  agree('the other lane');
+  lanes(117, 16);
+  chk(name, 'lane', 'funded in mandatory, the choice is used', said(panel('F')) + ' · ' + onFile(16), 'mandatory:chosen:' + MAND_AV + ' · ' + MAND_AV);
+  agree('mandatory after the choice');
+  lanes(133, 0);
+  chk(name, 'clear all', '“Clear all” clears the choice no line shows', click('F', '#inspector .budfoot button') + ' · ' + asg('F'), 'ok · null');
+  agree('cleared unseen');
+
+  // ONE CHOICE, BOTH LANES; CLEAR ONE LINE
+  lanes(117, 0);
+  choose('F', line('USAF not funded yet'), CONG_AV);
+  lanes(126, 7);
+  chk(name, 'both lanes', 'a lane-less choice answers both of the lanes that pay F', said(panel('F')),
+    'discretionary:chosen:' + CONG_AV + ', mandatory:chosen:' + CONG_AV);
+  chk(name, 'both lanes', 'on the $9 and the $7 line alike', onFile(9) + ' · ' + onFile(7), CONG_AV + ' · ' + CONG_AV);
+  agree('both lanes, one choice');
+  chk(name, 'clear one line', 'the discretionary line’s clear', click('F', clearBtn('USAF discretionary')), 'ok');
+  chk(name, 'clear one line', 'returns that line to the rule and leaves the mandatory line its choice',
+    said(panel('F')) + ' · ' + asg('F'), 'discretionary:rule:, mandatory:chosen:' + CONG_AV + ' · ' + J({ 'USAF|mand': CONG_AV }));
+  chk(name, 'clear one line', 'the file agrees on both', onFile(9) + ' · ' + onFile(7), DISC_AV + ' · ' + CONG_AV);
+  agree('one line cleared');
+  click('F', '#inspector .budfoot button');
+  // THE PICKER'S OWN "back to the rule" does what the line's clear does, the lane-less choice included
+  lanes(117, 0);
+  choose('F', line('USAF not funded yet'), CONG_AV);
+  lanes(126, 7);
+  const back = (panel('F').rows.find(r => r.lane === 'mandatory') || {}).first || '';
+  chk(name, 'back to the rule', 'a chosen line’s empty choice says it goes back to the rule, and to what',
+    back, '— back to the rule: ' + MAND_AV + ' —');
+  chk(name, 'back to the rule', 'chosen on the mandatory line', choose('F', line('USAF mandatory'), ''), 'ok');
+  chk(name, 'back to the rule', 'the line follows the rule; the discretionary line keeps the choice',
+    said(panel('F')) + ' · ' + asg('F'), 'discretionary:chosen:' + CONG_AV + ', mandatory:rule: · ' + J({ 'USAF|disc': CONG_AV }));
+  agree('back to the rule from the picker');
+  click('F', '#inspector .budfoot button');
+
+  // THE FAMILY, THEN ONE LINE CHANGED, ONE CLEARED, ALL CLEARED
+  a = panel('A');
+  const fam = a.famOpts.find(o => /CAM Discretionary AV/.test(o.t)) || { v: '', t: 'none offered' };
+  chk(name, 'family', 'the family picker offers the discretionary AV family, and says which services it covers',
+    /2 of 3: USAF, ANG/.test(fam.t), true);
+  chk(name, 'family', 'chosen', choose('A', '#inspector #budfam', fam.v), 'ok');
+  chk(name, 'family', 'it sets each line it covers, in its own lane, and only those', asg('A'),
+    J({ 'USAF|disc': DISC_AV, 'ANG|disc': 'USAF O&M - ANG CAM Discretionary AV' }));
+  chk(name, 'family', 'and says which lines it could not set', /Not for ANG mand, STOVL, STOVL mand/.test(ev(`document.getElementById('shareStat').textContent`)), true);
+  agree('a family');
+  chk(name, 'change one line', 'one line changed from its own picker', choose('A', line('USAF discretionary'), CONG_AV), 'ok');
+  chk(name, 'change one line', 'the $101 line moves with it', onFile(101), CONG_AV);
+  agree('one line changed');
+  chk(name, 'clear one line', 'its clear', click('A', clearBtn('USAF discretionary')), 'ok');
+  chk(name, 'clear one line', 'returns it to the rule and leaves the other line alone',
+    asg('A') + ' · ' + onFile(101), J({ 'ANG|disc': 'USAF O&M - ANG CAM Discretionary AV' }) + ' · ' + DISC_AV);
+  agree('A line cleared');
+  chk(name, 'clear all', '“— none —” on the family picker', choose('A', '#inspector #budfam', ''), 'ok');
+  chk(name, 'clear all', 'clears every choice on the requirement', asg('A'), 'null');
+  choose('A', '#inspector #budfam', fam.v);
+  chk(name, 'clear all', 'and so does “Clear all”', panel('A').clearAll + ' · ' + click('A', '#inspector .budfoot button') + ' · ' + asg('A'),
+    'Clear all (2) · ok · null');
+  agree('all cleared');
+  lanes(117, 0);
+  const famF = panel('F').famOpts.find(o => /CAM Discretionary AV/.test(o.t)) || { v: '' };
+  chk(name, 'family', 'on a requirement with no money yet, the family is kept in its own lane',
+    choose('F', '#inspector #budfam', famF.v) + ' · ' + asg('F'), 'ok · ' + J({ 'USAF|disc': DISC_AV }));
+  lanes(133, 0);
+  chk(name, 'family', 'and used once the money arrives there', said(panel('F')), 'discretionary:chosen:' + DISC_AV);
+  agree('a family chosen before the money');
+  click('F', '#inspector .budfoot button');
+
+  // SAVE AND REOPEN
+  lanes(117, 0);
+  choose('F', line('USAF not funded yet'), CONG_AV);
+  choose('A', line('USAF discretionary'), CONG_AV);
+  const kept = ev(`JSON.stringify(S.budgetAsg)`);
+  const R = boot({ html: ev('buildSavedHtml()') });
+  chk(name, 'reopen', 'every choice comes back from the saved file, the unfunded line’s included', R.ev(`JSON.stringify(S.budgetAsg)`), kept);
+  // the fixture's requirements are seeded, not imported, so the reopened board is given them again --
+  // without applyState(), which would start the plan over
+  R.ev(`SVC.length=0; ${J(SV)}.forEach(function(s){ SVC.push(s); }); DATA.services=SVC;
+    DATA.items.length=0; ${J(sc.items)}.forEach(function(i){ DATA.items.push(i); }); S.order=${J(sc.order)}; render(); 'ok'`);
+  chk(name, 'reopen', 'and the reopened panel shows it', R.ev(`(function(){ setCur('F');
+    var s=document.querySelector('#inspector table.budtab select'); return s? s.value : 'no picker'; })()`), CONG_AV);
+
+  // ONE EDITOR FOR THE FIELD
+  chk(name, 'one editor', 'Requirement edit no longer carries a budget field',
+    ev(`JSON.stringify(recFields('A', itemById('A')).filter(function(f){ return f.l && /budget/i.test(f.l); }).map(function(f){ return f.l; }))`), '[]');
+  chk(name, 'one editor', 'every budget picker in the RECORD panel is in its BAE budget section',
+    ev(`(function(){ setCur('A'); return [].slice.call(document.querySelectorAll('#inspector select')).filter(function(s){
+      return /setBudAsg|budUnfSet|setBudFam/.test(s.getAttribute('onchange')||'') && !s.closest('table.budtab') && s.id!=='budfam'; }).length; })()`), 0);
+
+  // NO BAE LIST
+  ev(`BUDDB={ts:1700000000012, files:[], rows:[]}; _budRegCache=null; render(); 'ok'`);
+  a = panel('A');
+  chk(name, 'no BAE', 'with no BAE list the panel says so, draws no picker, and offers the import',
+    /No BAE list is loaded/.test(a.none) && a.rows.length === 0 && ev(`(function(){ setCur('A');
+      var b=document.querySelector('#inspector .budnone button');
+      return !!b && /budFile/.test(b.getAttribute('onclick')||'') && !!document.getElementById('budFile'); })()`) === true, true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
 // ═══ THE TWO SPEND PLANS LIST EVERY REQUIREMENT (v1.83) ═══════════════════════════════════════
 // A requirement neither plan funds -- nothing allocated -- was dropped from the panel and every tab,
 // and the TOTAL line called it one that "asks for nothing". The owner found a $50M requirement

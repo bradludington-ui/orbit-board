@@ -18,6 +18,7 @@ import { boot, seed } from './export-audit/boot.mjs';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { CHROME } from './chrome.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const SVCN = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
@@ -75,7 +76,7 @@ const chk = (what, ok, detail) => { if (!ok) bad++;
 
 const dir = mkdtempSync(join(tmpdir(), 'spmt-panels-'));
 process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); } catch {} });   // the copies are scratch; leave nothing behind
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+const b = await chromium.launch({ executablePath: CHROME,
                                   args: ['--no-sandbox'] });
 for (const f of ['prioritization-board-grid.html']) {
   console.log('\n' + f);

@@ -20,6 +20,7 @@ import { boot, seed } from './export-audit/boot.mjs';
 import { writeFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { CHROME } from './chrome.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 
@@ -95,7 +96,7 @@ const DEFAULTS = [
 const chk = (what, ok, detail) => { if (!ok) bad++;
   console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}${detail ? '   ' + detail : ''}`); };
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+const b = await chromium.launch({ executablePath: CHROME,
                                   args: ['--no-sandbox'] });
 
 for (const file of ['prioritization-board-grid.html']) {

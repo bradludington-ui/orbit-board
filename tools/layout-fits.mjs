@@ -15,6 +15,15 @@
 //   F. Fund's Discretionary, Mandatory and Unfunded columns print what the RECORD panel prints.
 //   G. Changing mode, density or Funding detail changes no data.
 //   H. The selected row and the keyboard-focused row look different, and the focus ring is the keyboard's.
+//   I. (v1.91, item 28) Every "lane short" figure in the RECORD panel's By service table is read WHOLE:
+//      the note fits its cell for every requirement, at every width and density -- a nine-digit figure
+//      included. It used to lose its last digits in the 78px UFR column on 115 of 121 notes.
+//   J. (v1.91, item 31) Between 761 and 1023px -- a tablet, a window beside another -- at EVERY width, in
+//      every mode, in Harbor and Parchment: the page never scrolls sideways, every cell and control of every
+//      row sits inside its row, no money figure is cut inside its cell, and nothing in the top bars runs
+//      past the window. The drawer's three editors are on screen at 900 and 768, and a phone (390) opens.
+//      v1.90 pushed Fund's allocation box off the row at 761-884px and Rank's star at 761-804, cut Brief's
+//      last money column, and scrolled sideways at 761-808; nothing looked below 1024.
 //
 //   node tools/layout-fits.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -22,6 +31,7 @@ import { boot, seed } from './export-audit/boot.mjs';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { CHROME } from './chrome.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const args = process.argv.slice(2);
@@ -38,6 +48,10 @@ const items = Array.from({ length: 18 }, (_, i) => ({
   title: 'Requirement ' + (i + 1), event: 'Requirement ' + (i + 1), ccar: '', fy26: SVCN.map(() => 0),
   ask: SVCN.map((_, j) => Math.round([2400, 380, 210, 1150, 420, 640][j] * 1000 * (1 + ((i * 7 + j) % 5) / 4))),
   alloc: null }));
+// v1.91: a requirement nothing can pay, last in the order, so one service is short by a nine-digit figure
+// ($123,456,789) -- the widest "lane short" the By service table has to print whole (check I).
+items.push({ id: 'R019', grp: 'PSM', team: 'PSM', sect: '', custom: false, title: 'Requirement 19', event: 'Requirement 19',
+  ccar: '', fy26: SVCN.map(() => 0), ask: [123456789, 0, 0, 0, 0, 0], alloc: null });
 const sc = { services: SVCN, items, disc: [9200000, 1450000, 860000, 4150000, 1760000, 2500000],
   mand: [1700000, 270000, 160000, 760000, 320000, 460000], order: items.map(x => x.id),
   mc: { R001: true, R002: true, R005: true, R010: true, R015: true } };
@@ -62,7 +76,7 @@ ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BAS
 const file = join(dir, 'board.html');
 writeFileSync(file, ev('buildSavedHtml()'));
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
+const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const open = async (w, h, mode, density) => {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
   await ctx.addInitScript(([m, d]) => { try { localStorage.setItem('spmtTheme', 'harbor');
@@ -245,6 +259,97 @@ for (const [w, h] of [[1920, 1080], [1440, 1000], [1366, 768], [1024, 768]]) {
   chk('H · the selected row carries a bar and a tint, and no ring', r.selBar !== 'rgba(0, 0, 0, 0)' && r.selTint !== r.plain && r.selRing === 'none', JSON.stringify(r));
   chk('H · the row holding keyboard focus carries a ring', r.focRing === 'solid' && r.focW === '2px', `${r.focRing} ${r.focW}`);
   await ctx.close();
+}
+
+// ── I. EVERY "LANE SHORT" FIGURE IS READ WHOLE (v1.91, item 28) ─────────────────────────────────────────
+{
+  const fails = []; let notes = 0, big = 0;
+  for (const [w, h] of [[1920, 1000], [1440, 900], [1024, 768]]) for (const d of ['compact', 'comfortable', 'presentation']) {
+    const { p, ctx } = await open(w, h, 'review', d);
+    const r = await p.evaluate(async () => {
+      const out = []; let n = 0, whole = 0;
+      for (const row of [...document.querySelectorAll('#list .row')]) {
+        row.click(); await new Promise(res => setTimeout(res, 10));
+        for (const note of document.querySelectorAll('#inspector .insp-split .drew')) {
+          if (!/lane short/.test(note.textContent)) continue;
+          n++;
+          const td = note.closest('td'), nb = note.getBoundingClientRect(), tb = td.getBoundingClientRect();
+          // the note's own box is inside its cell, and nothing inside the note is wider than the note
+          if (note.scrollWidth > note.clientWidth + 0.5 || nb.right > tb.right + 0.5 || nb.left < tb.left - 0.5)
+            out.push(row.id + ' "' + note.textContent.replace(/\s+/g, ' ').trim() + '" ' + note.scrollWidth + '>' + note.clientWidth);
+          if (/\$123,456,789/.test(note.textContent)) whole++;
+        }
+      }
+      return { out, n, whole };
+    });
+    notes += r.n; big += r.whole;
+    r.out.slice(0, 2).forEach(x => fails.push(`${w}px ${d}: ${x}`));
+    await ctx.close();
+  }
+  chk('I · every "lane short" figure fits its cell, whole, at 1920, 1440 and 1024 in every density', fails.length === 0 && notes > 0,
+    fails.length ? fails.slice(0, 3).join('; ') : `${notes} notes read`);
+  chk('I · and the nine-digit one is printed whole', big >= 9, `$123,456,789 seen ${big} time(s)`);
+}
+
+// ── J. 761-1023px, EVERY WIDTH, EVERY MODE (v1.91, item 31) ─────────────────────────────────────────────
+{
+  const measure = () => {
+    const W = innerWidth, out = [];
+    if (document.documentElement.scrollWidth > W) out.push('page ' + document.documentElement.scrollWidth + 'px wide');
+    for (const row of document.querySelectorAll('#list .row')) {
+      const rr = row.getBoundingClientRect();
+      for (const c of row.querySelectorAll(':scope > *, button, input, select')) {
+        const b = c.getBoundingClientRect(); if (!b.width || !b.height) continue;
+        if (b.right > rr.right + 1 || b.left < rr.left - 1) { out.push(row.id + ' ' + (c.className || c.tagName).split(' ')[0] + ' past the row (' + Math.round(b.right) + '>' + Math.round(rr.right) + ')'); break; }
+      }
+      for (const c of row.querySelectorAll('.num, .amt, .acts.alloc input')) {
+        if (!c.getBoundingClientRect().width) continue;
+        if (c.scrollWidth > c.clientWidth + 1) { out.push(row.id + ' "' + (c.value || c.textContent).trim() + '" cut in its cell'); break; }
+      }
+      if (out.length > 3) break;
+    }
+    for (const e of document.querySelectorAll('#topStack *')) {
+      const b = e.getBoundingClientRect(); if (!b.width) continue;
+      if (b.right > W + 1) { let q = e; while (q && !q.id) q = q.parentElement; out.push('top: ' + ((q && q.id) || e.className) + ' ends at ' + Math.round(b.right)); break; }
+    }
+    return out;
+  };
+  for (const theme of ['harbor', 'parchment']) for (const mode of ['review', 'rank', 'fund', 'compare', 'brief']) {
+    const ctx = await b.newContext({ viewport: { width: 1023, height: 900 } });
+    await ctx.addInitScript(([t, m]) => { try { localStorage.setItem('spmtTheme', t); localStorage.setItem('spmtMode', m); } catch (e) {} }, [theme, mode]);
+    const p = await ctx.newPage();
+    await p.goto('file://' + file);
+    await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
+    await p.waitForTimeout(250);
+    const fails = [];
+    for (let w = 1023; w >= 761; w--) {
+      await p.setViewportSize({ width: w, height: 900 });
+      await p.evaluate(() => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r))));
+      const o = await p.evaluate(measure);
+      if (o.length) fails.push(w + 'px: ' + o[0]);
+    }
+    chk(`J · ${theme} ${mode}: every width 761-1023 fits`, fails.length === 0,
+      fails.length ? `${fails.length} width(s), e.g. ${fails.slice(0, 2).join('; ')}` : '263 widths');
+    await ctx.close();
+  }
+  for (const [w, h] of [[900, 900], [768, 1024]]) {
+    const { p, ctx } = await open(w, h, 'review');
+    const id = await p.evaluate(() => document.querySelectorAll('#list .row')[1].id);
+    await p.click('#' + id + ' .t1'); await p.waitForTimeout(400);
+    const r = await p.evaluate(() => { const bs = [...document.querySelectorAll('#inspector .insp-act')];
+      return { n: bs.length, onScreen: bs.filter(e => { const c = e.getBoundingClientRect(); return c.width > 0 && c.left >= -1 && c.right <= innerWidth + 1 && c.top >= 0 && c.bottom <= innerHeight; }).length }; });
+    chk(`J · ${w}×${h}: the drawer opens with its three editors on screen`, r.n === 3 && r.onScreen === 3, `${r.onScreen}/${r.n}`);
+    await ctx.close();
+  }
+  {
+    const { p, ctx } = await open(390, 844, 'review');
+    const r = await p.evaluate(() => ({ docW: document.documentElement.scrollWidth, rows: document.querySelectorAll('#list .row').length }));
+    const id = await p.evaluate(() => document.querySelectorAll('#list .row')[0].id);
+    await p.click('#' + id + ' .t1'); await p.waitForTimeout(400);
+    const d = await p.evaluate(() => { const i = document.getElementById('inspector').getBoundingClientRect(); return i.left >= -1 && i.right <= innerWidth + 1 && i.width > 200; });
+    chk('J · a phone (390×844) opens: no sideways scroll, the rows, and the drawer on screen', r.docW <= 390 && r.rows > 0 && d, `page ${r.docW}px · ${r.rows} rows · drawer ${d ? 'on screen' : 'NOT on screen'}`);
+    await ctx.close();
+  }
 }
 
 await b.close();

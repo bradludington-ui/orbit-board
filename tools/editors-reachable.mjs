@@ -22,6 +22,7 @@ import { boot, seed } from './export-audit/boot.mjs';
 import { writeFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { CHROME } from './chrome.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 // A board with requirements on it. An empty board has no row to select and no editor to miss, so
@@ -55,7 +56,7 @@ for (const f of ['prioritization-board-grid.html']) {
 
 // 1400 and 1366 straddle the breakpoint the drawer turns on; 1024 is a half-tiled window.
 const WIDTHS = [1920, 1600, 1440, 1400, 1366, 1280, 1024];
-const b = await chromium.launch({ executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+const b = await chromium.launch({ executablePath: CHROME,
                                   args:['--no-sandbox'] });
 let bad = 0;
 for (const [f, file] of Object.entries(made)) {

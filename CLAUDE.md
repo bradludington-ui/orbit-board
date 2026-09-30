@@ -66,7 +66,9 @@ non-zero on failure.
 npm run shoot -- out.png [--tools] [--full] [--board FILE] [--width N]
 ```
 
-Chromium IS available (`/opt/pw-browsers/chromium-1194/...`), so layout can be checked here after all.
+Chromium IS available, so layout can be checked here after all. Every browser check finds it through
+`tools/chrome.mjs` (v1.91): `CHROME_BIN`, then `/opt/pw-browsers/chromium`, then the newest
+`/opt/pw-browsers/chromium-<revision>`. Never run `playwright install`.
 `shoot.mjs` renders the real board with a seeded seven-requirement position and photographs it —
 the only way to verify anything the audits cannot see, which is everything about appearance. Shoot
 the file at `HEAD` and the working copy and compare when a change moves the furniture.
@@ -726,27 +728,30 @@ Blaming a flush lane is not a wording nit. It shipped, on a prime whose USAF lan
 $704,562,659 while the panel said the lane could not supply the rest, and it sent the reader
 hunting money that was never the constraint.
 
-### The row is triage; the RECORD inspector is the editor (grid build)
+### The row is triage; the RECORD panel is the editor
 
-One rule, and it is what keeps the two surfaces from growing copies of each other:
+One rule, and it is what keeps the two surfaces from growing copies of each other. Its wording was
+approved by Brad on 30 Sep 2026 (v1.91, item 32) and is the same here, in `AGENTS.md` and at the row in
+`render()`:
 
-- **ROW** — only what you do while scanning 115 rows: rank and ▲▼, ★ MC, the band, and the ⋯ menu
-  for lifecycle (consequence, CCaR record-name rename, reset allocation, copy/move year, remove).
-  CCaR, PID, the funding mode and the award date show there as **badges**: status you need at a
-  glance, with no handler. Clicking one bubbles to the row-selection delegate, so it takes you to
-  the field on the right instead of doing nothing.
-- **INSPECTOR** — every edit of the selected requirement. Identity, the per-service REQ / DISC /
-  MAND (UFR derived), minimum useful increment, absorber, award schedule, note, description, record.
+> The row is for triage. Its direct decisions are rank (the rank box, ▲▼ in Rank, the ⠿ handle),
+> ★ Mission Critical and, in Fund only, the total allocation for a requirement not on a Split. Lifecycle
+> actions are in its ⋯ menu. The CLIN drill opens inside the row for a CLIN requirement. Everything else,
+> per-service funding included, is edited in the RECORD panel. A mode or density changes only what is
+> shown, never a figure.
 
-Measured, not asserted: `npm run controls` renders both builds and reports any handler present in
-one and absent from the other. It compares the card's ROW against the grid's ROW **plus INSPECTOR**,
-because a control that moved is not a control that was lost — and it unwraps `rowMenuRun(id,()=>{X})`,
-which is only the menu's invocation shim. Anything genuinely dropped or re-implemented must be named
-in that file's `RETIRED` or `REPLACED` map with a reason, or the run fails.
+The Fund allocation box stays on the row because the RECORD panel has no total-allocation editor: it is
+the only way to set one on a requirement not on a Split. CCaR, PID, the funding mode and the award date
+show on the row as quiet text with no handler (`gridDedupe()` strips the title, CCaR and PID handlers
+render() draws); a click on them bubbles to the row-selection delegate and opens the field on the right.
 
-**`render()` stays SHARED and byte-identical.** The row's de-duplication is a post-render pass,
-`gridDedupe()`, not a fork — so parity keeps protecting the one function both builds depend on.
-Divergence is confined to four small presentation functions, each allowlisted.
+Measured, not asserted: `npm run controls` (`tools/row-controls.mjs`) inventories every control a person
+reaches for ONE requirement -- the row plus the RECORD panel, in Review plus what Rank and Fund add, and a
+CLIN requirement with its drill open -- and records each control's SURFACE (`row` or `record`) in
+`tools/row-controls.json`. A control lost, one not recorded, or one moved between the row and the RECORD
+panel fails; it unwraps `rowMenuRun(id,()=>{X})`, which is only the menu's invocation shim. A deliberate
+change is re-recorded with `--record`, and the commit says why. (Before v1.88 it compared the card build's
+row against the grid's; that build is retired.)
 
 **A near miss worth remembering:** making the funding chip a badge on *both* surfaces left the grid
 with no way to set a requirement's funding at all. `convertAllToSplit()` does the whole board, but a
@@ -2164,7 +2169,13 @@ recorded in `tools/a11y-baseline.json` with a date, and the run **fails two ways
 | a recorded finding stops occurring | a list of known holes that has stopped being true is worse than no list |
 
 Regenerate with `--emit` after a fix and say in the commit **which criterion closed**. `--full`
-prints every finding rather than the summary.
+prints every finding rather than the summary. `--board FILE` measures another board (a proof on an
+older one).
+
+**2.1.1 Keyboard (since v1.91):** a visible element with a click handler that is not a native control
+(or is an `a` with no address) and takes no focus. The baseline records 12 older findings as debt (the
+lane and service filter chips, and the `gsOpen`, `pmoSumOpen`, `scOpen` and `taOpen` summaries); a new
+click-only element fails the run.
 
 ### Never print a band's hue as text — derive a readable one
 
@@ -3005,7 +3016,7 @@ text to 4.25:1) and a 3px gold bar inside the lane edge; keyboard focus is its o
 
 **The status line lives beside the save state** (`#statWrap`/`#shareStat`, still `role=status`). A message
 shows there until the next or until ✕; its full text is the save state's tooltip and a click opens it
-whole. The one ordinary start-up line ("Opened with the saved board state", a PMO copy's greeting) is set
+whole. (v1.91 replaced the click with the Message button -- see there.) The one ordinary start-up line ("Opened with the saved board state", a PMO copy's greeting) is set
 with `_statQuiet` and waits in the tooltip; every warning at start-up still shows.
 
 **Checks:** `tools/layout-fits.mjs` (in `verify:grid` as `npm run layout`): A the posture prints the
@@ -3027,12 +3038,118 @@ is in no menu but File), and `row-controls.json`, which now records Review plus 
 counts ⠿ (`gripDown`) as the drag control.
 
 **Not changed, and noticed:** the RECORD panel's by-service table clips its "lane short …" note in the
-UFR column on a narrow panel. It did the same in v1.89; it is not this item's to fix.
+UFR column on a narrow panel. It did the same in v1.89; it is not this item's to fix. (Fixed in v1.91,
+item 28.)
 
 **The gate that passed v1.90** (30 Sep, 11:07–12:19 UTC, its first run on the commit that shipped): every
 stage clean, **72.6 min**; one sweep of 564 mutations (560 from v1.89 plus the 4 above), 553/553 caught,
 11 equivalent, the sweep 67.9 min; fuzz seed 568732149. A run on the branch before the PR (09:48–10:59
 UTC) had passed the same way in 70.9 min, fuzz seed 793644620.
+
+### v1.91 (items 28–35): the keyboard, 761–1023px, and the BAE budget in the RECORD panel
+
+Built on Brad's "go" of 30 Sep 2026, from the post-v1.90 review and his own request (item 35). Each item
+was approved as logged; `NEXT-VERSION.md` says where the build differs.
+
+**28 -- "lane short" on two lines.** `laneShortNote(v)` in `inspectorBody()` draws *lane short* and the
+figure on a line of its own at 9.5px, the whole sentence in its tooltip (`.insp-split .drew.ls`). The UFR
+column stays 78px, the money boxes keep their widths, and $123,456,789 fits. On v1.90, 115 of 121 notes
+were cut (*$150,000* read *$150,00*).
+
+**29 -- the keyboard reaches the message and the RECORD panel's record fields.**
+- `#statBtn` beside the save state (*Message*, or *More* / *Less* when a long one is showing;
+  `aria-expanded`, `aria-controls="statWrap"`). `statSync()` shows it whenever there is a message;
+  `statToggle()` opens it whole; Esc closes it and hands focus back -- only while focus is on the message,
+  its button or ✕, since Esc anywhere else belongs to a box or the drawer; ✕ (`#statX`, moved out of `#statWrap`
+  so Tab reaches it after the button) hides it and hands focus to the button. The save state is plain
+  text; the kept-aside put-back is `button.keptbtn`.
+- A hidden or quiet message is visually hidden (`clip-path`), never `display:none`: a `role=status` that is
+  `display:none` leaves the accessibility tree and says nothing. `#shareStat`, `#saveState` and `#statWrap`
+  keep their ids.
+- The CCaR record and PID are `<button class="insp-f">`, the ✎ is `button.tedit`, and the lane-walk "pin
+  these figures" chip is `button.rchip`. (`setCcarInline`/`setPidInline` are dead code and were left.)
+- At 320px the new button pushed the header 29px sideways; `.hdr .hsp` wraps at ≤640px.
+- `npm run standards` has 2.1.1 (see the 508 section). Its drive now shows a long message and opens
+  Funding detail before it measures, which v1.90's folded panels had hidden from it, and loads a BAE list
+  with one choice so the RECORD panel's budget section is measured with its pickers and buttons.
+
+**30 -- the modes are buttons.** `.tbar .tabs` is `role="group" aria-label="Workspace"`; each mode is a
+button with `aria-pressed`, set in `syncBtns()`, and the CSS keys off `aria-pressed`. No tab roles.
+`spmtMode` and the fallback to Review are unchanged.
+
+**31 -- 761 to 1023px.** At ≤940px the rows' gap is 6px and Rank, Fund and Brief have narrower
+`--rowcols`; at ≤1100px the task bar wraps. **Below 760px the board is for reviewing and inspecting
+only**: the money columns and the allocation box are hidden there (as before v1.91), and a phone reads a
+requirement; it does not rank or fund.
+
+**32 -- what the row may edit.** The rule above ("The row is triage"), and `row-controls` records surfaces
+and opens a CLIN drill. Its fixture also loads a BAE list and one budget choice so the RECORD panel's
+budget controls are inventoried: 56 controls recorded, the six new ones all on the RECORD surface, nothing
+lost from v1.90. Proved: moving the minimum-increment editor from the RECORD panel to the row, the same
+handler count, fails with `LOST record ▸ setMinInc` and `NOT RECORDED row ▸ setMinInc`; a handler-only
+comparison passes it.
+
+**33 -- Brief's label:** "Presentation view — requirements can’t be edited here", and the guide to match.
+
+**34 -- one Chromium lookup (tests only).** `tools/chrome.mjs` exports `findChrome()` and `CHROME`:
+`CHROME_BIN` (an error, not a fall-through, when it is set and is not a file), `/opt/pw-browsers/chromium`,
+the newest `/opt/pw-browsers/chromium-<rev>/chrome-linux/chrome`, else an error naming everything tried.
+The 14 browser tools import it (`ia-shots` and `ia-census` still honour their own `CHROME`). `npm run
+chrome` proves the order on throwaway folders and is the first step of `verify:grid`.
+
+**35 -- the BAE budget in the RECORD panel.** `budRecordHtml()`, under By service:
+- `budLines(id)` -- a line per service per funded lane, and one line (`lane:''`, *not funded yet*) for a
+  service with a requirement value and no money.
+- A funded line's picker calls `budLineSet()`: a name goes to `setBudAsg(id, svc, name, lane)`, and the
+  empty choice ("— back to the rule: … —") is `budLineClear()`, so a lane-less choice answering the line
+  is dealt with too. `budHow()` names how the line is settled -- chosen, automatic by rule, from CCaR, not
+  set, legacy -- by `budForRow()`'s own steps (`budRuleOf()` is the rule's part), and the picker's title
+  says what the Spend Plan Source prints. The rule's answer is shown in full.
+- An unfunded line's picker calls `budUnfSet()`: the name is kept under the lane it carries (`svc|disc`,
+  `svc|mand`), or under the bare service when it names none, which `budAsgOf()` reads for either lane.
+  `budUnfChoice()` shows whichever is held.
+- `#budfam` (*Budget for every line*) calls `setBudFam()`, unfunded lines included; its empty choice,
+  "— none: every line back to the rule —" once a family is chosen, is `budClearAll()`.
+- *clear* is `budLineClear()`: back to the rule. A bare choice that also answers the other funded lane is
+  kept for that lane. *Clear all (n)* is `budClearAll()`: it deletes `S.budgetAsg[id]` whole, choices on
+  lines no longer shown included, and says how many.
+- With no BAE list the section says so, with a button that opens the import.
+- The picker left 📋 Requirement edit (`recFields` has no budget field, so its count no longer counts it);
+  `budRecFields`, `budSvcOpen`, `budToggleSvc` and `budFundedSvcs` are gone. The IDS message that sent
+  people to Classify requirements points to the RECORD panel.
+- **The budget rule did not change.** A name chosen for one lane is never used on the other: money in the
+  other lane takes the rule's answer, and the line is *not set* only where the rule has no single answer
+  (the Spend Plan Source then names it before it writes the file).
+
+**Checks.**
+- `tools/layout-fits.mjs` I: every "lane short" note fits its cell, every requirement on the example board
+  plus a planted $123,456,789 shortfall (R019), 1920/1440/1024 × three densities. J: every width 761–1023,
+  five modes, Harbor and Parchment -- no sideways scroll, no row control or money figure past or cut in its
+  row, nothing in `#topStack` past the window; the drawer's editors on screen at 900 and 768; a 390px smoke
+  check.
+- `tools/keyboard-reach.mjs` (`npm run keys`, in `verify:grid`): the message (Esc pressed elsewhere
+  leaves focus where it is), the three record fields and the pin chip, the kept-aside button and the
+  modes, all with keys in Chromium; each section reports its own failure.
+- `npm run standards`: 2.1.1 against the regenerated baseline (12 known findings).
+- `audit-other.mjs` "v1.91 — the BAE budget in the RECORD panel" drives the rendered pickers and buttons
+  (change events, clicks): assign, family, change a line, clear a line (its button, and its picker's
+  "back to the rule"), clear all, an unfunded choice then funded in its lane and in the other, one
+  lane-less choice on both lanes, CCaR, legacy, save and reopen, no BAE list. After every step it holds EVERY Spend Plan Source line against the budget the panel says
+  it prints.
+- `audit-import.mjs` "v1.91 — a BAE budget chosen in a copy’s RECORD panel travels": picked on an unfunded
+  line in a PMO copy, submitted, applied at the board, used once that lane pays.
+- Each new check was run on the v1.90 board and failed there: layout I and J (every mode), keyboard (14
+  checks), standards (6 NEW findings), both audit blocks.
+- **12 new mutations**, all caught in their pre-sweep: `bud-unfunded-line-missing`,
+  `bud-panel-ccar-unseen`, `bud-panel-legacy-chosen`, `bud-unfunded-disc-only`,
+  `bud-unfunded-choice-hidden`, `bud-line-clear-leaves-line`, `bud-line-clear-both-lanes`,
+  `bud-clearall-funded-only`, `bud-fam-none-keeps`, `bud-fam-skips-unfunded`, `bud-fam-any-lane`,
+  `bud-rule-option-ignored`. **576 in all.** Items 28–34 change nothing the jsdom suites compute, so their proofs are the browser
+  checks above.
+
+**The gate that passed v1.91** (30 Sep, 15:41–16:54 UTC, its first run on the commit that shipped): every
+stage clean, **72.6 min**; one sweep of 576 mutations (564 from v1.90 plus the 12 above), 565/565 caught,
+11 equivalent, the sweep 66.3 min; fuzz seed 874911235.
 
 ## Colour: one token, one job
 

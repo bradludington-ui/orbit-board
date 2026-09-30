@@ -9,6 +9,7 @@ import { chromium } from 'playwright-core';
 import { readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CHROME } from '../chrome.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -32,7 +33,7 @@ const ITEMS = [
   mk('Tooling and GSE calibration', 'PP', [12, 6, 5]),
 ];
 
-const browser = await chromium.launch({ executablePath: process.env.CHROME_BIN || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const browser = await chromium.launch({ executablePath: CHROME });
 const page = await browser.newPage({ viewport: { width: Number(opt('width', 1500)), height: 1000 } });
 const errs = [];
 page.on('pageerror', e => errs.push(e.message));

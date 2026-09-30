@@ -2123,6 +2123,42 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
   await settleBoards();   // and let the loop turn: a closed board is freed only then
 })();
+// v1.91 (item 35): A BUDGET CHOSEN IN A COPY'S RECORD PANEL, ON A LINE WITH NO MONEY YET, TRAVELS. The
+// office picks through the rendered picker -- not by writing S -- the package carries the choice under the
+// lane its name carries, and at the board it lands and is used once that lane pays the requirement.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.91 — a BAE budget chosen in a copy’s RECORD panel travels';
+  try {
+  const MAND = 'USAF O&M - ANG CAM OBBBA Mandatory AV';
+  const sc = { services: MINE, items: [it('A', 'AV', [900, 200, 100]), it('B', 'AV', [0, 60, 0])],
+    disc: [2000, 200, 300], mand: [500, 0, 80], order: ['A', 'B'] };
+  const B = boot(); seed(B.ev, sc); asBooted(B.ev, sc);
+  B.ev(`applyState(S);
+    BUDDB={ts:1700000000021, files:[], rows:['USAF O&M - ANG CAM Discretionary AV', ${JSON.stringify(MAND)},
+      'USAF O&M- CAM Discretionary AV', 'USAF O&M - CAM OBBBA Mandatory AV'].map(budParseName).filter(Boolean)};
+    _budRegCache=null; save(); 'ok'`);
+  chk(name, 'board', 'B asks ANG money no lane has left', B.ev(`JSON.stringify(budLines('B'))`), JSON.stringify([{ svc: 'ANG', lane: '' }]));
+  const P = boot({ html: v184Publish(B.ev) });
+  const picked = P.ev(`(function(){ setCur('B');
+    var s=document.querySelector('#inspector select[aria-label="BAE budget, ANG not funded yet"]');
+    if(!s) return 'no picker'; s.value=${JSON.stringify(MAND)}; if(s.value!==${JSON.stringify(MAND)}) return 'not offered';
+    s.dispatchEvent(new Event('change')); return 'ok'; })()`);
+  chk(name, 'copy', 'the office picks it on the not-funded-yet line of the copy’s RECORD panel', picked, 'ok');
+  const sub = v184Submit(P, 'AV');
+  chk(name, 'copy', 'the submittal carries it, under the lane the name carries',
+    JSON.stringify(((sub.pkg || { items: {} }).items.B || {}).budgetAsg), JSON.stringify({ 'ANG|mand': MAND }));
+  B.ev(`window.alert=function(){}; window.confirm=function(){ return true }; PMOSUBS=[]; PMOPICK={};
+    pmoTake(${JSON.stringify(sub.pkg)}, 'av.json'); subPickAll(true); pmoApply(); 'ok'`);
+  chk(name, 'board', 'it lands on the board', B.ev(`JSON.stringify((S.budgetAsg||{}).B||null)`), JSON.stringify({ 'ANG|mand': MAND }));
+  B.ev(`S.mandSvc[1]=60; render(); 'ok'`);
+  chk(name, 'board', 'and once mandatory pays B, its line is on that budget', B.ev(`budForRow('B','ANG','mand')`), MAND);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
+  await settleBoards();   // and let the loop turn: a closed board is freed only then
+})();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const name = 'v1.84 — a copy points to Submit input, and keeps its own appropriation';

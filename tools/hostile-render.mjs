@@ -17,6 +17,7 @@ import { buildHostile, hostileSweep } from './export-audit/hostile.mjs';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { CHROME } from './chrome.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const FILE = resolve(process.env.BOARD || join(ROOT, 'prioritization-board-grid.html'));
@@ -30,7 +31,7 @@ let bad = 0;
 const chk = (what, ok, detail) => { if (!ok) bad++; console.log(`  ${ok ? 'ok  ' : 'FAIL'} ${what}${detail ? '   ' + detail : ''}`); };
 console.log(`\nhostile board — ${FILE.split('/').pop()}: ${n} requirements, script-shaped text in every field the fixture fills`);
 
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--no-sandbox'] });
+const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const ctx = await b.newContext({ viewport: { width: 1920, height: 1080 } });
 await ctx.addInitScript(() => { window.__hits = []; window.__pw = t => { window.__hits.push(String(t)); }; });
 const p = await ctx.newPage();

@@ -12,6 +12,11 @@
 // add. A control that moves to a mode is the same control; one that no mode draws is lost. Drag starts
 // from the ⠿ handle now (onmousedown), so the handle is counted as the drag control.
 //
+// WHICH SURFACE (v1.91, item 32). Each control is recorded with where it is -- the ROW or the RECORD panel --
+// and compared on both. The row is for triage: rank, ★, Fund's total allocation, the ⋯ menu, and the CLIN drill
+// that opens inside a CLIN requirement's row (so the fixture opens one). A new editor on the row fails, and so
+// does one MOVED there from the RECORD panel, which the handler alone could not see.
+//
 // ONE BUILD SINCE v1.88. This used to compare the card build against the grid build. With the card
 // build retired, the grid is held against its own recorded list (tools/row-controls.json): a control
 // that disappears, or one that appears without being recorded, fails. A deliberate change is made
@@ -23,8 +28,8 @@
 import { chromium } from 'playwright-core';
 import { resolve } from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
+import { CHROME } from './chrome.mjs';
 
-const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const HERE = new URL('.', import.meta.url).pathname;
 
 const it = (id, grp, title, ask) => ({ id, grp, team: grp, sect: '', custom: false, title,
@@ -35,7 +40,13 @@ const SEED = {
           it('B', 'AV', 'Avionics spares replenishment', [31, 22, 14]),
           it('C', 'ATL', 'Airframe structural repair', [28, 11, 19]),
           it('D', 'MxS', 'Support equipment refresh', [22, 9, 13])],
-  disc: [100, 45, 55], mand: [40, 20, 25], order: ['A', 'B', 'C', 'D'], mc: { A: true, C: true },
+  disc: [100, 0, 55], mand: [40, 0, 25], order: ['A', 'B', 'C', 'D'], mc: { A: true, C: true },
+  // v1.91 (item 35): a BAE list and one choice, so the RECORD panel's budget section draws every control it
+  // has -- the family picker, a picker per line, a line's clear and Clear all. USMC CV has no money, so A
+  // also carries a "not funded yet" line and its picker. Without a list the section is one import button.
+  bae: ['USMC STOVL O&M -1A9A FL Discretionary PSM', 'USMC STOVL O&M -1A9A OBBBA Mandatory PSM',
+        'USN O&M CV Discretionary PSM', 'USN O&M CV OBBBA Mandatory PSM', 'USMC CV O&M Discretionary PSM'],
+  budgetAsg: { A: { 'STOVL|disc': 'USMC STOVL O&M -1A9A FL Discretionary PSM' } },
 };
 
 async function inventory(page, file) {
@@ -52,12 +63,17 @@ async function inventory(page, file) {
     DATA.items.length = 0; sc.items.forEach(i => DATA.items.push(i));
     S.discSvc = sc.disc; S.mandSvc = sc.mand; S.order = sc.order;
     S.fsrc = {}; S.mc = sc.mc; S.alloc = {};
+    BUDDB = { ts: 1700000000001, files: [], rows: sc.bae.map(budParseName).filter(Boolean) }; _budRegCache = null;
+    S.budgetAsg = JSON.parse(JSON.stringify(sc.budgetAsg));
     render();
   }, SEED);
   await page.waitForTimeout(300);
   const all = [];
-  for (const mode of ['review', 'rank', 'fund']) {
-  await page.evaluate(m => { if (typeof uiMode !== 'undefined') { uiMode = m; uiApply(); render(); } }, mode);
+  for (const mode of ['review', 'rank', 'fund', 'clin']) {
+  // the last pass is Review with row A a prime whose CLIN drill is open: that drill draws inside the row
+  await page.evaluate(m => { if (m === 'clin') { if (!S.ptype) S.ptype = {}; S.ptype.A = 'PRIME';
+      CLINS.A = [{ clin: '0001', desc: 'Depot line', ccar: 'JSF100', ask: [20, 8, 12] }]; clinOpen.A = true; m = 'review'; }
+    if (typeof uiMode !== 'undefined') { uiMode = m; uiApply(); render(); } }, mode);
   // Row A is the first row and is Mission Critical, so its inventory includes the MC-on state.
   // Select row A so the inspector is showing it, then read both surfaces as one inventory.
   await page.evaluate(() => { if (typeof setCur === 'function') setCur('A'); });
@@ -69,6 +85,7 @@ async function inventory(page, file) {
     const insp = document.getElementById('inspector');
     const scope = insp ? [row, insp] : [row];
     scope.forEach(r => r.querySelectorAll('*').forEach(el => {
+      const surface = r === row ? 'row' : 'record';
       const interactive = el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'SELECT'
         || el.hasAttribute('onclick') || el.hasAttribute('onchange') || el.hasAttribute('onmousedown') || el.hasAttribute('draggable');
       if (!interactive) return;
@@ -76,7 +93,7 @@ async function inventory(page, file) {
       // that moves to another column is the same control; one whose handler vanished is not.
       const h = (el.getAttribute('onclick') || el.getAttribute('onchange') || el.getAttribute('onmousedown') || '')
         .replace(/"(?:[^"\\]|\\.)*"/g, "'…'").replace(/'(?:[^'\\]|\\.)*'/g, "'…'").replace(/\s+/g, ' ').trim();
-      out.push([el.tagName.toLowerCase(), h || '(' + (el.getAttribute('draggable') ? 'draggable' : el.type || '') + ')',
+      out.push([surface, el.tagName.toLowerCase(), h || '(' + (el.getAttribute('draggable') ? 'draggable' : el.type || '') + ')',
                 (el.getAttribute('title') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 44)].join(' | '));
     }));
     return out.sort();
@@ -111,7 +128,7 @@ if (!inv) { console.error('row-A did not render'); process.exit(2); }
 // with double quotes where the hand-written handlers used single ones -- the same control either way.
 const fold = h => h.replace(/"(?:[^"\\]|\\.)*"/g, "'…'").replace(/'(?:[^'\\]|\\.)*'/g, "'…'");
 const unwrap = h => { const m = /^rowMenuRun\([^,]+,\(\)=>\{(.+)\}\)$/.exec(h); return m ? m[1].trim() : h; };
-const fn = x => fold(unwrap(x.split(' | ')[1]));
+const fn = x => { const p = x.split(' | '); return p[0] + ' ▸ ' + fold(unwrap(p[2])); };
 const tally = list => list.reduce((m, x) => (m[fn(x)] = (m[fn(x)] || 0) + 1, m), {});
 const build = (/const BUILD='([^']+)'/.exec(readFileSync(FILE, 'utf8')) || [])[1] || '?';
 

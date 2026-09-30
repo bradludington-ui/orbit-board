@@ -6,12 +6,13 @@ be broken.
 
 ## What this is
 
-- One self-contained HTML application: **`prioritization-board-grid.html`** (~25,500 lines, no build
+- One self-contained HTML application: **`prioritization-board-grid.html`** (~26,700 lines, no build
   step, no dependencies of any kind). It is edited directly; there is no generator to run.
 - One build since v1.88. The card build (`prioritization-board.html`) was retired; it exists only in the
   git history. Do not recreate it.
-- The tooling in `tools/` is Node (jsdom, playwright-core). Chromium is at `/opt/pw-browsers`; never run
-  `playwright install`.
+- The tooling in `tools/` is Node (jsdom, playwright-core). Every browser check finds Chromium through
+  `tools/chrome.mjs` (`CHROME_BIN`, then `/opt/pw-browsers/chromium`, then the newest
+  `/opt/pw-browsers/chromium-*`); never run `playwright install`.
 
 ## The two can't-fails: data loss and math
 
@@ -38,6 +39,7 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 | Before every commit | `npm run check` | `all checks passed` |
 | After a change | `npm run audit` | 8 suites: 7 `ALL CHECKS PASSED` banners plus the legacy line |
 | After a change that moves anything on screen | `npm run verify:grid` | exit 0 |
+| After a change to anything a person operates | `npm run standards` | no NEW finding (2.1.1 Keyboard included) |
 | Before a version ships | `npm run validate:math` (~1 hour) | `MATH VALIDATION PASSED` |
 
 - In the math check, a mutation that is **NOT APPLIED** fails the run. If you rewrite a line that a
@@ -63,10 +65,14 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 - Write over a saved copy -- the file, or the shared folder's -- that could not be read, or decide whether
   work is unsaved by comparing two computers' clocks. See the v1.89 section of `CLAUDE.md`.
 
-- Put an editor on a requirement's row, or let a workspace mode change a figure. The row is for triage and
-  the RECORD panel is the editor; a mode (Review, Rank, Fund, Compare, Brief) and a density only change
-  what is shown, and are this browser's settings, never written into the file. See the v1.90 section of
-  `CLAUDE.md`; `npm run layout` holds it.
+- Put a new editor on a requirement's row, or let a workspace mode change a figure. The row is for triage.
+  Its direct decisions are rank (the rank box, ▲▼ in Rank, the ⠿ handle), ★ Mission Critical and, in Fund
+  only, the total allocation for a requirement not on a Split. Lifecycle actions are in its ⋯ menu. The CLIN
+  drill opens inside the row for a CLIN requirement. Everything else, per-service funding included, is
+  edited in the RECORD panel. A mode (Review, Rank, Fund, Compare, Brief) or a density changes only what is
+  shown, never a figure, and is this browser's setting, never written into the file. `npm run controls`
+  records each control with its surface (row or RECORD panel) and fails on one added or moved; `npm run
+  layout` holds the modes. See the v1.90 and v1.91 sections of `CLAUDE.md`.
 - Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity` and `spmtDetail`, or
   the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.
