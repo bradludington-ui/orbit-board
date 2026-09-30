@@ -8,7 +8,66 @@ Current version: **v1.89**. Next: **v1.90**.
 
 ## Open
 
-Nothing open. Log the next change here.
+#### 27. The board's layout: context bar, workspace modes, a denser, clearer row
+- **Logged:** 30 Sep 2026. **Approved by Brad, 30 Sep, exactly as prototyped** ("A") after a Stage 1
+  review with rendered before/after screenshots (Harbor, Parchment; 1440, 1366, 900 wide).
+- **Found (measured on v1.89):** at 1440×1000 the first requirement starts 1,370px down the page, below
+  the header, the toolbar, a status line, four scorecards, the fit strip and two chart panels -- no
+  requirement is on screen when the board opens (1,467px at 1366×768). Rows run 64-110px tall because
+  they carry editors as well as triage controls. **And a defect:** between about 1401 and 1745px wide,
+  with the RECORD panel docked, each row's allocation and ⋯ column overflows and is clipped -- at 1440
+  and 1600 the ⋯ menu (rename the record name, reset the allocation, move or copy to a year, remove) is
+  out of sight on every row.
+- **What will be built:**
+  - **One sticky top area.** A context bar -- appropriation, fiscal year, PMO, search, Filter with the
+    active filters as removable chips, saved/unsaved state, Save, Help, File. A task bar -- five
+    workspace modes (Review, Rank, Fund, Compare, Brief), the chosen mode's tools, and three grouped
+    menus (Reports & exports, Data, Setup) that between them hold every item the Active year, Budget
+    year, FYDP, Tools and Export menus hold today. A funding posture strip -- the four scorecards'
+    headline figures, unfunded by service and what needs attention -- with *Funding detail* opening the
+    scorecards, the fit strip and the funding panels, unchanged.
+  - **The row:** rank, PMO, title with one quiet line under it (CCaR, PID, award, cost element) and its
+    exceptions pinned where they cannot be cut off, decision band, requirement, cumulative, lane (word
+    and meter), ★, ⋯. Two densities and a third for presenting: Compact, Comfortable, Presentation.
+  - **Modes change emphasis, never the data.** Rank adds ▲▼ and the office's own rank. Fund shows
+    Discretionary, Mandatory and Unfunded and the allocation box. Compare gathers the cycle tools.
+    Brief is read-only, for the room. Mode and density are this browser's own settings, like the
+    colours, never saved into the file.
+  - **One grammar:** buttons act, boxes edit, a chip is a status or a removable filter, clicking a row
+    selects it, drag only from ⠿. The row's cost element, prime/OGC tag and record name stop being
+    editors (each is edited where it already is: Requirement edit, the ⋯ menu); the ▲ not-drawn flag
+    becomes a status and the fix list opens from *Needs attention*; ★ is a 24px toggle that says whether
+    it is on. Selection is a gold bar and a tint; keyboard focus is its own ring.
+  - **The RECORD panel keeps its content and order**, with a legible type scale (labels 9.5px, not 8)
+    and CCaR / PID boxes that say "✎ Change".
+  - The guide inside the board, and every message that names a menu path, re-pointed.
+- **What does not change:** every calculation, lane walk, cutline and figure; the saved file and every
+  import, export, package, PMO copy, submittal, cycle and snapshot; the themes and the browser keys.
+- **Checks:** the posture strip prints exactly the scorecards' figures (compared on every audit board);
+  every item of the old menus is reachable in the new ones; no row control is clipped at any width from
+  1024 to 1920; the first requirement is on screen when the board opens; Brief carries no editing
+  control; the fund columns agree with the RECORD panel; standards stay at 0 findings in every theme,
+  density and mode.
+- **Built on branch `claude/orbit-ui-modernization` (30 Sep), waiting for go** -- the math gate and the
+  version number come with go, as always. A full gate also ran on the branch before the PR: passed,
+  70.9 min, 553/553 caught (11 equivalent), first run. Where the build differs from the approved
+  prototype, all small:
+  - **The search reads the PID too.** The approved box says "Search title, event, CCaR, PID…"; the search
+    did not read PIDs, so it does now, rather than the box promising something it does not do.
+  - **"Funded" on the Whole budget line is the funded amount.** The prototype printed the total budget
+    authority there; on the seeded board the two were the same figure, on a board with money left they
+    are not. The strip reads the card's own funded figure.
+  - **The bars fit by measuring, not only at 1100px.** Fund's tools and two active filters can overfill
+    a 1366 or 1152 window; a bar that would run past the edge drops its labels first, then folds the
+    mode's tools into one menu -- the same menu the prototype showed below 1100px.
+  - **Menu items keep their icons** (📅, ⚖, 📊 …), as they are in every menu today; the prototype's
+    menus were drawn without them.
+  - **Set base year and Reset to blank are in Setup and still in the Fiscal year menu**, where people
+    look for them today.
+  - **A status message shows beside the save state until the next one**, with the full text in the
+    tooltip; only the ordinary "opened" line waits quietly in the tooltip. The prototype showed the board
+    at rest, where there is no message.
+  - **Drag starts only from ⠿**, as the approved interaction rules say; the whole row used to start one.
 
 ## Later
 

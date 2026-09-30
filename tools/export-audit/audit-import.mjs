@@ -2128,7 +2128,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const name = 'v1.84 — a copy points to Submit input, and keeps its own appropriation';
   try {
   const { ev } = v184Board();
-  chk(name, 'board', 'the live board still offers Save', ev(`syncBtns(); document.getElementById('saveBtn').textContent`), '💾 Save');
+  chk(name, 'board', 'the live board still offers Save', ev(`syncBtns(); document.getElementById('saveBtn').textContent`), 'Save');
   const P = boot({ html: v184Publish(ev) });
   P.ev(`syncBtns(); openMenu='share'; syncBtns(); 'ok'`);
   chk(name, 'copy', 'the header button submits', P.ev(`document.getElementById('saveBtn').textContent+'|'+document.getElementById('saveBtn').getAttribute('onclick')`), '✉ Submit input|pmoSubmit()');
@@ -3003,9 +3003,10 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'A · counter', 'and the fix list beside it', ev(`/\\ud83d\\udd27 fix list/.test(document.getElementById('fitBar').textContent)`), true);
   const flags = JSON.parse(ev(`JSON.stringify(S.order.map(function(id){ const r=document.getElementById('row-'+id); const m=r && r.textContent.match(/▲ (\\S+) not drawn/); return m? m[1] : ''; }))`));
   chk(name, 'B · flag', 'the rows that are set higher carry the flag, with the amount', JSON.stringify(flags), JSON.stringify(['', ev('fMc(290)'), ev('fMc(200)'), '', '']));
+  // v1.90: the row's flag is a status now; the fix list opens from Needs attention, and the hover says so
   chk(name, 'B · flag', 'its hover names each service and lane, typed, drawn and why',
-    ev(`(function(){ const c=[...document.querySelectorAll('#row-B .rchip')].find(function(x){ return /not drawn/.test(x.textContent); }); return c? c.getAttribute('title') : ''; })()`),
-    'USAF Disc: typed $400, drew $200 \u2014 USAF discretionary ran out above this rank\nANG Disc: typed $200, drew $150 \u2014 ANG discretionary ran out above this rank\nANG Mand: typed $100, drew $60 \u2014 ANG mandatory ran out above this rank\nClick for the fix list.');
+    ev(`(function(){ const c=[...document.querySelectorAll('#row-B .exc')].find(function(x){ return /not drawn/.test(x.textContent); }); return c? c.getAttribute('title') : ''; })()`),
+    'USAF Disc: typed $400, drew $200 \u2014 USAF discretionary ran out above this rank\nANG Disc: typed $200, drew $150 \u2014 ANG discretionary ran out above this rank\nANG Mand: typed $100, drew $60 \u2014 ANG mandatory ran out above this rank\nThe fix list is under Needs attention, at the top.');
   // THE BY SERVICE TABLE'S "drew" LINES ARE THE SAME FACT: one per line, per requirement
   // the card shows them in the row's By service table, the grid in the RECORD panel's
   chk(name, 'agree', 'each requirement shows one "drew" line per listed line in its By service table',
@@ -3069,7 +3070,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     JSON.stringify(Object.fromEntries(Object.entries(after.req).map(([k, v]) => [k, [v.d, v.m, v.unf, v.unf1]]))),
     JSON.stringify(Object.fromEntries(Object.entries(before.req).map(([k, v]) => [k, [v.d, v.m, v.unf, v.unf1]]))));
   chk(name, 'all', 'the shortfall is D’s alone now: typed above the requirement value was never payable', JSON.stringify(after.sh), JSON.stringify(['USAF 100']));
-  chk(name, 'all', 'nothing is flagged, listed or counted', ev(`JSON.stringify([ndData().n, ndData().list.length, document.querySelectorAll('#list .rchip').length && [...document.querySelectorAll('#list .rchip')].filter(function(c){ return /not drawn/.test(c.textContent); }).length])`), '[0,0,0]');
+  chk(name, 'all', 'nothing is flagged, listed or counted', ev(`JSON.stringify([ndData().n, ndData().list.length, [...document.querySelectorAll('#list .exc')].filter(function(c){ return /not drawn/.test(c.textContent); }).length])`), '[0,0,0]');
   chk(name, 'all', 'every typed figure is what it drew', ev(`JSON.stringify([S.fsrc.B.dv, S.fsrc.B.mv, S.fsrc.C.dv])`), JSON.stringify([[200, 150, 0], [0, 60, 0], [0, 0, 300]]));
   // A PMO COPY CANNOT SET THE ALLOCATION: the list is there, the fixes are not
   const html = v184Publish(v13Board().ev);
@@ -3254,7 +3255,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const order = ['Save', 'Save a copy', 'Import a full board (new version)', 'Import one appropriation', 'Import several boards at once', 'Appropriation packages',
     'Export one appropriation', 'Publish PMO copy', 'Live view'].map(t => items.indexOf(t));
   chk(name, 'File', 'every entry is there, in that order', order.every((v, i) => v >= 0 && (i === 0 || v > order[i - 1])), true);
-  chk(name, 'Budget year', 'the PMO copy is no longer under Budget year', /Publish PMO copy|Review submittals|Submit input/.test(B.ev(`document.getElementById('dd_by').textContent`)), false);
+  // v1.90: Budget year became Reports & exports, Data, Setup and the mode tools -- the copy is in none of them
+  chk(name, 'one home', 'the PMO copy is under File and nowhere else', /Publish PMO copy|Review submittals|Submit input/.test(B.ev(`['dd_reports','dd_data','dd_setup','dd_fy','dd_modetools','t_review','t_rank','t_fund','t_compare','t_brief'].map(function(k){ const e=document.getElementById(k); return e? e.textContent : ''; }).join(' ')`)), false);
   const P = boot({ html: v184Publish(B.ev) });
   chk(name, 'copy', 'in a copy, ✉ Submit input is under File, and the bar button stays',
     /Submit input/.test(P.ev(`document.getElementById('dd_share').textContent`)) + ' ' + /Submit input/.test(P.ev(`document.getElementById('subBanner').textContent`)), 'true true');

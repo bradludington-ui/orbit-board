@@ -940,10 +940,10 @@ const MUTATIONS = [
   // the button has to carry it -- otherwise the board shows one office's requirements while looking
   // like it shows the portfolio, which is a briefing error waiting to happen.
   { id: 'pmo-button-silent', area: 'syncBtns', what: 'the PMO button stops naming the office that is selected',
-    find: `    if(bp) bp.textContent='🏢 '
-      + (filter==='ALL'? 'PMO' : filter)`,
-    repl: `    if(bp) bp.textContent='🏢 '
-      + 'PMO'` },
+    find: `    if(bp) bp.textContent=''
+      + (filter==='ALL'? 'All offices' : filter)`,
+    repl: `    if(bp) bp.textContent=''
+      + 'All offices'` },
   { id: 'pmo-hides-empty-office', area: 'syncBtns', what: 'an office with no requirements is left out of the menu, so one just added looks like it failed',
     find: `        const empty=keys.filter(function(g){ return !counts[g]; });
         if(!empty.length) return '';`,
@@ -1138,7 +1138,7 @@ const MUTATIONS = [
   { id: 'delta-star-unnoticed', area: 'cycDelta', what: 'a star set or cleared since the lock is not a change',
     find: "|| (!!w && row.grpWas!==row.grp) || row.mcWas!==row.mcNow;", repl: "|| (!!w && row.grpWas!==row.grp);" },
   { id: 'delta-chip-hidden', area: 'render', what: 'the row carries no delta chip',
-    find: "${rowChipsHtml(it)}${cycDeltaChip(id)}</div>", repl: "${rowChipsHtml(it)}</div>" },
+    find: '<span class="excs">${_excH}${cycDeltaChip(id)}</span>', repl: '<span class="excs">${_excH}</span>' },
   { id: 'delta-chip-on-unchanged', area: 'cycDeltaChip', what: 'an unchanged requirement carries a chip',
     find: "  const r=D.rows[id]; if(!r || !r.changed) return '';\n  const lbl=blLbl(D.ref), parts=[];", repl: "  const r=D.rows[id]; if(!r) return '';\n  const lbl=blLbl(D.ref), parts=[];" },
   { id: 'retag-next-same-year', area: 'cycNextOf', what: 'PB27 is followed by BES27 instead of BES28',
@@ -1440,8 +1440,8 @@ const MUTATIONS = [
     find: "(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy \\u2014 use \\u2709 Submit input' : 'writes back to this file, in place'",
     repl: "'writes back to this file, in place'" },
   { id: 'copy-boot-line', area: '(boot)', what: "a copy opens saying Save to pass it on",
-    find: "} else if(pubActive()) setStat((typeof SANDBOX!=='undefined' && SANDBOX)",
-    repl: "} else if(pubActive()) setStat(false" },
+    find: "_statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)",
+    repl: "_statQuiet=true; setStat(false" },
   { id: 'copy-appn-box-stays', area: 'switchAppn', what: "a refused appropriation switch leaves the box on the refused name",
     find: "    try{ const _as=document.getElementById('appnSel'); if(_as) _as.value=APPN; }catch(e){}\n",
     repl: "" },
@@ -1642,8 +1642,8 @@ const MUTATIONS = [
     find: "    if(any) SVC.forEach(function(sv, i){ shortAll+=t.u[i]||0; });", repl: "    /* the shortfall is not counted */" },
   { id: 'nd-filter-shows-all', area: 'render', what: 'the not-drawn filter shows every requirement',
     find: "    if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t))) return;", repl: "    if(laneFilter==='nd'? false : (laneFilter && !fitPass(t))) return;" },
-  { id: 'nd-row-flag-missing', area: 'rowChipsHtml', what: 'the row carries no flag',
-    find: "  h+=ndRowChip(id);      // v1.86: a typed figure higher than it draws", repl: "  /* no flag */" },
+  { id: 'nd-row-flag-missing', area: 'render', what: 'the row carries no flag',
+    find: "    if(ndData().ids[id]) _exc.push(['▲',", repl: "    if(false) _exc.push(['▲'," },
   { id: 'nd-set-wrong-lane', area: 'ndSetDrawn', what: 'set to drawn lowers the discretionary figure whichever lane the line is',
     find: "  setFsrcSvc(g.id, g.lane, g.i, String(Math.round(g.drew)));", repl: "  setFsrcSvc(g.id, 'd', g.i, String(Math.round(g.drew)));" },
   { id: 'nd-setall-noop', area: 'ndSetAll', what: 'set all to drawn writes back what was typed',
@@ -1927,6 +1927,19 @@ const MUTATIONS = [
   { id: "record-panel-stale", area: "render", what: "a RECORD panel that failed to redraw keeps the previous figures (v1.88 and before)",
     find: "      if(el) el.innerHTML='<div class=\"insp-empty\">The record panel could not be drawn ('",
     repl: "      if(false) el.innerHTML='<div class=\"insp-empty\">The record panel could not be drawn ('" },
+  // ---- v1.90 (item 27): the funding posture at the top prints the scorecards' figures, to the dollar ----
+  { id: "posture-svc-lane-reading", area: "scoreboard", what: "unfunded by service reads the lane figure, not the reading against the ask the TOTAL uses",
+    find: "        if(T[id]) unfSvcOf(it,T[id]).forEach(function(v,i){ uSvc[i]+=v; }); });",
+    repl: "        if(T[id]) (T[id].u||[]).forEach(function(v,i){ uSvc[i]+=v; }); });" },
+  { id: "posture-total-lane-reading", area: "scoreboard", what: "the whole-budget unfunded prints the lane figure, not the card's TOTAL",
+    find: "<div class=\"v\" data-v=\"'+Math.round(u2Amt)+'\">'+fM(u2Amt)",
+    repl: "<div class=\"v\" data-v=\"'+Math.round(uAmt)+'\">'+fM(uAmt)" },
+  { id: "posture-left-is-ba", area: "scoreboard", what: "the discretionary lane prints its budget authority where it says what is left",
+    find: "<span class=\"l\" data-v=\"'+Math.round(dLeft)+'\">'+fM(dLeft)+' left</span>'",
+    repl: "<span class=\"l\" data-v=\"'+Math.round(dBA)+'\">'+fM(dBA)+' left</span>'" },
+  { id: "posture-mc-need", area: "scoreboard", what: "mission critical prints the need above discretionary, not what stays unfunded",
+    find: "'<div class=\"v\" data-v=\"'+Math.round(mcUnf)+'\">'",
+    repl: "'<div class=\"v\" data-v=\"'+Math.round(mcNeed)+'\">'" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

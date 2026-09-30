@@ -7,6 +7,11 @@
 // exactly the surface a user reaches for one requirement. A control that moves is fine; one whose
 // handler vanished is not.
 //
+// EVERY MODE THAT EDITS (v1.90). The workspace modes decide which of a requirement's controls the row
+// draws -- ▲▼ in Rank, the allocation box in Fund -- so the inventory is Review's, plus what Rank and Fund
+// add. A control that moves to a mode is the same control; one that no mode draws is lost. Drag starts
+// from the ⠿ handle now (onmousedown), so the handle is counted as the drag control.
+//
 // ONE BUILD SINCE v1.88. This used to compare the card build against the grid build. With the card
 // build retired, the grid is held against its own recorded list (tools/row-controls.json): a control
 // that disappears, or one that appears without being recorded, fails. A deliberate change is made
@@ -50,11 +55,14 @@ async function inventory(page, file) {
     render();
   }, SEED);
   await page.waitForTimeout(300);
+  const all = [];
+  for (const mode of ['review', 'rank', 'fund']) {
+  await page.evaluate(m => { if (typeof uiMode !== 'undefined') { uiMode = m; uiApply(); render(); } }, mode);
   // Row A is the first row and is Mission Critical, so its inventory includes the MC-on state.
   // Select row A so the inspector is showing it, then read both surfaces as one inventory.
   await page.evaluate(() => { if (typeof setCur === 'function') setCur('A'); });
   await page.waitForTimeout(200);
-  return page.evaluate(() => {
+  const list = await page.evaluate(() => {
     const row = document.getElementById('row-A');
     if (!row) return null;
     const out = [];
@@ -62,17 +70,26 @@ async function inventory(page, file) {
     const scope = insp ? [row, insp] : [row];
     scope.forEach(r => r.querySelectorAll('*').forEach(el => {
       const interactive = el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'SELECT'
-        || el.hasAttribute('onclick') || el.hasAttribute('onchange') || el.hasAttribute('draggable');
+        || el.hasAttribute('onclick') || el.hasAttribute('onchange') || el.hasAttribute('onmousedown') || el.hasAttribute('draggable');
       if (!interactive) return;
       // Identify by what it DOES, not where it sits: the handler name plus its label. A control
       // that moves to another column is the same control; one whose handler vanished is not.
-      const h = (el.getAttribute('onclick') || el.getAttribute('onchange') || '')
+      const h = (el.getAttribute('onclick') || el.getAttribute('onchange') || el.getAttribute('onmousedown') || '')
         .replace(/"(?:[^"\\]|\\.)*"/g, "'…'").replace(/'(?:[^'\\]|\\.)*'/g, "'…'").replace(/\s+/g, ' ').trim();
       out.push([el.tagName.toLowerCase(), h || '(' + (el.getAttribute('draggable') ? 'draggable' : el.type || '') + ')',
                 (el.getAttribute('title') || el.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 44)].join(' | '));
     }));
     return out.sort();
   });
+  if (!list) return null;
+  // Review's controls, then only what each further mode ADDS (a multiset difference), so the controls the
+  // row and the RECORD panel share across modes are counted once.
+  const have = {}; all.forEach(x => { have[x] = (have[x] || 0) + 1; });
+  const mine = {}; list.forEach(x => { mine[x] = (mine[x] || 0) + 1; });
+  Object.keys(mine).forEach(x => { for (let k = (have[x] || 0); k < mine[x]; k++) all.push(x); });
+  }
+  await page.evaluate(() => { if (typeof uiMode !== 'undefined') { uiMode = 'review'; uiApply(); render(); } });
+  return all.sort();
 }
 
 const args = process.argv.slice(2);

@@ -1429,7 +1429,9 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   // 6. THE ROW CONTROL. A split shows a DERIVED allocation -- never an input that writes somewhere
   //    nothing reads. Every OTHER funding source still draws against the row allocation, so that
   //    one stays live: that is the v1.62 trap fix, and those requirements still depend on it.
+  // v1.90: the row's allocation box is drawn in the Fund mode, which is where this control lives now
   const ctl = JSON.parse(ev(`(function(){
+    uiMode='fund'; uiApply();
     const pick=function(){ render();
       const n=[].slice.call(document.querySelectorAll('#list .row .acts input'))
         .filter(function(x){ return !x.className || /svcmode|^$/.test(x.className); });
@@ -1441,6 +1443,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     return JSON.stringify({ splitDead:!!(a&&a.disabled), splitShows:a? a.value:'',
       forcedLive:!!(b&&!b.disabled&&/setAlloc/.test(b.getAttribute('onchange')||'')) });
   })()`));
+  ev(`uiMode='review'; uiApply(); render(); 'ok'`);   // back to the default for everything below
   chk(name, 'control', 'a split shows its allocation rather than offering a dead input', ctl.splitDead, true);
   chk(name, 'control', 'and what it shows is the directed total',
     Number(String(ctl.splitShows).replace(/[^0-9]/g, '')), S(DIRECTED));
@@ -1701,7 +1704,8 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     m.items.some(x => /^ATL/.test(x) && /no requirements/.test(x)), true);
 
   // THE BUTTON SAYS WHAT IS SELECTED.
-  chk(name, 'button', 'with nothing picked it names the menu', /PMO/.test(m.button), true);
+  // v1.90: the label beside it says PMO; the button says whose requirements are showing
+  chk(name, 'button', 'with nothing picked it says all offices', /All offices/.test(m.button), true);
   ev(`setPmoFilter('PSM'); 'ok'`);   m = look();
   chk(name, 'button', 'picking an office puts it on the button', /PSM/.test(m.button), true);
   // The filter really is applied, not just displayed: the rendered list holds PSM's one row.
@@ -2599,6 +2603,54 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   R.ev(`restoreReq('A'); 'ok'`);
   chk(name, 'restore', 'restored after a save and reopen, it has everything it had', R.ev(fields), before);
   chk(name, 'restore', 'and draws its allocation again', R.ev(`String(((tiers().A||{}).d||[]).concat((tiers().A||{}).m||[]).reduce(function(a,b){ return a+b; },0)>0)`), 'true');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ v1.90 (item 27) — THE FUNDING POSTURE PRINTS THE SCORECARDS' FIGURES ═══════════════════════════
+// The strip at the top of the board restates the four cards in one line, and it is the figure people
+// will read, so it must be the cards' figure to the dollar -- and its unfunded-by-service figures must be
+// the reading against the ask, service by service, that adds up to the card's TOTAL. A trimmed allocation
+// is what makes the two unfunded readings differ, so the fixture carries one.
+{
+  const name = 'the funding posture prints the scorecards’ figures';
+  try {
+  const SVC = ['USAF', 'ANG', 'AFRC'];
+  const { ev } = boot();
+  seed(ev, { services: SVC, items: [it('A', 'ATL', [900, 200, 100]), it('B', 'PSM', [400, 100, 50]), it('C', 'AV', [500, 90, 40]),
+                                    it('D', 'MxS', [700, 300, 200])],
+             disc: [1200, 300, 150], mand: [600, 200, 150], order: ['A', 'B', 'C', 'D'], mc: { A: true, D: true } });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      applyState(S); S.alloc.C={m:'t', v:300}; S.fsrc.B={m:'mand'}; applyState(S); save(); 'ok'`);
+  const read = () => JSON.parse(ev(`(function(){ render();
+    var n=function(t){ return Number(String(t||'').replace(/[^0-9.-]/g,''))||0; };
+    var card=function(c){ return ((document.querySelector('#scores .sc.'+c)||{}).textContent||'').replace(/\\s+/g,' '); };
+    var g=function(s,re){ var m=s.match(re); return m? n(m[1]) : null; };
+    var pv=function(sel){ return [].slice.call(document.querySelectorAll('#posture '+sel)).map(function(e){ return n(e.getAttribute('data-v')); }); };
+    var T=tiers(null, scenOpt()), tt=tierTotals(T), ask=[0,0,0];
+    S.order.forEach(function(id){ var it=itemById(id); if(it && T[id]) unfSvcOf(it,T[id]).forEach(function(v,i){ ask[i]+=v; }); });
+    var D=card('disc'), M=card('mand'), C=card('mc'), W=card('whole');
+    return JSON.stringify({ lanes: pv('.pplanes [data-v]'), lanesCard: [g(D,/BA: \\$([\\d,]+)/), g(D,/\\$([\\d,]+) left/), g(M,/BA: \\$([\\d,]+)/), g(M,/\\$([\\d,]+) left/)],
+      mc: pv('.pp.mc .v')[0], mcCard: g(C,/\\u26a0 \\$([\\d,]+) of the must-pay/)||0,
+      whole: pv('.pp:nth-child(3) .v')[0], wholeCard: g(W,/TOTAL \\$([\\d,]+)/), u2: Math.round(tt.u2Amt), uLane: Math.round(tt.uAmt), mcNeed: Math.round(tt.mcNeed),
+      svc: pv('.ppsvc [data-v]'), svcAsk: ask.map(Math.round) }); })()`));
+  // NOT HOLLOW: on the board as seeded, the trim makes the lane reading differ from the reading against the
+  // ask, and the must-pays draw mandatory, so what they need above discretionary is not what stays
+  // unfunded -- a strip printing the wrong one of either pair is caught below, not agreeing by accident.
+  const r0 = read();
+  chk(name, 'fixture', 'the two unfunded readings differ on this board', r0.uLane !== r0.u2, true);
+  chk(name, 'fixture', 'and the must-pays draw mandatory, so their need above discretionary is not what stays unfunded', r0.mcNeed !== r0.mc, true);
+  for (const [label, step] of [['as seeded', ''], ['with the discretionary-only what-if', `setScen('disc');`], ['with a must-pay trimmed to nothing', `S.alloc.D={m:'t', v:0}; applyState(S);`]]) {
+    if (step) ev(step + ` 'ok'`);
+    const r = read();
+    chk(name, label, 'the lanes: discretionary BA and left, mandatory BA and left, are the cards’', JSON.stringify(r.lanes), JSON.stringify(r.lanesCard));
+    chk(name, label, 'mission critical unfunded is the card’s', r.mc, r.mcCard);
+    chk(name, label, 'whole-budget unfunded is the card’s TOTAL', r.whole, r.wholeCard);
+    chk(name, label, 'and that is the reading against the ask', r.whole, r.u2);
+    chk(name, label, 'unfunded by service is the reading against the ask, service by service', JSON.stringify(r.svc), JSON.stringify(r.svcAsk));
+    chk(name, label, 'and adds up to the TOTAL', r.svc.reduce((a, b) => a + b, 0), r.wholeCard);
+  }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }

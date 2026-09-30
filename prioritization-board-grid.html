@@ -272,13 +272,11 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
    grids is how a table ends up with its subtotals a column out, so they are not allowed to be two
    grids. Everything else here is density: the card chrome (radius, gap, border) goes, a hairline
    divider and a zebra take over, and the tier colour stays as the left edge it always was. ---- */
-:root{--rowcols:112px 86px minmax(220px,1fr) minmax(300px,440px) 392px}
 /* Those minimums add up to a 1150px floor, so below that the whole DOCUMENT scrolled sideways --
    170px of it at 1024. The columns are not free to scroll in their own container here: .gridhead
    is position:sticky against the PAGE, and an ancestor with overflow:auto would become its scroll
    container and break the pinned header. So the floor comes down instead, and only where it has
    to. Nothing is dropped -- the rank and PMO columns give up padding they were not using. */
-@media (max-width:1150px){:root{--rowcols:84px 64px minmax(150px,1fr) minmax(210px,330px) 340px}}
 .row{background:var(--panel);border:0;border-bottom:1px solid var(--lineSoft);border-radius:0;margin-bottom:0;padding:5px 12px;display:grid;grid-template-columns:var(--rowcols);gap:10px;align-items:center;transition:background .12s}
 .row:nth-of-type(even){background:var(--panelA)}
 .row:hover{background:var(--panel2)}
@@ -764,7 +762,6 @@ input[type=date]{background:var(--panelA);border:1px solid var(--line);border-ra
 input[type=date]:focus{outline:none;border-color:var(--gold)}
 .mlbl{font-size:9px;color:var(--dim);padding:8px 12px 3px;letter-spacing:.5px;font-weight:800}
 .foot b{color:var(--mut)}
-@media (max-width:1150px){.row{grid-template-columns:100px 80px 1fr}.nums,.acts{justify-content:flex-start}}
 /* ---- 320px: WCAG 1.4.10 Reflow ----------------------------------------------------------------
    Section 508 requires the PAGE not to scroll sideways at 320 CSS px. It does NOT require a data
    table or a chart to reflow -- those are "content requiring two-dimensional layout for usage or
@@ -818,6 +815,295 @@ span.tedit[onclick],.tt span.tedit[onclick]{display:inline-block;min-width:25px;
 input:not([type=checkbox]):not([type=radio]),select{min-height:24px;box-sizing:border-box}
 input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;vertical-align:middle}
 .qb,.mcb,.perb{min-height:24px;min-width:24px;box-sizing:border-box}
+
+/* ════ v1.90 (item 27) THE LAYOUT: one sticky top, workspace modes, three densities ═══════════════════
+   Approved by Brad on 30 Sep 2026 exactly as prototyped. Every colour here is an existing theme token;
+   the only new values are the selection tint (--sel, one per theme, measured below) and sizes.
+   DENSITY is a set of numbers on <html data-density>; MODE (data-mode) decides which cells a row draws
+   and which tools the task bar shows. Neither is saved into the file -- they are this browser's, like
+   the colours. */
+html{--t1:13px;--t2:11px;--hd:10px;--lbl:9.5px;--val:13px;--big:17px;--rowpad:5px;--num:12.5px;--ctlh:28px;
+  --sel:#2a2a2a}
+html[data-density="compact"]{--t1:12px;--t2:10.5px;--hd:9.5px;--lbl:9.5px;--val:12px;--big:15px;--rowpad:3px;--num:12px;--ctlh:26px}
+html[data-density="presentation"]{--t1:15px;--t2:12.5px;--hd:11px;--lbl:10.5px;--val:14px;--big:22px;--rowpad:8px;--num:14.5px}
+/* THE SELECTION TINT is --gold at 10% over --panel, written out per theme rather than mixed at run
+   time so every checker reads a plain colour. 13% was tried first and took Navy's dim text to 4.25:1. */
+html[data-theme="navy"]{--sel:#30353d}
+html[data-theme="parchment"]{--sel:#f3ede1}
+html[data-theme="blueprint"]{--sel:#e7eff4}
+html[data-theme="harbor"]{--sel:#c7ced8}
+.vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.ic{width:14px;height:14px;flex:none}
+
+/* ---- the sticky top ---------------------------------------------------------------------------- */
+#topStack{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:1px solid var(--line2);margin-bottom:8px}
+.hdr{position:static;display:flex;align-items:center;gap:8px;flex-wrap:nowrap;min-height:44px;padding:6px 16px;
+  background:var(--sink);border-bottom:1px solid var(--line)}
+.hdr .brand{display:flex;align-items:center;gap:8px;flex:none}
+.hdr .brand .logo{height:18px}
+.hdr .bld{font-size:10.5px;color:var(--mut);font-weight:600;white-space:nowrap}
+#cycTag{font-size:11px;color:var(--gold);font-weight:700;white-space:nowrap}
+#cycTag:empty{display:none}
+.csep{width:1px;height:22px;background:var(--line2);flex:none;margin:0 2px}
+.ctx{display:flex;align-items:center;gap:6px;flex:none}
+.ctx .tlbl{font-size:9.5px;letter-spacing:.08em;margin:0}
+.hdr .btn,.tbar .btn{height:var(--ctlh);min-height:24px;display:inline-flex;align-items:center;gap:6px;border-radius:5px;
+  padding:0 9px;font-size:11.5px;font-weight:600;white-space:nowrap;background:var(--panel);border-color:var(--edge)}
+.hdr .btn:hover,.tbar .btn:hover{border-color:var(--edge2);background:var(--panel2)}
+.hdr .btn.pri{background:var(--gold);border-color:var(--gold);color:var(--onGold);font-weight:700}
+.hdr .btn.pri.dirty{background:var(--amber);border-color:var(--amber);color:var(--onAmber)}
+.hdr .btn.quiet{background:transparent}
+.car{font-size:9px;color:var(--dim)}
+.menu.open > .btn .car{color:inherit}
+.hdr #appnSel{height:var(--ctlh);padding:0 8px;font-size:12px;border-radius:5px;min-width:88px}
+.srch{position:relative;display:flex;align-items:center;min-width:150px;flex:0 1 250px;color:var(--dim);cursor:text}
+.srch .ic{position:absolute;left:8px;pointer-events:none}
+/* the box IS the input, so its own focus ring is the one a keyboard user sees (2.4.7) */
+.srch .search{width:100%;min-width:0;height:var(--ctlh);padding:0 8px 0 28px;border:1px solid var(--edge);border-radius:5px;
+  background:var(--panel);color:var(--ink);font-size:12px}
+.srch .search:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px var(--blue)}
+.fchips{display:flex;gap:4px;align-items:center;flex:none}
+.fchips:empty{display:none}
+/* A FILTER CHIP is the one chip that acts, and it says how: a bordered pill with its own remove button. */
+.fchip{display:inline-flex;align-items:center;gap:5px;height:24px;border:1px solid var(--gold);color:var(--ink);
+  background:var(--panel);border-radius:12px;padding:0 3px 0 9px;font-size:11px;font-weight:700;white-space:nowrap}
+.fchip button{width:18px;height:18px;min-height:0;border-radius:9px;border:0;background:var(--panel2);color:var(--ink);
+  cursor:pointer;font-size:10px;line-height:1;padding:0}
+.hdr .hsp{margin-left:auto;display:flex;gap:6px;align-items:center;flex:0 1 auto;min-width:0}
+.hdr .hsp > :not(.statwrap){flex:none}
+.savestate{display:flex;align-items:center;gap:6px;min-height:24px;font-size:11px;color:var(--mut);font-weight:600;white-space:nowrap;cursor:pointer}
+.savestate::before{content:"";width:8px;height:8px;border-radius:4px;background:var(--green);flex:none}
+.savestate.dirty::before{background:var(--amber)}
+.savestate b{color:var(--ink)}
+.savestate.dirty b{color:var(--amber)}
+/* THE STATUS LINE LIVES BESIDE THE SAVE STATE. A message says itself here, one line, until the next one
+   or until it is hidden; its full text is in the save state's tooltip and a click opens it whole. The
+   ordinary "opened" line at start-up waits quietly in the tooltip. */
+.statwrap{display:none;align-items:center;gap:2px;min-width:0;max-width:min(460px,34vw);flex:0 1 auto}
+.statwrap.fresh{display:flex}
+#shareStat{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;cursor:pointer;padding:0}
+.statwrap.big{position:absolute;right:16px;top:44px;z-index:60;max-width:min(620px,92vw);background:var(--panel);
+  border:1px solid var(--edge);border-radius:6px;padding:8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.statwrap.big #shareStat{white-space:normal;overflow:visible;line-height:1.5;color:var(--ink);cursor:default}
+.statx{width:24px;height:24px;border:0;background:transparent;color:var(--dim);cursor:pointer;font-size:11px;flex:none}
+.statx:hover{color:var(--ink)}
+.hdr .mdd{top:calc(100% + 5px)}
+.hdr .ctx .mdd,.hdr #m_view .mdd{left:0;right:auto}
+
+.tbar{position:static;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;min-height:38px;padding:5px 16px;
+  background:var(--panel);border-bottom:1px solid var(--line)}
+.tabs{display:flex;gap:2px;background:var(--panel2);border:1px solid var(--line2);border-radius:6px;padding:2px;flex:none}
+.tab{height:24px;display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:var(--mut);
+  font:700 11.5px/1 inherit;font-family:inherit;padding:0 10px;border-radius:4px;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--edge)}
+.tab:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.modetools{display:none;gap:6px;align-items:center;flex:none}
+html[data-mode="review"] #t_review,html[data-mode="rank"] #t_rank,html[data-mode="fund"] #t_fund,
+html[data-mode="compare"] #t_compare,html[data-mode="brief"] #t_brief{display:flex}
+.tbar .modetools .btn{height:26px;font-size:11px;padding:0 8px}
+.tbar .dragnote{margin-left:0;font-size:10.5px;color:var(--dim);white-space:nowrap;max-width:360px;overflow:hidden;text-overflow:ellipsis}
+.rochip{font-size:10.5px;font-weight:700;color:var(--mut);border:1px dashed var(--edge);border-radius:10px;padding:2px 8px;white-space:nowrap}
+#m_modetools{display:none}
+.tright{margin-left:auto;display:flex;gap:6px;align-items:center;flex:none}
+.tbar .tright .mdd{right:0;left:auto}
+.tbar .modetools .mdd{left:0;right:auto}
+.tbar .sh{display:none}
+.hdr.tight1 .ctx .tlbl,.hdr.tight1 .bld{display:none}
+.hdr.tight2{flex-wrap:wrap}
+.tbar.tight1 .lg{display:none} .tbar.tight1 .sh{display:inline}
+.tbar.tight2 .modetools{display:none!important} .tbar.tight2 #m_modetools{display:inline-block}
+
+/* ---- the funding posture: the four scorecards' headline figures, one line, always in view ---------- */
+.posture{display:flex;align-items:stretch;padding:0 16px;background:var(--panelA);min-height:50px;overflow-x:auto}
+.posture:empty{display:none}
+.pp{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:6px 14px 6px 0;margin-right:14px;
+  border-right:1px solid var(--line);min-width:0;flex:none}
+.pp:last-child{border-right:0}
+.pp .k{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:800;white-space:nowrap}
+.pp .v{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pp .v small{font-size:11px;font-weight:600;color:var(--mut);margin-left:4px}
+.pp .meter{height:4px;border-radius:2px;background:var(--panel2);overflow:hidden;display:flex;width:150px;border:1px solid var(--line)}
+.pp .meter i{display:block;height:100%}
+.pp.warn .v{color:var(--red)}
+.pp.mc .k{color:var(--amber)}
+.pplanes{display:grid;grid-template-columns:auto auto auto;gap:1px 8px;align-items:center}
+.pplanes .n{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pplanes .l{font-size:10.5px;color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ppsvc{display:grid;grid-template-columns:repeat(3,auto);gap:1px 10px;align-content:center}
+.ppsvc span{font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--mut)}
+.ppsvc span b{color:var(--ink);font-weight:700}
+.ppsvc span.over b{color:var(--red)}
+.ppatt{display:flex;flex-direction:column;gap:2px;justify-content:center}
+.ppatt .e{font-size:10.5px;line-height:1.25;font-weight:700;color:var(--ink);white-space:nowrap}
+.ppatt .e .g{color:var(--amber)}
+.ppatt button.e{border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-family:inherit;min-height:0}
+.ppatt button.e:hover{text-decoration:underline}
+.ppdet{margin-left:auto;align-self:center;flex:none;padding-left:8px}
+.ppdet .btn{height:28px;display:inline-flex;align-items:center;gap:6px;border-radius:5px;padding:0 9px;font-size:11.5px;
+  font-weight:600;background:var(--panel);border-color:var(--edge)}
+html[data-mode="brief"] .pp .v{font-size:22px}
+html[data-mode="brief"] .pp .k{font-size:10.5px}
+html[data-mode="brief"] .posture{min-height:74px}
+.funddetail{display:none}
+.funddetail.open{display:block}
+.scstack{position:static}
+
+/* ---- the grid ------------------------------------------------------------------------------------ */
+.list{padding:0 16px}
+.gridwrap{border-radius:6px}
+:root{--rowcols:58px 50px minmax(160px,1fr) 164px 102px 96px 108px 26px 26px}
+:root[data-mode="rank"]{--rowcols:110px 76px minmax(150px,1fr) 150px 102px 100px 96px 26px 26px}
+:root[data-mode="fund"]{--rowcols:54px 50px minmax(150px,1fr) 104px 96px 96px 96px 112px 26px 26px}
+:root[data-mode="brief"]{--rowcols:44px 64px minmax(260px,1fr) 230px 130px 120px 120px 120px 130px}
+.gridhead,.row{grid-template-columns:var(--rowcols);gap:8px;padding-left:12px;padding-right:10px}
+.gridhead{font-size:var(--hd);letter-spacing:.07em;padding-top:6px;padding-bottom:6px;color:var(--mut);align-items:end}
+.gridhead .r{text-align:right}
+.gridhead .c{text-align:center}
+.row{padding-top:var(--rowpad);padding-bottom:var(--rowpad);align-items:center}
+.row > div{min-width:0}
+.row .rank{display:flex;align-items:center;gap:4px}
+.row .grip{cursor:grab;color:var(--dim);font-size:13px;width:12px;text-align:center;user-select:none;flex:none}
+.row .rank input{width:34px;height:24px;border:1px solid var(--edge);border-radius:4px;background:var(--panel);color:var(--ink);
+  font-weight:700;font-size:12px;text-align:center;font-variant-numeric:tabular-nums;padding:0}
+.row .rank .ud{display:inline-flex;flex-direction:row;gap:2px}
+.row .rank .ud button{width:24px;height:24px}
+.row .rank b{font-size:var(--num);font-variant-numeric:tabular-nums}
+.pmoc{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+.row .gchip{display:inline-block;font-size:10px;font-weight:800;color:var(--onChip);border-radius:3px;padding:1px 6px;
+  letter-spacing:.02em;white-space:nowrap;text-align:left}
+.row .pmor{font-size:9.5px;color:var(--dim);font-weight:700;white-space:nowrap;margin-top:0;text-align:left}
+.row .tt{display:flex;align-items:center;gap:0;min-width:0;line-height:1.3}
+.row .t1{font-size:var(--t1);font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.row .tt > :not(.t1){flex:none}
+.row .t2{font-size:var(--t2);color:var(--mut);line-height:1.35;white-space:nowrap;margin-top:1px;display:flex;gap:6px;min-width:0}
+.row .t2 .ids{overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+.row .t2 .id{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.row .t2 .x{color:var(--dim)}
+.row .t2 .excs{flex:none;display:flex;gap:6px}
+.row .exc{font-weight:700;color:var(--amber);white-space:nowrap}
+.row .exc.red{color:var(--red)}
+.row .xg{display:none;margin-left:6px;white-space:nowrap;flex:none}
+.row .xg .exc{font-size:10.5px;margin-right:6px}
+.row .dchip{margin-top:0}
+.bandc{display:flex;align-items:center;gap:6px;font-size:var(--t2);color:var(--ink);white-space:nowrap;overflow:hidden}
+.bandc i{width:9px;height:9px;border-radius:2px;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.25) inset}
+.bandc span{overflow:hidden;text-overflow:ellipsis}
+.bandc .n{color:var(--dim);font-weight:700;font-variant-numeric:tabular-nums}
+.bandc .none{color:var(--dim)}
+.row .num{text-align:right;font-size:var(--num);font-weight:750;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row .cum{font-weight:600;color:var(--dim)}
+.row .amt{text-align:right;font-size:var(--num);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:650}
+.row .amt.d{color:var(--green)}.row .amt.m{color:var(--purp)}.row .amt.u{color:var(--unf)}
+.row .amt.z{color:var(--dim);font-weight:500}
+.lanec{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+.meter{display:flex;width:100%;max-width:96px;height:6px;border-radius:2px;overflow:hidden;background:var(--panel2);border:1px solid var(--line2)}
+.meter b{display:block;height:100%}
+.meter b.d{background:var(--green)}
+.meter b.m{background:repeating-linear-gradient(135deg,var(--purp) 0 2px,transparent 2px 4px)}
+.meter b.u{background:transparent}
+.ll{font-size:var(--t2);font-weight:700;white-space:nowrap}
+.ll.disc{color:var(--green)}.ll.mand{color:var(--purp)}.ll.split{color:var(--ink)}.ll.unf{color:var(--unf)}
+.lanec .sfl{font-size:9.5px;white-space:nowrap}
+.row .acts.alloc{display:flex;gap:4px;align-items:center}
+.row .acts.alloc input{width:100%;height:24px;border:1px solid var(--edge);border-radius:4px;background:var(--panel);color:var(--ink);
+  font-weight:650;font-size:12px;text-align:right;padding:0 6px;font-variant-numeric:tabular-nums}
+.row .acts.alloc input:disabled{border-style:dashed;color:var(--mut);background:transparent;opacity:1}
+.row .acts.alloc .mode-tag{flex:none}
+/* ★ is a 24px toggle that says whether it is on (aria-pressed) */
+.row .mcb{width:24px;height:24px;min-width:24px;border-radius:4px;border:1px solid var(--edge);background:var(--panel);color:var(--dim);
+  cursor:pointer;font-size:13px;line-height:1;padding:0;font-weight:400}
+.row .mcb.on{background:var(--tintA);color:var(--amber);border-color:var(--amber)}
+.row .mcmark{color:var(--amber);font-size:12px;margin-left:4px}
+.morec .rowmenu{display:block}
+.morec .rmbtn{width:24px;height:24px;min-width:24px;border-radius:4px;border:1px solid transparent;background:transparent;color:var(--mut);
+  cursor:pointer;font-size:14px;line-height:1;padding:0;letter-spacing:0}
+.row:hover .morec .rmbtn,.morec .rmbtn:focus-visible{border-color:var(--edge)}
+.morec .rowmenu.open .rmbtn{background:var(--gold);border-color:var(--gold);color:var(--onGold)}
+.morec .rowmenu .mdd{min-width:250px;right:0;left:auto}
+.row .clinbtn{height:22px;padding:0 5px;margin-left:6px;font-size:11px;min-height:0}
+.row .sect-new,.row .absorbtag,.row .teamtag{margin-left:6px}
+.row > .clin-detail,.row > .note-detail{grid-column:1/-1}
+
+/* ---- selection, focus, hover ---------------------------------------------------------------------- */
+/* SELECTED is a narrow gold bar inside the lane edge and a quiet tint: the lane edge keeps its colour,
+   and funding, MC and unfunded stay louder than the selection. KEYBOARD FOCUS is its own ring, drawn
+   only when a control in the row has it. */
+.row.cur{background:var(--sel)}
+.row.cur::after{box-shadow:none;inset:0 auto 0 5px;width:3px;background:var(--gold);border-radius:1px}
+.row:has(:focus-visible){outline:2px solid var(--blue);outline-offset:-2px}
+
+/* ---- cutlines: a rule and a label ----------------------------------------------------------------- */
+.cutline{font-size:10.5px;letter-spacing:.03em;padding:4px 12px;margin:0;font-weight:700;background:var(--panel2);
+  border-top:2px solid currentColor}
+.cutline.cut-mc{border-top-style:dashed}
+
+/* ---- the RECORD panel: the same content, a legible scale, editable fields that look editable ------- */
+.inspector{border-radius:6px}
+.insp-hd b{font-size:10.5px}
+.insp-ttl{font-size:calc(var(--t1) + 2px)}
+.insp-meta{font-size:var(--t2)}
+.insp-act .a1{font-size:11px}
+.insp-act .a2{font-size:10px}
+.insp-f .fl,.insp-lbl{font-size:var(--lbl);letter-spacing:.07em}
+.insp-f .fv{font-size:var(--val)}
+.insp-f.big .fv{font-size:var(--big)}
+.insp-g{gap:6px}
+.insp-split{font-size:11px}
+.insp-split th{font-size:9.5px;letter-spacing:.06em}
+.insp-split input{font-size:11.5px}
+.insp-f[onclick]{border-color:var(--edge);position:relative}
+.insp-f[onclick]::after{content:"\270E  Change";position:absolute;right:8px;top:6px;font-size:10px;font-weight:700;color:var(--blue)}
+.insp-f[onclick]:hover{border-color:var(--blue)}
+
+/* ---- modes and densities --------------------------------------------------------------------------- */
+html[data-density="compact"] .row .t2{display:none}
+html[data-density="compact"] .row .xg{display:inline}
+html[data-density="compact"] .meter{display:none}
+html[data-density="compact"] .pmoc{flex-direction:row;align-items:center;gap:4px}
+html[data-mode="brief"] .gridsplit{grid-template-columns:minmax(0,1fr)}
+html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:none!important}
+
+/* ---- narrower windows ------------------------------------------------------------------------------ */
+@media (max-width:1400px){ :root{--rowcols:58px 50px minmax(180px,1fr) 164px 104px 100px 112px 26px 26px} }
+@media (max-width:1100px){
+  :root{--rowcols:44px 50px minmax(150px,1fr) 132px 100px 104px 26px 26px}
+  :root[data-mode="rank"]{--rowcols:110px 76px minmax(140px,1fr) 132px 100px 96px 26px 26px}
+  :root[data-mode="fund"]{--rowcols:54px 50px minmax(140px,1fr) 100px 90px 90px 90px 104px 26px 26px}
+  :root[data-mode="brief"]{--rowcols:40px 56px minmax(180px,1fr) 150px 110px 100px 100px 100px}
+  .row .cum,.gridhead .cum{display:none}
+  .modetools{display:none!important}
+  #m_modetools{display:inline-block}
+  .ctx .tlbl,.hdr .bld{display:none}
+  .posture{flex-wrap:wrap;overflow:visible}
+  .pp{padding:4px 12px 4px 0}
+  .pp .meter{display:none}
+  .ppdet{margin-left:0}
+  .tbar .lg{display:none} .tbar .sh{display:inline}
+  .hdr{flex-wrap:wrap}
+}
+@media (max-width:760px){
+  :root,:root[data-mode="rank"],:root[data-mode="fund"],:root[data-mode="compare"]{--rowcols:40px minmax(0,1fr) 96px 26px 26px}
+  :root[data-mode="brief"]{--rowcols:40px minmax(0,1fr) 110px}
+  .pmoc,.bandc,.lanec,.row .amt,.row .acts.alloc,.gridhead .hide760{display:none!important}
+  .tbar{flex-wrap:wrap}
+}
+@media (max-width:640px){
+  /* 1.4.10: five tabs side by side are wider than a phone; they wrap and drop their icons */
+  .tabs{flex-wrap:wrap;flex:1 1 auto}
+  .tab{padding:0 7px}
+  .tab .ic{display:none}
+  .hdr,.tbar{padding-left:10px;padding-right:10px}
+  .posture{padding:0 10px}
+  .pp{flex:0 1 auto}
+  :root,:root[data-mode="rank"],:root[data-mode="fund"],:root[data-mode="compare"]{--rowcols:40px minmax(0,1fr) 26px 26px}
+  .row{grid-template-columns:var(--rowcols);gap:6px;padding:6px 10px}
+  .row .num{grid-column:2;grid-row:2;text-align:left}
+  .row .mcc{grid-column:3;grid-row:1}
+  .row .morec{grid-column:4;grid-row:1}
+  .gridhead{display:none}
+}
+@media (prefers-reduced-motion:reduce){ .row,.btn,.tab{transition:none} }
 
 /* 📖 HELP (v1.86): the guide, inside the file. The board's own tokens, so it reads in both themes. */
 #helpPanel .modal{width:980px;max-width:98vw}
@@ -874,34 +1160,77 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 </head>
 <body>
 <div id="subBanner"></div>
-<div class="hdr">
-  <div class="brand"><svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 462.92 108" role="img" aria-label="ORBIT"><mask id="logoO" maskUnits="userSpaceOnUse" x="0" y="0.51" width="106.91" height="106.91"><rect x="0" y="0.51" width="106.91" height="106.91" fill="#fff"/><circle cx="86.17" cy="28.41" r="18.7" fill="#000"/></mask><circle cx="53.45" cy="53.96" r="41.51" fill="none" stroke="currentColor" stroke-width="19.89" mask="url(#logoO)"/><circle cx="53.45" cy="53.96" r="9.55" fill="currentColor"/><circle cx="86.17" cy="28.41" r="12.33" fill="var(--orbit-accent, currentColor)"/><path d="M183.8 104 160.59 66.03H136.03V104H115.1V4H165.06Q182.95 4 192.67 11.7Q202.39 19.4 202.39 33.81Q202.39 44.31 196.43 51.94Q190.47 59.57 180.32 61.98L207.36 104ZM181.31 34.66Q181.31 20.25 162.86 20.25H136.03V49.78H163.43Q172.23 49.78 176.77 45.8Q181.31 41.83 181.31 34.66Z M314.71 75.47Q314.71 89.1 304.49 96.55Q294.27 104 276.1 104H226.07V4H271.84Q290.15 4 299.56 10.35Q308.96 16.7 308.96 29.12Q308.96 37.64 304.24 43.5Q299.52 49.35 289.87 51.41Q302.01 52.83 308.36 59.04Q314.71 65.25 314.71 75.47ZM287.88 31.96Q287.88 25.22 283.59 22.38Q279.29 19.54 270.85 19.54H247V44.31H270.99Q279.86 44.31 283.87 41.22Q287.88 38.14 287.88 31.96ZM293.7 73.84Q293.7 59.78 273.55 59.78H247V88.46H274.33Q284.4 88.46 289.05 84.8Q293.7 81.15 293.7 73.84Z M337.03 104V4H357.97V104Z M428.56 20.18V104H407.62V20.18H375.33V4H460.92V20.18Z" fill="currentColor"/></svg><div class="brandtxt"><div class="eyebrow" title="ORBIT — the five-year spend plan across every appropriation. Formerly SPMT.">OUT-YEAR REQUIREMENTS &amp; BUDGET INTEGRATION TOOL</div>
-  <h1 style="margin-top:0"><span id="fyTag">FY27</span> <span id="appnLbl">O&M PRIORITIZATION</span> BOARD <span id="cycTag" style="font-size:12px;color:var(--gold);font-weight:700;vertical-align:middle;margin-right:6px"></span><span id="bldTag" style="font-size:9px;color:var(--dim);font-weight:600;letter-spacing:.5px;vertical-align:middle"></span></h1></div></div>
+<div id="topStack">
+<!-- v1.90 (item 27): ONE STICKY TOP -- the context bar, the task bar and the funding posture. The
+     header, the toolbar, the status line and the search row it replaces are gone; every control they
+     held is here, by the same id. -->
+<div class="hdr" role="banner">
+  <div class="brand"><svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 462.92 108" role="img" aria-label="ORBIT"><mask id="logoO" maskUnits="userSpaceOnUse" x="0" y="0.51" width="106.91" height="106.91"><rect x="0" y="0.51" width="106.91" height="106.91" fill="#fff"/><circle cx="86.17" cy="28.41" r="18.7" fill="#000"/></mask><circle cx="53.45" cy="53.96" r="41.51" fill="none" stroke="currentColor" stroke-width="19.89" mask="url(#logoO)"/><circle cx="53.45" cy="53.96" r="9.55" fill="currentColor"/><circle cx="86.17" cy="28.41" r="12.33" fill="var(--orbit-accent, currentColor)"/><path d="M183.8 104 160.59 66.03H136.03V104H115.1V4H165.06Q182.95 4 192.67 11.7Q202.39 19.4 202.39 33.81Q202.39 44.31 196.43 51.94Q190.47 59.57 180.32 61.98L207.36 104ZM181.31 34.66Q181.31 20.25 162.86 20.25H136.03V49.78H163.43Q172.23 49.78 176.77 45.8Q181.31 41.83 181.31 34.66Z M314.71 75.47Q314.71 89.1 304.49 96.55Q294.27 104 276.1 104H226.07V4H271.84Q290.15 4 299.56 10.35Q308.96 16.7 308.96 29.12Q308.96 37.64 304.24 43.5Q299.52 49.35 289.87 51.41Q302.01 52.83 308.36 59.04Q314.71 65.25 314.71 75.47ZM287.88 31.96Q287.88 25.22 283.59 22.38Q279.29 19.54 270.85 19.54H247V44.31H270.99Q279.86 44.31 283.87 41.22Q287.88 38.14 287.88 31.96ZM293.7 73.84Q293.7 59.78 273.55 59.78H247V88.46H274.33Q284.4 88.46 289.05 84.8Q293.7 81.15 293.7 73.84Z M337.03 104V4H357.97V104Z M428.56 20.18V104H407.62V20.18H375.33V4H460.92V20.18Z" fill="currentColor"/></svg><span class="bld" id="bldTag"></span><span id="cycTag"></span>
+  <h1 class="vh"><span id="fyTag">FY27</span> <span id="appnLbl">O&M PRIORITIZATION</span> BOARD</h1></div>
+  <span class="csep" aria-hidden="true"></span>
+  <div class="ctx">
+    <label class="tlbl" for="appnSel">Appropriation</label>
+    <select id="appnSel" onchange="switchAppn(this.value)" title="Switch appropriation"></select>
+    <span class="tlbl">Fiscal year</span>
+    <div class="menu" id="m_fy"><button class="btn" id="b_fy" onclick="toggleMenu('fy')">FY27 ▾</button><div class="mdd" id="dd_fy"></div></div>
+    <span class="tlbl">PMO</span>
+    <div class="menu" id="m_pmo"><button class="btn" id="b_pmo" onclick="toggleMenu('pmo')" title="Whose requirements you are looking at — one programme office, the primes, or the whole portfolio.">All offices ▾</button><div class="mdd" id="dd_pmo"></div></div>
+  </div>
+  <span class="csep" aria-hidden="true"></span>
+  <label class="srch"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg><input class="search" id="q" placeholder="Search title, event, CCaR, PID…" aria-label="Search requirements" oninput="render()"></label>
+  <div class="menu" id="m_view"><button class="btn" id="b_view" onclick="toggleMenu('view')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 3h12l-4.6 5.4V13l-2.8-1.4V8.4z"/></svg><span id="b_view_t">Filter ▾</span></button><div class="mdd" id="dd_view"></div></div>
+  <span class="fchips" id="fchips" aria-label="Active filters"></span>
   <div class="hsp">
-    <span class="savestate" id="saveState"></span>
-    <button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place.">💾 Save</button>
-    <button class="btn" id="helpBtn" onclick="openHelp(SANDBOX? 'office' : '')" title="How this board works — the guide, inside the file" aria-label="Help">📖<span class="hlp-t"> Help</span></button>
-    <div class="menu" id="m_share"><button class="btn" id="b_share" onclick="toggleMenu('share')">📁 File ▾</button><div class="mdd" id="dd_share"></div></div>
+    <div class="statwrap" id="statWrap"><div id="shareStat" role="status" aria-live="polite" onclick="statOpen()"></div><button type="button" class="statx" onclick="statHide()" aria-label="Hide this message" title="Hide this message — click the save state to see it again">✕</button></div>
+    <span class="savestate" id="saveState" onclick="statShow()" title=""></span>
+    <button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span id="saveBtn_t">Save</span></button>
+    <button class="btn quiet" id="helpBtn" onclick="openHelp(SANDBOX? 'office' : '')" title="How this board works — the guide, inside the file" aria-label="Help"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4"/><circle cx="8" cy="11.6" r=".4" fill="currentColor"/></svg><span class="hlp-t">Help</span></button>
+    <div class="menu" id="m_share"><button class="btn" id="b_share" onclick="toggleMenu('share')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M1.5 4V13h13V5.5H8L6.5 4z"/></svg>File ▾</button><div class="mdd" id="dd_share"></div></div>
   </div>
 </div>
 <div class="tbar">
- <div class="tgrp">
-  <span class="tlbl">Appropriation</span>
-  <select id="appnSel" onchange="switchAppn(this.value)" title="Switch appropriation"></select>
-  <span class="tlbl tsp">Fiscal year</span>
-  <div class="menu" id="m_fy"><button class="btn" id="b_fy" onclick="toggleMenu('fy')">FY27 ▾</button><div class="mdd" id="dd_fy"></div></div>
-  <div class="tsep"></div>
-  <div class="menu" id="m_view"><button class="btn" id="b_view" onclick="toggleMenu('view')">🔍 Filter ▾</button><div class="mdd" id="dd_view"></div></div>
-  <div class="menu" id="m_pmo"><button class="btn" id="b_pmo" onclick="toggleMenu('pmo')" title="Whose requirements you are looking at — one programme office, the primes, or the whole portfolio.">🏢 PMO ▾</button><div class="mdd" id="dd_pmo"></div></div>
-  <div class="tsep"></div>
-  <div class="menu" id="m_ay"><button class="btn" id="b_ay" onclick="toggleMenu('ay')" title="What is executing right now — obligations against the active fiscal year.">📈 Active year ▾</button><div class="mdd" id="dd_ay"></div></div>
-  <div class="menu" id="m_by"><button class="btn" id="b_by" onclick="toggleMenu('by')" title="The year you are building — requirements, priorities, forecast, CR posture.">🎯 Budget year ▾</button><div class="mdd" id="dd_by"></div></div>
-  <div class="menu" id="m_fydp"><button class="btn" id="b_fydp" onclick="toggleMenu('fydp')" title="The out-years — Spruills, PPBE positions, and the annual cost estimate.">📚 FYDP ▾</button><div class="mdd" id="dd_fydp"></div></div>
-  <div class="tsep"></div>
-  <div class="menu" id="m_tools"><button class="btn" id="b_tools" onclick="toggleMenu('tools')" title="The shape of the board itself — services and destinations, not a single fiscal year.">🛠 Tools ▾</button><div class="mdd" id="dd_tools"></div></div>
-  <div class="menu" id="m_export"><button class="btn" id="b_export" onclick="toggleMenu('export')">⬇ Export ▾</button><div class="mdd" id="dd_export"></div></div>
- </div>
-  <span class="dragnote" id="dragNote"></span>
+  <div class="tabs" role="tablist" aria-label="Workspace"><button type="button" class="tab" role="tab" id="tab_review" aria-selected="false" onclick="uiSetMode('review')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h8"/></svg>Review</button><button type="button" class="tab" role="tab" id="tab_rank" aria-selected="false" onclick="uiSetMode('rank')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 13V3M1.8 5.2 4 3l2.2 2.2M9 4h5M9 8h4M9 12h3"/></svg>Rank</button><button type="button" class="tab" role="tab" id="tab_fund" aria-selected="false" onclick="uiSetMode('fund')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="4" width="13" height="8.5" rx="1"/><circle cx="8" cy="8.2" r="1.8"/></svg>Fund</button><button type="button" class="tab" role="tab" id="tab_compare" aria-selected="false" onclick="uiSetMode('compare')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 5h10l-2.5-2.5M14 11H4l2.5 2.5"/></svg>Compare</button><button type="button" class="tab" role="tab" id="tab_brief" aria-selected="false" onclick="uiSetMode('brief')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M8 11v2.5M5 14h6"/></svg>Brief</button></div>
+  <span class="csep" aria-hidden="true"></span>
+  <!-- Each mode's tools are always in the page; the mode shows its own. Nothing here is a copy of a
+       control: each button runs the same function its menu item did. -->
+  <div class="modetools" id="t_review" role="group" aria-label="Review tools">
+    <button class="btn" id="toolAdd" onclick="toggleAdd()" title="Add a requirement to the year on screen — value by service and CCaR"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
+    <button class="btn" onclick="toggleMat()" title="Find what is unanswered and set it across many requirements at once">Classify requirements</button>
+    <span id="rmChipWrap"></span>
+  </div>
+  <div class="modetools" id="t_rank" role="group" aria-label="Rank tools">
+    <button class="btn" id="hardBtn" onclick="toggleHard()" title="Rank-entry mode: the list FREEZES in place — type a rank number in any row's box and it moves there in the underlying order without the screen reshuffling. Toggle off to see everything in its new position.">Rank entry</button>
+    <button class="btn" onclick="togglePreviewOrder()" title="A report first — changes nothing">Preview proposed 1–N order</button>
+    <button class="btn" onclick="resetOrder()" title="Put the year on screen's priority order back — asks first">Reset priority order…</button>
+    <span class="dragnote" id="dragNote"></span>
+  </div>
+  <div class="modetools" id="t_fund" role="group" aria-label="Fund tools">
+    <button class="btn" onclick="toggleBm()" title="Budget authority and funding sources">Budget management</button>
+    <button class="btn" onclick="convertAllToSplit()" title="Give every requirement an explicit Disc/Mand split — asks first">Convert all to Split…</button>
+    <div class="menu" id="m_basis"><button class="btn" id="b_basis" onclick="toggleMenu('basis')">Spend plan basis: Disc + Mand ▾</button><div class="mdd" id="dd_basis"></div></div>
+    <button class="btn" onclick="toggleBands()" title="The decision-band ladder for this appropriation">Bands</button>
+    <button class="btn" onclick="toggleEd()" title="What discretionary buys · the stoppage gap">Executive decision</button>
+    <span id="pmoActs"></span>
+  </div>
+  <div class="modetools" id="t_compare" role="group" aria-label="Compare tools">
+    <button class="btn" onclick="toggleCycChg()" title="What changed since the reference cycle">Changes since the reference</button>
+    <button class="btn" onclick="toggleCycCmp()" title="A ⇄ B per year · added, removed, changed">Compare two cycles</button>
+    <button class="btn" onclick="togglePos()" title="Freeze this year’s plan and its execution on a date">Snapshots</button>
+    <button class="btn" onclick="toggleBl()" title="Lock the spend plan under a PPBE cycle">PPBE cycles</button>
+    <span id="cycViewActs"></span>
+  </div>
+  <div class="modetools" id="t_brief" role="group" aria-label="Brief tools">
+    <button class="btn" onclick="briefFull()" title="Fill the screen with the board — Esc to leave">Present full screen</button>
+    <button class="btn" onclick="exportPPT()" title="SFCB template slides">PowerPoint deck</button>
+    <button class="btn" onclick="execSynopsis()" title="The one-page picture (CSV)">Exec synopsis</button>
+    <span class="rochip">Read-only — nothing here edits</span>
+  </div>
+  <div class="menu" id="m_modetools"><button class="btn" id="b_modetools" onclick="toggleMenu('modetools')">Tools ▾</button><div class="mdd" id="dd_modetools"></div></div>
+  <div class="tright">
+    <div class="menu" id="m_reports"><button class="btn" id="b_reports" onclick="toggleMenu('reports')" title="Every view and every export — the budget year, the active years, the FYDP"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3 1.5h7l3 3v10H3z"/><path d="M5.5 12V9.5M8 12V7M10.5 12V8.5"/></svg><span class="lg">Reports &amp; exports</span><span class="sh">Reports</span> <span class="car" aria-hidden="true">▾</span></button><div class="mdd" id="dd_reports"></div></div>
+    <div class="menu" id="m_data"><button class="btn" id="b_data" onclick="toggleMenu('data')" title="Bring data in — execution, cost estimates, the budget extract, CCaR records"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg>Data <span class="car" aria-hidden="true">▾</span></button><div class="mdd" id="dd_data"></div></div>
+    <div class="menu" id="m_setup"><button class="btn" id="b_setup" onclick="toggleMenu('setup')" title="The shape of the board, and how it looks to you"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg>Setup <span class="car" aria-hidden="true">▾</span></button><div class="mdd" id="dd_setup"></div></div>
+  </div>
   <input type="file" id="stateFile" accept=".json,.txt,.html,.htm" style="display:none" onchange="importState(this)">
   <input type="file" id="fullFile" accept=".html,.htm" style="display:none" onchange="importFullBoard(this)">
   <input type="file" id="multiFile" accept=".html,.htm" multiple style="display:none" onchange="importBoards(this)">
@@ -910,9 +1239,11 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
   <input type="file" id="budFile" accept=".xlsx" style="display:none" onchange="importBud(this)">
   <input type="file" id="ccarFile" accept=".xlsx" style="display:none" onchange="importCcarRecs(this)">
 </div>
-
-<div id="shareStat"></div>
+<div class="posture" id="posture" role="region" aria-label="Funding posture"></div>
+</div>
 <div id="driveBar"></div>
+<!-- The scorecards, the fit strip and the funding panels, unchanged, under "Funding detail". -->
+<div class="funddetail" id="fundDetail">
 <div class="scstack">
 <div class="sc-h" onclick="scOpen=!scOpen;render()"><span id="scArrow">▾</span> <span style="color:var(--gold);font-weight:700">Budget authority &amp; posture</span> <span id="svcWarn"></span> <span id="scMini"></span></div>
 <div class="scores" id="scores"></div>
@@ -950,13 +1281,6 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
   <div class="gs-h" onclick="buysOpen=!buysOpen;render()"><span class="gsx" id="buysArrow">▸</span> <span class="gsn">✈ Aircraft &amp; engine buys</span> <span class="gsd">quantities × unit cost feed the two buy requirements below</span></div>
   <div id="buysBody"></div>
 </div></div>
-
-<div class="ctl">
-  <span id="chips"></span>
-  <button class="btn" id="hardBtn" onclick="toggleHard()" title="Rank-entry mode: the list FREEZES in place — type a rank number in any row's box and it moves there in the underlying order without the screen reshuffling. Toggle off to see everything in its new position.">⌨ Rank-entry</button>
-  <input class="search" id="q" placeholder="🔍 search title / event / CCaR…" oninput="render()">
-  <span id="rmChipWrap"></span>
-  <span id="pmoActs"></span>
 </div>
 
 <div class="modal-bg" id="rpPanel" onclick="if(event.target===this)toggleRp()">
@@ -1067,13 +1391,13 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 <p><b>Your office.</b> Press <b class="bt" data-q="#subBanner">🏢 set your office</b> in the bar at the top, then type your office’s name or its number from the list. The button then shows your office — for example <b>🏢 AV</b>. A submittal carries that office’s requirements only, so check it before you start; press the button again to change it.</p>
 </section>
 <section data-part="office" data-id="o-find" data-t="Find your requirements">
-<p>Use the <b>🏢 PMO ▾</b> button in the toolbar and pick your office. The list then holds only your office’s requirements, numbered 1, 2, 3… in your office’s own order. The small <i>master #13</i> under the office badge is where that requirement sits in the whole portfolio. To see everything again, choose <b>All programme offices</b> from the same button.</p>
-<p>You can also type into the search box above the list.</p>
+<p>Use the <b>PMO</b> box at the top — it reads <b>All offices ▾</b> — and pick your office. The list then holds only your office’s requirements, numbered 1, 2, 3… in your office’s own order. The small <i>master #13</i> under the office badge is where that requirement sits in the whole portfolio. To see everything again, choose <b>All programme offices</b> from the same button.</p>
+<p>You can also type into the search box at the top: it finds a title, an event, a CCaR record or a PID.</p>
 <p data-b="grid"><b>Click any row.</b> Its full record opens in the <b>RECORD</b> panel on the right — everything about the selected requirement lives there. On a laptop-sized screen the panel slides over the list instead; press <b>✕ Close</b> or <span class="kb">Esc</span> to put it away. With a row selected, <span class="kb">J</span> and <span class="kb">K</span> step to the next and previous requirement.</p>
 <p data-b="card"><b>Each row is the requirement.</b> <b>⊞ SVC</b> on a row opens it by service, with its award schedule underneath; the row’s <b>⋯</b> menu holds everything else you can write.</p>
 </section>
 <section data-part="office" data-id="o-explore" data-t="Explore, and take your time">
-<p>This is the part people underuse. With <b>All programme offices</b> showing, drag a row by its <b>⠿</b> handle, or use its <b>▲ ▼</b> arrows, and watch the discretionary fit, the cutline and the unfunded total move. Try your requirement two ranks higher. Try it below the line.</p>
+<p>This is the part people underuse. With <b>All programme offices</b> showing, drag a row by its <b>⠿</b> handle — or choose <b>Rank</b> in the bar under the header and use its <b>▲ ▼</b> arrows — and watch the discretionary fit, the cutline and the unfunded total move. Try your requirement two ranks higher. Try it below the line.</p>
 <p><b>With only your office showing, moving a row sets your office’s own ranking.</b> That ranking is sent back with your submittal. The portfolio order and the cutline do not move — switch back to all offices to see the money move.</p>
 <p>You cannot break anything. Moving rows in the whole portfolio is not sent — that order is the portfolio team’s call. Your work is saved in your own browser, so closing the tab and coming back later is safe. It is not saved to the file or to Teams.</p>
 <div class="hx-note"><b>If you are sent a newer copy.</b> Your work belongs to the copy you did it in. A newer copy opens showing the portfolio as it stood when that one was published — it will not carry your work across, and your older copy still has it. So submit before you switch to a new copy.</div>
@@ -1095,17 +1419,17 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 <p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date and the minimum useful increment. In <b>📋 Requirement edit</b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element, the budget names and the MIPR type.</p>
 </section>
 <section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
-<p>If your office has a requirement the board does not, propose it from your copy: <span class="mp" data-m="by">🎯 Budget year ▾ › ＋ Add Requirement…</span>. Set PMO to your office, type the title, and enter the value by service (or one total, spread evenly). It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
+<p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. Set PMO to your office, type the title, and enter the value by service (or one total, spread evenly). It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
 <p>It travels whole in your submittal, flagged as new, once every mandatory field is filled: in 📋 Requirement edit — prime contract / OGC, PMO, obligation category, WBS and <i>Goes to</i> (and, for an OGC, <i>Which awards to</i> and the MIPR type); the description and the impact statement; the requirement value by service; and the projected award date. If any are blank when you submit, the copy names the requirement and what it still needs, holds that one back, and sends everything else.</p>
 </section>
 <section data-part="office" data-id="o-send" data-t="Send it back">
 <p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, at the top right of the header where Save is on the portfolio board, or under <span class="mp" data-m="share">📁 File ▾ › ✉ Submit input…</span>. If you have not set your office yet, it asks for it first.</p>
-<p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the line under the toolbar confirms it. Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
+<p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the message beside the save state, at the top right, confirms it. Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
 <p>If you edited a requirement that belongs to another office, the copy names it and leaves it out; raise it with that office instead.</p>
 </section>
 <section data-part="office" data-id="o-export" data-t="Exporting from your copy, and the five-year plan">
-<p>You can export the workbook and the slides from <b>⬇ Export ▾</b> for your own working. Every file you export is stamped, in the file name and across the top of the first sheet, with the date the copy was published — <b>◨ PMO COPY (snapshot of …, NOT the current plan)</b>. Please leave the stamp on: a copy is out of date the moment the portfolio team moves a dollar, and the stamp is what stops a file from November being briefed in February as the current plan.</p>
-<p><span class="mp" data-m="fydp">📚 FYDP ▾ › 📊 Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation, with a tab for each office: each CCaR record with the requirements that roll up to it, requirement and allocation for each year, totals at the right and the bottom.</p>
+<p>You can export the workbook and the slides from <b>Reports &amp; exports ▾</b> for your own working. Every file you export is stamped, in the file name and across the top of the first sheet, with the date the copy was published — <b>◨ PMO COPY (snapshot of …, NOT the current plan)</b>. Please leave the stamp on: a copy is out of date the moment the portfolio team moves a dollar, and the stamp is what stops a file from November being briefed in February as the current plan.</p>
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📊 Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation, with a tab for each office: each CCaR record with the requirements that roll up to it, requirement and allocation for each year, totals at the right and the bottom.</p>
 </section>
 <section data-part="office" data-id="o-travels" data-t="What travels, and what does not">
 <table class="hx-t"><tr><th>Field</th><th>Sent?</th><th>Why</th></tr>
@@ -1134,13 +1458,13 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 <dt>The DISC and MAND boxes are greyed out</dt><dd>Working as intended: the allocation is the portfolio team’s decision.</dd>
 <dt>💾 Save says it is turned off</dt><dd>Working as intended. A PMO copy cannot save over the team’s board. Your work is already kept in your browser; use ✉ Submit input to send it.</dd>
 <dt>I closed the tab — is my work gone?</dt><dd>No. It is kept in your browser on that machine, against that copy. Reopen the same file in the same browser.</dd>
-<dt>My requirement is not in the list</dt><dd>Check 🏢 PMO ▾ is set to your office or to All programme offices, and that the search box is empty. If it is genuinely absent, propose it.</dd>
+<dt>My requirement is not in the list</dt><dd>Check the <b>PMO</b> box at the top is set to your office or to All programme offices, and that the search box is empty. If it is genuinely absent, propose it.</dd>
 <dt>The figures look out of date</dt><dd>They may be. The bar at the top says when the copy was published. Ask for a fresh copy before briefing anything from it.</dd>
 </dl>
 </section>
 <section data-part="team" data-id="t-board" data-t="The board, its menus and its file">
-<p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box on the toolbar. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
-<p>The toolbar reads left to right: what you are looking at (<b>🔍 Filter ▾</b>, <b>🏢 PMO ▾</b>), the year that is executing (<b>📈 Active year ▾</b>), the year you are building (<b>🎯 Budget year ▾</b>), the out-years (<b>📚 FYDP ▾</b>), the shape of the board (<b>🛠 Tools ▾</b>) and what goes out (<b>⬇ Export ▾</b>). <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team.</p>
+<p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box at the top. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
+<p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — and whether your work is saved; <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (read-only, for the room) — each shows its own tools, and none changes a figure — then <b>Reports &amp; exports ▾</b> (every view and every export), <b>Data ▾</b> (everything that brings data in) and <b>Setup ▾</b> (the shape of the board, and the colours and the density you see it in). The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels.</p>
 <p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the top bar says <i>↶ work kept aside</i>, and one click puts it back.</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
@@ -1164,8 +1488,8 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 </section>
 <section data-part="team" data-id="t-alloc" data-t="Allocating, and what does not draw">
 <p>A requirement’s allocation is typed per service as <b>Disc</b> and <b>Mand</b> dollars<span data-b="grid">, in the <b>BY SERVICE</b> table of the RECORD panel</span><span data-b="card">, in the rows <b>⊞ SVC</b> opens</span>. Whatever is left of the requirement value is that service’s UFR. A typed figure is paid only as far as that service’s lane still holds money at the requirement’s rank, and only up to the requirement value; the rest is not paid, and a <i>drew $…</i> line appears under the figure.</p>
-<p>To find every case at once, look at the <b>DISCRETIONARY FIT</b> strip above the list: <b>▲ not drawn N · $X</b> counts the requirements set higher than they draw, discretionary and mandatory together. Click it to filter the list to them (also <span class="mp" data-m="view">🔍 Filter ▾ › ▲ Set higher than it draws</span>). Each one carries a <b>▲ $… not drawn</b> flag on its row; hover it for each service and lane, what was typed, what was drawn and why.</p>
-<p><b>🔧 fix list</b>, beside the counter, lists every line in priority order with the reason — the service’s discretionary or mandatory ran out above this rank, or the figure was typed above the requirement value. <b>set to drawn</b> lowers the typed figure to what was paid; <b>set all to drawn</b> does every line, after saying how many and how much. <b>No funded dollar moves, and neither unfunded total moves</b>: the money stops counting as “allocated, but no lane could pay it” — the portfolio shortfall — and counts as never allocated. Each fix is journalled and can be typed again.</p>
+<p>To find every case at once, look at <b>Needs attention</b> at the top: <b>▲ N not drawn · $X</b> counts the requirements set higher than they draw, discretionary and mandatory together, and a click opens the fix list. To filter the list to them, use <span class="mp" data-m="view">Filter ▾ › ▲ Set higher than it draws</span> (or the same counter in the <b>DISCRETIONARY FIT</b> strip, under <b>Funding detail</b>). Each one carries a <b>▲ $… not drawn</b> flag on its row; hover it for each service and lane, what was typed, what was drawn and why.</p>
+<p>The <b>fix list</b> (also <b>🔧 fix list</b> in the fit strip) lists every line in priority order with the reason — the service’s discretionary or mandatory ran out above this rank, or the figure was typed above the requirement value. <b>set to drawn</b> lowers the typed figure to what was paid; <b>set all to drawn</b> does every line, after saying how many and how much. <b>No funded dollar moves, and neither unfunded total moves</b>: the money stops counting as “allocated, but no lane could pay it” — the portfolio shortfall — and counts as never allocated. Each fix is journalled and can be typed again.</p>
 </section>
 <section data-part="team" data-id="t-spend" data-t="The spend plan: when the money lands">
 <p>Every spend plan places a requirement’s funded dollars by its award and obligation dates, by one rule, so the forecast, the month sheets, the PMO tabs, CR Cash Needs, the 1A9A return and the deck’s chart agree month by month:</p>
@@ -1173,14 +1497,14 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 <li><b>Mandatory rides the requirement’s own dates</b> — in each service’s own increment proportions, or, in a service with no increment of its own, in the requirement’s overall proportions. There is nothing to type for it.</li>
 <li>A single award date places the whole funded amount in its month; no date at all is UNSCHEDULED.</li></ul>
 <p>The award block shows <b>Balance to schedule — discretionary</b> and a <b>Mandatory — rides these dates</b> row; <b>↵ put on last</b> clears the discretionary balance onto the last increment, and with mandatory riding, every funded dollar then has a date.</p>
-<p><span class="mp" data-m="by">🎯 Budget year ▾ › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="by">🎯 Budget year ▾ › ⚖ CR Cash Needs…</span> show it on screen. <span class="mp" data-m="by">🎯 Budget year ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="export">⬇ Export ▾ › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="reports">Reports &amp; exports ▾ › ⚖ CR Cash Needs…</span> show it on screen. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="reports">Reports &amp; exports ▾ › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
 </section>
 <section data-part="team" data-id="t-dest" data-t="Destinations: one list for every appropriation">
-<p><span class="mp" data-m="tools">🛠 Tools ▾ › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
+<p><span class="mp" data-m="setup">Setup ▾ › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
 <p>The <i>Used by</i> column counts requirements here and on the other appropriations. A destination another appropriation or a locked cycle points at cannot be removed until those requirements point elsewhere — a locked cycle is a fixed point, so one it names stays. Where two appropriations named the same place with a different kind, the panel says so for you to settle.</p>
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
-<p><span class="mp" data-m="fydp">📚 FYDP ▾ › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints.</p>
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints.</p>
 </section>
 <section data-part="team" data-id="t-names" data-t="The requirement’s written fields">
 <p data-b="grid">In the RECORD panel the three written fields sit straight under the title: <b>⚠ Impact statement</b>, <b>📄 Description &amp; note</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit</b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, planning, and the award schedule.</p>
@@ -1409,13 +1733,7 @@ input[type=checkbox],input[type=radio]{width:24px;height:24px;margin:0 2px;verti
 <div class="list">
  <div class="gridsplit">
   <div class="gridwrap">
-    <div class="gridhead">
-      <div>Rank</div>
-      <div style="text-align:center">PMO</div>
-      <div>Requirement</div>
-      <div class="nums"><div>Requirement</div><div>Cumulative</div><div>Lane</div></div>
-      <div style="text-align:right">Allocation &amp; actions</div>
-    </div>
+    <div class="gridhead" id="gridHead"></div>
     <div id="list"></div>
   </div>
   <aside class="inspector" id="inspector"></aside>
@@ -2003,10 +2321,15 @@ function ndStripChip(){
     +(N.n? '<span class="lanechip" onclick="ndOpen=true;ndFocus=\'\';render()" title="every case in one list, with the fix beside each">🔧 fix list</span>' : '');
 }
 // B · the flag on the row. Hover names each service and lane; a click opens the fix list on it.
+// Each service and lane where this requirement is set higher than it draws: typed, drew, and why.
+// One reading for the RECORD panel's chip and the row's flag (v1.90), so the two cannot word it apart.
+function ndRowTip(id){
+  return ndData().list.filter(function(x){ return x.id===id; })
+    .map(function(x){ return SVC[x.i]+' '+(x.lane==='d'?'Disc':'Mand')+': typed '+fM(x.typed)+', drew '+fM(x.drew)+' — '+x.why; });
+}
 function ndRowChip(id){
   const N=ndData(), g=N.ids[id]; if(!g) return '';
-  const lines=N.list.filter(function(x){ return x.id===id; })
-    .map(function(x){ return SVC[x.i]+' '+(x.lane==='d'?'Disc':'Mand')+': typed '+fM(x.typed)+', drew '+fM(x.drew)+' — '+x.why; });
+  const lines=ndRowTip(id);
   return '<span class="rchip" style="border-color:var(--amber);color:var(--amber);font-weight:800" '
     +'onclick="ndOpen=true;ndFocus='+jsa(id)+';render()" title="'+esc(lines.join('\n')+'\nClick for the fix list.')+'">'
     +'▲ '+fMc(g)+' not drawn</span>';
@@ -2261,7 +2584,7 @@ function aceBody(){
   const keys=aceSetKeys();
   if(!keys.length){
     el.innerHTML='<div class="hint">No Annual Cost Estimate has been imported yet. '
-      +'\ud83d\udcda FYDP \u2192 \ud83d\udce5 Import Annual Cost Estimate\u2026 loads one; it is keyed by its year '
+      +'Data \u203a \ud83d\udce5 Import Annual Cost Estimate\u2026 loads one; it is keyed by its year '
       +'(2025ACE) and locked on import, because an approved estimate should not change.</div>';
     return;
   }
@@ -2465,8 +2788,8 @@ function exwBody(){
   let h='';
   if(!sc.rows){
     el.innerHTML='<div class="hint">No execution data has been imported for '
-      +esc(APPN_LBL[mySlug()]||mySlug())+' yet. 📈 Active year → import the '
-      +'Spend Plan Source workbook first — this reads the WBS column out of it.</div>';
+      +esc(APPN_LBL[mySlug()]||mySlug())+' yet. Data › 📥 Import CCaR QPE loads the '
+      +'Spend Plan Source workbook — this reads the WBS column out of it.</div>';
     return;
   }
   h+='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:10px;font-size:10.5px">'
@@ -2577,6 +2900,47 @@ function themeSet(k){
   setStat('\ud83c\udfa8 Colours set to <b>'+esc(themeName())+'</b>. This is your own setting \u2014 '
     +'it is not saved into the board file and does not travel to anyone else.');
 }
+
+// ── v1.90 (item 27): THE WORKSPACE MODE AND THE DENSITY ─────────────────────────────────────────────
+// Both are this browser's, like the colours: kept in browser storage under their own keys, never saved
+// into the board file, never sent in a copy. A mode changes what the grid EMPHASISES -- which cells a row
+// draws and which tools the task bar offers -- never what the board holds or computes.
+const UI_MODES=['review','rank','fund','compare','brief'];
+const UI_DENS=['compact','comfortable','presentation'];
+let uiMode='review', uiDensity='comfortable', fundDetailOpen=false;
+function uiLoad(){
+  try{ const m=localStorage.getItem('spmtMode'); if(UI_MODES.indexOf(m)>=0) uiMode=m; }catch(e){}
+  try{ const d=localStorage.getItem('spmtDensity'); if(UI_DENS.indexOf(d)>=0) uiDensity=d; }catch(e){}
+  try{ fundDetailOpen = localStorage.getItem('spmtDetail')==='1'; }catch(e){}
+}
+// Brief is for the room: it always reads at the presentation size, whatever this browser's density is.
+function uiDensityNow(){ return uiMode==='brief'? 'presentation' : uiDensity; }
+function uiApply(){
+  const h=document.documentElement;
+  h.setAttribute('data-mode', uiMode);
+  h.setAttribute('data-density', uiDensityNow());
+  const fd=document.getElementById('fundDetail'); if(fd) fd.classList.toggle('open', !!fundDetailOpen);
+}
+function uiSetMode(m){
+  if(UI_MODES.indexOf(m)<0) return;
+  uiMode=m; lsSet('spmtMode', m, 'Your workspace mode');
+  openMenu=null; uiApply(); render();
+}
+function uiSetDensity(d){
+  if(UI_DENS.indexOf(d)<0) return;
+  uiDensity=d; lsSet('spmtDensity', d, 'Your density');
+  uiApply(); render();
+}
+function fundDetailToggle(){
+  fundDetailOpen=!fundDetailOpen; lsSet('spmtDetail', fundDetailOpen? '1' : '0', 'Funding detail open or closed');
+  uiApply(); render();
+}
+// Brief's "Present full screen": the browser's own full screen, left with Esc as always.
+function briefFull(){
+  try{ const h=document.documentElement;
+    if(document.fullscreenElement) document.exitFullscreen(); else if(h.requestFullscreen) h.requestFullscreen(); }catch(e){}
+}
+try{ uiLoad(); uiApply(); }catch(e){ /* a board that cannot read its own settings opens in Review, Comfortable */ }
 /* ================= FUNDING REALIGNMENT =========================================================
    Source a lump sum out of one fiscal year by moving WHOLE requirements into another.
 
@@ -3973,7 +4337,7 @@ function syncAddPanel(){
   _addPanelSvc=want;
   w.innerHTML = SVC.length
     ? SVC.map((s,i)=>'<input id="naSvc'+i+'" style="width:86px" placeholder="'+esc(s)+'" title="'+esc(s)+' '+FYL()+' requirement value">').join('')
-    : '<span class="hint">No services yet — set them up first in 🎯 Budget year → 🏷 Services.</span>';
+    : '<span class="hint">No services yet — set them up first in Setup › 🏷 Services.</span>';
 }
 function defaultOrder(){
   return BASE_ITEMS.slice().sort((a,b)=>askTot(b)-askTot(a)).map(i=>i.id);
@@ -4458,7 +4822,7 @@ function importAceNote(st){
   }
   return ' \u26a0 The file carried the cost estimate <b>' + missing.sort().join(', ') + '</b>, which was '
     + '<b>not</b> brought across \u2014 an estimate lives in its own store so that importing a board '
-    + 'cannot overwrite one you already hold. Load it again with \ud83d\udcda FYDP \u2192 '
+    + 'cannot overwrite one you already hold. Load it again with Data \u203a '
     + '\ud83d\udce5 Import Annual Cost Estimate\u2026 if you want the tie-out on this build.';
 }
 function importReportHtml(st){
@@ -5254,10 +5618,24 @@ function uipDone(ok){
 function setStat(html){
   if(CYCVIEW && (Date.now()-_cycRefusedAt)<1500 && !/^🔒/.test(String(html)))
     html='🔒 <b>Not kept — '+esc(blLbl(CYCVIEW))+' is a locked view.</b> '+html;
-  const el=document.getElementById('shareStat'); if(el) el.innerHTML=html; }
+  const el=document.getElementById('shareStat'); if(el) el.innerHTML=html;
+  // v1.90: the line lives beside the save state now. A message shows itself there until the next one or
+  // until it is hidden; the save state's tooltip always carries it. _statQuiet is set for the one
+  // ordinary start-up line, which waits in the tooltip instead.
+  try{ const w=document.getElementById('statWrap'), ss=document.getElementById('saveState');
+    if(w){ w.classList.remove('big'); w.classList.toggle('fresh', !!html && !_statQuiet); }
+    if(ss) ss.title=el? (el.textContent||'') : ''; }catch(e){} }
+var _statQuiet=false;
+function statShow(){ const w=document.getElementById('statWrap'), el=document.getElementById('shareStat');
+  if(w && el && el.innerHTML) w.classList.toggle('fresh'); }
+function statHide(){ const w=document.getElementById('statWrap'); if(w) w.classList.remove('fresh','big'); }
+function statOpen(){ const w=document.getElementById('statWrap'); if(w) w.classList.toggle('big'); }
 function fmtTs(ts){ return ts? new Date(ts).toLocaleString():'unknown'; }
 function shortTs(ts){ if(!ts) return ''; const d=new Date(ts);
   return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}); }
+// v1.90: the time alone when it is today -- the header has room for a clock, not a date
+function shortTime(ts){ if(!ts) return ''; const d=new Date(ts), n=new Date();
+  return d.toDateString()===n.toDateString()? d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}) : shortTs(ts); }
 const FNAME='FY27 Consolidated Prioritization Board.html';
 // The stored name, or nothing, and it never asks. Read paths use this; only something about to
 // STAMP a name (a save, a publish) has the right to interrupt somebody for one.
@@ -8215,7 +8593,7 @@ function coaDiverge(){
 function coaAddGroup(pmo){
   if(GROUPS.indexOf(pmo)<0){
     setStat('⚠ <b>'+esc(pmo)+'</b> is not an office on this board. Offices are added in '
-      +'🛠 Tools → 🏢 PMOs, and this tool only files groupings under ones that already exist.');
+      +'Setup › 🏢 PMOs, and this tool only files groupings under ones that already exist.');
     return;
   }
   uiPrompt('Name the requirement / capability grouping under '+pmo+':','',function(v){
@@ -8325,7 +8703,7 @@ function coaPanelBody(){
     +'<b>This defines the structure you agree. It changes nothing on the board.</b> Reading '
     +'<b>FY'+(yrs[0]%100)+'–FY'+(yrs[yrs.length-1]%100)+'</b> — the budget year and the '
     +'FYDP — which holds <b>'+nRec+'</b> CCaR record'+(nRec===1?'':'s')+' across <b>'+nYr
-    +'</b> year'+(nYr===1?'':'s')+' of plan. Offices come from 🛠 Tools → '
+    +'</b> year'+(nYr===1?'':'s')+' of plan. Offices come from Setup › '
     +'🏢 PMOs; add one there and it can be used here.</div>';
 
   // ---- what disagrees, stated before the detail ------------------------------------------------
@@ -8429,7 +8807,7 @@ function coaPanelBody(){
     +'is kept so somebody can go and open the record. <b>Filed under a different office</b> means '
     +'this design and the board disagree about whose account it is, which is a decision for the room '
     +'rather than a correction to make here. Nothing in this panel writes to the board. '
-    +'📤 Export → 📒 Chart of Accounts takes the whole picture into the meeting.'
+    +'Reports &amp; exports › 📒 Chart of Accounts takes the whole picture into the meeting.'
     +'</div>';
 
   el.innerHTML=h;
@@ -9393,7 +9771,7 @@ function srcGapNote(){
       +'TrngDev budget, which is only ever chosen by hand \u2014 confirm '+(bs.hand===1?'it still applies':'they still apply'));
   } else {
     gaps.push('no <b>Budget Extract</b> imported \u2014 the <b>Budget column is blank</b>, because CCaR rejects any '
-      +'name that is not a BAE name exactly (\u2692 Tools \u203a Import Budget Extract, once: it is kept in the saved board)');
+      +'name that is not a BAE name exactly (Data \u203a Import Budget Extract, once: it is kept in the saved board)');
   }
   if(!ccarIdx()){
     gaps.push('no <b>CCaR Records</b> imported — Title falls back to the requirement name and OPR is blank');
@@ -9483,7 +9861,7 @@ async function importSrc(inp){
     const bad=report.filter(t=>!t.found).length;
     flowRepSeen=false;                       // a fresh import gets a fresh look at the report
     setStat((bad? '\u26a0 CCaR QPE imported with '+bad+' tab'+(bad===1?'':'s')+' NOT FOUND — '
-               : '\ud83d\udce5 CCaR QPE imported — ')+msg.join(' \u00b7 ')+'. \ud83d\udcbe Save to bake it into this file. Open \ud83d\udcc8 Active year \u2192 \ud83d\udcc8 Active Year Execution.');
+               : '\ud83d\udce5 CCaR QPE imported — ')+msg.join(' \u00b7 ')+'. \ud83d\udcbe Save to bake it into this file. Open Reports &amp; exports \u203a \ud83d\udcc8 Active Year Execution.');
   }catch(e){
     setStat('\u26a0 Import failed: '+((e&&e.message)||e));
   }
@@ -10618,8 +10996,8 @@ function exportIdsReq(){
   if(!R.rows.length){
     alert('Nothing can be exported yet.'+String.fromCharCode(10,10)
       +'Every line needs BOTH a Req Control No (from the CCaR records file) and a Budget Name '
-      +'(from the Budget Extract). Open Export \u203a IDS Batch Import to see what is missing.');
-    setStat('\u26a0 IDS requirement batch \u2014 nothing exportable; see Export \u203a IDS Batch Import.');
+      +'(from the Budget Extract). Open Reports &amp; exports \u203a IDS Batch Import to see what is missing.');
+    setStat('\u26a0 IDS requirement batch \u2014 nothing exportable; see Reports &amp; exports \u203a IDS Batch Import.');
     return;
   }
   const X0=idsXf(0), X1=idsXf(1);
@@ -11150,7 +11528,7 @@ async function importBud(inp){
     if(D.gone.length) lines.push('',
       'A retired budget is KEPT and flagged, never deleted — a name that has gone may only have',
       'been renamed, and clearing the assignment would lose the decision. They are listed under',
-      'Export › Budget list, where the assignments can be cleared in one action.');
+      'Data › Budget list, where the assignments can be cleared in one action.');
     lines.push('', 'Proceed?');
     // ONLY ASK WHEN SOMETHING WOULD BE RETIRED. Budgets are added upstream, not removed, so the
     // normal import is a pure addition and a confirm on every one is friction for nothing. A
@@ -13230,7 +13608,7 @@ function flowDrillHtml(F){
 
 function flowHtml(){
   const yrs=flowYears();
-  if(!yrs.length) return '<div class="hint">No execution data yet \u2014 \u{1F4C8} Active year \u2192 \u{1F4E5} Import CCaR QPE and pick your monthly "Spend Plan Source File.xlsx". The funds flow is built from that file, so it covers the fiscal years the file carries.</div>';
+  if(!yrs.length) return '<div class="hint">No execution data yet \u2014 Data \u203a \u{1F4E5} Import CCaR QPE and pick your monthly "Spend Plan Source File.xlsx". The funds flow is built from that file, so it covers the fiscal years the file carries.</div>';
   const F=flowCalc(), C=flowCfg(), R=C.rules;
   const selY=flowSelYears(), selA=flowSelAppns();
   const LOAD=flowLoaded();
@@ -13693,7 +14071,7 @@ function exBody(){
   const EA=execAllOf();
   const slugs=APPN_SLUGS.filter(s=>EA[s]&&EA[s].rows&&Object.keys(EA[s].rows).length);
   if(!slugs.length){
-    el.innerHTML='<div class="hint">No execution data yet — 📈 Active year → 📥 Import CCaR QPE and pick your monthly "Spend Plan Source File.xlsx". FY24–FY26 plan events (with the Alloc obligation flag) load per appropriation.</div>';
+    el.innerHTML='<div class="hint">No execution data yet — Data › 📥 Import CCaR QPE and pick your monthly "Spend Plan Source File.xlsx". FY24–FY26 plan events (with the Alloc obligation flag) load per appropriation.</div>';
     return;
   }
   const pct=v=> (v*100).toFixed(1)+'%';
@@ -18067,7 +18445,7 @@ function bmBody(){
   h+='<tr class="tot"><td style="text-align:left">EFFECTIVE — Mandatory</td><td></td>'+SVC.map((s,i)=>'<td>'+fM(S.mandSvc[i])+'</td>').join('')+'<td style="border-left:1px solid var(--gold)">'+fM(mandTot())+'</td><td></td></tr>';
   h+='</table></div>';
   h+='<div style="margin:4px 0 10px"><button class="btn" style="font-size:10.5px;padding:4px 10px" onclick="bmAddSrc()">＋ Add funding source</button> <span style="font-size:9px;color:var(--dim)">e.g. a Congressional add or supplemental — routed into the Disc or Mand lanes</span></div>';
-  h+='<div class="hint" style="margin-top:10px">Reprogramming actions (ATR / BTR) now live in ⚖ <b>Reprogramming Actions</b> under 📈 Active year, where they can be logged against any active execution year and appropriation.</div>';
+  h+='<div class="hint" style="margin-top:10px">Reprogramming actions (ATR / BTR) now live in ⚖ <b>Reprogramming Actions</b> under Reports &amp; exports, where they can be logged against any active execution year and appropriation.</div>';
   el.innerHTML=h;
 }
 function exportReprog(){
@@ -18535,7 +18913,7 @@ function scoreboard(){
   const h=`
   <div class="sc disc"><div class="nm" style="color:var(--green)">1 · Discretionary (basis)</div>
     <div class="rm" style="color:var(--green)">${fM(dLeft)} <span style="font-size:9px;color:var(--dim)">left across service lanes</span></div>
-    <div class="sub"><span class="balbl">BA:</span> <b>${fM(dBA)}</b> <span style="font-size:9px;color:var(--dim)">· set in 💰 Budget Management (✎ Board menu)</span></div>
+    <div class="sub"><span class="balbl">BA:</span> <b>${fM(dBA)}</b> <span style="font-size:9px;color:var(--dim)">· set in 💰 Budget Management (Fund)</span></div>
     <div class="sub">${dN} reqs fully disc · ${splitN} split D+M · ${fM(dUsed)} used</div>
     <div class="bar"><i style="width:${Math.min(100,dBA>0?dUsed/dBA*100:0)}%;background:var(--green)"></i></div></div>
   <div class="sc mc"><div class="nm" style="color:var(--amber)">2 · ★ Mission critical (must be paid this year)</div>
@@ -18607,6 +18985,47 @@ function scoreboard(){
   }
   // the strip lives outside the collapsible panel, so it survives minimising
   document.getElementById('fitWrap').style.display = SVC.length? 'block':'none';
+  // ── v1.90 (item 27): THE FUNDING POSTURE, always in view ─────────────────────────────────────────
+  // The four cards' headline figures on one line. EVERY FIGURE HERE IS A VARIABLE THE CARDS ABOVE PRINT
+  // -- nothing is worked out twice, so the strip and the cards cannot disagree. Unfunded by service is
+  // the reading against the ask, the same one as the card's TOTAL (u2Amt): its figures add up to it.
+  // layout-fits.mjs reads both and fails if any figure differs.
+  { const pe=document.getElementById('posture');
+    if(pe){
+      let ask=0; const uSvc=SVC.map(function(){ return 0; });
+      S.order.forEach(function(id){ const it=itemById(id); if(!it) return; ask+=askTot(it);
+        if(T[id]) unfSvcOf(it,T[id]).forEach(function(v,i){ uSvc[i]+=v; }); });
+      const N=ndData();
+      const imp=S.order.filter(function(id){ return itemById(id) && BAND_OF(id)!==null && BAND_DEF(id).consReq
+        && !(((S.cons||{})[id]||'').trim()); }).length;
+      const noCcar=S.order.filter(function(id){ const it=itemById(id); return it && !ccarOf(it); }).length;
+      const pc=function(a,b){ return b>0? Math.max(0,Math.min(100,a/b*100)) : 0; };
+      const meter=function(parts){ return '<div class="meter" aria-hidden="true">'+parts.map(function(q){
+        return '<i style="width:'+q[0].toFixed(2)+'%;background:'+q[1]+'"></i>'; }).join('')+'</div>'; };
+      const pl=function(n,one,many){ return n+' '+(n===1? one : many); };
+      const att=(N.n? '<button type="button" class="e" onclick="ndOpen=true;render()" title="Open the fix list">'
+                     +'<span class="g">▲</span> '+N.n+' not drawn · '+fMc(N.tot)+'</button>' : '')
+        +(imp? '<div class="e"><span class="g">⚠</span> '+pl(imp,'impact statement missing','impact statements missing')+'</div>' : '')
+        +(noCcar? '<div class="e"><span class="g">○</span> '+noCcar+' without a CCaR record</div>' : '');
+      pe.innerHTML = !SVC.length? '' :
+        '<div class="pp"><div class="pplanes">'
+          +'<span class="k">Discretionary</span><span class="n" data-v="'+Math.round(dBA)+'">'+fM(dBA)+' BA</span><span class="l" data-v="'+Math.round(dLeft)+'">'+fM(dLeft)+' left</span>'
+          +'<span class="k">Mandatory</span><span class="n" data-v="'+Math.round(mBA)+'">'+fM(mBA)+' BA</span><span class="l" data-v="'+Math.round(mLeft)+'">'+fM(mLeft)+' left</span></div>'
+          +meter([[pc(dUsed,dBA+mBA),'var(--green)'],[pc(mUsed,dBA+mBA),'var(--purp)']])+'</div>'
+        +'<div class="pp mc'+(mcUnf>0.5?' warn':'')+'"><div class="k">★ Mission critical · '+pl(mcN,'must-pay','must-pay')+'</div>'
+          +'<div class="v" data-v="'+Math.round(mcUnf)+'">'+(mcUnf>0.5? fM(mcUnf)+'<small>unfunded of '+fM(mcTot)+'</small>'
+             : (mcN? 'covered<small>'+fM(mcTot)+' must-pay</small>' : '—<small>nothing flagged yet</small>'))+'</div>'
+          +meter([[pc(mcTot-mcUnf,mcTot),'var(--amber)']])+'</div>'
+        +'<div class="pp'+(u2Amt>0.5?' warn':'')+'"><div class="k">Whole budget · '+fM(ask)+' asked</div>'
+          +'<div class="v" data-v="'+Math.round(u2Amt)+'">'+fM(u2Amt)+'<small>unfunded · '+fM(wUsed)+' funded</small></div>'
+          +meter([[pc(dUsed,ask),'var(--green)'],[pc(mUsed,ask),'var(--purp)']])+'</div>'
+        +'<div class="pp"><div class="k">Unfunded by service</div><div class="ppsvc">'
+          +SVC.map(function(sv,i){ return '<span class="'+(uSvc[i]>0.5?'over':'')+'" data-v="'+Math.round(uSvc[i])+'" title="'+esc(sv)+' unfunded '+fM(uSvc[i])+'">'
+            +esc(sv)+' <b>'+(uSvc[i]>0.5? fMc(uSvc[i]) : '—')+'</b></span>'; }).join('')+'</div></div>'
+        +'<div class="pp ppatt"><div class="k">Needs attention</div>'+(att || '<div class="e" style="color:var(--dim)">nothing flagged</div>')+'</div>'
+        +'<div class="ppdet"><button type="button" class="btn" onclick="fundDetailToggle()" aria-controls="fundDetail" aria-expanded="'+(fundDetailOpen?'true':'false')+'"'
+          +' title="The scorecards, the discretionary fit and the funding panels">Funding detail <span class="car" aria-hidden="true">'+(fundDetailOpen?'▴':'▾')+'</span></button></div>';
+    } }
 }
 // One line saying what the nominated requirement is eating, and what nobody is eating.
 function absorbLine(AB){
@@ -18743,7 +19162,7 @@ function bmPpRow(){
     +'Take the base from a PPBE position</div>';
   if(!opts.length){
     h+='<div class="hint" style="margin-top:4px">No logged PPBE position carries money for '+FYL()
-      +'. Log one under 📚 FYDP → <b>PPBE Budget Positions</b> and it will be offered here.</div></div>';
+      +'. Log one under Reports &amp; exports › <b>PPBE Budget Positions</b> and it will be offered here.</div></div>';
     return h;
   }
   h+='<div class="fr" style="gap:8px;align-items:center;flex-wrap:wrap;margin-top:5px">'
@@ -19412,38 +19831,9 @@ function chipPick(kind, id, label, cur, items, setter, title, col){
 // THE SECOND TIER: what has been DECIDED about a requirement, on its own strip. The headline is
 // what it IS and the dim line under it is what the source SAYS; these are the answers somebody
 // gave, and they were competing with the name for the same column.
-const CHIP_CAP=22;                // a band name is a sentence; the chip is a label
-function chipClip(t){ t=''+t; return t.length>CHIP_CAP? t.slice(0,CHIP_CAP-1)+'\u2026' : t; }
-function rowChipsHtml(it){
-  const id=it.id, L=BANDS_LIST(), bid=BAND_OF(id);
-  let bi=-1; L.forEach(function(b,i){ if(b.id===bid) bi=i; });
-  const bd=(bid!==null)? BAND_DEF(id) : null;
-  let h='<div class="rowchips">';
-  // THE BAND IS STATED HERE, NOT SET HERE. This build has a RECORD panel and the panel owns the
-  // control; a picker on the row as well would be two editors for the field the entire funding
-  // ladder hangs off, and the one most easily changed by brushing past it while dragging 115 rows
-  // into order. The chip carries no handler, so .rchip[onclick] leaves it without a pointer and it
-  // cannot offer a click that goes nowhere. The CARD build keeps its picker: it has no band field
-  // in its record form, so the chip is the only way in there.
-  { const bcol = (bid!==null && bd && bd.c)? bandInk(bd.c) : '';
-    h+='<span class="rchip'+(bid===null?' add':'')+'"'
-      +(bcol? ' style="border-color:'+bcol+';color:'+bcol+'"' : '')
-      +' title="'+esc('Decision band \u2014 the funding rule travels with the band. Set it on the '
-        +'RECORD panel; manage the ladder in \u2696 Bands.')+'">'
-      +esc(bid===null? 'no band' : ((bi>=0? bi+' \u00b7 ':'')+chipClip(bd.n)))+'</span>'; }
-  // THE ROW CARRIES IDENTITY, MONEY AND THE BAND -- nothing else. The impact chip and the funding
-  // badge used to sit here too, which made every line three chips deep while the RECORD panel beside
-  // it already held both. Impact is still reachable on every requirement: the row's ⋯ menu offers
-  // it, and so does the panel. The funding split was never editable here in this build -- it was a
-  // badge -- so nothing is lost by reading it off the panel instead. The CARD build keeps both,
-  // because it has no panel to move them to.
-  { const ce=(S.costElem||{})[id];   // the store does not exist on a board without cost elements
-    if(ce) h+='<span class="rchip" onclick="pickCostElem('+jsa(id)+')" '
-      +'title="cost element \u2014 click to change">'+esc(chipClip(ce))+'</span>'; }
-  h+=ndRowChip(id);      // v1.86: a typed figure higher than it draws
-  h+='</div>';
-  return h;
-}
+// v1.90 (item 27): rowChipsHtml() went with the chip row. The band is its own cell in render(), stated and
+// not set; the cost element is on the quiet line under the title (set in Requirement edit); the not-drawn
+// flag is one of the row's exceptions, with the fix list opened from Needs attention and the RECORD panel.
 let rowMenuId=null;
 function toggleRowMenu(id, ev){
   if(ev && ev.stopPropagation) ev.stopPropagation();
@@ -21426,6 +21816,14 @@ function render(){
   const TT=tierTotals(T);
   const AB=absorbCalc(T);
   let h='', rank=0, discCut=false, unfCut=false;
+  // v1.90 (item 27): the column header is the mode's, drawn from the same list of cells as the rows
+  { const gh=document.getElementById('gridHead');
+    if(gh){ const Y=FYL()+' requirement', A=[['Allocation','r hide760']];
+      const base=[['#'],['PMO','hide760'],['Requirement'],['Decision band','hide760'],[Y,'r'],['Cumulative','r cum'],['Lane','hide760'],['\u2605','c'],['']];
+      const H={ review:base, compare:base, rank:[['Rank']].concat(base.slice(1)),
+        fund:[['#'],['PMO','hide760'],['Requirement'],[Y,'r'],['Discretionary','r hide760'],['Mandatory','r hide760'],['Unfunded','r hide760']].concat(A,[['\u2605','c'],['']]),
+        brief:[['#'],['PMO','hide760'],['Requirement'],['Decision band','hide760'],[Y,'r'],['Discretionary','r hide760'],['Mandatory','r hide760'],['Unfunded','r hide760'],['Cumulative','r cum']] };
+      gh.innerHTML=(H[uiMode]||base).map(function(c){ return '<div class="'+(c[1]||'')+'">'+esc(c[0])+'</div>'; }).join(''); } }
   // Say it on the board, not only in the menu. Someone reads these rows, or photographs them, and
   // nothing else about the page looks different when a pot has been withheld.
   if(CYCVIEW){
@@ -21474,7 +21872,7 @@ function render(){
       }
     }
     if(filter!=='ALL'&&grpOf(it)!==filter) return;
-    if(q && !((dispTitle(it)+' '+it.title+' '+it.event+' '+ccarOf(it)).toLowerCase().includes(q))) return;
+    if(q && !((dispTitle(it)+' '+it.title+' '+it.event+' '+ccarOf(it)+' '+pidOf(it)).toLowerCase().includes(q))) return;
     if(mcOnly && !S.mc[id]) return;
     if(laneFilter==='nd'? !ndData().ids[id] : (laneFilter && !fitPass(t))) return;
     if(ptypeFilter && ptypeOf(id)!==ptypeFilter) return;
@@ -21490,39 +21888,62 @@ function render(){
     const inpVal = changed? Math.round(eff(it)).toLocaleString():'';
     const note=S.notes[id];
     const showDetail = svcAll || open[id];
-    h+=`<div class="row t-${t.tier} ${id.startsWith('BUY-')?'buy':''}" id="row-${esc(id)}" ${canDrag?'draggable="true"':''}
-        ondragstart="dstart(event,${jsa(id)})" ondragend="dend(event)" ondragover="dover(event,${jsa(id)})" ondragleave="dleave(event)" ondrop="ddrop(event,${jsa(id)})">
-      <div class="rank"><span class="grip">⠿</span>
-        <input value="${hardOpen? liveRank[id] : rank}" ${hardOpen?'style="border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)"':''} onchange="setRank(${jsa(id)},this.value)" onfocus="this.select()" title="${hardOpen? 'RANK-ENTRY MODE — type the target rank; the row stays put here but moves in the real order (box shows its current rank)' : (pmoMode()? filter+'’s own rank (master unaffected)' : 'master rank')}">
-        <span class="ud"><button onclick="bump(${jsa(id)},-1)">▲</button><button onclick="bump(${jsa(id)},1)">▼</button></span></div>
-      <div><div class="gchip" style="background:${GCOLOR[grpOf(it)]}">${esc(grpOf(it))}</div>
-        ${ptypeOf(id)?`<div style="margin-top:2px"><span onclick="togglePtype(${jsa(id)})" style="cursor:pointer;display:inline-block;font-size:8px;font-weight:800;letter-spacing:.4px;padding:1px 6px;border-radius:3px;${ptypeOf(id)==='PRIME'?'background:var(--gold);color:var(--onGold)':'background:var(--line2);color:var(--mut)'}" title="classification — click to switch between Prime Contract and OGC">${ptypeOf(id)==='PRIME'?PRIME_ICON+' PRIME':'OGC'}</span></div>`:''}
-        <div class="pmor">${pmoMode()? 'master #'+MR[id] : esc(grpOf(it))+' #'+PR[id]}</div></div>
-      <div><div class="tt"><span onclick="toggleDetail(${jsa(id)})" title="click here, or ⊞ By service, to break this requirement out by service">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${it.team}</span>`:''}<span class="tedit ${S.titles[id]?'ren':''}" onclick="editTitle(${jsa(id)})" title="${S.titles[id]?'renamed — was: '+esc(it.event||it.title)+' (click to edit)':'rename requirement'}">✎</span>${it.custom?'<span class="sect-new">ADDED</span>':''}${recName(it)&&recName(it)!==dispTitle(it)?`<span class="recname edit" onclick="editRecName(${jsa(id)})" title="CCaR Record Name — the requirement as the source file files it${(S.recNames||{})[id]?'. Renamed — the file says: '+esc(recNameSrc(it)):''}. Click to rename.">${esc(recName(it))}${(S.recNames||{})[id]?' \u270e':''}</span>`:''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched \u2014 this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">\u2691 ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' \u00b7 +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}</div>
-        <div class="ev">${(it.event && dispTitle(it)!==it.event)? esc(it.event)+'  ·  ' : ''}<span onclick="editCcar(${jsa(id)})" style="cursor:pointer;color:${ccarOf(it)?'var(--gold)':'var(--dim)'};font-weight:700" title="click to assign the CCaR record (up to 12 characters)">${ccarOf(it)? esc(ccarOf(it)) : '+ CCaR'}</span>  ·  <span onclick="editPid(${jsa(id)})" style="cursor:pointer;color:${pidOf(it)?'var(--blue,#6aa6e8)':'var(--dim)'};font-weight:700" title="click to assign the PID number (up to 20 characters)">${pidOf(it)? 'PID '+esc(pidOf(it)) : '+ PID'}</span>${S.awards[id]? (S.awards[id].mode==='inc'? `  ·  <span style="color:var(--green);font-weight:700" title="incremental funding — ${(S.awards[id].inc||[]).length} increment(s); edit in the detail view">📅 INC ×${(S.awards[id].inc||[]).length}</span>` : `  ·  <span style="color:var(--green);font-weight:700" title="award/obligation date — full funded amount forecasts in this month${S.awards[id].day?'; day '+S.awards[id].day+' sets the CR half-month window':''}">📅 ${S.awards[id].day? S.awards[id].day+' ':''}${esc(ymLbl(S.awards[id].d))}</span>`) : ''}</div>
-        ${note?`<div class="note-snip">📝 ${esc(note.length>110?note.slice(0,110)+'…':note)}</div>`:''}
-        ${rowChipsHtml(it)}${cycDeltaChip(id)}</div>
-      <div class="nums">
-        <div class="b"><div class="l">${FYL()} Requirement</div><div class="v">${fM(askTot(it))}</div></div>
-        <div class="b"><div class="l">Cumulative</div><div class="v" style="color:var(--dim)">${fM(t.cum)}</div></div>
-        <span class="tierlbl tl-${laneOf(t)}" title="Disc ${fM(t.dT)} · Mand ${fM(t.mT)} · Unfunded ${fM(t.uT)}${t.set?' · funding source SET manually ('+t.set.toUpperCase()+')':''}">${t.set?'⚙ ':''}${laneLbl(t)}</span>
-        ${(t.tier==='split'||t.tier==='mc'||(t.tier==='unf'&&t.dT+t.mT>0.005))?`<div style="grid-column:1/-1;font-size:9px;color:var(--dim);text-align:right">D ${fM(t.dT)} · M ${fM(t.mT)}${t.uT>0.005?' · <span style=\"color:var(--red)\">unf '+fM(t.uT)+'</span>':''}</div>`:''}
-        ${svcFilter>=0? `<div style="grid-column:1/-1;font-size:9px;text-align:right;color:${sfLeft>0.5?'var(--green)':'var(--red)'}" title="${esc(SVC[svcFilter])} discretionary remaining after this row and everything above it">${esc(SVC[svcFilter])} disc ${sfLeft>0.5? fM(sfLeft)+' left':'exhausted'}</div>`:''}
-      </div>
-      <div class="acts">
-        <span class="optz">
-          ${isSvc?'<span class="mode-tag">SVC</span>':''}
-          ${clinApplies(id)? `<button class="clinbtn ${clinOpen[id]?'on':''}" onclick="toggleClin(${jsa(id)})" title="CLIN drill — allocate this prime contract line by line, by service">🧾</button>`:''}
-        </span>
-        <button class="qb ${showDetail?'on':''}" onclick="toggleDetail(${jsa(id)})" title="Show this requirement broken out by service — edit the ${FYL()} requirement and the allocation for each service individually.">⊞ SVC</button>
-        <button class="mcb ${S.mc[id]?'on':''}" onclick="S.mc[${jsa(id)}]=!S.mc[${jsa(id)}];save();render()" title="★ Mission Critical — this must be paid this year">★ MC</button>
-        ${rowSplit? `<input disabled style="opacity:.8;border-color:var(--gold);color:var(--gold);font-weight:800" value="${Math.round(svcAlloc(it).reduce((x,y)=>x+y,0)).toLocaleString()}" title="allocation = the Disc and Mand dollars you directed, per service, in the ⚙ Split editor. A Split states its own allocation; there is no second figure to set here.${CLINS[id]? ' The CLIN grid is a visual breakout only and feeds none of this.':''}">`
-        : `<input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}"
-          onchange="setAlloc(${jsa(id)},this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is a visual breakout only and feeds none of this; open 🧾 to compare them.' : 'allocation total (blank = full ask; prorated across services)')}">`}
-        ${rowMenuHtml(it)}
-      </div>
-      ${showDetail? svcTable(it):''}
-      ${clinApplies(id)&&clinOpen[id]? clinTable(it):''}
+    // ── v1.90 (item 27): THE ROW ───────────────────────────────────────────────────────────────────
+    // Triage, not editing: rank, PMO, the title with ONE quiet line under it, the band, the money and
+    // the lane, ★ and ⋯. The mode decides which cells are drawn, never what they say; every figure is
+    // the one the RECORD panel prints for the same requirement. Editors that used to live here are on
+    // the panel (or its Requirement edit), and a chip on the row is a status, never a control.
+    const _m=uiMode, brief=_m==='brief', fundM=_m==='fund', rankM=_m==='rank';
+    const _BL=BANDS_LIST(), _bid=BAND_OF(id); let _bi=-1; _BL.forEach(function(b,i){ if(b.id===_bid) _bi=i; });
+    const _bd=(_bid!==null)? BAND_DEF(id) : null;
+    const _u=unfTotOf(it,t), _ask=askTot(it);
+    const _w=v=>_ask>0? Math.max(0,Math.min(100,v/_ask*100)).toFixed(2) : '0';
+    const _lk=laneOf(t), _ll=laneLbl(t);
+    const _amt=(v,k)=>`<div class="amt ${v>0.005? k : 'z'}">${v>0.005? fM(v) : '—'}</div>`;
+    // the exceptions ride at the end of the quiet line, pinned so a long record name cannot push them out
+    const _exc=[];
+    if(_bd && _bd.consReq && !(((S.cons||{})[id]||'').trim())) _exc.push(['⚠','Impact statement required','','impact']);
+    if(ndData().ids[id]) _exc.push(['▲',fMc(ndData().ids[id])+' not drawn','',fMc(ndData().ids[id]),ndRowTip(id).join('\n')+'\nThe fix list is under Needs attention, at the top.']);
+    if(S.mc[id] && _u>0.005) _exc.push(['★','MC short '+fM(unfTotOf(it,t)),'red','MC short']);
+    const _excH=_exc.map(e=>`<span class="exc ${e[2]}"${e[4]? ' title="'+esc(e[4])+'"' : ''}>${e[0]} ${esc(e[1])}</span>`).join('');
+    const _xg=_exc.map(e=>`<span class="exc ${e[2]}">${e[0]} ${esc(e[3])}</span>`).join('');
+    const _aw=S.awards[id];
+    const _sec=[(it.event && dispTitle(it)!==it.event)? '<span class="x">'+esc(it.event)+'</span>' : '',
+      ccarOf(it)? `<span class="id" title="CCaR record">${esc(ccarOf(it))}</span>` : '<span class="exc">No CCaR record</span>',
+      pidOf(it)? `<span class="id" title="PID">${esc(pidOf(it))}</span>` : '<span class="exc">No PID</span>',
+      _aw? (_aw.mode==='inc'? `<span title="incremental funding — ${(_aw.inc||[]).length} increment(s); edit on the RECORD panel">📅 INC ×${(_aw.inc||[]).length}</span>`
+                            : `<span title="award/obligation date — full funded amount forecasts in this month${_aw.day?'; day '+_aw.day+' sets the CR half-month window':''}">Award ${_aw.day? _aw.day+' ':''}${esc(String(ymLbl(_aw.d)).replace(/\b([A-Z])([A-Z]{2})\b/,function(m,a,b){ return a+b.toLowerCase(); }))}</span>`) : '',
+      ptypeOf(id)? `<span class="x">${ptypeOf(id)==='PRIME'? PRIME_ICON+' Prime' : 'OGC'}</span>` : '',
+      ((S.costElem||{})[id])? `<span class="x">${esc((S.costElem||{})[id])}</span>` : '',
+      (recName(it)&&recName(it)!==dispTitle(it))? `<span class="x" title="CCaR Record Name — the requirement as the source file files it${(S.recNames||{})[id]?'. Renamed — the file says: '+esc(recNameSrc(it)):''}. Rename it from the row’s ⋯ menu.">${esc(recName(it))}${(S.recNames||{})[id]?' \u270e':''}</span>` : '',
+      note? `<span class="x" title="${esc(note)}">📝 note</span>` : '',
+      fundM && _bd? `<span class="x">${_bi>=0? _bi+' · ':''}${esc(_bd.n)}</span>` : ''].filter(Boolean).join(' · ');
+    const _band=`<div class="bandc" title="Decision band — the funding rule travels with the band. Set it on the RECORD panel; manage the ladder in ⚖ Bands.">`
+      +(_bd? `<i style="background:${readableOn(_bd.c,'#ffffff',1)}"></i><span><span class="n">${_bi>=0? _bi : ''}</span> ${esc(_bd.n)}</span>` : '<span class="none">— no band</span>')+`</div>`;
+    const _lane=`<div class="lanec" title="Disc ${fM(t.dT)} · Mand ${fM(t.mT)} · Unfunded ${fM(t.uT)}${t.set?' · funding source SET manually ('+t.set.toUpperCase()+')':''}">`
+      +`<span class="meter" aria-hidden="true"><b class="d" style="width:${_w(t.dT)}%"></b><b class="m" style="width:${_w(t.mT)}%"></b></span>`
+      +`<span class="ll ${_lk}">${t.set?'⚙ ':''}${_ll.charAt(0)+_ll.slice(1).toLowerCase()}</span>`
+      +(svcFilter>=0? `<span class="sfl" style="color:${sfLeft>0.5?'var(--green)':'var(--red)'}" title="${esc(SVC[svcFilter])} discretionary remaining after this row and everything above it">${esc(SVC[svcFilter])} disc ${sfLeft>0.5? fM(sfLeft)+' left':'exhausted'}</span>`:'')
+      +`</div>`;
+    h+=`<div class="row t-${t.tier} ${id.startsWith('BUY-')?'buy':''}" id="row-${esc(id)}"
+        ondragstart="dstart(event,${jsa(id)})" ondragend="dend(event);this.removeAttribute('draggable')" ondragover="dover(event,${jsa(id)})" ondragleave="dleave(event)" ondrop="ddrop(event,${jsa(id)})">
+      <div class="rank">${brief? `<b>${hardOpen? liveRank[id] : rank}</b>${S.mc[id]?'<span class="mcmark" title="Mission Critical">★</span>':''}` : `${canDrag? `<span class="grip" onmousedown="gripDown(this)" title="Drag to reorder" aria-hidden="true">⠿</span>` : `<span class="grip" style="cursor:default;opacity:.45" title="${esc(hardOpen? 'Rank entry is on — type a rank instead' : 'Drag is paused while searching or filtering')}" aria-hidden="true">⠿</span>`}
+        <input value="${hardOpen? liveRank[id] : rank}" aria-label="Rank of ${esc(dispTitle(it))}" ${hardOpen?'style="border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)"':''} onchange="setRank(${jsa(id)},this.value)" onfocus="this.select()" title="${hardOpen? 'RANK-ENTRY MODE — type the target rank; the row stays put here but moves in the real order (box shows its current rank)' : (pmoMode()? filter+'’s own rank (master unaffected)' : 'master rank')}">
+        ${rankM? `<span class="ud"><button onclick="bump(${jsa(id)},-1)" aria-label="Move up">▲</button><button onclick="bump(${jsa(id)},1)" aria-label="Move down">▼</button></span>` : ''}`}</div>
+      <div class="pmoc"><div class="gchip" style="background:${GCOLOR[grpOf(it)]}">${esc(grpOf(it))}</div>
+        ${(rankM||pmoMode())? `<div class="pmor" title="${pmoMode()? 'where this requirement sits in the whole portfolio' : esc(grpOf(it))+' #'+PR[id]+' — this office’s own order'}">${pmoMode()? 'master #'+MR[id] : '#'+PR[id]}</div>` : ''}</div>
+      <div class="reqc"><div class="tt"><span class="t1" title="${esc(dispTitle(it))}">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${it.team}</span>`:''}${it.custom?'<span class="sect-new">ADDED</span>':''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched — this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">⚑ ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' · +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}${(!brief && clinApplies(id))? `<button class="clinbtn ${clinOpen[id]?'on':''}" onclick="toggleClin(${jsa(id)})" title="CLIN drill — allocate this prime contract line by line, by service" aria-label="CLIN drill">🧾</button>`:''}<span class="xg">${_xg}</span></div>
+        <div class="t2"><span class="ids">${_sec}</span><span class="excs">${_excH}${cycDeltaChip(id)}</span></div></div>
+      ${fundM? `<div class="num">${fM(_ask)}</div>${_amt(t.dT,'d')}${_amt(t.mT,'m')}${_amt(_u,'u')}
+      <div class="acts alloc">${isSvc?'<span class="mode-tag">SVC</span>':''}
+        ${rowSplit? `<input disabled value="${Math.round(svcAlloc(it).reduce((x,y)=>x+y,0)).toLocaleString()}" aria-label="Allocation" title="allocation = the Disc and Mand dollars you directed, per service, in the ⚙ Split editor. A Split states its own allocation; there is no second figure to set here.${CLINS[id]? ' The CLIN grid is a visual breakout only and feeds none of this.':''}">`
+        : `<input class="${isSvc?'svcmode':''}" style="${S.fsrc[id]?'border-color:var(--gold)':''}" placeholder="${fM(askTot(it))}" value="${inpVal}" aria-label="Allocation"
+          onchange="setAlloc(${jsa(id)},this.value)" onfocus="this.select()" title="${S.fsrc[id]? 'ROW allocation — the basis this ⚙ requirement draws against. Blank = the full '+FYL()+' requirement.' : (CLINS[id]? 'ROW allocation — this is what the board funds. The CLIN grid is a visual breakout only and feeds none of this. Blank = the full '+FYL()+' requirement.' : 'allocation — blank = the full '+FYL()+' requirement')}">`}</div>`
+      : brief? `${_band}<div class="num">${fM(_ask)}</div>${_amt(t.dT,'d')}${_amt(t.mT,'m')}${_amt(_u,'u')}<div class="num cum">${fM(t.cum)}</div>`
+      : `${_band}<div class="num">${fM(_ask)}</div><div class="num cum">${fM(t.cum)}</div>${_lane}`}
+      ${brief? '' : `<div class="mcc"><button class="mcb ${S.mc[id]?'on':''}" aria-pressed="${S.mc[id]?'true':'false'}" aria-label="Mission Critical" onclick="S.mc[${jsa(id)}]=!S.mc[${jsa(id)}];save();render()" title="★ Mission Critical — this must be paid this year${S.mc[id]?' (on — click to clear)':''}">${S.mc[id]?'★':'☆'}</button></div>
+      <div class="morec">${rowMenuHtml(it)}</div>`}
+      ${clinApplies(id)&&clinOpen[id]&&!brief? clinTable(it):''}
       ${consOpen[id]? consBox(it):''}
     </div>`;
   });
@@ -21557,12 +21978,29 @@ function fitMenu(){
     if(over>0) dd.style.marginLeft=(-over)+'px';
   }catch(e){}
 }
+// v1.90 (item 27): THE TOP FITS THE WINDOW, MEASURED. A bar that would run past the edge first drops its
+// labels (Appropriation, Fiscal year, PMO, the build) and shortens "Reports & exports"; the task bar then
+// folds the mode's tools into their one menu. Measured rather than set at a width, because what a bar
+// holds changes -- a mode's tools, an active filter, a long status message.
+function fitTop(){
+  try{
+    const bars=[document.querySelector('.hdr'), document.querySelector('.tbar')];
+    bars.forEach(function(el){ if(el) el.classList.remove('tight1','tight2'); });
+    bars.forEach(function(el){
+      if(!el || !el.clientWidth) return;
+      if(el.scrollWidth>el.clientWidth+1) el.classList.add('tight1');
+      if(el.scrollWidth>el.clientWidth+1) el.classList.add('tight2');
+    });
+  }catch(e){ /* layout nicety: a board that cannot measure keeps the full bars */ }
+}
+try{ window.addEventListener('resize', function(){ fitTop(); syncSticky(); }); }catch(e){}
 function syncSticky(){
   try{
     const r=document.documentElement.style, px=el=>el&&el.offsetHeight? el.offsetHeight+'px':null;
     const set=(k,el)=>{ const v=px(el); if(v) r.setProperty(k,v); };
-    set('--hdrH', document.querySelector('.hdr'));
-    set('--tbarH', document.querySelector('.tbar'));
+    // v1.90: ONE sticky stack. The grid header and the docked RECORD panel pin beneath all of it.
+    set('--hdrH', document.getElementById('topStack'));
+    r.setProperty('--tbarH','0px');
     set('--schH', document.querySelector('.sc-h'));
   }catch(e){}
 }
@@ -21576,7 +22014,9 @@ if(document.addEventListener) document.addEventListener('click', e=>{
 });
 function syncBtns(){
   const hb=document.getElementById('hardBtn');
-  if(hb){ hb.className='btn'+(hardOpen?' on':''); hb.textContent='⌨ Rank-entry'+(hardOpen?': ON':''); }
+  if(hb){ hb.className='btn'+(hardOpen?' on':''); hb.textContent='Rank entry'+(hardOpen?': ON':''); hb.setAttribute('aria-pressed', hardOpen?'true':'false'); }
+  // v1.90: the workspace tabs say which one is chosen
+  UI_MODES.forEach(function(m){ const t=document.getElementById('tab_'+m); if(t) t.setAttribute('aria-selected', uiMode===m?'true':'false'); });
   const mi=(label,fn,chk,sub,cls)=>`<div class="mi${cls?' '+cls:''}" onclick="${fn}"><span class="chk">${chk?'✓':''}</span>${label}${sub?`<span class="sub">${sub}</span>`:''}</div>`;
   // EVERY TOOLBAR MENU, READ OFF THE PAGE. A hand-kept list here left 🏢 PMO out when that menu
   // was added (v1.67): toggleMenu('pmo') set the flag and nothing opened, on every board, for
@@ -21592,9 +22032,13 @@ function syncBtns(){
   // press a button that could only say no. On a copy the work is already kept in this browser;
   // the button beside it sends it back.
   const _sb=(typeof SANDBOX!=='undefined' && SANDBOX);
-  if(ss) ss.innerHTML = _sb ? (DIRTY ? '<b>● kept in this browser</b>' : 'PMO copy · your work is kept in this browser')
-        : DIRTY ? (_dlOnly? '<b>● downloaded — not on the shared file yet</b>' : '<b>● unsaved changes</b>')
-        : (MS.ts ? 'saved '+shortTs(MS.ts)+(MS.by?' · '+esc(MS.by):'') : 'not saved to a file yet');
+  if(ss) ss.innerHTML = _sb ? (DIRTY ? '<b>kept in this browser</b>' : 'PMO copy · your work is kept in this browser')
+        : DIRTY ? (_dlOnly? '<b>downloaded — not on the shared file yet</b>' : '<b>Unsaved changes</b>')
+        : (MS.ts ? '<b>Saved</b> '+esc(shortTime(MS.ts)) : 'not saved to a file yet');
+  // v1.90: the time is on the bar; the day, who saved it and the latest message are in the tooltip
+  if(ss){ ss.classList.toggle('dirty', !!DIRTY);
+    const _st=document.getElementById('shareStat');
+    ss.title=(MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+(_st? _st.textContent : ''); }
   // v1.89: while work is kept aside, the header says so -- an opening message can be replaced by the next.
   if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <a style="color:var(--gold);cursor:pointer" onclick="keptPutBack()" '
     +'title="Work this browser held that no saved copy had, kept aside '+esc(shortTs(_keptMeta.t))+'. Click to put it back.">\u21b6 work kept aside</a>';
@@ -21623,8 +22067,8 @@ function syncBtns(){
     mi('⚙ Set base year…',"mRun(setBaseYear)",false,'rolls the 5-year window')+
     mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,'empties this year only',' warn');
   const nFilt=(mcOnly?1:0)+(svcFilter>=0?1:0)+(laneFilter?1:0);
-  const bv=document.getElementById('b_view');
-  if(bv) bv.textContent='🔍 Filter'+(nFilt?' ●'+nFilt:'')+(svcAll?' ☰':'')+' ▾';
+  const bv=document.getElementById('b_view_t');
+  if(bv) bv.textContent='Filter'+(nFilt?' ●'+nFilt:'')+(svcAll?' ☰':'')+' ▾';
   // ── THE PMO MENU ────────────────────────────────────────────────────────────────────────────
   // THE BUTTON SAYS WHAT IS SELECTED. The chips it replaced were visible at a glance; a menu is
   // not, so the selection has to be on the face of it or the board silently shows one office's
@@ -21632,8 +22076,8 @@ function syncBtns(){
   (function(){
     const counts=pmoCounts(), keys=pmoMenuKeys(counts);
     const bp=document.getElementById('b_pmo');
-    if(bp) bp.textContent='🏢 '
-      + (filter==='ALL'? 'PMO' : filter)
+    if(bp) bp.textContent=''
+      + (filter==='ALL'? 'All offices' : filter)
       + (ptypeFilter? ' · '+(ptypeFilter==='PRIME'?'Primes':'OGC') : '')
       + ' ▾';
     const dd=document.getElementById('dd_pmo'); if(!dd) return;
@@ -21694,66 +22138,161 @@ function syncBtns(){
     mi('Any service',"svcFilter=-1;render()",svcFilter<0)+
     SVC.map((s,i)=>mi(esc(s)+' — funded requirements only',`svcFilter=${i};render()`,svcFilter===i)).join('')+
     (nFilt? '<div class="msep"></div>'+mi('✕ Clear all filters',"mcOnly=false;svcFilter=-1;ptypeFilter='';laneFilter='';document.getElementById('q').value='';render()",false,'back to the full list'):'');
-  // Menus follow the PPBE horizon: what is executing now · the year being built · the out-years
+  // ── v1.90 (item 27): THE MENUS ARE GROUPED BY TASK ─────────────────────────────────────────────
+  // Every item the Active year, Budget year, FYDP, Tools and Export menus held is here, BY THE SAME CALL:
+  // in Reports & exports (every view and every export, by horizon), Data (everything that brings data
+  // in), Setup (the shape of the board, and how it looks to you), or on its mode's tools in the task
+  // bar. tools/layout-fits.mjs carries the old list and fails by name if one goes missing.
   const addOpen=document.getElementById('addPanel').style.display==='block';
-  document.getElementById('dd_ay').innerHTML=
-    '<div class="mlbl">Views</div>'+
-    mi('📈 Active Year Execution…',"mRun(toggleEx)",exOpen,'obligations vs OSD goals')+
-    '<div class="msep"></div><div class="mlbl">Budgets</div>'+
-    mi('⚖ Reprogramming Actions…',"mRun(toggleRp)",rpOpen,'ATR / BTR across the active years')+
-    '<div class="msep"></div><div class="mlbl">Bring data in</div>'+
-    mi('📥 Import CCaR QPE…',"mRun(()=>document.getElementById('srcFile').click())",false,'monthly CCaR pull (.xlsx)')+
-    mi('📈 QPE coverage…',"mRun(toggleQpe)",qpeOpen,'which columns come back filled in — and which ORBIT needs')+
-    mi('⚖ ORBIT vs CCaR…',"mRun(toggleDiv)",divOpen,'where the board and the last pull disagree');
-  document.getElementById('dd_by').innerHTML=
-    '<div class="mlbl">Views</div>'+
-    mi('📅 '+FYL()+' Spend Plan Forecast…',"mRun(toggleFc)",fcOpen,'Oct '+((MS.cur-1)%100)+' – Sep '+(MS.cur%100)+' · $M')+
-    mi('⚖ CR Cash Needs…',"mRun(toggleCr)",crOpen,'half/full month · Service/PMO')+
-    '<div class="msep"></div><div class="mlbl">Requirements — '+FYL()+'</div>'+
-    mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'value by service + CCaR')+
-    mi('💰 Budget Management…',"mRun(toggleBm)",bmOpen,'budget authority · funding sources')+
-    (function(){ const n=S.order.filter(id=>!S.fsrc[id]).length;
+  const sep='<div class="msep"></div>', lbl=function(t){ return '<div class="mlbl">'+t+'</div>'; };
+  const I={
+    // views: the budget year
+    fc: mi('📅 '+FYL()+' Spend Plan Forecast…',"mRun(toggleFc)",fcOpen,'Oct '+((MS.cur-1)%100)+' – Sep '+(MS.cur%100)+' · $M'),
+    cr: mi('⚖ CR Cash Needs…',"mRun(toggleCr)",crOpen,'half/full month · Service/PMO'),
+    plans: mi('📋 Two Spend Plans…',"mRun(togglePlans)",planOpen,'discretionary only vs the whole top line'),
+    ed: mi('⚖ Executive Decision…',"mRun(toggleEd)",edOpen,'what discretionary buys · stoppage gap'),
+    // views: the active years
+    ex: mi('📈 Active Year Execution…',"mRun(toggleEx)",exOpen,'obligations vs OSD goals'),
+    rp: mi('⚖ Reprogramming Actions…',"mRun(toggleRp)",rpOpen,'ATR / BTR across the active years'),
+    // The funds flow stands on a SET of fiscal years and a set of appropriations at once.
+    flow: mi('🚰 Funds Flow (Sewer Chart)…',"mRun(toggleFlow)",flowOpen,
+        'any year or combination — active years through the FYDP'),
+    // views: the FYDP
+    sp: mi('📐 Spruills — Reqs vs Funding…',"mRun(toggleSp)",spOpen,'ACE × PPBE cycle · all appns'),
+    fydp: mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'by requirement · PMO · service · a tab per PMO — a locked cycle or the working plan'),
+    ppbe: mi('🏛 PPBE Budget Positions…',"mRun(toggleP2)",ppOpen,'POM · BES · PB · DoN'),
+    // what goes out
+    pf: mi('✈ Pre-flight check…',"mRun(togglePf)",pfOpen,'what would be dropped, rejected or unexplainable'),
+    xl: mi('📊 Excel Workbook — full breakouts',"mRun(exportExcel)",false,'streams · forecast · CR · PMOs'+(DATA.costElems?' · CE':'')),
+    acex: mi('📈 ACE Tie-Out (Excel)',"mRun(exportAceTieout)",false,'mapping · PMO reconciliation · unclaimed lines'),
+    fydpx: mi('📊 FYDP Spend Plan (Excel)',"mRun(exportFydpPlan)",false,(fydpSrc==='working'? 'the working plan' : blLbl(fydpSrc)+' (locked)')+' · by requirement, PMO, service, a tab per PMO'),
+    cycx: mi('⇄ Cycle Comparison (Excel)',"mRun(exportCycCompare)",false,(cycCmpA? cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB) : 'pick A in ⇄ Compare two cycles')+' · compare, changes, by PMO'),
+    // It reaches every appropriation, so it says so on the menu.
+    coax: mi('📒 Chart of Accounts (Excel)',"mRun(exportCoa)",false,
+       'appropriation → PMO → requirement → CCaR record · all appns'),
+    ppt: mi('📽 PowerPoint deck',"mRun(exportPPT)",false,'SFCB template slides'),
+    drill: mi('⬇ Priority Drill by Band…',"mRun(exportCSV)",false,'whole 1–N + a tab per PMO'),
+    syn: mi('⬇ Exec Synopsis (CSV)',"mRun(execSynopsis)",false,'the one-page picture'),
+    atr: mi('⬇ ATR/BTR Log (Excel)',"mRun(exportReprog)",false,'reprogramming actions'),
+    src: mi('⬇ Spend Plan Source (Excel)',"mRun(exportSrc)",false,'mirror of the imported format'),
+    r1a9a: mi('⬇ CR Cash Return (1A9A)',"mRun(crExport)",false,'STOVL + USMC CV + USN · O&M · Oct–Mar'),
+    ids: mi('\u{1F4E4} IDS Batch Import — Requirements…',"mRun(toggleIds)",false,
+       (function(){ const R=idsReqRows();
+         return R.rows.length+' line'+(R.rows.length===1?'':'s')
+           +(R.skip.length? ' · '+R.skip.length+' held back' : ''); })()),
+    link: mi('\u{1F5BC} '+esc(linkName()),"mRun(linkOpen)",false,
+       linkCfg().name? esc(linkCfg().name) : 'not linked yet — click to set the file name'),
+    linkset: mi('⚙ Change the linked tool…',"mRun(linkSet)",false,'an .html tool kept beside this file'),
+    // bringing data in
+    qpe: mi('📥 Import CCaR QPE…',"mRun(()=>document.getElementById('srcFile').click())",false,'monthly CCaR pull (.xlsx)'),
+    qpecov: mi('📈 QPE coverage…',"mRun(toggleQpe)",qpeOpen,'which columns come back filled in — and which ORBIT needs'),
+    div: mi('⚖ ORBIT vs CCaR…',"mRun(toggleDiv)",divOpen,'where the board and the last pull disagree'),
+    ccar: mi('📇 Import CCaR Records…',"mRun(()=>document.getElementById('ccarFile').click())",false,
+        ccarIdx()? ((MS.ccarIdx.n||0)+' record'+((MS.ccarIdx.n||0)===1?'':'s')+' — Title and OPR') : 'sources Title and OPR'),
+    acet: mi('📈 ACE tie-out…',"mRun(toggleAce)",aceOpen,
+       aceSetKeys().length? aceSetKeys().sort().map(esc).join(', ')+' loaded' : 'no estimate imported yet'),
+    acei: mi('📥 Import Annual Cost Estimate…',"mRun(()=>document.getElementById('aceFile').click())",false,
+       Object.keys(ACEDB.sets||{}).length
+         ? 'held: '+Object.keys(ACEDB.sets).sort().map(k=>esc(k)+((ACEDB.sets[k]||{}).locked?' 🔒':'')).join(' · ')
+         : 'ACE workbook (.xlsx)'),
+    bae: mi('💰 Import Budget Extract (BAE)…',"mRun(()=>document.getElementById('budFile').click())",false,
+        budReg().length? 'reconciles the departments the file covers' : 'USAF and DON — import both'),
+    budl: mi('📋 Budget list…',"mRun(toggleBudReg)",false,
+        (function(){ const n=budReg().length, o=budOrphanCount();
+          return n? (n+' held'+(o? ' · '+o+' on a retired budget' : '')) : 'nothing imported yet'; })()),
+    // the shape of the board
+    svc: mi('🏷 Services…',"mRun(toggleSvcPanel)",svcPanelOpen,SVC.length? SVC.length+' service'+(SVC.length===1?'':'s') : 'none yet — set these first'),
+    pmos: mi('🏢 PMOs…',"mRun(togglePmo)",pmoOpen,GROUPS.length+' office'+(GROUPS.length===1?'':'s')+' — and the order every report reads them in'),
+    bands: mi('⚖ Bands…',"mRun(toggleBands)",bandPanelOpen,BANDS_LIST().length+' bands for '+apLabel()),
+    coa: mi('📒 Chart of Accounts…',"mRun(toggleCoa)",coaPanelOpen,
+        coaDef().groups.length? coaDef().groups.length+' grouping'
+          +(coaDef().groups.length===1?'':'s')+' — the structure you agree'
+          : 'set up how CCaR records are built'),
+    ent: mi('📍 Destinations…',"mRun(toggleEnt)",entOpen,flowEnts().length+' place'+(flowEnts().length===1?'':'s')+' money can go'),
+    rcn: (rcnApplies()? mi('🗂 RCN / EEIC…',"mRun(toggleRcn)",rcnOpen,
+        rcnReg().length+' combo'+(rcnReg().length===1?'':'s')+' · USAF / ANG / AFRC') : ''),
+    si: (siApplies()? mi('🎯 Special Interest codes…',"mRun(toggleSi)",siShown,
+        'allocations by code and service — O&M only') : ''),
+    rlg: mi('💱 Funding realignment…',"mRun(toggleRlg)",rlgOpen,
+        'source a lump sum by moving whole requirements between years'),
+    exw: mi('🧱 WBS from execution data…',"mRun(toggleExw)",exwOpen,
+        'read the WBS column out of the imported Spend Plan Source'),
+    mat: mi('🗂 Classify requirements…',"mRun(toggleMat)",matOpen,
+        'find what is unanswered and set it across many at once'),
+    base: mi('⚙ Set base year…',"mRun(setBaseYear)",false,'rolls the 5-year window'),
+    reset: mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,'empties this year only',' warn'),
+    // the mode tools' own items, for the folded menu below 1100px
+    add: mi('＋ Add Requirement…',"mRun(toggleAdd)",addOpen,'value by service + CCaR'),
+    bm: mi('💰 Budget Management…',"mRun(toggleBm)",bmOpen,'budget authority · funding sources'),
+    split: (function(){ const n=S.order.filter(id=>!S.fsrc[id]).length;
       return mi('⚙ Convert all to Split…',"mRun(convertAllToSplit)",false,
-        n? n+' still on the automatic lane walk' : 'all requirements carry an explicit split'); })()+
-    // The PMO copy, its submittals and a copy's ✉ Submit input moved to 📁 File ▾ → Export (v1.86).
-    mi('📋 Two Spend Plans…',"mRun(togglePlans)",planOpen,'discretionary only vs the whole top line')+
-    '<div class="msep"></div><div class="mlbl">Spend plan basis</div>'+
-    mi('◨ Discretionary only',"setScen('disc')",scenView==='disc',
-       'spend plan + forecast only — mandatory withheld; board totals unchanged')+
-    mi('◧ Discretionary + Mandatory',"setScen('')",scenView==='',
-       'both pots — this board’s actual plan')+
-    (function(){ const ref=cycDeltaRef(), D=ref? cycDeltaCur() : null;
+        n? n+' still on the automatic lane walk' : 'all requirements carry an explicit split'); })(),
+    scenD: mi('◨ Discretionary only',"setScen('disc')",scenView==='disc',
+       'spend plan + forecast only — mandatory withheld; board totals unchanged'),
+    scenDM: mi('◧ Discretionary + Mandatory',"setScen('')",scenView==='',
+       'both pots — this board’s actual plan'),
+    chg: (function(){ const ref=cycDeltaRef(), D=ref? cycDeltaCur() : null;
       return mi('Δ Changes since '+(ref? blLbl(ref) : 'the reference')+'…',"mRun(toggleCycChg)",cycChgOpen,
-        !ref? 'lock a cycle first' : (!D? blLbl(ref)+' holds no '+FYL() : D.nChanged+' changed · '+D.nNew+' new · '+D.nRemoved+' removed')); })()+
-    mi('📌 PPBE cycles — lock the spend plan…',"mRun(toggleBl)",blOpen,(MS.cycle? 'working '+blLbl(MS.cycle)+' · ':'')+(blList().length? blList().length+' locked cycle'+(blList().length===1?'':'s') : 'lock the FYDP window under a cycle'))+
-    (CYCVIEW
+        !ref? 'lock a cycle first' : (!D? blLbl(ref)+' holds no '+FYL() : D.nChanged+' changed · '+D.nNew+' new · '+D.nRemoved+' removed')); })(),
+    bl: mi('📌 PPBE cycles — lock the spend plan…',"mRun(toggleBl)",blOpen,(MS.cycle? 'working '+blLbl(MS.cycle)+' · ':'')+(blList().length? blList().length+' locked cycle'+(blList().length===1?'':'s') : 'lock the FYDP window under a cycle')),
+    views: (CYCVIEW
       ? mi('↩ Leave the locked view',"mRun(cycLeave)",true,'back to the working plan'+(MS.cycle? ' — '+blLbl(MS.cycle) : ''))
       : blList().filter(function(k){ return cycHeld(k).length; }).map(function(k){
           return mi('👁 View '+blLbl(k)+' (locked)…',"mRun(function(){ cycView("+jsa(k)+"); })",false,
-                    'read only · FY'+cycHeld(k).map(function(v){ return v%100; }).join(', FY')); }).join(''))+
-    // Beside the baseline, because they answer the same question a year apart: a baseline freezes
-    // the PLAN under a PPBE cycle, a snapshot freezes the plan AND what has been obligated on a
-    // date. Anyone reaching for one should see the other.
-    mi('📷 Snapshots…',"mRun(togglePos)",posOpen,posList().length? posList().length+' dated position'+(posList().length===1?'':'s') : 'freeze this year’s plan and its execution')+
-    mi('⚖ Executive Decision…',"mRun(toggleEd)",edOpen,'what discretionary buys · stoppage gap')+
-    mi('⚖ Bands…',"mRun(toggleBands)",bandPanelOpen,BANDS_LIST().length+' bands for '+apLabel())+
-    mi('⚖ Preview proposed 1–N order…',"mRun(togglePreviewOrder)",poOpen,'report first — changes nothing')+
-    '<div class="msep"></div>'+
-    mi('↺ Reset priority order',"mRun(resetOrder)",false,FYL()+' only',' warn');
-  document.getElementById('dd_fydp').innerHTML=
-    '<div class="mlbl">Views</div>'+
-    mi('📐 Spruills — Reqs vs Funding…',"mRun(toggleSp)",spOpen,'ACE × PPBE cycle · all appns')+
-    mi('📊 Five-year spend plan…',"mRun(toggleFydp)",fydpOpen,'by requirement · PMO · service · a tab per PMO — a locked cycle or the working plan')+
-    mi('⇄ Compare two cycles…',"mRun(toggleCycCmp)",cycCmpOpen,'A ⇄ B per year · added, removed, changed · the rows account for the totals')+
-    '<div class="msep"></div><div class="mlbl">Positions</div>'+
-    mi('🏛 PPBE Budget Positions…',"mRun(toggleP2)",ppOpen,'POM · BES · PB · DoN')+
-    '<div class="msep"></div><div class="mlbl">Bring data in</div>'+
-    mi('📈 ACE tie-out…',"mRun(toggleAce)",aceOpen,
-       aceSetKeys().length? aceSetKeys().sort().map(esc).join(', ')+' loaded' : 'no estimate imported yet')+
-    mi('📥 Import Annual Cost Estimate…',"mRun(()=>document.getElementById('aceFile').click())",false,
-       Object.keys(ACEDB.sets||{}).length
-         ? 'held: '+Object.keys(ACEDB.sets).sort().map(k=>esc(k)+((ACEDB.sets[k]||{}).locked?' 🔒':'')).join(' · ')
-         : 'ACE workbook (.xlsx)');
+                    'read only · FY'+cycHeld(k).map(function(v){ return v%100; }).join(', FY')); }).join('')),
+    cmp: mi('⇄ Compare two cycles…',"mRun(toggleCycCmp)",cycCmpOpen,'A ⇄ B per year · added, removed, changed · the rows account for the totals'),
+    snap: mi('📷 Snapshots…',"mRun(togglePos)",posOpen,posList().length? posList().length+' dated position'+(posList().length===1?'':'s') : 'freeze this year’s plan and its execution'),
+    po: mi('⚖ Preview proposed 1–N order…',"mRun(togglePreviewOrder)",poOpen,'report first — changes nothing'),
+    ro: mi('↺ Reset priority order',"mRun(resetOrder)",false,FYL()+' only',' warn'),
+    hard: mi('⌨ Rank entry',"mRun(toggleHard)",hardOpen,'type a rank in any row; the list stays put'),
+    full: mi('Present full screen',"mRun(briefFull)",false,'Esc to leave'),
+  };
+  document.getElementById('dd_reports').innerHTML=
+    lbl('Views — budget year ('+FYL()+')')+I.fc+I.cr+I.plans+I.ed+sep+
+    lbl('Views — active years')+I.ex+I.rp+I.flow+sep+
+    lbl('Views — FYDP')+I.sp+I.fydp+I.ppbe+sep+
+    lbl('Briefing products')+I.pf+I.xl+I.acex+I.fydpx+I.cycx+I.coax+I.ppt+sep+
+    lbl('Data exports')+I.drill+I.syn+I.atr+I.src+I.r1a9a+I.ids+sep+
+    lbl('Companion tools')+I.link+I.linkset;
+  document.getElementById('dd_data').innerHTML=
+    lbl('Execution — CCaR')+I.qpe+I.qpecov+I.div+I.ccar+sep+
+    lbl('Cost estimates')+I.acei+I.acet+sep+
+    lbl('Budget extract — for the Spend Plan Source export')+I.bae+I.budl;
+  document.getElementById('dd_setup').innerHTML=
+    lbl('The shape of this board')+I.svc+I.pmos+I.bands+I.coa+I.ent+I.rcn+I.si+sep+
+    lbl('Maintenance')+I.rlg+I.exw+I.base+sep+I.reset+sep+
+    lbl('Appearance — yours only, never saved into the file')
+    +THEMES.map(function(t,i){
+        return mi((t.k===themeGet()? '● ' : '○ ')+t.n,
+                  'mRun(function(){themeSetIdx('+i+')})', t.k===themeGet(), t.d); }).join('')
+    +sep+[['compact','Compact','the most rows on the screen'],['comfortable','Comfortable','two lines to a requirement'],
+          ['presentation','Presentation','larger type, for a room']].map(function(d){
+        return mi('Density: '+d[1],"mRun(function(){uiSetDensity("+jsa(d[0])+")})",uiDensity===d[0],d[2]); }).join('');
+  document.getElementById('dd_basis').innerHTML=lbl('Spend plan basis')+I.scenD+I.scenDM;
+  { const bb=document.getElementById('b_basis');
+    if(bb) bb.textContent='Spend plan basis: '+(scenView==='disc'? 'Disc only' : 'Disc + Mand')+' ▾'; }
+  // The Compare tools: viewing a locked cycle is one of them, and what can be viewed changes.
+  { const cv=document.getElementById('cycViewActs');
+    if(cv) cv.innerHTML = CYCVIEW
+      ? '<button class="btn on" onclick="cycLeave()" title="Back to the working plan">↩ Leave the locked view</button>'
+      : blList().filter(function(k){ return cycHeld(k).length; }).map(function(k){
+          return '<button class="btn" onclick="cycView('+jsa(k)+')" title="read only">👁 View '+esc(blLbl(k))+'</button>'; }).join(''); }
+  // Below 1100px the mode's tools fold into one menu -- the same functions, listed.
+  { const T={ review:I.add+I.mat, rank:I.hard+I.po+sep+I.ro, fund:I.bm+I.split+sep+lbl('Spend plan basis')+I.scenD+I.scenDM+sep+I.bands+I.ed,
+              compare:I.chg+I.cmp+I.snap+I.bl+(I.views? sep+I.views : ''), brief:I.full+I.ppt+I.syn };
+    const nm={review:'Review',rank:'Rank',fund:'Fund',compare:'Compare',brief:'Brief'}[uiMode]||'Mode';
+    document.getElementById('dd_modetools').innerHTML=lbl(nm+' tools')+(T[uiMode]||'');
+    const bt=document.getElementById('b_modetools'); if(bt) bt.textContent=nm+' tools ▾'; }
+  // The active filters, as chips that say what they are and take themselves off.
+  { const F=[];
+    const L={disc:'◧ Fully discretionary only', mand:'◨ Spilling into mandatory', unf:'◩ Any unfunded portion', nd:'▲ Set higher than it draws'};
+    if(laneFilter && L[laneFilter]) F.push([L[laneFilter], "laneFilter='';render()"]);
+    if(mcOnly) F.push(['★ Mission Critical only', "mcOnly=false;render()"]);
+    if(svcFilter>=0 && SVC[svcFilter]!==undefined) F.push([SVC[svcFilter]+' — funded requirements only', "svcFilter=-1;render()"]);
+    if(ptypeFilter) F.push([ptypeFilter==='PRIME'? 'Prime Contracts' : 'OGC', "ptypeFilter='';render()"]);
+    const fc=document.getElementById('fchips');
+    if(fc) fc.innerHTML=F.map(function(f){ return '<span class="fchip">'+esc(f[0])
+      +'<button type="button" onclick="'+f[1]+'" aria-label="Remove the filter: '+esc(f[0])+'" title="Remove this filter">✕</button></span>'; }).join(''); }
   document.getElementById('dd_share').innerHTML=
     '<div class="mlbl">Save</div>'+
     mi('💾 Save',"mRun(saveInPlace)",false,(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place')+
@@ -21792,73 +22331,8 @@ function syncBtns(){
                                                        : 'what changed, from what, by whom'; })())
     +mi('🕘 Save history',"mRun(showLog)",false,'who saved, when')
     +mi('✎ My editor name…',"mRun(()=>{whoAmI(true);render();})",false,'stamped on your saves');
-  document.getElementById('dd_tools').innerHTML=
-    '<div class="mlbl">The shape of this board</div>'
-    +mi('🏷 Services…',"mRun(toggleSvcPanel)",svcPanelOpen,SVC.length? SVC.length+' service'+(SVC.length===1?'':'s') : 'none yet — set these first')
-    +mi('🏢 PMOs…',"mRun(togglePmo)",pmoOpen,GROUPS.length+' office'+(GROUPS.length===1?'':'s')+' — and the order every report reads them in')
-    +mi('📒 Chart of Accounts…',"mRun(toggleCoa)",coaPanelOpen,
-        coaDef().groups.length? coaDef().groups.length+' grouping'
-          +(coaDef().groups.length===1?'':'s')+' — the structure you agree'
-          : 'set up how CCaR records are built')
-    +mi('📍 Destinations…',"mRun(toggleEnt)",entOpen,flowEnts().length+' place'+(flowEnts().length===1?'':'s')+' money can go')
-    +(rcnApplies()? mi('🗂 RCN / EEIC…',"mRun(toggleRcn)",rcnOpen,
-        rcnReg().length+' combo'+(rcnReg().length===1?'':'s')+' · USAF / ANG / AFRC') : '')
-    +(siApplies()? mi('🎯 Special Interest codes…',"mRun(toggleSi)",siShown,
-        'allocations by code and service — O&M only') : '')
-    +mi('💱 Funding realignment…',"mRun(toggleRlg)",rlgOpen,
-        'source a lump sum by moving whole requirements between years')
-    +mi('🧱 WBS from execution data…',"mRun(toggleExw)",exwOpen,
-        'read the WBS column out of the imported Spend Plan Source')
-    +mi('\ud83d\uddc2 Classify requirements…',"mRun(toggleMat)",matOpen,
-        'find what is unanswered and set it across many at once')
-    // The funds flow stands on a SET of fiscal years and a set of appropriations at once, so it
-    // never belonged under Active year - that menu is built around ONE of each. It reaches the
-    // budget year and the FYDP now, which makes the old home actively misleading.
-    +'<div class="msep"></div><div class="mlbl">Across every year</div>'
-    +mi('\ud83d\udeb0 Funds Flow (Sewer Chart)\u2026',"mRun(toggleFlow)",flowOpen,
-        'any year or combination \u2014 active years through the FYDP')
-    +'<div class="msep"></div><div class="mlbl">Appearance \u2014 yours only, never saved into the file</div>'
-    +THEMES.map(function(t,i){
-        return mi((t.k===themeGet()? '\u25cf ' : '\u25cb ')+t.n,
-                  'mRun(function(){themeSetIdx('+i+')})', t.k===themeGet(), t.d); }).join('')
-    +'<div class="msep"></div><div class="mlbl">Reference lists for the Spend Plan Source export</div>'
-    +mi('💰 Import Budget Extract (BAE)…',"mRun(()=>document.getElementById('budFile').click())",false,
-        budReg().length? 'reconciles the departments the file covers' : 'USAF and DON — import both')
-    +mi('📋 Budget list…',"mRun(toggleBudReg)",false,
-        (function(){ const n=budReg().length, o=budOrphanCount();
-          return n? (n+' held'+(o? ' · '+o+' on a retired budget' : '')) : 'nothing imported yet'; })())
-    +mi('📇 Import CCaR Records…',"mRun(()=>document.getElementById('ccarFile').click())",false,
-        ccarIdx()? ((MS.ccarIdx.n||0)+' record'+((MS.ccarIdx.n||0)===1?'':'s')+' — Title and OPR') : 'sources Title and OPR')
-    ;
-  document.getElementById('dd_export').innerHTML=
-    '<div class="mlbl">Before it leaves</div>'+
-    mi('✈ Pre-flight check…',"mRun(togglePf)",pfOpen,'what would be dropped, rejected or unexplainable')+
-    '<div class="msep"></div>'+
-    '<div class="mlbl">Briefing products</div>'+
-    mi('📊 Excel Workbook — full breakouts',"mRun(exportExcel)",false,'streams · forecast · CR · PMOs'+(DATA.costElems?' · CE':''))+
-    mi('📈 ACE Tie-Out (Excel)',"mRun(exportAceTieout)",false,'mapping · PMO reconciliation · unclaimed lines')+
-    mi('📊 FYDP Spend Plan (Excel)',"mRun(exportFydpPlan)",false,(fydpSrc==='working'? 'the working plan' : blLbl(fydpSrc)+' (locked)')+' · by requirement, PMO, service, a tab per PMO')+
-    mi('⇄ Cycle Comparison (Excel)',"mRun(exportCycCompare)",false,(cycCmpA? cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB) : 'pick A in ⇄ Compare two cycles')+' · compare, changes, by PMO')+
-    // Under BRIEFING PRODUCTS, not Data: it is taken into a room and worked through, not loaded
-    // into another system. It reaches every appropriation, so it says so on the menu - the rest of
-    // this section answers for the board in front of you.
-    mi('📒 Chart of Accounts (Excel)',"mRun(exportCoa)",false,
-       'appropriation → PMO → requirement → CCaR record · all appns')+
-    mi('📽 PowerPoint deck',"mRun(exportPPT)",false,'SFCB template slides')+
-    '<div class="msep"></div><div class="mlbl">Data</div>'+
-    mi('⬇ Priority Drill by Band…',"mRun(exportCSV)",false,'whole 1–N + a tab per PMO')+
-    mi('⬇ Exec Synopsis (CSV)',"mRun(execSynopsis)",false,'the one-page picture')+
-    mi('⬇ ATR/BTR Log (Excel)',"mRun(exportReprog)",false,'reprogramming actions')+
-    mi('⬇ Spend Plan Source (Excel)',"mRun(exportSrc)",false,'mirror of the imported format')+
-    mi('⬇ CR Cash Return (1A9A)',"mRun(crExport)",false,'STOVL + USMC CV + USN · O&M · Oct–Mar')+
-    mi('\u{1F4E4} IDS Batch Import \u2014 Requirements\u2026',"mRun(toggleIds)",false,
-       (function(){ const R=idsReqRows();
-         return R.rows.length+' line'+(R.rows.length===1?'':'s')
-           +(R.skip.length? ' \u00b7 '+R.skip.length+' held back' : ''); })())+
-    '<div class="msep"></div><div class="mlbl">Companion tools</div>'+
-    mi('\u{1F5BC} '+esc(linkName()),"mRun(linkOpen)",false,
-       linkCfg().name? esc(linkCfg().name) : 'not linked yet — click to set the file name')+
-    mi('\u2699 Change the linked tool\u2026',"mRun(linkSet)",false,'an .html tool kept beside this file');
+  // v1.90: measured last, once everything the bars hold -- the filter chips, the mode's tools -- is in them
+  fitTop(); syncSticky(); fitMenu();
 }
 
 // ============ LIVE VIEW =======================================================================
@@ -23292,7 +23766,7 @@ function budRegBody(){
   const reg=budReg();
   if(!reg.length){
     el.innerHTML='<div class="hint">No budget list held yet. Import the CCaR Budget Allocation '
-      +'Extract from <b>\u2692 Tools \u203a Import Budget Extract (BAE)</b>. The USAF and DON '
+      +'Extract from <b>Data \u203a Import Budget Extract (BAE)</b>. The USAF and DON '
       +'extracts cover different departments and do not overlap \u2014 import both.</div>';
     return;
   }
@@ -23438,8 +23912,8 @@ function idsBody(){
     });
     h+='</table>';
     h+='<div class="hint" style="margin-top:3px">Budget names are assigned in '
-      +'<b>\u{1F6E0} Tools \u203a Classify requirements</b> \u2014 filter to one PMO and set a whole '
-      +'column at once. Control numbers come from <b>\u2692 Tools \u203a Import CCaR Records</b>, and a '
+      +'<b>Review \u203a Classify requirements</b> \u2014 filter to one PMO and set a whole '
+      +'column at once. Control numbers come from <b>Data \u203a Import CCaR Records</b>, and a '
       +'requirement with no CCaR number, or one the records file does not hold, cannot be given one '
       +'here.</div>';
   }
@@ -23504,7 +23978,7 @@ function linkOpen(){
   document.body.appendChild(a); a.click();
   try{ document.body.removeChild(a); }catch(e){}   // some hosts detach it themselves
   setStat('\u{1F517} Opening <b>'+esc(L.name)+'</b>. If nothing appeared it is not in this folder \u2014 '
-    +'use \u2b07 Export \u2192 change the linked tool to correct the name'
+    +'use Reports & exports \u203a change the linked tool to correct the name'
     +(linkIsExe()? ', and give a full path: the .exe loads its page from inside the install folder, '
       +'not from where your boards are kept.' : '.'));
 }
@@ -23540,6 +24014,12 @@ function bump(id,d){
   const list=activeList();
   reorder(list, id, list.indexOf(id)+d);
 }
+// v1.90 (item 27): DRAG ONLY FROM THE HANDLE. A row is draggable while its ⠿ is held down, and stops being
+// so when the drag ends or the button comes up without one -- so selecting a row, or text in it, never
+// starts a drag.
+function gripDown(g){ const r=g&&g.closest&&g.closest('.row'); if(r) r.setAttribute('draggable','true'); }
+try{ document.addEventListener('mouseup', function(){
+  document.querySelectorAll('#list .row[draggable]').forEach(function(r){ r.removeAttribute('draggable'); }); }); }catch(e){}
 function dstart(e,id){ dragId=id; e.target.classList.add('drag'); e.dataTransfer.effectAllowed='move'; }
 function dend(e){ dragId=null; document.querySelectorAll('.row').forEach(r=>r.classList.remove('drag','over')); }
 function dover(e,id){ if(!dragId||dragId===id) return; e.preventDefault(); e.dataTransfer.dropEffect='move'; const el=document.getElementById('row-'+id); if(el) el.classList.add('over'); }
@@ -25368,7 +25848,7 @@ function exportExcel(){
 syncNaGrp();
 document.getElementById('appnSel').innerHTML = Object.keys(APPNS).map(a=>'<option '+(a===APPN?'selected':'')+'>'+a+'</option>').join('');
 document.getElementById('appnLbl').textContent = APPN+' PRIORITIZATION';
-{ const bt=document.getElementById('bldTag'); if(bt) bt.textContent=BUILD; }
+{ const bt=document.getElementById('bldTag'); if(bt){ bt.textContent=String(BUILD).split(' ')[0]; bt.title='ORBIT '+BUILD; } }
 syncAddPanel();
 
 /* ================= GRID BUILD ONLY — the docked inspector ======================================
@@ -25389,9 +25869,10 @@ let curRow = null;
 // shared function stays byte-identical between the two builds.
 function gridSticky(){
   try{
-    const el = document.querySelector('.scstack');
-    const h = (el && el.offsetHeight) ? el.offsetHeight : 0;
-    document.documentElement.style.setProperty('--scsH', h + 'px');
+    // v1.90: the scorecards are no longer pinned -- they sit under Funding detail and scroll with it.
+    // The sticky stack is #topStack, measured by syncSticky().
+    document.documentElement.style.setProperty('--scsH', '0px');
+    syncSticky();
   }catch(e){ /* a board that cannot measure still renders; the header just pins a little high */ }
 }
 try{ window.addEventListener('resize', gridSticky); }catch(e){}
@@ -25981,11 +26462,11 @@ if(_bootRestoreErr){
     +(Object.keys(O).length>1?'them':'it')+' on the row, or add the band back under \u2696 Bands.');
 } else if(typeof IS_SHELL!=='undefined' && IS_SHELL){
   setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it.');
-} else if(pubActive()) setStat((typeof SANDBOX!=='undefined' && SANDBOX)
+} else if(pubActive()){ _statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)
     ? '\u25e8 <b>PMO copy</b>'+(PMODE&&PMODE.by? ' published by <b>'+esc(PMODE.by)+'</b>':'')
       +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
       +'. Your work is kept in this browser, against this copy. <b>\u2709 Submit input</b> sends your office\u2019s changes to the portfolio team.'
-    : '📦 Opened with the saved board state — last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>':'')+' '+fmtTs(PUB.ts)+'. Make changes and 💾 Save to pass it on.');
+    : '📦 Opened with the saved board state — last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>':'')+' '+fmtTs(PUB.ts)+'. Make changes and 💾 Save to pass it on.'); _statQuiet=false; }
 function loadShared(cb){
   // file:// (shared drive / synced folder): fetch is blocked, but XHR works when
   // the board is opened via the provided launcher (--allow-file-access-from-files)

@@ -2071,7 +2071,9 @@ writes a file containing the *old* state. `check.mjs` guards this.
 `prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog`, `prio27appn`, `prio27who`,
 `spmtTheme`, `spmtSidecar`; and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
-aside when a newer saved copy replaced it). Neither is ever part of the board.
+aside when a newer saved copy replaced it). Neither is ever part of the board. Since v1.90: `spmtMode`
+(the workspace mode), `spmtDensity` and `spmtDetail` (Funding detail open) -- this browser's view of the
+board, like `spmtTheme`, never written into the file (`tools/layout-fits.mjs` G checks that).
 
 ## Hand-edit points
 
@@ -2944,6 +2946,88 @@ their pre-sweep; `full-report-lost` retargeted to the opening message's new spel
 **The gate that passed v1.89** (30 Sep, 01:19–02:25 UTC, its first run): every stage clean, **66.2 min**;
 one sweep of 560 mutations (527 from v1.88 plus the 33 above), 549/549 caught, 11 equivalent, the sweep
 62.5 min at four suites at a time; fuzz seed 844746176.
+
+### v1.90 (item 27): the layout -- one sticky top, workspace modes, a row for triage
+
+Approved by Brad on 30 Sep 2026 exactly as prototyped, after a Stage 1 review with rendered
+before/after screenshots. The problem it solves was measured, not felt: at 1440×1000 the first
+requirement sat **1,370px** down the page (1,467 at 1366×768) under the header, the toolbar, the status
+line, four scorecards, the fit strip and two chart panels, so no requirement was on screen when the board
+opened; rows ran 64-110px because they carried editors; and between ~1401 and ~1745px with the RECORD
+panel docked the row's allocation and ⋯ column was clipped on every row.
+
+**The top is one sticky element, `#topStack`**, and every control the old header, toolbar, status line
+and search row held is in it **by the same id** (`#appnSel`, `#m_fy`, `#m_pmo`, `#q`, `#m_view`,
+`#saveState`, `#saveBtn`, `#helpBtn`, `#m_share`, `#hardBtn`, `#dragNote`, `#rmChipWrap`, `#pmoActs`,
+the hidden file inputs):
+- `.hdr` -- the context bar: brand and build, appropriation, fiscal year, PMO (its button says whose
+  requirements are showing: *All offices* or the office), search (title, event, CCaR **and PID** -- the
+  box said PID, so the search reads it), Filter with the active filters as `.fchip`s that take
+  themselves off, the save state, Save, Help, File.
+- `.tbar` -- the task bar: the five workspace tabs, the chosen mode's tools (`#t_review` … `#t_brief`,
+  always in the page, shown by `html[data-mode]`), then `#m_reports`, `#m_data`, `#m_setup`.
+- `#posture` -- the funding posture, written by `scoreboard()`.
+`syncSticky()` sets `--hdrH` to the stack's height and `--tbarH`/`--scsH` to 0; the grid header and the
+docked RECORD panel pin beneath it. **`fitTop()` measures, it does not guess a breakpoint**: a bar that
+would run past the window first drops its labels (`tight1`: Appropriation, Fiscal year, PMO, the build,
+"Reports & exports" → "Reports"), then the task bar folds the mode's tools into `#m_modetools`
+(`tight2`). It runs last in `syncBtns()`, after the filter chips are drawn -- measured before them, two
+chips pushed Save off the screen.
+
+**The menus are grouped by task, by the same calls.** Active year, Budget year, FYDP, Tools and Export
+became *Reports & exports* (every view by horizon, every export), *Data* (everything that brings data in),
+*Setup* (the shape of the board; Appearance with the themes and the densities) and the mode tools. The
+items are built once into an object `I` in `syncBtns()` and placed; the Fund tools' spend-plan basis is
+its own small menu, `#m_basis`. `tools/layout-fits.mjs` B carries the v1.89 list of calls and fails by
+name if one is no longer on a menu or a mode's tools. Messages and the guide that named a path were
+re-pointed (`Data › Import CCaR QPE`, `Setup › 🏢 PMOs`, `Review › Classify requirements` …) and
+`menu-paths.mjs` knows the new menus and the mode tools (`t_*`).
+
+**Modes and densities are this browser's, never the board's.** `uiMode` (review, rank, fund, compare,
+brief), `uiDensity` (compact, comfortable, presentation) and `fundDetailOpen` live in `spmtMode`,
+`spmtDensity`, `spmtDetail`; `uiApply()` stamps `data-mode` and `data-density` on `<html>`. Brief always
+reads at presentation size. A mode changes which cells a row draws, never a figure (layout-fits G).
+
+**The row is triage.** `render()` draws: rank (the ⠿ handle, the rank box; ▲▼ only in Rank), PMO (its
+own order, or *master #N* when one office is showing, in Rank or when filtered), the title with ONE quiet
+line under it (event, CCaR, PID, award, prime/OGC, cost element, record name, 📝 note) and its exceptions
+pinned at the end where a long line cannot push them out (⚠ impact statement required, ▲ $X not drawn
+with the per-service hover `ndRowTip()` shares with the RECORD panel's chip, ★ MC short, the cycle delta
+chip), the decision band as a swatch and its name, requirement, cumulative, lane (word and meter), ★ (a
+24px toggle with `aria-pressed`, the same handler), ⋯. Fund swaps band/cumulative/lane for
+Discretionary, Mandatory, Unfunded and the allocation box (`.acts.alloc`, same input, same `setAlloc`);
+Brief draws no control at all. `rowChipsHtml()` is gone with the chip row; the cost element, prime/OGC tag
+and record name stopped being row editors (each is edited where it already was). **Drag starts only from
+⠿**: `gripDown()` makes the row draggable while the handle is held, `dend` and a document `mouseup`
+take it away. Selection is `--sel` (gold at 10% over the panel, one hex per theme -- 13% took Navy's dim
+text to 4.25:1) and a 3px gold bar inside the lane edge; keyboard focus is its own 2px ring
+(`.row:has(:focus-visible)`).
+
+**The status line lives beside the save state** (`#statWrap`/`#shareStat`, still `role=status`). A message
+shows there until the next or until ✕; its full text is the save state's tooltip and a click opens it
+whole. The one ordinary start-up line ("Opened with the saved board state", a PMO copy's greeting) is set
+with `_statQuiet` and waits in the tooltip; every warning at start-up still shows.
+
+**Checks:** `tools/layout-fits.mjs` (in `verify:grid` as `npm run layout`): A the posture prints the
+scorecards' figures in three states and its unfunded-by-service figures are the Funding by service
+table's and add to TOTAL; B no v1.89 menu call lost; C no row control clipped at 1024-1920 in Review, Rank
+and Fund; D the first requirement on screen at 1920, 1440, 1366 and 1024 wide; E Brief draws no control
+and no RECORD panel; F Fund's columns are the RECORD panel's; G modes, densities and Funding detail change
+no data and write nothing into the file; H selection and keyboard focus differ. Each was proved against a
+board with the defect planted (8 boards, each failed on its own check). `toolbar-fits.mjs` now holds the
+two bars to one line above 1100px and to the window at every width. `audit-board.mjs` "the funding posture
+prints the scorecards' figures" is the jsdom half of A, with a fixture where the two unfunded readings
+and the MC need/unfunded pair differ (both asserted), and **4 new mutations** (`posture-svc-lane-reading`,
+`posture-total-lane-reading`, `posture-left-is-ba`, `posture-mc-need`), all caught in their pre-sweep;
+`pmo-button-silent`, `delta-chip-hidden`, `copy-boot-line` and `nd-row-flag-missing` retargeted to the new
+spelling, all caught. 564 in all. Changed on purpose, each saying so in the suite: the PMO button's
+default text (*All offices*), Save's text (no 💾, it has an icon), the not-drawn flag's hover (the fix list
+is under Needs attention), the row-allocation control check (runs in Fund), the File-menu check (the copy
+is in no menu but File), and `row-controls.json`, which now records Review plus what Rank and Fund add and
+counts ⠿ (`gripDown`) as the drag control.
+
+**Not changed, and noticed:** the RECORD panel's by-service table clips its "lane short …" note in the
+UFR column on a narrow panel. It did the same in v1.89; it is not this item's to fix.
 
 ## Colour: one token, one job
 

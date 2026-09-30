@@ -63,7 +63,12 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 - Write over a saved copy -- the file, or the shared folder's -- that could not be read, or decide whether
   work is unsaved by comparing two computers' clocks. See the v1.89 section of `CLAUDE.md`.
 
-- Rename the browser-storage keys `spmtTheme` and `spmtSeen`, or the package signature `spmtPkg`.
+- Put an editor on a requirement's row, or let a workspace mode change a figure. The row is for triage and
+  the RECORD panel is the editor; a mode (Review, Rank, Fund, Compare, Brief) and a density only change
+  what is shown, and are this browser's settings, never written into the file. See the v1.90 section of
+  `CLAUDE.md`; `npm run layout` holds it.
+- Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity` and `spmtDetail`, or
+  the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.
 - Work in this repository while another agent is changing it: one agent at a time, so changes do not
   collide.

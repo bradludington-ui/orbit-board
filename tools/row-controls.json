@@ -1,14 +1,14 @@
 {
  "note": "The controls a user reaches for ONE requirement (row + RECORD inspector) on the grid build, seeded with the row-controls.mjs fixture. Written by `node tools/row-controls.mjs --record`; checked by `npm run controls`. Re-record only for a deliberate change, and say why in the commit.",
  "board": "prioritization-board-grid.html",
- "build": "v1.87 (27 Sep 2026)",
+ "build": "v1.89 (30 Sep 2026)",
  "controls": [
   "button | S.mc['…']=!S.mc['…'];save();render() | ★ Mission Critical — this must be paid this ",
   "button | bump('…',-1) | ▲",
   "button | bump('…',1) | ▼",
   "button | drawerClose() | Close (Esc)",
   "button | resetAsk('…') | restore the originally requested amounts",
-  "button | toggleCons(\"A\") | say what happens if this is not funded",
+  "button | toggleCons('…') | say what happens if this is not funded",
   "button | toggleDesc('…') | the description and the note, in one pop-up ",
   "button | toggleRec('…') | what this requirement is: PMO, category, WBS",
   "button | toggleRowMenu('…',event) | more actions for this requirement",
@@ -19,7 +19,7 @@
   "div | rowMenuRun('…',()=>{removeReq('…')}) | ✕ Remove from the boardrestorable",
   "div | rowMenuRun('…',()=>{resetAlloc('…')}) | ↺ Reset to the full requirement",
   "input | setAbsorber('…',this.checked) | ",
-  "input | setAlloc('…',this.value) | allocation total (blank = full ask; prorated",
+  "input | setAlloc('…',this.value) | allocation — blank = the full FY27 requireme",
   "input | setAsk('…',0,this.value) | STOVL — FY27 requirement value. Editing it m",
   "input | setAsk('…',1,this.value) | USMC CV — FY27 requirement value. Editing it",
   "input | setAsk('…',2,this.value) | USN — FY27 requirement value. Editing it mov",
@@ -34,8 +34,9 @@
   "input | setRank('…',this.value) | master rank",
   "input | toggleAwdInc('…',86) | ",
   "select | rowMenuId=null;xferYear('…',this.value) | — copy or move to… —FY28 (new)FY29 (new)FY30",
-  "select | setBand(\"A\",this.value) | the funding rule travels with the band — man",
+  "select | setBand('…',this.value) | the funding rule travels with the band — man",
   "span | editTitle('…') | rename requirement",
+  "span | gripDown(this) | Drag to reorder",
   "span | setFsrc('…','…') | these figures still come from the automatic "
  ]
 }

@@ -57,8 +57,13 @@ const INLINE = {
   addPanel: `toggleAdd();`,
   rmPanel:  `rmOpen=true; render();`,
 };
-const MENUS = { tools: 'Tools', export: 'Export', share: 'File', view: 'Filter',
-                ay: 'Active year', by: 'Budget year', fydp: 'FYDP', fy: 'FY', pmo: 'PMO' };
+// v1.90 (item 27): Active year, Budget year, FYDP, Tools and Export became Reports & exports, Data and
+// Setup; the Fund tools carry the spend plan basis menu, and below 1100px (or when the task bar is too
+// full) the mode's tools fold into one menu. PREP puts the board in the state each one is shown in.
+const MENUS = { reports: 'Reports & exports', data: 'Data', setup: 'Setup', share: 'File', view: 'Filter',
+                fy: 'FY', pmo: 'PMO', basis: 'Spend plan basis', modetools: 'Mode tools' };
+const PREP = { basis: `uiMode='fund'; uiApply(); render();`,
+               modetools: `uiMode='fund'; uiApply(); render();` };   // and a 1000px window: see below
 // Visible text that should never contain an escape sequence. "&amp;" on screen means something
 // escaped text that was escaped already; "\\u{1F553}" means a JS escape was written straight into
 // markup, where nothing interprets it -- the Change Journal heading read exactly that for a while.
@@ -185,13 +190,19 @@ for (const f of ['prioritization-board-grid.html']) {
 
   for (const [k, label] of Object.entries(MENUS)) {
     await closeAll();
-    const r = await p.evaluate(k => {
-      try { toggleMenu(k); } catch (e) { return { err: String(e.message).slice(0, 120) }; }
+    // the folded mode-tools menu is there only when the window is too narrow for the tools
+    const vp = p.viewportSize();
+    if (k === 'modetools') { await p.setViewportSize({ width: 1000, height: vp.height }); await p.waitForTimeout(150); }
+    const r = await p.evaluate(([k, prep]) => {
+      try { if (prep) (0, eval)(prep); toggleMenu(k); } catch (e) { return { err: String(e.message).slice(0, 120) }; }
       const c = document.getElementById('m_' + k), dd = document.getElementById('dd_' + k);
       if (!c || !dd) return { err: 'no #m_' + k };
-      return { open: c.classList.contains('open'), h: dd.getBoundingClientRect().height,
+      const out = { open: c.classList.contains('open'), h: dd.getBoundingClientRect().height,
                text: dd.innerText || '' };
-    }, k);
+      if (prep) { uiMode = 'review'; uiApply(); }
+      return out;
+    }, [k, PREP[k] || '']);
+    if (k === 'modetools') { await p.setViewportSize(vp); await p.waitForTimeout(150); }
     const open = !r.err && r.open && r.h > 10;
     chk(`the ${label} menu opens`, open, r.err || (open ? '' : `height:${r.h}`));
     if (!open) continue;

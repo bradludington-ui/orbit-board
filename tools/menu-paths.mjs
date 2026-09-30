@@ -25,15 +25,23 @@ const sc = { services: SVCN, items, disc: [5000000, 1000000, 500000],
              mand: [1000000, 300000, 200000], order: items.map(x => x.id), mc: { R0: true } };
 
 // The toolbar menus, by the label a message would use for each.
+// v1.90 (item 27): the Active year, Budget year, FYDP, Tools and Export menus became Reports & exports,
+// Data and Setup, and the mode tools in the task bar (t_*), which are always in the page.
 const MENUS = {
-  'Tools':       'm_tools',
-  'Export':      'm_export',
+  'Reports &amp; exports': 'm_reports',
+  'Reports & exports':     'm_reports',
+  'Data':        'm_data',
+  'Setup':       'm_setup',
   'File':        'm_share',
   'Filter':      'm_view',
-  'Active year': 'm_ay',
-  'Budget year': 'm_by',
-  'FYDP':        'm_fydp',
   'PMO':         'm_pmo',
+  'Fiscal year': 'm_fy',
+  'Spend plan basis': 'm_basis',
+  'Review':      't_review',
+  'Rank':        't_rank',
+  'Fund':        't_fund',
+  'Compare':     't_compare',
+  'Brief':       't_brief',
 };
 // The source stores these as escape sequences inside string literals, so decode before comparing.
 // Otherwise the check reports an item missing from a menu that plainly contains it, and a check
@@ -96,7 +104,7 @@ for (const f of ['prioritization-board-grid.html']) {
 
   // Every "<menu> › <item>" the source tells a reader to follow.
   const refs = [];
-  const RE = new RegExp('(' + Object.keys(MENUS).join('|') + ')\\s*\\\\u203a\\s*([^\'"]{3,50})', 'g');
+  const RE = new RegExp('(' + Object.keys(MENUS).map(k => k.replace(/[&;]/g, c => '\\' + c)).join('|') + ')\\s*\\\\u203a\\s*([^\'"]{3,50})', 'g');
   let m;
   while ((m = RE.exec(src))) {
     const menu = m[1];
