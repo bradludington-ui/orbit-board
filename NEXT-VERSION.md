@@ -8,7 +8,138 @@ Current version: **v1.88**. Next: **v1.89**.
 
 ## Open
 
-Nothing open. Log the next change here.
+Items 22-26 come from the technical review Brad shared on 29 Sep. Claude checked every finding
+against the v1.88 source and reproduced each one below on a test board before logging it. What the
+review got wrong, and what it asked for that is not being built, is at the end of *Later*.
+
+### 22. Adding a requirement by its total spreads whole dollars
+- **Logged:** 30 Sep 2026. **Approved by Brad, 30 Sep.** Money: a can't-fail.
+- **Found (reproduced on v1.88):** *Add requirement* with one total instead of per-service values
+  divides the total by the number of services and never rounds it (`addReq`). The rule every other
+  spread follows -- through `apportion()`, whole dollars that add up exactly -- was missed here.
+  - Before the board is reopened, the workbook prints figures like 999,999.9999999999 and an unfunded
+    row of $1.000000000000007, and two sheets disagree about the same requirement.
+  - On reopen each service is rounded by itself, so the requirement changes: $1,000,000 typed across
+    six services becomes $1,000,002; $100 across three becomes $99.
+  - Nothing else is affected: per-service entry, a PMO-proposed requirement and every other spread
+    already give whole dollars.
+- **What would be built:** the total is spread with `apportion()`, whole dollars adding up to exactly
+  what was typed. A requirement whose values are not whole dollars is refused with a message.
+- **Brad's decisions (30 Sep):**
+  - The dollars left over go to the first services in the list: $100 across three is 34 / 33 / 33.
+  - Boards already saved open as they do now, each service rounded to the nearest dollar, up or down.
+    Nothing is re-spread.
+- **Can't-fail checks:**
+  - Add by total for 3 services / $100, 6 / $1,000,000, 3 / $1,000,000, 1 / $7 and 6 / $5: every
+    value a whole dollar, the sum exactly the typed total, unchanged after save and reopen.
+  - A new check across every export: every money cell is a whole dollar, so the next path that
+    misses the rule is caught too.
+  - Planted mistakes that must be caught: the old division; rounding each share instead of
+    `apportion()`; the refusal removed.
+
+### 23. Saving never silently overwrites somebody's work
+- **Logged:** 30 Sep 2026. **Approved by Brad, 30 Sep: Claude's recommendation.** Data loss: a
+  can't-fail. The most serious item from the review.
+- **Found (reproduced on v1.88):**
+  - On opening, the board shows whichever is newer, the shared file or this browser's own copy, and
+    then treats the file's time as the point it loaded from, whichever it showed.
+    - A colleague saves the shared file; this browser holds edits made after it was last opened and
+      never saved to the file. The board shows the browser's copy without the colleague's changes,
+      and the next 💾 Save overwrites their work with no warning: the "someone saved after you
+      loaded" check does not fire. No difference between the two computers' clocks is needed.
+    - If the file is the newer one, edits held only in this browser are replaced with no message.
+    - In the first case the opening message says "No saved state in this copy", which is wrong.
+  - The "someone saved after you loaded" check skips itself if the file cannot be read (for example
+    while Teams or OneDrive is syncing it) and saves anyway.
+  - The shared-folder save treats a copy it cannot read as no copy at all and writes over it without
+    keeping a history copy; a history copy that fails to write is never reported.
+  - When saving in place fails and a copy is downloaded instead, the header stops saying "unsaved
+    changes" although the shared file was not updated.
+- **What would be built:**
+  - The board records which saved file its state came from, and Save checks against that: it asks
+    whenever the file changed underneath you.
+  - Work held only in this browser is never thrown away by a newer file. It is kept as a backup, the
+    board says so, and one click puts it back.
+  - A file that cannot be read is never written over: Save refuses and offers *Save a copy*. The
+    shared folder writes over a copy only when there genuinely is none, and says so if its history
+    copy could not be kept.
+  - After a download, the header says the change is downloaded but not yet on the shared file.
+  - The opening message says which copy it opened and why.
+- **Compatibility:** a board opened on v1.89 for the first time, whose browser copy is newer than the
+  file, has no record of where it came from, so its first save asks once. The import check accepts the
+  new record. Nothing else about saved boards, PMO copies or packages changes.
+- **Can't-fail checks:**
+  - With a stand-in for the file in the tests: reopen with and without a clock difference, a file
+    that cannot be read, a file with no saved state. Each one asks or refuses; none writes.
+  - Browser-only work displaced by a newer file comes back with one click, whole.
+  - Planted mistakes that must be caught: the old loaded-from time; the check that skips itself on an
+    error; the shared-folder read that treats any error as no copy; the backup not kept.
+
+### 24. An added requirement never inherits a deleted one's data
+- **Logged:** 30 Sep 2026. **Approved by Brad, 30 Sep.** Wrong figures and text on exports: a can't-fail.
+- **Found (reproduced on v1.88):**
+  - A new added requirement is numbered one past the highest *remaining* one, so deleting the newest
+    (NEW-3) and adding another makes a new NEW-3. Accepting a PMO-proposed requirement numbers it the
+    same way.
+  - Delete clears 9 of the ~34 kinds of data a requirement carries, so the new one inherits the rest:
+    20 fields, among them the decision band, award dates, destination, PID, CCaR number, record name,
+    impact statement and WBS, and the UPL mark. It survives save and reopen; the deleted text printed
+    in 23 cells of the workbook, on the Decision Bands, Funded – Discretionary, Unfunded Requirements
+    and RCN-EEIC by Month sheets among others.
+  - Moving an added requirement to another year leaves all of its data behind -- allocation and MC
+    star included -- for the next one added in that year.
+  - Comparing against a locked cycle reports the new requirement as a change to the deleted one
+    instead of one removed and one added (the totals still add up).
+- **What would be built:**
+  - A number is never used twice in a year: the next is above every number the year has ever held, in
+    any of its lists, and the highest is saved with the board.
+  - One list of a requirement's kinds of data, shared by delete, move-to-year and copy-to-year, so a
+    kind added later cannot be missed.
+  - Deleting an added requirement removes all of its data from the file.
+- **Brad's decision (30 Sep):** deleted added requirements are purged from now on. Leftovers already in
+  saved boards are left where they are; they can no longer be inherited.
+- **Can't-fail checks:**
+  - Every kind of data filled in on the newest added requirement, with the round-trip fuzz's own
+    filler so kinds added later are covered automatically. Delete then add, accept a proposal, move
+    to another year: the new number differs, it carries nothing of the old one, and neither the saved
+    file nor the export holds any of the deleted text.
+  - A board already holding leftovers numbers past them.
+  - The completeness check fails if a kind of data is missing from the shared list.
+  - Planted mistakes that must be caught: numbering from the remaining requirements only; the highest
+    number not saved; one kind missing from the list; delete skipping the purge.
+
+### 25. Restore brings back what Remove took
+- **Logged:** 30 Sep 2026. Found during Claude's check; not in the review. **Awaiting Brad's answer.**
+- **Found (reproduced on v1.88):** removing a requirement that came with the board's data (not one
+  added at the drill) erases its allocation, MC star, note, renamed title, CLIN breakdown and cost
+  element -- while the confirmation says "Restore any time from the Removed list". Restore brings the
+  requirement back without them: with no allocation, so unfunded. Moving it to another year keeps
+  them; only Remove erases. Each can be put back one at a time from the change journal, if you know to.
+- **Recommended:** Remove keeps them, and Restore returns the requirement exactly as it was.
+- **Alternative:** keep erasing them, and have the confirmation say so.
+- **Can't-fail checks:** remove, restore, save, reopen: allocation, MC star, note, title, CLIN
+  breakdown and cost element as before. While removed, it counts in no total and appears on no export.
+  Planted mistake that must be caught: Remove erasing them again.
+
+### 26. The change journal says when it could not record everything
+- **Logged:** 30 Sep 2026. **Approved by Brad, 30 Sep: a summary entry.**
+- **Found (reproduced on v1.88):**
+  - One save records at most 200 changes and drops the rest without a mark: 240 edits in one save
+    left 200 entries. A PMO apply of more than 200 fields still says "Each one is recorded in the
+    change journal, so it can be found and undone later", and the journal says "Every field that
+    changed".
+  - If recording fails partway, every entry for that save is dropped, silently.
+  - If the RECORD panel's redraw fails, the error is swallowed and the panel can keep showing the
+    previous figures.
+- **What would be built:**
+  - Past 200, one summary entry: how many more changes that save made, by whom, and that they cannot
+    be undone one at a time. The PMO apply message and the journal's own wording say the same.
+  - A recording failure writes one entry saying so.
+  - A failed RECORD panel redraw empties the panel and says so on the status line, never old figures.
+- **Can't-fail checks:** 240 edits in one save give 200 entries plus one summary with the right
+  count; a PMO apply of more than 200 fields gives the same; a package import still warns about the
+  changes made here since. Planted mistakes that must be caught: no summary; a recording failure
+  dropped silently; the RECORD panel error swallowed.
 
 ## Later
 
@@ -57,6 +188,23 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 - **Failure-safe storage and money tests** (the review's #3 and #5): already in place, and more
   thoroughly than asked -- storage failures are reported and the file is the record; money is whole
   dollars, every printed total is reconciled against its rows, and 485 planted mistakes must be caught.
+
+#### From the 29 Sep technical review: not built, and why (Brad's answers, 30 Sep)
+- **Faster redraw for very large boards** (a quicker requirement lookup, redrawing fewer rows): not
+  needed. Brad: an appropriation's fiscal year holds at most 200 requirements. Measured in the browser,
+  500 redraw in about half a second after an edit; 5,000 would take 5-7 seconds, which is where this
+  would matter. Revisit only if that limit changes.
+- **The first save named "unknown" in the packaged desktop app:** not built. Brad: nobody uses the
+  desktop app, only the HTML file, and in a browser the name is asked before the first save is stamped.
+- **Card-era rendering still in the grid:** the review called it retired code; it is the grid's only
+  row template, trimmed after drawing, and costs about 2% of a large redraw. It stays the separate
+  clean-up version already noted in CLAUDE.md.
+- **The moment between checking the file and writing it:** real, but milliseconds long, and the browser
+  offers no way to close it. Item 23 covers the case that loses work.
+- **Replacing all 106 empty error handlers:** no. Items 23 and 26 fix the ones that could hide lost work
+  or wrong figures; the rest guard cosmetic steps.
+- **Very large boards refused by the import check:** not an issue. The board's own save of 5,000
+  requirements is 4.4 MB, and the check takes files up to 64 MB.
 
 ## Withdrawn
 
