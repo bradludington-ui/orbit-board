@@ -31,6 +31,121 @@ Current version: **v1.90**. Next: **v1.91**.
   populated example board plus one planted with a $123,456,789 shortfall, at every width from 1024 to
   1920 and in all three densities. A planted one-line note must fail that check.
 
+#### 29. Keyboard and screen-reader access: the status message and the RECORD panel's record fields
+- **Logged:** 30 Sep 2026, from the post-v1.90 review Brad shared, checked on the v1.90 board.
+  **Approved by Brad, 30 Sep: Claude's recommendations.**
+- **Found (v1.90; the RECORD part predates v1.89):** the status message beside the save state is a
+  clickable `div` and the save state a clickable `span`, so expanding a cut-off message, or bringing back
+  one that was hidden with ✕, works only with a mouse (Tab reaches ✕ and never either of them). Once
+  hidden, or for the quiet start-up line, the `role=status` region is `display:none` and leaves the
+  accessibility tree, so screen readers hear nothing. In the RECORD panel the CCaR record, the PID and the
+  ✎ plan-event name are click-only too, and nothing else edits them, so they cannot be changed from the
+  keyboard at all. `npm run standards` has no 2.1.1 Keyboard test, so it reported 0. WCAG 2.1.1 and
+  4.1.2, Level A (Section 508).
+- **What will be built:** one real **message** button beside the save state (`aria-expanded`): Tab,
+  Enter or Space opens the full text, Esc closes it and focus returns to the button, and after ✕ focus
+  goes to it. The save state becomes plain text; ✕ stays. The message region stays in the accessibility
+  tree when hidden (visually hidden, not `display:none`). The CCaR record, PID and ✎ plan-event name
+  become real buttons. `npm run standards` gains a 2.1.1 criterion (a visible clickable element that is
+  not a control and takes no focus); the ~41 older click-only spots it will find are recorded in the
+  baseline as known debt, fixed over time.
+- **What does not change:** any message's wording or how long it stays (item 19 stays deferred),
+  figures, the saved file, and the ids `#shareStat`, `#saveState` and `#statWrap` the suites read.
+- **Checks:** a long warning is cut off on screen, then reached, opened and closed from the keyboard
+  alone, with focus put back; after ✕ the region is still in the accessibility tree; the three RECORD
+  fields are edited from the keyboard alone; the new criterion fails on the v1.90 board first.
+
+#### 30. The workspace mode buttons say what they are
+- **Logged:** 30 Sep 2026, same review. **Approved by Brad, 30 Sep: Claude's recommendation (option B).**
+- **Found (v1.90):** Review, Rank, Fund, Compare and Brief are marked up as ARIA tabs, which promises
+  arrow keys and tab panels they do not have. They are one workspace shown five ways, not five panels.
+- **What will be built:** native buttons in a group labelled *Workspace*, the selected one
+  `aria-pressed="true"`; the styling keys off that instead of `aria-selected`.
+- **What does not change:** what each mode shows, the `spmtMode` key and the fallback to Review.
+- **Checks:** no tab roles remain and exactly one button is pressed; a reload keeps the mode and a bad
+  stored value opens Review; changing mode changes no data (layout G).
+
+#### 31. Rows and the top fit between 761 and 1023px wide
+- **Logged:** 30 Sep 2026, same review. **Approved by Brad, 30 Sep: Claude's recommendation.**
+- **Found (v1.90, measured one pixel at a time):** in Fund the allocation box runs past the row's edge
+  at 761-884px, and in Rank the ★ does at 761-804px (new: the modes are new). The page scrolls sideways at
+  761-808px depending on the mode (v1.89 did at 761-821px). No check looked at rows below 1024px:
+  `layout-fits` C and D stop at 1024, `toolbar-fits` at 820, and the standards reflow check is 320.
+- **What will be built:** the row column widths in that range fixed for every mode, and the top bars held
+  to the window. Stated in `CLAUDE.md`: below 760px the board is for reviewing and inspecting only (the
+  money columns and the allocation box are hidden there, as they are today).
+- **What does not change:** anything at 1024px and wider, or at 760px and narrower.
+- **Checks:** at every width from 761 to 1023, in all five modes, in Harbor and Parchment, no sideways
+  scroll and no row control past its row; the drawer's three editors on screen at 900 and 768px; a
+  390px smoke check. A planted overflow in Fund's column widths must fail.
+
+#### 32. Say what the row may edit
+- **Logged:** 30 Sep 2026, same review. **Approved by Brad, 30 Sep: Claude's recommendation.**
+- **Found:** `AGENTS.md` (written in v1.90) says "Do not put an editor on a requirement's row", while the
+  approved v1.90 design puts the total allocation box on the row in Fund, the row's comment calls it
+  "Triage, not editing", and the older row rule in `CLAUDE.md` does not mention the box. The box stays:
+  the RECORD panel has no total-allocation editor, so it is the only way to set one on a requirement not
+  on a Split. `tools/row-controls.json` records every requirement control but not which surface it is on,
+  and its fixture never opens the CLIN drill, which draws inside the row.
+- **What will be built:** `AGENTS.md`, `CLAUDE.md` and the row's comment say: "The row is for triage.
+  Its direct decisions are rank (the rank box, ▲▼ in Rank, the ⠿ handle), ★ Mission Critical and, in Fund
+  only, the total allocation for a requirement not on a Split. Lifecycle actions are in its ⋯ menu. The
+  CLIN drill opens inside the row for a CLIN requirement. Everything else, per-service funding included,
+  is edited in the RECORD panel. A mode or density changes only what is shown, never a figure."
+  `row-controls` records which surface each control is on, and its fixture includes a CLIN requirement.
+- **Checks:** a new editor added to the row, or one moved there from the RECORD panel, fails
+  `npm run controls`.
+
+#### 33. Brief's label says what is read-only
+- **Logged:** 30 Sep 2026, same review. **Approved by Brad, 30 Sep: Claude's recommendation.**
+- **Found:** Brief's label reads "Read-only — nothing here edits", while File, Data, Setup and Save still
+  work there (on purpose: locking them would hide saving and recovery).
+- **What will be built:** "Presentation view — requirements can't be edited here", and the guide's
+  "(read-only, for the room)" to match.
+
+#### 34. The browser checks find Chromium without a hard-coded version (tests only)
+- **Logged:** 30 Sep 2026, same review. **Approved by Brad, 30 Sep: Claude's recommendation.**
+- **Found:** 14 tools hard-code `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` and only
+  `shoot.mjs` reads `CHROME_BIN`, so a machine with another Chromium version cannot run any browser check
+  (the reviewer's could not). Chromium is at that path here, and the gate fails rather than passes when it
+  is missing.
+- **What will be built:** one lookup the 14 tools share, in order: `CHROME_BIN`, then
+  `/opt/pw-browsers/chromium`, then the newest `/opt/pw-browsers/chromium-*/chrome-linux/chrome`, else a
+  clear error naming what was tried. Never `playwright install`.
+
+#### 35. Assign, change or remove a requirement's BAE budget in the RECORD panel
+- **Logged:** 30 Sep 2026, at Brad's request. **Approved by Brad, 30 Sep: budgets can be assigned to
+  unfunded requirements too, and the RECORD panel is the only place to set one (Claude's
+  recommendation).**
+- **Found (v1.90):** the budget picker is inside 📋 Requirement edit, and shows only when a BAE list is
+  loaded and a service line is drawing money this year (`budRecFields` → `budPairs`), so a requirement
+  not yet funded cannot be given a budget. Clearing the whole requirement (`setBudFam` with none) clears
+  only its funded lines: a choice on a line that is no longer funded stays in `S.budgetAsg`, unseen, and
+  comes back if that line is funded again.
+- **What will be built:** a **BAE budget** section in the RECORD panel, below By service.
+  - **One line per service with a requirement value, funded or not.** A funded line is named by its lane
+    and shows how its budget was settled: chosen, automatic by rule, from CCaR, not set, or legacy —
+    pick again. A service with no money yet shows one line marked *not funded yet*; the budget chosen
+    there carries its own lane (a discretionary budget is used when that service draws discretionary,
+    one with no lane for either), and if money arrives in the other lane the line reads *not set* and the
+    pre-flight names it, as today.
+  - **Assign or change:** one "budget for every line" picker (unfunded lines included), and a picker on
+    each line.
+  - **Remove:** *clear* on a line puts it back to the rule's answer; *clear all* removes every choice on
+    the requirement, the unseen ones included, and says how many it removed.
+  - **No BAE list loaded:** the section says so and points to Data › 💰 Import Budget Extract (BAE)….
+  - **One editor:** the picker leaves 📋 Requirement edit, whose "N of M not set" count stops counting it.
+    The pickers are ordinary keyboard controls (item 29).
+- **What does not change:** the budget rule itself; the Spend Plan Source still writes funded lines only
+  and prints the same for any line nobody touches; assignments already saved on boards; the field still
+  travels in a PMO copy's submittal.
+- **Checks:** assign, change one line, clear one line and clear all, and after each step every Spend
+  Plan Source line's Budget cell equals what the panel shows; a budget chosen while a requirement is
+  unfunded is on its Spend Plan Source line once money is allocated in that lane, and money in the other
+  lane leaves the line *not set* and named by the pre-flight; *clear all* clears an unseen choice on an
+  unfunded line; all of it survives save and reopen, and a PMO copy's submittal carries it; Requirement
+  edit no longer offers the picker; a mutation that makes *clear* leave a line set is caught.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
