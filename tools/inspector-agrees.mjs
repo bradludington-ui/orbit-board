@@ -2,7 +2,7 @@
 // That is a claim about the code; this makes it a measured fact. For every row, select it and
 // compare the panel's figures against the lane engine's own numbers for that requirement.
 import { chromium } from 'playwright-core';
-const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+import { CHROME } from './chrome.mjs';
 const FILE = process.argv[2] || new URL('../prioritization-board-grid.html', import.meta.url).pathname;
 
 const it = (id,grp,title,ask)=>({id,grp,team:grp,sect:'',custom:false,title,event:title,ccar:'',fy26:ask.map(()=>0),ask,alloc:null});

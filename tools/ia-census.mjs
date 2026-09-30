@@ -18,13 +18,14 @@ import { dirname, join } from 'node:path';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
-const EXE = process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const EXE = process.env.CHROME || CHROME;
 const jsonAt = (() => { const i = process.argv.indexOf('--json'); return i > 0 ? process.argv[i + 1] : null; })();
 const BOARD = process.env.BOARD_HTML || join(ROOT, 'prioritization-board-grid.html');
 const src = readFileSync(join(ROOT, 'prioritization-board-grid.html'), 'utf8');
 // Measure a POPULATED board: the bare file has no requirements, so the surfaces that only exist
 // beside data are not in the DOM to be measured or photographed.
 import { buildPopulated } from './ia-fixture.mjs';
+import { CHROME } from './chrome.mjs';
 const LIVE = buildPopulated(BOARD);
 
 

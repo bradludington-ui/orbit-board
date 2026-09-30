@@ -18,11 +18,12 @@ const ROOT = join(HERE, '..');
 const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
 const OUT = arg('--out') || join(ROOT, '.ia-shots');
 const BOARD = arg('--board') || process.env.BOARD_HTML || join(ROOT, 'prioritization-board-grid.html');
-const EXE = process.env.CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
+const EXE = process.env.CHROME || CHROME;
 mkdirSync(OUT, { recursive: true });
 // Measure a POPULATED board: the bare file has no requirements, so the surfaces that only exist
 // beside data are not in the DOM to be measured or photographed.
 import { buildPopulated } from './ia-fixture.mjs';
+import { CHROME } from './chrome.mjs';
 const LIVE = buildPopulated(BOARD);
 
 

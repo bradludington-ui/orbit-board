@@ -117,6 +117,9 @@ html[data-theme="harbor"]{--edge:#627185;--edge2:#4b5665}
 .hsp{margin-left:auto;display:flex;gap:8px;align-items:center}
 /* v1.86: on a phone-width window the guide's button is its 📖 alone, so the header does not scroll sideways */
 @media (max-width:420px){ .hsp{gap:4px} #helpBtn .hlp-t{display:none} }
+/* v1.91: the save state's group wraps on a phone rather than push the page sideways -- the Message button
+   (item 29) made it one control wider than 320px holds (1.4.10 Reflow). */
+@media (max-width:640px){ .hdr .hsp{flex-wrap:wrap;justify-content:flex-end;row-gap:4px} }
 .hdr .brand{display:flex;align-items:center;gap:12px}
 /* The ORBIT wordmark: an inline SVG so the saved file carries it; one colour from --ink, the satellite from --gold. */
 .brand .logo{height:30px;width:auto;flex:none;color:var(--ink);--orbit-accent:var(--gold)}
@@ -337,6 +340,22 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .insp-split tr.tot td{border-top:1px solid var(--line2);padding-top:4px;font-weight:800}
 .insp-split .ro{color:var(--dim)}
 .insp-split .uf{color:var(--unf);font-weight:800}
+.insp-split .drew.ls{font-size:9.5px;white-space:normal;line-height:1.25;letter-spacing:0}
+/* v1.91 (item 35): the BAE budget section, one line per service with a requirement value */
+.budfam{display:flex;flex-direction:column;gap:3px;margin-bottom:6px}
+.budfam label{font-size:var(--lbl,9.5px);letter-spacing:.07em;text-transform:uppercase;color:var(--mut);font-weight:800}
+.budfam select,.budtab select{width:100%;min-width:0;min-height:24px}
+.budtab{width:100%;border-collapse:collapse;table-layout:fixed}
+.budtab th{width:88px;text-align:left;vertical-align:top;padding:4px 6px 4px 0;font-size:11px;font-weight:800}
+.budtab th .budlane{display:block;font-size:9.5px;font-weight:600;color:var(--mut)}
+.budtab td{padding:3px 0;vertical-align:top}
+.budtab td:last-child{width:56px;text-align:right}
+.budhow{font-size:9.5px;color:var(--mut);margin-top:2px}
+.budhow.unset,.budhow.legacy{color:var(--ink);font-weight:700}
+.budhow.unset::before,.budhow.legacy::before{content:"\26a0  "}
+.budfoot{margin-top:6px;display:flex;justify-content:flex-end}
+.budnone{font-size:10.5px;color:var(--mut)}
+.insp-split .drew.ls span{display:block}
 .insp-f .fv{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .insp-empty{padding:26px 16px;text-align:center;color:var(--dim);font-size:11px;line-height:1.6}
 .insp-kbd{font:10px ui-monospace,Menlo,monospace;background:var(--panel);border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;padding:0 5px;color:var(--mut)}
@@ -420,6 +439,8 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
    click that went nowhere. Both affordances now key off the handler, so they cannot drift apart
    from it again. */
 .rchip[onclick]{cursor:pointer}
+button.rchip{font-family:inherit}
+button.rchip:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .rchip[onclick]:hover{border-color:var(--gold);color:var(--ink)}
 .rchip.add{border-style:dashed;border-color:var(--line);color:var(--dim);font-weight:600}
 .rchip.warn{border-color:var(--red);color:var(--red)}
@@ -808,7 +829,7 @@ input[type=date]:focus{outline:none;border-color:var(--gold)}
    negative margins that hand the space back. Chips, small fields and small buttons grow to 24px. */
 .tt span[onclick]{padding-top:5px;padding-bottom:5px}
 .ev span[onclick]{padding-top:7px;padding-bottom:7px}
-span.tedit[onclick],.tt span.tedit[onclick]{display:inline-block;min-width:25px;text-align:center;padding:8px 0;margin:-8px 0}
+span.tedit[onclick],.tt span.tedit[onclick],button.tedit[onclick]{display:inline-block;min-width:25px;text-align:center;padding:8px 0;margin:-8px 0}
 .tt span.recname.edit[onclick]{padding:7px 0;margin:-6px 0 -7px}
 .rchip,.lanechip{min-height:24px;box-sizing:border-box;display:inline-flex;align-items:center}
 .rowtags .rchip{margin-top:0}
@@ -871,20 +892,30 @@ html[data-theme="harbor"]{--sel:#c7ced8}
   cursor:pointer;font-size:10px;line-height:1;padding:0}
 .hdr .hsp{margin-left:auto;display:flex;gap:6px;align-items:center;flex:0 1 auto;min-width:0}
 .hdr .hsp > :not(.statwrap){flex:none}
-.savestate{display:flex;align-items:center;gap:6px;min-height:24px;font-size:11px;color:var(--mut);font-weight:600;white-space:nowrap;cursor:pointer}
+.savestate{display:flex;align-items:center;gap:6px;min-height:24px;font-size:11px;color:var(--mut);font-weight:600;white-space:nowrap}
+.savestate .keptbtn{border:0;background:transparent;color:var(--gold);font:inherit;font-weight:700;cursor:pointer;padding:0 2px;min-height:24px}
+.savestate .keptbtn:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .savestate::before{content:"";width:8px;height:8px;border-radius:4px;background:var(--green);flex:none}
 .savestate.dirty::before{background:var(--amber)}
 .savestate b{color:var(--ink)}
 .savestate.dirty b{color:var(--amber)}
 /* THE STATUS LINE LIVES BESIDE THE SAVE STATE. A message says itself here, one line, until the next one
-   or until it is hidden; its full text is in the save state's tooltip and a click opens it whole. The
-   ordinary "opened" line at start-up waits quietly in the tooltip. */
-.statwrap{display:none;align-items:center;gap:2px;min-width:0;max-width:min(460px,34vw);flex:0 1 auto}
-.statwrap.fresh{display:flex}
-#shareStat{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;cursor:pointer;padding:0}
+   or until it is hidden; the Message button beside it opens it whole and brings a hidden one back. The
+   ordinary "opened" line at start-up waits behind that button.
+   v1.91 (item 29): HIDDEN IS NEVER display:none. The region is role=status; out of the accessibility tree
+   a screen reader hears nothing -- neither the message it was hidden with nor the next one. So a hidden
+   message is only visually hidden, and the one control is a real button, not a clickable line. */
+.statwrap{display:flex;align-items:center;gap:2px;min-width:0;max-width:min(460px,34vw);flex:0 1 auto}
+.statwrap:not(.fresh):not(.big){position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;margin:0;padding:0}
+.statx[hidden]{display:none}
+#shareStat{font-size:11px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;padding:0}
+.statbtn{height:24px;min-width:24px;border:1px solid var(--edge);border-radius:12px;background:var(--panel);color:var(--ink);
+  font-size:10.5px;font-weight:700;padding:0 9px;cursor:pointer;white-space:nowrap}
+.statbtn[hidden]{display:none}
+.statbtn:focus-visible,.statx:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .statwrap.big{position:absolute;right:16px;top:44px;z-index:60;max-width:min(620px,92vw);background:var(--panel);
   border:1px solid var(--edge);border-radius:6px;padding:8px 10px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
-.statwrap.big #shareStat{white-space:normal;overflow:visible;line-height:1.5;color:var(--ink);cursor:default}
+.statwrap.big #shareStat{white-space:normal;overflow:visible;line-height:1.5;color:var(--ink)}
 .statx{width:24px;height:24px;border:0;background:transparent;color:var(--dim);cursor:pointer;font-size:11px;flex:none}
 .statx:hover{color:var(--ink)}
 .hdr .mdd{top:calc(100% + 5px)}
@@ -896,7 +927,7 @@ html[data-theme="harbor"]{--sel:#c7ced8}
 .tab{height:24px;display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;color:var(--mut);
   font:700 11.5px/1 inherit;font-family:inherit;padding:0 10px;border-radius:4px;cursor:pointer;white-space:nowrap}
 .tab:hover{color:var(--ink)}
-.tab[aria-selected="true"]{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--edge)}
+.tab[aria-pressed="true"]{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--edge)}
 .tab:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .modetools{display:none;gap:6px;align-items:center;flex:none}
 html[data-mode="review"] #t_review,html[data-mode="rank"] #t_rank,html[data-mode="fund"] #t_fund,
@@ -1053,6 +1084,11 @@ html[data-mode="brief"] .posture{min-height:74px}
 .insp-split th{font-size:9.5px;letter-spacing:.06em}
 .insp-split input{font-size:11.5px}
 .insp-f[onclick]{border-color:var(--edge);position:relative}
+button.insp-f{display:block;width:100%;margin:0;text-align:left;font:inherit;color:inherit;cursor:pointer}
+button.insp-f .fl,button.insp-f .fv{display:block}
+button.insp-f:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+button.tedit{border:0;background:transparent;font-family:inherit;line-height:inherit}
+button.tedit:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 .insp-f[onclick]::after{content:"\270E  Change";position:absolute;right:8px;top:6px;font-size:10px;font-weight:700;color:var(--blue)}
 .insp-f[onclick]:hover{border-color:var(--blue)}
 
@@ -1081,6 +1117,18 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
   .ppdet{margin-left:0}
   .tbar .lg{display:none} .tbar .sh{display:inline}
   .hdr{flex-wrap:wrap}
+  /* v1.91 (item 31): the task bar may wrap too -- one line held until 761-808px, then Setup ran past the window */
+  .tbar{flex-wrap:wrap}
+}
+/* v1.91 (item 31): 761-940px -- a tablet, a window beside another. v1.90's widths pushed Fund's allocation box and
+   ⋯ off the row at 761-884px and Rank's ★ at 761-804, and cut Brief's last money column at 761-936. Each column is
+   sized to what it holds: a nine-digit figure (76.5px at the row's money size, 88.7 in Brief's), the allocation box
+   (86), the rank box with ▲▼ (104). The gap narrows to 6px. layout-fits J holds every width, 761 to 1023. */
+@media (max-width:940px){
+  .gridhead,.row{gap:6px}
+  :root[data-mode="rank"]{--rowcols:104px 56px minmax(110px,1fr) 110px 80px 88px 26px 26px}
+  :root[data-mode="fund"]{--rowcols:50px 40px minmax(100px,1fr) 80px 80px 80px 80px 88px 26px 26px}
+  :root[data-mode="brief"]{--rowcols:36px 40px minmax(110px,1fr) 100px 92px 92px 92px 92px}
 }
 @media (max-width:760px){
   :root,:root[data-mode="rank"],:root[data-mode="fund"],:root[data-mode="compare"]{--rowcols:40px minmax(0,1fr) 96px 26px 26px}
@@ -1181,15 +1229,17 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
   <div class="menu" id="m_view"><button class="btn" id="b_view" onclick="toggleMenu('view')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 3h12l-4.6 5.4V13l-2.8-1.4V8.4z"/></svg><span id="b_view_t">Filter ▾</span></button><div class="mdd" id="dd_view"></div></div>
   <span class="fchips" id="fchips" aria-label="Active filters"></span>
   <div class="hsp">
-    <div class="statwrap" id="statWrap"><div id="shareStat" role="status" aria-live="polite" onclick="statOpen()"></div><button type="button" class="statx" onclick="statHide()" aria-label="Hide this message" title="Hide this message — click the save state to see it again">✕</button></div>
-    <span class="savestate" id="saveState" onclick="statShow()" title=""></span>
+    <div class="statwrap" id="statWrap"><div id="shareStat" role="status" aria-live="polite"></div></div>
+    <button type="button" class="statbtn" id="statBtn" aria-expanded="false" aria-controls="statWrap" onclick="statToggle()" hidden>Message</button>
+    <button type="button" class="statx" id="statX" onclick="statHide()" aria-label="Hide this message" title="Hide this message — the Message button brings it back" hidden>✕</button>
+    <span class="savestate" id="saveState" title=""></span>
     <button class="btn pri" id="saveBtn" onclick="saveInPlace()" title="Write everything on this board back into this file, in place."><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 2.5h9l2 2v9h-11z"/><path d="M5 2.5v3.5h5V2.5M5 13.5v-4h6v4"/></svg><span id="saveBtn_t">Save</span></button>
     <button class="btn quiet" id="helpBtn" onclick="openHelp(SANDBOX? 'office' : '')" title="How this board works — the guide, inside the file" aria-label="Help"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M6.2 6.3a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4"/><circle cx="8" cy="11.6" r=".4" fill="currentColor"/></svg><span class="hlp-t">Help</span></button>
     <div class="menu" id="m_share"><button class="btn" id="b_share" onclick="toggleMenu('share')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M1.5 4V13h13V5.5H8L6.5 4z"/></svg>File ▾</button><div class="mdd" id="dd_share"></div></div>
   </div>
 </div>
 <div class="tbar">
-  <div class="tabs" role="tablist" aria-label="Workspace"><button type="button" class="tab" role="tab" id="tab_review" aria-selected="false" onclick="uiSetMode('review')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h8"/></svg>Review</button><button type="button" class="tab" role="tab" id="tab_rank" aria-selected="false" onclick="uiSetMode('rank')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 13V3M1.8 5.2 4 3l2.2 2.2M9 4h5M9 8h4M9 12h3"/></svg>Rank</button><button type="button" class="tab" role="tab" id="tab_fund" aria-selected="false" onclick="uiSetMode('fund')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="4" width="13" height="8.5" rx="1"/><circle cx="8" cy="8.2" r="1.8"/></svg>Fund</button><button type="button" class="tab" role="tab" id="tab_compare" aria-selected="false" onclick="uiSetMode('compare')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 5h10l-2.5-2.5M14 11H4l2.5 2.5"/></svg>Compare</button><button type="button" class="tab" role="tab" id="tab_brief" aria-selected="false" onclick="uiSetMode('brief')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M8 11v2.5M5 14h6"/></svg>Brief</button></div>
+  <div class="tabs" role="group" aria-label="Workspace"><button type="button" class="tab" id="tab_review" aria-pressed="false" onclick="uiSetMode('review')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h12M2 12h8"/></svg>Review</button><button type="button" class="tab" id="tab_rank" aria-pressed="false" onclick="uiSetMode('rank')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4 13V3M1.8 5.2 4 3l2.2 2.2M9 4h5M9 8h4M9 12h3"/></svg>Rank</button><button type="button" class="tab" id="tab_fund" aria-pressed="false" onclick="uiSetMode('fund')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="4" width="13" height="8.5" rx="1"/><circle cx="8" cy="8.2" r="1.8"/></svg>Fund</button><button type="button" class="tab" id="tab_compare" aria-pressed="false" onclick="uiSetMode('compare')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 5h10l-2.5-2.5M14 11H4l2.5 2.5"/></svg>Compare</button><button type="button" class="tab" id="tab_brief" aria-pressed="false" onclick="uiSetMode('brief')"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M8 11v2.5M5 14h6"/></svg>Brief</button></div>
   <span class="csep" aria-hidden="true"></span>
   <!-- Each mode's tools are always in the page; the mode shows its own. Nothing here is a copy of a
        control: each button runs the same function its menu item did. -->
@@ -1223,7 +1273,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
     <button class="btn" onclick="briefFull()" title="Fill the screen with the board — Esc to leave">Present full screen</button>
     <button class="btn" onclick="exportPPT()" title="SFCB template slides">PowerPoint deck</button>
     <button class="btn" onclick="execSynopsis()" title="The one-page picture (CSV)">Exec synopsis</button>
-    <span class="rochip">Read-only — nothing here edits</span>
+    <span class="rochip">Presentation view — requirements can’t be edited here</span>
   </div>
   <div class="menu" id="m_modetools"><button class="btn" id="b_modetools" onclick="toggleMenu('modetools')">Tools ▾</button><div class="mdd" id="dd_modetools"></div></div>
   <div class="tright">
@@ -1416,7 +1466,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p data-b="card"><b>⊞ SVC</b> on the row opens the by-service table; its top row is the requirement value, one box per service. Type the new figure and press <span class="kb">Tab</span>. <b>↺ orig</b> puts the published values back.</p>
 <div class="hx-note"><b>This one is money.</b> A changed requirement value moves the unfunded total and can move the cutline. Expect the portfolio team to ask where the number came from.</div>
 <h4>Everything else on the requirement</h4>
-<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date and the minimum useful increment. In <b>📋 Requirement edit</b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element, the budget names and the MIPR type.</p>
+<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> for a service with no money yet, so its budget is already chosen when money arrives. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and <i>Budget for every line</i> sets them all at once. In <b>📋 Requirement edit</b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element and the MIPR type.</p>
 </section>
 <section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
 <p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. Set PMO to your office, type the title, and enter the value by service (or one total, spread evenly). It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
@@ -1424,7 +1474,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 </section>
 <section data-part="office" data-id="o-send" data-t="Send it back">
 <p>Press <b class="bt" data-q="#saveBtn">✉ Submit input</b> — in the bar at the top, at the top right of the header where Save is on the portfolio board, or under <span class="mp" data-m="share">📁 File ▾ › ✉ Submit input…</span>. If you have not set your office yet, it asks for it first.</p>
-<p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the message beside the save state, at the top right, confirms it. Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
+<p>A small file downloads, named like <i>ORBIT SUBMITTAL - AV - J Smith - 2026-09-23.json</i>, and the message beside the save state, at the top right, confirms it (hidden, the <b>Message</b> button there brings it back). Send that one file to the portfolio team, or drop it in the intake folder. It carries only what you changed on your office’s requirements (and your office’s ranking, if you changed it), not the whole board. You can submit more than once; each submittal is reviewed on its own.</p>
 <p>If you edited a requirement that belongs to another office, the copy names it and leaves it out; raise it with that office instead.</p>
 </section>
 <section data-part="office" data-id="o-export" data-t="Exporting from your copy, and the five-year plan">
@@ -1436,7 +1486,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <tr><td>Impact statement, description, note</td><td>Sent</td><td>Yours to write — nobody else can.</td></tr>
 <tr><td>Requirement value, by service</td><td>Sent</td><td>You know your costs. Reviewed carefully.</td></tr>
 <tr><td>Plan event, decision band, ★ Mission Critical</td><td>Sent</td><td>Reviewed like any other field.</td></tr>
-<tr><td>CCaR record, PID, record name, MIPR type</td><td>Sent</td><td>Record-keeping corrections.</td></tr>
+<tr><td>CCaR record, PID, record name, MIPR type, BAE budget</td><td>Sent</td><td>Record-keeping corrections.</td></tr>
 <tr><td>Everything in 📋 Requirement edit</td><td>Sent</td><td>A PMO change hands the requirement to that office.</td></tr>
 <tr><td>Award / obligation date, minimum useful increment</td><td>Sent</td><td>You know when it awards and what still buys something.</td></tr>
 <tr><td>Your office’s own ranking</td><td>Sent</td><td>It sets your office’s order, not the portfolio’s.</td></tr>
@@ -1464,7 +1514,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 </section>
 <section data-part="team" data-id="t-board" data-t="The board, its menus and its file">
 <p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box at the top. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
-<p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — and whether your work is saved; <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (read-only, for the room) — each shows its own tools, and none changes a figure — then <b>Reports &amp; exports ▾</b> (every view and every export), <b>Data ▾</b> (everything that brings data in) and <b>Setup ▾</b> (the shape of the board, and the colours and the density you see it in). The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels.</p>
+<p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — and whether your work is saved, with the latest message beside it (the <b>Message</b> button opens a long one whole, or brings back one you hid); <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (for the room — requirements can’t be edited there) — each shows its own tools, and none changes a figure — then <b>Reports &amp; exports ▾</b> (every view and every export), <b>Data ▾</b> (everything that brings data in) and <b>Setup ▾</b> (the shape of the board, and the colours and the density you see it in). The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels. On a narrow window — below about 760 pixels, a phone — the board is for reading and checking a requirement; rank and fund on a wider screen.</p>
 <p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the top bar says <i>↶ work kept aside</i>, and one click puts it back.</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
@@ -1507,7 +1557,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints.</p>
 </section>
 <section data-part="team" data-id="t-names" data-t="The requirement’s written fields">
-<p data-b="grid">In the RECORD panel the three written fields sit straight under the title: <b>⚠ Impact statement</b>, <b>📄 Description &amp; note</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit</b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, planning, and the award schedule.</p>
+<p data-b="grid">In the RECORD panel the three written fields sit straight under the title: <b>⚠ Impact statement</b>, <b>📄 Description &amp; note</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit</b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, the BAE budget for each line, planning, and the award schedule.</p>
 <p data-b="card">On a row: the <b>⚠ Impact statement</b> chip, and in the <b>⋯</b> menu <b>📄 Description &amp; note…</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit…</b>, which says how many of its fields are still to fill.</p>
 </section>
 </template>
@@ -2137,7 +2187,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.90 (30 Sep 2026)';
+const BUILD='v1.91 (30 Sep 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -5624,12 +5674,44 @@ function setStat(html){
   // ordinary start-up line, which waits in the tooltip instead.
   try{ const w=document.getElementById('statWrap'), ss=document.getElementById('saveState');
     if(w){ w.classList.remove('big'); w.classList.toggle('fresh', !!html && !_statQuiet); }
-    if(ss) ss.title=el? (el.textContent||'') : ''; }catch(e){} }
+    if(ss) ss.title=el? (el.textContent||'') : ''; statSync(); }catch(e){} }
 var _statQuiet=false;
+// v1.91 (item 29): ONE BUTTON FOR THE MESSAGE, and it is a button. It was a clickable line and a clickable
+// save state, neither of which a keyboard can reach, so a cut-off warning could not be read whole and a
+// hidden one never came back without a mouse. The button says what it will do: Message (bring a hidden
+// one back, whole), More (open the one-line one), Less (back to one line). Esc closes the open message and
+// leaves focus on the button; ✕ hides it and hands focus to the button, since ✕ itself goes.
+function statSync(){
+  const w=document.getElementById('statWrap'), el=document.getElementById('shareStat'), bt=document.getElementById('statBtn');
+  if(!bt) return;
+  const has=!!(el && el.textContent.trim()), big=!!(w && w.classList.contains('big')), line=!!(w && w.classList.contains('fresh'));
+  bt.hidden=!has;
+  // ✕ follows the button, so Tab goes message, then Message/More/Less, then ✕ -- the order they read in
+  const x=document.getElementById('statX'); if(x) x.hidden=!(has && (big || line));
+  bt.setAttribute('aria-expanded', big? 'true' : 'false');
+  bt.textContent = big? 'Less' : (line? 'More' : 'Message');
+  const say = big? 'Show the message on one line' : (line? 'Show the whole message' : 'Show the last message');
+  bt.setAttribute('aria-label', say); bt.title=say;
+}
+function statToggle(){ const w=document.getElementById('statWrap'); if(!w) return;
+  if(w.classList.contains('big')){ w.classList.remove('big'); w.classList.add('fresh'); }
+  else w.classList.add('big','fresh');
+  statSync(); }
 function statShow(){ const w=document.getElementById('statWrap'), el=document.getElementById('shareStat');
-  if(w && el && el.innerHTML) w.classList.toggle('fresh'); }
-function statHide(){ const w=document.getElementById('statWrap'); if(w) w.classList.remove('fresh','big'); }
-function statOpen(){ const w=document.getElementById('statWrap'); if(w) w.classList.toggle('big'); }
+  if(w && el && el.innerHTML) w.classList.add('fresh'); statSync(); }
+function statHide(){ const w=document.getElementById('statWrap'); if(!w) return;
+  const ae=document.activeElement, inside=w.contains(ae) || (ae && ae.id==='statX');
+  w.classList.remove('fresh','big'); statSync();
+  if(inside){ const bt=document.getElementById('statBtn'); if(bt && !bt.hidden) bt.focus(); } }
+// Esc belongs to the message only while focus is on it, its button or its ✕: pressed anywhere else it is
+// closing a box or the drawer, and must not also pull focus up to the header.
+try{ document.addEventListener('keydown', function(e){
+  if(e.key!=='Escape') return;
+  const w=document.getElementById('statWrap'); if(!w || !w.classList.contains('big')) return;
+  const ae=document.activeElement;
+  if(!(w.contains(ae) || (ae && (ae.id==='statBtn' || ae.id==='statX')))) return;
+  w.classList.remove('big'); statSync();
+  const bt=document.getElementById('statBtn'); if(bt) bt.focus(); }); }catch(e){}
 function fmtTs(ts){ return ts? new Date(ts).toLocaleString():'unknown'; }
 function shortTs(ts){ if(!ts) return ''; const d=new Date(ts);
   return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'}); }
@@ -10085,74 +10167,161 @@ function budPairs(id, T){
   });
   return out;
 }
-// One line per FUNDED service. A service with no money on this requirement is not asked about,
-// and a service whose candidates come to exactly one is stated rather than asked -- an answered
-// question presented as a question is how a list of 33 becomes 33 clicks nobody makes.
-// ONE FIELD PER FUNDED SERVICE -- which is exactly why this could not stay in the ⋯ menu: O&M
-// funds six, so a board with the BAE registry loaded grew the menu by six rows on every
-// requirement. In the record panel they are just more cells in the grid.
-// ONE FIELD, NOT ONE PER SERVICE. A budget exists once per service, so the question a person is
-// really answering is "which budget", asked once \u2014 the variants follow. The per-service picker
-// is still here behind a toggle, because a family does not always cover everything a requirement
-// funds and an exception has to be settable.
-function budRecFields(id, it){
-  if(!budReg().length) return [];
-  const pairs=budPairs(id);
-  if(!pairs.length) return [];
-  const funded=budFundedSvcs(id);
-  const cands=budFamCands(id), cur=budFamOf(id);
-  const covOf=function(f){ return funded.filter(function(sv){ return !!f.svcs[sv]; }); };
-  const out=[];
-  const opts='<option value="">'
-      +(cands.length? '\u2014 choose one of '+cands.length+' \u2014' : '\u2014 none match \u2014')
-      +'</option>'
-    +cands.map(function(f){
-        const c=covOf(f);
-        const tag=(c.length===funded.length)? 'all '+funded.length+' services'
-                : c.length+' of '+funded.length+': '+c.join(', ');
-        return '<option value="'+esc(f.k)+'"'+(cur===f.k?' selected':'')+'>'
-          +esc(f.lbl)+'  \u2014  '+esc(tag)+'</option>';
-      }).join('');
-  // WHAT EACH LINE RESOLVED TO, stated rather than left to be discovered. One entry per service and
-  // lane that carries money -- a requirement drawing both pots shows two per service. A line with
-  // nothing against it is amber: a blank cell in a file CCaR refuses. A legacy choice is red.
-  const laneTag=function(q){ return q.lane==='mand'? ' <span style="color:var(--purp)">mand</span>' : ''; };
-  const bits=pairs.map(function(q){
-    const chosen=budAsgOf(id, q.svc, q.lane), n=budForRow(id, q.svc, q.lane);
-    let v;
-    if(chosen && !budUsable(chosen)) v='<span style="color:var(--red)" title="'+esc(chosen)+'">legacy budget \u2014 pick again</span>';
-    else if(n) v='<span style="color:var(--green)" title="'+esc(n)+'">'+esc(budFamStrip(n))+'</span>';
-    else v='<span style="color:var(--amber)">not set</span>';
-    return '<span style="white-space:nowrap"><b>'+esc(q.svc)+'</b>'+laneTag(q)+' '+v+'</span>';
-  }).join(' \u00b7 ');
-  const done=pairs.filter(function(q){ return !!budForRow(id, q.svc, q.lane); }).length;
-  out.push(recF('Budget', done===pairs.length,
-    recSel('setBudFam('+jsa(id)+',this.value)',
-      'One budget for the requirement \u2014 the per-service variant is assigned for you',
-      opts)
-    +'<div class="hint" style="margin-top:3px;line-height:1.5">'+bits
-    +' <button class="qb" style="font-size:8.5px;margin-left:4px" '
-    +'onclick="budToggleSvc('+jsa(id)+')" '
-    +'title="choose one line on its own">'
-    +(budSvcOpen[id]?'hide':'per line\u2026')+'</button></div>',
-    cur==='*'? 'the lines are on DIFFERENT budgets \u2014 pick one here, or set them below'
-             : (done===pairs.length? '' : (pairs.length-done)+' of '+pairs.length+' lines not set')));
-
-  if(!budSvcOpen[id]) return out;
-  pairs.forEach(function(q){
-    const cand=budPickList(id, q.svc, q.lane);
-    const chosen=budAsgOf(id, q.svc, q.lane), auto=budForRow(id, q.svc, q.lane);
-    out.push(recF('\u21b3 '+q.svc+(q.lane==='mand'?' mand':''), !!auto,
-      recSel('setBudAsg('+jsa(id)+','+jsa(q.svc)+',this.value,'+jsa(q.lane)+')',
-        'Which budget this line is funded from. Blank lets the rule decide.',
-        '<option value="">'+(chosen? '\u2014 let the rule decide \u2014'
-            : (auto? '\u2014 automatic: '+esc(budFamStrip(auto))+' \u2014'
-                   : (cand.length? '\u2014 choose one of '+cand.length+' \u2014' : '\u2014 none match \u2014')))+'</option>'
-        +cand.map(function(b){ return '<option value="'+esc(b.n)+'"'+(chosen===b.n?' selected':'')
-          +'>'+esc(b.n)+(b.hand?'  (by hand only)':'')+'</option>'; }).join('')),
-      cand.length? '' : 'no budget name matches this line'));
+// ── v1.91 (item 35): THE BAE BUDGET, IN THE RECORD PANEL ─────────────────────────────────────────────────
+// Every service with a requirement value gets a line, funded or not. A funded line is named by its lane and
+// says how its budget was settled -- chosen, automatic by rule, from CCaR, not set, or legacy (pick again) --
+// by the same steps budForRow() takes, and budForRow() is what the Spend Plan Source prints, so the panel
+// cannot show one budget while the file carries another. A service with no money yet gets one line, "not
+// funded yet": the budget chosen there carries its own lane (a discretionary name is kept for the
+// discretionary line, one naming no lane for either), so it is used the moment money arrives in that lane.
+// Before v1.91 the picker lived inside 📋 Requirement edit and only for lines drawing money this year: an
+// unfunded requirement could not be given a budget, and clearing cleared only the funded lines -- a choice
+// on a line no longer funded stayed in S.budgetAsg, unseen, and came back if the line was funded again.
+// ONE FIELD FOR THE WHOLE REQUIREMENT, and a picker per line. A budget exists once per service, so the
+// question a person is really answering is "which budget", asked once -- the per-service variants follow.
+// The per-line pickers are for the exception: a family does not always cover everything a requirement asks.
+function budAskSvcs(id){
+  const it=itemById(id); if(!it) return [];
+  return SVC.filter(function(sv,i){ return (+(it.ask||[])[i]||0)>0; });
+}
+function budLines(id, T){
+  const it=itemById(id); if(!it) return [];
+  const p=(T||tiers())[id]||{}, out=[];
+  SVC.forEach(function(sv,i){
+    const d=(+(p.d||[])[i]||0)>0.005, m=(+(p.m||[])[i]||0)>0.005;
+    if(d) out.push({svc:sv, lane:'disc'});
+    if(m) out.push({svc:sv, lane:'mand'});
+    if(!d && !m && (+(it.ask||[])[i]||0)>0) out.push({svc:sv, lane:''});
   });
   return out;
+}
+// How a FUNDED line's budget was settled: budForRow()'s steps, named. {n} is what the file prints.
+function budHow(id, svc, lane){
+  const chosen=budAsgOf(id, svc, lane);
+  if(chosen) return budUsable(chosen)? {n:chosen, how:'chosen'} : {n:'', how:'legacy', legacy:chosen};
+  return budRuleOf(id, svc, lane);
+}
+// What the rule alone would print on the line -- the answer "back to the rule" returns it to.
+function budRuleOf(id, svc, lane){
+  const c=budCandidates(id, svc, lane);
+  if(c.length===1) return {n:c[0].n, how:'rule'};
+  if(c.length>1){ const on=budCcarBuds(id);
+    if(on){ const hit=c.filter(function(b){ return !!on[b.n]; }); if(hit.length===1) return {n:hit[0].n, how:'ccar'}; } }
+  return {n:'', how:'unset'};
+}
+// A funded line's picker. Its empty choice is "back to the rule", the same as the line's clear: a choice
+// kept under the bare service answers this line too, and removing only svc|lane would leave it standing.
+function budLineSet(id, svc, name, lane){
+  if(!name){ budLineClear(id, svc, lane); return; }
+  setBudAsg(id, svc, name, lane);
+}
+// What is chosen for a service with no money yet: whatever is stored for it, under either lane or none.
+function budUnfChoice(id, svc){
+  const A=((S.budgetAsg||{})[id])||{};
+  return A[svc] || A[svc+'|disc'] || A[svc+'|mand'] || '';
+}
+// Choose on a line with no money yet. The name carries its own lane, so it is kept under that lane -- or
+// under the bare service when it names none, which budAsgOf() reads for either lane.
+function budUnfSet(id, svc, name){
+  if(!S.budgetAsg) S.budgetAsg={};
+  const A=S.budgetAsg[id]||(S.budgetAsg[id]={});
+  delete A[svc]; delete A[svc+'|disc']; delete A[svc+'|mand'];
+  if(name){ const p=budParseName(name); A[(p && p.dm)? svc+'|'+p.dm : svc]=name; }
+  if(!Object.keys(A).length) delete S.budgetAsg[id];
+  save(); render();
+}
+// Clear ONE line back to the rule. A funded line can be answered by a choice kept under the bare service,
+// which answers the other lane too: that choice is kept for the other lane, never cleared from both.
+function budLineClear(id, svc, lane){
+  const A=(S.budgetAsg||{})[id];
+  if(A){
+    if(!lane){ delete A[svc]; delete A[svc+'|disc']; delete A[svc+'|mand']; }
+    else {
+      delete A[svc+'|'+lane];
+      if(A[svc] && budAsgOf(id, svc, lane)){
+        const other=(lane==='disc')? 'mand' : 'disc', bare=A[svc], p=budParseName(bare);
+        delete A[svc];
+        if(!A[svc+'|'+other] && (!p || !p.dm || p.dm===other)
+           && budLines(id).some(function(q){ return q.svc===svc && q.lane===other; })) A[svc+'|'+other]=bare;
+      }
+    }
+    if(!Object.keys(A).length) delete S.budgetAsg[id];
+  }
+  save(); render();
+  setStat('↺ <b>'+esc(svc)+(lane? (lane==='mand'? ' mandatory' : ' discretionary') : '')+'</b> on <b>'
+    +esc(dispTitle(itemById(id)))+'</b> is back to the rule.');
+}
+// Clear EVERY choice on the requirement: every line, and the ones no line shows any more.
+function budClearAll(id){
+  const A=(S.budgetAsg||{})[id];
+  const n=A? Object.keys(A).filter(function(k){ return !!A[k]; }).length : 0;
+  if(A) delete S.budgetAsg[id];
+  save(); render();
+  setStat('✗ '+n+' budget choice'+(n===1?'':'s')+' cleared on <b>'+esc(dispTitle(itemById(id)))
+    +'</b> — every line follows the rule again.');
+}
+const BUD_HOW={chosen:'chosen', rule:'automatic by rule', ccar:'from CCaR', unset:'not set — the file will leave it blank',
+  legacy:'legacy budget — pick again'};
+function budRecordHtml(id, it){
+  const head='<div class="insp-lbl">BAE budget <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">'
+    +'· what the Spend Plan Source prints on each line</span></div>';
+  if(!budReg().length)
+    return head+'<div class="budnone">No BAE list is loaded, so no line has a budget yet. '
+      +'<button type="button" class="qb" onclick="document.getElementById(\'budFile\').click()">'
+      +'Data › 💰 Import Budget Extract (BAE)…</button></div>';
+  const T=tiers(), lines=budLines(id, T);
+  if(!lines.length) return head+'<div class="budnone">No service carries a requirement value, so there is nothing to budget.</div>';
+  const A=((S.budgetAsg||{})[id])||{}, nKeys=Object.keys(A).filter(function(k){ return !!A[k]; }).length;
+  const svcs=budAskSvcs(id), cands=budFamCands(id), cur=budFamOf(id);
+  const covOf=function(f){ return svcs.filter(function(sv){ return !!f.svcs[sv]; }); };
+  const opt=function(b, chosen){ return '<option value="'+esc(b.n)+'"'+(chosen===b.n?' selected':'')+'>'
+    +esc(b.n)+(b.hand?'  (by hand only)':'')+'</option>'; };
+  const fam='<div class="budfam"><label for="budfam">Budget for every line</label>'
+    +'<select id="budfam" onchange="setBudFam('+jsa(id)+',this.value)">'
+    +'<option value="">'+(cur==='*'? '— the lines are on different budgets —'
+       : (cur? '— none: every line back to the rule —'
+       : (cands.length? '— choose one of '+cands.length+' —' : '— none match —')))+'</option>'
+    +cands.map(function(f){ const c=covOf(f);
+        return '<option value="'+esc(f.k)+'"'+(cur===f.k?' selected':'')+'>'+esc(f.lbl)+'  —  '
+          +(c.length===svcs.length? 'all '+svcs.length+' services' : c.length+' of '+svcs.length+': '+esc(c.join(', ')))+'</option>'; }).join('')
+    +'</select></div>';
+  const rows=lines.map(function(q){
+    const laneTxt=q.lane==='disc'? 'discretionary' : (q.lane==='mand'? 'mandatory' : 'not funded yet');
+    let how, sayHow, opts, clearable, setter, prints='';
+    if(q.lane){
+      const h=budHow(id, q.svc, q.lane), chosen=budAsgOf(id, q.svc, q.lane), pick=budPickList(id, q.svc, q.lane);
+      const rule=h.how==='chosen'? budRuleOf(id, q.svc, q.lane) : h;
+      how=h.how; sayHow=BUD_HOW[h.how]; prints=h.n;
+      opts=(h.how==='legacy'? '<option value="" selected>— '+esc(h.legacy)+' (legacy) —</option>'
+            : '<option value="">'+(h.how==='chosen'? '— back to the rule: '+(rule.n? esc(rule.n) : 'not set')+' —'
+                : (rule.n? '— the rule: '+esc(rule.n)+' —'
+                : (pick.length? '— choose one of '+pick.length+' —' : '— none match —')))+'</option>')
+        +pick.map(function(b){ return opt(b, chosen); }).join('');
+      clearable=!!chosen;
+      setter='budLineSet('+jsa(id)+','+jsa(q.svc)+',this.value,'+jsa(q.lane)+')';
+    } else {
+      const chosen=budUnfChoice(id, q.svc), seen={};
+      const pick=budPickList(id, q.svc, 'disc').concat(budPickList(id, q.svc, 'mand'))
+        .filter(function(b){ if(seen[b.n]) return false; seen[b.n]=1; return true; });
+      how=chosen? 'chosen' : 'unfunded';
+      sayHow=chosen? 'chosen · used once money arrives in its lane' : 'no money yet · nothing chosen';
+      opts='<option value="">'+(pick.length? '— choose one of '+pick.length+' —' : '— none match —')+'</option>'
+        +pick.map(function(b){ return opt(b, chosen); }).join('');
+      clearable=!!chosen;
+      setter='budUnfSet('+jsa(id)+','+jsa(q.svc)+',this.value)';
+    }
+    const label=q.svc+' '+laneTxt;
+    return '<tr><th scope="row">'+esc(q.svc)+'<span class="budlane">'+laneTxt+'</span></th>'
+      +'<td><select aria-label="'+esc('BAE budget, '+label)+'" title="'+esc(q.lane? (prints? 'The file prints: '+prints
+        : 'The file leaves this line blank') : 'No money yet')+'" onchange="'+setter+'">'+opts+'</select>'
+      +'<div class="budhow '+how+'">'+sayHow+'</div></td>'
+      +'<td>'+(clearable? '<button type="button" class="qb" onclick="budLineClear('+jsa(id)+','+jsa(q.svc)+','+jsa(q.lane)+')"'
+        +' aria-label="'+esc('Clear the '+label+' budget')+'" title="back to the rule">clear</button>' : '')+'</td></tr>';
+  }).join('');
+  return head+fam+'<table class="budtab"><tbody>'+rows+'</tbody></table>'
+    +'<div class="budfoot">'+(nKeys? '<button type="button" class="qb" onclick="budClearAll('+jsa(id)+')"'
+      +' title="every choice on this requirement, the lines not shown any more included">Clear all ('+nKeys+')</button>'
+      : '<span class="budnone">Nothing chosen — every line follows the rule.</span>')+'</div>';
 }
 // ---- BUDGET FAMILIES -----------------------------------------------------------------------
 // A budget exists once per service. Strip the department, the appropriation code and the service
@@ -10187,17 +10356,12 @@ function budFams(){
 }
 function budFamOfKey(k){ return budFams()[k]||null; }
 // The services this requirement actually funds \u2014 the only ones a budget has to cover.
-function budFundedSvcs(id){
-  const it=itemById(id); if(!it) return [];
-  const a=svcAlloc(it)||[];
-  return SVC.filter(function(sv,i){ return (+a[i]||0)>0; });
-}
 // The families worth offering, narrowed as far as the board's own facts allow and no further:
 // this appropriation, this PMO (or a family naming none), covering at least one funded service.
 // Ordered by how much of the requirement one pick would settle.
 function budFamCands(id){
   const it=itemById(id); if(!it) return [];
-  const pmo=grpOf(it)||'', funded=budFundedSvcs(id), F=budFams();
+  const pmo=grpOf(it)||'', funded=budAskSvcs(id), F=budFams();
   const T=tiers(), pt=T[id];
   let want='';
   if(pt){ const d=pt.dT||0, m=pt.mT||0;
@@ -10241,28 +10405,29 @@ function budClearSvc(id, sv){
 // family on the discretionary lines, a lane-less one on both.
 function setBudFam(id, k){
   if(!S.budgetAsg) S.budgetAsg={};
-  const pairs=budPairs(id);
-  if(!k){
-    pairs.forEach(function(q){ budClearSvc(id, q.svc); });
-    save(); render();
-    setStat('\u2717 Budget cleared on <b>'+esc(dispTitle(itemById(id)))+'</b>.');
-    return;
-  }
+  // v1.91: "none" clears EVERY choice, the unseen ones on lines no longer funded included
+  if(!k){ budClearAll(id); return; }
   const f=budFamOfKey(k);
   if(!f){ setStat('\u26a0 That budget is no longer in the list \u2014 re-import the extract.'); return; }
   if(!S.budgetAsg[id]) S.budgetAsg[id]={};
-  const set=[], miss=[];
-  pairs.forEach(function(q){
-    const tag=q.svc+(q.lane==='mand'?' mand':'');
-    if(f.svcs[q.svc] && (!f.dm || f.dm===q.lane)){ S.budgetAsg[id][q.svc+'|'+q.lane]=f.svcs[q.svc]; set.push(tag); }
-    else miss.push(tag);
+  const set=[], miss=[], A=S.budgetAsg[id];
+  budLines(id).forEach(function(q){
+    const tag=q.svc+(q.lane==='mand'?' mand':(q.lane? '' : ' (not funded yet)'));
+    if(!f.svcs[q.svc]){ miss.push(tag); return; }
+    if(q.lane){
+      if(!f.dm || f.dm===q.lane){ A[q.svc+'|'+q.lane]=f.svcs[q.svc]; set.push(tag); } else miss.push(tag);
+    } else {
+      // no money yet: kept under the family's own lane, or the bare service when it names none
+      delete A[q.svc]; delete A[q.svc+'|disc']; delete A[q.svc+'|mand'];
+      A[f.dm? q.svc+'|'+f.dm : q.svc]=f.svcs[q.svc]; set.push(tag);
+    }
   });
   if(!Object.keys(S.budgetAsg[id]).length) delete S.budgetAsg[id];
   save(); render();
   setStat('\u2713 <b>'+esc(f.lbl)+'</b> assigned on '+set.length+' line'+(set.length===1?'':'s')
     +(set.length? ' \u2014 '+set.map(esc).join(', ') : '')
     +(miss.length? '. <b style="color:var(--amber)">Not for '+miss.map(esc).join(', ')
-       +'</b> \u2014 set '+(miss.length===1?'it':'them')+' individually below.' : '.'));
+       +'</b> \u2014 set '+(miss.length===1?'it':'them')+' line by line in the RECORD panel.' : '.'));
 }
 // Called by the consolidated board's appropriation switcher, which RELOADS - so this is fire and
 // forget by nature. If it does not land, the three-minute expiry is the backstop, which is why the
@@ -10564,8 +10729,6 @@ async function driveCheck(){
     +'Chrome for permission to save there, and reports the answer and how long it took.', 'ok');
   render();
 }
-let budSvcOpen={};
-function budToggleSvc(id){ budSvcOpen[id]=!budSvcOpen[id]; render(); }
 // The department a budget is filed under - its first token. Measured, the extracts partition by
 // this cleanly and with no overlap, which is what makes a scoped reconcile safe: importing the USAF
 // extract must not delete the 230 Navy and Marine budgets the DON extract holds.
@@ -10724,7 +10887,7 @@ function idsReqRows(){
       if(!ctl.v){ skip.push({id:id, svc:sv, ask:ask, app:app, why:ctl.why}); return; }
       const bud=budForRow(id, sv, 'disc');
       if(!bud){ skip.push({id:id, svc:sv, ask:ask, app:app,
-        why: budReg().length? 'no single budget name for '+sv+' \u2014 assign it in Classify requirements'
+        why: budReg().length? 'no single budget name for '+sv+' \u2014 pick one under BAE budget in the RECORD panel'
                             : 'no Budget Extract (BAE) imported, so no budget name exists'}); return; }
       const k=bud+String.fromCharCode(0)+ctl.v;
       if(!out[k]) out[k]={bud:bud, ctl:ctl.v, amt:0, app:0, ids:{}, svcs:{}};
@@ -20323,7 +20486,7 @@ function recFields(id, it){
       '<option value=""'+(siOf(it)?'':' selected')+'>— none —</option>'
       +SI_CODES.map(function(c){ return '<option value="'+c[0]+'"'+(siOf(it)===c[0]?' selected':'')+'>'
         +c[0]+' — '+c[1]+(siDefault(it)===c[0]?' (derived)':'')+'</option>'; }).join(''))));
-  budRecFields(id, it).forEach(function(f){ acct.push(f); });
+  // v1.91 (item 35): the BAE budget left Requirement edit for the RECORD panel -- one editor for the field.
   if(acct.length){ F.push(recSec('Accounting lines')); acct.forEach(function(f){ F.push(f); }); }
 
   F.push(recSec('Where the money goes'));
@@ -21889,10 +22052,15 @@ function render(){
     const note=S.notes[id];
     const showDetail = svcAll || open[id];
     // ── v1.90 (item 27): THE ROW ───────────────────────────────────────────────────────────────────
-    // Triage, not editing: rank, PMO, the title with ONE quiet line under it, the band, the money and
-    // the lane, ★ and ⋯. The mode decides which cells are drawn, never what they say; every figure is
-    // the one the RECORD panel prints for the same requirement. Editors that used to live here are on
-    // the panel (or its Requirement edit), and a chip on the row is a status, never a control.
+    // It draws rank, PMO, the title with ONE quiet line under it, the band, the money and the lane, ★ and ⋯.
+    // THE RULE (v1.91, item 32; the same words in AGENTS.md and CLAUDE.md): The row is for triage. Its direct
+    // decisions are rank (the rank box, ▲▼ in Rank, the ⠿ handle), ★ Mission Critical and, in Fund only, the
+    // total allocation for a requirement not on a Split. Lifecycle actions are in its ⋯ menu. The CLIN drill
+    // opens inside the row for a CLIN requirement. Everything else, per-service funding included, is edited
+    // in the RECORD panel. A mode or density changes only what is shown, never a figure.
+    // A chip on the row is a status, never a control, and every figure is the one the RECORD panel prints
+    // for the same requirement. (This comment said "not editing" above the allocation box until v1.91.)
+    // tools/row-controls.json records each control with its surface, so a new row editor fails the check.
     const _m=uiMode, brief=_m==='brief', fundM=_m==='fund', rankM=_m==='rank';
     const _BL=BANDS_LIST(), _bid=BAND_OF(id); let _bi=-1; _BL.forEach(function(b,i){ if(b.id===_bid) _bi=i; });
     const _bd=(_bid!==null)? BAND_DEF(id) : null;
@@ -22016,7 +22184,9 @@ function syncBtns(){
   const hb=document.getElementById('hardBtn');
   if(hb){ hb.className='btn'+(hardOpen?' on':''); hb.textContent='Rank entry'+(hardOpen?': ON':''); hb.setAttribute('aria-pressed', hardOpen?'true':'false'); }
   // v1.90: the workspace tabs say which one is chosen
-  UI_MODES.forEach(function(m){ const t=document.getElementById('tab_'+m); if(t) t.setAttribute('aria-selected', uiMode===m?'true':'false'); });
+  // v1.91 (item 30): mode BUTTONS, the chosen one pressed. They were ARIA tabs, which promise arrow keys and
+  // five tab panels; this is one workspace shown five ways, and a button is what each of them is.
+  UI_MODES.forEach(function(m){ const t=document.getElementById('tab_'+m); if(t) t.setAttribute('aria-pressed', uiMode===m?'true':'false'); });
   const mi=(label,fn,chk,sub,cls)=>`<div class="mi${cls?' '+cls:''}" onclick="${fn}"><span class="chk">${chk?'✓':''}</span>${label}${sub?`<span class="sub">${sub}</span>`:''}</div>`;
   // EVERY TOOLBAR MENU, READ OFF THE PAGE. A hand-kept list here left 🏢 PMO out when that menu
   // was added (v1.67): toggleMenu('pmo') set the flag and nothing opened, on every board, for
@@ -22040,8 +22210,9 @@ function syncBtns(){
     const _st=document.getElementById('shareStat');
     ss.title=(MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+(_st? _st.textContent : ''); }
   // v1.89: while work is kept aside, the header says so -- an opening message can be replaced by the next.
-  if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <a style="color:var(--gold);cursor:pointer" onclick="keptPutBack()" '
-    +'title="Work this browser held that no saved copy had, kept aside '+esc(shortTs(_keptMeta.t))+'. Click to put it back.">\u21b6 work kept aside</a>';
+  // v1.91 (item 29): a button -- it was a link with no address, which a keyboard never reaches.
+  if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <button type="button" class="keptbtn" onclick="keptPutBack()" '
+    +'title="Work this browser held that no saved copy had, kept aside '+esc(shortTs(_keptMeta.t))+'. Put it back.">\u21b6 work kept aside</button>';
   if(sb && _sb){
     sb.className='btn pri'; sb.textContent='\u2709 Submit input'; sb.setAttribute('onclick','pmoSubmit()');
     sb.title='Send your office\u2019s changes to the portfolio team as a small submittal file. Your work is already kept in this browser.';
@@ -26039,10 +26210,16 @@ function inspectorBody(){
       + '<td>' + cell('d', inSplit ? (fo.dv[i]||0) : d, d, bs[i]) + '</td>'
       + '<td>' + cell('m', inSplit ? (fo.mv[i]||0) : m, m, bs[i] - d) + '</td>'
       + '<td class="' + (unf > 0.005 ? 'uf' : 'ro') + '">' + (unf > 0.005 ? fM(unf) : '\u2014')
-        + (u > 0.005 ? '<div class="drew" title="of that shortfall, this much WAS allocated but no'
-            + ' lane could pay it — the rest was never allocated">lane short ' + fM(u) + '</div>' : '')
+        + (u > 0.005 ? laneShortNote(u) : '')
         + '</td></tr>';
   };
+  // v1.91 (item 28): "lane short" and its figure on TWO lines. On one line at 8px the note ran past the
+  // pinned 78px UFR column and the cell cut its end off with no ellipsis -- $150,000 read $150,00, on 115
+  // of the example board's 121 notes, at every width. The figure is money: it must be read whole. The
+  // tooltip carries the sentence.
+  const laneShortNote = function(v){ return '<div class="drew ls" title="lane short ' + fM(v)
+    + ' — of that shortfall, this much WAS allocated but no lane could pay it; the rest was never allocated">'
+    + '<span>lane short</span><span>' + fM(v) + '</span></div>'; };
   // What the row DIRECTED, against what the engine could actually draw. Equal on every board that
   // is not up against a lane limit; the gap is the whole point when it is not.
   const dirD = inSplit ? fo.dv.reduce(function(a,b){ return a+(b||0); }, 0) : dT;
@@ -26062,7 +26239,7 @@ function inspectorBody(){
     + '<td style="color:var(--green)">' + fM(dT) + directedLine(dirD, dT, bsT) + '</td>'
     + '<td style="color:var(--purp)">' + fM(mT) + directedLine(dirM, mT, bsT - dT) + '</td>'
     + '<td class="' + (unfT > 0.005 ? 'uf' : 'ro') + '">' + (unfT > 0.005 ? fM(unfT) : '\u2014')
-      + (uT > 0.005 ? '<div class="drew">lane short ' + fM(uT) + '</div>' : '') + '</td></tr>'
+      + (uT > 0.005 ? laneShortNote(uT) : '') + '</td></tr>'
     + '</table>';
 
   el.innerHTML = drawerBar() +
@@ -26072,7 +26249,7 @@ function inspectorBody(){
       + '<span style="color:var(--dim);font-size:10px">' + (pos>=0? (pos+1) : '—') + ' of ' + ids.length + '</span></div>'
     + '<div class="insp-bd">'
     + '<div class="insp-ttl">' + esc(dispTitle(it))
-      + ' <span class="tedit" style="cursor:pointer" onclick="editTitle('+jsa(id)+')" title="rename requirement">\u270e</span></div>'
+      + ' <button type="button" class="tedit" onclick="editTitle('+jsa(id)+')" title="Rename the requirement" aria-label="Rename the requirement">\u270e</button></div>'
     // WHAT IT IS, IN ONE QUIET LINE. \u2605 MC is a triage decision made while scanning the list, so the
     // ROW owns it; this says it, it does not set it. The band is not echoed: its own field below
     // shows and sets it (v1.86 -- the two chip rows that stood here pushed the editors off the screen).
@@ -26123,18 +26300,21 @@ function inspectorBody(){
     // picker gone this is the only per-requirement way to do it. Typing into any Disc or Mand box
     // below converts it on the spot too; this does it without changing a figure.
     + (fo ? '' : '<div class="rowchips" style="margin-bottom:2px">'
-        + '<span class="rchip" style="border-color:var(--gold);color:var(--gold);cursor:pointer"'
+        // v1.91 (item 29): a button, like the fields above -- a clickable chip no keyboard reached
+        + '<button type="button" class="rchip" style="border-color:var(--gold);color:var(--gold);cursor:pointer"'
         + ' onclick="setFsrc('+jsa(id)+',\'split\')"'
         + ' title="these figures still come from the automatic lane walk, so they move when the'
         + ' order or a topline changes. Typing into any Disc or Mand box below pins this'
         + ' requirement where it stands; this does the same without changing a figure.">'
-        + '\u2699 from the lane walk \u2014 pin these figures</span></div>')
+        + '\u2699 from the lane walk \u2014 pin these figures</button></div>')
     // CCaR RECORD, PID AND THE DECISION BAND, together: what files it and what rule funds it
     + '<div class="insp-g">'
-      + '<div class="insp-f' + (ccar ? '' : ' empty') + '" style="cursor:pointer" onclick="editCcar('+jsa(id)+')">'
-        + '<div class="fl">CCaR record</div><div class="fv">' + (ccar ? esc(ccar) : '+ assign') + '</div></div>'
-      + '<div class="insp-f' + (pid ? '' : ' empty') + '" style="cursor:pointer" onclick="editPid('+jsa(id)+')">'
-        + '<div class="fl">PID</div><div class="fv">' + (pid ? esc(pid) : '+ assign') + '</div></div>'
+      // v1.91 (item 29): BUTTONS. They were clickable boxes a keyboard never reached, and nothing else edits
+      // either figure, so a keyboard user could not change a CCaR record or a PID at all.
+      + '<button type="button" class="insp-f' + (ccar ? '' : ' empty') + '" onclick="editCcar('+jsa(id)+')">'
+        + '<span class="fl">CCaR record</span><span class="fv">' + (ccar ? esc(ccar) : '+ assign') + '</span></button>'
+      + '<button type="button" class="insp-f' + (pid ? '' : ' empty') + '" onclick="editPid('+jsa(id)+')">'
+        + '<span class="fl">PID</span><span class="fv">' + (pid ? esc(pid) : '+ assign') + '</span></button>'
       + '<div class="insp-f' + (BAND_OF(id)===null ? ' empty' : '') + '" style="grid-column:1 / -1">'
         + '<div class="fl">Decision band</div>'
         + '<div class="fv"><select style="width:100%" onchange="setBand('+jsa(id)+',this.value)"'
@@ -26148,6 +26328,7 @@ function inspectorBody(){
       + ' <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">\u00b7 type Disc and Mand \u2014 this IS the allocation; UFR is the remainder</span>'
       + '</div>'
     + svc
+    + budRecordHtml(id, it)
     // Everything below came off the row expander when that editor was retired in this build. These
     // are edits about the SELECTED requirement, so they belong on the record, not on the list.
     + '<div class="insp-lbl">Planning</div>'

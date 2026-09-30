@@ -15,9 +15,9 @@
 //
 //   node tools/fydp-frames.mjs
 import { chromium } from 'playwright-core';
+import { CHROME } from './chrome.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const SV = ['USAF', 'ANG', 'AFRC'];
 const it = (id, grp, ask, ccar) => ({ id, grp, team: grp, sect: '', custom: false, title: 'Req ' + id, event: 'Req ' + id,
   ccar, fy26: ask.map(() => 0), ask, alloc: null });

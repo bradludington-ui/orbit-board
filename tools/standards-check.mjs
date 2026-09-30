@@ -25,20 +25,22 @@
 //   node tools/standards-check.mjs              check against the baseline
 //   node tools/standards-check.mjs --emit       print the current findings as a baseline, to paste
 //   node tools/standards-check.mjs --full       print every finding, not just the summary
+//   node tools/standards-check.mjs --board F    measure another build of the board (a proof against an old one)
 import { chromium } from 'playwright-core';
 import { readFileSync, existsSync } from 'node:fs';
 import { buildPopulated } from './ia-fixture.mjs';
+import { CHROME } from './chrome.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const BASELINE = new URL('./a11y-baseline.json', import.meta.url).pathname;
 const emit = process.argv.includes('--emit');
 const full = process.argv.includes('--full');
+const boardArg = (i => i >= 0 ? process.argv[i + 1] : null)(process.argv.indexOf('--board'));
 
 // Every theme, because contrast is the one thing that changes with the palette and a reader who
 // picked Parchment is owed the same floor as one who left it on Harbor.
 const THEMES = ['harbor', '', 'navy', 'parchment', 'blueprint'];
-const BUILDS = ['prioritization-board-grid.html'];
+const BUILDS = [boardArg || (ROOT + 'prioritization-board-grid.html')];
 
 // ---- the criteria, named so a finding can be cited -----------------------------------------------
 const SC = {
@@ -46,6 +48,7 @@ const SC = {
   uiContrast:'1.4.11 Non-text Contrast — AA',
   target:    '2.5.8 Target Size (Minimum) — AA',
   name:      '4.1.2 Name, Role, Value — A',
+  keys:      '2.1.1 Keyboard — A',
   focus:     '2.4.7 Focus Visible — AA',
   reflow:    '1.4.10 Reflow — AA',
   rel:       '1.3.1 Info and Relationships — A',
@@ -198,6 +201,26 @@ const PROBE = () => {
     add('rel', t.className || '(unclassed table)', `${rows.length} rows, no <th> — first row "${first}"`);
   }
 
+  // 2.1.1 Keyboard (v1.91, item 29) — anything that does something when clicked must also be reachable
+  // from the keyboard: a native control, or one given a tab stop. A clickable div or span, or a link
+  // with no address, is mouse-only -- a keyboard user cannot open, change or bring back what it holds.
+  // The status line, the save state and the RECORD panel's CCaR record, PID and rename were exactly
+  // that, and this run reported 0 findings because nothing here looked. Keyed by the handler, so one
+  // entry covers every row carrying the same control. Not a finding: a panel's backdrop, which closes
+  // on a click OUTSIDE the panel -- every panel has its own close button and Esc.
+  for (const el of document.querySelectorAll('[onclick]')) {
+    if (!vis(el)) continue;
+    const tag = el.tagName;
+    const native = /^(BUTTON|INPUT|SELECT|TEXTAREA|SUMMARY|OPTION)$/.test(tag) || (tag === 'A' && el.hasAttribute('href'));
+    if (native || el.tabIndex >= 0) continue;
+    const h = el.getAttribute('onclick') || '';
+    if (/event\.target\s*===?\s*this/.test(h)) continue;
+    // the whole handler, arguments folded (the 2.5.8 key's rule): "scOpen=!scOpen;render()" and
+    // "gsOpen=!gsOpen;render()" are two different controls, and naming only render() hid which
+    const fn = h.replace(/'[^']*'/g, "'…'").replace(/"[^"]*"/g, '"…"').replace(/\s+/g, ' ').trim().slice(0, 60);
+    add('keys', `${tag.toLowerCase()} | ${fn}`, 'clickable, but a keyboard cannot reach it: not a control, and no tab stop');
+  }
+
   // 3.1.1 / 2.4.2 — page level, cheap and absolute.
   if (!document.documentElement.getAttribute('lang'))
     add('lang', '<html>', 'no lang attribute — a screen reader guesses the pronunciation rules');
@@ -222,7 +245,7 @@ const record = (build, theme, f) => {
 };
 
 for (const build of BUILDS) {
-  const file = buildPopulated(ROOT + build);
+  const file = buildPopulated(build);
   for (const theme of THEMES) {
     const page = await browser.newPage({ viewport: { width: 1700, height: 1000 } });
     await page.goto('file://' + file);
@@ -230,6 +253,24 @@ for (const build of BUILDS) {
     await page.reload();
     await page.waitForTimeout(700);
     await page.evaluate(() => { try { if (typeof render === 'function') render(); } catch (e) {} });
+    // v1.91: measure the status line the way people see a warning -- shown, on one line, cut off, with
+    // its buttons -- not as the quiet start-up line, which is hidden and would be measured as nothing.
+    await page.evaluate(() => { try { if (typeof setStat === 'function') setStat('\u26a0 A long warning written for the '
+      + 'conformance check, so the status line is measured the way people see it: shown, on one line, cut off at the '
+      + 'end, with its own buttons beside it.'); } catch (e) {} });
+    // v1.91: and with Funding detail OPEN. v1.90 folded the scorecards, the fit strip and the funding panels
+    // behind it, so from then on this run measured none of them -- colour, targets or keyboard. Open, they
+    // are measured as they were before the fold.
+    await page.evaluate(() => { try { if (typeof fundDetailToggle === 'function' && !fundDetailOpen) fundDetailToggle(); } catch (e) {} });
+    // v1.91 (item 35): a BAE list loaded and one choice made on the selected requirement, so the RECORD
+    // panel's budget section is measured with its pickers and buttons -- without a list it is one line.
+    await page.evaluate(() => { try { if (typeof budRecordHtml !== 'function') return;
+      BUDDB = { ts: 1700000000031, files: [], rows: ['USAF O&M- CAM Discretionary PSM', 'USAF O&M - CAM OBBBA Mandatory PSM',
+        'USAF O&M- CAM CONG PSM', 'USAF O&M - ANG CAM Discretionary PSM', 'USMC STOVL O&M -1A9A FL Discretionary PSM',
+        'USN O&M CV Discretionary PSM'].map(budParseName).filter(Boolean) };
+      _budRegCache = null;
+      const id = curRow || gridIds()[0]; if (!S.budgetAsg) S.budgetAsg = {};
+      S.budgetAsg[id] = { 'USAF|disc': 'USAF O&M- CAM CONG PSM' }; render(); } catch (e) {} });
     await page.waitForTimeout(300);
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);
 

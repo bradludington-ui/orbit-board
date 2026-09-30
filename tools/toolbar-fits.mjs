@@ -12,7 +12,8 @@
 //   node tools/toolbar-fits.mjs
 import { chromium } from 'playwright-core';
 import { resolve } from 'node:path';
-const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome'});
+import { CHROME } from './chrome.mjs';
+const b=await chromium.launch({executablePath: CHROME});
 let bad=0;
 for(const f of ['prioritization-board-grid.html']){
  console.log('\n'+f);
