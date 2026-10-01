@@ -36,11 +36,10 @@ Current version: **v1.92**. Next: **v1.93**.
       a redraw replaced that control;
     - every box is a named dialog (its title is its name), so a screen reader says it opened;
     - where one box opens another, closing the top one hands the keyboard back to the one below.
-  - **No typed text lost to a stray key (Claude's recommendation; Brad to confirm).** Esc puts closing a box
-    one keypress away. So a box holding typing that is not saved asks *Discard what you typed?* before it
-    closes -- on Esc, on ✕ Close and on a click outside it alike (today the last two discard silently).
-    Cancel at that question keeps the box open with the text in it. Say if Esc should instead do nothing in
-    a box with unsaved typing, or if ✕ Close and the click outside should stay as they are.
+  - **No typed text lost to a stray key (Claude's recommendation; Brad agreed, 1 Oct 2026: "go with your
+    recommendation").** Esc puts closing a box one keypress away. So a box holding typing that is not saved
+    asks *Discard what you typed?* before it closes -- on Esc, on ✕ Close and on a click outside it alike
+    (today the last two discard silently). Cancel at that question keeps the box open with the text in it.
   - Save diagnostics and Help move onto the controller; what they do does not change.
 - **What does not change:** what any box does, its contents and its buttons, every figure and every export.
   The toolbar menus, a row's ⋯ menu, the message and the narrow-window RECORD panel keep their own Esc. The
@@ -53,6 +52,109 @@ Current version: **v1.92**. Next: **v1.93**.
   before discarding, and Cancel keeps the text. `npm run check` fails on a box not registered with the
   controller; `npm run standards` keeps its baseline at 0; mutations that let Tab escape, skip the focus
   return, close on Esc without asking, or drop a box's name are caught.
+
+#### 40. Mandatory awards last, in every spend plan
+- **Logged:** 1 Oct 2026, Brad: "all mandatory allocations should award last. Force mandatory funding to
+  award after discretionary. This goes for all spend plan exports. Mandatory will always award last. The
+  award could be a mix of discretionary and mandatory, but mandatory always awards last."
+- **Found (v1.92):** one rule places every funded dollar in a month (`landSvc`, v1.86). An increment is
+  discretionary dollars, placed as typed. **Mandatory has no increments of its own and is spread across
+  all of the requirement's award dates, in the increments' proportions** -- so it lands in the earliest
+  award as much as the last. A single award date places both lanes in its month; no date, UNSCHEDULED.
+- **What will be built (Claude's reading -- Brad to confirm with the example):** discretionary is placed
+  exactly as today; **all of a service's mandatory lands on the requirement's last award date** -- the
+  service's own last increment, or, in a service with no increment of its own, the requirement's last
+  increment overall. With a single award date both lanes land in that month, a mixed award. With no date,
+  mandatory is UNSCHEDULED as today.
+  - **Example:** USAF $300 requirement, $200 discretionary and $100 mandatory, increments Nov $100 and Feb
+    $100. Today: Nov $150 ($100 + $50 mandatory), Feb $150. After: **Nov $100** (discretionary), **Feb $200**
+    ($100 discretionary + $100 mandatory).
+  - **A requirement funded only by mandatory** with several award dates lands it all on the last one.
+- **Where it shows:** every surface that uses the rule -- the Spend Plan Forecast, the month-by-month
+  sheets and the Excel workbook's per-requirement months, the PMO tabs, Two Spend Plans, CR Cash Needs
+  and the CR Cash Return (1A9A), and the deck's spend-plan-by-month chart. Mandatory moving later can move dollars out of
+  the CR window (Oct–Mar) into later months. **The IDS batch has no date column, so nothing in it moves.**
+- **What does not change:** how much is funded in either lane, every total, and where discretionary lands.
+- **Checks:** the example above and its edge cases (no increment of its own, one date, no date,
+  mandatory only) are written into the suites from the scenario, never read back from the board; every
+  spend plan still holds every funded dollar in a month or UNSCHEDULED, and all of them agree month by
+  month; mutations that spread mandatory again or land it first are caught.
+
+#### 41. The Spend Plan Forecast by PMO and by service, and an export of the view
+- **Logged:** 1 Oct 2026, Brad: view the FY27 Projected Spend Plan Forecast by PMO and by service "in the
+  same format as the top Roll Up section", export the filtered view, and "do not create a large clunky
+  section for filtering".
+- **Found (v1.92):** *Reports & exports ▾ › FY27 Spend Plan Forecast…* shows the Roll Up (a row per
+  prime contract, one row for Miscellaneous OGC Efforts, by month, UNSCHEDULED and TOTAL) and a BY PMO
+  table under it. There is no way to see one PMO's or one service's roll-up, and the box has no export.
+- **What will be built:**
+  - **One small *Show* picker in the box's title line:** *Whole portfolio* (as today), then each PMO, then
+    each service. The Roll Up keeps its exact format and shows only that PMO's share of each requirement,
+    or only that service's dollars. The table under it breaks the view down the other way: the whole
+    portfolio by PMO (as today), a PMO by service, a service by PMO.
+  - **⬇ Export this view**, beside the picker: an Excel workbook of exactly what is on screen, named for the
+    view (*FY27 Spend Plan Forecast - AV.xlsx*), in dollars, with the view and the date in its title row.
+  - The picker remembers nothing between openings: the box always opens on the whole portfolio.
+- **What does not change:** the figures (the same landing rule, item 40 included), the whole-portfolio view.
+- **Checks:** every PMO view and every service view ties to the whole portfolio month by month (the PMO
+  views sum to it, and so do the service views); the export holds exactly the screen's rows and figures;
+  a requirement shared between PMOs is split by its shares in the PMO views.
+
+#### 42. Needs attention: every entry opens its list, and missing obligation dates are one of them
+- **Logged:** 1 Oct 2026, Brad: each entry should open a pop-up "to show me where the errors are, like it
+  does with the Not Drawn statement", including requirements without a CCaR record, plus "any
+  requirements that are missing obligation dates. We need to be able to easily see which requirement
+  needs updating."
+- **Found (v1.92):** Needs attention, at the top, has three entries. Only *▲ N not drawn* opens a list
+  (the fix list); *⚠ N impact statements missing* and *○ N without a CCaR record* are plain text, so finding
+  them means scrolling the list. Missing obligation dates are not counted there at all; Pre-flight lists
+  only the funded ones (*Funded, but no award timing*).
+- **What will be built:**
+  - Every entry is a button that opens a box in the fix list's style: one line per requirement -- rank,
+    title, PMO and what is missing -- and **Go to it**, which selects the requirement and opens the RECORD
+    panel at the field to fill (the Impact statement editor, the CCaR record, the award / obligation date).
+  - **New entry: *📅 N without an obligation date*** -- every requirement with no award / obligation date.
+    The funded ones are listed first, each with the dollars it puts in UNSCHEDULED in every spend plan.
+  - *▲ not drawn* keeps its fix list as it is.
+- **What does not change:** what each count counts today, and Pre-flight.
+- **Checks:** each box lists exactly the requirements its count counts; Go to it lands on the right
+  requirement and field; a requirement fixed from the box leaves the list and the count at once.
+
+#### 43. Every drop-down menu shows all of its items
+- **Logged:** 1 Oct 2026, Brad, with two photos: a row's ⋯ menu cut off under the list, and the *Reports &
+  exports* menu running off the bottom of the screen. "We need to ensure that all drop downs are visible."
+- **Found (v1.92, measured in Chromium):**
+  - **A row's ⋯ menu is clipped by the list's own scroll box.** On the last row the menu runs 194px past
+    the bottom of the list, and that part cannot be seen or reached -- at any window size. On a short list
+    (one office, three rows) it shows only its first item.
+  - **Reports & exports is 877px tall and never scrolls.** In a 730px-high window (a 1080p screen at 125%
+    zoom, less the browser's bars) its last 232px are below the screen; even at 960px it runs 2px past.
+    Setup (625px) only just fits at 730px.
+- **What will be built:**
+  - A menu taller than the room below its button **scrolls inside itself** and never runs past the
+    window; the item the keyboard reaches is scrolled into view.
+  - A row's ⋯ menu is drawn above the list, not inside its scroll box, and **opens upward** when there is
+    not room below.
+  - The same for every drop-down on the board: the toolbar menus, the PMO, fiscal-year and Filter
+    pickers, a row's menu and the chip lists.
+- **What does not change:** any menu's items, order or labels.
+- **Checks:** a browser check opens every drop-down -- and a row's menu on the first and the last row, in a
+  long list and in a three-row list -- at 761, 1024, 1536 and 1920px wide and 730 and 960px high, and
+  fails if any item is outside the window or hidden by anything around it.
+
+#### 44. The IDS batch: Approved split into discretionary and mandatory on the summary line
+- **Logged:** 1 Oct 2026, Brad: include mandatory budgets and allocations like discretionary, and a
+  mandatory summary total on the main screen like the discretionary one.
+- **Found:** Brad's photo is the **v1.91** box (*Approved (discretionary)*, *Export the requirement
+  batch*). **v1.92 already writes mandatory lines** on their mandatory budgets (Amount = Approved = the
+  draw) beside the discretionary ones. Its summary line gives *Req. Approved* as one figure (discretionary
+  + mandatory together), so the mandatory total cannot be read off it.
+- **What will be built:** the summary line and the reconciliation give **Req. Approved by lane --
+  discretionary and mandatory, each summed from the contributions** (a row on a lane-less budget can hold
+  both) -- and the two add to the total.
+- **What does not change:** the file.
+- **Checks:** the two figures are written from the scenario and add to Req. Approved; a lane-less row's
+  money is split by its contributions.
 
 ## Later
 
