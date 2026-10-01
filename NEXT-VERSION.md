@@ -8,8 +8,51 @@ Current version: **v1.92**. Next: **v1.93**.
 
 ## Open
 
-Nothing is open. Item 38's questions (the IDS batch) were answered by Brad on 1 Oct 2026 and built into v1.92
-before it merged — see *Shipped › v1.92 › Revised before merge*.
+#### 39. Every box takes the keyboard: focus in, Tab kept inside, Esc closes, focus back
+- **Logged:** 1 Oct 2026, at Brad's request: the dialog keyboard handling v1.92 deferred (*Shipped › v1.92 ›
+  36*, "Not built (agreed 1 Oct)").
+- **Found (v1.92, checked in Chromium on a populated example board):** the board has **43 boxes** -- the
+  reports, exports, imports, editors, Pre-flight, the IDS batch, Help, Save diagnostics and the rest. The
+  probe opened the 34 that open from their own button without anything selected:
+  - **Focus stays behind the box.** In 33 of the 34 the keyboard is still on the board when the box opens;
+    only Save diagnostics moves it in. Help leaves it on the Help button.
+  - **Tab walks out of the box.** In 31 of the 34, Tab goes from the box's last control onto the board
+    behind it, which is still live. The other 3 hold more controls than the 40 presses the probe tried.
+  - **Esc does nothing** in 33 of the 34; only Save diagnostics closes on Esc (Help does too, from its own
+    handler). Every other box closes only with its ✕ Close, its Cancel or a click outside it.
+  - **Closing leaves the keyboard at the top of the page,** except Save diagnostics and Help, which put it
+    back on the button that opened them.
+  - **A screen reader is not told a box opened:** only Help and Save diagnostics are marked as dialogs with
+    a name.
+  - **Typed text is thrown away without asking.** The field editors (⚠ Impact statement, 📄 Description &
+    note, 📋 Requirement edit) drop what was typed but not saved on ✕ Close or a click outside the box.
+- **What will be built:**
+  - **One controller for every box,** so all 43 behave the same and a new box gets it by being registered:
+    - when a box opens, focus moves into it: its first field, or its first control;
+    - Tab and Shift+Tab go round the box's own controls and never reach the board behind, which takes no
+      focus, click or screen-reader reading while the box is open;
+    - **Esc closes the box exactly as its ✕ Close does** -- never Save, Apply or Export;
+    - when it closes, focus goes back to the control that opened it, or to the menu button it came from if
+      a redraw replaced that control;
+    - every box is a named dialog (its title is its name), so a screen reader says it opened;
+    - where one box opens another, closing the top one hands the keyboard back to the one below.
+  - **No typed text lost to a stray key (Claude's recommendation; Brad to confirm).** Esc puts closing a box
+    one keypress away. So a box holding typing that is not saved asks *Discard what you typed?* before it
+    closes -- on Esc, on ✕ Close and on a click outside it alike (today the last two discard silently).
+    Cancel at that question keeps the box open with the text in it. Say if Esc should instead do nothing in
+    a box with unsaved typing, or if ✕ Close and the click outside should stay as they are.
+  - Save diagnostics and Help move onto the controller; what they do does not change.
+- **What does not change:** what any box does, its contents and its buttons, every figure and every export.
+  The toolbar menus, a row's ⋯ menu, the message and the narrow-window RECORD panel keep their own Esc. The
+  browser's own confirm and alert prompts already work from the keyboard and stay as they are (item 19 stays
+  in Later).
+- **Checks:** a browser check opens all 43 boxes the way a person does (by keyboard where the opener is a
+  button) and, for each: focus lands inside; twice as many Tab and Shift+Tab presses as the box has controls
+  never leave it; the board behind takes no focus and no click; Esc closes it; focus returns to its opener;
+  it is a named dialog. In every box with a field, typing and then Esc, ✕ Close or a click outside asks
+  before discarding, and Cancel keeps the text. `npm run check` fails on a box not registered with the
+  controller; `npm run standards` keeps its baseline at 0; mutations that let Tab escape, skip the focus
+  return, close on Esc without asking, or drop a box's name are caught.
 
 ## Later
 
