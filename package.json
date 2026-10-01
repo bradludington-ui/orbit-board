@@ -13,7 +13,7 @@
     "layout": "node tools/layout-fits.mjs",
     "controls": "node tools/row-controls.mjs --check",
     "inspector": "node tools/inspector-agrees.mjs",
-    "verify:grid": "npm run chrome --silent && npm run controls --silent && npm run inspector --silent && npm run toolbar --silent && npm run editors --silent && npm run colours --silent && npm run menus --silent && npm run panels --silent && npm run frames --silent && npm run hostile --silent && npm run layout --silent && npm run keys --silent",
+    "verify:grid": "npm run chrome --silent && npm run controls --silent && npm run inspector --silent && npm run toolbar --silent && npm run editors --silent && npm run colours --silent && npm run menus --silent && npm run panels --silent && npm run frames --silent && npm run hostile --silent && npm run layout --silent && npm run keys --silent && npm run dropdowns --silent && npm run dialogs --silent",
     "toolbar": "node tools/toolbar-fits.mjs",
     "audit:board": "node tools/export-audit/audit-board.mjs",
     "audit:legacy": "node tools/export-audit/legacy-fsrc.mjs",
@@ -39,7 +39,9 @@
     "standards": "node tools/standards-check.mjs",
     "verify:file": "node tools/verify-file.mjs",
     "chrome": "node tools/chrome.mjs --selftest",
-    "keys": "node tools/keyboard-reach.mjs"
+    "keys": "node tools/keyboard-reach.mjs",
+    "dropdowns": "node tools/dropdowns-visible.mjs",
+    "dialogs": "node tools/dialogs-keyboard.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

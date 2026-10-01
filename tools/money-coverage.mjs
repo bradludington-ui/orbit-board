@@ -40,6 +40,9 @@ const REGISTRY = {
   trimAbsorb:   { money: true,  what: 'unspent discretionary against the trims that could take it — '
                                     + 'read as an instruction to type a figure into an allocation box' },
   forecast:     { money: true,  what: 'the spend forecast — when funded dollars land', via: ['landSvc'] },
+  // v1.93 (item 41): the forecast for one view -- the whole portfolio, one PMO or one service -- written as one sheet
+  exportFcView: { money: true,  what: 'the Spend Plan Forecast for the view on screen — the whole portfolio, one PMO or one service',
+                  via: ['fcViewData', 'forecast', 'landSvc'] },
   srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column, one line per service per lane',
                   via: ['srcLaneOf', 'srcSvcOf'] },
   exportSrc:    { money: true,  what: 'the Spend Plan Source workbook', via: ['srcLaneOf', 'srcSvcOf', 'srcRowsOf'] },

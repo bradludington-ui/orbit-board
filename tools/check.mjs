@@ -272,6 +272,37 @@ console.log('\noffline');
   else pass('every element with a click handler is a native control or a labelled SVG role="button" group (backdrops excepted)');
 }
 
+// ---- every box is one the box controller can drive (v1.93, item 39) ----------------------------------------
+// The controller (dlgSync) finds a box as a direct child of <body> with class modal-bg and an id, names it from
+// its <h3>, and closes it -- on Esc, or after asking about typing -- by pressing the box's own close control. A
+// box nested elsewhere, unnamed or without a close control would open with the keyboard left behind it, be read
+// out as nothing, or have no way out but the mouse. The two boxes whose close control is drawn by their own code
+// are listed in DLG_DRAWN_CLOSE.
+console.log('\nboxes');
+{
+  const { JSDOM } = await import('jsdom');
+  const doc = new JSDOM(src.replace(/<script[\s\S]*?<\/script>/gi, '')).window.document;
+  const drawn = literal('DLG_DRAWN_CLOSE');
+  const bad = [], ids = new Set();
+  const all = [...doc.querySelectorAll('.modal-bg')];
+  for (const bg of all) {
+    const id = bg.id || '(no id)';
+    if (!bg.id) { bad.push('a box with no id'); continue; }
+    if (ids.has(bg.id)) bad.push(`${id}: the id is used twice`); ids.add(bg.id);
+    if (bg.parentElement !== doc.body) bad.push(`${id}: not a direct child of <body>`);
+    const m = bg.querySelector(':scope > .modal');
+    if (!m) { bad.push(`${id}: no .modal inside`); continue; }
+    const h = m.querySelector('h3');
+    const name = h ? [...h.childNodes].filter(n => !(n.nodeType === 1 && n.tagName === 'BUTTON')).map(n => n.textContent).join('').trim() : '';
+    if (!name && !drawn.includes(bg.id)) bad.push(`${id}: no <h3> naming it`);
+    const close = m.querySelector('h3 button.x') || [...m.querySelectorAll('button')].find(x => /^(✕\s*)?(Close|Cancel)$/.test(x.textContent.trim()));
+    if (!close && !drawn.includes(bg.id)) bad.push(`${id}: no close control (✕ Close in the <h3>)`);
+  }
+  for (const id of drawn) if (!ids.has(id)) bad.push(`DLG_DRAWN_CLOSE names ${id}, which is not a box`);
+  if (bad.length) fail(`${bad.length} box(es) the controller cannot drive: ` + bad.join('; '));
+  else pass(`all ${all.length} boxes are direct children of <body> with an id, a .modal, a name and a close control`);
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);

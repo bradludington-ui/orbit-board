@@ -2836,11 +2836,15 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 
 // ═══ v1.86 — MANDATORY IN EVERY CONSOLIDATED SPEND PLAN ══════════════════════════════════════════
 // Brad, 25-26 Sep 2026: wherever the board shows WHEN money lands, the mandatory allocation is in it
-// and lands in the months like discretionary. Mandatory rides the requirement's own dates; one rule
-// places every dollar on every surface; the ◨ switch moves them all together; the 1A9A adopts the
-// rule; the deck gets a chart that ties to the forecast. The fixture is built so each case the rule
-// decides is present once: a mandatory-only service on a dated requirement (A's ANG), a single date
-// (B), discretionary not yet on a date (C's USN), no date at all (D), and a date in the next year (E).
+// and lands in the months like discretionary. One rule places every dollar on every surface; the ◨
+// switch moves them all together; the 1A9A adopts the rule; the deck gets a chart that ties to the
+// forecast. v1.93 (item 40) CHANGED THE RULE, and these figures with it: an award is the whole award,
+// both lanes, discretionary filling forward from the first and mandatory backward from the last, and
+// what the awards do not cover is UNSCHEDULED in either lane. The fixture is built so each case the rule
+// decides is present once: a mandatory-only service with no award of its own (A's ANG -- it rode A's
+// dates until v1.93, and is UNSCHEDULED now), a single date (B, both lanes in its month), an award
+// smaller than the discretionary (C's USN: the $300 award is all discretionary, the rest of it and all
+// the mandatory UNSCHEDULED), no date at all (D), and a date in the next year (E).
 const V10SV = ['USAF', 'ANG', 'AFRC', 'STOVL', 'USMC-C', 'USN'];
 const v10It = (id, grp, ask) => ({ ...it(id, grp, ask), title: 'Req ' + id, event: 'Req ' + id });
 const V10 = { services: V10SV,
@@ -2858,7 +2862,7 @@ const v10Board = () => {
   return B;
 };
 const r2 = v => Math.round(v * 100) / 100;
-const V10FC = { m: [500, 666.67, 600, 0, 533.33, 0, 0, 0, 0, 0, 0, 0], u: 1450 };
+const V10FC = { m: [300, 500, 600, 0, 400, 0, 0, 0, 0, 0, 0, 0], u: 1950 };
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const name = 'v1.86 — every funded dollar lands in a month or UNSCHEDULED, by one rule';
@@ -2871,13 +2875,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'forecast', 'the months and UNSCHEDULED', JSON.stringify({ m: F.m.map(r2), u: r2(F.u) }), JSON.stringify(V10FC));
   chk(name, 'forecast', 'every funded dollar is in exactly one of them', r2(F.m.reduce((a, b) => a + b, 0) + F.u), r2(F.tot));
   chk(name, 'forecast', 'and that is every dollar drawn', r2(F.tot), 3750);
-  chk(name, 'mandatory', 'a service paid only from mandatory, on a dated requirement, lands on its dates (A’s ANG: Nov and Feb, 5:4)',
+  chk(name, 'mandatory', 'a service paid only from mandatory, with no award of its own, is UNSCHEDULED until an award covers it (A’s ANG, v1.93)',
     ev(`JSON.stringify((function(){ const s=monSpreadOf('A', tiers().A); return [s.m[1][1], s.m[1][4], s.unsch[1]].map(function(v){ return Math.round(v*100)/100; }); })())`),
-    JSON.stringify([166.67, 133.33, 0]));
-  chk(name, 'mandatory', 'UNSCHEDULED holds only money with no date: C’s undated discretionary, D, and E’s next-year date',
+    JSON.stringify([0, 0, 300]));
+  chk(name, 'mandatory', 'UNSCHEDULED holds only money the awards do not cover: A’s ANG, C’s undated discretionary and its mandatory, D, and E’s next-year date',
     ev(`JSON.stringify(['A','B','C','D','E'].map(function(id){ const s=monSpreadOf(id, tiers()[id]); return Math.round(s.unsch.reduce(function(a,b){ return a+b; },0)); }))`),
-    JSON.stringify([0, 0, 700, 500, 250]));
-  chk(name, 'mandatory', 'C’s mandatory rides its own increment with the discretionary that is dated', ev(`Math.round(monSpreadOf('C', tiers().C).m[5][0])`), 500);
+    JSON.stringify([300, 0, 900, 500, 250]));
+  chk(name, 'mandatory', 'C’s $300 award is all discretionary: mandatory finds no room in it', ev(`Math.round(monSpreadOf('C', tiers().C).m[5][0])`), 300);
   // THE SURFACES AGREE, month by month, to the dollar
   const MS10 = JSON.parse(ev(`JSON.stringify((function(){ const m=FYMON.map(function(){return 0;}); let u=0;
     S.order.forEach(function(id){ const s=monSpreadOf(id, tiers()[id]); s.m.forEach(function(r){ r.forEach(function(v,k){ m[k]+=v; }); }); u+=s.unsch.reduce(function(a,b){return a+b;},0); });
@@ -2888,15 +2892,15 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const crMon = [0, 1, 2, 3, 4, 5].map(k => r2(cr.reduce((a, s) => a + s.win[2 * k] + s.win[2 * k + 1], 0)));
   chk(name, 'agree', 'the CR windows, folded to months, equal the forecast October to March', JSON.stringify(crMon), JSON.stringify(V10FC.m.slice(0, 6)));
   chk(name, 'agree', 'CR No date equals the forecast’s UNSCHEDULED', r2(cr.reduce((a, s) => a + s.nd, 0)), V10FC.u);
-  chk(name, 'CR', 'USN: only what is dated is a cash need; the undated discretionary is No date', JSON.stringify([cr[5].win[0], cr[5].nd, cr[5].tot]), JSON.stringify([500, 700, 500]));
-  // THE 1A9A ADOPTS THE RULE: C's undated $700 is no longer spread into October
+  chk(name, 'CR', 'USN: only what is dated is a cash need; what the award does not cover is No date', JSON.stringify([cr[5].win[0], cr[5].nd, cr[5].tot]), JSON.stringify([300, 900, 300]));
+  // THE 1A9A ADOPTS THE RULE: C's undated $700 is not spread into October, nor (v1.93) its mandatory
   const x = JSON.parse(ev(`JSON.stringify(crExportRows().map(function(r){ return [r.id, r.wins.map(Math.round)]; }))`));
   chk(name, '1A9A', 'the return carries B in December and C in October at what is dated',
-    JSON.stringify(x.map(r => [r[0], r[1].reduce((a, b) => a + b, 0), r[1].findIndex(v => v > 0)])), JSON.stringify([['B', 600, 4], ['C', 500, 0]]));
+    JSON.stringify(x.map(r => [r[0], r[1].reduce((a, b) => a + b, 0), r[1].findIndex(v => v > 0)])), JSON.stringify([['B', 600, 4], ['C', 300, 0]]));
   // BY PMO, the same rule, and TOTAL IN WINDOW is what lands in the windows
   ev(`crBy='pmo'; 'ok'`);
   const bp = JSON.parse(ev(`JSON.stringify((function(){ const R=crRows(); return R.keys.map(function(k,i){ const b=R.data[i]; return [k, Math.round(b.win.reduce(function(a,c){return a+c;},0)), Math.round(b.nodate), Math.round(b.tot)]; }); })())`));
-  chk(name, 'CR by PMO', 'each office’s windows, No date and TOTAL IN WINDOW', JSON.stringify(bp), JSON.stringify([['PSM', 500, 1200, 500], ['AV', 1800, 0, 1800], ['TSS', 0, 250, 0]]));
+  chk(name, 'CR by PMO', 'each office’s windows, No date and TOTAL IN WINDOW', JSON.stringify(bp), JSON.stringify([['PSM', 300, 1400, 300], ['AV', 1500, 300, 1500], ['TSS', 0, 250, 0]]));
   ev(`crBy='svc'; 'ok'`);
   // THE PMO TABS' SPEND PLAN, in the workbook
   const sheets = JSON.parse(capture(ev));
@@ -2917,18 +2921,20 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const name = 'v1.86 — the award block schedules the whole funded amount, and seeds what it counts';
+  // v1.93 (item 40): an award is the whole award, so the block counts both lanes and seeds both.
   try {
   const { ev } = v10Board();
   ev(`toggleAwdInc('B', 0); 'ok'`);
-  chk(name, 'seed', 'switching to increments seeds discretionary, which is what an increment is', ev(`JSON.stringify(S.awards.B.inc[0].sv)`), JSON.stringify([0, 0, 0, 400, 0, 0]));
+  chk(name, 'seed', 'switching to increments seeds the whole funded amount, both lanes, which is what an award is', ev(`JSON.stringify(S.awards.B.inc[0].sv)`), JSON.stringify([0, 0, 0, 600, 0, 0]));
   const h = ev(`awardBlockHtml(itemById('B'))`);
-  chk(name, 'block', 'the discretionary balance is clear the moment it is switched', /Balance to schedule — discretionary[\s\S]*?✓ \$0/.test(h), true);
-  chk(name, 'block', 'and the mandatory has its own row, riding the dates', /Mandatory \\u2014 rides these dates|Mandatory — rides these dates/.test(h) && />\$200</.test(h), true);
+  chk(name, 'block', 'the balance, both lanes, is clear the moment it is switched', /Balance to schedule — discretionary \+ mandatory[\s\S]*?✓ \$0/.test(h), true);
+  chk(name, 'block', 'and the one award says how it splits', /class="awdsplit"[^>]*>\$400 disc \+ \$200 mand</.test(h), true);
   chk(name, 'block', 'nothing moved: B still lands whole in December', ev(`JSON.stringify(monSpreadOf('B', tiers().B).m[3].map(Math.round))`), JSON.stringify([0, 0, 600, 0, 0, 0, 0, 0, 0, 0, 0, 0]));
   ev(`S.awards.A.inc[1].sv[0]=100; save(); 'ok'`);
   ev(`fillLastAwd('A'); 'ok'`);
-  chk(name, 'put on last', 'clears the discretionary balance, and with mandatory riding every funded dollar has a date',
-    ev(`JSON.stringify([S.awards.A.inc[1].sv[0], Math.round(monSpreadOf('A', tiers().A).unsch.reduce(function(a,b){ return a+b; },0))])`), JSON.stringify([400, 0]));
+  chk(name, 'put on last', 'clears the balance in both lanes, per service: USAF’s discretionary and ANG’s mandatory, so every funded dollar has a date',
+    ev(`JSON.stringify([S.awards.A.inc[1].sv[0], S.awards.A.inc[1].sv[1], Math.round(monSpreadOf('A', tiers().A).unsch.reduce(function(a,b){ return a+b; },0))])`), JSON.stringify([400, 300, 0]));
+  chk(name, 'put on last', 'and ANG’s mandatory lands on the latest award, February', ev(`Math.round(monSpreadOf('A', tiers().A).m[1][4])`), 300);
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -2991,7 +2997,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const got = M.concat(['UNSCHEDULED']).map(l => val(l, 'discretionary') + val(l, 'mandatory'));
   chk(name, 'chart', 'every month and UNSCHEDULED is the forecast’s, to the dollar', got.join(','), V10FC.m.concat([V10FC.u]).map(Math.round).join(','));
   chk(name, 'chart', 'each pot, per bar', JSON.stringify(['OCT', 'NOV', 'DEC', 'FEB'].map(p => M.find(m => m.startsWith(p))).map(l => [val(l, 'discretionary'), val(l, 'mandatory')])),
-    JSON.stringify([[300, 200], [500, 167], [400, 200], [400, 133]]));
+    JSON.stringify([[300, 0], [500, 0], [400, 200], [400, 0]]));
   chk(name, 'chart', 'the figures are printed beneath every bar, and the total', /<a:t>TOTAL<\/a:t>/.test(ch) && (ch.match(/<a:tr /g) || []).length === 4, true);
   chk(name, 'chart', 'no what-if marker on the funded plan', /DISCRETIONARY ONLY/.test(ch), false);
   const sl2 = deck(true);

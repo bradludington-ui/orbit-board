@@ -9,7 +9,7 @@
 // that tells someone where the money runs out. Its oracle is derived here, from the scenario's own
 // inputs, never read back from tiers() — an oracle that asks the code under test what the answer
 // is will agree with it, including when it is wrong.
-import { boot, seed, stopAtFirstFailure } from './boot.mjs';
+import { boot, seed, stopAtFirstFailure, capture, cv } from './boot.mjs';
 
 const failures = [];
 stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
@@ -307,9 +307,10 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 
 
 // ═══ the incremental-funding residual ═══════════════════════════════════════════════════════════
-// The last increment is the figure that goes on a contract modification. It is allocated dollars
-// less what the earlier increments already obligate, PER SERVICE — netting it across services would
-// produce a total that ties while every individual mod is wrong.
+// The latest award is the figure that goes on a contract modification. It is FUNDED dollars --
+// discretionary + mandatory, since v1.93 an award is the whole award -- less what the other awards
+// already obligate, PER SERVICE: netting it across services would produce a total that ties while
+// every individual mod is wrong. The latest BY DATE: the awards are stored out of order here.
 {
   const name = 'incremental funding residual';
   try {
@@ -327,23 +328,23 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     (function(){
       toggleAwdInc('A', 0);
       var T = tiers(), p = T['A'];
-      // Three dates; the first two take deliberately uneven shares so no service's residual equals
-      // any other's, and an even split cannot pass by coincidence.
+      // Three dates, the LATEST STORED FIRST; the other two take deliberately uneven shares so no
+      // service's residual equals any other's, and an even split cannot pass by coincidence.
       S.awards['A'].inc = [
+        {d:'2027-06', day:1, sv: SVC.map(function(){ return 0; })},
         {d:'2026-11', day:1, sv: SVC.map(function(s,i){ return Math.round((p.d[i]||0)*0.40); })},
-        {d:'2027-02', day:1, sv: SVC.map(function(s,i){ return Math.round((p.d[i]||0)*0.25); })},
-        {d:'2027-06', day:1, sv: SVC.map(function(){ return 0; })}
+        {d:'2027-02', day:1, sv: SVC.map(function(s,i){ return Math.round((p.d[i]||0)*0.25); })}
       ];
       save();
       fillLastAwd('A');
       var T2 = tiers(), p2 = T2['A'], inc = S.awards['A'].inc;
+      var byD = function(d){ return inc.filter(function(x){ return x.d===d; })[0].sv.slice(); };
       return JSON.stringify({
-        // DISCRETIONARY alone — the basis the increment balance tracks.
-        alloc: SVC.map(function(s,i){ return (p2.d[i]||0); }),
+        // FUNDED, both lanes — the basis the balance tracks since v1.93.
+        disc:  SVC.map(function(s,i){ return (p2.d[i]||0); }),
         mand:  SVC.map(function(s,i){ return (p2.m[i]||0); }),
         sched: SVC.map(function(s,i){ return inc.reduce(function(a,x){ return a+((x.sv||[])[i]||0); }, 0); }),
-        last:  inc[inc.length-1].sv.slice(),
-        first: inc[0].sv.slice(), second: inc[1].sv.slice()
+        last:  byD('2027-06'), first: byD('2026-11'), second: byD('2027-02')
       });
     })()`));
 
@@ -352,16 +353,16 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'residual', 'scenario actually draws mandatory, so the basis is distinguishable',
     sum(r.mand) > 0.5 ? 'yes' : 'no', 'yes');
   sc.services.forEach((svc, i) => {
-    chk(name, 'residual', `${svc}: every DISCRETIONARY dollar is scheduled once the last increment is filled`,
-      Math.round(r.sched[i]), Math.round(r.alloc[i]));
-    // Stated independently of what fillLastAwd did: the last increment IS the remainder.
-    chk(name, 'residual', `${svc}: last increment == allocated less the earlier increments`,
-      Math.round(r.last[i]), Math.round(r.alloc[i] - r.first[i] - r.second[i]));
+    chk(name, 'residual', `${svc}: every FUNDED dollar, both lanes, is scheduled once the latest award is filled`,
+      Math.round(r.sched[i]), Math.round(r.disc[i] + r.mand[i]));
+    // Stated independently of what fillLastAwd did: the latest award IS the remainder.
+    chk(name, 'residual', `${svc}: latest award == funded (disc + mand) less the earlier awards`,
+      Math.round(r.last[i]), Math.round(r.disc[i] + r.mand[i] - r.first[i] - r.second[i]));
   });
   // A total that ties while the per-service splits are wrong is the failure this guards against,
   // so the totals are checked too — but they are not the point, and they are checked last.
-  chk(name, 'residual', 'total scheduled equals total DISCRETIONARY allocated',
-    Math.round(sum(r.sched)), Math.round(sum(r.alloc)));
+  chk(name, 'residual', 'total scheduled equals total FUNDED, both lanes',
+    Math.round(sum(r.sched)), Math.round(sum(r.disc) + sum(r.mand)));
   } catch (e) {
     // A THROW INSIDE THE BLOCK IS A FAILING CHECK, NOT A DEATH: on a mutated board a thing the block
     // expects can be missing, and reading it threw; the sweep must see a suite that noticed, not one
@@ -371,14 +372,16 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 }
 
 
-// ═══ the spend forecast: increments are discretionary DOLLARS ═══════════════════════════════════
+// ═══ the spend forecast: awards are DOLLARS ═════════════════════════════════════════════════════
 // monSpreadOf places money into months. Two things have to hold, and the first is the one that
 // makes the second safe:
 //   CONSERVATION — every funded dollar lands in a month or in UNSCHEDULED. Never dropped, never
 //                  invented. This is the property the function exists to keep.
-//   LITERAL       — what you type into an increment is the discretionary that lands in that month.
-//                  It used to be a weight against the whole funded amount, which inflated every
-//                  figure once the balance started reconciling against discretionary alone.
+//   LITERAL       — what you type into an award is what lands in that month. It used to be a weight
+//                  against the whole funded amount, which inflated every figure. Since v1.93 an
+//                  award is the whole award, both lanes; this one is typed short of the funding, so
+//                  discretionary fills it and everything else -- the rest of discretionary and ALL
+//                  of mandatory -- is UNSCHEDULED, with nothing to ride.
 {
   const name = 'spend forecast';
   try {
@@ -419,19 +422,18 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     chk(name, 'conservation', `${svc}: every funded dollar is in a month or UNSCHEDULED`,
       Math.round(placed), Math.round(r.d[i] + r.m[i]));
 
-    // What was typed is what lands, plus mandatory riding the same proportions.
+    // What was typed is what lands: the awards are smaller than the discretionary, so they are all
+    // discretionary, and nothing rides them.
     const wsum = r.inc.reduce((a, x) => a + x[i], 0);
     r.mi.forEach((k, j) => {
-      const wantD = r.inc[j][i];
-      const wantM = wsum > 0 ? r.m[i] * r.inc[j][i] / wsum : 0;
-      chk(name, 'literal placement', `${svc}: increment ${j + 1} lands as typed (+ its mandatory share)`,
-        Math.round(r.months[i][k]), Math.round(wantD + wantM));
+      chk(name, 'literal placement', `${svc}: award ${j + 1} lands as typed, and no more`,
+        Math.round(r.months[i][k]), Math.round(r.inc[j][i]));
     });
 
-    // The discretionary never put on a date is UNSCHEDULED — the same figure the board's
-    // Balance to schedule row reports.
-    chk(name, 'unscheduled', `${svc}: discretionary not on a date shows as UNSCHEDULED`,
-      Math.round(r.unsch[i]), Math.round(r.d[i] - wsum));
+    // Every funded dollar the awards do not cover is UNSCHEDULED, in both lanes — the same figure
+    // the board's Balance to schedule row reports.
+    chk(name, 'unscheduled', `${svc}: funded dollars the awards do not cover show as UNSCHEDULED`,
+      Math.round(r.unsch[i]), Math.round(r.d[i] + r.m[i] - wsum));
   });
 
   // THE BOARD'S OWN SPREAD IS LITERAL; A MODELLED PLAN'S IS NOT. forecast() bare spreads what the
@@ -472,6 +474,256 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
+
+// ═══ v1.93 (item 40) — MANDATORY AWARDS LAST ═══════════════════════════════════════════════════
+// Brad, 1 Oct 2026: a $300 requirement awarded $100 in each of January, February and March, with $250
+// discretionary and $50 mandatory: "I would expect discretionary to award 100 in January, 100 in
+// February and 50 in March. I would also expect my mandatory to award 50 in March." An award is the
+// whole award, both lanes, in DATE order; discretionary fills them forward from the first, mandatory
+// backward from the last, neither past an award's amount; what they do not cover is UNSCHEDULED in
+// either lane. Every figure below is stated from the scenario, never read back from the board, and the
+// same table is then demanded of every surface that places money in months: landSvc itself, the
+// forecast's TOTAL, the deck's chart (by lane), and the CR windows.
+{
+  const name = 'v1.93 — mandatory awards last';
+  try {
+  const sv = ['USAF', 'ANG'];
+  const dir = (d, m) => ({ m: 'split', dv: d, mv: m });
+  const sc = {
+    services: sv,
+    items: [it('A', 'AV', [300, 0]), it('B', 'AV', [300, 0]), it('C', 'PSM', [300, 0]), it('D', 'PSM', [200, 0]),
+            it('E', 'MxS', [300, 0]), it('F', 'MxS', [300, 0]), it('G', 'TSS', [100, 60]), it('H', 'TSS', [300, 0])],
+    disc: [5000, 5000], mand: [5000, 5000],
+    order: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
+    fsrc: { A: dir([250, 0], [50, 0]),   // Brad's example
+            B: dir([250, 0], [50, 0]),   // the same, awards typed for the discretionary only
+            C: dir([150, 0], [50, 0]),   // partly funded: $100 unfunded in the middle
+            D: dir([0, 0], [200, 0]),    // mandatory only, the awards more than it
+            E: dir([250, 0], [50, 0]),   // Brad's example, the awards stored out of date order
+            F: dir([250, 0], [50, 0]),   // one award date
+            G: dir([100, 0], [0, 60]),   // ANG has no award of its own
+            H: dir([100, 0], [100, 0]) }, // the awards more than the funding: the middle one empty
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // FYMON: 0 Oct, 1 Nov, 2 Dec, 3 Jan, 4 Feb, 5 Mar
+  ev(`(function(){ var J=FYMON[3][0], F=FYMON[4][0], M=FYMON[5][0];
+      var x=function(d, a){ return {d:d, day:1, sv:a}; };
+      S.awards={};
+      S.awards.A={mode:'inc', inc:[x(J,[100,0]), x(F,[100,0]), x(M,[100,0])]};
+      S.awards.B={mode:'inc', inc:[x(J,[100,0]), x(F,[100,0]), x(M,[50,0])]};
+      S.awards.C={mode:'inc', inc:[x(J,[100,0]), x(F,[100,0]), x(M,[100,0])]};
+      S.awards.D={mode:'inc', inc:[x(J,[100,0]), x(F,[100,0]), x(M,[100,0])]};
+      S.awards.E={mode:'inc', inc:[x(M,[100,0]), x(J,[100,0]), x(F,[100,0])]};
+      S.awards.F={mode:'single', d:F};
+      S.awards.G={mode:'inc', inc:[x(J,[100,0])]};
+      S.awards.H={mode:'inc', inc:[x(J,[100,0]), x(F,[100,0]), x(M,[100,0])]};
+      save(); return 'ok'; })()`);
+  // the fixture holds: each requirement draws exactly what it was directed
+  const want = { A: [[250, 0], [50, 0]], B: [[250, 0], [50, 0]], C: [[150, 0], [50, 0]], D: [[0, 0], [200, 0]],
+                 E: [[250, 0], [50, 0]], F: [[250, 0], [50, 0]], G: [[100, 0], [0, 60]], H: [[100, 0], [100, 0]] };
+  const T = JSON.parse(ev(`(function(){ var T=tiers(), o={}; S.order.forEach(function(id){ o[id]=[T[id].d, T[id].m]; }); return JSON.stringify(o); })()`));
+  Object.keys(want).forEach(id => chk(name, 'fixture', `${id} draws what it was directed`, JSON.stringify(T[id]), JSON.stringify(want[id])));
+
+  // THE TABLE, by requirement and service: [month index] -> [disc, mand]; and what stays undated.
+  const J = 3, Fb = 4, M = 5;
+  const table = {
+    A: { USAF: { [J]: [100, 0], [Fb]: [100, 0], [M]: [50, 50] }, ud: [0, 0], um: [0, 0] },
+    B: { USAF: { [J]: [100, 0], [Fb]: [100, 0], [M]: [50, 0] }, ud: [0, 0], um: [50, 0] },
+    C: { USAF: { [J]: [100, 0], [Fb]: [50, 0], [M]: [0, 50] }, ud: [0, 0], um: [0, 0] },
+    D: { USAF: { [Fb]: [0, 100], [M]: [0, 100] }, ud: [0, 0], um: [0, 0] },
+    E: { USAF: { [J]: [100, 0], [Fb]: [100, 0], [M]: [50, 50] }, ud: [0, 0], um: [0, 0] },
+    F: { USAF: { [Fb]: [250, 50] }, ud: [0, 0], um: [0, 0] },
+    G: { USAF: { [J]: [100, 0] }, ud: [0, 0], um: [0, 60] },
+    H: { USAF: { [J]: [100, 0], [M]: [0, 100] }, ud: [0, 0], um: [0, 0] },
+  };
+  const L = JSON.parse(ev(`(function(){ var o={}, mi={}; FYMON.forEach(function(x,k){ mi[x[0]]=k; });
+    S.order.forEach(function(id){ var T=tiers()[id]; o[id]=SVC.map(function(s,i){
+      var r=landSvc(S.awards[id], i, T.d[i], T.m[i], true);
+      return {at:r.at.map(function(a){ return [mi[a.d], a.dv, a.mv]; }), ud:r.ud, um:r.um}; }); });
+    return JSON.stringify(o); })()`));
+  const dsum = { d: Array(12).fill(0), m: Array(12).fill(0), ud: 0, um: 0 };
+  Object.keys(table).forEach(id => {
+    sv.forEach((s, i) => {
+      const exp = table[id][s] || {};
+      const got = {}; L[id][i].at.forEach(([k, dv, mv]) => { got[k] = [Math.round(dv), Math.round(mv)]; });
+      const ks = [...new Set([...Object.keys(exp), ...Object.keys(got)])].sort();
+      ks.forEach(k => chk(name, id, `${s} ${['Oct','Nov','Dec','Jan','Feb','Mar'][k] || k}: disc, mand`,
+        JSON.stringify(got[k] || [0, 0]), JSON.stringify(exp[k] || [0, 0])));
+      chk(name, id, `${s}: discretionary left undated`, Math.round(L[id][i].ud), table[id].ud[i]);
+      chk(name, id, `${s}: mandatory left undated`, Math.round(L[id][i].um), table[id].um[i]);
+      Object.keys(exp).forEach(k => { dsum.d[k] += exp[k][0]; dsum.m[k] += exp[k][1]; });
+      dsum.ud += table[id].ud[i]; dsum.um += table[id].um[i];
+    });
+  });
+  // a placement is in date order whatever order the awards are stored in
+  chk(name, 'E', 'the placements come back in date order', JSON.stringify(L.E[0].at.map(a => a[0])), JSON.stringify([J, Fb, M]));
+
+  // EVERY SURFACE AGREES WITH THE TABLE: the deck's chart by lane, the forecast's TOTAL, the CR windows
+  const sp = JSON.parse(ev('JSON.stringify(spendPlanByMonth())'));
+  for (let k = 0; k < 12; k++) {
+    chk(name, 'deck chart', `month ${k + 1} discretionary`, Math.round(sp.d[k]), dsum.d[k]);
+    chk(name, 'deck chart', `month ${k + 1} mandatory`, Math.round(sp.m[k]), dsum.m[k]);
+  }
+  chk(name, 'deck chart', 'undated discretionary', Math.round(sp.ud), dsum.ud);
+  chk(name, 'deck chart', 'undated mandatory', Math.round(sp.um), dsum.um);
+  const fc = JSON.parse(ev(`(function(){ var F=forecast(), m=FYMON.map(function(){ return 0; }), u=0;
+    F.rollRows.forEach(function(b){ b.m.forEach(function(v,k){ m[k]+=v; }); u+=b.unsch; }); return JSON.stringify({m:m, u:u}); })()`));
+  for (let k = 0; k < 12; k++) chk(name, 'forecast', `month ${k + 1} total`, Math.round(fc.m[k]), dsum.d[k] + dsum.m[k]);
+  chk(name, 'forecast', 'UNSCHEDULED', Math.round(fc.u), dsum.ud + dsum.um);
+  const cr = JSON.parse(ev('JSON.stringify(crData().map(function(s){ return {win:s.win, nodate:s.nodate}; }))'));
+  [J, Fb, M].forEach(k => chk(name, 'CR windows', `USAF ${['Jan','Feb','Mar'][k - 3]} 1–15`, Math.round(cr[0].win[k * 2]), dsum.d[k] + dsum.m[k]));
+  chk(name, 'CR windows', 'ANG no date: its mandatory has no award of its own', Math.round(cr[1].nodate), 60);
+
+  // THE AWARD BLOCK says it: both lanes in the balance, each award's split, the undated lane
+  const blk = id => ev(`awardBlockHtml(itemById('${id}'))`);
+  const hA = blk('A');
+  chk(name, 'award block', 'the balance counts both lanes', /Balance to schedule — discretionary \+ mandatory/.test(hA), true);
+  chk(name, 'award block', 'A: its March award reads $50 disc + $50 mand', (hA.match(/class="awdsplit"[^>]*>([^<]*)</g) || []).map(x => x.replace(/.*>/, '').replace(/<$/, '')).join(' | '),
+    '$100 disc | $100 disc | $50 disc + $50 mand');
+  chk(name, 'award block', 'A: fully scheduled', /awards \$300 vs <b>funded<\/b> \$300 \(discretionary \$250 \+ mandatory \$50\) ✓/.test(hA), true);
+  chk(name, 'award block', 'the old mandatory row is gone', /rides these dates/.test(hA), false);
+  const hB = blk('B');
+  chk(name, 'award block', 'B: $50 left to schedule', (hB.match(/<tr class="awdbal">[\s\S]*?<\/tr>/) || [''])[0].includes('$50'), true);
+  chk(name, 'award block', 'B: and it is mandatory', /\$50 mand is not on a date yet/.test(hB), true);
+  chk(name, 'award block', 'B: with the button that covers it', /fillLastAwd\(/.test(hB), true);
+  // per service, both lanes: USAF funded $300 against $250 of awards; ANG funded nothing and typed nothing
+  const balCells = h => ((h.match(/<tr class="awdbal">([\s\S]*?)<\/tr>/) || ['', ''])[1].match(/<td[^>]*>([^<]*)</g) || []).map(x => x.replace(/.*>/, '').replace(/<$/, ''));
+  chk(name, 'award block', 'B: the balance by service, then the total', JSON.stringify(balCells(hB).slice(1, 4)), JSON.stringify(['$50', '\u2014', '$50']));
+  chk(name, 'award block', 'G: ANG’s mandatory is a balance of its own, with no award of its own', JSON.stringify(balCells(blk('G')).slice(1, 4)), JSON.stringify(['\u2014', '$60', '$60']));
+
+  // PUT ON LAST covers both lanes, on the latest award: B's March becomes $100, $50 + $50
+  ev(`fillLastAwd('B'); 'ok'`);
+  const B2 = JSON.parse(ev(`(function(){ var T=tiers()['B'], mi={}; FYMON.forEach(function(x,k){ mi[x[0]]=k; });
+    var r=landSvc(S.awards.B, 0, T.d[0], T.m[0], true);
+    return JSON.stringify({mar:S.awards.B.inc.filter(function(x){ return x.d===FYMON[5][0]; })[0].sv[0],
+      at:r.at.map(function(a){ return [mi[a.d], a.dv, a.mv]; }), ud:r.ud, um:r.um}); })()`));
+  chk(name, 'put on last', 'B: the March award is now $100', B2.mar, 100);
+  chk(name, 'put on last', 'B: March holds $50 disc + $50 mand', JSON.stringify(B2.at.find(a => a[0] === M) || []), JSON.stringify([M, 50, 50]));
+  chk(name, 'put on last', 'B: nothing left undated', Math.round(B2.ud + B2.um), 0);
+  // put on last takes the latest BY DATE: E's awards are stored March first
+  ev(`S.awards.E.inc.forEach(function(x){ x.sv=[90,0]; }); fillLastAwd('E'); 'ok'`);
+  chk(name, 'put on last', 'E: the residual goes on March, stored first', ev(`JSON.stringify(S.awards.E.inc.map(function(x){ return x.sv[0]; }))`), JSON.stringify([120, 90, 90]));
+
+  // SWITCHING TO INCREMENTAL seeds the whole funded amount, both lanes, per service
+  ev(`toggleAwdInc('F', 300); 'ok'`);
+  chk(name, 'seed', 'F: the first award is $300, both lanes', ev(`JSON.stringify(S.awards.F.inc[0].sv)`), JSON.stringify([300, 0]));
+  ev(`toggleAwdInc('G', 0); toggleAwdInc('G', 0); 'ok'`);
+  chk(name, 'seed', 'G: each service its own funding, ANG its mandatory', ev(`JSON.stringify(S.awards.G.inc[0].sv)`), JSON.stringify([100, 60]));
+
+  // A SHARE IS A SHARE OF THE WHOLE: the fill is not linear, so half of A placed on its own would put
+  // $125 + $25 in January/February/March differently from half of A placed whole
+  const half = JSON.parse(ev(`(function(){ var T=tiers()['A'];
+    var w=monSpreadOf('A', T), h=monSpreadOf('A', T, function(){ return 0.5; });
+    return JSON.stringify({w:w.m[0], h:h.m[0]}); })()`));
+  chk(name, 'shares', 'half of A is half of A, month by month', JSON.stringify(half.h.map(v => Math.round(v * 2))), JSON.stringify(half.w.map(v => Math.round(v))));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ v1.93 (item 41) — THE SPEND PLAN FORECAST BY PMO AND BY SERVICE, AND AN EXPORT OF THE VIEW ═════════════
+// Brad: view the forecast by PMO and by service "in the same format as the top Roll Up section", and export the
+// filtered view. PRIME-3 is shared between two offices by its CLINs (AV 0002: USAF 60; TSS 0008: USAF 40, ANG 50),
+// so AV holds 60% of its USAF and none of its ANG, TSS 40% of its USAF and all of its ANG. PRIME-3 draws USAF
+// $70 disc + $30 mand and ANG $50 disc; its awards are Jan (USAF 50, ANG 50) and Mar (USAF 50): USAF disc Jan 50,
+// Mar 20, mand Mar 30. B (AV) $40 USAF in February; C (PSM) $30 ANG, no date. Every figure is stated from that.
+{
+  const name = 'v1.93 — the forecast by PMO and by service, and its export';
+  try {
+  const J = JSON.stringify;
+  const sc = {
+    services: ['USAF', 'ANG'],
+    items: [it('PRIME-3', 'AV', [100, 50]), it('B', 'AV', [40, 0]), it('C', 'PSM', [0, 30])],
+    disc: [150, 80], mand: [30, 0], order: ['PRIME-3', 'B', 'C'],
+    fsrc: { 'PRIME-3': { m: 'split', dv: [70, 50], mv: [30, 0] }, B: { m: 'split', dv: [40, 0], mv: [0, 0] }, C: { m: 'split', dv: [0, 30], mv: [0, 0] } },
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  ev(`(function(){ DATA.clins=DATA.clins||{}; DATA.clins['PRIME-3']=[{clin:'0002', ask:[60,0]}, {clin:'0008', ask:[40,50]}];
+    S.ptype={'PRIME-3':'PRIME'};
+    S.awards={'PRIME-3':{mode:'inc', inc:[{d:FYMON[3][0], day:1, sv:[50,50]}, {d:FYMON[5][0], day:1, sv:[50,0]}]}, B:{mode:'single', d:FYMON[4][0]}};
+    save(); render(); return 'ok'; })()`);
+  // [Oct..Sep] as a sparse map of month index -> dollars, then UNSCHEDULED and TOTAL
+  const bag = (m, u, t) => { const a = Array(12).fill(0); Object.keys(m).forEach(k => { a[k] = m[k]; }); return J(a.concat([u, t])); };
+  const Jn = 3, Fb = 4, Mr = 5;
+  const view = v => JSON.parse(ev(`(function(){ fcView=${J(v)}; var D=fcViewData(), r=function(b){ return b.m.map(function(x){ return Math.round(x*100)/100; }).concat([Math.round(b.unsch*100)/100, Math.round(b.tot*100)/100]); };
+    var o={roll:{}, by:{}, head:D.by.head, rollTot:r(D.rollTot), byTot:r(D.byTot)};
+    D.roll.forEach(function(b){ o.roll[b.label]=r(b); }); D.by.rows.forEach(function(x){ o.by[x.label]=r(x.b); }); fcView=''; return JSON.stringify(o); })()`));
+  const P3 = ev(`dispTitle(itemById('PRIME-3'))`), MISC = 'Miscellaneous OGC Efforts';
+  const want = {
+    '': { roll: { [P3]: bag({ [Jn]: 100, [Mr]: 50 }, 0, 150), [MISC]: bag({ [Fb]: 40 }, 30, 70) }, head: 'BY PMO',
+          by: { AV: bag({ [Jn]: 30, [Fb]: 40, [Mr]: 30 }, 0, 100), TSS: bag({ [Jn]: 70, [Mr]: 20 }, 0, 90), PSM: bag({}, 30, 30) } },
+    'p:AV': { roll: { [P3]: bag({ [Jn]: 30, [Mr]: 30 }, 0, 60), [MISC]: bag({ [Fb]: 40 }, 0, 40) }, head: 'AV BY SERVICE',
+          by: { USAF: bag({ [Jn]: 30, [Fb]: 40, [Mr]: 30 }, 0, 100) } },
+    'p:TSS': { roll: { [P3]: bag({ [Jn]: 70, [Mr]: 20 }, 0, 90) }, head: 'TSS BY SERVICE',
+          by: { USAF: bag({ [Jn]: 20, [Mr]: 20 }, 0, 40), ANG: bag({ [Jn]: 50 }, 0, 50) } },
+    'p:PSM': { roll: { [MISC]: bag({}, 30, 30) }, head: 'PSM BY SERVICE', by: { ANG: bag({}, 30, 30) } },
+    's:0': { roll: { [P3]: bag({ [Jn]: 50, [Mr]: 50 }, 0, 100), [MISC]: bag({ [Fb]: 40 }, 0, 40) }, head: 'USAF BY PMO',
+          by: { AV: bag({ [Jn]: 30, [Fb]: 40, [Mr]: 30 }, 0, 100), TSS: bag({ [Jn]: 20, [Mr]: 20 }, 0, 40) } },
+    's:1': { roll: { [P3]: bag({ [Jn]: 50 }, 0, 50), [MISC]: bag({}, 30, 30) }, head: 'ANG BY PMO',
+          by: { TSS: bag({ [Jn]: 50 }, 0, 50), PSM: bag({}, 30, 30) } },
+  };
+  const got = {};
+  Object.keys(want).forEach(v => {
+    const g = got[v] = view(v), w = want[v];
+    chk(name, v || 'whole', 'the roll-up rows, by month, UNSCHEDULED and TOTAL',
+      J(Object.keys(g.roll).sort().map(k => [k, J(g.roll[k])])), J(Object.keys(w.roll).sort().map(k => [k, w.roll[k]])));
+    chk(name, v || 'whole', 'the breakdown the other way, and its heading', g.head + ' ' + J(Object.keys(g.by).sort().map(k => [k, J(g.by[k])])),
+      w.head + ' ' + J(Object.keys(w.by).sort().map(k => [k, w.by[k]])));
+    chk(name, v || 'whole', 'the breakdown adds to the roll-up', J(g.byTot), J(g.rollTot));
+  });
+  // EVERY VIEW ADDS BACK TO THE WHOLE PORTFOLIO, month by month: the offices, and the services
+  const add = vs => J(vs.map(v => got[v].rollTot).reduce((a, b) => a.map((x, i) => Math.round((x + b[i]) * 100) / 100)));
+  chk(name, 'ties', 'AV + TSS + PSM is the whole portfolio, every month', add(['p:AV', 'p:TSS', 'p:PSM']), J(got[''].rollTot));
+  chk(name, 'ties', 'USAF + ANG is the whole portfolio, every month', add(['s:0', 's:1']), J(got[''].rollTot));
+  // THE PICKER: one small control in the title line, the whole portfolio first, only what places money
+  const pick = JSON.parse(ev(`(function(){ fcOpen=false; toggleFc(); var s=document.getElementById('fcView');
+    var o={inTitle:!!(s && s.closest('h3')), opts:s? [].slice.call(s.options).map(function(x){ return x.value; }) : [], sel:s? s.value : null,
+      exp:!!document.querySelector('#fcPanel h3 #fcExport')};
+    s.value='p:TSS'; s.dispatchEvent(new Event('change'));
+    o.after=document.getElementById('fcTitle').textContent; o.rollHead=document.querySelector('#fcBody div').textContent;
+    toggleFc(); toggleFc(); o.reopened=fcView+'|'+document.getElementById('fcView').value; toggleFc(); return JSON.stringify(o); })()`));
+  const G = JSON.parse(ev('JSON.stringify(GROUPS)')).filter(g => ['AV', 'TSS', 'PSM'].includes(g));
+  chk(name, 'picker', 'in the title line, with the export beside it', pick.inTitle + ' ' + pick.exp, 'true true');
+  chk(name, 'picker', 'whole portfolio, then each office, then each service', J(pick.opts), J([''].concat(G.map(g => 'p:' + g), ['s:0', 's:1'])));
+  chk(name, 'picker', 'choosing TSS retitles the box and the roll-up', /— TSS/.test(pick.after) + ' ' + /ROLLUP — PRIME CONTRACTS \+ MISCELLANEOUS OGC — TSS/.test(pick.rollHead), 'true true');
+  chk(name, 'picker', 'the box always opens on the whole portfolio', pick.reopened, '|');
+  // EXPORT THIS VIEW: exactly the rows on screen, in dollars, each TOTAL the sum of the figures above it
+  const X = JSON.parse(ev(`(function(){ var dl=[], got=null, ob=buildXlsx, oc=HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click=function(){ dl.push(this.download||''); }; buildXlsx=function(s){ got=s; return ob(s); };
+    fcView='p:AV'; exportFcView(); fcView='';
+    buildXlsx=ob; HTMLAnchorElement.prototype.click=oc;
+    var rows=got[0].rows.map(function(r){ return (r||[]).map(function(c){ return c && typeof c==='object'? c.v : c; }); });
+    return JSON.stringify({dl:dl, sheets:got.length, title:String(rows[0][0]), rows:rows}); })()`));
+  chk(name, 'export', 'one workbook, named for the view', J(X.dl) + ' ' + X.sheets, J([ev(`expName(FYL()+' Spend Plan Forecast - AV.xlsx')`)]) + ' 1');
+  chk(name, 'export', 'its title names the view', /Projected Spend Plan Forecast — AV —/.test(X.title), true);
+  const line = l => { const r = X.rows.find(x => x[0] === l); return r ? J(r.slice(1)) : 'absent'; };
+  chk(name, 'export', 'the AV roll-up rows, in dollars', line(P3) + ' ' + line(MISC), want['p:AV'].roll[P3] + ' ' + want['p:AV'].roll[MISC]);
+  const tots = X.rows.filter(r => r[0] === 'TOTAL').map(r => J(r.slice(1)));
+  chk(name, 'export', 'both TOTALs: the roll-up and AV by service', J(tots), J([bag({ [Jn]: 30, [Fb]: 40, [Mr]: 30 }, 0, 100), bag({ [Jn]: 30, [Fb]: 40, [Mr]: 30 }, 0, 100)]));
+  chk(name, 'export', 'and the service row', line('USAF'), want['p:AV'].by.USAF);
+  // A SHARE IS A SHARE OF THE WHOLE PLACEMENT on every surface that splits by office: the CR windows by PMO and
+  // the PMO tabs' spend plan. Placed on its own, AV's 60% of PRIME-3's USAF ($42 disc, $18 mand) would fill
+  // January with $42 and March with $18; as a share of the whole it is $30 and $30.
+  const crP = JSON.parse(ev(`JSON.stringify((function(){ var R=crBuckets(null,'pmo'); var o={}; R.keys.forEach(function(k,i){ o[k]=R.data[i].win.map(function(v){ return Math.round(v*100)/100; }).concat([Math.round(R.data[i].nodate*100)/100]); }); return o; })())`));
+  const win = (m, nd) => { const a = Array(12).fill(0); Object.keys(m).forEach(k => { a[k * 2] = m[k]; }); return J(a.concat([nd])); };
+  chk(name, 'shares', 'CR by PMO: AV, TSS and PSM by window', J([crP.AV, crP.TSS, crP.PSM].map(J)),
+    J([win({ [Jn]: 30, [Fb]: 40, [Mr]: 30 }, 0), win({ [Jn]: 70, [Mr]: 20 }, 0), win({}, 30)]));
+  const sheets = JSON.parse(capture(ev));
+  const months = n => { const sh = sheets.find(x => x.name === n); if (!sh) return 'no ' + n;
+    const rows = sh.rows.map(r => (r || []).map(cv)); const h = rows.findIndex(r => r[0] === 'Rank' && r.includes('Unscheduled'));
+    const tot = h < 0 ? null : rows.slice(h + 1).find(r => /^TOTAL/.test(String(r[0])));
+    return tot ? J(rows[h].map((k, i) => [k, tot[i]]).filter(([k]) => /^(OCT|NOV|DEC|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP) \d\d$|^Unscheduled$/.test(String(k))).map(([, v]) => Math.round((+v || 0) * 100) / 100)) : 'no total'; };
+  const mon = (m, u) => { const a = Array(12).fill(0); Object.keys(m).forEach(k => { a[k] = m[k]; }); return J(a.concat([u])); };
+  chk(name, 'shares', 'the PMO tabs’ spend plan: AV, TSS, PSM', J([months('PMO AV'), months('PMO TSS'), months('PMO PSM')]),
+    J([mon({ [Jn]: 30, [Fb]: 40, [Mr]: 30 }, 0), mon({ [Jn]: 70, [Mr]: 20 }, 0), mon({}, 30)]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
 
 // ═══ the cutline banners ════════════════════════════════════════════════════════════════════════
 // natM and natU decide where the board draws its cutlines — the lines that say "the money runs out
@@ -1885,8 +2137,8 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // the only arithmetic under test.
 //   A  single date, November          -> the 1–15 window of November, whole
 //   B  single date, December, FLIPPED -> the 16–EOM window of December
-//   C  increments October and April, weighted 1:2 -> a THIRD lands in October; the April share is
-//      outside Oct–Mar and is not placed anywhere -- it is not cash needed under a CR
+//   C  awards October and April, a third and two-thirds of its funding -> a THIRD lands in October;
+//      the April share is outside Oct–Mar and is not placed anywhere -- it is not cash needed under a CR
 //   D  no award date                  -> no date
 //   E  increments with no weight      -> no date
 //   F  funded in STOVL only, March    -> a row in STOVL and in no other service
@@ -1904,7 +2156,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
   ev(`S.awards['A']={mode:'single', d:FYMON[1][0]};
       S.awards['B']={mode:'single', d:FYMON[2][0]}; S.crHalf['B']={}; S.crHalf['B'][FYMON[2][0]]=1;
-      S.awards['C']={mode:'inc', inc:[{d:FYMON[0][0], sv:[60,30,15]},{d:FYMON[6][0], sv:[120,60,30]}]};
+      S.awards['C']={mode:'inc', inc:[{d:FYMON[0][0], sv:[20,10,5]},{d:FYMON[6][0], sv:[40,20,10]}]};
       S.awards['E']={mode:'inc', inc:[{d:FYMON[3][0], sv:[0,0,0]}]};
       S.awards['F']={mode:'single', d:FYMON[5][0]}; save(); 'ok'`);
   const f = { A: [100, 50, 20], B: [80, 40, 10], C: [60, 30, 15], D: [40, 20, 5], E: [30, 10, 5], F: [0, 0, 25] };

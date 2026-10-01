@@ -1009,8 +1009,14 @@ html[data-mode="compare"] #t_compare,html[data-mode="brief"] #t_brief{display:fl
 .ppatt{display:flex;flex-direction:column;gap:2px;justify-content:center}
 .ppatt .e{font-size:10.5px;line-height:1.25;font-weight:700;color:var(--ink);white-space:nowrap}
 .ppatt .e .g{color:var(--amber)}
-.ppatt button.e{border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-family:inherit;min-height:0}
+.ppatt button.e{border:0;background:transparent;padding:0;text-align:left;cursor:pointer;font-family:inherit;min-height:24px;
+  display:inline-flex;align-items:center}   /* 2.5.8: each entry opens a list, so each is a 24px target */
 .ppatt button.e:hover{text-decoration:underline}
+.fcctl{display:inline-flex;gap:6px;align-items:center;margin-left:10px;font-weight:600;letter-spacing:0;text-transform:none;font-size:11px}
+.fcctl select{font-size:11px;padding:1px 4px}
+.ppatt .pplist{display:grid;grid-template-columns:repeat(2,auto);gap:0 12px;justify-content:start}
+.atttab td,.atttab th{white-space:nowrap}
+.atttab td.t{white-space:normal;min-width:260px}
 .ppdet{margin-left:auto;align-self:center;flex:none;padding-left:8px}
 .ppdet .btn{height:28px;display:inline-flex;align-items:center;gap:6px;border-radius:5px;padding:0 9px;font-size:11.5px;
   font-weight:600;background:var(--panel);border-color:var(--edge)}
@@ -1185,6 +1191,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
   .hdr,.tbar{padding-left:10px;padding-right:10px}
   .posture{padding:0 10px}
   .pp{flex:0 1 auto}
+  .ppatt .pplist{grid-template-columns:auto}   /* one column: two of them overran a 320px window (1.4.10) */
   :root,:root[data-mode="rank"],:root[data-mode="fund"],:root[data-mode="compare"]{--rowcols:40px minmax(0,1fr) 26px 26px}
   .row{grid-template-columns:var(--rowcols);gap:6px;padding:6px 10px}
   .row .num{grid-column:2;grid-row:2;text-align:left}
@@ -1460,6 +1467,12 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
     <div id="ndBody"></div>
   </div>
 </div>
+<div class="modal-bg" id="attPanel" onclick="if(event.target===this)attClose()">
+  <div class="modal" style="width:1040px;max-width:98vw">
+    <h3><span id="attTitle">NEEDS ATTENTION</span> <button class="x" onclick="attClose()">✕ Close</button></h3>
+    <div id="attBody"></div>
+  </div>
+</div>
 <div class="modal-bg" id="helpPanel" onclick="if(event.target===this)helpClose()">
   <div class="modal" role="dialog" aria-label="Help">
     <h3>📖 HELP — ORBIT <span id="helpVer" style="font-weight:600;letter-spacing:0;text-transform:none;color:var(--mut)"></span> <button class="x" onclick="helpClose()">✕ Close</button></h3>
@@ -1558,6 +1571,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box at the top. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
 <p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — and whether your work is saved, with the latest message beside it (the <b>Message</b> button opens a long one whole, or brings back one you hid); <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (for the room — requirements can’t be edited there) — each shows its own tools, and none changes a figure — then <b>Reports &amp; exports ▾</b> (every view and every export), <b>Data ▾</b> (everything that brings data in) and <b>Setup ▾</b> (the shape of the board, and the colours and the density you see it in). The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels. On a narrow window — below about 760 pixels, a phone — the board is for reading and checking a requirement; rank and fund on a wider screen.</p>
 <p><b>Everything works from the keyboard.</b> Tab moves through the top of the board and into a menu you have opened, item by item; Enter or Space runs what has focus; Esc closes a menu, a row’s ⋯ menu or the message and leaves you on the button that opened it. The Funding detail headers and the service chips work the same way. Type a figure in a row and press Tab: it is applied and you move on to the next field. Enter applies it and stays.</p>
+<p><b>Every box works the same way.</b> A report, an editor or a list opens with the keyboard inside it, and Tab and Shift+Tab go round the box, never out onto the board behind it. Esc closes the box on top and puts you back on what opened it. If you have typed something the box has not saved yet, Esc, <b>✕ Close</b> or a click outside asks <i>Discard what you typed?</i> first: Cancel keeps the box open with your text in it. Every menu, a row’s <b>⋯</b> included, opens whole on screen: near the bottom of the window it opens upward, and a long one scrolls.</p>
 <p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the top bar says <i>↶ work kept aside</i>, and one click puts it back.</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
@@ -1583,14 +1597,15 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p>A requirement’s allocation is typed per service as <b>Disc</b> and <b>Mand</b> dollars<span data-b="grid">, in the <b>BY SERVICE</b> table of the RECORD panel</span><span data-b="card">, in the rows <b>⊞ SVC</b> opens</span>. Whatever is left of the requirement value is that service’s UFR. A typed figure is paid only as far as that service’s lane still holds money at the requirement’s rank, and only up to the requirement value; the rest is not paid, and a <i>drew $…</i> line appears under the figure.</p>
 <p>To find every case at once, look at <b>Needs attention</b> at the top: <b>▲ N not drawn · $X</b> counts the requirements set higher than they draw, discretionary and mandatory together, and a click opens the fix list. To filter the list to them, use <span class="mp" data-m="view">Filter ▾ › ▲ Set higher than it draws</span> (or the same counter in the <b>DISCRETIONARY FIT</b> strip, under <b>Funding detail</b>). Each one carries a <b>▲ $… not drawn</b> flag on its row; hover it for each service and lane, what was typed, what was drawn and why.</p>
 <p>The <b>fix list</b> (also <b>🔧 fix list</b> in the fit strip) lists every line in priority order with the reason — the service’s discretionary or mandatory ran out above this rank, or the figure was typed above the requirement value. <b>set to drawn</b> lowers the typed figure to what was paid; <b>set all to drawn</b> does every line, after saying how many and how much. <b>No funded dollar moves, and neither unfunded total moves</b>: the money stops counting as “allocated, but no lane could pay it” — the portfolio shortfall — and counts as never allocated. Each fix is journalled and can be typed again.</p>
+<p>Every other entry under <b>Needs attention</b> opens its list the same way, in priority order: <b>⚠ impact statements missing</b>, <b>○ without a CCaR record</b>, <b>📅 without an obligation date</b> (funded first, with what each leaves UNSCHEDULED) and <b>◔ awards short of funding</b>. <b>Go to it</b> selects the requirement and opens what to fill: the Impact statement editor, the CCaR record, or the award block’s date. Fix one and it leaves the list and the count at once.</p>
 </section>
 <section data-part="team" data-id="t-spend" data-t="The spend plan: when the money lands">
 <p>Every spend plan places a requirement’s funded dollars by its award and obligation dates, by one rule, so the forecast, the month sheets, the PMO tabs, CR Cash Needs, the 1A9A return and the deck’s chart agree month by month:</p>
-<ul><li>An <b>increment</b> is discretionary dollars, placed as typed. Discretionary the increments have not yet placed is <b>UNSCHEDULED</b> until it has a date.</li>
-<li><b>Mandatory rides the requirement’s own dates</b> — in each service’s own increment proportions, or, in a service with no increment of its own, in the requirement’s overall proportions. There is nothing to type for it.</li>
-<li>A single award date places the whole funded amount in its month; no date at all is UNSCHEDULED.</li></ul>
-<p>The award block shows <b>Balance to schedule — discretionary</b> and a <b>Mandatory — rides these dates</b> row; <b>↵ put on last</b> clears the discretionary balance onto the last increment, and with mandatory riding, every funded dollar then has a date.</p>
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="reports">Reports &amp; exports ▾ › ⚖ CR Cash Needs…</span> show it on screen. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="reports">Reports &amp; exports ▾ › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
+<ul><li>An <b>award</b> (an increment) is the whole award, discretionary and mandatory together, taken in date order.</li>
+<li><b>Discretionary works forward from the first award</b>, filling each award in turn; <b>mandatory works backward from the last</b>, so it always awards last. A $300 requirement awarded $100 in each of January, February and March, with $250 discretionary and $50 mandatory, places discretionary $100, $100 and $50, and the $50 mandatory in March.</li>
+<li>Funded dollars the awards do not cover are <b>UNSCHEDULED</b>, in either lane, until they have a date. A single award date places the whole funded amount in its month; no date at all is UNSCHEDULED.</li></ul>
+<p>The award block shows <b>Balance to schedule — discretionary + mandatory</b> for each service, and beside each award how it splits between the two; <b>↵ put on last</b> puts the whole remaining balance on the latest award, and every funded dollar then has a date. <b>Needs attention</b> lists every requirement whose awards fall short of its funding.</p>
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="reports">Reports &amp; exports ▾ › ⚖ CR Cash Needs…</span> show it on screen. In the forecast, <b>Show</b> beside the title picks the whole portfolio, one PMO or one service: the roll-up is drawn for that view in the same format, with the breakdown beneath it the other way (a PMO by service, a service by PMO), and a requirement two offices share counts at each office’s share. <b>⬇ Export this view</b> saves exactly what is on screen as a workbook. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="reports">Reports &amp; exports ▾ › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
 </section>
 <section data-part="team" data-id="t-dest" data-t="Destinations: one list for every appropriation">
 <p><span class="mp" data-m="setup">Setup ▾ › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
@@ -1599,6 +1614,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <section data-part="team" data-id="t-ids" data-t="The IDS batch for CCaR">
 <p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📤 IDS Batch Import — Requirements…</span> opens a preview of the file CCaR imports, worked out from the plan on screen: <b>one row per Budget FY, budget and control number</b>. Everything that lands on the same budget and control number — two services, both lanes on a lane-less budget, two requirements sharing a control number — is added into that one row, and a row holding more than one requirement is marked for review. A mandatory line’s <b>Req. Amount</b> and <b>Req. Approved</b> are its mandatory draw; a discretionary line carries the discretionary draw <b>plus every unfunded dollar</b> on that service; a requirement with no money goes at Approved 0 on a discretionary budget, so CCaR still tracks it. Unfunded dollars never go on a mandatory budget.</p>
 <p>Anything that cannot be uploaded correctly — no control number, one that is not all digits, no budget, a chosen budget that can no longer be used — stays off the upload sheet and is listed with its dollars and <b>every</b> reason on the file’s second sheet, <b>Missing data and anomalies</b>, which also reconciles every dollar of the plan. If nothing at all can be uploaded the file is still made, and its first line says <b>NO UPLOADABLE IDS ROWS</b>: it is a diagnostic, not an upload.</p>
+<p>The box’s summary gives <b>Req. Approved</b> with its discretionary and mandatory beside it, and the reconciliation shows both lanes for every line, so the mandatory in the file can be checked against the plan before it goes. The file itself is unchanged: each row is already one budget, and a budget is one lane or lane-less.</p>
 <p>Before it makes the file the box asks for <b>the reason</b> (written on every row), <b>Add or Update</b> for the whole file (Add unless you choose Update — CCaR may refuse an update to a record that has Authorized allocations), <b>the file ID</b> — filled in with today’s date and the time of day, for you to check and confirm, because ORBIT keeps no record of exports and cannot know which IDs CCaR has already seen — and <b>the ORG number</b>, confirmed for every row and service. ORBIT never writes Delete and keeps nothing about an export but the ORG. The export is off while a locked cycle is on screen, in a PMO copy, and whenever ORBIT’s own arithmetic check fails; the box says which.</p>
 </section>
 <section data-part="team" data-id="t-diag" data-t="When something goes wrong: Save diagnostics">
@@ -1838,7 +1854,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 
 <div class="modal-bg" id="fcPanel" onclick="if(event.target===this)toggleFc()">
   <div class="modal" style="width:1240px;max-width:96vw">
-    <h3><span id="fcTitle">📅 FY27 PROJECTED SPEND PLAN FORECAST — OCT 2026 – SEP 2027</span> <button class="x" onclick="toggleFc()">✕ Close</button></h3>
+    <h3><span id="fcTitle">📅 FY27 PROJECTED SPEND PLAN FORECAST — OCT 2026 – SEP 2027</span> <span id="fcCtl" class="fcctl"></span> <button class="x" onclick="toggleFc()">✕ Close</button></h3>
     <div id="fcBody"></div>
   </div>
 </div>
@@ -2283,7 +2299,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.92 (1 Oct 2026)';
+const BUILD='v1.93 (1 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -2479,6 +2495,79 @@ function ndRowChip(id){
   return '<button type="button" class="nb rchip" style="border-color:var(--amber);color:var(--amber);font-weight:800" '
     +'onclick="ndOpen=true;ndFocus='+jsa(id)+';render()" title="'+esc(lines.join('\n')+'\nClick for the fix list.')+'">'
     +'▲ '+fMc(g)+' not drawn</button>';
+}
+// NEEDS ATTENTION, EVERY ENTRY A LIST (v1.93, item 42: "each error message to have a pop up to show me where the
+// errors are, like it does with the Not Drawn statement"). One pass over the board, so each count on the posture
+// line IS the length of the list it opens -- they cannot drift. Not drawn keeps its own fix list.
+let attOpen=null;     // which list is open: imp, ccar, oblig, awshort
+function attLists(T){
+  T=T||tiers();
+  const MR=masterRanks();
+  const out={imp:[], ccar:[], oblig:[], awshort:[]};
+  (S.order||[]).forEach(function(id){
+    const it=itemById(id); if(!it) return;
+    const p=T[id]||{dT:0, mT:0, d:[], m:[]}, funded=(p.dT||0)+(p.mT||0);
+    const row={id:id, rank:MR[id], funded:funded};
+    if(BAND_OF(id)!==null && BAND_DEF(id).consReq && !(((S.cons||{})[id]||'').trim())) out.imp.push(row);
+    if(!ccarOf(it)) out.ccar.push(row);
+    const aw=(S.awards||{})[id];
+    const inc=!!(aw && aw.mode==='inc' && (aw.inc||[]).length);
+    if(!(inc || (aw && aw.d))) out.oblig.push(row);
+    else if(inc && funded>0.5){
+      // the awards fall short of the funded amount, both lanes: what landSvc leaves undated, by lane
+      const sp=awdSplitOf(id, p);
+      if(sp.ud+sp.um>=1) out.awshort.push(Object.assign({ud:sp.ud, um:sp.um}, row));
+    }
+  });
+  // the funded ones first -- their dollars are UNSCHEDULED in every spend plan -- then by rank
+  out.oblig.sort(function(a,b){ return ((b.funded>0.5)-(a.funded>0.5)) || ((a.rank||9e9)-(b.rank||9e9)); });
+  return out;
+}
+const ATT_KIND={
+  imp:{t:'⚠ IMPACT STATEMENTS MISSING', go:'Write it',
+    why:'Each is in a band that needs the consequence in the requester’s words; without it the unfunded requirement cannot be written. <b>Go to it</b> selects the requirement and opens its Impact statement.'},
+  ccar:{t:'○ WITHOUT A CCaR RECORD', go:'Go to it',
+    why:'No CCaR record, so nothing on it reaches CCaR: the Spend Plan Source and the IDS batch cannot place it. <b>Go to it</b> selects the requirement and opens its CCaR record.'},
+  oblig:{t:'📅 WITHOUT AN OBLIGATION DATE', go:'Go to it',
+    why:'No award or obligation date, so every funded dollar on these is UNSCHEDULED in every spend plan. The funded ones are listed first, each with what it leaves UNSCHEDULED. <b>Go to it</b> selects the requirement at its award date.'},
+  awshort:{t:'◔ AWARDS SHORT OF THEIR FUNDING', go:'Go to it',
+    why:'The awards do not yet cover the funded amount, discretionary + mandatory, so the rest is UNSCHEDULED in every spend plan. Discretionary fills the awards forward from the first and mandatory backward from the last, so what is short is usually mandatory. <b>Go to it</b> opens the award block, where <b>↵ put on last</b> covers it.'}
+};
+function attShow(k){ if(!ATT_KIND[k]) return; attOpen=k; render(); }
+function attClose(){ attOpen=null; render(); }
+function attBody(){
+  const bg=document.getElementById('attPanel'), el=document.getElementById('attBody'); if(!bg||!el) return;
+  bg.className='modal-bg'+(attOpen? ' open' : '');
+  if(!attOpen){ el.innerHTML=''; return; }
+  const K=ATT_KIND[attOpen], L=attLists()[attOpen];
+  const ttl=document.getElementById('attTitle'); if(ttl) ttl.textContent=K.t;
+  let h='<div class="hint" style="margin-bottom:8px">'+K.why+'</div>';
+  if(!L.length){ el.innerHTML=h+'<div style="padding:10px;color:var(--green);font-weight:700">✓ Nothing left on this list.</div>'; return; }
+  const money=attOpen==='oblig'? '<th>Funded · UNSCHEDULED</th>' : (attOpen==='awshort'? '<th>Discretionary undated</th><th>Mandatory undated</th>' : '<th>Funded</th>');
+  h+='<table class="fctab atttab" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th>'
+    +'<th style="text-align:left">PMO</th>'+money+'<th></th></tr>';
+  let t1=0, t2=0;
+  L.forEach(function(r){ const it=itemById(r.id);
+    const cells=attOpen==='awshort'? '<td>'+fM(r.ud)+'</td><td style="color:var(--purp)">'+fM(r.um)+'</td>' : '<td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>';
+    t1+=attOpen==='awshort'? r.ud : r.funded; t2+=attOpen==='awshort'? r.um : 0;
+    h+='<tr><td>'+(r.rank||'—')+'</td><td class="t" style="text-align:left">'+esc(dispTitle(it))+'</td>'
+      +'<td style="text-align:left">'+esc(it.grp||'')+'</td>'+cells
+      +'<td><button class="qb attgo" onclick="attGo('+jsa(attOpen)+','+jsa(r.id)+')">'+K.go+'</button></td></tr>'; });
+  h+='<tr class="tot"><td></td><td style="text-align:left">'+L.length+' requirement'+(L.length===1?'':'s')+'</td><td></td>'
+    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : '<td>'+(t1>0.5? fM(t1) : '—')+'</td>')+'<td></td></tr></table>';
+  el.innerHTML=h;
+}
+// GO TO IT: the list closes, the requirement is selected, and the RECORD panel is at the field to fill
+function attGo(k, id){
+  attOpen=null;
+  if(typeof setCur==='function') setCur(id); else open[id]=true;
+  goRow(id);
+  if(k==='imp'){ openFld(id, 'cons'); return; }
+  if(k==='ccar'){ editCcar(id); return; }
+  try{ const ins=document.getElementById('inspector'), blk=ins && ins.querySelector('.awdblk');
+    if(blk){ if(blk.scrollIntoView) blk.scrollIntoView({block:'center'});
+      const f=blk.querySelector('input[type="date"]:not([disabled])') || blk.querySelector('button, input');
+      if(f && f.focus) f.focus(); } }catch(e){}
 }
 // C · the fix list
 function ndBody(){
@@ -9170,67 +9259,65 @@ function setRcnAsg(id,k){
            : '\ud83c\udff7 '+esc(dispTitle(it))+' has no RCN/EEIC assigned.');
 }
 
-/* THE ONE RULE FOR WHEN A FUNDED DOLLAR LANDS (v1.86). Every spend-plan surface -- the forecast panel,
-   the month-by-month sheets, the PMO tabs' spend plan, the CR windows and the 1A9A return, the deck's
-   chart -- places a requirement's money through this, one service at a time, so no two of them can
-   disagree about which month a dollar is in. Until v1.86 there were four copies of it and two rules:
-   the CR views spread the whole funded amount by the increments' proportions, so discretionary not
-   yet on a date was inflated into the windows while the forecast held it as UNSCHEDULED.
-   - AN INCREMENT IS DISCRETIONARY DOLLARS, placed as typed. Scheduled past what discretionary holds,
-     the shape is kept and the total scaled back to it: a spread never places more than was drawn.
-     Discretionary not yet on a date is UNSCHEDULED, never spread into the months.
-   - MANDATORY HAS NO INCREMENTS OF ITS OWN; it rides the requirement's own dates. In a service with
-     increments, in their proportions. In a service with none -- its discretionary used up, so nobody
-     typed one -- in the proportions of the requirement's increments overall (Brad, 26 Sep 2026: "yes";
-     nothing new to type). Until v1.86 that second case sent it all to UNSCHEDULED: measured, $900
-     discretionary on USAF and $300 mandatory on ANG, increments Nov and Feb, forecast $900 in the
-     months and $300 unscheduled.
+/* THE ONE RULE FOR WHEN A FUNDED DOLLAR LANDS (v1.86; v1.93). Every spend-plan surface -- the forecast
+   panel, the month-by-month sheets, the PMO tabs' spend plan, the CR windows and the 1A9A return, the
+   deck's chart -- places a requirement's money through this, one service at a time, so no two of them
+   can disagree about which month a dollar is in.
+   - AN AWARD IS THE WHOLE AWARD, BOTH LANES (Brad, 1 Oct 2026, item 40). The increments are taken in
+     DATE order (never the order typed). DISCRETIONARY WORKS FORWARD FROM THE FIRST AWARD, filling each
+     award's amount in turn; MANDATORY WORKS BACKWARD FROM THE LAST, filling what each award has left.
+     Neither puts more into an award than its amount. Brad's example: a $300 requirement awarded $100 in
+     each of Jan, Feb and Mar, $250 discretionary + $50 mandatory: discretionary Jan 100, Feb 100, Mar 50;
+     mandatory Mar 50. Until v1.93 an increment was discretionary dollars, scaled back when typed past
+     them, and mandatory was spread over every date in the increments' proportions -- $83.33 + $16.67 a
+     month in that example.
+   - WHAT THE AWARDS DO NOT COVER IS UNSCHEDULED, IN EITHER LANE -- a service with no award of its own
+     included, exactly as its discretionary always was. The award block says how much and which lane.
    - A single award date places the whole funded amount in its month; no date, UNSCHEDULED.
-   `literal` is false only for a MODELLED plan (the Two-Plan Forecast), whose dollars are not the ones
-   the increments were typed against: there an increment is a shape, and discretionary is spread by it
-   in full. Returns {at:[{d, j, dv, mv}], ud, um}: each placement's month key -- which may fall outside
-   the fiscal year, the caller decides what that means -- and what is left undated, by pot. */
-function landSvc(aw, i, dsv, msv, literal){
+   `literal` is false only for a MODELLED plan (the Two-Plan Forecast), whose dollars are not the ones the
+   awards were typed against: there the awards are a SHAPE, scaled to the plan's funded total, and filled
+   the same way. `f` is a share (a PMO's fraction of a CLIN-backed prime): the WHOLE service is placed and
+   every figure scaled by it, so the shares of a requirement add up to the requirement month by month --
+   the fill is not linear in its inputs, so placing a share on its own would not.
+   Returns {at:[{d, j, dv, mv}], ud, um}: each placement's month key -- which may fall outside the fiscal
+   year, the caller decides what that means -- in date order, j its increment's index, and what is left
+   undated, by pot. */
+const awdKey=x=> (x&&x.d||'')+String((x&&x.day)||0).padStart(2,'0');
+function landSvc(aw, i, dsv, msv, literal, f){
   const out={at:[], ud:0, um:0};
-  dsv=dsv||0; msv=msv||0;
-  if(!(dsv+msv>0)) return out;
+  dsv=dsv||0; msv=msv||0; f=(f===undefined || f===null)? 1 : f;
+  if(!(dsv+msv>0) || !(f>0)) return out;
   if(aw && aw.mode==='inc' && aw.inc && aw.inc.length){
     const wOf=function(x, k){ return Array.isArray(x.sv)? (x.sv[k]||0) : ((x.v||0)/SVC.length); };
-    const w=aw.inc.map(function(x){ return wOf(x, i); });
-    const wsum=w.reduce(function(a,b){ return a+b; }, 0);
-    let mw=w, msum=wsum;
-    if(!(wsum>0)){
-      // no increment of its own: the requirement's increments overall set the proportions
-      mw=aw.inc.map(function(x){ return SVC.reduce(function(a,s,k){ return a+wOf(x,k); }, 0); });
-      msum=mw.reduce(function(a,b){ return a+b; }, 0);
-      if(!(msum>0)){ mw=aw.inc.map(function(){ return 1; }); msum=mw.length; }   // dates with no amounts on any
-    }
-    const dScale = !(wsum>0)? 0 : (literal===false? dsv/wsum : (wsum>dsv? dsv/wsum : 1));
-    let dPlaced=0;
-    aw.inc.forEach(function(x, j){
-      const dv=w[j]*dScale;              // discretionary: literally this increment
-      const mv=msv*mw[j]/msum;           // mandatory: rides the dates, in their proportions
-      dPlaced+=dv;
-      if(dv>0 || mv>0) out.at.push({d:x.d, j:j, dv:dv, mv:mv});
-    });
-    // Discretionary the increments never scheduled -- the figure the award block's balance reports.
-    // It is undated, not missing.
-    out.ud=Math.max(0, dsv-dPlaced);
+    // the awards in date order, each keeping its index (two on one day keep the order they were added)
+    const ord=aw.inc.map(function(x, j){ return {x:x, j:j, w:Math.max(0, wOf(x, i)||0)}; })
+      .sort(function(a, b){ const ka=awdKey(a.x), kb=awdKey(b.x); return ka<kb? -1 : (ka>kb? 1 : a.j-b.j); });
+    const wsum=ord.reduce(function(a, o){ return a+o.w; }, 0);
+    if(!(wsum>0)){ out.ud=dsv*f; out.um=msv*f; return out; }
+    const k=(literal===false)? (dsv+msv)/wsum : 1;
+    const cap=ord.map(function(o){ return o.w*k; });
+    let dLeft=dsv, mLeft=msv;
+    const dv=cap.map(function(c){ const v=Math.min(c, dLeft); dLeft-=v; return v; });   // forward from the first
+    const mv=cap.map(function(){ return 0; });
+    for(let q=cap.length-1; q>=0 && mLeft>0; q--){                                       // backward from the last
+      const v=Math.min(Math.max(0, cap[q]-dv[q]), mLeft); mv[q]=v; mLeft-=v; }
+    ord.forEach(function(o, q){ if(dv[q]>0 || mv[q]>0) out.at.push({d:o.x.d, j:o.j, dv:dv[q]*f, mv:mv[q]*f}); });
+    out.ud=Math.max(0, dLeft)*f; out.um=Math.max(0, mLeft)*f;
     return out;
   }
-  if(aw && aw.d){ out.at.push({d:aw.d, j:-1, dv:dsv, mv:msv}); return out; }
-  out.ud=dsv; out.um=msv;
+  if(aw && aw.d){ out.at.push({d:aw.d, j:-1, dv:dsv*f, mv:msv*f}); return out; }
+  out.ud=dsv*f; out.um=msv*f;
   return out;
 }
 /* Per-SERVICE, per-MONTH spread of a requirement's FUNDED dollars, by obligation date: landSvc() for
    each service, with a date outside the fiscal year counted in UNSCHEDULED like no date at all. */
-function monSpreadOf(id, p){
+function monSpreadOf(id, p, f){
   const mi={}; FYMON.forEach(function(x,i){ mi[x[0]]=i; });
   const m=SVC.map(function(){ return FYMON.map(function(){ return 0; }); });
   const unsch=SVC.map(function(){ return 0; });
   const aw=(S.awards||{})[id];
   SVC.forEach(function(sv,i){
-    const L=landSvc(aw, i, p.d[i]||0, p.m[i]||0, true);
+    const L=landSvc(aw, i, p.d[i]||0, p.m[i]||0, true, f? f(i) : 1);
     L.at.forEach(function(a){ const k=mi[a.d]; if(k===undefined) unsch[i]+=a.dv+a.mv; else m[i][k]+=a.dv+a.mv; });
     unsch[i]+=L.ud+L.um;
   });
@@ -9345,25 +9432,26 @@ const fyMin=()=> (MS.cur-1)+'-10-01';
 const fyMax=()=> MS.cur+'-09-30';
 const awDateVal=(ym,day)=> ym? ym+'-'+String(day||1).padStart(2,'0') : '';
 function fillLastAwd(id){
-  // THE RESIDUAL MOD. Everything DISCRETIONARY but not yet scheduled goes onto the last increment,
-  // per service — because money is not fungible across services, so each one has to clear its own
-  // balance. This is the figure that was being worked out by hand: discretionary allocated, less
-  // what the earlier increments already obligate. Discretionary alone, matching the balance above:
-  // mandatory is spillover, not the pot being rationed.
+  // THE RESIDUAL MOD. Everything FUNDED but not yet scheduled -- discretionary + mandatory (v1.93: an
+  // award is the whole award) -- goes onto the LATEST award, per service, because money is not fungible
+  // across services, so each one has to clear its own balance: funded, less what the other awards
+  // already obligate. The latest by date, never the last typed: that is the award mandatory works back
+  // from, so the mandatory this covers lands there.
   const aw=S.awards[id];
   if(!aw||aw.mode!=='inc'||!aw.inc||!aw.inc.length) return;
   const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
-  const last=aw.inc[aw.inc.length-1];
-  if(!Array.isArray(last.sv)) last.sv=SVC.map(_=>0);
+  let li=0; aw.inc.forEach((x,j)=>{ if(awdKey(x)>=awdKey(aw.inc[li])) li=j; });
+  const last=aw.inc[li];
+  if(!Array.isArray(last.sv)) last.sv=SVC.map((s,k)=>(last.v||0)/SVC.length);
   SVC.forEach((s,i)=>{
-    const alloc=(p.d[i]||0);
-    const others=aw.inc.reduce((a,x,j)=> a + (j===aw.inc.length-1? 0 : (((x.sv||[])[i])||0)), 0);
+    const alloc=(p.d[i]||0)+(p.m[i]||0);
+    const others=aw.inc.reduce((a,x,j)=> a + (j===li? 0 : (Array.isArray(x.sv)? (x.sv[i]||0) : (x.v||0)/SVC.length)), 0);
     // Clamped at zero: earlier increments already over-obligating this service is a real state, and
     // a negative increment is not a thing anyone can put on a contract.
     last.sv[i]=Math.max(0, Math.round(alloc-others));
   });
   save(); render(); flash(id);
-  setStat('\u21b5 Last increment set to the remaining balance, per service \u2014 '
+  setStat('\u21b5 Latest award set to the remaining balance, discretionary + mandatory, per service \u2014 '
     +esc(dispTitle(itemById(id))||id)+'.');
 }
 function toggleAwdInc(id, funded){
@@ -9373,13 +9461,12 @@ function toggleAwdInc(id, funded){
     const d=(aw.inc&&aw.inc[0]&&aw.inc[0].d)||aw.d||null;
     if(d) S.awards[id]={mode:'single', d:d}; else delete S.awards[id];
   } else {
-    // to incremental: seed one increment at the set award date with the per-service DISCRETIONARY
-    // amounts -- what an increment is. It used to seed discretionary + mandatory, against a balance
-    // that counts discretionary alone, so a split requirement read over-scheduled by its mandatory the
-    // moment it was switched. Mandatory needs nothing typed: it rides this date (landSvc).
+    // to incremental: seed one award at the set award date with the per-service FUNDED amount, both
+    // lanes -- what an award is from v1.93, against a balance that counts both. (v1.86 to v1.92 seeded
+    // discretionary alone, when an increment was discretionary dollars and mandatory rode the dates.)
     const d=(aw&&aw.d)||FYMON[0][0];
     const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
-    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round(p.d[i]||0))}]};
+    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round((p.d[i]||0)+(p.m[i]||0)))}]};
   }
   save(); render(); flash(id);
 }
@@ -9416,7 +9503,7 @@ function rmAwd(id,i){
   aw.inc.splice(i,1);
   save(); render(); flash(id);
 }
-function forecast(fundOf){
+function forecast(fundOf, view){
   // spreads each requirement's FUNDED dollars (Disc + Mand drawn) across its
   // award/obligation increments (weights scaled to the funded total);
   // requirements without a schedule land in UNSCHEDULED.
@@ -9440,14 +9527,25 @@ function forecast(fundOf){
   const literal = !fundOf;
   const mi={}; FYMON.forEach(([k],i)=>mi[k]=i);
   const mk=()=>({m:FYMON.map(_=>0), unsch:0, tot:0});
-  const byPMO={}, roll={};
+  const byPMO={}, bySvc={}, roll={};
+  // ONE PMO OR ONE SERVICE (v1.93, item 41): the same placement, every figure multiplied by the view's factor
+  // per service -- a PMO's share of each requirement (pmoSharesOf), or 1 on the one service and 0 elsewhere --
+  // so every view adds back to the whole portfolio, month by month. view is {pmo:'AV'} or {svc:i}, or none.
+  const vf=function(it){
+    if(!view) return null;
+    if(view.svc!==undefined) return SVC.map(function(s,i){ return i===view.svc? 1 : 0; });
+    const sh=pmoSharesOf(it).filter(function(x){ return x[0]===view.pmo; })[0];
+    return sh? (sh[1]? sh[1].slice() : SVC.map(function(){ return 1; })) : SVC.map(function(){ return 0; });
+  };
+  const mul=function(a, b){ return a? (b? a.map(function(v,i){ return v*b[i]; }) : a) : b; };
   // Every funded dollar is in a month or in UNSCHEDULED, placed by landSvc(): the rule the month
   // sheets, the PMO tabs, the CR views and the deck's chart use too.
-  const bump=(bag,id,p)=>{
+  const bump=(bag,id,p,frac)=>{
     const aw=S.awards[id];
-    bag.tot+=p.dT+p.mT;
+    const f=i=>(frac? frac[i] : 1);
+    bag.tot+=SVC.reduce((a,s,i)=>a+((p.d[i]||0)+(p.m[i]||0))*f(i),0);
     SVC.forEach((s,i)=>{
-      const L=landSvc(aw, i, p.d[i]||0, p.m[i]||0, literal);
+      const L=landSvc(aw, i, p.d[i]||0, p.m[i]||0, literal, f(i));
       L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined) bag.unsch+=a.dv+a.mv; else bag.m[k]+=a.dv+a.mv; });
       bag.unsch+=L.ud+L.um;
     });
@@ -9456,20 +9554,29 @@ function forecast(fundOf){
     const it=itemById(id), p=fund(id); if(!it||!p) return;
     const funded=p.dT+p.mT;
     if(funded<=0.005) return;
-    pmoSharesOf(it).forEach(([g])=>{ if(!byPMO[g]) byPMO[g]=mk(); });
-    // spread across owning PMOs (frac-weighted via a scaled part clone)
-    pmoSharesOf(it).forEach(([g,frac])=>{
-      const pc=frac? {dT:SVC.reduce((a,s,i)=>a+p.d[i]*frac[i],0), mT:SVC.reduce((a,s,i)=>a+p.m[i]*frac[i],0),
-                      d:p.d.map((v,i)=>v*frac[i]), m:p.m.map((v,i)=>v*frac[i])} : p;
-      bump(byPMO[g], id, pc);
-    });
+    const V=vf(it);
+    // nothing of this requirement in the view: no row, and no empty office or service either
+    if(V && !SVC.some(function(s,i){ return V[i]>0 && ((p.d[i]||0)+(p.m[i]||0))>0.005; })) return;
+    const shares=pmoSharesOf(it);
+    if(!V) shares.forEach(([g])=>{ if(!byPMO[g]) byPMO[g]=mk(); });
+    // spread across owning PMOs: each office's share of the WHOLE placement (landSvc's f), so the
+    // offices add up to the requirement month by month
+    shares.forEach(([g,frac])=>{
+      const f=mul(frac, V);
+      if(V && !SVC.some(function(s,i){ return (f? f[i] : 1)>0 && ((p.d[i]||0)+(p.m[i]||0))>0.005; })) return;
+      if(!byPMO[g]) byPMO[g]=mk();
+      bump(byPMO[g], id, p, f); });
+    // a view's other breakdown: by service, each service alone
+    if(V) SVC.forEach((s,i)=>{ if(!(V[i]>0) || !(((p.d[i]||0)+(p.m[i]||0))>0.005)) return;
+      if(!bySvc[i]) bySvc[i]=mk();
+      bump(bySvc[i], id, p, SVC.map(function(x,k){ return k===i? V[i] : 0; })); });
     const isPrime = ptypeOf(id)==='PRIME';
     const key = isPrime? '__P__'+id : '__MISC__';
     if(!roll[key]) roll[key]=mk(), roll[key].label = isPrime? dispTitle(it) : 'Miscellaneous OGC Efforts';
-    bump(roll[key], id, p);
+    bump(roll[key], id, p, V);
   });
   const rollRows=[...Object.keys(roll).filter(k=>k!=='__MISC__').map(k=>roll[k]), ...(roll['__MISC__']?[roll['__MISC__']]:[])];
-  return {byPMO, rollRows, T};
+  return {byPMO, bySvc, rollRows, T};
 }
 // THE BOARD'S SPEND PLAN BY MONTH, THE TWO POTS APART (v1.86) -- for the deck's chart. The same
 // placement as forecast() (landSvc, literal, following the view), kept by pot: {d:[], m:[]} a month
@@ -9558,7 +9665,7 @@ function crBuckets(scen, by){
         const dsv=(p.d[i]||0)*f(i), msv=(p.m[i]||0)*f(i);
         if(!(dsv+msv>0)) return;
         const b=bagOf(key);
-        const L=landSvc(aw, i, dsv, msv, true);
+        const L=landSvc(aw, i, p.d[i]||0, p.m[i]||0, true, f(i));
         b.nodate+=L.ud+L.um;
         L.at.forEach(a=>{
           const amt=a.dv+a.mv;
@@ -11191,8 +11298,12 @@ function idsBuild(T){
   }).sort().map(function(c){ return {ctl:c, rows:byCtl[c]}; });
   const zero=rows.filter(function(r){ return r.approved===0; });
   const sum=function(a,k){ return a.reduce(function(t,x){ return t+x[k]; },0); };
+  // APPROVED BY LANE (v1.93, item 44), summed from the CONTRIBUTIONS: a row on a lane-less budget can hold both
+  const lane=function(ys,l){ return ys.reduce(function(t,y){ return t+(y.lane===l? y.approved : 0); },0); };
+  const upSrc=[]; rows.forEach(function(r){ r.sources.forEach(function(y){ upSrc.push(y); }); });
   const P={fy:fy, sources:src, rows:rows, excluded:excluded, multi:multi, shared:shared, zero:zero,
-    tot:{upAmt:sum(rows,'amount'), upApp:sum(rows,'approved'), exAmt:sum(excluded,'amount'), exApp:sum(excluded,'approved')}};
+    tot:{upAmt:sum(rows,'amount'), upApp:sum(rows,'approved'), exAmt:sum(excluded,'amount'), exApp:sum(excluded,'approved'),
+         upAppD:lane(upSrc,'disc'), upAppM:lane(upSrc,'mand'), exAppD:lane(excluded,'disc'), exAppM:lane(excluded,'mand')}};
   P.check=idsCheck(P, T);
   return P;
 }
@@ -11204,14 +11315,14 @@ function idsCheck(P, T){
   const fail=function(inv, expected, actual, ids, reqs){
     fails.push({inv:inv, expected:expected, actual:actual, ids:(ids||[]).slice(0,40), reqs:(reqs||[]).filter(function(v,i,a){ return v && a.indexOf(v)===i; }).slice(0,40)}); };
   const whole=function(v){ return typeof v==='number' && Number.isInteger(v); };
-  const want={}; let req=0, draw=0;
+  const want={}; let req=0, draw=0, drawD=0, drawM=0;
   (S.order||[]).forEach(function(id){
     const it=itemById(id); if(!it) return;
     const t=T[id]||{};
     SVC.forEach(function(sv,i){
       const ask=+(it.ask||[])[i]||0, d=+(t.d||[])[i]||0, m=+(t.m||[])[i]||0;
       if(ask<=0 && d<=0 && m<=0) return;
-      want[id+'|'+sv]={id:id, ask:ask, dm:d+m}; req+=ask; draw+=d+m;
+      want[id+'|'+sv]={id:id, ask:ask, dm:d+m}; req+=ask; draw+=d+m; drawD+=d; drawM+=m;
       if(!whole(ask) || !whole(d) || !whole(m)) fail('every value is a whole dollar', 'whole dollars', 'requirement '+ask+', discretionary '+d+', mandatory '+m, [id+'|'+sv], [id]);
     });
   });
@@ -11255,11 +11366,20 @@ function idsCheck(P, T){
   P.excluded.forEach(function(y){ exA+=y.amount; exP+=y.approved; });
   if(upA+exA!==req) fail('uploaded + not uploaded Amount = every requirement', req, upA+exA, [], []);
   if(upP+exP!==draw) fail('uploaded + not uploaded Approved = every discretionary and mandatory draw', draw, upP+exP, [], []);
+  // and lane by lane: the discretionary contributions' Approved is the discretionary draw, the mandatory the mandatory
+  let upD=0, upM=0, exD=0, exM=0;
+  P.rows.forEach(function(r){ r.sources.forEach(function(y){ if(y.lane==='mand') upM+=y.approved; else upD+=y.approved; }); });
+  P.excluded.forEach(function(y){ if(y.lane==='mand') exM+=y.approved; else exD+=y.approved; });
+  if(upD+exD!==drawD) fail('uploaded + not uploaded discretionary Approved = every discretionary draw', drawD, upD+exD, [], []);
+  if(upM+exM!==drawM) fail('uploaded + not uploaded mandatory Approved = every mandatory draw', drawM, upM+exM, [], []);
+  if(P.tot.upAppD!==upD || P.tot.upAppM!==upM || P.tot.exAppD!==exD || P.tot.exAppM!==exM)
+    fail('the printed totals by lane are the contributions’ totals', upD+' / '+upM+' / '+exD+' / '+exM,
+      P.tot.upAppD+' / '+P.tot.upAppM+' / '+P.tot.exAppD+' / '+P.tot.exAppM, [], []);
   // and the totals the sheet prints are the ones just added up
   if(P.tot.upAmt!==upA || P.tot.upApp!==upP || P.tot.exAmt!==exA || P.tot.exApp!==exP)
     fail('the printed totals are the rows’ totals', upA+' / '+upP+' / '+exA+' / '+exP,
       P.tot.upAmt+' / '+P.tot.upApp+' / '+P.tot.exAmt+' / '+P.tot.exApp, [], []);
-  return {ok:!fails.length, fails:fails, req:req, draw:draw};
+  return {ok:!fails.length, fails:fails, req:req, draw:draw, drawD:drawD, drawM:drawM};
 }
 // The prompt, held while the box is open and never saved: a redraw keeps what was typed, and nothing is written
 // anywhere until the file is made.
@@ -16558,7 +16678,7 @@ function fldBody(){
   el.innerHTML=D.parts.map(function(p, i){
       return (p.lbl? '<label for="fld-'+p.k+'" style="display:block;font-size:9.5px;font-weight:800;letter-spacing:.06em;'
           +'text-transform:uppercase;color:var(--mut);margin:'+(i? '10px' : '0')+' 0 4px">'+esc(p.lbl)+'</label>' : '')
-        +'<textarea id="fld-'+p.k+'" style="width:100%;min-height:'+(two? (i? 110 : 150) : 190)+'px" placeholder="'
+        +'<textarea id="fld-'+p.k+'" data-held="1" style="width:100%;min-height:'+(two? (i? 110 : 150) : 190)+'px" placeholder="'
         +esc(p.ph(it))+'">'+esc(p.get(it.id))+'</textarea>'; }).join('')
     +'<div class="fr" style="margin-top:9px">'
     +'<button class="btn pub" onclick="fldSave()">\u2714 Save</button>'
@@ -16635,7 +16755,7 @@ function helpBody(){
   el.querySelectorAll('a[data-go]').forEach(function(a){ a.setAttribute('href','#');
     a.onclick=function(){ helpGo(a.getAttribute('data-go')); return false; }; });
 }
-document.addEventListener('keydown', function(e){ if(e.key==='Escape' && helpOpen){ e.preventDefault(); helpClose(); } });
+// v1.93 (item 39): Esc in Help is the box controller's (dlgInit), like every other box.
 function consBox(it){
   const b=BAND_DEF(it.id);
   return `<div class="note-detail cons"><textarea placeholder="If this is NOT funded, what happens and when? ${b.consReq?'Required for '+esc(b.n)+' — this text becomes the UFR justification.':'Feeds the UFR if this falls below the line.'}"
@@ -19224,9 +19344,9 @@ function crBody(){
     +'<div class="hint" style="margin-top:8px">Cash = funded dollars (Disc + Mand drawn) placed by each requirement\u2019s obligation dates, the same way the forecast places them: increments are discretionary dollars as typed, and mandatory lands on the requirement\u2019s own dates. Month-dated obligations default to the 1\u201315 window \u2014 click a row to open its requirements, then click any amount to flip it to the 16\u2013EOM half. "No date" = funded with no date in this fiscal year: no award date, discretionary the increments have not yet placed, or a date outside the year (fix in the requirement\u2019s award schedule). Obligations after March fall outside the CR window and are excluded.'
       +(scenOn()? ' <b style="color:var(--amber)">\u25e8 '+esc(SCEN_TAG)+' \u2014 a what-if.</b>' : '')+'</div>';
 }
-let fcOpen=false;
+let fcOpen=false, fcView='';   // fcView: '' the whole portfolio, 'p:AV' one PMO, 's:0' one service -- never kept
 function toggleFc(){
-  fcOpen=!fcOpen;
+  fcOpen=!fcOpen; fcView='';
   document.getElementById('fcPanel').className='modal-bg'+(fcOpen?' open':'');
   render();
 }
@@ -19240,13 +19360,42 @@ function fcGrid(nMon){
       + Array(2).fill('<col style="width:'+FC_ENDW+'px">').join('')
       + '</colgroup>'};
 }
+function fcPick(v){ fcView=String(v||''); fcBody(); }
+// THE VIEW ON SCREEN, parsed: null for the whole portfolio, {pmo:'AV'} or {svc:i}
+function fcViewOf(v){
+  v=v===undefined? fcView : v;
+  if(/^p:/.test(v)) return {pmo:v.slice(2), label:v.slice(2)};
+  if(/^s:\d+$/.test(v)){ const i=+v.slice(2); if(i<SVC.length) return {svc:i, label:SVC[i]}; }
+  return null;
+}
+// What the box shows and the export writes -- one function, so the two cannot differ: the roll-up, and the
+// breakdown the other way (the whole portfolio by PMO; a PMO by service; a service by PMO).
+function fcViewData(){
+  const view=fcViewOf();
+  const F=forecast(null, view);
+  const sumBags=bags=>{ const t={m:FYMON.map(_=>0),unsch:0,tot:0}; bags.forEach(b=>{ b.m.forEach((v,i)=>t.m[i]+=v); t.unsch+=b.unsch; t.tot+=b.tot; }); return t; };
+  const by=(view && view.pmo)? {head:view.label+' BY SERVICE', rows:SVC.map((s,i)=>F.bySvc[i]? {label:s, b:F.bySvc[i]} : null).filter(Boolean)}
+          : {head:(view? view.label+' ' : '')+'BY PMO', rows:pmoKeys(F.byPMO).map(g=>({label:g, b:F.byPMO[g]}))};
+  return {view:view, F:F, roll:F.rollRows, rollTot:sumBags(F.rollRows), by:by, byTot:sumBags(by.rows.map(r=>r.b))};
+}
 function fcBody(){
   const el=document.getElementById('fcBody');
   if(!fcOpen){ if(el) el.innerHTML=''; return; }
-  const F=forecast();
+  const D=fcViewData(), view=D.view;
   { const ttl=document.getElementById('fcTitle');
     if(ttl) ttl.innerHTML='\ud83d\udcc5 '+FYL()+' PROJECTED SPEND PLAN FORECAST \u2014 OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur
+      + (view? ' \u2014 '+esc(view.label) : '')
       + (scenOn()? ' <span style="color:var(--amber);font-weight:800">\u25e8 '+esc(SCEN_TAG)+'</span>' : ''); }
+  // SHOW: one small picker and the export, in the title line (v1.93, item 41). Only offices and services that
+  // place money are offered; the whole portfolio is always first.
+  { const ctl=document.getElementById('fcCtl');
+    if(ctl){ const W=forecast(null, null), svcs=SVC.map((s,i)=>i).filter(i=>{ const F2=forecast(null,{svc:i}); return F2.rollRows.length; });
+      const opt=(v,l)=>'<option value="'+esc(v)+'"'+(fcView===v?' selected':'')+'>'+esc(l)+'</option>';
+      ctl.innerHTML='<label for="fcView">Show</label> <select id="fcView" onchange="fcPick(this.value)">'
+        +opt('','Whole portfolio')
+        +'<optgroup label="PMO">'+pmoKeys(W.byPMO).map(g=>opt('p:'+g, g)).join('')+'</optgroup>'
+        +'<optgroup label="Service">'+svcs.map(i=>opt('s:'+i, SVC[i])).join('')+'</optgroup></select>'
+        +' <button type="button" class="qb" id="fcExport" onclick="exportFcView()" title="an Excel workbook of exactly this view">\u2b07 Export this view</button>'; } }
   const FG=fcGrid(FYMON.length);
   const TBL='<div style="overflow-x:auto"><table class="fctab" style="min-width:'+FG.minW+'px">'+FG.cols;
   const hd='<tr><th style="text-align:left">&nbsp;</th>'+FYMON.map(([k,l])=>'<th>'+l+'</th>').join('')+'<th>UNSCH</th><th style="border-left:1px solid var(--gold)">TOTAL</th></tr>';
@@ -19254,16 +19403,46 @@ function fcBody(){
     +b.m.map(v=>'<td>'+(v>5e3?fM2(v):'—')+'</td>').join('')
     +'<td style="color:'+(b.unsch>5e3?'var(--amber)':'var(--dim)')+'">'+(b.unsch>5e3?fM2(b.unsch):'—')+'</td>'
     +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--gold)">'+fM2(b.tot)+'</td></tr>';
-  const sumBags=bags=>{ const t={m:FYMON.map(_=>0),unsch:0,tot:0}; bags.forEach(b=>{ b.m.forEach((v,i)=>t.m[i]+=v); t.unsch+=b.unsch; t.tot+=b.tot; }); return t; };
-  const rollTot=sumBags(F.rollRows);
-  const pmoKeys=GROUPS.filter(g=>F.byPMO[g]);
-  const pmoTot=sumBags(pmoKeys.map(g=>F.byPMO[g]));
   el.innerHTML=
-    '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:2px 0 4px">ROLLUP — PRIME CONTRACTS + MISCELLANEOUS OGC ($M, funded dollars spread by award schedule)</div>'
-    +TBL+hd+F.rollRows.map(b=>row(b.label,b)).join('')+row('TOTAL',rollTot,'tot')+'</table></div>'
-    +'<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:12px 0 4px">BY PMO ($M)</div>'
-    +TBL+hd+pmoKeys.map(g=>row(g,F.byPMO[g])).join('')+row('TOTAL',pmoTot,'tot')+'</table></div>'
-    +'<div class="hint" style="margin-top:8px">Funded = Discretionary + Mandatory drawn per requirement. Increment amounts act as weights and are scaled to the funded total, so trims and funding-source overrides flow through automatically. UNSCH = funded requirements with no award/obligation dates yet — add dates from each requirement\u2019s detail view (click its title).</div>';
+    '<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:2px 0 4px">ROLLUP — PRIME CONTRACTS + MISCELLANEOUS OGC'+(view? ' — '+esc(view.label) : '')+' ($M, funded dollars spread by award schedule)</div>'
+    +(D.roll.length? TBL+hd+D.roll.map(b=>row(b.label,b)).join('')+row('TOTAL',D.rollTot,'tot')+'</table></div>'
+       : '<div class="hint">Nothing funded'+(view? ' for '+esc(view.label) : '')+'.</div>')
+    +'<div style="font-size:11px;font-weight:800;color:var(--gold);letter-spacing:.5px;margin:12px 0 4px">'+esc(D.by.head)+' ($M)</div>'
+    +TBL+hd+D.by.rows.map(r=>row(r.label,r.b)).join('')+row('TOTAL',D.byTot,'tot')+'</table></div>'
+    +'<div class="hint" style="margin-top:8px">Funded = Discretionary + Mandatory drawn per requirement'+(view && view.pmo? ', this office\u2019s share of each' : '')+(view && view.svc!==undefined? ', this service alone' : '')
+    +'. An award is the whole award: discretionary fills the awards forward from the first, mandatory backward from the last, and what they do not cover is UNSCHEDULED. Every view adds back to the whole portfolio, month by month.</div>';
+}
+// EXPORT THIS VIEW (v1.93, item 41): one sheet, exactly the rows the box shows, in dollars to the cent. Each
+// TOTAL is the sum of the figures printed above it, so the sheet cross-foots as printed.
+function exportFcView(){
+  const D=fcViewData(), view=D.view;
+  const H=2, SEC=6, TI=7, N2=10, NB2=11;
+  const c2=v=>Math.round(v*100)/100;
+  const line=(label,b,bold)=>[{v:label,s:bold?SEC:1},...b.m.map(v=>({v:c2(v),s:bold?NB2:N2})),{v:c2(b.unsch),s:bold?NB2:N2},{v:c2(b.tot),s:NB2}];
+  const totOf=rows=>{ const t={m:FYMON.map(_=>0),unsch:0,tot:0}; rows.forEach(b=>{ b.m.forEach((v,i)=>t.m[i]+=c2(v)); t.unsch+=c2(b.unsch); t.tot+=c2(b.tot); });
+    t.m=t.m.map(c2); t.unsch=c2(t.unsch); t.tot=c2(t.tot); return t; };
+  const hdr=[{v:'',s:H},...FYMON.map(([k,l])=>({v:l,s:H})),{v:'UNSCHEDULED',s:H},{v:'TOTAL',s:H}];
+  const vl=view? view.label : 'Whole portfolio';
+  const sheet={name:FYL()+' Forecast'+(view? ' '+view.label : ''), cols:[40,...FYMON.map(_=>12),13,14], rows:[
+    [{v:expTitle()+' \u2014 '+FYL()+' Projected Spend Plan Forecast \u2014 '+vl+' \u2014 OCT '+(MS.cur-1)+' \u2013 SEP '+MS.cur
+      +(scenOn()? ' \u2014 \u25e8 '+SCEN_TAG : '')+' \u2014 exported '+new Date().toISOString().slice(0,10),s:TI}],
+    ['Dollars. Funded = discretionary + mandatory drawn'+(view && view.pmo? ', this office\u2019s share of each requirement' : '')+(view && view.svc!==undefined? ', '+view.label+' alone' : '')
+      +'. An award is the whole award: discretionary fills the awards forward from the first, mandatory backward from the last; UNSCHEDULED is what the awards do not cover.'],
+    [],
+    [{v:'ROLLUP \u2014 PRIME CONTRACTS + MISCELLANEOUS OGC EFFORTS'+(view? ' \u2014 '+view.label : ''),s:SEC}], hdr]};
+  D.roll.forEach(b=>sheet.rows.push(line(b.label,b)));
+  sheet.rows.push(line('TOTAL',totOf(D.roll),true));
+  sheet.rows.push([]);
+  sheet.rows.push([{v:D.by.head,s:SEC}]); sheet.rows.push(hdr);
+  D.by.rows.forEach(r=>sheet.rows.push(line(r.label,r.b)));
+  sheet.rows.push(line('TOTAL',totOf(D.by.rows.map(r=>r.b)),true));
+  const blob=buildXlsx([sheet]);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download=expName(FYL()+' Spend Plan Forecast - '+String(vl).replace(/[^A-Za-z0-9 _-]/g,'')+'.xlsx');
+  a.click();
+  setStat('\u2b07 '+FYL()+' Spend Plan Forecast exported \u2014 '+esc(vl)+', exactly as shown.');
+  return sheet;
 }
 
 // THE REQUIREMENT VALUE LIVES IN TWO PLACES, depending on the requirement. A CUSTOM one carries it
@@ -19678,17 +19857,19 @@ function scoreboard(){
       S.order.forEach(function(id){ const it=itemById(id); if(!it) return; ask+=askTot(it);
         if(T[id]) unfSvcOf(it,T[id]).forEach(function(v,i){ uSvc[i]+=v; }); });
       const N=ndData();
-      const imp=S.order.filter(function(id){ return itemById(id) && BAND_OF(id)!==null && BAND_DEF(id).consReq
-        && !(((S.cons||{})[id]||'').trim()); }).length;
-      const noCcar=S.order.filter(function(id){ const it=itemById(id); return it && !ccarOf(it); }).length;
+      const A=attLists(T);    // v1.93 (item 42): every entry is a list, opened from here
       const pc=function(a,b){ return b>0? Math.max(0,Math.min(100,a/b*100)) : 0; };
       const meter=function(parts){ return '<div class="meter" aria-hidden="true">'+parts.map(function(q){
         return '<i style="width:'+q[0].toFixed(2)+'%;background:'+q[1]+'"></i>'; }).join('')+'</div>'; };
       const pl=function(n,one,many){ return n+' '+(n===1? one : many); };
+      const ae=function(k, g, txt){ return '<button type="button" class="e" onclick="attShow('+jsa(k)+')" title="List them, with Go to it beside each">'
+        +'<span class="g">'+g+'</span> '+txt+'</button>'; };
       const att=(N.n? '<button type="button" class="e" onclick="ndOpen=true;render()" title="Open the fix list">'
                      +'<span class="g">▲</span> '+N.n+' not drawn · '+fMc(N.tot)+'</button>' : '')
-        +(imp? '<div class="e"><span class="g">⚠</span> '+pl(imp,'impact statement missing','impact statements missing')+'</div>' : '')
-        +(noCcar? '<div class="e"><span class="g">○</span> '+noCcar+' without a CCaR record</div>' : '');
+        +(A.imp.length? ae('imp', '⚠', pl(A.imp.length,'impact statement missing','impact statements missing')) : '')
+        +(A.ccar.length? ae('ccar', '○', A.ccar.length+' without a CCaR record') : '')
+        +(A.oblig.length? ae('oblig', '📅', A.oblig.length+' without an obligation date') : '')
+        +(A.awshort.length? ae('awshort', '◔', pl(A.awshort.length,'award short of its funding','awards short of their funding')) : '');
       pe.innerHTML = !SVC.length? '' :
         '<div class="pp"><div class="pplanes">'
           +'<span class="k">Discretionary</span><span class="n" data-v="'+Math.round(dBA)+'">'+fM(dBA)+' BA</span><span class="l" data-v="'+Math.round(dLeft)+'">'+fM(dLeft)+' left</span>'
@@ -19704,7 +19885,7 @@ function scoreboard(){
         +'<div class="pp"><div class="k">Unfunded by service</div><div class="ppsvc">'
           +SVC.map(function(sv,i){ return '<span class="'+(uSvc[i]>0.5?'over':'')+'" data-v="'+Math.round(uSvc[i])+'" title="'+esc(sv)+' unfunded '+fM(uSvc[i])+'">'
             +esc(sv)+' <b>'+(uSvc[i]>0.5? fMc(uSvc[i]) : '—')+'</b></span>'; }).join('')+'</div></div>'
-        +'<div class="pp ppatt"><div class="k">Needs attention</div>'+(att || '<div class="e" style="color:var(--dim)">nothing flagged</div>')+'</div>'
+        +'<div class="pp ppatt"><div class="k">Needs attention</div>'+(att? '<div class="pplist">'+att+'</div>' : '<div class="e" style="color:var(--dim)">nothing flagged</div>')+'</div>'
         +'<div class="ppdet"><button type="button" class="btn" onclick="fundDetailToggle()" aria-controls="fundDetail" aria-expanded="'+(fundDetailOpen?'true':'false')+'"'
           +' title="The scorecards, the discretionary fit and the funding panels">Funding detail <span class="car" aria-hidden="true">'+(fundDetailOpen?'▴':'▾')+'</span></button></div>';
     } }
@@ -20362,58 +20543,69 @@ function svcShort(T){
   S.order.forEach(id=>{ const p=T[id]; if(p) p.u.forEach((v,i)=>u[i]+=v); });
   return SVC.map((s,i)=>({s, short:u[i]})).filter(x=>x.short>0.5);
 }
-// The award / obligation schedule: one date, or incremental mods with a declining balance
-// against the DISCRETIONARY allocation. SHARED: the card build edits it in the row expander,
-// the grid build in the docked inspector. One implementation, so the two cannot drift.
+// The award / obligation schedule: one date, or incremental mods with a declining balance against the
+// FUNDED amount, both lanes (v1.93). SHARED: one implementation for every surface that edits it.
+// THE SPLIT EACH AWARD SHOWS IS landSvc's, never worked out again here: discretionary forward from the
+// first award, mandatory backward from the last, summed across the services, and what they leave undated.
+function awdSplitOf(id, p){
+  const aw=(S.awards||{})[id];
+  const by={}; let ud=0, um=0;
+  SVC.forEach(function(s,i){
+    const L=landSvc(aw, i, (p.d||[])[i]||0, (p.m||[])[i]||0, true);
+    L.at.forEach(function(a){ const k=a.j; if(!by[k]) by[k]={dv:0, mv:0}; by[k].dv+=a.dv; by[k].mv+=a.mv; });
+    ud+=L.ud; um+=L.um;
+  });
+  return {by:by, ud:ud, um:um};
+}
 function awardBlockHtml(it){
       const aw=S.awards[it.id];
-      const Tw=tiers(), pw=Tw[it.id]||{dT:0,mT:0};
+      const Tw=tiers(), pw=Tw[it.id]||{dT:0,mT:0,d:SVC.map(_=>0),m:SVC.map(_=>0)};
       const funded=pw.dT+pw.mT;
-      // THE BLOCK SCHEDULES THE WHOLE FUNDED AMOUNT (v1.86), the two pots shown apart. An increment is
-      // discretionary dollars, so the balance to schedule is discretionary's; mandatory needs nothing
-      // typed, because it rides these dates (landSvc) -- its own row says where it lands. So once the
-      // discretionary balance is clear, every funded dollar has a date.
-      const discAl=pw.dT;
+      // THE BLOCK SCHEDULES THE WHOLE FUNDED AMOUNT, BOTH LANES (v1.93, item 40: "Let's update the award
+      // block to include mandatory"). An award is the whole award: the balance counts discretionary +
+      // mandatory down, per service, and each award says how it splits. Until v1.93 an increment was
+      // discretionary dollars and mandatory rode the dates with nothing typed for it.
       const isInc=aw&&aw.mode==='inc';
       const incSum=isInc? (aw.inc||[]).reduce((a,x)=>a+incTot(x),0) : 0;
-      return `<div style="padding:6px 2px 2px;border-top:1px solid var(--line);margin-top:6px">
+      const sp=awdSplitOf(it.id, pw);
+      const lanes=(dv,mv)=> (dv>0.5 && mv>0.5)? fM(dv)+' disc + '+fM(mv)+' mand' : (mv>0.5? fM(mv)+' mand' : (dv>0.5? fM(dv)+' disc' : '—'));
+      return `<div class="awdblk" style="padding:6px 2px 2px;border-top:1px solid var(--line);margin-top:6px">
       <b style="font-size:10px;color:var(--gold);letter-spacing:.5px">📅 AWARD / OBLIGATION</b>
       &nbsp;<label style="font-size:10.5px">Award date:
         <input type="date" ${isInc?'disabled style="opacity:.5"':''} value="${!isInc&&aw? awDateVal(aw.d,aw.day):''}" min="${fyMin()}" max="${fyMax()}"
           onchange="setAwdDateFull(${jsa(it.id)},this.value)" title="click to pick the award/obligation date from the calendar — the day sets the CR half-month window"></label>
       ${(!isInc&&aw&&aw.d)?`<button class="qb" onclick="setAwdDateFull(${jsa(it.id)},'')" title="clear the award date">✕</button>`:''}
-      <span style="font-size:9.5px;color:var(--dim)">${!isInc? (aw&&aw.d? ((aw.day?'day '+aw.day+' (baseline) · ':'')+'full funded amount ('+fM(funded)+') forecasts in this month'):'no date — funded amount shows as UNSCHEDULED in the forecast'):''}</span>
+      <span style="font-size:9.5px;color:var(--dim)">${!isInc? (aw&&aw.d? ((aw.day?'day '+aw.day+' (baseline) · ':'')+'full funded amount ('+fM(funded)+(pw.mT>0.5 && pw.dT>0.5? ' — '+lanes(pw.dT,pw.mT) : '')+') forecasts in this month'):'no date — funded amount shows as UNSCHEDULED in the forecast'):''}</span>
       &nbsp;&nbsp;<label style="font-size:10.5px;cursor:pointer"><input type="checkbox" ${isInc?'checked':''} onchange="toggleAwdInc(${jsa(it.id)},${Math.round(funded)})"> <b style="color:${isInc?'var(--green)':'var(--dim)'}">Incremental funding</b></label>
       ${isInc? (()=>{
         const svTots=SVC.map((s,i)=>(aw.inc||[]).reduce((a,x)=>a+((x.sv||[])[i]||0),0));
-        const fSv=SVC.map((s,i)=>pw.d[i]||0);              // discretionary allocated, per service
-        const mSv=SVC.map((s,i)=>pw.m[i]||0);              // mandatory: rides the dates, its own row below
+        const fSv=SVC.map((s,i)=>(pw.d[i]||0)+(pw.m[i]||0));   // funded, both lanes, per service
+        const bal=funded-incSum;
         return `<div style="margin-top:4px;overflow-x:auto"><table style="border-collapse:collapse;font-size:10px">
-        <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${esc(s)}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--blue);padding:2px 6px" title="allocated dollars still unscheduled after this increment — the last one has to clear it">Remaining</th><th></th></tr>
-        ${(()=>{ let run=discAl; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); return `<tr>
-          <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" onchange="setAwdIncDate(${jsa(it.id)},${i},this.value)" title="click for the calendar — this increment's obligation date (day sets the CR half-month window)"></td>
-          ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc(${jsa(it.id)},${i},${si},this.value)" onfocus="this.select()" title="${s} increment for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}"></td>`).join('')}
+        <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${esc(s)}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--dim);padding:2px 6px" title="how this award splits: discretionary fills the awards forward from the first, mandatory backward from the last">Disc · Mand</th><th style="color:var(--blue);padding:2px 6px" title="funded dollars, both lanes, still unscheduled after this award — the last one has to clear it">Remaining</th><th></th></tr>
+        ${(()=>{ let run=funded; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); const q=sp.by[i]||{dv:0,mv:0}; return `<tr>
+          <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" onchange="setAwdIncDate(${jsa(it.id)},${i},this.value)" title="click for the calendar — this award's obligation date (day sets the CR half-month window)"></td>
+          ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc(${jsa(it.id)},${i},${si},this.value)" onfocus="this.select()" title="${s} award for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}, both lanes"></td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:var(--gold);white-space:nowrap">${fM(incTot(a))}</td>
-          <td style="padding:2px 6px;font-weight:800;white-space:nowrap;color:${Math.abs(run)<1?'var(--green)':(run<0?'var(--red)':'var(--blue)')}" title="${Math.abs(run)<1?'fully scheduled at this increment':(run<0? fM(-run)+' MORE has been scheduled than is allocated':fM(run)+' of the allocation is still unscheduled after this increment')}">${Math.abs(run)<1?'\u2713 $0':fM(run)}</td>
-          <td><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd(${jsa(it.id)},${i})" title="remove increment">✕</button></td></tr>`; }).join(''); })()}
+          <td class="awdsplit" style="padding:2px 6px;white-space:nowrap;color:var(--dim)" title="placed by the board's one rule: discretionary forward from the first award, mandatory backward from the last">${lanes(q.dv,q.mv)}</td>
+          <td style="padding:2px 6px;font-weight:800;white-space:nowrap;color:${Math.abs(run)<1?'var(--green)':(run<0?'var(--red)':'var(--blue)')}" title="${Math.abs(run)<1?'fully scheduled at this award':(run<0? fM(-run)+' MORE has been scheduled than is funded':fM(run)+' of the funded amount is still unscheduled after this award')}">${Math.abs(run)<1?'✓ $0':fM(run)}</td>
+          <td><button class="qb" style="color:var(--red);padding:0 5px" onclick="rmAwd(${jsa(it.id)},${i})" title="remove this award">✕</button></td></tr>`; }).join(''); })()}
         <tr><td style="padding:2px 6px;color:var(--dim);font-weight:700">Σ by service</td>
-          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${esc(s)}: increments ${fM(svTots[i])} vs funded ${fM(fSv[i])}">${fM(svTots[i])}</td>`).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(incSum-discAl)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td><td></td></tr>
-        <tr><td style="padding:2px 6px;color:var(--blue);font-weight:800" title="discretionary the increments have not yet put on a date, per service">Balance to schedule — discretionary</td>
+          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${Math.abs(svTots[i]-fSv[i])<1?'var(--green)':'var(--amber)'}" title="${esc(s)}: awards ${fM(svTots[i])} vs funded ${fM(fSv[i])} (discretionary ${fM(pw.d[i]||0)} + mandatory ${fM(pw.m[i]||0)})">${fM(svTots[i])}</td>`).join('')}
+          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(bal)<1?'var(--green)':'var(--amber)'}">${fM(incSum)}</td><td></td><td></td><td></td></tr>
+        <tr class="awdbal"><td style="padding:2px 6px;color:var(--blue);font-weight:800" title="funded dollars, discretionary + mandatory, the awards have not yet put on a date, per service">Balance to schedule — discretionary + mandatory</td>
           ${SVC.map((s,i)=>{ const r=fSv[i]-svTots[i];
-            return `<td style="padding:2px 6px;text-align:right;font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${esc(s)}: allocated ${fM(fSv[i])} less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'\u2014':fM(r)}</td>`; }).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(discAl-incSum)<1?'var(--green)':(discAl-incSum<0?'var(--red)':'var(--blue)')}">${Math.abs(discAl-incSum)<1?'\u2713 $0':fM(discAl-incSum)}</td>
-          <td colspan="2" style="padding:2px 6px">${(Math.abs(discAl-incSum)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd(${jsa(it.id)})" title="put the remaining discretionary balance on the last increment, per service — the residual mod. Mandatory already rides the dates, so this schedules the whole funded amount.">\u21b5 put on last</button>`:''}</td></tr>
-        ${pw.mT>0.5? `<tr><td style="padding:2px 6px;color:var(--purp);font-weight:800" title="mandatory has no increments of its own: it lands on these dates, in each service's own increment proportions, or the requirement's where a service has none">Mandatory \u2014 rides these dates</td>
-          ${SVC.map((s,i)=>`<td style="padding:2px 6px;text-align:right;font-weight:700;color:${mSv[i]>0.5?'var(--purp)':'var(--dim)'}" title="${esc(s)}: ${fM(mSv[i])} of mandatory, ${svTots[i]>0.5? 'in the proportions of this service\u2019s increments' : 'in the proportions of the requirement\u2019s increments overall'}">${mSv[i]>0.5? fM(mSv[i]) : '\u2014'}</td>`).join('')}
-          <td style="padding:2px 6px;font-weight:800;color:var(--purp)">${fM(pw.mT)}</td><td colspan="2" style="padding:2px 6px;font-size:9px;color:var(--dim)">dated \u2713</td></tr>`:''}
+            return `<td style="padding:2px 6px;text-align:right;font-weight:800;color:${Math.abs(r)<1?'var(--green)':(r<0?'var(--red)':'var(--blue)')}" title="${esc(s)}: funded ${fM(fSv[i])} (discretionary ${fM(pw.d[i]||0)} + mandatory ${fM(pw.m[i]||0)}) less ${fM(svTots[i])} already scheduled">${Math.abs(r)<1?'—':fM(r)}</td>`; }).join('')}
+          <td style="padding:2px 6px;font-weight:800;color:${Math.abs(bal)<1?'var(--green)':(bal<0?'var(--red)':'var(--blue)')}">${Math.abs(bal)<1?'✓ $0':fM(bal)}</td>
+          <td style="padding:2px 6px;white-space:nowrap;color:var(--blue)">${(sp.ud+sp.um)>=1? lanes(sp.ud,sp.um)+' undated' : ''}</td>
+          <td colspan="2" style="padding:2px 6px">${(Math.abs(bal)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd(${jsa(it.id)})" title="put the remaining balance, discretionary + mandatory, on the latest award, per service — the residual mod">↵ put on last</button>`:''}</td></tr>
         </table>
         <span style="display:inline-block;margin-top:4px">
-          <input type="date" id="awdM-${it.id}" min="${fyMin()}" max="${fyMax()}" title="pick the new increment's date from the calendar">
-          <button class="qb" onclick="addAwd(${jsa(it.id)})" title="add an increment at the picked date">＋ add date</button></span>
-        <span style="font-size:9.5px;color:${Math.abs(incSum-discAl)<1?'var(--green)':'var(--amber)'};margin-left:8px">increments ${fM(incSum)} vs <b>discretionary allocated</b> ${fM(discAl)}${Math.abs(incSum-discAl)<1?' ✓':''}</span>
-        ${pw.mT>0.5? `<div style="font-size:9.5px;color:var(--dim);margin-top:2px">\u2139 ${fM(pw.mT)} of mandatory is also allocated here. These increments are <b>discretionary dollars</b> and every spend plan places them as typed; the mandatory has no increments of its own, so it lands on these same dates \u2014 in each service\u2019s own increment proportions, or, in a service with no increment, in the requirement\u2019s overall proportions. Nothing to type for it. Only discretionary left on the Balance to schedule row forecasts as UNSCHEDULED.</div>`:''}
-        ${(Math.abs(discAl-incSum)>=1)? `<div style="font-size:9.5px;color:var(--blue);margin-top:2px">\u2139 ${fM(Math.max(0,discAl-incSum))} of discretionary is not on a date yet \u2014 it forecasts as UNSCHEDULED until it is.</div>`:''}
+          <input type="date" id="awdM-${it.id}" min="${fyMin()}" max="${fyMax()}" title="pick the new award's date from the calendar">
+          <button class="qb" onclick="addAwd(${jsa(it.id)})" title="add an award at the picked date">＋ add date</button></span>
+        <span style="font-size:9.5px;color:${Math.abs(bal)<1?'var(--green)':'var(--amber)'};margin-left:8px">awards ${fM(incSum)} vs <b>funded</b> ${fM(funded)}${pw.mT>0.5? ' (discretionary '+fM(pw.dT)+' + mandatory '+fM(pw.mT)+')' : ''}${Math.abs(bal)<1?' ✓':''}</span>
+        <div style="font-size:9.5px;color:var(--dim);margin-top:2px">ℹ Each award is the whole award, both lanes. Discretionary fills them forward from the first; mandatory fills them backward from the last, so it always awards last.</div>
+        ${(sp.ud+sp.um)>=1? `<div class="awdundated" style="font-size:9.5px;color:var(--blue);margin-top:2px">ℹ ${lanes(sp.ud,sp.um)} is not on a date yet — it forecasts as UNSCHEDULED until the awards cover it.</div>`:''}
       </div>`;})():''}
     </div>`;
 }
@@ -22488,7 +22680,7 @@ function render(){
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
       +'checked it, or the unread part will be lost.'); }catch(e){}
   }
-  syncAddPanel(); scoreboard(); chips(); edBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
+  syncAddPanel(); scoreboard(); chips(); edBody(); attBody(); pmoBody(); coaPanelBody(); bandPanelBody(); poBody(); planBody(); blBody(); cycChgBody(); fydpBody(); cycCmpBody(); posBody(); qpeBody(); rpBody(); entBody(); rcnBody(); exwBody(); idsBody(); budRegBody(); jrnlBody(); pfBody(); divBody(); liveBody(); driveBar(); rlgBody(); aceBody(); wbsBody(); recBody(); fldBody(); helpBody(); ndBody(); matBody(); rollBody(); svcSummary(); taBody(); pmoMatrix(); siMatrix(); ceSummary(); teamSummary(); buysPanel(); svcPanelBody(); fcBody(); crBody(); bmBody(); spBody(); ppBody(); exBody(); flowBody(); pkgBody(); syncBtns();
   const q=(document.getElementById('q').value||'').toLowerCase();
   const T=tiers(null, scenOpt());
   const PR=pmoRanks();
@@ -22743,6 +22935,41 @@ if(document.addEventListener) document.addEventListener('click', e=>{
   if(rowMenuId && e.target && e.target.closest && !e.target.closest('.rowmenu')){ rowMenuId=null; render(); }
   if(rowChipId && e.target && e.target.closest && !e.target.closest('.chipm')){ rowChipId=null; render(); }
 });
+// EVERY DROP-DOWN SHOWS ALL OF ITS ITEMS (v1.93, item 43). Measured on v1.92: a row's ⋯ menu was clipped by the
+// list's own scroll box -- 194px of it hidden on the last row, at any window size -- and Reports & exports (877px)
+// ran off a 730px window with nothing to scroll. Every open menu is fitted after it is drawn:
+//   - a menu inside something that clips (the list, the RECORD panel, a box) is taken out of it: fixed to the
+//     window beside its button, BELOW it when it fits there, ABOVE it when there is more room above;
+//   - any menu taller than the room it has scrolls inside itself, and never runs past the window.
+// Tab reaching an item scrolls it into view inside the menu, as a browser does for any focused element.
+function fitMenus(){
+  let dds; try{ dds=document.querySelectorAll('.menu.open > .mdd'); }catch(e){ return; }
+  const H=window.innerHeight||0, W=window.innerWidth||0, gap=5, pad=8;
+  if(!H) return;
+  dds.forEach(function(dd){ try{
+    const m=dd.parentElement, b=m.getBoundingClientRect();
+    dd.style.maxHeight=''; dd.style.overflowY='';
+    if(m.closest('.gridwrap, #list, #inspector, .modal-bg, .posture')){
+      // out of the clipping box: where the window's origin is for a fixed box here (a sliding drawer is
+      // transformed, and is then the reference), measured rather than assumed
+      dd.style.position='fixed'; dd.style.right='auto'; dd.style.bottom='auto'; dd.style.top='0px'; dd.style.left='0px';
+      const o=dd.getBoundingClientRect(), mh=dd.scrollHeight, mw=dd.offsetWidth;
+      const below=H-b.bottom-gap-pad, above=b.top-gap-pad;
+      const up=mh>below && above>below, room=Math.max(120, up? above : below), h=Math.min(mh, room);
+      if(mh>room){ dd.style.maxHeight=room+'px'; dd.style.overflowY='auto'; }
+      let left=b.right-mw; if(left+mw>W-pad) left=W-pad-mw; if(left<pad) left=pad;
+      dd.style.top=((up? b.top-gap-h : b.bottom+gap)-o.top)+'px';
+      dd.style.left=(left-o.left)+'px';
+      dd.classList.toggle('up', up);
+    } else {
+      // a toolbar menu: it opens down from the sticky top, so it gets the window below it and scrolls in that
+      const r=dd.getBoundingClientRect(), room=Math.max(120, H-r.top-pad);
+      if(dd.scrollHeight>room+1){ dd.style.maxHeight=room+'px'; dd.style.overflowY='auto'; }
+    }
+  }catch(e){} });
+}
+try{ window.addEventListener('resize', function(){ fitMenus(); });
+     window.addEventListener('scroll', function(){ fitMenus(); }, true); }catch(e){}
 function syncBtns(){
   const hb=document.getElementById('hardBtn');
   if(hb){ hb.className='btn'+(hardOpen?' on':''); hb.textContent='Rank entry'+(hardOpen?': ON':''); hb.setAttribute('aria-pressed', hardOpen?'true':'false'); }
@@ -22766,6 +22993,7 @@ function syncBtns(){
   document.querySelectorAll('.menu[id^="m_"]').forEach(el=>{ el.className='menu'+(openMenu===el.id.slice(2)?' open':'');
     const b=document.getElementById('b_'+el.id.slice(2)); if(b) b.setAttribute('aria-expanded', openMenu===el.id.slice(2)? 'true' : 'false'); });
   if(inShut){ try{ const b=document.getElementById('b_'+shut); if(b) b.focus({preventScroll:true}); }catch(e){} }
+  fitMenus();
   const bf=document.getElementById('b_fy');
   if(bf) bf.textContent=FYL()+' ▾';                     // the CONTEXT label already says "Fiscal year"
   const ss=document.getElementById('saveState'), sb=document.getElementById('saveBtn');
@@ -24865,7 +25093,7 @@ function diagSave(){
   setStat('🩺 Diagnostics saved to your downloads as <b>'+esc(a.download)+'</b>. Nothing was sent anywhere — send the file to whoever is helping you.');
 }
 // Esc is Cancel here: it writes nothing
-try{ document.addEventListener('keydown', function(e){ if(e.key==='Escape' && diagOpen){ e.preventDefault(); toggleDiag(); } }); }catch(e){}
+// v1.93 (item 39): Esc in Save diagnostics is the box controller's (dlgInit), like every other box.
 
 let idsOpen=false;
 // v1.92: the box is the preview AND the prompt. Opening it starts a fresh prompt (nothing typed is kept between
@@ -24916,17 +25144,17 @@ function idsBody(){
   h+='<div class="rlg-sum" style="margin-top:8px">'
     +'<span>Rows for upload <b style="color:'+(P.rows.length?'var(--green)':'var(--red)')+'">'+P.rows.length+'</b></span>'
     +'<span>Req. Amount <b>'+idsUsd(P.tot.upAmt)+'</b></span>'
-    +'<span>Req. Approved <b>'+idsUsd(P.tot.upApp)+'</b></span>'
+    +'<span>Req. Approved <b>'+idsUsd(P.tot.upApp)+'</b> <span class="idslane">(discretionary <b>'+idsUsd(P.tot.upAppD)+'</b> · mandatory <b>'+idsUsd(P.tot.upAppM)+'</b>)</span></span>'
     +'<span>Not uploaded <b style="color:'+(nx?'var(--amber)':'var(--green)')+'">'+nx+'</b>'+(nx? ' ('+idsUsd(P.tot.exAmt)+' / '+idsUsd(P.tot.exApp)+')' : '')+'</span>'
     +'<span>For review <b>'+(P.multi.length+P.shared.length)+'</b></span>'
     +'<span>Approved 0 <b>'+P.zero.length+'</b></span></div>';
   const tie=function(a,b){ return a===b? '<b style="color:var(--green)">✓ ties</b>' : '<b style="color:var(--red)">✗ off by '+idsUsd(a-b)+'</b>'; };
   h+='<div class="rlg-cap" style="margin-top:10px">RECONCILIATION</div>'
-    +'<table class="fctab rlg-tab rlg-yrs"><tr><th style="text-align:left"></th><th>Req. Amount</th><th>Req. Approved</th></tr>'
-    +'<tr><td style="text-align:left">Every requirement · every dollar funded (discretionary + mandatory)</td><td>'+idsUsd(P.check.req)+'</td><td>'+idsUsd(P.check.draw)+'</td></tr>'
-    +'<tr><td style="text-align:left">On Requirement v1</td><td>'+idsUsd(P.tot.upAmt)+'</td><td>'+idsUsd(P.tot.upApp)+'</td></tr>'
-    +'<tr><td style="text-align:left">Not uploaded</td><td>'+idsUsd(P.tot.exAmt)+'</td><td>'+idsUsd(P.tot.exApp)+'</td></tr>'
-    +'<tr><td style="text-align:left">Check</td><td>'+tie(P.tot.upAmt+P.tot.exAmt, P.check.req)+'</td><td>'+tie(P.tot.upApp+P.tot.exApp, P.check.draw)+'</td></tr></table>';
+    +'<table class="fctab rlg-tab rlg-yrs ids-recon"><tr><th style="text-align:left"></th><th>Req. Amount</th><th>Req. Approved</th><th>of which discretionary</th><th>of which mandatory</th></tr>'
+    +'<tr><td style="text-align:left">Every requirement · every dollar funded (discretionary + mandatory)</td><td>'+idsUsd(P.check.req)+'</td><td>'+idsUsd(P.check.draw)+'</td><td>'+idsUsd(P.check.drawD)+'</td><td>'+idsUsd(P.check.drawM)+'</td></tr>'
+    +'<tr><td style="text-align:left">On Requirement v1</td><td>'+idsUsd(P.tot.upAmt)+'</td><td>'+idsUsd(P.tot.upApp)+'</td><td>'+idsUsd(P.tot.upAppD)+'</td><td>'+idsUsd(P.tot.upAppM)+'</td></tr>'
+    +'<tr><td style="text-align:left">Not uploaded</td><td>'+idsUsd(P.tot.exAmt)+'</td><td>'+idsUsd(P.tot.exApp)+'</td><td>'+idsUsd(P.tot.exAppD)+'</td><td>'+idsUsd(P.tot.exAppM)+'</td></tr>'
+    +'<tr><td style="text-align:left">Check</td><td>'+tie(P.tot.upAmt+P.tot.exAmt, P.check.req)+'</td><td>'+tie(P.tot.upApp+P.tot.exApp, P.check.draw)+'</td><td>'+tie(P.tot.upAppD+P.tot.exAppD, P.check.drawD)+'</td><td>'+tie(P.tot.upAppM+P.tot.exAppM, P.check.drawM)+'</td></tr></table>';
   if(P.rows.length){
     h+='<div class="rlg-cap" style="margin-top:10px">REQUIREMENT V1 — FY'+(fy%100)+'</div>'
       +'<table class="fctab rlg-tab ids-rows"><tr><th>Ref</th><th style="text-align:left">Budget Name</th><th>Control No</th><th>Amount</th>'
@@ -24960,7 +25188,7 @@ function idsBody(){
   const fp=idsFidProblem(f.fid);
   h+='<div class="rlg-cap" style="margin-top:12px">EXPORT</div><div class="ids-form">'
     +'<label class="rlg-lbl" for="idsReason">Reason for this export <b>(required)</b> — written on every row as Req. Change Comments</label>'
-    +'<textarea id="idsReason" class="rlg-in" rows="2" style="width:100%" oninput="idsForm.reason=this.value">'+esc(f.reason)+'</textarea>'
+    +'<textarea id="idsReason" data-held="1" class="rlg-in" rows="2" style="width:100%" oninput="idsForm.reason=this.value">'+esc(f.reason)+'</textarea>'
     +'<fieldset class="ids-act"><legend class="rlg-lbl">Action — one for the whole file</legend>'
       +'<label><input type="radio" name="idsAct" id="idsActAdd" value="Add"'+(f.action==='Add'?' checked':'')+' onchange="idsForm.action=\'Add\';render()"> Add — new records</label> '
       +'<label><input type="radio" name="idsAct" id="idsActUpd" value="Update"'+(f.action==='Update'?' checked':'')+' onchange="idsForm.action=\'Update\';render()"> Update — records already in CCaR</label>'
@@ -24970,7 +25198,7 @@ function idsBody(){
       +'a refused row has to be adjusted in CCaR.</div>' : '')
     +'<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center">'
       +'<label class="rlg-lbl" for="idsFid">File ID (cell A1)</label>'
-      +'<input id="idsFid" class="rlg-in" style="width:130px;font-family:monospace" value="'+esc(f.fid)+'" '
+      +'<input id="idsFid" data-held="1" class="rlg-in" style="width:130px;font-family:monospace" value="'+esc(f.fid)+'" '
         +'oninput="idsForm.fid=this.value;idsForm.fidOk=false;var c=document.getElementById(\'idsFidOk\');if(c)c.checked=false">'
       +(fp? '<span style="color:var(--red);font-size:11px">'+esc(fp)+'</span>' : '')
     +'</div>'
@@ -24982,7 +25210,7 @@ function idsBody(){
       +'I have checked that this file ID has not been used in any earlier CCaR submission.</label>'
     +'<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center">'
       +'<label class="rlg-lbl" for="idsOrg">ORG number</label>'
-      +'<input id="idsOrg" class="rlg-in" style="width:80px" inputmode="numeric" value="'+esc(f.org)+'" '
+      +'<input id="idsOrg" data-held="1" class="rlg-in" style="width:80px" inputmode="numeric" value="'+esc(f.org)+'" '
         +'oninput="idsForm.org=this.value;idsForm.orgOk=false;var c=document.getElementById(\'idsOrgOk\');if(c)c.checked=false">'
       +'<span class="hint">the number, not the ORG symbol · one ORG per file (the template’s rule 3) · kept for '
         +esc(APPN_LBL[mySlug()]||mySlug())+' once a file is made</span>'
@@ -26805,9 +27033,9 @@ function exportExcel(){
       const frac=sh[1], f=i=>(frac? frac[i] : 1);
       const dv=p.d.map((v,i)=>v*f(i)), mv=p.m.map((v,i)=>v*f(i));
       const uv=unfSvcOf(it,p).map((v,i)=>v*f(i));
-      // monSpreadOf reads p.d and p.m only, so handing it this office's SHARE of the draw places
-      // the share by the same rule that places the whole -- one implementation, scaled.
-      const sp=monSpreadOf(id,{d:dv,m:mv});
+      // THIS OFFICE'S SHARE OF THE WHOLE PLACEMENT (v1.93): the fill is not linear, so a share is never
+      // placed on its own -- monSpreadOf places the whole service and scales every figure by f.
+      const sp=monSpreadOf(id, p, f);
       const mon=FYMON.map((x,k)=>SVC.reduce((a,sv,i)=>a+(sp.m[i][k]||0),0));
       const uns=sp.unsch.reduce((a,b)=>a+b,0);
       // THE ASK IS SHARED TOO. Every other figure on the row is this office's share, so an
@@ -27341,6 +27569,200 @@ function focusRestore(m){
     if(c.n>=0 && put(list[c.n])) return;
   }
 }
+/* ONE CONTROLLER FOR EVERY BOX (v1.93, item 39). Measured on v1.92, 34 of the 43 boxes opened from their own button:
+   in 33 the keyboard stayed on the board behind; in 31 Tab walked out of the box onto that board, still live; Esc
+   closed only Save diagnostics and Help; closing dropped the keyboard at the top of the page; and only those two were
+   named dialogs. Every box -- a `.modal-bg` that is a child of <body>, opened by the class `open` -- is now one of
+   these, with nothing to call: the controller watches the class.
+   - OPENING: the box is a named dialog (role, aria-modal, its title as its name); everything else on the page is
+     made inert -- no focus, no click, nothing read -- and the keyboard goes in: to its first field if that is in
+     view, else its first control. A box that put the keyboard somewhere itself (Save diagnostics) keeps it.
+   - INSIDE: Tab and Shift+Tab go round the box's own controls and never leave it.
+   - ESC closes the box exactly as its ✕ Close does -- that control is clicked -- never Save, Apply or Export.
+   - CLOSING: the keyboard goes back to the control that opened the box, or, when a redraw replaced that control
+     (a menu item, a row's ⋯ item), to the menu button it came from. Closing a box opened from another hands the
+     keyboard back to the one below. If whatever closed it put the keyboard somewhere on purpose (Go to it), that
+     is where it stays.
+   - TYPING IS NEVER LOST TO A STRAY KEY (Brad, 1 Oct 2026: "go with your recommendation"). A box holding typing
+     that is not saved asks "Discard what you typed?" before it closes -- on Esc, on ✕ Close and on a click
+     outside it alike. Cancel keeps the box open with the text in it. Typing is "not saved" while a field has been
+     typed in and not yet committed (no change event), or, for a field the box saves only with its own button
+     (data-held: the written-field editors, the IDS export's prompt), while it differs from what it held when the
+     box opened.
+   The toolbar menus, a row's ⋯ menu, the message and the narrow-window RECORD panel keep their own Esc. */
+const DLG={stack:[], hist:[], inerted:[], bypass:false};
+const DLG_ASK='Discard what you typed?\n\nOK discards it and closes the box. Cancel keeps the box open with your text in it.';
+// boxes whose ✕ Close (or, for the prompt, Cancel) is drawn by their own code rather than in the page's markup
+const DLG_DRAWN_CLOSE=['fldPanel','uipPanel'];
+function dlgBoxes(){ return [].slice.call(document.querySelectorAll('body > .modal-bg[id]')); }
+function dlgVisible(e){ try{ return !!(e && e.isConnected && e.getClientRects().length); }catch(x){ return false; } }
+// open: the class most boxes use, or the inline display five older boxes set for themselves (journal, review,
+// live, budget register, IDS export)
+function dlgIsOpen(bg){ return bg.classList.contains('open') || !!(bg.style.display && bg.style.display!=='none'); }
+function dlgTabbables(root){
+  return [].slice.call(root.querySelectorAll('button, [href], input, select, textarea, summary, [tabindex]')).filter(function(e){
+    if(e.disabled || e.type==='hidden') return false;
+    const ti=e.getAttribute('tabindex'); if(ti!==null && +ti<0) return false;
+    return dlgVisible(e); });
+}
+function dlgModal(bg){ return bg.querySelector('.modal') || bg; }
+function dlgName(bg){
+  const h=dlgModal(bg).querySelector('h3'); if(!h) return '';
+  const c=h.cloneNode(true); [].slice.call(c.querySelectorAll('button')).forEach(function(b){ b.remove(); });
+  return c.textContent.replace(/\s+/g,' ').trim();
+}
+function dlgCloseCtl(bg){
+  const m=dlgModal(bg), bs=[].slice.call(m.querySelectorAll('button'));
+  return m.querySelector('h3 button.x') || bs.filter(function(b){ return /^(✕\s*)?Close$/.test(b.textContent.trim()); })[0]
+    || bs.filter(function(b){ return b.textContent.trim()==='Cancel'; })[0] || null;
+}
+function dlgIsClose(b){ return !!(b && (b.classList.contains('x') || /^(✕\s*)?Close$/.test((b.textContent||'').trim()))); }
+// where the keyboard was, and the menu button behind it when it was inside a menu
+function dlgMenuOf(el){
+  try{ const m=el.closest('.menu[id^="m_"]'); if(m) return '#b_'+m.id.slice(2);
+       const r=el.closest('.rowmenu[id]'); if(r) return '#'+CSS.escape(r.id)+' .rmbtn'; }catch(x){}
+  return null;
+}
+function dlgSnap(bg){ const o={}; [].slice.call(bg.querySelectorAll('[data-held][id]')).forEach(function(e){ o[e.id]=String(e.value); }); return o; }
+function dlgDirty(rec){
+  for(const id in rec.snap){ const e=document.getElementById(id); if(e && rec.bg.contains(e) && String(e.value)!==rec.snap[id]) return true; }
+  return [].slice.call(rec.bg.querySelectorAll('input, textarea')).some(function(e){ return e.__dlgPend && !e.hasAttribute('data-held'); });
+}
+function dlgDiscard(rec){
+  // what was typed and not committed goes back to what the box held, so a blur on the way out commits nothing
+  [].slice.call(rec.bg.querySelectorAll('input, textarea')).forEach(function(e){
+    if(e.__dlgPend && !e.hasAttribute('data-held')){ try{ e.value=e.defaultValue; }catch(x){} e.__dlgPend=false; } });
+}
+function dlgTop(){ return DLG.stack[DLG.stack.length-1]||null; }
+// the opener as the page has it now: a redraw (the posture strip, the RECORD panel) replaces the very button that
+// opened the box, so the same control is found again by its id, or by what it runs and what it says
+function dlgMark(t){ return {el:t, menu:dlgMenuOf(t), id:t.id||'', oc:(t.getAttribute && t.getAttribute('onclick'))||'', txt:(t.textContent||'').trim()}; }
+function dlgAgain(o){
+  if(!o) return null;
+  if(o.el && o.el.isConnected) return o.el;
+  if(o.id){ const e=document.getElementById(o.id); if(e) return e; }
+  if(o.oc){ const c=[].slice.call(document.querySelectorAll('[onclick]')).filter(function(e){ return e.getAttribute('onclick')===o.oc; });
+    return c.filter(function(e){ return (e.textContent||'').trim()===o.txt; })[0] || (c.length===1? c[0] : null); }
+  return null;
+}
+// the top box as the page has it NOW: a box opened or closed by its own code a moment ago (before the observer
+// has run) is reconciled before a key, a click or a focus change acts on it -- cheap, and never a step behind
+function dlgLive(){ dlgSync(); return dlgTop(); }
+function dlgInert(){
+  DLG.inerted.forEach(function(e){ e.removeAttribute('inert'); }); DLG.inerted=[];
+  const top=dlgTop(); if(!top) return;
+  [].slice.call(document.body.children).forEach(function(c){
+    if(c===top.bg || c.tagName==='SCRIPT' || c.tagName==='TEMPLATE' || c.hasAttribute('inert')) return;
+    c.setAttribute('inert',''); DLG.inerted.push(c); });
+}
+function dlgFirst(rec){
+  const m=dlgModal(rec.bg), t=dlgTabbables(m);
+  const f=t.filter(function(e){ return /^(INPUT|SELECT|TEXTAREA)$/.test(e.tagName); })[0];
+  if(f){ const a=f.getBoundingClientRect(), b=m.getBoundingClientRect(); if(a.top>=b.top && a.bottom<=b.bottom) return f; }
+  return t[0] || m;
+}
+function dlgFocus(e){ try{ e.focus({preventScroll:true}); }catch(x){} }
+function dlgBack(rec){ const l=dlgAgain(rec.last); return (l && dlgVisible(l) && rec.bg.contains(l))? l : dlgFirst(rec); }
+function dlgAway(a){ return !a || a===document.body || a===document.documentElement || !a.isConnected; }
+// reconcile the stack with the page: called after every render, and by the observer for boxes that open themselves
+function dlgSync(){
+  const open=dlgBoxes().filter(dlgIsOpen);
+  const wasTop=dlgTop();
+  const closed=DLG.stack.filter(function(r){ return open.indexOf(r.bg)<0; });
+  DLG.stack=DLG.stack.filter(function(r){ return open.indexOf(r.bg)>=0; });
+  const fresh=[];
+  open.forEach(function(bg){ if(DLG.stack.some(function(r){ return r.bg===bg; })) return;
+    const m=dlgModal(bg);
+    m.setAttribute('role','dialog'); m.setAttribute('aria-modal','true');
+    if(!m.hasAttribute('aria-labelledby') && (!m.hasAttribute('aria-label') || m.hasAttribute('data-dlg-label'))){
+      m.setAttribute('aria-label', dlgName(bg)||bg.id); m.setAttribute('data-dlg-label','1'); }
+    if(!m.hasAttribute('tabindex')) m.setAttribute('tabindex','-1');
+    // the opener: the last place the keyboard was outside this box
+    let op=null; for(let i=DLG.hist.length-1; i>=0; i--){ if(!bg.contains(DLG.hist[i].el)){ op=DLG.hist[i]; break; } }
+    const rec={bg:bg, opener:op, snap:dlgSnap(bg), last:null};
+    DLG.stack.push(rec); fresh.push(rec); });
+  if(!closed.length && !fresh.length){
+    // nothing opened or closed, but a box that draws its body after it is shown (the journal, the live view) can
+    // have redrawn the very control the keyboard was on: it goes back into the box, never onto the page
+    const t=dlgTop(); if(t && dlgAway(document.activeElement)) dlgFocus(dlgBack(t));
+    return;
+  }
+  dlgInert();
+  const top=dlgTop(), a=document.activeElement;
+  if(top && fresh.indexOf(top)>=0){
+    if(!(a && a.isConnected && top.bg.contains(a))) dlgFocus(dlgFirst(top));
+    return;
+  }
+  if(wasTop && closed.indexOf(wasTop)>=0){
+    // closed: unless whatever closed it put the keyboard somewhere on purpose, back to where the box came from
+    const lost=dlgAway(a) || !dlgVisible(a) || wasTop.bg.contains(a) || (top && !top.bg.contains(a));
+    if(!lost) return;
+    const o=wasTop.opener;
+    const oe=dlgAgain(o);
+    let to=(oe && dlgVisible(oe) && !(top && !top.bg.contains(oe)))? oe : null;
+    if(!to && o && o.menu){ const mb=document.querySelector(o.menu); if(dlgVisible(mb) && !(top && !top.bg.contains(mb))) to=mb; }
+    if(!to && top) to=dlgBack(top);
+    if(to) dlgFocus(to);
+  }
+}
+function dlgClose(rec){
+  if(dlgDirty(rec) && !confirm(DLG_ASK)) return false;
+  dlgDiscard(rec);
+  const c=dlgCloseCtl(rec.bg);
+  DLG.bypass=true;
+  try{ if(c) c.click(); else { rec.bg.classList.remove('open'); rec.bg.style.display='none'; } } finally { DLG.bypass=false; }
+  dlgSync();
+  return true;
+}
+function dlgInit(){
+  dlgBoxes().forEach(function(bg){
+    try{ new MutationObserver(function(){ dlgSync(); }).observe(bg, {attributes:true, attributeFilter:['class','style'], childList:true, subtree:true}); }catch(x){} });
+  document.addEventListener('focusin', function(e){
+    const t=e.target; if(!t || t===document.body) return;
+    DLG.hist.push(dlgMark(t)); if(DLG.hist.length>12) DLG.hist.shift();
+    const top=dlgLive(); if(!top) return;
+    if(top.bg.contains(t)) top.last=dlgMark(t);
+    else { e.stopPropagation(); dlgFocus(dlgBack(top)); }   // never behind the box
+  }, true);
+  document.addEventListener('input', function(e){ const t=e.target, bg=(t && t.closest)? t.closest('body > .modal-bg') : null;
+    // a field that applies as it is typed (oninput: the journal's filter) has nothing waiting to be lost
+    if(bg && dlgIsOpen(bg) && !t.hasAttribute('data-held') && !t.hasAttribute('oninput')) t.__dlgPend=true; }, true);
+  document.addEventListener('change', function(e){ const t=e.target; if(t) t.__dlgPend=false; }, true);
+  window.addEventListener('keydown', function(e){
+    if(e.key!=='Escape' && e.key!=='Tab') return;
+    const top=dlgLive(); if(!top) return;
+    if(e.key==='Escape'){
+      e.preventDefault(); e.stopImmediatePropagation();
+      dlgClose(top); return;
+    }
+    if(e.key==='Tab'){
+      const t=dlgTabbables(dlgModal(top.bg)), a=document.activeElement, i=t.indexOf(a);
+      if(!t.length){ e.preventDefault(); dlgFocus(dlgModal(top.bg)); return; }
+      if(e.shiftKey){ if(i<=0){ e.preventDefault(); dlgFocus(t[t.length-1]); } }
+      else if(i<0 || i===t.length-1){ e.preventDefault(); dlgFocus(t[0]); }
+    }
+  }, true);
+  // a press on the backdrop, or on ✕ Close with typing in the box, keeps the keyboard where it is: the field is
+  // not blurred, so a half-typed value is not committed on the way out (a blur fires change) and the keyboard never
+  // lands behind the box; the click that follows asks first
+  window.addEventListener('mousedown', function(e){
+    const top=dlgLive(); if(!top) return;
+    const t=e.target, b=(t && t.closest)? t.closest('button') : null;
+    if(t===top.bg || (b && top.bg.contains(b) && dlgIsClose(b) && dlgDirty(top))) e.preventDefault();
+  }, true);
+  // ✕ Close, a bottom Close and a click on the backdrop ask first when there is typing to lose
+  window.addEventListener('click', function(e){
+    if(DLG.bypass) return;
+    const top=dlgLive(); if(!top) return;
+    const t=e.target, onBg=(t===top.bg), b=(t && t.closest)? t.closest('button') : null;
+    if(!(onBg || (b && top.bg.contains(b) && dlgIsClose(b)))) return;
+    if(!dlgDirty(top)) return;
+    if(!confirm(DLG_ASK)){ e.preventDefault(); e.stopImmediatePropagation(); return; }
+    dlgDiscard(top);
+  }, true);
+  dlgSync();
+}
+try{ dlgInit(); }catch(e){}
 // A RECORD PANEL THAT FAILED TO REDRAW IS EMPTIED, NEVER LEFT STANDING (v1.89). This catch was empty:
 // the panel kept the previous render's figures beside rows that had moved on, and nothing said so.
 render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
@@ -27356,6 +27778,10 @@ render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
     try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
       +'<b>\ud83d\udcc1 File \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
   }
+  // last, once the RECORD panel is drawn too: the menus are fitted to what is on screen, and a box that closed
+  // hands the keyboard to its opener as it now stands (the RECORD panel's buttons are redrawn just above)
+  try{ fitMenus(); }catch(e){}
+  try{ dlgSync(); }catch(e){}
 };
 /* ================= end grid-build additions =================================================== */
 

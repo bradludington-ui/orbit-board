@@ -47,6 +47,8 @@ const SPECIAL = {
   ndPanel:   `S.fsrc[S.order[S.order.length-1]]={m:'split', dv:SVC.map(function(){ return 9e11; }), mv:SVC.map(function(){ return 0; })};
               ndOpen=true; render();`,
   helpPanel: `openHelp('');`,
+  // v1.93 (item 42): a Needs attention list -- the missing obligation dates, which the fixture has
+  attPanel:  `attShow('oblig');`,
   // uiPrompt only falls through to this panel where window.prompt throws (Electron). A browser
   // answers the native prompt, so drive the fallback path itself.
   uipPanel:  `_uipCb=function(){}; document.getElementById('uipMsg').textContent='Name this scenario';
@@ -132,7 +134,7 @@ for (const f of ['prioritization-board-grid.html']) {
     'hardOpen','idsOpen','jrnlOpen','liveOpen','matOpen','pfOpen','pkgOpen','planOpen','pmoOpen','poOpen',
     'posOpen','ppOpen','qpeOpen','rcnOpen','rlgOpen','rollOpen','rpOpen','rmOpen','spOpen','subOpen',
     'svcPanelOpen','addOpen','budRegOpen','diagOpen'];
-  const NUL = ['recOpen', 'wbsOpen'];
+  const NUL = ['recOpen', 'wbsOpen', 'attOpen'];
   const closeAll = () => p.evaluate(({ F, N }) => {
     const set = (n, v) => { try { (0, eval)(n + '=' + v); } catch (_) {} };
     F.forEach(n => set(n, 'false')); N.forEach(n => set(n, 'null'));
