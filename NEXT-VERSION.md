@@ -78,24 +78,40 @@ Current version: **v1.92**. Next: **v1.93**.
   - mandatory only ($300, the same awards): March $100, February $100, January $100;
   - a service with no increment of its own uses the requirement's awards; one award date takes both
     lanes; no date leaves both UNSCHEDULED, as today; first and last are by date, never by the order typed.
-- **Open, for Brad -- awards typed for discretionary only.** The award block asks for discretionary
-  (*Balance to schedule — discretionary*), so most boards hold awards that add up to the discretionary, not
-  the requirement. Same requirement typed that way: January $100, February $100, March $50. Discretionary
-  fills all three and the $50 mandatory finds no room.
-  - **Recommended:** mandatory with no room lands on the last award -- March $100, $50 + $50 -- the same
-    result as Brad's example, so a board typed either way gives the same spend plan.
-  - **Alternative:** it is UNSCHEDULED until the awards are retyped to cover it.
+- **The award block schedules both lanes (Brad, 1 Oct 2026: "Let's update the award block to include
+  mandatory").** Until now it asked for discretionary only (*Balance to schedule — discretionary*), and
+  mandatory rode the dates with nothing typed. From this version an award is the whole award:
+  - **Balance to schedule** counts down the funded amount -- discretionary + mandatory -- per service, and
+    *Σ by service* is checked against the same;
+  - **each increment shows how it splits:** its discretionary (filled forward from the first award) and its
+    mandatory (filled backward from the last) -- in Brad's example, March reads *$100 · $50 disc + $50
+    mand*;
+  - the *Mandatory — rides these dates* row and its note go; the *Mandatory* figure is part of the balance;
+  - **↵ put on last** puts the whole remaining balance, both lanes, on the latest award, per service;
+  - switching a requirement to *Incremental funding* seeds the first increment with the whole funded
+    amount per service, both lanes (since v1.86 it seeded discretionary only);
+  - a single award date already holds the whole funded amount; it now says how it splits.
+- **Funded dollars the awards do not cover are UNSCHEDULED, in either lane,** and the award block's
+  balance says how much and which lane. Nothing is filled in by itself.
+  - **On boards in use today this moves mandatory to UNSCHEDULED** wherever the awards were typed for the
+    discretionary only, as the block asked: Brad's requirement typed January $100, February $100, March $50
+    shows $50 mandatory unscheduled until ↵ put on last (or a typed March of $100) covers it. Every spend
+    plan says so in its UNSCHEDULED column, and nothing is lost: the dollars are still funded.
+  - **To find them** (Claude's recommendation, with item 42): Needs attention gains *📅 N with awards short
+    of their funding*, listing each requirement, the dollars per lane, and Go to it, which opens the award
+    block.
 - **Where it shows:** every surface that uses the rule -- the Spend Plan Forecast, the month-by-month
   sheets and the Excel workbook's per-requirement months, the PMO tabs, Two Spend Plans, CR Cash Needs
   and the CR Cash Return (1A9A), and the deck's spend-plan-by-month chart. Mandatory moving later can move
   dollars out of the CR window (Oct–Mar) into later months. In Two Spend Plans' modelled plan, where an
   increment is only a shape, discretionary still spreads by it in full and mandatory works back from the
-  last date. The RECORD panel's award block: *Mandatory — rides these dates* becomes *Mandatory — awards
-  last* and shows the mandatory on each date. The guide's spend-plan section says the new rule. **The IDS
+  last date. The RECORD panel's award block, as above. The guide's spend-plan section says the new rule,
+  and the deck's spend-plan slide is updated after merge. **The IDS
   batch has no date column, so nothing in it moves.**
 - **What does not change:** how much is funded in either lane, every total, and every funded dollar still
   in a month or UNSCHEDULED.
-- **Checks:** Brad's example, the cases above and the edges (one date, no date, no increment of its own, increments typed
+- **Checks:** Brad's example, the cases above, a board typed for discretionary only (its mandatory
+  UNSCHEDULED and listed, then placed by ↵ put on last) and the edges (one date, no date, no increment of its own, increments typed
   out of date order, a last date after the fiscal year) are written into the suites from the scenario,
   never read back from the board; every spend plan agrees with the others month by month and lane by
   lane; mutations that spread mandatory again, fill it forward, fill discretionary backward, or take the
@@ -136,6 +152,9 @@ Current version: **v1.92**. Next: **v1.93**.
     panel at the field to fill (the Impact statement editor, the CCaR record, the award / obligation date).
   - **New entry: *📅 N without an obligation date*** -- every requirement with no award / obligation date.
     The funded ones are listed first, each with the dollars it puts in UNSCHEDULED in every spend plan.
+  - **New entry (with item 40): *📅 N with awards short of their funding*** -- requirements on incremental
+    funding whose awards do not yet cover their discretionary + mandatory, with the dollars per lane; Go to
+    it opens the award block, where ↵ put on last covers it.
   - *▲ not drawn* keeps its fix list as it is.
 - **What does not change:** what each count counts today, and Pre-flight.
 - **Checks:** each box lists exactly the requirements its count counts; Go to it lands on the right
