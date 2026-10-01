@@ -84,6 +84,15 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 - Put a raw value into the diagnostics list (`DIAG`) or the diagnostics file. Every entry goes through
   `diagClean()`, and the file holds counts, never a figure, title, name, CCaR record, PID or budget name.
   `audit-other.mjs` proves it, and its mutations must stay caught.
+- Place a funded dollar in a month anywhere but `landSvc()`, or hand it an office's share as the amount: the
+  fill is not proportional, so pass the whole lane amounts and the share as `f`. Discretionary fills the awards
+  forward from the first, mandatory backward from the last, and what they do not cover is UNSCHEDULED.
+  `audit-board.mjs` "v1.93 — mandatory awards last" holds it. See the v1.93 section of `CLAUDE.md`.
+- Add a box that is not a direct child of `<body>` with class `modal-bg`, an id, a `.modal`, an `<h3>` naming it
+  and a close control, or give a box an Esc handler of its own: one controller (`dlgSync`) drives them all.
+  A field a box saves only with its own button needs `data-held="1"`, or typing in it is not guarded. `npm run
+  check` fails on a box of the wrong shape, `npm run dialogs` on one that does not take and give back the
+  keyboard. Do not let a menu run off the window: `fitMenus()` and `npm run dropdowns`.
 - Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity` and `spmtDetail`, or
   the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.

@@ -2630,7 +2630,9 @@ chart with its table (`svcSummary`); the pot views (Two Spend Plans, Plan A, the
 move -- `audit.mjs` cuts each PMO tab at its spend-plan block to prove both halves. The deck gains **Spend
 Plan by Month** (slide 3): shapes, not a chart part (nothing to repair), a column per month plus
 UNSCHEDULED, disc with mand stacked, exact dollars as each bar's alt text, a table of every figure
-beneath; it ties to `forecast()` to the dollar.
+beneath; it ties to `forecast()` to the dollar. **Superseded in v1.93 (item 40):** an award is now both lanes,
+discretionary fills the awards forward from the first and mandatory backward from the last, a service with no
+award of its own is UNSCHEDULED, and the award block schedules discretionary + mandatory -- see that section.
 
 **What does not draw is found, flagged and fixed** (item 13). `ndData()` (cached per render, against the
 FUNDED plan whatever the ◨ switch says) lists every split line where the typed Disc or Mand is more than
@@ -3234,7 +3236,8 @@ exportable, bad, reasons}`, status one of chosen | rule | ccar | ambiguous | non
   the `document` keydown delegate, and the gold focus ring (`svg g.flowhit:focus-visible`).
 - **A redraw keeps the keyboard's place** (`focusMark` / `focusRestore` in the render wrapper; `_navStep`,
   `_byKey`), and a row field left with Tab moves on; after a mouse press nothing is moved.
-- **Not built:** dialog focus (a box taking focus, containing Tab, closing on Esc). Deferred by agreement.
+- **Not built:** dialog focus (a box taking focus, containing Tab, closing on Esc). Deferred by agreement. Built in v1.93
+  (item 39).
 
 **18 -- Save diagnostics** (unchanged in the revision but for the IDS count): `DIAG`, `diagClean`,
 `diagSecrets` (a walk of every store, `MS.ids` included), `diagVocab`, `diagReport`, `diagSave`; box = file;
@@ -3271,6 +3274,101 @@ the same tree but for a CSS-only change. In the presweep two new mutations first
 and `ids-org-saved-early` -- and showed two weak tests: the no-history check compared the store before and after an
 export that followed others which had already written, and every refused prompt typed the ORG already stored. Both
 now compare against the exact starting state (`{org:21}`) and a new ORG, and both mutations are caught.
+
+### v1.93 (items 39–44): mandatory awards last, the forecast by view, Needs attention lists, menus, every box
+
+Built on Brad's "go" of 1 Oct 2026. `NEXT-VERSION.md` has every decision; this is how the code carries them.
+
+**40 -- one landing rule, both lanes on the awards.** `landSvc(aw, i, dsv, msv, literal, f)` is still the only
+placement, used by `monSpreadOf`, `forecast`, `spendPlanByMonth` and `crBuckets`. It returns
+`{at:[{d, j, dv, mv}], ud, um}`:
+- an award (an increment) is the whole award, both lanes; awards are taken in DATE order (`awdKey`: month then
+  day; ties keep the order typed). **Discretionary fills them forward from the first, mandatory backward from
+  the last**, neither past an award's amount (`cap`); what neither covers is `ud` / `um`, UNSCHEDULED;
+- a service's weights are its own `sv[i]`; a service with no award of its own is UNSCHEDULED (the plan said it
+  would borrow the requirement's awards; the decision that uncovered dollars are UNSCHEDULED replaced that);
+- `literal===false` (Two Spend Plans' modelled plan) scales the awards' shape to `dsv+msv` first;
+- one date (`aw.d`, not incremental) takes both lanes; no date is UNSCHEDULED in both;
+- **`f` is an office's share, applied AFTER the fill.** The fill is not linear in the amount (less money fills
+  fewer awards), so `landSvc(..., d*f, m*f)` is wrong for a shared requirement; every caller passes the whole
+  lane amounts and `f(i)`. Three mutations (`cr-share-placed-alone`, `oblig-share-placed-alone`,
+  `fc-share-placed-alone`) hold that.
+- The award block: `awdSplitOf(id, p)` (`{by:{j:{dv,mv}}, ud, um}`, from `landSvc`); `awardBlockHtml` (class
+  `awdblk`) shows each award's split (`td.awdsplit`), *Balance to schedule — discretionary + mandatory*
+  (`tr.awdbal`), and the undated note (`div.awdundated`); `fillLastAwd` puts d+m less the awards on the latest
+  award BY DATE; `toggleAwdInc` seeds d+m. The *Mandatory — rides these dates* row is gone.
+- `audit-board.mjs` "v1.93 — mandatory awards last" holds the rule from a stated table (requirements A–H).
+
+**41 -- the forecast by view.** `forecast(fundOf, view)` takes `{pmo}` or `{svc}` (`vf(it)` gives the factor per
+service: the office's share from `pmoSharesOf`, or 1 for the chosen service and 0 elsewhere) and skips a
+requirement with nothing in the view. `fcViewOf()` reads `fcView` ('' | 'p:<PMO>' | 's:<i>'), set only through
+`fcPick(v)` (an inline `fcView=this.value` does not reach a `let` in jsdom); `toggleFc` resets it. `fcViewData()`
+is what the box draws AND what `exportFcView()` writes, so the two cannot differ; the export's TOTALs are sums of
+the printed (cent-rounded) cells. `fcBody` lists offices with `pmoKeys`, not `GROUPS`. `money-coverage.mjs` registers
+`exportFcView` as a money surface via `fcViewData`, `forecast` and `landSvc`.
+
+**42 -- Needs attention lists.** `attLists(T)` returns `{imp, ccar, oblig, awshort}` (oblig: funded first, then
+rank; awshort: incremental, funded, `awdSplitOf` `ud+um` ≥ $1). `ATT_KIND`, `attShow(k)`,
+`attClose()`, `attBody()` (the `attPanel` box, in the render list), `attGo(k, id)` (imp → `openFld(id,'cons')`,
+ccar → `editCcar(id)`, otherwise the first date input in `#inspector .awdblk`). The posture entries are buttons
+(`ae(k, g, txt)`), each `min-height:24px` (2.5.8 -- `npm run standards` found them at 13px), in a two-column grid
+that is one column below 640px (1.4.10 -- two columns overran 320px). `panels-render.mjs` opens the box with
+`attShow('oblig')`.
+
+**43 -- menus.** `fitMenus()` runs at the END of the render wrapper (after `gridAfterRender`, which redraws the
+RECORD panel), at the end of `syncBtns`, and on resize and scroll (capture). A menu inside `.gridwrap, #list,
+#inspector, .modal-bg, .posture` is made `position:fixed` -- its containing block measured, not assumed, since a
+transformed drawer becomes the reference -- below its button when it fits, above when there is more room;
+anything taller than its room gets `max-height` and scrolls. `npm run dropdowns` is the check.
+
+**39 -- one controller for every box.** All of it sits just before the render wrapper:
+- A box is `body > .modal-bg[id]` with a `.modal`, an `<h3>` and a close control (`h3 button.x`, else a button
+  reading Close or Cancel). `npm run check` enforces that shape for every box in the markup; `fldPanel` and
+  `uipPanel` draw their close control in code (`DLG_DRAWN_CLOSE`).
+- **Open** is `dlgIsOpen(bg)`: the `open` class, or an inline `display` other than none -- five older boxes
+  (`jrnlPanel`, `subPanel`, `livePanel`, `budRegPanel`, `idsPanel`) show themselves that way.
+- `dlgSync()` reconciles `DLG.stack` with the page: a box newly open gets `role="dialog"`, `aria-modal`, an
+  `aria-label` from its heading without the button (`data-dlg-label` marks it as ours), `tabindex=-1`, its opener
+  (the last focus outside it, from `DLG.hist`) and a snapshot of its `data-held` fields; every other body child
+  is made `inert`; the keyboard goes to `dlgFirst` (first field in view, else first control). A box that closed
+  hands the keyboard to its opener found again by `dlgAgain` (the element, else its id, else the same onclick
+  and text -- a redraw replaces RECORD-panel and posture buttons), else the menu button it came from, else the
+  box below. With nothing opened or closed, a top box whose focused control was redrawn away gets the keyboard
+  back (`dlgBack`).
+- It runs at the end of the render wrapper, from a MutationObserver per box (class, style, and its subtree), and
+  first thing in every key, click and focus handler (`dlgLive()` = sync, then top) -- so a box opened by its own
+  code a moment ago is never a step behind. **jsdom's observers are async; call `dlgSync()` in tests.**
+- `window` keydown (capture): Esc → `dlgClose(top)`: asks `DLG_ASK` if `dlgDirty`, then `dlgDiscard`, then
+  clicks the box's own close control with `DLG.bypass` set. Tab / Shift+Tab wrap inside `dlgTabbables`.
+  `focusin` (capture): focus outside the top box is sent back into it.
+- **Dirty:** a `data-held` field (the written-field textareas, `idsReason`, `idsFid`, `idsOrg`) differs from its
+  snapshot; or any other input has `__dlgPend` -- set on `input`, cleared on `change` (committed). A field with
+  `oninput` applies as typed and is never pending. Add `data-held="1"` to any new field a box saves only with its
+  own button.
+- `mousedown` (capture) on the backdrop, or on a close control while dirty, is `preventDefault`ed: the field is
+  not blurred, so nothing half-typed is committed by a change event on the way out, and the `click` that follows
+  asks. A box's own Cancel is not a close control for the guard: it discards, as it says.
+- The toolbar menus, a row's ⋯, the message and the narrow RECORD drawer keep their own Esc (they are not
+  boxes). Help and Save diagnostics lost theirs.
+- `npm run dialogs` (`tools/dialogs-keyboard.mjs`) is the browser check; it reads the page, not the controller,
+  so it runs on any build (`BOARD=…`): 291 problems on v1.92, none on v1.93. `audit-other.mjs` "v1.93 — every
+  box: named, inert behind, Esc closes, typing guarded" holds the rules in jsdom.
+
+**44 -- IDS Approved by lane.** `idsBuild`'s `tot` adds `upAppD`, `upAppM`, `exAppD`, `exAppM` (summed from
+contributions by lane, so a lane-less row splits correctly); `idsCheck` works `drawD` / `drawM` out again and
+holds both lanes and the printed split; the summary's `span.idslane` and the reconciliation's two *of which*
+columns (`table.ids-recon`) print them. The workbook is unchanged.
+
+**Checks.** `npm run dropdowns` and `npm run dialogs` are in `verify:grid`; `npm run check` has the box rule.
+Mutations: 54 new or retargeted, all presweept and caught (see `NEXT-VERSION.md` › v1.93 › Mutations); four
+retired as obsolete (`fc-mand-only-unscheduled`, `fc-mand-rides-evenly`, `awd-seed-disc-mand`,
+`help-esc-ignored`), each with a comment where it stood.
+
+**The gate that passed v1.93** (1 Oct, 20:36–22:15 UTC, on the final tree): every stage clean, **99.3 min**; one
+sweep of 704 mutations (v1.92's 662, less 4 retired, plus 46 new), 693/693 caught, 11 equivalent, the sweep 89.4
+min; fuzz seed 996759275. Before it, `npm run standards` found the new Needs attention buttons 13px high and 19px of
+sideways scroll at 320px (both fixed, baseline still empty), `npm run panels` could not open the new list box (it
+had no opener), and `money-coverage` refused the unregistered `exportFcView`.
 
 ## Colour: one token, one job
 

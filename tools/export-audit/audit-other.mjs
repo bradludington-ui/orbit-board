@@ -910,6 +910,32 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'reconcile', 'every contribution is in exactly one place', J(Object.values(src.reduce((o, y) => { const k = y.id + y.svc + y.lane; o[k] = (o[k] || 0) + 1; return o; }, {})).filter(n => n !== 1)), '[]');
   chk(name, 'reconcile', 'the box’s own check holds, and every value is a whole dollar',
     P.check.ok + ' · ' + src.concat(P.rows).filter(y => !Number.isInteger(y.amount) || !Number.isInteger(y.approved)).length, 'true · 0');
+  // APPROVED BY LANE (v1.93, item 44), from the walk above: discretionary USAF 120 + ANG 30 + STOVL 10 = 160;
+  // mandatory USAF 60 + ANG 40 = 100. Nothing approved is left out (H's 10 is unfunded).
+  chk(name, 'by lane', 'Approved by lane, uploaded and not uploaded, and the draws they reconcile to',
+    [P.tot.upAppD, P.tot.upAppM, P.tot.exAppD, P.tot.exAppM, P.check.drawD, P.check.drawM].join('/'), '160/100/0/0/160/100');
+  const laneBox = () => JSON.parse(ev(`(function(){ idsOpen=false; toggleIds(); var s=document.querySelector('#idsBody .rlg-sum'), t=document.querySelector('#idsBody .ids-recon');
+    var o={sum:s? s.textContent.replace(/\\s+/g,' ') : '', rows:t? [].slice.call(t.querySelectorAll('tr')).map(function(r){ return [].slice.call(r.children).slice(1).map(function(c){ return c.textContent.trim(); }).join(' / '); }) : []};
+    toggleIds(); return JSON.stringify(o); })()`));
+  let LB = laneBox();
+  chk(name, 'by lane', 'the summary line gives Req. Approved and how it splits', /Req\. Approved \$260 \(discretionary \$160 · mandatory \$100\)/.test(LB.sum), true);
+  chk(name, 'by lane', 'the reconciliation, by lane, ties', LB.rows.join(' | '),
+    ['Req. Amount / Req. Approved / of which discretionary / of which mandatory', '$355 / $260 / $160 / $100', '$345 / $260 / $160 / $100',
+     '$10 / $0 / $0 / $0', '✓ ties / ✓ ties / ✓ ties / ✓ ties'].join(' | '));
+  // a row on a lane-less budget holds both lanes: the split is the contributions', not the row's
+  ev(`S.budgetAsg.B={USAF:${J(CONG)}}; save(); render(); 'ok'`);
+  P = build();
+  chk(name, 'by lane', 'B’s both lanes on one lane-less row still split 160 / 100', [P.tot.upAppD, P.tot.upAppM].join('/'), '160/100');
+  // and a mandatory contribution left out is mandatory Approved left out: B's mandatory on a retired name
+  ev(`S.budgetAsg.B={'USAF|mand':${J(RET)}}; save(); render(); 'ok'`);
+  P = build();
+  chk(name, 'by lane', 'B’s mandatory 60 not uploaded: 160 / 40 uploaded, 0 / 60 left out, and it still ties',
+    [P.tot.upAppD, P.tot.upAppM, P.tot.exAppD, P.tot.exAppM, P.check.ok].join('/'), '160/40/0/60/true');
+  LB = laneBox();
+  chk(name, 'by lane', 'and the box says so, lane by lane', LB.rows.slice(2).join(' | '),
+    ['$285 / $200 / $160 / $40', '$70 / $60 / $0 / $60', '✓ ties / ✓ ties / ✓ ties / ✓ ties'].join(' | '));
+  ev(`delete S.budgetAsg.B; save(); render(); 'ok'`);
+  P = build();
   chk(name, 'reconcile', 'the anomalies sheet reconciles the same figures',
     /Every requirement on the board[^\n]*\| 355 \| 260\nOn Requirement v1 \| 345 \| 260\nNot uploaded \(listed below\) \| 10 \| 0\nCheck \| ✓ ties \| ✓ ties/.test(sheet2(X)), true);
   // A FULLY MANDATORY-FUNDED SERVICE: no $0/$0 discretionary row
@@ -1234,6 +1260,159 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // A ONE-APPROPRIATION FILE
   const O = boot({ html: ev(`oneAppnHtml('om')`) });
   chk(name, 'one', 'a one-appropriation file says so', /This file: {10}a one-appropriation file \(O&M\)/.test(O.ev(`diagReport()`)), true);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ NEEDS ATTENTION: EVERY ENTRY OPENS ITS LIST (v1.93, item 42) ═══════════════════════════════════════════════
+// Brad: "each error message to have a pop up to show me where the errors are, like it does with the Not Drawn
+// statement ... when CCaR records haven't been assigned ... any requirements that are missing obligation dates."
+// Four requirements, each case stated here: A banded Keep the Lights On with no impact statement, its one award
+// covering its $70 discretionary and not its $30 mandatory; C ranked above B, unfunded, banded, no impact statement,
+// no CCaR record, no date; B funded, no CCaR record, no date; D complete. Every list is written from that, never read back.
+{
+  const name = 'v1.93 — Needs attention: every entry opens its list';
+  try {
+  const J = JSON.stringify;
+  const mk = (id, ask, ccar) => ({ id, grp: id === 'C' ? 'PSM' : 'AV', team: 'AV', sect: '', custom: false, title: id + ' title', event: id + ' event',
+    ccar, fy26: [0], ask: [ask], alloc: null });
+  const { ev } = boot();
+  seed(ev, { services: ['USAF'], items: [mk('A', 100, 'JSF1'), mk('B', 50, ''), mk('C', 40, ''), mk('D', 20, 'JSF4')],
+    disc: [140], mand: [30], order: ['A', 'C', 'B', 'D'], fsrc: { A: { m: 'split', dv: [70], mv: [30] }, C: { m: 'split', dv: [0], mv: [0] } } });
+  ev(`(function(){ S.band={A:'ktlo', C:'ktlo', D:'ktlo'}; S.cons={D:'the line stops'};
+    S.awards={A:{mode:'inc', inc:[{d:FYMON[2][0], day:1, sv:[70]}]}, D:{mode:'single', d:FYMON[3][0]}};
+    window.prompt=function(m){ window.__asked=String(m); return null; };
+    save(); render(); return 'ok'; })()`);
+  chk(name, 'fixture', 'the draws: A 70 + 30, B 50, D 20, C nothing',
+    ev(`(function(){ var T=tiers(); return JSON.stringify(['A','B','C','D'].map(function(id){ return [T[id].dT, T[id].mT]; })); })()`), J([[70, 30], [50, 0], [0, 0], [20, 0]]));
+  const entries = () => JSON.parse(ev(`JSON.stringify([].slice.call(document.querySelectorAll('#posture .ppatt .e')).map(function(e){ return e.tagName+' '+e.textContent.replace(/\\\\s+/g,' ').trim(); }))`));
+  chk(name, 'posture', 'every entry is a button, and says what it counts', J(entries()),
+    J(['BUTTON ⚠ 2 impact statements missing', 'BUTTON ○ 2 without a CCaR record', 'BUTTON 📅 2 without an obligation date', 'BUTTON ◔ 1 award short of its funding']));
+  const open = (k) => JSON.parse(ev(`(function(){ var b=[].slice.call(document.querySelectorAll('#posture .ppatt button.e')).filter(function(e){ return (e.getAttribute('onclick')||'').indexOf(${J(J(k))})>=0; })[0];
+    if(!b) return JSON.stringify({none:true}); b.click();
+    var bg=document.getElementById('attPanel'), rows=[].slice.call(document.querySelectorAll('#attBody .atttab tr')).slice(1);
+    return JSON.stringify({open:/\\bopen\\b/.test(bg.className), title:document.getElementById('attTitle').textContent,
+      rows:rows.map(function(r){ return [].slice.call(r.children).slice(0,-1).map(function(c){ return c.textContent.trim(); }).join(' · '); })}); })()`));
+  const close = () => ev(`attClose(); 'ok'`);
+  let L = open('imp');
+  chk(name, 'impact', 'opens its list: A and C, by rank', L.open + ' ' + L.title + ' ' + L.rows.join(' | '),
+    'true ⚠ IMPACT STATEMENTS MISSING 1 · A event · AV · $100 | 2 · C event · PSM · — |  · 2 requirements ·  · $100');
+  close(); L = open('ccar');
+  chk(name, 'CCaR', 'opens its list: C and B, by rank', L.rows.join(' | '), '2 · C event · PSM · — | 3 · B event · AV · $50 |  · 2 requirements ·  · $50');
+  close(); L = open('oblig');
+  chk(name, 'date', 'opens its list: every requirement with no date, the funded one first with what it leaves UNSCHEDULED',
+    L.rows.join(' | '), '3 · B event · AV · $50 | 2 · C event · PSM · — |  · 2 requirements ·  · $50');
+  close(); L = open('awshort');
+  chk(name, 'awards short', 'opens its list: A, its $30 mandatory undated', L.rows.join(' | '), '1 · A event · AV · $0 · $30 |  · 1 requirement ·  · $0 · $30');
+  // GO TO IT: the list closes, the requirement is selected, the field to fill is open or has the keyboard
+  ev(`attGo('awshort','A'); 'ok'`);
+  chk(name, 'go to it', 'awards short: A selected, the box closed, the award block’s first award has the keyboard',
+    ev(`(function(){ var a=document.activeElement; return [curRow, attOpen, /attPanel/.test(document.querySelector('.modal-bg.open')? document.querySelector('.modal-bg.open').id : ''),
+      !!(a && a.closest && a.closest('#inspector .awdblk')), a && a.type].join(' · '); })()`), 'A ·  · false · true · date');
+  ev(`attShow('oblig'); attGo('oblig','B'); 'ok'`);
+  chk(name, 'go to it', 'no date: B selected, its award date has the keyboard',
+    ev(`(function(){ var a=document.activeElement; return [curRow, !!(a && a.closest && a.closest('#inspector .awdblk')), a && a.type].join(' · '); })()`), 'B · true · date');
+  ev(`attShow('imp'); attGo('imp','C'); 'ok'`);
+  chk(name, 'go to it', 'impact: C selected and its Impact statement editor open', ev(`J=JSON.stringify; J([curRow, fldOpen && fldOpen.id, fldOpen && fldOpen.kind])`), J(['C', 'C', 'cons']));
+  ev(`fldClose(); attShow('ccar'); window.__asked=''; attGo('ccar','B'); 'ok'`);
+  chk(name, 'go to it', 'CCaR: B selected and its CCaR record asked for', ev(`curRow+' · '+/CCaR record for "B event"/.test(window.__asked)`), 'B · true');
+  // FIXED FROM THE LIST, IT LEAVES THE LIST AND THE COUNT AT ONCE
+  ev(`S.ccar=S.ccar||{}; S.ccar.B='JSF2'; save(); render(); 'ok'`);
+  chk(name, 'fixed', 'B given a CCaR record: the count and the list drop it', J([entries()[1], open('ccar').rows.length]), J(['BUTTON ○ 1 without a CCaR record', 2]));
+  close();
+  ev(`fillLastAwd('A'); 'ok'`);
+  chk(name, 'fixed', 'A’s award covering both lanes: its entry is gone', entries().some(e => /award/.test(e)), false);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ EVERY BOX TAKES THE KEYBOARD, AND TYPING IS NEVER LOST TO A STRAY KEY (v1.93, item 39) ═════════════════
+// One controller drives all the boxes: it names each as a dialog from its heading, makes the board behind it
+// inert, closes the top box on Esc by pressing that box's own close control, and -- when something typed has not
+// been saved -- asks "Discard what you typed?" before Esc, ✕ Close or a click on the backdrop closes it. jsdom
+// lays nothing out, so Tab order and focus return are the browser check's (tools/dialogs-keyboard.mjs); this
+// holds the rules themselves, with the controller reconciled by hand (dlgSync) where a browser's observer would.
+{
+  const name = 'v1.93 — every box: named, inert behind, Esc closes, typing guarded';
+  try {
+  const J = JSON.stringify;
+  const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: id + ' title', event: id + ' event',
+    ccar: 'JSF1', fy26: [0], ask: [ask], alloc: null });
+  const { ev } = boot();
+  seed(ev, { services: ['USAF'], items: [mk('A', 100), mk('B', 50)], disc: [150], mand: [0], order: ['A', 'B'] });
+  ev(`(function(){ S.cons={A:'the line stops'}; save(); render();
+    window.__asked=[]; window.__ans=false; window.confirm=function(m){ window.__asked.push(String(m)); return window.__ans; };
+    window.__key=function(k, shift){ var t=document.activeElement||document.body;
+      t.dispatchEvent(new KeyboardEvent('keydown', {key:k, shiftKey:!!shift, bubbles:true, cancelable:true})); dlgSync(); };
+    window.__type=function(e, txt){ e.focus(); e.value=e.value+txt; e.dispatchEvent(new Event('input', {bubbles:true})); };
+    return 'ok'; })()`);
+  const state = () => JSON.parse(ev(`JSON.stringify({ stack:DLG.stack.map(function(r){ return r.bg.id; }),
+    inert:[].slice.call(document.body.children).filter(function(c){ return c.hasAttribute('inert'); }).map(function(c){ return c.id||c.tagName.toLowerCase(); }),
+    open:dlgBoxes().filter(dlgIsOpen).map(function(b){ return b.id; }) })`));
+  // NAMED, AND THE BOARD BEHIND IS INERT
+  ev(`toggleCr(); dlgSync(); 'ok'`);
+  const m = JSON.parse(ev(`(function(){ var m=document.querySelector('#crPanel .modal');
+    return JSON.stringify([m.getAttribute('role'), m.getAttribute('aria-modal'), m.getAttribute('aria-label'), m.getAttribute('tabindex')]); })()`));
+  chk(name, 'named', 'the CR box is a modal dialog named from its heading, not its ✕ Close', J(m.slice(0, 2)) + ' ' + m[3] + ' ' + /^⚖ CONTINUING RESOLUTION/.test(m[2]) + ' ' + /Close/.test(m[2]), '["dialog","true"] -1 true false');
+  let st = state();
+  chk(name, 'inert', 'every other part of the page is inert while the box is up, the box itself is not',
+    J([st.stack, st.inert.length > 3, st.inert.includes('crPanel'), ev(`!!document.querySelector('.hdr, header') && (document.querySelector('.hdr, header').closest('[inert]')!==null)`)]), J([['crPanel'], true, false, true]));
+  // the keyboard is never behind the box: a control on the board that takes focus hands it back
+  ev(`(function(){ var b=document.querySelector('#list button') || document.getElementById('saveBtn'); if(b) b.focus(); return 'ok'; })()`);
+  chk(name, 'keyboard', 'focusing a control behind the box puts the keyboard back in the box',
+    ev(`!!(document.activeElement && document.activeElement.closest && document.activeElement.closest('#crPanel'))`), true);
+  // ESC CLOSES THE TOP BOX, BY ITS OWN CLOSE CONTROL, AND THE PAGE COMES BACK
+  ev(`__key('Escape'); 'ok'`);
+  st = state();
+  chk(name, 'Esc', 'Esc closes the box (crOpen false), nothing left inert, nothing asked', J([ev(`crOpen`), st.stack, st.inert, ev(`__asked.length`)]), J([false, [], [], 0]));
+  // TYPING GUARDED: the Impact statement editor saves only with its own Save, so what is typed waits there
+  ev(`openFld('A','cons'); dlgSync(); __type(document.getElementById('fld-cons'), ' unless'); 'ok'`);
+  chk(name, 'typing', 'the editor is open with the typing in it', ev(`fldOpen && fldOpen.id+' · '+document.getElementById('fld-cons').value`), 'A · the line stops unless');
+  ev(`__asked=[]; __ans=false; __key('Escape'); 'ok'`);
+  chk(name, 'typing', 'Esc asks first; Cancel keeps the box and the typing, and saves nothing',
+    J([ev(`__asked.length`), /^Discard what you typed\?/.test(ev(`__asked[0]||''`)), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`), ev(`S.cons.A`)]),
+    J([1, true, true, 'the line stops unless', 'the line stops']));
+  ev(`__asked=[]; document.querySelector('#fldPanel h3 button.x').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
+  chk(name, 'typing', '✕ Close asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`)]), J([1, true, 'the line stops unless']));
+  ev(`__asked=[]; document.getElementById('fldPanel').dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true})); dlgSync(); 'ok'`);
+  chk(name, 'typing', 'a click on the backdrop asks first; Cancel keeps it', J([ev(`__asked.length`), ev(`!!fldOpen`), ev(`document.getElementById('fld-cons').value`)]), J([1, true, 'the line stops unless']));
+  ev(`__asked=[]; __ans=true; __key('Escape'); 'ok'`);
+  chk(name, 'typing', 'Esc and OK: the box closes and the stored statement is untouched', J([ev(`__asked.length`), ev(`fldOpen`), ev(`S.cons.A`), state().stack]), J([1, null, 'the line stops', []]));
+  // nothing typed: no question at all
+  ev(`__asked=[]; openFld('A','cons'); dlgSync(); __key('Escape'); 'ok'`);
+  chk(name, 'typing', 'nothing typed: Esc closes without asking', J([ev(`__asked.length`), ev(`fldOpen`)]), J([0, null]));
+  // a field the box commits on change: typed and not yet committed is guarded; once committed, nothing to lose
+  ev(`toggleEnt(); dlgSync(); window.__f=[].slice.call(document.querySelectorAll('#entPanel .modal input')).filter(function(e){ return !e.disabled && /^(text|)$/.test(e.getAttribute('type')||'') && !e.hasAttribute('oninput'); })[0];
+    __type(__f, 'qz'); __asked=[]; __ans=false; __key('Escape'); 'ok'`);
+  chk(name, 'typing', 'a plain field typed in and not committed: Esc asks, Cancel keeps it', J([ev(`__asked.length`), ev(`entOpen`), /qz$/.test(ev(`__f.value`))]), J([1, true, true]));
+  ev(`__f.dispatchEvent(new Event('change', {bubbles:true})); __asked=[]; __key('Escape'); 'ok'`);
+  chk(name, 'typing', 'once committed (its change event), Esc closes without asking', J([ev(`__asked.length`), ev(`entOpen`)]), J([0, false]));
+  // the rule itself, on fields that do not redraw when they commit (the real ones above redraw, which would hide it):
+  // typed is waiting until its change event; a field that applies as it is typed (oninput) never is
+  ev(`(function(){ toggleCr(); dlgSync(); var m=document.querySelector('#crPanel .modal');
+    window.__p=document.createElement('input'); window.__p.type='text'; m.appendChild(window.__p);
+    __type(__p, 'qz'); __p.dispatchEvent(new Event('change', {bubbles:true})); __asked=[]; __ans=false; __key('Escape'); return 'ok'; })()`);
+  chk(name, 'typing', 'a field committed by its change event, and not redrawn: Esc closes without asking', J([ev(`__asked.length`), ev(`crOpen`)]), J([0, false]));
+  ev(`(function(){ toggleCr(); dlgSync(); var m=document.querySelector('#crPanel .modal');
+    window.__l=document.createElement('input'); window.__l.type='text'; window.__l.setAttribute('oninput','void 0'); m.appendChild(window.__l);
+    __type(__l, 'qz'); __asked=[]; __ans=false; __key('Escape'); return 'ok'; })()`);
+  chk(name, 'typing', 'a field that applies as it is typed (oninput), not redrawn: Esc closes without asking', J([ev(`__asked.length`), ev(`crOpen`)]), J([0, false]));
+  // ONE BOX ON ANOTHER: Esc closes the top one only, and the one below is live again
+  ev(`togglePf(); dlgSync(); toggleJrnl(); dlgSync(); 'ok'`);
+  st = state();
+  chk(name, 'stacked', 'the journal over the pre-flight check: both open, the lower one inert under the top one',
+    J([st.stack, st.inert.includes('pfPanel'), st.inert.includes('jrnlPanel')]), J([['pfPanel', 'jrnlPanel'], true, false]));
+  // the journal's filter applies as it is typed, so it is never "typing to lose"
+  ev(`__asked=[]; __type(document.querySelector('#jrnlPanel input[oninput]'), 'x'); __key('Escape'); 'ok'`);
+  st = state();
+  chk(name, 'stacked', 'Esc closes the journal without asking (its filter applies as typed); the pre-flight box stays, live',
+    J([ev(`__asked.length`), ev(`jrnlOpen`), st.stack, st.inert.includes('pfPanel')]), J([0, false, ['pfPanel'], false]));
+  ev(`__key('Escape'); 'ok'`);
+  chk(name, 'stacked', 'Esc again closes the pre-flight box', J([ev(`pfOpen`), state().stack, state().inert]), J([false, [], []]));
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
