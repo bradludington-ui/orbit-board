@@ -73,9 +73,14 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   shown, never a figure, and is this browser's setting, never written into the file. `npm run controls`
   records each control with its surface (row or RECORD panel) and fails on one added or moved; `npm run
   layout` holds the modes. See the v1.90 and v1.91 sections of `CLAUDE.md`.
-- Put a click handler on anything that is not a native control without `role="button" tabindex="0"`, or
+- Put a click handler on anything but a native control (a `<button>`, not a `<span>`, `<div>`, `<a>` with no
+  address or `<td>` with `role="button"` -- only an SVG group may say `role="button"`, with an `aria-label`), or
   redraw a control someone is using without keeping their place. `npm run check` fails on the first; `npm
   run keys` and `npm run panels` on the rest. See the v1.92 section of `CLAUDE.md`.
+- Decide anywhere but `budResolve()` whether a stored BAE budget can be used, or let a choice it calls unusable
+  be printed or quietly replaced by the rule. Record anything about an IDS export: the ORG is the one thing
+  kept. Let the IDS export build anything before its refusals (locked view, PMO copy, its own check, the
+  prompt). `audit-other.mjs` proves each, and its mutations must stay caught.
 - Put a raw value into the diagnostics list (`DIAG`) or the diagnostics file. Every entry goes through
   `diagClean()`, and the file holds counts, never a figure, title, name, CCaR record, PID or budget name.
   `audit-other.mjs` proves it, and its mutations must stay caught.

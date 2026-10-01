@@ -2235,10 +2235,12 @@ boot) and localStorage until the next import writes `BUDDB`. `budReg()` re-parse
 by today's rules, so an old import is judged by the new rule without a re-import (TrngDev names,
 which the old import discarded, do need one re-import).
 
-**The rule** (`budParseName`, `budPickList`, `budCandidates`, `budForRow`), every name read as
-*service + appropriation + funding line + [lane] + PMO*:
+**The rule** (`budParseName`, `budPickList`, `budCandidates`, `budRuleOf`), every name read as
+*service + appropriation + funding line + [lane] + PMO*. **Since v1.92 `budResolve()` is the one authority on
+a line's budget** -- whether a stored choice can be used, and if not, every reason why; nothing else judges a
+name (see the v1.92 section):
 1. No PMO in the name = a LEGACY budget: never offered, never filled in; a stored choice pointing at
-   one is not printed and the pre-flight lists it (gap `legacy`).
+   one is unusable -- shown as such, never printed, and a pre-flight block (`budbad`).
 2. CONG, BOS, OCO, Withhold and Spares TrngDev (`BUD_HAND`) are offered by hand, never automatic.
    Modifications, RDT&E, Flyaway are out (`BUD_EXCLUDE`). TrngDev is part of Spares (`BUD_APPN`).
 3. Service and PMO match; the lane matches EXACTLY; where an office's names carry no lane its one
@@ -3153,119 +3155,122 @@ chrome` proves the order on throwaway folders and is the first step of `verify:g
 stage clean, **72.6 min**; one sweep of 576 mutations (564 from v1.90 plus the 12 above), 565/565 caught,
 11 equivalent, the sweep 66.3 min; fuzz seed 874911235.
 
-### v1.92 (items 18, 36, 37): the IDS batch in both lanes, the keyboard everywhere, Save diagnostics
+### v1.92 (items 18, 36, 37): the IDS export, one budget authority, the keyboard everywhere, Save diagnostics
 
-Built on Brad's "go" of 30 Sep 2026. Each item was built as logged, with the decisions Brad took on item 37
-("recommendations on 1, 3 and 5"); `NEXT-VERSION.md` says where the build differs.
+Built on Brad's "go" of 30 Sep 2026 and **revised before merge on his decisions of 1 Oct 2026** (PR #3 was held
+after review). `NEXT-VERSION.md` lists every decision; this is how the code carries them.
 
-**37 -- the IDS batch.** `exportIdsReq()` writes the IDS Batch Import requirements file from `idsReqRows()`:
-- **A line per service per lane**, the same lines as the RECORD panel's BAE budget section (`budLines`). A
-  service with discretionary money: a discretionary line, Req. Amount = the requirement value less the
-  mandatory draw, Req. Approved = the discretionary money; and a mandatory line when it draws mandatory,
-  Amount = Approved = the draw. Mandatory only: one mandatory line carrying the whole requirement value,
-  Approved = the draw. No money: one line, Amount = the requirement value, Approved = 0. Lines on the same
-  budget and control number are one line. `basisSvcOf` clamps a draw to the ask, so Amount ≥ Approved.
-- **Budgets:** `idsLineBud(id, sv, lane)` -- a funded lane is `budForRow`'s answer for that lane; a line
-  with no money takes the RECORD panel's unfunded choice when it is a budget the list holds, else the
-  discretionary rule's answer (the panel's unfunded line now names it: "no money yet · automatic by rule").
-  A line with no single budget, no BAE list or a legacy choice is held back, the reason per lane, on the
-  *Not exported* sheet.
-- **Add or Update from a record of what was sent.** Each export pushes `{fid, ts, by, fy, lines}` onto
-  `MS.ids.sent` (`idsCfg()`); a line is *Update* when `idsKey(fy, budget, control)` was sent before
-  (`idsSentFor`), its comment "Updated requirement", else "New Requirement" (`IDS_CMT`). Lines sent before
-  and not in this batch are listed under *SENT BEFORE, NOT IN THIS BATCH* on the Not exported sheet.
-  `idsForget(fid)` takes a batch off the record after a confirm; its ID stays issued.
-- **The file ID is automatic:** `idsFileId()` = `YYYYMMDD-NNNN`, NNNN one above every ID issued on this
-  board in any appropriation (`idsIssuedAll()` reads each appropriation's store). `#idsSeq` overrides the
-  number for today only; an ID already issued is refused. ORG (`#idsOrg`) is kept per appropriation.
-- A PMO copy carries `issued` and not `sent` (`idsStripSent` in `buildSavedHtml({refOnly})`); a full
-  import brings both.
-- **Still as before, pending Brad:** the ORG number, unfunded lines against the budget ceiling, the
-  template's other tabs, and what CCaR's administrators want on an Update.
+**One authority on a line's budget: `budResolve(id, svc, lane[, St])`.** Pure. It is the only code that decides
+whether a stored BAE choice can be used, and everything reads its answer -- `budForRow` (now
+`budResolve(...).effective` and nothing else), the RECORD panel (`budRecordHtml`), the Spend Plan Source
+(`srcRowsOf`, and `exportSrc`'s refusal), the IDS export, the pre-flight, `ccarDiv`, `budAutoStats`, the
+retired-budget count and clear (`budRetiredKeys`). Returns `{storedKey, stored, rule, effective, status,
+exportable, bad, reasons}`, status one of chosen | rule | ccar | ambiguous | none | no-list | invalid.
+- `budStoredFor(A, svc, lane)` names the stored key that answers a line: `svc|lane`, else a bare `svc` choice
+  whose name fits the lane (lane-less names serve both) -- `budAsgOf`'s reading, as a key.
+- `budCheckChoice(id, svc, lane, name)` gives EVERY reason a name cannot answer that line: `notbud`, `legacy`
+  (no PMO), `missing` (not in the list; matched regardless of case, the list's spelling is printed), `retired`
+  (`gone`), `appn`, `office` (the requirement's PMO), `service`, `lane`.
+- **An unusable choice is never replaced by the rule.** It stays stored, the panel keeps it selected and says
+  "chosen, and cannot be used: <why>", `effective` is '', the Spend Plan Source refuses (`budInvalidLines`)
+  and the IDS export lists the line as not uploaded. Picking again or "back to the rule" clears the stored key.
+- **A line with no money is resolved as the discretionary lane.** Its dollars are unfunded and unfunded goes on
+  a discretionary or lane-less budget (Brad, A1). `budLines` gives such a line for a service with no money and,
+  since 1 Oct, an *unfunded part* line (`part:true`) for a mandatory-only service that is still short. Its picker
+  offers discretionary and lane-less names (`budPickList(id, svc, 'disc')`); `budUnfSet` refuses a mandatory
+  name; `budPutUnf` (shared with `setBudFam`) replaces only what answers the discretionary line, so a
+  `svc|mand` choice made while the line was funded in mandatory is KEPT -- shown as "Kept for mandatory money"
+  -- and is the mandatory line's again when mandatory money returns.
+- `budLineClear(id, svc, lane)` deletes the stored key `budStoredFor` names, never a value worked out from
+  the rule; a bare lane-less choice that also answers the other funded lane moves to `svc|other`.
+- Funding-line discovery (`budLines`, `budPairs`) never looks at budgets, so an unusable budget never hides a
+  line that carries money.
+
+**37 -- the IDS export.** `exportIdsReq(opts)` writes the IDS Batch Import requirements file:
+- **Contributions** (`idsSources(T)`): one per requirement x service x lane, from `tiers()` and `unfSvcOf()`
+  only. Mandatory: Amount = Approved = `m`. Discretionary (when `d>0` or unfunded `u>0`): Amount = `d+u`,
+  Approved = `d`. A service with no money is the discretionary case with `d=0` (Amount = the requirement,
+  Approved 0). A fully mandatory-funded service has no discretionary contribution.
+- **The pipeline** (`idsBuild(T)`, pure): each contribution gets its budget from `budResolve` and its control
+  number from `idsCtlOf` (all digits, no leading zero, at most 15 digits -- it is written as a number cell);
+  one that fails either goes to `excluded` with EVERY reason and how to fix each; the rest are grouped by
+  `idsKey(FY, budget, control)` (budget upper-cased), summed, sorted by budget then control, and numbered 1..N.
+  `multi` (several requirements, or two spellings, on a row), `shared` (a control used by several
+  requirements across budgets) and `zero` (Approved 0) are for review.
+- **The check** (`idsCheck(P, T)`) works its expectations out again from `S.order`, the asks and `tiers()`:
+  row Amount and Approved = their sources'; Amount ≥ Approved ≥ 0; uploaded + not uploaded = every requirement
+  (Amount) and every draw (Approved); each contribution identity exactly once and none the board did not make;
+  per requirement and service, Amount = the ask and Approved = d + m; whole dollars; unique keys; the printed
+  totals are the rows'. Any failure refuses the export.
+- **The refusals, in order, inside `exportIdsReq` and before anything is asked, built, downloaded or written:**
+  `idsBoardRefusal()` (a locked cycle on screen; a PMO copy), the check, then `idsFormProblems(f)` (reason
+  non-blank, storable, at most 32,767 characters; Add or Update; file ID `yyyyMMdd-NNNN` with a real date and
+  confirmed unused; a numeric ORG confirmed for every row and service). Each refusal goes through `idsRefuse`
+  (alert, status line, the box).
+- **The prompt** is `idsForm`, in memory only, reset when the box opens (`idsFormReset`): reason '', action
+  'Add', file ID `idsFidCandidate()` (yyyyMMdd-HHmm -- the time of day, never a sequence), ORG from
+  `MS.ids.org`. Its inputs write `idsForm` and never save; a redraw keeps them.
+- **The workbook** (`idsSheets`): *Requirement v1* exactly as the template lays it out (A1 the file ID; Ref No,
+  ORG, FY, Control No, Amount, Approved as numbers; Action, Budget Name and the reason as text), and *Missing
+  data and anomalies* (NO UPLOADABLE IDS ROWS first when there is no row; the Update warning on an Update file;
+  the file's details; the reconciliation; every excluded contribution with every reason and fix; the
+  consolidated rows with each contributor; shared controls; Approved-0 rows). `buildXlsx` now writes an
+  integer verbatim (it rounded every number to the cent, which a 15-digit control number does not survive).
+- **Nothing is recorded.** The only write is `MS.ids.org`, and only once the file exists. Whatever an older
+  board holds under `MS.ids` (v1.91's `seq`, `action`, `cmt`; an unreleased build's `issued`, `sent`) is left
+  untouched and never read. `buildSavedHtml` writes `PUBS` as v1.91 did.
+- The menu line is fixed text; the preview is worked out when the box opens (and on a redraw while it is open).
 
 **36 -- the keyboard reaches everything a mouse can.**
-- Menu items are `<button type="button" class="mi">` in the three places menus are built (`syncBtns`'s
-  `mi`, `rowMenuHtml`'s `mi`, the chip picker), in reading order. No ARIA menu roles: they promise arrow keys
-  (the choice v1.91 made for the modes). The eight Funding detail headers are `button.sc-h` / `button.gs-h`
-  with `aria-expanded`, which `hdrAria()` reads off the arrow each render draws.
-- Every other clickable element that is not a native control says `role="button" tabindex="0"`, with
-  `aria-pressed` or `aria-expanded` where it has a state (36 places: the chips, the plan-only and CE tabs,
-  the expanders, `flowPick`'s `<g>`, the pre-flight toggles ...). One `document` keydown delegate clicks a
-  non-native `role=button` on Enter or Space, and Esc closes the open toolbar menu, row ⋯ menu or chip list
-  with focus on the button that opened it. Tabbing out of a toolbar menu closes it; `syncBtns` sets each
-  menu button's `aria-expanded`.
-- **A redraw keeps the keyboard's place.** `render()` rebuilds most of the board, so the chip, header or ⋯
-  just pressed was replaced and focus fell to the page. The render wrapper notes focus (`focusMark`: nearest
-  element with an id, and which of its controls of that kind) and puts it on the one standing in its place
-  (`focusRestore`), unless the redraw moved focus on purpose. A row field typed into and left with Tab was
-  the same case one step on (Chrome fires `change` after focus has left, then the redraw takes both fields;
-  on v1.91 focus went to the page): the field being changed stands in, Tab and Shift+Tab go on to the next
-  or previous tabbable (`tabbables()`), Enter stays. **Only a key counts** (`_navStep`, cleared on
-  `pointerdown`): after a mouse press nothing is moved, so typing can never land in a field just left.
-  `mRun`, `rowMenuRun` and a closing toolbar menu (`_menuShown`) hand focus back to the button -- a menu
-  closed from the page only after a key (`_byKey`): a mouse click on the page leaves focus there.
-- Contrast the new measurements found: `.cesel` and `.mdd` borders are `--edge`; a selected row's inputs
-  `--edge2`.
+- Menu items are `<button type="button" class="mi">` (toolbar menus, a row's ⋯, the chip picker), in reading
+  order, no ARIA menu roles. The eight Funding detail headers are `button.sc-h` / `button.gs-h` with
+  `aria-expanded` (`hdrAria()`).
+- **Every other clickable element is a native `<button>`** (revised before merge): `button.nb` -- a reset kept
+  at zero specificity with `:where()`, so the element's own class (`.chip`, `.lanechip`, `.fitchip`, `.rchip`,
+  `.cedit`, `.rtag`) still dresses it -- with `aria-pressed` / `aria-expanded` where it has a state;
+  `button.nb.lnk` for the links in messages; a button INSIDE the cell for the execution and CR expanders, never
+  `role="button"` on a `<td>`. The one exception is an SVG funds-flow node (`flowHit`): `<g class="flowhit"
+  role="button" tabindex="0" aria-label aria-pressed>`, its name from `flowRows()`, Enter and Space through
+  the `document` keydown delegate, and the gold focus ring (`svg g.flowhit:focus-visible`).
+- **A redraw keeps the keyboard's place** (`focusMark` / `focusRestore` in the render wrapper; `_navStep`,
+  `_byKey`), and a row field left with Tab moves on; after a mouse press nothing is moved.
+- **Not built:** dialog focus (a box taking focus, containing Tab, closing on Esc). Deferred by agreement.
 
-**18 -- Save diagnostics.** 📁 File ▾ › Support › 🩺 Save diagnostics… (`toggleDiag`), on the board and in
-a PMO copy:
-- **The list.** `DIAG` (declared beside `_bootLost`, so it starts with the program): `setStat` keeps every
-  warning (`diagIsWarn`: a warning sign, or "could not / refused / failed ..."), `lsSet` every refused
-  write, the first render what could not be read on opening, and `window` `error` / `unhandledrejection`
-  every script error nothing caught, with its line and column. The last 50; memory only -- never in the
-  saved file, never in browser storage.
-- **The cleaning, `diagClean(html, full)`,** in order: markup to text (`DOMParser`, nothing runs or
-  loads); every string the board holds, whole (`diagSecrets`: a walk of every store -- MS, S, PUBS, DATA,
-  APPNS, EXDB with its POCs, ACEDB, BUDDB, DESTDB, RPDB, the cycles, LIVEDB, the submittals, PMODE, the
-  kept-aside metadata, `whoIs()` -- keys and values, looked up by first word; the services, offices and
-  appropriations are kept, and so are short lower-case codes); every quoted value; every figure to `#`.
-  It runs as each entry is kept, and again (`full`) when the file is made, then also drops any word the
-  program itself never uses (`diagVocab`: the words of the board's scripts, less the `APPNS` data pack) --
-  a file name, somebody who saved elsewhere -- and reads the other appropriations and kept-aside work
-  from browser storage. `_diagSec` is rebuilt after every `save()` and `render()`: a time-based cache let a
-  title renamed a moment before through. Each appropriation's execution data is indexed once per import
-  and kept against its object (`_diagExIdx`, a WeakMap -- an import replaces `EXDB.all[k]`, nothing edits it
-  in place): on 400 requirements and 20,000 execution rows a rebuild is 12 ms in jsdom, not a second.
-- **The file** (`diagReport`): version; the kind of file (live board, PMO copy with its publish date and
-  office -- `PUB_ONLY` keeps the one-appropriation marker past `PUB`'s narrowing); what is on screen; browser
-  and window; how it was opened and where Save writes; Live view; browser storage and refused writes; what
-  was unread on opening; the session; **counts only** (requirements per appropriation and year, locked
-  cycles, position snapshots, submittals, BAE rows, CCaR records, execution plan events and months, journal
-  entries, IDS batches); the kept list, oldest first. `diagSave()` writes `_diagTxt`, the very string the
-  box shows, as *ORBIT diagnostics - YYYY-MM-DD.txt*; Cancel and Esc write nothing; nothing is sent.
-- The RECORD panel's "could not be drawn" message points here instead of *Save a copy*.
-- **Never put a raw value into `DIAG` or the report.** Every text entry goes through `diagClean`; every
-  other line is a count, a code the board defines, or the browser's own words.
+**18 -- Save diagnostics** (unchanged in the revision but for the IDS count): `DIAG`, `diagClean`,
+`diagSecrets` (a walk of every store, `MS.ids` included), `diagVocab`, `diagReport`, `diagSave`; box = file;
+Cancel and Esc write nothing; nothing is sent. **Never put a raw value into `DIAG` or the report.**
+
+**CSV.** `csvCell(c)` writes every cell of both CSV exports (Proposed 1–N order, Executive Synopsis): a JS
+number as is; a string starting with = + - @ (fullwidth too), or with a tab, CR or LF, or spaces before an
+operator, gets a leading apostrophe unless it is a figure ORBIT formatted (`CSV_SAFE_NUM`: -$1,234, +3, 12%).
 
 **Checks.**
-- `audit-other.mjs` "v1.92 — the IDS batch: both lanes, and a record of what was sent" (every line written
-  from the scenario, not read back from the board) and "v1.92 — Save diagnostics holds no figure, title or
-  name" (a board of unmistakable values driven through real warnings and a planted error; the kept list,
-  the box and the file; box = file; Cancel and Esc; a PMO copy; a one-appropriation file).
-  `audit-import.mjs` "v1.92 — a full import brings the record of IDS batches".
-- `npm run check` "keyboard reach (markup)": every `onclick` in the source is on a native control, an `a`
-  with an address, or `role="button" tabindex="0"` (backdrops and stop-propagation-only handlers aside);
-  it follows a handler passed to a helper to the tag the helper writes. `KEYS_ALL=1` lists every offender.
-- `panels-render.mjs`: inside every box, inline panel and menu it opens, every visible control with a click
-  handler is one the keyboard reaches.
-- `keyboard-reach.mjs` G–K: every toolbar menu (Enter opens and says so, Tab reaches every item, leaving
-  closes it, Esc returns focus, Enter on an item runs it, a mouse click on the page moves no focus); Funding detail, its headers and a fit chip; a row's
-  ⋯ menu; a row field typed into and left with Tab, Shift+Tab and Enter, and a click elsewhere left alone;
-  Save diagnostics from the keyboard with a real error, Esc writing nothing and the download equal to the box.
-- `npm run standards`: baseline regenerated to **0 findings**.
-- Proved on the v1.91 board: `keys` 26 checks fail, `panels` 13, and `check`'s markup rule names 47 elements.
-- **28 new mutations**, all caught in their pre-sweep: 14 `ids-*` and 14 `diag-*`; `dest-file-no-list`
-  retargeted. **604 in all.** Item 36 changes nothing the jsdom suites compute; its proofs are the browser
-  checks above.
+- `audit-other.mjs`: "v1.92 — the IDS export: consolidated, reconciled, nothing recorded" (every row written
+  from the scenario: A1, consolidation, provenance, reconciliation, B5, B7 with every reason, C1, the xlsx cell
+  types read out of the real bytes, determinism, no history, B1/B2/B3, the ORG, every prompt refusal, zero
+  rows, three forced check failures, a locked view, a PMO copy, the RECORD panel naming every row's budget);
+  "… one budget and control across two services"; "CSV cells a spreadsheet would run are written as text";
+  the BAE blocks revised (an unusable choice refuses the Spend Plan Source; every reason; the not-funded line);
+  the diagnostics block with IDS-shaped state.
+- `audit-import.mjs`: "an older board's IDS settings cross a full import untouched, and only the ORG is used";
+  the PMO-copy budget block picks a discretionary name (a mandatory one is not offered).
+- `npm run check` "keyboard reach (markup)": a click handler only on a native control or a labelled SVG
+  `role="button"` group, and no `role="button"` on anything else.
+- `money-coverage.mjs`: the IDS export via `idsSources`, `idsBuild`, `idsCheck`, `idsSheets`, `budResolve`.
+- **Mutations**, revised before merge: the eight that guarded PR #3's record of batches were **retired as
+  obsolete** -- the code they guarded was removed, so there is no line for them to break; they were not
+  declared equivalent. The lane and funding ones, ten BAE ones and `dest-file-no-list` were **retargeted** to the new code, the
+  same defect each. New: the IDS pipeline, check, prompt, refusals and sheets; the resolver's reasons, the
+  not-funded line and the Spend Plan Source refusal; the pre-flight; `csvCell`; the diagnostics walk over
+  `MS.ids`. Every one was presweept with `npm run mutate -- <ids>` and caught.
 
-**The gate that passed v1.92** (30 Sep, 22:10–23:20 UTC, on the commit that shipped): every stage clean,
-**69.9 min**; one sweep of 604 mutations (576 from v1.91 plus the 28 above), 593/593 caught, 11 equivalent,
-the sweep 63.2 min; fuzz seed 624024060. **The first run did not pass** (20:14–21:31 UTC): 592/593, with
-`snap-name-reused` surviving. Its check in `audit-import.mjs` ("folder, restore") caught the reused name only
-when the save's history copy and the put-back's fell in the same wall-clock second; under the sweep's load
-they did not. The check now stops the clock across the two (proved on the gate's own mutated board with a
-1.5 s delay added: the old check passed it, the new one fails it). A second run was lost to a container
-restart; the third is the one above.
+**The gate that passed the revision** (1 Oct, 14:20–15:54 UTC, on the final tree): every stage clean, **94.7 min**;
+one sweep of 662 mutations (604 from the 30 Sep build, less the 8 retired, plus 66 new), 651/651 caught, 11
+equivalent, the sweep 87.0 min; fuzz seed 672014855. The run before it (12:40–14:11 UTC, 91.1 min, also clean) was on
+the same tree but for a CSS-only change. In the presweep two new mutations first SURVIVED -- `ids-export-records`
+and `ids-org-saved-early` -- and showed two weak tests: the no-history check compared the store before and after an
+export that followed others which had already written, and every refused prompt typed the ORG already stored. Both
+now compare against the exact starting state (`{org:21}`) and a new ORG, and both mutations are caught.
 
 ## Colour: one token, one job
 

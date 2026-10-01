@@ -362,7 +362,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
 // The owner's rule of 23 Sep 2026, checked line by line on the Spend Plan Source: a requirement
 // drawing both pots carries a line per lane per service, each on its own budget; CAM is automatic
 // and CONG only ever by hand; an office's lane-less name serves both lanes; OCO is never automatic;
-// a name with no PMO is a LEGACY budget and is never used, even when it was chosen. Every line's
+// a name with no PMO is a LEGACY budget and is never used, even when it was chosen -- and since v1.92 a chosen
+// budget that cannot be used STOPS the Spend Plan Source, naming the line, rather than printing it blank. Every line's
 // amount is DISTINCT, so the amount identifies the line, and the budget it must carry is written
 // here from the scenario -- never read back from the board.
 {
@@ -399,8 +400,25 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       S.ccar={A:'JSF1'};
       globalThis.__dcs=divCcarSide; divCcarSide=function(){ return {by:{'JSF1':{buds:{'USMC STOVL O&M -1A9B AV':1}}}, rows:1}; };
       _budCcMemo=null; 'ok'`);
-  const pack = JSON.parse(ev(`(function(){ var got='[]';
+  // v1.92: D's LEGACY CHOICE STOPS THE FILE. The resolver calls it unusable, so the Spend Plan Source refuses --
+  // it neither prints the name, nor blanks the line, nor puts the rule's answer in a person's place -- and says which.
+  const refused = JSON.parse(ev(`(function(){ var built=false, msg='';
+    var oa=window.alert; window.alert=function(m){ msg=String(m); };
     if(!globalThis.__ob3) globalThis.__ob3=buildXlsx;
+    buildXlsx=function(){ built=true; return new Uint8Array(0); };
+    try{ exportSrc(); }catch(e){}
+    buildXlsx=globalThis.__ob3; window.alert=oa;
+    return JSON.stringify({built:built, msg:msg}); })()`));
+  chk(name, 'invalid choice', 'a chosen budget that cannot be used stops the Spend Plan Source: no file',
+    refused.built + ' · ' + /not exported/.test(refused.msg), 'false · true');
+  chk(name, 'invalid choice', 'and the refusal names the requirement, the line, the name and why',
+    [refused.msg.includes(ev(`dispTitle(itemById('D'))`)), /USAF discretionary: USAF O&M- CAM \(a legacy budget/.test(refused.msg)].join(' · '), 'true · true');
+  // THE PRE-FLIGHT names it, as a block: the line has no budget until it is picked again or cleared
+  const pf = JSON.parse(ev(`JSON.stringify((preflight().find||[]).filter(function(f){ return f.k==='budbad'; }).map(function(f){ return f.sev+':'+f.rows.map(function(r){ return r.id; }).join(','); }))`));
+  chk(name, 'pre-flight', 'the unusable choice is a block, listed for a fresh pick', JSON.stringify(pf), '["block:D"]');
+  // cleared, the rule answers D's line -- and the file is made
+  ev(`delete S.budgetAsg.D; save(); 'ok'`);
+  const pack = JSON.parse(ev(`(function(){ var got='[]';
     buildXlsx=function(sheets){ got=JSON.stringify(sheets); return new Uint8Array(0); };
     try{ exportSrc(); }catch(e){ got='[]'; }
     buildXlsx=globalThis.__ob3; return got; })()`));
@@ -415,7 +433,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     [13,  'USMC STOVL O&M -1A9B AV',               'STOVL mandatory AV: two lane-less names fit, never OCO; the CCaR pull decides'],
     [17,  'USAF O&M - ANG CAM OBBBA Mandatory MxS', 'ANG mandatory MxS: the Mandatory name'],
     [29,  'USAF O&M - ANG CAM CDS',                'ANG CDS: the office’s lane-less CAM name serves the mandatory line, never CONG'],
-    [11,  '',                                      'a LEGACY name chosen by hand is never used: the line is blank'],
+    [11,  'USAF O&M- CAM Discretionary PP',        'once the legacy choice is cleared, the rule answers D’s line'],
     [5,   'USAF O&M- CAM CONG AV',                 'a CONG budget chosen by hand is honoured'],
   ];
   WANT.forEach(([amt, bud, why]) => {
@@ -432,11 +450,13 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   // THE PICK LIST offers the hand-pick lines the rule never chooses, and never a legacy name
   const pick = JSON.parse(ev(`JSON.stringify(budPickList('A','USAF','disc').map(function(b){ return b.n; }))`));
   chk(name, 'pick list', 'a person may still choose CONG', pick.includes('USAF O&M- CAM CONG AV'), true);
-  chk(name, 'pick list', 'but never a legacy name', pick.some(n => !JSON.parse(ev(`JSON.stringify(budUsable(${JSON.stringify(n)}))`))), false);
+  chk(name, 'pick list', 'but never a legacy name', pick.some(n => !JSON.parse(ev(`JSON.stringify(!!(budParseName(${JSON.stringify(n)})||{}).pmo)`))), false);
   chk(name, 'pick list', 'and a mandatory line is never offered a Discretionary name',
     JSON.parse(ev(`JSON.stringify(budPickList('A','ANG','mand').filter(function(b){ return b.dm==='disc'; }).length)`)), 0);
-  // THE WARNING COMES BEFORE THE FILE. D's line has no budget, so the export must stop and ask --
-  // and when the answer is no, no workbook is built at all.
+  // THE WARNING COMES BEFORE THE FILE. Without the CCaR pull, A's STOVL mandatory line has two lane-less names
+  // and nothing to decide between them, so it has no budget: the export must stop and ask -- and when the answer
+  // is no, no workbook is built at all. (A line with NO choice asks; a line whose CHOICE cannot be used refuses.)
+  ev(`divCcarSide=globalThis.__dcs; _budCcMemo=null; 'ok'`);
   const warned = JSON.parse(ev(`(function(){ var built=false, msg='';
     var oc=window.confirm; window.confirm=function(m){ msg=String(m); return false; };
     if(!globalThis.__ob5) globalThis.__ob5=buildXlsx;
@@ -445,11 +465,8 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     buildXlsx=globalThis.__ob5; window.confirm=oc;
     return JSON.stringify({built:built, msg:msg}); })()`));
   chk(name, 'warning', 'a line without a Budget stops the export and says so', /no Budget/.test(warned.msg), true);
-  chk(name, 'warning', 'and naming the requirement', warned.msg.includes(ev(`dispTitle(itemById('D'))`)), true);
+  chk(name, 'warning', 'and naming the requirement', warned.msg.includes(ev(`dispTitle(itemById('A'))`)), true);
   chk(name, 'warning', 'declined, no file is written', warned.built, false);
-  // THE PRE-FLIGHT names the legacy choice
-  const pf = JSON.parse(ev(`JSON.stringify((preflight().find||[]).filter(function(f){ return f.k==='legacy'; }).map(function(f){ return f.rows.map(function(r){ return r.id; }); }))`));
-  chk(name, 'pre-flight', 'the legacy choice is listed for a fresh pick', JSON.stringify(pf), '[["D"]]');
   // FULL FUND follows the COST ELEMENT, one to one
   const ff = ce => ev(`(function(){ var ms=mySlug, dc=DATA.costElems; mySlug=function(){ return 'ff'; }; DATA.costElems=true;
     S.costElem={}; if(${JSON.stringify(ce)}) S.costElem.A=${JSON.stringify(ce)};
@@ -461,7 +478,6 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'full fund', 'no cost element: nothing is guessed', ff(''), '');
   chk(name, 'cost element', 'Production Engineering Support is #8, right before Fixed JPO Support',
     ev(`COST_ELEMS.indexOf('Production Engineering Support')+':'+COST_ELEMS.indexOf('Fixed JPO Support')`), '7:8');
-  ev(`divCcarSide=globalThis.__dcs; 'ok'`);
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
@@ -568,17 +584,52 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'not set', 'two lane-less names fit STOVL mandatory and no CCaR settles it: not set', sm.how, 'unset');
   chk(name, 'not set', 'and the file leaves that $13 line blank', onFile(13), '');
   agree('start');
-  // FROM CCaR, AND A LEGACY CHOICE LEFT BY AN OLDER BOARD: the panel says what the file does in both
+  // FROM CCaR: the panel says what the file does
   ev(`S.ccar.A='JSF1'; globalThis.__dcs7=divCcarSide;
       divCcarSide=function(){ return {by:{'JSF1':{buds:{'USMC STOVL O&M -1A9B AV':1}}}, rows:1}; };
-      _budCcMemo=null; S.budgetAsg.D={'USAF|disc':'USAF O&M- CAM'}; save(); render(); 'ok'`);
+      _budCcMemo=null; save(); render(); 'ok'`);
   const sc2 = panel('A').rows.find(r => r.svc === 'STOVL' && r.lane === 'mandatory') || {};
   chk(name, 'from CCaR', 'the CCaR pull settles STOVL mandatory, and the panel says so', sc2.how + ' · ' + onFile(13),
     'ccar · USMC STOVL O&M -1A9B AV');
-  const dl = panel('D').rows[0] || {};
-  chk(name, 'legacy', 'a legacy choice: the panel says pick again, and the file leaves the line blank', dl.how + ' · ' + onFile(11), 'legacy · ');
-  agree('from CCaR, and a legacy choice');
-  ev(`divCcarSide=globalThis.__dcs7; _budCcMemo=null; S.ccar={}; delete S.budgetAsg.D; save(); render(); 'ok'`);
+  agree('from CCaR');
+  // v1.92: CHOICES THE RESOLVER CANNOT USE -- a legacy name left by an older board, a retired name, another
+  // office's budget -- stay chosen, are SHOWN for what they are (never "back to the rule" while the file printed
+  // the stored name), and stop the Spend Plan Source. Nothing falls back to the rule on its own.
+  const srcRefused = () => ev(`(function(){ var built=false, oa=window.alert; window.alert=function(){};
+    if(!globalThis.__ob7) globalThis.__ob7=buildXlsx; buildXlsx=function(){ built=true; return new Uint8Array(0); };
+    try{ exportSrc(); }catch(e){} buildXlsx=globalThis.__ob7; window.alert=oa; return built? 'made' : 'refused'; })()`);
+  ev(`S.budgetAsg.D={'USAF|disc':'USAF O&M- CAM'}; save(); render(); 'ok'`);
+  let dl = panel('D').rows[0] || {};
+  chk(name, 'invalid', 'a legacy choice stays selected, says it is not used, and the Spend Plan Source refuses',
+    [dl.how, dl.value, /not used/.test(dl.first), srcRefused()].join(' · '), 'invalid · USAF O&M- CAM · true · refused');
+  ev(`BUDDB.rows.forEach(function(b){ if(b.n==='USAF O&M- CAM Discretionary PP') b.gone=1; }); _budRegCache=null;
+      S.budgetAsg.D={'USAF|disc':'USAF O&M- CAM Discretionary PP'}; save(); render(); 'ok'`);
+  dl = panel('D').rows[0] || {};
+  chk(name, 'invalid', 'a RETIRED choice the same: shown, named retired, never printed',
+    [dl.how, dl.value, /retired/.test(ev(`(function(){ setCur('D'); return document.querySelector('#inspector .budhow').textContent; })()`)), srcRefused()].join(' · '),
+    'invalid · USAF O&M- CAM Discretionary PP · true · refused');
+  ev(`BUDDB.rows.forEach(function(b){ b.gone=0; }); _budRegCache=null; S.budgetAsg.D={'USAF|disc':'USAF O&M- CAM Discretionary AV'}; save(); render(); 'ok'`);
+  dl = panel('D').rows[0] || {};
+  chk(name, 'invalid', 'ANOTHER OFFICE’S budget (AV on a PP requirement) the same: shown, and why',
+    [dl.how, dl.value, /another office’s budget \(AV; this requirement is PP\)/.test(ev(`(function(){ setCur('D'); return document.querySelector('#inspector .budhow').textContent; })()`)), srcRefused()].join(' · '),
+    'invalid · USAF O&M- CAM Discretionary AV · true · refused');
+  chk(name, 'invalid', 'and its line is still drawn: an unusable budget never hides money',
+    panel('D').rows.map(r => r.svc + ' ' + r.lane).join(', '), 'USAF discretionary');
+  // EVERY REASON, read off the one resolver
+  const why = (id, svc, lane, nm) => ev(`(function(){ var A=S.budgetAsg[${J(id)}]; S.budgetAsg[${J(id)}]={}; S.budgetAsg[${J(id)}][${J(svc + '|' + lane)}]=${J(nm)};
+    var r=budResolve(${J(id)}, ${J(svc)}, ${J(lane)}); if(A) S.budgetAsg[${J(id)}]=A; else delete S.budgetAsg[${J(id)}];
+    return r.status+': '+r.reasons.join('; '); })()`);
+  chk(name, 'invalid', 'a name the BAE list does not hold', why('D', 'USAF', 'disc', 'USAF O&M- CAM OBBBA Discretionary PP'),
+    'invalid: the chosen budget is not in the BAE list');
+  chk(name, 'invalid', 'the other lane’s budget', why('A', 'USAF', 'disc', MAND_AV), 'invalid: the chosen budget is a mandatory budget on the discretionary line');
+  chk(name, 'invalid', 'another service’s budget', why('A', 'ANG', 'disc', DISC_AV), 'invalid: the chosen budget is not a budget for ANG');
+  chk(name, 'invalid', 'another appropriation’s budget', /another appropriation’s budget/.test(why('A', 'STOVL', 'disc', 'USMC STOVL APN Full Fund SUPT PES Discretionary AV')), true);
+  chk(name, 'invalid', 'a valid choice in another case is the list’s own spelling', ev(`(function(){ S.budgetAsg.A={'USAF|disc':${J(DISC_AV.toUpperCase())}};
+    var r=budResolve('A','USAF','disc'); delete S.budgetAsg.A; return r.status+' · '+r.effective; })()`), 'chosen · ' + DISC_AV);
+  chk(name, 'invalid', '“back to the rule” clears the stored key, and the file is made with the rule’s answer',
+    choose('D', line('USAF discretionary'), '') + ' · ' + asg('D') + ' · ' + srcRefused() + ' · ' + onFile(11), 'ok · null · made · USAF O&M- CAM Discretionary PP');
+  agree('invalid choices cleared');
+  ev(`divCcarSide=globalThis.__dcs7; _budCcMemo=null; S.ccar={}; save(); render(); 'ok'`);
 
   // A CHOICE WITH NO MONEY YET, then the money
   chk(name, 'unfunded', 'the unfunded line takes a budget from its picker', choose('F', line('USAF not funded yet'), CONG_AV), 'ok');
@@ -592,21 +643,36 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   chk(name, 'funded', 'and the file prints it on F’s $16 line', onFile(16), CONG_AV);
   agree('funded after the choice');
 
-  // A NAME CARRIES ITS OWN LANE
+  // v1.92: A LINE WITH NO MONEY CARRIES UNFUNDED DOLLARS, and they go on a discretionary or lane-less budget
+  // (the owner, 1 Oct 2026). Its picker never offers a mandatory name; a mandatory choice made while the line was
+  // funded in mandatory is KEPT -- named, not used for the unfunded dollars -- and is the mandatory line's again
+  // the moment mandatory money comes back.
+  click('F', '#inspector .budfoot button');
   lanes(117, 0);
-  chk(name, 'lane', 'a mandatory name picked with no money yet', choose('F', line('USAF not funded yet'), MAND_AV), 'ok');
-  chk(name, 'lane', 'is kept for the mandatory lane, replacing the earlier choice', asg('F'), J({ 'USAF|mand': MAND_AV }));
-  chk(name, 'lane', 'and the unfunded line shows it chosen', said(panel('F')), 'not funded yet:chosen:' + MAND_AV);
-  lanes(133, 0);
-  f = panel('F');
-  chk(name, 'lane', 'funded in discretionary instead, the line follows the rule: never a mandatory name on it',
-    said(f) + ' · ' + onFile(16), 'discretionary:rule: · ' + DISC_AV);
-  chk(name, 'lane', 'and the choice waits, unseen on any line but counted', f.clearAll, 'Clear all (1)');
-  agree('the other lane');
+  chk(name, 'lane', 'a mandatory name is not offered on a line with no money yet', choose('F', line('USAF not funded yet'), MAND_AV), 'not offered');
+  chk(name, 'lane', 'and written to it directly, it is refused and nothing changes', ev(`budUnfSet('F','USAF',${J(MAND_AV)}); 'ok'`) + ' · ' + asg('F')
+    + ' · ' + /is a mandatory budget/.test(ev(`document.getElementById('shareStat').textContent`)), 'ok · null · true');
   lanes(117, 16);
-  chk(name, 'lane', 'funded in mandatory, the choice is used', said(panel('F')) + ' · ' + onFile(16), 'mandatory:chosen:' + MAND_AV + ' · ' + MAND_AV);
+  chk(name, 'lane', 'funded in mandatory, a mandatory name is chosen on that line', choose('F', line('USAF mandatory'), MAND_AV) + ' · ' + asg('F'),
+    'ok · ' + J({ 'USAF|mand': MAND_AV }));
+  lanes(117, 0);
+  f = panel('F');
+  chk(name, 'lane', 'the money gone, the line resolves as discretionary -- the rule, never the mandatory name',
+    said(f) + ' · ' + (f.rows[0] || {}).title, 'not funded yet:rule: · No money yet · the IDS export files it under: ' + DISC_AV);
+  chk(name, 'lane', 'and the mandatory choice is kept, named, and still counted',
+    /Kept for mandatory money: USAF O&M - CAM OBBBA Mandatory AV/.test(ev(`(function(){ setCur('F'); return document.getElementById('inspector').textContent; })()`))
+      + ' · ' + asg('F') + ' · ' + f.clearAll, 'true · ' + J({ 'USAF|mand': MAND_AV }) + ' · Clear all (1)');
+  chk(name, 'lane', 'a lane-less name picked on the not-funded line leaves the mandatory choice where it is',
+    choose('F', line('USAF not funded yet'), CONG_AV) + ' · ' + asg('F'), 'ok · ' + J({ 'USAF|mand': MAND_AV, USAF: CONG_AV }));
+  chk(name, 'lane', 'its clear clears only what answers that line', click('F', clearBtn('USAF not funded yet')) + ' · ' + asg('F'),
+    'ok · ' + J({ 'USAF|mand': MAND_AV }));
+  lanes(117, 16);
+  chk(name, 'lane', 'funded in mandatory again, the kept choice is used', said(panel('F')) + ' · ' + onFile(16), 'mandatory:chosen:' + MAND_AV + ' · ' + MAND_AV);
   agree('mandatory after the choice');
   lanes(133, 0);
+  chk(name, 'lane', 'funded in discretionary instead, the line follows the rule: never a mandatory name on it',
+    said(panel('F')) + ' · ' + onFile(16), 'discretionary:rule: · ' + DISC_AV);
+  agree('the other lane');
   chk(name, 'clear all', '“Clear all” clears the choice no line shows', click('F', '#inspector .budfoot button') + ' · ' + asg('F'), 'ok · null');
   agree('cleared unseen');
 
@@ -703,19 +769,55 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
   }
 }
 
-// ═══ THE IDS BATCH: BOTH LANES, AND A RECORD OF WHAT WAS SENT (v1.92, item 37) ═════════════════════
-// Every line the file carries is written here from the scenario, never read back from the board. The
-// walk (order A B D C F H): USAF disc 120 = A 100 + B 20; USAF mand 60 all to B; C's 40 and H's 10 find
-// nothing. ANG disc 30 to A; ANG mand 40 = A 20 + D 20, D short 10. STOVL disc 10 to F, F short 15.
-// So: A USAF discretionary only; A ANG and B USAF both lanes; D ANG mandatory only; C unfunded, sharing A's
-// control number; F discretionary and partly unfunded; H unfunded with no CCaR number at all; E unfunded
-// on its own control number, so its line is named only by its "not funded yet" line in the RECORD panel.
+// ═══ A CSV CELL A SPREADSHEET WOULD RUN IS WRITTEN AS TEXT (v1.92, revised before merge) ══════════════════════
+// A title or consequence typed as =HYPERLINK(...), +cmd, -cmd|..., @SUM(...), or behind a tab, a carriage return, a
+// line feed or spaces, is a formula to whoever opens the CSV. Every CSV the board writes goes through csvCell(): such
+// a cell gets a leading apostrophe; a true number, or a figure ORBIT formatted, is left exactly as it was.
 {
-  const name = 'v1.92 — the IDS batch: both lanes, and a record of what was sent';
+  const name = 'v1.92 — CSV cells a spreadsheet would run are written as text';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  const cellOf = v => ev(`csvCell(${J(v)})`);
+  const BAD = ['=1+1', '+cmd', "-cmd|' /C calc'!A0", '@SUM(A1)', '\t=1', '\r=1', '\n=1', '  =1', ' +1', '\t', '\rX', '\nY', '＝1'];
+  chk(name, 'formula', 'every cell a spreadsheet would read as a formula starts with an apostrophe',
+    J(BAD.map(v => cellOf(v).slice(0, 2))), J(BAD.map(() => `"'`)));
+  const KEEP = [['Engine sustainment', '"Engine sustainment"'], ['-$1,234', '"-$1,234"'], ['+3', '"+3"'], ['12%', '"12%"'], ['$4.5M', '"$4.5M"'],
+    ['say "hi"', '"say ""hi"""'], ['  indented', '"  indented"']];
+  chk(name, 'kept', 'text and the figures ORBIT formats stay exactly as they were', J(KEEP.map(k => cellOf(k[0]))), J(KEEP.map(k => k[1])));
+  chk(name, 'kept', 'a true number stays a number, negative included',
+    J([ev(`csvCell(-42)`), ev(`csvCell(3.5)`), ev(`csvCell(0)`), ev(`csvCell(null)`)]), J(['"-42"', '"3.5"', '"0"', '""']));
+  // THROUGH A REAL EXPORT: the Executive Synopsis lists a Mission Critical requirement short of discretionary by the
+  // name the board shows for it (its plan event)
+  seed(ev, { services: ['USAF'], items: [{ id: 'Q', grp: 'AV', team: 'AV', sect: '', custom: false, title: 't', event: '=HYPERLINK("http://x","y")',
+    ccar: '', fy26: [0], ask: [100], alloc: null }], disc: [40], mand: [0], order: ['Q'], mc: { Q: true } });
+  const rows = captureSynopsis(ev);
+  chk(name, 'export', 'the synopsis writes the name as text, apostrophe first',
+    J(rows.flat().filter(c => /HYPERLINK/.test(c))), J([`'=HYPERLINK("http://x","y")`]));
+  chk(name, 'export', 'and leaves every figure in it alone', rows.flat().filter(c => /^'[-+$\d]/.test(c)).length, 0);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ THE IDS EXPORT (v1.92, revised before merge on the owner's decisions of 1 Oct 2026) ═══════════════════════
+// Every row, amount and reason below is written here from the scenario, never read back from the board.
+// THE WALK (order A B D C F H E): USAF disc 120 = A 100 + B 20; USAF mand 60 all to B; C's 40 and H's 10 find
+// nothing. ANG disc 30 to A; ANG mand 40 = A 20 + D 20, D short 10. STOVL disc 10 to F, F short 15.
+// So: A USAF discretionary only; A ANG both lanes; B USAF both lanes; D ANG mandatory only and 10 short;
+// C unfunded, sharing A's control number; F discretionary and partly unfunded; H unfunded with no CCaR number;
+// E unfunded on its own control number.
+// THE RULES (A1): a mandatory contribution's Amount = Approved = its draw; a discretionary one carries the draw
+// plus EVERY unfunded dollar on the service; no money = the requirement at Approved 0, on a DISCRETIONARY or
+// lane-less budget; a fully mandatory-funded service has no $0/$0 discretionary row. One row per FY + budget +
+// control, every contribution landing there consolidated, several requirements on a row disclosed for review.
+{
+  const name = 'v1.92 — the IDS export: consolidated, reconciled, nothing recorded';
   try {
   const J = JSON.stringify;
   const SV = ['USAF', 'ANG', 'STOVL'];
-  const mkI = (id, ask, ccar) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false,
+  const mkI = (id, ask, ccar, grp) => ({ id, grp: grp || 'AV', team: grp || 'AV', sect: '', custom: false,
     title: id + ' title', event: id + ' event', ccar, fy26: ask.map(() => 0), ask, alloc: null });
   const sc = { services: SV,
     items: [mkI('A', [100, 50, 0], 'JSF1'), mkI('B', [80, 0, 0], 'JSF2'), mkI('D', [0, 30, 0], 'JSF3'),
@@ -724,125 +826,311 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     disc: [120, 30, 10], mand: [60, 40, 0], order: ['A', 'B', 'D', 'C', 'F', 'H', 'E'] };
   const UD = 'USAF O&M- CAM Discretionary AV', UM = 'USAF O&M - CAM OBBBA Mandatory AV',
     AD = 'USAF O&M - ANG CAM Discretionary AV', AM = 'USAF O&M - ANG CAM OBBBA Mandatory AV',
-    SD = 'USMC STOVL O&M -1A9A FL Discretionary AV', CONG = 'USAF O&M- CAM CONG AV';
+    SD = 'USMC STOVL O&M -1A9A FL Discretionary AV', CONG = 'USAF O&M- CAM CONG AV',
+    RET = 'USAF O&M- CAM OLD Discretionary AV';
+  const NOW = 1790000000000;           // 21 Sep 2026: the export's clock, frozen
   const { ev, errors } = boot();
   seed(ev, sc);
   if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
   const REC = n => ({ t: 'Record ' + n, o: 'OPR', p: 'AV', d: 1, k: String(1000 + n) });
-  ev(`MS.ccarIdx={rows:{JSF1:${J(REC(1))}, JSF2:${J(REC(2))}, JSF3:${J(REC(3))}, JSF4:${J(REC(4))}, JSF5:${J(REC(5))}, JSF6:${J(REC(6))}}};
-      BUDDB={ts:1700000000031, files:[], rows:${J([UD, UM, AD, AM, SD, CONG])}.map(budParseName).filter(Boolean)};
-      _budRegCache=null; S.budgetAsg={}; S.ccar={}; MS.ids={org:21}; save(); render(); 'ok'`);
-  const DAY = ev('idsDay()');
-  // THE FILE, as exported (and the export's side effects on the record)
-  const exportIt = () => JSON.parse(ev(`(function(){ var got=null, o=buildXlsx;
-    buildXlsx=function(s){ got=s; return new Uint8Array(0); };
-    try{ exportIdsReq(); }catch(e){ got=[{name:'THREW '+e.message, rows:[]}]; } buildXlsx=o; return JSON.stringify(got); })()`));
-  const linesOf = sheets => (((sheets || [])[0] || {}).rows || []).slice(1).map(r => r.map(c => c && typeof c === 'object' ? c.v : c));
-  const show = L => L.map(r => `${r[4]} · ${r[5]} · ${r[6]}/${r[7]} · ${r[1]} · ${r[8]}`).join(' | ');
-  const rowsNow = () => JSON.parse(ev(`JSON.stringify(idsReqRows())`));
+  const RECS = `{JSF1:${J(REC(1))}, JSF2:${J(REC(2))}, JSF3:${J(REC(3))}, JSF4:${J(REC(4))}, JSF5:${J(REC(5))}}`;
+  ev(`MS.ccarIdx={rows:${RECS}};
+      BUDDB={ts:1700000000031, files:[], rows:${J([UD, UM, AD, AM, SD, CONG, RET])}.map(budParseName).filter(Boolean)};
+      BUDDB.rows.forEach(function(b){ if(b.n===${J(RET)}) b.gone=1; });
+      _budRegCache=null; S.budgetAsg={}; S.ccar={}; MS.ids={org:21}; save(); render();
+      globalThis.__RD=Date; Date=class extends globalThis.__RD { constructor(...a){ if(a.length) super(...a); else super(${NOW}); }
+        static now(){ return ${NOW}; } }; 'ok'`);
+  const FORM = { reason: 'FY27 baseline from the SFCB', action: 'Add', fid: '20260921-1346', fidOk: true, org: '21', orgOk: true };
+  // THE FILE: the sheets handed to the writer, the bytes it wrote, what was downloaded, what was said
+  const exportIt = (form, board) => JSON.parse((board || ev)(`(function(){ var got=null, bytes=null, msg='', dl=[];
+    var oa=window.alert, oc=HTMLAnchorElement.prototype.click, ob=buildXlsx;
+    window.alert=function(m){ msg=String(m); };
+    HTMLAnchorElement.prototype.click=function(){ dl.push(this.download||''); };
+    buildXlsx=function(s, x){ got=s; bytes=ob(s, x); return bytes; };
+    var ok;
+    try{ ok=exportIdsReq(${form === undefined ? '' : J(form)}); }catch(e){ ok='threw '+e.message; }
+    buildXlsx=ob; window.alert=oa; HTMLAnchorElement.prototype.click=oc;
+    return JSON.stringify({ok:ok, msg:msg, sheets:got, bytes:bytes? Array.from(bytes) : null, dl:dl,
+      stat:(document.getElementById('shareStat')||{}).textContent||''}); })()`));
+  const cells = r => (r || []).map(c => c && typeof c === 'object' ? c.v : c);
+  const reqRows = X => (((X.sheets || [])[0] || {}).rows || []).slice(1).map(cells);
+  const sheet2 = X => (((X.sheets || [])[1] || {}).rows || []).map(r => cells(r).join(' | ')).join('\n');
+  const show = L => L.map(r => `${r[4]} · ${r[5]} · ${r[6]}/${r[7]}`).join(' | ');
+  const build = () => JSON.parse(ev(`JSON.stringify(idsBuild())`));
+  const idsNow = () => ev(`JSON.stringify(MS.ids||null)`);
 
-  // BOTH LANES, EACH ON ITS OWN BUDGET
+  // ── THE ROWS (A1), every one written from the scenario ───────────────────────────────────────────────
   const WANT = [
     [AD, 1001, 30, 30],     // A ANG discretionary: 50 asked, 20 of it paid by mandatory -> 30/30
-    [AD, 1004, 20, 0],      // E ANG, no money: its not-funded-yet line, the discretionary rule's budget
-    [AM, 1001, 20, 20],     // A ANG mandatory: Amount = Approved = the mandatory draw
-    [AM, 1003, 30, 20],     // D ANG mandatory only: the whole requirement rides its one line, 10 short
+    [AD, 1003, 10, 0],      // D ANG: drew only mandatory and is 10 short -> the 10 unfunded on DISCRETIONARY
+    [AD, 1004, 20, 0],      // E ANG, no money: the requirement at Approved 0, on the discretionary rule's budget
+    [AM, 1001, 20, 20],     // A ANG mandatory: Amount = Approved = the draw
+    [AM, 1003, 20, 20],     // D ANG mandatory: the draw only -- never the unfunded 10
     [UM, 1002, 60, 60],     // B USAF mandatory
-    [UD, 1001, 140, 100],   // A USAF discretionary 100/100 + C unfunded 40/0 on the same control number
+    [UD, 1001, 140, 100],   // A USAF 100/100 + C unfunded 40/0, consolidated on one control number
     [UD, 1002, 20, 20],     // B USAF discretionary: 80 asked, 60 of it paid by mandatory
     [SD, 1005, 25, 10],     // F STOVL discretionary: the unfunded 15 rides the discretionary line
   ];
-  let R = rowsNow();
-  chk(name, 'lines', 'a line per service per lane, each on its own budget, Amounts and Approveds as written',
-    R.rows.map(r => `${r.bud} · ${r.ctl} · ${r.amt}/${r.app}`).join(' | '),
+  let X = exportIt(FORM);
+  chk(name, 'A1', 'one row per FY + budget + control, Amounts and Approveds as written', show(reqRows(X)),
     WANT.map(w => `${w[0]} · ${w[1]} · ${w[2]}/${w[3]}`).join(' | '));
-  chk(name, 'lines', 'the mandatory draws are in the file: every dollar the board funds, less none',
-    R.rows.reduce((t, r) => t + r.app, 0), 260);
-  chk(name, 'lines', 'the file’s Amounts plus what is held back add to every requirement on the board',
-    R.rows.reduce((t, r) => t + r.amt, 0) + R.skip.reduce((t, k) => t + k.ask, 0), 355);
-  chk(name, 'lines', 'and its Approveds plus what is held back to what the board funds',
-    R.rows.reduce((t, r) => t + r.app, 0) + R.skip.reduce((t, k) => t + k.app, 0),
-    +ev(`(function(){ var T=tiers(), n=0; S.order.forEach(function(id){ var t=T[id]; if(!t) return;
-      (t.d||[]).forEach(function(v){ n+=v; }); (t.m||[]).forEach(function(v){ n+=v; }); }); return n; })()`));
-  chk(name, 'lines', 'no Amount below its Approved', R.rows.filter(r => r.amt + 0.005 < r.app).length, 0);
-  chk(name, 'held back', 'a requirement with no CCaR number is held back, named with its lane',
-    R.skip.map(k => `${k.id} ${k.svc} ${k.lane || 'unfunded'} ${k.ask}/${k.app} · ${k.why}`).join(' | '),
-    'H USAF unfunded 10/0 · no CCaR number on the requirement');
-  // EVERY LINE IS ONE THE RECORD PANEL NAMES: its budget, from the panel as drawn
-  const panelSays = JSON.parse(ev(`(function(){ var out=[];
-    S.order.forEach(function(id){ setCur(id); var ctl=ccarCtlOf(itemById(id)).v; if(!ctl) return;
-      [].slice.call(document.querySelectorAll('#inspector table.budtab select')).forEach(function(s){
-        var t=s.getAttribute('title')||'', m=/(?:The file prints|the IDS batch files it under): (.+)$/.exec(t);
-        if(m) out.push(m[1]+' · '+ctl); }); });
-    return JSON.stringify(out.filter(function(v,i,a){ return a.indexOf(v)===i; }).sort()); })()`));
-  chk(name, 'panel', 'every line’s budget is the one the RECORD panel names for it',
-    J(R.rows.map(r => `${r.bud} · ${r.ctl}`).sort()), J(panelSays));
-  // A LANE-LESS BUDGET SERVING BOTH LANES folds them into one line: IDS takes a control number once per budget
+  chk(name, 'A1', 'a mandatory-only service that is short: mandatory 20/20 and the unfunded 10/0 on discretionary (PR #3 wrote mandatory 30/20)',
+    reqRows(X).filter(r => r[5] === 1003).map(r => `${r[4]} ${r[6]}/${r[7]}`).join(' | '), `${AD} 10/0 | ${AM} 20/20`);
+  chk(name, 'A1', 'no unfunded dollar on a mandatory budget: every mandatory row’s Amount is its Approved',
+    reqRows(X).filter(r => /Mandatory/.test(r[4]) && r[6] !== r[7]).length, 0);
+  // ONE BUDGET, SEVERAL CONTROLS; ONE CONTROL, SEVERAL BUDGETS; ONE CONTROL, LANE-SPECIFIC BUDGETS
+  chk(name, 'consolidation', 'one budget carries several control numbers', reqRows(X).filter(r => r[4] === UD).map(r => r[5]).join(','), '1001,1002');
+  chk(name, 'consolidation', 'one control number on several budgets is a row on each', reqRows(X).filter(r => r[5] === 1001).map(r => r[4]).join(' | '), [AD, AM, UD].join(' | '));
+  chk(name, 'consolidation', 'the same control on two lane-specific budgets stays two rows', reqRows(X).filter(r => r[5] === 1001 && /ANG/.test(r[4])).length, 2);
+  // SEVERAL REQUIREMENTS ON ONE ROW: consolidated, every contributor disclosed
+  let P = build();
+  const r7 = P.rows.find(r => r.ctl === '1001' && r.bud === UD) || { sources: [] };
+  chk(name, 'consolidation', 'A and C on one budget and control: one row, both contributions in it',
+    r7.sources.map(y => `${y.id} ${y.svc} ${y.lane} ${y.amount}/${y.approved}`).join(' | '), 'A USAF disc 100/100 | C USAF disc 40/0');
+  chk(name, 'consolidation', 'and it is listed for review in the box and on the anomalies sheet',
+    [P.multi.map(r => r.ref).join(','), /ROWS THAT CONSOLIDATE SEVERAL ORBIT REQUIREMENTS[\s\S]*7 \| USAF O&M- CAM Discretionary AV \| 1001 \| A \| [^\n]*\n7 \| USAF O&M- CAM Discretionary AV \| 1001 \| C \|/.test(sheet2(X))].join(' · '), '7 · true');
+  chk(name, 'consolidation', 'a control used by several requirements across budgets is listed for review',
+    P.shared.map(g => g.ctl + ':' + g.rows.map(r => r.ref).join('/')).join(' '), '1001:1/4/7');
+  // A LANE-NEUTRAL BUDGET TAKES BOTH LANES OF ONE CONTROL IN ONE ROW
   ev(`S.budgetAsg.B={USAF:${J(CONG)}}; save(); render(); 'ok'`);
-  R = rowsNow();
-  chk(name, 'one budget', 'B’s two lanes on one lane-less budget are one line, both lanes’ money in it',
-    R.rows.filter(r => r.ctl === '1002').map(r => `${r.bud} ${r.amt}/${r.app}`).join(' | '), CONG + ' 80/80');
+  P = build();
+  chk(name, 'consolidation', 'B’s two lanes on one lane-less budget are one row, both lanes in it',
+    P.rows.filter(r => r.ctl === '1002').map(r => `${r.bud} ${r.amount}/${r.approved} ` + r.sources.map(y => y.lane).join('+')).join(' | '), CONG + ' 80/80 disc+mand');
   ev(`delete S.budgetAsg.B; save(); render(); 'ok'`);
-  // A BUDGET CHOSEN ON A "NOT FUNDED YET" LINE is the one its IDS line goes under -- chosen in the panel
-  chk(name, 'unfunded', 'E’s not-funded-yet line takes a mandatory budget from its picker', ev(`(function(){ setCur('E');
-    var s=document.querySelector('#inspector select[aria-label="BAE budget, ANG not funded yet"]'); if(!s) return 'no picker';
-    s.value=${J(AM)}; if(s.value!==${J(AM)}) return 'not offered'; s.dispatchEvent(new Event('change')); return 'ok'; })()`), 'ok');
-  chk(name, 'unfunded', 'and E’s line goes under it', rowsNow().rows.filter(r => r.ctl === '1004').map(r => `${r.bud} ${r.amt}/${r.app}`).join(' | '), AM + ' 20/0');
+  // PROVENANCE AND RECONCILIATION, row by row and board-wide
+  P = build();
+  const src = P.rows.flatMap(r => r.sources).concat(P.excluded);
+  chk(name, 'provenance', 'every contribution names its requirement, service, lane, budget, Amount and Approved',
+    src.filter(y => !(y.id && y.svc && /^(disc|mand)$/.test(y.lane) && typeof y.amount === 'number' && typeof y.approved === 'number')).length
+      + ' · ' + P.rows.flatMap(r => r.sources).filter(y => !y.budget).length, '0 · 0');
+  chk(name, 'reconcile', 'every row’s Amount and Approved are the sum of its sources',
+    P.rows.filter(r => r.amount !== r.sources.reduce((t, y) => t + y.amount, 0) || r.approved !== r.sources.reduce((t, y) => t + y.approved, 0)).length, 0);
+  chk(name, 'reconcile', 'uploaded + not uploaded = every requirement (Amount) and every dollar drawn (Approved)',
+    [P.tot.upAmt + P.tot.exAmt, P.tot.upApp + P.tot.exApp].join('/'), '355/260');
+  chk(name, 'reconcile', 'every contribution is in exactly one place', J(Object.values(src.reduce((o, y) => { const k = y.id + y.svc + y.lane; o[k] = (o[k] || 0) + 1; return o; }, {})).filter(n => n !== 1)), '[]');
+  chk(name, 'reconcile', 'the box’s own check holds, and every value is a whole dollar',
+    P.check.ok + ' · ' + src.concat(P.rows).filter(y => !Number.isInteger(y.amount) || !Number.isInteger(y.approved)).length, 'true · 0');
+  chk(name, 'reconcile', 'the anomalies sheet reconciles the same figures',
+    /Every requirement on the board[^\n]*\| 355 \| 260\nOn Requirement v1 \| 345 \| 260\nNot uploaded \(listed below\) \| 10 \| 0\nCheck \| ✓ ties \| ✓ ties/.test(sheet2(X)), true);
+  // A FULLY MANDATORY-FUNDED SERVICE: no $0/$0 discretionary row
+  ev(`S.mandSvc[1]=50; render(); 'ok'`);
+  chk(name, 'A1', 'D fully paid by mandatory: its mandatory row only, never a $0/$0 discretionary row',
+    build().rows.filter(r => r.ctl === '1003').map(r => `${r.bud} ${r.amount}/${r.approved}`).join(' | '), `${AM} 30/30`);
+  ev(`S.mandSvc[1]=40; render(); 'ok'`);
+  // B5 AND D-B: A REQUIREMENT WITH NO MONEY GOES ON A DISCRETIONARY BUDGET, EVEN WITH A MANDATORY CHOICE KEPT
+  ev(`S.budgetAsg.E={'ANG|mand':${J(AM)}}; save(); render(); 'ok'`);
+  chk(name, 'B5', 'E, unfunded with a mandatory budget kept for later: still the discretionary rule’s budget, Approved 0 (PR #3 put it on the mandatory budget)',
+    build().rows.filter(r => r.ctl === '1004').map(r => `${r.bud} ${r.amount}/${r.approved}`).join(' | '), `${AD} 20/0`);
+  chk(name, 'B5', 'and the mandatory choice is still stored', ev(`JSON.stringify(S.budgetAsg.E)`), J({ 'ANG|mand': AM }));
   ev(`delete S.budgetAsg.E; save(); render(); 'ok'`);
+  // A BUDGET CHOSEN ON A LINE WITH NO MONEY is the one IDS files it under -- here a lane-less one, which takes C off
+  // A's row: the same control number on two budgets, two rows
+  ev(`S.budgetAsg.C={USAF:${J(CONG)}}; save(); render(); 'ok'`);
+  chk(name, 'B5', 'C’s chosen lane-less budget takes its unfunded 40 to a row of its own; A’s row keeps A',
+    build().rows.filter(r => r.ctl === '1001' && /^USAF O&M- CAM/.test(r.bud)).map(r => `${r.bud} ${r.amount}/${r.approved} ${r.reqs.join(',')}`).join(' | '),
+    `${CONG} 40/0 C | ${UD} 100/100 A`);
+  ev(`delete S.budgetAsg.C; save(); render(); 'ok'`);
+  chk(name, 'pre-flight', 'requirements sharing a control number are listed for review, never blocked',
+    ev(`JSON.stringify((preflight().find||[]).filter(function(f){ return f.k==='dup'; }).map(function(f){ return f.sev+':'+f.rows.map(function(r){ return r.id; }).join(','); }))`),
+    J(['note:A,C']));
+  chk(name, 'B5', 'rows uploaded with Approved 0 are listed on the anomalies sheet',
+    /ROWS UPLOADED WITH REQ\. APPROVED 0[^\n]*\nRef No[^\n]*\n2 \| USAF O&M - ANG CAM Discretionary AV \| 1003 \| 10 \| D\n3 \| USAF O&M - ANG CAM Discretionary AV \| 1004 \| 20 \| E/.test(sheet2(X)), true);
 
-  // THE FIRST EXPORT: ALL ADD, AND RECORDED
-  let F1 = linesOf(exportIt());
-  chk(name, 'first', 'the first batch: every line Add, “New Requirement”, ORG 21, the working year',
-    F1.map(r => r[1] + '/' + r[8] + '/' + r[2] + '/' + r[3]).filter((v, i, a) => a.indexOf(v) === i).join(', '),
-    'Add/New Requirement/21/2027');
-  chk(name, 'first', 'Ref No runs 1..N', F1.map(r => r[0]).join(','), WANT.map((_, i) => i + 1).join(','));
-  chk(name, 'first', 'the file id is today’s first', ev(`idsCfg().issued.join(',')`), DAY + '-0001');
-  chk(name, 'first', 'and the batch is recorded, line by line',
-    ev(`JSON.stringify(idsCfg().sent.map(function(b){ return b.fid+':'+b.lines.length; }))`), J([DAY + '-0001:8']));
-  // THE SAME LINES AGAIN: ALL UPDATE, AND THE ID MOVES ON BY ITSELF
-  chk(name, 'again', 'the next file id is taken by itself', ev('idsFileId()'), DAY + '-0002');
-  let F2 = linesOf(exportIt());
-  chk(name, 'again', 'the same lines again: every one Update, “Updated requirement”',
-    F2.map(r => r[1] + '/' + r[8]).filter((v, i, a) => a.indexOf(v) === i).join(', '), 'Update/Updated requirement');
-  // A NEW REQUIREMENT IS ADD; A LINE THAT VANISHED IS LISTED, NOT DELETED
-  ev(`DATA.items.push(${J(mkI('G', [0, 0, 5], 'JSF6'))}); S.order.push('G');
-      itemById('F').ccar=''; save(); render(); 'ok'`);
-  const S3 = exportIt(), F3 = linesOf(S3);
-  chk(name, 'third', 'a new requirement goes as Add, the rest as Update',
-    F3.map(r => `${r[5]}:${r[1]}`).sort().join(' '), ['1001:Update', '1001:Update', '1001:Update', '1002:Update', '1002:Update', '1003:Update', '1004:Update', '1006:Add'].join(' '));
-  const notEx = ((S3[1] || {}).rows || []).map(r => r.map(c => c && typeof c === 'object' ? c.v : c).join(' | ')).join(' || ');
-  chk(name, 'third', 'a line sent before and missing now is listed on Not exported, for a Delete by hand',
-    /SENT BEFORE, NOT IN THIS BATCH[\s\S]*USMC STOVL O&M -1A9A FL Discretionary AV \| 1005 \| 25 \| 10 \| \d{8}-0002/.test(notEx), true);
-  // FORGET A BATCH THAT WAS NEVER UPLOADED: ITS LINES GO BACK TO ADD
-  ev(`window.confirm=function(){ return true; }; idsForget(${J(DAY + '-0003')}); 'ok'`);
-  R = rowsNow();
-  chk(name, 'forget', 'the forgotten batch’s only line goes back to Add; the others stay Update',
-    R.rows.map(r => `${r.ctl}:${r.act}`).sort().join(' '), ['1001:Update', '1001:Update', '1001:Update', '1002:Update', '1002:Update', '1003:Update', '1004:Update', '1006:Add'].join(' '));
-  chk(name, 'forget', 'and its file id stays used', ev(`idsCfg().issued.join(',')`), [1, 2, 3].map(n => DAY + '-000' + n).join(','));
-  // A TYPED SEQUENCE WINS FOR THE DAY; ONE ALREADY ISSUED IS REFUSED
-  ev(`idsSet('seq','7'); 'ok'`);
-  chk(name, 'file id', 'a typed sequence is used', ev('idsFileId()'), DAY + '-0007');
-  exportIt();
-  chk(name, 'file id', 'and after it the next is taken by itself again', ev('idsFileId()'), DAY + '-0008');
-  const refused = JSON.parse(ev(`(function(){ var n=idsCfg().issued.length, msg=''; idsSet('seq','2');
-    var oa=window.alert; window.alert=function(m){ msg=String(m); };
-    var o=buildXlsx, built=false; buildXlsx=function(){ built=true; return new Uint8Array(0); };
-    try{ exportIdsReq(); }catch(e){} buildXlsx=o; window.alert=oa;
-    return JSON.stringify({built:built, issued:idsCfg().issued.length-n, said:/already been issued/.test(msg)}); })()`));
-  chk(name, 'file id', 'an id this board already issued is refused, and nothing is written or recorded', J(refused), J({ built: false, issued: 0, said: true }));
-  ev(`idsSet('seq',''); 'ok'`);
-  // ANOTHER APPROPRIATION'S IDS COUNT: A1 IS UNIQUE ACROSS EVERY FILE
-  ev(`(function(){ var k=Object.keys(_SLUGMAP).filter(function(x){ return x!==_AP.slug; })[0];
-    localStorage.setItem(_SLUGMAP[k].key, JSON.stringify({years:{}, ids:{issued:[${J(DAY + '-0020')}]}})); })(); 'ok'`);
-  chk(name, 'file id', 'an id issued in another appropriation is never handed out again', ev('idsFileId()'), DAY + '-0021');
-  // THE RECORD TRAVELS WITH THE BOARD, AND NOT INTO A PMO COPY
-  const kept = ev(`JSON.stringify({i:idsCfg().issued, s:idsCfg().sent.map(function(b){ return b.fid; })})`);
-  const RB = boot({ html: ev('buildSavedHtml()') });
-  chk(name, 'saved', 'the record and the issued ids come back from a saved file',
-    RB.ev(`JSON.stringify({i:idsCfg().issued, s:idsCfg().sent.map(function(b){ return b.fid; })})`), kept);
-  const copy = ev(`(function(){ var h=buildSavedHtml({refOnly:true}); var m=/<script type="application\\/json" id="pubState">([\\s\\S]*?)<\\/script>/.exec(h);
-    var st=JSON.parse(m[1]).appns[_AP.slug]; return JSON.stringify({sent:!!(st.ids&&st.ids.sent), issued:((st.ids||{}).issued||[]).length}); })()`);
-  chk(name, 'copy', 'a PMO copy carries the ids issued (-0001, -0002, -0003, -0007) but not the record of batches', copy, J({ sent: false, issued: 4 }));
+  // ── NOT UPLOADED, NEVER STOPPED (B7): kept off Requirement v1, listed with every reason ─────────────────
+  chk(name, 'B7', 'H has no CCaR number: not on Requirement v1, listed with its dollars, the export still made',
+    [X.ok, reqRows(X).length, P.excluded.map(y => `${y.id} ${y.svc} ${y.lane} ${y.amount}/${y.approved} · ${y.reasons.join('; ')}`).join(' | ')].join(' · '),
+    'true · 9 · H USAF disc 10/0 · no CCaR number on the requirement');
+  ev(`S.budgetAsg.H={'USAF|disc':${J(RET)}}; save(); render(); 'ok'`);
+  P = build();
+  chk(name, 'B7', 'EVERY reason, not the first: no CCaR number AND a retired budget chosen',
+    (P.excluded.find(y => y.id === 'H') || { reasons: [] }).reasons.join('; '),
+    'no CCaR number on the requirement; the chosen budget is retired — the latest BAE import no longer lists it');
+  const X2 = exportIt(FORM);
+  chk(name, 'B7', 'and the anomalies sheet carries both, the amounts, and how to fix each',
+    /AV \| H title \| H event \| H \| USAF \| discretionary \| USAF O&M- CAM OLD Discretionary AV \(chosen, not used\) \|  \| 10 \| 0 \| no CCaR number on the requirement; the chosen budget is retired[^|]*\| Give the requirement its CCaR number[^|]* Pick again under BAE budget/.test(sheet2(X2)), true);
+  ev(`delete S.budgetAsg.H; save(); render(); 'ok'`);
+  // CONTROL NUMBERS ARE NUMERIC AND EXACT (C1): a leading zero or a letter is listed, never altered
+  ev(`MS.ccarIdx.rows.JSF4.k='01004'; MS.ccarIdx.rows.JSF5.k='10A5'; render(); 'ok'`);
+  P = build();
+  chk(name, 'C1', 'a Control No with a leading zero, or not all digits, keeps its contribution off Requirement v1',
+    P.excluded.filter(y => /Control No/.test(y.reasons.join())).map(y => `${y.id} ${y.reasons.join('; ')}`).join(' | '),
+    'F the Control No “10A5” is not all digits | E the Control No “01004” starts with 0, which a number cell cannot keep');
+  ev(`MS.ccarIdx.rows.JSF4.k='1004'; MS.ccarIdx.rows.JSF5.k='1005'; render(); 'ok'`);
+
+  // ── THE XLSX ITSELF: exact cell types, nothing a spreadsheet would run ─────────────────────────────────
+  const unzip = bytes => { const b = Uint8Array.from(bytes || []), out = {}; let i = 0;
+    const u16 = o => b[o] | (b[o + 1] << 8), u32 = o => (b[o] | (b[o + 1] << 8) | (b[o + 2] << 16) | (b[o + 3] << 24)) >>> 0;
+    while (i + 30 <= b.length && u32(i) === 0x04034b50) { const n = u16(i + 26), e = u16(i + 28), sz = u32(i + 18);
+      out[Buffer.from(b.slice(i + 30, i + 30 + n)).toString()] = Buffer.from(b.slice(i + 30 + n + e, i + 30 + n + e + sz)).toString(); i += 30 + n + e + sz; }
+    return out; };
+  const FX = Object.assign({}, FORM, { reason: '=HYPERLINK("http://x","click") & <b>' });
+  const X3 = exportIt(FX), Z = unzip(X3.bytes), s1 = Z['xl/worksheets/sheet1.xml'] || '';
+  const cell = ref => { const m = new RegExp('<c r="' + ref + '"([^>]*)>(.*?)</c>').exec(s1); return m ? (/t="inlineStr"/.test(m[1]) ? 'text:' + m[2].replace(/<[^>]+>/g, '') : 'number:' + m[2].replace(/<[^>]+>/g, '')) : 'none'; };
+  chk(name, 'xlsx', 'A1 is the file ID as text; row 2 is Ref No, Action, ORG, FY, Budget, Control, Amount, Approved, Comment in the template’s types',
+    ['A1', 'A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'].map(cell).join(' | '),
+    ['text:20260921-1346', 'number:1', 'text:Add', 'number:21', 'number:2027', 'text:' + AD.replace(/&/g, '&amp;'), 'number:1001', 'number:30', 'number:30',
+     'text:=HYPERLINK(&quot;http://x&quot;,&quot;click&quot;) &amp; &lt;b&gt;'].join(' | '));
+  chk(name, 'xlsx', 'no cell anywhere in the workbook is a formula', Object.values(Z).some(x => /<f[ >]/.test(x)), false);
+  chk(name, 'xlsx', 'the reason is on every row, exactly as typed', [...new Set(reqRows(X3).map(r => r[8]))].join('¦'), FX.reason);
+  chk(name, 'xlsx', 'the workbook holds Requirement v1 and the anomalies sheet, in that order',
+    (/<sheets>(.*?)<\/sheets>/.exec(Z['xl/workbook.xml'] || '') || ['', ''])[1].replace(/<sheet name="([^"]+)"[^>]*\/>/g, '$1;'), 'Requirement v1;Missing data and anomalies;');
+  chk(name, 'xlsx', 'Ref No runs 1..N with no gap', reqRows(X).map(r => r[0]).join(','), WANT.map((_, i) => i + 1).join(','));
+  // DETERMINISTIC: the same inputs at the same time are the same file, byte for byte
+  const Xa = exportIt(FORM), Xb = exportIt(FORM);
+  chk(name, 'deterministic', 'two exports with the same answers and clock are identical, byte for byte',
+    Xa.bytes && Xb.bytes && Xa.bytes.length > 1000 && J(Xa.bytes) === J(Xb.bytes), true);
+  chk(name, 'deterministic', 'and the file is named for the appropriation, the year and the file ID', Xa.dl.join(), 'IDS Batch Import Req — O&M FY27 20260921-1346.xlsx');
+
+  // ── NOTHING IS RECORDED; ONE ACTION, CHOSEN (B1, B3) ─────────────────────────────────────────────────
+  const ids0 = idsNow();
+  const Xc = exportIt(FORM), Xd = exportIt(Object.assign({}, FORM, { fid: '20260921-1347' }));
+  chk(name, 'no history', 'exporting writes nothing about the export: the appropriation’s IDS setting is unchanged', idsNow(), ids0);
+  chk(name, 'no history', 'and, after every export so far, it is still exactly the ORG the board started with', idsNow(), J({ org: 21 }));
+  chk(name, 'no history', 'no record of batches, ids or sequence exists anywhere in it',
+    /issued|sent|seq|ovr/.test(ev(`JSON.stringify(MS.ids)`)), false);
+  chk(name, 'B1', 'the second export is the first again: every row Add, the same rows', J(reqRows(Xd).map(r => r.slice(1))), J(reqRows(Xc).map(r => r.slice(1))));
+  chk(name, 'B1', 'Add is preselected when the box opens', ev(`(function(){ idsOpen=false; toggleIds(); var a=idsForm.action, c=document.getElementById('idsActAdd').checked; toggleIds(); return a+' · '+c; })()`), 'Add · true');
+  const Xu = exportIt(Object.assign({}, FORM, { action: 'Update' }));
+  chk(name, 'B1', 'Update chosen: every row Update', [...new Set(reqRows(Xu).map(r => r[1]))].join(), 'Update');
+  chk(name, 'B2', 'an Update file warns on its anomalies sheet that CCaR may refuse records with Authorized allocations',
+    /UPDATE FILE — CCaR MAY REFUSE RECORDS THAT HAVE AUTHORIZED ALLOCATIONS/.test(sheet2(Xu)) + ' · ' + /AUTHORIZED/.test(sheet2(Xc)), 'true · false');
+  chk(name, 'B2', 'and in the box, the moment Update is chosen', ev(`(function(){ idsOpen=false; toggleIds(); idsForm.action='Update'; render();
+    var w=document.querySelector('#idsBody .ids-warn'), t=w? w.textContent : ''; idsForm.action='Add'; render(); var g=!!document.querySelector('#idsBody .ids-warn'); toggleIds();
+    return /Authorized allocations/.test(t)+' · '+g; })()`), 'true · false');
+  const Xdel = exportIt(Object.assign({}, FORM, { action: 'Delete' }));
+  chk(name, 'B3', 'ORBIT never writes Delete', Xdel.ok + ' · ' + (Xdel.sheets === null), 'false · true');
+  // ORG: kept per appropriation, and only once a file is made
+  const Xorg = exportIt(Object.assign({}, FORM, { org: '33' }));
+  chk(name, 'ORG', 'a new ORG is used on every row and kept for the appropriation only once the file exists',
+    [...new Set(reqRows(Xorg).map(r => r[2]))].join() + ' · ' + ev(`MS.ids.org`), '33 · 33');
+  exportIt(FORM);
+
+  // ── THE PROMPT: every answer, or nothing is made (file-level refusals) ────────────────────────────────
+  const refusedWith = (patch, why) => { const before = idsNow(), R = exportIt(Object.assign({}, FORM, patch));
+    return [R.ok, R.sheets === null, R.bytes === null, R.dl.length, idsNow() === before, new RegExp(why).test(R.msg)].join(','); };
+  const NO = 'false,true,true,0,true,true';
+  chk(name, 'B8', 'a blank reason refuses the file', refusedWith({ reason: '' }, 'give the reason for this export'), NO);
+  chk(name, 'B8', 'so does a reason of spaces', refusedWith({ reason: '   ' }, 'give the reason for this export'), NO);
+  chk(name, 'B8', 'and one holding a character a spreadsheet cannot store -- refused, never silently cleaned', refusedWith({ reason: 'FY27\u0007' }, 'cannot store'), NO);
+  chk(name, 'B8', 'a reason longer than one cell holds is refused, never cut', refusedWith({ reason: 'x'.repeat(32768) }, 'longer than one spreadsheet cell'), NO);
+  chk(name, 'ORG', 'no ORG refuses the file -- a file-level refusal, not a row anomaly', refusedWith({ org: '' }, 'give the ORG number'), NO);
+  chk(name, 'ORG', 'an ORG symbol in place of the number is refused', refusedWith({ org: 'AFLCMC' }, 'give the ORG number'), NO);
+  chk(name, 'ORG', 'an ORG not confirmed for every row and service is refused', refusedWith({ orgOk: false }, 'applies to every row and every service'), NO);
+  chk(name, 'ORG', 'a new ORG typed into a refused prompt is not kept', refusedWith({ org: '44', orgOk: false }, 'applies to every row and every service')
+    + ' · ' + ev(`MS.ids.org`), NO + ' · 21');
+  chk(name, 'ORG', 'nor one typed when the reason is missing', refusedWith({ org: '44', reason: '' }, 'give the reason for this export') + ' · ' + ev(`MS.ids.org`), NO + ' · 21');
+  chk(name, 'file ID', 'a file ID not in the template’s shape is refused', refusedWith({ fid: '2026921-1346' }, 'yyyyMMdd-NNNN'), NO);
+  chk(name, 'file ID', 'so is one whose date does not exist', refusedWith({ fid: '20260231-1346' }, 'not a real date'), NO);
+  chk(name, 'file ID', 'and one not confirmed as unused in any earlier CCaR submission', refusedWith({ fidOk: false }, 'has not been used in any earlier CCaR submission'), NO);
+  const p2 = n => String(n).padStart(2, '0'), at = new Date(NOW);
+  const CAND = `${at.getFullYear()}${p2(at.getMonth() + 1)}${p2(at.getDate())}-${p2(at.getHours())}${p2(at.getMinutes())}`;
+  chk(name, 'file ID', 'the candidate is today’s date and the time of day (HHmm), editable', ev(`(function(){ idsOpen=false; toggleIds(); var f=idsForm.fid, v=document.getElementById('idsFid').value; toggleIds(); return f+' · '+v; })()`), CAND + ' · ' + CAND);
+  const box = ev(`(function(){ idsOpen=false; toggleIds(); var t=document.getElementById('idsBody').textContent; toggleIds(); return t; })()`);
+  chk(name, 'file ID', 'the box says the four digits are the time, not a sequence, and that no history is kept',
+    [/time of day/.test(box), /not a sequence/.test(box), /stores no submission history and cannot guarantee this ID is unique/.test(box),
+     /saved copies of the board, other machines/.test(box), /has not been used in any earlier CCaR submission/.test(box)].join(','), 'true,true,true,true,true');
+  chk(name, 'prompt', 'the box’s own Export, unanswered, makes nothing and says what is missing',
+    ev(`(function(){ idsOpen=false; toggleIds(); var built=false, ob=buildXlsx, oa=window.alert; buildXlsx=function(){ built=true; return new Uint8Array(0); }; window.alert=function(){};
+      document.getElementById('idsExport').click(); buildXlsx=ob; window.alert=oa;
+      var t=document.getElementById('idsBody').textContent; toggleIds(); return built+' · '+/Not made yet/.test(t)+' · '+/give the reason/.test(t); })()`), 'false · true · true');
+
+  // ── ZERO UPLOADABLE ROWS: a diagnostic workbook, said plainly ───────────────────────────────────────────
+  ev(`globalThis.__cc=MS.ccarIdx; MS.ccarIdx=null; render(); 'ok'`);
+  const X0 = exportIt(FORM);
+  chk(name, 'zero rows', 'with no CCaR file every contribution is anomalous: the workbook is still made',
+    X0.ok + ' · ' + X0.dl.length, 'true · 1');
+  chk(name, 'zero rows', 'Requirement v1 holds its header and no numbered row', (((X0.sheets || [])[0] || {}).rows || []).length, 1);
+  chk(name, 'zero rows', 'the anomalies sheet begins NO UPLOADABLE IDS ROWS', sheet2(X0).split('\n')[0], 'NO UPLOADABLE IDS ROWS');
+  chk(name, 'zero rows', 'and the message never calls it upload-ready',
+    /NO uploadable IDS rows/.test(X0.stat) + ' · ' + /Do not upload/.test(X0.stat) + ' · ' + /rows? on Requirement v1, every one/.test(X0.stat), 'true · true · false');
+  chk(name, 'zero rows', 'every dollar is still reconciled', /Not uploaded \(listed below\) \| 355 \| 260/.test(sheet2(X0)), true);
+  ev(`MS.ccarIdx=globalThis.__cc; render(); 'ok'`);
+
+  // ── ORBIT'S OWN ARITHMETIC: a failed check refuses before anything is made ────────────────────────────
+  const failed = R => [R.ok, R.sheets === null, R.dl.length].join(',');
+  ev(`itemById('B').ask[0]=80.5; render(); 'ok'`);
+  const Xf = exportIt(FORM);
+  chk(name, 'invariant', 'a value that is not a whole dollar fails the check: no workbook, no download', failed(Xf), 'false,true,0');
+  chk(name, 'invariant', 'and the refusal names the check, the figures and the requirement',
+    /every value is a whole dollar — expected whole dollars, found requirement 80\.5[^\n]*B\|USAF/.test(Xf.msg), true);
+  const boxF = ev(`(function(){ idsOpen=false; toggleIds(); var t=document.getElementById('idsBody').textContent; toggleIds(); return t; })()`);
+  chk(name, 'invariant', 'the box shows the failed check with expected and found, and the requirement',
+    /Export refused — an internal check failed[\s\S]*every value is a whole dollar[\s\S]*whole dollars[\s\S]*80\.5[\s\S]*B\|USAF/.test(boxF), true);
+  ev(`itemById('B').ask[0]=80; render(); 'ok'`);
+  // a contribution counted twice: the duplicate identity, the per-service totals and the requirement are named
+  ev(`globalThis.__is=idsSources; idsSources=function(T){ var a=globalThis.__is(T); a.push(Object.assign({}, a[0])); return a; }; 'ok'`);
+  const Xd2 = exportIt(FORM);
+  chk(name, 'invariant', 'a contribution counted twice: refused, naming the identity and the requirement’s totals',
+    [failed(Xd2), /every contribution appears exactly once — expected once each, found 1 appear more than once · A\|USAF\|disc/.test(Xd2.msg),
+     /for each requirement and service, Amount = the requirement — expected 100, found 200/.test(Xd2.msg)].join(' · '), 'false,true,0 · true · true');
+  ev(`idsSources=globalThis.__is; 'ok'`);
+  // a contribution dropped: the missing identity is named
+  ev(`idsSources=function(T){ return globalThis.__is(T).filter(function(y){ return !(y.id==='B' && y.lane==='mand'); }); }; 'ok'`);
+  const Xm = exportIt(FORM);
+  chk(name, 'invariant', 'a contribution dropped: refused, the Approved short by the mandatory draw',
+    [failed(Xm), /Approved = discretionary \+ mandatory draw — expected 80, found 20 · B\|USAF/.test(Xm.msg)].join(' · '), 'false,true,0 · true');
+  ev(`idsSources=globalThis.__is; 'ok'`);
+  // two rows on one key, handed to the check directly: refused
+  chk(name, 'invariant', 'two rows on one FY + Budget + Control fail the check', ev(`(function(){ var T=tiers(), P=idsBuild(T);
+    var r=JSON.parse(JSON.stringify(P.rows[0])); r.sources=[]; r.amount=0; r.approved=0; P.rows.push(r);
+    var c=idsCheck(P, T); return c.ok+' · '+c.fails.map(function(x){ return x.inv; }).filter(function(v,i,a){ return a.indexOf(v)===i; }).join(' / '); })()`),
+    'false · every FY + Budget + Control is one row');
+
+  // ── THE BOARD ON SCREEN: a locked cycle and a PMO copy refuse before anything is asked or made ──────────
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); cycView('PB|'+MS.cur); 'ok'`);
+  const idsL = idsNow(), msL = ev(`JSON.stringify(MS)`);
+  const XL = exportIt(FORM);
+  chk(name, 'locked', 'while a locked cycle is on screen: refused, nothing built, nothing downloaded',
+    [failed(XL), /locked cycle is a past plan/.test(XL.msg)].join(' · '), 'false,true,0 · true');
+  chk(name, 'locked', 'and nothing written: the store on screen is byte for byte as it was', ev(`JSON.stringify(MS)`) === msL && idsNow() === idsL, true);
+  ev(`cycLeave(); 'ok'`);
+  chk(name, 'locked', 'back on the working plan, the export makes the file', exportIt(FORM).ok, true);
+  const copyHtml = ev(`pmoCopyHtml({sandbox:true, by:'BLL', ts:1790000000000, fy:MS.cur, ap:APPN, base:pmoBaseline(), pv:PMO_PV, ord:{}})`);
+  const C = boot({ html: copyHtml, ls: { prio27pmo: 'AV' } });
+  const msC = C.ev(`JSON.stringify(MS)`);
+  const XC = exportIt(FORM, C.ev);
+  chk(name, 'copy', 'a PMO copy refuses: nothing built, nothing downloaded, nothing written',
+    [failed(XC), /PMO copy/.test(XC.msg), C.ev(`JSON.stringify(MS)`) === msC].join(' · '), 'false,true,0 · true · true');
+  chk(name, 'copy', 'and its IDS box says so before anything is typed',
+    /Export is off here\.[^.]*off in a PMO copy/.test(C.ev(`(function(){ toggleIds(); var t=document.getElementById('idsBody').textContent; toggleIds(); return t; })()`)), true);
+
+  // ── THE RECORD PANEL NAMES EVERY ROW'S BUDGET ─────────────────────────────────────────────────────────
+  P = build();
+  const panelSays = JSON.parse(ev(`(function(){ var out=[];
+    S.order.forEach(function(id){ setCur(id); var c=ccarCtlOf(itemById(id)).v; if(!c) return;
+      [].slice.call(document.querySelectorAll('#inspector table.budtab select')).forEach(function(s){
+        var t=s.getAttribute('title')||'', m=/(?:The file prints|the IDS export files it under): (.+)$/.exec(t);
+        if(m) out.push(m[1]+' · '+c); }); });
+    return JSON.stringify(out.filter(function(v,i,a){ return a.indexOf(v)===i; }).sort()); })()`));
+  chk(name, 'panel', 'every row’s budget is one the RECORD panel names for its line',
+    J([...new Set(P.rows.map(r => `${r.bud} · ${r.ctl}`))].sort()), J(panelSays));
+  ev(`Date=globalThis.__RD; 'ok'`);
+  } catch (e) {
+    const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ ONE BUDGET AND CONTROL ACROSS SERVICES (v1.92) ═════════════════════════════════════════════════════════
+// STOVL and USMC-B are two services on the board and one in the BAE list's names: a STOVL budget serves both. One
+// requirement funded in both lands on ONE budget and control number -- one row, both services in it.
+{
+  const name = 'v1.92 — the IDS export: one budget and control across two services';
+  try {
+  const J = JSON.stringify;
+  const SD = 'USMC STOVL O&M -1A9A FL Discretionary AV';
+  const { ev, errors } = boot();
+  seed(ev, { services: ['STOVL', 'USMC-B'], items: [{ id: 'X', grp: 'AV', team: 'AV', sect: '', custom: false, title: 'X title',
+    event: 'X event', ccar: 'JSF9', fy26: [0, 0], ask: [30, 20], alloc: null }], disc: [30, 20], mand: [0, 0], order: ['X'] });
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  ev(`MS.ccarIdx={rows:{JSF9:{t:'Record 9', o:'OPR', p:'AV', d:1, k:'2009'}}};
+      BUDDB={ts:1700000000041, files:[], rows:[budParseName(${J(SD)})]}; _budRegCache=null; S.budgetAsg={}; render(); 'ok'`);
+  const P = JSON.parse(ev(`JSON.stringify(idsBuild())`));
+  chk(name, 'services', 'STOVL 30 and USMC-B 20 on one STOVL budget and control: one row of 50/50, both services in it',
+    P.rows.map(r => `${r.bud} · ${r.ctl} · ${r.amount}/${r.approved} · ` + r.sources.map(y => y.svc + ' ' + y.amount).join(' + ')).join(' | '),
+    `${SD} · 2009 · 50/50 · STOVL 30 + USMC-B 20`);
+  chk(name, 'services', 'one requirement on it, so nothing for review', P.multi.length + ' · ' + P.check.ok, '0 · true');
   } catch (e) {
     const msg = String((e && e.message) || e).split('\n')[0].slice(0, 140);
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + msg, got: 'threw', want: 'ran' });
@@ -871,15 +1159,25 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     disc: [120, 30, 10], mand: [60, 40, 0], order: ['A', 'B', 'C'] };
   // what must never be in the file, and the part of each that would give it away
   const NEVER = [T1, T2, T3, 'Zanzibar', 'Quokka', 'Kestrel', 'JSF77341', '77341', 'PIDQX4471', 'QX4471', '7,654,321', '7654321',
-    BUD, P1, 'Okonkwo', P2, 'Moonbeam', 'Vellichor', 'Grindlewald', 'Program Support Office', 'Contracting Office Lambda'];
+    BUD, P1, 'Okonkwo', P2, 'Moonbeam', 'Vellichor', 'Grindlewald', 'Program Support Office', 'Contracting Office Lambda',
+    // v1.92, revised: IDS-shaped state -- an ORG number, a typed comment, a file id, a control number
+    'Mission Critical Funding Board', '987654', '551237', '20261001-7341', '7341'];
   // what the board holds, or quoted, or a figure: none of it may stay even in the list kept in memory
-  const NEVER_KEPT = [T1, T2, T3, EVT, 'JSF77341', 'PIDQX4471', '7,654,321', BUD, P1, P2, 'Program Support Office', 'Contracting Office Lambda'];
+  const NEVER_KEPT = [T1, T2, T3, EVT, 'JSF77341', 'PIDQX4471', '7,654,321', BUD, P1, P2, 'Program Support Office', 'Contracting Office Lambda',
+    'Mission Critical Funding Board', '987654', '551237', '20261001-7341'];
   const leaks = (txt, list) => list.filter(v => String(txt).toLowerCase().indexOf(v.toLowerCase()) >= 0).join(', ') || 'none';
   const { ev } = boot({ ls: { prio27execdb: '{not json', prio27who: P1 } });
   seed(ev, sc);
   ev(`S.pid={A:'PIDQX4471'}; MS.jrnl=(MS.jrnl||[]).concat([{t:1, by:${J(P2)}, id:'A', f:'title', a:'x', b:'y'}]);
       BUDDB={ts:1, files:[], rows:[budParseName(${J(BUD)})].filter(Boolean)}; _budRegCache=null;
       S.budgetAsg={A:{'USAF|d':${J(BUD)}}}; save(); render(); 'ok'`);
+  // v1.92, revised before merge: IDS-SHAPED STATE. v1.92 records nothing about an export, but a board saved by v1.91
+  // (the comment is made only of words the program itself uses, so only the walk over the stores can take it out)
+  // (or an unreleased build) can hold an ORG number, a typed comment, file ids and lines naming budgets, control
+  // numbers and dollars under MS.ids. None of it may reach the diagnostics file, even when a warning names it.
+  ev(`MS.ids={org:987654, seq:4471, action:'Update', cmt:'Mission Critical Funding Board', issued:['20261001-7341'],
+      sent:[{fid:'20261001-7341', ts:1, by:${J(P2)}, fy:2027, lines:[{bud:${J(BUD)}, ctl:'551237', amt:7654321, app:7654321, act:'Add'}]}]};
+      _diagSec=null; save(); 'ok'`);
   // execution data holds strings of its own (its POC column): a name made only of the program's own words
   ev(`EXDB.all={om:{asOf:'2027-03', hdr:[], read:1, noFy:0, rows:{2027:[(function(){ var r=[]; for(var c=0;c<32;c++) r.push('');
       r[0]=2027; r[1]='2027-03'; r[2]='JSF77341'; r[9]=7654321; r[14]='Contracting Office Lambda'; return r; })()]}}}; _diagSec=null; 'ok'`);
@@ -897,6 +1195,7 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
       +'CCaR JSF77341, PID PIDQX4471, budget USAF O&M- CAM Discretionary AV, by Brunhilde Okonkwo and Thaddeus Moonbeam, '
       +'POC Contracting Office Lambda'); 'ok'`);
   ev(`window.dispatchEvent(new ErrorEvent('error', {message:'TypeError: Zanzibar Widget Retrofit has 7654321', lineno:12345, colno:67})); 'ok'`);
+  ev(`setStat('⚠ IDS file 20261001-7341 for ORG 987654, control 551237: Mission Critical Funding Board'); 'ok'`);
   const kept = ev(`JSON.stringify(DIAG.log)`);
   chk(name, 'kept', 'the list kept in memory holds no title, record, PID, budget, person, quoted value or figure the board holds', leaks(kept, NEVER_KEPT), 'none');
   // THE BOX, AND THE FILE IT WRITES

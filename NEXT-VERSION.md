@@ -8,19 +8,8 @@ Current version: **v1.92**. Next: **v1.93**.
 
 ## Open
 
-#### 38. The IDS batch: four questions waiting on Brad (from item 37)
-- **Logged:** 30 Sep 2026, when item 37 shipped in v1.92. Nothing is built for these until Brad answers;
-  the file keeps today's behaviour meanwhile.
-  - **ORG:** the real ORG number, and whether it is one for every JSF budget or changes by appropriation,
-    service or office (if it changes, one file per ORG). Today: typed once per appropriation, 1 by default.
-  - **Unfunded requirements and the budget ceiling:** whether a requirement with nothing allocated is sent
-    with Approved 0 (it is), and whether the Budget Extract carries each budget's approved amount, so the
-    template's rule 12 (total Approved within the budget's available) can be checked before the file goes.
-  - **The other tabs:** whether the file should also carry the template's Instructions and Action-list tabs
-    (never the Example tab), and whether CCaR's import accepts the extra *Not exported* sheet.
-  - **For the CCaR administrators:** the template's Action list says Update adds a line CCaR does not have;
-    its rule 10 says Update needs the line to exist. If the second, *Forget* in the IDS box is the way back
-    for a batch exported and never uploaded.
+Nothing is open. Item 38's questions (the IDS batch) were answered by Brad on 1 Oct 2026 and built into v1.92
+before it merged — see *Shipped › v1.92 › Revised before merge*.
 
 ## Later
 
@@ -85,186 +74,158 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v1.92 — 30 Sep 2026: items 18, 36 and 37, built on Brad's "go"
+### v1.92 — 30 Sep 2026, revised before merge 1 Oct 2026: items 18, 36 and 37, built on Brad's "go"
 
-**The IDS Batch Import carries every dollar the board funds.** Each requirement gets a line per service per
-lane, the same lines as the RECORD panel's BAE budget section and on the same budgets: the discretionary
-money on the discretionary budget, the mandatory draw on the mandatory budget, and a requirement with no
-money yet on the budget its *not funded yet* line names, with nothing approved. Each line says **Add** or
-**Update**: the board keeps a record of every batch it exported, and a line it has sent before goes as an
-Update. The file ID fills itself in — the date and the next number not yet issued on this board — and a
-number once used is never offered again.
+**The IDS Batch Import is one row per budget and control number, every dollar reconciled, and nothing about
+an export is recorded.** Reports & exports › 📤 IDS Batch Import opens a preview of the file worked out from
+the plan on screen: one row per Budget FY, Budget Name and Req Control No, with everything that lands there —
+two services, both lanes on a lane-less budget, two requirements sharing a control number — consolidated into
+that row, and a row holding several requirements listed for review. A mandatory line's Amount and Approved are
+its mandatory draw; a discretionary line carries the discretionary draw plus every unfunded dollar on that
+service; a requirement with no money goes at Approved 0 on a discretionary budget. Anything that cannot be
+uploaded correctly is kept off the upload sheet and listed, with its dollars and every reason, on a second
+sheet, **Missing data and anomalies**, which reconciles every dollar of the plan. Before the file is made the
+box asks for the reason (written on every row), Add or Update for the whole file, the file ID (a candidate:
+today's date and the time of day) and the ORG — and the person confirms the ID has not been used and the ORG
+applies to every row. ORBIT keeps the ORG and nothing else.
 
-**The keyboard reaches everything the mouse can.** Every menu item (File, Reports & exports, Data, Setup,
-Filter, FY, PMO, the Fund tools and a row's ⋯) is reached with Tab and run with Enter; Esc closes the menu
-and leaves you on its button. The Funding detail headers, the service and lane chips and every other
-clickable spot work from the keyboard and say whether they are on or open. Pressing one no longer throws
-the keyboard back to the top of the page, and **typing a figure in a row and pressing Tab now moves on to
-the next field** (it went to the top of the page before, in v1.91 too).
+**One authority on a line's budget.** A chosen BAE budget that can no longer be used — retired, not in the
+list, another office's, another service's, the other lane's, another appropriation's, or legacy — is shown
+for what it is in the RECORD panel, is never quietly replaced by the rule's answer, stops the Spend Plan
+Source, and is listed (not uploaded) by the IDS export. The panel, both exports and the pre-flight all read
+the same answer.
 
-**📁 File › 🩺 Save diagnostics…** makes a small text file for support instead of sending the board: the
-version, what kind of file it is, the browser, counts, and the last 50 warnings and script errors, with
-**no dollar figure, title, name, CCaR record, PID or budget name** in it. The box shows exactly what will be
-saved; nothing is sent anywhere.
+**The keyboard reaches everything the mouse can, through real buttons.** Every menu item, chip, link and
+table toggle is a native `<button>` (the browser's own Enter and Space); the only exception is the SVG funds-flow
+node, which SVG gives no button for and which now names itself and draws the gold focus ring. Pressing one no
+longer throws the keyboard back to the top of the page, and typing a figure in a row and pressing Tab moves
+on to the next field.
 
-What shipped differs from what was logged in these places, all stated here:
-- **The RECORD panel's *not funded yet* line names the budget the IDS batch will use (37).** It showed an
-  empty picker when nothing was chosen; it now shows the rule's budget ("no money yet · automatic by rule",
-  first choice "— the rule: *name* —"), so the panel and the file always name the same budget. A chosen
-  budget that is no longer in the BAE list holds the line back, in the panel and in the file.
-- **Most of the clickable chips are keyboard controls, not new `<button>` elements (36)**, so none of them
-  moved or changed look; `npm run check` holds every one to it. Menu items and the Funding detail headers
-  are real buttons, as logged.
-- **The boxes are checked by the panels check, not the accessibility run (36).** The accessibility run opens
-  every menu and every Funding detail panel; `npm run panels`, which already opens every box, now fails on
-  any control inside one that the keyboard cannot reach.
-- **Two keyboard faults the new checks found, fixed though not logged (36):** pressing a chip, Funding
-  detail, a row's ⋯ or a menu item that redraws the board lost the keyboard's place; and a figure typed in a
-  row and left with Tab lost it too. Both now keep it. After a mouse click nothing is moved, so typing can
-  never land in a field just left.
-- **Three contrast faults the fuller measurement found, fixed (36):** the pickers' and menus' borders, and a
-  selected row's input boxes in Fund.
-- **A warning is a message with a warning sign or that says something could not be done (18).** The board
-  has about 270 messages; the ordinary ones ("Saved", "Exported") are not kept.
-- **The file also drops any word the board's own program never uses (18)**, which takes out a file name or
-  the name of somebody who saved a copy elsewhere, on top of the logged cleaning. It also says what is on
-  screen, where Save writes, whether Live view is on, and counts journal entries and IDS batches.
-- **📁 File has a fifth group, *Support* (18).** Esc in the box is Cancel. The status line of the "RECORD
-  panel could not be drawn" message points to Save diagnostics too, not only the panel.
+**📁 File › 🩺 Save diagnostics…** makes a small text file for support instead of sending the board, with no
+dollar figure, title, name, CCaR record, PID or budget name in it.
 
-**The final check** passed on 30 Sep (6:10–7:20 pm Eastern): **70 minutes**, every stage clean, all 593
-planted mistakes caught, 28 of them new in this version (11 more in the list change nothing by design, as
-before). **Its first run did not pass** (4:14–5:31 pm): one planted mistake got through — two copies in the
-shared folder's history saved in the same second sharing a name. The board handles that correctly; the
-test that should have caught the mistake only looked when the two copies really did land in the same
-second, and on a busy machine they did not. The test now holds the clock still, so it catches it every
-time. (A second run was cut short when the session's machine restarted.)
+**A CSV cell a spreadsheet would run is written as text.** Both CSV exports put an apostrophe in front of a
+cell that starts with = + - @, a tab, a carriage return or a line feed (spaces before one included); a true
+number, or a figure ORBIT formatted, is left as it was.
 
-#### 37. The IDS Batch Import carries both lanes, and knows what it has sent before
+#### Revised before merge (1 Oct 2026): Brad's CCaR answers and decisions
+
+PR #3 was held after review. Brad answered the IDS questions (item 38, now closed) and approved a revised scope
+on 1 Oct; it was built on the same branch before merging. What changed from the 30 Sep build:
+
+- **No record of exports.** Removed: the record of batches (`issued` / `sent`), *Forget*, the automatic
+  file-ID sequence, Add/Update worked out from history, and the PMO-copy stripping that went with them. A
+  board that holds any of it keeps it untouched; nothing reads it. *The 30 Sep build made the next export of
+  the same plan an Update, and a locked view or a PMO copy could export and record its own batch.*
+- **The Req. Amount rule (Brad, A1).** Mandatory = the mandatory draw; discretionary = the discretionary draw
+  plus all of the service's unfunded; no money = the requirement at Approved 0, on a discretionary or
+  lane-less budget; never unfunded dollars on a mandatory budget. *Two defects in the 30 Sep build against it:
+  a mandatory-only service that was short put its unfunded dollars on the mandatory row (30/20 instead of
+  20/20 plus 10/0 on discretionary), and a requirement with no money could go on a mandatory budget chosen
+  for its "not funded yet" line.* A fully mandatory-funded service gets no $0/$0 discretionary row.
+- **One row per FY + budget + control (Brad's IDS rule)**, contributions from every service, lane and
+  requirement consolidated into it, each one kept as provenance; a control number on several budgets is a
+  row on each; several requirements on a row, and one control used by several requirements across budgets,
+  are listed for review.
+- **Missing data never stops the file (B7).** It is listed on *Missing data and anomalies* with every reason
+  (not only the first) and how to fix each; the sheet carries the file's details, the reconciliation of
+  Amount and Approved, the consolidated rows, the shared controls, the Approved-0 rows and, on an Update file,
+  the Authorized-allocation warning. With no uploadable row the file is still made, its Requirement v1 sheet
+  holds no numbered row, the other sheet starts **NO UPLOADABLE IDS ROWS**, and the message never calls it
+  ready to upload.
+- **Three things do stop it**, inside `exportIdsReq()` and before anything is asked, built, downloaded or
+  written: a locked cycle on screen, a PMO copy, and ORBIT's own arithmetic failing a check. The check is
+  worked out again from the requirements and the lane walk: every row's Amount and Approved are its sources';
+  Amount ≥ Approved ≥ 0; uploaded + not uploaded = every requirement (Amount) and every dollar drawn
+  (Approved); every contribution exactly once; whole dollars; one row per key; and for each requirement and
+  service, Amount = its requirement and Approved = its two draws. A failure names the check, the expected and
+  found figures, and the contributions and requirements involved.
+- **The prompt (B1, B4, B6, B8).** The reason is required, written identically on every row as text (never a
+  formula), and refused rather than cut if a spreadsheet cannot hold it. Add is preselected; Update is one
+  choice for the whole file, and brings up the Authorized-allocation warning in the box and on the sheet;
+  ORBIT never writes Delete. The file ID is an editable candidate, yyyyMMdd-HHmm, checked for its shape and a
+  real date, and must be confirmed as unused — the box says the four digits are the time, not a sequence,
+  and that ORBIT cannot guarantee the ID is unique across exports, saved copies, machines or earlier CCaR
+  submissions. The ORG is one number per appropriation, confirmed for every row and service; a missing or
+  non-numeric ORG refuses the file. The ORG is kept only once a file is made.
+- **Control numbers are numeric and exact (C1).** Written as number cells, as the template's Example Sheet
+  does; one with a leading zero, a letter or more than 15 digits is listed, never altered. *The 30 Sep build
+  wrote "01004" as 1004.*
+- **The RECORD panel names every budget the file uses.** A mandatory-only service that is still short gets an
+  *unfunded part* line, resolved as discretionary. The *not funded yet* picker offers discretionary and
+  lane-less budgets only; a mandatory budget chosen while the line was funded in mandatory is kept, shown
+  ("kept for mandatory money"), not used for unfunded dollars, and used again once mandatory money returns.
+- **The menu label** no longer works out the whole IDS batch on every redraw; the preview is worked out when
+  the box opens.
+- **Keyboard (36), revised:** the 36 `role="button"` spots PR #3 added are native buttons now — inside the
+  cell for the three table toggles, never on the `<td>` itself — and `npm run check` refuses `role="button"`
+  anywhere but an SVG group with a label. **Not done, as agreed:** a box (dialog) does not yet take focus, keep
+  Tab inside it or close on Esc; that controller is deferred, and v1.92 does not claim it.
+- **CSV:** one cell writer, `csvCell()`, for the Proposed 1–N order and the Executive Synopsis.
+- **Diagnostics (18):** unchanged, with a test that a board holding IDS-shaped state (an ORG, a comment, file
+  IDs, budgets, control numbers, dollars) puts none of it in the file.
+- **Pre-flight:** an unusable chosen budget is a block; a budget kept for later that would be refused is a
+  fix; requirements sharing a control number are listed for review, never blocked.
+
+**Still to confirm on the first real upload** (nothing to build unless the answer differs): that CCaR reads
+"Requirement v1" and ignores the second sheet; whether it limits the length of Req. Change Comments; and that
+one ORG covers every row an appropriation's file holds. ORBIT does not check rule 12 (total Approved within the
+budget's available) because the Budget Extract carries no available amount.
+
+**The final check** passed on the revised tree on 1 Oct (10:20–11:54 am Eastern): **94.7 minutes**, every stage
+clean, all 651 planted mistakes caught (11 more change nothing by design, as before) — the 604 of the 30 Sep build,
+less the 8 retired with the record of batches, plus 66 new. The run before it, on the same tree but for a CSS-only
+change to the IDS box's tables and the flow node's focus ring, also passed (8:40–10:11 am, 91.1 minutes). In their
+trial run two of the new planted mistakes got through and showed two weak tests — an export writing a record of
+itself, and an ORG kept from a refused prompt; both tests were tightened before the final check.
+
+#### 37. The IDS Batch Import: one row per budget and control number, reconciled, nothing recorded
 - **Logged:** 30 Sep 2026, from Brad's IDS Batch Import Req template, walked through column by column.
-  **Approved by Brad, 30 Sep: Claude's recommendations on both lanes, Add/Update from a record of what
-  was sent, and automatic file IDs.** Three questions are still open (below).
-- **Found (v1.91):** Reports & exports › 📤 IDS Batch Import already writes the template's own sheet —
-  the A1 file ID, the eight headings, the column widths, the freeze — and a *Not exported* sheet naming
-  every line held back and why. What it puts in the columns falls short:
-  - **Only discretionary money goes.** Every line is filed under the service's discretionary budget, and
-    Req. Approved is the discretionary draw alone. On a test board $230 was allocated and the file carried
-    $150: the $80 drawn from mandatory was in no line, and no mandatory budget was named.
-  - **A service funded only from mandatory is held back** with "pick one under BAE budget in the RECORD
-    panel", but the panel draws no discretionary line for that service, so there is nothing to pick.
-  - **Every line is "Add"**, one action for the file. IDS skips an Add whose control number is already on
-    that budget and year, so a changed amount sent again changes nothing, and says nothing.
-  - **The file ID's sequence is typed by hand**, and a second export on the same day repeats the first
-    one's ID unless someone remembers to raise it; IDS refuses an ID it has seen.
-  - **Its figures are checked by nothing.** `tools/money-coverage.mjs` excuses it as having "no dollar
-    columns"; it has two.
-- **What will be built:**
-  - **A line per service per lane, as the Spend Plan Source does, and every line is one the RECORD panel's
-    BAE budget section shows,** on the budget that section names:
-    - a service drawing discretionary: a **discretionary** line — Approved is the discretionary draw, and
-      Amount carries the rest of the requirement, the unfunded part included; and, if it also draws
-      mandatory, a **mandatory** line whose Amount and Approved are both the mandatory draw;
-    - a service drawing only mandatory: one **mandatory** line, whose Amount carries the whole requirement;
-    - a service with no money: one line, Approved 0, on the budget its *not funded yet* line names.
-    For every requirement and service, the Amounts add up to the requirement exactly, and no Amount is
-    below its Approved. Lines that land on the same budget and control number are still added into one
-    (IDS allows a control number once per budget and year).
-  - **A record of every batch exported**, kept in the saved board: the file ID, the date, who, and each
-    line (year, budget, control number, amounts). A line is **Add** the first time it goes and **Update**
-    after that, with the template's own comments — *New Requirement* / *Updated requirement*. The one
-    Action picker goes. A line sent before and missing now (a requirement removed, a budget changed) is
-    listed on the *Not exported* sheet as sent before and not in this batch — **Delete stays by hand in
-    CCaR.** A batch that was exported but never uploaded can be forgotten from the IDS panel, and its lines
-    go back to Add.
-  - **The file ID moves on by itself:** the next unused sequence for the day, from every ID this board has
-    issued; still editable, and an ID it has already issued is refused.
-  - The IDS panel says *Approved* (both lanes), and its hint names the RECORD panel's BAE budget as well as
-    Classify requirements.
-- **What does not change:** the sheet's layout and headings, the ORG and Budget FY columns, the control
-  number lookup (from the CCaR records file, never guessed), the *Not exported* sheet, pre-flight's use of
-  the same reasoning, and every other export. PMO copies do not carry the record of batches.
-- **Checks:** a test board with discretionary-only, mandatory-only, both-lane, partly unfunded and unfunded
-  services, two requirements sharing a control number, and a lane-less budget serving both lanes: every
-  line's budget is the one the RECORD panel names; each requirement's Amounts add to its requirement; each
-  Approved is its lane's draw; the file's Approved plus what was held back equals what the board funds;
-  Ref No runs 1..N with one ORG and one year. The batch record: a first export is all Add, the same lines
-  again are Update, a new requirement is Add, a vanished line is listed, a forgotten batch returns its
-  lines to Add, and the record survives save, reopen and a full import. Two exports on one day get -0001
-  and -0002. `money-coverage` counts the IDS file as a money export, and mutations on each rule are caught.
-- **Still open (the build keeps today's behaviour for these until Brad answers):**
-  - **ORG:** the real ORG number, and whether it is one for every JSF budget or changes by appropriation,
-    service or office (if it changes, one file per ORG).
-  - **Unfunded requirements and the budget ceiling:** whether a requirement with nothing allocated is sent
-    with Approved 0 (today it is); and whether the Budget Extract carries each budget's approved amount, so
-    rule 12 (total Approved within the budget's available) can be checked before the file is written.
-  - **The other tabs:** whether the file should also carry the template's Instructions and Action-list tabs
-    (never the Example tab), and whether CCaR's import accepts the extra *Not exported* sheet or it should
-    be a separate file.
-  - **For the CCaR admins:** the template contradicts itself on Update — its Action list says Update adds a
-    line CCaR does not have, rule 10 says Update needs the line to exist. If Update adds, a batch exported
-    but never uploaded does no harm; if not, *forget this batch* is the way back.
+  Approved 30 Sep with a record of batches and automatic file IDs; **revised before merge on Brad's decisions
+  of 1 Oct 2026**, which replaced both (see *Revised before merge* above for every decision).
+- **Found (v1.91):** only discretionary money went (the $80 drawn from mandatory was in no line on a test
+  board funding $230); a mandatory-only service was held back with nothing to pick; every line was Add; the
+  file ID's sequence was typed by hand; and `money-coverage` excused the file as having "no dollar columns".
+- **Found (30 Sep build, before merge):** unfunded dollars on a mandatory row for a mandatory-only service that
+  was short; a "not funded yet" choice could be a mandatory budget; a locked view and a PMO copy could export
+  and record a batch; two saved copies offered the same next file ID; a retired, missing or other-office choice
+  was printed; Approved could carry cents; a leading-zero control number lost its zero.
+- **What was built:** the pipeline `idsSources()` → `budResolve()` + `idsCtlOf()` → excluded with every reason
+  → grouped by `idsKey(FY, budget, control)` → summed → `idsCheck()` → `idsSheets()`; the box (`idsBody`) is
+  the preview and the prompt; `exportIdsReq(opts)` refuses, in order, a locked view, a PMO copy, a failed check
+  and an incomplete prompt before it builds anything.
+- **Checks:** `audit-other.mjs` "v1.92 — the IDS export: consolidated, reconciled, nothing recorded" and "…
+  one budget and control across two services"; `audit-import.mjs` "an older board's IDS settings cross a full
+  import untouched, and only the ORG is used"; the mutations listed under *Mutations* below.
 
 #### 36. The keyboard reaches every menu item and the last mouse-only controls
 - **Logged:** 30 Sep 2026, at Brad's request: the keyboard debt v1.91 recorded, and what checking it found.
-- **Found (v1.91, checked in the browser):**
-  - **Menu items are mouse-only.** Enter opens 📁 File, but Tab skips its 13 items and goes on to the mode
-    buttons; the same for Reports & exports (25 items), Data (8), Setup (19) and a row's ⋯ menu. So every
-    export, import and setup action needs a mouse. v1.91's keyboard check did not see it: it measures with
-    the menus closed.
-  - **The 12 findings v1.91 recorded as debt** (70 places): the four panel headers under Funding detail
-    (Budget authority & posture, Funding by service, Unspent discretionary, PMO funding), which open and
-    close their panels, and the discretionary-fit chips that filter the list (by service, by lane, ▲ not
-    drawn, 🔧 fix list).
-  - **A scan of the board's markup** finds 49 clickable spots that are not controls, besides the 41
-    backdrops that close a box (each box also has its own ✕ Close button). The ones not above sit in panels
-    and boxes the check never opens.
-- **What will be built:**
-  - **Menu items become real buttons.** Tab and Shift+Tab move through an open menu, Enter or Space runs
-    an item, and Esc closes the menu with focus back on its button. The same for a row's ⋯ menu. No ARIA
-    menu roles, so nothing promises arrow keys it does not have (the same choice as the mode buttons).
-  - The four Funding detail headers become buttons that say whether their panel is open, and the fit chips
-    buttons that say whether their filter is on.
-  - Every other clickable spot the scan finds becomes a button or a link, backdrops excepted.
-- **What does not change:** what any item does, the menus' contents and order, and every figure.
-- **Checks:** `npm run standards` opens every menu, every Funding detail panel and every box before it
-  measures, and its baseline goes back to **0**; `npm run check` fails on any new clickable element in the
-  board's markup that the keyboard cannot reach, backdrops excepted; the keyboard check adds Tab through
-  every item of every menu, Enter to run one and Esc to close, and the Funding detail headers and fit chips
-  with Enter. Each new check fails on the v1.91 board first.
+- **Found (v1.91):** menu items were mouse-only (Tab skipped the 13 items of 📁 File and went on to the mode
+  buttons; the same for Reports & exports, Data, Setup and a row's ⋯), the four Funding detail headers and the
+  fit chips were click-only, and the markup held 49 clickable spots that were not controls.
+- **What was built:** menu items and the eight Funding detail headers are `<button>`s; **revised before merge,
+  every other clickable spot is a native `<button>` too** (chips, links in messages, the pre-flight and
+  divergence toggles, the CLIN cells' editors, the execution and CR expanders — a button inside the cell);
+  the SVG funds-flow nodes keep `role="button"` with an `aria-label` and the gold focus ring. Esc closes a
+  toolbar menu, a row's ⋯ menu or a chip list and returns focus to its button; a redraw keeps the keyboard's
+  place; a row figure left with Tab moves on to the next field.
+- **Not built (agreed 1 Oct):** dialog focus — a box taking focus, keeping Tab inside and closing on Esc —
+  stays for a later version with one controller for every box.
+- **Checks:** `npm run check` refuses a click handler on anything but a native control or a labelled SVG
+  `role="button"` group, and `role="button"` on anything else (71 findings on the 30 Sep build, 47 on v1.91);
+  `npm run keys`, `npm run panels` and `npm run standards` (baseline 0) as in the 30 Sep build.
 
 #### 18. A diagnostics file for support — build before the road show
-- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; Claude's recommendation. Deferred
-  from v1.88; **moved to Open for v1.92 on 30 Sep 2026, at Brad's request.**
-- **Found (v1.91):** when something goes wrong on someone's machine there is no way to learn what without
-  their board. The one message that asks for a report ("the RECORD panel could not be drawn … Save a copy
-  and report it") asks for *Save a copy*, which carries every dollar and title on the board. The board
-  keeps no record of what went wrong: its warning messages (about 80 of them) each replace the one before, an unexpected
-  script error is caught by nothing, and what was lost at start-up is said once and not kept.
-- **What will be built:**
-  - **📁 File ▾ → 🩺 Save diagnostics…**, on the live board and in a PMO copy. It opens a box showing
-    exactly the text that will be saved; *Save* writes it as a small plain-text file (*ORBIT diagnostics -
-    2026-10-01.txt*) and *Cancel* writes nothing. Nothing is sent anywhere: the person sends the file.
-  - **What it holds:** the board version; whether it is the live board, a PMO copy (with its publish date
-    and office) or a one-appropriation file; the browser and window size; how the file was opened (from
-    disk, a shared folder, Live view); browser storage in use, and any write the browser refused this
-    session; **counts only** — requirements per appropriation and fiscal year, locked cycles, snapshots,
-    submittals held, BAE rows, CCaR records, months of execution data; and the last 50 warnings and script
-    errors this session, each with its time.
-  - **The board starts keeping that short list when it opens:** every warning it shows, anything lost at
-    start-up, and any unexpected script error. It lives in memory only, never in the saved file or in
-    browser storage.
-  - **Never a dollar figure, a requirement title, a person's name, a CCaR record, a PID or a budget name.**
-    Each warning is kept with its figures replaced by # and every title, name and quoted value taken out.
-    The office code (AV, PSM) is kept, because it says whose copy it is (Claude's recommendation; say if it
-    should go too).
-  - The "RECORD panel could not be drawn" message points to *Save diagnostics* instead of *Save a copy*.
-- **What does not change:** anything the board saves, exports or calculates; the board still uses no
-  network at all; messages and confirm prompts stay as they are (item 19 stays in Later).
-- **Checks:** a board filled with recognisable values (figures, titles, names, CCaR records, PIDs, budget
-  names) is driven through the warnings that name them and a planted script error, and none of those values
-  appears in the file, while the version and the counts do; the file is exactly what the box showed;
-  *Cancel* writes nothing; it works in a PMO copy and on a board whose RECORD panel failed to draw;
-  mutations that let a figure or a title through are caught.
+- **Logged:** 29 Sep 2026, from the maintainability review Brad shared; moved to Open for v1.92 on 30 Sep.
+- **What was built:** 📁 File ▾ › Support › 🩺 Save diagnostics…, on the live board and in a PMO copy: the box
+  shows exactly the text Save writes (version, kind of file, browser and window, how it was opened, storage and
+  refused writes, counts only, and the last 50 warnings and script errors); Cancel and Esc write nothing;
+  nothing is sent. Each entry is cleaned as it is kept and again when the file is made — every string the board
+  holds, every quoted value, every figure (→ #) and every word the program never uses are taken out. The
+  "RECORD panel could not be drawn" message points here. Revised before merge: the count of IDS batches is gone
+  (nothing is recorded), and a test drives IDS-shaped state through it.
+- **Checks:** `audit-other.mjs` "v1.92 — Save diagnostics holds no figure, title or name" (now with an ORG, a
+  comment made only of the program's own words, file IDs, control numbers and dollars under `MS.ids`).
 
 ### v1.91 — 30 Sep 2026: items 28–35, built on Brad's "go"
 

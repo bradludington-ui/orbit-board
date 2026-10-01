@@ -73,8 +73,9 @@ const REGISTRY = {
     'writes the ORDER — rank and identity only. It moves no dollars and prints none.' },
   // v1.92 (item 37): this said "no dollar columns" and excused the IDS file from every money check. It has two,
   // Req. Amount and Req. Approved, and until v1.92 the Approved column carried the discretionary draw alone.
-  exportIdsReq:  { money: true,  what: 'the IDS Batch Import — Req. Amount and Req. Approved, a line per service per lane',
-                   via: ['idsReqRows', 'idsLineBud'] },
+  // Revised before merge: the contributions, the consolidation, the check that proves them and the two sheets.
+  exportIdsReq:  { money: true,  what: 'the IDS Batch Import — Req. Amount and Req. Approved, one row per FY, budget and control, and the reconciliation sheet',
+                   via: ['idsSources', 'idsBuild', 'idsCheck', 'idsSheets', 'budResolve'] },
   exportRlgPlan: { money: false, reason: 'RLG plan narrative fields, no dollar columns.' },
   exportExView:  { money: false, reason: 'writes the saved VIEW (filters, sort, open panel), not figures.' },
   exportOneAppn: { money: false, reason: 'writes a working board holding one appropriation: its saved state copied '
