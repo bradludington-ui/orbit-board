@@ -56,57 +56,49 @@ Current version: **v1.92**. Next: **v1.93**.
 #### 40. Mandatory awards last, in every spend plan
 - **Logged:** 1 Oct 2026, Brad: "all mandatory allocations should award last. Force mandatory funding to
   award after discretionary. This goes for all spend plan exports. Mandatory will always award last. The
-  award could be a mix of discretionary and mandatory, but mandatory always awards last." **Confirmed
-  1 Oct 2026** on the first example below: "when a requirement has multiple increments of awards, the
-  mandatory should start as the last dollar to be awarded."
+  award could be a mix of discretionary and mandatory, but mandatory always awards last." Then: "when a
+  requirement has multiple increments of awards, the mandatory should start as the last dollar to be
+  awarded", and "mandatory works backwards, while discretionary should work forward as the first award."
 - **Found (v1.92):** one rule places every funded dollar in a month (`landSvc`, v1.86). An increment is
   discretionary dollars; typed past what discretionary holds, the increments are scaled back to it.
   **Mandatory has no increments of its own and is spread across all of the requirement's award dates, in
   the increments' proportions** -- so it lands in the earliest award as much as the last.
-- **The rule that will be built.** A requirement's award increments are its awards, taken in date order.
-  For each service, its funded dollars fill them **discretionary first, mandatory last**:
-  - the earliest increments take discretionary until it is used up; whatever the increments hold beyond
-    discretionary is mandatory -- so one award can be a mix, and mandatory is always the last dollars;
-  - mandatory the increments do not hold lands on the **latest** award date;
-  - discretionary the increments do not reach stays UNSCHEDULED, as today (the award block's *Balance to
-    schedule — discretionary*);
-  - a service with no increment of its own lands all its mandatory on the requirement's latest award date;
-  - one award date: both lanes land in it. No date: both UNSCHEDULED, as today;
-  - "latest" and "earliest" are by date, never by the order the increments were typed.
-- **Worked examples** (one service):
+- **The rule, as Claude reads Brad (five cases below for Brad to check before go).** For each service, the
+  award increments are taken in date order:
+  - **discretionary works forward from the first award**, filling each award's amount in turn;
+  - **mandatory works backward from the last award**, filling what each award has left, latest first;
+  - mandatory that finds no room left lands on the last award (it has never had amounts of its own, so
+    it keeps a date whenever the requirement has one); discretionary that finds no room stays UNSCHEDULED,
+    as today (the award block's *Balance to schedule — discretionary*);
+  - a service with no increment of its own uses the requirement's awards; one award date takes both
+    lanes; no date leaves both UNSCHEDULED, as today; "first" and "last" are by date, never by the order
+    typed.
+- **The five cases** (one service; $200 discretionary + $100 mandatory unless stated):
 
-  | Funded | Award increments | Today | After |
-  |---|---|---|---|
-  | $200 disc + $100 mand | Nov $100, Feb $100 | Nov $150, Feb $150 (each $100 disc + $50 mand) | **Nov $100** disc; **Feb $200** ($100 disc + $100 mand) -- *Brad confirmed* |
-  | $200 disc + $100 mand | Nov $150, Feb $150 (typed to the full $300) | Nov $150, Feb $150 (each $100 disc + $50 mand) | **Nov $150** disc; **Feb $150** ($50 disc + $100 mand) |
-  | $200 disc + $100 mand | Nov $100, Dec $100, Feb $50 | Nov $120, Dec $120, Feb $60 | Nov $100 disc, Dec $100 disc, **Feb $100** mand |
-  | $0 disc + $300 mand | none of its own; the requirement's are Nov, Dec, Feb | spread in their proportions | **Feb $300** |
+  | Awards | Today | Proposed |
+  |---|---|---|
+  | 1. Nov $100, Feb $100 (typed for discretionary only, as most boards are) | Nov $150, Feb $150 | Nov $100 disc · **Feb $200** ($100 disc + $100 mand) -- *Brad said yes* |
+  | 2. Nov $150, Feb $150 (typed to the full $300) | Nov $150, Feb $150 (each $100 disc + $50 mand) | Nov $150 disc · Feb $50 disc + $100 mand |
+  | 3. Nov $100, Jan $100, Mar $100, with $100 disc + $100 mand | about $67 a month, both lanes in each | Nov $100 disc · Jan nothing · Mar $100 mand |
+  | 4. Nov $100, Dec $100, Feb $100, mandatory only ($300) | $100 a month | Feb $100, Dec $100, Nov $100 (backward) |
+  | 5. one award, Nov $50 | Nov $150; $150 disc UNSCHEDULED | Nov $50 disc + $100 mand; $150 disc UNSCHEDULED |
 
-  The second row shows the month totals can stay the same while the lane split moves: that is what the
-  discretionary-only views and the CR windows read.
-- **Question for Brad before go -- discretionary not fully scheduled.** $200 disc + $100 mand, one
-  increment, Nov $50: $150 of discretionary has no date yet.
-  - **Recommended:** mandatory still lands on the latest award date (Nov $50 disc + $100 mand; $150 disc
-    UNSCHEDULED, as today). It stays in the months, and the award block keeps saying $150 discretionary is
-    still to schedule.
-  - **The strict alternative:** mandatory stays UNSCHEDULED until every discretionary dollar has a date,
-    because it may not award before them (Nov $50; $250 UNSCHEDULED). Any requirement only partly
-    scheduled loses its mandatory from the months until it is finished.
+  Case 2 reads awards typed past the discretionary as whole awards rather than scaling them back.
 - **Where it shows:** every surface that uses the rule -- the Spend Plan Forecast, the month-by-month
   sheets and the Excel workbook's per-requirement months, the PMO tabs, Two Spend Plans, CR Cash Needs
   and the CR Cash Return (1A9A), and the deck's spend-plan-by-month chart. Mandatory moving later can move
   dollars out of the CR window (Oct–Mar) into later months. In Two Spend Plans' modelled plan, where an
-  increment is only a shape, discretionary still spreads by it in full and mandatory lands on the latest
-  date. The RECORD panel's award block: *Mandatory — rides these dates* becomes *Mandatory — awards last*
-  and shows the mandatory on each date. The guide's spend-plan section says the new rule. **The IDS batch
-  has no date column, so nothing in it moves.**
+  increment is only a shape, discretionary still spreads by it in full and mandatory works back from the
+  last date. The RECORD panel's award block: *Mandatory — rides these dates* becomes *Mandatory — awards
+  last* and shows the mandatory on each date. The guide's spend-plan section says the new rule. **The IDS
+  batch has no date column, so nothing in it moves.**
 - **What does not change:** how much is funded in either lane, every total, and every funded dollar still
   in a month or UNSCHEDULED.
-- **Checks:** each worked example and edge case (one date, no date, no increment of its own, mandatory
-  only, increments typed out of date order, a latest date after the fiscal year) is written into the
-  suites from the scenario, never read back from the board; every spend plan agrees with the others month
-  by month and lane by lane; mutations that spread mandatory again, land it first, fill mandatory before
-  discretionary, or take the last increment typed instead of the latest date are caught.
+- **Checks:** the five cases and the edges (one date, no date, no increment of its own, increments typed
+  out of date order, a last date after the fiscal year) are written into the suites from the scenario,
+  never read back from the board; every spend plan agrees with the others month by month and lane by
+  lane; mutations that spread mandatory again, fill it forward, fill discretionary backward, or take the
+  last increment typed instead of the latest date are caught.
 
 #### 41. The Spend Plan Forecast by PMO and by service, and an export of the view
 - **Logged:** 1 Oct 2026, Brad: view the FY27 Projected Spend Plan Forecast by PMO and by service "in the
