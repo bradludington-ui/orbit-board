@@ -212,6 +212,66 @@ console.log('\noffline');
   else pass('every value written into an inline handler goes through jsa()');
 }
 
+// ---- the keyboard reaches everything a click does (v1.92, item 36) ------------------------------
+// WCAG 2.1.1, read off the markup, so it sees what the browser checks cannot: an open menu, a panel the
+// run never opens, a message link. Every element carrying a click handler is a native control (button,
+// input, select, textarea, option, summary, a link with an address). v1.92, revised before merge: the one
+// non-native control allowed is an SVG <g> -- SVG has no button -- saying role="button" tabindex="0" and an
+// aria-label BEFORE its handler (a delegate in the board makes Enter and Space work it). role="button" on a
+// <td> broke the table, on an <a> with no address it was a link that was not one, and on a <span> or <div> it
+// was a button without the browser's own keys: every one of those is now a <button>. Excepted: a
+// backdrop that closes its box (every box has its own Close button) and a handler that only stops a click
+// travelling on. Written as a rule because v1.91's browser check measured with every menu closed and so
+// missed that no menu item could be reached from the keyboard at all.
+{
+  console.log('\nkeyboard reach (markup)');
+  const at = i => src.slice(0, i).split('\n').length;
+  const NATIVE = /^(button|input|select|textarea|option|summary)$/;
+  const TAG = /^<([a-zA-Z][a-zA-Z0-9]*)\b/;
+  const bad = [];
+  for (const m of src.matchAll(/(?<![.\w])onclick\s*=\s*(\\?["'])/g)) {
+    const i = m.index, ln = at(i), line = lines[ln - 1] || '';
+    if (/^\s*(\/\/|\*|\/\*)/.test(line)) continue;
+    // the value, as far as its own quote
+    const q = m[1], v0 = i + m[0].length, v = src.slice(v0, v0 + 60);
+    if (/^if\(event\.target===this\)/.test(v)) continue;                  // a backdrop
+    if (/^event\.stopPropagation\(\)\s*$/.test(v.slice(0, v.indexOf(q.slice(-1)))) ) continue;
+    // the tag it belongs to: the nearest '<' that opens an element
+    let j = src.lastIndexOf('<', i), tag = null;
+    while (j >= 0 && i - j < 1200) { const t = TAG.exec(src.slice(j, j + 24)); if (t) { tag = t[1].toLowerCase(); break; } j = src.lastIndexOf('<', j - 1); }
+    if (!tag) { bad.push([ln, 'the element could not be read']); continue; }
+    const head = src.slice(j, i);
+    // A HANDLER HANDED TO A HELPER: the nearest tag closed before it ('>' not part of '=>'), so the text is an
+    // argument -- act('onclick="…"', …) -- and the element is whatever the helper writes. Followed to it.
+    if (/[^=]>/.test(head.slice(tag.length + 1))) {
+      const h = /([A-Za-z_$][\w$]*)\(\s*\\?['"`]$/.exec(src.slice(Math.max(0, i - 48), i));
+      const def = h && new RegExp('(?:const|let|var|function)\\s+' + h[1] + '\\b[^\\n]{0,120}?return\\s*\\\'<(\\w+)').exec(src);
+      if (def && NATIVE.test(def[1].toLowerCase())) continue;
+      bad.push([ln, `handed to ${h ? h[1] + '()' : 'a helper'}, which writes no control`]); continue;
+    }
+    if (NATIVE.test(tag)) continue;
+    if (tag === 'a' && /\shref\s*=/.test(src.slice(j, i + 400).split(/>(?!=)/)[0] + src.slice(j, i))) continue;
+    if (tag === 'g' && /role\s*=\s*\\?["']button\\?["']/.test(head) && /tabindex\s*=\s*\\?["']0\\?["']/.test(head)
+        && /aria-label\s*=/.test(head)) continue;
+    bad.push([ln, `<${tag}> ${v.replace(/\s+/g, ' ').slice(0, 34)}`]);
+  }
+  // AND NO role="button" ANYWHERE BUT AN SVG GROUP, handler or not.
+  for (const m of src.matchAll(/role\s*=\s*\\?["']button\\?["']/g)) {
+    const i = m.index, ln = at(i), line = lines[ln - 1] || '';
+    if (/^\s*(\/\/|\*)/.test(line)) continue;                                   // a line comment
+    if (src.lastIndexOf('/*', i) > src.lastIndexOf('*/', i)) continue;           // inside a block comment
+    if (src[i - 1] === '[') continue;                                             // a CSS selector
+    let j = src.lastIndexOf('<', i), tag = null;
+    while (j >= 0 && i - j < 400) { const t = TAG.exec(src.slice(j, j + 24)); if (t) { tag = t[1].toLowerCase(); break; } j = src.lastIndexOf('<', j - 1); }
+    if (tag !== 'g') bad.push([ln, `role="button" on <${tag || '?'}> — use a <button>`]);
+  }
+  if (bad.length) fail(`${bad.length} clickable element(s) not a native control — make each a <button> (an SVG <g> alone may `
+    + `say role="button" tabindex="0" with an aria-label before its handler): ` + bad.slice(0, 12).map(([n, w]) => `line ${n} ${w}`).join('; ')
+    + (bad.length > 12 ? ` … and ${bad.length - 12} more (KEYS_ALL=1 lists them all)` : '')
+    + (process.env.KEYS_ALL ? '\n' + bad.map(([n, w]) => `        line ${n} ${w}`).join('\n') : ''));
+  else pass('every element with a click handler is a native control or a labelled SVG role="button" group (backdrops excepted)');
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);

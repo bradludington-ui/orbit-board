@@ -351,8 +351,23 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
 .budtab td{padding:3px 0;vertical-align:top}
 .budtab td:last-child{width:56px;text-align:right}
 .budhow{font-size:9.5px;color:var(--mut);margin-top:2px}
-.budhow.unset,.budhow.legacy{color:var(--ink);font-weight:700}
+.budhow.unset,.budhow.legacy,.budhow.invalid{color:var(--ink);font-weight:700}
 .budhow.unset::before,.budhow.legacy::before{content:"\26a0  "}
+.budhow.invalid::before{content:"\2717  "}
+.budkept{font-size:9.5px;color:var(--mut);margin-top:2px}
+/* v1.92: the IDS box -- review flags, the Update warning, the prompt */
+.idsflag{display:inline-block;font-size:9.5px;font-weight:700;padding:0 5px;border:1px solid var(--amber);border-radius:3px;margin-left:4px;color:var(--ink)}
+.idsflag.zero{border-color:var(--edge)}
+.ids-form{border:1px solid var(--edge);border-radius:6px;padding:8px 10px}
+.ids-form fieldset{border:0;padding:0;margin:8px 0 0}
+.ids-form fieldset label{margin-right:14px;font-size:12px}
+.ids-ok{display:block;margin-top:4px;font-size:12px}
+.ids-warn{margin-top:8px;padding:6px 9px;border-left:3px solid var(--amber);font-size:12px;background:var(--panel)}
+/* the IDS box's tables wrap: budget names, reasons and contributors are read whole, never cut with an ellipsis */
+#idsBody .fctab{table-layout:auto;white-space:normal}
+#idsBody .fctab td,#idsBody .fctab th{overflow:visible;text-overflow:clip;white-space:normal;vertical-align:top;overflow-wrap:break-word}
+#idsBody .ids-ex td:nth-child(n+2):nth-child(-n+5),#idsBody .ids-ex th:nth-child(n+2):nth-child(-n+5),
+#idsBody .ids-rows td:nth-child(n+3):nth-child(-n+5),#idsBody .ids-rows th:nth-child(n+3):nth-child(-n+5){white-space:nowrap}
 .budfoot{margin-top:6px;display:flex;justify-content:flex-end}
 .budnone{font-size:10.5px;color:var(--mut)}
 .insp-split .drew.ls span{display:block}
@@ -767,6 +782,32 @@ table.sp tr.tot td{font-weight:800;background:var(--panelA);border-bottom:1px so
 .mi .chk{width:14px;color:var(--gold);font-weight:800;flex:none}
 .mi .sub{color:var(--dim);font-size:9px;margin-left:auto;padding-left:14px}
 .mi.warn{color:var(--red)}
+/* v1.92 (item 36): menu items and the Funding detail headers are real buttons, so Tab reaches them and Enter
+   or Space runs them. These undo the browser's button look so each reads exactly as the row it was. */
+button.mi{width:100%;border:0;background:transparent;margin:0;font-family:inherit;text-align:left;line-height:inherit;box-sizing:border-box}
+button.mi:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+button.gs-h{width:100%;border:0;margin:0;font-family:inherit;text-align:left;line-height:inherit;box-sizing:border-box}
+button.sc-h{width:100%;border:0;border-bottom:1px solid var(--line);margin:0;font-family:inherit;text-align:left;line-height:inherit;color:inherit;box-sizing:border-box}
+button.gs-h:focus-visible,button.sc-h:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+[role="button"][tabindex="0"]:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+/* v1.92: SVG has no native button, so a flow node keeps role="button"; its ring is the board's gold and wide
+   enough to read on the chart, on keyboard focus however it arrived */
+svg g.flowhit[role="button"]:focus{outline:none}
+svg g.flowhit[role="button"]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+/* v1.92: A NATIVE BUTTON IN WHATEVER CLOTHES IT REPLACED. Every chip, link, table toggle and in-cell editor that
+   was a <span>, <a>, <div> or <td> with role="button" is a <button> now. :where() keeps this reset at zero
+   specificity, so the element's own class (.chip, .lanechip, .fitchip, .rchip, .cedit, .rtag) still dresses it. */
+:where(button.nb){-webkit-appearance:none;appearance:none;font:inherit;color:inherit;background:none;border:0;padding:0;margin:0;
+  text-align:inherit;line-height:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;box-sizing:border-box}
+:where(button.nb.lnk){color:var(--blue);text-decoration:underline}
+button.nb:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+/* v1.92 (item 36): 1.4.11 where the conformance run had never looked -- it now measures with every menu and
+   Funding detail panel open, and in Fund. A picker (.cesel) set its own faint border and outranked the rule
+   that gives controls an edge; an open menu's box had none either; and on the SELECTED row the rank and
+   allocation boxes sit on the selection tint, where --edge falls just short (2.85:1 in Midnight). */
+select.cesel{border-color:var(--edge)}
+.mdd{border-color:var(--edge)}
+.row.cur input,.row.cur select,.row.cur .rank input,.row.cur .acts.alloc input{border-color:var(--edge2)}
 .msep{height:1px;background:var(--line);margin:4px 6px}
 .fctab{width:100%;border-collapse:collapse;font-size:9.5px;white-space:nowrap;table-layout:fixed}
 /* the label column carries long names, so let it wrap rather than push the grid out of line */
@@ -1295,40 +1336,40 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <!-- The scorecards, the fit strip and the funding panels, unchanged, under "Funding detail". -->
 <div class="funddetail" id="fundDetail">
 <div class="scstack">
-<div class="sc-h" onclick="scOpen=!scOpen;render()"><span id="scArrow">▾</span> <span style="color:var(--gold);font-weight:700">Budget authority &amp; posture</span> <span id="svcWarn"></span> <span id="scMini"></span></div>
+<button type="button" class="sc-h" aria-expanded="true" onclick="scOpen=!scOpen;render()"><span id="scArrow">▾</span> <span style="color:var(--gold);font-weight:700">Budget authority &amp; posture</span> <span id="svcWarn"></span> <span id="scMini"></span></button>
 <div class="scores" id="scores"></div>
 <div class="fitwrap" id="fitWrap" style="display:none"><div class="fitbar" id="fitBar"></div></div>
 </div>
 
 <div class="gs-wrap"><div class="gs">
-  <div class="gs-h" onclick="gsOpen=!gsOpen;render()"><span class="gsx" id="gsArrow">▾</span> <span class="gsn">Funding by service</span> <span class="gsd">discretionary / mandatory / unfunded</span></div>
+  <button type="button" class="gs-h" aria-expanded="true" onclick="gsOpen=!gsOpen;render()"><span class="gsx" id="gsArrow">▾</span> <span class="gsn">Funding by service</span> <span class="gsd">discretionary / mandatory / unfunded</span></button>
   <div id="gsBody"></div>
-  <div class="gs-h" onclick="taOpen=!taOpen;render()"><span class="gsx" id="taArrow">&#9656;</span> <span class="gsn">Unspent discretionary &mdash; what could take it</span> <span class="gsd">trimmed requirements the remaining lane could cover, in priority order</span></div>
+  <button type="button" class="gs-h" aria-expanded="true" onclick="taOpen=!taOpen;render()"><span class="gsx" id="taArrow">&#9656;</span> <span class="gsn">Unspent discretionary &mdash; what could take it</span> <span class="gsd">trimmed requirements the remaining lane could cover, in priority order</span></button>
   <div id="taBody"></div>
 </div></div>
 
 <div class="gs-wrap"><div class="gs">
-  <div class="gs-h" onclick="pmoSumOpen=!pmoSumOpen;render()"><span class="gsx" id="pmArrow">▾</span> <span class="gsn">PMO funding</span> <span class="gsd">discretionary / mandatory by service</span> <span id="pmWarn"></span></div>
+  <button type="button" class="gs-h" aria-expanded="true" onclick="pmoSumOpen=!pmoSumOpen;render()"><span class="gsx" id="pmArrow">▾</span> <span class="gsn">PMO funding</span> <span class="gsd">discretionary / mandatory by service</span> <span id="pmWarn"></span></button>
   <div id="pmBody"></div>
 </div></div>
 
 <div class="gs-wrap" id="siWrap" style="display:none"><div class="gs">
-  <div class="gs-h" onclick="siOpen=!siOpen;render()"><span class="gsx" id="siArrow">▾</span> <span class="gsn">Special Interest codes</span> <span class="gsd">allocations by code and service</span> <span id="siWarn"></span></div>
+  <button type="button" class="gs-h" aria-expanded="true" onclick="siOpen=!siOpen;render()"><span class="gsx" id="siArrow">▾</span> <span class="gsn">Special Interest codes</span> <span class="gsd">allocations by code and service</span> <span id="siWarn"></span></button>
   <div id="siBody"></div>
 </div></div>
 
 <div class="gs-wrap" id="ceWrap" style="display:none"><div class="gs">
-  <div class="gs-h" onclick="ceOpen=!ceOpen;render()"><span class="gsx" id="ceArrow">▾</span> <span class="gsn">Cost elements</span> <span class="gsd">discretionary / mandatory rollups (by element and by PMO)</span> <span id="ceWarn"></span></div>
+  <button type="button" class="gs-h" aria-expanded="true" onclick="ceOpen=!ceOpen;render()"><span class="gsx" id="ceArrow">▾</span> <span class="gsn">Cost elements</span> <span class="gsd">discretionary / mandatory rollups (by element and by PMO)</span> <span id="ceWarn"></span></button>
   <div id="ceBody"></div>
 </div></div>
 
 <div class="gs-wrap" id="teamWrap" style="display:none"><div class="gs">
-  <div class="gs-h" onclick="teamOpen=!teamOpen;render()"><span class="gsx" id="teamArrow">▾</span> <span class="gsn">Team funding</span> <span class="gsd">ATL vs BTL (allocations by service)</span></div>
+  <button type="button" class="gs-h" aria-expanded="true" onclick="teamOpen=!teamOpen;render()"><span class="gsx" id="teamArrow">▾</span> <span class="gsn">Team funding</span> <span class="gsd">ATL vs BTL (allocations by service)</span></button>
   <div id="teamBody"></div>
 </div></div>
 
 <div class="gs-wrap" id="buysWrap" style="display:none"><div class="gs buys">
-  <div class="gs-h" onclick="buysOpen=!buysOpen;render()"><span class="gsx" id="buysArrow">▸</span> <span class="gsn">✈ Aircraft &amp; engine buys</span> <span class="gsd">quantities × unit cost feed the two buy requirements below</span></div>
+  <button type="button" class="gs-h" aria-expanded="true" onclick="buysOpen=!buysOpen;render()"><span class="gsx" id="buysArrow">▸</span> <span class="gsn">✈ Aircraft &amp; engine buys</span> <span class="gsd">quantities × unit cost feed the two buy requirements below</span></button>
   <div id="buysBody"></div>
 </div></div>
 </div>
@@ -1466,7 +1507,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p data-b="card"><b>⊞ SVC</b> on the row opens the by-service table; its top row is the requirement value, one box per service. Type the new figure and press <span class="kb">Tab</span>. <b>↺ orig</b> puts the published values back.</p>
 <div class="hx-note"><b>This one is money.</b> A changed requirement value moves the unfunded total and can move the cutline. Expect the portfolio team to ask where the number came from.</div>
 <h4>Everything else on the requirement</h4>
-<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> for a service with no money yet, so its budget is already chosen when money arrives. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and <i>Budget for every line</i> sets them all at once. In <b>📋 Requirement edit</b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element and the MIPR type.</p>
+<p>If something is wrong or out of date, fix it here rather than sending an email about it: the plan event (<b>✎</b> beside the title), ★ Mission Critical, the decision band, the CCaR record and PID, the 📅 award / obligation date, the minimum useful increment, and the <b>BAE budget</b>: a line for each service and lane the requirement draws on, and a line marked <i>not funded yet</i> (or <i>unfunded part</i>) for dollars with no money behind them yet, which always go on a discretionary or lane-less budget. Each line says how its budget was settled — chosen, automatic by rule, from CCaR, or not set — and a chosen budget that can no longer be used (retired, not in the list, another office’s) says so and why until you pick again or clear it. <i>Budget for every line</i> sets them all at once. In <b>📋 Requirement edit</b>: prime contract or OGC, PMO (to hand a requirement to another office), obligation category, WBS, RCN / EEIC, Navy SI code, where the money goes (the destination list reads A to Z), the cost element and the MIPR type.</p>
 </section>
 <section data-part="office" data-id="o-new" data-t="Proposing a new requirement">
 <p>If your office has a requirement the board does not, propose it from your copy: <b class="bt" data-q="#toolAdd">＋ Add requirement</b>, in the bar under the header. Set PMO to your office, type the title, and enter the value by service (or one total, spread evenly). It lands at the bottom of the list with a provisional reference such as <b>NEW-AV-1</b>.</p>
@@ -1510,11 +1551,13 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <dt>I closed the tab — is my work gone?</dt><dd>No. It is kept in your browser on that machine, against that copy. Reopen the same file in the same browser.</dd>
 <dt>My requirement is not in the list</dt><dd>Check the <b>PMO</b> box at the top is set to your office or to All programme offices, and that the search box is empty. If it is genuinely absent, propose it.</dd>
 <dt>The figures look out of date</dt><dd>They may be. The bar at the top says when the copy was published. Ask for a fresh copy before briefing anything from it.</dd>
+<dt>Something went wrong and the portfolio team asks for details</dt><dd><span class="mp" data-m="share">📁 File ▾ › 🩺 Save diagnostics…</span> shows exactly what the file will hold: the version, your browser, counts, and the last warnings with every figure, title and name taken out. <b>Save</b> puts it in your downloads; send that file, not your copy.</dd>
 </dl>
 </section>
 <section data-part="team" data-id="t-board" data-t="The board, its menus and its file">
 <p>The board is one file that holds all four appropriations — O&amp;M, Full Fund, Initial Spares and OPN — switched with the <b>Appropriation</b> box at the top. Each has its own plan for every year in the FYDP window, its own locked PPBE cycles and its own positions; the BAE list, the destination list, execution data, cost estimates and the reprogramming log are shared across all four.</p>
 <p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — and whether your work is saved, with the latest message beside it (the <b>Message</b> button opens a long one whole, or brings back one you hid); <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (for the room — requirements can’t be edited there) — each shows its own tools, and none changes a figure — then <b>Reports &amp; exports ▾</b> (every view and every export), <b>Data ▾</b> (everything that brings data in) and <b>Setup ▾</b> (the shape of the board, and the colours and the density you see it in). The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels. On a narrow window — below about 760 pixels, a phone — the board is for reading and checking a requirement; rank and fund on a wider screen.</p>
+<p><b>Everything works from the keyboard.</b> Tab moves through the top of the board and into a menu you have opened, item by item; Enter or Space runs what has focus; Esc closes a menu, a row’s ⋯ menu or the message and leaves you on the button that opened it. The Funding detail headers and the service chips work the same way. Type a figure in a row and press Tab: it is applied and you move on to the next field. Enter applies it and stays.</p>
 <p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the top bar says <i>↶ work kept aside</i>, and one click puts it back.</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
@@ -1552,6 +1595,14 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <section data-part="team" data-id="t-dest" data-t="Destinations: one list for every appropriation">
 <p><span class="mp" data-m="setup">Setup ▾ › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
 <p>The <i>Used by</i> column counts requirements here and on the other appropriations. A destination another appropriation or a locked cycle points at cannot be removed until those requirements point elsewhere — a locked cycle is a fixed point, so one it names stays. Where two appropriations named the same place with a different kind, the panel says so for you to settle.</p>
+</section>
+<section data-part="team" data-id="t-ids" data-t="The IDS batch for CCaR">
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📤 IDS Batch Import — Requirements…</span> opens a preview of the file CCaR imports, worked out from the plan on screen: <b>one row per Budget FY, budget and control number</b>. Everything that lands on the same budget and control number — two services, both lanes on a lane-less budget, two requirements sharing a control number — is added into that one row, and a row holding more than one requirement is marked for review. A mandatory line’s <b>Req. Amount</b> and <b>Req. Approved</b> are its mandatory draw; a discretionary line carries the discretionary draw <b>plus every unfunded dollar</b> on that service; a requirement with no money goes at Approved 0 on a discretionary budget, so CCaR still tracks it. Unfunded dollars never go on a mandatory budget.</p>
+<p>Anything that cannot be uploaded correctly — no control number, one that is not all digits, no budget, a chosen budget that can no longer be used — stays off the upload sheet and is listed with its dollars and <b>every</b> reason on the file’s second sheet, <b>Missing data and anomalies</b>, which also reconciles every dollar of the plan. If nothing at all can be uploaded the file is still made, and its first line says <b>NO UPLOADABLE IDS ROWS</b>: it is a diagnostic, not an upload.</p>
+<p>Before it makes the file the box asks for <b>the reason</b> (written on every row), <b>Add or Update</b> for the whole file (Add unless you choose Update — CCaR may refuse an update to a record that has Authorized allocations), <b>the file ID</b> — filled in with today’s date and the time of day, for you to check and confirm, because ORBIT keeps no record of exports and cannot know which IDs CCaR has already seen — and <b>the ORG number</b>, confirmed for every row and service. ORBIT never writes Delete and keeps nothing about an export but the ORG. The export is off while a locked cycle is on screen, in a PMO copy, and whenever ORBIT’s own arithmetic check fails; the box says which.</p>
+</section>
+<section data-part="team" data-id="t-diag" data-t="When something goes wrong: Save diagnostics">
+<p><span class="mp" data-m="share">📁 File ▾ › 🩺 Save diagnostics…</span> makes a small text file for support instead of sending the board. It holds the version, what kind of file this is (the live board, a PMO copy and whose, or one appropriation), the browser and window, how the file was opened and where Save writes, browser storage and any write it refused, counts only, and the last 50 warnings and script errors with their times. <b>It never holds a dollar figure, a requirement title, a name, a CCaR record, a PID or a budget name</b>: in the messages a figure reads # and anything taken out reads …. The office code stays. The box shows exactly what Save writes; Cancel or Esc writes nothing; nothing is sent anywhere. The board keeps that list in memory only — never in the file, never in browser storage.</p>
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
 <p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints.</p>
@@ -1621,6 +1672,21 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
   <div class="modal" style="width:1040px;max-width:96vw;max-height:88vh">
     <h3>💰 BUDGET LIST <button class="x" onclick="toggleBudReg()">✕ Close</button></h3>
     <div id="budRegBody"></div>
+  </div>
+</div>
+
+<!-- v1.92 (item 18): Save diagnostics. The box shows exactly the text Save writes; Cancel writes nothing. -->
+<div class="modal-bg" id="diagPanel" onclick="if(event.target===this)toggleDiag()">
+  <div class="modal" style="width:820px;max-width:96vw;max-height:88vh" role="dialog" aria-modal="true" aria-labelledby="diagH">
+    <h3 id="diagH">🩺 SAVE DIAGNOSTICS <button class="x" onclick="toggleDiag()">✕ Close</button></h3>
+    <p style="margin:0 0 8px;font-size:12px;line-height:1.5">This is <b>exactly what the file will hold</b>. It has no dollar figures,
+      requirement titles, names, CCaR records, PIDs or budget names: in the messages a figure reads <b>#</b> and anything taken out
+      reads <b>…</b>. Nothing is sent anywhere — <b>Save</b> puts a small text file in your downloads, and you send it to whoever is helping you.</p>
+    <pre id="diagPre" tabindex="0" aria-label="The diagnostics file" style="margin:0;max-height:52vh;overflow:auto;white-space:pre-wrap;word-break:break-word;font:11px/1.45 ui-monospace,Consolas,monospace;background:var(--panel2,var(--panel));border:1px solid var(--edge);border-radius:6px;padding:10px"></pre>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+      <button type="button" class="btn" onclick="toggleDiag()">Cancel</button>
+      <button type="button" class="btn on" id="diagSave" onclick="diagSave()">💾 Save diagnostics</button>
+    </div>
   </div>
 </div>
 
@@ -1838,6 +1904,33 @@ let PUB = null;
 // yet at this point, and a board that silently opens blank because its saved state would not parse
 // is the worst thing this tool can do without saying so.
 const _bootLost = [];
+/* v1.92 (item 18): WHAT WENT WRONG, KEPT FOR SUPPORT. When something went wrong on somebody's machine the
+   only way to learn what was their board -- every dollar and title on it. From the moment the program starts
+   the board keeps a short list instead: every warning it shows, what it could not read on opening, and any
+   script error nothing else caught -- the last 50, each with its time. It lives in memory only: never in the
+   saved file, never in browser storage. Each entry is cleaned AS IT IS KEPT (diagClean, with the file's other
+   helpers beside the IDS batch): figures become #, every quoted value goes, and every title, name, record,
+   PID, budget and destination the board holds is taken out. 🩺 Save diagnostics cleans it all again when
+   the file is made, and also drops any word the board's own program never uses -- a file name, the name of
+   somebody who saved a copy elsewhere. */
+const DIAG={t0:Date.now(), log:[], refused:[], boot:[], errors:0, dropped:0};
+function diagNote(kind, text, at){
+  try{
+    DIAG.log.push({t:Date.now(), kind:kind, text:diagClean(text, false), at:at||''});
+    if(DIAG.log.length>50){ DIAG.log.shift(); DIAG.dropped++; }
+    if(kind==='error') DIAG.errors++;
+  }catch(e){}
+}
+try{
+  window.addEventListener('error', function(ev){
+    // where it happened is two numbers and nothing else; the message is cleaned like any warning
+    diagNote('error', (ev && ev.message) || 'script error', (ev && ev.lineno)? 'line '+(ev.lineno|0)+':'+(ev.colno|0) : '');
+  });
+  window.addEventListener('unhandledrejection', function(ev){
+    const r=ev && ev.reason;
+    diagNote('error', 'unhandled: '+((r && r.message) || String(r)));
+  });
+}catch(e){}
 try{ PUB = JSON.parse(document.getElementById('pubState').textContent); }
 catch(e){ _bootLost.push('the saved board state in this file'); }
 // WHEN THIS FILE WAS LAST SAVED, read the way the collision guard reads the file on disk (fileTsOf:
@@ -1881,6 +1974,8 @@ let EXDB = (function(){
 function lsSet(key, val, what){
   try{ localStorage.setItem(key, val); return true; }
   catch(e){
+    // v1.92 (item 18): kept for Save diagnostics -- what it was (the board's own words) and the browser's reason
+    try{ DIAG.refused.push({t:Date.now(), what:diagClean(what, false), why:String((e&&e.name)||'error').replace(/[^A-Za-z]/g,'')}); }catch(e2){}
     try{ setStat('\u26a0 <b>'+esc(what)+' could not be kept in browser storage</b> \u2014 it was refused ('
       +esc((e&&e.name)||'error')+'). It is still loaded and correct here. Use \ud83d\udcbe <b>Save</b> '
       +'to write it into the file, which does not use browser storage.'); }catch(e2){}
@@ -2080,6 +2175,7 @@ function pmoCopyHtml(mode){
 }
 document.title="FY27 "+_AP.t+" Prioritization Board (Consolidated)";
 let PUBS=(PUB&&PUB.appns)? PUB.appns : {};
+const PUB_ONLY=(PUB&&PUB.only)? String(PUB.only) : '';   // v1.92 (item 18): a one-appropriation file, remembered past the narrowing below
 if(PUB&&PUB.appns) PUB=PUBS[_AP.slug]||null;
 const DATA = (function(){
   const emb=APPNS[APPN];
@@ -2187,7 +2283,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.91 (30 Sep 2026)';
+const BUILD='v1.92 (1 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -2364,11 +2460,11 @@ function ndData(){
 // A · the counter, in the DISCRETIONARY FIT strip, and the way into the fix list beside it
 function ndStripChip(){
   const N=ndData(), on=laneFilter==='nd';
-  return '<span class="lanechip '+(on?'on':'')+'" style="'+(on? 'color:var(--amber);background:var(--panel);' : '')+(N.n? 'border-color:var(--amber)' : '')+'" '
-    +'onclick="laneFilter=laneFilter===\'nd\'?\'\':\'nd\';render()" '
+  return '<button type="button" class="nb lanechip '+(on?'on':'')+'" style="'+(on? 'color:var(--amber);background:var(--panel);' : '')+(N.n? 'border-color:var(--amber)' : '')+'" '
+    +'aria-pressed="'+(on?'true':'false')+'" onclick="laneFilter=laneFilter===\'nd\'?\'\':\'nd\';render()" '
     +'title="requirements set higher than they draw — a typed Disc or Mand figure more than the lane or the requirement value could pay, discretionary and mandatory together. Click to filter the list to them.">'
-    +'▲ not drawn <b style="color:'+(N.n?'var(--amber)':'var(--dim)')+'">'+N.n+'</b>'+(N.n? ' · <b style="color:var(--amber)">'+fMc(N.tot)+'</b>' : '')+'</span>'
-    +(N.n? '<span class="lanechip" onclick="ndOpen=true;ndFocus=\'\';render()" title="every case in one list, with the fix beside each">🔧 fix list</span>' : '');
+    +'▲ not drawn <b style="color:'+(N.n?'var(--amber)':'var(--dim)')+'">'+N.n+'</b>'+(N.n? ' · <b style="color:var(--amber)">'+fMc(N.tot)+'</b>' : '')+'</button>'
+    +(N.n? '<button type="button" class="nb lanechip" onclick="ndOpen=true;ndFocus=\'\';render()" title="every case in one list, with the fix beside each">🔧 fix list</button>' : '');
 }
 // B · the flag on the row. Hover names each service and lane; a click opens the fix list on it.
 // Each service and lane where this requirement is set higher than it draws: typed, drew, and why.
@@ -2380,9 +2476,9 @@ function ndRowTip(id){
 function ndRowChip(id){
   const N=ndData(), g=N.ids[id]; if(!g) return '';
   const lines=ndRowTip(id);
-  return '<span class="rchip" style="border-color:var(--amber);color:var(--amber);font-weight:800" '
+  return '<button type="button" class="nb rchip" style="border-color:var(--amber);color:var(--amber);font-weight:800" '
     +'onclick="ndOpen=true;ndFocus='+jsa(id)+';render()" title="'+esc(lines.join('\n')+'\nClick for the fix list.')+'">'
-    +'▲ '+fMc(g)+' not drawn</span>';
+    +'▲ '+fMc(g)+' not drawn</button>';
 }
 // C · the fix list
 function ndBody(){
@@ -2785,10 +2881,11 @@ function aceBody(){
       h+='<tr>'+(multi? '<td>FY'+(r.fy%100)+'</td>':'')
         +'<td style="text-align:left">'+esc(r.pmo)+'</td>'
         +'<td style="text-align:left" title="'+esc(r.rec)+'">'
-        +(alignApplies()? '<span class="cedit" style="color:var(--dim);margin-right:5px" '
-           +'onclick="aceToggleExp('+jsa(r.id)+','+r.fy+')" '
+        +(alignApplies()? '<button type="button" class="nb cedit" style="color:var(--dim);margin-right:5px" '
+           +'aria-expanded="'+(xo?'true':'false')+'" onclick="aceToggleExp('+jsa(r.id)+','+r.fy+')" '
+           +'aria-label="'+esc((xo?'Hide':'Show')+' the breakdown of '+r.title)+'" '
            +'title="show how this requirement breaks down, and what each line is funded under">'
-           +(xo?'\u25be':'\u25b8')+'</span>' : '')
+           +(xo?'\u25be':'\u25b8')+'</button>' : '')
         +esc(r.title)+'</td>'
         +'<td style="text-align:left;color:'+(r.ok?'var(--ink)':'var(--dim)')+'"'
         +(wl.length>2? ' title="'+esc(wl.join(', '))+'"':'')+'>'+wcell+'</td>'
@@ -5626,6 +5723,7 @@ function jrnlBody(){
   el.innerHTML=h;
 }
 function save(){
+  _diagSec=null;                            // v1.92 (item 18): what the board holds has changed; clean against the new
   if(CYCVIEW) return cycRefuse('Saving');
   DIRTY=true; _dlOnly=false;
   try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}
@@ -5668,6 +5766,7 @@ function uipDone(ok){
 function setStat(html){
   if(CYCVIEW && (Date.now()-_cycRefusedAt)<1500 && !/^🔒/.test(String(html)))
     html='🔒 <b>Not kept — '+esc(blLbl(CYCVIEW))+' is a locked view.</b> '+html;
+  try{ if(diagIsWarn(html)) diagNote('warning', html); }catch(e){}
   const el=document.getElementById('shareStat'); if(el) el.innerHTML=html;
   // v1.90: the line lives beside the save state now. A message shows itself there until the next one or
   // until it is hidden; the save state's tooltip always carries it. _statQuiet is set for the one
@@ -7029,7 +7128,7 @@ function publishState(){
   a.click();
   setStat('💾 Saved — updated board downloaded to your Downloads folder. Copy it onto the shared drive, replacing the old board file. '
     +'Everyone who opens it sees your priorities, PMO ranks, BA, MC flags, allocations, and notes automatically. '
-    +'<a style="color:var(--blue);cursor:pointer" onclick="publishJson()">Or download the .json state file</a> (advanced, for the state-file workflow).');
+    +'<button type="button" class="nb lnk" onclick="publishJson()">Or download the .json state file</button> (advanced, for the state-file workflow).');
 }
 function publishJson(){
   if(cycBlock('Downloading the state file')) return;
@@ -9847,8 +9946,8 @@ function srcGapNote(){
       +'than one BAE name fits and nothing on the board decides between them (pick one in the record panel)');
     if(bs.none) gaps.push('<b>'+bs.none+'</b> line'+(bs.none===1?' has':'s have')+' no <b>Budget</b> \u2014 no BAE '
       +'name fits the service, PMO, lane'+(mySlug()==='ff'? ' and cost element' : '')+' (check the requirement, or pick by hand)');
-    if(bs.legacy) gaps.push('<b>'+bs.legacy+'</b> line'+(bs.legacy===1?' points':'s point')+' at a <b>legacy budget</b> '
-      +'(no PMO in the name) and '+(bs.legacy===1?'is':'are')+' left blank \u2014 pick again');
+    if(bs.invalid) gaps.push('<b>'+bs.invalid+'</b> line'+(bs.invalid===1?' has':'s have')+' a chosen budget that '
+      +'<b>cannot be used</b> (retired, not in the list, another office\u2019s, the other lane\u2019s or legacy) \u2014 pick again');
     if(bs.hand) gaps.push('<b>'+bs.hand+'</b> line'+(bs.hand===1?' is':'s are')+' on a CONG, BOS, OCO, Withhold or '
       +'TrngDev budget, which is only ever chosen by hand \u2014 confirm '+(bs.hand===1?'it still applies':'they still apply'));
   } else {
@@ -10114,8 +10213,6 @@ const BUD_CE_LINE={'Airframe PGSE':'AIRFRAME PGSE', 'Engine PGSE':'ENGINE PGSE',
   'Depot Standup Software':'DEPOT SOFTWARE', 'Depot Standup Air Vehicle':'DEPOT STANDUP',
   'Depot Standup Propulsion':'DEPOT STANDUP', 'JRE':'JRE'};
 function budNorm(s){ return String(s||'').toUpperCase().replace(/[^A-Z0-9]+/g,' ').trim(); }
-// A name that can be used at all: it reads as a budget and it carries a PMO.
-function budUsable(n){ const p=budParseName(n); return !!(p && p.pmo); }
 // Every name a PERSON may choose for this requirement, service and lane: this appropriation, this
 // service and PMO, this lane or none -- never a legacy or retired name. Hand-pick lines included.
 function budPickList(id, svc, lane){
@@ -10184,30 +10281,122 @@ function budAskSvcs(id){
   const it=itemById(id); if(!it) return [];
   return SVC.filter(function(sv,i){ return (+(it.ask||[])[i]||0)>0; });
 }
+// v1.92: a service drawing only mandatory and still short has an UNFUNDED PART, and the IDS export files it on a
+// discretionary budget -- so it gets a line of its own here ("unfunded part"), resolved as the discretionary lane
+// exactly as a service with no money is. A service drawing discretionary needs none: that line carries the rest.
 function budLines(id, T){
   const it=itemById(id); if(!it) return [];
-  const p=(T||tiers())[id]||{}, out=[];
+  const p=(T||tiers())[id]||{}, out=[], unf=unfSvcOf(it, p);
   SVC.forEach(function(sv,i){
     const d=(+(p.d||[])[i]||0)>0.005, m=(+(p.m||[])[i]||0)>0.005;
     if(d) out.push({svc:sv, lane:'disc'});
     if(m) out.push({svc:sv, lane:'mand'});
-    if(!d && !m && (+(it.ask||[])[i]||0)>0) out.push({svc:sv, lane:''});
+    if(!d && (+unf[i]||0)>0) out.push(m? {svc:sv, lane:'', part:true} : {svc:sv, lane:''});
   });
   return out;
 }
-// How a FUNDED line's budget was settled: budForRow()'s steps, named. {n} is what the file prints.
-function budHow(id, svc, lane){
-  const chosen=budAsgOf(id, svc, lane);
-  if(chosen) return budUsable(chosen)? {n:chosen, how:'chosen'} : {n:'', how:'legacy', legacy:chosen};
-  return budRuleOf(id, svc, lane);
-}
-// What the rule alone would print on the line -- the answer "back to the rule" returns it to.
+// What the rule alone would print on the line -- the answer "back to the rule" returns it to. {many} is how
+// many names fit, so "none fits" and "several fit and nothing decides" can be told apart.
 function budRuleOf(id, svc, lane){
   const c=budCandidates(id, svc, lane);
-  if(c.length===1) return {n:c[0].n, how:'rule'};
+  if(c.length===1) return {n:c[0].n, how:'rule', many:1};
   if(c.length>1){ const on=budCcarBuds(id);
-    if(on){ const hit=c.filter(function(b){ return !!on[b.n]; }); if(hit.length===1) return {n:hit[0].n, how:'ccar'}; } }
-  return {n:'', how:'unset'};
+    if(on){ const hit=c.filter(function(b){ return !!on[b.n]; }); if(hit.length===1) return {n:hit[0].n, how:'ccar', many:c.length}; } }
+  return {n:'', how:'unset', many:c.length};
+}
+// ── v1.92: ONE AUTHORITY ON A LINE'S BUDGET ──────────────────────────────────────────────────────────────
+// budResolve() is the ONLY place that decides whether a stored choice can be used -- retired, not in the BAE
+// list, another office's, another service's, the other lane's, another appropriation's, legacy, or not a
+// requirement budget at all. The RECORD panel, the Spend Plan Source, the IDS export, the pre-flight, the
+// divergence report and the budget list all read its answer; none of them judges a name for itself.
+// A CHOICE THAT CANNOT BE USED IS NEVER QUIETLY REPLACED by the rule's answer. Before v1.92 the RECORD panel
+// showed "back to the rule: X" while the Spend Plan Source and the IDS file printed the stored name -- a
+// retired budget, one no longer in the list, or the AV budget of a requirement since moved to PSM. Now the
+// choice stays stored and is shown for what it is, the line has NO budget (the IDS export lists it as not
+// uploaded, the Spend Plan Source refuses), and a person picks again or clears it.
+// Pure: it reads and never writes. status: chosen | rule | ccar | ambiguous | none | no-list | invalid.
+const BUD_WHY={
+  notbud:  'not a requirement budget name',
+  legacy:  'a legacy budget (no PMO in the name)',
+  missing: 'not in the BAE list',
+  retired: 'retired \u2014 the latest BAE import no longer lists it',
+  appn:    'another appropriation\u2019s budget'
+};
+// Every reason one stored name cannot answer this requirement's service and lane -- all of them, not the first.
+function budCheckChoice(id, svc, lane, name){
+  const bad=[], p=budParseName(name);
+  let canon=String(name||'').trim();
+  if(!p){ bad.push('notbud'); return {bad:bad, canon:canon, pmo:'', reqPmo:''}; }
+  if(!p.pmo) bad.push('legacy');
+  // Budget names match regardless of case (IDS rule 6); the list's own spelling is the one printed.
+  const reg=budReg(), fold=function(x){ return String(x||'').toUpperCase().replace(/\s+/g,' ').trim(); }, want=fold(canon);
+  let hit=null;
+  for(let i=0;i<reg.length && !hit;i++){ if(reg[i].n===canon) hit=reg[i]; }
+  for(let i=0;i<reg.length && !hit;i++){ if(fold(reg[i].n)===want) hit=reg[i]; }
+  if(!hit) bad.push('missing'); else { canon=hit.n; if(hit.gone) bad.push('retired'); }
+  if(p.ap!==mySlug()) bad.push('appn');
+  const it=itemById(id), reqPmo=(it && grpOf(it))||'';
+  if(p.pmo && reqPmo && p.pmo!==reqPmo) bad.push('office');
+  if(svc && (p.svc||[]).indexOf(svc)<0) bad.push('service');
+  if(lane && p.dm && p.dm!==lane) bad.push('lane');
+  return {bad:bad, canon:canon, pmo:p.pmo, reqPmo:reqPmo};
+}
+function budBadText(k, c, svc, lane){
+  if(k==='office') return 'another office\u2019s budget ('+c.pmo+'; this requirement is '+c.reqPmo+')';
+  if(k==='service') return 'not a budget for '+svc;
+  if(k==='lane') return lane==='mand'? 'a discretionary budget on the mandatory line' : 'a mandatory budget on the discretionary line';
+  return BUD_WHY[k]||k;
+}
+// The stored key that answers one line: 'svc|lane' first, then a choice kept under the bare service when its
+// name fits the lane (a lane-less name serves both). The same reading budAsgOf() gives, named.
+function budStoredFor(A, svc, lane){
+  if(A[svc+'|'+lane]) return svc+'|'+lane;
+  const old=A[svc]; if(!old) return '';
+  const p=budParseName(old);
+  return (!p || !p.dm || p.dm===lane)? svc : '';
+}
+function budResolve(id, svc, lane, St){
+  lane=(lane==='mand')? 'mand' : 'disc';
+  const A=(((St||S).budgetAsg||{})[id])||{};
+  const storedKey=budStoredFor(A, svc, lane);
+  const out={id:id, svc:svc, lane:lane, storedKey:storedKey, stored:storedKey? A[storedKey] : '',
+             rule:{n:'', how:'unset', many:0}, effective:'', status:'', exportable:false, bad:[], reasons:[]};
+  if(!budReg().length){ out.status='no-list'; out.reasons=['no BAE list is loaded, so no budget name exists']; return out; }
+  out.rule=budRuleOf(id, svc, lane);
+  if(out.stored){
+    const c=budCheckChoice(id, svc, lane, out.stored);
+    if(!c.bad.length){ out.status='chosen'; out.effective=c.canon; out.exportable=true; return out; }
+    out.status='invalid'; out.bad=c.bad;
+    out.reasons=c.bad.map(function(k){ return 'the chosen budget is '+budBadText(k, c, svc, lane); });
+    return out;
+  }
+  if(out.rule.n){ out.status=out.rule.how; out.effective=out.rule.n; out.exportable=true; return out; }
+  const L=lane==='mand'? 'mandatory' : 'discretionary';
+  out.status=out.rule.many>1? 'ambiguous' : 'none';
+  out.reasons=[out.rule.many>1? out.rule.many+' budgets fit '+svc+' '+L+' and nothing decides between them'
+    : 'no budget in the BAE list fits '+svc+', this office and the '+L+' lane'];
+  return out;
+}
+// What a person does about a line the resolver could not give a budget.
+function budFixOf(r){
+  if(r.status==='invalid') return 'Pick again under BAE budget in the RECORD panel, or clear the choice so the rule applies.';
+  if(r.status==='no-list') return 'Import the Budget Extract (Data \u203a Import Budget Extract (BAE)\u2026).';
+  if(r.status==='ambiguous') return 'Pick one under BAE budget in the RECORD panel.';
+  if(r.status==='none') return 'Check the requirement\u2019s office and services, or pick a budget by hand in the RECORD panel.';
+  return '';
+}
+// Every stored choice on the active year that answers a FUNDED line and cannot be used -- what the Spend Plan
+// Source refuses over and the pre-flight blocks on.
+function budInvalidLines(T){
+  const out=[]; T=T||tiers();
+  (S.order||[]).forEach(function(id){
+    if(!itemById(id)) return;
+    budPairs(id, T).forEach(function(q){
+      const r=budResolve(id, q.svc, q.lane);
+      if(r.status==='invalid') out.push(r);
+    });
+  });
+  return out;
 }
 // A funded line's picker. Its empty choice is "back to the rule", the same as the line's clear: a choice
 // kept under the bare service answers this line too, and removing only svc|lane would leave it standing.
@@ -10215,41 +10404,59 @@ function budLineSet(id, svc, name, lane){
   if(!name){ budLineClear(id, svc, lane); return; }
   setBudAsg(id, svc, name, lane);
 }
-// What is chosen for a service with no money yet: whatever is stored for it, under either lane or none.
-function budUnfChoice(id, svc){
-  const A=((S.budgetAsg||{})[id])||{};
-  return A[svc] || A[svc+'|disc'] || A[svc+'|mand'] || '';
-}
-// Choose on a line with no money yet. The name carries its own lane, so it is kept under that lane -- or
-// under the bare service when it names none, which budAsgOf() reads for either lane.
+// Choose on a line with no money yet (v1.92). Whatever such a line carries is UNFUNDED, and every unfunded
+// dollar goes on a DISCRETIONARY budget (the owner, 1 Oct 2026) -- so its picker offers discretionary and
+// lane-less names only, and it resolves exactly as the discretionary line does. A choice kept for the MANDATORY
+// lane is left where it is: it is not used for unfunded dollars, and it becomes the mandatory line's budget the
+// moment mandatory money arrives. Before v1.92 this picker offered mandatory names, the IDS file then put the
+// unfunded requirement on a mandatory budget, and choosing here wiped the mandatory choice.
 function budUnfSet(id, svc, name){
+  const p=name? budParseName(name) : null;
+  if(p && p.dm==='mand'){
+    setStat('\u26a0 <b>'+esc(name)+'</b> is a mandatory budget. A requirement with no money yet is unfunded, and '
+      +'unfunded dollars go on a discretionary or lane-less budget \u2014 nothing was changed.');
+    return;
+  }
   if(!S.budgetAsg) S.budgetAsg={};
-  const A=S.budgetAsg[id]||(S.budgetAsg[id]={});
-  delete A[svc]; delete A[svc+'|disc']; delete A[svc+'|mand'];
-  if(name){ const p=budParseName(name); A[(p && p.dm)? svc+'|'+p.dm : svc]=name; }
-  if(!Object.keys(A).length) delete S.budgetAsg[id];
+  budPutUnf(S.budgetAsg[id]||(S.budgetAsg[id]={}), svc, name);
+  if(!Object.keys(S.budgetAsg[id]).length) delete S.budgetAsg[id];
   save(); render();
 }
-// Clear ONE line back to the rule. A funded line can be answered by a choice kept under the bare service,
-// which answers the other lane too: that choice is kept for the other lane, never cleared from both.
+// The one write behind a not-funded line's choice, shared by its picker and the family picker: replace what
+// answers the discretionary line, never a mandatory choice. A lane-less choice under the bare service also
+// answers the mandatory lane, so when a Discretionary name replaces it, it stays for that lane.
+function budPutUnf(A, svc, name){
+  const p=name? budParseName(name) : null;
+  const k=budStoredFor(A, svc, 'disc');
+  if(k){
+    const bare=(k===svc)? A[svc] : '', bp=bare? budParseName(bare) : null;
+    delete A[k];
+    if(bare && p && p.dm==='disc' && !A[svc+'|mand'] && (!bp || !bp.dm)) A[svc+'|mand']=bare;
+  }
+  if(name) A[(p && p.dm==='disc')? svc+'|disc' : svc]=name;
+}
+// Clear ONE line back to the rule (v1.92: the stored key that answers it, read off budStoredFor() -- never a
+// value worked out from the rule). The not-funded line is the discretionary lane's: its clear leaves a
+// mandatory choice alone. A lane-less choice kept under the bare service answers the other lane too: on a
+// funded line it is kept for the other lane, never cleared from both.
 function budLineClear(id, svc, lane){
-  const A=(S.budgetAsg||{})[id];
-  if(A){
-    if(!lane){ delete A[svc]; delete A[svc+'|disc']; delete A[svc+'|mand']; }
-    else {
-      delete A[svc+'|'+lane];
-      if(A[svc] && budAsgOf(id, svc, lane)){
-        const other=(lane==='disc')? 'mand' : 'disc', bare=A[svc], p=budParseName(bare);
-        delete A[svc];
-        if(!A[svc+'|'+other] && (!p || !p.dm || p.dm===other)
-           && budLines(id).some(function(q){ return q.svc===svc && q.lane===other; })) A[svc+'|'+other]=bare;
-      }
+  const A=(S.budgetAsg||{})[id], L=lane||'disc';
+  const k=A? budStoredFor(A, svc, L) : '';
+  if(k){
+    const bare=(k===svc)? A[svc] : '';
+    delete A[k];
+    if(bare && lane){
+      const other=(L==='disc')? 'mand' : 'disc', p=budParseName(bare);
+      if(!A[svc+'|'+other] && (!p || !p.dm)
+         && budLines(id).some(function(q){ return q.svc===svc && q.lane===other; })) A[svc+'|'+other]=bare;
     }
     if(!Object.keys(A).length) delete S.budgetAsg[id];
   }
   save(); render();
-  setStat('↺ <b>'+esc(svc)+(lane? (lane==='mand'? ' mandatory' : ' discretionary') : '')+'</b> on <b>'
-    +esc(dispTitle(itemById(id)))+'</b> is back to the rule.');
+  setStat(k? '↺ <b>'+esc(svc)+(lane? (lane==='mand'? ' mandatory' : ' discretionary') : ' (not funded yet)')+'</b> on <b>'
+    +esc(dispTitle(itemById(id)))+'</b> is back to the rule.'
+    : 'Nothing was chosen on <b>'+esc(svc)+(lane? (lane==='mand'? ' mandatory' : ' discretionary') : ' (not funded yet)')
+      +'</b> \u2014 it already follows the rule.');
 }
 // Clear EVERY choice on the requirement: every line, and the ones no line shows any more.
 function budClearAll(id){
@@ -10260,11 +10467,12 @@ function budClearAll(id){
   setStat('✗ '+n+' budget choice'+(n===1?'':'s')+' cleared on <b>'+esc(dispTitle(itemById(id)))
     +'</b> — every line follows the rule again.');
 }
-const BUD_HOW={chosen:'chosen', rule:'automatic by rule', ccar:'from CCaR', unset:'not set — the file will leave it blank',
-  legacy:'legacy budget — pick again'};
+// v1.92: how a line's budget was settled, in the resolver's words -- the panel never judges a name itself.
+const BUD_HOW={chosen:'chosen', rule:'automatic by rule', ccar:'from CCaR',
+  ambiguous:'not set \u2014 several fit; pick one', none:'not set \u2014 none fits', 'no-list':'not set \u2014 no BAE list'};
 function budRecordHtml(id, it){
   const head='<div class="insp-lbl">BAE budget <span style="text-transform:none;letter-spacing:0;font-weight:600;color:var(--dim)">'
-    +'· what the Spend Plan Source prints on each line</span></div>';
+    +'· what the Spend Plan Source and the IDS export print on each line</span></div>';
   if(!budReg().length)
     return head+'<div class="budnone">No BAE list is loaded, so no line has a budget yet. '
       +'<button type="button" class="qb" onclick="document.getElementById(\'budFile\').click()">'
@@ -10286,36 +10494,52 @@ function budRecordHtml(id, it){
           +(c.length===svcs.length? 'all '+svcs.length+' services' : c.length+' of '+svcs.length+': '+esc(c.join(', ')))+'</option>'; }).join('')
     +'</select></div>';
   const rows=lines.map(function(q){
-    const laneTxt=q.lane==='disc'? 'discretionary' : (q.lane==='mand'? 'mandatory' : 'not funded yet');
-    let how, sayHow, opts, clearable, setter, prints='';
-    if(q.lane){
-      const h=budHow(id, q.svc, q.lane), chosen=budAsgOf(id, q.svc, q.lane), pick=budPickList(id, q.svc, q.lane);
-      const rule=h.how==='chosen'? budRuleOf(id, q.svc, q.lane) : h;
-      how=h.how; sayHow=BUD_HOW[h.how]; prints=h.n;
-      opts=(h.how==='legacy'? '<option value="" selected>— '+esc(h.legacy)+' (legacy) —</option>'
-            : '<option value="">'+(h.how==='chosen'? '— back to the rule: '+(rule.n? esc(rule.n) : 'not set')+' —'
-                : (rule.n? '— the rule: '+esc(rule.n)+' —'
-                : (pick.length? '— choose one of '+pick.length+' —' : '— none match —')))+'</option>')
-        +pick.map(function(b){ return opt(b, chosen); }).join('');
-      clearable=!!chosen;
-      setter='budLineSet('+jsa(id)+','+jsa(q.svc)+',this.value,'+jsa(q.lane)+')';
+    const unf=!q.lane, L=q.lane||'disc';
+    const laneTxt=q.lane==='disc'? 'discretionary' : (q.lane==='mand'? 'mandatory' : (q.part? 'unfunded part' : 'not funded yet'));
+    // ONE ANSWER: the resolver's, for the line as it is. A line with no money yet is resolved as the
+    // discretionary lane, because that is where its unfunded dollars go.
+    const r=budResolve(id, q.svc, L), pick=budPickList(id, q.svc, L);
+    const ruleTxt=r.rule.n? esc(r.rule.n) : 'not set';
+    let how, sayHow, opts;
+    if(r.status==='invalid'){
+      // SHOWN FOR WHAT IT IS: the stored name stays selected and says why it is not used -- the panel no
+      // longer reads "back to the rule" while the export prints the stored name.
+      how='invalid';
+      sayHow='chosen, and cannot be used: '+esc(r.reasons.map(function(x){ return x.replace(/^the chosen budget is /,''); }).join('; '))
+        +' \u2014 this line has no budget until you pick again or clear it';
+      opts='<option value="'+esc(r.stored)+'" selected>\u2717 '+esc(r.stored)+' \u2014 not used</option>'
+        +'<option value="">— back to the rule: '+ruleTxt+' —</option>';
+    } else if(r.status==='chosen'){
+      how='chosen'; sayHow=unf? 'chosen · the IDS export files the unfunded '+(q.part? 'part' : 'requirement')+' under it' : 'chosen';
+      opts='<option value="">— back to the rule: '+ruleTxt+' —</option>';
     } else {
-      const chosen=budUnfChoice(id, q.svc), seen={};
-      const pick=budPickList(id, q.svc, 'disc').concat(budPickList(id, q.svc, 'mand'))
-        .filter(function(b){ if(seen[b.n]) return false; seen[b.n]=1; return true; });
-      how=chosen? 'chosen' : 'unfunded';
-      sayHow=chosen? 'chosen · used once money arrives in its lane' : 'no money yet · nothing chosen';
-      opts='<option value="">'+(pick.length? '— choose one of '+pick.length+' —' : '— none match —')+'</option>'
-        +pick.map(function(b){ return opt(b, chosen); }).join('');
-      clearable=!!chosen;
-      setter='budUnfSet('+jsa(id)+','+jsa(q.svc)+',this.value)';
+      how=r.exportable? r.status : 'unset';
+      sayHow=(unf? (q.part? 'unfunded part · ' : 'no money yet · ') : '')+(BUD_HOW[r.status]||r.status);
+      opts='<option value="">'+(r.rule.n? '— the rule: '+esc(r.rule.n)+' —'
+          : (pick.length? '— choose one of '+pick.length+' —' : '— none match —'))+'</option>';
     }
+    opts+=pick.map(function(b){ return opt(b, r.status==='chosen'? r.effective : ''); }).join('');
+    const setter=unf? 'budUnfSet('+jsa(id)+','+jsa(q.svc)+',this.value)'
+                    : 'budLineSet('+jsa(id)+','+jsa(q.svc)+',this.value,'+jsa(q.lane)+')';
     const label=q.svc+' '+laneTxt;
+    const title=unf? (r.effective? (q.part? 'Unfunded part' : 'No money yet')+' · the IDS export files it under: '+r.effective
+                       : (q.part? 'Unfunded part' : 'No money yet')+' · the IDS export lists it as not uploaded until a budget is named')
+                   : (r.effective? 'The file prints: '+r.effective
+                       : (r.status==='invalid'? 'Not used \u2014 the Spend Plan Source refuses and the IDS export lists this line as not uploaded'
+                       : 'The file leaves this line blank'));
+    // A MANDATORY CHOICE KEPT ON A LINE WITH NO MONEY (decision 16): named, never used for unfunded dollars.
+    let kept='';
+    if(unf){
+      const m=budResolve(id, q.svc, 'mand');
+      if(m.storedKey && m.storedKey!==r.storedKey)
+        kept='<div class="budkept">Kept for mandatory money: <b>'+esc(m.stored)+'</b>'
+          +(m.status==='invalid'? ' \u2014 \u2717 '+esc(m.reasons.map(function(x){ return x.replace(/^the chosen budget is /,''); }).join('; ')) : '')
+          +' \u00b7 not used for unfunded dollars</div>';
+    }
     return '<tr><th scope="row">'+esc(q.svc)+'<span class="budlane">'+laneTxt+'</span></th>'
-      +'<td><select aria-label="'+esc('BAE budget, '+label)+'" title="'+esc(q.lane? (prints? 'The file prints: '+prints
-        : 'The file leaves this line blank') : 'No money yet')+'" onchange="'+setter+'">'+opts+'</select>'
-      +'<div class="budhow '+how+'">'+sayHow+'</div></td>'
-      +'<td>'+(clearable? '<button type="button" class="qb" onclick="budLineClear('+jsa(id)+','+jsa(q.svc)+','+jsa(q.lane)+')"'
+      +'<td><select aria-label="'+esc('BAE budget, '+label)+'" title="'+esc(title)+'" onchange="'+setter+'">'+opts+'</select>'
+      +'<div class="budhow '+how+'">'+sayHow+'</div>'+kept+'</td>'
+      +'<td>'+(r.storedKey? '<button type="button" class="qb" onclick="budLineClear('+jsa(id)+','+jsa(q.svc)+','+jsa(q.lane)+')"'
         +' aria-label="'+esc('Clear the '+label+' budget')+'" title="back to the rule">clear</button>' : '')+'</td></tr>';
   }).join('');
   return head+fam+'<table class="budtab"><tbody>'+rows+'</tbody></table>'
@@ -10412,14 +10636,16 @@ function setBudFam(id, k){
   if(!S.budgetAsg[id]) S.budgetAsg[id]={};
   const set=[], miss=[], A=S.budgetAsg[id];
   budLines(id).forEach(function(q){
-    const tag=q.svc+(q.lane==='mand'?' mand':(q.lane? '' : ' (not funded yet)'));
+    const tag=q.svc+(q.lane==='mand'?' mand':(q.lane? '' : (q.part? ' (unfunded part)' : ' (not funded yet)')));
     if(!f.svcs[q.svc]){ miss.push(tag); return; }
     if(q.lane){
       if(!f.dm || f.dm===q.lane){ A[q.svc+'|'+q.lane]=f.svcs[q.svc]; set.push(tag); } else miss.push(tag);
     } else {
-      // no money yet: kept under the family's own lane, or the bare service when it names none
-      delete A[q.svc]; delete A[q.svc+'|disc']; delete A[q.svc+'|mand'];
-      A[f.dm? q.svc+'|'+f.dm : q.svc]=f.svcs[q.svc]; set.push(tag);
+      // no money yet (v1.92): resolved as the discretionary lane, because what it carries is unfunded. A
+      // Mandatory family is KEPT for mandatory money and never used for unfunded dollars; a Discretionary or
+      // lane-less one replaces what answers the discretionary line, and a mandatory choice is left alone.
+      if(f.dm==='mand'){ A[q.svc+'|mand']=f.svcs[q.svc]; miss.push(tag+' \u2014 kept for mandatory money'); }
+      else { budPutUnf(A, q.svc, f.svcs[q.svc]); set.push(tag); }
     }
   });
   if(!Object.keys(S.budgetAsg[id]).length) delete S.budgetAsg[id];
@@ -10755,9 +10981,22 @@ function budUse(name){
 }
 // Budgets held that the newest extract for their department no longer lists.
 function budRetired(){ return budReg().filter(function(b){ return !!b.gone; }); }
+// Assignments, in every year, on a budget the resolver calls retired (v1.92: read off budCheckChoice(), so a
+// stored name in another case is counted too).
+function budRetiredKeys(St, id){
+  const A=(St.budgetAsg||{})[id]||{};
+  return Object.keys(A).filter(function(k){
+    if(!A[k]) return false;
+    const svc=k.split('|')[0], lane=k.split('|')[1]||'';
+    return budCheckChoice(id, svc, lane, A[k]).bad.indexOf('retired')>=0;
+  });
+}
 function budOrphanCount(){
   let n=0;
-  budRetired().forEach(function(b){ n+=budUse(b.n); });
+  if(!budRetired().length) return 0;
+  budStates().forEach(function(St){
+    Object.keys(St.budgetAsg||{}).forEach(function(id){ n+=budRetiredKeys(St, id).length; });
+  });
   return n;
 }
 /* WHAT AN EXTRACT WOULD DO, worked out before anything is written. Pure: it reads the registry and
@@ -10805,105 +11044,398 @@ function setBudAsg(id, svc, name, lane){
 // THE budget for one line: a person's choice if it is usable, else the rule's single answer, else
 // the one CCaR already has this record under, else blank. A choice pointing at a legacy name (no
 // PMO) is not used -- the line goes blank and the pre-flight names it.
+// v1.92: budResolve()'s answer, and nothing else -- a choice it cannot use prints NOTHING, never the rule.
 function budForRow(id, svc, lane){
-  lane=lane||'disc';
-  const chosen=budAsgOf(id, svc, lane);
-  if(chosen) return budUsable(chosen)? chosen : '';
-  const c=budCandidates(id, svc, lane);
-  if(c.length===1) return c[0].n;
-  if(c.length>1){
-    const on=budCcarBuds(id);
-    if(on){ const hit=c.filter(function(b){ return !!on[b.n]; }); if(hit.length===1) return hit[0].n; }
-  }
-  return '';
+  return budResolve(id, svc, lane||'disc').effective;
 }
 // How many requirement/service pairs could be settled without anyone choosing.
 // Every line the Spend Plan Source will write, counted by how its budget is settled.
 function budAutoStats(){
-  let one=0, many=0, none=0, legacy=0, hand=0;
+  let one=0, many=0, none=0, invalid=0, hand=0;
   const T=tiers();
   (S.order||[]).forEach(function(id){
     if(!itemById(id)) return;
     budPairs(id, T).forEach(function(q){
-      const chosen=budAsgOf(id, q.svc, q.lane);
-      if(chosen){
-        if(!budUsable(chosen)){ legacy++; return; }
-        one++; if(BUD_HAND.test(chosen)) hand++; return;
-      }
-      if(budForRow(id, q.svc, q.lane)){ one++; return; }
-      if(budCandidates(id, q.svc, q.lane).length) many++; else none++;
+      const r=budResolve(id, q.svc, q.lane);
+      if(r.exportable){ one++; if(r.status==='chosen' && BUD_HAND.test(r.effective)) hand++; return; }
+      if(r.status==='invalid') invalid++;
+      else if(r.status==='ambiguous') many++;
+      else none++;
     });
   });
-  return {one:one, many:many, none:none, legacy:legacy, hand:hand};
+  return {one:one, many:many, none:none, invalid:invalid, hand:hand};
 }
 
-/* ---- IDS batch import ---------------------------------------------------------------------
-   The template's own rules, which is why these are settings and not columns: only ONE ORG may be
-   processed per spreadsheet, and cell A1 must be unique across every file ever submitted \u2014 so
-   the sequence number is editable, because exporting twice in one day needs a second one. */
-const IDS_ACTIONS=['Add','Update','Delete'];          // the template's hidden LOV sheet, verbatim
-function idsCfg(){
-  if(!MS.ids) MS.ids={};
-  const c=MS.ids;
-  if(c.org===undefined)  c.org=1;
-  if(c.seq===undefined)  c.seq=1;
-  if(!c.action) c.action='Add';
-  if(c.cmt===undefined)  c.cmt='New Requirement';
-  return c;
+/* ---- IDS batch import (v1.92) --------------------------------------------------------------------------
+   The owner's decisions of 1 Oct 2026, every one of them visible below:
+   - NOTHING ABOUT AN EXPORT IS RECORDED. ORBIT is an aid to typing into CCaR, and CCaR logs every change. No
+     ledger of batches, no Forget, no file-id sequence, no Add/Update worked out from history. The one setting
+     kept is the ORG number, per appropriation, because the file cannot be made without it.
+   - ONE ACTION FOR THE WHOLE FILE, chosen when exporting: Add (preselected) or Update. ORBIT never writes Delete.
+   - THE REASON is asked for every time and written, identically, on every row (Req. Change Comments).
+   - THE FILE ID is a candidate the person edits and confirms: today's date and the TIME OF DAY (yyyyMMdd-HHmm).
+     The four digits are the time, not a sequence, and ORBIT cannot know whether the id was used before.
+   - MISSING DATA NEVER STOPS THE FILE. A contribution that cannot be uploaded correctly is kept off Requirement v1
+     and listed, with its dollars and every reason, on "Missing data and anomalies". A file with no uploadable row
+     at all is still made, and says so at the top -- it is a diagnostic, never an upload.
+   - THREE THINGS DO STOP IT, inside exportIdsReq() and before anything is built, asked or written: a locked cycle
+     on screen, a PMO copy, and ORBIT's own arithmetic failing one of the checks in idsCheck().
+   THE ARITHMETIC (A1). A contribution is one requirement x service x lane:
+     mandatory      Amount = Approved = the mandatory draw
+     discretionary  Amount = the discretionary draw + every unfunded dollar on that service; Approved = the draw
+     no money       Amount = the requirement, Approved 0 -- on the discretionary lane, because unfunded dollars
+                    go on a discretionary (or lane-less) budget and never on a mandatory one.
+   A fully mandatory-funded service has no discretionary contribution: a $0/$0 row says nothing.
+   THE ROW is Budget FY + the BAE list's spelling of the Budget Name + the numeric Control No (IDS rules 8-11).
+   Every contribution landing on one is consolidated into it; several ORBIT requirements on one row are listed
+   for review, never hidden. */
+const IDS_ACTIONS=['Add','Update'];                 // ORBIT never writes Delete
+const IDS_SHEET2='Missing data and anomalies';
+// The ORG number this appropriation exports under, or '' -- the one setting kept.
+function idsOrgOf(){
+  const v=(MS.ids||{}).org, n=Number(v);
+  return (Number.isInteger(n) && n>0)? n : '';
 }
-function idsSet(k, v){
-  const c=idsCfg();
-  if(k==='org'){ const n=parseInt(String(v).replace(/[^0-9]/g,''),10); c.org=isFinite(n)&&n>0? n : 1; }
-  else if(k==='seq'){ const n=parseInt(String(v).replace(/[^0-9]/g,''),10); c.seq=(isFinite(n)&&n>0&&n<10000)? n : 1; }
-  else if(k==='action'){ if(IDS_ACTIONS.indexOf(v)>=0) c.action=v; }
-  else if(k==='cmt'){ c.cmt=String(v||''); }
-  save(); render();
+function idsDay(d){
+  const t=d||new Date(), p2=function(n){ return (n<10?'0':'')+n; };
+  return ''+t.getFullYear()+p2(t.getMonth()+1)+p2(t.getDate());
 }
-// yyyymmdd-NNNN, taken at export time. The date is the day the file is generated, which is what
-// the Instructions sheet asks for.
-function idsFileId(d){
-  const t=d||new Date();
-  const p2=function(n){ return (n<10?'0':'')+n; };
-  const seq=String(idsCfg().seq);
-  return ''+t.getFullYear()+p2(t.getMonth()+1)+p2(t.getDate())+'-'+('0000'+seq).slice(-4);
+// A CANDIDATE, never a sequence: today's date and the time of day. Nothing is stored, so a second export the
+// same day gets a different candidate without ORBIT pretending to know which ids CCaR has seen.
+function idsFidCandidate(d){
+  const t=d||new Date(), p2=function(n){ return (n<10?'0':'')+n; };
+  return idsDay(t)+'-'+p2(t.getHours())+p2(t.getMinutes());
 }
-/* THE GRAIN IS BUDGET x REQ CONTROL NO, because IDS rule 11 allows a control number once per
-   budget and fiscal year. Several requirements can share a CCaR number and one requirement funds
-   several services, so the pairs are accumulated rather than emitted per requirement.
-   Req. Amount is the REQUIREMENT (the ask); Req. Approved is the DISCRETIONARY draw. */
-function idsReqRows(){
-  const T=tiers(), out={}, skip=[], order=(S.order||[]);
-  let pairs=0;
-  order.forEach(function(id){
+// '' when the id has the template's shape (yyyyMMdd-NNNN) and a real calendar date; otherwise what is wrong.
+function idsFidProblem(fid){
+  const m=/^(\d{4})(\d{2})(\d{2})-(\d{4})$/.exec(String(fid||''));
+  if(!m) return 'the file ID must be eight digits of date, a dash and four digits (yyyyMMdd-NNNN)';
+  const y=+m[1], mo=+m[2], d=+m[3], t=new Date(y, mo-1, d);
+  if(t.getFullYear()!==y || t.getMonth()!==mo-1 || t.getDate()!==d) return 'the file ID’s first eight digits are not a real date';
+  return '';
+}
+// The Req Control No for one requirement -- numeric and exact (the owner: "all numeric and exact, one exact control
+// number per record"). Written as a number cell, as the template's Example Sheet does, so a leading zero or a
+// number too long to hold exactly could not survive the file: listed instead, never altered.
+function idsCtlOf(it){
+  const c=ccarCtlOf(it);
+  if(!c.v) return {v:'', bad:[c.why]};
+  const v=String(c.v).trim();
+  if(!/^[0-9]+$/.test(v)) return {v:'', bad:['the Control No “'+v+'” is not all digits']};
+  if(v.charAt(0)==='0') return {v:'', bad:['the Control No “'+v+'” starts with 0, which a number cell cannot keep']};
+  if(v.length>15) return {v:'', bad:['the Control No “'+v+'” is too long to keep exactly as a number']};
+  return {v:v, bad:[]};
+}
+const IDS_FIX_CTL='Give the requirement its CCaR number in the RECORD panel and import the CCaR records file '
+  +'(Data › Import CCaR Records) — the Control No comes from that file.';
+// The key a row is known by: fiscal year, the budget name regardless of case (IDS rule 6), the control number.
+function idsKey(fy, bud, ctl){ return fy+'|'+String(bud||'').toUpperCase()+'|'+String(ctl||''); }
+function idsLaneWord(lane){ return lane==='mand'? 'mandatory' : 'discretionary'; }
+// THE CONTRIBUTIONS, from the lane walk and nothing else: tiers()'s draws and unfSvcOf()'s unfunded.
+function idsSources(T){
+  const out=[];
+  (S.order||[]).forEach(function(id){
     const it=itemById(id); if(!it) return;
-    const t=T[id]; if(!t) return;
-    const ctl=ccarCtlOf(it);
-    const a=svcAlloc(it)||[];
+    const t=T[id]||{}, unf=unfSvcOf(it, t);
     SVC.forEach(function(sv,i){
-      const ask=+(it.ask&&it.ask[i])||0;
-      const app=+(t.d&&t.d[i])||0;
-      if(ask<=0.005 && app<=0.005) return;             // this service is not on this requirement
-      pairs++;
-      if(!ctl.v){ skip.push({id:id, svc:sv, ask:ask, app:app, why:ctl.why}); return; }
-      const bud=budForRow(id, sv, 'disc');
-      if(!bud){ skip.push({id:id, svc:sv, ask:ask, app:app,
-        why: budReg().length? 'no single budget name for '+sv+' \u2014 pick one under BAE budget in the RECORD panel'
-                            : 'no Budget Extract (BAE) imported, so no budget name exists'}); return; }
-      const k=bud+String.fromCharCode(0)+ctl.v;
-      if(!out[k]) out[k]={bud:bud, ctl:ctl.v, amt:0, app:0, ids:{}, svcs:{}};
-      out[k].amt+=ask; out[k].app+=app; out[k].ids[id]=1; out[k].svcs[sv]=1;
+      const ask=+(it.ask||[])[i]||0, d=+(t.d||[])[i]||0, m=+(t.m||[])[i]||0, u=+unf[i]||0;
+      if(ask<=0 && d<=0 && m<=0) return;             // this service is not on this requirement
+      if(d>0 || u>0) out.push({id:id, svc:sv, lane:'disc', amount:d+u, approved:d});
+      if(m>0) out.push({id:id, svc:sv, lane:'mand', amount:m, approved:m});
     });
   });
-  const rows=Object.keys(out).map(function(k){ return out[k]; });
-  // IDS refuses a line whose approved exceeds its requirement. It can happen here honestly: the
-  // board allows an allocation above the ask. Raise the requirement to match and SAY SO \u2014
-  // exporting a line the system rejects helps nobody, and adjusting one in silence helps less.
-  const raised=[];
-  rows.forEach(function(r){
-    if(r.app > r.amt+0.005){ raised.push({bud:r.bud, ctl:r.ctl, was:r.amt, now:r.app}); r.amt=r.app; }
+  return out;
+}
+// THE WHOLE PREVIEW: contributions -> budget and control resolved -> excluded with EVERY reason -> grouped by
+// FY + budget + control -> summed -> checked. Pure: it reads and never writes.
+function idsBuild(T){
+  T=T||tiers();
+  const fy=MS.cur, src=idsSources(T), ctlOf={}, inc=[], excluded=[];
+  src.forEach(function(x){
+    const it=itemById(x.id);
+    const c=ctlOf[x.id]||(ctlOf[x.id]=idsCtlOf(it));
+    const r=budResolve(x.id, x.svc, x.lane);
+    const why=[], fix=[];
+    if(!c.v){ why.push.apply(why, c.bad); fix.push(IDS_FIX_CTL); }
+    if(!r.exportable){ why.push.apply(why, r.reasons); fix.push(budFixOf(r)); }
+    const y={id:x.id, svc:x.svc, lane:x.lane, amount:x.amount, approved:x.approved, ctl:c.v,
+             budget:r.effective, stored:r.stored, bstatus:r.status};
+    if(why.length){ y.reasons=why; y.fixes=fix; excluded.push(y); } else inc.push(y);
   });
-  rows.sort(function(a,b){ return a.bud===b.bud? (a.ctl<b.ctl?-1:1) : (a.bud<b.bud?-1:1); });
-  return {rows:rows, skip:skip, raised:raised, pairs:pairs};
+  const by={}, rows=[];
+  inc.forEach(function(y){
+    const k=idsKey(fy, y.budget, y.ctl);
+    if(!by[k]){ by[k]={key:k, fy:fy, bud:y.budget, ctl:y.ctl, sources:[]}; rows.push(by[k]); }
+    by[k].sources.push(y);
+  });
+  rows.forEach(function(r){
+    r.amount=r.sources.reduce(function(a,y){ return a+y.amount; },0);
+    r.approved=r.sources.reduce(function(a,y){ return a+y.approved; },0);
+    r.reqs=r.sources.map(function(y){ return y.id; }).filter(function(v,i,a){ return a.indexOf(v)===i; });
+    // one spelling, the list's; two spellings of one name in the BAE list is shown, never chosen between quietly
+    r.spells=r.sources.map(function(y){ return y.budget; }).filter(function(v,i,a){ return a.indexOf(v)===i; }).sort();
+    r.bud=r.spells[0];
+  });
+  rows.sort(function(a,b){ const A=a.bud.toUpperCase(), B=b.bud.toUpperCase();
+    return A!==B? (A<B?-1:1) : (a.ctl.length!==b.ctl.length? a.ctl.length-b.ctl.length : (a.ctl<b.ctl?-1:(a.ctl>b.ctl?1:0))); });
+  rows.forEach(function(r,i){ r.ref=i+1; });
+  excluded.sort(function(a,b){ const ia=S.order.indexOf(a.id), ib=S.order.indexOf(b.id);
+    return ia!==ib? ia-ib : (a.svc!==b.svc? (SVC.indexOf(a.svc)-SVC.indexOf(b.svc)) : (a.lane<b.lane?-1:1)); });
+  // FOR REVIEW: several requirements on one row; one control number used by several requirements on several budgets
+  const multi=rows.filter(function(r){ return r.reqs.length>1 || r.spells.length>1; });
+  const byCtl={}; rows.forEach(function(r){ (byCtl[r.ctl]=byCtl[r.ctl]||[]).push(r); });
+  const shared=Object.keys(byCtl).filter(function(c){
+    const rs=byCtl[c], buds={}, reqs={};
+    rs.forEach(function(r){ buds[r.bud.toUpperCase()]=1; r.reqs.forEach(function(q){ reqs[q]=1; }); });
+    return Object.keys(buds).length>1 && Object.keys(reqs).length>1;
+  }).sort().map(function(c){ return {ctl:c, rows:byCtl[c]}; });
+  const zero=rows.filter(function(r){ return r.approved===0; });
+  const sum=function(a,k){ return a.reduce(function(t,x){ return t+x[k]; },0); };
+  const P={fy:fy, sources:src, rows:rows, excluded:excluded, multi:multi, shared:shared, zero:zero,
+    tot:{upAmt:sum(rows,'amount'), upApp:sum(rows,'approved'), exAmt:sum(excluded,'amount'), exApp:sum(excluded,'approved')}};
+  P.check=idsCheck(P, T);
+  return P;
+}
+/* ORBIT'S OWN ARITHMETIC, proved before a workbook exists. The expectations are worked out again from the board
+   -- every requirement's asks and tiers()'s draws -- not read back from the rows being checked, so a step that
+   drops, doubles or moves a dollar cannot vouch for itself. Any failure stops the export (the owner's decision 2). */
+function idsCheck(P, T){
+  const fails=[];
+  const fail=function(inv, expected, actual, ids, reqs){
+    fails.push({inv:inv, expected:expected, actual:actual, ids:(ids||[]).slice(0,40), reqs:(reqs||[]).filter(function(v,i,a){ return v && a.indexOf(v)===i; }).slice(0,40)}); };
+  const whole=function(v){ return typeof v==='number' && Number.isInteger(v); };
+  const want={}; let req=0, draw=0;
+  (S.order||[]).forEach(function(id){
+    const it=itemById(id); if(!it) return;
+    const t=T[id]||{};
+    SVC.forEach(function(sv,i){
+      const ask=+(it.ask||[])[i]||0, d=+(t.d||[])[i]||0, m=+(t.m||[])[i]||0;
+      if(ask<=0 && d<=0 && m<=0) return;
+      want[id+'|'+sv]={id:id, ask:ask, dm:d+m}; req+=ask; draw+=d+m;
+      if(!whole(ask) || !whole(d) || !whole(m)) fail('every value is a whole dollar', 'whole dollars', 'requirement '+ask+', discretionary '+d+', mandatory '+m, [id+'|'+sv], [id]);
+    });
+  });
+  // every contribution identity, exactly once, in a row or in the excluded list -- and nothing else
+  const all=[];
+  P.rows.forEach(function(r){ r.sources.forEach(function(y){ all.push(y); }); });
+  P.excluded.forEach(function(y){ all.push(y); });
+  const seen={}, made={};
+  all.forEach(function(y){ const k=y.id+'|'+y.svc+'|'+y.lane; seen[k]=(seen[k]||0)+1; });
+  P.sources.forEach(function(y){ made[y.id+'|'+y.svc+'|'+y.lane]=1; });
+  const dup=Object.keys(seen).filter(function(k){ return seen[k]>1; });
+  const miss=Object.keys(made).filter(function(k){ return !seen[k]; });
+  const extra=Object.keys(seen).filter(function(k){ return !made[k]; });
+  if(dup.length) fail('every contribution appears exactly once', 'once each', dup.length+' appear more than once', dup, dup.map(function(k){ return k.split('|')[0]; }));
+  if(miss.length) fail('every contribution appears exactly once', P.sources.length+' contributions', miss.length+' missing', miss, miss.map(function(k){ return k.split('|')[0]; }));
+  if(extra.length) fail('every contribution appears exactly once', 'none that the board did not make', extra.length+' extra', extra, extra.map(function(k){ return k.split('|')[0]; }));
+  // per requirement and service: the Amounts add to the requirement, the Approveds to the two draws
+  const per={};
+  all.forEach(function(y){ const k=y.id+'|'+y.svc, p=per[k]||(per[k]={a:0, p:0}); p.a+=y.amount; p.p+=y.approved;
+    if(!whole(y.amount) || !whole(y.approved)) fail('every value is a whole dollar', 'whole dollars', y.amount+' / '+y.approved, [k+'|'+y.lane], [y.id]);
+    if(!(y.amount>=y.approved && y.approved>=0)) fail('Amount ≥ Approved ≥ 0', 'Amount ≥ Approved ≥ 0', y.amount+' / '+y.approved, [k+'|'+y.lane], [y.id]); });
+  Object.keys(want).forEach(function(k){ const w=want[k], g=per[k]||{a:0, p:0};
+    if(g.a!==w.ask) fail('for each requirement and service, Amount = the requirement', w.ask, g.a, [k], [w.id]);
+    if(g.p!==w.dm) fail('for each requirement and service, Approved = discretionary + mandatory draw', w.dm, g.p, [k], [w.id]); });
+  Object.keys(per).forEach(function(k){ if(!want[k]) fail('for each requirement and service, Amount = the requirement', 0, per[k].a, [k], [k.split('|')[0]]); });
+  // every row: its figures are its sources', Amount >= Approved >= 0, and its key is its own
+  const keys={};
+  let upA=0, upP=0, exA=0, exP=0;
+  P.rows.forEach(function(r){
+    const a=r.sources.reduce(function(t,y){ return t+y.amount; },0), p=r.sources.reduce(function(t,y){ return t+y.approved; },0);
+    const ids=r.sources.map(function(y){ return y.id+'|'+y.svc+'|'+y.lane; }), reqs=r.sources.map(function(y){ return y.id; });
+    if(r.amount!==a) fail('row Amount = the sum of its sources', a, r.amount, ids, reqs);
+    if(r.approved!==p) fail('row Approved = the sum of its sources', p, r.approved, ids, reqs);
+    if(!whole(r.amount) || !whole(r.approved)) fail('every value is a whole dollar', 'whole dollars', r.amount+' / '+r.approved, ids, reqs);
+    if(!(r.amount>=r.approved && r.approved>=0)) fail('Amount ≥ Approved ≥ 0', 'Amount ≥ Approved ≥ 0', r.amount+' / '+r.approved, ids, reqs);
+    const k=idsKey(r.fy, r.bud, r.ctl);
+    if(keys[k]) fail('every FY + Budget + Control is one row', 'one row', 'two rows for '+r.fy+' · '+r.bud+' · '+r.ctl, ids.concat(keys[k]), reqs);
+    keys[k]=ids;
+    upA+=r.amount; upP+=r.approved;
+  });
+  P.excluded.forEach(function(y){ exA+=y.amount; exP+=y.approved; });
+  if(upA+exA!==req) fail('uploaded + not uploaded Amount = every requirement', req, upA+exA, [], []);
+  if(upP+exP!==draw) fail('uploaded + not uploaded Approved = every discretionary and mandatory draw', draw, upP+exP, [], []);
+  // and the totals the sheet prints are the ones just added up
+  if(P.tot.upAmt!==upA || P.tot.upApp!==upP || P.tot.exAmt!==exA || P.tot.exApp!==exP)
+    fail('the printed totals are the rows’ totals', upA+' / '+upP+' / '+exA+' / '+exP,
+      P.tot.upAmt+' / '+P.tot.upApp+' / '+P.tot.exAmt+' / '+P.tot.exApp, [], []);
+  return {ok:!fails.length, fails:fails, req:req, draw:draw};
+}
+// The prompt, held while the box is open and never saved: a redraw keeps what was typed, and nothing is written
+// anywhere until the file is made.
+let idsForm={reason:'', action:'Add', fid:'', fidOk:false, org:'', orgOk:false};
+function idsFormReset(){
+  const o=idsOrgOf();
+  idsForm={reason:'', action:'Add', fid:idsFidCandidate(), fidOk:false, org:o===''? '' : String(o), orgOk:false};
+}
+// Characters an .xlsx cannot hold. A reason carrying one is refused, never quietly cleaned or cut.
+const IDS_BADCH=/[\u0000-\u0008\u000B\u000C\u000E-\u001F￾￿]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+// Every reason the prompt cannot be used, all at once. File-level: any of them refuses the whole file.
+function idsFormProblems(f){
+  const out=[];
+  const reason=String(f.reason==null? '' : f.reason);
+  if(!reason.trim()) out.push('give the reason for this export — it is written on every row as the Req. Change Comment');
+  else if(IDS_BADCH.test(reason)) out.push('the reason holds a character a spreadsheet cannot store — retype it');
+  else if(reason.length>32767) out.push('the reason is longer than one spreadsheet cell holds ('+reason.length+' characters; 32,767 at most)');
+  if(IDS_ACTIONS.indexOf(f.action)<0) out.push('choose Add or Update for the whole file');
+  const fp=idsFidProblem(f.fid); if(fp) out.push(fp);
+  else if(!f.fidOk) out.push('confirm that file ID '+f.fid+' has not been used in any earlier CCaR submission');
+  const org=String(f.org==null? '' : f.org).trim();
+  if(!/^[0-9]+$/.test(org) || !(+org>0)) out.push('give the ORG number (digits only, not the ORG symbol)');
+  else if(!f.orgOk) out.push('confirm that ORG '+(+org)+' applies to every row and every service in this file');
+  return out;
+}
+// Why the export would refuse before anything is asked: the board on screen, then ORBIT's own arithmetic.
+function idsBoardRefusal(){
+  if(CYCVIEW) return {kind:'locked', msg:'The IDS export is off while '+blLbl(CYCVIEW)+' is on screen. A locked cycle is a past '
+    +'plan, and its figures would go to CCaR as if they were today’s. Leave the view to export the working plan.'};
+  if(typeof SANDBOX!=='undefined' && SANDBOX) return {kind:'copy', msg:'The IDS export is off in a PMO copy. A copy does not '
+    +'hold the portfolio’s allocation, so its Approved figures are not the ones CCaR should receive. The portfolio team '
+    +'exports from the board itself.'};
+  return null;
+}
+// The workbook: Requirement v1 exactly as the template lays it out, and the sheet that says what is not in it.
+const IDS_HDR=['Action','ORG','Budget FY','Budget Name','Req Control No','Req. Amount',
+               'Req. Approved','Req. Change Comments'];
+const IDS_COLW=[14.14, 7.71, 6.57, 10.43, 26.57, 13.86, 17.14, 14.43, 51.00];
+const IDS_XTRA=[
+  {fill:false, fmt:'0'},          // IDS_X0  Ref No, ORG, Budget FY, Control No
+  {fill:false, fmt:'#,##0.00'}    // IDS_X1  Req. Amount, Req. Approved
+];
+const idsXf=n=>XF_EXTRA0+n;
+function idsWhen(t){
+  const p2=function(n){ return (n<10?'0':'')+n; }, off=-t.getTimezoneOffset();
+  return t.getFullYear()+'-'+p2(t.getMonth()+1)+'-'+p2(t.getDate())+' '+p2(t.getHours())+':'+p2(t.getMinutes())
+    +' (UTC'+(off>=0?'+':'-')+p2(Math.floor(Math.abs(off)/60))+':'+p2(Math.abs(off)%60)+')';
+}
+function idsSheets(P, f, when){
+  const X0=idsXf(0), X1=idsXf(1), fy=P.fy, org=+String(f.org).trim(), reason=String(f.reason);
+  const appn=APPN_LBL[mySlug()]||mySlug();
+  // ROW 1 IS NOT A HEADER ROW IN THE ORDINARY SENSE: A1 is the file id and B1..I1 are the labels.
+  const out=[[f.fid].concat(IDS_HDR)];
+  P.rows.forEach(function(r){
+    out.push([{v:r.ref, s:X0}, f.action, {v:org, s:X0}, {v:fy, s:X0}, r.bud, {v:+r.ctl, s:X0},
+              {v:r.amount, s:X1}, {v:r.approved, s:X1}, reason]);
+  });
+  const sheets=[{name:'Requirement v1', cols:IDS_COLW.slice(), freeze:'C2', rows:out}];
+  const ex=[], H=function(a){ return a.map(function(v){ return {v:v, s:2}; }); }, none=[{v:'None.', s:0}];
+  const who=function(id){ const it=itemById(id)||{}; return {pmo:grpOf(it)||'', rec:recName(it)||'', t:dispTitle(it)||''}; };
+  if(!P.rows.length){
+    ex.push([{v:'NO UPLOADABLE IDS ROWS', s:7}]);
+    ex.push([{v:'Requirement v1 holds no requirement rows. Do not upload this file: fix what is listed below and export again.', s:1}]);
+    ex.push([]);
+  }
+  ex.push([{v:'MISSING DATA AND ANOMALIES — IDS Batch Import, '+appn+' FY'+(fy%100), s:7}]);
+  if(f.action==='Update'){
+    ex.push([{v:'UPDATE FILE — CCaR MAY REFUSE RECORDS THAT HAVE AUTHORIZED ALLOCATIONS', s:6}]);
+    ex.push([{v:'The template’s rule 15: a requirement that is updated may not have Authorized allocations. ORBIT cannot see '
+      +'CCaR’s authorizations and does not check them; a row CCaR refuses for this reason has to be adjusted in CCaR.', s:0}]);
+  }
+  ex.push([]);
+  ex.push([{v:'THE FILE', s:6}]);
+  [['File ID (cell A1)', f.fid], ['Action, every row', f.action], ['ORG, every row', {v:org, s:X0}], ['Budget FY', {v:fy, s:X0}],
+   ['Appropriation', appn], ['Reason (Req. Change Comments, every row)', reason],
+   ['Rows on Requirement v1', {v:P.rows.length, s:X0}], ['Made', idsWhen(when)], ['ORBIT version', BUILD],
+   ['Submission history', 'ORBIT keeps none. It cannot tell whether this file ID was used before — by another export, '
+     +'a saved copy, another machine, or a submission CCaR has already processed.']]
+    .forEach(function(r){ ex.push(r); });
+  ex.push([]);
+  ex.push([{v:'RECONCILIATION', s:6}]);
+  ex.push(H(['', 'Req. Amount', 'Req. Approved']));
+  ex.push(['Every requirement on the board (Amount); every dollar it funds, discretionary and mandatory (Approved)',
+    {v:P.check.req, s:X1}, {v:P.check.draw, s:X1}]);
+  ex.push(['On Requirement v1', {v:P.tot.upAmt, s:X1}, {v:P.tot.upApp, s:X1}]);
+  ex.push(['Not uploaded (listed below)', {v:P.tot.exAmt, s:X1}, {v:P.tot.exApp, s:X1}]);
+  ex.push(['Check', (P.tot.upAmt+P.tot.exAmt===P.check.req)? '✓ ties' : '✗ does not tie',
+    (P.tot.upApp+P.tot.exApp===P.check.draw)? '✓ ties' : '✗ does not tie']);
+  ex.push([]);
+  ex.push([{v:'NOT UPLOADED — every contribution kept off Requirement v1, with every reason', s:6}]);
+  if(P.excluded.length){
+    ex.push(H(['PMO','Requirement','Plan event','Requirement ID','Service','Lane','Budget','Req Control No',
+               'Req. Amount','Req. Approved','Why (every reason)','How to fix']));
+    P.excluded.forEach(function(y){ const w=who(y.id);
+      ex.push([w.pmo, w.rec, w.t, y.id, y.svc, idsLaneWord(y.lane), y.budget || (y.stored? y.stored+' (chosen, not used)' : ''),
+        y.ctl, {v:y.amount, s:X1}, {v:y.approved, s:X1}, y.reasons.join('; '),
+        y.fixes.filter(function(v,i,a){ return v && a.indexOf(v)===i; }).join(' ')]); });
+  } else ex.push([{v:'Nothing was left out — every contribution is on Requirement v1.', s:0}]);
+  ex.push([]);
+  ex.push([{v:'ROWS THAT CONSOLIDATE SEVERAL ORBIT REQUIREMENTS — for review', s:6}]);
+  if(P.multi.length){
+    ex.push(H(['Ref No','Budget Name','Req Control No','Requirement ID','Requirement','Service','Lane','Req. Amount','Req. Approved']));
+    P.multi.forEach(function(r){
+      r.sources.forEach(function(y){ const w=who(y.id);
+        ex.push([{v:r.ref, s:X0}, y.budget, {v:+r.ctl, s:X0}, y.id, w.rec||w.t, y.svc, idsLaneWord(y.lane),
+          {v:y.amount, s:X1}, {v:y.approved, s:X1}]); });
+      if(r.spells.length>1) ex.push(['', 'The BAE list spells this budget '+r.spells.length+' ways: '+r.spells.join(' | ')]);
+    });
+  } else ex.push(none);
+  ex.push([]);
+  ex.push([{v:'CONTROL NUMBERS USED BY SEVERAL REQUIREMENTS ACROSS BUDGETS — for review', s:6}]);
+  if(P.shared.length){
+    ex.push(H(['Req Control No','Ref No','Budget Name','Requirement IDs']));
+    P.shared.forEach(function(g){ g.rows.forEach(function(r){
+      ex.push([{v:+g.ctl, s:X0}, {v:r.ref, s:X0}, r.bud, r.reqs.join(', ')]); }); });
+  } else ex.push(none);
+  ex.push([]);
+  ex.push([{v:'ROWS UPLOADED WITH REQ. APPROVED 0 — unfunded, sent so CCaR tracks them', s:6}]);
+  if(P.zero.length){
+    ex.push(H(['Ref No','Budget Name','Req Control No','Req. Amount','Requirement IDs']));
+    P.zero.forEach(function(r){ ex.push([{v:r.ref, s:X0}, r.bud, {v:+r.ctl, s:X0}, {v:r.amount, s:X1}, r.reqs.join(', ')]); });
+  } else ex.push(none);
+  sheets.push({name:IDS_SHEET2, cols:[34,40,40,16,12,14,40,14,16,16,60,60], rows:ex});
+  return sheets;
+}
+// What the last refusal said, for the box to show beside the preview.
+let idsLast=null;
+function idsRefuse(kind, lines, html){
+  idsLast={kind:kind, lines:lines};
+  const NL=String.fromCharCode(10);
+  try{ alert('The IDS workbook was not made.'+NL+NL+lines.join(NL)); }catch(e){}
+  setStat(html);
+  if(idsOpen) idsBody();
+  return false;
+}
+function exportIdsReq(opts){
+  // 1. THE BOARD ON SCREEN must be the working plan of the portfolio's own board -- asked before anything else.
+  const B=idsBoardRefusal();
+  if(B) return idsRefuse(B.kind, [B.msg], (B.kind==='locked'? '🔒 ' : '⚠ ')+'<b>IDS export refused.</b> '+esc(B.msg));
+  // 2. ORBIT'S OWN ARITHMETIC must hold. A failure here is a fault in ORBIT, never in the data: nothing is made.
+  const T=tiers(), P=idsBuild(T);
+  if(!P.check.ok){
+    const L=P.check.fails.map(function(x){ return '✗ '+x.inv+' — expected '+x.expected+', found '+x.actual
+      +(x.ids.length? ' · '+x.ids.slice(0,6).join(', ')+(x.ids.length>6? ' …' : '') : ''); });
+    return idsRefuse('check', ['An internal check failed, so the file could not be trusted:'].concat(L),
+      '✗ <b>IDS export refused</b> — an internal check failed ('+esc(P.check.fails[0].inv)+'). Nothing was made. '
+      +'The IDS box lists the figures.');
+  }
+  // 3. THE PROMPT: every answer, or nothing is made. File-level -- never a row anomaly.
+  const f=opts||idsForm, probs=idsFormProblems(f);
+  if(probs.length) return idsRefuse('form', probs.map(function(x){ return '• '+x; }),
+    '⚠ <b>IDS workbook not made</b> — '+esc(probs[0])+(probs.length>1? ' (and '+(probs.length-1)+' more)' : '')+'.');
+  // 4. THE FILE
+  const when=new Date(), org=+String(f.org).trim();
+  const bytes=buildXlsx(idsSheets(P, f, when), IDS_XTRA);
+  // 5. THE ONE SETTING KEPT -- the ORG -- and only now, once the file exists
+  if(!MS.ids) MS.ids={};
+  if(MS.ids.org!==org){ MS.ids.org=org; save(); }
+  idsLast=null;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([bytes], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download=expName('IDS Batch Import Req — '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(P.fy%100)+' '+f.fid+'.xlsx');
+  a.click();
+  const nx=P.excluded.length;
+  if(!P.rows.length)
+    setStat('⚠ <b>Diagnostic workbook saved — it holds NO uploadable IDS rows.</b> Do not upload it. Every contribution '
+      +'('+nx+') is on its <b>'+IDS_SHEET2+'</b> sheet with the reason; fix those and export again.');
+  else
+    setStat('⬇ IDS workbook — <b>'+P.rows.length+'</b> row'+(P.rows.length===1?'':'s')+' on Requirement v1, every one <b>'
+      +esc(f.action)+'</b>, file ID <b>'+esc(f.fid)+'</b>, ORG '+org+', FY'+(P.fy%100)+'. '
+      +(nx? '<b style="color:var(--amber)">'+nx+' contribution'+(nx===1?'':'s')+' not uploaded</b> ('+idsUsd(P.tot.exAmt)
+         +' requirement, '+idsUsd(P.tot.exApp)+' approved) — see <b>'+IDS_SHEET2+'</b>.' : 'Nothing was left out.')
+      +(f.action==='Update'? ' CCaR may refuse an update to a record with Authorized allocations.' : '')
+      +' ORBIT keeps no record of this export.');
+  if(idsOpen) idsBody();
+  return true;
 }
 // ============================================================ PRE-FLIGHT
 // Everything that would make an export wrong, gathered before it leaves rather than discovered
@@ -10931,27 +11463,34 @@ function preflight(){
   };
 
   // ---- BLOCKS ----------------------------------------------------------------
-  // 1. what the IDS export would drop, straight from the export's own reasoning
-  let ids={rows:[],skip:[],raised:[],pairs:0};
-  try{ ids=idsReqRows(); }catch(e){}
+  // 1. what the IDS export would leave off Requirement v1, straight from the export's own reasoning (v1.92: every
+  //    reason a contribution has, so one with no control number AND a retired budget is listed under both)
+  let ids={rows:[], excluded:[], sources:[], check:{ok:true, fails:[]}};
+  try{ ids=idsBuild(T); }catch(e){}
   const byWhy={};
-  (ids.skip||[]).forEach(function(r){ (byWhy[r.why]=byWhy[r.why]||[]).push(r); });
+  (ids.excluded||[]).forEach(function(r){ (r.reasons||[]).forEach(function(w){ (byWhy[w]=byWhy[w]||[]).push(r); }); });
   // A MISSING IMPORT IS ONE THING TO FIX, NOT ONE PER LINE. Reported per line it read as hundreds of
   // problems when the answer was "load the file", and a panel that cries wolf gets ignored.
-  const PF_ENV=/no CCaR records file imported|no Budget Extract/i;
+  const PF_ENV=/no CCaR records file imported|no BAE list is loaded/i;
   Object.keys(byWhy).forEach(function(why,i){
     const rs=byWhy[why];
     if(PF_ENV.test(why)){
       add('block','ids'+i,'Would not reach CCaR: '+esc(why),
-        '<b>One missing import, not '+rs.length+' separate problems.</b> '+rs.length+' requirement-and-service '
-        +'line'+(rs.length===1?'':'s')+' cannot be exported until it is loaded.',
-        [{id:'', label:rs.length+' line'+(rs.length===1?'':'s')+' waiting on that import'}]);
+        '<b>One missing import, not '+rs.length+' separate problems.</b> '+rs.length+' requirement, service and lane '
+        +'contribution'+(rs.length===1?'':'s')+' cannot go on the IDS upload sheet until it is loaded.',
+        [{id:'', label:rs.length+' contribution'+(rs.length===1?'':'s')+' waiting on that import'}]);
       return;
     }
     add('block','ids'+i,'Would not reach CCaR: '+esc(why),
-      'The requirements export drops these lines. The money is on the board and would not be in the file.',
-      rs.map(function(r){ return {id:r.id, label:pfName(r.id), sub:r.svc}; }));
+      'The IDS export keeps these off its upload sheet and lists them, with their dollars, on its Missing data and '
+      +'anomalies sheet. The money is on the board and would not reach CCaR.',
+      rs.map(function(r){ return {id:r.id, label:pfName(r.id), sub:r.svc+' '+idsLaneWord(r.lane)}; }));
   });
+  // 1a. ORBIT's own arithmetic: the IDS export refuses outright while any of its checks fails
+  if(ids.check && !ids.check.ok)
+    add('block','idscheck','The IDS export\u2019s own check fails',
+      'ORBIT’s own arithmetic does not hold on this board, so the export refuses and makes no file. The IDS box lists the figures.',
+      ids.check.fails.slice(0,PF_CAP).map(function(x){ return {id:'', label:x.inv, sub:'expected '+x.expected+', found '+x.actual}; }));
 
   // 1b. on a PMO copy: a proposed requirement that cannot be sent yet. The same gate pmoSubmit()
   //     applies, shown here so it is found before the refusal rather than by it.
@@ -10980,32 +11519,44 @@ function preflight(){
       });
     });
     add('block','over','Funded above what was asked',
-      'The requirements export cannot send an approved amount above its requirement, so it raises the '
-      +'requirement to match. Set the ask or the allocation deliberately instead.', rows);
+      'IDS refuses an approved amount above its requirement, and the IDS export\u2019s own check stops it making a file '
+      +'while this holds. Set the ask or the allocation deliberately instead.', rows);
   }
 
-  // 3. two requirements sharing one control number collide into a single CCaR line
+  // 3. a chosen budget the resolver cannot use, on a line that carries money or will carry the unfunded
+  //    requirement: the Spend Plan Source refuses over it and the IDS export leaves the line off its upload sheet
   {
-    const seen={}, rows=[];
+    const rows=[], kept=[];
     order.forEach(function(id){
       const it=itemById(id); if(!it) return;
-      let c=null; try{ c=ccarCtlOf(it); }catch(e){}
-      if(!c||!c.v) return;
-      (seen[c.v]=seen[c.v]||[]).push(id);
+      const A=(S.budgetAsg||{})[id]||{}, used={};
+      budLines(id, T).forEach(function(q){
+        const r=budResolve(id, q.svc, q.lane||'disc');
+        if(r.storedKey) used[r.storedKey]=1;
+        if(r.status==='invalid') rows.push({id:id, label:pfName(id), sub:q.svc+' '+(q.lane? idsLaneWord(q.lane) : 'not funded yet')
+          +': '+r.stored+' \u2014 '+r.reasons.map(function(x){ return x.replace(/^the chosen budget is /,''); }).join('; ')});
+      });
+      // a choice kept for later -- a mandatory budget on a requirement with no mandatory money yet -- that the
+      // resolver would refuse once it is used
+      Object.keys(A).forEach(function(k){
+        if(!A[k] || used[k]) return;
+        const c=budCheckChoice(id, k.split('|')[0], k.split('|')[1]||'', A[k]);
+        if(c.bad.length) kept.push({id:id, label:pfName(id), sub:k.replace('|',' ')+': '+A[k]+' \u2014 '
+          +c.bad.map(function(b){ return budBadText(b, c, k.split('|')[0], k.split('|')[1]||''); }).join('; ')});
+      });
     });
-    Object.keys(seen).forEach(function(v){
-      if(seen[v].length>1) seen[v].forEach(function(id){ rows.push({id:id, label:pfName(id), sub:'control '+v}); });
-    });
-    add('block','dup','Two requirements share one control number',
-      'They would arrive in CCaR as one line and the amounts would be added together.', rows);
+    add('block','budbad','A chosen budget cannot be used',
+      'Retired, not in the BAE list, another office\u2019s, another service\u2019s, the other lane\u2019s or legacy. The line has no '
+      +'budget until it is picked again or cleared: the Spend Plan Source refuses, and the IDS export lists it as not uploaded.', rows);
+    add('fix','budkept','A budget kept for later cannot be used',
+      'Stored for a lane with no money yet (a mandatory budget kept on an unfunded requirement, say). Nothing uses it today; '
+      +'it would be refused the moment that lane is funded.', kept);
   }
 
   // ---- FIX -------------------------------------------------------------------
   {
-    const unb=[], cons=[], award=[], pid=[], retired=[], legacy=[];
+    const unb=[], cons=[], award=[], pid=[];
     let fundedCount=0;
-    let retiredNames={};
-    try{ budRetired().forEach(function(b){ retiredNames[b.n]=1; }); }catch(e){}
     order.forEach(function(id){
       const it=itemById(id); if(!it) return;
       const funded=pfFunded(T,id);
@@ -11015,13 +11566,6 @@ function preflight(){
       if(d && d.consReq && !((S.cons||{})[id]||'').trim()) cons.push({id:id, label:pfName(id)});
       if(funded>0.005 && !(S.awards||{})[id]) award.push({id:id, label:pfName(id)});
       if(funded>0.005 && !((S.pid||{})[id]||'').trim()) pid.push({id:id, label:pfName(id)});
-      // every stored choice, under whatever lane it sits
-      Object.keys(((S.budgetAsg||{})[id])||{}).forEach(function(k){
-        const a=S.budgetAsg[id][k]; if(!a) return;
-        const sub=k.replace('|disc',' disc').replace('|mand',' mand');
-        if(retiredNames[a]) retired.push({id:id, label:pfName(id), sub:sub});
-        else if(budReg().length && !budUsable(a)) legacy.push({id:id, label:pfName(id), sub:sub});
-      });
     });
     addGap('fix','band','Not yet banded',
       'The rest of the board is banded and these are not, so their funding is an accident of the '
@@ -11043,12 +11587,6 @@ function preflight(){
       +'chased by hand later.',
       'No funded requirement carries a PID, so this board is not the place they are recorded.',
       pid, fundedCount);
-    add('fix','retired','Assigned to a budget no longer in the list',
-      'The budget was not in the last import from CCaR. The assignment still points at it, so the '
-      +'line has nowhere to land.', retired);
-    add('fix','legacy','Assigned to a legacy budget',
-      'A budget name with no PMO in it is a legacy budget and is never used, so the line is left '
-      +'blank in the Spend Plan Source until another budget is picked.', legacy);
   }
 
   // ---- WORTH KNOWING ---------------------------------------------------------
@@ -11065,6 +11603,21 @@ function preflight(){
     add('note','unf','Asked for, and not funded',
       'Expected on a constrained board — listed so the number is known rather than discovered in '
       +'the room.', unf);
+    // v1.92: several requirements on one control number. IDS consolidates them into one row per budget, which
+    // is right when they are one CCaR record split on this board and wrong when the number was shared by
+    // accident -- so they are listed for review rather than refused.
+    const seen={}, shared=[];
+    order.forEach(function(id){
+      const it=itemById(id); if(!it) return;
+      let c=null; try{ c=ccarCtlOf(it); }catch(e){}
+      if(c && c.v) (seen[c.v]=seen[c.v]||[]).push(id);
+    });
+    Object.keys(seen).forEach(function(v){
+      if(seen[v].length>1) seen[v].forEach(function(id){ shared.push({id:id, label:pfName(id), sub:'control '+v}); });
+    });
+    add('note','dup','Requirements sharing one control number (for review)',
+      'IDS takes a control number once per budget, so the IDS export consolidates them into one row on each budget and '
+      +'lists them for review. Right if they are one CCaR record split here; wrong if the number was shared by accident.', shared);
     add('note','min','Minimum increment above the whole ask',
       'The minimum that still buys something is larger than the requirement itself, so it can never '
       +'be part-funded.', minTooBig);
@@ -11072,7 +11625,7 @@ function preflight(){
 
   const n=sev=>find.filter(function(f){ return f.sev===sev; })
                    .reduce(function(a,f){ return a+f.rows.length; },0);
-  return {find:find, blocks:n('block'), fixes:n('fix'), notes:n('note'), pairs:ids.pairs||0};
+  return {find:find, blocks:n('block'), fixes:n('fix'), notes:n('note'), pairs:(ids.sources||[]).length};
 }
 
 let pfOpen=false, pfShow={};
@@ -11110,7 +11663,7 @@ function pfBody(){
   let h='<div class="hint" style="margin-bottom:10px;border-left:3px solid '
     +(R.blocks?'var(--red)':(R.fixes?'var(--amber)':'var(--green)'))+';padding-left:9px">'+verdict
     +' <span style="color:var(--dim)">Checked '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
-    +' — '+(S.order||[]).length+' requirements'+(R.pairs? ', '+R.pairs+' requirement-and-service lines':'')
+    +' — '+(S.order||[]).length+' requirements'+(R.pairs? ', '+R.pairs+' IDS contributions (requirement \u00d7 service \u00d7 lane)':'')
     +'. Nothing here changes anything.</span></div>';
 
   const SEV={block:{n:'Blocks an export',c:'var(--red)'},
@@ -11125,10 +11678,10 @@ function pfBody(){
       const open=!!pfShow[f.k];
       h+='<div style="border:1px solid var(--line);border-left:3px solid '+SEV[sev].c
         +';border-radius:5px;padding:9px 12px;margin-bottom:6px">'
-        +'<div class="fr" style="gap:10px;cursor:pointer" onclick="pfToggleOne('+jsa(f.k)+')">'
+        +'<button type="button" class="nb fr" style="gap:10px;width:100%" aria-expanded="'+(open?'true':'false')+'" onclick="pfToggleOne('+jsa(f.k)+')">'
         +'<b style="color:'+SEV[sev].c+'">'+f.rows.length+'</b>'
         +'<b style="flex:1">'+f.t+'</b>'
-        +'<span style="color:var(--dim);font-size:11px">'+(open?'▾ hide':'▸ show')+'</span></div>'
+        +'<span style="color:var(--dim);font-size:11px">'+(open?'▾ hide':'▸ show')+'</span></button>'
         +'<div class="hint" style="margin-top:3px">'+f.why+'</div>';
       if(open){
         h+='<div style="margin-top:7px;font-size:11.5px;line-height:1.7">'
@@ -11144,80 +11697,6 @@ function pfBody(){
     +'<button class="btn" onclick="pfCopy()">Copy the list</button>'
     +'<button class="btn" onclick="togglePf()">Close</button></div>';
   el.innerHTML=h;
-}
-// The template's own column geometry, measured from the file rather than approximated.
-const IDS_HDR=['Action','ORG','Budget FY','Budget Name','Req Control No','Req. Amount',
-               'Req. Approved','Req. Change Comments'];
-const IDS_COLW=[14.14, 7.71, 6.57, 10.43, 26.57, 13.86, 17.14, 14.43, 51.00];
-const IDS_XTRA=[
-  {fill:false, fmt:'0'},          // IDS_X0  Ref No, ORG, Budget FY, Control No
-  {fill:false, fmt:'#,##0.00'}    // IDS_X1  Req. Amount, Req. Approved
-];
-const idsXf=n=>XF_EXTRA0+n;
-function exportIdsReq(){
-  const R=idsReqRows(), c=idsCfg(), fy=MS.cur;
-  if(!R.rows.length){
-    alert('Nothing can be exported yet.'+String.fromCharCode(10,10)
-      +'Every line needs BOTH a Req Control No (from the CCaR records file) and a Budget Name '
-      +'(from the Budget Extract). Open Reports &amp; exports \u203a IDS Batch Import to see what is missing.');
-    setStat('\u26a0 IDS requirement batch \u2014 nothing exportable; see Reports &amp; exports \u203a IDS Batch Import.');
-    return;
-  }
-  const X0=idsXf(0), X1=idsXf(1);
-  // ROW 1 IS NOT A HEADER ROW IN THE ORDINARY SENSE: A1 is the file id and B1..I1 are the labels.
-  const out=[[idsFileId()].concat(IDS_HDR)];
-  R.rows.forEach(function(r, i){
-    out.push([{v:i+1, s:X0}, c.action, {v:c.org, s:X0}, {v:fy, s:X0}, r.bud,
-              {v:(/^[0-9]+$/.test(r.ctl)? +r.ctl : r.ctl), s:X0},
-              {v:Math.round(r.amt*100)/100, s:X1},
-              {v:Math.round(r.app*100)/100, s:X1}, c.cmt]);
-  });
-  // C2, exactly as the template freezes it - measured, not assumed.
-  const sheets=[{name:'Requirement v1', cols:IDS_COLW.slice(), freeze:'C2', rows:out}];
-  // WHAT DID NOT GO, AND WHY. Never a silent omission: a batch that carries only what happened to
-  // resolve reads as the whole requirement to whoever receives it.
-  const ex=[[{v:'NOT EXPORTED \u2014 these lines could not be given a Req Control No or a Budget Name', s:7}],
-            [{v:'They are NOT in the import sheet. Nothing here has been guessed.', s:0}], []];
-  if(R.skip.length){
-    ex.push(['PMO','Requirement','Plan event','Service','Requirement amount','Discretionary',
-             'Why it was held back'].map(function(v){ return {v:v, s:2}; }));
-    R.skip.forEach(function(k){
-      const it=itemById(k.id)||{};
-      ex.push([grpOf(it)||'', recName(it)||'', dispTitle(it)||'', k.svc,
-               {v:Math.round(k.ask*100)/100, s:X1}, {v:Math.round(k.app*100)/100, s:X1}, k.why]);
-    });
-    ex.push([]);
-  }
-  if(R.raised.length){
-    ex.push([{v:'RAISED TO MEET THE APPROVED AMOUNT', s:6}]);
-    ex.push([{v:'IDS refuses a line whose approved exceeds its requirement. These were allocated '
-      +'above their ask on this board, so the requirement figure was raised to match \u2014 stated '
-      +'here rather than adjusted in silence.', s:0}]);
-    ex.push(['Budget Name','Req Control No','Requirement was','Exported as']
-            .map(function(v){ return {v:v, s:2}; }));
-    R.raised.forEach(function(x){
-      ex.push([x.bud, x.ctl, {v:Math.round(x.was*100)/100, s:X1}, {v:Math.round(x.now*100)/100, s:X1}]);
-    });
-  }
-  if(!R.skip.length && !R.raised.length)
-    ex.push([{v:'Nothing was held back \u2014 every funded requirement/service pair reached the '
-      +'import sheet.', s:1}]);
-  sheets.push({name:'Not exported', cols:[8,44,40,10,18,18,52], rows:ex});
-
-  const bytes=buildXlsx(sheets, IDS_XTRA);
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([bytes],
-    {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-  a.download=expName('IDS Batch Import Req \u2014 '+(APPN_LBL[mySlug()]||mySlug())+' FY'+(fy%100)
-    +' '+idsFileId()+'.xlsx');
-  a.click();
-  const held=R.skip.length;
-  setStat('\u2b07 IDS requirement batch \u2014 <b>'+R.rows.length+'</b> line'
-    +(R.rows.length===1?'':'s')+' (Budget \u00d7 Control No), file id <b>'+idsFileId()+'</b>, ORG '
-    +c.org+', FY'+(fy%100)+'. '
-    +(held? '<b style="color:var(--amber)">'+held+' held back</b> \u2014 see the '
-       +'<b>Not exported</b> sheet.' : 'Nothing was held back.')
-    +' <b>Bump the sequence number before the next export</b> \u2014 IDS refuses a repeated file id.');
 }
 /* ---- CCaR records ------------------------------------------------------------------------- */
 /* ---- Obligation Category ------------------------------------------------------------------
@@ -11875,9 +12354,9 @@ function divBody(){
     const col=(f.k==='amt'||f.k==='bud')? 'var(--red)' : (f.k==='nonum'? 'var(--dim)' : 'var(--amber)');
     h+='<div style="border:1px solid var(--line);border-left:3px solid '+col
       +';border-radius:5px;padding:9px 12px;margin-bottom:6px">'
-      +'<div class="fr" style="gap:10px;cursor:pointer" onclick="divToggleOne('+jsa(f.k)+')">'
+      +'<button type="button" class="nb fr" style="gap:10px;width:100%" aria-expanded="'+(open?'true':'false')+'" onclick="divToggleOne('+jsa(f.k)+')">'
       +'<b style="color:'+col+'">'+f.rows.length+'</b><b style="flex:1">'+f.t+'</b>'
-      +'<span style="color:var(--dim);font-size:11px">'+(open?'▾ hide':'▸ show')+'</span></div>'
+      +'<span style="color:var(--dim);font-size:11px">'+(open?'▾ hide':'▸ show')+'</span></button>'
       +'<div class="hint" style="margin-top:3px">'+f.why+'</div>';
     if(open){
       h+='<div style="margin-top:7px;font-size:11.5px;line-height:1.7">'
@@ -13202,7 +13681,15 @@ function flowBand(x0,y0,h0,x1,y1,h1,fill,op){
     +' L'+x1+','+(y1+h1).toFixed(1)+' C'+m+','+(y1+h1).toFixed(1)+' '+m+','+(y0+h0).toFixed(1)+' '+x0+','+(y0+h0).toFixed(1)
     +' Z" fill="'+fill+'" opacity="'+(op==null?1:op)+'"/>';
 }
-function flowHit(key){ return '<g style="cursor:pointer" onclick="flowPick('+jsa(key)+')">'; }
+// v1.92: a flow node is an SVG group, so it stays role="button" -- SVG has no native button -- and says what it
+// is (its name from flowRows(), the same words the panel heads its list with), whether it is the one selected,
+// and draws the board's gold focus ring. Enter and Space work it through the keydown delegate.
+let _flowF=null;
+function flowHit(key){
+  let n=''; try{ const R=flowRows(_flowF, key); n=R? R.t : ''; }catch(e){}
+  return '<g class="flowhit" style="cursor:pointer" role="button" tabindex="0" aria-pressed="'+(flowSel===key?'true':'false')+'" '
+    +'aria-label="'+esc((n||key)+' \u2014 list its plan events')+'" onclick="flowPick('+jsa(key)+')">';
+}
 function flowSel_(key){ return flowSel===key; }
 // the ordered view models every layout draws from, so the three can never disagree
 function flowView(F){
@@ -13678,6 +14165,7 @@ function flowSvgCascade(F){
 }
 
 function flowSvg(F){
+  _flowF=F;
   const L=flowLayout();
   return L==='sankey'? flowSvgSankey(F)
        : L==='tree'?   flowSvgTree(F)
@@ -14296,14 +14784,14 @@ function exBody(){
     +'<tr><th style="text-align:left">PMO</th>'+MN.map((x,k)=>'<th'+(PAST[k]?' style="'+PBG+'"':'')+'>'+x+'</th>').join('')+'<th style="border-left:1px solid var(--line)">Approved</th><th>Obligated</th><th>Not Alloc</th><th style="border-left:1px solid var(--gold)">Obl %</th></tr>';
   Object.keys(byP).sort().forEach(g=>{
     const P=byP[g], pp=P.tot>0? P.obl/P.tot:0;
-    h+='<tr><td style="text-align:left;font-weight:800;cursor:pointer;color:var(--gold)" onclick="exX['+jsa(g)+']=!exX['+jsa(g)+'];render()">'+(exX[g]?'\u25be ':'\u25b8 ')+g+' <span style="color:var(--dim);font-size:8.5px">'+Object.keys(P.titles).length+' titles</span></td>'
+    h+='<tr><td style="text-align:left;font-weight:800;color:var(--gold)"><button type="button" class="nb" aria-expanded="'+(exX[g]?'true':'false')+'" onclick="exX['+jsa(g)+']=!exX['+jsa(g)+'];render()">'+(exX[g]?'\u25be ':'\u25b8 ')+g+' <span style="color:var(--dim);font-size:8.5px">'+Object.keys(P.titles).length+' titles</span></button></td>'
       +P.m.map((v,k)=>'<td'+(PAST[k]?' style="'+PBG+'"':'')+'>'+(Math.abs(v)>5e3?fM2(v):'\u2014')+'</td>').join('')
       +'<td style="border-left:1px solid var(--line)">'+fM2(P.tot)+'</td><td style="color:var(--green)">'+fM2(P.obl)+'</td><td style="color:'+(P.tot-P.obl>5e3?'var(--amber)':'var(--dim)')+'">'+fM2(P.tot-P.obl)+'</td>'
       +'<td style="border-left:1px solid var(--gold);font-weight:800;color:'+(goal!==null&&pp<goal?'var(--red)':'var(--green)')+'">'+pct(pp)+'</td></tr>';
     if(exX[g]){
       Object.keys(P.titles).sort().forEach(t=>{
         const T=P.titles[t], tk=g+'|'+t;
-        h+='<tr style="opacity:.94"><td style="text-align:left;padding-left:20px;font-size:9px;cursor:pointer" onclick="exXT['+jsa(tk)+']=!exXT['+jsa(tk)+'];render()" title="'+esc(t)+'">'+(exXT[tk]?'\u25be ':'\u25b8 ')+esc(exClip(t))+'</td>'
+        h+='<tr style="opacity:.94"><td style="text-align:left;padding-left:20px;font-size:9px"><button type="button" class="nb" aria-expanded="'+(exXT[tk]?'true':'false')+'" onclick="exXT['+jsa(tk)+']=!exXT['+jsa(tk)+'];render()" title="'+esc(t)+'">'+(exXT[tk]?'\u25be ':'\u25b8 ')+esc(exClip(t))+'</button></td>'
           +T.m.map((v,k)=>'<td style="font-size:8.5px'+(PAST[k]?';'+PBG:'')+'">'+(Math.abs(v)>5e3?fM2(v):'\u2014')+'</td>').join('')
           +'<td style="font-size:9px">'+fM2(T.tot)+'</td><td style="font-size:9px;color:var(--green)">'+fM2(T.obl)+'</td><td style="font-size:9px;color:var(--amber)">'+(T.tot-T.obl>5e3?fM2(T.tot-T.obl):'\u2014')+'</td>'
           +'<td style="font-size:9px;font-weight:700">'+pct(T.tot>0?T.obl/T.tot:0)+'</td></tr>';
@@ -14523,6 +15011,24 @@ function exportSrc(){
   // A year this walk cannot speak for is SKIPPED and named, never guessed at. SRC_YEARS='cur' makes
   // that unreachable today; this is the honest shape if it is ever flipped.
   const DT=tiers(), skipped=[];
+  // v1.92: A CHOSEN BUDGET THAT CANNOT BE USED STOPS THIS FILE. Printing it would send a retired or another
+  // office's name to CCaR; printing the rule's answer instead would replace a person's choice without saying
+  // so; leaving it blank would drop it. So the export refuses, names every line, and writes nothing.
+  { const bad=budInvalidLines(DT);
+    if(bad.length){
+      const NL=String.fromCharCode(10);
+      alert('The Spend Plan Source was not exported.'+NL+NL+bad.length+' funded line'+(bad.length===1?' has':'s have')
+        +' a chosen budget that cannot be used:'+NL+NL
+        +bad.slice(0,12).map(function(r){ return '  '+dispTitle(itemById(r.id))+' \u2014 '+r.svc+' '
+          +(r.lane==='mand'?'mandatory':'discretionary')+': '+r.stored+' ('+r.reasons.map(function(x){
+            return x.replace(/^the chosen budget is /,''); }).join('; ')+')'; }).join(NL)
+        +(bad.length>12? NL+'  ... and '+(bad.length-12)+' more' : '')
+        +NL+NL+'Pick again, or clear the choice, under BAE budget in each RECORD panel. The pre-flight lists them all.');
+      setStat('\u270b Spend Plan Source not exported \u2014 <b>'+bad.length+'</b> line'+(bad.length===1?' has':'s have')
+        +' a chosen budget that cannot be used \u2014 '+(bad.length===1?'it is':'they are')+' listed under Reports &amp; exports \u203a \u2708 Pre-flight check.');
+      return;
+    }
+  }
   slugs.forEach(sl=>{
     const rows=[hdr];
     if(sl===mySlug()){
@@ -15599,7 +16105,7 @@ function planBody(){
       +'</table></div>'
     +'</div>';
 
-  const chip=(k,lbl,cnt)=>'<span class="chip '+(planOnly===k?'on':'')+'" onclick="setPlanOnly('+jsa(k)+')">'+lbl+'<span class="n">'+cnt+'</span></span>';
+  const chip=(k,lbl,cnt)=>'<button type="button" class="nb chip '+(planOnly===k?'on':'')+'" aria-pressed="'+(planOnly===k?'true':'false')+'" onclick="setPlanOnly('+jsa(k)+')">'+lbl+'<span class="n">'+cnt+'</span></button>';
   const all=planRows(R);
   h+='<div class="fr" style="gap:6px;margin:2px 0 8px;flex-wrap:wrap">'
     +chip('moved','Changes between the plans', all.filter(r=>r.moved||r.gain>0.5).length)
@@ -15896,6 +16402,19 @@ function poBody(){
     +'<span class="hint">Nothing changes until you publish. Reversible with \u21ba Reset priority order.</span></div>';
   el.innerHTML=h;
 }
+// v1.92: ONE CELL WRITER FOR EVERY CSV THIS BOARD MAKES. A spreadsheet reads a cell that starts with = + - @
+// (or a tab, a carriage return or a line feed, or spaces before one of them) as a FORMULA, so a requirement title
+// or a consequence typed as "=HYPERLINK(...)" would run when the file is opened. Such a cell is written with a
+// leading apostrophe, which shows it as the text it is. A true number -- a JS number, or a figure ORBIT formatted
+// itself ("-$1,234", "+3", "12%") -- cannot be a formula and is left exactly as it was, so it still reads as a number.
+const CSV_SAFE_NUM=/^[-+]?\$?\d[\d,]*(?:\.\d+)?[%KkMmBb]?$/;
+function csvCell(c){
+  if(c===null || c===undefined) c='';
+  if(typeof c==='number') return isFinite(c)? '"'+c+'"' : '""';
+  let t=String(c);
+  if((/^[\t\r\n]/.test(t) || /^[ \u00a0]*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20]/.test(t)) && !CSV_SAFE_NUM.test(t)) t="'"+t;
+  return '"'+t.replace(/"/g,'""')+'"';
+}
 function exportProposedOrder(){
   const {rows}=poRows();
   const hdr=['Proposed Rank','Current Rank','Move','Band','Band Rule','PMO','Requirement',
@@ -15907,7 +16426,7 @@ function exportProposedOrder(){
     Math.round(r.ask), Math.round(r.dNow), Math.round(r.mNow), Math.round(r.uNow),
     Math.round(r.dNew), Math.round(r.mNew), Math.round(r.uNew),
     r.sNow, r.sNew, (S.cons||{})[r.id]||'']));
-  const csv='\ufeff'+out.map(r=>r.map(c=>'"'+(''+c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const csv='\ufeff'+out.map(r=>r.map(csvCell).join(',')).join('\r\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download=expName('Proposed 1-N order '+FYL()+' '+new Date().toISOString().slice(0,10)+'.csv');
@@ -17636,7 +18155,7 @@ function ppBody(){
     +'</select>'
     +' <b style="color:var(--gold);margin-left:8px">'+ppLbl(ppKey())+'</b>'
     +(MS.ppbe[ppKey()]?' <button class="qb" style="color:var(--red)" onclick="ppDel()">\u2715 delete position</button>':'')
-    +'<span style="float:right;font-size:9.5px;color:var(--dim)">Logged: '+(logged.length? logged.map(k=>'<span class="chip" style="font-size:9px;padding:2px 7px" onclick="ppCyc='+jsa(k.split('|')[0])+';ppYr=Number('+jsa(k.split('|')[1])+');render()">'+esc(ppLbl(k))+'</span>').join(' '):'none yet')+'</span></div>';
+    +'<span style="float:right;font-size:9.5px;color:var(--dim)">Logged: '+(logged.length? logged.map(k=>'<button type="button" class="nb chip" style="font-size:9px;padding:2px 7px" onclick="ppCyc='+jsa(k.split('|')[0])+';ppYr=Number('+jsa(k.split('|')[1])+');render()">'+esc(ppLbl(k))+'</button>').join(' '):'none yet')+'</span></div>';
 
   {
     const hidden=ppOutside(P, yrs);
@@ -18678,7 +19197,7 @@ function crBody(){
     +'<table class="fctab">'+hd;
   keys.forEach((s,i)=>{
     const sv=D[i];
-    h+='<tr><td style="text-align:left;font-weight:800;cursor:pointer;color:var(--gold)" onclick="crX['+jsa(s)+']=!crX['+jsa(s)+'];render()" title="click to show '+esc(s)+'\u2019s requirements individually">'+(crX[s]?'\u25be ':'\u25b8 ')+esc(s)+' <span style="color:var(--dim);font-size:8.5px">'+sv.items.length+' reqs</span></td>'
+    h+='<tr><td style="text-align:left;font-weight:800;color:var(--gold)"><button type="button" class="nb" aria-expanded="'+(crX[s]?'true':'false')+'" onclick="crX['+jsa(s)+']=!crX['+jsa(s)+'];render()" title="click to show '+esc(s)+'\u2019s requirements individually">'+(crX[s]?'\u25be ':'\u25b8 ')+esc(s)+' <span style="color:var(--dim);font-size:8.5px">'+sv.items.length+' reqs</span></button></td>'
       +fold(sv.win).map(cell).join('')
       +'<td style="border-left:1px solid var(--amber);color:'+(sv.nodate>5e3?'var(--amber)':'var(--dim)')+'">'+(sv.nodate>5e3?fM2(sv.nodate):'\u2014')+'</td>'
       +'<td style="border-left:1px solid var(--gold);font-weight:800;color:var(--gold)">'+fM2(sv.tot)+'</td></tr>';
@@ -18689,7 +19208,7 @@ function crBody(){
             if(v<=5e3) return '<td style="color:var(--line2)">\u2014</td>';
             if(monthly) return '<td>'+fM2(v)+'</td>';
             const ym=wins[w].ym;
-            return '<td><span style="cursor:pointer;color:var(--ink);border-bottom:1px dashed var(--dim)" onclick="crToggle('+jsa(r.id)+','+jsa(ym)+')" title="click to move this requirement\u2019s cash to the other half of the month">'+fM2(v)+'</span></td>';
+            return '<td><button type="button" class="nb" style="color:var(--ink);border-bottom:1px dashed var(--dim)" onclick="crToggle('+jsa(r.id)+','+jsa(ym)+')" title="click to move this requirement\u2019s cash to the other half of the month">'+fM2(v)+'</button></td>';
           }).join('')
           +'<td></td><td style="border-left:1px solid var(--gold);font-size:9px">'+fM2(r.wins.reduce((a,b)=>a+b,0))+'</td></tr>';
       });
@@ -19107,14 +19626,14 @@ function scoreboard(){
   const chips=FB.map(f=>{
     const pct=f.ba>0? Math.min(100,f.used/f.ba*100) : (f.used>0?100:0);
     const dry=f.left<=0.5;
-    return `<div class="fitchip ${svcFilter===f.i?'on':''}" onclick="svcFilter=${svcFilter===f.i?-1:f.i};render()"
+    return `<button type="button" class="nb fitchip ${svcFilter===f.i?'on':''}" aria-pressed="${svcFilter===f.i?'true':'false'}" onclick="svcFilter=${svcFilter===f.i?-1:f.i};render()"
         title="${esc(f.s)} discretionary BA ${fM(f.ba)} \u2014 ${fM(f.used)} drawn.${f.over>0.5? ' Past it: '+fM(f.mand)+' mandatory, '+fM(f.unf)+' unfunded.' : ' Nothing has gone past it.'} Click to filter the list to this service.">
       <span class="s">${esc(f.s)}</span>
       <span class="v" style="color:${dry?'var(--red)':'var(--green)'}">${dry? (f.over>0.5? fMc(f.over)+' over' : 'exhausted') : fMc(f.left)+' left'}</span>
-      <span class="bar"><i style="width:${pct}%;background:${dry?'var(--red)':'var(--green)'}"></i></span></div>`;
+      <span class="bar"><i style="width:${pct}%;background:${dry?'var(--red)':'var(--green)'}"></i></span></button>`;
   }).join('');
-  const lc=(k,lbl,cnt,col)=>`<span class="lanechip ${laneFilter===k?'on':''}" style="${laneFilter===k?'color:'+col+';background:var(--panel)':''}"
-      onclick="laneFilter=laneFilter===${jsa(k)}?'':${jsa(k)};render()" title="click to filter the list">${lbl} <b style="color:${col}">${cnt}</b></span>`;
+  const lc=(k,lbl,cnt,col)=>`<button type="button" class="nb lanechip ${laneFilter===k?'on':''}" style="${laneFilter===k?'color:'+col+';background:var(--panel)':''}"
+      aria-pressed="${laneFilter===k?'true':'false'}" onclick="laneFilter=laneFilter===${jsa(k)}?'':${jsa(k)};render()" title="click to filter the list">${lbl} <b style="color:${col}">${cnt}</b></button>`;
   document.getElementById('fitBar').innerHTML =
     '<span class="lb">DISCRETIONARY FIT</span>'+chips+
     '<span style="width:6px"></span>'+
@@ -19122,7 +19641,7 @@ function scoreboard(){
     lc('mand','spills to mand',FC.mand,'var(--purp)')+
     lc('unf','unfunded',FC.unf,'var(--red)')+
     ndStripChip()+
-    (laneFilter? '<span class="lanechip" onclick="laneFilter=\'\';render()">\u2715 clear</span>':'')+
+    (laneFilter? '<button type="button" class="nb lanechip" onclick="laneFilter=\'\';render()">\u2715 clear</button>':'')+
     absorbLine(AB);
   const sh=svcShort(T);
   document.getElementById('svcWarn').innerHTML = sh.length?
@@ -19202,7 +19721,7 @@ function absorbLine(AB){
     +esc(it? dispTitle(it) : AB.id)+'</b> absorbing <b style="color:var(--amber)">'+fM(AB.absorbedTot)+'</b>'
     +(AB.floor>0? ' <span style="color:var(--dim)">(floor '+fM(AB.floor)+')</span>':'')
     +(AB.unabsorbedTot>0.5? ' \u00b7 <b style="color:var(--red)">'+fM(AB.unabsorbedTot)+' unabsorbed</b>':'')
-    +' <span onclick="setAbsorber(\'\',false)" style="cursor:pointer;color:var(--dim)" title="stop using this requirement as the absorber">\u2715</span></span>';
+    +' <button type="button" class="nb" aria-label="stop using this requirement as the absorber" onclick="setAbsorber(\'\',false)" style="color:var(--dim)" title="stop using this requirement as the absorber">\u2715</button></span>';
 }
 /* ========== TAKING THE BUDGET CONTROLS FROM A LOGGED PPBE POSITION =========================
    The official position for a cycle is already logged, service by service, year by year. Typing
@@ -19972,19 +20491,19 @@ function chipPick(kind, id, label, cur, items, setter, title, col){
   const k=kind+'|'+id, isOpen=(rowChipId===k), unset=(cur===null||cur===undefined||cur==='');
   const style = (!unset && col)? ' style="border-color:'+col+';color:'+col+'"' : '';
   let h='<span class="menu chipm'+(isOpen?' open':'')+'">'
-    +'<span class="rchip'+(unset?' add':'')+'"'+style
-    +' onclick="toggleChip('+jsa(kind)+','+jsa(id)+',event)" title="'+esc(title||'')+'">'
-    +esc(label)+'</span>';
+    +'<button type="button" class="nb rchip'+(unset?' add':'')+'"'+style
+    +' aria-expanded="'+(isOpen?'true':'false')+'" onclick="toggleChip('+jsa(kind)+','+jsa(id)+',event)" title="'+esc(title||'')+'">'
+    +esc(label)+'</button>';
   if(isOpen){
     h+='<span class="mdd" onclick="event.stopPropagation()">';
     items.forEach(function(o){
       if(o.sep!==undefined){ h+='<div class="msep"></div><div class="mlbl">'+esc(o.sep)+'</div>'; return; }
       const on=(o.on!==undefined)? !!o.on
              : (String(o.v)===String(cur===null||cur===undefined?'':cur));
-      h+='<div class="mi" onclick="chipRun(function(){'+(o.set||setter)+'('+jsa(id)+','
+      h+='<button type="button" class="mi" onclick="chipRun(function(){'+(o.set||setter)+'('+jsa(id)+','
         +jsa(String(o.v))+');})">'
         +'<span class="chk">'+(on?'\u2713':'')+'</span>'+esc(o.n)
-        +(o.sub? '<span class="sub">'+esc(o.sub)+'</span>':'')+'</div>';
+        +(o.sub? '<span class="sub">'+esc(o.sub)+'</span>':'')+'</button>';
     });
     h+='</span>';
   }
@@ -20003,14 +20522,17 @@ function toggleRowMenu(id, ev){
   rowMenuId = (rowMenuId===id)? null : id;
   render();
 }
-function rowMenuRun(id, fn){ rowMenuId=null; setTimeout(fn, 0); }
+// v1.92 (item 36): focus goes back to the row's ⋯ before the item runs, so a keyboard user is left on it.
+function rowMenuRun(id, fn){ rowMenuId=null;
+  try{ const b=document.querySelector('#rm_'+CSS.escape(id)+' .rmbtn'); if(b) b.focus({preventScroll:true}); }catch(e){}
+  setTimeout(fn, 0); }
 // Built from the same pieces as the toolbar dropdowns so there is one menu idiom in the app.
 function rowMenuHtml(it){
   const id=it.id;
   // desc, note, bd, wantCons and hasCons went with the entries that used them: in this build those
   // fields are edited from the RECORD panel, so the menu no longer reads any of them.
-  const mi=(label,fn,sub,cls)=>'<div class="mi'+(cls?' '+cls:'')+'" onclick="rowMenuRun('+jsa(id)+',()=>{'+fn+'})">'
-    +'<span class="chk"></span>'+label+(sub?'<span class="sub">'+sub+'</span>':'')+'</div>';
+  const mi=(label,fn,sub,cls)=>'<button type="button" class="mi'+(cls?' '+cls:'')+'" onclick="rowMenuRun('+jsa(id)+',()=>{'+fn+'})">'
+    +'<span class="chk"></span>'+label+(sub?'<span class="sub">'+sub+'</span>':'')+'</button>';
   const ys=(()=>{ const out=[]; for(let y=MS.base;y<MS.base+5;y++) if(y!==MS.cur) out.push(y);
     Object.keys(MS.years).map(Number).forEach(y=>{ if(y!==MS.cur&&out.indexOf(y)<0) out.push(y); });
     return out.sort(); })();
@@ -20915,13 +21437,13 @@ function clinTable(it){
   const rows=L.map(c=>{
     const v=clinVec(pid,c), rt=v.reduce((a,b)=>a+b,0), at=clinAskTot(c), d=rt-at;
     return '<tr>'
-      +'<td class="cl"><span class="cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'clin\')" '
-        +'title="click to change the CLIN number">'+esc(c.clin)+'</span>'
+      +'<td class="cl"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'clin\')" '
+        +'title="click to change the CLIN number">'+esc(c.clin)+'</button>'
         +(c.added? '<span class="cnew">NEW</span>' : (c.edited? '<span class="cmod" title="changed from the board data">✎</span>':''))+'</td>'
-      +'<td class="cd"><span class="cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'desc\')" '
-        +'title="'+esc(c.desc||'')+' — click to rename">'+esc(c.desc||'— no description —')+'</span></td>'
-      +'<td class="cc"><span class="cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'ccar\')" '
-        +'title="click to set the CCaR record">'+esc(c.ccar||'+ CCaR')+'</span></td>'
+      +'<td class="cd"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'desc\')" '
+        +'title="'+esc(c.desc||'')+' — click to rename">'+esc(c.desc||'— no description —')+'</button></td>'
+      +'<td class="cc"><button type="button" class="nb cedit" onclick="clinSetField('+jsa(pid)+','+jsa(c.key)+',\'ccar\')" '
+        +'title="click to set the CCaR record">'+esc(c.ccar||'+ CCaR')+'</button></td>'
       +'<td class="cr"><input class="reqin" value="'+(at? Math.round(at).toLocaleString():'')+'" placeholder="0" '
         +'onchange="clinSetReq('+jsa(pid)+','+jsa(c.key)+',this.value)" onfocus="this.select()" '
         +'title="what this CLIN asks for — spread across services in its current shape"></td>'
@@ -20930,9 +21452,9 @@ function clinTable(it){
         +' title="'+esc(sv+' — CLIN '+c.clin+' · requested '+fM(c.ask[j]||0))+'"></td>').join('')
       +'<td class="ct">'+fM(rt)+'</td>'
       +(Math.abs(d)<0.5? '<td class="ok">—</td>' : '<td class="off">'+(d>0?'+':'−')+fMc(Math.abs(d))+'</td>')
-      +'<td class="cw"><span class="cedit" onclick="toggleWbs(&quot;clin&quot;,'+jsa(pid)+','+jsa(c.key)+')" '
+      +'<td class="cw"><button type="button" class="nb cedit" onclick="toggleWbs(&quot;clin&quot;,'+jsa(pid)+','+jsa(c.key)+')" '
         +'title="log the WBS for this CLIN — several are allowed, split by service">'
-        +esc(wbsLabel('clin',pid,c.key)||'+ WBS')+'</span></td>'
+        +esc(wbsLabel('clin',pid,c.key)||'+ WBS')+'</button></td>'
       +(rcnApplies()? '<td class="cw"><select class="cesel" style="max-width:180px" '
         +'onchange="setRcnClin('+jsa(pid)+','+jsa(c.key)+',this.value)" '
         +'title="One line of accounting funds a CLIN, so it carries ONE RCN/EEIC — whatever the '
@@ -20976,8 +21498,8 @@ function clinTable(it){
         +SVC.map((sv,j)=>dcell(diff[j])).join('')+dcell(diffT)+'<td></td><td></td>'+CPAD+'<td></td></tr>'
       +'</tfoot></table></div>'
     +(gone.length? '<div class="crestore"><b>'+gone.length+' removed:</b> '
-        +gone.map(g=>'<span class="rtag" onclick="clinRestore('+jsa(pid)+','+jsa(g.key)+')" '
-          +'title="'+esc(g.desc||'')+' — click to put it back">↩ '+esc(g.clin)+'</span>').join(' ')+'</div>' : '')
+        +gone.map(g=>'<button type="button" class="nb rtag" onclick="clinRestore('+jsa(pid)+','+jsa(g.key)+')" '
+          +'title="'+esc(g.desc||'')+' — click to put it back">↩ '+esc(g.clin)+'</button>').join(' ')+'</div>' : '')
     +'<div class="svc-hint">'
       +'Click a CLIN number, description or CCaR to change it. ＋ Add CLIN puts a new line on this '
       +'contract. Your changes sit over the board data, so removed lines can be put back and a fresh '
@@ -21228,7 +21750,7 @@ function ceSummary(){
   document.getElementById('ceWarn').innerHTML = shorts.length?
     '<span style="background:var(--tintA);color:var(--tintAi);font-weight:800;font-size:10px;border:1px solid var(--amber);border-radius:4px;padding:2px 8px;margin-left:6px">'+shorts.join('  ·  ')+'</span>' : '';
   const tabs = ['ALL',...pmosPresent].map(g=>
-    `<span class="chip ${ceTab===g?'on':''}" onclick="ceTab=${jsa(g)};render()" style="font-size:11px;padding:4px 11px">${g==='ALL'?'Cost Element (ALL PMOs)':g}</span>`).join(' ');
+    `<button type="button" class="nb chip ${ceTab===g?'on':''}" aria-pressed="${ceTab===g?'true':'false'}" onclick="ceTab=${jsa(g)};render()" style="font-size:11px;padding:4px 11px">${g==='ALL'?'Cost Element (ALL PMOs)':g}</button>`).join(' ');
   const keys=[...COST_ELEMS.filter(c=>byCE[c]), ...(byCE['— Unassigned —']? ['— Unassigned —']:[])];
   const tot=mk();
   keys.forEach(k=>{ const a=byCE[k]; a.disc.forEach((v,i)=>tot.disc[i]+=v); a.mand.forEach((v,i)=>tot.mand[i]+=v); tot.mc+=a.mc; tot.n+=a.n; });
@@ -21420,7 +21942,7 @@ function buildXlsx(sheets, extra){
         const ref=_colL(ci)+(ri+1);
         let v=c, st=0;
         if(typeof c==='object'){ v=c.v; st=c.s||0; }
-        if(typeof v==='number') return '<c r="'+ref+'" s="'+st+'"><v>'+(Math.round(v*100)/100)+'</v></c>';
+        if(typeof v==='number') return '<c r="'+ref+'" s="'+st+'"><v>'+(Number.isInteger(v)? v : Math.round(v*100)/100)+'</v></c>';
         return '<c r="'+ref+'" s="'+st+'" t="inlineStr"><is><t xml:space="preserve">'+_xesc(v)+'</t></is></c>';
       }).join('');
       return '<row r="'+(ri+1)+'">'+cells+'</row>';
@@ -21867,7 +22389,7 @@ function withReq(name, act, describe){
   __cands=cands.slice(0,4); __act=act;
   document.getElementById('cmdOut').innerHTML =
     '<span style="color:var(--amber);font-weight:700">Which one'+(describe?' — '+describe:'')+'?</span> '+
-    __cands.map((c,i)=>'<span class="chip" style="font-size:10px;padding:2px 8px" onclick="resolveCand('+i+')">'+esc(c.title.length>46?c.title.slice(0,46)+'…':c.title)+'</span>').join(' ');
+    __cands.map((c,i)=>'<button type="button" class="nb chip" style="font-size:10px;padding:2px 8px" onclick="resolveCand('+i+')">'+esc(c.title.length>46?c.title.slice(0,46)+'…':c.title)+'</button>').join(' ');
 }
 function resolveCand(i){
   if(__cands&&__act&&__cands[i]) __act(__cands[i].id);
@@ -21961,6 +22483,7 @@ function render(){
   _ndCache=null;                            // and so is what is set higher than it draws
   if(_bootLost.length){                     // first render: there is a status bar now
     const lost=_bootLost.slice(); _bootLost.length=0;
+    try{ DIAG.boot=DIAG.boot.concat(lost); }catch(e){}   // the board's own descriptions: kept for Save diagnostics
     try{ setStat('\u26a0 <b>Could not read '+lost.length+' item'+(lost.length===1?'':'s')+' on opening:</b> '
       +esc(lost.join('; '))+'. That data is NOT loaded \u2014 do not save over this file until you have '
       +'checked it, or the unread part will be lost.'); }catch(e){}
@@ -22121,7 +22644,7 @@ function render(){
     `<button class="btn warn" style="font-size:11px;padding:5px 10px" onclick="zeroPMO()" title="set every ${filter} allocation to $0 — start the PMO's allocations from a clean slate">⓪ Zero ${filter} allocations</button>
      <button class="btn" style="font-size:11px;padding:5px 10px" onclick="restorePMO()" title="set every ${filter} allocation back to its requested amount">↺ ${filter} as-requested</button>` : '';
   document.getElementById('rmChipWrap').innerHTML = S.removed.length?
-    `<span class="chip ${rmOpen?'on':''}" onclick="rmOpen=!rmOpen;render()">🗑 Removed <span class="n">${S.removed.length}</span></span>`:'';
+    `<button type="button" class="nb chip ${rmOpen?'on':''}" aria-pressed="${rmOpen?'true':'false'}" onclick="rmOpen=!rmOpen;render()">🗑 Removed <span class="n">${S.removed.length}</span></button>`:'';
   const rp=document.getElementById('rmPanel');
   if(rmOpen && S.removed.length){
     rp.style.display='block';
@@ -22134,7 +22657,7 @@ function render(){
         return `<div class="fr" style="margin-bottom:4px"><span style="font-size:11px"><b>${esc(grpOf(it))}</b> — ${esc(it.title)}</span><button class="qb" onclick="restoreReq(${jsa(id)})">↩ restore</button></div>`;}).join('')+'</div>';
   } else { rp.style.display='none'; rp.innerHTML=''; }
 }
-let openMenu=null;
+let openMenu=null, _menuShown=null;   // _menuShown: the menu drawn open last, so a close can hand focus back
 function fitMenu(){
   // toolbar dropdowns open leftward from their button; on a narrow window the right-hand
   // ones would run off screen, so nudge whichever is open back into view.
@@ -22174,7 +22697,47 @@ function syncSticky(){
 }
 try{ window.addEventListener('resize', syncSticky); }catch(e){ /* layout nicety; a board that cannot listen for resize still works */ }
 function toggleMenu(m){ openMenu = openMenu===m? null : m; syncBtns(); }
-function mRun(fn){ openMenu=null; syncBtns(); setTimeout(fn,0); }
+// v1.92 (item 36): running an item hands focus back to its menu's button, so a keyboard user is left where
+// they were rather than on nothing (the item itself is redrawn away as the menu closes).
+function mRun(fn){ const back=openMenu? document.getElementById('b_'+openMenu) : null;
+  openMenu=null; syncBtns(); try{ if(back) back.focus({preventScroll:true}); }catch(e){}
+  setTimeout(fn,0); }
+/* v1.92 (item 36): THE KEYBOARD WORKS WHAT THE MOUSE DOES.
+   - Every clickable element is a native <button> (v1.92, revised): Enter and Space are the browser's own. The
+     one exception is an SVG flow node, which SVG gives no button for: it says role="button" tabindex="0" and
+     an aria-label, and Enter or Space works it here. npm run check refuses role="button" anywhere else.
+   - Esc closes an open menu -- a toolbar menu, a row's ⋯ menu, a chip's list -- with focus back on the
+     button that opened it. Tabbing out of an open toolbar menu closes it.
+   Menu items are real buttons, in the order they read, so Tab and Shift+Tab move through an open menu. No
+   ARIA menu roles: they would promise arrow keys this does not have (the choice made for the modes). */
+try{
+  document.addEventListener('keydown', function(e){
+    const t=e.target;
+    if((e.key==='Enter' || e.key===' ') && t && t.getAttribute && t.getAttribute('role')==='button'
+       && !/^(BUTTON|INPUT|SELECT|TEXTAREA|OPTION|SUMMARY)$/.test(t.tagName)){
+      e.preventDefault();
+      t.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window}));
+      return;
+    }
+    if(e.key!=='Escape') return;
+    if(openMenu){
+      const back=document.getElementById('b_'+openMenu);
+      e.preventDefault(); openMenu=null; syncBtns(); try{ if(back) back.focus(); }catch(e2){}
+      return;
+    }
+    if(rowMenuId){
+      const id=rowMenuId; e.preventDefault(); rowMenuId=null; render();
+      try{ const b=document.querySelector('#rm_'+CSS.escape(id)+' .rmbtn'); if(b) b.focus(); }catch(e2){}
+      return;
+    }
+    if(rowChipId){ e.preventDefault(); rowChipId=null; render(); }
+  });
+  document.addEventListener('focusin', function(e){
+    if(!openMenu) return;
+    const m=document.getElementById('m_'+openMenu);
+    if(m && e.target && !m.contains(e.target)){ openMenu=null; syncBtns(); }
+  });
+}catch(e){}
 if(document.addEventListener) document.addEventListener('click', e=>{
   if(openMenu && e.target && e.target.closest && !e.target.closest('.menu')){ openMenu=null; syncBtns(); }
   if(rowMenuId && e.target && e.target.closest && !e.target.closest('.rowmenu')){ rowMenuId=null; render(); }
@@ -22187,13 +22750,22 @@ function syncBtns(){
   // v1.91 (item 30): mode BUTTONS, the chosen one pressed. They were ARIA tabs, which promise arrow keys and
   // five tab panels; this is one workspace shown five ways, and a button is what each of them is.
   UI_MODES.forEach(function(m){ const t=document.getElementById('tab_'+m); if(t) t.setAttribute('aria-pressed', uiMode===m?'true':'false'); });
-  const mi=(label,fn,chk,sub,cls)=>`<div class="mi${cls?' '+cls:''}" onclick="${fn}"><span class="chk">${chk?'✓':''}</span>${label}${sub?`<span class="sub">${sub}</span>`:''}</div>`;
+  const mi=(label,fn,chk,sub,cls)=>`<button type="button" class="mi${cls?' '+cls:''}" onclick="${fn}"><span class="chk">${chk?'✓':''}</span>${label}${sub?`<span class="sub">${sub}</span>`:''}</button>`;
   // EVERY TOOLBAR MENU, READ OFF THE PAGE. A hand-kept list here left 🏢 PMO out when that menu
   // was added (v1.67): toggleMenu('pmo') set the flag and nothing opened, on every board, for
   // three days -- and the menu check kept a hand-kept list of its own, so it never looked. The
   // markup is the list now; a menu added to the toolbar opens, or the check that reads the same
   // markup says which one does not.
-  document.querySelectorAll('.menu[id^="m_"]').forEach(el=>{ el.className='menu'+(openMenu===el.id.slice(2)?' open':''); });
+  // v1.92 (item 36): a menu that closes with focus inside it (or with focus lost to the page as an item
+  // redrew itself away) hands focus to its own button, so the keyboard is left where the menu was.
+  const shut=(_menuShown && _menuShown!==openMenu)? _menuShown : null;
+  // From "nowhere" (the page) only after a key: a mouse press on the page that closed the menu leaves focus there.
+  const inShut=shut? (function(){ const a=document.activeElement, m=document.getElementById('m_'+shut);
+    return ((!a || a===document.body) && _byKey) || (m && m.contains(a) && a.id!=='b_'+shut); })() : false;
+  _menuShown=openMenu;
+  document.querySelectorAll('.menu[id^="m_"]').forEach(el=>{ el.className='menu'+(openMenu===el.id.slice(2)?' open':'');
+    const b=document.getElementById('b_'+el.id.slice(2)); if(b) b.setAttribute('aria-expanded', openMenu===el.id.slice(2)? 'true' : 'false'); });
+  if(inShut){ try{ const b=document.getElementById('b_'+shut); if(b) b.focus({preventScroll:true}); }catch(e){} }
   const bf=document.getElementById('b_fy');
   if(bf) bf.textContent=FYL()+' ▾';                     // the CONTEXT label already says "Fiscal year"
   const ss=document.getElementById('saveState'), sb=document.getElementById('saveBtn');
@@ -22347,10 +22919,8 @@ function syncBtns(){
     atr: mi('⬇ ATR/BTR Log (Excel)',"mRun(exportReprog)",false,'reprogramming actions'),
     src: mi('⬇ Spend Plan Source (Excel)',"mRun(exportSrc)",false,'mirror of the imported format'),
     r1a9a: mi('⬇ CR Cash Return (1A9A)',"mRun(crExport)",false,'STOVL + USMC CV + USN · O&M · Oct–Mar'),
-    ids: mi('\u{1F4E4} IDS Batch Import — Requirements…',"mRun(toggleIds)",false,
-       (function(){ const R=idsReqRows();
-         return R.rows.length+' line'+(R.rows.length===1?'':'s')
-           +(R.skip.length? ' · '+R.skip.length+' held back' : ''); })()),
+    // v1.92: a fixed label. The preview is worked out when the box opens, never on every redraw for a menu line.
+    ids: mi('\u{1F4E4} IDS Batch Import — Requirements…',"mRun(toggleIds)",false,'preview, reconcile and export — one row per budget and control number'),
     link: mi('\u{1F5BC} '+esc(linkName()),"mRun(linkOpen)",false,
        linkCfg().name? esc(linkCfg().name) : 'not linked yet — click to set the file name'),
     linkset: mi('⚙ Change the linked tool…',"mRun(linkSet)",false,'an .html tool kept beside this file'),
@@ -22501,7 +23071,10 @@ function syncBtns(){
         (function(){ const n=jrnlSinceCount(); return n? n+' change'+(n===1?'':'s')+' since you last looked'
                                                        : 'what changed, from what, by whom'; })())
     +mi('🕘 Save history',"mRun(showLog)",false,'who saved, when')
-    +mi('✎ My editor name…',"mRun(()=>{whoAmI(true);render();})",false,'stamped on your saves');
+    +mi('✎ My editor name…',"mRun(()=>{whoAmI(true);render();})",false,'stamped on your saves')
+    // v1.92 (item 18): for support, instead of the board
+    +'<div class="msep"></div><div class="mlbl">Support</div>'
+    +mi('🩺 Save diagnostics…',"mRun(toggleDiag)",false,'a small text file for support \u2014 no figures, titles or names');
   // v1.90: measured last, once everything the bars hold -- the filter chips, the mode's tools -- is in them
   fitTop(); syncSticky(); fitMenu();
 }
@@ -22991,7 +23564,7 @@ async function driveStorePull(quiet){
     setStat('\u26a0 <b>'+esc(j.by||'someone')+'</b> saved '+esc(APPN_LBL[mySlug()]||mySlug())+' to the shared folder '
       +esc(liveAge(theirs))+', but this browser holds work no saved copy has and there is no room to keep it aside \u2014 '
       +'so their copy was <b>not loaded</b>. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then '
-      +'<a style="color:var(--blue);cursor:pointer" onclick="driveResolve(\'theirs!\')">load theirs without keeping yours here</a>.');
+      +'<button type="button" class="nb lnk" onclick="driveResolve(\'theirs!\')">load theirs without keeping yours here</button>.');
     render(); return false;
   }
   if(IS_SHELL){
@@ -23008,7 +23581,7 @@ async function driveStorePull(quiet){
   if(!quiet || own) setStat('⬇ Loaded '+esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100)
     +' from the shared folder — saved by <b>'+esc(j.by||'unknown')+'</b> '+esc(liveAge(theirs))+'.'
     +(own? ' This browser held work no saved copy had; it is <b>kept aside</b>: '
-      +'<a style="color:var(--blue);cursor:pointer" onclick="keptPutBack()">put it back</a> (or from \ud83d\udcc1 File, any time).' : ''));
+      +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from \ud83d\udcc1 File, any time).' : ''));
   return true;
 }
 // WRITE BACK, after checking nobody moved it underneath us.
@@ -23072,9 +23645,9 @@ function driveClashSay(j, refused){
   setStat('\u26d4 <b>'+esc((j&&j.by)||'someone')+'</b> saved '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)
     +' to the shared folder '+esc(liveAge(theirs))+', after the copy you are working from. '
     +(refused? '<b>Nothing was written.</b> ' : 'What is on screen does not have their changes. ')
-    +'<a style="color:var(--blue);cursor:pointer" onclick="driveResolve(\'theirs\')">Load theirs</a> '
+    +'<button type="button" class="nb lnk" onclick="driveResolve(\'theirs\')">Load theirs</button> '
     +'(your work is kept aside, and one click puts it back) \u00b7 '
-    +'<a style="color:var(--blue);cursor:pointer" onclick="driveResolve(\'mine\')">Save yours over theirs</a> '
+    +'<button type="button" class="nb lnk" onclick="driveResolve(\'mine\')">Save yours over theirs</button> '
     +'(theirs is kept in the folder\u2019s history).');
 }
 // 'theirs': keep this browser's work aside, then load the folder's copy. 'theirs!': load it without
@@ -23106,7 +23679,7 @@ async function driveResolve(which){
     if(!kept){
       setStat('\u26a0 There is no room in this browser to keep your work aside, so their copy was <b>not loaded</b>. '
         +'Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then '
-        +'<a style="color:var(--blue);cursor:pointer" onclick="driveResolve(\'theirs!\')">load theirs without keeping yours here</a>.');
+        +'<button type="button" class="nb lnk" onclick="driveResolve(\'theirs!\')">load theirs without keeping yours here</button>.');
       render(); return false;
     }
   } else if(!confirm('Load '+by+'\u2019s copy of '+lbl+' and replace what is on screen?\n\n'
@@ -23115,7 +23688,7 @@ async function driveResolve(which){
   driveBaseSet(ap, theirs, true);
   persist(); DIRTY=false; render();
   setStat('\u2b07 Loaded <b>'+esc(by)+'</b>\u2019s copy of '+esc(lbl)+'.'
-    +(kept? ' Your work is <b>kept aside</b>: <a style="color:var(--blue);cursor:pointer" onclick="keptPutBack()">put it back</a> (or from \ud83d\udcc1 File, any time).' : ''));
+    +(kept? ' Your work is <b>kept aside</b>: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from \ud83d\udcc1 File, any time).' : ''));
   return true;
 }
 // PUTTING A SNAPSHOT BACK. It writes the CURRENT copy to history first, so a restore is itself
@@ -23906,14 +24479,7 @@ function budSetFilter(v){ budFilterAp=v||''; render(); }
 // it does anything. The name is kept in the registry either way - only the pointers go.
 function budClearRetired(){
   const ret=budRetired(); if(!ret.length) return;
-  const names={}; ret.forEach(function(b){ names[b.n]=1; });
-  let n=0;
-  budStates().forEach(function(St){
-    const A=St.budgetAsg||{};
-    Object.keys(A).forEach(function(id){
-      Object.keys(A[id]||{}).forEach(function(sv){ if(names[A[id][sv]]) n++; });
-    });
-  });
+  const n=budOrphanCount();
   if(!n){ setStat('Nothing points at a retired budget.'); return; }
   if(!confirm('Clear '+n+' assignment'+(n===1?'':'s')+' pointing at '+ret.length
     +' retired budget'+(ret.length===1?'':'s')+'?'+String.fromCharCode(10,10)
@@ -23923,7 +24489,7 @@ function budClearRetired(){
   budStates().forEach(function(St){
     const A=St.budgetAsg||{};
     Object.keys(A).forEach(function(id){
-      Object.keys(A[id]||{}).forEach(function(sv){ if(names[A[id][sv]]) delete A[id][sv]; });
+      budRetiredKeys(St, id).forEach(function(k){ delete A[id][k]; });
       if(!Object.keys(A[id]||{}).length) delete A[id];
     });
   });
@@ -24035,67 +24601,401 @@ function budRegBody(){
 // ============ IDS BATCH IMPORT PANEL ============
 // Settings and, more importantly, what will NOT go. The counts belong in front of the person
 // BEFORE they download, not in a sheet they may not open.
+// === SAVE DIAGNOSTICS (v1.92, item 18) ===========================================================
+// The file support is sent instead of the board. What it holds is below, in the order it is written; what
+// it never holds is any dollar figure, requirement title, person's name, CCaR record, PID or budget name.
+// The office code stays (it says whose copy it is). Nothing is sent anywhere: the person sends the file.
+let diagOpen=false, _diagTxt='';
+// A message is a warning when it carries a warning sign or says something could not be done.
+function diagIsWarn(html){
+  const t=String(html||'');
+  return /^\s*(?:<[^>]*>\s*)*(?:⚠|⛔|🔒|✋|✗|✕|❌)/.test(t)
+      || /\b(?:could not|couldn.t|cannot|can.t|refused|failed|not loaded|not kept|not saved|did not read)\b/i.test(t);
+}
+// Markup to plain text without running or loading anything in it.
+function diagPlain(html){
+  const s=String(html==null? '' : html);
+  if(s.indexOf('<')<0 && s.indexOf('&')<0) return s;
+  try{ const d=new DOMParser().parseFromString('<!doctype html><body>'+s, 'text/html'); return (d.body && d.body.textContent) || ''; }
+  catch(e){ return s.replace(/<[^>]*>/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'").replace(/&amp;/g, '&'); }
+}
+// What the file may name: the services, the offices, the appropriations -- and the words in them.
+function diagKeep(){
+  const k=new Set(), w=new Set();
+  const add=function(v){ if(!v) return; v=String(v); k.add(v.toLowerCase());
+    (v.match(/[\p{L}]+/gu)||[]).forEach(function(x){ w.add(x.toLowerCase()); }); };
+  try{ SVC.forEach(add); }catch(e){}
+  try{ pmoMenuKeys(pmoCounts()).forEach(add); }catch(e){}
+  try{ Object.keys(APPN_LBL).forEach(function(x){ add(x); add(APPN_LBL[x]); }); }catch(e){}
+  try{ Object.keys(_SLUGMAP).forEach(function(x){ add(x); add(_SLUGMAP[x].t); }); }catch(e){}
+  try{ Object.keys(APPNS).forEach(add); }catch(e){}
+  ['OGC', 'PRIME'].forEach(add);
+  return {k:k, w:w};
+}
+// EVERY STRING THE BOARD HOLDS, read out of every store it keeps -- titles, events, descriptions, notes,
+// CCaR records, PIDs, budget names, destinations, the execution data's POCs, who saved and who submitted.
+// Not a list of fields: a list of fields is a list that forgets the next one added. What is left alone is
+// the board's own vocabulary (short lower-case codes like split or pdm) and the services, offices and
+// appropriations above. Kept as a lookup by first word, so cleaning a message costs a few probes, not a scan.
+// Built again after every save() and render(), which clear it: a title renamed a moment ago is the one a
+// warning is about to name. (A two-second cache let exactly that through.)
+var _diagSec=null;
+// An import REPLACES an appropriation's execution data (EXDB.all[k] = a new object), and nothing edits it
+// in place, so its lookup is built once per import and kept against that object. It is most of the strings
+// a board holds -- 20,000 rows of 32 columns -- and rebuilding it after every redraw cost a second a warning.
+var _diagExIdx=(typeof WeakMap==='function')? new WeakMap() : null;
+function diagIndex(set){
+  const idx=new Map();
+  set.forEach(function(s){
+    const t=s.replace(/^[^\p{L}\p{N}]+/u, ''), m=t.match(/^[\p{L}\p{N}]+/u); if(!m) return;
+    const f=m[0].toLowerCase(); if(!idx.has(f)) idx.set(f, []);
+    idx.get(f).push(t.toLowerCase());
+  });
+  idx.forEach(function(a){ a.sort(function(x, y){ return y.length-x.length; }); });   // the longest match first
+  return idx;
+}
+function diagSecrets(full){
+  if(!full && _diagSec) return _diagSec;
+  const keep=diagKeep(), seen=new Set(), vis=new WeakSet();
+  let sink=seen;
+  const take=function(v){
+    const s=String(v).trim();
+    if(s.length<3 || s.length>400) return;
+    if(!/[\p{L}]/u.test(s)) return;                       // figures alone: the # pass takes those
+    if(/^[a-z][a-z0-9_]*$/.test(s)) return;               // the board's own codes
+    if(keep.k.has(s.toLowerCase())) return;
+    sink.add(s);
+  };
+  const walk=function(o, d){
+    if(o==null || d>16) return;
+    if(typeof o==='string'){ take(o); return; }
+    if(typeof o!=='object') return;
+    if(vis.has(o)) return; vis.add(o);
+    if(Array.isArray(o)){ for(let i=0;i<o.length;i++) walk(o[i], d+1); return; }
+    for(const k in o){ if(!Object.prototype.hasOwnProperty.call(o, k)) continue; take(k); walk(o[k], d+1); }
+  };
+  const extra=[];
+  try{ const all=(EXDB && EXDB.all) || {};
+    Object.keys(all).forEach(function(k){ const ex=all[k]; if(!ex || typeof ex!=='object') return;
+      let ix=_diagExIdx? _diagExIdx.get(ex) : null;
+      if(!ix){ sink=new Set(); walk(ex, 0); ix=diagIndex(sink); sink=seen; if(_diagExIdx) _diagExIdx.set(ex, ix); }
+      vis.add(ex); extra.push(ix); }); }catch(e){ sink=seen; }
+  [function(){ return MS; }, function(){ return S; }, function(){ return PUBS; }, function(){ return PUB; },
+   function(){ return DATA; }, function(){ return BASE_ITEMS; }, function(){ return APPNS; },
+   function(){ return EXDB; }, function(){ return ACEDB; }, function(){ return BUDDB; }, function(){ return DESTDB; },
+   function(){ return RPDB; }, function(){ return CYCDB; }, function(){ return CYC_FILE; }, function(){ return LIVEDB; },
+   function(){ return PMOSUBS; }, function(){ return PMODE; }, function(){ return _keptMeta; }, function(){ return _bootKept; },
+   function(){ return _bootHeld; }, function(){ return whoIs(); }
+  ].forEach(function(f){ try{ walk(f(), 0); }catch(e){} });
+  // Making the file, read what this browser holds for the board too: the other appropriations, the work kept aside.
+  if(full){ try{ for(let i=0;i<localStorage.length;i++){ const key=localStorage.key(i);
+      if(!/^(prio|spmt)/i.test(key||'')) continue;
+      const raw=localStorage.getItem(key)||'';
+      let v=raw; try{ v=JSON.parse(raw); }catch(e){}
+      walk(v, 0); } }catch(e){} }
+  _diagSec={t:Date.now(), idx:[diagIndex(seen)].concat(extra), keep:keep};
+  return _diagSec;
+}
+// Every word the board's own program uses. The data blocks are left out -- a board file carries its data
+// pack inside the program as APPNS, and those are the user's words, not the program's.
+let _diagVoc=null;
+function diagVocab(){
+  if(_diagVoc) return _diagVoc;
+  const v=new Set();
+  try{ [].forEach.call(document.scripts, function(sc){
+    if(sc.type && !/javascript/i.test(sc.type)) return;
+    let tx=sc.textContent||'';
+    const i=tx.indexOf('const APPNS = ');
+    if(i>=0){ const j=tx.indexOf('{', i); let d=0, inS=false, q='', esq=false, end=-1;
+      for(let k=j;k>=0 && k<tx.length;k++){ const c=tx[k];
+        if(inS){ if(esq) esq=false; else if(c==='\\') esq=true; else if(c===q) inS=false; continue; }
+        if(c==='"' || c==="'"){ inS=true; q=c; continue; }
+        if(c==='{') d++; else if(c==='}'){ d--; if(!d){ end=k; break; } } }
+      tx=(end>0)? tx.slice(0, i)+tx.slice(end+1) : tx.slice(0, i); }      // cannot find its end: keep none of it
+    const re=/[\p{L}]+/gu; let m; while((m=re.exec(tx))) v.add(m[0].toLowerCase());
+  }); }catch(e){}
+  _diagVoc=v; return v;
+}
+// THE CLEANING. In this order: markup to text; every string the board holds, whole; every quoted value;
+// every figure to #. Making the file (full), also every word the program never uses. Runs of what was taken
+// out read as one …, so a message keeps its shape and loses its contents.
+function diagClean(html, full){
+  let t=diagPlain(html).replace(/\s+/g, ' ').trim();
+  const sec=diagSecrets(!!full), lo=t.toLowerCase(), isW=function(c){ return !!c && /[\p{L}\p{N}]/u.test(c); };
+  const parts=[]; let last=0; const re=/[\p{L}\p{N}]+/gu; let m;
+  while((m=re.exec(t))){
+    const tok=m[0].toLowerCase(), st=m.index; if(st<last || isW(t[st-1])) continue;
+    let best=0;                                            // the longest string the board holds that starts here
+    for(let j=0;j<sec.idx.length;j++){ const c=sec.idx[j].get(tok); if(!c) continue;
+      for(let i=0;i<c.length;i++){ const x=c[i]; if(x.length<=best) break;
+        if(lo.substr(st, x.length)===x && !(isW(x[x.length-1]) && isW(t[st+x.length]))){ best=x.length; break; } } }
+    if(best){ parts.push(t.slice(last, st), '…'); last=st+best; re.lastIndex=last; }
+  }
+  parts.push(t.slice(last)); t=parts.join('');
+  t=t.replace(/"[^"\n]{0,400}"/g, '…').replace(/“[^”\n]{0,400}”/g, '…').replace(/«[^»\n]{0,400}»/g, '…')
+     .replace(/(^|[\s(\[:=])'[^'\n]{0,400}'(?=$|[\s).,;:!?\]])/g, '$1…').replace(/(^|[\s(\[:=])‘[^’\n]{0,400}’/g, '$1…');
+  t=t.replace(/\d(?:[\d,.]*\d)?/g, '#');
+  if(full){ const voc=diagVocab(), kw=sec.keep.w;
+    t=t.replace(/[\p{L}]+/gu, function(w){ const l=w.toLowerCase(); return (w.length<2 || voc.has(l) || kw.has(l))? w : '…'; }); }
+  t=t.replace(/…(?:[\s,;:.\/\-–—&+]*…)+/g, '…').replace(/\s+/g, ' ').trim();
+  return t.length>400? t.slice(0, 399)+'…' : t;
+}
+// ---- what the file says ------------------------------------------------------------------------------
+function diagStamp(t){ const d=new Date(t), z=function(n){ return (n<10? '0' : '')+n; };
+  return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+':'+z(d.getMinutes())+':'+z(d.getSeconds()); }
+function diagBrowser(){
+  const ua=String(navigator.userAgent||''), m=function(re){ const x=ua.match(re); return x? x[1] : ''; };
+  const b = m(/Edg\/(\d+)/)? 'Edge '+m(/Edg\/(\d+)/) : m(/Firefox\/(\d+)/)? 'Firefox '+m(/Firefox\/(\d+)/)
+          : m(/Chrome\/(\d+)/)? 'Chrome '+m(/Chrome\/(\d+)/) : m(/Version\/(\d+).*Safari/)? 'Safari '+m(/Version\/(\d+).*Safari/) : 'unknown';
+  const os = /Windows/.test(ua)? 'Windows' : /Mac OS X/.test(ua)? 'macOS' : /Linux/.test(ua)? 'Linux' : 'unknown';
+  return {name:b, os:os};
+}
+// The store each appropriation opens on, chosen as buildSavedHtml chooses: this browser's when it is at
+// least as new as the file's.
+function diagStoreOf(k){
+  if(k===_AP.slug) return {st:MS, from:'working here'};
+  let ls=null; try{ ls=JSON.parse(localStorage.getItem(_SLUGMAP[k].key)||'null'); }catch(e){}
+  const fb=PUBS[k]||null;
+  if(ls && (ls.years || Array.isArray(ls.order)) && (!fb || (ls.ts||0)>=(fb.ts||0))) return {st:ls, from:'this browser'};
+  return fb? {st:fb, from:'the file'} : {st:null, from:''};
+}
+function diagReport(){
+  const L=[], add=function(a){ L.push(a); }, now=Date.now();
+  const n=function(x){ return (typeof x==='number' && isFinite(x))? String(Math.round(x)) : '0'; };
+  const len=function(o){ return !o? 0 : Array.isArray(o)? o.length : (typeof o==='object'? Object.keys(o).length : 0); };
+  const apL=function(k){ return APPN_LBL[k] || (_SLUGMAP[k]||{}).t || k; };
+  add('ORBIT DIAGNOSTICS');
+  add('Made '+diagStamp(now)+' (this computer’s time). For support. This file holds no dollar figures, requirement');
+  add('titles, names, CCaR records, PIDs or budget names: in the messages a figure reads # and anything taken out reads …');
+  add('');
+  add('THE BOARD');
+  add('  Version:            '+BUILD);
+  let kind='the live board';
+  try{ if(SANDBOX) kind='a PMO copy'+(PMODE && PMODE.ts? ', published '+diagStamp(PMODE.ts).slice(0, 10) : '')+', office '+(myPmo()? myPmo() : 'not set');
+       else if(PUB_ONLY) kind='a one-appropriation file ('+apL(_AP.slug)+')'; }catch(e){}
+  add('  This file:          '+kind);
+  let showing='';
+  try{ showing=apL(_AP.slug)+' · '+FYL()+' · '+uiMode+' mode · '+uiDensity+' · theme '+themeName()
+       +(CYCVIEW? ' · a locked cycle on screen' : '')+(IS_SHELL? ' · no data pack (template)' : ''); }catch(e){}
+  add('  Showing:            '+showing);
+  const br=diagBrowser();
+  add('  Browser:            '+br.name+' on '+br.os);
+  add('  Window:             '+n(window.innerWidth)+' × '+n(window.innerHeight)+' px, device pixel ratio '+(Math.round((window.devicePixelRatio||1)*100)/100));
+  let how='';
+  try{ const pr=location.protocol;
+    how = pr==='file:'? (location.host? 'a network path (\\\\server\\share)' : 'a file on this computer or a mapped drive')
+        : (pr==='http:' || pr==='https:')? 'a web address' : pr.replace(/[^a-z]/g, ''); }catch(e){}
+  add('  Opened from:        '+how);
+  let sv='';
+  try{ sv = SANDBOX? 'turned off (PMO copy)' : driveStoreOn()? 'the shared folder store' : FH? 'this file, in place'
+          : (window.showSaveFilePicker? 'asks where, the first time' : 'downloads a copy (this browser cannot write in place)'); }catch(e){}
+  add('  Save writes to:     '+sv);
+  let lv='';
+  try{ const c=liveCfg(), set=(c.mode==='drive')? !!c.folder : !!c.url,
+       M={drive:'shared folder', conf:'Confluence page', sp:'SharePoint folder', json:'JSON endpoint'};
+    lv = !set? 'not set up' : (c.on? 'on' : 'off')+' · '+(M[c.mode]||'other')+' · '+len((LIVEDB||{}).peers)+' other board(s) seen'
+       +((LIVEDB && LIVEDB.err)? ' · last error: '+diagClean(LIVEDB.err, true) : ''); }catch(e){}
+  add('  Live view:          '+lv);
+  let used=0, keys=0, mine=0;
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i), v=localStorage.getItem(k)||'';
+      keys++; used+=(k.length+v.length)*2; if(/^(prio|spmt)/i.test(k)) mine+=(k.length+v.length)*2; } }catch(e){ keys=-1; }
+  add('  Browser storage:    '+(keys<0? 'could not be read' : keys+' entries, '+(used/1048576).toFixed(2)+' MB in use ('+(mine/1048576).toFixed(2)+' MB of it the board’s)'));
+  add('  Writes refused:     '+(DIAG.refused.length? DIAG.refused.length+' this session' : 'none this session'));
+  DIAG.refused.slice(-10).forEach(function(r){ add('    '+diagStamp(r.t).slice(11)+'  '+diagClean(r.what, true)+' — '+r.why); });
+  add('  Unread on opening:  '+(DIAG.boot.length? DIAG.boot.map(function(b){ return diagClean(b, true); }).join('; ') : 'nothing'));
+  add('  This session:       opened '+diagStamp(DIAG.t0)+', '+n((now-DIAG.t0)/60000)+' min ago · '+DIAG.errors+' script error(s) · '
+      +DIAG.log.length+' kept below'+(DIAG.dropped? ' ('+DIAG.dropped+' older ones dropped)' : ''));
+  add('');
+  add('COUNTS ONLY');
+  Object.keys(_SLUGMAP).forEach(function(k){
+    const o=diagStoreOf(k), st=o.st;
+    if(!st){ add('  '+apL(k)+': none'); return; }
+    let yrs=[];
+    if(st.years) yrs=Object.keys(st.years).sort().map(function(fy){ const y=st.years[fy]||{};
+      return 'FY'+(Number(fy)%100)+' '+len(y.order)+' on the board, '+len(y.removed)+' removed'; });
+    else if(Array.isArray(st.order)) yrs=['one year: '+st.order.length+' on the board'];
+    add('  '+apL(k)+' ('+o.from+'): '+(yrs.join(' · ')||'no years'));
+  });
+  try{ const cy=cycByAp(); add('  Locked PPBE cycles: '+Object.keys(_SLUGMAP).map(function(k){ return apL(k)+' '+len(((cy[k]||{}).cycles)); }).join(' · ')); }catch(e){}
+  try{ add('  Position snapshots: '+len(MS.snaps)+' ('+apL(_AP.slug)+')'); }catch(e){}
+  try{ add('  Submittals held:    '+PMOSUBS.length); }catch(e){}
+  try{ add('  BAE budget rows:    '+len(BUDDB.rows)+(len(BUDDB.files)? ' from '+len(BUDDB.files)+' file(s)' : '')); }catch(e){}
+  try{ const seen={}, its=[]; [].concat(BASE_ITEMS||[], (DATA&&DATA.items)||[]).forEach(function(i){ if(i && !seen[i.id]){ seen[i.id]=1; its.push(i); } });
+    const rec=its.filter(function(it){ return !!ccarOf(it); }).length, ix=ccarIdx();
+    add('  CCaR records:       '+rec+' of '+its.length+' requirements carry one ('+apL(_AP.slug)+') · CCaR record list '
+        +(ix? len(ix)+' imported' : 'not imported')); }catch(e){}
+  try{ add('  Execution data:     '+Object.keys(_SLUGMAP).map(function(k){ const ex=(EXDB.all||{})[k];
+      if(!ex || !ex.rows) return apL(k)+' none';
+      let ev=0; const mo=new Set();
+      Object.keys(ex.rows).forEach(function(fy){ (ex.rows[fy]||[]).forEach(function(r){ ev++; if(r && r[1]) mo.add(String(r[1])); }); });
+      return apL(k)+' '+ev+' plan events in '+mo.size+' month(s)'; }).join(' · ')); }catch(e){}
+  try{ add('  Journal entries:    '+len(MS.jrnl)+' ('+apL(_AP.slug)+')'); }catch(e){}
+  add('');
+  add('LAST '+DIAG.log.length+' WARNING(S) AND SCRIPT ERROR(S), OLDEST FIRST');
+  if(!DIAG.log.length) add('  none this session');
+  DIAG.log.forEach(function(e){
+    add('  '+diagStamp(e.t).slice(11)+'  '+(e.kind==='error'? 'ERROR  ' : 'warning')+'  '+diagClean(e.text, true)+(e.at? '  ['+e.at+']' : ''));
+  });
+  add('');
+  add('End of file.');
+  return L.join('\r\n');
+}
+function toggleDiag(){
+  diagOpen=!diagOpen;
+  const pn=document.getElementById('diagPanel'); if(!pn) return;
+  if(diagOpen){
+    _diagTxt=diagReport();
+    const pre=document.getElementById('diagPre'); if(pre) pre.textContent=_diagTxt;
+    pn.className='modal-bg open';
+    try{ document.getElementById('diagSave').focus(); }catch(e){}
+  } else {
+    pn.className='modal-bg';
+    try{ const b=document.getElementById('b_share'); if(b) b.focus({preventScroll:true}); }catch(e){}
+  }
+}
+// SAVE WRITES EXACTLY WHAT THE BOX SHOWED -- the same string, not a second report made a moment later.
+function diagSave(){
+  if(!diagOpen || !_diagTxt) return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([_diagTxt], {type:'text/plain'}));
+  a.download='ORBIT diagnostics - '+diagStamp(Date.now()).slice(0, 10)+'.txt';
+  a.click();
+  toggleDiag();
+  setStat('🩺 Diagnostics saved to your downloads as <b>'+esc(a.download)+'</b>. Nothing was sent anywhere — send the file to whoever is helping you.');
+}
+// Esc is Cancel here: it writes nothing
+try{ document.addEventListener('keydown', function(e){ if(e.key==='Escape' && diagOpen){ e.preventDefault(); toggleDiag(); } }); }catch(e){}
+
 let idsOpen=false;
-function toggleIds(){ idsOpen=!idsOpen; render(); if(idsOpen) idsBody(); }
+// v1.92: the box is the preview AND the prompt. Opening it starts a fresh prompt (nothing typed is kept between
+// openings, nothing is saved) and works the preview out once; a redraw while it is open works it out again.
+function toggleIds(){
+  idsOpen=!idsOpen;
+  if(idsOpen){ idsFormReset(); idsLast=null; }
+  render(); if(idsOpen) idsBody();
+}
+const idsUsd=v=>(v<0?'-':'')+'$'+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:2});
+const IDS_SHOW=300;               // rows drawn in the box; the file always carries every one
+function idsSrcTxt(y){
+  return esc(dispTitle(itemById(y.id))||y.id)+' <span style="color:var(--dim)">'+esc(y.svc)+' '+idsLaneWord(y.lane)
+    +' '+idsUsd(y.amount)+' / '+idsUsd(y.approved)+'</span>';
+}
 function idsBody(){
   const el=document.getElementById('idsBody'); if(!el) return;
   const pn=document.getElementById('idsPanel'); if(pn) pn.style.display=idsOpen?'block':'none';
   if(!idsOpen){ el.innerHTML=''; return; }
-  const R=idsReqRows(), c=idsCfg(), fy=MS.cur;
-  const why={};
-  R.skip.forEach(function(k){ why[k.why]=(why[k.why]||0)+1; });
-  let h='<div class="hint">A batch file for <b>IDS</b>. One line per <b>Budget Name \u00d7 Req '
-    +'Control No</b>, which is the grain IDS enforces \u2014 a control number may be submitted once '
-    +'for a budget and fiscal year. <b>Req. Amount</b> is the requirement; <b>Req. Approved</b> is '
-    +'the discretionary funding allocated to it.</div>';
-  h+='<div class="fr" style="flex-wrap:wrap;gap:10px;margin-top:8px">'
-    +'<span class="rlg-lbl">File ID</span><b style="font-family:monospace">'+esc(idsFileId())+'</b>'
-    +'<span class="rlg-lbl">seq</span>'
-    +'<input class="rlg-in" style="width:56px" value="'+c.seq+'" '
-      +'onchange="idsSet(&quot;seq&quot;,this.value)" '
-      +'title="the 4-digit sequence in cell A1 \u2014 IDS refuses a file id it has already seen, so '
-      +'raise this for a second export on the same day">'
-    +'<span class="rlg-lbl">ORG</span>'
-    +'<input class="rlg-in" style="width:56px" value="'+c.org+'" '
-      +'onchange="idsSet(&quot;org&quot;,this.value)" title="only one ORG may be processed per file">'
-    +'<span class="rlg-lbl">Action</span>'
-    +'<select class="cesel" style="margin:0" onchange="idsSet(&quot;action&quot;,this.value)">'
-    +IDS_ACTIONS.map(function(a){ return '<option'+(c.action===a?' selected':'')+'>'+a+'</option>'; }).join('')
-    +'</select>'
-    +'<span class="rlg-lbl">Budget FY</span><b>FY'+(fy%100)+'</b>'
-    +'</div>';
-  h+='<div class="fr" style="margin-top:6px"><span class="rlg-lbl">Change comment</span>'
-    +'<input class="rlg-in" style="flex:1;min-width:220px" value="'+esc(c.cmt)+'" '
-    +'onchange="idsSet(&quot;cmt&quot;,this.value)"></div>';
-  h+='<div class="rlg-sum" style="margin-top:8px">'
-    +'<span>Lines that would export <b style="color:var(--green)">'+R.rows.length+'</b></span>'
-    +'<span>Requirement total <b>'+fM2(R.rows.reduce(function(a,r){ return a+r.amt; },0))+'</b></span>'
-    +'<span>Approved (discretionary) <b>'+fM2(R.rows.reduce(function(a,r){ return a+r.app; },0))+'</b></span>'
-    +'<span>Held back <b style="color:'+(R.skip.length?'var(--amber)':'var(--green)')+'">'
-      +R.skip.length+'</b> of '+R.pairs+'</span>'
-    +'</div>';
-  if(R.skip.length){
-    h+='<div class="rlg-cap" style="margin-top:8px">WHAT IS HOLDING LINES BACK</div>';
-    h+='<table class="fctab rlg-tab rlg-yrs"><tr><th style="text-align:left">Reason</th>'
-      +'<th>Requirement/service pairs</th></tr>';
-    Object.keys(why).sort(function(a,b){ return why[b]-why[a]; }).forEach(function(k){
-      h+='<tr><td style="text-align:left">'+esc(k)+'</td><td><b>'+why[k]+'</b></td></tr>';
-    });
-    h+='</table>';
-    h+='<div class="hint" style="margin-top:3px">Budget names are assigned in '
-      +'<b>Review \u203a Classify requirements</b> \u2014 filter to one PMO and set a whole '
-      +'column at once. Control numbers come from <b>Data \u203a Import CCaR Records</b>, and a '
-      +'requirement with no CCaR number, or one the records file does not hold, cannot be given one '
-      +'here.</div>';
+  const B=idsBoardRefusal(), f=idsForm, fy=MS.cur;
+  let P=null, err='';
+  try{ P=idsBuild(); }catch(e){ err=(e&&e.message)||String(e); }
+  const box=function(c, inner){ return '<div class="hint ids-note" style="margin-top:8px;border-left:3px solid var(--'+c+');padding:6px 9px">'+inner+'</div>'; };
+  let h='<div class="hint">A file for <b>IDS Batch Import</b>, made from the plan on screen: one row per <b>Budget FY × Budget '
+    +'Name × Req Control No</b>. Every requirement, service and lane that lands on the same budget and control number is '
+    +'consolidated into that one row. A mandatory line’s Amount and Approved are its mandatory draw; a discretionary line '
+    +'carries the discretionary draw plus every unfunded dollar on that service; a requirement with no money goes with '
+    +'Approved 0. <b>ORBIT keeps no record of what you export.</b></div>';
+  if(B) h+=box('red', (B.kind==='locked'? '🔒 ' : '⚠ ')+'<b>Export is off here.</b> '+esc(B.msg));
+  if(err) h+=box('red', '<b>The preview could not be worked out</b> — '+esc(err));
+  if(!P){ el.innerHTML=h+'<div class="fr" style="margin-top:10px"><button class="btn" onclick="toggleIds()">Close</button></div>'; return; }
+  if(!P.check.ok){
+    h+=box('red', '✗ <b>Export refused — an internal check failed.</b> ORBIT’s own arithmetic does not hold on this '
+      +'board, so no file can be trusted and none will be made. The figures below say where.'
+      +'<table class="fctab rlg-tab" style="margin-top:6px"><tr><th style="text-align:left">Check</th><th>Expected</th><th>Found</th>'
+      +'<th style="text-align:left">Contributions</th><th style="text-align:left">Requirements</th></tr>'
+      +P.check.fails.slice(0,30).map(function(x){ return '<tr><td style="text-align:left">'+esc(x.inv)+'</td><td>'+esc(String(x.expected))
+        +'</td><td>'+esc(String(x.actual))+'</td><td style="text-align:left">'+esc(x.ids.slice(0,8).join(', ')+(x.ids.length>8?' …':''))
+        +'</td><td style="text-align:left">'+esc(x.reqs.slice(0,8).map(function(q){ const it=itemById(q); return it? q+' — '+dispTitle(it) : q; }).join(', ')+(x.reqs.length>8?' …':''))+'</td></tr>'; }).join('')
+      +'</table>');
   }
-  if(R.raised.length)
-    h+='<div class="hint" style="margin-top:6px;color:var(--amber)">'+R.raised.length+' line'
-      +(R.raised.length===1?'':'s')+' allocated above the requirement \u2014 the requirement figure '
-      +'is raised to match so IDS accepts it, and the <b>Not exported</b> sheet says which.</div>';
-  h+='<div class="fr" style="margin-top:10px">'
-    +'<button class="btn'+(R.rows.length?' go':'')+'" onclick="exportIdsReq()">'
-    +'\u2b07 Export the requirement batch</button>'
-    +'<button class="btn" onclick="toggleIds()">Close</button></div>';
+  if(idsLast && idsLast.kind==='form')
+    h+=box('amber', '<b>Not made yet.</b> '+idsLast.lines.map(esc).join('<br>'));
+  if(!P.rows.length)
+    h+=box('red', '<b>NO UPLOADABLE IDS ROWS.</b> Every contribution is listed under <b>Not uploaded</b>. Export makes a '
+      +'diagnostic workbook only — its Requirement v1 sheet holds no rows, and it must not be uploaded.');
+  const nx=P.excluded.length;
+  h+='<div class="rlg-sum" style="margin-top:8px">'
+    +'<span>Rows for upload <b style="color:'+(P.rows.length?'var(--green)':'var(--red)')+'">'+P.rows.length+'</b></span>'
+    +'<span>Req. Amount <b>'+idsUsd(P.tot.upAmt)+'</b></span>'
+    +'<span>Req. Approved <b>'+idsUsd(P.tot.upApp)+'</b></span>'
+    +'<span>Not uploaded <b style="color:'+(nx?'var(--amber)':'var(--green)')+'">'+nx+'</b>'+(nx? ' ('+idsUsd(P.tot.exAmt)+' / '+idsUsd(P.tot.exApp)+')' : '')+'</span>'
+    +'<span>For review <b>'+(P.multi.length+P.shared.length)+'</b></span>'
+    +'<span>Approved 0 <b>'+P.zero.length+'</b></span></div>';
+  const tie=function(a,b){ return a===b? '<b style="color:var(--green)">✓ ties</b>' : '<b style="color:var(--red)">✗ off by '+idsUsd(a-b)+'</b>'; };
+  h+='<div class="rlg-cap" style="margin-top:10px">RECONCILIATION</div>'
+    +'<table class="fctab rlg-tab rlg-yrs"><tr><th style="text-align:left"></th><th>Req. Amount</th><th>Req. Approved</th></tr>'
+    +'<tr><td style="text-align:left">Every requirement · every dollar funded (discretionary + mandatory)</td><td>'+idsUsd(P.check.req)+'</td><td>'+idsUsd(P.check.draw)+'</td></tr>'
+    +'<tr><td style="text-align:left">On Requirement v1</td><td>'+idsUsd(P.tot.upAmt)+'</td><td>'+idsUsd(P.tot.upApp)+'</td></tr>'
+    +'<tr><td style="text-align:left">Not uploaded</td><td>'+idsUsd(P.tot.exAmt)+'</td><td>'+idsUsd(P.tot.exApp)+'</td></tr>'
+    +'<tr><td style="text-align:left">Check</td><td>'+tie(P.tot.upAmt+P.tot.exAmt, P.check.req)+'</td><td>'+tie(P.tot.upApp+P.tot.exApp, P.check.draw)+'</td></tr></table>';
+  if(P.rows.length){
+    h+='<div class="rlg-cap" style="margin-top:10px">REQUIREMENT V1 — FY'+(fy%100)+'</div>'
+      +'<table class="fctab rlg-tab ids-rows"><tr><th>Ref</th><th style="text-align:left">Budget Name</th><th>Control No</th><th>Amount</th>'
+      +'<th>Approved</th><th style="text-align:left">Comes from</th></tr>'
+      +P.rows.slice(0,IDS_SHOW).map(function(r){
+        const flags=(r.reqs.length>1? ' <span class="idsflag">review · '+r.reqs.length+' requirements</span>' : '')
+          +(r.spells.length>1? ' <span class="idsflag">review · '+r.spells.length+' spellings</span>' : '')
+          +(r.approved===0? ' <span class="idsflag zero">Approved 0</span>' : '');
+        return '<tr><td>'+r.ref+'</td><td style="text-align:left">'+esc(r.bud)+'</td><td>'+esc(r.ctl)+'</td><td>'+idsUsd(r.amount)
+          +'</td><td>'+idsUsd(r.approved)+'</td><td style="text-align:left">'+r.sources.map(idsSrcTxt).join('<br>')+flags+'</td></tr>'; }).join('')
+      +'</table>'+(P.rows.length>IDS_SHOW? '<div class="hint">… and '+(P.rows.length-IDS_SHOW)+' more rows, all of them in the file.</div>' : '');
+  }
+  h+='<div class="rlg-cap" style="margin-top:10px">NOT UPLOADED — '+nx+' contribution'+(nx===1?'':'s')+', every reason</div>';
+  if(nx){
+    h+='<table class="fctab rlg-tab ids-ex"><tr><th style="text-align:left">Requirement</th><th>Service</th><th>Lane</th><th>Amount</th>'
+      +'<th>Approved</th><th style="text-align:left">Why</th><th style="text-align:left">How to fix</th></tr>'
+      +P.excluded.slice(0,IDS_SHOW).map(function(y){
+        return '<tr><td style="text-align:left">'+esc(dispTitle(itemById(y.id))||y.id)+'</td><td>'+esc(y.svc)+'</td><td>'+idsLaneWord(y.lane)
+          +'</td><td>'+idsUsd(y.amount)+'</td><td>'+idsUsd(y.approved)+'</td><td style="text-align:left">'+y.reasons.map(esc).join('<br>')
+          +'</td><td style="text-align:left">'+y.fixes.filter(function(v,i,a){ return v && a.indexOf(v)===i; }).map(esc).join('<br>')+'</td></tr>'; }).join('')
+      +'</table>'+(nx>IDS_SHOW? '<div class="hint">… and '+(nx-IDS_SHOW)+' more, all of them on the file’s '+IDS_SHEET2+' sheet.</div>' : '');
+  } else h+='<div class="hint">Nothing is left out — every contribution is on Requirement v1.</div>';
+  if(P.shared.length){
+    h+='<div class="rlg-cap" style="margin-top:10px">FOR REVIEW — CONTROL NUMBERS USED BY SEVERAL REQUIREMENTS ACROSS BUDGETS</div>'
+      +'<table class="fctab rlg-tab"><tr><th>Control No</th><th>Ref</th><th style="text-align:left">Budget Name</th><th style="text-align:left">Requirements</th></tr>'
+      +P.shared.map(function(g){ return g.rows.map(function(r){ return '<tr><td>'+esc(g.ctl)+'</td><td>'+r.ref+'</td><td style="text-align:left">'
+        +esc(r.bud)+'</td><td style="text-align:left">'+r.reqs.map(function(q){ return esc(dispTitle(itemById(q))||q); }).join(', ')+'</td></tr>'; }).join(''); }).join('')
+      +'</table>';
+  }
+  // THE PROMPT. Nothing here is saved as it is typed; Export reads it, checks it, and only then makes the file.
+  const fp=idsFidProblem(f.fid);
+  h+='<div class="rlg-cap" style="margin-top:12px">EXPORT</div><div class="ids-form">'
+    +'<label class="rlg-lbl" for="idsReason">Reason for this export <b>(required)</b> — written on every row as Req. Change Comments</label>'
+    +'<textarea id="idsReason" class="rlg-in" rows="2" style="width:100%" oninput="idsForm.reason=this.value">'+esc(f.reason)+'</textarea>'
+    +'<fieldset class="ids-act"><legend class="rlg-lbl">Action — one for the whole file</legend>'
+      +'<label><input type="radio" name="idsAct" id="idsActAdd" value="Add"'+(f.action==='Add'?' checked':'')+' onchange="idsForm.action=\'Add\';render()"> Add — new records</label> '
+      +'<label><input type="radio" name="idsAct" id="idsActUpd" value="Update"'+(f.action==='Update'?' checked':'')+' onchange="idsForm.action=\'Update\';render()"> Update — records already in CCaR</label>'
+    +'</fieldset>'
+    +(f.action==='Update'? '<div class="ids-warn" role="note"><b>⚠ Update file:</b> CCaR may refuse an update to a record that has '
+      +'<b>Authorized allocations</b> (the template’s rule 15). ORBIT cannot see CCaR’s authorizations and does not check them; '
+      +'a refused row has to be adjusted in CCaR.</div>' : '')
+    +'<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center">'
+      +'<label class="rlg-lbl" for="idsFid">File ID (cell A1)</label>'
+      +'<input id="idsFid" class="rlg-in" style="width:130px;font-family:monospace" value="'+esc(f.fid)+'" '
+        +'oninput="idsForm.fid=this.value;idsForm.fidOk=false;var c=document.getElementById(\'idsFidOk\');if(c)c.checked=false">'
+      +(fp? '<span style="color:var(--red);font-size:11px">'+esc(fp)+'</span>' : '')
+    +'</div>'
+    +'<div class="hint" style="margin-top:3px">Filled in as a candidate: today’s date and the <b>time of day</b> (HHmm) — the four '
+      +'digits are the time, not a sequence. <b>ORBIT stores no submission history and cannot guarantee this ID is unique</b>: it '
+      +'cannot see other exports, saved copies of the board, other machines, or the submissions CCaR has already processed. '
+      +'CCaR refuses a file ID it has seen before.</div>'
+    +'<label class="ids-ok"><input type="checkbox" id="idsFidOk"'+(f.fidOk?' checked':'')+' onchange="idsForm.fidOk=this.checked"> '
+      +'I have checked that this file ID has not been used in any earlier CCaR submission.</label>'
+    +'<div class="fr" style="flex-wrap:wrap;gap:8px;margin-top:8px;align-items:center">'
+      +'<label class="rlg-lbl" for="idsOrg">ORG number</label>'
+      +'<input id="idsOrg" class="rlg-in" style="width:80px" inputmode="numeric" value="'+esc(f.org)+'" '
+        +'oninput="idsForm.org=this.value;idsForm.orgOk=false;var c=document.getElementById(\'idsOrgOk\');if(c)c.checked=false">'
+      +'<span class="hint">the number, not the ORG symbol · one ORG per file (the template’s rule 3) · kept for '
+        +esc(APPN_LBL[mySlug()]||mySlug())+' once a file is made</span>'
+    +'</div>'
+    +'<label class="ids-ok"><input type="checkbox" id="idsOrgOk"'+(f.orgOk?' checked':'')+' onchange="idsForm.orgOk=this.checked"> '
+      +'This ORG applies to every row and every service in this file.</label>'
+    +'<div class="hint" style="margin-top:4px">Budget FY <b>'+fy+'</b> · the workbook’s second sheet, <b>'+IDS_SHEET2
+      +'</b>, lists every contribution left out, every row for review and the reconciliation.</div>'
+    +'</div>';
+  h+='<div class="fr" style="margin-top:10px;gap:8px">'
+    +'<button type="button" class="btn'+((P.check.ok && !B && P.rows.length)?' go':'')+'" id="idsExport" onclick="exportIdsReq()">'
+    +(P.rows.length? '⬇ Export the IDS workbook' : '⬇ Export the diagnostic workbook (no uploadable rows)')+'</button>'
+    +'<button type="button" class="btn" onclick="toggleIds()">Close</button></div>';
   el.innerHTML=h;
 }
 
@@ -24667,7 +25567,7 @@ function execSynopsis(){
   line();
   line('4 — UNFUNDED EVEN WHEN WHOLE  (requirement less both lanes, floored per service)');
   line('','Requirements with unfunded portions',uN,'','Total',fD(uTot));
-  const csv='\ufeff'+rows.map(r=>(r||[]).map(c=>'"'+(''+(c??'')).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const csv='\ufeff'+rows.map(r=>(r||[]).map(csvCell).join(',')).join('\r\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download=expName('FY27 Exec Funding Synopsis '+new Date().toISOString().slice(0,10)+'.csv');
@@ -26099,7 +26999,15 @@ function gridMark(){
 // Called after every render. The selection survives a re-render, a re-sort and a drag; if the row
 // it pointed at is gone (removed, filtered out) it falls back to the top of the list rather than
 // leaving the panel showing a requirement that is no longer on screen.
+// v1.92 (item 36): each Funding detail header is a button that says whether its panel is open. Read off the
+// arrow its own render sets (▾ open, ▸ closed), so there is one source for both.
+function hdrAria(){
+  document.querySelectorAll('button.gs-h, button.sc-h').forEach(function(b){
+    const a=b.querySelector('[id$="Arrow"]');
+    if(a) b.setAttribute('aria-expanded', /\u25be|\u25bc/.test(a.textContent)? 'true' : 'false'); });
+}
 function gridAfterRender(){
+  try{ hdrAria(); }catch(e){}
   const ids = gridIds();
   if(!ids.length){ curRow = null; }
   else if(!curRow || ids.indexOf(curRow) < 0){ curRow = ids[0]; }
@@ -26381,16 +27289,72 @@ document.addEventListener('keydown', function(e){
 });
 
 const _renderCards = render;
+/* v1.92 (item 36): A REDRAW DOES NOT THROW AWAY THE KEYBOARD'S PLACE. render() rebuilds most of the board
+   as markup, so the control a keyboard user just pressed -- a fit chip, Funding detail, a row's ⋯ -- was
+   replaced by a copy of itself and focus fell back to the top of the page. Before a redraw this notes where
+   focus is: the nearest enclosing element with an id, and which of its controls of the same kind it was.
+   After it, if that control is gone and focus went nowhere, focus goes to the one standing in its place.
+   A redraw that moves focus on purpose (a box opening on its first field) is left alone.
+   A field edited from the keyboard is the same case one step on. Chrome fires its change AFTER focus has
+   left it, and the redraw that change makes takes away both the field and the one Tab was going to --
+   so typing an allocation and pressing Tab left focus on nothing (v1.91 and before). The field being
+   changed stands in for the lost focus, and Tab (or Shift+Tab) then goes on to the control after it,
+   Enter stays on it. Only a KEY counts: after a mouse press nothing is moved, so a click elsewhere is
+   never overridden and typing can never land in a field the user has just left. */
+// var, not let: syncBtns() reads _byKey, and it runs before this line does.
+var _chgFrom=null, _navStep=null, _byKey=false;   // _byKey: the last thing the person did was press a key
+try{
+  document.addEventListener('keydown', function(e){ _byKey=true;
+    _navStep = e.key==='Tab'? (e.shiftKey? -1 : 1) : (e.key==='Enter'? 0 : null); }, true);
+  document.addEventListener('pointerdown', function(){ _navStep=null; _byKey=false; }, true);
+  document.addEventListener('change', function(e){ _chgFrom=e.target; setTimeout(function(){ _chgFrom=null; }, 0); }, true);
+}catch(e){}
+function tabbables(){
+  return [].filter.call(document.querySelectorAll('a[href],button,input,select,textarea,summary,[tabindex]'), function(el){
+    return el.tabIndex>=0 && !el.disabled && el.type!=='hidden' && el.getClientRects().length>0
+      && getComputedStyle(el).visibility!=='hidden'; });
+}
+function focusMark(){
+  let a=document.activeElement, step=0;
+  const lost=!a || a===document.body || a===document.documentElement;
+  if(lost && _chgFrom && _chgFrom.isConnected && _navStep!==null){ a=_chgFrom; step=_navStep; }
+  else if(lost || !a.tagName) return null;
+  const kind=a.tagName.toLowerCase()+(a.classList && a.classList[0]? '.'+CSS.escape(a.classList[0]) : '');
+  const chain=[];
+  for(let p=a.parentElement; p && chain.length<4; p=p.parentElement){
+    if(!p.id) continue;
+    chain.push({ id:p.id, n:[].indexOf.call(p.querySelectorAll(kind), a) });
+  }
+  return { el:a, id:a.id||'', kind:kind, chain:chain, step:step };
+}
+function focusRestore(m){
+  if(!m || m.el.isConnected) return;
+  const now=document.activeElement;
+  if(now && now!==document.body && now!==document.documentElement) return;
+  const put=el=>{ if(!el) return false;
+    if(m.step){ const t=tabbables(), i=t.indexOf(el); if(i>=0 && t[i+m.step]) el=t[i+m.step]; }
+    try{ el.focus({preventScroll:true}); }catch(e){ return false; } return document.activeElement===el; };
+  if(m.id && put(document.getElementById(m.id))) return;
+  for(const c of m.chain){
+    const box=document.getElementById(c.id); if(!box) continue;
+    const list=box.querySelectorAll(m.kind);
+    if(c.n>=0 && put(list[c.n])) return;
+  }
+}
 // A RECORD PANEL THAT FAILED TO REDRAW IS EMPTIED, NEVER LEFT STANDING (v1.89). This catch was empty:
 // the panel kept the previous render's figures beside rows that had moved on, and nothing said so.
-render = function(){ _renderCards.apply(this, arguments);
+render = function(){ let fm=null; try{ fm=focusMark(); }catch(e){}
+  _diagSec=null;                            // v1.92 (item 18): a message after this is cleaned against what is on screen now
+  _renderCards.apply(this, arguments);
+  try{ focusRestore(fm); }catch(e){}
   try{ gridAfterRender(); }
   catch(e){
     const why=(e&&e.message)||String(e);
     try{ const el=document.getElementById('inspector');
       if(el) el.innerHTML='<div class="insp-empty">The record panel could not be drawn ('+esc(why)+'), so it is empty '
-        +'rather than showing figures from before. Click the row again; if this repeats, \u2b07 Save a copy and report it.</div>'; }catch(e2){}
-    try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures.'); }catch(e2){}
+        +'rather than showing figures from before. Click the row again; if this repeats, use <b>\ud83d\udcc1 File \u203a \ud83e\ude7a Save diagnostics</b> and send that file \u2014 it holds no figures or titles.</div>'; }catch(e2){}
+    try{ setStat('\u26a0 The RECORD panel could not be drawn \u2014 '+esc(why)+'. It was cleared rather than left showing old figures. '
+      +'<b>\ud83d\udcc1 File \u203a \ud83e\ude7a Save diagnostics</b> makes a file for support that holds no figures or titles.'); }catch(e2){}
   }
 };
 /* ================= end grid-build additions =================================================== */
@@ -26619,12 +27583,12 @@ if(_bootRestoreErr){
     +' \u2014 but this browser holds work that is in no saved copy, and there is no room to keep it aside. So the board is '
     +'showing <b>this browser\u2019s copy</b>, not the file\u2019s, and \ud83d\udcbe Save will ask before it writes over the file. '
     +'To see the file\u2019s version, \u2b07 Save a copy of yours first, then '
-    +'<a style="color:var(--blue);cursor:pointer" onclick="bootTakeFile()">open the file\u2019s version</a>.');
+    +'<button type="button" class="nb lnk" onclick="bootTakeFile()">open the file\u2019s version</button>.');
 } else if(_bootKept){
   _bootSaid=true;
   setStat('\ud83d\udce6 Opened with the saved board state \u2014 last saved by <b>'+esc(_bootKept.by||'someone')+'</b> '+esc(fmtTs(_bootKept.ts))
     +'. This browser held work that no saved copy had; it is <b>kept aside</b>, not lost: '
-    +'<a style="color:var(--blue);cursor:pointer" onclick="keptPutBack()">put it back</a> (or from \ud83d\udcc1 File, any time).');
+    +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from \ud83d\udcc1 File, any time).');
 } else if(_bootMoved){
   _bootSaid=true;
   setStat('\u26a0 Opened <b>this browser\u2019s copy</b>, which has changes made since it was last saved. The file has been saved '
@@ -26710,7 +27674,7 @@ loadShared(st=>{
     persist(); render();
     setStat('🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published '+fmtTs(st.ts)+'.');
   } else {
-    setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <a style="color:var(--blue);cursor:pointer" onclick="adoptShared()">discard mine and load shared</a>, or 💾 Save yours.');
+    setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <button type="button" class="nb lnk" onclick="adoptShared()">discard mine and load shared</button>, or 💾 Save yours.');
   }
 });
 </script>

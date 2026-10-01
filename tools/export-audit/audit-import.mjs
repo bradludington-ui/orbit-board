@@ -2126,11 +2126,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 // v1.91 (item 35): A BUDGET CHOSEN IN A COPY'S RECORD PANEL, ON A LINE WITH NO MONEY YET, TRAVELS. The
 // office picks through the rendered picker -- not by writing S -- the package carries the choice under the
 // lane its name carries, and at the board it lands and is used once that lane pays the requirement.
+// v1.92, revised before merge: a line with no money carries UNFUNDED dollars, which go on a discretionary or
+// lane-less budget -- so the copy's picker offers no mandatory name there, and the office picks a discretionary one.
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const name = 'v1.91 — a BAE budget chosen in a copy’s RECORD panel travels';
   try {
-  const MAND = 'USAF O&M - ANG CAM OBBBA Mandatory AV';
+  const MAND = 'USAF O&M - ANG CAM OBBBA Mandatory AV', DISC = 'USAF O&M - ANG CAM Discretionary AV';
   const sc = { services: MINE, items: [it('A', 'AV', [900, 200, 100]), it('B', 'AV', [0, 60, 0])],
     disc: [2000, 200, 300], mand: [500, 0, 80], order: ['A', 'B'] };
   const B = boot(); seed(B.ev, sc); asBooted(B.ev, sc);
@@ -2140,19 +2142,20 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     _budRegCache=null; save(); 'ok'`);
   chk(name, 'board', 'B asks ANG money no lane has left', B.ev(`JSON.stringify(budLines('B'))`), JSON.stringify([{ svc: 'ANG', lane: '' }]));
   const P = boot({ html: v184Publish(B.ev) });
-  const picked = P.ev(`(function(){ setCur('B');
+  const pick = n => P.ev(`(function(){ setCur('B');
     var s=document.querySelector('#inspector select[aria-label="BAE budget, ANG not funded yet"]');
-    if(!s) return 'no picker'; s.value=${JSON.stringify(MAND)}; if(s.value!==${JSON.stringify(MAND)}) return 'not offered';
+    if(!s) return 'no picker'; s.value=${JSON.stringify(n)}; if(s.value!==${JSON.stringify(n)}) return 'not offered';
     s.dispatchEvent(new Event('change')); return 'ok'; })()`);
-  chk(name, 'copy', 'the office picks it on the not-funded-yet line of the copy’s RECORD panel', picked, 'ok');
+  chk(name, 'copy', 'the copy’s not-funded-yet line offers no mandatory name', pick(MAND), 'not offered');
+  chk(name, 'copy', 'the office picks a discretionary one on it', pick(DISC), 'ok');
   const sub = v184Submit(P, 'AV');
   chk(name, 'copy', 'the submittal carries it, under the lane the name carries',
-    JSON.stringify(((sub.pkg || { items: {} }).items.B || {}).budgetAsg), JSON.stringify({ 'ANG|mand': MAND }));
+    JSON.stringify(((sub.pkg || { items: {} }).items.B || {}).budgetAsg), JSON.stringify({ 'ANG|disc': DISC }));
   B.ev(`window.alert=function(){}; window.confirm=function(){ return true }; PMOSUBS=[]; PMOPICK={};
     pmoTake(${JSON.stringify(sub.pkg)}, 'av.json'); subPickAll(true); pmoApply(); 'ok'`);
-  chk(name, 'board', 'it lands on the board', B.ev(`JSON.stringify((S.budgetAsg||{}).B||null)`), JSON.stringify({ 'ANG|mand': MAND }));
-  B.ev(`S.mandSvc[1]=60; render(); 'ok'`);
-  chk(name, 'board', 'and once mandatory pays B, its line is on that budget', B.ev(`budForRow('B','ANG','mand')`), MAND);
+  chk(name, 'board', 'it lands on the board', B.ev(`JSON.stringify((S.budgetAsg||{}).B||null)`), JSON.stringify({ 'ANG|disc': DISC }));
+  B.ev(`S.discSvc[1]=260; render(); 'ok'`);
+  chk(name, 'board', 'and once discretionary pays B, its line is on that budget', B.ev(`budForRow('B','ANG','disc')`), DISC);
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
@@ -3235,6 +3238,36 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());   // v1.86: close this block's boards, keeping those later blocks reuse,
   await settleBoards();   // and let the loop turn: a closed board is freed only then
 })();
+// v1.92, revised before merge: NOTHING ABOUT AN IDS EXPORT IS RECORDED, and the one setting kept is the ORG. A board
+// saved by v1.91 holds more under MS.ids -- a typed sequence, an action, a comment -- and an unreleased build could
+// hold a record of batches. A full import carries all of it across untouched (nothing is migrated, nothing deleted),
+// and the new board uses the ORG alone: the box opens on Add with an empty reason and a time-of-day file ID,
+// whatever the old settings said.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.92 — an older board’s IDS settings cross a full import untouched, and only the ORG is used';
+  try {
+  const B = boot({ html: V14.L86 });
+  const OLD = { org: 21, seq: 3, action: 'Update', cmt: 'Updated requirement', issued: ['20260930-0001'],
+    sent: [{ fid: '20260930-0001', ts: 1790000000000, by: 'BLL', fy: 2027, lines: [{ bud: 'USAF O&M- CAM Discretionary AV', ctl: '1001', amt: 140, app: 100, act: 'Add' }] }] };
+  B.ev(`MS.ids=${JSON.stringify(OLD)}; save(); 'ok'`);
+  const html = B.ev('buildSavedHtml()');
+  const N = boot();
+  const ok = N.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+    return fullImportText(${JSON.stringify(html)}, 'board.html'); })()`);
+  chk(name, 'import', 'the import runs', ok, true);
+  const N2 = boot({ ls: v14Ls(N.ev) });
+  chk(name, 'import', 'every field under MS.ids arrives exactly as it was saved', N2.ev(`JSON.stringify(MS.ids)`), JSON.stringify(OLD));
+  chk(name, 'import', 'the box opens on Add, an empty reason and a time-of-day file ID; the ORG is the saved one',
+    N2.ev(`(function(){ toggleIds(); var f=JSON.stringify([idsForm.action, idsForm.reason, /^\\d{8}-\\d{4}$/.test(idsForm.fid), idsForm.org]); toggleIds(); return f; })()`),
+    JSON.stringify(['Add', '', true, '21']));
+  chk(name, 'import', 'and opening it wrote nothing', N2.ev(`JSON.stringify(MS.ids)`), JSON.stringify(OLD));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
   const name = 'v1.86 — one appropriation out, worked on, and back in, changing only itself';
@@ -3286,7 +3319,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const { O } = V14;
   const B = boot({ html: O.ev('buildSavedHtml()') });
   const lab = JSON.parse(B.ev(`JSON.stringify([...document.querySelectorAll('#dd_share .mlbl')].map(function(n){ return n.textContent; }))`));
-  chk(name, 'File', 'Save, Import, Export, Team', lab.join(' | '), 'Save | Import | Export | Team');
+  // v1.92 (item 18): a fifth group, Support, for 🩺 Save diagnostics
+  chk(name, 'File', 'Save, Import, Export, Team, Support', lab.join(' | '), 'Save | Import | Export | Team | Support');
   const items = B.ev(`document.getElementById('dd_share').textContent`);
   const order = ['Save', 'Save a copy', 'Import a full board (new version)', 'Import one appropriation', 'Import several boards at once', 'Appropriation packages',
     'Export one appropriation', 'Publish PMO copy', 'Live view'].map(t => items.indexOf(t));
@@ -3574,11 +3608,19 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     // PUTTING AN EARLIER COPY BACK, THEN SAVING. The copy standing now goes into the history whatever
     // the spacing, and Save then writes: on v1.88 the base was the old copy's own time, so Save found a
     // "newer" copy in the folder and refused, every time.
-    await pause(20); R.ev(`S.notes.A='BEFORE RESTORE'; save(); 'ok'`); await push(R.ev);
+    // THE CLOCK STANDS STILL across the save and the put-back (v1.92), so the history copy each keeps
+    // lands in the SAME second -- the case a reused name loses a copy in. Left to the wall clock, the two
+    // fell in one second only when the machine was quick, and the math gate, running four suites at once,
+    // let the reused-name mutation through.
+    await pause(20);
+    R.ev(`globalThis.__now0=Date.now; globalThis.__t0=Date.now(); Date.now=function(){ return globalThis.__t0; }; 'ok'`);
+    R.ev(`S.notes.A='BEFORE RESTORE'; save(); 'ok'`); await push(R.ev);
     await R.ev('driveHistShow()');
     const h1 = hist(), standing = copyNote('A');
     R.ev(`globalThis.__yes=true; 'ok'`); await R.ev('driveRestore(0)');
-    chk(name, 'folder, restore', 'the copy standing now is kept in the history first', (hist() > h1) + '|' + standing, 'true|BEFORE RESTORE');
+    R.ev(`Date.now=globalThis.__now0; 'ok'`);
+    chk(name, 'folder, restore', 'the copy standing now is kept in the history first, under a name of its own, in the same second',
+      (hist() > h1) + '|' + standing, 'true|BEFORE RESTORE');
     const rp = await push(R.ev);
     chk(name, 'folder, restore', 'and Save then writes the copy put back', String(rp) + '|' + (copyNote('A') !== 'BEFORE RESTORE'), 'true|true');
   }
