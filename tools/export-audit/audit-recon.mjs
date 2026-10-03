@@ -1766,6 +1766,1267 @@ const grabX = (fn) => w.eval(`(async function(){
   }
 }
 
+// ==== v1.95 W4: journal by year, PMO drill and PMO by year (items 54, 55) ====
+// v1.95, ITEM 55, BRAD'S Q2 (3 Oct 2026): "PMOs can change under reorganizations, leave the PMO assigned
+// by year, as it's reported as that PMO in that year." The FYDP workbook filed every year of a
+// requirement under its LATEST year's PMO, so FY27 money for a requirement moved in FY28 showed under
+// the FY28 office and disagreed with the FY27 lock. Here MOVE is AV in FY27, TSS in FY28 and AV again in
+// FY29: each PMO's figures, each year, must be that year's projection by PMO and the locked cycle's PMO
+// roll-up, to the dollar; MOVE is listed under each office for the years it held it; every total is
+// what it was. The oracle is each year's projection read through aceWithYear -- what a lock takes --
+// grouped here by the projection's own PMO, never by the code under test.
+const { bootMark: _w4Mark, bootRelease: _w4Release, settleBoards: _w4Settle } = await import('./boot.mjs');
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w4Mark();
+  const name = 'v1.95 — the five-year plan files each year under that year’s PMO';
+  try {
+  const J = JSON.stringify, M = 1e6;
+  const B = boot();
+  const bev = B.ev;
+  seed(bev, { services: ['USAF', 'ANG'],
+    items: [it('A', 'AV', [10 * M, 5 * M]), it('MOVE', 'AV', [5 * M, 3 * M]), it('STAY', 'TSS', [7 * M, 2 * M]),
+            it('ODD', 'AV', [100, 100]), it('UFR', 'AV', [4 * M, 1 * M])],
+    disc: [20 * M, 6 * M], mand: [2 * M, 1 * M], order: ['A', 'MOVE', 'STAY', 'ODD', 'UFR'] });
+  bev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S;
+    ACEDB.sets={}; ACEDB.sets['2026ACE']={lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}]};
+    ACEDB.sets['2026ACE'].lines[0].v[MS.cur]=111; ACEDB.sets['2026ACE'].lines[0].v[MS.cur+1]=222; ACEDB.sets['2026ACE'].lines[0].v[MS.cur+2]=333;
+    if(!S.aceMap) S.aceMap={}; S.aceMap['MOVE']={w:['1.1'], ok:true}; save(); 'ok'`);
+  const cur = +bev('MS.cur'), Y = [cur, cur + 1, cur + 2], fyl = y => 'FY' + (y % 100);
+  bev(`setAlloc('ODD','101'); setFsrc('UFR','ufr'); 'ok'`);
+  bev(`switchYear(${cur + 1}); setGrp('MOVE','TSS'); switchYear(${cur + 2}); setGrp('MOVE','AV'); switchYear(${cur}); 'ok'`);
+  // each year's projection, grouped by its own PMO: the truth every sheet is held to
+  const proj = y => JSON.parse(bev(`JSON.stringify(aceWithYear(${y}, cycProjOf))`));
+  const P = {}; Y.forEach(y => { P[y] = proj(y); });
+  const K = ['ask', 'alloc', 'fund', 'unf'], KL = { ask: 'Requirement', alloc: 'Allocated', fund: 'Funded', unf: 'Unfunded' };
+  const s2 = a => (a || []).reduce((x, v) => x + (+v || 0), 0);
+  const fig = r => ({ ask: s2(r.ask), alloc: s2(r.alloc), fund: s2(r.fund || r.alloc),
+                      unf: (r.ask || []).reduce((u, a, i) => u + Math.max(0, a - ((r.fund || r.alloc || [])[i] || 0)), 0) });
+  const want = {};   // want[g][y] = {ask, alloc, fund, unf}
+  Y.forEach(y => P[y].reqs.forEach(r => { const f = fig(r); const w = ((want[r.grp] ||= {})[y] ||= { ask: 0, alloc: 0, fund: 0, unf: 0 });
+    K.forEach(k => { w[k] += f[k]; }); }));
+  chk(name, 'fixture', 'CONTROL — the fixture: MOVE is AV in FY27, TSS in FY28, AV in FY29, and Allocated and Funded differ (passes on v1.94)',
+    J(Y.map(y => P[y].reqs.filter(r => r.id === 'MOVE')[0].grp)) + ' ' + (want.AV[cur].alloc !== want.AV[cur].fund),
+    J(['AV', 'TSS', 'AV']) + ' true');
+  // the workbook, as its sheets
+  const book = src => JSON.parse(bev(`(function(){ fydpSrc=${J(src)}; fydpAce=null; var got=null, _b=buildXlsx;
+      buildXlsx=function(sh){ got=JSON.stringify(sh); return new Uint8Array(0); };
+      try{ exportFydpPlan(); }catch(e){ got=JSON.stringify({threw:String((e&&e.message)||e)}); }
+      buildXlsx=_b; return got||'null'; })()`));
+  const cv = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+  const sheet = (S, n) => ((S || []).find(s => s.name === n) || { rows: [] }).rows.map(r => (r || []).map(cv));
+  const hdrOf = (rows, a, b) => rows.findIndex(r => r[0] === a && r[1] === b);
+  const at = (rows, h, k) => rows[h].indexOf(k);
+  const W = book('working');
+  const bp = sheet(W, 'By PMO'), hp = hdrOf(bp, 'PMO', 'Requirements');
+  const line = (rows, h, lbl) => rows.slice(h + 1).find(r => r[0] === lbl) || [];
+  const pmoFig = (rows, h, g) => { const r = line(rows, h, g); return Y.map(y => K.map(k => r[at(rows, h, fyl(y) + ' ' + KL[k])])); };
+  const wantFig = g => Y.map(y => K.map(k => (want[g][y] || { ask: 0, alloc: 0, fund: 0, unf: 0 })[k]));
+  chk(name, 'By PMO', 'each PMO, each year: Requirement, Allocated, Funded and Unfunded are that year’s projection for that PMO',
+    J(['AV', 'TSS'].map(g => pmoFig(bp, hp, g))), J(['AV', 'TSS'].map(wantFig)));
+  chk(name, 'By PMO', 'a requirement that changed PMO counts under each PMO that held it; TOTAL counts each requirement once',
+    J(['AV', 'TSS', 'TOTAL'].map(g => line(bp, hp, g)[1])), J([4, 2, 5]));
+  // CONTROL (passes on v1.94 too: the totals are what they were) -- TOTAL is every requirement, every year
+  const all = Y.map(y => K.map(k => s2(P[y].reqs.map(r => fig(r)[k]))));
+  chk(name, 'control', 'CONTROL — TOTAL, each year, is every requirement of that year’s projection (passes on v1.94: totals unchanged)',
+    J(pmoFig(bp, hp, 'TOTAL')), J(all));
+  // By Requirement: MOVE under AV with FY27 and FY29, under TSS with FY28; the estimate it confirmed beside the year it is in
+  const br = sheet(W, 'By Requirement'), hr = hdrOf(br, 'PMO', 'Requirement');
+  const moveRows = br.slice(hr + 1).filter(r => r[1] === 'Ev MOVE').map(r => [r[0]].concat(Y.map(y => [r[at(br, hr, fyl(y) + ' Allocated')], r[at(br, hr, fyl(y) + ' ACE estimate')]])));
+  const mv = y => fig(P[y].reqs.filter(r => r.id === 'MOVE')[0]).alloc;
+  chk(name, 'By Requirement', 'MOVE is listed under AV for FY27 and FY29 and under TSS for FY28, its estimate on the row of the year it is in',
+    J(moveRows), J([['AV', [mv(cur), 111], ['—', '—'], [mv(cur + 2), 333]], ['TSS', ['—', '—'], [mv(cur + 1), 222], ['—', '—']]]));
+  // the PMO tabs: this appropriation's block total, each year, is that PMO's year
+  const tabTot = g => { const rows = sheet(W, g); const h = rows.findIndex(r => r[0] === 'CCaR record'); const t = rows.find(r => /^Total — /.test(String(r[0] || ''))) || [];
+    return h < 0 ? null : Y.map(y => [t[at(rows, h, fyl(y) + ' Requirement')], t[at(rows, h, fyl(y) + ' Allocation')]]); };
+  chk(name, 'PMO tabs', 'the AV and TSS tabs file each year under the PMO that year assigns',
+    J(['AV', 'TSS'].map(tabTot)), J(['AV', 'TSS'].map(g => Y.map(y => [(want[g][y] || {}).ask ?? 0, (want[g][y] || {}).alloc ?? 0]))));
+  // the panel on screen counts and adds the same way
+  bev(`fydpOpen=true; fydpSrc='working'; fydpAce=''; render(); 'ok'`);
+  const panel = bev(`document.getElementById('fydpBody').textContent`);
+  chk(name, 'panel', 'the five-year plan on screen lists AV (4) and TSS (2)', /AV \(4\)/.test(panel) && /TSS \(2\)/.test(panel), true);
+  bev(`fydpOpen=false; render(); 'ok'`);
+  // and a cycle locked from this plan: its By PMO is its own PMO roll-up, as locked, to the dollar
+  bev(`blCyc='PB'; blYr=MS.cur; blNote=''; cycLock(); 'ok'`);
+  const key = 'PB|' + cur;
+  const lockRoll = JSON.parse(bev(`JSON.stringify([${Y.join(',')}].map(function(y){ var p=cycProj(${J(key)}, y).pmo;
+      return ['AV','TSS'].map(function(g){ var x=p[g]||{}; var s=function(a){ return (a||[]).reduce(function(t,v){ return t+v; },0); }; return [s(x.ask), s(x.alloc), s(x.fund)]; }); }))`));
+  const C = book(key);
+  const bc = sheet(C, 'By PMO'), hc = hdrOf(bc, 'PMO', 'Requirements');
+  chk(name, 'the lock', 'the locked cycle’s By PMO is the cycle’s own PMO roll-up, each year, to the dollar',
+    J(Y.map(y => ['AV', 'TSS'].map(g => { const r = line(bc, hc, g); return ['ask', 'alloc', 'fund'].map(k => r[at(bc, hc, fyl(y) + ' ' + KL[k])]); }))), J(lockRoll));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w4Release(__bm, []);
+  await _w4Settle();
+})();
+
+// v1.95, ITEM 55, BRAD'S Q2, THE CYCLE COMPARISON: ⇄ Compare two cycles filed a requirement's rows under
+// the PMO it had in the first year compared, so its Compare subtotals and By PMO sheet disagreed with
+// both cycles' own PMO roll-ups for every later year it sat elsewhere. Two cycles are locked here: PB
+// with MOVE in AV, TSS, AV over three years, and BES after MOVE is put back in AV for the middle year
+// (the two cycles then disagree about that year) and one ask is raised. Each PMO's A and B, each year,
+// must be that cycle's own PMO roll-up; the totals and the Changes sheet's Σ rows = Δ are unchanged.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w4Mark();
+  const name = 'v1.95 — the cycle comparison files each year under that year’s PMO';
+  try {
+  const J = JSON.stringify, M = 1e6;
+  const B = boot();
+  const bev = B.ev;
+  seed(bev, { services: ['USAF', 'ANG'],
+    items: [it('A', 'AV', [10 * M, 5 * M]), it('MOVE', 'AV', [5 * M, 3 * M]), it('STAY', 'TSS', [7 * M, 2 * M]),
+            it('ODD', 'AV', [100, 100]), it('UFR', 'AV', [4 * M, 1 * M])],
+    disc: [20 * M, 6 * M], mand: [2 * M, 1 * M], order: ['A', 'MOVE', 'STAY', 'ODD', 'UFR'] });
+  bev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  const cur = +bev('MS.cur'), Y = [cur, cur + 1, cur + 2], fyl = y => 'FY' + (y % 100);
+  bev(`setAlloc('ODD','101'); setFsrc('UFR','ufr'); 'ok'`);
+  bev(`switchYear(${cur + 1}); setGrp('MOVE','TSS'); switchYear(${cur + 2}); setGrp('MOVE','AV'); switchYear(${cur}); 'ok'`);
+  const kA = 'PB|' + cur, kB = 'BES|' + (cur + 1);
+  bev(`blCyc='PB'; blYr=${cur}; blNote=''; cycLock(); 'ok'`);
+  bev(`setAsk('A',0,'11000000'); switchYear(${cur + 1}); setGrp('MOVE','AV'); switchYear(${cur}); 'ok'`);
+  bev(`blCyc='BES'; blYr=${cur + 1}; blNote=''; cycLock(); 'ok'`);
+  const K = ['ask', 'alloc', 'fund', 'unf'], KL = { ask: 'Requirement', alloc: 'Allocated', fund: 'Funded', unf: 'Unfunded' };
+  // each cycle's own PMO roll-up, each year, read from the lock: ask, alloc and fund are its pmo block,
+  // unfunded its rows floored per service -- grouped here by each row's own PMO
+  const roll = key => JSON.parse(bev(`JSON.stringify([${Y.join(',')}].map(function(y){ var P=cycProj(${J(key)}, y), o={};
+      var s=function(a){ return (a||[]).reduce(function(t,v){ return t+v; },0); };
+      P.reqs.forEach(function(r){ var g=r.grp, x=o[g]||(o[g]={ask:0, alloc:0, fund:0, unf:0});
+        x.ask+=s(r.ask); x.alloc+=s(r.alloc); x.fund+=s(r.fund||r.alloc);
+        (r.ask||[]).forEach(function(a,i){ x.unf+=Math.max(0, a-((r.fund||r.alloc||[])[i]||0)); }); });
+      Object.keys(P.pmo).forEach(function(g){ var p=P.pmo[g]; o[g].lock=[s(p.ask), s(p.alloc), s(p.fund)]; });
+      return o; }))`));
+  const RA = roll(kA), RB = roll(kB);
+  chk(name, 'control', 'CONTROL — the fixture: MOVE is TSS in PB’s middle year and AV in BES’s, and each lock’s pmo block is its rows (passes on v1.94)',
+    J([bev(`cycProj(${J(kA)}, ${cur + 1}).reqs.filter(function(r){ return r.id==='MOVE'; })[0].grp`), bev(`cycProj(${J(kB)}, ${cur + 1}).reqs.filter(function(r){ return r.id==='MOVE'; })[0].grp`),
+       [RA, RB].every(R => R.every(o => Object.keys(o).every(g => J(o[g].lock) === J([o[g].ask, o[g].alloc, o[g].fund]))))]),
+    J(['TSS', 'AV', true]));
+  const book = JSON.parse(bev(`(function(){ cycCmpA=${J(kA)}; cycCmpB=${J(kB)}; var got=null, _b=buildXlsx;
+      buildXlsx=function(sh){ got=JSON.stringify(sh); return new Uint8Array(0); };
+      try{ exportCycCompare(); }catch(e){ got=JSON.stringify({threw:String((e&&e.message)||e)}); }
+      buildXlsx=_b; return got||'null'; })()`));
+  const cv = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+  const sheet = n => ((Array.isArray(book) ? book : []).find(s => s.name === n) || { rows: [] }).rows.map(r => (r || []).map(cv));
+  const la = bev(`blLbl(${J(kA)})`), lb = bev(`blLbl(${J(kB)})`);
+  const col = (rows, h, y, side, k) => rows[h].indexOf(fyl(y) + ' ' + (side === 'a' ? la : side === 'b' ? lb : 'Δ') + ' ' + KL[k]);
+  const bp = sheet('By PMO'), hp = bp.findIndex(r => r[0] === 'PMO' && r[1] === 'Requirements');
+  const line = (rows, h, lbl) => rows.slice(h + 1).find(r => r[0] === lbl) || [];
+  const got = g => Y.map(y => ['a', 'b', 'd'].map(sd => K.map(k => line(bp, hp, g)[col(bp, hp, y, sd, k)])));
+  const want = g => Y.map((y, i) => { const a = RA[i][g] || { ask: 0, alloc: 0, fund: 0, unf: 0 }, b = RB[i][g] || { ask: 0, alloc: 0, fund: 0, unf: 0 };
+    return [K.map(k => a[k]), K.map(k => b[k]), K.map(k => b[k] - a[k])]; });
+  chk(name, 'By PMO', 'each PMO, each year: A is PB’s own PMO roll-up, B is BES’s, Δ is B less A',
+    J(['AV', 'TSS'].map(got)), J(['AV', 'TSS'].map(want)));
+  chk(name, 'By PMO', 'a requirement counts under each PMO either cycle files it under; TOTAL counts each requirement once',
+    J(['AV', 'TSS', 'TOTAL'].map(g => line(bp, hp, g)[1])), J([4, 2, 5]));
+  const cs = sheet('Compare'), hc = cs.findIndex(r => r[0] === 'PMO' && r[1] === 'Requirement');
+  const moveRows = cs.slice(hc + 1).filter(r => r[1] === 'Ev MOVE').map(r => [r[0]].concat(Y.map(y => ['a', 'b'].map(sd => r[col(cs, hc, y, sd, 'alloc')]))));
+  const mv = (R, i) => R === 'A' ? bev(`(function(){ var r=cycProj(${J(kA)}, ${Y[i]}).reqs.filter(function(x){ return x.id==='MOVE'; })[0]; return r.alloc.reduce(function(t,v){ return t+v; },0); })()`)
+                                 : bev(`(function(){ var r=cycProj(${J(kB)}, ${Y[i]}).reqs.filter(function(x){ return x.id==='MOVE'; })[0]; return r.alloc.reduce(function(t,v){ return t+v; },0); })()`);
+  chk(name, 'Compare', 'MOVE is under AV for every year either cycle had it there, and under TSS only for PB’s middle year',
+    J(moveRows), J([['AV', [+mv('A', 0), +mv('B', 0)], ['—', +mv('B', 1)], [+mv('A', 2), +mv('B', 2)]], ['TSS', ['—', '—'], [+mv('A', 1), '—'], ['—', '—']]]));
+  // CONTROL (passes on v1.94 too: the totals are what they were) -- TOTAL and the Changes sheet's Σ rows = Δ
+  const tot = (R, i, k) => Object.values(R[i]).reduce((t, o) => t + o[k], 0);
+  const ch = sheet('Changes');
+  chk(name, 'control', 'CONTROL — By PMO TOTAL is each cycle’s whole year, and every Changes CHECK closes (passes on v1.94: totals unchanged)',
+    J([Y.map(y => ['a', 'b'].map(sd => K.map(k => line(bp, hp, 'TOTAL')[col(bp, hp, y, sd, k)]))), ch.filter(r => r[1] === 'CHECK').map(r => r[5])]),
+    J([Y.map((y, i) => [K.map(k => tot(RA, i, k)), K.map(k => tot(RB, i, k))]), Y.map(() => '✓ the rows account for the totals')]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w4Release(__bm, []);
+  await _w4Settle();
+})();
+// ==== end W4 ====
+
+// ==== v1.95 W6: money reconciliation coverage map (item 59) ====
+// ITEM 59 — THE MONEY MAP'S CHEAP CLOSES. tools/money-map.mjs maps every registered money surface against
+// seven dimensions; these blocks close the cells it found OPEN that a test alone could prove. Each block
+// builds its own copy of this suite's fixture (fixture() + dress + dress2), so nothing above can leave it
+// changed, and asserts EVERY figure a sheet prints at the grain it prints it -- every requirement row,
+// every service column, every lane -- never a total alone: a total can be right while two cells
+// beneath it have swapped. Expectations come from the lane vectors (tiers' d and m, the clamped basis,
+// the fixture's asks, budget authority and award dates), with the formulas written out here.
+// tools/money-map.json cites these scenario names; renaming one fails the map.
+const w6Fresh = () => {
+  const X = boot();
+  seed(X.ev, fixture());
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
+  dress(X.ev); dress2(X.ev);
+  return X;
+};
+// What one window's export wrote, read back from its bytes with the board's own reader.
+const w6Book = (W, fn) => W.eval(`(async function(){
+  var cap=null,_B=window.Blob,msg='';
+  window.alert=function(m){ msg+=String(m); }; window.confirm=function(){ return true; };
+  window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+  try{ ${fn}(); }catch(e){ window.Blob=_B; return JSON.stringify({__err:'threw '+String((e&&e.message)||e)}); }
+  window.Blob=_B;
+  if(!cap) return JSON.stringify({__err:'no file: '+msg.slice(0,80)});
+  var ab=cap.buffer.slice(cap.byteOffset,cap.byteOffset+cap.byteLength);
+  return JSON.stringify(await xlsxRead(ab)); })()`);
+const w6S = a => a.reduce((x, y) => x + y, 0);
+// Every vector a requirement has, from the board's lane walk; the readings are computed HERE from them.
+const w6Truth = (G, meta) => {
+  const n = G.svc.length, R = {};
+  Object.keys(G.rows).forEach(id => {
+    const r = G.rows[id], z = k => G.svc.map((_, i) => k(i));
+    const v = {
+      ask: z(i => r.ask[i] || 0), d: z(i => r.d[i] || 0), m: z(i => r.m[i] || 0), basis: z(i => r.basis[i] || 0),
+      mc: r.mc, grp: meta[id].grp, title: meta[id].title, ev: meta[id].ev, rank: meta[id].rank, band: meta[id].band };
+    v.f = z(i => v.d[i] + v.m[i]);
+    v.unf = z(i => Math.max(0, v.ask[i] - v.d[i] - v.m[i]));
+    v.du = z(i => Math.max(0, v.ask[i] - v.d[i]));
+    v.trim = z(i => Math.max(0, v.ask[i] - v.basis[i]));
+    v.beyond = z(i => Math.max(0, Math.min(v.ask[i], v.basis[i]) - v.d[i] - v.m[i]));
+    ['ask', 'd', 'm', 'f', 'unf', 'du', 'trim', 'beyond', 'basis'].forEach(k => { v[k + 'T'] = w6S(v[k]); });
+    R[id] = v;
+  });
+  const ids = Object.keys(R).sort((a, b) => R[a].rank - R[b].rank);
+  const svcSum = (pick, k) => G.svc.map((_, i) => w6S(ids.filter(pick).map(id => R[id][k][i])));
+  return { R, ids, n, svcSum };
+};
+const w6Meta = ev => JSON.parse(ev(`JSON.stringify((function(){ var o={};
+  S.order.forEach(function(id,i){ var it=itemById(id); o[id]={grp:grpOf(it), title:(recName(it)||dispTitle(it)), ev:dispTitle(it), rank:i+1,
+    band:(BAND_OF(id)===null? null : BAND_IDX(BAND_OF(id)))}; }); return o; })())`));
+// A sheet's rows under a header: the header found by the cells it must carry, a column by its name.
+const w6Hdrs = (rows, ...must) => rows.map((r, i) => i).filter(i => must.every(m => (rows[i] || []).some(c => String(c ?? '').trim() === m)));
+const w6Col = (rows, h, name) => (rows[h] || []).findIndex(c => String(c ?? '').trim() === name);
+const w6ColLike = (rows, h, re) => (rows[h] || []).findIndex(c => re.test(String(c ?? '').trim()));
+const w6Lbl = r => String((r || [])[0] ?? '').trim();
+
+// ══ W6.1 THE BREAKOUTS WORKBOOK — every requirement, service and lane, the months and the CR windows ══════
+await (async () => {
+  const name = 'W6 — the breakouts workbook: every requirement, service, lane, month and window';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = w6Fresh(), G = boardFigures(X.ev), meta = w6Meta(X.ev);
+  const { R, ids, svcSum } = w6Truth(G, meta), SV = G.svc, FY = X.ev('FYL()');
+  const bk = JSON.parse(await workbook(X.w));
+  chk(name, 'workbook', 'the workbook builds and reads back', bk.__err || 'ok', 'ok');
+  chk(name, 'fixture', 'A alone carries an award date, in December (1–15)', X.ev(`JSON.stringify(Object.keys(S.awards))+' '+S.awards.A.d+' '+S.awards.A.day`), '["A"] ' + X.ev('FYMON[2][0]') + ' 7');
+  chk(name, 'fixture', 'every requirement is funded somewhere, and two are trimmed', ids.filter(id => R[id].fT > 0.5).length + ':' + ids.filter(id => R[id].trimT > 0.5).length, '5:3');
+  const cell = (rows, h, row, col) => { const c = w6Col(rows, h, col); return c < 0 ? 'no column ' + col : num((row || [])[c]); };
+
+  // ---- Funding Streams: every service row, every column
+  {
+    const fs = bk['Funding Streams'] || [], h = w6Hdrs(fs, 'Service', 'Disc Funded')[0];
+    const ask = svcSum(() => true, 'ask'), d = svcSum(() => true, 'd'), m = svcSum(() => true, 'm');
+    const tr = svcSum(() => true, 'trim'), by = svcSum(() => true, 'beyond'), du = svcSum(() => true, 'du'), un = svcSum(() => true, 'unf');
+    SV.forEach((sv, i) => {
+      const row = fs.find((r, j) => j > h && w6Lbl(r) === sv);
+      const want = { [FY + ' Ask']: ask[i], 'Disc BA': G.discBA[i], 'Disc Funded': d[i], 'Disc Remaining': Math.max(0, G.discBA[i] - d[i]),
+        'Mand BA': G.mandBA[i], 'Mand Funded': m[i], 'Mand Remaining': Math.max(0, G.mandBA[i] - m[i]), 'Funded Total': d[i] + m[i],
+        'Ask Not Allocated (delta)': tr[i], 'Beyond Both Lanes': by[i], 'Unfunded vs DISC': du[i], 'TOTAL UNFUNDED': un[i] };
+      Object.keys(want).forEach(k => chk(name, 'Funding Streams · ' + sv, k, cell(fs, h, row, k), want[k]));
+    });
+  }
+
+  // ---- Decision Bands: every requirement row, per service and lane; the band summary; the running total in a band
+  {
+    const db = bk['Decision Bands'] || [], hs = w6Hdrs(db, 'Rank', 'Band', 'PMO');
+    chk(name, 'Decision Bands', 'a detail table per band in use', hs.length, 2);
+    const seen = [];
+    const cum = {};
+    hs.forEach(h => {
+      const tc = w6ColLike(db, h, /^Requirement/);
+      for (let j = h + 1; j < db.length && w6Lbl(db[j]) && !/^Subtotal/.test(w6Lbl(db[j])); j++) {
+        const row = db[j], id = ids.find(x => R[x].title === String(row[tc] ?? '').trim()); if (!id) continue;
+        seen.push(id); const v = R[id], b = String(v.band);
+        cum[b] = (cum[b] || 0) + v.fT;
+        const want = { [FY + ' Requirement']: v.askT, 'DISC TOTAL': v.dT, 'MAND TOTAL': v.mT, 'FUNDED TOTAL': v.fT, 'UNFUNDED TOTAL': v.unfT,
+          'UNFUNDED vs DISC': v.duT, 'Cum funded in band': cum[b] };
+        SV.forEach((sv, i) => { want[sv + ' Disc'] = v.d[i]; want[sv + ' Mand'] = v.m[i]; want[sv + ' Funded'] = v.f[i]; want[sv + ' Unfunded'] = v.unf[i]; });
+        Object.keys(want).forEach(k => chk(name, 'Decision Bands · ' + id, k, cell(db, h, row, k), want[k]));
+      }
+    });
+    chk(name, 'Decision Bands', 'every requirement is a row, once', seen.slice().sort().join(','), ids.slice().sort().join(','));
+    const hb = w6Hdrs(db, 'Band', 'Band name', 'Reqs')[0];
+    [['1', id => R[id].band === 1], ['—', id => R[id].band === null]].forEach(([lbl, pick]) => {
+      const row = db.find((r, j) => j > hb && w6Lbl(r) === lbl), mem = ids.filter(pick);
+      const want = { Reqs: mem.length, [FY + ' Requirement']: w6S(mem.map(id => R[id].askT)), Disc: w6S(mem.map(id => R[id].dT)), Mand: w6S(mem.map(id => R[id].mT)),
+        Funded: w6S(mem.map(id => R[id].fT)), Unfunded: w6S(mem.map(id => R[id].unfT)), 'Unfunded vs DISC': w6S(mem.map(id => R[id].duT)) };
+      Object.keys(want).forEach(k => chk(name, 'Decision Bands · band ' + lbl, k, cell(db, hb, row, k), want[k]));
+    });
+  }
+
+  // ---- the three per-requirement lists and the unfunded sheet: who is listed, and every service column
+  {
+    const list = (sheet, amt, pick, perSvc, total) => {
+      const rows = bk[sheet] || [], h = w6Hdrs(rows, 'Rank', amt)[0], tc = w6ColLike(rows, h, /^Requirement/);
+      const got = [];
+      rows.forEach((row, j) => { if (j <= h) return; const id = ids.find(x => R[x].title === String((row || [])[tc] ?? '').trim()); if (!id) return;
+        got.push(id); chk(name, sheet + ' · ' + id, amt, cell(rows, h, row, amt), total(R[id]));
+        Object.keys(perSvc).forEach(lab => SV.forEach((sv, i) => chk(name, sheet + ' · ' + id, lab.replace('#', sv), cell(rows, h, row, lab.replace('#', sv)), perSvc[lab](R[id])[i]))); });
+      chk(name, sheet, 'lists exactly the requirements it is for', got.sort().join(','), ids.filter(id => pick(R[id])).sort().join(','));
+      return { rows, h, got };
+    };
+    list('Funded - Discretionary', 'Disc portion', v => v.dT > 0.005, { '#': v => v.d }, v => v.dT);
+    list('Funded - Mandatory', 'Mand portion', v => v.mT > 0.005, { '#': v => v.m }, v => v.mT);
+    const mc = list('Mission Critical', 'MC requirement (memo — not additive)', v => v.mc && v.duT > 0.005, { '#': v => v.ask, 'Short #': v => v.du }, v => v.askT);
+    mc.got.forEach(id => chk(name, 'Mission Critical · ' + id, '★ Short vs DISC', cell(mc.rows, mc.h, mc.rows.find(r => (r || []).includes(R[id].title)), '★ Short vs DISC'), R[id].duT));
+    const uf = list('Unfunded Requirements', 'TOTAL Unfunded', v => v.duT > 0.005 || v.unfT > 0.005, { 'Unf #': v => v.unf }, v => v.unfT);
+    uf.got.forEach(id => { const row = uf.rows.find(r => (r || []).includes(R[id].title)), v = R[id];
+      [[FY + ' Ask', v.askT], ['Allocated', v.basisT], ['Trim, by service', v.trimT], ['Beyond Both Lanes', v.beyondT], ['Unfunded vs DISC', v.duT]]
+        .forEach(([k, want]) => chk(name, 'Unfunded Requirements · ' + id, k, cell(uf.rows, uf.h, row, k), want)); });
+  }
+
+  // ---- the PMO Matrix: every office, every service, both lanes; the budget-authority and unfunded blocks by service
+  {
+    const pm = bk['PMO Matrix'] || [], h = w6Hdrs(pm, 'PMO', 'TOTAL Disc')[0];
+    const grps = [...new Set(ids.map(id => R[id].grp))];
+    grps.forEach(g => {
+      const row = pm.find((r, j) => j > h && w6Lbl(r) === g), mem = ids.filter(id => R[id].grp === g);
+      const want = { 'TOTAL Disc': w6S(mem.map(id => R[id].dT)), 'TOTAL Mand': w6S(mem.map(id => R[id].mT)),
+        '★ MC requirement (memo)': w6S(mem.filter(id => R[id].mc).map(id => R[id].askT)), '★ MC short vs Disc': w6S(mem.filter(id => R[id].mc).map(id => R[id].duT)) };
+      SV.forEach((sv, i) => { want[sv + ' Disc'] = w6S(mem.map(id => R[id].d[i])); want[sv + ' Mand'] = w6S(mem.map(id => R[id].m[i])); });
+      Object.keys(want).forEach(k => chk(name, 'PMO Matrix · ' + g, k, cell(pm, h, row, k), want[k]));
+    });
+    const block = (lbl, perSvc, lane) => {
+      const row = pm.find((r, j) => j > h && w6Lbl(r).startsWith(lbl));
+      SV.forEach((sv, i) => chk(name, 'PMO Matrix · ' + lbl, sv + ' ' + lane, cell(pm, h, row, sv + ' ' + lane), perSvc[i]));
+    };
+    const d = svcSum(() => true, 'd'), m = svcSum(() => true, 'm');
+    block('BUDGET AUTHORITY', G.discBA, 'Disc'); block('BUDGET AUTHORITY', G.mandBA, 'Mand');
+    block('REMAINING', G.discBA.map((b, i) => Math.max(0, b - d[i])), 'Disc'); block('REMAINING', G.mandBA.map((b, i) => Math.max(0, b - m[i])), 'Mand');
+    block('UNFUNDED (beyond both lanes)', svcSum(() => true, 'beyond'), 'Disc');
+    block('ASK NOT ALLOCATED', svcSum(() => true, 'trim'), 'Disc');
+    block('TOTAL UNFUNDED', svcSum(() => true, 'unf'), 'Disc');
+    block('UNFUNDED vs DISC', svcSum(() => true, 'du'), 'Disc');
+  }
+
+  // ---- every PMO tab: its four portion sections and its obligation report, every requirement, service and month
+  {
+    const PORTION = { 'Disc portion': ['d', v => v.dT > 0.005], 'Mand portion': ['m', v => v.mT > 0.005],
+      'MC requirement (memo — not additive)': ['ask', v => v.mc && v.duT > 0.005], 'Total Unfunded (delta + beyond lanes)': ['unf', v => v.unfT > 0.005] };
+    const decIdx = 2;                                     // A's award: December, FYMON[2]
+    const grps = [...new Set(ids.map(id => R[id].grp))];
+    grps.forEach(g => {
+      const rows = bk['PMO ' + g] || [], mem = ids.filter(id => R[id].grp === g);
+      chk(name, 'PMO ' + g, 'the tab is in the workbook', rows.length > 0, true);
+      Object.keys(PORTION).forEach(amt => {
+        const [k, pick] = PORTION[amt], h = w6Hdrs(rows, 'Rank', amt)[0], want = mem.filter(id => pick(R[id]));
+        if (h === undefined) { chk(name, 'PMO ' + g + ' · ' + amt, 'the section is there when the office has such a requirement', want.length, 0); return; }
+        const tc = w6ColLike(rows, h, /^Requirement/), got = [];
+        for (let j = h + 1; j < rows.length && !/^Subtotal/.test(w6Lbl(rows[j])) && w6Lbl(rows[j]); j++) {
+          const id = ids.find(x => R[x].title === String(rows[j][tc] ?? '').trim()); if (!id) continue; got.push(id);
+          chk(name, 'PMO ' + g + ' · ' + id, amt, cell(rows, h, rows[j], amt), w6S(R[id][k]));
+          SV.forEach((sv, i) => chk(name, 'PMO ' + g + ' · ' + id, amt + ' — ' + sv, cell(rows, h, rows[j], sv), R[id][k][i]));
+        }
+        chk(name, 'PMO ' + g + ' · ' + amt, 'lists exactly its requirements', got.sort().join(','), want.sort().join(','));
+      });
+      const h = w6Hdrs(rows, 'Rank', 'Total (Disc+Mand)')[0];
+      chk(name, 'PMO ' + g, 'the obligation report is on the tab', h !== undefined, true);
+      if (h === undefined) return;
+      const tc = w6ColLike(rows, h, /^Requirement/), m0 = w6Col(rows, h, 'OCT 26'), un = w6Col(rows, h, 'Unscheduled');
+      chk(name, 'PMO ' + g, 'twelve month columns, then Unscheduled', un - m0, 12);
+      const got = [];
+      for (let j = h + 1; j < rows.length && w6Lbl(rows[j]) && !/^TOTAL/.test(w6Lbl(rows[j])); j++) {
+        const id = ids.find(x => R[x].title === String(rows[j][tc] ?? '').trim()); if (!id) continue; got.push(id);
+        const v = R[id], row = rows[j];
+        const want = { [FY + ' Ask']: v.askT, 'Disc allocated': v.dT, 'Total (Disc+Mand)': v.fT, 'UFR (Unfunded Requirement)': v.unfT };
+        SV.forEach((sv, i) => { want[sv + ' Disc'] = v.d[i]; want[sv + ' Mand'] = v.m[i]; });
+        Object.keys(want).forEach(k => chk(name, 'PMO ' + g + ' · report · ' + id, k, cell(rows, h, row, k), want[k]));
+        // WHERE THE MONEY LANDS, from the fixture's own dates: A's award is in December, nobody else has one
+        for (let k = 0; k < 12; k++) chk(name, 'PMO ' + g + ' · report · ' + id, 'month ' + String(rows[h][m0 + k]), num(row[m0 + k]), (id === 'A' && k === decIdx) ? v.fT : 0);
+        chk(name, 'PMO ' + g + ' · report · ' + id, 'Unscheduled', num(row[un]), id === 'A' ? 0 : v.fT);
+      }
+      chk(name, 'PMO ' + g + ' · report', 'every funded requirement of the office is a row', got.sort().join(','), mem.filter(id => R[id].fT > 0.005).sort().join(','));
+    });
+  }
+
+  // ---- CR Cash Needs: every requirement line under every service, window by window
+  {
+    const cr = bk['CR Cash Needs'] || [], h = w6Hdrs(cr, 'Service / Requirement', 'No date')[0];
+    const tw = w6Col(cr, h, 'TOTAL IN WINDOW');
+    SV.forEach((sv, i) => {
+      const at = cr.findIndex((r, j) => j > h && w6Lbl(r) === sv);
+      const lines = [];
+      for (let j = at + 1; j < cr.length && /^#/.test(w6Lbl(cr[j])); j++) lines.push(cr[j]);
+      const fa = R.A.f[i];
+      chk(name, 'CR Cash Needs · ' + sv, 'one requirement line when A is funded here, none otherwise', lines.length, fa > 0.005 ? 1 : 0);
+      lines.forEach(row => {
+        chk(name, 'CR Cash Needs · ' + sv, 'the line is A’s', /^#1 /.test(w6Lbl(row)), true);
+        for (let w = 0; w < 12; w++) chk(name, 'CR Cash Needs · ' + sv + ' · A', 'window ' + (w + 1), num(row[1 + w]), w === 4 ? fa : 0);
+        chk(name, 'CR Cash Needs · ' + sv + ' · A', 'TOTAL IN WINDOW', num(row[tw]), fa);
+      });
+    });
+  }
+
+  // ---- the RCN-EEIC and SI Codes month sheets: every service block, month by month; the requirement lines
+  {
+    const decIdx = 2;
+    const sheets = JSON.parse(X.ev(`JSON.stringify({'RCN-EEIC by Month':RCN_SVCS.map(function(s){ return [s,s]; }), 'SI Codes by Month':CR_SVCS.map(function(s){ return [s, crSvcName(s)]; })})`));
+    Object.keys(sheets).forEach(sn => {
+      const rows = bk[sn] || [];
+      chk(name, sn, 'the sheet is in the workbook', rows.length > 0, true);
+      sheets[sn].forEach(([sv, lab]) => {
+        const i = SV.indexOf(sv); if (i < 0) return;
+        const want = Array(12).fill(0); want[decIdx] = R.A.f[i];
+        const nod = w6S(ids.filter(id => id !== 'A').map(id => R[id].f[i]));
+        chk(name, sn + ' · ' + lab, 'the service’s TOTAL rows are on the sheet (a block, and on RCN its requirement section)',
+          rows.filter(row => w6Lbl(row) === lab + ' TOTAL').length, sn === 'RCN-EEIC by Month' ? 2 : 1);
+        rows.forEach((row, j) => { if (w6Lbl(row) !== lab + ' TOTAL') return;
+          for (let k = 0; k < 12; k++) chk(name, sn + ' · ' + lab + ' (row ' + j + ')', 'month ' + (k + 1), num(row[1 + k]), want[k]);
+          chk(name, sn + ' · ' + lab + ' (row ' + j + ')', 'NO DATE', num(row[13]), nod);
+          chk(name, sn + ' · ' + lab + ' (row ' + j + ')', 'TOTAL', num(row[14]), want[decIdx] + nod); });
+      });
+      if (sn !== 'RCN-EEIC by Month') return;
+      // WHICH REQUIREMENTS SIT UNDER EACH COMBINATION: a line per funded requirement, the unfunded asks listed below
+      sheets[sn].forEach(([sv]) => {
+        const i = SV.indexOf(sv);
+        const h = rows.findIndex((r, j) => j > 0 && w6Lbl(r) === sv && /^Combination/.test(w6Lbl(rows[j + 1])));
+        chk(name, sn + ' · ' + sv, 'the requirement section is there', h > 0, true);
+        if (h <= 0) return;
+        const hh = h + 1, fa = w6Col(rows, hh, FY + ' Ask');
+        const funded = [], unfunded = [];
+        let notFunded = false;
+        for (let j = hh + 1; j < rows.length && w6Lbl(rows[j]) !== SV[i + 1] && !(j > hh + 1 && /^Combination/.test(w6Lbl(rows[j]))); j++) {
+          const lb = w6Lbl(rows[j]); if (/^NOT FUNDED/.test(lb)) notFunded = true;
+          const mt = /^#(\d+)\s+(.*)$/.exec(lb); if (!mt) continue;
+          const id = ids.find(x => R[x].rank === +mt[1]); if (!id) continue;
+          (notFunded ? unfunded : funded).push(id);
+          chk(name, sn + ' · ' + sv + ' · ' + id, FY + ' Ask', num(rows[j][fa]), R[id].ask[i]);
+          if (notFunded) continue;
+          for (let k = 0; k < 12; k++) chk(name, sn + ' · ' + sv + ' · ' + id, 'month ' + (k + 1), num(rows[j][1 + k]), (id === 'A' && k === decIdx) ? R[id].f[i] : 0);
+          chk(name, sn + ' · ' + sv + ' · ' + id, 'NO DATE', num(rows[j][13]), id === 'A' ? 0 : R[id].f[i]);
+        }
+        chk(name, sn + ' · ' + sv, 'a line for every requirement funded on the service', funded.sort().join(','), ids.filter(id => R[id].f[i] > 0.005).sort().join(','));
+        chk(name, sn + ' · ' + sv, 'and every unfunded ask on it listed below', unfunded.sort().join(','), ids.filter(id => R[id].f[i] <= 0.005 && R[id].ask[i] > 0.005).sort().join(','));
+      });
+    });
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W6.2 THE PRIORITY DRILL, THE DECK AND THE EXECUTIVE SYNOPSIS — every requirement and service ═════════
+await (async () => {
+  const name = 'W6 — the priority drill, the deck and the synopsis: every requirement, service and lane';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = w6Fresh(), G = boardFigures(X.ev), meta = w6Meta(X.ev);
+  const { R, ids, svcSum } = w6Truth(G, meta), SV = G.svc, FY = X.ev('FYL()');
+  const cell = (rows, h, row, col) => { const c = w6Col(rows, h, col); return c < 0 ? 'no column ' + col : num((row || [])[c]); };
+  const grps = [...new Set(ids.map(id => R[id].grp))];
+  // ---- the Priority Drill, read back from its bytes
+  const dk = JSON.parse(await w6Book(X.w, 'exportCSV'));
+  chk(name, 'drill', 'the priority drill builds and reads back', dk.__err || 'ok', 'ok');
+  const reqRow = (rows, v) => {
+    const h = w6Hdrs(rows, 'Rank', 'Funded').filter(x => rows.slice(x + 1).some(r => (r || []).some(c => String(c ?? '').trim() === v.title)))[0];
+    const tc = h === undefined ? -1 : w6ColLike(rows, h, /^Requirement/);
+    return { h, row: h === undefined ? null : rows.slice(h + 1).find(r => String((r || [])[tc] ?? '').trim() === v.title) };
+  };
+  const drillRow = (rows, where, id) => {
+    const v = R[id], { h, row } = reqRow(rows, v);
+    chk(name, where + ' · ' + id, 'the requirement is a row', !!row, true); if (!row) return;
+    const want = { [FY + ' Requirement']: v.askT, Allocated: v.basisT, Discretionary: v.dT, Mandatory: v.mT, Funded: v.fT, Unfunded: v.unfT, 'Unfunded vs DISC': v.duT };
+    SV.forEach((sv, i) => { want[sv + ' funded'] = v.f[i]; });
+    Object.keys(want).forEach(k => chk(name, where + ' · ' + id, k, cell(rows, h, row, k), want[k]));
+  };
+  ids.forEach(id => drillRow(dk['1-N by Band'] || [], '1-N by Band', id));
+  grps.forEach(g => {
+    const rows = dk[g] || [], mem = ids.filter(id => R[id].grp === g);
+    mem.forEach(id => drillRow(rows, 'drill tab ' + g, id));
+    const h = w6Hdrs(rows, 'Rank', 'Funded')[0], all = rows.find(r => w6Lbl(r) === g + ' — all bands');
+    [[FY + ' Requirement', 'askT'], ['Discretionary', 'dT'], ['Mandatory', 'mT'], ['Funded', 'fT'], ['Unfunded', 'unfT'], ['Unfunded vs DISC', 'duT']]
+      .forEach(([k, f]) => chk(name, 'drill tab ' + g, g + ' — all bands: ' + k, cell(rows, h, all, k), w6S(mem.map(id => R[id][f]))));
+  });
+  {
+    const sm = dk.Summary || [], ba = sm.findIndex(r => w6Lbl(r) === 'BUDGET AUTHORITY');
+    const hb = sm[ba] || [], vb = sm[ba + 1] || [];
+    const at = k => hb.findIndex(c => String(c ?? '').trim() === k);
+    chk(name, 'drill Summary', 'budget authority: discretionary, mandatory, whole', [num(vb[at('Discretionary')]), num(vb[at('Mandatory')]), num(vb[at('Whole budget')])].join('|'),
+      [w6S(G.discBA), w6S(G.mandBA), w6S(G.discBA) + w6S(G.mandBA)].join('|'));
+    const h = w6Hdrs(sm, 'Band', 'Band name', 'Reqs')[0];
+    [['1', id => R[id].band === 1], ['—', id => R[id].band === null]].forEach(([lbl, pick]) => {
+      const row = sm.find((r, j) => j > h && w6Lbl(r) === lbl), mem = ids.filter(pick);
+      [['Reqs', mem.length], [FY + ' Requirement', w6S(mem.map(id => R[id].askT))], ['Discretionary', w6S(mem.map(id => R[id].dT))], ['Mandatory', w6S(mem.map(id => R[id].mT))],
+       ['Funded', w6S(mem.map(id => R[id].fT))], ['Unfunded', w6S(mem.map(id => R[id].unfT))]].forEach(([k, want]) => chk(name, 'drill Summary · band ' + lbl, k, cell(sm, h, row, k), want));
+    });
+    const hp = w6Hdrs(sm, 'PMO', 'unbanded', 'TOTAL')[0];
+    grps.forEach(g => { const row = sm.find((r, j) => j > hp && w6Lbl(r) === g), mem = ids.filter(id => R[id].grp === g);
+      chk(name, 'drill Summary · funded by PMO and band', g + ': Band 1', cell(sm, hp, row, 'Band 1'), w6S(mem.filter(id => R[id].band === 1).map(id => R[id].fT)));
+      chk(name, 'drill Summary · funded by PMO and band', g + ': unbanded', cell(sm, hp, row, 'unbanded'), w6S(mem.filter(id => R[id].band === null).map(id => R[id].fT)));
+      chk(name, 'drill Summary · funded by PMO and band', g + ': TOTAL', cell(sm, hp, row, 'TOTAL'), w6S(mem.map(id => R[id].fT))); });
+  }
+  // ---- the deck: the stream table service by service, both lanes and both pots; the PMO and unfunded slides line by line
+  {
+    X.ev(`globalThis.__w6t=[]; if(!globalThis.__w6oT) globalThis.__w6oT=_pTbl; if(!globalThis.__w6oB) globalThis.__w6oB=buildPptx;
+      _pTbl=function(){ var a=arguments; globalThis.__w6t.push(a[a.length-1]); return ''; }; buildPptx=function(){ return new Uint8Array(0); };
+      try{ exportPPT(); } finally { _pTbl=globalThis.__w6oT; buildPptx=globalThis.__w6oB; } 'ok'`);
+    const tables = JSON.parse(X.ev('JSON.stringify(globalThis.__w6t)'));
+    const ct = c => String((c && typeof c === 'object') ? (c.t ?? c.v ?? '') : (c ?? '')).trim();
+    const fSM = v => X.ev(`fSM(${v})`), show = v => v > 0.5 ? fSM(v) : '—';
+    const tbl = pred => tables.find(t => { try { return pred((t || []).map(r => (r || []).map(ct))); } catch { return false; } }) || [];
+    const at = (t, k) => ((t[0] || []).map(ct)).indexOf(k);
+    const st = tbl(t => t[0][0] === 'Service' && t[0].includes('Disc Funded'));
+    const sk = { [FY + ' Ask']: svcSum(() => true, 'ask'), 'Disc BA': G.discBA, 'Disc Funded': svcSum(() => true, 'd'), 'Mand BA': G.mandBA,
+      'Mand Drawn': svcSum(() => true, 'm'), 'Unf vs DISC': svcSum(() => true, 'du'), 'TOTAL Unf': svcSum(() => true, 'unf') };
+    SV.forEach((sv, i) => { const row = st.find(r => ct(r[0]) === sv) || [];
+      Object.keys(sk).forEach(k => chk(name, 'deck · Funding by Stream · ' + sv, k, ct(row[at(st, k)]), fSM(sk[k][i]))); });
+    const pt = tbl(t => t[0][0] === 'PMO' && t[0].includes('★ MC req'));
+    grps.forEach(g => { const row = pt.find(r => ct(r[0]) === g) || [], mem = ids.filter(id => R[id].grp === g);
+      [[FY + ' Ask', w6S(mem.map(id => R[id].askT)), fSM], ['Discretionary', w6S(mem.map(id => R[id].dT)), fSM], ['Mandatory', w6S(mem.map(id => R[id].mT)), fSM],
+       ['Unfunded', w6S(mem.map(id => R[id].unfT)), show], ['★ MC req', w6S(mem.filter(id => R[id].mc).map(id => R[id].askT)), show],
+       ['★ MC short', w6S(mem.filter(id => R[id].mc).map(id => R[id].duT)), show]]
+        .forEach(([k, want, f]) => chk(name, 'deck · Funding by PMO · ' + g, k, ct(row[at(pt, k)]), f(want))); });
+    const ut = tbl(t => t.some(r => /^TOTAL UNFUNDED/.test(r[2] || '')));
+    const listed = ut.filter(r => ids.some(id => R[id].ev === ct(r[2])));
+    chk(name, 'deck · Unfunded', 'lists every requirement still short, and only those', listed.map(r => ids.find(id => R[id].ev === ct(r[2]))).sort().join(','),
+      ids.filter(id => R[id].unfT > 0.005).sort().join(','));
+    listed.forEach(r => { const id = ids.find(x => R[x].ev === ct(r[2]));
+      chk(name, 'deck · Unfunded · ' + id, FY + ' Ask', ct(r[at(ut, FY + ' Ask')]), fSM(R[id].askT));
+      chk(name, 'deck · Unfunded · ' + id, 'Unfunded', ct(r[at(ut, 'Unfunded')]), fSM(R[id].unfT)); });
+  }
+  // ---- the Executive Funding Synopsis, read off the CSV it writes
+  {
+    X.ev(`globalThis.__w6csv=''; var oB=Blob; Blob=function(p){ globalThis.__w6csv=String((p&&p[0])||''); return new oB(p); };
+      try{ execSynopsis(); } finally { Blob=oB; } 'ok'`);
+    const csv = X.ev('globalThis.__w6csv').replace(/^﻿/, '').split('\r\n').map(line => { const out = []; let cur = '', q = false;
+      for (let k = 0; k < line.length; k++) { const c = line[k];
+        if (q) { if (c === '"') { if (line[k + 1] === '"') { cur += '"'; k++; } else q = false; } else cur += c; }
+        else if (c === '"') q = true; else if (c === ',') { out.push(cur); cur = ''; } else cur += c; }
+      out.push(cur); return out; });
+    const nums = r => (r || []).map(x => String(x).trim() === '' ? null : Number(x));
+    const after = re => csv.findIndex(r => re.test(String(r[0] || '')));
+    const dN = ids.filter(id => R[id].dT > 0.005), fN = ids.filter(id => R[id].fT > 0.005), uN = ids.filter(id => R[id].unfT > 0.005);
+    const d = svcSum(() => true, 'd'), m = svcSum(() => true, 'm'), f = svcSum(() => true, 'f');
+    const line = (lab) => csv.find(r => String(r[0] || '').trim() === lab || String(r[1] || '').trim() === lab) || [];
+    chk(name, 'synopsis', 'budget authority: discretionary, mandatory, whole', [line('Discretionary Budget Authority')[2], line('Mandatory Budget Authority')[2], line('Whole Budget')[2]].map(Number).join('|'),
+      [w6S(G.discBA), w6S(G.mandBA), w6S(G.discBA) + w6S(G.mandBA)].join('|'));
+    const s1 = after(/^1 — FUNDED WITH DISCRETIONARY /);
+    chk(name, 'synopsis · discretionary', 'requirements touched, the total, and each service', JSON.stringify(nums(csv[s1 + 2]).slice(1)), JSON.stringify([dN.length, w6S(d), ...d]));
+    chk(name, 'synopsis · discretionary', 'remaining across the lanes', Number(line('Discretionary remaining across lanes')[2]), w6S(G.discBA.map((b, i) => Math.max(0, b - d[i]))));
+    const s2 = after(/^2 — FUNDED WITH DISCRETIONARY \+ MANDATORY/);
+    chk(name, 'synopsis · both lanes', 'requirements funded, the total, and each service', JSON.stringify(nums(csv[s2 + 2]).slice(1)), JSON.stringify([fN.length, w6S(f), ...f]));
+    chk(name, 'synopsis · mandatory', 'drawn from mandatory, the total and each service', JSON.stringify(nums(csv[s2 + 3]).slice(2)), JSON.stringify([w6S(m), ...m]));
+    chk(name, 'synopsis · mandatory', 'remaining across the lanes', Number(line('Mandatory remaining across lanes')[2]), w6S(G.mandBA.map((b, i) => Math.max(0, b - m[i]))));
+    const mc = ids.filter(id => R[id].mc), mcAsk = svcSum(id => R[id].mc, 'ask'), mcDu = svcSum(id => R[id].mc, 'du');
+    const mr = csv.find(r => String(r[1] || '').trim() === '★ MC requirements') || [];
+    chk(name, 'synopsis · mission critical', 'count, value and each service', JSON.stringify([Number(mr[2]), ...nums(mr).slice(5)]), JSON.stringify([mc.length, w6S(mcAsk), ...mcAsk]));
+    const sr = csv.find(r => /short of the discretionary lane/.test(String(r[1] || ''))) || [];
+    chk(name, 'synopsis · mission critical', 'short of discretionary, the total and each service', JSON.stringify(nums(sr).slice(5)), JSON.stringify([w6S(mcDu), ...mcDu]));
+    chk(name, 'synopsis · mission critical', 'PROGRAM FLOOR', Number((csv.find(r => /PROGRAM FLOOR/.test(String(r[1] || ''))) || [])[3]), w6S(G.discBA) + w6S(mcDu));
+    const hi = csv.findIndex(r => String(r[1] || '') === 'Rank' && String(r[3] || '') === 'Requirement');
+    const items = csv.slice(hi + 1).filter(r => /^\d+$/.test(String(r[1] || '').trim()));
+    chk(name, 'synopsis · mission critical', 'a line for every starred requirement still short', items.map(r => ids.find(id => R[id].rank === +r[1])).sort().join(','),
+      mc.filter(id => R[id].duT > 0.005).sort().join(','));
+    items.forEach(r => { const id = ids.find(x => R[x].rank === +r[1]);
+      chk(name, 'synopsis · mission critical · ' + id, 'PMO, value, short and each service', JSON.stringify([r[2], ...nums(r).slice(4)]), JSON.stringify([R[id].grp, R[id].askT, R[id].duT, ...R[id].du])); });
+    const ur = csv.find(r => String(r[1] || '').trim() === 'Requirements with unfunded portions') || [];
+    chk(name, 'synopsis · unfunded', 'count and total, floored per service', Number(ur[2]) + '|' + Number(ur[5]), uN.length + '|' + w6S(ids.map(id => R[id].unfT)));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W6.3 TRIM ABSORPTION — every requirement and service, by a walk written here ═════════════════════════
+// The board suite holds trimAbsorb to its identities (trim = take + beyond, the lane never overdrawn, the
+// earliest row first). This holds every figure to a walk done here from the fixture: the lanes as the walk
+// leaves them, then each trim in priority order taking what its own service's lane still has.
+await (async () => {
+  const name = 'W6 — trim absorption: every requirement and service, from the fixture';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const SVx = ['USAF', 'ANG', 'AFRC'];
+  const sc2 = { services: SVx,
+    items: [it('A', 'ATL', [100, 50, 40]), it('B', 'PSM', [80, 30, 20]), it('C', 'AV', [400, 20, 60]), it('D', 'MxS', [40, 10, 10]), it('E', 'TSS', [30, 25, 0])],
+    disc: [200, 125, 85], mand: [0, 0, 0], order: ['A', 'B', 'C', 'D', 'E'],
+    alloc: { A: { m: 's', v: [70, 40, 30] }, B: { m: 's', v: [50, 20, 10] }, C: { m: 's', v: [30, 10, 20] }, E: { m: 's', v: [10, 5, 0] } } };
+  const X = boot(); seed(X.ev, sc2);
+  // the walk, here: each service's lane pays each allocation in order until it is dry
+  const rem = sc2.disc.slice(), basis = {}, trim = {};
+  sc2.order.forEach(id => { const a = sc2.items.find(x => x.id === id).ask, al = (sc2.alloc[id] || {}).v || a;
+    basis[id] = a.map((v, i) => Math.min(v, al[i])); trim[id] = a.map((v, i) => Math.max(0, v - basis[id][i]));
+    basis[id].forEach((b, i) => { rem[i] -= Math.min(b, Math.max(0, rem[i])); }); });
+  const start = rem.slice(), left = rem.slice(), take = {};
+  sc2.order.forEach(id => { take[id] = trim[id].map((t, i) => { const k = Math.min(t, Math.max(0, left[i])); left[i] -= k; return k; }); });
+  const listed = sc2.order.filter(id => w6S(trim[id]) > 0.005);
+  chk(name, 'fixture', 'two services have lane left, so the order and the per-service rule both matter', start.filter(v => v > 0).length, 2);
+  chk(name, 'fixture', 'several trimmed rows take from one lane, and one of them only in part',
+    listed.filter(id => take[id][1] > 0).length + ':' + listed.some(id => SVx.some((_, i) => take[id][i] > 0 && trim[id][i] - take[id][i] > 0)), '4:true');
+  const A = JSON.parse(X.ev(`(function(){ var A=trimAbsorb(tiers()); return JSON.stringify({start:A.start, left:A.left, taken:A.taken,
+    rows:A.rows.map(function(x){ return {id:x.id, trim:x.trim, take:x.take, beyond:x.beyond}; })}); })()`));
+  chk(name, 'lane', 'what each service’s lane still holds after the walk', JSON.stringify(A.start), JSON.stringify(start));
+  chk(name, 'lane', 'and what it holds once the trims have taken their share', JSON.stringify(A.left), JSON.stringify(left));
+  chk(name, 'lane', 'taken, per service', JSON.stringify(A.taken), JSON.stringify(start.map((s, i) => s - left[i])));
+  chk(name, 'rows', 'every trimmed requirement, in priority order', A.rows.map(r => r.id).join(','), listed.join(','));
+  A.rows.forEach(r => SVx.forEach((sv, i) => {
+    chk(name, r.id + ' · ' + sv, 'trimmed by', r.trim[i], trim[r.id][i]);
+    chk(name, r.id + ' · ' + sv, 'could be funded now from the lane', r.take[i], take[r.id][i]);
+    chk(name, r.id + ' · ' + sv, 'still beyond the lane', r.beyond[i], trim[r.id][i] - take[r.id][i]);
+  }));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W6.4 THE FUNDS FLOW — every appropriation, and every requirement and service on its detail sheets ═════
+await (async () => {
+  const name = 'W6 — the funds flow: every appropriation, requirement and service, and another plan year';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = w6Fresh(), G = boardFigures(X.ev), meta = w6Meta(X.ev);
+  const { R, ids } = w6Truth(G, meta), SV = G.svc;
+  const own = X.ev('mySlug()'), slugs = JSON.parse(X.ev('JSON.stringify(APPN_SLUGS)')), lbl = JSON.parse(X.ev('JSON.stringify(APPN_LBL)'));
+  const funded = w6S(ids.map(id => R[id].fT));
+  const F = JSON.parse(X.ev(`JSON.stringify(flowCalc(MS.cur).appn)`));
+  chk(name, 'appropriation', 'the board’s own appropriation carries every funded dollar, the others none (no execution imported)',
+    JSON.stringify(slugs.map(s => F[s])), JSON.stringify(slugs.map(s => s === own ? funded : 0)));
+  const wb = JSON.parse(await w6Book(X.w, 'exportFlow'));
+  chk(name, 'workbook', 'the funds flow builds and reads back', wb.__err || 'ok', 'ok');
+  const ff = Object.values(wb).find(rs => (rs || []).some(r => w6Lbl(r) === 'US SERVICE FUNDING')) || [];
+  const ha = ff.findIndex(r => w6Lbl(r) === 'Appropriation' && String((r || [])[1] ?? '') === 'Amount');
+  slugs.forEach(s => chk(name, 'workbook · by appropriation', lbl[s], num((ff.find((r, j) => j > ha && w6Lbl(r) === lbl[s]) || [])[1]), s === own ? funded : 0));
+  // the detail: one line per requirement per service that carries money, on exactly one of the two lists
+  const lines = rows => (rows || []).slice(1).filter(r => r && w6Lbl(r)).map(r => ({ t: String(r[0]), ap: String(r[2]), pmo: String(r[3]), sv: String(r[4]), v: num(r[5]) }));
+  const key = l => l.t + '|' + l.sv;
+  const want = {}; ids.forEach(id => SV.forEach((sv, i) => { if (R[id].f[i] > 0) want[R[id].title + '|' + sv] = { id, v: R[id].f[i], pmo: R[id].grp }; }));
+  const P = lines(wb['Prime Detail']), O = lines(wb['OGC Detail']);
+  chk(name, 'detail', 'every requirement-and-service line is on Prime Detail or OGC Detail, once', P.concat(O).map(key).sort().join(','), Object.keys(want).sort().join(','));
+  P.concat(O).forEach(l => { const w = want[key(l)]; if (!w) return;
+    chk(name, 'detail · ' + w.id + ' · ' + l.sv, 'amount, appropriation and office', [l.v, l.ap, l.pmo].join('|'), [w.v, lbl[own], w.pmo].join('|')); });
+  chk(name, 'detail', 'the primes are the lines of B and D, the requirements the LM and PW rules name', [...new Set(P.map(l => want[key(l)] && want[key(l)].id))].sort().join(','), 'B,D');
+  const cats = Object.keys(wb).filter(k => !['Funds Flow', 'Prime Detail', 'OGC Detail'].includes(k));
+  chk(name, 'detail', 'each OGC line sits on exactly one category sheet', cats.reduce((a, k) => a.concat(lines(wb[k])), []).map(key).sort().join(','), O.map(key).sort().join(','));
+  // ANOTHER PLAN YEAR is answered from THAT year's own state: next year A asks twice as much; the flow for it is the
+  // lane walk of next year, requirement by requirement, and this year's flow does not move
+  const A1 = [18000000, 4000000, 2000000, 8000000, 3000000, 5000002];
+  X.ev(`MS.years[MS.cur]=S; var y1=JSON.parse(JSON.stringify(S)); y1.asks=Object.assign({}, y1.asks||{}, {A:${JSON.stringify(A1)}}); delete y1.pmoOrder; MS.years[MS.cur+1]=y1; save(); 'ok'`);
+  const E1 = JSON.parse(X.ev(`aceWithYear(MS.cur+1, function(){ var T=tiers(), o={}; S.order.forEach(function(id){ var p=T[id]; o[id]=SVC.map(function(_,i){ return (p.d[i]||0)+(p.m[i]||0); }); }); return JSON.stringify(o); })`));
+  const f1 = w6S(Object.values(E1).map(w6S));
+  chk(name, 'next year', 'the fixture: the lanes bind, so next year funds the same total but A takes more of it',
+    (f1 === funded) + ' ' + (w6S(E1.A) > R.A.fT) + ' ' + ids.some(id => id !== 'A' && w6S(E1[id]) < R[id].fT), 'true true true');
+  chk(name, 'next year', 'flowCalc for next year is next year’s lane walk, and this year’s is unchanged',
+    X.ev(`flowCalc(MS.cur+1).tot+'|'+flowCalc(MS.cur+1).appn[mySlug()]+'|'+flowCalc(MS.cur).tot`), [f1, f1, funded].join('|'));
+  X.ev(`flowFy=MS.cur+1; 'ok'`);
+  const wb1 = JSON.parse(await w6Book(X.w, 'exportFlow'));
+  X.ev(`flowFy=MS.cur; 'ok'`);
+  const ff1 = Object.values(wb1).find(rs => (rs || []).some(r => w6Lbl(r) === 'US SERVICE FUNDING')) || [];
+  chk(name, 'next year · workbook', 'US SERVICE FUNDING is next year’s funded topline', num((ff1.find(r => w6Lbl(r) === 'US SERVICE FUNDING') || [])[1]), f1);
+  const want1 = {}; ids.forEach(id => SV.forEach((sv, i) => { if (E1[id][i] > 0) want1[R[id].title + '|' + sv] = E1[id][i]; }));
+  const L1 = lines(wb1['Prime Detail']).concat(lines(wb1['OGC Detail']));
+  chk(name, 'next year · workbook', 'every requirement-and-service line, at next year’s figure', JSON.stringify(L1.map(l => [key(l), l.v]).sort()), JSON.stringify(Object.keys(want1).map(k => [k, want1[k]]).sort()));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W6.5 MISSION CRITICAL BY SERVICE — mcCalc and the scoreboard tile that prints it ═════════════════════
+await (async () => {
+  const name = 'W6 — mission critical by service: mcCalc and the scoreboard';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = w6Fresh(), G = boardFigures(X.ev), meta = w6Meta(X.ev);
+  const { R, svcSum } = w6Truth(G, meta), SV = G.svc;
+  const tot = svcSum(id => R[id].mc, 'ask'), need = svcSum(id => R[id].mc, 'du');
+  const M = JSON.parse(X.ev(`JSON.stringify(mcCalc(tiers()).bySvc)`));
+  SV.forEach((sv, i) => chk(name, 'mcCalc · ' + sv, 'must-pay value, need above discretionary, and the lane’s BA',
+    [M[i].s, M[i].tot, M[i].need, M[i].ba].join('|'), [sv, tot[i], need[i], G.discBA[i]].join('|')));
+  chk(name, 'fixture', 'more than one service has an MC need', need.filter(v => v > 0.5).length > 1, true);
+  const tip = X.ev(`(function(){ render(); var e=document.querySelector('#scores .sc.mc .sub'); return e? e.getAttribute('title')||'' : ''; })()`);
+  const fM = v => X.ev(`fM(${v})`);
+  SV.forEach((sv, i) => {
+    const seg = tip.split(' · ').find(s => s.startsWith(sv + ':')) || '';
+    chk(name, 'scoreboard · ' + sv, 'the tile states its must-pay, its BA and its need', seg,
+      sv + ': must-pay ' + fM(tot[i]) + ' vs disc BA ' + fM(G.discBA[i]) + (need[i] > 0.5 ? ' → need ' + fM(need[i]) : (tot[i] > G.discBA[i] ? ' (lane not spent out — no need)' : '')));
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W6.6 A LOCK KEEPS EACH LANE APART, THE COMPARISON STATES BOTH POTS, THE VIEW IS THE LOCK ═════════════
+await (async () => {
+  const name = 'W6 — a lock keeps each lane apart, the comparison states both pots, and the view is the lock';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const SVx = ['USAF', 'ANG', 'AFRC'];
+  const X = boot();
+  seed(X.ev, { services: SVx, items: [it('A', 'PSM', [900, 200, 100]), it('B', 'ATL', [300, 50, 25]), it('C', 'TSS', [120, 30, 15])],
+    disc: [800, 150, 60], mand: [300, 60, 40], order: ['A', 'B', 'C'] });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  const T0 = JSON.parse(X.ev(`(function(){ var T=tiers(), o={}; S.order.forEach(function(id){ o[id]={d:T[id].d.slice(), m:T[id].m.slice()}; }); return JSON.stringify(o); })()`));
+  chk(name, 'fixture', 'A draws both lanes on every service; B only mandatory', JSON.stringify([T0.A.d.every(v => v > 0) && T0.A.m.every(v => v > 0), w6S(T0.B.d), w6S(T0.B.m) > 0]), '[true,0,true]');
+  X.ev(`blCyc='PB'; blYr=MS.cur; cycLock(); 'ok'`);
+  const key = 'PB|' + X.ev('MS.cur');
+  const P = JSON.parse(X.ev(`JSON.stringify(blGet('${key}').proj[MS.cur].reqs.map(function(r){ return {id:r.id, d:r.d, m:r.m}; }))`));
+  ['A', 'B', 'C'].forEach(id => { const p = P.find(r => r.id === id) || { d: [], m: [] };
+    chk(name, 'lock · ' + id, 'discretionary by service, as the lane walk drew it', JSON.stringify(p.d), JSON.stringify(T0[id].d));
+    chk(name, 'lock · ' + id, 'mandatory by service, as the lane walk drew it', JSON.stringify(p.m), JSON.stringify(T0[id].m)); });
+  // the working plan moves both pots (held in the budget mix, which the pots are derived from); the comparison's
+  // Changes sheet states each pot, A, B and the difference
+  X.ev(`S.bm.disc[1]+=7000; S.bm.mand[2]+=3000; applyState(S); MS.years[MS.cur]=S; save(); cycCmpA='${key}'; cycCmpB='working'; 'ok'`);
+  const wb = JSON.parse(await w6Book(X.w, 'exportCycCompare'));
+  chk(name, 'workbook', 'the comparison builds and reads back', wb.__err || 'ok', 'ok');
+  const ch = wb.Changes || [], fy = X.ev('FYL()');
+  const pot = lab => (ch.find(r => String((r || [])[0] ?? '') === fy && String((r || [])[1] ?? '') === lab) || []).slice(6, 9).map(num).join(':');
+  chk(name, 'Changes · pots', 'Discretionary BA: A, B and the difference', pot('Discretionary BA'), [1010, 8010, 7000].join(':'));
+  chk(name, 'Changes · pots', 'Mandatory BA: A, B and the difference', pot('Mandatory BA'), [400, 3400, 3000].join(':'));
+  // THE LOCKED VIEW IS THE LOCK. The working plan has moved (pots, and B's requirement below); put the lock on the
+  // drill and every requirement's requirement, discretionary and mandatory, service by service, is the lock's projection
+  X.ev(`S.asks=S.asks||{}; S.asks.B=[350,50,25]; applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  const V = JSON.parse(X.ev(`(function(){ cycView('${key}'); var T=tiers(), o={view:CYCVIEW, pots:[discTot(), mandTot()], rows:{}};
+    S.order.forEach(function(id){ var it=itemById(id); o.rows[id]={ask:it.ask.slice(), d:T[id].d.slice(), m:T[id].m.slice()}; });
+    cycLeave(); o.left=CYCVIEW; return JSON.stringify(o); })()`));
+  const PJ = JSON.parse(X.ev(`JSON.stringify(blGet('${key}').proj[MS.cur])`));
+  chk(name, 'locked view', 'the view opened on the lock and closed again', V.view + '|' + V.left, key + '|');
+  chk(name, 'locked view', 'the pots on the view are the lock’s, not the moved ones', V.pots.join(':'), [w6S(PJ.disc), w6S(PJ.mand)].join(':'));
+  chk(name, 'locked view', 'every requirement on the view, as locked', Object.keys(V.rows).sort().join(','), PJ.reqs.map(r => r.id).sort().join(','));
+  PJ.reqs.forEach(p => { const v = V.rows[p.id] || {};
+    chk(name, 'locked view · ' + p.id, 'requirement, discretionary and mandatory, service by service, are the projection’s', JSON.stringify([v.ask, v.d, v.m]), JSON.stringify([p.ask, p.d, p.m])); });
+  chk(name, 'locked view', 'and B’s requirement on the view is the locked one, not the working plan’s', JSON.stringify((V.rows.B || {}).ask), JSON.stringify([300, 50, 25]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+// ══ W6.7 THE COST-ELEMENT SHEETS — every cost element, service and lane (a board that carries them) ═══════
+// The Cost Element Matrix and CE by PMO appear only on a board with cost elements. audit.mjs holds the
+// matrix's discretionary columns and MC rules in total; this holds every cost element's row, both lanes,
+// every service, and the office lines beneath it, to the lane walk.
+await (async () => {
+  const name = 'W6 — the cost-element sheets: every cost element, service and lane';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const SVx = ['STOVL', 'CV', 'CTOL'];
+  const X = boot();
+  X.ev(`DATA.costElems = true; 'ok'`);
+  seed(X.ev, { services: SVx, items: [it('A', 'ATL', [50, 20, 10]), it('B', 'PSM', [40, 30, 5]), it('C', 'AV', [30, 10, 20]), it('D', 'MxS', [25, 15, 5])],
+    disc: [60, 25, 12], mand: [40, 20, 10], order: ['A', 'B', 'C', 'D'], mc: { C: true, D: true }, alloc: { B: { m: 's', v: [30, 20, 3] } } });
+  X.ev(`S.costElem = {A:'Airframe PGSE', B:'Engine PGSE', C:'Airframe PGSE', D:'Avionics PGSE'}; 'ok'`);
+  const G = boardFigures(X.ev), meta = w6Meta(X.ev);
+  const { R, ids, svcSum } = w6Truth(G, meta);
+  const ce = JSON.parse(X.ev('JSON.stringify(S.costElem)'));
+  const bk = JSON.parse(await workbook(X.w));
+  chk(name, 'workbook', 'the workbook builds and reads back, with both cost-element sheets', [bk.__err || 'ok', !!bk['Cost Element Matrix'], !!bk['CE by PMO']].join(' '), 'ok true true');
+  const cell = (rows, h, row, col) => { const c = w6Col(rows, h, col); return c < 0 ? 'no column ' + col : num((row || [])[c]); };
+  const cm = bk['Cost Element Matrix'] || [], h = w6Hdrs(cm, 'Cost Element', 'TOTAL Disc')[0];
+  [...new Set(Object.values(ce))].forEach(k => {
+    const row = cm.find((r, j) => j > h && w6Lbl(r) === k), mem = ids.filter(id => ce[id] === k);
+    const want = { 'TOTAL Disc': w6S(mem.map(id => R[id].dT)), 'TOTAL Mand': w6S(mem.map(id => R[id].mT)),
+      '★ MC requirement (memo)': w6S(mem.filter(id => R[id].mc).map(id => R[id].askT)), '★ MC short vs Disc': w6S(mem.filter(id => R[id].mc).map(id => R[id].duT)) };
+    SVx.forEach((sv, i) => { want[sv + ' Disc'] = w6S(mem.map(id => R[id].d[i])); want[sv + ' Mand'] = w6S(mem.map(id => R[id].m[i])); });
+    Object.keys(want).forEach(c => chk(name, 'Cost Element Matrix · ' + k, c, cell(cm, h, row, c), want[c]));
+  });
+  const d = svcSum(() => true, 'd'), m = svcSum(() => true, 'm');
+  [['BUDGET AUTHORITY', G.discBA, 'Disc'], ['BUDGET AUTHORITY', G.mandBA, 'Mand'], ['REMAINING', G.discBA.map((b, i) => Math.max(0, b - d[i])), 'Disc'],
+   ['REMAINING', G.mandBA.map((b, i) => Math.max(0, b - m[i])), 'Mand'], ['UNFUNDED (beyond both lanes)', svcSum(() => true, 'beyond'), 'Disc'],
+   ['ASK NOT ALLOCATED', svcSum(() => true, 'trim'), 'Disc'], ['TOTAL UNFUNDED', svcSum(() => true, 'unf'), 'Disc'], ['UNFUNDED vs DISC', svcSum(() => true, 'du'), 'Disc']]
+    .forEach(([lbl, v, lane]) => { const row = cm.find((r, j) => j > h && w6Lbl(r).startsWith(lbl));
+      SVx.forEach((sv, i) => chk(name, 'Cost Element Matrix · ' + lbl, sv + ' ' + lane, cell(cm, h, row, sv + ' ' + lane), v[i])); });
+  const cp = bk['CE by PMO'] || [], hp = w6Hdrs(cp, 'PMO / Cost Element', 'Reqs')[0];
+  const cAmt = re => w6ColLike(cp, hp, re);
+  const COLS = [['Reqs', /^Reqs$/, mem => mem.length], ['FY27 Ask', /Ask$/, mem => w6S(mem.map(id => R[id].askT))], ['Disc portion', /^Disc portion$/, mem => w6S(mem.map(id => R[id].dT))],
+    ['MC requirement', /^★ MC requirement/, mem => w6S(mem.filter(id => R[id].mc).map(id => R[id].askT))], ['MC short', /^★ MC short/, mem => w6S(mem.filter(id => R[id].mc).map(id => R[id].duT))],
+    ['Mand portion', /^Mand portion$/, mem => w6S(mem.map(id => R[id].mT))], ['Unfunded', /^Unfunded/, mem => w6S(mem.map(id => R[id].unfT))]];
+  chk(name, 'CE by PMO', 'every money column is found by its heading', COLS.map(([k, re]) => cAmt(re) >= 0 ? k : 'MISSING ' + k).join(','), COLS.map(([k]) => k).join(','));
+  let office = null, lines = 0;
+  cp.forEach((row, j) => { if (j <= hp) return; const raw = String((row || [])[0] ?? ''), lb = raw.trim(); if (!lb || !COLS.every(([, re]) => cAmt(re) >= 0)) return;
+    const isCe = /^\s/.test(raw); if (!isCe) office = lb;
+    const mem = ids.filter(id => R[id].grp === office && (!isCe || ce[id] === lb));
+    if (!mem.length) return;
+    lines++;
+    COLS.forEach(([k, re, f]) => chk(name, 'CE by PMO · ' + office + (isCe ? ' · ' + lb : ''), k, num(row[cAmt(re)]), f(mem))); });
+  chk(name, 'CE by PMO', 'every office and every cost element under it is a line, and was held to the walk', lines + ':' + cp.filter((r, j) => j > hp && w6Lbl(r) && !/^Disc \+ Mand/.test(w6Lbl(r))).length,
+    (n => n + ':' + n)(new Set(ids.map(id => R[id].grp)).size + new Set(ids.map(id => R[id].grp + '|' + ce[id])).size));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+// ==== end W6 ====
+
+// ==== v1.95 W7: export defects the map found (item 60) ====
+// ITEM 60 — THE FIVE EXPORT DEFECTS THE MONEY MAP FOUND (F1–F5). Each block reads what the export wrote back from its
+// own bytes -- the board's reader (xlsxRead), or the package's parts themselves where the question is how a cell is
+// stored and shown -- and holds every figure TO THE DOLLAR against numbers worked out here from the fixture (a $M
+// cell is scaled to dollars first: compared in $M, the suite's 0.005 would be $5,000). Where the item asks for it,
+// the file is held to the board's own placement as well (the forecast, the CR windows). A check that would pass on
+// v1.94 too is labelled a control. tools/money-map.json cites these scenario names; renaming one fails the map.
+const w7S = a => a.reduce((x, y) => x + y, 0);
+// LARGEST REMAINDER, written here: floor every share, then a dollar each to the biggest fractions, ties to the first
+const w7Lr = (total, w) => { const s = w7S(w), raw = w.map(x => s > 0 ? total * x / s : total / w.length), out = raw.map(Math.floor);
+  let left = total - w7S(out);
+  raw.map((v, i) => ({ i, f: v - Math.floor(v) })).sort((a, b) => (b.f - a.f) || (a.i - b.i)).forEach(o => { if (left > 0) { out[o.i]++; left--; } });
+  return out; };
+// the parts of a whole spread across the offices: each takes lr(total, w) (or tgt), each part by what each still has to take
+const w7Split = (w, parts, tgt) => { const left = tgt ? tgt.slice() : w7Lr(w7S(parts), w);
+  return parts.map(v => { const x = w7Lr(v, left); x.forEach((y, k) => { left[k] -= y; }); return x; }); };
+// THE PACKAGE ITSELF: what an export wrote, part by part, parsed as XML by the board's window. Returns every part's
+// well-formedness, the styles (number formats, cell formats, and the counts each list declares against what it holds)
+// and, per sheet, every number cell as [ref, style, the text stored].
+const w7Pkg = (W, fn) => JSON.parse(W.eval(`(function(){
+  var cap=null,_B=window.Blob,msg='';
+  window.alert=function(m){ msg+=String(m); }; window.confirm=function(){ return true; };
+  window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+  try{ ${fn}(); }catch(e){ window.Blob=_B; return JSON.stringify({err:'threw '+String((e&&e.message)||e)}); }
+  window.Blob=_B; if(!cap) return JSON.stringify({err:'no file: '+msg.slice(0,80)});
+  var u=new Uint8Array(cap.buffer, cap.byteOffset, cap.byteLength), dv=new DataView(u.buffer, u.byteOffset, u.byteLength);
+  var td=new TextDecoder(), parts={}, at=0;
+  while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){
+    var n=dv.getUint16(at+26,true), x=dv.getUint16(at+28,true), sz=dv.getUint32(at+18,true);
+    parts[td.decode(u.subarray(at+30, at+30+n))]=td.decode(u.subarray(at+30+n+x, at+30+n+x+sz)); at+=30+n+x+sz; }
+  var P=new DOMParser(), bad=[], doc={};
+  Object.keys(parts).forEach(function(k){ var d=P.parseFromString(parts[k],'application/xml');
+    if(d.getElementsByTagName('parsererror').length) bad.push(k); doc[k]=d; });
+  var kids=function(e, t){ return e? [].filter.call(e.childNodes, function(c){ return c.nodeName===t; }) : []; };
+  var st=doc['xl/styles.xml'], one=function(t){ return st.getElementsByTagName(t)[0]; };
+  var nf={}; [].forEach.call(st.getElementsByTagName('numFmt'), function(e){ nf[e.getAttribute('numFmtId')]=e.getAttribute('formatCode'); });
+  var xfs=kids(one('cellXfs'),'xf').map(function(e){ return {nf:e.getAttribute('numFmtId')||'0', font:e.getAttribute('fontId')||'0', fill:e.getAttribute('fillId')||'0'}; });
+  var cnt=function(t, c){ var e=one(t); return [e? +e.getAttribute('count') : -1, kids(e, c).length]; };
+  var counts={numFmts:cnt('numFmts','numFmt'), fonts:cnt('fonts','font'), fills:cnt('fills','fill'), cellXfs:cnt('cellXfs','xf')};
+  var fills=kids(one('fills'),'fill').map(function(f){ var c=f.getElementsByTagName('fgColor')[0]; return c? c.getAttribute('rgb') : ''; });
+  var names=[].map.call(doc['xl/workbook.xml'].getElementsByTagName('sheet'), function(e){ return e.getAttribute('name'); });
+  var sheets={};
+  names.forEach(function(nm, i){ var d=doc['xl/worksheets/sheet'+(i+1)+'.xml'], cells=[];
+    if(d) [].forEach.call(d.getElementsByTagName('c'), function(c){ var v=c.getElementsByTagName('v')[0];
+      if(v && !c.getAttribute('t')) cells.push([c.getAttribute('r'), +(c.getAttribute('s')||0), v.textContent]); });
+    sheets[nm]=cells; });
+  return JSON.stringify({bad:bad, nf:nf, xfs:xfs, fills:fills, counts:counts, sheets:sheets}); })()`));
+// What a number cell's format shows: the built-in ids the writer uses, and the codes the package declares
+const w7Fmt = (pk, s) => { const x = (pk.xfs || [])[s]; if (!x) return 'no style ' + s;
+  return ({ 0: 'General', 2: '0.00', 4: '#,##0.00' })[x.nf] || pk.nf[x.nf] || ('id ' + x.nf); };
+const w7Ser = n => new Date((n - 25569) * 86400000).toISOString().slice(0, 10);
+const w7Ok = pk => [pk.err || 'ok', pk.bad && pk.bad.length ? 'unreadable ' + pk.bad.join(',') : 'every part reads',
+  Object.entries(pk.counts || {}).filter(([, c]) => c[0] !== c[1]).map(([k, c]) => k + ' says ' + c[0] + ' holds ' + c[1]).join(';') || 'every count holds'].join(' · ');
+
+// ══ W7.1 F1 — THE $M AND $K FILES: the Two-Plan Forecast month by month and plan by plan, the ATR/BTR log, the 1A9A ═══
+await (async () => {
+  const name = 'W7 — F1: the $M and $K files hold the exact figure, and show it as before';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  // Odd dollars on purpose: $85,069 is 0.09 at two decimals of $M, $124,465 is 124.47 at two of $K. The pots bind,
+  // so PLAN A (discretionary alone) and PLAN B (both pots) differ, and B and C draw both lanes on the board.
+  const SVx = ['STOVL', 'USMC-C', 'USN'], ORD = ['A', 'B', 'C'];
+  const ASK = { A: [123457, 1001, 7], B: [85069, 333, 0], C: [70001, 5003, 11] }, GRP = { A: 'AV', B: 'PSM', C: 'ATL' };
+  const DISC = [150000, 1200, 10], MAND = [100000, 500, 10];
+  const X = boot();
+  seed(X.ev, { services: SVx, items: ORD.map(id => it(id, GRP[id], ASK[id])), disc: DISC, mand: MAND, order: ORD });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.awards={A:{mode:'single', d:FYMON[2][0], day:3}, B:{mode:'single', d:FYMON[0][0], day:20}, C:{mode:'single', d:FYMON[2][0], day:18}};
+    var E=rpAll(); E.length=0;
+    E.push({id:'RP1', ts:1, ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:'', pec:'', bpac:'', title:'W7 odd add', amtM:1.2345, dir:'add', pool:'disc', status:'Pending', remarks:''});
+    E.push({id:'RP2', ts:2, ap:mySlug(), fy:MS.cur, type:'BTR', svc:0, appn:'', pec:'', bpac:'', title:'W7 odd deduct', amtM:0.000101, dir:'deduct', pool:'disc', status:'Pending', remarks:''});
+    E.push({id:'RP3', ts:3, ap:mySlug(), fy:MS.cur, type:'ATR', svc:1, appn:'', pec:'', bpac:'', title:'W7 odd ATR', amtM:2.718281, dir:'add', pool:'mand', status:'Pending', remarks:''});
+    applyState(S); save(); 'ok'`);
+  const MON = { A: 2, B: 0, C: 2 };                    // each award's fiscal month: A and C December, B October
+  // THE TWO PLANS, walked here: each requirement takes its ask, service by service, while the pot lasts
+  const walk = bud => { const rem = bud.slice(), got = {}; ORD.forEach(id => { got[id] = ASK[id].map((v, i) => { const g = Math.max(0, Math.min(v, rem[i])); rem[i] -= g; return g; }); }); return got; };
+  const PLAN = { A: walk(DISC), B: walk(DISC.map((v, i) => v + MAND[i])) };
+  chk(name, 'fixture', 'the pots bind: plan A funds less than plan B, and B is cut in plan A', [w7S(ORD.map(id => w7S(PLAN.A[id]))), w7S(ORD.map(id => w7S(PLAN.B[id]))), w7S(PLAN.A.B) < w7S(ASK.B)].join(' '), '151210 251718 true');
+  const bk = JSON.parse(await workbook(X.w));
+  chk(name, 'workbook', 'the workbook builds and reads back', bk.__err || 'ok', 'ok');
+  const FY = X.ev('FYL()'), MN = JSON.parse(X.ev('JSON.stringify(FYMON.map(function(x){ return x[1]; }))'));
+  const tp = bk[FY + ' Two-Plan Forecast'] || [];
+  chk(name, 'Two-Plan Forecast', 'the sheet is in the workbook', tp.length > 0, true);
+  // a row of the plan as dollars: twelve months, UNSCH, TOTAL
+  const bag = ids => { const m = Array(12).fill(0); ids.forEach(([id, P]) => { m[MON[id]] += w7S(P[id]); }); return m.concat([0, w7S(m)]); };
+  ['A', 'B'].forEach((pl, b) => {
+    const top = tp.findIndex(r => new RegExp('^PLAN ' + pl + ' ').test(w6Lbl(r)));
+    const end = b === 0 ? tp.findIndex((r, j) => j > top && /^PLAN B /.test(w6Lbl(r))) : tp.length;
+    const hs = w6Hdrs(tp.slice(0, end), MN[0], 'UNSCH', 'TOTAL').filter(h => h > top);
+    chk(name, 'Two-Plan Forecast · plan ' + pl, 'its ROLLUP and BY PMO tables are there', hs.length, 2);
+    const P = PLAN[pl], want = [
+      [hs[0], 'Miscellaneous OGC Efforts', bag(ORD.map(id => [id, P]))], [hs[0], 'TOTAL', bag(ORD.map(id => [id, P]))],
+      ...ORD.map(id => [hs[1], GRP[id], bag([[id, P]])]), [hs[1], 'TOTAL', bag(ORD.map(id => [id, P]))]];
+    want.forEach(([h, lbl, v]) => {
+      const row = tp.find((r, j) => j > h && w6Lbl(r) === lbl);
+      chk(name, 'Two-Plan Forecast · plan ' + pl + ' · ' + lbl, 'the row is there', !!row, true); if (!row) return;
+      v.forEach((d, k) => chk(name, 'Two-Plan Forecast · plan ' + pl + ' · ' + lbl, (k < 12 ? MN[k] : (k === 12 ? 'UNSCH' : 'TOTAL')) + ', in dollars', num(row[1 + k]) * 1e6, d));
+    });
+  });
+  // THE ATR/BTR LOG keeps what was typed ($M), and its nets are made from it
+  const rp = JSON.parse(await w6Book(X.w, 'exportReprog')), lg = rp['ATR-BTR Log'] || [];
+  chk(name, 'ATR/BTR log', 'the log builds and reads back', rp.__err || (lg.length ? 'ok' : 'no ATR-BTR Log sheet'), 'ok');
+  const typed = { 'W7 odd add': 1234500, 'W7 odd deduct': 101, 'W7 odd ATR': 2718281 };
+  Object.keys(typed).forEach(t => chk(name, 'ATR/BTR log · ' + t, 'Total ($M), in dollars', num((lg.find(r => String((r || [])[7] ?? '') === t) || [])[8]) * 1e6, typed[t]));
+  const sub = t => num((lg.find(r => w6Lbl(r) === 'Subtotal — ' + t + ' (net $M)') || [])[7]) * 1e6;
+  chk(name, 'ATR/BTR log', 'the BTR subtotal (net), in dollars', sub('BTR'), 1234500 - 101);
+  chk(name, 'ATR/BTR log', 'the ATR subtotal (net), in dollars', sub('ATR'), 2718281);
+  const net = { STOVL: [1234500 - 101, 0], 'USMC-C': [0, 2718281], USN: [0, 0] };
+  const sh = lg.findIndex(r => w6Lbl(r) === 'Service' && String((r || [])[1] ?? '') === 'BTR net');
+  SVx.forEach(sv => { const row = lg.find((r, j) => j > sh && w6Lbl(r) === sv) || [];
+    chk(name, 'ATR/BTR log · net by service · ' + sv, 'BTR net, ATR net, total net, in dollars', [row[1], row[2], row[3]].map(v => Math.round(num(v) * 1e6 * 100) / 100).join('|'),
+      [net[sv][0], net[sv][1], net[sv][0] + net[sv][1]].join('|')); });
+  // THE 1A9A ($K): each requirement's window, from the board's own lane walk written here, and the TOTAL
+  const funded = {}; { const dr = DISC.slice(), mr = MAND.slice();
+    ORD.forEach(id => { funded[id] = ASK[id].map((v, i) => { const d = Math.min(v, dr[i]); dr[i] -= d; const m = Math.min(v - d, mr[i]); mr[i] -= m; return d + m; }); }); }
+  const WIN = { A: 4, B: 1, C: 5 };                    // Dec 1–15 (the 3rd), Oct 16–31 (the 20th), Dec 16–31 (the 18th)
+  const cr = JSON.parse(await w6Book(X.w, 'crExport')), cs = Object.values(cr)[0] || [];
+  chk(name, '1A9A', 'the return builds and reads back', cr.__err || (cs.length ? 'ok' : 'empty'), 'ok');
+  const tot = Array(12).fill(0);
+  ORD.forEach(id => { const row = cs.find(r => w6Lbl(r) === 'Ev ' + id) || [], f = w7S(funded[id]); tot[WIN[id]] += f;
+    for (let w = 0; w < 12; w++) chk(name, '1A9A · ' + id, 'window ' + (w + 1) + ', in dollars', (num(row[7 + w]) || 0) * 1000, w === WIN[id] ? f : 0); });
+  const tr = cs.find(r => w6Lbl(r) === 'TOTAL') || [];
+  for (let w = 0; w < 12; w++) chk(name, '1A9A · TOTAL', 'window ' + (w + 1) + ', in dollars', (num(tr[7 + w]) || 0) * 1000, tot[w]);
+  // SHOWN AS BEFORE (controls: v1.94 shows the same). The package opens -- every part reads and every list holds what
+  // it says -- and every fraction in these files sits in a style whose format shows it as it always did.
+  const SHOW = { [FY + ' Two-Plan Forecast']: '#,##0.00', 'ATR-BTR Log': '#,##0.00', 'O&M,N': '"$"#,##0.0' };
+  [['exportExcel', FY + ' Two-Plan Forecast'], ['exportReprog', 'ATR-BTR Log'], ['crExport', 'O&M,N']].forEach(([fn, sn]) => {
+    const pk = w7Pkg(X.w, fn);
+    chk(name, 'package · ' + fn, 'control: it is a well-formed package', w7Ok(pk), 'ok · every part reads · every count holds');
+    const fr = ((pk.sheets || {})[sn] || []).filter(c => !Number.isInteger(+c[2]));
+    chk(name, 'package · ' + sn, 'control: it has fractions to show', fr.length > 0, true);
+    chk(name, 'package · ' + sn, 'control: each is shown by its format, as before', [...new Set(fr.map(c => w7Fmt(pk, c[1])))].join(' / '), SHOW[sn]);
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W7.2 F1 — THE WRITER: the figure goes in as it is; a fraction in a General style gets that style's two-decimal twin ═
+await (async () => {
+  const name = 'W7 — F1: the writer stores every figure as it is, and a fraction in a plain style shows two decimals';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = boot();
+  const XE = +X.ev('XF_EXTRA0');
+  // one row: a fraction plain, one bold, float noise in a plain cell and in a whole-number cell, a fraction in a bold
+  // per-export style with no format, a whole number in it, and a fraction in a per-export style that has a format
+  X.ev(`globalThis.__w7x=function(){ var b=buildXlsx([{name:'W7', rows:[[0.085069, {v:1.2345, s:1}, {v:0.1+0.2, s:0}, {v:2422222.0000000005, s:3},
+      {v:124.458, s:${XE}}, {v:7, s:${XE}}, {v:1/3, s:${XE + 1}}, {v:-0.5, s:2}]]}], [{fill:false, bold:true}, {fill:false, fmt:'0.000'}]);
+    var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([b])); }; 'ok'`);
+  const pk = w7Pkg(X.w, 'globalThis.__w7x');
+  chk(name, 'package', 'control: it is a well-formed package, every count holding what it says', w7Ok(pk), 'ok · every part reads · every count holds');
+  const cells = Object.fromEntries(((pk.sheets || {}).W7 || []).map(c => [c[0], c]));
+  // C1, D1 and F1 are float noise and whole numbers, H1 a half: v1.94 stored those right too (controls)
+  const STORED = { A1: '0.085069', B1: '1.2345', C1: '0.3', D1: '2422222', E1: '124.458', F1: '7', G1: '0.333333333333333', H1: '-0.5' };
+  Object.keys(STORED).forEach(r => chk(name, 'stored · ' + r, (/^[CDFH]/.test(r) ? 'control: ' : '') + 'the figure as it is (15 significant digits, float noise dropped)', (cells[r] || [])[2], STORED[r]));
+  const xf = r => (pk.xfs || [])[(cells[r] || [])[1]] || {};
+  // the twins: the same font and fill as the style they stand in for, shown "0.00"
+  const TWIN = { A1: ['0.00', '0', 'none'], B1: ['0.00', '1', 'none'], C1: ['0.00', '0', 'none'], E1: ['0.00', '1', 'none'], H1: ['0.00', '2', 'FF1B2A4A'] };
+  Object.keys(TWIN).forEach(r => { const x = xf(r);
+    chk(name, 'shown · ' + r, 'a fraction in a plain style: shown two decimals, in the same font and fill',
+      [w7Fmt(pk, (cells[r] || [])[1]), x.font, (pk.fills || [])[+x.fill] || 'none'].join(' | '), TWIN[r].join(' | ')); });
+  chk(name, 'shown · twins', 'control: one twin per style, reused', new Set(['A1', 'C1'].map(r => (cells[r] || [])[1])).size, 1);
+  [['D1', 3], ['F1', XE], ['G1', XE + 1]].forEach(([r, s]) => chk(name, 'shown · ' + r, 'control: a whole figure, or a style with a format of its own, keeps its style', (cells[r] || [])[1], s));
+  chk(name, 'shown · G1', 'control: whose format is its own', w7Fmt(pk, (cells.G1 || [])[1]), '0.000');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W7.3 F2 — THE SPEND PLAN SOURCE: a line per increment, each with its own date and its own part of the lane ═════════
+await (async () => {
+  const name = 'W7 — F2: the Spend Plan Source dates an incremental award a line per increment';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  // A: $400 USAF ($250 discretionary, $150 mandatory) and $100 ANG, awarded in increments STORED OUT OF ORDER:
+  //    March the 3rd (USAF $100) first, November the 9th (USAF $200, ANG $100) second. By date, discretionary fills
+  //    November $200 then March $50; mandatory fills from the last, March's other $50, and its $100 the awards do not
+  //    cover is undated. B: one award date (December the 4th), $60 mandatory -- one line, as always. C: no award.
+  //    D: one increment on the 31st of November, which has 30 days -- the line is dated the 30th.
+  const SVx = ['USAF', 'ANG'];
+  const X = boot();
+  seed(X.ev, { services: SVx, items: [it('A', 'AV', [400, 100]), it('B', 'AV', [60, 0]), it('C', 'AV', [20, 30]), it('D', 'AV', [40, 0])],
+    disc: [250, 1000], mand: [500, 500], order: ['A', 'B', 'C', 'D'] });
+  const BUD = { 'USAF|disc': 'USAF O&M- CAM Discretionary AV', 'USAF|mand': 'USAF O&M - CAM OBBBA Mandatory AV',
+    'ANG|disc': 'USAF O&M - ANG CAM Discretionary AV', 'ANG|mand': 'USAF O&M - ANG CAM OBBBA Mandatory AV' };
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.awards={A:{mode:'inc', inc:[{d:FYMON[5][0], day:3, sv:[100,0]}, {d:FYMON[1][0], day:9, sv:[200,100]}]},
+              B:{mode:'single', d:FYMON[2][0], day:4}, D:{mode:'inc', inc:[{d:FYMON[1][0], day:31, sv:[40,0]}]}};
+    BUDDB={ts:1700000000060, files:[], rows:${JSON.stringify(Object.values(BUD))}.map(budParseName).filter(Boolean)}; _budRegCache=null;
+    applyState(S); save(); 'ok'`);
+  const M = JSON.parse(X.ev('JSON.stringify(FYMON.map(function(x){ return x[0]; }))')), FYn = +X.ev('MS.cur');
+  const day = (k, d) => M[k] + '-' + String(d).padStart(2, '0'), AUG31 = FYn + '-08-31';
+  chk(name, 'fixture', 'the lanes: A USAF 250 disc + 150 mand, ANG 100 disc; B 60 mand; C 20 mand, 30 disc; D 40 mand',
+    X.ev(`(function(){ var T=tiers(); return ['A','B','C','D'].map(function(id){ return T[id].d.join('/')+'+'+T[id].m.join('/'); }).join(' '); })()`), '250/100+150/0 0/0+60/0 0/30+20/0 0/0+40/0');
+  // EVERY LINE: requirement, service and lane (its BAE budget, verbatim), date, amount
+  const WANT = [
+    ['A', 'USAF', 'disc', day(1, 9), 200], ['A', 'USAF', 'disc', day(5, 3), 50],
+    ['A', 'USAF', 'mand', day(5, 3), 50], ['A', 'USAF', 'mand', AUG31, 100], ['A', 'ANG', 'disc', day(1, 9), 100],
+    ['B', 'USAF', 'mand', day(2, 4), 60], ['C', 'USAF', 'mand', AUG31, 20], ['C', 'ANG', 'disc', AUG31, 30], ['D', 'USAF', 'mand', day(1, 30), 40]];
+  const bk = JSON.parse(await w6Book(X.w, 'exportSrc'));
+  chk(name, 'workbook', 'the Spend Plan Source builds and reads back', bk.__err || 'ok', 'ok');
+  const src = Object.values(bk).find(rs => (rs || []).length > 1) || [];
+  const HDR = JSON.parse(X.ev('JSON.stringify(SRC_HDR)'));
+  chk(name, 'layout', 'the same columns, in the same order', JSON.stringify((src[0] || []).map(c => String(c ?? ''))), JSON.stringify(HDR));
+  const svcOf = b => Object.keys(BUD).find(k => BUD[k] === b);
+  const got = src.slice(1).map(r => { const k = svcOf(String(r[4] ?? '')) || ('no budget ' + r[4]);
+    return { id: String(r[7] ?? '').replace(/^Ev /, ''), key: k, mon: typeof r[1] === 'number' ? w7Ser(r[1]) : String(r[1]), dt: typeof r[8] === 'number' ? w7Ser(r[8]) : String(r[8]), amt: num(r[9]), row: r }; });
+  const fmt = l => [l.id, l.key, l.dt, l.amt].join(' ');
+  chk(name, 'lines', 'every line: requirement, service and lane, date and amount -- a line per increment, nothing else',
+    JSON.stringify(got.map(fmt).sort()), JSON.stringify(WANT.map(([id, sv, ln, dt, a]) => [id, sv + '|' + ln, dt, a].join(' ')).sort()));
+  got.forEach(l => chk(name, 'lines · ' + fmt(l), 'its Month is the 1st of its date’s month', l.mon, l.dt.slice(0, 8) + '01'));
+  // THE LINES OF AN AWARD ADD UP TO ITS ONE LINE BEFORE: per requirement, service and lane, the lane's draw
+  const T = JSON.parse(X.ev(`JSON.stringify(tiers())`));
+  ['A', 'B', 'C', 'D'].forEach(id => SVx.forEach((sv, i) => ['disc', 'mand'].forEach(ln => {
+    const draw = (ln === 'disc' ? T[id].d : T[id].m)[i] || 0; if (!draw) return;
+    chk(name, 'adds up · ' + id + ' · ' + sv + ' ' + ln, 'its lines add up to what the lane paid', w7S(got.filter(l => l.id === id && l.key === sv + '|' + ln).map(l => l.amt)), draw); })));
+  // EVERY OTHER COLUMN of an increment's line is its service-and-lane line's: one budget, one title, one event, one PMO
+  const same = ['A|USAF|disc', 'A|USAF|mand'].map(k => got.filter(l => l.id + '|' + l.key === k).map(l => JSON.stringify(l.row.filter((c, j) => ![1, 8, 9].includes(j)))));
+  chk(name, 'layout', 'an increment’s lines differ only in Month, Date and Amount', same.map(s => s.length + ':' + new Set(s).size).join(' '), '2:1 2:1');
+  // AGREEMENT with the board's own placement, service by service and lane by lane: the forecast's months (an
+  // undated line is its UNSCHEDULED), the deck's spend plan by pot, and the CR half-month windows
+  SVx.forEach((sv, i) => {
+    const F = JSON.parse(X.ev(`JSON.stringify(forecast(null, {svc:${i}}).bySvc[${i}])`));
+    const mine = l => l.key.startsWith(sv + '|');
+    const byMon = M.map(k => w7S(got.filter(l => mine(l) && l.dt !== AUG31 && l.dt.slice(0, 7) === k).map(l => l.amt)));
+    chk(name, 'forecast · ' + sv, 'each month, and UNSCHEDULED, is the lines dated in it', JSON.stringify(byMon.concat([w7S(got.filter(l => mine(l) && l.dt === AUG31).map(l => l.amt))])),
+      JSON.stringify(F.m.concat([F.unsch])));
+    const C = JSON.parse(X.ev(`JSON.stringify(crData()[${i}].items.map(function(r){ return [r.id, r.wins]; }))`));
+    ['A', 'B', 'D'].forEach(id => {
+      const w = Array(12).fill(0);
+      got.filter(l => mine(l) && l.id === id && l.dt !== AUG31).forEach(l => { const k = M.indexOf(l.dt.slice(0, 7)); if (k >= 0 && k < 6) w[k * 2 + (+l.dt.slice(8) > 15 ? 1 : 0)] += l.amt; });
+      chk(name, 'CR windows · ' + sv + ' · ' + id, 'each half-month window is the lines dated in it', JSON.stringify(w), JSON.stringify(((C.find(c => c[0] === id) || [])[1]) || Array(12).fill(0)));
+    });
+  });
+  const SP = JSON.parse(X.ev('JSON.stringify(spendPlanByMonth())'));
+  ['disc', 'mand'].forEach(ln => {
+    const mine = l => l.key.endsWith('|' + ln);
+    chk(name, 'spend plan by pot · ' + ln, 'each month, and what is undated, is the lane’s lines',
+      JSON.stringify(M.map(k => w7S(got.filter(l => mine(l) && l.dt !== AUG31 && l.dt.slice(0, 7) === k).map(l => l.amt))).concat([w7S(got.filter(l => mine(l) && l.dt === AUG31).map(l => l.amt))])),
+      JSON.stringify((ln === 'disc' ? SP.d : SP.m).concat([ln === 'disc' ? SP.ud : SP.um])));
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W7.4 F3 — THE EXECUTIVE SYNOPSIS is titled and named for the year on screen, and carries that year's money ═══════
+await (async () => {
+  const name = 'W7 — F3: the Executive Synopsis is titled and named for the year on screen';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  // Everything is funded (the pots are wide), so each year's funded money is its asks: FY27 [350, 120], FY28 [570, 190]
+  const SVx = ['USAF', 'ANG'];
+  const X = boot();
+  seed(X.ev, { services: SVx, items: [it('A', 'PSM', [300, 100]), it('B', 'ATL', [50, 20])], disc: [5000, 5000], mand: [0, 0], order: ['A', 'B'] });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S;
+    var y=JSON.parse(JSON.stringify(S)); y.asks=Object.assign({}, y.asks||{}, {A:[500,150], B:[70,40]}); MS.years[MS.cur+1]=y; save(); 'ok'`);
+  const synopsis = () => JSON.parse(X.ev(`(function(){ var csv='', dl=''; var oB=Blob, oc=HTMLAnchorElement.prototype.click;
+    Blob=function(p){ csv=String((p&&p[0])||''); return new oB(p); }; HTMLAnchorElement.prototype.click=function(){ dl=this.download||''; };
+    try{ execSynopsis(); } finally { Blob=oB; HTMLAnchorElement.prototype.click=oc; }
+    return JSON.stringify({csv:csv, dl:dl, fy:FYL()}); })()`));
+  const read = s => { const rows = s.csv.replace(/^﻿/, '').split('\r\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g, '')));
+    const at = rows.findIndex(r => /^2 — FUNDED WITH DISCRETIONARY \+ MANDATORY/.test(r[0] || ''));
+    return { head: rows[0][0], funded: (rows[at + 2] || []).slice(1).map(Number) }; };
+  const s27 = synopsis();
+  X.ev(`switchYear(MS.cur+1); 'ok'`);
+  const s28 = synopsis();
+  chk(name, 'fixture', 'the year on screen moved to FY28', s27.fy + ' ' + s28.fy, 'FY27 FY28');
+  [[s27, 'FY27', [2, 470, 350, 120]], [s28, 'FY28', [2, 760, 570, 190]]].forEach(([s, fy, money]) => {
+    const r = read(s);
+    chk(name, fy, 'its first line names the year on screen', r.head, fy + ' EXECUTIVE FUNDING SYNOPSIS');
+    chk(name, fy, 'and so does its file name', s.dl.startsWith(fy + ' Exec Funding Synopsis '), true);
+    chk(name, fy, 'control: the money is that year’s -- requirements funded, the total and each service', JSON.stringify(r.funded), JSON.stringify(money));
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W7.5 F4 — AN OFFICE'S SHARE OF A CLIN-SPLIT REQUIREMENT IS WHOLE DOLLARS, and the same on every surface ═══════════
+await (async () => {
+  const name = 'W7 — F4: an office’s share of a CLIN-split requirement is whole dollars, the same on every surface';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  // PRIME-3's CLINs put STOVL 1 : 2 between MxS (…10) and AV (…2), CV all with AV; no CLIN covers CTOL, which stays with
+  // its own office, PRIMES. On STOVL it draws $70 discretionary and $20 mandatory of a $100 ask ($10 unfunded); its
+  // awards, stored out of order, are December the 3rd (STOVL $50, CTOL $20) and February the 20th (STOVL $40, CV $10),
+  // so STOVL places discretionary December $50, February $20, and mandatory February $20. A (ATL) is not split.
+  const SVx = ['STOVL', 'CV', 'CTOL'];
+  const X = boot();
+  seed(X.ev, { services: SVx, items: [it('PRIME-3', 'PRIMES', [100, 10, 20]), it('A', 'ATL', [20, 10, 5])],
+    disc: [70, 1000, 1000], mand: [20, 0, 0], order: ['PRIME-3', 'A'], mc: { 'PRIME-3': true } });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    DATA.clins={'PRIME-3':[{clin:'0010', ask:[1,0,0]}, {clin:'0002', ask:[2,10,0]}]};
+    S.awards={'PRIME-3':{mode:'inc', inc:[{d:FYMON[4][0], day:20, sv:[40,10,0]}, {d:FYMON[2][0], day:3, sv:[50,0,20]}]}, A:{mode:'single', d:FYMON[3][0], day:5}};
+    applyState(S); save(); 'ok'`);
+  chk(name, 'fixture', 'PRIME-3 draws STOVL 70 + 20 of 100; A has nothing on STOVL',
+    X.ev(`(function(){ var T=tiers(); return T['PRIME-3'].d.join('/')+'+'+T['PRIME-3'].m.join('/')+' '+T.A.d.join('/')+'+'+T.A.m.join('/'); })()`), '70/10/20+20/0/0 0/10/5+0/0/0');
+  // EACH OFFICE'S DOLLARS, worked out here by the stated rule: per service the ask is split by the CLIN weights, then
+  // discretionary, mandatory and unfunded each by what each office still has to take; the months the same way, award
+  // by award (in date order) against the office's discretionary, then its mandatory.
+  const OFF = ['MxS', 'AV', 'PRIMES'], W = [[1, 2, 0], [0, 1, 0], [0, 0, 1]];         // per service: MxS, AV, PRIMES
+  const ASK = [100, 10, 20], D = [70, 10, 20], Mn = [20, 0, 0];
+  const O = Object.fromEntries(OFF.map(g => [g, { ask: [], d: [], m: [], u: [], mon: Array(12).fill(0) }]));
+  const CELLS = [{ dc: [50, 20, 0], mc: [0, 20, 0] }, { dc: [0, 10, 0], mc: [0, 0, 0] }, { dc: [20, 0, 0], mc: [0, 0, 0] }];  // [Dec, Feb, undated]
+  SVx.forEach((sv, i) => {
+    const X3 = w7Split(W[i], [D[i], Mn[i], ASK[i] - D[i] - Mn[i]]);
+    OFF.forEach((g, k) => { O[g].d[i] = X3[0][k]; O[g].m[i] = X3[1][k]; O[g].u[i] = X3[2][k]; O[g].ask[i] = X3[0][k] + X3[1][k] + X3[2][k]; });
+    const dd = w7Split(W[i], CELLS[i].dc, OFF.map(g => O[g].d[i])), mm = w7Split(W[i], CELLS[i].mc, OFF.map(g => O[g].m[i]));
+    OFF.forEach((g, k) => { O[g].mon[2] += dd[0][k] + mm[0][k]; O[g].mon[4] += dd[1][k] + mm[1][k]; });
+  });
+  chk(name, 'rule', 'the $100 STOVL ask is $33 and $67, never $33.33 and $66.67', O.MxS.ask[0] + ' ' + O.AV.ask[0], '33 67');
+  chk(name, 'rule', 'each office: discretionary, mandatory, unfunded on STOVL', OFF.map(g => g + ' ' + [O[g].d[0], O[g].m[0], O[g].u[0]].join('/')).join(', '), 'MxS 23/7/3, AV 47/13/7, PRIMES 0/0/0');
+  chk(name, 'rule', 'and the months, December and February', OFF.map(g => g + ' ' + O[g].mon[2] + '/' + O[g].mon[4]).join(', '), 'MxS 16/14, AV 34/36, PRIMES 20/0');
+  const A = { ask: [20, 10, 5], d: [0, 10, 5], m: [0, 0, 0], u: [20, 0, 0], mon: Array(12).fill(0) }; A.mon[3] = 15;
+  const ALL = Object.assign({}, O, { ATL: A }), KEYS = ['MxS', 'AV', 'PRIMES', 'ATL'];
+  // ---- the PMO Matrix: every office, service and lane, and the MC memo
+  const bk = JSON.parse(await workbook(X.w));
+  chk(name, 'workbook', 'the workbook builds and reads back', bk.__err || 'ok', 'ok');
+  const cell = (rows, h, row, col) => { const c = w6Col(rows, h, col); return c < 0 ? 'no column ' + col : num((row || [])[c]); };
+  { const pm = bk['PMO Matrix'] || [], h = w6Hdrs(pm, 'PMO', 'TOTAL Disc')[0];
+    KEYS.forEach(g => { const row = pm.find((r, j) => j > h && w6Lbl(r) === g), v = ALL[g];
+      chk(name, 'PMO Matrix · ' + g, 'the office is a row', !!row, true);
+      const want = { 'TOTAL Disc': w7S(v.d), 'TOTAL Mand': w7S(v.m), '★ MC requirement (memo)': g === 'ATL' ? 0 : w7S(v.ask), '★ MC short vs Disc': g === 'ATL' ? 0 : w7S(v.m) + w7S(v.u) };
+      SVx.forEach((sv, i) => { want[sv + ' Disc'] = v.d[i]; want[sv + ' Mand'] = v.m[i]; });
+      Object.keys(want).forEach(k => chk(name, 'PMO Matrix · ' + g, k, cell(pm, h, row, k), want[k])); }); }
+  // ---- every PMO tab: the portions, service by service, and the obligation report with its months
+  KEYS.forEach(g => {
+    const rows = bk['PMO ' + g] || [], v = ALL[g], who = g === 'ATL' ? 'Req A' : 'Req PRIME-3';
+    chk(name, 'PMO ' + g, 'the tab is in the workbook', rows.length > 0, true);
+    [['Disc portion', 'd'], ['Mand portion', 'm'], ['MC requirement (memo — not additive)', 'ask'], ['Total Unfunded (delta + beyond lanes)', 'u']].forEach(([amt, k]) => {
+      const want = g === 'ATL' && k === 'ask' ? null : v[k];
+      const h = w6Hdrs(rows, 'Rank', amt)[0];
+      if (!want || !w7S(want)) { chk(name, 'PMO ' + g + ' · ' + amt, 'no section when the office holds none of it', h === undefined || !rows.slice(h + 1).some(r => (r || []).includes(who)), true); return; }
+      const row = h === undefined ? null : rows.slice(h + 1).find(r => (r || []).includes(who));
+      chk(name, 'PMO ' + g + ' · ' + amt, 'the requirement is listed', !!row, true); if (!row) return;
+      chk(name, 'PMO ' + g + ' · ' + amt, 'the amount', cell(rows, h, row, amt), w7S(want));
+      SVx.forEach((sv, i) => chk(name, 'PMO ' + g + ' · ' + amt, sv, cell(rows, h, row, sv), want[i])); });
+    const h = w6Hdrs(rows, 'Rank', 'Total (Disc+Mand)')[0], row = h === undefined ? null : rows.slice(h + 1).find(r => (r || []).includes(who));
+    chk(name, 'PMO ' + g + ' · report', 'the requirement is a row', !!row, true); if (!row) return;
+    const FY = X.ev('FYL()'), m0 = w6Col(rows, h, 'OCT 26');
+    const want = { [FY + ' Ask']: w7S(v.ask), 'Disc allocated': w7S(v.d), 'Total (Disc+Mand)': w7S(v.d) + w7S(v.m), 'UFR (Unfunded Requirement)': w7S(v.u), Unscheduled: 0 };
+    SVx.forEach((sv, i) => { want[sv + ' Disc'] = v.d[i]; want[sv + ' Mand'] = v.m[i]; });
+    Object.keys(want).forEach(k => chk(name, 'PMO ' + g + ' · report', k, cell(rows, h, row, k), want[k]));
+    for (let k = 0; k < 12; k++) chk(name, 'PMO ' + g + ' · report', 'month ' + rows[h][m0 + k], num(row[m0 + k]), v.mon[k]);
+  });
+  // ---- the forecast by PMO, on the board and in the export of the view (the whole portfolio, then MxS alone)
+  const F = JSON.parse(X.ev(`JSON.stringify(forecast().byPMO)`));
+  KEYS.forEach(g => chk(name, 'forecast · ' + g, 'its months, UNSCHEDULED and TOTAL', JSON.stringify(F[g] ? F[g].m.concat([F[g].unsch, F[g].tot]) : null),
+    JSON.stringify(ALL[g].mon.concat([0, w7S(ALL[g].mon)]))));
+  const fcv = async (v, lbl, want) => {
+    X.ev(`fcView=${JSON.stringify(v)}; 'ok'`);
+    const fb = JSON.parse(await w6Book(X.w, 'exportFcView'));
+    X.ev(`fcView=''; 'ok'`);
+    const rows = Object.values(fb)[0] || [];
+    chk(name, 'exported view ' + (v || 'whole'), 'it builds and reads back', fb.__err || (rows.length ? 'ok' : 'empty'), 'ok');
+    const hs = w6Hdrs(rows, 'UNSCHEDULED', 'TOTAL'), h = hs[hs.length - 1];
+    Object.keys(want).forEach(k => { const row = rows.find((r, j) => j > h && w6Lbl(r) === k);
+      chk(name, 'exported view ' + (v || 'whole') + ' · ' + lbl + ' ' + k, 'its months, UNSCHEDULED and TOTAL', JSON.stringify(row ? row.slice(1, 15).map(num) : null), JSON.stringify(want[k].concat([0, w7S(want[k])]))); });
+  };
+  await fcv('', 'by PMO', Object.fromEntries(KEYS.map(g => [g, ALL[g].mon])));
+  const mx = { STOVL: O.MxS.mon };                     // MxS holds STOVL only
+  await fcv('p:MxS', 'by service', mx);
+  // ---- the CR windows by PMO: every window of every office
+  const CRP = JSON.parse(X.ev(`JSON.stringify((function(){ var R=crBuckets(null,'pmo'), o={}; R.keys.forEach(function(k,i){ o[k]=R.data[i].win; }); return o; })())`));
+  const WIN = { 2: 4, 3: 6, 4: 9 };                    // Dec the 3rd, Jan the 5th, Feb the 20th
+  KEYS.forEach(g => { const w = Array(12).fill(0); Object.keys(WIN).forEach(k => { w[WIN[k]] += ALL[g].mon[k]; });
+    chk(name, 'CR by PMO · ' + g, 'each half-month window', JSON.stringify(CRP[g] || null), JSON.stringify(w)); });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+
+// ══ W7.6 F5 — THE CR CASH NEEDS FOOTNOTE states the rule since v1.94 ═════════════════════════════════════════════════
+await (async () => {
+  const name = 'W7 — F5: the CR Cash Needs footnote states the rule since v1.94';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = boot();
+  seed(X.ev, { services: ['STOVL', 'USMC-C'], items: [it('A', 'AV', [100, 50])], disc: [1000, 1000], mand: [0, 0], order: ['A'] });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.awards={A:{mode:'single', d:FYMON[1][0], day:20}}; applyState(S); save(); 'ok'`);
+  const bk = JSON.parse(await workbook(X.w)), cr = bk['CR Cash Needs'] || [];
+  chk(name, 'workbook', 'the CR Cash Needs sheet builds and reads back', bk.__err || (cr.length ? 'ok' : 'no sheet'), 'ok');
+  const text = cr.map(r => (r || []).map(c => String(c ?? '')).join(' ')).join('\n');
+  const foot = cr.map(r => w6Lbl(r)).filter(t => /"No date"/.test(t))[0] || '';
+  chk(name, 'footnote', 'it says each award sits in the half of the month its own date falls in', /each award.s dollars sit in the half of the month its own date falls in/i.test(foot), true);
+  chk(name, 'footnote', 'and nothing on the sheet says to flip a half by hand', /flip|16–EOM|16-EOM/i.test(text), false);
+  // control: the award on the 20th is in the second half of November, as the footnote says
+  const h = w6Hdrs(cr, 'Service / Requirement', 'No date')[0], row = cr.find((r, j) => j > h && /^#1 /.test(w6Lbl(r))) || [];
+  chk(name, 'footnote', 'control: the award on the 20th sits in November 16–30', JSON.stringify(row.slice(1, 13).map(v => num(v) || 0)), JSON.stringify([0, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm); await settleBoards();
+})();
+// ITEM 60, F6 (found in integration, from W7's notes): A PRIME'S CLIN LINES IN WHOLE DOLLARS. clinSplit prorated
+// each service's amount by each CLIN's share of the grid -- amount × share, the last CLIN taking the rest -- so $100
+// across CLINs asking 1 and 2 went out as $33.333… and $66.666… on the Spend Plan Source (v1.94's writer showed
+// $33.33 and $66.67). The RCN/EEIC monthly tab splits each month through the same function. A whole-dollar amount
+// is now split by largest remainder: whole dollars adding to it exactly. Read back from the file's own bytes.
+await (async () => {
+  const name = 'W7 — F6: a prime’s CLIN lines are whole dollars that add up';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('PRIME-3', 'AV', [100, 101])], disc: [1000, 1000], mand: [0, 0], order: ['PRIME-3'] });
+  const BUD = { 'USAF|disc': 'USAF O&M- CAM Discretionary AV', 'USAF|mand': 'USAF O&M - CAM OBBBA Mandatory AV',
+    'ANG|disc': 'USAF O&M - ANG CAM Discretionary AV', 'ANG|mand': 'USAF O&M - ANG CAM OBBBA Mandatory AV' };
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    CLINS['PRIME-3']=[{clin:'0010', ask:[1,1]}, {clin:'0002', ask:[2,1]}, {clin:'0003', ask:[0,1]}]; S.ptype={'PRIME-3':'PRIME'};
+    BUDDB={ts:1700000000061, files:[], rows:${JSON.stringify(Object.values(BUD))}.map(budParseName).filter(Boolean)}; _budRegCache=null;
+    applyState(S); save(); 'ok'`);
+  chk(name, 'fixture', 'CONTROL — PRIME-3 is a prime, all discretionary: USAF 100, ANG 101',
+    X.ev(`(function(){ var T=tiers(); return clinApplies('PRIME-3')+' '+T['PRIME-3'].d.join('/')+'+'+T['PRIME-3'].m.join('/'); })()`), 'true 100/101+0/0');
+  const bk = JSON.parse(await w6Book(X.w, 'exportSrc'));
+  chk(name, 'workbook', 'the Spend Plan Source builds and reads back', bk.__err || 'ok', 'ok');
+  const src = Object.values(bk).find(rs => (rs || []).length > 1) || [];
+  const svcOf = b => (Object.keys(BUD).find(k => BUD[k] === b) || ('no budget ' + b)).split('|')[0];
+  const got = src.slice(1).map(r => [svcOf(String(r[4] ?? '')), String(r[25] ?? ''), num(r[9])]);
+  // BY HAND: USAF 100 across 1:2:0 -> 33.33, 66.67 -> 33 and 67; ANG 101 across 1:1:1 -> 33.67 each -> 34, 34, 33
+  chk(name, 'lines', 'each CLIN’s line, in whole dollars', JSON.stringify(got.map(g => g.join(' ')).sort()),
+    JSON.stringify(['ANG 0002 34', 'ANG 0003 33', 'ANG 0010 34', 'USAF 0002 67', 'USAF 0010 33'].sort()));
+  chk(name, 'adds up', 'per service, the CLIN lines add up to what the lane paid', JSON.stringify(['USAF', 'ANG'].map(sv => w7S(got.filter(g => g[0] === sv).map(g => g[2])))), JSON.stringify([100, 101]));
+  // A modelled shape is not whole dollars and keeps its share (unchanged)
+  chk(name, 'control', 'CONTROL — an amount that is not whole dollars is still split by share, adding to it',
+    X.ev(`JSON.stringify(clinSplit('PRIME-3', 0, 100.5).map(function(p){ return Math.round(p.part*1e6)/1e6; }))`), JSON.stringify([33.5, 67, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// v1.95 (integration), F2's neighbour: A SINGLE AWARD ON A DAY PAST ITS MONTH'S END KEEPS ITS MONTH on the Spend Plan
+// Source. W7 dates an increment on the 31st of November the 30th; a single award date went through srcSerial as
+// stored, and Date.UTC rolled the 31st of November into the 1st of December -- a month the forecast, the CR views and
+// the 1A9A do not put it in. A day of 31 passes every door (days 1 to 31), so a file can hold one.
+await (async () => {
+  const name = 'W7 — F2: a single award on a day past its month’s end keeps its month';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('B', 'AV', [60, 0])], disc: [1000, 1000], mand: [0, 0], order: ['B'] });
+  const BUD = { 'USAF|disc': 'USAF O&M- CAM Discretionary AV', 'ANG|disc': 'USAF O&M - ANG CAM Discretionary AV' };
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.awards={B:{mode:'single', d:FYMON[1][0], day:31}};
+    BUDDB={ts:1700000000062, files:[], rows:${JSON.stringify(Object.values(BUD))}.map(budParseName).filter(Boolean)}; _budRegCache=null;
+    applyState(S); save(); 'ok'`);
+  const M = JSON.parse(X.ev('JSON.stringify(FYMON.map(function(x){ return x[0]; }))'));
+  chk(name, 'fixture', 'CONTROL — B’s award is the 31st of November, which has 30 days', X.ev(`S.awards.B.d+'-'+S.awards.B.day`), M[1] + '-31');
+  const bk = JSON.parse(await w6Book(X.w, 'exportSrc'));
+  const src = Object.values(bk).find(rs => (rs || []).length > 1) || [];
+  const got = src.slice(1).map(r => [typeof r[1] === 'number' ? w7Ser(r[1]) : String(r[1]), typeof r[8] === 'number' ? w7Ser(r[8]) : String(r[8]), num(r[9])]);
+  chk(name, 'line', 'one line, dated the 30th of November, its Month November', JSON.stringify(got), JSON.stringify([[M[1] + '-01', M[1] + '-30', 60]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end W7 ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

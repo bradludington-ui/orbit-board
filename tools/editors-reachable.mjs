@@ -16,6 +16,12 @@
 //     highlight, including the RECORD panel's echo of the impact chip — the one field the whole
 //     PMO workflow exists to collect, inviting a click that went nowhere).
 //
+// TWICE, THE SECOND TIME IN WINDOWS' FONT (v1.95, item 57). The board asks for 'Segoe UI', which this machine does
+// not have, so the first pass measures it in Liberation Sans (Arial's widths) -- where v1.94's editor labels fitted
+// with nothing to spare, and Edge on Windows cut them off at 1440x900. The second pass runs every check again on a
+// copy that declares a Segoe-like stand-in, 6% wider and as tall as Segoe UI (font-standin.mjs), after proving on
+// each page that the stand-in is the font being drawn.
+//
 //   node tools/editors-reachable.mjs
 import { chromium } from 'playwright-core';
 import { boot, seed } from './export-audit/boot.mjs';
@@ -23,6 +29,7 @@ import { writeFileSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { CHROME } from './chrome.mjs';
+import { STANDIN_SCALE, withStandin, standinProblem } from './font-standin.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 // A board with requirements on it. An empty board has no row to select and no editor to miss, so
@@ -52,7 +59,11 @@ for (const f of ['prioritization-board-grid.html']) {
   const out = join(dir, f);
   writeFileSync(out, ev('buildSavedHtml()'));
   made[f] = out;
+  const seg = join(dir, 'segoe-standin-' + f);
+  writeFileSync(seg, withStandin(readFileSync(out, 'utf8')));
+  made[f + `, Segoe stand-in +${STANDIN_SCALE - 100}%`] = seg;
 }
+const standin = f => /Segoe stand-in/.test(f);
 
 // 1400 and 1366 straddle the breakpoint the drawer turns on; 1024 is a half-tiled window.
 const WIDTHS = [1920, 1600, 1440, 1400, 1366, 1280, 1024];
@@ -70,6 +81,7 @@ for (const [f, file] of Object.entries(made)) {
     await p.goto('file://' + file);
     await p.waitForFunction(()=>typeof render==='function' && document.querySelectorAll('.row').length>0,
       null, {timeout:30000});
+    const font = standin(f) ? await standinProblem(p) : null;
     // Open the editor the way a person does: select the row in grid, open the detail in card.
     if (grid) { await p.click('#row-R003'); }
     else { await p.evaluate(()=>toggleDetail('R003')); }
@@ -98,15 +110,20 @@ for (const [f, file] of Object.entries(made)) {
       const lookalike = [...document.querySelectorAll('.rchip')].filter(e => {
         const c = e.getBoundingClientRect();
         return c.width>0 && !e.getAttribute('onclick') && getComputedStyle(e).cursor==='pointer'; }).length;
+      // v1.95 (item 57): the RECORD panel's editor buttons say what they are in full at every width -- a label that
+      // does not fit wraps, it is never cut off
+      const clipped = [...document.querySelectorAll('#inspector .insp-act > span')]
+        .filter(t => t.getBoundingClientRect().width > 0 && t.scrollWidth > t.clientWidth + 1).map(t => t.textContent);
       return { ask:reach(h=>/setAsk\(/.test(h)), impact:reach(h=>/toggleCons/.test(h)),
                lookalike, over: document.documentElement.scrollWidth - innerWidth,
-               place:_place, scrim:_scrimShown };
+               place:_place, scrim:_scrimShown, clipped };
     });
     const fails = [];
     if (r.ask < 1)     fails.push('no requirement-value editor');
     if (r.impact < 1)  fails.push('no way to write an impact statement');
     if (r.over > 0)    fails.push(`document scrolls sideways by ${r.over}px`);
     if (r.lookalike)   fails.push(`${r.lookalike} chip(s) look clickable and are not`);
+    if (r.clipped.length) fails.push(`an editor button's label is cut off: ${r.clipped.join(' | ')}`);
     if (grid) {
       const wantDocked = w > 1400;
       if (wantDocked && r.place !== 'beside the rows')
@@ -116,6 +133,7 @@ for (const [f, file] of Object.entries(made)) {
       // The scrim only belongs on screen while the drawer is open over the grid.
       if (wantDocked && r.scrim) fails.push('the drawer scrim is showing on a docked layout');
     }
+    if (font)          fails.push(font);
     if (errs.length)   fails.push(errs[0]);
     if (fails.length) bad++;
     console.log(`  ${fails.length?'FAIL':'ok  '} ${String(w).padStart(5)}px  REQ editor:${String(r.ask).padStart(2)}`
@@ -130,16 +148,17 @@ for (const [f, file] of Object.entries(made)) {
 // field the PMO workflow exists to collect. Now they sit straight under the title: at the two laptop
 // sizes people use, with and without an award schedule (which makes the panel longer), all three must
 // be on screen without scrolling, and none clipped.
-{
-  console.log('\nprioritization-board-grid.html — the three written editors, above the fold');
+for (const [f, file] of Object.entries(made)) {
+  console.log('\n' + f + ' — the three written editors, above the fold');
   for (const [w, h] of [[1366, 768], [1440, 900]]) {
     for (const id of ['R003', 'R004']) {
       const ctx = await b.newContext({ viewport:{width:w, height:h} });
       const p = await ctx.newPage();
       const errs = [];
       p.on('pageerror', e => errs.push(e.message));
-      await p.goto('file://' + made['prioritization-board-grid.html']);
+      await p.goto('file://' + file);
       await p.waitForFunction(()=>typeof render==='function' && document.querySelectorAll('.row').length>0, null, {timeout:30000});
+      const font = standin(f) ? await standinProblem(p) : null;
       await p.click('#row-' + id);
       await p.waitForTimeout(300);
       const r = await p.evaluate(() => {
@@ -158,6 +177,7 @@ for (const [f, file] of Object.entries(made)) {
       if (r.seen.some(v => !v)) fails.push('not all on screen without scrolling');
       if (r.clipped.some(v => v)) fails.push('a label is cut off');
       if (id === 'R004' && !r.award) fails.push('the award schedule did not render, so the long panel was not measured');
+      if (font) fails.push(font);
       if (errs.length) fails.push(errs[0]);
       if (fails.length) bad++;
       console.log(`  ${fails.length?'FAIL':'ok  '} ${w}x${h}  ${id === 'R004' ? 'with an award schedule   ' : 'without an award schedule'}`
@@ -167,5 +187,6 @@ for (const [f, file] of Object.entries(made)) {
   }
 }
 await b.close();
-console.log(bad ? `\n${bad} width(s) failed\n` : '\nEvery editor is reachable at every width, neither build scrolls sideways, and the written editors are above the fold\n');
+console.log(bad ? `\n${bad} width(s) failed\n` : '\nEvery editor is reachable at every width, neither build scrolls sideways, and the written editors are above the fold'
+  + ` and unclipped, in this machine's font and in a Segoe-like stand-in +${STANDIN_SCALE - 100}%\n`);
 process.exit(bad ? 1 : 0);

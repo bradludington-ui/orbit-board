@@ -2062,12 +2062,16 @@ The file is its own database.
 
 - `SRC0` is captured at boot as `'<!DOCTYPE html>\n' + document.documentElement.outerHTML`.
 - `buildSavedHtml()` takes `SRC0` and **regex-replaces the `pubState` script tag** with the current
-  state as JSON.
+  state as JSON -- through `savedHtmlOf(appns, cycDb)` (v1.95), the one assembly every board file this page
+  writes goes through: 💾 Save, the PMO copy, the work kept aside, and the board as it was before a full
+  import that could not be put back.
 - `saveInPlace()` writes that back over the file itself via the File System Access API
   (`showSaveFilePicker`), caching the handle in IndexedDB (`prio-fh`), with a collision guard that asks
   whenever the file on disk is any save other than the one the work on screen came from (`LASTKNOWN`,
   v1.89 -- see that section: it compared against the file's own time, and a reopen made that wrong).
-  A file it cannot read, or that is not a board, is never written over.
+  A file it cannot read, or that is not a board, is never written over. Since v1.95: one save at a time
+  (`saveSerial`, and the Web Lock `'orbit-save'` across tabs), each acknowledging exactly the bytes it
+  wrote (`_saveGen`), and one writer per board file (`WRITER`) -- see the v1.95 section.
 
 So: **the `pubState` tag's exact literal shape is load-bearing.** Reformat it and `Save` silently
 writes a file containing the *old* state. `check.mjs` guards this.
@@ -2076,7 +2080,10 @@ writes a file containing the *old* state. `check.mjs` guards this.
 `prio27sp`, `prio27opn`, `prio27execdb`, `prio27acedb`, `prio27reprog`, `prio27appn`, `prio27who`,
 `spmtTheme`, `spmtSidecar`; and, per appropriation key, since v1.89: `<key>.base` (which saved copy
 the work came from, and whether this browser holds work no saved copy has) and `<key>.kept` (work kept
-aside when a newer saved copy replaced it). Neither is ever part of the board. Since v1.90: `spmtMode`
+aside when a newer saved copy replaced it). Neither is ever part of the board. Since v1.95:
+`prio27writerKey` (this browser's writer key; the file holds only its fingerprint) and `prio27impMixed`
+(a full import stopped part-way and could not be put back: nothing writes over the board file until it is
+cleared). Since v1.90: `spmtMode`
 (the workspace mode), `spmtDensity` and `spmtDetail` (Funding detail open) -- this browser's view of the
 board, like `spmtTheme`, never written into the file (`tools/layout-fits.mjs` G checks that).
 
@@ -3424,6 +3431,163 @@ fuzz seed 870870077. Before it: the first run (2 Oct, 20:26 UTC) failed on the t
 to container restarts; one was stopped at the session's two-hour cap on background jobs, 705 of 728 mutations in. On a
 slow container the gate runs past two hours, so a background run is cut off before it ends: ask Brad before running it
 outside the cap (this time it ran detached, with a watcher keeping the session awake).
+
+### v1.95 (items 47–60): the pre-launch review — saves, imports, awards, the PMO by year, and a map of the money
+
+Built on Brad's go of 3 Oct 2026 ("Proceed with the focused build after incorporating these points", Codex's scope
+review), from Codex's pre-launch review (R01–R12 and the concurrent-writer race; recommended HOLD). Every finding was
+reproduced on v1.94 first (`SP/v195r`). Brad's decisions: Q1, one writer per board file, enforced by folder permissions
+plus ORBIT; Q2, "PMO's can change under reorganizations, leave the PMO assigned by year, as it's reported as that PMO in
+that year"; R09, refuse at the import doors, repair and report on open, never zero; F2 (a), one Spend Plan Source line per
+increment. Built in seven parallel workstreams on one base with a slot per workstream in each suite and in `mutate.mjs`
+(`// ==== v1.95 Wn: … ====` / `// ==== end Wn ====`), then merged and integrated.
+
+**47 -- a save acknowledges exactly what it wrote, one save at a time.**
+- `_saveGen` counts every `save()`. A write captures the generation and the bytes before its first wait, and marks the
+  board clean (`DIRTY`, `_baseDirty`, the folder base) only if the generation has not moved: an edit made while a save
+  writes stays unsaved. `LASTKNOWN` is the time OF THE BYTES WRITTEN (`fileTsOf({appns:PUBS})`), not the time the write
+  ended.
+- `saveSerial(fn)`: one save at a time -- a promise chain in the page and the Web Locks lock `'orbit-save'` across tabs
+  (where the browser has it). A second Save while one runs says it is queued.
+- Each save captures its year (`fy`) when asked. A queued folder save refuses if the year on screen changed while it
+  waited, and never writes one year's board into another year's copy. `driveBaseKey/Of/Set`, `driveStoreRead`,
+  `driveHeartbeat` and `snapKeep` all take the year; `_driveStorePushRun(quiet, fyAsked)` re-checks it after the read.
+- The wrappers (`saveInPlace`, `saveInPlaceFile`, `driveStorePush`, `driveResolve`) refuse a PMO copy or a locked view at
+  once (synchronously) and queue everything else; the `_…Run` functions are where every write happens.
+
+**50 -- work kept aside is never replaced without asking.** `keepAside` returns `true | 'occupied' | false`: a slot
+already holding different kept work is `'occupied'`, and nothing is loaded over the new work (`keptOccupiedMsg`; at
+boot, `_bootHeld.occupied`). Put back swaps: what is on screen is kept aside in its place. `keptSaveFile()` (📁 File ›
+⬇ Save work kept aside as a file…) downloads a board file holding the kept work and never removes it.
+
+**58 -- one writer per board file.** `WRITER` (`{by, fp, t}`, `fp = pkgSig('orbit-writer|'+key)`, the key in
+`prio27writerKey`) travels in the file and in the folder copy. `writerMay(w, fresh, quiet, what)` → `'me' | 'take' |
+'claim' | false`: another writer is refused outright (named), a copy with no writer is claimed once with a question,
+an autosave never claims. `takePen()` (📁 File › ✍ Take the pen…) hands over after a confirm naming the writer it
+replaces; the old writer's next Save is refused. A read-only file (NotAllowedError, NoModificationAllowedError,
+SecurityError) gets a plain message and no download. **The guarantee is the folder permissions** (Codex): where two
+people can both write the file, this is cooperative only, and the Help guide says so.
+
+**48 -- a full import is all or nothing (W2).** `lsAll(W)` reads every key first, writes through `lsSet`, and at the
+first refusal puts every key back, newest first (a key that held nothing is removed); `{ok, at, why, back, now, held}`.
+`fullImportText` prepares the ten writes (both plans, their cycles, BAE, execution, estimates, reprogramming, the
+destination list, `prio27impRep`), commits through `lsAll`, and only then touches memory and reloads. Put back:
+`fullImportUndone` says nothing was imported. Not put back: it says which lists hold which, reopens nothing, and offers
+two files (`fullImportRescue`): the board as it was (`fullImportPreHtml(held)`, built from memory and what storage held
+before) and the file imported, byte for byte. `persistAce`/`persistRp` go through `lsSet`.
+- **Integration: while that mix stands, nothing writes over the board file.** `_impRescue.mixed` and the storage mark
+  `prio27impMixed` (best effort); `impMixedBlock(what, quiet)` in `_saveInPlaceFileRun`, `_driveStorePushRun` (the
+  autosave silently) and `_driveResolveRun`; the opening message after a reload; `impMixedClear()` (allow saving again…)
+  asks first. ⬇ Save a copy is never refused. Before this, the next 💾 Save wrote the mix over the file -- the one whole
+  copy of the board as it was once the page reloads and the two files offered are gone.
+
+**49 -- sharing a cost estimate (W2).** `driveAceFile(dir, name)` tells "no copy" (NotFoundError only) from
+"unusable" (a read error, a parse failure, a door refusal, no whole estimate, `aceIntact` failing, a fingerprint that
+disagrees). `driveAcePush` writes only where the folder has none; an identical copy writes nothing; a different or
+unusable one is reported by name, nothing written, with "replace the folder's … with mine…". `driveAceReplace(k)` asks
+by name, re-reads after the confirm, keeps the folder's copy first (`history/spmt-ace-<key>-<stamp>.json`), and never
+replaces one it could not read. `driveAcePull` takes nothing unreadable, half-written or off its fingerprint, and names
+each.
+
+**One assembly for every board file (integration).** `savedHtmlOf(appns, cycDb)` writes the payload -- every
+board-wide list and the writer -- for 💾 Save and the PMO copy (`buildSavedHtml`, with `pubsFor(own)` choosing the
+appropriations), the kept-aside file (`keptSaveFile`) and the board as it was (`fullImportPreHtml`). W1's and W2's
+copies had diverged already: the rescue file had no writer. A field added to the saved file is added there, once.
+
+**54 -- the journal keeps fiscal years apart (W4).** `jrnlAdd` joins an entry to the last only for the same `fy`, an
+unforced last entry and a later time; `(load)` lines are forced; a new year's lines are labelled.
+
+**55 -- the PMO drill, the five-year plan and the comparison, by year (W4, Brad's Q2).** `allocVecFor` is gone.
+`spOwnYear(fy)` reads a year through `aceWithYear(fy, cycProjOf)` → `spProjByPmo` -- the board's own allocation, the
+year's own PMO, asks and added requirements, the figures a lock takes -- and `blPmoAlloc` groups the same way; the
+PRIMES title roll-up (`spTitleGrp` via `spRecOf`) applies to both. Another appropriation is read from its own state
+(`spOtherYear`); its Controls print "—" and are never added in as nothing. `fydpRows` and the comparison
+(`cycCmpData`: `Y.filed`, `D.rows`/`D.order` keyed requirement + PMO, `D.n` the requirement count) file each year under
+the PMO that year (each cycle) assigns: a requirement that moved is listed under each office for its years; totals
+unchanged. Trace section 1g registers "Spruills (screen)" and "Spruills · PMO drill".
+
+**56, 57 -- the checker and the Windows font (W5).** `npm run check` "award order" is rewritten with a self-test
+(21 unsafe forms refused, 12 valid passed; it fails v1.93 on six sorts and the review's probes). `fitMenus()` clamps
+the toolbar menus by measured width; `.insp-act .a1` wraps. `tools/font-standin.mjs` stands in for Segoe UI (+6%), and
+`dropdowns-visible` and `editors-reachable` run a stand-in pass.
+
+**59 -- the money map (W6).** `tools/money-map.mjs` + `money-map.json` → `money-map.md`: every surface in
+`money-coverage.mjs` and every trace surface is a row; each of seven dimensions (appropriation, fiscal year, service,
+requirement, month, CR half, funding lane) is a cell -- **proven** (checks cited by file, scenario and anchor, at the
+grain printed, to the dollar), **n/a** (why), or **open** (named). It fails on a missing row or cell, a cited anchor
+that is gone, an uncited check, a pending surface that has arrived (as W4's did: confirmed in integration), or a stale
+report. **The gate runs it** (`validate:math`, stage "money map", after coverage). At v1.95: 329 cells, 114
+proven, 206 n/a, 9 open -- each open cell one of Brad's deferrals by name (Two Spend Plans, the ATR/BTR log, Funds
+Flow, the ACE tie-out). Integration added
+`audit-board.mjs` "v1.95 — the Spruills by service, by year and for another appropriation" for the Spruills table's
+cells (it passes on v1.94 too: coverage, not a fix; three mutations prove it bites).
+
+**51 -- a submittal's awards follow the service names (W3).** `pkgSvcEach(pkg, fn)` walks every service-width
+list in a package -- values, WBS lines, every award's dollars, in `items`, `base` and `added` -- and `pmoTake` uses
+it to reorder by name (only a list of the right width; nothing is padded or cut), to refuse a package with figures
+and no service list (naming each list), and to refuse a baseline of the wrong width. The review and the change
+report show each award's date and dollars by service (`awdFmt` in `pmoFmtVal`); an inferred split or "needs
+repair" is marked.
+
+**52 -- a held submittal applies only to its own year (W3).** `pmoTake` reads `pkg.fy` (unreadable: refused; none:
+asked; another year: the question names both) and keeps `held.forFy`. `pmoApply` applies nothing while any ticked
+package is held for another year, and names every office's year; its confirm names the target year.
+
+**53 -- one award check at every door and on every opening (W3).** `awdNorm(v, {door|open, n})`. At a door
+(`inShapeWhy` → `inAwdWhy`, `pmoNorm('awards')`, the proposal loop): single or incremental, real months, days
+1–31, whole dollars ≥ 0, one per service; text numbers and cents are converted (cents through `apportion`, the
+total kept) and said; anything else refuses the file, naming the award. On opening (`applyState`): never refused,
+never zeroed -- a wrong width keeps its total spread over the values (`fx:'split'`), an unreadable or negative
+figure is nothing (that service UNSCHEDULED, `fx:'repair'`), a bad date or mode is set aside "needs repair";
+`aw.fix = {orig, how, n, at, ok}` keeps the record as found. Reported on opening, in Needs attention ("🔧 awards
+repaired on opening") and in the award block; "✓ Checked" (`awdFixOk`) clears the mark and keeps the original. The
+setters carry `fix` (`awdKeepFix`, `awdDrop`); **integration:** so does accepting an office's award (`pmoApply`), and
+the review compares awards without that bookkeeping (`awdBare`), so a repaired award is neither listed for nothing
+nor left listed once accepted. `awdNorm` runs inside `applyState` at boot, before `IN_MAX_AMT`, `awdDay`, `ymLbl`
+and `awdKey` exist: it reads `AWD_MAX` and `AWD_MN` and does not sort. `svcSaveList` refits awards by position when
+the service list is edited (v1.94 zeroed them). `verify-file.mjs` counts a repaired award's set-aside parts as no
+loss; the fuzz fills one award with `fix`/`fx`.
+
+**60 -- the export defects the map found (W7; Brad: "F2 option (a)").**
+- **F1:** `buildXlsx` stores every figure as it is (15 significant digits), not rounded to two decimals; a fraction in
+  a General style gets a two-decimal twin of that style (`nf` is a built-in format id). The $M and $K files look the
+  same and add up to the dollar.
+- **F2:** an incremental award goes out on the Spend Plan Source a line per increment per service and lane, dated the
+  day `landSvc` places it on (a day past the month's end is its last day), carrying its part of the lane; what the
+  awards do not cover goes out on 31 August, as undated money always has. **Integration:** a single award date past
+  its month's end is clamped the same way (it rolled into the next month).
+- **F3:** the Executive Synopsis's first line and file name are `FYL()`.
+- **F4:** an office's share is `pmoPartsOf(it, p)` / `pmoSplit` -- per service the ask apportioned, then
+  discretionary, mandatory and unfunded each spread by what each office still has to take -- in the forecast and its
+  views, the CR windows by PMO, `monSpreadOf` (an office part as `f`), the PMO tabs, the PMO Matrix, CE by PMO and
+  the deck. Office totals add up both ways; an office's month can sit about a dollar from its exact share, the total
+  exact. A part that is not whole dollars (a modelled plan) stays a fraction.
+- **F5:** the CR Cash Needs footnote says each award's dollars sit in its own date's half.
+- **F6 (integration, from W7's notes):** `clinSplit` apportions a whole-dollar amount, so a prime's CLIN lines on the
+  Spend Plan Source and the RCN/EEIC monthly tab are whole dollars that add up (they were amount × share:
+  $33.333…).
+
+**Board imports that reorder the services (integration, from W3's notes).** `svcRemapState` now also reorders the
+WBS lines (`S.wbs`, `S.clinWbs`; a line that takes its parent whole stores `[]` and keeps it) and the CLIN grid's
+own figures (`S.clinAlloc`, keyed or the old array form; `clinMeta`/`clinNew` asks). They were left in the file's
+order, on the wrong services. The "exhaustive remap" fixture now holds all five.
+
+**Mutations.** New in v1.95: W1 21, W2 22, W3 28, W4 18, W7 19, integration 16 (`spgather-*` 3, `impmixed-*` 6, `clin-split-*`
+2, `src-single-day-rolls`, `pmo-apply-drops-original`, `pmo-rows-compare-bookkeeping`, `remap-*` 2); W5 none in jsdom
+(its browser mutants were run by hand; its slot says why), W6 none. 728 + 124 = 852. Retargeted in place: v1.89's
+`boot-no-keep-aside`; W2's five `full-*-left`; W7's eleven share mutations (`mc-matrix-weight`, `pmo-matrix-disc`,
+`ce-by-pmo-share`, `ppt-pmo-share`, `oblig-*` 2, `cr-back-to-weights`, `fcv-*` 2, `cr-/fc-share-placed-alone`);
+`pmo-conflict-blind`; `excel-unf-vec` (after the first gate run, above); and **eight that W1's save changes had left matching nothing**
+(`handoff-copy-drops-store/-exec/-ace`, `save-no-lt-escape`, `view-save-not-refused`, `cycle-file-drops-store`,
+`bud-not-saved`, `guard-fails-open`) plus `dest-file-no-list` -- found before the gate by counting every target against
+the merged board with a script that reads the array as text (never importing `mutate.mjs`). A workstream's presweep
+of its own new ids does not see an old target it broke: count them all after every merge (AGENTS.md).
+
+**Two `audit.mjs` checks** asserted the old fractional office share ($207.50 an increment); they now require a whole
+dollar within $1 of the exact share, and their companion still asserts the exact sum (W7). Two `audit-import.mjs`
+checks expected a listless package to be asked about; it is refused (W3).
+
+**The gate that passed v1.95** (3 Oct, 16:54–19:19 UTC, on the final tree): every stage clean, **145.1 min**, the sweep 134.3 min; 852 mutations, 841/841 caught, 11 equivalent; fuzz seed 944633042; the new "money map" stage: 329 cells, 114 proven, 206 n/a, 9 open. Before it, one run (13:33–16:49 UTC) failed on one survivor, `excel-unf-vec`: F4 had moved the PMO tabs to `pmoPartsOf`, so `PICK.unf`'s per-service vector -- the line it mutates -- was read by nothing. A consumer moving away from a line turns its mutation EQUIVALENT without a word; only the sweep sees it. The dead vector is gone and the mutation is aimed at `pmoPartsOf`'s split. The first run's sweep took 184.7 min: new mutations have no catcher history, so each tries the suites in order; the second, with the history, 134.3.
 
 ## Colour: one token, one job
 

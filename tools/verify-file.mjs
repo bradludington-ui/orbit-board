@@ -152,8 +152,19 @@ function loads(sec, html, saved, slug) {
   }
   // the year on screen, as saved vs as held: a path that vanished is a loss, a changed one is normalisation
   const dY = diffPaths(st.years[String(facts.cur)] || {}, JSON.parse(ev(`JSON.stringify(MS.years[MS.cur])`)));
-  const lostY = dY.filter(x => x.b === undefined && !/^pmoOrder/.test(x.path));
+  // v1.95 (item 53): an award the file held in a shape the board could not use is repaired on opening, and the
+  // record as it was saved is kept with it, in awards.<id>.fix.orig. A part of it that the repair set aside is
+  // therefore not lost -- it is said below, by count, and never counted as a loss.
+  const heldAw = JSON.parse(ev(`JSON.stringify(MS.years[MS.cur].awards||{})`));
+  const fixedAw = Object.keys(heldAw).filter(id => heldAw[id] && heldAw[id].fix && typeof heldAw[id].fix.orig === 'string');
+  const keptAw = x => fixedAw.some(id => x.path === 'awards.' + id || x.path.startsWith('awards.' + id + '.'));
+  const lostY = dY.filter(x => x.b === undefined && !/^pmoOrder/.test(x.path) && !keptAw(x));
   check(sec, lostY.length === 0, `FY${String(facts.cur).slice(-2)}’s state came back whole`, lostY.length ? 'missing: ' + lostY.slice(0, 4).map(x => x.path).join(', ') : (dY.length ? `${dY.length} path(s) normalised on load` : 'byte for byte'));
+  if (fixedAw.length) {
+    const nRep = fixedAw.filter(id => heldAw[id].fix.how === 'repair' && !heldAw[id].fix.ok).length;
+    note(sec, `${fixedAw.length} award(s) repaired on opening, each keeping the record as it was saved (awards.<id>.fix.orig)`
+      + (nRep ? ` — ${nRep} NEED REPAIR: what could not be read is UNSCHEDULED until it is entered again` : ''));
+  }
   note(sec, `stores: execution ${facts.exdb.length ? facts.exdb.join(' · ') : 'none'} · estimates ${facts.ace.length ? facts.ace.join(' · ') : 'none'} · reprogramming ${facts.rp} · cycles ${facts.cyc.length ? facts.cyc.join(' · ') : 'none'} · submittals held ${facts.subs}`);
   note(sec, `positions ${facts.ppbe.length ? facts.ppbe.join(', ') : 'none'} · snapshots ${facts.snaps} · journal ${facts.jrnl} · last saves ${facts.log.join(' | ') || 'unstamped'}`);
   const empty = Object.keys(facts.census).filter(k => !facts.census[k]).sort();
@@ -403,7 +414,19 @@ if (flag('--selftest')) {
   if (sv.stateErr) { console.log(`ok    the file reads as damaged before boot: ${sv.stateErr}`); caught2 = true; }
   else { certify(broken, sv, 'planted damage'); caught2 = !report.ok; }
   console.log(`\n${caught2 ? 'ok  ' : 'FAIL'}  the damage was noticed`);
-  const all = clean && caught1 && caught2;
+  // planted damage 3 (v1.95, item 53): an award the board cannot use as it was saved -- one list for the wrong
+  // number of services and one award with a date that is not a month. Opening it repairs the first, flags the
+  // second and keeps the record as saved; that is not a loss, and the certificate must hold and say so.
+  report.ok = true; report.sections.length = 0;
+  const dmg = html.replace(STATE_RE, (m, a) => { const J = JSON.parse(a); const om = J.appns ? J.appns[Object.keys(J.appns).find(k => J.appns[k] && J.appns[k].years)] : J;
+    om.years[String(om.cur)].awards.B = { mode: 'inc', inc: [{ d: om.cur - 1 + '-11', day: 3, sv: [5400000] }, { d: om.cur + '-13', day: 4, sv: [1, 0, 0, 0, 0, 0] }] };
+    const txt = JSON.stringify(J).replace(/</g, '\\u003c'); return m.replace(a, () => txt); });
+  console.log('\n… planting a damaged award');
+  const lines3 = []; const _log = console.log; console.log = (...a) => { lines3.push(a.join(' ')); _log(...a); };
+  try { certify(dmg, readSaved(dmg), 'planted damaged award'); } finally { console.log = _log; }
+  const held3 = report.ok && dmg !== html && lines3.some(l => /award\(s\) repaired on opening/.test(l) && /NEED REPAIR/.test(l));
+  console.log(`\n${held3 ? 'ok  ' : 'FAIL'}  a repaired award holds, is said, and is not counted as a loss`);
+  const all = clean && caught1 && caught2 && held3;
   console.log(`\n${'='.repeat(96)}\n${all ? 'VERIFIER SELF-TEST PASSED — a clean file holds, and a planted loss is noticed' : 'VERIFIER SELF-TEST FAILED'}`);
   process.exit(all ? 0 : 1);
 }

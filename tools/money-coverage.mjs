@@ -39,12 +39,12 @@ const REGISTRY = {
   mcCalc:       { money: true,  what: 'Mission Critical total and shortage' },
   trimAbsorb:   { money: true,  what: 'unspent discretionary against the trims that could take it — '
                                     + 'read as an instruction to type a figure into an allocation box' },
-  forecast:     { money: true,  what: 'the spend forecast — when funded dollars land', via: ['landSvc'] },
+  forecast:     { money: true,  what: 'the spend forecast — when funded dollars land', via: ['landSvc', 'pmoPartsOf'] },
   // v1.93 (item 41): the forecast for one view -- the whole portfolio, one PMO or one service -- written as one sheet
   exportFcView: { money: true,  what: 'the Spend Plan Forecast for the view on screen — the whole portfolio, one PMO or one service',
                   via: ['fcViewData', 'forecast', 'landSvc'] },
-  srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column, one line per service per lane',
-                  via: ['srcLaneOf', 'srcSvcOf'] },
+  srcRowsOf:    { money: true,  what: 'Spend Plan Source rows — the Amount column, one line per service per lane (and per increment of an incremental award)',
+                  via: ['srcLaneOf', 'srcSvcOf', 'landSvc'] },
   exportSrc:    { money: true,  what: 'the Spend Plan Source workbook', via: ['srcLaneOf', 'srcSvcOf', 'srcRowsOf'] },
   crExportRows: { money: true,  what: 'the 1A9A CR cash return' },
   exportExcel:  { money: true,  what: 'the breakouts workbook — lanes, bands, matrices, unfunded' },
@@ -70,6 +70,13 @@ const REGISTRY = {
                   via: ['cycDeltaChip', 'cycDeltaInsp', 'cycChgBody', 'cycWho', 'cycNextOf', 'cycRetagNext'] },
   cycProjOf:    { money: true,  what: 'a locked PPBE cycle’s projection — value, allocation and funding per requirement, per year',
                   via: ['cycLock', 'cycWindowYears', 'cycMigrateLegacy'] },
+  // v1.95 (item 55): the Spruills and its PMO drill read each year's own projection by PMO -- the board's one
+  // allocation rule -- and a locked cycle by the same PMO rule; neither was registered, which is why a drill
+  // printing $258.00M against the board's $138.00M was caught by nothing.
+  spGather:     { money: true,  what: 'the Spruills — Total Requirements, Available Funding and the rows by PMO or service, per appropriation and year',
+                  via: ['spOwnYear', 'spProjByPmo', 'spOtherYear', 'spRecOf'] },
+  pmoDetail:    { money: true,  what: 'the Spruills PMO drill — Requirement, Controls, Delta and % for one PMO, by service and year, from Board budgets or a locked cycle',
+                  via: ['spOwnYear', 'spProjByPmo', 'spOtherYear', 'spRecOf', 'blPmoAlloc', 'pmoDrillHtml'] },
 
   // surfaces that carry no arithmetic of their own -- each needs a reason, not a shrug
   exportProposedOrder: { money: false, reason:

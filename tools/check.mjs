@@ -6,6 +6,7 @@
 // invariants that suite held have to live somewhere. This is that somewhere.
 //
 //   node tools/check.mjs [path-to-html]
+//   node tools/check.mjs --selftest        the award-order rule's own test, alone (it also runs in every check)
 //
 // Exits non-zero on the first failing check so it can gate a commit.
 
@@ -14,6 +15,15 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+
+// THE AWARD-ORDER RULE'S OWN TEST, ALONE (v1.95, item 56). The functions are declared further down, with the rule.
+if (process.argv[2] === '--selftest') {
+  const st = awardOrderSelftest();
+  st.bad.forEach(b => console.log(`  FAIL  ${b}`));
+  console.log(st.bad.length ? `\nthe award-order rule fails its own test: ${st.bad.length} case(s)\n`
+    : `\nthe award-order rule's own test passed: ${st.refused} unsafe forms refused (the review's three bypasses among them), ${st.passed} valid forms passed\n`);
+  process.exit(st.bad.length ? 1 : 0);
+}
 
 const FILE = process.argv[2] || new URL('../prioritization-board-grid.html', import.meta.url).pathname;
 const src = readFileSync(FILE, 'utf8');
@@ -303,29 +313,274 @@ console.log('\nboxes');
   else pass(`all ${all.length} boxes are direct children of <body> with an id, a .modal, a name and a close control`);
 }
 
-// ---- every award sort uses the one order (v1.94, item 46) -------------------------------------------
+// ---- every award sort uses the one order (v1.94, item 46; v1.95, item 56) -------------------------------
 // Awards are taken by date, and awards on one date in the order they arrived on it: discretionary fills them
 // forward and mandatory backward in that order, so it is money. awdCmp() is that order -- equal dates compare
 // EQUAL, and the stable sort keeps their stored order. The comparators it replaced returned 1 for equal dates,
 // which the language leaves undefined; Chromium happened to keep the order and another browser need not, and no
-// suite can tell, because in Chromium the result is the same. So it is checked here: a sort of award increments
-// (anything named inc), or one comparing award keys, uses awdCmp.
+// suite can tell, because in Chromium the result is the same. So it is checked here.
+//
+// v1.95 (item 56): an outside review got three unsafe sorts past the v1.94 rule. It read a sort's receiver back
+// only to the previous ; { or }, so `(aw.inc||[]).filter(function(e){ return e.d; }).sort(<unsafe>)` was read as
+// `).sort(` and never seen as awards; it let through anything that mentioned awdCmp, `awdCmp(a,b)||1` among them,
+// which breaks every tie; and it could not see an unsafe comparator held in a name. Now:
+//   - the script is read as code: the text of strings, template literals, regular expressions and comments is set
+//     aside first, so a bracket or a name inside one is never taken for code -- and the brackets must balance
+//     after, or the rule says it could not read the script rather than pass it;
+//   - a sort's receiver is the WHOLE chained expression, walked back over balanced brackets to where it starts;
+//   - a sort is of awards when that receiver names inc, or its comparator -- written in place, or what a name given
+//     to it is defined as -- reads an award's date (awdKey, awdDay, awdCmp, or a .d or .day);
+//   - a sort of awards takes awdCmp itself, or a comparator that returns exactly `awdCmp(a…, b…) || <tie-break>`, the
+//     tie-break comparing a value of its first argument with one of its second (a subtraction, a localeCompare or a
+//     three-way ?: compare), never a constant. Any other comparator is refused, a name for one included.
+// The rule has its own test (awardOrderSelftest, below; `node tools/check.mjs --selftest` runs it alone): the
+// review's three bypasses and the other unsafe forms must be refused, the valid forms passed. It runs before the
+// rule judges the board: a rule that cannot fail proves nothing.
 console.log('\naward order');
 {
-  const bad = [];
-  for (const m of src.matchAll(/\.sort\(/g)) {
-    const i = m.index;
-    // the statement the sort belongs to: back to the previous ; { or } -- a receiver may sit on the line above
-    let j = i; while (j > 0 && !';{}'.includes(src[j - 1]) && i - j < 400) j--;
-    const recv = src.slice(j, i);
-    let k = i + 6, depth = 1;
-    while (k < src.length && depth) { if (src[k] === '(') depth++; else if (src[k] === ')') depth--; k++; }
-    const arg = src.slice(i + 6, k - 1).trim();
-    const award = /\binc\b/.test(recv) || /awdKey\(/.test(arg);
-    if (award && arg !== 'awdCmp' && !/awdCmp\(/.test(arg)) bad.push(`line ${src.slice(0, i).split('\n').length}: .sort(${arg.slice(0, 50)})`);
+  const st = awardOrderSelftest();
+  if (st.bad.length) fail(`the award-order rule fails its own test: ${st.bad.join('; ')}`);
+  else pass(`the award-order rule's own test: ${st.refused} unsafe forms refused (the review's three bypasses among them), ${st.passed} valid forms passed`);
+  const bad = [], at = i => src.slice(0, i).split('\n').length;
+  let sorts = 0, awards = 0;
+  for (const m of src.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    if (/type\s*=\s*["']?application\/json/i.test(m[1])) continue;
+    const base = m.index + m[0].indexOf('>') + 1, r = awardSortFindings(m[2]);
+    if (r.unreadable) { bad.push(`the script at line ${at(base)} could not be read: ${r.unreadable}`); continue; }
+    sorts += r.sorts; awards += r.awards;
+    r.findings.forEach(f => bad.push(`line ${at(base + f.at)}: ${f.text} -- ${f.why}`));
   }
   if (bad.length) fail(`${bad.length} award sort(s) not using awdCmp — equal dates must compare equal: ` + bad.join('; '));
-  else pass('every sort of awards uses awdCmp');
+  else pass(`every sort of awards uses awdCmp (${awards} of ${sorts} sorts are of awards)`);
+}
+
+// The award-order rule, on one script's text. Returns {sorts, awards, findings:[{at, text, why}], unreadable}.
+function awardSortFindings(js) {
+  const B = jsBlank(js);
+  const CLOSE = { '(': ')', '[': ']', '{': '}' }, OPEN = { ')': '(', ']': '[', '}': '{' };
+  {   // read as code, the brackets balance -- or the rule cannot trust anything it reads here
+    const stk = [];
+    for (let k = 0; k < B.length; k++) {
+      const c = B[k];
+      if (c in CLOSE) stk.push(c);
+      else if (c in OPEN && stk.pop() !== OPEN[c]) return { sorts: 0, awards: 0, findings: [], unreadable: `an unmatched ${c} at offset ${k}` };
+    }
+    if (stk.length) return { sorts: 0, awards: 0, findings: [], unreadable: `${stk.length} bracket(s) never closed` };
+  }
+  const fwd = (s, k) => { const stk = []; for (let j = k; j < s.length; j++) { const c = s[j];
+    if (c in CLOSE) stk.push(CLOSE[c]); else if (c in OPEN) { if (stk.pop() !== c) return -1; if (!stk.length) return j; } } return -1; };
+  const back = (s, k) => { const stk = []; for (let j = k; j >= 0; j--) { const c = s[j];
+    if (c in OPEN) stk.push(OPEN[c]); else if (c in CLOSE) { if (stk.pop() !== c) return -1; if (!stk.length) return j; } } return -1; };
+  const ws = j => { while (j > 0 && /\s/.test(B[j - 1])) j--; return j; };
+  const word = k => { let s = k; while (s > 0 && /[\w$]/.test(B[s - 1])) s--; return s; };
+  const STOP = /^(return|typeof|instanceof|in|of|new|delete|void|throw|case|do|else|yield|await|if|while|for|switch|catch|with)$/;
+  // where the chained expression that ends at i (the '.' of '.sort(') starts
+  const start = i => {
+    let j = i;
+    for (;;) {
+      const k = ws(j), c = B[k - 1] || '';
+      if (c === ')' || c === ']') {                       // a call, an index, a group or an array
+        const o = back(B, k - 1); if (o < 0) return -1;
+        j = o; const p = ws(j), pc = B[p - 1] || '';
+        if (/[\w$]/.test(pc)) { if (STOP.test(B.slice(word(p), p))) return j; j = p; continue; }
+        if (pc === ')' || pc === ']') { j = p; continue; }
+        if (pc === '.' && B[p - 2] === '?') { j = p - 2; continue; }
+        return j;
+      }
+      if (/[\w$]/.test(c)) { const s = word(k); if (STOP.test(B.slice(s, k))) return j; j = s; }
+      else if (c === "'" || c === '"' || c === '`') { const s = B.lastIndexOf(c, k - 2); return s; }
+      else return j;
+      const p = ws(j);
+      if (B[p - 1] === '.' && B[p - 2] !== '.') { j = B[p - 2] === '?' ? p - 2 : p - 1; continue; }
+      return j;
+    }
+  };
+  const reads = t => /\bawd(?:Key|Day|Cmp)\b/.test(t) || /[\w$\])]\s*\.\s*(?:d|day)\b(?!\s*[\w$.(\[])/.test(t);
+  // what a name is defined as in this script: each `function name(…){…}`, and each `const|let|var name = …`
+  const defs = name => {
+    const out = [], n = name.replace(/\$/g, '\\$');
+    for (const m of B.matchAll(new RegExp(`\\bfunction\\s+${n}\\s*\\(`, 'g'))) {
+      const pc = fwd(B, m.index + m[0].length - 1), ob = pc < 0 ? -1 : B.indexOf('{', pc), cb = ob < 0 ? -1 : fwd(B, ob);
+      if (cb > 0) out.push(B.slice(m.index, cb + 1));
+    }
+    for (const m of B.matchAll(new RegExp(`\\b(?:const|let|var)\\s+${n}\\s*=(?!=)`, 'g'))) {
+      let k = m.index + m[0].length, d = 0;
+      for (; k < B.length && k - m.index < 4000; k++) { const c = B[k];
+        if (c in CLOSE) d++; else if (c in OPEN) { if (!d) break; d--; } else if (!d && (c === ';' || c === ',')) break; }
+      out.push(B.slice(m.index + m[0].length, k).trim());
+    }
+    return out;
+  };
+  const findings = [];
+  let sorts = 0, awards = 0;
+  for (const m of B.matchAll(/\.\s*(?:sort|toSorted)\s*\(/g)) {
+    sorts++;
+    const i = B[m.index - 1] === '?' ? m.index - 1 : m.index, op = m.index + m[0].length - 1, cp = fwd(B, op);
+    const s = start(i);
+    const text = (js.slice(i, op + 1) + js.slice(op + 1, cp < 0 ? op + 60 : cp).trim().replace(/\s+/g, ' ').slice(0, 60) + ')');
+    if (s < 0 || cp < 0) { findings.push({ at: i, text, why: 'the sort could not be read as code' }); continue; }
+    const recv = B.slice(s, i), arg = B.slice(op + 1, cp).trim(), named = /^[\w$]+$/.test(arg);
+    const def = named && arg !== 'awdCmp' ? defs(arg) : [];
+    if (!(/\binc\b/.test(recv) || reads(arg) || def.some(reads))) continue;
+    awards++;
+    const why = cmpVerdict(arg, def);
+    if (why) findings.push({ at: i, text, why });
+  }
+  return { sorts, awards, findings, unreadable: null };
+
+  // null when the comparator is awdCmp's order, or why it is not
+  function cmpVerdict(arg, def) {
+    if (arg === 'awdCmp') return null;
+    if (!arg) return 'no comparator: a sort of awards takes awdCmp';
+    if (/^[\w$]+$/.test(arg)) return `${arg} is not a known award comparator${def.length ? '' : ' (nothing here defines it)'}: sort awards with awdCmp, or with awdCmp(…) || a tie-break written in place`;
+    const f = /^function\s*[\w$]*\s*\(\s*([\w$]+)\s*,\s*([\w$]+)\s*\)\s*\{([\s\S]*)\}$/.exec(arg)
+           || /^\(\s*([\w$]+)\s*,\s*([\w$]+)\s*\)\s*=>\s*([\s\S]*)$/.exec(arg);
+    if (!f) return 'a comparator that is not awdCmp';
+    const [, a, b] = f; let body = f[3].trim();
+    if (arg.startsWith('function') || body.startsWith('{')) {
+      if (!arg.startsWith('function')) { if (!body.endsWith('}')) return 'a comparator that cannot be read'; body = body.slice(1, -1).trim(); }
+      const r = /^return\b([\s\S]*?);?$/.exec(body);
+      if (!r || split(r[1], ';').length > 1) return 'a comparator that does more than return awdCmp(…) || a tie-break';
+      body = r[1].trim();
+    }
+    const parts = split(body, '||');
+    const of = (x, p) => new RegExp(`^${p.replace(/\$/g, '\\$')}(?:\\s*\\.\\s*[\\w$]+)*$`).test(unwrap(x));
+    parts[0] = unwrap(parts[0]);
+    const call = /^awdCmp\s*\(/.exec(parts[0]);
+    const args = call && fwd(parts[0], call[0].length - 1) === parts[0].length - 1 ? split(parts[0].slice(call[0].length, -1), ',') : null;
+    if (!args) return 'a comparator that does not decide by awdCmp';
+    if (args.length !== 2 || !of(args[0], a) || !of(args[1], b)) return `awdCmp must be given the first argument's award, then the second's (${a}…, ${b}…)`;
+    if (parts.length < 2) return 'awdCmp(…) with nothing after it: sort with awdCmp itself, or add || a tie-break';
+    for (const t of parts.slice(1)) {
+      const u = unwrap(t), one = (x, y) => (of(x, a) && of(y, b)) || (of(x, b) && of(y, a));
+      if (/^[-+]?\s*(\d|\.\d)|^(true|false|null|undefined|NaN|Infinity)$/.test(u)) return `a constant (${u}) decides ties: equal dates must compare equal, or be told apart by a value of each`;
+      const sub = split(u, '-'), lc = /^([\s\S]+)\.localeCompare\(([\s\S]+)\)$/.exec(u);
+      const tw = /^([\s\S]+?)\s*<\s*([\s\S]+?)\s*\?\s*-\s*1\s*:\s*\(?\s*([\s\S]+?)\s*>\s*([\s\S]+?)\s*\?\s*1\s*:\s*0\s*\)?$/.exec(u);
+      if (sub.length === 2 && one(sub[0], sub[1])) continue;
+      if (lc && one(lc[1], lc[2])) continue;
+      if (tw && one(tw[1], tw[2]) && unwrap(tw[3]) === unwrap(tw[1]) && unwrap(tw[4]) === unwrap(tw[2])) continue;
+      return `the tie-break (${u.replace(/\s+/g, ' ').slice(0, 40)}) does not compare a value of ${a} with one of ${b}`;
+    }
+    return null;
+  }
+  // s split at each sep outside brackets
+  function split(s, sep) {
+    const out = []; let d = 0, last = 0;
+    for (let k = 0; k < s.length; k++) {
+      const c = s[k];
+      if (c in CLOSE) d++; else if (c in OPEN) d--;
+      else if (!d && s.startsWith(sep, k)) { out.push(s.slice(last, k)); k += sep.length - 1; last = k + 1; }
+    }
+    out.push(s.slice(last)); return out.map(x => x.trim());
+  }
+  function unwrap(s) { s = s.trim(); while (s[0] === '(' && fwd(s, 0) === s.length - 1) s = s.slice(1, -1).trim(); return s; }
+}
+
+// The script with what is not code set aside: the text of every string, template literal, regular expression and
+// comment becomes spaces (newlines kept, so every position and line is where it was). A / is a regular expression
+// where an expression can start (after an operator, an opening bracket, a keyword such as return, or a }), and a
+// division after a name, a number or a closing bracket.
+function jsBlank(js) {
+  const o = js.split(''), n = js.length;
+  const KW = new Set(['return', 'typeof', 'instanceof', 'in', 'of', 'new', 'delete', 'void', 'throw', 'case', 'do', 'else', 'yield', 'await']);
+  const blank = (a, b) => { for (let k = a; k < b; k++) if (o[k] !== '\n') o[k] = ' '; };
+  const tpl = [];
+  let depth = 0, prev = '', i = 0;
+  // a template literal's text from k: blank to its closing ` or to its next ${, which is code
+  const text = k => {
+    const s = k;
+    while (k < n) {
+      if (js[k] === '\\') { k += 2; continue; }
+      if (js[k] === '`') { blank(s, k); prev = 'v'; return k + 1; }
+      if (js[k] === '$' && js[k + 1] === '{') { blank(s, k); tpl.push(depth); prev = '{'; return k + 2; }
+      k++;
+    }
+    blank(s, n); return n;
+  };
+  while (i < n) {
+    const c = js[i], d = js[i + 1];
+    if (c === '/' && d === '/') { let e = js.indexOf('\n', i); if (e < 0) e = n; blank(i, e); i = e; continue; }
+    if (c === '/' && d === '*') { let e = js.indexOf('*/', i + 2); e = e < 0 ? n : e + 2; blank(i, e); i = e; continue; }
+    if (c === "'" || c === '"') {
+      let k = i + 1; while (k < n && js[k] !== c && js[k] !== '\n') k += js[k] === '\\' ? 2 : 1;
+      blank(i + 1, k); i = k + 1; prev = 'v'; continue;
+    }
+    if (c === '`') { i = text(i + 1); continue; }
+    if (c === '/' && (prev === '' || prev === 'kw' || '(,=:[!&|?{};+-*%<>~^}'.includes(prev))) {
+      let k = i + 1, cls = false;
+      while (k < n && js[k] !== '\n' && (js[k] !== '/' || cls)) { if (js[k] === '\\') k++; else if (js[k] === '[') cls = true; else if (js[k] === ']') cls = false; k++; }
+      if (js[k] === '/') { blank(i + 1, k); i = k + 1; while (/[a-z]/.test(js[i] || '')) i++; prev = 'v'; continue; }
+    }
+    if (/[\w$]/.test(c)) { let k = i; while (k < n && /[\w$]/.test(js[k])) k++; prev = KW.has(js.slice(i, k)) ? 'kw' : 'v'; i = k; continue; }
+    if (c === '{') depth++;
+    else if (c === '}') { if (tpl.length && tpl[tpl.length - 1] === depth) { tpl.pop(); i = text(i + 1); continue; } depth--; }
+    if (!/\s/.test(c)) prev = c;
+    i++;
+  }
+  return o.join('');
+}
+
+// THE RULE'S OWN TEST (v1.95, item 56). Each case is a small script with one sort in it. The first three are the ones
+// the outside review got past v1.94's rule (v195r/me/r10.txt); every unsafe case must be refused -- for the reason given,
+// where one is -- and every valid one passed.
+function awardOrderSelftest() {
+  const UNSAFE = [
+    ['review bypass 1: an unsafe sort after a .filter(function(){…})',
+      "function __p1(aw){ return (aw.inc||[]).filter(function(e){ return e.d; }).sort(function(a,b){ return a.d<b.d?-1:1; }); }", /not decide by awdCmp/],
+    ['review bypass 2: awdCmp(a,b)||1',
+      "function __p2(aw){ return aw.inc.sort((a,b)=>awdCmp(a,b)||1); }", /a constant \(1\)/],
+    ['review bypass 3: an unsafe comparator held in a name',
+      "function __p5(list){ const byDate=(a,b)=>a.d<b.d?-1:1; return list.sort(byDate); }", /byDate is not a known award comparator:/],
+    ["v1.93's own: the comparator on the line below its receiver",
+      "function f(id){\n  S.awards[id].inc\n    .sort((a,b)=>a.d<b.d?-1:1);\n}"],
+    ["v1.93's own: keys compared by hand",
+      "function f(aw){ return aw.inc.map(function(x, j){ return {x:x, j:j}; })\n  .sort(function(a, b){ const ka=awdKey(a.x), kb=awdKey(b.x); return ka<kb?-1:1; }); }"],
+    ['a constant after awdCmp: ||-1', "function f(aw){ aw.inc.sort(function(a,b){ return awdCmp(a,b)||-1; }); }", /a constant \(-1\)/],
+    ['a constant after awdCmp: ||(0)', "function f(aw){ aw.inc.sort((a,b)=>{ return awdCmp(a,b)||(0); }); }", /a constant \(0\)/],
+    ['a tie-break comparing a value with itself', "function f(o){ return o.inc.sort(function(a,b){ return awdCmp(a.x,b.x)||(a.j-a.j); }); }"],
+    ['awdCmp given the awards the wrong way round', "function f(aw){ aw.inc.sort((a,b)=>awdCmp(b,a)||(a.j-b.j)); }"],
+    ['awdCmp wrapped with no tie-break', "function f(o){ return o.inc.map(x=>({x})).sort((a,b)=>awdCmp(a.x,b.x)); }"],
+    ['a second statement before the return', "function f(aw){ aw.inc.sort(function(a,b){ log(a); return awdCmp(a,b)||(a.j-b.j); }); }"],
+    ['a name for a comparator, on awards', "function f(aw, byWhen){ return aw.inc.slice().sort(byWhen); }"],
+    ['a name defined as a function declaration that compares dates',
+      "function byWhen(x, y){ return x.d<y.d?-1:1; }\nfunction f(list){ return list.sort(byWhen); }"],
+    ['no comparator at all', "function f(aw){ return aw.inc.slice().sort(); }"],
+    ['toSorted', "function f(aw){ return aw.inc.toSorted((a,b)=>a.d<b.d?-1:1); }"],
+    ['a sort comparing dates, whatever its list is called', "function f(list){ return list.sort((p,q)=>p.d<q.d?-1:(p.d>q.d?1:0)); }"],
+    // the receiver alone says these are awards (the comparators read no date), so each proves the walk back to it
+    ['awards sorted by something else, after a .filter(function(){…})',
+      "function f(aw){ return (aw.inc||[]).filter(function(e){ return e.d; }).sort(function(a,b){ return a.j<b.j?-1:1; }); }"],
+    ['a string holding brackets inside the chain',
+      "function f(aw){ return (aw.inc||[]).filter(function(e){ return e.n!==')}('; }).sort((a,b)=>a.n<b.n?-1:1); }"],
+    ['a regular expression holding brackets inside the chain',
+      "function f(aw){ return (aw.inc||[]).filter(function(e){ return !/[)}(]/.test(e.n); }).sort((a,b)=>a.n<b.n?-1:1); }"],
+    ['a template literal and comments inside the chain, over three lines',
+      "function f(aw){ return (aw.inc||[]).filter(function(e){ /* } ) */ return `${e.n}}` !== '}'; }) // )\n  .map(function(e){ return {n:e.n}; })\n  .sort((a,b)=>a.n<b.n?-1:1); }"],
+    ['an index and a call before it', "function f(id){ return S.awards[id].inc.slice(0).reverse().sort(function(a,b){ return 1; }); }"],
+  ];
+  const VALID = [
+    ['.sort(awdCmp)', "function f(aw){ aw.inc.sort(awdCmp); }"],
+    ['.slice().sort(awdCmp)', "function f(aw){ return aw.inc.slice().sort(awdCmp); }"],
+    ['after a .filter(function(){…}), .slice().sort(awdCmp)', "function f(aw){ return (aw.inc||[]).filter(function(x){ return x && x.d; }).slice().sort(awdCmp)[0]; }"],
+    ['.sort(function(a,b){ return awdCmp(a.x,b.x)||(a.j-b.j); })',
+      "function f(aw){ return aw.inc.map(function(x, j){ return {x:x, j:j}; })\n  .sort(function(a,b){ return awdCmp(a.x,b.x)||(a.j-b.j); }); }"],
+    ['an arrow, a localeCompare tie-break', "function f(o){ return o.inc.sort((p,q)=>awdCmp(p.x,q.x) || p.id.localeCompare(q.id)); }"],
+    ['a three-way tie-break', "function f(o){ return o.inc.sort((p,q)=>{ return awdCmp(p.x,q.x) || (p.k<q.k? -1 : (p.k>q.k? 1 : 0)); }); }"],
+    ['a sort that is not of awards, with a named comparator', "function g(rest, cmp){ return rest.slice().sort(cmp); }"],
+    ['a sort that is not of awards', "function g(list){ list.sort(function(a,b){ return (a.rank||9e9)-(b.rank||9e9) || a.i-b.i; }); }"],
+    ['a .d that is not a date', "function g(ids, Y){ return ids.map(id=>Y.rows[id]).sort((p,q)=>Math.abs(q.d.fund)-Math.abs(p.d.fund)); }"],
+    ['inc in a string is not awards', "function g(){ return ['inc', 'dec'].sort(); }"],
+    ['inc earlier in the statement, not in the receiver', "function g(aw, list){ return aw.inc.length && list.slice().sort((p,q)=>p.n-q.n); }"],
+    ['inc in the statement before', "function g(aw, list){ const n=aw.inc.length; list.sort(function(a,b){ return a.n-b.n; }); return n; }"],
+  ];
+  const bad = [];
+  for (const [what, js, why] of UNSAFE) {
+    const r = awardSortFindings(js);
+    if (r.unreadable || !r.findings.length) bad.push(`not refused: ${what}${r.unreadable ? ' (could not be read: ' + r.unreadable + ')' : ''}`);
+    else if (why && !why.test(r.findings[0].why)) bad.push(`refused for the wrong reason: ${what} (${r.findings[0].why})`);
+  }
+  for (const [what, js] of VALID) { const r = awardSortFindings(js); if (r.unreadable || r.findings.length) bad.push(`refused: ${what} (${r.unreadable || r.findings[0].why})`); }
+  return { bad, refused: UNSAFE.length, passed: VALID.length };
 }
 
 // ---- build stamp -------------------------------------------------------------------------------
