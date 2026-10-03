@@ -2136,7 +2136,9 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
 // a requirement here. The lanes are deep, so each requirement is funded in full and the placement is
 // the only arithmetic under test.
 //   A  single date, November          -> the 1–15 window of November, whole
-//   B  single date, December, FLIPPED -> the 16–EOM window of December
+//   B  single date, December, month only, with an old 16-EOM mark -> the 1–15 window of December. v1.94: the
+//      award's own date decides, and a month with no day counts as the 1st; the mark decides nothing (it was the
+//      16–EOM window up to v1.93, when one mark per requirement and month set the half)
 //   C  awards October and April, a third and two-thirds of its funding -> a THIRD lands in October;
 //      the April share is outside Oct–Mar and is not placed anywhere -- it is not cash needed under a CR
 //   D  no award date                  -> no date
@@ -2169,7 +2171,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   sc.services.forEach((sv, i) => {
     const want = Array(12).fill(0);
     want[W(1, 0)] += f.A[i];          // A: November, 1–15
-    want[W(2, 1)] += f.B[i];          // B: December, flipped to 16–EOM
+    want[W(2, 0)] += f.B[i];          // B: December, month only -- the 1st, whatever the old mark says (v1.94)
     want[W(0, 0)] += f.C[i] / 3;      // C: a third in October; the April two-thirds is outside the window
     want[W(5, 0)] += f.F[i];          // F: March
     for (let w = 0; w < 12; w++) chk(name, sv, 'window ' + (w + 1), cr[i].win[w], want[w]);
@@ -2903,6 +2905,195 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     chk(name, label, 'unfunded by service is the reading against the ask, service by service', JSON.stringify(r.svc), JSON.stringify(r.svcAsk));
     chk(name, label, 'and adds up to the TOTAL', r.svc.reduce((a, b) => a + b, 0), r.wholeCard);
   }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ v1.94 (item 45) — CR HALF-MONTHS FOLLOW EACH AWARD'S OWN DATE ═══════════════════════════════════════════
+// Brad, 2 Oct 2026: "The date and amount reported is the date and amount reported and should be the sole
+// identifying information for where it resides in the CR view." The 1st to the 15th is the first half of the
+// month, the 16th to the end the second; an award saved with a month and no day counts as the 1st, the date its
+// award block shows. v1.93 took the half from ONE mark per requirement per month, set by whichever award was
+// edited last (or a click), so two awards in one month shared a half and a moved or deleted award left its mark
+// behind. Every figure below is written from the scenario; the awards are made through the board's own setters.
+{
+  const name = 'v1.94 — CR half-months follow each award’s own date';
+  try {
+  const J = JSON.stringify;
+  const sc = {
+    services: ['STOVL', 'USN'],
+    items: [it('A', 'AV', [200, 100]), it('B', 'AV', [120, 0]), it('C', 'AV', [70, 0]), it('D', 'AV', [200, 0]),
+            it('E', 'AV', [80, 0]), it('F', 'AV', [0, 90]), it('G', 'AV', [60, 0]), it('H', 'AV', [0, 25]),
+            it('I', 'AV', [20, 0]), it('K', 'AV', [0, 30])],
+    disc: [5000, 5000], mand: [5000, 5000], order: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K'],
+    fsrc: { D: { m: 'split', dv: [150, 0], mv: [50, 0] } },
+  };
+  const { ev, errors } = boot();
+  seed(ev, sc);
+  if (errors.length) console.log(`  [${name}] jsdom errors:`, errors.slice(0, 2));
+  // FYMON: 0 Oct, 1 Nov, 2 Dec, 3 Jan, 4 Feb, 5 Mar
+  ev(`(function(){
+    BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+    window.__day=function(k, d){ return FYMON[k][0]+'-'+String(d).padStart(2,'0'); };
+    window.__add=function(id, k, d, sv, tag){ var e=document.getElementById('awdM-'+id); if(!e){ e=document.createElement('input'); e.id='awdM-'+id; document.body.appendChild(e); }
+      e.value=__day(k, d); addAwd(id); var x=S.awards[id].inc.filter(function(a){ return !a.tag; })[0]; x.tag=tag;
+      var i=S.awards[id].inc.indexOf(x); sv.forEach(function(v, si){ setAwdIncSvc(id, i, si, String(v)); }); };
+    window.__at=function(id, tag){ return S.awards[id].inc.findIndex(function(a){ return a.tag===tag; }); };
+    __add('A', 3, 10, [100, 60], 'a1'); __add('A', 3, 20, [100, 40], 'a2');                 // two in January: 10th and 20th
+    __add('B', 3, 10, [50, 0], 'b1');   __add('B', 3, 20, [70, 0], 'b2');
+    setAwdIncDate('B', __at('B','b2'), __day(4, 5));                                         // the 20th moves to 5 February
+    __add('C', 3, 10, [30, 0], 'c1');   __add('C', 3, 20, [40, 0], 'c2');
+    rmAwd('C', __at('C','c2'));                                                              // the second-half award is deleted
+    __add('D', 5, 10, [100, 0], 'd1');  __add('D', 5, 25, [100, 0], 'd2');                 // both lanes: $150 disc + $50 mand
+    setAwdDateFull('E', __day(2, 20));                                                       // one date: 20 December
+    S.awards.F={mode:'single', d:FYMON[1][0]}; S.crHalf.F={}; S.crHalf.F[FYMON[1][0]]=1;    // an older board: month only, marked 16-EOM
+    setAwdDateFull('G', __day(0, 10)); S.crHalf.G={}; S.crHalf.G[FYMON[0][0]]=1;            // dated the 10th, an old mark said 16-EOM
+    setAwdDateFull('H', __day(2, 20)); S.crHalf.H={}; S.crHalf.H[FYMON[2][0]]=1;            // dated the 20th, and an old mark that agrees
+    S.crHalf.G[FYMON[1][0]]=1;                                                               // G: a second mark, in a month G has no award in
+    __add('I', 4, 15, [10, 0], 'i1');   __add('I', 4, 16, [10, 0], 'i2');                 // the boundary: the 15th and the 16th
+    __add('K', 1, 5, [0, 15], 'k1');    __add('K', 2, 20, [0, 15], 'k2');                 // K: 5 Nov unmarked, 20 Dec with a mark that agrees
+    S.crHalf.K={}; S.crHalf.K[FYMON[2][0]]=1;
+    save(); render(); return 'ok'; })()`);
+  const W = (m, h) => m * 2 + h;                        // window index: month 0..5, half 0|1
+  const wins = o => { const a = Array(12).fill(0); Object.keys(o).forEach(k => { a[k] = o[k]; }); return a; };
+  const want = {
+    STOVL: { win: wins({ [W(0, 0)]: 60, [W(2, 1)]: 80, [W(3, 0)]: 100 + 50 + 30, [W(3, 1)]: 100, [W(4, 0)]: 70 + 10, [W(4, 1)]: 10, [W(5, 0)]: 100, [W(5, 1)]: 100 }), nodate: 40 },
+    USN: { win: wins({ [W(1, 0)]: 90 + 15, [W(2, 1)]: 25 + 15, [W(3, 0)]: 60, [W(3, 1)]: 40 }), nodate: 0 },
+  };
+  const byReq = { A: wins({ [W(3, 0)]: 160, [W(3, 1)]: 140 }), B: wins({ [W(3, 0)]: 50, [W(4, 0)]: 70 }), C: wins({ [W(3, 0)]: 30 }),
+    D: wins({ [W(5, 0)]: 100, [W(5, 1)]: 100 }), E: wins({ [W(2, 1)]: 80 }), F: wins({ [W(1, 0)]: 90 }), G: wins({ [W(0, 0)]: 60 }),
+    H: wins({ [W(2, 1)]: 25 }), I: wins({ [W(4, 0)]: 10, [W(4, 1)]: 10 }), K: wins({ [W(1, 0)]: 15, [W(2, 1)]: 15 }) };
+  const read = e => JSON.parse(e(`JSON.stringify(crData().map(function(s){ var by={};
+    s.items.forEach(function(r){ by[r.id]=r.wins; }); return {win:s.win, nodate:s.nodate, tot:s.tot, by:by}; }))`));
+  const cr = read(ev);
+  sc.services.forEach((s, i) => {
+    chk(name, s, 'every half-month window, by each award’s own date', J(cr[i].win), J(want[s].win));
+    chk(name, s, 'No date: only the deleted award’s $40 (STOVL)', cr[i].nodate, want[s].nodate);
+    chk(name, s, 'TOTAL IN WINDOW is the windows', cr[i].tot, want[s].win.reduce((a, b) => a + b, 0));
+  });
+  const reqSum = id => { const a = Array(12).fill(0); cr.forEach(s => (s.by[id] || Array(12).fill(0)).forEach((v, w) => { a[w] += v; })); return a; };
+  Object.keys(byReq).forEach(id => chk(name, 'requirement ' + id, 'its windows, both services', J(reqSum(id)), J(byReq[id])));
+  chk(name, 'marks', 'dating an award writes no half-month mark (A, B, C, D, E)',
+    ev(`JSON.stringify(['A','B','C','D','E'].map(function(id){ return (S.crHalf||{})[id]||null; }))`), J([null, null, null, null, null]));
+  chk(name, 'marks', 'the old marks are kept, untouched (F, G)',
+    ev(`JSON.stringify([S.crHalf.F, S.crHalf.G])`), J([{ [ev('FYMON[1][0]')]: 1 }, { [ev('FYMON[0][0]')]: 1, [ev('FYMON[1][0]')]: 1 }]));
+  // THE THREE SURFACES AGREE TO THE DOLLAR: the panel (By Service), the workbook's CR sheet, the 1A9A return
+  const panel = JSON.parse(ev(`(function(){ crBy='svc'; var R=crRows(); return JSON.stringify(R.data.map(function(s){ return s.win; })); })()`));
+  chk(name, 'panel', 'the CR panel By Service is the same windows', J(panel), J(cr.map(s => s.win)));
+  const sheets = JSON.parse(capture(ev));
+  const crs = sheets.find(x => x.name === 'CR Cash Needs');
+  const rowOf = lbl => { const r = crs && crs.rows.find(r => r && cv(r[0]) === lbl); return r ? r.slice(1, 13).map(cv) : null; };
+  chk(name, 'workbook', 'the workbook’s CR sheet: STOVL and USN rows', J([rowOf('STOVL'), rowOf('USN')]), J([want.STOVL.win, want.USN.win]));
+  const r1a9a = JSON.parse(ev(`JSON.stringify(crExportRows().map(function(e){ return [e.id, e.wins]; }))`));
+  chk(name, '1A9A', 'the 1A9A rows: each requirement, STOVL + USN combined',
+    J(r1a9a), J(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K'].map(id => [id, byReq[id]])));
+  // THE OBL DATE: the earliest award's real date (B: 10 Jan and 5 Feb); a day past the month's end is its last day
+  const obl = id => ev(`(function(){ var s=crObl(${J(id)}); return s? new Date((s-25569)*86400000).toISOString().slice(0,10) : 'none'; })()`);
+  chk(name, '1A9A', 'OBL DATE is the earliest award’s own date (B)', obl('B'), ev(`__day(3, 10)`));
+  ev(`S.awards.Z={mode:'single', d:FYMON[4][0], day:31}; 'ok'`);
+  chk(name, '1A9A', 'a day past the month’s end is that month’s last day', obl('Z'), ev(`(function(){ var y=+FYMON[4][0].slice(0,4); return FYMON[4][0]+'-'+String(new Date(Date.UTC(y, 2, 0)).getUTCDate()).padStart(2,'0'); })()`));
+  ev(`delete S.awards.Z; 'ok'`);
+  // NO CLICK SWITCHES A HALF
+  const ph = ev(`(function(){ crOpen=true; crBy='svc'; crX={STOVL:true, USN:true}; render(); var h=document.getElementById('crBody').innerHTML; crOpen=false; render(); return h; })()`);
+  chk(name, 'panel', 'no cell in the CR panel switches a half', /crToggle/.test(ph) ? 'a cell still switches' : 'none', 'none');
+  chk(name, 'panel', 'and nothing in the board can', ev(`typeof crToggle`), 'undefined');
+  // INCREMENTAL ON AND OFF KEEPS THE DAY
+  ev(`toggleAwdInc('E', 80); 'ok'`);
+  chk(name, 'toggle', 'switching E to Incremental keeps its day, and its December 16-EOM window',
+    J([ev(`S.awards.E.inc[0].day`), read(ev)[0].by.E[W(2, 1)]]), J([20, 80]));
+  ev(`toggleAwdInc('E', 80); 'ok'`);
+  chk(name, 'toggle', 'and back to one date keeps it', ev(`JSON.stringify([S.awards.E.mode, S.awards.E.d, S.awards.E.day])`), J(['single', ev(`FYMON[2][0]`), 20]));
+  // PRE-FLIGHT NAMES EVERY AWARD WHOSE HALF THE DATE MOVED FROM AN OLD MARK: F (month only) and G (dated the 10th)
+  const pf = () => JSON.parse(ev(`(function(){ var f=preflight().find.filter(function(x){ return x.k==='crmoved'; })[0];
+    return JSON.stringify(f? f.rows.map(function(r){ return r.id; }) : []); })()`));
+  chk(name, 'pre-flight', 'lists F and G -- not H or K, whose old marks agree with their dates, nor K’s unmarked 5 Nov -- and nothing else', J(pf()), J(['F', 'G']));
+  // THE CR PANEL SAYS SO, AND "THE DATES ARE RIGHT" CLEARS THOSE MARKS -- AND MOVES NO DOLLAR
+  const note = ev(`(function(){ crOpen=true; render(); var b=document.getElementById('crBody'); var n=b.querySelector('.crmoved');
+    var t=n? n.textContent.replace(/\\s+/g,' ') : ''; crOpen=false; render(); return t; })()`);
+  chk(name, 'panel', 'the CR panel names both, and offers to clear the old marks',
+    J([/F event/.test(note), /G event/.test(note), /clear the old marks/i.test(note)]), J([true, true, true]));
+  // GO TO IT: the CR box closes and G is selected, its award date in the RECORD panel
+  chk(name, 'panel', 'Go to it closes the CR box and selects the requirement',
+    ev(`(function(){ toggleCr(); crGo('G'); return JSON.stringify([crOpen, document.getElementById('crPanel').classList.contains('open'), curRow]); })()`), J([false, false, 'G']));
+  const before = J(read(ev).map(s => s.win));
+  ev(`crClearOldMarks(); 'ok'`);
+  chk(name, 'clear', 'the two disagreeing marks are gone; G’s other mark, H’s and K’s are kept; no figure moved; Pre-flight is clear',
+    J([ev(`JSON.stringify([(S.crHalf.F||{})[FYMON[1][0]]||null, (S.crHalf.G||{})[FYMON[0][0]]||null, (S.crHalf.G||{})[FYMON[1][0]]||null,
+      (S.crHalf.H||{})[FYMON[2][0]]||null, (S.crHalf.K||{})[FYMON[2][0]]||null])`),
+      J(read(ev).map(s => s.win)) === before, pf()]), J([J([null, null, 1, 1, 1]), true, []]));
+  // SAVE -> REOPEN: the same windows
+  ev('save()');
+  const r2 = boot({ html: ev('buildSavedHtml()') });
+  chk(name, 'reopen', 'saved and reopened, every window is the same', J(read(r2.ev).map(s => s.win)), J(read(ev).map(s => s.win)));
+  // COPY TO ANOTHER YEAR: the days travel, and the halves with them
+  const cy = JSON.parse(ev(`(function(){ var r=yearCopy('A', MS.cur+1, 'c'); switchYear(MS.cur+1); S.discSvc=[5000,5000]; S.mandSvc=[5000,5000]; save();
+    var d=crData(), o={days:S.awards.A.inc.map(function(x){ return x.day; }), win:[0,1].map(function(i){ var w=(d[i].items.filter(function(r){ return r.id==='A'; })[0]||{}).wins; return w? w.slice(6,8) : null; })};
+    switchYear(MS.cur-1); return JSON.stringify(o); })()`));
+  chk(name, 'copy', 'copied to the next year: A’s days and January halves', J(cy), J({ days: [10, 20], win: [[100, 100], [60, 40]] }));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// A REQUIREMENT SHARED BETWEEN OFFICES: each office's share of each award, in that award's own half
+{
+  const name = 'v1.94 — CR half-months by PMO, a requirement shared between offices';
+  try {
+  const J = JSON.stringify;
+  const sc = { services: ['USAF', 'ANG'], items: [it('PRIME-3', 'AV', [100, 50])], disc: [150, 80], mand: [30, 0], order: ['PRIME-3'],
+    fsrc: { 'PRIME-3': { m: 'split', dv: [70, 50], mv: [30, 0] } } };
+  const { ev } = boot(); seed(ev, sc);
+  ev(`(function(){ DATA.clins=DATA.clins||{}; DATA.clins['PRIME-3']=[{clin:'0002', ask:[60,0]}, {clin:'0008', ask:[40,50]}]; S.ptype={'PRIME-3':'PRIME'};
+    var add=function(d, sv){ var e=document.getElementById('awdM-PRIME-3'); if(!e){ e=document.createElement('input'); e.id='awdM-PRIME-3'; document.body.appendChild(e); }
+      e.value=FYMON[3][0]+'-'+d; addAwd('PRIME-3'); var i=S.awards['PRIME-3'].inc.findIndex(function(a){ return a.day===+d; });
+      sv.forEach(function(v, si){ setAwdIncSvc('PRIME-3', i, si, String(v)); }); };
+    add('10', [50, 50]); add('20', [50, 0]); save(); render(); return 'ok'; })()`);
+  // USAF: disc $70 forward -> 10th $50, 20th $20; mand $30 back -> 20th $30. ANG: 10th $50. AV holds 60% of USAF, TSS 40% and all of ANG.
+  const got = JSON.parse(ev(`JSON.stringify((function(){ var R=crBuckets(null,'pmo'), o={}; R.keys.forEach(function(k,i){ o[k]=R.data[i].win.slice(6,8).map(function(v){ return Math.round(v*100)/100; }); }); return o; })())`));
+  chk(name, 'by PMO', 'January, first and second half: AV and TSS', J([got.AV, got.TSS]), J([[30, 30], [70, 20]]));
+  const svc = JSON.parse(ev(`JSON.stringify(crData().map(function(s){ return s.win.slice(6,8); }))`));
+  chk(name, 'by service', 'January, first and second half: USAF and ANG', J(svc), J([[50, 50], [50, 0]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
+// ═══ v1.94 (item 46) — AWARDS ON ONE DATE KEEP A DEFINED ORDER ═══════════════════════════════════════════════
+// Awards are taken by date; awards on the SAME date in the order they arrived on it -- added there, or moved
+// there by a date edit, which puts an award at the bottom of that date's group. Discretionary fills forward and
+// mandatory backward in that order, and put on last fills the last award of the latest date. v1.93 left the
+// order to whatever earlier edits had made it: an award edited onto an occupied date could come first.
+{
+  const name = 'v1.94 — awards on one date keep a defined order';
+  try {
+  const J = JSON.stringify;
+  const sc = { services: ['USAF', 'ANG'], items: [it('A', 'AV', [200, 0])], disc: [5000, 5000], mand: [5000, 5000], order: ['A'],
+    fsrc: { A: { m: 'split', dv: [150, 0], mv: [50, 0] } } };
+  const { ev } = boot(); seed(ev, sc);
+  ev(`(function(){ BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+    window.__day=function(d){ return FYMON[3][0]+'-'+String(d).padStart(2,'0'); };
+    window.__add=function(d, v, tag){ var e=document.getElementById('awdM-A'); if(!e){ e=document.createElement('input'); e.id='awdM-A'; document.body.appendChild(e); }
+      e.value=__day(d); addAwd('A'); var x=S.awards.A.inc.filter(function(a){ return !a.tag; })[0]; x.tag=tag; setAwdIncSvc('A', S.awards.A.inc.indexOf(x), 0, String(v)); };
+    window.__at=function(tag){ return S.awards.A.inc.findIndex(function(a){ return a.tag===tag; }); };
+    __add(20, 100, 'p'); __add(20, 60, 'q'); __add(5, 40, 'r'); save(); return 'ok'; })()`);
+  const order = e => e(`JSON.stringify(S.awards.A.inc.map(function(x){ return x.tag; }))`);
+  const split = () => ev(`(function(){ var s=awdSplitOf('A', tiers().A); return JSON.stringify(S.awards.A.inc.map(function(x, j){ var q=s.by[j]||{dv:0,mv:0}; return x.tag+' '+q.dv+'d+'+q.mv+'m'; })); })()`);
+  chk(name, 'add', 'two added on 20 Jan stay in the order added; 5 Jan first by date', order(ev), J(['r', 'p', 'q']));
+  ev(`setAwdIncDate('A', __at('r'), __day(20)); 'ok'`);
+  chk(name, 'edit', 'r moved onto 20 Jan joins the bottom of that date', order(ev), J(['p', 'q', 'r']));
+  chk(name, 'split', 'discretionary forward from p, mandatory back from r', split(), J(['p 100d+0m', 'q 50d+10m', 'r 0d+40m']));
+  ev(`S.awards.A.inc[__at('r')].sv=[0,0]; fillLastAwd('A'); 'ok'`);
+  chk(name, 'put on last', 'put on last fills r, the last of the latest date', ev(`JSON.stringify(S.awards.A.inc.map(function(x){ return x.tag+':'+x.sv[0]; }))`), J(['p:100', 'q:60', 'r:40']));
+  ev(`setAwdIncDate('A', __at('p'), FYMON[4][0]+'-05'); setAwdIncDate('A', __at('p'), __day(20)); 'ok'`);
+  chk(name, 'edit', 'p moved away and back rejoins at the bottom', order(ev), J(['q', 'r', 'p']));
+  ev(`__add(20, 0, 's'); 'ok'`);
+  chk(name, 'add', 'a fourth added on 20 Jan goes last', order(ev), J(['q', 'r', 'p', 's']));
+  ev('save()');
+  const r2 = boot({ html: ev('buildSavedHtml()') });
+  chk(name, 'reopen', 'saved and reopened: the same order', order(r2.ev), J(['q', 'r', 'p', 's']));
+  chk(name, 'copy', 'copied to the next year: the same order',
+    ev(`(function(){ yearCopy('A', MS.cur+1, 'c'); return JSON.stringify(MS.years[MS.cur+1].awards.A.inc.map(function(x){ return x.tag; })); })()`), J(['q', 'r', 'p', 's']));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }

@@ -88,6 +88,9 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   fill is not proportional, so pass the whole lane amounts and the share as `f`. Discretionary fills the awards
   forward from the first, mandatory backward from the last, and what they do not cover is UNSCHEDULED.
   `audit-board.mjs` "v1.93 — mandatory awards last" holds it. See the v1.93 section of `CLAUDE.md`.
+- Decide a CR half-month from anything but the award's own date (`landSvc`'s `day`, read through `awdDay`), or
+  write `S.crHalf` again: the old marks are kept and decide nothing. Sort awards with anything but `awdCmp`; `npm
+  run check` refuses it. See the v1.94 section of `CLAUDE.md`.
 - Add a box that is not a direct child of `<body>` with class `modal-bg`, an id, a `.modal`, an `<h3>` naming it
   and a close control, or give a box an Esc handler of its own: one controller (`dlgSync`) drives them all.
   A field a box saves only with its own button needs `data-held="1"`, or typing in it is not guarded. `npm run

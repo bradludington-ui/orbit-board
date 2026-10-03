@@ -303,6 +303,31 @@ console.log('\nboxes');
   else pass(`all ${all.length} boxes are direct children of <body> with an id, a .modal, a name and a close control`);
 }
 
+// ---- every award sort uses the one order (v1.94, item 46) -------------------------------------------
+// Awards are taken by date, and awards on one date in the order they arrived on it: discretionary fills them
+// forward and mandatory backward in that order, so it is money. awdCmp() is that order -- equal dates compare
+// EQUAL, and the stable sort keeps their stored order. The comparators it replaced returned 1 for equal dates,
+// which the language leaves undefined; Chromium happened to keep the order and another browser need not, and no
+// suite can tell, because in Chromium the result is the same. So it is checked here: a sort of award increments
+// (anything named inc), or one comparing award keys, uses awdCmp.
+console.log('\naward order');
+{
+  const bad = [];
+  for (const m of src.matchAll(/\.sort\(/g)) {
+    const i = m.index;
+    // the statement the sort belongs to: back to the previous ; { or } -- a receiver may sit on the line above
+    let j = i; while (j > 0 && !';{}'.includes(src[j - 1]) && i - j < 400) j--;
+    const recv = src.slice(j, i);
+    let k = i + 6, depth = 1;
+    while (k < src.length && depth) { if (src[k] === '(') depth++; else if (src[k] === ')') depth--; k++; }
+    const arg = src.slice(i + 6, k - 1).trim();
+    const award = /\binc\b/.test(recv) || /awdKey\(/.test(arg);
+    if (award && arg !== 'awdCmp' && !/awdCmp\(/.test(arg)) bad.push(`line ${src.slice(0, i).split('\n').length}: .sort(${arg.slice(0, 50)})`);
+  }
+  if (bad.length) fail(`${bad.length} award sort(s) not using awdCmp — equal dates must compare equal: ` + bad.join('; '));
+  else pass('every sort of awards uses awdCmp');
+}
+
 // ---- build stamp -------------------------------------------------------------------------------
 const build = src.match(/^const BUILD\s*=\s*'([^']+)'/m)?.[1];
 console.log(`\nBUILD  ${build || 'NOT FOUND'}`);

@@ -3370,6 +3370,61 @@ min; fuzz seed 996759275. Before it, `npm run standards` found the new Needs att
 sideways scroll at 320px (both fixed, baseline still empty), `npm run panels` could not open the new list box (it
 had no opener), and `money-coverage` refused the unregistered `exportFcView`.
 
+### v1.94 (items 45, 46): the CR half-month is the award's own date; awards on one date keep a defined order
+
+Built on Brad's "go" of 2 Oct 2026, from the v1.93 review. Both findings were reproduced on v1.93 first.
+
+**45 -- the award's date alone places CR cash.** Brad: "The date and amount reported is the date and amount reported
+and should be the sole identifying information for where it resides in the CR view."
+- `awdDay(x)`: the award's day, 1 to 31, or **1** for an award with a month and no day (the date its award block
+  shows) or anything a file holds that is not a day. `awdKey` uses it, so a month-only award sorts as the 1st.
+- `landSvc` placements carry `day` -- `{d, day, j, dv, mv}`, single and incremental alike -- and `crBuckets` takes
+  the half from it alone: `half=(a.day>15)? 1 : 0`. That is the CR panel (By Service and By PMO), the workbook's
+  CR Cash Needs sheet (`crData`) and the 1A9A (`crExportRows`), all through `crBuckets`.
+- **`S.crHalf` decides nothing.** It was one mark per requirement per month, written by every date setter
+  (`_crHalfSet`, gone) from whichever award was edited last and by a click on a CR panel cell (`crToggle`, gone):
+  two awards in one month shared a half, and a moved or deleted award left its mark. The marks are kept in the file,
+  still copied across years (`yearCopy`), still on `REQ_MAPS`, still in `PMO_FIELDS` (an older copy may send one; it
+  is applied as before and the review says it is no longer used). Nothing writes one, and the only reader is:
+- `crMovedList()`: each award an old SECOND-half mark had in 16-EOM that its own date puts in 1-15, funded plan, CR
+  window only. Shown at the top of the CR box (`.crmoved`, with Go to it -- `crGo` reuses `attGo('oblig')`) and in
+  Pre-flight's Worth knowing (`crmoved`; Pre-flight stays read-only). `crClearOldMarks()` removes exactly those
+  marks, journalled with the save; no figure moves. The other way round -- a late award v1.93 showed early because a
+  later edit had removed the mark -- is the defect itself and leaves nothing to point at.
+- `toggleAwdInc` keeps the day both ways; `crObl` (the 1A9A OBL DATE) is the earliest award's own date, clamped to
+  the month's last day. The one-time obligation-date seed sets the day and no mark.
+- Checks: `audit-board.mjs` "v1.94 — CR half-months follow each award’s own date" (requirements A-K through the
+  real setters: two dates in a month, the 15th and the 16th, a move, a delete, both lanes, one date, a month-only award with an old mark, a
+  dated one with a disagreeing mark, one whose mark agrees; the panel, the workbook sheet and the 1A9A to the dollar;
+  OBL DATE; no toggle; Incremental keeps the day; Pre-flight and the CR note list F and G only; clear; save → reopen;
+  copy to the next year) and "… by PMO, a requirement shared between offices". The v1.93 block "CR cash needs — the
+  half-month placement" now expects its month-only December award (B, with an old 16-EOM mark) in 1-15.
+
+**46 -- awards on one date.** `awdCmp(a, b)` is the one award order: by `awdKey`, equal dates EQUAL, so the stable sort
+keeps the stored order. `addAwd` pushes and sorts; `setAwdIncDate` splices the award out, pushes it, and sorts -- a
+re-dated award joins the bottom of its new date's group -- so awards on one date are taken in the order they arrived
+on it. `landSvc` sorts `awdCmp(a.x, b.x) || (a.j-b.j)`; `fillLastAwd`'s `>=` scan fills the last of the latest date;
+`awdDateLbl` and `crObl` use `awdCmp`. `setAwdIncMonth` (no callers) is gone. **`npm run check` "award order"** refuses
+a sort of anything named `inc`, or one comparing `awdKey`, that is not `awdCmp`: the comparators it replaced returned 1
+for equal dates, which V8 sorts exactly as `awdCmp` does (2,760 random arrays), so no suite can see that defect.
+`audit-board.mjs` "v1.94 — awards on one date keep a defined order".
+
+**Mutations:** 24 new (`crgo-box-left-open` beside these; the CR half from the date: `cr-old-mark-decides`, `cr-half-reversed`, `cr-half-boundary`,
+`land-day-dropped`, `land-single-day-dropped`, `land-index-dropped`, `awd-monthonly-late`, `awd-date-writes-mark`,
+`toggle-drops-day`, `toggle-single-drops-day`, `crobl-*` 3, `crmoved-*` 2, `crclear-clears-all`, `pf-crmoved-dropped`,
+`cr-note-dropped`; the order: `awd-tie-reversed`, `awd-cmp-ties-flipped`, `awd-edit-keeps-place`, `awd-add-front`,
+`awd-putlast-first-equal`), and six retargeted to the line that now carries the same defect (`fc-mand-not-carried`,
+`cr-half-ignored`, `awd-seed-disc-only`, `land-typed-order`, and `awd-dates-counted` / `awd-dates-unsorted` in
+`awdDateLbl` -- template-literal finds, which a scan of plain-string finds does not read; the first gate run failed on
+them as NOT APPLIED).
+
+**The gate that passed v1.94** (3 Oct, 01:58–04:01 UTC, on the final tree): every stage clean, **122.3 min**; one
+sweep of 728 mutations (v1.93's 704 plus 24 new; 6 retargeted), 717/717 caught, 11 equivalent, the sweep 111.4 min;
+fuzz seed 870870077. Before it: the first run (2 Oct, 20:26 UTC) failed on the two NOT APPLIED above; two runs were lost
+to container restarts; one was stopped at the session's two-hour cap on background jobs, 705 of 728 mutations in. On a
+slow container the gate runs past two hours, so a background run is cut off before it ends: ask Brad before running it
+outside the cap (this time it ran detached, with a watcher keeping the session awake).
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

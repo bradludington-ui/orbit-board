@@ -67,8 +67,8 @@ const MUTATIONS = [
   { id: 'fc-board-weighted', area: 'forecast', what: "the board's own forecast goes back to weights, inflating every month",
     find: '  const literal = !fundOf;', repl: '  const literal = false;' },
   { id: 'fc-mand-not-carried', area: 'landSvc', what: 'mandatory left out of the forecast entirely',
-    find: "    ord.forEach(function(o, q){ if(dv[q]>0 || mv[q]>0) out.at.push({d:o.x.d, j:o.j, dv:dv[q]*f, mv:mv[q]*f}); });",
-    repl: "    ord.forEach(function(o, q){ if(dv[q]>0) out.at.push({d:o.x.d, j:o.j, dv:dv[q]*f, mv:0}); });" },
+    find: "    ord.forEach(function(o, q){ if(dv[q]>0 || mv[q]>0) out.at.push({d:o.x.d, day:awdDay(o.x), j:o.j, dv:dv[q]*f, mv:mv[q]*f}); });",
+    repl: "    ord.forEach(function(o, q){ if(dv[q]>0) out.at.push({d:o.x.d, day:awdDay(o.x), j:o.j, dv:dv[q]*f, mv:0}); });" },
 
   // ---- the month-by-month sheets: the blocks and their ALL SERVICES roll-up --------------------
   { id: 'mon-grand-skips-none', area: 'monSheet', what: 'ALL SERVICES stops counting the unassigned bucket',
@@ -959,7 +959,7 @@ const MUTATIONS = [
   // ---- CR cash needs: crData's own arithmetic ------------------------------------------------------
   // v1.86: crData is crBuckets() by service, and the placement is landSvc()'s.
   { id: 'cr-half-ignored', area: 'crBuckets', what: 'a requirement flipped to the 16-EOM half is placed in the 1-15 half anyway',
-    find: "          const half=(S.crHalf[id]&&S.crHalf[id][a.d])?1:0;", repl: "          const half=0;" },
+    find: "          const half=(a.day>15)? 1 : 0;                // the award's own day, never a mark", repl: "          const half=0;" },
   { id: 'cr-nodate-dropped', area: 'crBuckets', what: 'funded money with no award date vanishes instead of landing in the no-date bucket',
     find: "        b.nodate+=L.ud+L.um;", repl: "        b.nodate+=0;" },
   { id: 'cr-inc-equal-split', area: 'landSvc', what: 'awards are split equally instead of by their own per-service amounts',
@@ -1261,13 +1261,15 @@ const MUTATIONS = [
   // leaving the column out.
   { id: 'awd-dates-counted', area: 'awdDateLbl', what: 'incremental funding reports how many increments there are instead of when they land',
     find: `  if(aw.mode==='inc'){
-    const key=x=>(x.d||'')+String(x.day||0).padStart(2,'0');`,
+    return (aw.inc||[]).slice()
+      .sort(awdCmp)`,
     repl: `  if(aw.mode==='inc'){
     return 'incremental \\u00d7'+((aw.inc||[]).length);
-    const key=x=>(x.d||'')+String(x.day||0).padStart(2,'0');` },
+    return (aw.inc||[]).slice()
+      .sort(awdCmp)` },
   { id: 'awd-dates-unsorted', area: 'awdDateLbl', what: 'the increment dates are printed in stored order, which a later month edit leaves stale',
     find: `    return (aw.inc||[]).slice()
-      .sort(function(a,b){ const ka=key(a), kb=key(b); return ka<kb? -1 : (ka>kb? 1 : 0); })
+      .sort(awdCmp)
       .map(one).filter(Boolean).join('; ');`,
     repl: `    return (aw.inc||[]).slice()
       .map(one).filter(Boolean).join('; ');` },
@@ -1622,8 +1624,8 @@ const MUTATIONS = [
   // v1.93: awd-seed-disc-mand RETIRED AS OBSOLETE -- seeding both lanes is now the rule (an award is the whole
   // award); awd-seed-disc-only guards the inverse.
   { id: 'awd-seed-disc-only', area: 'toggleAwdInc', what: 'switching to increments seeds discretionary alone against a both-lanes balance, reading short at once',
-    find: "    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round((p.d[i]||0)+(p.m[i]||0)))}]};",
-    repl: "    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round(p.d[i]||0))}]};" },
+    find: "    const seed={d:d, sv:SVC.map((s,i)=>Math.round((p.d[i]||0)+(p.m[i]||0)))};",
+    repl: "    const seed={d:d, sv:SVC.map((s,i)=>Math.round(p.d[i]||0))};" },
   { id: 'ppt-chart-mand-dropped', area: 'spendPlanByMonth', what: 'the deck’s chart leaves mandatory out of the months',
     find: "      L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined){ out.ud+=a.dv; out.um+=a.mv; } else { out.d[k]+=a.dv; out.m[k]+=a.mv; } });",
     repl: "      L.at.forEach(a=>{ const k=mi[a.d]; if(k===undefined){ out.ud+=a.dv; out.um+=a.mv; } else { out.d[k]+=a.dv; } });" },
@@ -2270,7 +2272,7 @@ const MUTATIONS = [
     find: "    const dv=cap.map(function(c){ const v=Math.min(c, dLeft); dLeft-=v; return v; });   // forward from the first",
     repl: "    const dv=cap.slice().reverse().map(function(c){ const v=Math.min(c, dLeft); dLeft-=v; return v; }).reverse();   // forward from the first" },
   { id: 'land-typed-order', area: 'landSvc', what: 'the awards are taken in the order typed, not by date',
-    find: "      .sort(function(a, b){ const ka=awdKey(a.x), kb=awdKey(b.x); return ka<kb? -1 : (ka>kb? 1 : a.j-b.j); });",
+    find: "      .sort(function(a, b){ return awdCmp(a.x, b.x) || (a.j-b.j); });",
     repl: "      .sort(function(a, b){ return a.j-b.j; });" },
   { id: 'land-mand-overflows-last', area: 'landSvc', what: 'mandatory the awards do not cover is piled onto the last award instead of UNSCHEDULED',
     find: "      const v=Math.min(Math.max(0, cap[q]-dv[q]), mLeft); mv[q]=v; mLeft-=v; }",
@@ -2403,6 +2405,82 @@ const MUTATIONS = [
   { id: 'dlg-style-boxes-unseen', area: 'dlgIsOpen', what: "the five boxes that show themselves by inline display are never seen as open",
     find: "function dlgIsOpen(bg){ return bg.classList.contains('open') || !!(bg.style.display && bg.style.display!=='none'); }",
     repl: "function dlgIsOpen(bg){ return bg.classList.contains('open'); }" },
+  // ---- v1.94 (item 45): the CR half-month is the award's own date; (item 46) awards on one date keep a defined order ----
+  // Not mutated, and why: a comparator returning 1 for equal dates (what v1.93's setters used) sorts exactly as awdCmp does in
+  // V8 -- measured on 2,760 random arrays -- so no suite run in Chromium or jsdom can see it. npm run check's 'award order'
+  // rule holds that line instead; awd-cmp-ties-flipped breaks the comparator in a way V8 does show.
+  { id: 'cr-old-mark-decides', area: 'crBuckets', what: "the CR half comes from the requirement's month mark again, not the award's own date",
+    find: "          const half=(a.day>15)? 1 : 0;                // the award's own day, never a mark",
+    repl: "          const half=(S.crHalf[id]&&S.crHalf[id][a.d])?1:0;" },
+  { id: 'cr-half-reversed', area: 'crBuckets', what: "the CR halves are reversed: the 16th or later in the first half",
+    find: "          const half=(a.day>15)? 1 : 0;                // the award's own day, never a mark",
+    repl: "          const half=(a.day>15)? 0 : 1;" },
+  { id: 'cr-half-boundary', area: 'crBuckets', what: "an award dated the 15th lands in the second half",
+    find: "          const half=(a.day>15)? 1 : 0;                // the award's own day, never a mark",
+    repl: "          const half=(a.day>=15)? 1 : 0;" },
+  { id: 'land-day-dropped', area: 'landSvc', what: "an incremental award's day is dropped from its placement, so every award reads as the 1st",
+    find: "out.at.push({d:o.x.d, day:awdDay(o.x), j:o.j, dv:dv[q]*f, mv:mv[q]*f}); });",
+    repl: "out.at.push({d:o.x.d, day:1, j:o.j, dv:dv[q]*f, mv:mv[q]*f}); });" },
+  { id: 'land-single-day-dropped', area: 'landSvc', what: "a single award date's day is dropped from its placement",
+    find: "  if(aw && aw.d){ out.at.push({d:aw.d, day:awdDay(aw), j:-1, dv:dsv*f, mv:msv*f}); return out; }",
+    repl: "  if(aw && aw.d){ out.at.push({d:aw.d, day:1, j:-1, dv:dsv*f, mv:msv*f}); return out; }" },
+  { id: 'land-index-dropped', area: 'landSvc', what: "a placement loses its award's index, so the award block cannot say how each award splits",
+    find: "out.at.push({d:o.x.d, day:awdDay(o.x), j:o.j, dv:dv[q]*f, mv:mv[q]*f}); });",
+    repl: "out.at.push({d:o.x.d, day:awdDay(o.x), j:0, dv:dv[q]*f, mv:mv[q]*f}); });" },
+  { id: 'awd-monthonly-late', area: 'awdDay', what: "an award with a month and no day counts as the 16th, not the 1st",
+    find: "const awdDay=x=>{ const n=Math.floor(+((x&&x.day)||0)); return (n>=1 && n<=31)? n : 1; };",
+    repl: "const awdDay=x=>{ const n=Math.floor(+((x&&x.day)||0)); return (n>=1 && n<=31)? n : 16; };" },
+  { id: 'awd-date-writes-mark', area: 'setAwdDateFull', what: "dating an award writes a half-month mark for its month again",
+    find: "  else S.awards[id]={mode:'single', d:ym, day:day};\n  save(); render(); flash(id);\n}",
+    repl: "  else S.awards[id]={mode:'single', d:ym, day:day};\n  if(day>15){ if(!S.crHalf[id]) S.crHalf[id]={}; S.crHalf[id][ym]=1; }\n  save(); render(); flash(id);\n}" },
+  { id: 'toggle-drops-day', area: 'toggleAwdInc', what: "switching to Incremental drops the award's day",
+    find: "    if(day) seed.day=day;                         // the award's day goes with it (v1.94)",
+    repl: "    // day dropped" },
+  { id: 'toggle-single-drops-day', area: 'toggleAwdInc', what: "switching back to one date drops the day",
+    find: "    if(d){ S.awards[id]={mode:'single', d:d}; if(day) S.awards[id].day=day; } else delete S.awards[id];",
+    repl: "    if(d){ S.awards[id]={mode:'single', d:d}; } else delete S.awards[id];" },
+  { id: 'crobl-first-of-month', area: 'crObl', what: "the 1A9A OBL DATE prints the 1st of the month, not the award's day",
+    find: "  const day=Math.min(awdDay(a), crLastDay(+m[1], +m[2]-1));",
+    repl: "  const day=1;" },
+  { id: 'crobl-unclamped', area: 'crObl', what: "a day past the month's end rolls the OBL DATE into the next month",
+    find: "  const day=Math.min(awdDay(a), crLastDay(+m[1], +m[2]-1));",
+    repl: "  const day=awdDay(a);" },
+  { id: 'crobl-latest-award', area: 'crObl', what: "the OBL DATE is the latest award, not the earliest",
+    find: "  const a=(aw.mode==='inc')? (aw.inc||[]).filter(function(x){ return x && x.d; }).slice().sort(awdCmp)[0] : aw;",
+    repl: "  const a=(aw.mode==='inc')? (aw.inc||[]).filter(function(x){ return x && x.d; }).slice().sort(awdCmp).slice(-1)[0] : aw;" },
+  { id: 'crmoved-agreeing-listed', area: 'crMovedList', what: "an award whose old mark agrees with its date is listed as moved",
+    find: "        if(!win[a.d] || !mk[a.d] || a.day>15) return;",
+    repl: "        if(!win[a.d] || !mk[a.d]) return;" },
+  { id: 'crmoved-unmarked-listed', area: 'crMovedList', what: "an award with no old mark at all is listed as moved",
+    find: "        if(!win[a.d] || !mk[a.d] || a.day>15) return;",
+    repl: "        if(!win[a.d] || a.day>15) return;" },
+  { id: 'crclear-clears-all', area: 'crClearOldMarks', what: "clearing the old marks removes a requirement's every mark, the agreeing ones too",
+    find: "    if(!mk || seen[k]) return; seen[k]=1; delete mk[e.d]; n++; if(!Object.keys(mk).length) delete S.crHalf[e.id]; });",
+    repl: "    if(!mk || seen[k]) return; seen[k]=1; delete S.crHalf[e.id]; n++; });" },
+  { id: 'pf-crmoved-dropped', area: 'preflight', what: "Pre-flight no longer lists the awards whose CR half the date moved",
+    find: "      crMovedList().map(function(e){ return {id:e.id, label:pfName(e.id), sub:'award '+crMovedLbl(e)+' \\u00b7 '+fM(e.amt)}; }));",
+    repl: "      []);" },
+  { id: 'cr-note-dropped', area: 'crBody', what: "the CR panel no longer names the awards whose half the date moved",
+    find: "  const mv=crMovedList(), MRk=mv.length? masterRanks() : {};",
+    repl: "  const mv=[], MRk={};" },
+  { id: 'crgo-box-left-open', area: 'crGo', what: "Go to it from the CR box selects the requirement but leaves the box on screen",
+    find: "function crGo(id){ if(crOpen) toggleCr(); attGo('oblig', id); }",
+    repl: "function crGo(id){ crOpen=false; attGo('oblig', id); }" },
+  { id: 'awd-tie-reversed', area: 'landSvc', what: "awards on one date are taken last-arrived first",
+    find: "      .sort(function(a, b){ return awdCmp(a.x, b.x) || (a.j-b.j); });",
+    repl: "      .sort(function(a, b){ return awdCmp(a.x, b.x) || (b.j-a.j); });" },
+  { id: 'awd-cmp-ties-flipped', area: 'awdCmp', what: "the award comparator calls equal dates unequal, so a sort reorders them",
+    find: "function awdCmp(a, b){ const ka=awdKey(a), kb=awdKey(b); return ka<kb? -1 : (ka>kb? 1 : 0); }",
+    repl: "function awdCmp(a, b){ const ka=awdKey(a), kb=awdKey(b); return ka<kb? -1 : (ka>kb? 1 : -1); }" },
+  { id: 'awd-edit-keeps-place', area: 'setAwdIncDate', what: "a re-dated award keeps its old place instead of joining the bottom of its new date's group",
+    find: "  const x=aw.inc.splice(i,1)[0]; x.d=ym; x.day=day; aw.inc.push(x);",
+    repl: "  const x=aw.inc[i]; x.d=ym; x.day=day;" },
+  { id: 'awd-add-front', area: 'addAwd', what: "a new award goes to the front of its date's group",
+    find: "  S.awards[id].inc.push({d:ym, day:day, sv:SVC.map(_=>0)});",
+    repl: "  S.awards[id].inc.unshift({d:ym, day:day, sv:SVC.map(_=>0)});" },
+  { id: 'awd-putlast-first-equal', area: 'fillLastAwd', what: "put on last fills the first of the awards on the latest date",
+    find: "  let li=0; aw.inc.forEach((x,j)=>{ if(awdKey(x)>=awdKey(aw.inc[li])) li=j; });",
+    repl: "  let li=0; aw.inc.forEach((x,j)=>{ if(awdKey(x)>awdKey(aw.inc[li])) li=j; });" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
