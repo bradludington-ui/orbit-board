@@ -1604,6 +1604,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <ul><li>An <b>award</b> (an increment) is the whole award, discretionary and mandatory together, taken in date order.</li>
 <li><b>Discretionary works forward from the first award</b>, filling each award in turn; <b>mandatory works backward from the last</b>, so it always awards last. A $300 requirement awarded $100 in each of January, February and March, with $250 discretionary and $50 mandatory, places discretionary $100, $100 and $50, and the $50 mandatory in March.</li>
 <li>Funded dollars the awards do not cover are <b>UNSCHEDULED</b>, in either lane, until they have a date. A single award date places the whole funded amount in its month; no date at all is UNSCHEDULED.</li></ul>
+<p>In <b>CR Cash Needs</b> and the 1A9A return, each award’s dollars sit in the half of the month its own date falls in: the 1st to the 15th, or the 16th to the end. An award saved with a month and no day counts as the 1st. Nothing switches a half by hand — to move cash, change the award’s date. Two awards on the same date are taken in the order they arrived on it: one whose date you change goes to the bottom of that date’s group.</p>
 <p>The award block shows <b>Balance to schedule — discretionary + mandatory</b> for each service, and beside each award how it splits between the two; <b>↵ put on last</b> puts the whole remaining balance on the latest award, and every funded dollar then has a date. <b>Needs attention</b> lists every requirement whose awards fall short of its funding.</p>
 <p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="reports">Reports &amp; exports ▾ › ⚖ CR Cash Needs…</span> show it on screen. In the forecast, <b>Show</b> beside the title picks the whole portfolio, one PMO or one service: the roll-up is drawn for that view in the same format, with the breakdown beneath it the other way (a PMO by service, a service by PMO), and a requirement two offices share counts at each office’s share. <b>⬇ Export this view</b> saves exactly what is on screen as a workbook. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="reports">Reports &amp; exports ▾ › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
 </section>
@@ -2299,7 +2300,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.93 (1 Oct 2026)';
+const BUILD='v1.94 (2 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4838,8 +4839,7 @@ function applyState(st){
     DATA.items.forEach(it=>{
       if(!it.obl || S.awards[it.id]!==undefined) return;
       const ym=it.obl.slice(0,7), day=parseInt(it.obl.slice(8),10);
-      S.awards[it.id]={mode:'single', d:ym, day:day};
-      if(day>15){ if(!S.crHalf[it.id]) S.crHalf[it.id]={}; S.crHalf[it.id][ym]=1; }
+      S.awards[it.id]={mode:'single', d:ym, day:day};   // the day is the CR half-month (v1.94: no mark)
     });
     S.awdSeeded=true;
   }
@@ -6567,7 +6567,9 @@ function pmoFmtVal(k, v){
   if(k==='awards' && typeof v==='object') return v.mode==='inc'
     ? 'incremental \u2014 '+((Array.isArray(v.inc)? v.inc.length : 0))+' award'+((Array.isArray(v.inc)&&v.inc.length===1)?'':'s')
     : (v.d? 'award '+ymLbl(v.d)+(v.day? ', day '+v.day : '') : '\u2014');
-  if(k==='crHalf' && typeof v==='object') return 'second half of '+Object.keys(v).sort().map(ymLbl).join(', ');
+  // v1.94: kept and applied as before, but nothing reads it -- the award dates decide the CR half-month
+  if(k==='crHalf' && typeof v==='object') return 'second half of '+Object.keys(v).sort().map(ymLbl).join(', ')
+    +' \u2014 an old CR mark, no longer used: the award dates decide';
   if(k==='__new' && v && typeof v==='object'){
     const parts=[v.title||'(untitled)'];
     if(v.event) parts.push(v.event);
@@ -9279,19 +9281,29 @@ function setRcnAsg(id,k){
    the same way. `f` is a share (a PMO's fraction of a CLIN-backed prime): the WHOLE service is placed and
    every figure scaled by it, so the shares of a requirement add up to the requirement month by month --
    the fill is not linear in its inputs, so placing a share on its own would not.
-   Returns {at:[{d, j, dv, mv}], ud, um}: each placement's month key -- which may fall outside the fiscal
-   year, the caller decides what that means -- in date order, j its increment's index, and what is left
-   undated, by pot. */
-const awdKey=x=> (x&&x.d||'')+String((x&&x.day)||0).padStart(2,'0');
+   Returns {at:[{d, day, j, dv, mv}], ud, um}: each placement's month key -- which may fall outside the fiscal
+   year, the caller decides what that means -- and its award's own day, in date order, j its increment's index,
+   and what is left undated, by pot. */
+// AN AWARD'S DAY (v1.94, item 45). The CR half-month is decided by it alone, so it is read in one place: a day
+// the award carries (1 to 31), or the 1st for an award saved with a month and no day -- the date its award
+// block shows. Anything else a file may hold is read as the 1st too, never as a guess at a later day.
+const awdDay=x=>{ const n=Math.floor(+((x&&x.day)||0)); return (n>=1 && n<=31)? n : 1; };
+const awdKey=x=> (x&&x.d||'')+String(awdDay(x)).padStart(2,'0');
+// THE ONE ORDER FOR AWARDS (v1.94, item 46): by date, and nothing else -- equal dates compare EQUAL, so a sort
+// (stable by the language since 2019) keeps the order they are stored in, which is the order they arrived on that
+// date. Every award sort uses this; npm run check refuses any other. The comparators it replaced returned 1 for
+// equal dates, which the language leaves undefined.
+function awdCmp(a, b){ const ka=awdKey(a), kb=awdKey(b); return ka<kb? -1 : (ka>kb? 1 : 0); }
 function landSvc(aw, i, dsv, msv, literal, f){
   const out={at:[], ud:0, um:0};
   dsv=dsv||0; msv=msv||0; f=(f===undefined || f===null)? 1 : f;
   if(!(dsv+msv>0) || !(f>0)) return out;
   if(aw && aw.mode==='inc' && aw.inc && aw.inc.length){
     const wOf=function(x, k){ return Array.isArray(x.sv)? (x.sv[k]||0) : ((x.v||0)/SVC.length); };
-    // the awards in date order, each keeping its index (two on one day keep the order they were added)
+    // the awards in date order, each keeping its index; awards on one date in their stored order, which is the
+    // order they arrived on it (v1.94: addAwd and setAwdIncDate put an award at the bottom of its date's group)
     const ord=aw.inc.map(function(x, j){ return {x:x, j:j, w:Math.max(0, wOf(x, i)||0)}; })
-      .sort(function(a, b){ const ka=awdKey(a.x), kb=awdKey(b.x); return ka<kb? -1 : (ka>kb? 1 : a.j-b.j); });
+      .sort(function(a, b){ return awdCmp(a.x, b.x) || (a.j-b.j); });
     const wsum=ord.reduce(function(a, o){ return a+o.w; }, 0);
     if(!(wsum>0)){ out.ud=dsv*f; out.um=msv*f; return out; }
     const k=(literal===false)? (dsv+msv)/wsum : 1;
@@ -9301,11 +9313,11 @@ function landSvc(aw, i, dsv, msv, literal, f){
     const mv=cap.map(function(){ return 0; });
     for(let q=cap.length-1; q>=0 && mLeft>0; q--){                                       // backward from the last
       const v=Math.min(Math.max(0, cap[q]-dv[q]), mLeft); mv[q]=v; mLeft-=v; }
-    ord.forEach(function(o, q){ if(dv[q]>0 || mv[q]>0) out.at.push({d:o.x.d, j:o.j, dv:dv[q]*f, mv:mv[q]*f}); });
+    ord.forEach(function(o, q){ if(dv[q]>0 || mv[q]>0) out.at.push({d:o.x.d, day:awdDay(o.x), j:o.j, dv:dv[q]*f, mv:mv[q]*f}); });
     out.ud=Math.max(0, dLeft)*f; out.um=Math.max(0, mLeft)*f;
     return out;
   }
-  if(aw && aw.d){ out.at.push({d:aw.d, j:-1, dv:dsv*f, mv:msv*f}); return out; }
+  if(aw && aw.d){ out.at.push({d:aw.d, day:awdDay(aw), j:-1, dv:dsv*f, mv:msv*f}); return out; }
   out.ud=dsv*f; out.um=msv*f;
   return out;
 }
@@ -9384,17 +9396,16 @@ function ymLbl(ym){ const m=/^(\d{4})-(\d{2})$/.exec(ym||''); return m? _MN3[par
 // "incremental ×3" says there are three and not when any of them lands, which is the only
 // question an obligation plan is opened to answer. The day is carried when there is one, because
 // it is what sets the CR half-month window.
-// SORTED HERE rather than trusted from the array. addAwd() keeps it sorted on insert, but
-// setAwdIncMonth() can move an increment afterwards and leave the stored order stale -- and a list
-// of dates whose order is wrong is worse than no list, because it reads as a schedule.
+// SORTED HERE rather than trusted from the array: the setters keep it in date order, but an award record
+// can come from an older board or another file -- and a list of dates whose order is wrong is worse than
+// no list, because it reads as a schedule.
 function awdDateLbl(id){
   const aw=(S.awards||{})[id];
   if(!aw) return '';
   const one=x=> (x && x.d)? ((x.day? x.day+' ' : '')+ymLbl(x.d)) : '';
   if(aw.mode==='inc'){
-    const key=x=>(x.d||'')+String(x.day||0).padStart(2,'0');
     return (aw.inc||[]).slice()
-      .sort(function(a,b){ const ka=key(a), kb=key(b); return ka<kb? -1 : (ka>kb? 1 : 0); })
+      .sort(awdCmp)
       .map(one).filter(Boolean).join('; ');
   }
   return one(aw);
@@ -9406,26 +9417,28 @@ function setAwdDate(id,val){
   else S.awards[id]={mode:'single', d:val};     // manual month pick — baseline day no longer applies
   save(); render(); flash(id);
 }
-function _crHalfSet(id, ym, day){
-  if(day>15){ if(!S.crHalf[id]) S.crHalf[id]={}; S.crHalf[id][ym]=1; }
-  else if(S.crHalf[id]){ delete S.crHalf[id][ym]; if(!Object.keys(S.crHalf[id]).length) delete S.crHalf[id]; }
-}
+// THE DATE IS THE CR HALF-MONTH (v1.94, item 45). Dating an award used to write a half-month mark for the
+// requirement's whole month (S.crHalf), from whichever award was edited last -- so two awards in one month shared
+// a half, and a moved or deleted award left its mark behind. The award's own day now decides (crBuckets), and
+// nothing writes a mark: the ones an older board holds are kept, untouched, and read by nothing but the list of
+// awards whose half the date moved (crMovedList).
 function setAwdDateFull(id,val){
-  if(!val){ delete S.awards[id]; delete S.crHalf[id]; save(); render(); flash(id); return; }
+  if(!val){ delete S.awards[id]; save(); render(); flash(id); return; }
   const ym=val.slice(0,7), day=parseInt(val.slice(8),10)||1;
   const aw=S.awards[id];
   if(aw&&aw.mode==='inc'){ aw.d=ym; aw.day=day; }
   else S.awards[id]={mode:'single', d:ym, day:day};
-  _crHalfSet(id, ym, day);
   save(); render(); flash(id);
 }
 function setAwdIncDate(id,i,val){
   const aw=S.awards[id];
   if(!aw||!aw.inc||!aw.inc[i]||!val) return;
   const ym=val.slice(0,7), day=parseInt(val.slice(8),10)||1;
-  aw.inc[i].d=ym; aw.inc[i].day=day;
-  _crHalfSet(id, ym, day);
-  aw.inc.sort((a,b)=>(a.d+(''+(a.day||0)).padStart(2,'0'))<(b.d+(''+(b.day||0)).padStart(2,'0'))?-1:1);
+  // A RE-DATED AWARD JOINS THE BOTTOM OF ITS NEW DATE'S GROUP (v1.94, item 46): awards on one date are taken in
+  // the order they arrived on it. Re-sorting in place kept whatever position earlier edits had left, so an award
+  // edited onto an occupied date could come first, and which one mandatory starts from depended on history.
+  const x=aw.inc.splice(i,1)[0]; x.d=ym; x.day=day; aw.inc.push(x);
+  aw.inc.sort(awdCmp);
   save(); render(); flash(id);
 }
 const fyMin=()=> (MS.cur-1)+'-10-01';
@@ -9457,16 +9470,20 @@ function fillLastAwd(id){
 function toggleAwdInc(id, funded){
   const aw=S.awards[id];
   if(aw&&aw.mode==='inc'){
-    // back to single: keep the first increment's month as the award date
-    const d=(aw.inc&&aw.inc[0]&&aw.inc[0].d)||aw.d||null;
-    if(d) S.awards[id]={mode:'single', d:d}; else delete S.awards[id];
+    // back to single: the earliest award's date, DAY INCLUDED (v1.94, item 45: it kept the month and dropped the
+    // day, so the award read as the 1st -- and the day is what sets its CR half-month)
+    const first=(aw.inc||[]).filter(function(x){ return x && x.d; }).slice().sort(awdCmp)[0];
+    const d=(first&&first.d)||aw.d||null, day=first? first.day : aw.day;
+    if(d){ S.awards[id]={mode:'single', d:d}; if(day) S.awards[id].day=day; } else delete S.awards[id];
   } else {
     // to incremental: seed one award at the set award date with the per-service FUNDED amount, both
     // lanes -- what an award is from v1.93, against a balance that counts both. (v1.86 to v1.92 seeded
     // discretionary alone, when an increment was discretionary dollars and mandatory rode the dates.)
-    const d=(aw&&aw.d)||FYMON[0][0];
+    const d=(aw&&aw.d)||FYMON[0][0], day=aw&&aw.day;
     const T=tiers(), p=T[id]||{d:SVC.map(_=>0), m:SVC.map(_=>0)};
-    S.awards[id]={mode:'inc', d:d, inc:[{d:d, sv:SVC.map((s,i)=>Math.round((p.d[i]||0)+(p.m[i]||0)))}]};
+    const seed={d:d, sv:SVC.map((s,i)=>Math.round((p.d[i]||0)+(p.m[i]||0)))};
+    if(day) seed.day=day;                         // the award's day goes with it (v1.94)
+    S.awards[id]={mode:'inc', d:d, inc:[seed]}; if(day) S.awards[id].day=day;
   }
   save(); render(); flash(id);
 }
@@ -9477,8 +9494,7 @@ function addAwd(id){
   const aw=S.awards[id];
   if(!aw||aw.mode!=='inc') S.awards[id]={mode:'inc', inc:[]};
   S.awards[id].inc.push({d:ym, day:day, sv:SVC.map(_=>0)});
-  _crHalfSet(id, ym, day);
-  S.awards[id].inc.sort((a,b)=>(a.d+(''+(a.day||0)).padStart(2,'0'))<(b.d+(''+(b.day||0)).padStart(2,'0'))?-1:1);
+  S.awards[id].inc.sort(awdCmp);
   save(); render(); flash(id);
 }
 function setAwdIncSvc(id, i, si, val){
@@ -9487,13 +9503,6 @@ function setAwdIncSvc(id, i, si, val){
   const v=parseAmt(val);
   if(!Array.isArray(aw.inc[i].sv)) aw.inc[i].sv=SVC.map(_=>0);
   aw.inc[i].sv[si]=(v===null||v<0)?0:v;
-  save(); render(); flash(id);
-}
-function setAwdIncMonth(id, i, val){
-  const aw=S.awards[id];
-  if(!aw||!aw.inc||!aw.inc[i]||!val) return;
-  aw.inc[i].d=val;
-  aw.inc.sort((a,b)=>a.d<b.d?-1:1);
   save(); render(); flash(id);
 }
 const incTot=x=> Array.isArray(x.sv)? x.sv.reduce((a,b)=>a+b,0) : (x.v||0);
@@ -9646,6 +9655,11 @@ function crWins(){
 // to September, which is not a CR cash need. TOTAL IN WINDOW is what lands in the windows, By Service
 // and By PMO alike: By PMO used to add every funded dollar, the undated and the after-March included,
 // under the same heading.
+//
+// THE HALF IS THE AWARD'S OWN DATE (v1.94, item 45; Brad: "the date and amount reported ... should be the sole
+// identifying information for where it resides in the CR view"). Each placement carries its award's day: the 1st
+// to the 15th is the first half, the 16th to the end the second, an award with a month and no day the 1st. It used
+// to be one mark per requirement per month, so two awards in one month shared a half.
 function crBuckets(scen, by){
   const T=tiers(null, scen||null);
   const ms=FYMON.slice(0,6);
@@ -9671,7 +9685,7 @@ function crBuckets(scen, by){
           const amt=a.dv+a.mv;
           if(!inFy[a.d]){ b.nodate+=amt; return; }      // dated outside the fiscal year: no date in it
           if(mi[a.d]===undefined) return;               // April to September: not a CR cash need
-          const half=(S.crHalf[id]&&S.crHalf[id][a.d])?1:0;
+          const half=(a.day>15)? 1 : 0;                // the award's own day, never a mark
           const w=mi[a.d]*2+half;
           b.win[w]+=amt; b.tot+=amt;
           let r=rows[key];
@@ -9711,13 +9725,16 @@ function crWinLabels(fy){
   });
   return out;
 }
+// THE 1A9A OBL DATE: the earliest award's own date (v1.94, item 45 -- an incremental award printed the 1st of its
+// month whatever its day). A day past the month's end, which a year moved across a leap day can leave, is the
+// month's last day; Date.UTC would roll it into the next month.
 function crObl(id){
   const aw=(S.awards||{})[id];
   if(!aw) return null;
-  const d=(aw.mode==='inc')? ((aw.inc||[]).map(function(x){return x.d;}).filter(Boolean).sort()[0]) : aw.d;
-  if(!d) return null;
-  const m=/^(\d{4})-(\d{2})$/.exec(d); if(!m) return null;
-  const day=(aw.mode==='inc')? 1 : (aw.day||1);
+  const a=(aw.mode==='inc')? (aw.inc||[]).filter(function(x){ return x && x.d; }).slice().sort(awdCmp)[0] : aw;
+  if(!a || !a.d) return null;
+  const m=/^(\d{4})-(\d{2})$/.exec(a.d); if(!m) return null;
+  const day=Math.min(awdDay(a), crLastDay(+m[1], +m[2]-1));
   return Math.round(Date.UTC(+m[1], +m[2]-1, day)/86400000)+25569;
 }
 function crExportRows(){
@@ -9799,12 +9816,45 @@ function crExport(){
     +(noSi? ' <b style="color:var(--amber)">'+noSi+' with no SI code</b> — those cells are blank; '
        +'set them from each row’s ⋯ menu.' : ' Every row carries an SI code.'));
 }
-function crToggle(id, ym){
-  if(!S.crHalf[id]) S.crHalf[id]={};
-  S.crHalf[id][ym]=S.crHalf[id][ym]?0:1;
-  if(!S.crHalf[id][ym]) delete S.crHalf[id][ym];
-  save(); render();
+// NOTHING SWITCHES A HALF BY HAND (v1.94, item 45). crToggle() flipped a requirement's whole month between the
+// halves; Brad: "There should be no clicking to switch." To move cash, change the award's date.
+//
+// WHERE AN OLD MARK DISAGREES WITH THE DATE. Up to v1.93 every award of a requirement in a month sat in the half
+// its mark said (S.crHalf). Each award an old SECOND-half mark had placed in 16-EOM that its own date puts in 1-15
+// is listed -- by the funded plan, in the CR window only -- in Pre-flight and at the top of the CR box, so the move
+// is seen, not silent. (The other way round -- a late award v1.93 showed early because a later edit had removed the
+// mark -- is the defect itself, and leaves nothing to point at.) Read-only.
+function crMovedList(){
+  const T=tiers(), win={}, out=[];
+  FYMON.slice(0,6).forEach(function(m){ win[m[0]]=1; });
+  (S.order||[]).forEach(function(id){
+    const mk=(S.crHalf||{})[id], aw=(S.awards||{})[id], p=T[id];
+    if(!mk || !aw || !p || !itemById(id)) return;
+    const by={};
+    SVC.forEach(function(s, i){
+      landSvc(aw, i, p.d[i]||0, p.m[i]||0, true).at.forEach(function(a){
+        if(!win[a.d] || !mk[a.d] || a.day>15) return;
+        const k=a.j+'|'+a.d, x=(a.j>=0 && aw.inc)? aw.inc[a.j] : aw;
+        const e=by[k]||(by[k]={id:id, d:a.d, day:a.day, known:!!(x && awdDay(x)===+x.day), amt:0});
+        e.amt+=a.dv+a.mv; });
+    });
+    Object.keys(by).forEach(function(k){ if(by[k].amt>0.005) out.push(by[k]); });
+  });
+  return out;
 }
+function crMovedLbl(e){ return e.known? e.day+' '+ymLbl(e.d) : ymLbl(e.d)+' (month only \u2014 counts as the 1st)'; }
+// THE DATES ARE RIGHT: the old marks behind the list go -- only those, each journalled with the save. No figure
+// moves: the dates already decide.
+function crClearOldMarks(){
+  const L=crMovedList(); if(!L.length) return;
+  const seen={}; let n=0;
+  L.forEach(function(e){ const mk=(S.crHalf||{})[e.id], k=e.id+'|'+e.d;
+    if(!mk || seen[k]) return; seen[k]=1; delete mk[e.d]; n++; if(!Object.keys(mk).length) delete S.crHalf[e.id]; });
+  save(); render();
+  setStat('\u2713 '+n+' old CR half-month mark'+(n===1?'':'s')+' cleared \u2014 the award dates decide, as they already did; no figure moved.');
+}
+// Go to it: the CR box closes (toggleCr owns its open class) and the award's date in the RECORD panel takes the keyboard
+function crGo(id){ if(crOpen) toggleCr(); attGo('oblig', id); }
 // ---------- minimal XLSX reader (native browser decompression, no libraries) ----------
 // What the last workbook read actually contained. Populated by xlsxRead so the import can report
 // on a file it could not make sense of, instead of leaving the user to infer it from a blank chart.
@@ -11741,6 +11791,13 @@ function preflight(){
     add('note','min','Minimum increment above the whole ask',
       'The minimum that still buys something is larger than the requirement itself, so it can never '
       +'be part-funded.', minTooBig);
+    // v1.94 (item 45): the CR half-month is the award's own date; an award an old mark had in the second half is
+    // listed here until its date is checked (CR Cash Needs clears the old marks)
+    add('note','crmoved','CR half-month: moved to the first half by the award\u2019s own date',
+      'The CR views and the 1A9A now place each award in the half of the month its own date falls in. An old '
+      +'half-month mark had these in the second half; their dates put them in the first. A wrong date is changed '
+      +'in the award block; if the dates are right, Reports &amp; exports \u203a \u2696 CR Cash Needs clears the old marks.',
+      crMovedList().map(function(e){ return {id:e.id, label:pfName(e.id), sub:'award '+crMovedLbl(e)+' \u00b7 '+fM(e.amt)}; }));
   }
 
   const n=sev=>find.filter(function(f){ return f.sev===sev; })
@@ -19305,11 +19362,21 @@ function crBody(){
   const fold=a=> monthly? a.reduce((acc,v,i)=>{ acc[Math.floor(i/2)]+=v; return acc; },Array(6).fill(0)) : a;
   const R=crRows();
   const keys=R.keys, D=R.data;
+  // v1.94: each award an old half-month mark had in 16-EOM that its own date puts in 1-15, said once, here
+  const mv=crMovedList(), MRk=mv.length? masterRanks() : {};
+  const moved=mv.length? '<div class="crmoved hint" style="border-left:3px solid var(--amber);padding:6px 10px;margin-bottom:10px">'
+    +'<b>'+mv.length+' award'+(mv.length===1?'':'s')+' moved to the first half of the month.</b> An old CR half-month mark had '
+    +(mv.length===1?'it':'them')+' in the second half; each award\u2019s own date now decides. Check the date'+(mv.length===1?'':'s')+':'
+    +mv.map(function(e){ const it=itemById(e.id);
+      return '<div style="margin-top:3px">#'+(MRk[e.id]||'\u2014')+' '+esc(it? dispTitle(it) : e.id)+' \u2014 award '+esc(crMovedLbl(e))
+        +' \u00b7 '+fM2(e.amt)+' <button type="button" class="nb lnk" onclick="crGo('+jsa(e.id)+')">Go to it</button></div>'; }).join('')
+    +'<div style="margin-top:6px"><button type="button" class="btn" style="font-size:10px;padding:4px 10px" onclick="crClearOldMarks()">'
+    +'\u2713 The dates are right \u2014 clear the old marks</button></div></div>' : '';
   const hd='<tr><th style="text-align:left">'+(crBy==='svc'?'Service':'PMO')+'</th>'+wins.map(w=>'<th>'+w.lbl+'</th>').join('')+'<th style="border-left:1px solid var(--amber)">No date</th>'
     +'<th style="border-left:1px solid var(--gold)" title="Funded dollars with an obligation date inside the CR window. '
     +'Excludes the No date column and anything obligating after March.">TOTAL IN WINDOW</th></tr>';
   const cell=v=>'<td>'+(v>5e3?fM2(v):'\u2014')+'</td>';
-  let h='<div style="margin-bottom:6px">'
+  let h=moved+'<div style="margin-bottom:6px">'
     +'<button class="btn '+(crMode==='half'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crMode=\'half\';render()">Half-month</button> '
     +'<button class="btn '+(crMode==='month'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crMode=\'month\';render()">Full month</button>'
     +'&nbsp;&nbsp;<button class="btn '+(crBy==='svc'?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="crBy=\'svc\';render()">By Service</button> '
@@ -19326,9 +19393,7 @@ function crBody(){
         h+='<tr style="opacity:.92"><td style="text-align:left;padding-left:22px;font-size:9px" title="'+esc(r.title)+'">#'+(r.rank||'\u2014')+' '+esc(r.title.length>38?r.title.slice(0,38)+'\u2026':r.title)+(r.ccar?' <span style="color:var(--gold)">'+esc(r.ccar)+'</span>':'')+'</td>'
           +fold(r.wins).map((v,w)=>{
             if(v<=5e3) return '<td style="color:var(--line2)">\u2014</td>';
-            if(monthly) return '<td>'+fM2(v)+'</td>';
-            const ym=wins[w].ym;
-            return '<td><button type="button" class="nb" style="color:var(--ink);border-bottom:1px dashed var(--dim)" onclick="crToggle('+jsa(r.id)+','+jsa(ym)+')" title="click to move this requirement\u2019s cash to the other half of the month">'+fM2(v)+'</button></td>';
+            return '<td>'+fM2(v)+'</td>';              // v1.94: the date decides; nothing to click
           }).join('')
           +'<td></td><td style="border-left:1px solid var(--gold);font-size:9px">'+fM2(r.wins.reduce((a,b)=>a+b,0))+'</td></tr>';
       });
@@ -19341,7 +19406,7 @@ function crBody(){
   h+='<tr class="tot"><td style="text-align:left">TOTAL</td>'+totF.map(cell).join('')+'<td style="border-left:1px solid var(--amber)">'+(totND>5e3?fM2(totND):'\u2014')+'</td><td style="border-left:1px solid var(--gold)">'+fM2(totT)+'</td></tr>';
   h+='<tr class="tot" style="opacity:.9"><td style="text-align:left">CUMULATIVE (cash needed through\u2026)</td>'+totF.map(v=>{cum+=v;return '<td>'+fM2(cum)+'</td>';}).join('')+'<td></td><td></td></tr></table>';
   el.innerHTML=h
-    +'<div class="hint" style="margin-top:8px">Cash = funded dollars (Disc + Mand drawn) placed by each requirement\u2019s obligation dates, the same way the forecast places them: increments are discretionary dollars as typed, and mandatory lands on the requirement\u2019s own dates. Month-dated obligations default to the 1\u201315 window \u2014 click a row to open its requirements, then click any amount to flip it to the 16\u2013EOM half. "No date" = funded with no date in this fiscal year: no award date, discretionary the increments have not yet placed, or a date outside the year (fix in the requirement\u2019s award schedule). Obligations after March fall outside the CR window and are excluded.'
+    +'<div class="hint" style="margin-top:8px">Cash = funded dollars (discretionary + mandatory drawn), each in the half-month of its own award\u2019s date, by the rule every spend plan uses: an award is the whole award, discretionary fills the awards forward from the first and mandatory backward from the last. An award dated the 1st to the 15th is in the first half of its month, the 16th to the end in the second; an award with a month and no day counts as the 1st. To move cash, change the award\u2019s date in the RECORD panel. "No date" = funded with no date in this fiscal year: no award date, funding the awards do not yet cover, or a date outside the year. Obligations after March fall outside the CR window and are excluded.'
       +(scenOn()? ' <b style="color:var(--amber)">\u25e8 '+esc(SCEN_TAG)+' \u2014 a what-if.</b>' : '')+'</div>';
 }
 let fcOpen=false, fcView='';   // fcView: '' the whole portfolio, 'p:AV' one PMO, 's:0' one service -- never kept

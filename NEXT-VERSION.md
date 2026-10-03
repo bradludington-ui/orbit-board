@@ -4,11 +4,11 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.93**. Next: **v1.94**.
+Current version: **v1.94**. Next: **v1.95**.
 
 ## Open
 
-Nothing open. Items 39–44 shipped in v1.93.
+Nothing open. Items 45 and 46 shipped in v1.94.
 
 ## Later
 
@@ -72,6 +72,82 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v1.94 — 2 Oct 2026: items 45 and 46, built on Brad's "go"
+
+**The CR view places each award's dollars in the half-month of its own date.** CR Cash Needs (By Service and By
+PMO), the workbook's CR Cash Needs sheet and the 1A9A CR Cash Return now put each award's amount in the half of the
+month its own date falls in — the 1st to the 15th, or the 16th to the end — for a single award date and for each
+incremental funding date alike. Nothing switches a half by hand: to move cash, change the award's date. An award
+saved with a month and no day counts as the 1st. Switching an award to or from Incremental funding keeps its day,
+and the 1A9A OBL DATE is the earliest award's own date.
+
+**Awards on the same date keep a defined order:** the order they arrived on that date. An award whose date is
+changed goes to the bottom of its new date's group. No dollar moves either way; it decides which row of the award
+block shows the discretionary / mandatory split, and which row ↵ put on last fills.
+
+**What moves on boards in use today.** Cash moves between halves only where v1.93 had it wrong or where a half was
+set by hand: two awards in one month on opposite sides of the 15th, an award moved out of or deleted from a month
+that still holds another, a half clicked in the CR panel, and older month-only awards carrying a second-half mark —
+those now count as the 1st. Every award an old second-half mark had in 16–EOM that its date puts in 1–15 is listed
+at the top of CR Cash Needs and in Pre-flight (Worth knowing), with Go to it; "The dates are right — clear the old
+marks" removes those marks, journalled, and moves no figure. Month totals, CR window totals, allocations, spend
+plans, the forecast, the PMO tabs, the deck and the IDS file do not change.
+
+**The final check** passed on the final tree overnight 2–3 Oct (9:58 pm – 12:01 am Eastern): **122.3 minutes**,
+every stage clean — the defect register, money coverage (24 of 24 surfaces), the trace matrix, all eight suites, every
+browser check, the fuzz, the file verifier — and **all 717 planted mistakes caught** (11 more change nothing by
+design, as before): v1.93's 704 plus the 24 new, with the 6 retargeted among them. It took five starts. The first
+(4:26–5:59 pm) failed on two mutations whose search text no longer matched (`awd-dates-counted`,
+`awd-dates-unsorted`), which were retargeted and presweept 2 of 2. Two were lost when the container restarted. One was
+stopped at the session's two-hour limit on background jobs, 705 of 728 mutations in: on this container the gate takes
+about two hours, against 93 minutes for the afternoon run. Brad agreed to run it outside that limit; the run that passed
+is the same single `npm run validate:math`, unchanged.
+
+#### 45. CR half-month windows follow each award's own date and amount
+- **As built:** each placement from `landSvc` carries its award's day (`awdDay`: 1 to 31, or 1 for a month-only
+  award); `crBuckets` takes the half from it alone. The date setters write no half-month mark; `_crHalfSet` and the
+  click toggle `crToggle` are gone, and the CR panel's cells are plain figures. The old marks stay in the file, are
+  still copied with a requirement to another year, and still travel in a PMO copy; a submittal that carries one shows
+  "an old CR mark, no longer used: the award dates decide". `crMovedList` is their only reader.
+- **Different from the plan:** "a line goes when its date is confirmed" is built as one action in the CR box — **✓ The
+  dates are right — clear the old marks** — because Pre-flight is read-only by design ("Nothing here changes
+  anything"). Pre-flight lists the awards and says where to clear them. The list cannot name a late award v1.93 had
+  shown early because a later edit had removed the mark — that is the defect itself, and leaves nothing to point at.
+- **Checks:** `audit-board.mjs` "v1.94 — CR half-months follow each award’s own date" (ten requirements through
+  the board's own setters, the 15th and the 16th among them; the panel, the workbook sheet and the 1A9A to the dollar; OBL DATE; no toggle; the
+  Incremental switch; Pre-flight and the CR note; clear; save → reopen; copy to the next year) and "… by PMO, a
+  requirement shared between offices". 29 of their checks fail on v1.93 (35 with the revised v1.93 block). The v1.93 block "CR cash needs — the
+  half-month placement" now expects its month-only December award, carrying an old 16–EOM mark, in 1–15.
+
+#### 46. Awards on the same date keep a defined order
+- **As built:** `awdCmp` (equal dates compare equal; the stable sort keeps stored order) in every award sort —
+  `landSvc`, `addAwd`, `setAwdIncDate`, `awdDateLbl`, `toggleAwdInc`, `crObl`. `setAwdIncDate` moves a re-dated
+  award to the end before sorting. `setAwdIncMonth`, which nothing called, is gone. `npm run check` "award order"
+  refuses any other comparator on awards; it fails on v1.93 naming all five of its sorts.
+- **Checks:** `audit-board.mjs` "v1.94 — awards on one date keep a defined order" (add two on one date, edit a third
+  onto it, the split, put on last, away and back, a fourth, save → reopen, copy to the next year); fails on v1.93.
+
+#### Mutations
+24 new, each presweept with `npm run mutate -- <ids>` and caught: the CR half from the date (`cr-old-mark-decides`,
+`cr-half-reversed`, `cr-half-boundary`, `land-day-dropped`, `land-single-day-dropped`, `land-index-dropped`,
+`awd-monthonly-late`, `awd-date-writes-mark`), the Incremental switch (`toggle-drops-day`, `toggle-single-drops-day`), the
+OBL DATE (`crobl-first-of-month`, `crobl-unclamped`, `crobl-latest-award`), the list of moved awards and its clearing
+(`crmoved-agreeing-listed`, `crmoved-unmarked-listed`, `crclear-clears-all`, `pf-crmoved-dropped`, `cr-note-dropped`,
+`crgo-box-left-open`), and the order (`awd-tie-reversed`, `awd-cmp-ties-flipped`, `awd-edit-keeps-place`,
+`awd-add-front`, `awd-putlast-first-equal`). Retargeted to the line that now carries the same defect:
+`fc-mand-not-carried`, `cr-half-ignored`, `awd-seed-disc-only`, `land-typed-order`, and — found by the first gate run,
+which failed on them as NOT APPLIED (715/715 caught otherwise) — `awd-dates-counted` and `awd-dates-unsorted`, whose
+target in `awdDateLbl` now sorts with `awdCmp`. Both were presweept and caught before the gate was run again.
+
+In the presweep three first SURVIVED and showed three gaps in the new tests — no award on the 15th or 16th, no
+requirement with a mark in one month and an unmarked early award in another, no listed requirement with a second mark
+to keep — and one more check was found passing vacuously (a `\b` inside a template literal is a backspace, so its
+pattern could never match). That check was also hiding a real bug: Go to it from the CR box left the box on screen.
+All four were fixed, and every one of the 28 is caught.
+
+**Not mutated, and why:** a comparator returning 1 for equal dates (what v1.93's setters used) sorts exactly as
+`awdCmp` does in V8, so no suite run in Chromium or jsdom can tell; `npm run check`'s "award order" rule holds it.
 
 ### v1.93 — 1 Oct 2026: items 39–44, built on Brad's "go"
 
