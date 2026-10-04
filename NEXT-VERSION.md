@@ -18,14 +18,25 @@ Current version: **v1.95**. Next: **v1.96**.
   appropriation and year; the ACE tie-out × year. Each is listed in `tools/money-map.md` until it is built.
 
 #### 63. Found while building v1.95, not built
-- **Browser checks do not reach the repaired-award controls.** "✓ Checked" and the 🔧 Needs attention list appear only
-  when an award was repaired on opening; the keyboard and standards fixtures hold none.
+- *(The repaired-award test gap is now item 64.)*
 - **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
   no atomic create. The re-read after the replace question narrows it; it does not close it.
 - **A cost estimate kept in the folder's history** is not offered in ↶ Earlier copies; putting one back is a rename in
   the folder.
 - **An office's month in a shared requirement** can sit about a dollar from its exact share (the office's total and
   the requirement's months are exact) -- the price of whole dollars that add up both ways.
+
+#### 64. The browser checks reach the repaired-award controls
+- **Logged:** 4 Oct 2026. Brad: "Log the repaired-award test gap for v1.96". It was the first point of item 63.
+- **Why:** v1.95 added two controls that appear only when an award was repaired on opening: **✓ Checked** in the
+  award block, and the **🔧 awards repaired on opening** list under Needs attention. The board the keyboard and
+  standards checks load (`buildPopulated` in `tools/ia-fixture.mjs`) holds only awards that read cleanly, so
+  neither control is ever on screen there: nothing checks that the keyboard reaches them, that they have a name,
+  or that they meet contrast and target size. The jsdom suites test what they do, not how they are reached.
+- **What:** give that fixture awards repaired on opening -- one SPLIT INFERRED, one NEEDS REPAIR -- so both controls
+  are drawn, and have the keyboard and standards checks require them by name, so the checks fail if a later change
+  stops drawing them. Proven by the checks failing to find the controls on v1.95's fixture. The board is not
+  expected to change; anything the checks find in the controls is fixed under this item.
 
 ## Later
 
