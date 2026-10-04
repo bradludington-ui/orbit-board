@@ -120,7 +120,7 @@ PMO between years (each year under its own PMO), and the PMO drill (the board's 
 unchanged. An award a file holds that cannot be read is now listed as needing repair, its cash UNSCHEDULED, where v1.94
 placed or zeroed it silently.
 
-**The final check** passed on the final tree, 3 Oct 12:54–3:19 pm Eastern: **145.1 minutes**, every stage clean — the defect register (13 defects, 43 mutations), money coverage (26 of 26 surfaces), the new money map (329 cells: 114 proven, 206 not applicable, 9 open by Brad's decision), the trace matrix (92 cells), all eight suites, every browser check, the fuzz (seed 944633042) and the file verifier — and **all 841 planted mistakes caught** (11 more change nothing by design, as before): v1.94's 728 plus 124 new, 28 retargeted. It took two runs. The first (9:33 am – 12:49 pm) caught 840 of 841: `excel-unf-vec` survived because F4 moved the PMO tabs onto `pmoPartsOf`, leaving the line it changes read by nothing. The dead vector was removed and the mutation retargeted to the live split (presweep 1 of 1). The run that passed is the same single `npm run validate:math`, run past the two-hour limit on background jobs with Brad's agreement.
+**The final check** passed on the final tree, 3 Oct 8:06–10:24 pm Eastern: **137.9 minutes**, every stage clean — the defect register (13 defects, 43 mutations), money coverage (26 of 26 surfaces), the new money map (329 cells: 114 proven, 206 not applicable, 9 open by Brad's decision), the trace matrix (92 cells), all eight suites, every browser check, the fuzz (seed 819798525) and the file verifier — and **all 849 planted mistakes caught** (11 more change nothing by design, as before): v1.94's 728 plus 132 new, 30 retargeted. It took three runs. The first (9:33 am – 12:49 pm) caught 840 of 841: `excel-unf-vec` survived because F4 moved the PMO tabs onto `pmoPartsOf`, leaving the line it changes read by nothing. The dead vector was removed and the mutation retargeted to the live split (presweep 1 of 1). The second (12:54–3:19 pm, 145.1 minutes) passed, 841 of 841. An independent review before merge then found four ways round the new save and import rules ("Found by the review before merge" under items 48, 50 and 58); with them fixed and 8 more mutations, the third run is the one that counts. Each is the same single `npm run validate:math`, run past the two-hour limit on background jobs with Brad's agreement.
 
 **Pre-launch review, 3 Oct 2026.** Brad commissioned an outside review of the whole program before
 launch (Codex), on two priorities: no silent data loss, and correct math on screen and in every export. It
@@ -216,6 +216,7 @@ incorporating these points"):
   byte-identical to before, nothing reopens, and the reopened board is the old one. Fails on v1.94;
   mutations.
 - **As built:** `lsAll` writes the ten lists all or nothing, putting back newest first; memory changes only after every write lands. Put back: "Nothing was imported". Not put back: the board names which lists hold which, reopens nothing, and offers the board as it was and the file imported. **Added in integration:** while that mix stands, 💾 Save and the shared-folder save are refused -- a reload included -- until "allow saving again…"; ⬇ Save a copy never is. Before this, the next Save wrote the mix over the board file.
+- **Found by the review before merge, fixed:** the ordinary ⬅ Import of a board file (`consTakeApply`) wrote one appropriation at a time and never looked at a write. It now records its writes and commits them through `lsAll`, all or nothing, with memory put back on a refusal; a refusal is reported as a full import's is. And an import that lands whole lifts the hold a stopped one set, once every list it left mixed has been written again.
 
 #### 49. Sharing a cost estimate never writes over one it could not read, or a different one (review R06)
 - **Logged:** 3 Oct 2026, review R06. Reproduced, and wider than reported (`v195r/B/r06-ace-push.mjs`).
@@ -253,6 +254,7 @@ incorporating these points"):
   or the newer copy not loaded and the message naming it. Storage-full refusals stay as they are. Fails on
   v1.94; mutations.
 - **As built:** a second, different set of kept work is never written over (`'occupied'`); put back swaps what is on screen into its place; 📁 File › ⬇ Save work kept aside as a file… keeps the kept copy.
+- **Found by the review before merge, fixed:** ↶ Earlier copies › Put this back replaced unsaved work unasked. It now keeps it aside first, as loading the folder's newer copy does, and puts nothing back when it cannot.
 
 #### 51. A PMO submittal's awards are matched to services by name (review R03)
 - **Logged:** 3 Oct 2026, review R03. Reproduced with a real copy → submittal → apply
@@ -469,6 +471,7 @@ incorporating these points"):
 - **Testing that only Brad's environment can do:** real Teams / SharePoint permissions, sync conflicts and
   a disconnect mid-save. Claude will supply a step-by-step checklist with the build.
 - **As built:** each file records its writer; another person's Save is refused and names the writer; ✍ Take the pen… hands over after a question naming the writer it replaces; an autosave never claims a file. The Help guide says the guarantee is the folder's permissions and that two writers with access are cooperative only.
+- **Found by the review before merge, fixed:** ⬆ Publish now (Live view) wrote the shared folder's copy with none of the folder save's checks -- not the writer's, not whether anyone saved since, no earlier copy kept, the writer record dropped. In the shared folder it now is that save, and someone only watching the folder is not offered it.
 
 #### 59. A money reconciliation coverage map (Codex's acceptance condition)
 - **Logged:** 3 Oct 2026, from Codex's scope review. It is a launch blocker until Brad narrows it explicitly.

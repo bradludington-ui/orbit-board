@@ -2049,7 +2049,16 @@ let EXDB = (function(){
 // Every browser-storage write that carries the user's work goes through here. Storage is only a
 // convenience — the FILE is the record — but a write that fails silently leaves someone believing
 // their work is somewhere it is not, which is worse than no storage at all.
+// v1.95 (review): WHILE AN IMPORT IS BEING PREPARED, lsSet() RECORDS INSTEAD OF WRITING. The ordinary ⬅ Import of a
+// board file writes through code shared with other doors (cycTake, importStores); _lsCapture collects what it would
+// write, as [key, text, what, what], so the import can commit it through lsAll() -- all or nothing -- like a full import.
+let _lsCapture=null;
 function lsSet(key, val, what){
+  if(_lsCapture){
+    const i=_lsCapture.findIndex(function(w){ return w[0]===key; }), w=[key, String(val), what, String(what||key)];
+    if(i>=0) _lsCapture[i]=w; else _lsCapture.push(w);
+    return true;
+  }
   try{ localStorage.setItem(key, val); return true; }
   catch(e){
     // v1.92 (item 18): kept for Save diagnostics -- what it was (the board's own words) and the browser's reason
@@ -8604,6 +8613,14 @@ function consTakePick(fullSt, txt, fname){
 function consTakeApply(fullSt, txt, fname, pick, all){
   const pks=extractPacks(txt)||{};
   const taken=[], skipped=[];
+  // ALL OR NOTHING (v1.95, review): every write this import makes is recorded, not made (_lsCapture), and then
+  // committed through lsAll(). It wrote each appropriation as it went and never looked at a write: a browser that
+  // refused one still said "Took …" and reopened on a mix, which the next Save wrote into the file. What it changes in
+  // memory is copied first and put back if the commit is refused; a refusal is reported as a full import's is.
+  const mem=impMemSnap(), W=[];
+  let cyc=[], tail='';
+  _lsCapture=W;
+  try{
   pick.forEach(function(k){
     const nm=_SLUGMAP[k].t, inc=JSON.parse(JSON.stringify(fullSt.appns[k]));
     if(!_hasPack(inc) && pks[k]) inc.dataPack=pks[k];
@@ -8626,18 +8643,24 @@ function consTakeApply(fullSt, txt, fname, pick, all){
     const next=pkgStrip(inc);
     if(cur){ pkgKeepLocked(cur, next); if(cur.sync) next.sync=cur.sync; }
     next.ts=Date.now();
-    lsSet(_SLUGMAP[k].key, JSON.stringify(next), nm+' board data');
+    lsSet(_SLUGMAP[k].key, JSON.stringify(next), 'the '+nm+' plan');
     if(typeof PUBS!=='undefined' && PUBS) PUBS[k]=next;
     taken.push(nm);
   });
-  if(!taken.length){ setStat('Nothing imported'+(skipped.length? ' \u2014 '+esc(skipped.join(', '))
+  if(taken.length){
+    // what each appropriation taken had locked comes with it (v1.86), whichever is open
+    const tookK=pick.filter(function(k){ return taken.indexOf(_SLUGMAP[k].t)>=0; });
+    cyc=cycTake(fullSt, (all && !skipped.length)? tookK.filter(function(k){ return k!==mySlug(); }) : tookK);
+    tail=' Execution data, cost estimates, the reprogramming log and the BAE list were left as this board has them.'
+      +(cyc.length? ' '+cyc.join(' ') : '');
+    if(all && !skipped.length){ const carried=importStores(fullSt).concat(cyc); tail=carried.length? ' '+carried.join(' ') : ''; }
+  }
+  } finally { _lsCapture=null; }
+  if(!taken.length){ impMemRestore(mem); setStat('Nothing imported'+(skipped.length? ' \u2014 '+esc(skipped.join(', '))
     +' left as '+(skipped.length===1? 'it is' : 'they are') : '')+'.'); return; }
-  // what each appropriation taken had locked comes with it (v1.86), whichever is open
-  const tookK=pick.filter(function(k){ return taken.indexOf(_SLUGMAP[k].t)>=0; });
-  const cyc=cycTake(fullSt, (all && !skipped.length)? tookK.filter(function(k){ return k!==mySlug(); }) : tookK);
-  let tail=' Execution data, cost estimates, the reprogramming log and the BAE list were left as this board has them.'
-    +(cyc.length? ' '+cyc.join(' ') : '');
-  if(all && !skipped.length){ const carried=importStores(fullSt).concat(cyc); tail=carried.length? ' '+carried.join(' ') : ''; }
+  const done=lsAll(W);
+  if(!done.ok){ impMemRestore(mem); return fullImportUndone(done, W, txt, fname); }
+  impMixedLift(W.map(function(w){ return w[0]; }));
   setStat('\u{1F9E9} Took '+esc(taken.join(', '))+' from \u201c'+esc(fname)+'\u201d'
     +(skipped.length? '; left '+esc(skipped.join(', '))+' as '+(skipped.length===1? 'it was' : 'they were') : '')+'.'+tail+' Reopening\u2026');
   location.reload();
@@ -8952,6 +8975,7 @@ function fullImportText(txt, fname){
   W.push(['prio27impRep', rep, 'The report of a full import', 'the import’s report']);
   const done=lsAll(W);
   if(!done.ok) return fullImportUndone(done, W, txt, fname);
+  impMixedLift(W.map(function(w){ return w[0]; }));
   // every write landed: memory follows, and the board reopens on what was written
   ks.forEach(function(k){ if(typeof PUBS!=='undefined' && PUBS) PUBS[k]=nexts[k]; });
   if(cycMine) CYCDB=cycMine;
@@ -8985,7 +9009,11 @@ function fullImportUndone(done, W, txt, fname){
   _impRescue={pre:pre? {text:pre, name:expName(FNAME.replace(/\.html?$/i,'')+' — as it was before the import.html')} : null,
               inc:{text:String(txt), name:String(fname||'imported board.html')}};
   _impRescue.mixed=true;
-  try{ localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:String(fname||'')})); }catch(e){}
+  // which lists hold neither what they held nor all of the file -- with any a stopped import before this left mixed
+  const mixedKeys=W.filter(function(w, i){ return done.now[i]!=='was'; }).map(function(w){ return w[0]; });
+  try{ const o=JSON.parse(localStorage.getItem(IMP_MIXED_KEY)||'null');
+    (o && Array.isArray(o.keys)? o.keys : []).forEach(function(k){ if(mixedKeys.indexOf(k)<0) mixedKeys.push(k); }); }catch(e){}
+  try{ localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:String(fname||''), keys:mixedKeys})); }catch(e){}
   const isNew=by('new'), isWas=by('was'), isOther=by('?');
   alert('The import of “'+fname+'” stopped part-way: browser storage refused '+say(done.at)+why
     +', then refused putting back what the import had already replaced.\n\n'
@@ -9038,6 +9066,28 @@ function fullImportRescue(which){
 // screen is the one to keep. The mark is kept in browser storage as well, so a reload does not lift it (best
 // effort: storage was refusing writes, and then only this page holds it). ⬇ Save a copy is never refused.
 const IMP_MIXED_KEY='prio27impMixed';
+// A LATER IMPORT THAT LANDS WHOLE LIFTS THE HOLD (v1.95, review): once every list a stopped import left mixed has been
+// written again, all or nothing, storage holds no mix. The board's own message says to free some storage and import
+// again; doing that left Save refused, and the next opening said the import had stopped part-way, until the hold was
+// lifted by hand. A mark that names no lists is lifted by any import that lands.
+function impMixedLift(keys){
+  let m=null; try{ m=JSON.parse(localStorage.getItem(IMP_MIXED_KEY)||'null'); }catch(e){ m=null; }
+  if(!m) return false;
+  if(Array.isArray(m.keys) && m.keys.some(function(k){ return keys.indexOf(k)<0; })) return false;
+  try{ localStorage.removeItem(IMP_MIXED_KEY); }catch(e){}
+  if(_impRescue) _impRescue.mixed=false;
+  return true;
+}
+// What an import may change in memory, copied before it starts, so a refused commit puts back exactly what was there.
+// The file's own cycle stores (CYC_FILE) are in it: cycTake writes into whichever copy is newer, the file's included.
+function impMemSnap(){
+  const c=function(o){ return (o==null)? o : JSON.parse(JSON.stringify(o)); };
+  return {PUBS:c(PUBS), CYCDB:c(CYCDB), EXDB:c(EXDB), ACEDB:c(ACEDB), RPDB:c(RPDB), BUDDB:c(BUDDB), DESTDB:c(DESTDB), CYC_FILE:c(CYC_FILE)};
+}
+function impMemRestore(m){
+  PUBS=m.PUBS; CYCDB=m.CYCDB; EXDB=m.EXDB; ACEDB=m.ACEDB; RPDB=m.RPDB; BUDDB=m.BUDDB; DESTDB=m.DESTDB;
+  Object.keys(CYC_FILE).forEach(function(k){ delete CYC_FILE[k]; }); Object.assign(CYC_FILE, m.CYC_FILE||{});
+}
 function impMixedOn(){
   if(_impRescue && _impRescue.mixed) return true;
   try{ return !!localStorage.getItem(IMP_MIXED_KEY); }catch(e){ return false; }
@@ -24711,13 +24761,6 @@ async function driveRead(dir, name){
   const fh=await dir.getFileHandle(name);
   return await (await fh.getFile()).text();
 }
-async function drivePublish(quiet){
-  const dir=await driveDir(true);
-  const body=JSON.stringify(livePayload());
-  await driveWrite(dir, driveName(MS.cur, mySlug()), body);
-  await driveHeartbeat(dir);            // publishing is proof you are still working on it
-  return {name:driveName(MS.cur, mySlug()), bytes:body.length};
-}
 // VIEWING AN APPROPRIATION WITH LIVE ON IS THE CLAIM. It rides on the refresh that is already
 // happening, so there is no separate timer to keep alive and nothing to remember to press.
 async function driveClaimIfViewing(dir){
@@ -25134,6 +25177,17 @@ async function driveRestore(i){
     const j=driveParse(txt);
     if(liveTooNew(j)){ setStat(liveTooNewMsg(j, 'That copy')); return; }
     if(!_hasPack(j.store)){ setStat('⚠ That copy carries no requirement data — nothing was changed.'); return; }
+    // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT ASIDE FIRST (v1.95, review), as it is before the folder's newer copy
+    // is loaded. Putting an earlier copy back replaced it unasked: it was then in no saved copy, not kept aside, not in
+    // the folder. No room to keep it, or other work already kept: nothing is put back.
+    const own=ownUnsaved(MS, j.store, baseGet());
+    const ka=own? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0)}, baseGet()) : true;
+    if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history')); render(); return; }
+    if(ka!==true){
+      setStat('\u26a0 <b>Nothing was put back.</b> This browser holds work no saved copy has, and there is no room to keep it '
+        +'aside. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then put the earlier copy back.');
+      render(); return;
+    }
     // the copy standing now goes to history too, so this restore is itself reversible
     // Kept whatever the last one's age (v1.89): the ten-minute spacing could skip it, which made the
     // promise above untrue. A copy that cannot be read or kept stops the restore rather than being lost.
@@ -25150,7 +25204,9 @@ async function driveRestore(i){
     try{ jrnlSync('restored the copy from '+pretty); }catch(e){}
     DIRTY=true;
     setStat('↶ Put back the copy from <b>'+esc(pretty)+'</b>. It is on screen and in this '
-      +'browser; press \u{1F4BE} Save to write it back to the folder for everyone.');
+      +'browser; press \u{1F4BE} Save to write it back to the folder for everyone.'
+      +(own? ' What was on screen, in no saved copy, is <b>kept aside</b>: '
+        +'<button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> (or from \ud83d\udcc1 File, any time).' : ''));
     render();
   }catch(e){
     setStat('⚠ That copy could not be put back — '+esc((e&&e.message)||String(e)));
@@ -25608,11 +25664,18 @@ async function livePublish(quiet){
   liveBusy=true;
   try{
     if(c.mode==='drive'){
-      const o=await drivePublish(quiet);
-      LIVEDB.err=''; LIVEDB.pub=Date.now();
-      if(!quiet) setStat('\u2b06 Wrote <b>'+esc(o.name)+'</b> to the shared folder \u2014 '
-        +Math.round(o.bytes/1024)+' KB.');
-      return true;
+      // PUBLISHING TO THE SHARED FOLDER IS SAVING TO IT (v1.95, review). It writes the very file a folder save writes,
+      // and it wrote it with none of that save's checks: not one at a time, not the writer's, not whether anyone saved
+      // since, no earlier copy kept, the writer record dropped, a failed import's hold ignored. It now IS that save.
+      // Someone only watching the folder does not save there, so does not publish there either.
+      if(!driveStoreOn()){
+        setStat('\u26a0 <b>Not published.</b> You are watching this folder, not working out of it. Publishing writes the folder\u2019s '
+          +'copy of '+esc(APPN_LBL[mySlug()]||mySlug())+', which is saved with \ud83d\udcbe Save by whoever works out of it.');
+        return false;
+      }
+      const ok=await driveStorePush(false);
+      if(ok){ LIVEDB.err=''; LIVEDB.pub=Date.now(); }
+      return !!ok;
     }
     if(c.mode==='sp'){
       const o=await spPublish(quiet);
@@ -25906,7 +25969,7 @@ function liveBody(){
       +'onchange="liveSet(&quot;every&quot;,this.value)" title="10 to 600 seconds"> s'
     +'<button class="btn'+(c.on?' on':'')+'" onclick="liveSet(&quot;on&quot;,'+(c.on?'false':'true')+')">'
     +(c.on? '● Live — on' : '○ Live — off')+'</button>'
-    +'<button class="btn" onclick="livePublish(false)">⬆ Publish now</button>'
+    +((c.mode==='drive' && !c.store)? '' : '<button class="btn" onclick="livePublish(false)">⬆ Publish now</button>')
     +'<button class="btn" onclick="livePoll(false)">↻ Refresh now</button>'
     +'</div>';
   if(LIVEDB.err)

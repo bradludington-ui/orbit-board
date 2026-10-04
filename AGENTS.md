@@ -106,7 +106,11 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   taken, or let a queued save write a year or a file other than the one it was asked for. Save over a file whose
   recorded writer is someone else, or claim one from an autosave: the guarantee is the folder's permissions, and
   ORBIT's check is cooperative. Replace work kept aside without asking. See the v1.95 section of `CLAUDE.md`.
-- Let a full import write browser storage except through `lsAll()`, or let anything write over the board file
+- Write the shared folder's copy of a board anywhere but the checked folder save (`_driveStorePushRun`, through
+  `saveSerial`): ⬆ Publish now in the folder is that save. Replace what is on screen with a stored, folder or
+  history copy without `keepAside()` first.
+- Let an import write browser storage except through `lsAll()` -- the ordinary import records its writes
+  (`_lsCapture`) and commits them there -- or let anything write over the board file
   while a failed import's mix stands (`impMixedBlock`). Write over a shared cost estimate that is different, or
   that could not be read.
 - Split a whole-dollar amount across offices or CLINs by multiplying it by a fraction: `pmoSplit`/`pmoPartsOf`

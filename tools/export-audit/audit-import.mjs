@@ -4612,6 +4612,142 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+// ── v1.95, THE REVIEW BEFORE MERGE: four ways round what items 48, 50 and 58 promise, each proved on the board ──────
+// An independent review of v1.95 found older doors that bypassed the new rules: ⬆ Publish now wrote the folder's copy
+// with none of the folder save's checks; the ordinary ⬅ Import of a board file wrote one appropriation at a time and
+// never looked at a write; ↶ Put this back replaced unsaved work unasked; and an import that landed whole did not lift
+// the hold a stopped one had set.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.95 — ⬆ Publish now in the shared folder is the folder save, with its checks';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  const fold = folder();
+  const A = boot({ html: F1 }); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+  A.ev(`setNote('A','ALICE WORK'); 'ok'`); await A.ev('driveStorePush(false)');
+  chk(name, 'fixture', 'CONTROL — Alice, the writer, saved to the folder', J([fold.note(2027, 'A'), (fold.copy(2027).writer || {}).by || null]), J(['ALICE WORK', 'Alice']));
+  // another browser: its Save is refused (item 58), and so is its Publish now
+  const B = boot({ html: F1 }); wire(B.ev, 'Bob', KEY.bob); connect(B.ev, B.w, fold);
+  B.ev(`setNote('A','BOB WORK'); 'ok'`);
+  const raw0 = fold.raw(2027);
+  const rb = await B.ev('livePublish(false)');
+  chk(name, 'another writer', 'Bob’s Publish now is refused: the folder’s copy stays Alice’s, byte for byte', J([rb, fold.raw(2027) === raw0]), J([false, true]));
+  // the writer: Publish now is her folder save -- her work, her writer record, the copy before it kept in the history
+  A.ev(`setNote('A','ALICE AGAIN'); 'ok'`);
+  const h0 = fold.hist().length;
+  const ra = await A.ev('livePublish(false)');
+  chk(name, 'the writer', 'Alice’s Publish now saves: her work, her writer record, the copy before it kept in the folder’s history',
+    J([ra, fold.note(2027, 'A'), (fold.copy(2027).writer || {}).by || null, fold.hist().length > h0]), J([true, 'ALICE AGAIN', 'Alice', true]));
+  // someone only watching: not offered, and refused with the reason if it is called
+  const C = boot({ html: F1 }); wire(C.ev, 'Carol', KEY.carol); connect(C.ev, C.w, fold); C.ev(`_liveCfg.store=false; 'ok'`);
+  const raw1 = fold.raw(2027);
+  const offeredTo = (X) => X.ev(`(function(){ liveOpen=true; try{ liveBody(); }catch(e){} return /Publish now/.test((document.getElementById('liveBody')||{}).innerHTML||''); })()`);
+  chk(name, 'a watcher', 'CONTROL — the writer, working out of the folder, is offered Publish now', offeredTo(A), true);
+  const offered = offeredTo(C);
+  const rc = await C.ev('livePublish(false)');
+  chk(name, 'a watcher', 'someone only watching is not offered Publish now, is refused and told why, and the folder is untouched',
+    J([offered, rc, /Not published/.test(status(C.ev)) && /watching this folder/.test(status(C.ev)), fold.raw(2027) === raw1]), J([false, false, true, true]));
+  // a failed import's mix is never published
+  A.ev(`localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:1, file:'x.html'})); setNote('A','MIXED'); 'ok'`);
+  const raw2 = fold.raw(2027);
+  const rm = await A.ev('livePublish(false)');
+  chk(name, 'a failed import', 'while a failed import’s mix stands, Publish now writes nothing', J([rm, fold.raw(2027) === raw2]), J([false, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.95 — the ordinary ⬅ Import of a board file is all or nothing';
+  try {
+  const { J, wire, KEY, status, baseFile, lsOf, pubOf } = W1H;
+  const F1 = baseFile('Brad', KEY.brad);
+  const P = pubOf(F1), om = P.appns.om, yr = Object.keys(om.years)[0];
+  const tagged = (tag) => { const o = JSON.parse(J(om)); o.years[yr].notes = Object.assign({}, o.years[yr].notes || {}, { A: tag }); o.ts = Date.now() + 5000; return o; };
+  const Q = JSON.parse(J(P)); Q.appns = { om: tagged('IMPORTED OM'), ff: tagged('IMPORTED FF') };
+  const txt = F1.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J(Q).replace(/</g, '\\u003c') + b);
+  const noteOf = (ls, key) => { try { return JSON.parse(ls[key]).years[yr].notes.A; } catch { return '(none)'; } };
+  // storage refuses Full Fund: nothing is taken, every key as it was, memory as it was, and the board says so
+  const R = boot({ html: F1 }); wire(R.ev, 'Brad', KEY.brad);
+  const ls0 = lsOf(R.ev), mem0 = R.ev('JSON.stringify([PUBS, CYCDB, EXDB, ACEDB, RPDB])');
+  R.ev(`(function(){ var set=Storage.prototype.setItem; window.__set=set;
+    Storage.prototype.setItem=function(k,v){ if(k==='prio27ff'){ var e=new Error('full'); e.name='QuotaExceededError'; throw e; } return set.call(this,k,v); }; })(); 'ok'`);
+  R.ev(`consTakeApply(${J(Q)}, ${J(txt)}, 'two.html', ['om','ff'], true); 'ok'`);
+  R.ev(`Storage.prototype.setItem=window.__set; 'ok'`);
+  const ls1 = lsOf(R.ev);
+  chk(name, 'refused', 'Full Fund refused: the board says nothing was imported and names it, and every key is byte-identical',
+    J([/Nothing was imported/.test(status(R.ev)) && /Full Fund/.test(status(R.ev)), w2Diff(ls0, ls1)]), J([true, '']));
+  chk(name, 'refused', 'and what the import changed in memory is put back', R.ev('JSON.stringify([PUBS, CYCDB, EXDB, ACEDB, RPDB])') === mem0, true);
+  // nothing refused: both taken, as before
+  const S2 = boot({ html: F1 }); wire(S2.ev, 'Brad', KEY.brad);
+  S2.ev(`consTakeApply(${J(Q)}, ${J(txt)}, 'two.html', ['om','ff'], true); 'ok'`);
+  const ls2 = lsOf(S2.ev);
+  chk(name, 'taken', 'CONTROL — nothing refused: both appropriations are taken, and the board says so',
+    J([noteOf(ls2, 'prio27om'), noteOf(ls2, 'prio27ff'), /Took O&M, Full Fund/.test(status(S2.ev))]), J(['IMPORTED OM', 'IMPORTED FF', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.95 — ↶ Put this back keeps unsaved work aside first';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  const fold = folder();
+  const A = boot({ html: F1 }); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+  A.ev(`setNote('A','FIRST'); 'ok'`); await A.ev('driveStorePush(false)');
+  fold.root.dirs.history = undefined;
+  A.ev(`setNote('A','SECOND'); 'ok'`); await A.ev('driveStorePush(false)');
+  chk(name, 'fixture', 'CONTROL — the folder’s history holds the earlier copy', fold.hist().length, 1);
+  const kept = () => A.ev(`(function(){ var k=keptCopy(); return k? k.raw : ''; })()`);
+  A.ev(`setNote('A','UNSAVED WORK'); 'ok'`);
+  await A.ev('driveHistShow()'); await A.ev('driveRestore(0)');
+  chk(name, 'put back', 'the earlier copy is on screen, and the unsaved work is kept aside, with a way to put it back',
+    J([A.ev('S.notes.A'), /UNSAVED WORK/.test(kept()), /kept aside/.test(status(A.ev))]), J(['FIRST', true, true]));
+  // other work already kept aside: nothing is put back, and both survive
+  A.ev(`setNote('A','MORE WORK'); 'ok'`);
+  await A.ev('driveHistShow()'); await A.ev('driveRestore(0)');
+  chk(name, 'work already kept', 'with other work already kept aside, nothing is put back: the screen and the kept work both survive',
+    J([A.ev('S.notes.A'), /UNSAVED WORK/.test(kept())]), J(['MORE WORK', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.95 — an import that lands whole lifts the hold a stopped one set';
+  try {
+  const { J, wire, KEY, status, lsOf, pubOf } = W1H;
+  const { NEW, OLD } = w2Fx();
+  // a stopped import, its hold kept in storage (storage refuses only the ten lists)
+  const T = boot({ html: OLD.html, ls: OLD.ls });
+  w2Import(T, NEW.html, 'stuckKeys', 8);
+  const mark = JSON.parse(T.ev(`localStorage.getItem(IMP_MIXED_KEY)||'null'`));
+  chk(name, 'the hold', 'the hold names the lists the stopped import left mixed', J(!!(mark && Array.isArray(mark.keys) && mark.keys.indexOf('prio27ff') >= 0)), 'true');
+  // taking back O&M alone rewrites O&M alone: the hold stays
+  const R = boot({ html: OLD.html, ls: lsOf(T.ev) }); wire(R.ev, 'Brad', KEY.brad);
+  R.ev(`consTakeApply(${J(pubOf(NEW.html))}, ${J(NEW.html)}, 'new-board.html', ['om'], false); 'ok'`);
+  chk(name, 'part of it', 'an import that rewrites only some of those lists leaves the hold in place', R.ev('String(impMixedOn())'), 'true');
+  // the whole file again: every list rewritten, all or nothing -- the hold is lifted, and the next opening says what was imported
+  R.ev(`fullImportText(${J(NEW.html)}, 'new-board.html'); 'ok'`);
+  chk(name, 'the whole of it', 'importing the whole file again lifts the hold', R.ev(`localStorage.getItem(IMP_MIXED_KEY)===null`), true);
+  const R2 = boot({ html: OLD.html, ls: lsOf(R.ev) }); wire(R2.ev, 'Brad', KEY.brad);
+  chk(name, 'the whole of it', 'reopened: 💾 Save is allowed, and the opening says what was imported',
+    J([R2.ev('String(impMixedOn())'), /Full board imported/.test(status(R2.ev))]), J(['false', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end W2 ====
 
 // ==== v1.95 W3: PMO packages and incoming awards (items 51, 52, 53) ====
