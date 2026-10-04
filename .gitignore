@@ -17,6 +17,9 @@
 # Which surface states which quantity, pinned so a figure that vanishes off a briefing product
 # fails the trace matrix instead of scoring as silence. Regenerate with trace-matrix.mjs --emit.
 !tools/trace-stated.json
+# Every money surface against the seven dimensions, cell by cell, with the checks that prove each. Hand-filled
+# evidence, not run output: tools/money-map.mjs reads it and generates tools/money-map.md (item 59).
+!tools/money-map.json
 # Recorded Section 508 / WCAG findings. Debt, gated on regression — source, not run output.
 !tools/a11y-baseline.json
 # The register of math defects this board has shipped. Source, not run output: the nightly gate

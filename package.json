@@ -30,6 +30,7 @@
     "coverage:money": "node tools/money-coverage.mjs",
     "validate:math": "node tools/validate-math.mjs",
     "trace": "node tools/trace-matrix.mjs",
+    "money-map": "node tools/money-map.mjs",
     "ia:census": "node tools/ia-census.mjs",
     "ia:shots": "node tools/ia-shots.mjs",
     "ia": "npm run ia:census --silent && npm run ia:shots --silent",

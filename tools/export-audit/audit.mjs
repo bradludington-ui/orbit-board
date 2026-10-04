@@ -1082,8 +1082,11 @@ for (const [name, sc] of Object.entries(SCENARIOS)) {
     // CLIN split rather than written as a literal that goes stale the moment the fixture moves.
     const INC = [200, 50, 25];
     const incAv = INC.reduce((a, v, i) => a + v * CL_AV[i] / (CL_AV[i] + CL_MX[i]), 0);
-    chk(name, 'PMO AV', 'an increment lands in its own month', cell(2, 'DEC 26'), incAv);
-    chk(name, 'PMO AV', 'including one stored out of order', cell(2, 'MAR 27'), incAv);
+    // v1.95 (item 60): AN OFFICE'S SHARE IS WHOLE DOLLARS. The exact share is 207.5, which no sheet may hold, so
+    // each increment carries a whole-dollar part of it, within a dollar of the exact share; the two add up below.
+    const near = v => Number.isInteger(v) && Math.abs(v - incAv) < 1;
+    chk(name, 'PMO AV', 'an increment lands in its own month', near(cell(2, 'DEC 26')), true);
+    chk(name, 'PMO AV', 'including one stored out of order', near(cell(2, 'MAR 27')), true);
     chk(name, 'PMO AV', 'and the two are the whole funded amount',
       cell(2, 'DEC 26') + cell(2, 'MAR 27'), cell(2, 'Total (Disc+Mand)'));
 

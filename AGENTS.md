@@ -40,7 +40,8 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 | After a change | `npm run audit` | 8 suites: 7 `ALL CHECKS PASSED` banners plus the legacy line |
 | After a change that moves anything on screen | `npm run verify:grid` | exit 0 |
 | After a change to anything a person operates | `npm run standards` and `npm run keys` | no NEW finding (the baseline is empty since v1.92); every keyboard check `ok` |
-| Before a version ships | `npm run validate:math` (~1 hour) | `MATH VALIDATION PASSED` |
+| After a change to money on screen or in an export | `npm run money-map`, then `node tools/money-map.mjs --check` | `money map holds`, the report current |
+| Before a version ships | `npm run validate:math` (about 2 hours; ask Brad before running it past the two-hour limit on background jobs) | `MATH VALIDATION PASSED` |
 
 - In the math check, a mutation that is **NOT APPLIED** fails the run. If you rewrite a line that a
   mutation in `tools/export-audit/mutate.mjs` searches for, retarget that mutation.
@@ -48,6 +49,9 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   loading it starts the sweep.
 - A test that cannot fail is not a test. Prove a new check fails on a board with the defect before
   trusting it.
+- A presweep of your new mutations does not see an OLD mutation whose line your change rewrote. After any
+  change to the board, and after every merge, count every mutation's target against the board (the gate's
+  first step does it; finding it there costs a two-hour run).
 
 ## Files from outside are data, never code
 
@@ -96,6 +100,27 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   A field a box saves only with its own button needs `data-held="1"`, or typing in it is not guarded. `npm run
   check` fails on a box of the wrong shape, `npm run dialogs` on one that does not take and give back the
   keyboard. Do not let a menu run off the window: `fitMenus()` and `npm run dropdowns`.
+- Write a board file's payload anywhere but `savedHtmlOf()`: 💾 Save, the PMO copy, the work kept aside and the
+  board as it was before a failed import all go through it, so a field added to the saved file reaches all four.
+- Write a save outside `saveSerial()`, mark the board clean unless `_saveGen` is what it was when the bytes were
+  taken, or let a queued save write a year or a file other than the one it was asked for. Save over a file whose
+  recorded writer is someone else, or claim one from an autosave: the guarantee is the folder's permissions, and
+  ORBIT's check is cooperative. Replace work kept aside without asking. See the v1.95 section of `CLAUDE.md`.
+- Write the shared folder's copy of a board anywhere but the checked folder save (`_driveStorePushRun`, through
+  `saveSerial`): ⬆ Publish now in the folder is that save. Replace what is on screen with a stored, folder or
+  history copy without `keepAside()` first.
+- Let an import write browser storage except through `lsAll()` -- the ordinary import records its writes
+  (`_lsCapture`) and commits them there -- or let anything write over the board file
+  while a failed import's mix stands (`impMixedBlock`). Write over a shared cost estimate that is different, or
+  that could not be read.
+- Split a whole-dollar amount across offices or CLINs by multiplying it by a fraction: `pmoSplit`/`pmoPartsOf`
+  and `clinSplit` apportion it, in whole dollars that add up exactly.
+- Take an award from outside the board without `awdNorm()`: at a door it refuses or converts; on opening it
+  repairs, keeps the record as found (`aw.fix`) and reports. An award is never zeroed.
+- File a year's money under any PMO but the one that year assigns (Brad, 3 Oct 2026: "leave the PMO assigned by
+  year"), or apply a held submittal to a year other than its own.
+- Add money to a screen or an export without its row in `tools/money-map.json`: the gate's "money map" stage
+  fails on a surface, a cell or a cited check that is unaccounted for.
 - Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity` and `spmtDetail`, or
   the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.

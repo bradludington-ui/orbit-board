@@ -1084,6 +1084,68 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
   }
 }
 
+// ══ v1.95: THE SPRUILLS TABLE BY SERVICE, BY YEAR, AND FOR ANOTHER APPROPRIATION ══════════════
+// v1.95 (item 55) reads each year of the Spruills from that year's own state. Its checks hold Total
+// Requirements and the rows by PMO for two years on the board's own appropriation, and another
+// appropriation's rows by PMO. The rest of what the table prints was held for the year on screen
+// only, or not at all: the rows by service, Available Funding (and so the Delta) for a year after the
+// one on screen, and another appropriation's Total Requirements, Available Funding and rows. The
+// money map (tools/money-map.json, spGather) cites this block for those cells.
+//
+// Full Fund is stood up the way a consolidated file carries it -- its payload in APPNS, its state
+// alongside -- at three services against this board's two, so a row filed by this board's service
+// list is caught. The oracle is the scenario's own arithmetic.
+{
+  const name = 'v1.95 — the Spruills by service, by year and for another appropriation';
+  try {
+  const J = JSON.stringify, M = 1e6;
+  const { ev, errors } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [10 * M, 2 * M]), it('B', 'TSS', [3 * M, 1 * M])],
+    disc: [20 * M, 5 * M], mand: [4 * M, 1 * M], order: ['A', 'B'] });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  const cur = +ev('MS.cur'), Y = [cur, cur + 1];
+  // the next year, through the board's own editors: its own asks and its own budget
+  ev(`switchYear(${cur + 1});
+      setAsk('A',0,'10000000'); setAsk('A',1,'5000000'); setAsk('B',0,'3000000'); setAsk('B',1,'1000000');
+      bmSetBase('disc',0,'30000000'); bmSetBase('disc',1,'6000000'); bmSetBase('mand',0,'0'); bmSetBase('mand',1,'2000000');
+      switchYear(${cur}); 'ok'`);
+  // Full Fund: an override in the year on screen, an added requirement in the next
+  ev(`(function(){ var P=APPNS['FULL FUND']; P.services.length=0; P.items.length=0;
+    ['USAF','ANG','AFRC'].forEach(function(s){ P.services.push(s); });
+    P.items.push({id:'FF1', grp:'PSM', team:'PSM', sect:'', custom:false, title:'Req FF1', event:'Ev FF1', ccar:'CCFF1', fy26:[0,0,0], ask:[1000000,2000000,3000000], alloc:null});
+    P.items.push({id:'FF2', grp:'AV', team:'AV', sect:'', custom:false, title:'Req FF2', event:'Ev FF2', ccar:'CCFF2', fy26:[0,0,0], ask:[4000000,0,1000000], alloc:null});
+    var st={base:MS.base, cur:MS.cur, years:{}};
+    st.years[${cur}]={asks:{FF1:[2000000,2000000,3000000]}, order:['FF1','FF2'], discSvc:[5000000,1000000,1000000], mandSvc:[1000000,0,0]};
+    st.years[${cur + 1}]={asks:{}, order:['FF1','FF2','FFN'], discSvc:[6000000,2000000,2000000], mandSvc:[0,0,1000000],
+      custom:[{id:'FFN', grp:'TSS', sect:'new', custom:true, title:'FF added (made up)', event:'e', ccar:'', fy26:[0,0,0], ask:[1000000,1000000,1000000], alloc:null}]};
+    localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify(st)); return 'ok'; })()`);
+  const gather = by => JSON.parse(ev(`(function(){ var keep=[spBy, spSvc, spPmo]; try{ spBy=${J(by)}; spSvc='ALL'; spPmo='ALL';
+      return JSON.stringify(spGather().blocks); } finally { spBy=keep[0]; spSvc=keep[1]; spPmo=keep[2]; } })()`));
+  const own = ev('APPN'), bySvc = gather('svc'), byPmo = gather('pmo');
+  const blk = (B, n) => B.find(b => b.name === n) || { rows: {}, req: {}, bud: {} };
+  const rows = (b, keys) => keys.map(k => Y.map(y => (b.rows[k] || {})[y]));
+  // THE TRUTH, by hand
+  chk(name, 'by service', 'the board’s own rows by service, each year from that year’s own asks',
+    J(rows(blk(bySvc, own), ['USAF', 'ANG'])), J([[13 * M, 13 * M], [3 * M, 6 * M]]));
+  chk(name, 'by year', 'the board’s own Total Requirements, Available Funding and Delta, each year from that year’s own state',
+    J(Y.map(y => { const b = blk(byPmo, own); return [b.req[y], b.bud[y], b.bud[y] - b.req[y]]; })),
+    J([[16 * M, 30 * M, 14 * M], [19 * M, 38 * M, 19 * M]]));
+  chk(name, 'another appropriation', 'Full Fund’s Total Requirements, Available Funding and Delta, each year from its own state',
+    J(Y.map(y => { const b = blk(byPmo, 'FULL FUND'); return [b.req[y], b.bud[y], b.bud[y] - b.req[y]]; })),
+    J([[12 * M, 8 * M, -4 * M], [14 * M, 11 * M, -3 * M]]));
+  chk(name, 'another appropriation', 'Full Fund’s rows by service, at its own three services, each year',
+    J(rows(blk(bySvc, 'FULL FUND'), ['USAF', 'ANG', 'AFRC'])), J([[6 * M, 6 * M], [2 * M, 3 * M], [4 * M, 5 * M]]));
+  chk(name, 'another appropriation', 'Full Fund’s rows by PMO, each year: its override, its added requirement once',
+    J(rows(blk(byPmo, 'FULL FUND'), ['PSM', 'AV', 'TSS'])), J([[7 * M, 6 * M], [5 * M, 5 * M], [null, 3 * M]]));
+  const both = [blk(bySvc, own), blk(bySvc, 'FULL FUND')];
+  chk(name, 'the rows add up', 'in each block and year, the rows by service add to Total Requirements',
+    J(both.map(b => Y.map(y => Object.values(b.rows).reduce((a, r) => a + (r[y] || 0), 0) - b.req[y]))), J([[0, 0], [0, 0]]));
+  if (errors.length) chk(name, 'jsdom', 'no script errors', errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+
 // ══ recording a funding source must not change what a requirement is short ═════════════
 // A directed source says where the ALLOCATION is drawn from. It used to re-base the requirement on
 // its full ask, so the gap between ask and allocation -- TRIM on every ordinary requirement -- was
@@ -3098,6 +3160,321 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
 }
+
+// ==== v1.95 W3: PMO packages and incoming awards (items 51, 52, 53) ====
+// OPENING A SAVED BOARD, the sixth way an award comes in (review R09). Brad's default, kept: nothing is refused
+// and NOTHING IS ZEROED -- a list of the wrong width keeps its total, spread over the requirement's values; what
+// cannot be repaired is flagged NEEDS REPAIR with its cash UNSCHEDULED; and the record as it was saved is kept beside
+// the repair (Codex's conditions). Asserted where it matters: each service's cash, in its CR half-month and in
+// UNSCHEDULED, requirement by requirement and for the whole board.
+const { bootMark: w3Mark, bootRelease: w3Release, settleBoards: w3Settle } = await import('./boot.mjs');
+const w3bit = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'Event ' + id,
+  ccar: 'JSF' + id, fy26: ask.map(() => 0), ask, alloc: null });
+// a real saved board file whose FY27 plan carries these awards, written into the file as another tool would
+const w3saved = (items, awards, tx) => {
+  const b = boot(); seed(b.ev, { services: ['USAF', 'USN'], items, disc: [40000000, 60000000], mand: [0, 0], order: items.map(x => x.id) });
+  b.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+  const RE = /(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/;
+  const t = b.ev('buildSavedHtml()').replace(RE, (m, a, s, c) => { const J = JSON.parse(s); (J.appns ? J.appns.om : J).years['2027'].awards = awards;
+    return a + JSON.stringify(J).replace(/</g, '\\u003c') + c; });
+  return tx ? tx(t) : t;
+};
+// a reading that cannot be taken is a failing check, not the end of the block (on v1.94 the new functions are missing)
+const w3try = (ev, code) => { try { return ev(code); } catch (e) { return 'THREW: ' + String((e && e.message) || e).slice(0, 120); } };
+// what the board holds for one award, the way a person reads it: mode | headline date | day | each award's
+// date / day / dollars by service / mark
+const W3_SUM = `function(aw){ if(!aw) return 'none'; var o=[aw.mode, aw.d||'', aw.day||''];
+  (Array.isArray(aw.inc)? aw.inc : []).forEach(function(x){ o.push(x.d+'/'+(x.day||'')+'/'+JSON.stringify(x.sv)+'/'+(x.fx||'')); }); return o.join('|'); }`;
+// one requirement's cash by service: what lands in 1-15 OCT (crData's own per-requirement windows) and UNSCHEDULED
+const W3_REQCASH = `function(id){ var T=tiers(null, scenOpt()), p=T[id], cr=crData(null), ms=p? monSpreadOf(id,p) : {unsch:[0,0]};
+  return SVC.map(function(s,i){ var r=(cr[i].items||[]).filter(function(x){ return x.id===id; })[0];
+    return Math.round(r? r.wins[0] : 0)+'/'+Math.round(ms.unsch[i]); }).join(' '); }`;
+await (async () => {
+  const __bm = w3Mark();
+  const name = 'v1.95 W3 — opening a saved board repairs its awards, never zeroes them, and keeps the originals (item 53)';
+  try {
+  const inc = (sv, d = '2026-10', day = 5) => ({ mode: 'inc', inc: [{ d, day, sv }] });
+  // [id, label, the award as saved, what the board holds, the mark, cash 'USAF 1-15 OCT/UNSCHEDULED USN ...',
+  //  true where v1.94 already placed the cash the same way (a control for that check)]
+  const V = [
+    ['G', 'good', inc([1000000, 2000000]), 'inc|||2026-10/5/[1000000,2000000]/', 'none', '1000000/0 2000000/0', true],
+    ['T', 'figures written as text ["1000000","2000000"]', inc(['1000000', '2000000']), 'inc|||2026-10/5/[1000000,2000000]/', 'conv', '1000000/0 2000000/0', true],
+    ['M', 'figures written with commas ["1,000,000","2,000,000"]', inc(['1,000,000', '2,000,000']), 'inc|||2026-10/5/[1000000,2000000]/', 'conv', '1000000/0 2000000/0'],
+    ['F', 'fractions [1000000.75,1999999.25]', inc([1000000.75, 1999999.25]), 'inc|||2026-10/5/[1000001,1999999]/', 'conv', '1000000/0 1999999/1', true],
+    ['K', '"1,234" and "abc"', inc(['1,234', 'abc']), 'inc|||2026-10/5/[1234,0]/repair', 'repair', '1234/998766 0/2000000'],
+    ['N', 'a negative figure [-500000,2000000]', inc([-500000, 2000000]), 'inc|||2026-10/5/[0,2000000]/repair', 'repair', '0/1000000 2000000/0', true],
+    ['I', '"Infinity"', inc(['Infinity', 2000000]), 'inc|||2026-10/5/[0,2000000]/repair', 'repair', '0/1000000 2000000/0'],
+    ['A', '"NaN"', inc(['NaN', 2000000]), 'inc|||2026-10/5/[0,2000000]/repair', 'repair', '0/1000000 2000000/0', true],
+    ['E', '1e400 in the file', inc([7777777777, 2000000]), 'inc|||2026-10/5/[0,2000000]/repair', 'repair', '0/1000000 2000000/0', true],
+    ['W', 'one figure for two services [3000000]', inc([3000000]), 'inc|||2026-10/5/[1000000,2000000]/split', 'split', '1000000/0 2000000/0'],
+    ['X', 'three figures for two services', inc([1000000, 2000000, 500000]), 'inc|||2026-10/5/[1166667,2333333]/split', 'split', '1000000/0 2000000/0'],
+    ['L', 'dollars that are not a list ("3000000")', { mode: 'inc', inc: [{ d: '2026-10', day: 5, sv: '3000000' }] }, 'inc|||2026-10/5/[1000000,2000000]/split', 'split', '1000000/0 2000000/0'],
+    ['U', 'one lump figure from before awards were split by service', { mode: 'inc', inc: [{ d: '2026-10', day: 5, v: 3000000 }] }, 'inc|||2026-10/5/[1000000,2000000]/split', 'split', '1000000/0 2000000/0', true],
+    ['D', 'date "2027-13"', inc([1000000, 2000000], '2027-13'), 'inc||', 'repair', '0/1000000 0/2000000', true],
+    ['H', 'date "abc"', inc([1000000, 2000000], 'abc'), 'inc||', 'repair', '0/1000000 0/2000000', true],
+    ['Y', 'day 45', inc([1000000, 2000000], '2026-10', 45), 'inc|||2026-10//[1000000,2000000]/', 'conv', '1000000/0 2000000/0', true],
+    ['S', 'a single award dated "2027-13"', { mode: 'single', d: '2027-13', day: 5 }, 'single||', 'repair', '0/1000000 0/2000000', true],
+    ['B', 'mode "bogus" (a December date, an October award)', { mode: 'bogus', d: '2026-12', inc: [{ d: '2026-10', day: 5, sv: [1000000, 2000000] }] }, 'single||', 'repair', '0/1000000 0/2000000'],
+    ['O', 'no mode', { inc: [{ d: '2026-10', day: 5, sv: [1000000, 2000000] }] }, 'single||', 'repair', '0/1000000 0/2000000', true],
+    ['P', 'a good award and a later one with a figure that cannot be read', { mode: 'inc', inc: [{ d: '2026-10', day: 5, sv: [1000000, 2000000] }, { d: '2026-11', day: 20, sv: ['abc', 0] }] },
+      'inc|||2026-10/5/[1000000,2000000]/|2026-11/20/[0,0]/repair', 'repair', '1000000/0 2000000/0'],
+    ['Q', 'three figures, on a requirement whose values are all zero', inc([1, 2, 3]), 'inc||', 'repair', '0/0 0/0', true],
+  ];
+  const items = V.map(v => w3bit(v[0], v[0] === 'Q' ? [0, 0] : [1000000, 2000000]));
+  const awards = {}; V.forEach(v => { awards[v[0]] = v[2]; });
+  const html = w3saved(items, awards, t => t.replace('7777777777', '1e400'));
+  const B = boot({ html });
+  chk(name, 'opening', 'control — the board opens with no script error', JSON.stringify(B.errors), '[]');
+  for (const [id, lbl, saved, holds, how, cash, cashCtl] of V) {
+    chk(name, lbl, (id === 'G' ? 'control — ' : '') + 'what the board holds, every figure a whole number zero or more',
+      B.ev(`(function(){ var aw=S.awards[${JSON.stringify(id)}]; var ok=(Array.isArray(aw&&aw.inc)? aw.inc : []).every(function(x){
+        return !Array.isArray(x.sv) || x.sv.every(function(v){ return typeof v==='number' && v>=0 && v===Math.floor(v); }); });
+        return (${W3_SUM})(aw)+(ok? '' : ' (A FIGURE IS NOT WHOLE DOLLARS)'); })()`), holds);
+    chk(name, lbl, (cashCtl ? 'control (v1.94 placed it the same way) — ' : '') + 'its cash by service: 1–15 OCT / UNSCHEDULED, USAF then USN',
+      B.ev(`(${W3_REQCASH})(${JSON.stringify(id)})`), cash);
+    const orig = id === 'E' ? JSON.stringify(saved).replace('7777777777', 'null') : JSON.stringify(saved);
+    chk(name, lbl, (id === 'G' ? 'control — nothing to keep: ' : '') + 'the record as it was saved is kept beside the repair, and marked',
+      B.ev(`(function(){ var f=(S.awards[${JSON.stringify(id)}]||{}).fix; return f? f.how+' '+(f.orig===${JSON.stringify(orig)}? 'kept whole' : 'NOT KEPT: '+f.orig) : 'none'; })()`),
+      how === 'none' ? 'none' : how + ' kept whole');
+  }
+  // THE WHOLE BOARD: CR Cash Needs by service and half-month, and UNSCHEDULED, add up to the requirements above
+  const sum = k => V.reduce((a, v) => a + Number(v[5].split(' ')[k].split('/')[0]), 0);
+  const uns = k => V.reduce((a, v) => a + Number(v[5].split(' ')[k].split('/')[1]), 0);
+  chk(name, 'CR Cash Needs', 'every service’s 1–15 OCT and UNSCHEDULED are the sum of its requirements’ — nothing zeroed, nothing lost',
+    B.ev(`JSON.stringify(crData(null).map(function(b){ return Math.round(b.win[0])+'/'+Math.round(b.nodate); }))`),
+    JSON.stringify([sum(0) + '/' + uns(0), sum(1) + '/' + uns(1)]));
+  chk(name, 'CR Cash Needs', 'and the 1A9A rows read the same award: an inferred split’s USN dollars in 1–15 OCT',
+    B.ev(`JSON.stringify(crExportRows().filter(function(r){ return r.id==='W' || r.id==='X'; }).map(function(r){ return r.id+' '+Math.round(r.wins[0]); }))`),
+    JSON.stringify(['W 2000000', 'X 2000000']));
+  // THE REPORT: said on opening, listed under Needs attention with what was done and the split used, marked in the block
+  const fixed = V.filter(v => v[4] !== 'none');
+  const nRep = fixed.filter(v => v[4] === 'repair').length;
+  chk(name, 'report', 'the board says on opening how many awards it repaired, and how many need repair',
+    new RegExp('🔧 ' + fixed.length + ' awards repaired on opening are waiting to be checked — ' + nRep + ' need repair').test(B.ev(`(document.getElementById('shareStat')||{}).textContent`)), true);
+  chk(name, 'report', 'Needs attention lists every one, those that need repair first',
+    w3try(B.ev, `JSON.stringify(attLists().awfix.map(function(x){ return x.id+':'+x.how; }))`),
+    JSON.stringify(fixed.filter(v => v[4] === 'repair').map(v => v[0] + ':repair').concat(fixed.filter(v => v[4] !== 'repair').map(v => v[0] + ':' + v[4]))));
+  w3try(B.ev, `attShow('awfix'); 'ok'`);
+  chk(name, 'report', 'its list names the award and the split used',
+    /Inferred split — award 1 \(5 OCT 26\) has dollars for 1 service on a board of 2\. Its total, \$3,000,000, is kept and spread over the requirement’s values \(USAF \$1,000,000 · USN \$2,000,000\): USAF \$1,000,000 · USN \$2,000,000\. This split is INFERRED, not the one recorded\./
+      .test(w3try(B.ev, `document.getElementById('attBody').textContent`)), true);
+  w3try(B.ev, `attClose(); 'ok'`);
+  const block = id => w3try(B.ev, `(function(){ var d=document.createElement('div'); d.innerHTML=awardBlockHtml(itemById(${JSON.stringify(id)})); return d.textContent.replace(/\\s+/g,' '); })()`);
+  chk(name, 'award block', 'an inferred split is marked on its row and said, with the award as it was saved',
+    [/SPLIT INFERRED \$3,000,000/, /◇ SPLIT INFERRED — repaired when this board was opened/, /The award as it was saved, kept with it/, /\{"mode":"inc","inc":\[\{"d":"2026-10","day":5,"sv":\[3000000\]\}\]\}/].every(r => r.test(block('W'))), true);
+  chk(name, 'award block', 'an award that needs repair is marked, its good award still shown as it was',
+    [/NEEDS REPAIR/, /⚠ NEEDS REPAIR — when this board was opened/, /\$3,000,000/].every(r => r.test(block('P'))), true);
+  // SAVED AND REOPENED: the repairs and the originals travel, the cash with them
+  const B2 = boot({ html: B.ev('buildSavedHtml()') });
+  const fixN = `Object.keys(S.awards).filter(function(id){ return S.awards[id] && S.awards[id].fix; }).length`;
+  chk(name, 'save and reopen', 'every repaired award, its mark and its original come back exactly',
+    B2.ev(`JSON.stringify(S.awards)+' '+${fixN}`), B.ev(`JSON.stringify(S.awards)`) + ' ' + fixed.length);
+  chk(name, 'save and reopen', 'and so does every service’s cash', B2.ev(`JSON.stringify(crData(null).map(function(b){ return Math.round(b.win[0])+'/'+Math.round(b.nodate); }))`),
+    JSON.stringify([sum(0) + '/' + uns(0), sum(1) + '/' + uns(1)]));
+  // CHECKED: off the list, its marks cleared, the original still kept -- and it stays checked
+  w3try(B2.ev, `awdFixOk('W'); 'ok'`);
+  const B3 = boot({ html: B2.ev('buildSavedHtml()') });
+  chk(name, 'checked', 'a person marking it checked takes it off Needs attention for good, and the original stays',
+    w3try(B3.ev, `JSON.stringify([attLists().awfix.some(function(x){ return x.id==='W'; }), S.awards.W.fix.ok, S.awards.W.inc[0].fx||'', S.awards.W.fix.orig])`),
+    JSON.stringify([false, true, '', JSON.stringify(V.find(v => v[0] === 'W')[2])]));
+  // EDITED BY HAND: an award block setter that replaces the award carries the record as it was saved across --
+  // switching to one date, dating an award that had none, and clearing one
+  w3try(B3.ev, `toggleAwdInc('X'); setAwdDateFull('S','2026-12-10'); setAwdDateFull('D',''); 'ok'`);
+  const origOf = id => JSON.stringify(V.find(v => v[0] === id)[2]);
+  chk(name, 'edited', 'each keeps the record as it was saved',
+    w3try(B3.ev, `JSON.stringify(['X','S','D'].map(function(id){ var a=S.awards[id]||{}; return [a.mode, a.d||'', (a.fix||{}).orig||'LOST']; }))`),
+    JSON.stringify([['single', '2026-10', origOf('X')], ['single', '2026-12', origOf('S')], ['single', '', origOf('D')]]));
+  // EXPORTS take the new field as data: the workbooks still build
+  chk(name, 'exports', 'control — the spend plan and board workbooks build on the repaired board',
+    B3.ev(`(function(){ var n=0, _B=window.Blob; window.Blob=function(p,o){ n++; return new _B(p,o); };
+      try{ exportPlans(); exportCSV(); }catch(e){ window.Blob=_B; return 'THREW '+e.message; } window.Blob=_B; return n>=2? 'built' : 'none'; })()`), 'built');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  w3Release(__bm);
+  await w3Settle();
+})();
+// A LIST OF AWARDS THAT IS NOT A LIST no longer stops the board opening: v1.94 threw in applyState, and the board
+// came up with nothing drawn
+await (async () => {
+  const __bm = w3Mark();
+  const name = 'v1.95 W3 — an award list that is not a list never stops a board opening (item 53)';
+  try {
+  const awards2 = { R: { mode: 'inc', inc: { 0: { d: '2026-10', day: 5, sv: [1000000, 2000000] } } }, Z: { mode: 'inc', inc: 'x' } };
+  const C = boot({ html: w3saved([w3bit('R', [1000000, 2000000]), w3bit('Z', [1000000, 2000000])], awards2) });
+  chk(name, 'not a list', 'a board whose award lists are not lists opens, with no script error and every row drawn',
+    JSON.stringify(C.errors) + ' ' + w3try(C.ev, `S.order.length+' '+DATA.items.length`), '[] 2 2');
+  chk(name, 'not a list', 'each is flagged NEEDS REPAIR, its original kept whole',
+    w3try(C.ev, `JSON.stringify(['R','Z'].map(function(id){ var f=S.awards[id].fix||{}; return f.how+' '+(f.orig===JSON.stringify(${JSON.stringify(awards2)}[id])); }))`),
+    JSON.stringify(['repair true', 'repair true']));
+  chk(name, 'not a list', 'and their cash is UNSCHEDULED, by service', w3try(C.ev, `JSON.stringify(crData(null).map(function(b){ return Math.round(b.win[0])+'/'+Math.round(b.nodate); }))`),
+    JSON.stringify(['0/2000000', '0/4000000']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  w3Release(__bm);
+  await w3Settle();
+})();
+// A SERVICE ADDED to a board's own service list (a board whose services are its own, not its data's)
+await (async () => {
+  const __bm = w3Mark();
+  const name = 'v1.95 W3 — a service added to the list keeps every award’s dollars in place (item 53)';
+  try {
+  // an award's dollars keep their places, the new service a zero beside them -- the way every other per-service list
+  // is refitted; v1.94 gave every award of the old width zeroes
+  const G = boot(); seed(G.ev, { services: ['USAF', 'USN'], items: [w3bit('A', [1000000, 2000000])], disc: [5000000, 5000000], mand: [0, 0], order: ['A'] });
+  G.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S);
+    S.awards.A={mode:'inc', inc:[{d:'2026-10', day:5, sv:[1000000,2000000]}]}; svcSaveList(SVC.concat(['ANG'])); 'ok'`);
+  chk(name, 'a service added', 'an award keeps USAF $1,000,000 and USN $2,000,000, ANG $0, and nothing is marked repaired',
+    G.ev(`JSON.stringify([SVC, S.awards.A.inc[0].sv, !!S.awards.A.fix])`), JSON.stringify([['USAF', 'USN', 'ANG'], [1000000, 2000000, 0], false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  w3Release(__bm);
+  await w3Settle();
+})();
+// ==== end W3 ====
+
+// ==== v1.95 W4: journal by year, PMO drill and PMO by year (items 54, 55) ====
+// v1.95, ITEM 55 (review R05): THE PMO DRILL USES THE BOARD'S OWN ALLOCATION.
+// Spruills › By PMO › one PMO › in detail worked each requirement's allocation out with a rule of its
+// own (allocVecFor): a directed split read as the full ask, an odd dollar was divided into cents, a
+// forced unfunded row counted as allocated, so PMO AV's Controls read $258.00M where the board said
+// $138.00M. Every other year was read with the year on screen's PMOs and asks, and an added
+// requirement was counted twice. The PRIMES→PSM roll-up applied on Board budgets and not on a cycle
+// locked from the same plan. The oracle below is the scenario's own arithmetic, written out by hand,
+// and the year's projection (cycProjOf through aceWithYear -- what a lock takes) is held to it too.
+const { bootMark: _w4Mark, bootRelease: _w4Release, settleBoards: _w4Settle } = await import('./boot.mjs');
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w4Mark();
+  const name = 'v1.95 — the PMO drill uses the board’s own allocation';
+  try {
+  const J = JSON.stringify, M = 1e6;
+  const { ev, errors } = boot();
+  seed(ev, { services: ['USAF', 'ANG'],
+    items: [it('SPLIT', 'AV', [100 * M, 100 * M]), it('ODD', 'AV', [100, 100]), it('UNEQ', 'AV', [70, 30]),
+            it('OVER', 'AV', [100, 100]), it('ZERO', 'AV', [0, 0]), it('UFR', 'AV', [40 * M, 10 * M]),
+            it('MOVE', 'AV', [5 * M, 3 * M]), it('STAY', 'TSS', [7 * M, 2 * M]),
+            it('PRM', 'PRIMES', [20 * M, 4 * M], { title: 'LM Air Vehicle Annualized Sustainment (made up)' }),
+            it('PSMX', 'PSM', [2 * M, 1 * M])],
+    disc: [1000 * M, 1000 * M], mand: [1000 * M, 1000 * M],
+    order: ['SPLIT', 'ODD', 'UNEQ', 'OVER', 'ZERO', 'UFR', 'MOVE', 'STAY', 'PRM', 'PSMX'] });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  const cur = +ev('MS.cur'), Y = [cur, cur + 1];
+  // every edit through the board's own editors
+  ev(`setFsrc('SPLIT','split'); setFsrcSvc('SPLIT','d',0,'60000000'); setFsrcSvc('SPLIT','d',1,'0');
+      setFsrcSvc('SPLIT','m',0,'0'); setFsrcSvc('SPLIT','m',1,'20000000');
+      setAlloc('ODD','101'); setAlloc('UNEQ','101'); setAlloc('ZERO','101'); setAlloc('PRM','23999999');
+      setSvc('OVER',0,'150'); setSvc('OVER',1,'10'); setFsrc('UFR','ufr'); 'ok'`);
+  ev(`switchYear(${cur + 1}); setGrp('MOVE','TSS'); switchYear(${cur}); 'ok'`);          // FY+1 rolled forward; MOVE moves there only
+  ev(`render(); document.getElementById('naTitle').value='ADDED'; document.getElementById('naEvent').value='e';
+      document.getElementById('naGrp').value='AV'; document.getElementById('naTot').value='';
+      document.getElementById('naSvc0').value='9000000'; document.getElementById('naSvc1').value='1000000'; addReq(); 'ok'`);
+  const nid = ev('S.custom[S.custom.length-1].id');
+  ev(`yearCopy(${J(nid)}, ${cur + 1}, 'c'); save(); setAsk('STAY',0,'8000000'); 'ok'`);  // the year on screen's ask only
+  // THE TRUTH, by hand: [USAF, ANG] allocated and asked, per PMO, per year. PRM is a prime under
+  // PRIMES and rolls up to PSM in the Spruills; its 23,999,999 is apportioned whole as [19,999,999, 4,000,000].
+  const want = {
+    [cur]: { AV: { alloc: [74000323, 24000140], ask: [154000270, 114000230] }, TSS: { alloc: [8 * M, 2 * M], ask: [8 * M, 2 * M] },
+             PSM: { alloc: [21999999, 5000000], ask: [22 * M, 5 * M] } },
+    [cur + 1]: { AV: { alloc: [69000323, 21000140], ask: [149000270, 111000230] }, TSS: { alloc: [12 * M, 5 * M], ask: [12 * M, 5 * M] },
+                 PSM: { alloc: [21999999, 5000000], ask: [22 * M, 5 * M] } },
+  };
+  // CONTROL (passes on v1.94 too): the year's projection -- the lock's engine -- is the hand arithmetic
+  const proj = y => JSON.parse(ev(`JSON.stringify(aceWithYear(${y}, function(){ return cycProjOf().reqs.map(function(r){
+      var x=itemById(r.id); return {grp:r.grp, rec:x? x.title : '', ask:r.ask, alloc:r.alloc}; }); }))`));
+  const byPmo = rows => { const o = {}; rows.forEach(r => { const g = (r.grp === 'PRIMES' && /Annualized Sustainment/.test(r.rec)) ? 'PSM' : r.grp;
+    o[g] ||= { alloc: [0, 0], ask: [0, 0] }; [0, 1].forEach(i => { o[g].alloc[i] += r.alloc[i]; o[g].ask[i] += r.ask[i]; }); }); return o; };
+  const P = { [cur]: byPmo(proj(cur)), [cur + 1]: byPmo(proj(cur + 1)) };
+  chk(name, 'control', 'CONTROL — each year’s projection by PMO is the hand arithmetic (passes on v1.94: the projection is not what changed)',
+    J(Y.map(y => ['AV', 'TSS', 'PSM'].map(g => P[y][g]))), J(Y.map(y => ['AV', 'TSS', 'PSM'].map(g => want[y][g]))));
+  // THE DRILL, on Board budgets, from the board's own requirements
+  ev(`spAce='board'; spFund='board'; 'ok'`);
+  const drill = g => JSON.parse(ev(`JSON.stringify(pmoDetail(${J(g)}, ${J(Y)}).filter(function(b){ return b.name===APPN; })[0])`));
+  const read = (D, k) => Y.map(y => ['USAF', 'ANG'].map(sv => (D[k][sv] || {})[y]));
+  const D = { AV: drill('AV'), TSS: drill('TSS'), PSM: drill('PSM'), PRIMES: drill('PRIMES') };
+  chk(name, 'AV', 'Controls, each year: the split as split, odd dollars whole, unequal and zero asks, the override, the forced UFR as nothing, the added requirement once',
+    J(read(D.AV, 'ctl')), J(Y.map(y => want[y].AV.alloc)));
+  chk(name, 'AV', 'Requirement, each year: that year’s own asks, the added requirement once', J(read(D.AV, 'req')), J(Y.map(y => want[y].AV.ask)));
+  chk(name, 'TSS', 'a PMO moved in one year: FY+1 holds it, the year on screen does not; each year’s own ask',
+    J([read(D.TSS, 'ctl'), read(D.TSS, 'req')]), J([Y.map(y => want[y].TSS.alloc), Y.map(y => want[y].TSS.ask)]));
+  chk(name, 'PSM', 'the prime under PRIMES rolls up to PSM, apportioned whole',
+    J([read(D.PSM, 'ctl'), read(D.PRIMES, 'ctl')]), J([Y.map(y => want[y].PSM.alloc), Y.map(() => [undefined, undefined])]));
+  const all = ['AV', 'TSS', 'PSM'].flatMap(g => ['req', 'bud', 'ctl'].flatMap(k => read(D[g], k).flat()));
+  chk(name, 'whole dollars', 'every figure the drill holds is an integer', all.filter(v => !Number.isInteger(v)).length + ' of ' + all.length, '0 of ' + all.length);
+  // BOARD BUDGETS AND A CYCLE LOCKED FROM THE SAME PLAN PRINT THE SAME CONTROLS
+  ev(`blCyc='PB'; blYr=MS.cur; blNote=''; cycLock(); 'ok'`);
+  ev(`spFund='bl|PB|${cur}'; 'ok'`);
+  const L = { AV: drill('AV'), TSS: drill('TSS'), PSM: drill('PSM') };
+  chk(name, 'the same plan locked', 'a cycle locked from this plan gives every PMO, every year, the Board budgets Controls',
+    J(['AV', 'TSS', 'PSM'].map(g => read(L[g], 'ctl'))), J(['AV', 'TSS', 'PSM'].map(g => Y.map(y => want[y][g].alloc))));
+  const screen = (fund, g) => ev(`(function(){ spOpen=true; spBy='pmo'; spPmo=${J(g)}; spFund=${J(fund)}; spAce='board'; spDrillSvc='ALL'; spBody();
+      var r=document.querySelector('#spBody .pmoblk tr.lctl'); return r? [].slice.call(r.cells).slice(1,3).map(function(c){ return c.textContent.trim(); }).join(' | ') : '(no drill)'; })()`);
+  const fm = v => ev(`fM2(${v})`);
+  chk(name, 'on screen', 'the drill prints the same Controls from Board budgets and from the lock, and they are the board’s',
+    ['AV', 'PSM'].map(g => screen('board', g) + ' / ' + screen('bl|PB|' + cur, g)).join(' ; '),
+    ['AV', 'PSM'].map(g => { const s = Y.map(y => fm(want[y][g].alloc[0] + want[y][g].alloc[1])).join(' | '); return s + ' / ' + s; }).join(' ; '));
+  // THE SPRUILLS TABLE ABOVE THE DRILL: each year's own requirements, each once, under that year's PMO
+  ev(`spFund='board'; spPmo='ALL'; 'ok'`);
+  const G = JSON.parse(ev(`JSON.stringify(spGather().blocks.filter(function(b){ return b.name===APPN; })[0])`));
+  const tot = y => ['AV', 'TSS', 'PSM'].reduce((a, g) => a + want[y][g].ask[0] + want[y][g].ask[1], 0);
+  chk(name, 'Spruills', 'Total Requirements and the rows by PMO, each year: the added requirement once, each year’s own ask and PMO',
+    J(Y.map(y => [G.req[y], ['AV', 'TSS', 'PSM', 'PRIMES'].map(g => (G.rows[g] || {})[y])])),
+    J(Y.map(y => [tot(y), ['AV', 'TSS', 'PSM'].map(g => want[y][g].ask[0] + want[y][g].ask[1]).concat([undefined])])));
+  if (errors.length) chk(name, 'jsdom', 'no script errors', errors.slice(0, 2).join(' | '), '');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w4Release(__bm, []);
+  await _w4Settle();
+})();
+
+// The PMO drill reads ANOTHER appropriation's requirements from that appropriation's own year state
+// (its PMO, its added requirements once), and does not work out its allocation: the lane engine runs
+// on one appropriation per page, so its Controls are left unknown and the totals across
+// appropriations are not added up as if they were nothing. On v1.94 the drill filed Full Fund's added
+// requirement under the PMO O&M's own state gave a requirement that happened to share its id.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w4Mark();
+  const name = 'v1.95 — the PMO drill reads another appropriation from its own state';
+  try {
+  const J = JSON.stringify, M = 1e6;
+  const ff = { base: 2027, cur: 2027, ts: 1, years: { 2027: {
+    order: ['NEW-1'], alloc: {}, mc: {}, fsrc: {}, removed: [], discSvc: [50 * M, 50 * M], mandSvc: [0, 0],
+    custom: [{ id: 'NEW-1', grp: 'AV', sect: 'new', custom: true, title: 'FF added (made up)', event: 'e', ccar: '',
+               fy26: [0, 0], ask: [4 * M, 1 * M], alloc: null }] } } };
+  const { ev } = boot({ ls: { prio27ff: J(ff), prio27who: 'alice' } });
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [10 * M, 10 * M])], disc: [100 * M, 100 * M], mand: [0, 0], order: ['A'] });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S; save(); 'ok'`);
+  // O&M adds its own NEW-1 and moves it to TSS: the ids collide, the states do not
+  ev(`render(); document.getElementById('naTitle').value='OM added'; document.getElementById('naEvent').value='e';
+      document.getElementById('naGrp').value='AV'; document.getElementById('naTot').value='';
+      document.getElementById('naSvc0').value='2000000'; document.getElementById('naSvc1').value='0'; addReq(); setGrp('NEW-1','TSS');
+      spAce='board'; spFund='board'; 'ok'`);
+  const cur = +ev('MS.cur');
+  const blk = (g, n) => JSON.parse(ev(`JSON.stringify(pmoDetail(${J(g)}, [MS.cur]).filter(function(b){ return b.name===${J(n)}; })[0]||null)`));
+  const two = (b, k) => b ? ['USAF', 'ANG'].map(sv => (b[k][sv] || {})[cur]) : null;
+  chk(name, 'Full Fund', 'its added requirement is under the PMO its own state gives (AV), once; its Controls are not guessed',
+    J([two(blk('AV', 'FULL FUND'), 'req'), two(blk('AV', 'FULL FUND'), 'ctl'), two(blk('TSS', 'FULL FUND'), 'req')]),
+    J([[4 * M, 1 * M], [null, null], [null, null]]));
+  chk(name, 'O&M', 'O&M’s own added requirement is in TSS once, with its allocation', J([two(blk('TSS', 'O&M'), 'req'), two(blk('TSS', 'O&M'), 'ctl')]),
+    J([[2 * M, 0], [2 * M, 0]]));
+  const G = JSON.parse(ev(`(function(){ spBy='pmo'; return JSON.stringify(spGather().blocks.filter(function(b){ return b.name==='FULL FUND'; })[0].rows); })()`));
+  chk(name, 'Spruills', 'the Full Fund block files it under AV, once', J(G), J({ AV: { [cur]: 5 * M } }));
+  const scr = ev(`(function(){ spOpen=true; spBy='pmo'; spPmo='AV'; spFund='board'; spAce='board'; spDrillSvc='ALL'; spBody();
+      var el=document.getElementById('spBody'), b=[].slice.call(el.querySelectorAll('.pmoblk'));
+      var grand=b[b.length-1], ctl=grand? grand.querySelector('tr.lctl') : null, del=grand? grand.querySelector('tr.ldel') : null;
+      var cell=function(r){ return r? r.cells[1].textContent.trim() : '(none)'; };
+      return JSON.stringify([cell(ctl), cell(del), /FULL FUND holds AV requirements/.test(el.textContent)]); })()`);
+  chk(name, 'on screen', 'across appropriations, the year Full Fund holds AV has no total Control or Delta, and the drill says why',
+    scr, J(['—', '—', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w4Release(__bm, []);
+  await _w4Settle();
+})();
+// ==== end W4 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

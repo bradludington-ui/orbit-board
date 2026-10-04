@@ -9,15 +9,26 @@
 //   - every item, scrolled into view inside the menu if the menu scrolls, is inside the window and is the
 //     thing actually under its own centre -- nothing around it (the list's edge, a box, the top) covers it.
 //
+// TWICE, THE SECOND TIME IN WINDOWS' FONT (v1.95, item 57). The board asks for 'Segoe UI', which this machine does
+// not have, so the first pass measures it in Liberation Sans (Arial's widths) -- and v1.94 passed it with nothing to
+// spare while Edge on Windows put Reports & exports 3px past the left edge at 761px. The second pass declares a
+// Segoe-like stand-in, 6% wider and as tall as Segoe UI (font-standin.mjs), and checks the same menus again; it
+// first proves the stand-in is the font being drawn, or fails.
+//
 //   node tools/dropdowns-visible.mjs
 import { chromium } from 'playwright-core';
-import { resolve } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { CHROME } from './chrome.mjs';
 import { buildPopulated } from './ia-fixture.mjs';
+import { STANDIN_SCALE, withStandin, standinProblem } from './font-standin.mjs';
 
 const BOARD = process.env.BOARD || resolve(new URL('..', import.meta.url).pathname, 'prioritization-board-grid.html');
 const LIVE = buildPopulated(BOARD);
+const SEGOE = join(dirname(LIVE), 'segoe-standin.html');
+writeFileSync(SEGOE, withStandin(readFileSync(LIVE, 'utf8')));
 const SIZES = [[761, 730], [1024, 730], [1536, 730], [1920, 730], [761, 960], [1024, 960], [1536, 960], [1920, 960]];
+const FONTS = [['', LIVE], [`Segoe stand-in +${STANDIN_SCALE - 100}%: `, SEGOE]];
 const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
 const bad = [];
 let looked = 0;
@@ -40,11 +51,13 @@ const judge = p => p.evaluate(() => {
   return { items: items.length, problems: out };
 });
 
-for (const [w, h] of SIZES) {
-  const ctx = await b.newContext({ viewport: { width: w, height: h } });
+for (const [font, FILE] of FONTS) for (const [W, h] of SIZES) {
+  const w = font + W;
+  const ctx = await b.newContext({ viewport: { width: W, height: h } });
   const p = await ctx.newPage(); p.on('dialog', d => d.accept('Probe'));
   await p.addInitScript(() => { try { localStorage.setItem('spmtTheme', 'harbor'); localStorage.setItem('prio27who', 'Probe'); } catch (e) {} });
-  await p.goto('file://' + LIVE); await p.waitForFunction(() => typeof render === 'function'); await p.waitForTimeout(500);
+  await p.goto('file://' + FILE); await p.waitForFunction(() => typeof render === 'function'); await p.waitForTimeout(500);
+  if (font) { const why = await standinProblem(p); if (why) { bad.push(`${w}×${h}: ${why}`); await ctx.close(); continue; } }
   // THE TOOLBAR MENUS, each from its own button
   const keys = await p.evaluate(() => [...document.querySelectorAll('.menu[id^="m_"]')].map(m => m.id.slice(2))
     .filter(k => { const bt = document.getElementById('b_' + k); if (!bt) return false; const c = bt.getBoundingClientRect(); return c.width > 0 && c.height > 0; }));
@@ -80,6 +93,6 @@ for (const [w, h] of SIZES) {
   await ctx.close();
 }
 await b.close();
-console.log(`\ndrop-downs: ${looked} opened across ${SIZES.length} window sizes`);
+console.log(`\ndrop-downs: ${looked} opened across ${SIZES.length} window sizes, in this machine's font and in a Segoe-like stand-in +${STANDIN_SCALE - 100}%`);
 if (bad.length) { console.log(`${bad.length} PROBLEM(S)`); bad.slice(0, 60).forEach(x => console.log('  ✗ ' + x)); process.exit(1); }
 console.log('every item of every drop-down is in the window and on top');

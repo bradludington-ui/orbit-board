@@ -307,6 +307,33 @@ if (hasCycles) {
       ufr2:   cellAt(cs, /^PMO$/, FY + ' WORKING Unfunded', /^TOTAL$/),
     });
   }
+  // 1g. THE SPRUILLS AND ITS PMO DRILL (v1.95) -- Spruills › By PMO, the table and each PMO in detail,
+  //     from the board's own requirements. Each states the year's requirement, and the drill's added
+  //     over every PMO must be the engine's. Its Controls are held here as well: per PMO, whole
+  //     dollars, the year's projection by PMO in total, and the SAME from Board budgets as from the
+  //     lock just taken -- a cycle locked from a plan prints that plan's Controls.
+  if (ev(`typeof pmoDetail==='function' && typeof spGather==='function' && typeof spDefs==='function'`)) {
+    const sp = JSON.parse(ev(`JSON.stringify((function(){
+      var keep=[spAce, spFund, spBy, spPmo], own=spDefs().map(function(d){ return d.ms===MS; }).indexOf(true), y=MS.cur;
+      var sum=function(b,k){ var t=0; b.svcs.forEach(function(sv){ t+=(b[k][sv]||{})[y]||0; }); return t; };
+      var ints=function(b){ var n=0; ['req','ctl'].forEach(function(k){ b.svcs.forEach(function(sv){ var v=(b[k][sv]||{})[y]; if(v!==undefined && !Number.isInteger(v)) n++; }); }); return n; };
+      try{
+        spAce='board'; spFund='board'; spBy='pmo';
+        var G=spGather().blocks[own], keys=Object.keys(G.rows).sort(), o={tbl:G.req[y], req:0, ctl:[], lock:null, frac:0, proj:0};
+        cycProjOf().reqs.forEach(function(r){ o.proj+=r.alloc.reduce(function(a,v){ return a+v; },0); });
+        keys.forEach(function(g){ var b=pmoDetail(g,[y])[own]; o.req+=sum(b,'req'); o.ctl.push(sum(b,'ctl')); o.frac+=ints(b); });
+        ${hasCycles ? `spFund='bl|${key}'; o.lock=keys.map(function(g){ return sum(pmoDetail(g,[y])[own],'ctl'); });` : ''}
+        o.keys=keys; return o;
+      } finally { spAce=keep[0]; spFund=keep[1]; spBy=keep[2]; spPmo=keep[3]; }
+    })())`));
+    const ctlTot = sp.ctl.reduce((a, b) => a + b, 0);
+    if (sp.frac) throw new Error('the PMO drill holds ' + sp.frac + ' figure(s) that are not whole dollars');
+    if (Math.abs(ctlTot - sp.proj) > 0.5) throw new Error('the PMO drill’s Controls, added over every PMO, are not the year’s projection: ' + ctlTot + ' vs ' + sp.proj);
+    if (sp.lock && sp.lock.some((v, i) => Math.abs(v - sp.ctl[i]) > 0.5))
+      throw new Error('the PMO drill prints different Controls from Board budgets and from the lock just taken: ' + JSON.stringify([sp.keys, sp.ctl, sp.lock]));
+    add('Spruills (screen)', 'visual', 0.5, { ask: sp.tbl });
+    add('Spruills · PMO drill', 'visual', 0.5, { ask: sp.req });
+  }
   // A SCRATCH LOCK, when asked for: the verifier runs this on a real file, where 'PB|<year>' may
   // already be a real lock taken weeks ago (and would then read the plan as it stood, not as it
   // is). The scratch key is deleted again and the working plan's tags are put back.

@@ -4,11 +4,28 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.94**. Next: **v1.95**.
+Current version: **v1.95**. Next: **v1.96**.
 
 ## Open
 
-Nothing open. Items 45 and 46 shipped in v1.94.
+#### 61. Reconcile the pre-launch review's own report and evidence
+- **Logged:** 3 Oct 2026, from Codex's scope review. The review's report and its attachments never reached the
+  session that built v1.95; every finding was reproduced from the handoff's description. Before any finding is
+  called closed, obtain the report and the attachments and reconcile them against items 47–60.
+
+#### 62. The money map's nine open cells (deferred by Brad, 3 Oct 2026)
+- Two Spend Plans × service, requirement and lane; the ATR/BTR log × appropriation, year and service; Funds Flow ×
+  appropriation and year; the ACE tie-out × year. Each is listed in `tools/money-map.md` until it is built.
+
+#### 63. Found while building v1.95, not built
+- **Browser checks do not reach the repaired-award controls.** "✓ Checked" and the 🔧 Needs attention list appear only
+  when an award was repaired on opening; the keyboard and standards fixtures hold none.
+- **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
+  no atomic create. The re-read after the replace question narrows it; it does not close it.
+- **A cost estimate kept in the folder's history** is not offered in ↶ Earlier copies; putting one back is a rename in
+  the folder.
+- **An office's month in a shared requirement** can sit about a dollar from its exact share (the office's total and
+  the requirement's months are exact) -- the price of whole dollars that add up both ways.
 
 ## Later
 
@@ -72,6 +89,445 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v1.95 — 3 Oct 2026: items 47–60, the pre-launch review, built on Brad's "go"
+
+**Saving is exact, one at a time, and one person's.** A save records exactly what it wrote: an edit made while it
+writes stays unsaved until the next Save. Saves never overlap, in one tab or several, and a save waiting behind another
+never moves to a different year's copy. Each board file records its writer; anyone else's Save is refused and names
+the writer, and ✍ Take the pen… hands it over. The guarantee is the folder's permissions -- give the shared file to
+its writer alone.
+
+**Nothing is lost on the way in.** A full import is all or nothing; if browser storage refuses part of it and the
+rest cannot be put back, the board says which lists hold what, offers both boards as files, and refuses to save over
+the board file until you say so. Sharing a cost estimate never writes over a different one, or one it could not read.
+Work kept aside is never replaced without asking, and can be saved as a file. An award arriving in a file is checked
+at the door; a saved board you open is never refused and never loses an award -- a damaged one is repaired, listed in
+Needs attention, and its original kept. An office's submittal lands each award on the right service by name, and
+applies only to the year it was written for.
+
+**The math, by year and to the dollar.** The PMO drill reads each year through the board's own allocation, under the
+PMO that year assigns -- and so do the five-year plan and the cycle comparison (Brad: "leave the PMO assigned by
+year"). The journal keeps years apart. Every workbook stores exact figures. The Spend Plan Source dates each increment
+on its own day, a prime's CLIN lines are whole dollars, and a requirement shared between offices counts at each
+office's share in whole dollars that add up. A money map records, for every figure on screen and in every export,
+which of seven dimensions are proven to the dollar; nine cells are open by Brad's decision (item 62).
+
+**What moves on boards in use today.** Workbook figures change only where they were wrong: office shares of a
+requirement split between offices (now whole dollars), a prime's CLIN lines (whole dollars), incremental awards on the
+Spend Plan Source (a line per increment), the five-year plan and the cycle comparison for a requirement that changed
+PMO between years (each year under its own PMO), and the PMO drill (the board's own allocation). Every total is
+unchanged. An award a file holds that cannot be read is now listed as needing repair, its cash UNSCHEDULED, where v1.94
+placed or zeroed it silently.
+
+**The final check** passed on the final tree, 3 Oct 8:06–10:24 pm Eastern: **137.9 minutes**, every stage clean — the defect register (13 defects, 43 mutations), money coverage (26 of 26 surfaces), the new money map (329 cells: 114 proven, 206 not applicable, 9 open by Brad's decision), the trace matrix (92 cells), all eight suites, every browser check, the fuzz (seed 819798525) and the file verifier — and **all 849 planted mistakes caught** (11 more change nothing by design, as before): v1.94's 728 plus 132 new, 30 retargeted. It took three runs. The first (9:33 am – 12:49 pm) caught 840 of 841: `excel-unf-vec` survived because F4 moved the PMO tabs onto `pmoPartsOf`, leaving the line it changes read by nothing. The dead vector was removed and the mutation retargeted to the live split (presweep 1 of 1). The second (12:54–3:19 pm, 145.1 minutes) passed, 841 of 841. An independent review before merge then found four ways round the new save and import rules ("Found by the review before merge" under items 48, 50 and 58); with them fixed and 8 more mutations, the third run is the one that counts. Each is the same single `npm run validate:math`, run past the two-hour limit on background jobs with Brad's agreement.
+
+**Pre-launch review, 3 Oct 2026.** Brad commissioned an outside review of the whole program before
+launch (Codex), on two priorities: no silent data loss, and correct math on screen and in every export. It
+reported twelve findings (R01–R12) and one launch issue, and recommended holding publication. Every one was
+reproduced on v1.94 (main `2fe4801`, the reviewed build), most of them wider than reported. The
+reproductions are in the session scratchpad (`v195r/`); on go each becomes a regression test that fails on
+v1.94. Items 47–59 below are the fixes, in the order of the review's priorities: saving and recovery
+first, then identity and history, then math and validation.
+
+**Brad's decisions, 3 Oct 2026:**
+- **Q1, two people saving at once:** "go with recommendation". One writer per board file, enforced by the
+  folder's permissions and by ORBIT (item 58).
+- **Q2, the PMO by year:** "PMOs can change under reorganizations, leave the PMO assigned by year, as it's
+  reported as that PMO in that year" (item 55).
+- **R09's default, kept:** refused with a reason at the import doors; repaired and reported on opening a
+  saved board, never zeroed (item 53).
+
+**Codex's scope review, 3 Oct 2026** (forwarded by Brad with "proceed with the focused build after
+incorporating these points"):
+- The scope is sound, with corrections now written into items 47, 48, 50, 53 and 58.
+- The money reconciliation the handoff asks for is a launch blocker until Brad narrows it explicitly
+  (item 59).
+- The review's own report and evidence files never reached this session. Before every review finding is
+  called closed, they must be obtained and reconciled against these items.
+
+#### 47. Saving acknowledges exactly what it wrote, one save at a time (review R01)
+- **Logged:** 3 Oct 2026, from the outside pre-launch review Brad commissioned (Codex, R01). Reproduced
+  on v1.94 (`scratchpad/v195r/A/r01.mjs`).
+- **Found:** both Saves build the copy, wait for the disk, then mark *whatever is on screen by then* as
+  saved.
+  - **Saving to the file** (💾 Save): an edit typed while the file is being written is not in the file. The
+    header still says Saved, and nothing marks the edit as unsaved. The next Save then wrongly warns
+    "HOLD ON — Brad saved this file". If a colleague's newer file is opened later, the edit is replaced
+    with nothing kept aside.
+  - **Saving to the shared folder** behaves the same way. It also happens on the folder's own autosave
+    while someone is typing. Afterwards the board wrongly reports "⛔ Brad saved …" and refuses further
+    saves until the user picks a side.
+  - **The worst case: a year switch while a folder save is running** wrote the FY27 plan into the
+    **FY28** file. That file had not been read or checked, and no history copy was kept. A colleague's
+    FY28 work then existed nowhere: not in the folder, its history, or their browser.
+  - Two saves can run at once (the Save button during an autosave). If the earlier one finishes last,
+    the file holds the older state while the board says Saved.
+  - On a file holding several appropriations, Save remembers the wrong time and warns falsely after a
+    colleague with a fast clock saved another appropriation.
+- **What will be built:**
+  - Every save fixes its appropriation, year, file name and contents before it waits for anything. When
+    the write finishes, it records the time of *that* copy.
+  - It marks the board saved only if nothing changed while it was writing. An edit made during the write
+    stays unsaved and is saved next time.
+  - One save runs at a time, whichever way it starts (the button, the autosave, "Save yours over theirs").
+    A second press waits for the first.
+  - **When a queued save starts** (Codex): before its first wait it captures its own target and bytes. It
+    also re-checks writer authority and the collision check.
+  - A queued folder save keeps the year it was asked for; a year switch never moves it silently to
+    another year's file.
+  - A failed write leaves everything marked unsaved, as it does today.
+- **What does not change:** what is saved, the collision checks, the history copies and every figure.
+- **Checks:** an edit, a year switch, a new year and a second Save each made *during* the write, on both
+  paths. Each must:
+  - reopen the actual written bytes;
+  - check the unsaved marker, the next Save (no false warning) and a colleague's later save (the edit kept
+    aside);
+  - leave the FY28 file untouched when FY27 is being saved.
+
+  Fails on v1.94; mutations for each guard.
+- **As built:** a save captures the board's generation (`_saveGen`) and its bytes before it waits, and marks the board saved only if nothing changed while it wrote; one save runs at a time (`saveSerial`, and a browser lock across tabs); each save keeps the year it was asked for, and a folder save refuses rather than move to another year. Checks: `audit-import.mjs` "v1.95 — Save acknowledges exactly what it wrote" (the file, the shared folder).
+
+#### 48. A full import is all or nothing (review R02)
+- **Logged:** 3 Oct 2026, review R02. Reproduced on v1.94 (`v195r/B/r02-fullimport-quota.mjs`).
+- **Found:** ⬅ Import a full board makes 10 writes to browser storage: each appropriation's plan, its
+  locked cycles, BAE, execution, cost estimates, the reprogramming log and destinations. It never checks
+  whether any of them worked. When the browser refuses one (storage full), it still says "Full board
+  imported" and reopens. What the board then holds is one of:
+  - the old board untouched;
+  - the new plan on the old locked cycles, or the old plan on the new cycles;
+  - one list (BAE, execution, cost estimates, reprogramming, destinations) still at the old version, or
+    destinations holding old and new mixed.
+
+  The next Save writes that mix into the file, and nothing on screen or in Save diagnostics says so.
+- **What will be built:**
+  - Everything is prepared and checked first.
+  - What each key held before is kept, and every write's result is checked.
+  - If any write is refused, every key goes back to exactly what it held, nothing reopens, and the board
+    says: *Nothing was imported — browser storage refused <which>; this board is exactly as it was.*
+  - **Two outcomes, kept separate (Codex):**
+    - **Rollback succeeded:** every key is restored exactly.
+    - **Rollback failed** (storage keeps refusing): the board says precisely which list is in which state
+      and does not reopen. It keeps both the pre-import board and the incoming import recoverable, each
+      offered as a file to save.
+  - Also found: the cost-estimate and reprogramming lists save past the shared write helper, so their
+    refusals never reach Save diagnostics. They go through it like every other list.
+- **Checks:** the write at each of the 10 positions is refused once, and from there on. Every key must be
+  byte-identical to before, nothing reopens, and the reopened board is the old one. Fails on v1.94;
+  mutations.
+- **As built:** `lsAll` writes the ten lists all or nothing, putting back newest first; memory changes only after every write lands. Put back: "Nothing was imported". Not put back: the board names which lists hold which, reopens nothing, and offers the board as it was and the file imported. **Added in integration:** while that mix stands, 💾 Save and the shared-folder save are refused -- a reload included -- until "allow saving again…"; ⬇ Save a copy never is. Before this, the next Save wrote the mix over the board file.
+- **Found by the review before merge, fixed:** the ordinary ⬅ Import of a board file (`consTakeApply`) wrote one appropriation at a time and never looked at a write. It now records its writes and commits them through `lsAll`, all or nothing, with memory put back on a refusal; a refusal is reported as a full import's is. And an import that lands whole lifts the hold a stopped one set, once every list it left mixed has been written again.
+
+#### 49. Sharing a cost estimate never writes over one it could not read, or a different one (review R06)
+- **Logged:** 3 Oct 2026, review R06. Reproduced, and wider than reported (`v195r/B/r06-ace-push.mjs`).
+- **Found:** Cost estimate · **share mine** writes every estimate to the shared folder. It treats a
+  folder copy it could not read (locked by sync, no permission, half-synced) as no copy at all. It
+  writes over a readable copy of a **different** approved estimate under the same name too, even after
+  "check the folder" has just reported the clash. No history copy is kept, and the message is an ordinary
+  "shared".
+- **What will be built:**
+  - Write only when the folder genuinely has no copy, or the copy is identical.
+  - A copy that cannot be read is reported and left alone.
+  - A different estimate is reported as a clash and left alone.
+  - Replacing one is a separate, explicit choice that names whose copy it is, and keeps it in the folder's
+    history first.
+  - The message says which estimates were shared and which were not.
+  - Also found: "check the folder" takes a folder estimate without checking its fingerprint, and says
+    nothing when a file can't be read. It will check both and say so.
+- **Checks:** absent, identical, different, unreadable (three ways), half-synced and refused copies. The
+  folder file must be byte-identical whenever nothing should be written. Fails on v1.94; mutations.
+- **As built:** share mine writes only where the folder has no copy; an identical one writes nothing; a different or unreadable one is named and left alone, with a separate "replace the folder's … with mine…" that asks by name, re-reads, and keeps theirs in the folder's history first. Check the folder verifies each estimate's fingerprint and names what it could not read.
+
+#### 50. Work kept aside is never replaced without asking (review R07)
+- **Logged:** 3 Oct 2026, review R07. Reproduced (`v195r/A/r07.mjs`).
+- **Found:** the board keeps one copy of work it set aside ("kept aside, not lost"). The next time it
+  sets work aside — opening a newer file, the folder's refresh, or "Load theirs" — it replaces that copy.
+  The first work is then gone with no question asked. When storage is full, the board correctly refuses
+  to load the newer copy; that part is fine.
+- **What will be built:** if earlier kept-aside work has not been put back or discarded, the board does not
+  load the newer copy over new work. It says so, naming the earlier kept work, and offers **Put it back**,
+  **Save it as a file** or **Discard it** first.
+  - On all three paths, both the existing kept copy and the current local work are preserved.
+  - Kept work is removed only by an explicit Put back or Discard. Saving it as a file never removes it
+    (Codex).
+- **Checks:** the three paths with earlier kept work present. The earlier work must still be retrievable,
+  or the newer copy not loaded and the message naming it. Storage-full refusals stay as they are. Fails on
+  v1.94; mutations.
+- **As built:** a second, different set of kept work is never written over (`'occupied'`); put back swaps what is on screen into its place; 📁 File › ⬇ Save work kept aside as a file… keeps the kept copy.
+- **Found by the review before merge, fixed:** ↶ Earlier copies › Put this back replaced unsaved work unasked. It now keeps it aside first, as loading the folder's newer copy does, and puts nothing back when it cannot.
+
+#### 51. A PMO submittal's awards are matched to services by name (review R03)
+- **Logged:** 3 Oct 2026, review R03. Reproduced with a real copy → submittal → apply
+  (`v195r/C/r03.mjs`).
+- **Found:** when the copy lists its services in a different order from the board, taking its
+  submittal reorders the requirement values by service name but **not the awards**:
+  - Award cash lands on the wrong service and in the wrong CR half-month. Part of the funded money
+    shows as UNSCHEDULED.
+    - Observed: USN's $2,000,000 on 5 Oct showed as $1,000,000 for USAF in 1–15 Oct.
+    - CR Cash Needs, the spend plan, the forecast and the deck are all wrong.
+  - Proposed new requirements had the same problem.
+  - The unchanged baseline wasn't reordered either, so the review warned of an overwrite that never
+    happened.
+  - The review shows an award change only as "incremental — 2 awards", so nobody could catch it.
+  - A package carrying only awards gets no warning when it has no service list.
+  - Award lists of the wrong width were accepted, then zeroed.
+- **What will be built:**
+  - Every service-width list in a package (values, WBS, awards, baseline and new requirements) is
+    reordered through the same routine the board's other imports already use.
+  - A package without a service list is refused if it carries any service-width figures.
+  - Lists of the wrong width are refused and named.
+  - The review and change report show each award's date and dollars by service, before and after.
+- **Checks:** the two-board flow must store the right services and put each service's cash in the right
+  half-month, with nothing UNSCHEDULED, and raise no false conflict. Proposed requirements must be
+  reordered. Wrong widths must be refused. A walk over the held package must find every service-width
+  list reordered. Fails on v1.94; mutations.
+- **As built:** every service-width list in a package -- values, WBS lines, every award's dollars, in its requirements, baseline and new requirements -- is placed by service name; a package with figures and no service list, or a baseline of the wrong width, is refused by name. The review shows each award's date and dollars by service.
+
+#### 52. Held proposals apply only to the year they were written for (review R04)
+- **Logged:** 3 Oct 2026, review R04. Reproduced with real packages (`v195r/C/r04.mjs`).
+- **Found:** the only year check runs when the package is taken, and only if the board already holds
+  that year.
+  - An FY28 package taken on a board without FY28 applied to **FY27** without a word.
+  - An FY27 package held through a switch to FY28 applied to **FY28**.
+  - Two offices' packages for different years both landed in whichever year was on screen.
+  - The apply prompt never names a year, and award dates outside that year become UNSCHEDULED.
+- **What will be built:**
+  - On taking a package, its year is checked and kept with it.
+  - If that year isn't on screen, the board says so, naming both years. If the year doesn't exist on
+    the board, it says that too.
+  - Apply goes ahead only into the year the reviewer accepted. Otherwise it stops and names each
+    office's target year.
+  - Applying to a different year is possible only through an explicit choice that names it.
+- **Checks:** the three cases above, plus a package with no year. Nothing may be written to a year the
+  reviewer didn't confirm. Fails on v1.94; mutations.
+- **As built:** a package's year is read at take; another year is asked about, naming both; Apply refuses while any ticked package is held for another year and names each office's year; the confirm names the year.
+
+#### 53. Incoming awards are checked and made whole at every door (review R09)
+- **Logged:** 3 Oct 2026, review R09. Reproduced at all six doors: opening a saved board, full import,
+  one appropriation, a submittal, a proposed requirement and an appropriation package
+  (`v195r/C/r09.mjs`).
+- **Found:** no door checks an award's figures, dates or shape.
+  - **Text figures:** "1,234" or "abc" pass unchanged, and the award's cash becomes UNSCHEDULED. A
+    figure as text ("1000000") is scheduled but shows a total of $10,000,002,000,000.
+  - **Bad figures:** negative, fractional and "Infinity" figures pass.
+  - **Bad dates:** "2027-13" or "abc" pass.
+  - **Wrong width:** a list of the wrong width is silently **zeroed**, which destroys the dollars.
+  - **Not a list:** an award list that isn't a list **stops the board opening**. Through a submittal or
+    package, the bad record is written before the error, so the saved file then won't open.
+  - **One bad figure spreads:** a bad figure in a later award unschedules that service's good awards too.
+- **What will be built:** one award check that every door and every opening passes through.
+  - Mode must be single or incremental, the list a list, dates real months, days 1–31.
+  - Every figure becomes whole dollars, zero or more.
+  - Plain figures written as text in a legacy file ("1000000") are converted and reported.
+  - Anything else is refused and named at the import doors.
+  - **On opening a saved board (Brad kept this default, 3 Oct 2026), nothing is zeroed:** a wrong-width award keeps its total, spread over the
+    requirement's values the way the board spreads any total, and the board says which awards it
+    repaired.
+  - **Codex's conditions, adopted:**
+    - The original award record is kept unchanged beside the repair.
+    - The report names each affected award and the split used. A repaired award is marked as an inferred
+      split, never shown as the historical one.
+    - Where no repair is possible (every requirement value is zero, or a figure is unreadable), the award
+      is flagged **needs repair** in Needs attention and its original data is kept. Its cash shows as
+      UNSCHEDULED with that flag, so nothing is discarded.
+  - A malformed award never stops the board opening.
+- **Checks:** every variant at all six doors. No stored award figure may be anything but a whole number.
+  A valid award must leave nothing UNSCHEDULED, and nothing may throw. Fails on v1.94; mutations.
+- **As built:** `awdNorm` at every door (refuse with the award's path and fault, or convert text and cents and say so) and on every opening (repair and report, never refuse, never zero; the record as found kept in `aw.fix`). Needs attention lists "🔧 awards repaired on opening"; "✓ Checked" clears a mark and keeps the original. **Added in integration:** accepting an office's award keeps a repaired award's original, and the review compares awards on their dates and dollars only.
+
+#### 54. The journal keeps fiscal years apart (review R08)
+- **Logged:** 3 Oct 2026, review R08. Reproduced, with two more defects in the same line
+  (`v195r/D/r08-journal.mjs`).
+- **Found:** the change journal joins a person's edits to the same field within a minute. It never checks
+  the year:
+  - An FY27 note edit followed by the same note in FY28 became **one FY27 line holding FY28's text**.
+  - "↶ Put back" on that line undid FY27's edit and kept FY28's. The FY27 text then existed nowhere.
+    Putting that back wrote FY28's text into FY27.
+  - Edits in two years that cancel out left no line at all.
+  - An edit made just after a put-back merged into the put-back line.
+  - A clock set back still counted as "within the minute".
+  - Separately, a new year's line reads "undefined".
+- **What will be built:**
+  - Join two edits only when they are the same person, year and field, the earlier line is not a forced
+    one (a put-back, a load), and the time moved forward by less than a minute.
+  - "(load)" lines are forced.
+  - The new-year line gets its name.
+- **Checks:** the real editors across two years, then Put back. Each year must keep its own history and
+  its own text. Also: cancelling edits are both recorded; a put-back line stays as written; a negative
+  time does not join. Fails on v1.94; a mutation that drops the year test is caught.
+- **As built:** a journal line joins the one before it only in the same year; opening and new-year lines are labelled.
+
+#### 55. The PMO drill uses the board's own allocation (review R05)
+- **Logged:** 3 Oct 2026, review R05. Reproduced, and wider than reported (`v195r/D/r05*.mjs`).
+- **Found:** Spruills → By PMO → one PMO → **in detail**, on Board budgets, works out each requirement's
+  allocation with its own rule rather than the board's:
+  - **Directed splits are ignored.** A [60M, 20M] split read as the full ask, [100M, 100M].
+  - **Odd dollars are spread by division.** $101 became [50.5, 50.5] rather than [51, 50].
+  - **Forced unfunded rows count as allocated.**
+  - As a result, PMO AV's Controls read **$258.00M** where the board says **$138.00M**. A PMO that is
+    $170M short showed a $0.00M delta, 100% funded.
+  - Other years are read with the on-screen year's PMO assignments, so a requirement moved to another
+    PMO in FY28 stays under the old PMO.
+  - An added requirement is counted **twice** in the Spruills totals; a $10M add raised Total Requirements
+    by $20M.
+  - Another year falls back to the on-screen year's edited ask.
+  - The PRIMES→PSM title rule applies on Board budgets but not on a locked cycle. The same plan therefore
+    shows a $24M PSM delta that isn't real.
+  - No export reads this drill; the FYDP workbook is unaffected. The drill isn't registered with the
+    money-coverage or trace checks, which is why none of this was caught.
+- **What will be built:**
+  - The drill reads each year's allocation through the board's one shared rule, for that year's own
+    state: its PMO, its asks and its added requirements, each counted once.
+  - Board budgets and a cycle locked from the same plan must print the same Controls.
+  - The drill is registered in money coverage and the trace matrix.
+- **Checks:** directed split, odd dollars, unequal and zero asks, overrides, forced unfunded, a PMO moved
+  in one year, and an added requirement. Every figure must be whole dollars and equal the year's
+  projection by PMO. Fails on v1.94; mutations.
+- **The PMO by year (Brad, 3 Oct 2026, Q2):** "PMOs can change under reorganizations, leave the PMO assigned
+  by year, as it's reported as that PMO in that year."
+  - Today the FYDP workbook files a requirement under its *latest* year's PMO for every year. So FY27 money
+    for a requirement moved in FY28 shows under the FY28 PMO, which disagrees with the FY27 lock.
+  - The workbook's By PMO sheet and PMO tabs, and the drill, will file each year's money under the PMO
+    that year assigns.
+  - A requirement that changes PMO appears under each PMO for the years that PMO held it.
+  - Check: each PMO's figures for each year equal that year's projection, and a locked cycle's PMO
+    roll-up, to the dollar.
+- **As built:** the drill reads each year through the board's own allocation (`spOwnYear`, the figures a lock takes) under that year's PMO; another appropriation's Controls show "—" and are never added in as nothing. Brad's Q2 is applied to the five-year plan (`fydpRows`) and, after review, to ⇄ Compare two cycles: a requirement that moved is listed under each office for its own years. Totals unchanged.
+
+#### 56. The award-order check catches the sorts it missed (review R10)
+- **Logged:** 3 Oct 2026, review R10. Reproduced (`v195r/me/r10.txt`).
+- **Found:** v1.94's `check.mjs` rule passes an unsafe award sort written after a `.filter(function(){…})`,
+  because it stops reading at the callback's `}`. It also passes `awdCmp(a,b)||1`, which breaks ties. It
+  can't see an unsafe comparator held in a variable. None of these exists in the board today; the check
+  just wouldn't catch one.
+- **What will be built:**
+  - The rule reads the whole chained expression, not up to the first `}`.
+  - It accepts only `awdCmp` itself, or `awdCmp(...) || <a tie-break that compares two values>`.
+  - It also requires every comparator applied to awards to be a known one.
+  - The checker gets its own tests: the three bypasses fail, the valid forms pass.
+- **Checks:** the checker's own test file; check passes on the corrected board.
+- **As built:** the award-order rule refuses 21 unsafe forms and passes 12 valid ones in its own self-test; it fails v1.93 on six sorts and the review's probes.
+
+#### 57. Menus and editor labels fit with Windows' font (review R11–R12)
+- **Logged:** 3 Oct 2026, review R11–R12 (Windows Edge, measured by Codex).
+- **Found:** reproduced here by giving 'Segoe UI' its real height and +3% width (`v195r/me/font-sweep.txt`).
+  The editor buttons' labels are cut off at 1440×900. The Reports menu runs past the left edge at 761 px
+  (−13 px; Edge measured −3 px). At the width this machine's font has, both pass — there is no margin.
+- **What will be built:**
+  - The menu is kept inside the window by measuring where it lands, not by assuming a width.
+  - Editor labels wrap or shrink rather than cut off.
+  - `dropdowns-visible` and `editors-reachable` also run with a Segoe-like stand-in at +6%, so the margin
+    is tested.
+- **Checks:** both browser checks at both font settings.
+- **As built:** toolbar menus are clamped by measured width; the RECORD panel's action labels wrap; the drop-down and editor checks run a second pass with a Segoe UI stand-in (+6%).
+
+#### 58. Two people saving the same board at once (review: the concurrent-writer issue)
+- **Logged:** 3 Oct 2026, from the review. Reproduced (`v195r/me/race.mjs`).
+- **Found:** Alice and Bob both pressed Save on the shared folder. Both read the folder copy before either
+  wrote, both were told "✅ Saved", and the folder holds only Bob's edit. Alice's is not in the folder or
+  its history.
+  - The editing lock is advisory: Save never consults it.
+  - A file share or a synced Teams folder offers no atomic compare-and-swap, and neither does the
+    browser's file access. No amount of re-reading closes the gap.
+- **Decided (Brad, 3 Oct 2026, Q1: "go with recommendation"): one writer per board file.**
+  - **The folder:** only the board's owner has write access to the shared board file or folder (set in
+    Teams / SharePoint).
+  - **Everyone else** opens it read-only. Appropriation managers work through 🔁 Appropriation packages;
+    offices work through PMO copies. ORBIT does not replace that permission; it adds the rest.
+- **What will be built:**
+  - **The file records its writer:** a name, and a key this browser holds; the file keeps only a
+    fingerprint of the key.
+    - Save to the file or the shared folder is refused from any other browser, and says who holds the pen.
+    - That browser can still open, read, export, publish PMO copies and ⬇ Save a copy.
+  - **📁 File › Take the pen** is the only way to change writer.
+    - It asks first, naming the current writer and when they last saved, and is recorded in the journal
+      and the file.
+    - The previous writer's next Save is refused with who took it and when, and offers ⬇ Save a copy.
+      Nothing of theirs is written over.
+  - **A file or folder the user may not write to** gets a plain message ("This board is read-only for you —
+    <writer> holds it"), not a failure.
+  - **Two tabs of the writer's own browser** cannot save at the same moment: the second waits, or says a
+    save is under way.
+  - **Unchanged:** the existing collision check, the history copies and the kept-aside work.
+  - **A board saved before v1.95** has no writer. The first v1.95 Save asks to take the pen, and records it.
+  - **The Field Guide** (portfolio team part) gains a short section on the operating model: one owner per
+    board file, how hand-over works, and the folder permission to set.
+- **The guarantee is the permissions (Codex):**
+  - A single writer is guaranteed only where the folder's permissions let one person write.
+  - ORBIT's recorded writer, Take the pen and the read-before-write check are **cooperative enforcement**.
+    Where two people both have write access, the race remains, and the guide and Take the pen say so.
+  - **A proper hand-over** is the owner changing the folder's permissions (removing the previous writer's
+    write access, granting the new one's), then the new writer pressing Take the pen. Take the pen asks
+    whether that has been done.
+  - The guard against two tabs of one browser works across tabs, not just inside one.
+  - Recovery is the folder's history copies and Teams version history.
+- **Checks:**
+  - With two browsers, only the writer saves, and the other is refused, naming them.
+  - Take the pen, then the old writer's Save is refused and nothing is lost.
+  - A read-only file gives the plain message.
+  - Two tabs never save together.
+  - The race reproduction (`v195r/me/race.mjs`) ends with one Save refused and both edits retrievable.
+  - Fails on v1.94; mutations.
+- **Testing that only Brad's environment can do:** real Teams / SharePoint permissions, sync conflicts and
+  a disconnect mid-save. Claude will supply a step-by-step checklist with the build.
+- **As built:** each file records its writer; another person's Save is refused and names the writer; ✍ Take the pen… hands over after a question naming the writer it replaces; an autosave never claims a file. The Help guide says the guarantee is the folder's permissions and that two writers with access are cooperative only.
+- **Found by the review before merge, fixed:** ⬆ Publish now (Live view) wrote the shared folder's copy with none of the folder save's checks -- not the writer's, not whether anyone saved since, no earlier copy kept, the writer record dropped. In the shared folder it now is that save, and someone only watching the folder is not offered it.
+
+#### 59. A money reconciliation coverage map (Codex's acceptance condition)
+- **Logged:** 3 Oct 2026, from Codex's scope review. It is a launch blocker until Brad narrows it explicitly.
+- **Asked for:** integer-dollar reconciliation of every visual and export by appropriation, fiscal year,
+  service, requirement, month, CR half and funding lane.
+- **What will be built:**
+  - A map of every money surface on screen and in an export (today 24 surfaces in money coverage, and 15
+    in the trace matrix) against those seven dimensions.
+  - Each cell is marked:
+    - **proven:** the check that proves it, by name;
+    - **not applicable:** the surface does not carry that dimension;
+    - **open.**
+  - Open cells that existing tools can close cheaply are closed in v1.95. The map is generated by a tool,
+    so it cannot drift.
+  - The remaining open cells go to Brad to build or explicitly defer. None is treated as satisfied
+    silently.
+- **Built so far:** 308 cells are mapped: 101 proven, 188 not applicable and 19 open. 37 cells were closed
+  by new test-only checks.
+- **Brad, 3 Oct 2026:** "Go with your recommendations". The open cells tied to F1–F5 are closed in v1.95
+  (item 60). These are **deferred, by name**, to a later version:
+  - Two Spend Plans × service, requirement and lane;
+  - the ATR/BTR log across appropriations, years and services;
+  - Funds Flow × appropriation and year;
+  - the ACE tie-out × year.
+
+  The map lists each one as open until it is built.
+- **Checks:** the map tool fails if a registered surface or a dimension is missing from it.
+- **As built:** `tools/money-map.mjs` → `money-map.md`; the gate runs it (stage "money map"). **329 cells: 114 proven, 206 not applicable, 9 open** -- the nine are Brad's deferrals by name (item 62). Integration confirmed W4's surfaces and added a check for the Spruills table by service, by year and for another appropriation.
+
+#### 60. Export defects the reconciliation map found (F1–F5)
+- **Logged:** 3 Oct 2026, from building item 59. The map's checks read the exported files back, and five
+  defects came to light that the review had not named.
+- **Brad, 3 Oct 2026:** "Go with your recommendations, F2 option (a)".
+- **Found and decided:**
+  - **F1, rounded values in the $M and $K files.** `buildXlsx` stores every non-integer rounded to two
+    decimals: the Two-Plan Forecast writes $85,069 as 0.09 ($M), the ATR/BTR log writes a typed 1.2345 as
+    1.23, and the 1A9A writes $124,458 as 124.46 ($K). Sums made from those cells drift.
+    **Fix:** store the exact figure and keep the two-decimal display, so the sheets look the same and add up
+    to the dollar.
+  - **F2, Spend Plan Source dates for incremental awards.** An award with several increments goes out as
+    one line, dated the 1st of its first stored increment.
+    - Increments stored March then November put the whole line in March. The forecast puts most of it in
+      November.
+    - v1.94 fixed this rule for the 1A9A but not here.
+    - **Fix, option (a):** one line per increment, each with its own date and amount. The lines of an award
+      add up to its line today.
+  - **F3, the Executive Synopsis year.** With FY28 on screen, the synopsis's first line and file name still
+    say FY27. **Fix:** the year on screen.
+  - **F4, an office split of a requirement.** A $100 draw split 1:2 between offices prints $66.67 and
+    $33.33 in the PMO Matrix, the PMO tabs and the forecast. **Fix:** whole dollars by the board's one
+    spreading rule, $67 and $33.
+  - **F5, the CR footnote.** It still says "flip to 16–EOM", which has not applied since v1.94. **Fix:**
+    the wording.
+- **Checks:** each fix closes its open cells in the map (item 59), proven to the dollar against the
+  exported file's bytes. Each fails on v1.94; mutations.
+- **As built:** F1–F5 as decided (F4 through `pmoPartsOf`; F2 dates each increment the day the landing rule places it, the rest on 31 August). **Found and fixed in integration:** F6, a prime's CLIN lines on the Spend Plan Source and the RCN/EEIC monthly tab were fractions of a dollar ($100 across CLINs asking 1 and 2 went out as $33.333… and $66.666…) -- now whole dollars that add up; and a single award dated past its month's end (the 31st of November) is dated the 30th on the Spend Plan Source, where it had rolled into December.
 
 ### v1.94 — 2 Oct 2026: items 45 and 46, built on Brad's "go"
 

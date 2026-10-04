@@ -170,6 +170,10 @@ const populate = (ev, sc) => ev(`(function(){
     if(i%6===0 || i===1) S.minInc[id]=${int(1, 999999)};
     if(i%7===0 || i===1) S.awards[id]={mode:'single', d:FYMON[i%12][0], day:(i%28)+1};
     if(i%9===0) S.awards[id]={mode:'inc', inc:[{d:FYMON[i%12][0], day:3, sv:SVC.map(function(){return ${int(0, 50000)};})}]};
+    // v1.95 (item 53): an award repaired on opening carries the record as it was saved (fix) and its marks (fx);
+    // both are data, and every trip below must carry them
+    if(i===2) S.awards[id]={mode:'inc', inc:[{d:FYMON[1][0], day:4, sv:SVC.map(function(_,j){ return 1000*(j+1); }), fx:'split'}],
+      fix:{orig:JSON.stringify({mode:'inc', inc:[{d:FYMON[1][0], day:4, sv:[SVC.length*1000]}]}), how:'split', n:[NASTY[2]+' — an inferred split'], at:1700000000000}};
     S.cons[id]=NASTY[i%NASTY.length];
     S.desc[id]=NASTY[(i+3)%NASTY.length];
     S.notes[id]=NASTY[(i+5)%NASTY.length];

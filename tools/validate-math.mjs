@@ -80,6 +80,21 @@ for (const [lbl, env] of [['coverage', { BOARD: GRID }]]) {
   console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  ${lbl}`);
 }
 
+// ---- 1b. the money map: is every dimension of every money surface proven, inapplicable or named open? ----
+// Coverage asks whether a surface has any check at all. The map (tools/money-map.json, v1.95 item 59) asks
+// it per dimension -- appropriation, fiscal year, service, requirement, month, CR half, funding lane -- and
+// fails on a surface with no row, a cell with no status, a cited check that is gone, a pending surface that
+// has arrived, or a report out of date. An OPEN cell does not fail it: each is named in tools/money-map.md,
+// the list of what remains.
+{
+  const r = await run('money map', 'node', [join(HERE, 'money-map.mjs'), '--check'], {});
+  const m = /(\d+) cells: (\d+) proven, (\d+) n\/a, (\d+) open/.exec(r.out) || [];
+  note({ ...r, ok: r.code === 0, detail: r.code === 0
+    ? `${m[1] ?? '?'} cells: ${m[2] ?? '?'} proven, ${m[3] ?? '?'} n/a, ${m[4] ?? '?'} open (named in tools/money-map.md)`
+    : 'MONEY MAP FAILURE — a surface or a cell is unaccounted for, or a cited check is gone' });
+  console.log(`  ${r.code === 0 ? 'ok  ' : 'FAIL'}  money map`);
+}
+
 // ---- 2. the trace matrix: does every surface stating a quantity state the SAME one? --------------
 // Coverage asks whether anything is checking a figure. This asks whether the figures AGREE: the same
 // dollars travel from the requirement math to a tile, a panel, a sheet, a subtotal and a slide, and
