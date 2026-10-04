@@ -54,6 +54,7 @@ const SC = {
   rel:       '1.3.1 Info and Relationships — A',
   lang:      '3.1.1 Language of Page — A',
   title:     '2.4.2 Page Titled — A',
+  coverage:  'the run measured what it must (v1.96)',
 };
 
 // ---- what runs inside the page -------------------------------------------------------------------
@@ -289,8 +290,29 @@ for (const build of BUILDS) {
         else { rowMenuId = null; openMenu = m; syncBtns(); } } catch (e) {} }, m);
       await page.waitForTimeout(150);
       for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      // v1.96 (item 65): A LONG MENU FOLDS, so each of its groups is measured open, one at a time, as a person sees it
+      const gs = m === '(row)' ? [] : await page.evaluate(m => [...document.querySelectorAll('#dd_' + m + ' .gh')].map(h => h.getAttribute('data-g')), m);
+      for (const g of gs) {
+        await page.evaluate(([m, g]) => { try { menuGrpOpen[m] = g; syncBtns(); } catch (e) {} }, [m, g]);
+        await page.waitForTimeout(80);
+        for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+      }
+      if (gs.length) await page.evaluate(m => { try { menuGrpOpen[m] = ''; syncBtns(); } catch (e) {} }, m);
     }
     await page.evaluate(() => { try { openMenu = null; rowMenuId = null; uiMode = 'review'; uiApply(); syncBtns(); render(); } catch (e) {} });
+    // v1.96 (item 64): THE REPAIRED-AWARD CONTROLS. The board this runs on carries two awards the board repaired when it
+    // opened; the 🔧 list under Needs attention is measured open, then the award block of one, with ✓ Checked. Both must
+    // be on screen, or the run fails: a control measured by nothing would pass by being absent.
+    const fixShown = await page.evaluate(() => { try {
+      attShow('awfix'); const a = !!document.querySelector('#attPanel.open button.attgo');
+      return a; } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    const checkShown = await page.evaluate(() => { try {
+      attClose(); const id = attLists().awfix.map(x => x.id)[0]; setCur(id); render();
+      const b = document.querySelector('#inspector button[onclick^="awdFixOk"]'); return !!b && b.getClientRects().length > 0; } catch (e) { return false; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    if (!fixShown || !checkShown) record(build, theme, { sc: 'coverage', key: 'the repaired-award controls were not on screen to measure',
+      detail: `the 🔧 list ${fixShown ? 'was' : 'was NOT'} open; ✓ Checked ${checkShown ? 'was' : 'was NOT'} drawn`, n: 1 });
 
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.

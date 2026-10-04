@@ -4,14 +4,9 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.95**. Next: **v1.96**.
+Current version: **v1.96**. Next: **v1.97**.
 
 ## Open
-
-#### 61. Reconcile the pre-launch review's own report and evidence
-- **Logged:** 3 Oct 2026, from Codex's scope review. The review's report and its attachments never reached the
-  session that built v1.95; every finding was reproduced from the handoff's description. Before any finding is
-  called closed, obtain the report and the attachments and reconcile them against items 47–60.
 
 #### 62. The money map's nine open cells (deferred by Brad, 3 Oct 2026)
 - Two Spend Plans × service, requirement and lane; the ATR/BTR log × appropriation, year and service; Funds Flow ×
@@ -26,74 +21,14 @@ Current version: **v1.95**. Next: **v1.96**.
 - **An office's month in a shared requirement** can sit about a dollar from its exact share (the office's total and
   the requirement's months are exact) -- the price of whole dollars that add up both ways.
 
-#### 64. The browser checks reach the repaired-award controls
-- **Logged:** 4 Oct 2026. Brad: "Log the repaired-award test gap for v1.96". It was the first point of item 63.
-- **Why:** v1.95 added two controls that appear only when an award was repaired on opening: **✓ Checked** in the
-  award block, and the **🔧 awards repaired on opening** list under Needs attention. The board the keyboard and
-  standards checks load (`buildPopulated` in `tools/ia-fixture.mjs`) holds only awards that read cleanly, so
-  neither control is ever on screen there: nothing checks that the keyboard reaches them, that they have a name,
-  or that they meet contrast and target size. The jsdom suites test what they do, not how they are reached.
-- **What:** give that fixture awards repaired on opening -- one SPLIT INFERRED, one NEEDS REPAIR -- so both controls
-  are drawn, and have the keyboard and standards checks require them by name, so the checks fail if a later change
-  stops drawing them. Proven by the checks failing to find the controls on v1.95's fixture. The board is not
-  expected to change; anything the checks find in the controls is fixed under this item.
-
-#### 65. Shorter menus, grouped by the job, with groups that open in place
-- **Logged:** 4 Oct 2026. Brad: "Review our drop down menus. The list of selectable items is long. I need them grouped
-  together in a meaningful way. I also open to having dropdowns within dropdowns"; then, on the mock-up, "Go with your
-  recommendations, log it as item 65". Mock-up: https://claude.ai/artifact/FGpvyfLAV9CZ3vfbzC7eaK (private).
-- **Why:** measured on v1.95 by `npm run ia:census`: 103 items in 9 menus. Reports & exports shows 25 at once, Setup 19,
-  📁 File 15 and Filter 13. Reports & exports is grouped by file type, so one subject is split: CR Cash Needs is a
-  "view" and its 1A9A return a "data export"; Reprogramming Actions is a view and the ATR/BTR log an export. Set base
-  year and Reset FY27 are on two menus each; Funding realignment and WBS from execution data sit under Setup ›
-  Maintenance, away from the year and the data they work on.
-- **Decided (Brad, 4 Oct):**
-  1. A group opens **in place**, under its heading, pushing the rest of the menu down. No side fly-outs; two levels
-     at most.
-  2. **One group open at a time.** A menu reopens on the group used last, remembered in this browser only, like the
-     colours, never in the file.
-  3. **One home for each action:** Set base year, Reset FYxx to blank and Funding realignment live on the year menu
-     only; WBS from execution data moves to Data.
-  4. **A Find box** at the top of Reports & exports narrows every group at once as you type.
-  5. **The group names** are the mock-up's.
-- **The menus** (rows on screen when a menu opens, today → proposed):
-  - **Reports & exports** (25 → 7, plus Find): ✈ Pre-flight check… on top, then folded: *Spend plan & cash — FYxx*
-    (Spend Plan Forecast, Two Spend Plans, CR Cash Needs, CR Cash Return (1A9A)) · *Briefing* (Excel Workbook — full
-    breakouts, PowerPoint deck, Executive Decision, Exec Synopsis (CSV), Priority Drill by Band) · *Five years & PPBE*
-    (Five-year spend plan, FYDP Spend Plan (Excel), PPBE Budget Positions, Cycle Comparison (Excel), Spruills) ·
-    *Execution & reprogramming* (Active Year Execution, Reprogramming Actions, ATR/BTR Log (Excel), Funds Flow) ·
-    *CCaR & accounting files* (Spend Plan Source (Excel), IDS Batch Import, Chart of Accounts (Excel), ACE Tie-Out
-    (Excel)) · *Companion tools* (the linked tool and Change the linked tool).
-  - **Setup** (19 → 3): folded *Who and where* (Services, PMOs, Destinations) · *Codes and structure* (Bands, Chart of
-    Accounts, RCN / EEIC, Special Interest codes) · *Appearance — yours only* (the five colour themes and three
-    densities; its heading shows the theme and density in use).
-  - **📁 File** (15 → 6): 💾 Save and ⬇ Save a copy… on top, then folded *Program offices* (Publish PMO copy, Review
-    submittals) · *Writer and team* (Take the pen, My editor name, Live view, Change journal, Save history) · *Boards
-    and appropriations* (Import a full board, Export one appropriation, Import one appropriation, Import several
-    boards at once, Appropriation packages); 🩺 Save diagnostics… at the foot.
-  - **Filter** (13 → 3): ☰ By-service detail on every row on top, then folded *Funding* (Fully discretionary only,
-    Spilling into mandatory, Any unfunded portion, Set higher than it draws, Mission Critical only) · *Service —
-    funded requirements only* (Any service, then each service by name from the board's own list; the six labels lose
-    their "— funded requirements only", which the heading now says once). A group holding a filter that is on opens
-    by itself.
-  - **The year menu** (8 → 9, not folded): the five years, then *Across the years*: Roll requirements forward, Funding
-    realignment, Set base year, Reset FYxx to blank.
-  - **Data** (8 → 9, not folded): *Execution — CCaR* gains WBS from execution data.
-  - **Unchanged:** the All offices picker, Spend plan basis, Review tools and a row's ⋯ menu.
-- **Rules for any menu, now and later:** more than about ten items folds into groups; ten or fewer stays one list with
-  headings; a list of choices (the offices) never folds. Each folded heading shows how many items it holds and, where
-  it is a choice, what is chosen. Items are grouped by the job they serve, with an on-screen view beside its export.
-- **Keyboard and screen reader:** a group heading is a button carrying `aria-expanded`; Tab reaches it, Enter or Space
-  opens it, Tab goes on into its items, Esc closes the menu and leaves you on its button. Every menu still opens
-  whole on screen (v1.93, item 43).
-- **What it touches:** the shared menu builder; the Help guide's menu paths gain their group (for example
-  `Reports & exports ▾ › Spend plan & cash › 📅 Spend Plan Forecast…`); the checks that open every menu
-  (`keys`, `dropdowns`, `standards`, `menus`, `ia:census`) open every group and fail if any item cannot be reached;
-  mutations that aim at menu markup are retargeted; the Field Guide, its PDF and the deck after merge. No figure,
-  export or saved file changes.
-- **Proven by:** every one of the 101 items reached through its group by the keyboard; the rows on opening as above;
-  Find listing matches from every group; Set base year and Reset FYxx each reachable from one menu only; the menu
-  paths in the Help guide all resolving. 103 items become 101 because the two duplicates go.
+#### 71. Found while building v1.96, not built
+- **Logged:** 4 Oct 2026, while building v1.96.
+- **The conformance run opens one box, the 🔧 list, and no other.** It found that every box's ✕ Close was too faint and
+  too small (fixed in v1.96, item 64, for all 49); what else the other 48 boxes hold is measured by nothing.
+- **Shared side lists still have a read-merge-write window.** Two people sharing the reprogramming log (or execution, or a
+  cost estimate) at the same moment can each write; the folder's permissions are the guarantee (the review's NR03 note).
+- **The legacy shared state file opened by the Windows launcher** (`spmtSidecar=1`, XHR) answers into the same function the
+  HTTPS path does, and is covered by the same checks; it was not run with a real launcher.
 
 ## Later
 
@@ -157,6 +92,173 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v1.96 — 4 Oct 2026: items 64–70, built on Brad's "go" -- the menus, and the 4 October review of v1.95
+
+**The menus are shorter, grouped by the job.** Reports & exports, 📁 File, Setup and Filter open folded: their everyday
+items, then a heading for each group with how many it holds. A heading opens its group in place, under itself -- one at a
+time, and each menu opens again on the group used last, in this browser. Reports & exports opens at 7 rows where it showed
+25, Setup at 3 (was 19), File at 6 (was 15), Filter at 3 (was 13); a Find box in Reports & exports lists every report or
+export whose name you type. Set base year, Reset and Funding realignment live on the year menu only, WBS from execution
+data under Data. No item was lost (103 became 101: the two duplicates went), and no figure, export or saved file changed.
+
+**Five more ways work could be lost are closed** -- an independent review of v1.95 (4 Oct) reproduced each:
+↶ Put this back replaced an edit typed while the folder was being written; ⇊ Import several boards at once wrote one
+appropriation and reported both when storage refused the second; sharing the reprogramming log wrote over a folder log it
+could not read; a shared state file that answered late replaced work typed after opening; and a repaired award's original
+record was cut at 100,000 characters, losing awards the repair had set aside. Every one now keeps the work, or refuses
+and says so.
+
+**The browser checks reach the repaired-award controls**, and found that every box's ✕ Close had too faint an edge and
+too small a target; all 49 are fixed.
+
+**The final check** passed on the final tree, 4 Oct 1:43–4:54 pm Eastern: **191.6 minutes**, every stage clean — the defect register (13 defects, 43 mutations), money coverage (26 of 26 surfaces), the money map (329 cells: 114 proven, 206 not applicable, 9 open by Brad's decision), the trace matrix (92 cells), all eight suites, every browser check, the fuzz (seed 37296655) and the file verifier — and **all 879 planted mistakes caught** (11 more change nothing by design, as before): v1.95's 849 plus 30 new, 3 retargeted, all 33 presweept first. It passed on the first run. It took 54 minutes longer than v1.95's: every stage ran 35–50% slower, including the fuzz and the file verifier, which this version does not change, so most of the extra time is the machine rather than the new checks. It is the same single `npm run validate:math`, run detached past the two-hour limit on background jobs as before.
+
+#### 61. Reconcile the pre-launch review's own report and evidence
+- **Logged:** 3 Oct 2026, from Codex's scope review. The review's report and its attachments never reached the
+  session that built v1.95; every finding was reproduced from the handoff's description. Before any finding is
+  called closed, obtain the report and the attachments and reconcile them against items 47–60.
+- **Closed in v1.96:** the 4 Oct review (Brad pasted its report into the session) reconciled R01–R12 against v1.95 in its
+  own table: each holds as fixed, within the cases tested, with five gaps -- NR01–NR05, items 66–70 below. The review's
+  evidence package (`review-results/`, its probes and raw outputs) is on Brad's machine and did not reach the session;
+  the regressions below re-create each probe from the report.
+
+#### 64. The browser checks reach the repaired-award controls
+- **Logged:** 4 Oct 2026. Brad: "Log the repaired-award test gap for v1.96". It was the first point of item 63.
+- **Why:** v1.95 added two controls that appear only when an award was repaired on opening: **✓ Checked** in the
+  award block, and the **🔧 awards repaired on opening** list under Needs attention. The board the keyboard and
+  standards checks load (`buildPopulated` in `tools/ia-fixture.mjs`) holds only awards that read cleanly, so
+  neither control is ever on screen there: nothing checks that the keyboard reaches them, that they have a name,
+  or that they meet contrast and target size. The jsdom suites test what they do, not how they are reached.
+- **What:** give that fixture awards repaired on opening -- one SPLIT INFERRED, one NEEDS REPAIR -- so both controls
+  are drawn, and have the keyboard and standards checks require them by name, so the checks fail if a later change
+  stops drawing them. Proven by the checks failing to find the controls on v1.95's fixture. The board is not
+  expected to change; anything the checks find in the controls is fixed under this item.
+- **As built:** `buildPopulated` (`tools/ia-fixture.mjs`) gives the board every browser check loads two awards it repairs on
+  opening -- one SPLIT INFERRED, one NEEDS REPAIR -- so the 🔧 list and ✓ Checked are drawn. `keyboard-reach.mjs` L reaches
+  the 🔧 entry, its list, Go to it and ✓ Checked from the keyboard and uses each; `standards-check.mjs` measures the list open
+  and the award block with ✓ Checked, and fails (a "coverage" finding) if either is not on screen to measure.
+- **Found by it, fixed:** every box's ✕ Close (`.modal .x`, 49 boxes) had a 1.4–1.6:1 edge and stood about 20px tall --
+  1.4.11 and 2.5.8. It wears `--edge` now and is at least 24px. The run had never opened a box.
+- **Proven by:** on v1.95's fixture, keyboard L fails 4 checks and the standards run fails with "the repaired-award controls
+  were not on screen to measure"; with the ✕ Close as it was, the standards run reports 6 new findings.
+
+#### 65. Shorter menus, grouped by the job, with groups that open in place
+- **Logged:** 4 Oct 2026. Brad: "Review our drop down menus. The list of selectable items is long. I need them grouped
+  together in a meaningful way. I also open to having dropdowns within dropdowns"; then, on the mock-up, "Go with your
+  recommendations, log it as item 65". Mock-up: https://claude.ai/artifact/FGpvyfLAV9CZ3vfbzC7eaK (private).
+- **Why:** measured on v1.95 by `npm run ia:census`: 103 items in 9 menus. Reports & exports shows 25 at once, Setup 19,
+  📁 File 15 and Filter 13. Reports & exports is grouped by file type, so one subject is split: CR Cash Needs is a
+  "view" and its 1A9A return a "data export"; Reprogramming Actions is a view and the ATR/BTR log an export. Set base
+  year and Reset FY27 are on two menus each; Funding realignment and WBS from execution data sit under Setup ›
+  Maintenance, away from the year and the data they work on.
+- **Decided (Brad, 4 Oct):**
+  1. A group opens **in place**, under its heading, pushing the rest of the menu down. No side fly-outs; two levels
+     at most.
+  2. **One group open at a time.** A menu reopens on the group used last, remembered in this browser only, like the
+     colours, never in the file.
+  3. **One home for each action:** Set base year, Reset FYxx to blank and Funding realignment live on the year menu
+     only; WBS from execution data moves to Data.
+  4. **A Find box** at the top of Reports & exports narrows every group at once as you type.
+  5. **The group names** are the mock-up's.
+- **The menus** (rows on screen when a menu opens, today → proposed):
+  - **Reports & exports** (25 → 7, plus Find): ✈ Pre-flight check… on top, then folded: *Spend plan & cash — FYxx*
+    (Spend Plan Forecast, Two Spend Plans, CR Cash Needs, CR Cash Return (1A9A)) · *Briefing* (Excel Workbook — full
+    breakouts, PowerPoint deck, Executive Decision, Exec Synopsis (CSV), Priority Drill by Band) · *Five years & PPBE*
+    (Five-year spend plan, FYDP Spend Plan (Excel), PPBE Budget Positions, Cycle Comparison (Excel), Spruills) ·
+    *Execution & reprogramming* (Active Year Execution, Reprogramming Actions, ATR/BTR Log (Excel), Funds Flow) ·
+    *CCaR & accounting files* (Spend Plan Source (Excel), IDS Batch Import, Chart of Accounts (Excel), ACE Tie-Out
+    (Excel)) · *Companion tools* (the linked tool and Change the linked tool).
+  - **Setup** (19 → 3): folded *Who and where* (Services, PMOs, Destinations) · *Codes and structure* (Bands, Chart of
+    Accounts, RCN / EEIC, Special Interest codes) · *Appearance — yours only* (the five colour themes and three
+    densities; its heading shows the theme and density in use).
+  - **📁 File** (15 → 6): 💾 Save and ⬇ Save a copy… on top, then folded *Program offices* (Publish PMO copy, Review
+    submittals) · *Writer and team* (Take the pen, My editor name, Live view, Change journal, Save history) · *Boards
+    and appropriations* (Import a full board, Export one appropriation, Import one appropriation, Import several
+    boards at once, Appropriation packages); 🩺 Save diagnostics… at the foot.
+  - **Filter** (13 → 3): ☰ By-service detail on every row on top, then folded *Funding* (Fully discretionary only,
+    Spilling into mandatory, Any unfunded portion, Set higher than it draws, Mission Critical only) · *Service —
+    funded requirements only* (Any service, then each service by name from the board's own list; the six labels lose
+    their "— funded requirements only", which the heading now says once). A group holding a filter that is on opens
+    by itself.
+  - **The year menu** (8 → 9, not folded): the five years, then *Across the years*: Roll requirements forward, Funding
+    realignment, Set base year, Reset FYxx to blank.
+  - **Data** (8 → 9, not folded): *Execution — CCaR* gains WBS from execution data.
+  - **Unchanged:** the All offices picker, Spend plan basis, Review tools and a row's ⋯ menu.
+- **Rules for any menu, now and later:** more than about ten items folds into groups; ten or fewer stays one list with
+  headings; a list of choices (the offices) never folds. Each folded heading shows how many items it holds and, where
+  it is a choice, what is chosen. Items are grouped by the job they serve, with an on-screen view beside its export.
+- **Keyboard and screen reader:** a group heading is a button carrying `aria-expanded`; Tab reaches it, Enter or Space
+  opens it, Tab goes on into its items, Esc closes the menu and leaves you on its button. Every menu still opens
+  whole on screen (v1.93, item 43).
+- **What it touches:** the shared menu builder; the Help guide's menu paths gain their group (for example
+  `Reports & exports ▾ › Spend plan & cash › 📅 Spend Plan Forecast…`); the checks that open every menu
+  (`keys`, `dropdowns`, `standards`, `menus`, `ia:census`) open every group and fail if any item cannot be reached;
+  mutations that aim at menu markup are retargeted; the Field Guide, its PDF and the deck after merge. No figure,
+  export or saved file changes.
+- **Proven by:** every one of the 101 items reached through its group by the keyboard; the rows on opening as above;
+  Find listing matches from every group; Set base year and Reset FYxx each reachable from one menu only; the menu
+  paths in the Help guide all resolving. 103 items become 101 because the two duplicates go.
+- **As built:** `syncBtns` builds each long menu with `grp(menu, key, title, items, now)`: a heading button (`.gh`,
+  `aria-expanded`, `aria-controls`, its count) and the group's items in a `.gbody` that is `hidden` until opened -- in the page,
+  so every path, test and census still finds them. `menuGrp` opens one group per menu (`menuGrpOpen`, kept in browser storage
+  as `spmtMenuGroups`, never in the file) and puts focus back on the heading; a heading's click stays in the menu. Filter opens
+  on the group holding a filter that is on (`menuGrpAuto`). Find (`#mFind`, `menuFind`/`menuFindApply`) narrows in place, by
+  item or group name, and empties when the menu closes. In a PMO copy ✉ Submit input is unfolded on top of File and there is
+  no Program offices group. The open menu is fitted to the window again after it is drawn (a group opening made it taller and
+  wider -- found by the drop-down check at 761×960 in the Segoe stand-in). The Help guide's paths and the board's messages name
+  the group; the paths check now fails a path to a folded item that does not.
+- **Checks:** `audit-board.mjs` "v1.96 — a long menu folds by the job, one group open at a time (item 65)": 8 of its checks fail
+  on v1.95, then it throws there (no `menuGrp`). `audit-import.mjs` "v1.86 — the File menu, grouped…" now asserts the new
+  groups and the copy's unfolded Submit input. Browser: `keyboard-reach.mjs` G2 (every heading, every item, Find),
+  `dropdowns-visible.mjs` opens every group at 8 sizes in both fonts (408 opened), `standards-check.mjs` measures every group,
+  `menu-paths.mjs` checks each path's group, `ia-census.mjs` reads folded groups.
+
+#### 66. ↶ Put this back never drops an edit typed while the folder is written (review NR01)
+- **Logged:** 4 Oct 2026, the review of v1.95: "History restore discards an edit entered while history is being written."
+  `driveRestore` decided whether the work on screen needed keeping before reading the folder and writing its history, then
+  adopted the earlier copy after those waits without looking again.
+- **As built:** the appropriation and year are pinned before the waits; after the last wait, with nothing waiting between,
+  a board that moved is refused ("Nothing was put back"), and whether the work on screen is in a saved copy is decided then,
+  the late edit included -- kept aside, or, with other work already kept or no room, nothing is put back and the work stays.
+- **Checks:** `audit-import.mjs` "v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01)": a clean
+  start, an already-unsaved start, a year switch, an occupied slot and refused storage, each with an edit typed while the
+  history write is held. All 5 fail on v1.95; the fixture is a CONTROL.
+
+#### 67. ⇊ Import several boards at once is all or nothing (review NR02)
+- **Logged:** 4 Oct 2026, the review: "Batch board import ignores a refused write and reports success." `importBoards` wrote
+  each appropriation with `lsSet`, ignored the answer, updated memory, and listed every file as imported.
+- **As built:** every appropriation the batch carries is committed through `lsAll`, all or nothing; memory changes only after
+  every write has landed; a refusal is reported as the other imports report one (`fullImportUndone`, with the stopped-import
+  hold if putting back also fails), and a batch that lands lifts that hold (`impMixedLift`).
+- **Checks:** `audit-import.mjs` "v1.96 — ⇊ Import several boards at once is all or nothing (NR02)": refused at O&M, refused at
+  Full Fund -- both fail on v1.95; nothing refused is a CONTROL.
+
+#### 68. The reprogramming log is never shared over one that could not be read (review NR03)
+- **Logged:** 4 Oct 2026, the review: "Sharing the reprogramming log overwrites an unreadable folder copy." `driveRpPush` took
+  every failure to read or parse the folder's log for "no log" and wrote over it.
+- **As built:** only `NotFoundError` means no log. A log that cannot be read, is refused, or is not whole stops the share and
+  says so; one that can be read is merged and kept in the folder's history (`history/…rp-log…`) before it is replaced.
+- **Checks:** `audit-import.mjs` "v1.96 — the reprogramming log is never shared over a folder log that could not be read (NR03)":
+  unreadable (NotAllowedError), half-synced, readable (kept in history first) -- all 3 fail on v1.95; no log is a CONTROL.
+
+#### 69. A shared state file that answers late never replaces work (review NR05)
+- **Logged:** 4 Oct 2026, the review: "A delayed JSON-sidecar response overwrites newly entered work." The loader adopted the
+  legacy shared state file whenever its time was later, without asking whether the work on screen was in any saved copy.
+- **As built:** the answer is handled by `sharedArrived`, under the shared folder's rules: work typed this session --
+  nothing is replaced, and loading it by choice (`adoptShared`) keeps that work aside first; work from an earlier session no
+  saved copy has -- kept aside first (`sharedKeepMine`); other work already kept, or no room -- nothing is loaded.
+- **Checks:** `audit-import.mjs` "v1.96 — a shared state file that answers late never replaces work (NR05)": 4 fail on v1.95
+  with only its callback named (v1.95's has no name to call); nothing unsaved is a CONTROL.
+
+#### 70. A repaired award keeps its original whole (review NR04)
+- **Logged:** 4 Oct 2026, the review: "Award repair truncates the original record it promises to preserve." The original was
+  cut at 100,000 characters, and an award the repair set aside is in nothing else.
+- **As built:** the original is kept whole (`awdOrigKeep`): longer than 100,000 characters, as a list of pieces each the import
+  door takes (it refuses any one text over 200,000), read back joined (`awdOrigText`); the door accepts the pieces. What the
+  award block shows is still cut; what is kept is not.
+- **Checks:** `audit-import.mjs` "v1.96 — a repaired award keeps its original whole, however long (NR04)": 2,600 and 4,000
+  malformed increments, and saved, reopened and through the import door -- 3 fail on v1.95; 10 increments is a CONTROL.
 
 ### v1.95 — 3 Oct 2026: items 47–60, the pre-launch review, built on Brad's "go"
 

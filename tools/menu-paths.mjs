@@ -53,9 +53,38 @@ const unesc = s => s
 // Keep letters, digits and the few marks an item name really uses; drop emoji, the separator,
 // ellipses, quotes and any markup the string was embedded in.
 const strip = s => unesc(s)
+  .replace(/&amp;/g, '&')   // messages written as HTML spell & as &amp;
   .replace(/<\/?[a-z]+>/gi, ' ')
   .replace(/[^\p{L}\p{N} ()\/&-]/gu, ' ')
   .replace(/\s+/g, ' ').trim();
+
+// v1.96 (item 65): a menu as a person meets it -- the items on it, and its folded groups by title.
+const READ_SHAPE = ids => {
+  const out = {};
+  for (const [label, id] of Object.entries(ids)) {
+    const c = document.getElementById(id); if (!c) { out[label] = null; continue; }
+    const clone = c.cloneNode(true); clone.querySelectorAll('.gbody, .gh').forEach(e => e.remove());
+    out[label] = { top: (clone.textContent || '').replace(/\s+/g, ' '),
+      groups: [...c.querySelectorAll('.gh')].map(h => { const b = document.getElementById(h.getAttribute('aria-controls'));
+        return { title: (h.querySelector('span:nth-child(2)') || h).textContent, text: b ? (b.textContent || '').replace(/\s+/g, ' ') : '' }; }) };
+  }
+  return out;
+};
+// Is <item> where the path says? With a group named, the item must be in that group; with none, it must be on the menu
+// itself -- a path to a folded item that does not name its group sends the reader to an item they cannot see.
+const placed = (sh, group, item) => {
+  if (!sh) return 'no such menu';
+  const needle = strip(item).split(' ').slice(0, 3).join(' ').toLowerCase();
+  if (needle.length < 3) return 'could not read an item name';
+  const inG = sh.groups.filter(g => strip(g.text).toLowerCase().includes(needle));
+  if (group) {
+    const g = sh.groups.find(x => strip(x.title).toLowerCase().startsWith(strip(group).toLowerCase()));
+    if (!g) return 'the menu has no group "' + strip(group) + '"' + (sh.groups.length ? ' (it has: ' + sh.groups.map(x => strip(x.title)).join(', ') + ')' : '');
+    return strip(g.text).toLowerCase().includes(needle) ? '' : 'not in "' + strip(g.title) + '"' + (inG.length ? ' but in "' + strip(inG[0].title) + '"' : '');
+  }
+  if (strip(sh.top).toLowerCase().includes(needle)) return '';
+  return inG.length ? 'it is folded under "' + strip(inG[0].title) + '": the path must name that group' : 'not in that menu';
+};
 
 let bad = 0;
 const chk = (what, ok, detail) => { if (!ok) bad++;
@@ -89,7 +118,8 @@ for (const f of ['prioritization-board-grid.html']) {
   await p.goto('file://' + file);
   await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('.row').length > 0,
     null, { timeout: 40000 });
-  // What each menu actually contains, read from the rendered dropdown.
+  // What each menu actually contains, read from the rendered dropdown -- and, since v1.96 (item 65), which items sit in a
+  // folded group and which are on the menu itself. A folded group's items are in the page, hidden, until it opens.
   const contents = await p.evaluate(ids => {
     const out = {};
     for (const [label, id] of Object.entries(ids)) {
@@ -98,6 +128,7 @@ for (const f of ['prioritization-board-grid.html']) {
     }
     return out;
   }, MENUS);
+  const shape = await p.evaluate(READ_SHAPE, MENUS);
   await ctx.close();
 
   for (const [label, id] of Object.entries(MENUS))
@@ -105,27 +136,27 @@ for (const f of ['prioritization-board-grid.html']) {
 
   // Every "<menu> › <item>" the source tells a reader to follow.
   const refs = [];
-  const RE = new RegExp('(' + Object.keys(MENUS).map(k => k.replace(/[&;]/g, c => '\\' + c)).join('|') + ')\\s*\\\\u203a\\s*([^\'"]{3,50})', 'g');
+  const RE = new RegExp('(' + Object.keys(MENUS).map(k => k.replace(/[&;]/g, c => '\\' + c)).join('|') + ')\\s*\\\\u203a\\s*([^\'"]{3,110})', 'g');
   let m;
   while ((m = RE.exec(src))) {
     const menu = m[1];
+    // v1.96 (item 65): "<menu> › <group> › <item>" names the group an item is folded in
+    const parts = m[2].split(/\s*\\u203a\s*/);
+    const group = parts.length > 1 ? strip(parts[0]) : null;
     // The item name ends at the first sentence break or markup.
     // Cut at the end of the item name: a sentence break, markup, or a dash introducing prose.
-    const item = strip(m[2].split(/\\n|<\/b>|\. |, and |\\u2014|—/)[0]).slice(0, 40);
-    if (item.length >= 3) refs.push({ menu, item });
+    const item = strip(parts[parts.length - 1].split(/\\n|<\/b>|\. |, and |\\u2014|—/)[0]).slice(0, 40);
+    if (item.length >= 3) refs.push({ menu, group, item });
   }
   chk('the source names at least one menu path', refs.length > 0, refs.length + ' reference(s)');
   const seen = new Set();
-  for (const { menu, item } of refs) {
-    const key = menu + '|' + item;
+  for (const { menu, group, item } of refs) {
+    const key = menu + '|' + group + '|' + item;
     if (seen.has(key)) continue;
     seen.add(key);
-    const have = strip(contents[menu] || '');
     // Match on the item's first few words: the message may abbreviate the rest.
-    const needle = strip(item).split(' ').slice(0, 3).join(' ');
-    chk(`"${menu} › ${item}" is really in that menu`,
-      needle.length >= 3 && have.toLowerCase().includes(needle.toLowerCase()),
-      needle.length >= 3 ? '' : 'could not read an item name');
+    const why = placed(shape[menu], group, item);
+    chk(`"${menu} › ${group ? group + ' › ' : ''}${item}" is really there`, !why, why);
   }
 
   // THE GUIDE INSIDE THE FILE (v1.86) NAMES MENU PATHS AND BUTTONS, and each must exist in this build:
@@ -142,6 +173,7 @@ for (const f of ['prioritization-board-grid.html']) {
       const shut = !/\bopen\b/.test((document.getElementById('helpPanel') || {}).className || '');
       const secs = (typeof helpSections === 'function') ? helpSections().filter(s => s.part === part) : [];
       const menus = {}; document.querySelectorAll('.menu').forEach(m => { menus[m.id] = (m.textContent || '').replace(/\s+/g, ' '); });
+      const ids = {}; document.querySelectorAll('.menu[id]').forEach(m => { ids[m.id] = m.id; });
       const vis = el => { if (!el) return false; const c = el.getBoundingClientRect(); return c.width > 0 && c.height > 0; };
       const paths = [], btns = [];
       secs.forEach(s => {
@@ -149,16 +181,16 @@ for (const f of ['prioritization-board-grid.html']) {
         s.el.querySelectorAll('.bt').forEach(e => { const q = e.getAttribute('data-q'); const t = document.querySelector(q);
           btns.push({ sec: s.t, q, text: e.textContent, have: t ? (t.textContent || '').replace(/\s+/g, ' ') : null, shown: vis(t) }); });
       });
-      return { shut, n: secs.length, menus, paths, btns };
+      return { shut, n: secs.length, menus, ids, paths, btns };
     }, part);
+    const gshape = await p2.evaluate(READ_SHAPE, g.ids);
     await ctx2.close();
     chk(`${where}: the guide does not open by itself`, g.shut);
     chk(`${where}: the guide’s ${part} part is in the file`, g.n > 0, g.n + ' section(s)');
     for (const r of g.paths) {
-      const item = strip(r.text.split('›').pop()), have = strip(g.menus['m_' + r.m] || '');
-      const needle = item.split(' ').slice(0, 3).join(' ');
-      chk(`${where} guide, “${r.sec}”: ${r.text.replace(/\s+/g, ' ').trim()}`, needle.length >= 3 && have.toLowerCase().includes(needle.toLowerCase()),
-        g.menus['m_' + r.m] === undefined ? 'no menu #m_' + r.m : '');
+      const parts = r.text.split('›'), item = parts[parts.length - 1], group = parts.length > 2 ? parts[1] : null;
+      const why = g.menus['m_' + r.m] === undefined ? 'no menu #m_' + r.m : placed(gshape['m_' + r.m], group, item);
+      chk(`${where} guide, “${r.sec}”: ${r.text.replace(/\s+/g, ' ').trim()}`, !why, why);
     }
     for (const r of g.btns) {
       const want = strip(r.text);

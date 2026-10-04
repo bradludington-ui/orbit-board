@@ -47,6 +47,13 @@ export function buildPopulated(boardFile) {
         if(i%11===0) S.cons[id]='Depot line stops in March; aircraft unsupported into FY28.';
         S.pid[id]='PID'+(9000+i);
       });
+      // v1.96 (item 64): TWO AWARDS THE BOARD MUST REPAIR WHEN IT OPENS, so ✓ Checked (in the award block) and the
+      // 🔧 Needs attention list are drawn, and every check that loads this board -- the keyboard, the standards, every
+      // drop-down, the census -- measures them. One SPLIT INFERRED: dollars for two services on a six-service board.
+      // One NEEDS REPAIR: a date that is not a month. Before v1.96 this board held only awards that read cleanly, so
+      // neither control was ever on screen to be checked.
+      S.awards[S.order[1]]={mode:'inc', inc:[{d:FYMON[2][0], day:5, sv:[400000, 100000]}]};
+      S.awards[S.order[2]]={mode:'single', d:'2027-13', day:9};
       applyState(S); save(); 'ok'`);
 
   const dir = mkdtempSync(join(tmpdir(), 'spmt-ia-'));
