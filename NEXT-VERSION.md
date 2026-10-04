@@ -38,6 +38,63 @@ Current version: **v1.95**. Next: **v1.96**.
   stops drawing them. Proven by the checks failing to find the controls on v1.95's fixture. The board is not
   expected to change; anything the checks find in the controls is fixed under this item.
 
+#### 65. Shorter menus, grouped by the job, with groups that open in place
+- **Logged:** 4 Oct 2026. Brad: "Review our drop down menus. The list of selectable items is long. I need them grouped
+  together in a meaningful way. I also open to having dropdowns within dropdowns"; then, on the mock-up, "Go with your
+  recommendations, log it as item 65". Mock-up: https://claude.ai/artifact/FGpvyfLAV9CZ3vfbzC7eaK (private).
+- **Why:** measured on v1.95 by `npm run ia:census`: 103 items in 9 menus. Reports & exports shows 25 at once, Setup 19,
+  📁 File 15 and Filter 13. Reports & exports is grouped by file type, so one subject is split: CR Cash Needs is a
+  "view" and its 1A9A return a "data export"; Reprogramming Actions is a view and the ATR/BTR log an export. Set base
+  year and Reset FY27 are on two menus each; Funding realignment and WBS from execution data sit under Setup ›
+  Maintenance, away from the year and the data they work on.
+- **Decided (Brad, 4 Oct):**
+  1. A group opens **in place**, under its heading, pushing the rest of the menu down. No side fly-outs; two levels
+     at most.
+  2. **One group open at a time.** A menu reopens on the group used last, remembered in this browser only, like the
+     colours, never in the file.
+  3. **One home for each action:** Set base year, Reset FYxx to blank and Funding realignment live on the year menu
+     only; WBS from execution data moves to Data.
+  4. **A Find box** at the top of Reports & exports narrows every group at once as you type.
+  5. **The group names** are the mock-up's.
+- **The menus** (rows on screen when a menu opens, today → proposed):
+  - **Reports & exports** (25 → 7, plus Find): ✈ Pre-flight check… on top, then folded: *Spend plan & cash — FYxx*
+    (Spend Plan Forecast, Two Spend Plans, CR Cash Needs, CR Cash Return (1A9A)) · *Briefing* (Excel Workbook — full
+    breakouts, PowerPoint deck, Executive Decision, Exec Synopsis (CSV), Priority Drill by Band) · *Five years & PPBE*
+    (Five-year spend plan, FYDP Spend Plan (Excel), PPBE Budget Positions, Cycle Comparison (Excel), Spruills) ·
+    *Execution & reprogramming* (Active Year Execution, Reprogramming Actions, ATR/BTR Log (Excel), Funds Flow) ·
+    *CCaR & accounting files* (Spend Plan Source (Excel), IDS Batch Import, Chart of Accounts (Excel), ACE Tie-Out
+    (Excel)) · *Companion tools* (the linked tool and Change the linked tool).
+  - **Setup** (19 → 3): folded *Who and where* (Services, PMOs, Destinations) · *Codes and structure* (Bands, Chart of
+    Accounts, RCN / EEIC, Special Interest codes) · *Appearance — yours only* (the five colour themes and three
+    densities; its heading shows the theme and density in use).
+  - **📁 File** (15 → 6): 💾 Save and ⬇ Save a copy… on top, then folded *Program offices* (Publish PMO copy, Review
+    submittals) · *Writer and team* (Take the pen, My editor name, Live view, Change journal, Save history) · *Boards
+    and appropriations* (Import a full board, Export one appropriation, Import one appropriation, Import several
+    boards at once, Appropriation packages); 🩺 Save diagnostics… at the foot.
+  - **Filter** (13 → 3): ☰ By-service detail on every row on top, then folded *Funding* (Fully discretionary only,
+    Spilling into mandatory, Any unfunded portion, Set higher than it draws, Mission Critical only) · *Service —
+    funded requirements only* (Any service, then each service by name from the board's own list; the six labels lose
+    their "— funded requirements only", which the heading now says once). A group holding a filter that is on opens
+    by itself.
+  - **The year menu** (8 → 9, not folded): the five years, then *Across the years*: Roll requirements forward, Funding
+    realignment, Set base year, Reset FYxx to blank.
+  - **Data** (8 → 9, not folded): *Execution — CCaR* gains WBS from execution data.
+  - **Unchanged:** the All offices picker, Spend plan basis, Review tools and a row's ⋯ menu.
+- **Rules for any menu, now and later:** more than about ten items folds into groups; ten or fewer stays one list with
+  headings; a list of choices (the offices) never folds. Each folded heading shows how many items it holds and, where
+  it is a choice, what is chosen. Items are grouped by the job they serve, with an on-screen view beside its export.
+- **Keyboard and screen reader:** a group heading is a button carrying `aria-expanded`; Tab reaches it, Enter or Space
+  opens it, Tab goes on into its items, Esc closes the menu and leaves you on its button. Every menu still opens
+  whole on screen (v1.93, item 43).
+- **What it touches:** the shared menu builder; the Help guide's menu paths gain their group (for example
+  `Reports & exports ▾ › Spend plan & cash › 📅 Spend Plan Forecast…`); the checks that open every menu
+  (`keys`, `dropdowns`, `standards`, `menus`, `ia:census`) open every group and fail if any item cannot be reached;
+  mutations that aim at menu markup are retargeted; the Field Guide, its PDF and the deck after merge. No figure,
+  export or saved file changes.
+- **Proven by:** every one of the 101 items reached through its group by the keyboard; the rows on opening as above;
+  Find listing matches from every group; Set base year and Reset FYxx each reachable from one menu only; the menu
+  paths in the Help guide all resolving. 103 items become 101 because the two duplicates go.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
