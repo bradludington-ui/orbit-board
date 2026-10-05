@@ -56,6 +56,42 @@ Current version: **v1.97**. Next: **v1.98**.
   Chromium. A history folder that exists but cannot be opened now also stops the log and cost-estimate shares (stricter
   than before). Boards older than v1.97 neither see nor thin the new `…-recent.json` history copies.
 
+#### 83. RCN/EEIC by service on each CLIN, and the RCN/EEIC tab reads the CLINs (Brad, 5 Oct 2026)
+- **Logged:** 5 Oct 2026, from Brad: a CLIN takes one RCN/EEIC, so its USAF, ANG and AFRC money cannot sit on different
+  combinations, and funding goes missing on the RCN/EEIC reports. In most cases one combination is the standard for
+  all three; only a handful differ. The CLIN's line must stay as it is.
+- **Found (reproduced on v1.97, made-up figures):** a prime with two CLINs, $600 USAF, $300 ANG, $100 AFRC.
+  - With a combination on every CLIN and none on the requirement, *RCN-EEIC by Month* puts all $1,000 under "— no
+    RCN/EEIC assigned —". Its own CLIN breakout further down, and the Spend Plan Source, name the combination: the
+    tab's summary reads only the requirement's assignment.
+  - With the requirement's ANG on its own combination and CLIN 0001 on the standard, the summary puts ANG's $300 under
+    the ANG combination; the Spend Plan Source and the CLIN breakout put it under the standard. Two exports disagree.
+  - Read, not run: removing a combination clears the requirements that point at it but not the CLINs, though its
+    confirmation says they are cleared; and the CLIN picker offers every combination, so one set up for ANG only can go
+    on USAF money.
+- **What (Brad, 5 Oct: as the prototype showed):**
+  - The CLIN's line does not change. Its RCN/EEIC picker is the CLIN's standard for every Air Force service on it.
+  - A CLIN carrying money on two or more of USAF, ANG and AFRC gets a small **by service ▾** button. It opens one line
+    under the CLIN listing each of those services, its dollars and a picker that starts at "= CLIN's"; ↺ puts them all
+    back. A CLIN with only one of them has no button.
+  - An exception shows on the button with the line closed ("ANG differs"). **Brad: flag gaps** -- a service carrying
+    money on a CLIN that resolves to no combination shows amber ("AFRC not set").
+  - Each picker offers the combinations set up for its service; the standard offers those that fit every Air Force
+    service on the CLIN. A saved choice that no longer fits is kept and flagged, never changed.
+  - **Which combination a dollar is on (Brad: the CLIN wins):** the CLIN's choice for that service, then the CLIN's
+    standard, then the requirement's choice for that service, then the requirement's own; otherwise not assigned.
+  - **Brad: include the fix.** Every RCN/EEIC surface reads that one rule, per CLIN and service: *RCN-EEIC by Month*
+    (its summary and its CLIN breakout), the Spend Plan Source, and the ACE tie-out's breakout (a CLIN line whose
+    services differ becomes a line per combination); the mapping by requirement counts them.
+  - Removing a combination clears every pointer at it, the CLINs' and their services' included, and says how many.
+  - The exceptions are kept by service name, go wherever a CLIN's combination goes today, and follow a service that is
+    moved or renamed; a removed service's exceptions go with it. Old boards open exactly as they are.
+- **Acceptance:** a prime with two CLINs and a different amount on every service; the standard only; one service
+  different; two different; a CLIN with nothing set (it falls back to the requirement, then to not assigned); a
+  requirement-level service exception under a CLIN with its own standard (the CLIN's wins). Every Air Force dollar sits
+  on exactly one combination or "not assigned", and the summary, the CLIN breakout, the Spend Plan Source and the ACE
+  breakout agree to the dollar. Save and reopen; a combination removed; a service renamed.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
