@@ -11,6 +11,8 @@ Current version: **v1.96**. Next: **v1.97**.
 #### 62. The money map's nine open cells (deferred by Brad, 3 Oct 2026)
 - Two Spend Plans × service, requirement and lane; the ATR/BTR log × appropriation, year and service; Funds Flow ×
   appropriation and year; the ACE tie-out × year. Each is listed in `tools/money-map.md` until it is built.
+- **5 Oct review (R12):** asks Brad to revisit this deferral under the zero-tolerance bar, or to exclude these
+  products from any claim that the money is proven. Items 72–81 do not close these cells.
 
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
@@ -27,8 +29,112 @@ Current version: **v1.96**. Next: **v1.97**.
   too small (fixed in v1.96, item 64, for all 49); what else the other 48 boxes hold is measured by nothing.
 - **Shared side lists still have a read-merge-write window.** Two people sharing the reprogramming log (or execution, or a
   cost estimate) at the same moment can each write; the folder's permissions are the guarantee (the review's NR03 note).
+  The 5 Oct review (R11) restates it: only one writer per shared file, enforced across machines, or a store that
+  checks revisions atomically, closes it. Not reproduced with two real machines.
 - **The legacy shared state file opened by the Windows launcher** (`spmtSidecar=1`, XHR) answers into the same function the
   HTTPS path does, and is covered by the same checks; it was not run with a real launcher.
+
+#### 72–81. The 5 Oct engineering review of v1.96 (main `9fbf5f6`)
+- **Logged:** 5 Oct 2026, from an independent review Brad pasted. It recommends not certifying v1.96 against the
+  zero-tolerance bar for data loss and money math. Each finding below was reproduced again here, on the same board
+  file (blob `f984a4a`), in the jsdom harness against the real board (`SP/v196rev/probe.mjs`) or by reading the path
+  line by line; how each was confirmed is said. R11 is item 71 and R12 is item 62, both already logged.
+- **Fail-before for every one:** each fix lands with a check that fails on v1.96 and a mutation that removes the fix.
+
+#### 72. Typing a budget total keeps every dollar (review R01)
+- **Found (reproduced):** `setBATot` scales each service into fractional dollars and `applyBudget` rounds each one alone.
+  With three equal services: $1 becomes $0, $2 becomes $3, $7 becomes $6, $100,000,000 becomes $99,999,999 -- in the
+  budget authority the lanes walk.
+- **What:** split the typed total with `apportion` (equal weights when all are zero) so the stored base and the live
+  lane are whole dollars that add up to exactly what was typed.
+- **Acceptance:** both lanes; totals 0, 1, 2, odd and large; equal, unequal and zero weights; with funding additions;
+  save and reopen. Every part a safe integer and the sum exact.
+
+#### 73. An old-style split funds both of its lanes (review R02)
+- **Found (reproduced):** a legacy whole-requirement split (`{m:'split', d, mnd}`), which only older files carry -- the
+  board has written per-service splits since -- apportions discretionary and mandatory separately over the same basis.
+  On a tie both pick the same service, and mandatory is clipped: a $1 + $1 split on [1, 1] funds $1 and leaves $1
+  unfunded, while the row still totals.
+- **What:** place mandatory against what is left of each service after discretionary, inside each service's real
+  lane caps. Directed splits do not change.
+- **Acceptance:** an independent oracle on legacy and directed rows; ties, reversed service order, zero basis, real
+  lane shortages, odd totals.
+
+#### 74. A negative allocation is refused (review R03)
+- **Found (reproduced):** typing `-2` as an allocation on a requirement of [1, 1] is accepted; its basis becomes
+  [-1, -1], every lane draw is zero and `d + m + u` no longer equals the basis.
+- **What:** refuse a negative allocation and keep the value it had; the basis is never below zero. A negative arriving
+  in an older file is kept as it was and listed for repair, not silently erased. Signed fields that are meant to be
+  signed (reprogramming deducts) are unchanged.
+
+#### 75. Typed money is checked as strictly as imported money, and a typo never zeroes a figure (review R04)
+- **Found (reproduced):** `parseAmt` reads only the front of what is typed: `100oops` is $100, `1.2.3` is $1, `1e309`
+  is $0, `9007199254740993` loses a dollar, and $10,000,000,000,001 is accepted though an import refuses anything
+  over $10 trillion. Worse: typing `abc` into a $500 requirement value **sets it to $0**.
+- **What:** the whole entry must read as an amount (commas, `$`, K/M/B); finite, a safe whole dollar, inside the same
+  bounds the import door uses. A blank that means "clear" stays distinct from text that cannot be read. Anything that
+  cannot be read keeps the old figure and says why.
+- **Acceptance:** malformed suffixes, two decimal points, overflow, the safe-integer and import-bound edges, `$1,234`
+  and `2.5M`, negatives where they are not allowed; save, export and reimport.
+
+#### 76. Every edit the saved file carries marks the board unsaved (review R05)
+- **Found (reproduced):** editing the reprogramming log writes browser storage but never calls `save()`: the board
+  stays marked saved (`DIRTY` false, save generation unmoved) while the saved file does carry the log. An edit made
+  while a save is writing is acknowledged as saved though the file does not have it.
+- **What:** every list the saved file carries -- reprogramming, execution, cost estimates, budget extract,
+  destinations, cycles -- moves the save generation and marks the board unsaved when it changes. A save clears only
+  what it actually wrote, and a refused browser write never reads as clean.
+- **Acceptance:** an edit to each of those lists at each wait of a save; the bytes written inspected; reopen with
+  storage absent or refused.
+
+#### 77. ⇊ Import several boards at once decides before it writes (review R06)
+- **Found (by reading the path):** storage is written (`lsAll`) and `PUBS` replaced before `applyStore` is asked. If
+  the board refuses -- a locked cycle on screen, or the service-list question answered No -- the message still says
+  "Imported" and the next reload opens the refused board. A remap accepted after the write leaves the pre-remap bytes
+  stored. (Item 67, v1.96, made the writes all-or-nothing; this is the step before them.)
+- **What:** check every file, its appropriation's service list, a locked cycle and the person's answers first; then
+  write the final, remapped bytes all at once; a refusal leaves storage and memory exactly as they were and says so.
+- **Acceptance:** remap refused and accepted, a locked cycle, a second file failing, storage full, two files for one
+  appropriation, files finishing in either order; reopen and compare every byte.
+
+#### 78. ↶ Put this back pins its year before its first wait (review R07)
+- **Found (by reading the path):** item 66 (v1.96) pinned the appropriation and year *after* the folder and the history
+  copy were read, so a year switched during those two reads is the one pinned, and the FY27 copy can be put back into
+  FY28. The reads before the pin also use the year on screen.
+- **What:** pin the appropriation, year and the history copy's own name before the first wait; every read and keep uses
+  the pinned year; the final check also confirms the copy belongs to that year.
+- **Acceptance:** a year switch at each wait, including the first; switch away and back; edits while waiting.
+
+#### 79. A folder save keeps the copy it replaces, or does not write; autosave never hides why (review R08)
+- **Found (by reading the path):** when the history copy cannot be kept, the folder save still writes and reports
+  success with a warning, and autosave then replaces that warning with "Saved automatically". History is also
+  skipped by design when the last copy is under ten minutes old. The copy replaced is always this person's own previous
+  save (anyone else's newer save is refused first), so no one else's work is lost; but a bad save can't be undone.
+- **What (recommended; Brad to confirm):** keep the exact copy being replaced every time, and if it cannot be kept, write
+  nothing and say so -- the work stays on screen, unsaved. Autosave never replaces a warning with a success message.
+- **Acceptance:** each history step failing (list, create, write, close); no overwrite, the folder copy's bytes
+  unchanged, the work still marked unsaved, and the warning still on screen after autosave.
+
+#### 80. Changing a board's own service list moves each service's dollars with it (review R09)
+- **Found (reproduced):** on a board with no data pack, which keeps its own service list, ▲▼ relabels the services but
+  leaves the dollars where they were: S1 $100 / S2 $200 moved becomes S2 $100 / S1 $200. Deleting S1 keeps S1's $100
+  under S2's name and drops S2's $200 (awards are cut from the end, not the column removed). On a board whose data pack
+  names its services, ▲▼ and rename appear but do nothing.
+- **What:** move and delete by service, through every per-service list in every year and locked cycle; deleting a
+  service that holds money says how much first. On a data-backed board, ▲▼ and rename are not offered.
+- **Acceptance:** a different amount per service; first, middle and last deleted; both directions; requirement values,
+  allocations, budget authority, awards, CLINs; every year; save and reopen.
+
+#### 81. The reprogramming log reads each row's service from its own appropriation (review R10)
+- **Found (reproduced):** the log is shared by all four appropriations but each row's service is read against the
+  board on screen. A $1M Full Fund action at service 2, exported from an O&M board with one service, shows no service,
+  and the summary by service totals $0 while the detail totals $1M.
+- **What:** resolve each row against its own appropriation's list; a service that cannot be resolved shows as such and
+  is still counted, so detail and summary always agree.
+- **Acceptance:** two appropriations with different and reordered lists; missing and out-of-range services; all and
+  filtered exports; several years.
+- **Product question, not a defect:** the log takes $M with fractions (0.0000001 is about ten cents). Brad to say
+  whether the log stays in fractional $M.
 
 ## Later
 
