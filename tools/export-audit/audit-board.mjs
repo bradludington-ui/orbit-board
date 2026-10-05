@@ -3604,6 +3604,755 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await _w4Settle();
 })();
 // ==== end v1.96 item 65 ====
+// ==== v1.97 W1: money entry and the engine (items 72, 73, 74, 75) ====
+// The 5 Oct review of v1.96, R01–R04. Every check here fails on v1.96 (SP/v197w/board196.html) unless it says
+// CONTROL. Each figure a check wants is worked out from the fixture's own numbers, by hand in the comments, or is an
+// identity (d + m + u == basis, the parts add to the whole); none is read back from the board's own helpers.
+// Each read goes through w1ev, which turns a throw into the text of a failed check, so one missing function on an
+// older board fails its own checks rather than ending the block.
+const { bootMark: _w1Mark, bootRelease: _w1Release, settleBoards: _w1Settle } = await import('./boot.mjs');
+const w1ev = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 120); } };
+const w1json = (ev, code) => { const r = w1ev(ev, code); try { return JSON.parse(r); } catch { return r; } };
+
+// v1.97 W1, ITEM 72 (review R01): TYPING A BUDGET TOTAL KEEPS EVERY DOLLAR. setBATot scaled each service to x*v/s and
+// applyBudget rounded each on its own: $1 over three equal services was $0 in the lane, $2 was $3, $7 was $6 and
+// $100,000,000 was $99,999,999. Driven through setBATot, the command bar's own writer of the base.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w1Mark();
+  const name = 'v1.97 — a typed budget total keeps every dollar (item 72)';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG', 'STOVL'], items: [it('A', 'AV', [5, 7, 11])], disc: [0, 0, 0], mand: [0, 0, 0], order: ['A'] });
+  ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+  // types TOTAL into the KIND base, which holds W, with the funding sources ADDS on top; reads the base and the live lane
+  const type = (kind, w, total, adds = []) => w1json(ev, `(function(){
+      S.bm={disc:${J(w)}, mand:${J(w)}, adds:${J(adds)}}; applyBudget();
+      setBATot(${J(kind)}, ${J(total)});
+      return JSON.stringify({b:S.bm[${J(kind)}].slice(), l:(${J(kind)}==='disc'? S.discSvc : S.mandSvc).slice()}); })()`);
+  // [what, lane, the base's shape, what is typed, the dollars typed (read by hand), funding sources]
+  const CASES = [
+    ['$1 over three equal services', 'disc', [1, 1, 1], '$1', 1, []],
+    ['$2 over three equal services', 'disc', [1, 1, 1], '$2', 2, []],
+    ['$7 over three equal services, mandatory', 'mand', [1, 1, 1], '$7', 7, []],
+    ['$100,000,000 over three equal services, mandatory', 'mand', [1, 1, 1], '$100,000,000', 100000000, []],
+    ['$1,000,000,000,000 over three equal services', 'disc', [1, 1, 1], '$1,000,000,000,000', 1000000000000, []],
+    ['$1,000,003 over unequal services 2 : 3 : 5', 'disc', [2, 3, 5], '$1,000,003', 1000003, []],
+    ['$100 over a base of zeros (equal shares)', 'mand', [0, 0, 0], '$100', 100, []],
+    ['$7 over 3 : 1 : 1 with a funding source on each lane', 'disc', [3, 1, 1], '$7', 7,
+      [{ name: 'Congressional add', pool: 'disc', vec: [10, 20, 30] }, { name: 'Supplemental', pool: 'mand', vec: [1, 2, 4] }]],
+  ];
+  CASES.forEach(([lbl, kind, w, typed, T, adds]) => {
+    const r = type(kind, w, typed, adds);
+    if (typeof r !== 'object') { chk(name, lbl, 'the case ran', r, 'ran'); return; }
+    const add = w.map((_, i) => adds.filter(a => a.pool === kind).reduce((s, a) => s + a.vec[i], 0));
+    chk(name, lbl, 'the base is whole dollars that add up to exactly what was typed',
+      J([r.b.every(Number.isSafeInteger), sum(r.b)]), J([true, T]));
+    chk(name, lbl, 'the live lane is the base plus that lane’s funding sources, service by service', J(r.l), J(r.b.map((x, i) => x + add[i])));
+    chk(name, lbl, 'the live lane adds up to exactly what was typed plus the sources', J(sum(r.l)), J(T + sum(add)));
+    const W = sum(w);
+    chk(name, lbl, 'CONTROL — each service is within a dollar of its share of the total (equal shares on a base of zeros)',
+      r.b.every((x, i) => Math.abs(x - (W > 0 ? T * w[i] / W : T / w.length)) < 1), true);
+  });
+  const z = type('disc', [1, 1, 1], '$0');
+  chk(name, '$0', 'CONTROL — $0 typed is a base and a lane of zeros (passes on v1.96)', J(z), J({ b: [0, 0, 0], l: [0, 0, 0] }));
+  // SAVE AND REOPEN: what was typed is what the file carries and what the reopened board's lanes hold
+  ev(`S.bm={disc:[1,1,1], mand:[2,3,5], adds:[{name:'Add', pool:'mand', vec:[0,0,9]}]}; applyBudget(); 'ok'`);
+  type('disc', [1, 1, 1], '$1');
+  w1ev(ev, `S.bm.mand=[2,3,5]; S.bm.adds=[{name:'Add', pool:'mand', vec:[0,0,9]}]; setBATot('mand','$1,000,003'); 'ok'`);
+  const before = w1json(ev, `JSON.stringify({disc:S.bm.disc, mand:S.bm.mand, dl:S.discSvc, ml:S.mandSvc})`);
+  const R = boot({ html: w1ev(ev, 'buildSavedHtml()') });
+  const after = w1json(R.ev, `JSON.stringify({disc:S.bm.disc, mand:S.bm.mand, dl:S.discSvc, ml:S.mandSvc})`);
+  chk(name, 'save and reopen', 'the reopened board holds the base and the lanes exactly as typed', J(after), J(before));
+  chk(name, 'save and reopen', 'and they add up to $1 discretionary and $1,000,003 + $9 mandatory, in whole dollars',
+    J([sum(after.disc || []), sum(after.dl || []), sum(after.mand || []), sum(after.ml || []),
+       [].concat(after.disc || [], after.mand || [], after.dl || [], after.ml || []).every(Number.isSafeInteger)]),
+    J([1, 1, 1000003, 1000012, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w1Release(__bm, []);
+  await _w1Settle();
+})();
+
+// v1.97 W1, ITEM 73 (review R02): AN OLD-STYLE SPLIT FUNDS BOTH OF ITS LANES. A whole-requirement split ({m:'split', d, mnd}
+// -- only older files carry one) spread D and M over the same basis independently; on a tie both took the same service
+// and mandatory was clipped there. Every row still totalled, which hid it. THE ORACLE: each fixture's d, m and u per
+// service, worked out by hand below from the rule as specified -- discretionary spread over the basis, mandatory over
+// what discretionary leaves of each service, whole dollars by largest remainder (a tie to the first service), then each
+// service's own lane caps -- and the identities that hold whatever the placement: where the lanes can pay, d totals D and
+// m totals M exactly; d + m + u is the basis on every service.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w1Mark();
+  const name = 'v1.97 — an old-style split funds both of its lanes (item 73)';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  const BIG = 1000;   // a lane that never runs dry here
+  // [what, services, the requirement's ask (its basis), legacy {d, mnd}, disc lanes, mand lanes, want {d, m, u}, lanes pay in full?]
+  const F = [
+    ['a $1 + $1 split on [1, 1]', ['A', 'B'], [1, 1], { d: 1, mnd: 1 }, [BIG, BIG], [BIG, BIG],
+      // D: 1 over [1,1] = .5/.5 -> the tie to A -> [1,0]. Left [0,1]; M: 1 over [0,1] -> [0,1].
+      { d: [1, 0], m: [0, 1], u: [0, 0] }, true],
+    ['odd: $5 + $5 on [5, 5]', ['A', 'B'], [5, 5], { d: 5, mnd: 5 }, [BIG, BIG], [BIG, BIG],
+      // D: 2.5/2.5 -> [3,2]. Left [2,3]; M: 5 over [2,3] -> [2,3].
+      { d: [3, 2], m: [2, 3], u: [0, 0] }, true],
+    ['three tied services: $10 + $11 on [7, 7, 7]', ['A', 'B', 'C'], [7, 7, 7], { d: 10, mnd: 11 }, [BIG, BIG, BIG], [BIG, BIG, BIG],
+      // D: 3.33 each -> [4,3,3]. Left [3,4,4] = 11; M: 11 over it -> [3,4,4].
+      { d: [4, 3, 3], m: [3, 4, 4], u: [0, 0, 0] }, true],
+    ['unequal: $3 + $3 on [3, 1, 2]', ['A', 'B', 'C'], [3, 1, 2], { d: 3, mnd: 3 }, [BIG, BIG, BIG], [BIG, BIG, BIG],
+      // D: 1.5, .5, 1 -> floors [1,0,1], the dollar left to the first .5 -> [2,0,1]. Left [1,1,1]; M -> [1,1,1].
+      { d: [2, 0, 1], m: [1, 1, 1], u: [0, 0, 0] }, true],
+    ['the same, its services in reverse order: [2, 1, 3]', ['C', 'B', 'A'], [2, 1, 3], { d: 3, mnd: 3 }, [BIG, BIG, BIG], [BIG, BIG, BIG],
+      // D: 1, .5, 1.5 -> floors [1,0,1], the dollar left to the first .5 (B) -> [1,1,1]. Left [1,0,2]; M -> [1,0,2].
+      { d: [1, 1, 1], m: [1, 0, 2], u: [0, 0, 0] }, true],
+    ['a service with no basis: $3 + $5 on [0, 4, 4]', ['A', 'B', 'C'], [0, 4, 4], { d: 3, mnd: 5 }, [BIG, BIG, BIG], [BIG, BIG, BIG],
+      // D: 0, 1.5, 1.5 -> [0,2,1]. Left [0,2,3]; M: 5 over it -> [0,2,3].
+      { d: [0, 2, 1], m: [0, 2, 3], u: [0, 0, 0] }, true],
+    ['a discretionary lane that cannot pay: $5 + $5 on [5, 5], B’s discretionary lane holds $1', ['A', 'B'], [5, 5], { d: 5, mnd: 5 }, [BIG, 1], [BIG, BIG],
+      // shares as above: D [3,2], M [2,3]. B's discretionary pays 1 of its 2: B is $1 short, and only B.
+      { d: [3, 1], m: [2, 3], u: [0, 1] }, false],
+  ];
+  const run = (svc, ask, leg, dl, ml) => {
+    seed(ev, { services: svc, items: [it('X', 'AV', ask)], disc: dl, mand: ml, order: ['X'], fsrc: { X: Object.assign({ m: 'split' }, leg) } });
+    return w1json(ev, `JSON.stringify((function(){ const t=tiers().X; return {d:t.d, m:t.m, u:t.u}; })())`);
+  };
+  F.forEach(([lbl, svc, ask, leg, dl, ml, want, full]) => {
+    const t = run(svc, ask, leg, dl, ml);
+    if (typeof t !== 'object') { chk(name, lbl, 'the fixture ran', t, 'ran'); return; }
+    chk(name, lbl, 'discretionary, mandatory and unfunded by service, as worked out by hand', J([t.d, t.m, t.u]), J([want.d, want.m, want.u]));
+    if (full) chk(name, lbl, 'the lanes can pay, so discretionary totals D and mandatory totals M exactly',
+      J([sum(t.d), sum(t.m), sum(t.u)]), J([leg.d, leg.mnd, sum(ask) - leg.d - leg.mnd]));
+    chk(name, lbl, 'CONTROL — d + m + u is the basis on every service, and no service draws past its own lanes (the row always totalled)',
+      J([t.d.map((x, i) => x + t.m[i] + t.u[i]), t.d.every((x, i) => x <= dl[i]) && t.m.every((x, i) => x <= ml[i])]), J([ask, true]));
+  });
+  // A SPLIT FURTHER DOWN THE WALK: A, ranked first, empties USAF's discretionary lane; X's discretionary share on USAF
+  // is unfunded, and its mandatory dollar is placed on ANG, where discretionary left room -- not on USAF beside it.
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('P', 'PSM', [4, 0]), it('X', 'AV', [1, 1])], disc: [4, 5], mand: [5, 5], order: ['P', 'X'],
+             fsrc: { X: { m: 'split', d: 1, mnd: 1 } } });
+  chk(name, 'down the walk', 'X after a requirement that emptied USAF’s discretionary lane: d [0,0], m [0,1], u [1,0]',
+    w1ev(ev, `(function(){ const t=tiers().X; return JSON.stringify([t.d, t.m, t.u]); })()`), J([[0, 0], [0, 1], [1, 0]]));
+  // CONVERTED TO A PER-SERVICE SPLIT -- the first keystroke in the split editor does it (migrateSplit) -- it keeps both lanes
+  seed(ev, { services: ['A', 'B'], items: [it('X', 'AV', [1, 1])], disc: [BIG, BIG], mand: [BIG, BIG], order: ['X'], fsrc: { X: { m: 'split', d: 1, mnd: 1 } } });
+  chk(name, 'converted', 'promoted to per-service vectors, the $1 + $1 split is Disc [1,0] and Mand [0,1], and still funds $2',
+    w1ev(ev, `(function(){ migrateSplit('X'); const f=S.fsrc.X, t=tiers().X; return JSON.stringify([f.dv, f.mv, t.dT+t.mT]); })()`), J([[1, 0], [0, 1], 2]));
+  // LARGE AND ODD (CONTROL: the shares here never meet on a service, so v1.96 placed them too): the totals hold to the dollar
+  seed(ev, { services: ['USAF', 'ANG', 'STOVL'], items: [it('X', 'AV', [70000001, 30000007, 10000003])], disc: [1e12, 1e12, 1e12], mand: [1e12, 1e12, 1e12],
+             order: ['X'], fsrc: { X: { m: 'split', d: 61234567, mnd: 23456789 } } });
+  const L = w1json(ev, `JSON.stringify((function(){ const t=tiers().X; return {d:t.d, m:t.m, u:t.u}; })())`);
+  chk(name, 'large and odd', 'CONTROL — $61,234,567 + $23,456,789 on [70,000,001, 30,000,007, 10,000,003]: d and m total exactly, whole dollars, each within $2 of its share',
+    J([sum(L.d || []), sum(L.m || []), sum(L.u || []), [].concat(L.d || [], L.m || [], L.u || []).every(Number.isSafeInteger),
+       [70000001, 30000007, 10000003].every((b, i) => Math.abs(L.d[i] - 61234567 * b / 110000011) < 1
+         && Math.abs(L.d[i] + L.m[i] - (61234567 + 23456789) * b / 110000011) < 2)]),
+    J([61234567, 23456789, 110000011 - 61234567 - 23456789, true, true]));
+  // DIRECTED SPLITS DO NOT CHANGE (CONTROL): per-service Disc and Mand are drawn as typed, inside each lane
+  seed(ev, { services: ['A', 'B'], items: [it('X', 'AV', [6, 4])], disc: [2, BIG], mand: [BIG, BIG], order: ['X'],
+             fsrc: { X: { m: 'split', dv: [3, 1], mv: [2, 3] } } });
+  chk(name, 'directed', 'CONTROL — a directed split Disc [3,1] Mand [2,3] with A’s discretionary lane at $2: d [2,1], m [2,3], u [1,0] (passes on v1.96)',
+    w1ev(ev, `(function(){ const t=tiers().X; return JSON.stringify([t.d, t.m, t.u]); })()`), J([[2, 1], [2, 3], [1, 0]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w1Release(__bm, []);
+  await _w1Settle();
+})();
+
+// v1.97 W1, ITEM 74 (review R03): A NEGATIVE ALLOCATION IS REFUSED. Typing -2 as the allocation on a requirement of [1, 1]
+// was taken; its basis became [-1, -1], every lane draw was zero and d + m + u no longer equalled the basis. Now a
+// negative typed is refused and the allocation keeps the value it had; one already saved (an older file -- set here
+// directly, as the file would hand it over) is kept as it was, counts as zero in every figure, and is listed for repair.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w1Mark();
+  const name = 'v1.97 — a negative allocation is refused, and one already saved counts as zero (item 74)';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('X', 'AV', [1, 1]), it('Y', 'PSM', [30, 50]), it('Z', 'TSS', [8, 9])],
+             disc: [100, 100], mand: [100, 100], order: ['X', 'Y', 'Z'],
+             alloc: { Y: { m: 't', v: 40 } }, fsrc: { Z: { m: 'split', dv: [5, 6], mv: [1, 2] } } });
+  const stat = () => w1ev(ev, `document.getElementById('shareStat').textContent`);
+  const A = id => w1ev(ev, `JSON.stringify(S.alloc[${J(id)}]===undefined? null : S.alloc[${J(id)}])`);
+  // ── typed ──
+  w1ev(ev, `setStat(''); setAlloc('X','-2'); 'ok'`);
+  chk(name, 'typed', '-2 typed as X’s allocation is refused: X keeps no allocation (its full requirement value)', A('X'), 'null');
+  chk(name, 'typed', 'and the message says why', /not changed[\s\S]*below zero/.test(stat()), true);
+  w1ev(ev, `setAlloc('Y','-5'); 'ok'`);
+  chk(name, 'typed', '-5 typed over Y’s $40 allocation is refused: Y keeps $40', A('Y'), J({ m: 't', v: 40 }));
+  w1ev(ev, `setSvc('Y',1,'-3'); 'ok'`);
+  chk(name, 'typed', '-3 typed as Y’s ANG allocation is refused: Y keeps $40 as it was', A('Y'), J({ m: 't', v: 40 }));
+  w1ev(ev, `setFsrcSvc('Z','d',0,'-4'); 'ok'`);
+  chk(name, 'typed', '-4 typed as Z’s USAF discretionary dollars is refused: the split keeps Disc [5,6]', w1ev(ev, `JSON.stringify(S.fsrc.Z.dv)`), J([5, 6]));
+  w1ev(ev, `setAlloc('X','0'); 'ok'`);
+  chk(name, 'typed', 'CONTROL — $0 is an allocation: X allocated $0 is all trim, nothing unfunded beyond it (passes on v1.96)',
+    w1ev(ev, `(function(){ const x=itemById('X'), t=tiers().X; return JSON.stringify([S.alloc.X, basisSvcOf(x), trimSvcOf(x), beyondSvcOf(x,t)]); })()`),
+    J([{ m: 't', v: 0 }, [0, 0], [1, 1], [0, 0]]));
+  w1ev(ev, `setAlloc('X','5'); 'ok'`);
+  chk(name, 'typed', 'CONTROL — an allocation above the requirement value is taken, and the basis is clamped to the ask (passes on v1.96)',
+    w1ev(ev, `JSON.stringify([S.alloc.X, basisSvcOf(itemById('X'))])`), J([{ m: 't', v: 5 }, [1, 1]]));
+  // ── already saved ── X carries -2 as a total, Y [-7, 20] by service, Z a split whose USAF Disc is -3
+  w1ev(ev, `S.alloc.X={m:'t', v:-2}; S.alloc.Y={m:'s', v:[-7,20]}; S.fsrc.Z={m:'split', dv:[-3,6], mv:[1,2]}; render(); 'ok'`);
+  const E = w1json(ev, `JSON.stringify((function(){ const T=tiers(), o={};
+      ['X','Y','Z'].forEach(function(id){ const x=itemById(id), t=T[id];
+        o[id]={basis:basisSvcOf(x), dmu:t.d.map(function(v,i){ return v+t.m[i]+t.u[i]; }), d:t.d, m:t.m, u:t.u,
+               unf:unfSvcOf(x,t), beyond:beyondSvcOf(x,t), trim:trimSvcOf(x)}; });
+      return o; })())`);
+  // by hand: X's -2 counts as 0 -> basis [0,0], all of [1,1] is trim and unfunded. Y's USAF -7 counts as 0 -> basis
+  // [0,20]: ANG draws 20 of discretionary; trim [30,30]. Z: Disc -3 + Mand 1 on USAF counts as 0 -> basis [0, 8].
+  const want = { X: { basis: [0, 0], d: [0, 0], m: [0, 0], u: [0, 0], unf: [1, 1], beyond: [0, 0], trim: [1, 1] },
+                 Y: { basis: [0, 20], d: [0, 20], m: [0, 0], u: [0, 0], unf: [30, 30], beyond: [0, 0], trim: [30, 30] },
+                 Z: { basis: [0, 8], d: [0, 6], m: [0, 2], u: [0, 0], unf: [8, 1], beyond: [0, 0], trim: [8, 1] } };
+  ['X', 'Y', 'Z'].forEach(id => {
+    const g = (E && E[id]) || {};
+    chk(name, 'saved', `${id}: the basis never goes below zero`, J(g.basis), J(want[id].basis));
+    chk(name, 'saved', `${id}: d + m + u is the basis the board states, on every service`, J(g.dmu), J(g.basis));
+    chk(name, 'saved', `${id}: d, m, u, and beyond + trim == unfunded on every service`,
+      J([g.d, g.m, g.u, (g.beyond || []).map((b, i) => b + g.trim[i])]), J([want[id].d, want[id].m, want[id].u, want[id].unf]));
+  });
+  chk(name, 'saved', 'CONTROL — each is kept exactly as saved (passes on v1.96, which kept them too)',
+    w1ev(ev, `JSON.stringify([S.alloc.X, S.alloc.Y, S.fsrc.Z])`), J([{ m: 't', v: -2 }, { m: 's', v: [-7, 20] }, { m: 'split', dv: [-3, 6], mv: [1, 2] }]));
+  // THE PRIORITY DRILL prints the allocation the board works from: X $0 and Y $20, not -$2 and the -$7 + $20 = $13 saved
+  const drill = w1json(ev, `(function(){ let cap=null; const keep=buildXlsx; buildXlsx=function(sh){ cap=sh; return new Uint8Array(0); };
+      try{ exportCSV(); } finally { buildXlsx=keep; }
+      const out={}; (cap||[]).forEach(function(s){ (s.rows||[]).forEach(function(r){
+        const v=(r||[]).map(function(c){ return (c && typeof c==='object' && 'v' in c)? c.v : c; });
+        ['X','Y'].forEach(function(id){ if(v[4]===dispTitle(itemById(id)) && out[id]===undefined) out[id]=v[12]; }); }); });
+      return JSON.stringify(out); })()`);
+  chk(name, 'saved', 'the Priority Drill’s Allocated column prints what the board works from: X $0 and Y $20', J(drill), J({ X: 0, Y: 20 }));
+  // LISTED FOR REPAIR, under Needs attention, with what was saved
+  chk(name, 'listed', 'Needs attention lists all three, each with what was saved',
+    w1ev(ev, `JSON.stringify(((attLists()||{}).neg||[]).map(function(r){ return [r.id, r.n]; }))`),
+    J([['X', ['allocation −$2']], ['Y', ['USAF allocation −$7']], ['Z', ['USAF Disc −$3']]]));
+  chk(name, 'listed', 'and the funding posture counts them', /3 negative allocations to repair/.test(w1ev(ev, `document.getElementById('posture').textContent`)), true);
+  w1ev(ev, `attShow('neg'); 'ok'`);
+  chk(name, 'listed', 'its list opens, saying what was saved',
+    w1ev(ev, `JSON.stringify([attOpen, [].slice.call(document.querySelectorAll('#attBody .attneg')).map(function(e){ return e.textContent; })])`),
+    J(['neg', ['allocation −$2', 'USAF allocation −$7', 'USAF Disc −$3']]));
+  w1ev(ev, `attClose(); 'ok'`);
+  // an edit to Y's ANG keeps USAF's -7 as saved (CONTROL: v1.96 seeded the edit from the same figures)
+  w1ev(ev, `setSvc('Y',1,'25'); 'ok'`);
+  chk(name, 'repair', 'CONTROL — typing Y’s ANG allocation leaves its USAF figure as it was saved (passes on v1.96)', A('Y'), J({ m: 's', v: [-7, 25] }));
+  // REPAIRED: set again, X leaves the list; Y and Z stay until theirs are
+  w1ev(ev, `setAlloc('X','1'); 'ok'`);
+  chk(name, 'repair', 'X allocated $1 again leaves the list; Y and Z stay',
+    w1ev(ev, `JSON.stringify(((attLists()||{}).neg||[]).map(function(r){ return r.id; }))`), J(['Y', 'Z']));
+  // SIGNED FIELDS STAY SIGNED (CONTROL): a funding source and a PPBE position may still be below zero
+  w1ev(ev, `S.bm.adds=[{name:'Rescission', pool:'disc', vec:[0,0]}]; bmSrcSet(0,'vec',1,'-25'); 'ok'`);
+  chk(name, 'signed', 'CONTROL — a funding source can still be a reduction: -25 is taken (passes on v1.96)', w1ev(ev, `JSON.stringify(S.bm.adds[0].vec)`), J([0, -25]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w1Release(__bm, []);
+  await _w1Settle();
+})();
+
+// v1.97 W1, ITEM 75 (review R04): TYPED MONEY IS CHECKED AS STRICTLY AS IMPORTED MONEY, AND A TYPO NEVER ZEROES A FIGURE.
+// parseAmt read only the front of an entry -- "100oops" was $100, "1.2.3" $1, "1e309" $0, 9007199254740993 lost a dollar,
+// $10,000,000,000,001 was taken though a file is refused anything over $10 trillion -- and most editors took text it
+// could not read for a blank: "abc" over a $500 requirement value made it $0. Part 1 reads entries through parseAmt;
+// part 2 drives EVERY editor that reads a typed amount with something it cannot take, and the figure must stay.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w1Mark();
+  const name = 'v1.97 — typed money is read whole, and a typo never zeroes a figure (item 75)';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('X', 'AV', [500, 700]), it('W', 'PSM', [40, 60])],
+             disc: [10000, 10000], mand: [10000, 10000], order: ['X', 'W'] });
+  // ── part 1: the reading ──
+  const P = (s, o) => w1ev(ev, `(function(){ const v=parseAmt(${J(s)}${o ? ', ' + J(o) : ''}); return (typeof v==='number' && isNaN(v))? 'refused' : String(v); })()`);
+  [['100oops', 'refused'], ['1.2.3', 'refused'], ['1e309', 'refused'], ['9007199254740993', 'refused'],
+   ['$10,000,000,000,001', 'refused'], ['10000000000000.5', 'refused'], ['abc', 'refused'], ['5MM', 'refused'], ['1,2345', 'refused'],
+   ['12 34', 'refused'], ['-5', 'refused'], ['$-5', 'refused']].forEach(([s, w]) =>
+    chk(name, 'reading', `${J(s)} is ${w}`, P(s), w));
+  chk(name, 'reading', '"-1.5" in a signed field is -2: cents round half away from zero', P('-1.5', { neg: true }), '-2');
+  [['$10,000,000,000,000', '10000000000000'], ['9999999999999.5', '10000000000000'], ['$1,234', '1234'], ['2.5M', '2500000'],
+   ['$ 2.5 m', '2500000'], ['750k', '750000'], ['1.2B', '1200000000'], ['1,234.56', '1235'], ['0.4', '0'],
+   ['', 'null'], ['   ', 'null'], ['-5', '-5', { neg: true }]].forEach(([s, w, o]) =>
+    chk(name, 'reading', `CONTROL — ${J(s)}${o ? ' in a signed field' : ''} is ${w} (read the same on v1.96)`, P(s, o), w));
+  // ── part 2: every editor keeps its figure, and says why ──
+  // RUN sets the figure up, types each entry, and reads the figure back after each; the figure must not move
+  // a signed field (a funding source, a PPBE position) takes -5, so it is given an amount past the bound below zero instead
+  const BAD = ['abc', '7oops', '$10,000,000,000,001', '-5'], SIGNED = ['abc', '7oops', '$10,000,000,000,001', '-$10,000,000,000,001'];
+  const keeps = (where, setup, type, read, bad = BAD) => {
+    const out = w1json(ev, `JSON.stringify((function(){ ${setup}; const was=JSON.stringify(${read}), r=[];
+        ${J(bad)}.forEach(function(b){ setStat(''); ${type}; const now=JSON.stringify(${read});
+          r.push([b, now===was? 'kept' : 'changed to '+now, /not changed/.test(document.getElementById('shareStat').textContent)]); });
+        return r; })())`);
+    chk(name, where, bad.join(', ') + ' each leave the figure as it was, and say so', J(out), J(bad.map(b => [b, 'kept', true])));
+  };
+  keeps('requirement value', `S.asks={}; itemById('X').ask=[500,700]`, `setAsk('X',0,b)`, `itemById('X').ask`);
+  keeps('allocation', `S.alloc.X={m:'t', v:900}`, `setAlloc('X',b)`, `S.alloc.X`);
+  keeps('allocation by service', `S.alloc.X={m:'s', v:[400,600]}`, `setSvc('X',1,b)`, `S.alloc.X`);
+  keeps('split dollars', `S.fsrc.X={m:'split', dv:[100,200], mv:[30,40]}`, `setFsrcSvc('X','m',1,b)`, `S.fsrc.X`);
+  keeps('split dollars, first keystroke', `delete S.fsrc.W`, `setFsrcSvc('W','d',0,b)`, `S.fsrc.W||null`);
+  keeps('budget total', `S.bm={disc:[100,200], mand:[50,60], adds:[]}; applyBudget()`, `setBATot('disc',b)`, `[S.bm.disc, S.discSvc]`);
+  keeps('budget base', `S.bm={disc:[100,200], mand:[50,60], adds:[]}; applyBudget()`, `bmSetBase('mand',1,b)`, `[S.bm.mand, S.mandSvc]`);
+  keeps('funding source', `S.bm.adds=[{name:'Add', pool:'disc', vec:[11,22]}]; applyBudget()`, `bmSrcSet(0,'vec',0,b)`, `S.bm.adds[0].vec`, SIGNED);
+  keeps('award', `S.awards.X={mode:'inc', inc:[{d:'2026-11', day:5, sv:[100,200]}]}`, `setAwdIncSvc('X',0,1,b)`, `S.awards.X.inc[0].sv`);
+  keeps('minimum increment', `S.minInc.X=300`, `setMinInc('X',b)`, `S.minInc.X`);
+  keeps('absorber floor', `S.absorbFloor=1000`, `setAbsorbFloor(b)`, `S.absorbFloor`);
+  keeps('PPBE position', `MS.ppbe=MS.ppbe||{}; ppYr=2027; ppSetV('USAF','k1',2027,'d','5000')`, `ppSetV('USAF','k1',2027,'d',b)`, `ppPos().val`, SIGNED);
+  keeps('CLIN allocation', `S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[10,20]}]}; S.clinAlloc={P1:{n1:[10,20]}}`,
+    `setClinSvc('P1','n1',0,b)`, `S.clinAlloc.P1.n1`);
+  keeps('CLIN request', `S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[10,20]}]}`, `clinSetReq('P1','n1',b)`, `S.clinNew.P1[0].ask`);
+  keeps('WBS figure', `S.wbs={X:[{w:'1.1', v:[5,6]},{w:'1.2', v:[7,8]}]}`, `wbsSetVal('req','X','',0,1,b)`, `S.wbs.X`);
+  keeps('unit cost', `DATA.buys=true; S.buys={ac:{base:[0,0], adj:[2,3], cost:[1000,2000], locked:false}, eng:{base:[0,0], adj:[0,0], cost:[0,0], locked:false}}`,
+    `setBuy('ac','cost',0,b)`, `S.buys.ac.cost`);
+  w1ev(ev, `delete DATA.buys; 'ok'`);
+  // the total a quantity and a unit cost make is held to the bound too
+  chk(name, 'unit cost', 'a unit cost of $6,000,000,000,000 on a quantity of 2 would make $12 trillion: refused, the cost kept',
+    w1ev(ev, `(function(){ DATA.buys=true; S.buys={ac:{base:[0,0], adj:[2,3], cost:[1000,2000], locked:false}, eng:{base:[0,0], adj:[0,0], cost:[0,0], locked:false}};
+      setBuy('ac','cost',0,'$6,000,000,000,000'); const c=S.buys.ac.cost.slice(); delete DATA.buys; return JSON.stringify(c); })()`), J([1000, 2000]));
+  // ADD REQUIREMENT: a box it cannot read stops the add; nothing is added, and the alert names the box
+  const add = (svc0, tot) => w1json(ev, `JSON.stringify((function(){ render(); syncAddPanel(); const n0=S.custom.length, al=[], _a=window.alert; window.alert=function(m){ al.push(String(m)); };
+      document.getElementById('naTitle').value='New one'; document.getElementById('naEvent').value='e'; document.getElementById('naGrp').value='AV';
+      document.getElementById('naSvc0').value=${J(svc0)}; document.getElementById('naSvc1').value=''; document.getElementById('naTot').value=${J(tot)};
+      try{ addReq(); }finally{ window.alert=_a; }
+      return [S.custom.length-n0, al.join(' | ')]; })())`);
+  const a1 = add('7oops', ''), a2 = add('', '1.2.3');
+  chk(name, 'add requirement', 'a USAF value of “7oops”, or a total of “1.2.3”: nothing is added, and the alert names the box',
+    J([a1[0], /USAF: .*7oops.* is not an amount/.test(a1[1]), a2[0], /Total: .*1\.2\.3.* is not an amount/.test(a2[1])]), J([0, true, 0, true]));
+  // THE COMMAND BAR: an amount it cannot read changes nothing. (Nothing in this build calls runCmd and the page has no
+  // #cmdOut for it to answer in -- it is given one here -- but it writes the allocation and the base, so it is held too.)
+  chk(name, 'command bar', '“allocate X to $1.2.3” changes nothing and says it could not read the amount',
+    w1ev(ev, `(function(){ if(!document.getElementById('cmdOut')){ const o=document.createElement('div'); o.id='cmdOut'; document.body.appendChild(o); }
+      delete S.fsrc.X; S.alloc.X={m:'t', v:900}; runCmd('allocate X to $1.2.3'); return JSON.stringify([S.alloc.X, /Could not read/.test(document.getElementById('cmdOut').textContent)]); })()`),
+    J([{ m: 't', v: 900 }, true]));
+  // A BLANK STILL CLEARS (CONTROL): an empty box is the deliberate reset it always was
+  chk(name, 'blank', 'CONTROL — a blank clears: the requirement value to $0, the allocation back to the requirement value, the minimum increment gone (passes on v1.96)',
+    w1ev(ev, `(function(){ itemById('X').ask=[500,700]; setAsk('X',0,''); S.alloc.X={m:'t', v:900}; setAlloc('X',''); S.minInc.X=300; setMinInc('X','');
+      return JSON.stringify([itemById('X').ask, S.alloc.X, S.minInc.X===undefined]); })()`), J([[0, 700], null, true]));
+  // A CENT IS ROUNDED, AND SAID: whole dollars, with the figure kept named in the message
+  chk(name, 'rounding', '1,234.56 typed as a requirement value is $1,235, and the message says what was entered',
+    w1ev(ev, `(function(){ setStat(''); setAsk('X',1,'1,234.56'); return JSON.stringify([itemById('X').ask[1], /entered as \\$1,235/.test(document.getElementById('shareStat').textContent)]); })()`),
+    J([1235, true]));
+  // THE CLIN REQUEST IS SPREAD IN WHOLE DOLLARS that add up to what was typed
+  chk(name, 'CLIN request', '$100 over a CLIN asking [1, 2] is [33, 67]: whole dollars, adding up to $100',
+    w1ev(ev, `(function(){ S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[1,2]}]}; clinSetReq('P1','n1','$100'); return JSON.stringify(S.clinNew.P1[0].ask); })()`),
+    J([33, 67]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w1Release(__bm, []);
+  await _w1Settle();
+})();
+// ==== end v1.97 W1 ====
+// ==== v1.97 W2: every edit the saved file carries marks the board unsaved (item 76) ====
+// ==== end v1.97 W2 ====
+// ==== v1.97 W3: batch import, Put this back, folder save history (items 77, 78, 79) ====
+// ==== end v1.97 W3 ====
+// ==== v1.97 W4: a board’s own service list moves dollars with it (item 80) ====
+// v1.97, ITEM 80 (review R09): A BOARD'S OWN SERVICE LIST MOVES EACH SERVICE'S DOLLARS WITH IT.
+// A board with no data pack keeps its own services (MS.svc). On v1.96 ▲▼ swapped the names and left every per-service
+// list where it was, and ✕ cut the award lists from the end and every other list by applyState()'s position refit:
+// S1 $100 / S2 $200 moved read S2 $100 / S1 $200, and S1 removed left S2 holding S1's $100. The board is built here
+// through its own doors (＋ Add service, ＋ Add requirement), then EVERY kind of per-service list is given a different
+// amount on every service, every requirement and line, in two fiscal years. The oracle is the fixture's own numbers,
+// read BY NAME: after each change, every list the fixture wrote must hold, at each service's new place, what that
+// service held when the fixture wrote it. The walk is generic -- any numeric list of the service width, found in the
+// state as written -- so it does not share the board's own list of what to remap.
+const { bootMark: _v7w4Mark, bootRelease: _v7w4Release, settleBoards: _v7w4Settle } = await import('./boot.mjs');
+const W4S = ['S1', 'S2', 'S3', 'S4', 'S5'];
+const w4amt = (y, k, r, s) => (y + 1) * 10000000 + (k + 1) * 100000 + (r + 1) * 1000 + (s + 1) * 10;
+const w4vec = (y, k, r, n = W4S.length) => Array.from({ length: n }, (_, s) => w4amt(y, k, r, s));
+// k: 0 requirement value, 1 prior-year value, 2 edited value (asks), 3 allocation by service, 4/5 directed disc/mand,
+// 6/7 base budget authority disc/mand, 8/9 a funding source in each pool, 10 award increments, 11 WBS lines,
+// 12 added CLINs' asks, 13 CLIN allocations, 14 an edited CLIN's ask, 15 a CLIN's WBS lines
+const w4year = (y, n) => ({
+  ask: [0, 1, 2].map(r => w4vec(y, 0, r, n)), fy26: [0, 1, 2].map(r => w4vec(y, 1, r, n)), asks: [0, 1, 2].map(r => w4vec(y, 2, r, n)),
+  alloc: w4vec(y, 3, 0, n), dv: w4vec(y, 4, 0, n), mv: w4vec(y, 5, 0, n), bmD: w4vec(y, 6, 0, n), bmM: w4vec(y, 7, 0, n),
+  addD: w4vec(y, 8, 0, n), addM: w4vec(y, 9, 0, n), awd: [0, 1, 2].map(r => w4vec(y, 10, r, n)), wbs: [0, 1].map(r => w4vec(y, 11, r, n)),
+  clinNew: [0, 1].map(r => w4vec(y, 12, r, n)), clinAlloc: [0, 1].map(r => w4vec(y, 13, r, n)), clinMeta: w4vec(y, 14, 0, n),
+  clinWbs: [0, 1].map(r => w4vec(y, 15, r, n)) });
+// R1 directs its split (fsrc), R2 is allocated by service and is a prime with CLINs, R3 takes its whole value.
+const W4FILL = `(function(V, fy){
+  var ids=S.custom.map(function(c){ return c.id; }), R1=ids[0], R2=ids[1], R3=ids[2];
+  S.custom.forEach(function(c,i){ c.ask=V.ask[i].slice(); c.fy26=V.fy26[i].slice(); S.asks[c.id]=V.asks[i].slice(); });
+  delete S.fsrc[R2]; S.alloc[R2]={m:'s', v:V.alloc.slice()};
+  delete S.fsrc[R3]; delete S.alloc[R3];
+  S.fsrc[R1]={m:'split', dv:V.dv.slice(), mv:V.mv.slice()};
+  S.bm={disc:V.bmD.slice(), mand:V.bmM.slice(), adds:[{name:'Add D', pool:'disc', vec:V.addD.slice()},{name:'Add M', pool:'mand', vec:V.addM.slice()}]};
+  S.awards[R1]={mode:'inc', inc:[{d:(fy-1)+'-11', day:3, sv:V.awd[0].slice()},{d:fy+'-02', day:9, sv:V.awd[1].slice()}]};
+  S.awards[R3]={mode:'inc', inc:[{d:fy+'-03', day:12, sv:V.awd[2].slice()}]};
+  delete S.awards[R2];
+  S.wbs[R1]=[{w:'1.1', v:V.wbs[0].slice()},{w:'1.2', v:V.wbs[1].slice()}];
+  S.ptype[R2]='PRIME';
+  S.clinNew={}; S.clinNew[R2]=[{key:'n1', clin:'3001', desc:'a', ccar:'', ask:V.clinNew[0].slice()},{key:'n2', clin:'3002', desc:'b', ccar:'', ask:V.clinNew[1].slice()}];
+  S.clinAlloc={}; S.clinAlloc[R2]={n1:V.clinAlloc[0].slice(), n2:V.clinAlloc[1].slice()};
+  S.clinMeta={}; S.clinMeta[R2]={b0:{ask:V.clinMeta.slice()}};
+  S.clinWbs={}; S.clinWbs[R2]={n1:[{w:'2.1', v:V.clinWbs[0].slice()},{w:'2.2', v:V.clinWbs[1].slice()}]};
+  applyState(S); MS.years[fy]=S; save(); render(); return 'ok';
+})`;
+// A board with no data pack, its services and requirements added the way a person adds them.
+function w4Template(names, reqs) {
+  const B = boot();
+  B.ev(`localStorage.setItem('prio27who','w4'); window.__al=[]; window.__cf=[]; window.__pr=0;
+    alert=function(m){ window.__al.push(String(m)); }; confirm=function(m){ window.__cf.push(String(m)); return true; };`);
+  for (const s of names) B.ev(`prompt=function(){ return ${JSON.stringify(s)}; }; svcAdd();`);
+  for (const r of reqs) B.ev(`document.getElementById('naTitle').value=${JSON.stringify(r)};
+    SVC.forEach(function(s,i){ document.getElementById('naSvc'+i).value=String(100*(i+1)); }); addReq();`);
+  return B;
+}
+// Every numeric list of width n in a state, with its path.
+function w4walk(node, path, out, n) {
+  if (Array.isArray(node)) {
+    if (node.length === n && node.length && node.every(v => typeof v === 'number')) { out.push([path, node]); return out; }
+    node.forEach((v, i) => w4walk(v, path.concat(i), out, n)); return out;
+  }
+  if (node && typeof node === 'object') Object.keys(node).forEach(k => { if (k !== 'dataPack') w4walk(node[k], path.concat(k), out, n); });
+  return out;
+}
+const w4at = (o, p) => p.reduce((x, k) => (x == null ? x : x[k]), o);
+// Each list the fixture wrote, read at its services' new places, against what each service held when it was written.
+// was: the original name of each service now listed (a rename is the same service).
+function w4byName(years, names, orig, was = {}) {
+  const bad = [];
+  for (const [p, v] of orig) {
+    const want = names.map(nm => v[W4S.indexOf(was[nm] || nm)]);
+    const got = w4at(years, p);
+    if (JSON.stringify(got) !== JSON.stringify(want)) bad.push(p.join('.') + ' = ' + JSON.stringify(got) + ', want ' + JSON.stringify(want));
+  }
+  return bad.length ? bad.length + ' lists hold another service’s dollars: ' + bad.slice(0, 3).join(' · ') : 'every list follows its service';
+}
+const w4money = v => '$' + Math.round(v).toLocaleString();
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — moving, renaming and removing a service moves its dollars with it, in every year (item 80)';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(W4S, ['R1', 'R2', 'R3']), ev = B.ev;
+  ev(`${W4FILL}(${J(w4year(0))}, 2027)`);
+  ev(`switchYear(2028); ${W4FILL}(${J(w4year(1))}, 2028); switchYear(2027); 'ok'`);
+  // filed under a service's NAME: a BAE budget per service and lane, an RCN/EEIC override, a PPBE position, the Spruills' service
+  ev(`(function(){ var R1=S.custom[0].id; S.budgetAsg[R1]={'S3|disc':'BUD-3D','S3|mand':'BUD-3M','S1':'BUD-1'};
+    S.rcnSvc[R1]={S3:'rc3'}; MS.ppbe['PB|2027']={v:2, split:false, lines:{S3:[{k:'_all', all:true}]}, val:{S3:{_all:{2027:{d:7,m:0}}}}};
+    MS.spSvc='S3'; spSvc='S3'; MS.spDrillSvc='S1'; spDrillSvc='S1'; svcFilter=1; fcView='s:4'; save(); return 'ok'; })()`);
+  const O = JSON.parse(ev(`JSON.stringify(MS.years)`));
+  const orig = w4walk(O, [], [], W4S.length);
+  const kinds = [...new Set(orig.map(([p]) => p[0] + ' ' + p.slice(1).filter(k => typeof k === 'string' && !/^NEW-/.test(k)).join('.')))].sort();
+  const W4KINDS = ['alloc.v', 'asks', 'awards.inc.sv', 'bm.adds.vec', 'bm.disc', 'bm.mand', 'clinAlloc.n1', 'clinAlloc.n2', 'clinMeta.b0.ask',
+    'clinNew.ask', 'clinWbs.n1.v', 'custom.ask', 'custom.fy26', 'discSvc', 'fsrc.dv', 'fsrc.mv', 'mandSvc', 'wbs.v'];
+  chk(name, 'fixture (control)', 'every kind of per-service list holds a different amount on every service, in FY27 and FY28 (60 lists)',
+    J(kinds) + ' ' + orig.length, J(['2027', '2028'].flatMap(y => W4KINDS.map(k => y + ' ' + k)).sort()) + ' 60');
+  const svcNow = () => JSON.parse(ev(`JSON.stringify(SVC)`)), yrs = () => JSON.parse(ev(`JSON.stringify(MS.years)`));
+  const jr0 = JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).length)`));
+  // ▼ on S2, ▲ on S5: both directions, first through last place
+  ev(`svcMove(1,1)`);
+  chk(name, 'move down', 'S2 moved down: every list in both years holds each service’s own dollars at its new place',
+    J(svcNow()) + ' ' + w4byName(yrs(), svcNow(), orig), J(['S1', 'S3', 'S2', 'S4', 'S5']) + ' every list follows its service');
+  const jr = JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).slice(${jr0}).map(function(e){ return e.p[0]; }))`));
+  chk(name, 'journal', 'the change is one journal line, the service list before and after, not a figure-by-figure record that would put dollars back by place',
+    J(jr), J(['(services)']));
+  chk(name, 'filters', 'a service filter on screen follows its service (the chip, the forecast view)',
+    ev(`JSON.stringify([svcFilter, fcView])`), J([2, 's:4']));
+  ev(`svcMove(4,-1)`);
+  chk(name, 'move up', 'S5 moved up: every list follows its service',
+    J(svcNow()) + ' ' + w4byName(yrs(), svcNow(), orig), J(['S1', 'S3', 'S2', 'S5', 'S4']) + ' every list follows its service');
+  // rename: the same service -- its dollars stay where they are, what is filed under its name goes with it
+  ev(`window.__al=[]; prompt=function(){ return 's2'; }; svcRen(1)`);
+  chk(name, 'rename', 'renaming to a name already in the list (any case) is refused, and nothing changes',
+    J(svcNow()) + ' ' + ev(`window.__al.length`), J(['S1', 'S3', 'S2', 'S5', 'S4']) + ' 1');
+  ev(`prompt=function(){ return 'S3x'; }; svcRen(1)`);
+  chk(name, 'rename', 'S3 renamed S3x: every list keeps its dollars where they were',
+    J(svcNow()) + ' ' + w4byName(yrs(), svcNow(), orig, { S3x: 'S3' }), J(['S1', 'S3x', 'S2', 'S5', 'S4']) + ' every list follows its service');
+  chk(name, 'rename', 'and what is filed under its name follows it: the BAE budget per lane, the RCN/EEIC override, the PPBE position, the Spruills’ service',
+    ev(`JSON.stringify([S.budgetAsg[S.custom[0].id], S.rcnSvc[S.custom[0].id], Object.keys(MS.ppbe['PB|2027'].val), Object.keys(MS.ppbe['PB|2027'].lines), MS.spSvc, spSvc])`),
+    J([{ S1: 'BUD-1', 'S3x|disc': 'BUD-3D', 'S3x|mand': 'BUD-3M' }, { S3x: 'rc3' }, ['S3x'], ['S3x'], 'S3x', 'S3x']));
+  // remove the first: the confirm says what it holds, per kind, in each year -- the fixture's own sums
+  const held = (s) => { const out = {}; [0, 1].forEach(y => { const V = w4year(y);
+    const ask = V.ask.reduce((a, v) => a + v[s], 0), alloc = V.dv[s] + V.mv[s] + V.alloc[s] + V.ask[2][s];
+    const ba = V.bmD[s] + V.bmM[s] + V.addD[s] + V.addM[s], awd = V.awd.reduce((a, v) => a + v[s], 0);
+    [['ask', ask], ['alloc', alloc], ['ba', ba], ['awd', awd]].forEach(([k, v]) => { (out[k] ||= []).push(v); }); }); return out; };
+  const h1 = held(0);
+  const line = (lbl, v) => '  • ' + lbl + ': ' + w4money(v[0] + v[1]) + ' (FY27 ' + w4money(v[0]) + ', FY28 ' + w4money(v[1]) + ')';
+  ev(`window.__cf=[]; svcDel(0)`);
+  const ask1 = ev(`window.__cf[0]||''`);
+  chk(name, 'delete first', 'removing S1 says first what it holds, per kind, in each year, in whole dollars',
+    [line('requirement values', h1.ask), line('allocations', h1.alloc), line('budget authority', h1.ba), line('award increments', h1.awd)]
+      .every(l => ask1.indexOf(l) >= 0) ? 'all four, exact' : ask1.slice(0, 300), 'all four, exact');
+  chk(name, 'delete first', 'S1 removed: every other service keeps its own dollars, in every list and year',
+    J(svcNow()) + ' ' + w4byName(yrs(), svcNow(), orig, { S3x: 'S3' }), J(['S3x', 'S2', 'S5', 'S4']) + ' every list follows its service');
+  ev(`svcDel(1)`);
+  chk(name, 'delete middle', 'S2 (a middle service) removed: every other service keeps its own dollars',
+    J(svcNow()) + ' ' + w4byName(yrs(), svcNow(), orig, { S3x: 'S3' }), J(['S3x', 'S5', 'S4']) + ' every list follows its service');
+  ev(`svcDel(2)`);
+  chk(name, 'delete last', 'S4 (the last) removed: every other service keeps its own dollars',
+    J(svcNow()) + ' ' + w4byName(yrs(), svcNow(), orig, { S3x: 'S3' }), J(['S3x', 'S5']) + ' every list follows its service');
+  chk(name, 'filters', 'a filter on a service removed lets go (the chip, the PMO drill’s service); one on a service kept still names it',
+    ev(`JSON.stringify([svcFilter, fcView, spDrillSvc, MS.spDrillSvc])`), J([-1, 's:1', 'ALL', 'ALL']));
+  // save and reopen: the file names the services in their new order and every figure is on its own service
+  const R = boot({ html: ev(`buildSavedHtml()`) });
+  chk(name, 'save and reopen', 'the saved board reopens with S3x, S5 and every list, in both years, on its own service',
+    R.ev(`JSON.stringify(SVC)`) + ' ' + w4byName(JSON.parse(R.ev(`JSON.stringify(MS.years)`)), JSON.parse(R.ev(`JSON.stringify(SVC)`)), orig, { S3x: 'S3' }),
+    J(['S3x', 'S5']) + ' every list follows its service');
+  chk(name, 'save and reopen', 'and the figures it shows are S3’s and S5’s: requirement value and budget authority, FY27',
+    R.ev(`JSON.stringify([DATA.items.map(function(i){ return i.ask; }), S.discSvc, S.mandSvc])`),
+    J([[0, 1, 2].map(r => [w4amt(0, 0, r, 2), w4amt(0, 0, r, 4)]), [w4amt(0, 6, 0, 2) + w4amt(0, 8, 0, 2), w4amt(0, 6, 0, 4) + w4amt(0, 8, 0, 4)],
+       [w4amt(0, 7, 0, 2) + w4amt(0, 9, 0, 2), w4amt(0, 7, 0, 4) + w4amt(0, 9, 0, 4)]]));
+  chk(name, 'errors (control)', 'no script error on either board', J(B.errors.concat(R.errors)), '[]');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// A PPBE CYCLE IS A FIXED POINT, read by place against the list: the services it holds keep their names and places.
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — a kept PPBE cycle fixes the services it holds (item 80)';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['A', 'B', 'C'], ['R']), ev = B.ev;
+  ev(`bmSetBase('disc',0,'1000'); bmSetBase('disc',1,'2000'); bmSetBase('disc',2,'3000'); blCyc='PB'; blYr=2027; cycLock(); 'ok'`);
+  const lock0 = ev(`JSON.stringify(CYCDB.cycles)`);
+  const was = ev(`JSON.stringify([SVC, S.discSvc, S.custom[0].ask])`);
+  ev(`window.__al=[]; svcMove(0,1); svcMove(2,-1); prompt=function(){ return 'Ax'; }; svcRen(0); window.__cf=[]; svcDel(2)`);
+  chk(name, 'refused', 'with PB27 locked over A, B, C: ▲▼, rename and ✕ each change nothing, and nothing is asked',
+    ev(`JSON.stringify([SVC, S.discSvc, S.custom[0].ask])`) + ' ' + ev(`window.__cf.length`), was + ' 0');
+  chk(name, 'refused', 'each says why, naming the cycle and the services it holds',
+    ev(`JSON.stringify(window.__al.map(function(m){ return /PB27 \\(locked\\) holds A, B, C/.test(m) && /fixed point/.test(m); }))`), J([true, true, true, true]));
+  chk(name, 'kept (control)', 'the cycle itself is untouched', ev(`JSON.stringify(CYCDB.cycles)`) === lock0, true);
+  ev(`prompt=function(){ return 'D'; }; svcAdd()`);
+  chk(name, 'add (control)', 'a service can still be added at the end', ev(`JSON.stringify([SVC, S.discSvc])`), J([['A', 'B', 'C', 'D'], [1000, 2000, 3000, 0]]));
+  ev(`window.__al=[]; svcMove(3,-1)`);
+  chk(name, 'refused', 'and moving it into the cycle’s places is refused too', ev(`JSON.stringify([SVC, window.__al.length])`), J([['A', 'B', 'C', 'D'], 1]));
+  // the same lock UNLOCKED still reads by place: it fixes the list until it is deleted
+  ev(`CYCDB.cycles['PB|2027'].locked=false; window.__al=[]; svcMove(0,1)`);
+  chk(name, 'unlocked', 'an unlocked cycle fixes them too, and says it is unlocked',
+    ev(`JSON.stringify([SVC, /PB27 \\(unlocked\\)/.test(window.__al[0]||'')])`), J([['A', 'B', 'C', 'D'], true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// THE REPROGRAMMING LOG AND A HELD SUBMITTAL read a service by its place too (this appropriation's rows only).
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — reprogramming rows and held submittals follow the list (item 80)';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['A', 'B', 'C', 'D'], ['R']), ev = B.ev;
+  ev(`RPDB.entries=[{id:'r0',ts:1,ap:APPN,fy:2027,type:'BTR',svc:0,amtM:1},{id:'r2',ts:1,ap:APPN,fy:2027,type:'BTR',svc:2,amtM:2},
+    {id:'r3',ts:1,ap:APPN,fy:2027,type:'BTR',svc:'3',amtM:4},{id:'rx',ts:1,ap:'OPN',fy:2027,type:'BTR',svc:0,amtM:3},
+    {id:'rn',ts:1,ap:APPN,fy:2027,type:'BTR',svc:1,svcName:'B',svcPos:1,svcBy:'pick',amtM:5}];
+    PMOSUBS=[{pmo:'PSM', svc:['A','B','C','D'], items:{}, base:{}, added:[], forFy:2027}];
+    PMOSUBS[0].items[S.custom[0].id]={asks:[11,22,0,44]}; PMOSUBS[0].base[S.custom[0].id]={asks:[1,2,0,4]}; PMOSUBS[0].baseSeen=PMOSUBS[0].base;
+    svcMove(0,1); 'ok'`);
+  chk(name, 'move', 'A and B swapped: this appropriation’s rows follow their service, stamped; a held submittal’s figures follow theirs',
+    ev(`JSON.stringify([RPDB.entries.filter(function(r){ return r.ap===APPN; }).map(function(r){ return r.id+':'+(SVC[r.svc])+':'+(r.ts>1); }),
+      PMOSUBS[0].items[S.custom[0].id].asks, PMOSUBS[0].base[S.custom[0].id].asks])`),
+    J([['r0:A:true', 'r2:C:false', 'r3:D:false', 'rn:B:true'], [22, 11, 0, 44], [2, 1, 0, 4]]));
+  // v1.97 integration: a row named by its service (W5) keeps its name, and its seal moves with its place
+  chk(name, 'move · a named row', 'rn names B: after the swap it still reads B, sealed at B’s new place',
+    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([rpSvcOf(r).name, rpSvcOf(r).how, r.svcPos, r.svc]); })()`),
+    J(['B', 'pick', 0, 0]));
+  chk(name, 'other (control)', 'a row for another appropriation is not this list’s', ev(`JSON.stringify(RPDB.entries.filter(function(r){ return r.ap!==APPN; }).map(function(r){ return r.svc; }))`), J([0]));
+  ev(`window.__al=[]; window.__cf=[]; svcDel(1)`);
+  chk(name, 'delete refused', 'A has a reprogramming row and a held submittal’s figures: removing it is refused, saying so, before anything is asked',
+    ev(`JSON.stringify([SVC, window.__cf.length, /1 reprogramming log entry/.test(window.__al[0]||''), /submittal held/.test(window.__al[0]||'')])`),
+    J([['B', 'A', 'C', 'D'], 0, true, true]));
+  ev(`svcDel(2)`);
+  chk(name, 'delete', 'C (no submittal figure) has row r2: refused too', ev(`JSON.stringify(SVC)`), J(['B', 'A', 'C', 'D']));
+  ev(`RPDB.entries=RPDB.entries.filter(function(r){ return r.id!=='r2'; }); svcDel(2)`);
+  chk(name, 'delete', 'once nothing is on C it goes, and the rows past it move up with their service',
+    ev(`JSON.stringify([SVC, RPDB.entries.filter(function(r){ return r.ap===APPN; }).map(function(r){ return r.id+':'+SVC[r.svc]; }), PMOSUBS[0].items[S.custom[0].id].asks])`),
+    J([['B', 'A', 'D'], ['r0:A', 'r3:D', 'rn:B'], [22, 11, 44]]));
+  // v1.97 integration: a rename is the same service, and the row named by it follows the new name
+  ev(`svcSaveList(['Bz','A','D'], [0,1,2]); 'ok'`);
+  chk(name, 'rename · a named row', 'B renamed Bz: the row named B now reads Bz, at the same place, still confirmed',
+    ev(`(function(){ const r=RPDB.entries.find(function(x){ return x.id==='rn'; }); return JSON.stringify([SVC, r.svcName, rpSvcOf(r).name, rpSvcOf(r).how, rpSvcOf(r).inList]); })()`),
+    J([['Bz', 'A', 'D'], 'Bz', 'Bz', 'pick', true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// ON A BOARD WHOSE DATA NAMES ITS SERVICES the list is fixed: ▲▼ and rename were offered there and did nothing.
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — a board whose data names its services offers no ▲▼ or rename (item 80)';
+  try {
+  const J = JSON.stringify;
+  const T = w4Template(['A', 'B', 'C'], ['R']);
+  const D = boot({ html: T.ev(`buildSavedHtml()`) }), ev = D.ev;   // saved with a requirement, it reopens on its data pack
+  ev(`localStorage.setItem('prio27who','w4'); window.__pr=0; prompt=function(){ window.__pr++; return 'Z'; }; svcPanelOpen=true; render(); 'ok'`);
+  chk(name, 'panel', 'the 🏷 Services panel lists A, B, C with no ▲, ▼, rename or ✕, and no ＋ Add',
+    ev(`JSON.stringify([SVC_FROM_DATA, [].slice.call(document.querySelectorAll('#svcList b')).map(function(b){ return b.textContent; }), document.querySelectorAll('#svcList button').length])`),
+    J([true, ['A', 'B', 'C'], 0]));
+  const was = ev(`JSON.stringify([MS.svc, SVC, S.custom[0].ask, S.discSvc])`);
+  ev(`svcMove(0,1); svcRen(0); svcSaveList(['B','A','C'], [1,0,2]); 'ok'`);
+  chk(name, 'nothing', '▲▼, rename and the list itself change nothing there — not even the stored list — and rename asks nothing',
+    ev(`JSON.stringify([MS.svc, SVC, S.custom[0].ask, S.discSvc])`) + ' ' + ev(`window.__pr`), was + ' 0');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// THE DATA PACK THE BOARD WROTE names its services when the file is next opened. Save rewrites it only while the board
+// has a requirement, so a board whose requirements were all removed kept the old list over the new figures.
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — a data pack the board wrote keeps step with its list (item 80)';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['A', 'B', 'C'], ['R']), ev = B.ev;
+  ev(`bmSetBase('disc',0,'1000'); bmSetBase('disc',1,'2000'); bmSetBase('disc',2,'3000'); save(); removeReq(S.custom[0].id); svcDel(0); 'ok'`);
+  const R = boot({ html: ev(`buildSavedHtml()`) });
+  chk(name, 'reopen', 'A removed with no requirement left: the file reopens on B, C with B’s and C’s budget authority',
+    R.ev(`JSON.stringify([SVC, S.discSvc])`), J([['B', 'C'], [2000, 3000]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// CONTROL: an award of the wrong width (a damaged record, in a year not opened since) is not cut or padded to look whole
+// by the move: applyState's award check repairs it from its total and keeps it as found.
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — an award of the wrong width is repaired from its total, not cut, when the list changes (item 80) — control';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['A', 'B', 'C', 'D'], ['R']), ev = B.ev;
+  ev(`switchYear(2028); switchYear(2027); MS.years[2028].awards[S.custom[0].id]={mode:'inc', inc:[{d:'2027-11', day:3, sv:[10,20,30]}]}; svcMove(0,1); 'ok'`);
+  chk(name, 'repaired (control)', 'the FY28 award keeps its $60, spread over the values and marked, its record kept as found',
+    ev(`(function(){ var a=MS.years[2028].awards[S.custom[0].id]; return JSON.stringify([a.inc[0].sv.reduce(function(x,y){ return x+y; },0), a.inc[0].sv.length,
+      !!(a.fix && a.fix.how), JSON.parse(awdOrigText(a.fix && a.fix.orig)).inc[0].sv]); })()`), J([60, 4, true, [10, 20, 30]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// A DATA PACK THAT NAMES REQUIREMENTS BUT NO SERVICES leaves the board keeping its own list -- and its baseline values,
+// its budget and its CLINs are read by place against that list too.
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — a board whose data names no services keeps its baseline, budget and CLINs with their service (item 80)';
+  try {
+  const J = JSON.stringify;
+  const store = { base: 2027, cur: 2027, ts: 1, years: { 2027: { order: ['B1'], custom: [], removed: [] } }, svc: ['A', 'B', 'C'],
+    dataPack: { services: [], items: [{ id: 'B1', grp: 'PSM', team: 'PSM', sect: '', title: 'Base one', event: 'E', ccar: '', fy26: [7, 8, 9], ask: [100, 200, 300] }],
+      budget: [1000, 2000, 3000], clins: { B1: [{ clin: '0001', desc: 'x', ccar: '', ask: [11, 22, 33] }] } } };
+  const B = boot({ ls: { prio27om: J(store), prio27who: 'w4' } }), ev = B.ev;
+  ev(`confirm=function(){ return true; }; svcMove(0,1); 'ok'`);
+  chk(name, 'move', 'A moved down: the baseline value, the prior-year value, the budget and the CLIN’s ask each follow their service',
+    ev(`JSON.stringify([SVC, BASE_ASK.B1, itemById('B1').ask, BASE_ITEMS[0].fy26, DATA.budget, CLINS.B1[0].ask])`),
+    J([['B', 'A', 'C'], [200, 100, 300], [200, 100, 300], [8, 7, 9], [2000, 1000, 3000], [22, 11, 33]]));
+  const R = boot({ html: ev(`buildSavedHtml()`) });
+  chk(name, 'save and reopen', 'saved and reopened, B1 asks B $200, A $100, C $300', R.ev(`JSON.stringify([SVC, itemById('B1').ask])`),
+    J([['B', 'A', 'C'], [200, 100, 300]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// CONTROL: with no list before, there is no service to follow. Figures a state held while the list was empty are kept
+// as they came in and aligned by place against the first service added, as v1.96 did -- never zeroed by the remap.
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — the first service added takes what the board held before it had a list (item 80) — control';
+  try {
+  const J = JSON.stringify;
+  const B = boot(), ev = B.ev;
+  ev(`localStorage.setItem('prio27who','w4'); confirm=function(){ return true; };
+    S.bm={disc:[500,600], mand:[50,60], adds:[]}; S.custom=[{id:'NEW-1', grp:'PSM', custom:true, title:'X', event:'', ccar:'', fy26:[0,0], ask:[100,200], alloc:null}];
+    S.order=['NEW-1']; applyState(S); MS.years[MS.cur]=S; prompt=function(){ return 'A'; }; svcAdd(); 'ok'`);
+  chk(name, 'first service (control)', 'A, the first service, takes the first figure of each list it found', ev(`JSON.stringify([SVC, S.discSvc, S.mandSvc, S.custom[0].ask])`),
+    J([['A'], [500], [50], [100]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// THE JOURNAL records a figure by its place. Put back after the list changed, it would land on whichever service holds
+// that place now -- so a journalled figure from before the change is not put back; a single value (a note) still is.
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.97 W4 — a figure journalled before the list changed is not put back on another service (item 80)';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['A', 'B', 'C'], ['R']), ev = B.ev;
+  ev(`S.custom[0].ask[0]=150; save(); S.notes[S.custom[0].id]='kept'; save(); 'ok'`);
+  const at = JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).map(function(e){ return e.p.join('.'); }))`));
+  const iAsk = at.lastIndexOf('custom.0.ask.0'), iNote = at.lastIndexOf('notes.' + ev(`S.custom[0].id`));
+  ev(`svcMove(0,1); window.__cf=[]; jrnlUndo(${iAsk}); 'ok'`);
+  chk(name, 'by place', 'R’s value for A, typed before A moved down, is not put back onto B, now first: nothing changes and nothing is asked',
+    ev(`JSON.stringify([SVC, S.custom[0].ask, window.__cf.length])`) + ' ' + (iAsk >= 0), J([['B', 'A', 'C'], [200, 150, 300], 0]) + ' true');
+  ev(`jrnlUndo(${iNote}); 'ok'`);
+  chk(name, 'one value (control)', 'a note typed before the change can still be put back', ev(`JSON.stringify(S.notes[S.custom[0].id]||null)`) + ' ' + (iNote >= 0), 'null true');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// ==== end v1.97 W4 ====
+// ==== v1.97 W5: the reprogramming log by service and in whole dollars, and its money-map cells (items 81, 62) ====
+// ==== end v1.97 W5 ====
+// ==== v1.97 W6: the money map’s nine open cells, except the reprogramming log (item 62) ====
+// v1.97 INTEGRATION (item 75): THE $M FIELDS ARE READ WHOLE TOO. W1 made every typed dollar figure read whole or not at
+// all; the Funds Flow's partner and FMS money and the realignment's need, cap, target and credits are typed in $M and
+// were read with parseFloat on what was left after stripping: "abc" made a $12.5M partner figure $0, "1.2.3" was 1.2,
+// 1.2345678 put $1,234,567.80 into the Funds Flow export, and "750K" -- the K stripped, the rest taken as millions --
+// was $750,000,000. Now: a bare number is millions, K/M/B mean what they say, whole dollars, and a figure that cannot
+// be read keeps the one it had. FAILS ON v1.96: [12500000, 0, 1200000, 1234567.8, 750000000, 0] and the realignment's
+// need cleared, its target 4 and its cap 1.2.
+await (async () => {
+  const name = 'v1.97 integration — the $M fields (Funds Flow, realignment) are read whole, and a typo keeps the figure';
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'USN'], items: [it('A1', 'PSM', [500, 700])], disc: [0, 0], mand: [0, 0], order: ['A1'] });
+    const ff = JSON.parse(X.ev(`(function(){ const o=[];
+      flowSetOther(2027,'ip','12.5'); o.push(flowCfg().other[2027].ip);
+      flowSetOther(2027,'ip','abc');  o.push(flowCfg().other[2027].ip);
+      flowSetOther(2027,'ip','1.2.3'); o.push(flowCfg().other[2027].ip);
+      flowSetOther(2027,'fms','1.2345678'); o.push(flowCfg().other[2027].fms);
+      flowSetOther(2027,'fms','750K'); o.push(flowCfg().other[2027].fms);
+      flowSetOther(2027,'fms',''); o.push(flowCfg().other[2027].fms);
+      return JSON.stringify(o); })()`));
+    chk(name, 'Funds Flow · partner and FMS money', '12.5 is $12,500,000; "abc" and "1.2.3" keep it; 1.2345678 is $1,234,568; 750K is $750,000; a blank clears it',
+      J(ff), J([12500000, 12500000, 12500000, 1234568, 750000, 0]));
+    const rl = JSON.parse(X.ev(`(function(){ const o=[];
+      rlgSetSvc('USAF','2.5'); o.push(rlgSvcNeed.USAF);
+      rlgSetSvc('USAF','abc'); o.push(rlgSvcNeed.USAF);
+      rlgSetSvc('USAF','');    o.push(rlgSvcNeed.USAF===undefined);
+      rlgSet('target','40');   o.push(rlgTarget);
+      rlgSet('target','4o');   o.push(rlgTarget);
+      rlgSetCap('7.25');       o.push(rlgCapOverride);
+      rlgSetCap('1.2.3');      o.push(rlgCapOverride);
+      return JSON.stringify(o); })()`));
+    chk(name, 'realignment · need, target and cap', 'a figure that cannot be read keeps the one it had; a blank clears the need',
+      J(rl), J([2.5, 2.5, true, 40, 40, 7.25, 7.25]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+})();
+// v1.97 INTEGRATION: AN IMPORT THAT REORDERS THE SERVICES TAKES THE BUY LINES WITH THEM. svcRemapState() carries every
+// per-service list of an incoming board into this board's order; BUY-AC and BUY-ENG's base, adjustment and unit cost were
+// not among them (W4 found it by reading), so a file listing its services in another order put each service's buy
+// adjustment and cost on another service. Driven through the board's own remap with the file's order [C, A, B] against
+// this board's [A, B, C]. FAILS ON v1.96 (the vectors came back unmoved).
+await (async () => {
+  const name = 'v1.97 integration — an import that reorders the services takes the buy lines with them';
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    const got = X.ev(`JSON.stringify(svcRemapState({buys:{ac:{base:[3,1,2], adj:[30,10,20], cost:[300,100,200], locked:false},
+      eng:{base:[6,4,5], adj:[60,40,50], cost:[600,400,500], locked:true}}}, [1,2,0]).buys)`);
+    chk(name, 'svcRemapState · buys', 'each buy line’s base, adjustment and unit cost follow their service into this board’s order',
+      got, J({ ac: { base: [1, 2, 3], adj: [10, 20, 30], cost: [100, 200, 300], locked: false }, eng: { base: [4, 5, 6], adj: [40, 50, 60], cost: [400, 500, 600], locked: true } }));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+})();
+// ==== end v1.97 W6 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

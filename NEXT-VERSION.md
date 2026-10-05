@@ -4,19 +4,9 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.96**. Next: **v1.97**.
+Current version: **v1.97**. Next: **v1.98**.
 
 ## Open
-
-#### 62. The money map's nine open cells (deferred by Brad 3 Oct; in v1.97 on Brad's word, 5 Oct 2026)
-- Two Spend Plans × service, requirement and lane; the ATR/BTR log × appropriation, year and service; Funds Flow ×
-  appropriation and year; the ACE tie-out × year. Each is listed in `tools/money-map.md` until it is built.
-- **5 Oct review (R12):** asks Brad to revisit this deferral under the zero-tolerance bar. **Brad, 5 Oct 2026: yes --
-  build them in v1.97.**
-- **What:** each cell gets its own oracle in whole dollars, worked out independently of the code that makes the export,
-  with a different amount on every service, requirement, lane, appropriation and year so a swap cannot hide in a total;
-  the export is checked against it and the cell moves from open to proven. An agreement with another of the board's own
-  helpers does not count as proof. The ATR/BTR log × service cell is built after item 81.
 
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
@@ -38,110 +28,33 @@ Current version: **v1.96**. Next: **v1.97**.
 - **The legacy shared state file opened by the Windows launcher** (`spmtSidecar=1`, XHR) answers into the same function the
   HTTPS path does, and is covered by the same checks; it was not run with a real launcher.
 
-#### 72–81. The 5 Oct engineering review of v1.96 (main `9fbf5f6`)
-- **Logged:** 5 Oct 2026, from an independent review Brad pasted. It recommends not certifying v1.96 against the
-  zero-tolerance bar for data loss and money math. Each finding below was reproduced again here, on the same board
-  file (blob `f984a4a`), in the jsdom harness against the real board (`SP/v196rev/probe.mjs`) or by reading the path
-  line by line; how each was confirmed is said. R11 is item 71 and R12 is item 62, both already logged.
-- **Fail-before for every one:** each fix lands with a check that fails on v1.96 and a mutation that removes the fix.
 
-#### 72. Typing a budget total keeps every dollar (review R01)
-- **Found (reproduced):** `setBATot` scales each service into fractional dollars and `applyBudget` rounds each one alone.
-  With three equal services: $1 becomes $0, $2 becomes $3, $7 becomes $6, $100,000,000 becomes $99,999,999 -- in the
-  budget authority the lanes walk.
-- **What:** split the typed total with `apportion` (equal weights when all are zero) so the stored base and the live
-  lane are whole dollars that add up to exactly what was typed.
-- **Acceptance:** both lanes; totals 0, 1, 2, odd and large; equal, unequal and zero weights; with funding additions;
-  save and reopen. Every part a safe integer and the sum exact.
-
-#### 73. An old-style split funds both of its lanes (review R02)
-- **Found (reproduced):** a legacy whole-requirement split (`{m:'split', d, mnd}`), which only older files carry -- the
-  board has written per-service splits since -- apportions discretionary and mandatory separately over the same basis.
-  On a tie both pick the same service, and mandatory is clipped: a $1 + $1 split on [1, 1] funds $1 and leaves $1
-  unfunded, while the row still totals.
-- **What:** place mandatory against what is left of each service after discretionary, inside each service's real
-  lane caps. Directed splits do not change.
-- **Acceptance:** an independent oracle on legacy and directed rows; ties, reversed service order, zero basis, real
-  lane shortages, odd totals.
-
-#### 74. A negative allocation is refused (review R03)
-- **Found (reproduced):** typing `-2` as an allocation on a requirement of [1, 1] is accepted; its basis becomes
-  [-1, -1], every lane draw is zero and `d + m + u` no longer equals the basis.
-- **What:** refuse a negative allocation and keep the value it had; the basis is never below zero. A negative arriving
-  in an older file is kept as it was and listed for repair, not silently erased. Signed fields that are meant to be
-  signed (reprogramming deducts) are unchanged.
-
-#### 75. Typed money is checked as strictly as imported money, and a typo never zeroes a figure (review R04)
-- **Found (reproduced):** `parseAmt` reads only the front of what is typed: `100oops` is $100, `1.2.3` is $1, `1e309`
-  is $0, `9007199254740993` loses a dollar, and $10,000,000,000,001 is accepted though an import refuses anything
-  over $10 trillion. Worse: typing `abc` into a $500 requirement value **sets it to $0**.
-- **What:** the whole entry must read as an amount (commas, `$`, K/M/B); finite, a safe whole dollar, inside the same
-  bounds the import door uses. A blank that means "clear" stays distinct from text that cannot be read. Anything that
-  cannot be read keeps the old figure and says why.
-- **Acceptance:** malformed suffixes, two decimal points, overflow, the safe-integer and import-bound edges, `$1,234`
-  and `2.5M`, negatives where they are not allowed; save, export and reimport.
-
-#### 76. Every edit the saved file carries marks the board unsaved (review R05)
-- **Found (reproduced):** editing the reprogramming log writes browser storage but never calls `save()`: the board
-  stays marked saved (`DIRTY` false, save generation unmoved) while the saved file does carry the log. An edit made
-  while a save is writing is acknowledged as saved though the file does not have it.
-- **What:** every list the saved file carries -- reprogramming, execution, cost estimates, budget extract,
-  destinations, cycles -- moves the save generation and marks the board unsaved when it changes. A save clears only
-  what it actually wrote, and a refused browser write never reads as clean.
-- **Acceptance:** an edit to each of those lists at each wait of a save; the bytes written inspected; reopen with
-  storage absent or refused.
-
-#### 77. ⇊ Import several boards at once decides before it writes (review R06)
-- **Found (by reading the path):** storage is written (`lsAll`) and `PUBS` replaced before `applyStore` is asked. If
-  the board refuses -- a locked cycle on screen, or the service-list question answered No -- the message still says
-  "Imported" and the next reload opens the refused board. A remap accepted after the write leaves the pre-remap bytes
-  stored. (Item 67, v1.96, made the writes all-or-nothing; this is the step before them.)
-- **What:** check every file, its appropriation's service list, a locked cycle and the person's answers first; then
-  write the final, remapped bytes all at once; a refusal leaves storage and memory exactly as they were and says so.
-- **Acceptance:** remap refused and accepted, a locked cycle, a second file failing, storage full, two files for one
-  appropriation, files finishing in either order; reopen and compare every byte.
-
-#### 78. ↶ Put this back pins its year before its first wait (review R07)
-- **Found (by reading the path):** item 66 (v1.96) pinned the appropriation and year *after* the folder and the history
-  copy were read, so a year switched during those two reads is the one pinned, and the FY27 copy can be put back into
-  FY28. The reads before the pin also use the year on screen.
-- **What:** pin the appropriation, year and the history copy's own name before the first wait; every read and keep uses
-  the pinned year; the final check also confirms the copy belongs to that year.
-- **Acceptance:** a year switch at each wait, including the first; switch away and back; edits while waiting.
-
-#### 79. A folder save keeps the copy it replaces, or does not write; autosave never hides why (review R08)
-- **Found (by reading the path):** when the history copy cannot be kept, the folder save still writes and reports
-  success with a warning, and autosave then replaces that warning with "Saved automatically". History is also
-  skipped by design when the last copy is under ten minutes old. The copy replaced is always this person's own previous
-  save (anyone else's newer save is refused first), so no one else's work is lost; but a bad save can't be undone.
-- **What (Brad, 5 Oct 2026: yes):** keep the exact copy being replaced every time, and if it cannot be kept, write
-  nothing and say so -- the work stays on screen, unsaved. Autosave never replaces a warning with a success message.
-- **Acceptance:** each history step failing (list, create, write, close); no overwrite, the folder copy's bytes
-  unchanged, the work still marked unsaved, and the warning still on screen after autosave.
-
-#### 80. Changing a board's own service list moves each service's dollars with it (review R09)
-- **Found (reproduced):** on a board with no data pack, which keeps its own service list, ▲▼ relabels the services but
-  leaves the dollars where they were: S1 $100 / S2 $200 moved becomes S2 $100 / S1 $200. Deleting S1 keeps S1's $100
-  under S2's name and drops S2's $200 (awards are cut from the end, not the column removed). On a board whose data pack
-  names its services, ▲▼ and rename appear but do nothing.
-- **What:** move and delete by service, through every per-service list in every year and locked cycle; deleting a
-  service that holds money says how much first. On a data-backed board, ▲▼ and rename are not offered.
-- **Acceptance:** a different amount per service; first, middle and last deleted; both directions; requirement values,
-  allocations, budget authority, awards, CLINs; every year; save and reopen.
-
-#### 81. The reprogramming log reads each row's service from its own appropriation (review R10)
-- **Found (reproduced):** the log is shared by all four appropriations but each row's service is read against the
-  board on screen. A $1M Full Fund action at service 2, exported from an O&M board with one service, shows no service,
-  and the summary by service totals $0 while the detail totals $1M.
-- **What:** resolve each row against its own appropriation's list; a service that cannot be resolved shows as such and
-  is still counted, so detail and summary always agree.
-- **Acceptance:** two appropriations with different and reordered lists; missing and out-of-range services; all and
-  filtered exports; several years.
-- **Whole dollars only (Brad, 5 Oct 2026: "no fractional values").** The log takes $M with fractions today (0.0000001
-  is about ten cents). Entries stay in $M, but every amount must come to a whole number of dollars ($1.5M is
-  $1,500,000); anything finer is refused with the dollar figure it would have been, never rounded silently. An entry
-  already saved with a fraction of a dollar is kept as it is, marked in the log and named by the export until someone
-  corrects it.
+#### 82. Found while building v1.97, not built
+- **Logged:** 5 Oct 2026, from the six workstreams' reports and the integration.
+- **⬇ Export funds flow writes the last fiscal year on screen, across every appropriation**, not what the panel shows (the
+  panel showed FY25 + FY26 for O&M, 3,000; the export held FY26 for all appropriations, 2,000). Its Scope line says so.
+  Changing it changes what the export is for: Brad's call.
+- **A year with execution imported for any appropriation counts as executed for all of them**: Full Fund FY27 execution
+  made O&M's planned FY27 print $0, with no warning. The rule is "execution wins per year"; per appropriation is a design
+  change.
+- **An office with an estimate line but no requirement in a year** is left off that year's ACE "Reconciliation by PMO"
+  block and its total (it is still listed under Lines Nothing Claims).
+- **The ACE alignment breakout carries the allocation, not what the lanes fund.** Its note now says so; whether it should
+  carry funded dollars instead is Brad's call.
+- **A kept PPBE cycle fixes the services it holds** (item 80's choice): they cannot be moved, renamed or removed while it
+  is kept. Re-reading a cycle by name instead would allow it -- Brad's call.
+- **Journal entries from before a service-list change** that carry a place or a list can no longer be put back; the
+  figure is typed again.
+- **The side lists' unsaved state lasts one session**, like `DIRTY`: list edits waiting in browser storage read as saved
+  after a reload. Some list changes never reach the counter: an execution import that throws part-way, a log share that
+  merges and then fails to write, the destination list's default seed.
+- **A reprogramming row written by v1.96 carries only a place**, which v1.96's picker took from the board on screen. It
+  is read against its own appropriation's list and marked "(by position)" until someone picks.
+- **PPBE values copied into the budget base** (`bmSeedFromPp`) are not apportioned; whole dollars when typed, so this
+  matters only for a fraction arriving in a file.
+- **Items 77–79 were run in jsdom against stand-in folders and file readers**, not with real File System Access in
+  Chromium. A history folder that exists but cannot be opened now also stops the log and cost-estimate shares (stricter
+  than before). Boards older than v1.97 neither see nor thin the new `…-recent.json` history copies.
 
 ## Later
 
@@ -205,6 +118,106 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v1.97 — 5 Oct 2026: items 62 and 72–81, built on Brad's "go" -- the 5 October review of v1.96, and the money map's nine cells
+
+**The money is right where it was not.** An independent engineering review of v1.96 (5 Oct) found ten ways the board could
+gain, lose or misplace a dollar or lose work; every one was reproduced on v1.96 and every one is fixed. Typing a budget
+total keeps every dollar; an old-style split funds both of its lanes; a negative allocation is refused; typed money is
+read whole -- "abc" no longer turns a $500 requirement value into $0, and "750K" in a $M field is no longer $750,000,000;
+every edit the saved file carries marks the board unsaved; ⇊ Import several boards decides before it writes; ↶ Put this
+back pins its year before its first wait; a folder save keeps the copy it replaces or writes nothing; moving or removing
+a service takes its dollars with it; and the reprogramming log reads each row's service from its own appropriation, in
+whole dollars.
+
+**Every cell of the money map is proven** -- the nine Brad had deferred on 3 Oct included (his word, 5 Oct): 123 proven, 206
+not applicable, none open. Each new cell is held by an oracle worked out from the fixture's own numbers, and two of them
+found real defects: the 📋 Two Spend Plans funded a service above what it asked for when it was allocated or directed above
+it, and the ACE tie-out's breakout note said its lines add up to what the board funds, which they do not.
+
+**Found while integrating, and fixed:** the three imports that remap services (⇊ Import several, 🔁 Appropriation packages,
+taking an appropriation from a consolidated file) relabelled an incoming board's data pack and left its figures in the
+file's order, so every untouched requirement value sat on another service when that appropriation was next opened; an
+import that reordered services also left the buy lines' adjustments and unit costs behind; and the Excel Two-Plan
+Forecast said a requirement forced to Mandatory competes for discretionary in Plan A, which has not been so since 7 Sep.
+
+**The final check** passed on the final tree, 5 Oct 1:42–7:17 pm Eastern: **334.9 minutes**, every stage clean — the defect register (13 defects, 43 mutations), money coverage (26 of 26 surfaces), the money map (329 cells: **123 proven, 206 not applicable, 0 open**), the trace matrix (92 cells), all eight suites, every browser check, the fuzz (seed 47996740) and the file verifier — and **all 1,041 planted mistakes caught** (11 more change nothing by design, as before): v1.96's 879 plus 162 new, 11 retargeted, all presweept first. It passed on the first run. It took 143 minutes longer than v1.96's, and this time the machine was not the cause: the fuzz and the file verifier ran as fast as before. The new checks are: the eight suites take 7.4 minutes (4.8 before), each planted mistake re-runs one of them, and there are 162 more. Allow about six hours. It is the same single `npm run validate:math`, run detached past the two-hour limit on background jobs as before.
+
+#### 62. The money map's nine open cells (deferred by Brad 3 Oct; built on his word, 5 Oct 2026)
+- **Logged:** 3 Oct 2026 (the pre-launch review's map); the 5 Oct review (R12) asked for them under the zero-tolerance bar.
+- **As built:** Two Spend Plans × service, requirement and lane; Funds Flow × appropriation and year; ACE tie-out × year
+  (W6); the ATR/BTR log × appropriation, year and service (W5, after item 81). Each oracle walks the fixture itself, with a
+  different amount on every service, requirement, lane, appropriation and year, and compares to the dollar. The plans
+  oracle found plans funding above the ask and forced rows asking for their trim: `fsDirVec`, inside the basis, is what
+  both plans read now, and a legacy split asks for what the lane engine places (`scalarSrcVec`, integration).
+- **Checks:** `audit-recon.mjs` "v1.97 W6 — the two spend plans…", "…the funds flow…", "…the ACE tie-out…", W5's
+  "reprogramming log" scenarios and "v1.97 integration — a legacy split asks each spend plan…"; 137 of W6's checks fail on
+  v1.96 (the funds flow and most ACE figures were already right -- oracles, labelled). `node tools/money-map.mjs`: 0 open.
+
+#### 72. Typing a budget total keeps every dollar (review R01)
+- **Found:** `setBATot` scaled each service into fractions and `applyBudget` rounded each alone: $1 over three services was
+  $0, $7 was $6, $100,000,000 was $99,999,999. (Nothing on the screen called it in v1.96; fixed all the same.)
+- **As built:** `apportion` spreads the typed total; a fractional v1.96 base reopens apportioned to its rounded total; the
+  CLIN request (`clinSetReq`) spreads the same way.
+
+#### 73. An old-style split funds both of its lanes (review R02)
+- **Found:** a legacy `{m:'split', d, mnd}` spread mandatory over the same basis as discretionary; on a tie it was clipped,
+  and a $1 + $1 split on [1, 1] funded $1 while the row still totalled.
+- **As built:** mandatory is placed against what discretionary leaves of each service (`scalarSrcVec`), read by the lane
+  engine and the Two Spend Plans alike.
+
+#### 74. A negative allocation is refused (review R03)
+- **Found:** `-2` on a requirement of [1, 1] was taken; its basis went to [-1, -1] and `d + m + u` no longer held.
+- **As built:** typed negatives are refused and the old value kept; `svcAlloc` floors at 0; a negative in an older file is
+  kept exactly as saved and listed under Needs attention › ➖ negative allocations to repair.
+
+#### 75. Typed money is read whole, and a typo never zeroes a figure (review R04)
+- **Found:** `100oops` was $100, `1.2.3` was $1, `1e309` was $0, and `abc` over a $500 requirement value made it $0.
+  Integration found the $M fields read the same way: "750K" in the Funds Flow was $750,000,000.
+- **As built:** `amtRead` / `parseAmt` / `amtNo` (whole entry, whole dollars, `IN_MAX_AMT`, blank is a clear, anything else
+  keeps the figure and says why) for all 18 editors; `amtReadM` for the Funds Flow and realignment $M fields.
+
+#### 76. Every edit the saved file carries marks the board unsaved (review R05)
+- **Found:** a reprogramming edit (and an ACE, execution or BAE import, a cycle lock, a package for another appropriation)
+  never marked the board unsaved, though the saved file carries it.
+- **As built:** `lsSet` counts every list the file carries (`fileKeyOf`, `_sideGen`); a file save acknowledges only what its
+  bytes hold; a folder save never acknowledges the lists; a list storage refused stays unsaved until it is in the file.
+
+#### 77. ⇊ Import several boards at once decides before it writes (review R06)
+- **Found:** it wrote storage and `PUBS` before asking `applyStore`; a refusal still said "Imported" and the next reload
+  opened the refused board.
+- **As built:** a locked cycle, each appropriation's services (the others newly checked), two files for one appropriation
+  and an unreadable file are all settled first; then one write; a late refusal puts everything back. The incoming packs
+  follow a remap, figures and all, in all three remapping imports (`svcRelabelPacks`, integration).
+
+#### 78. ↶ Put this back pins its year before its first wait (review R07)
+- **Found:** item 66 (v1.96) pinned the year after the folder and the copy were read, so a switch during those reads was
+  the year pinned.
+- **As built:** appropriation, year, board, a year-switch count and the copy's name are pinned first; a stale list or a
+  copy that does not match its name puts nothing back; the move check runs before the history keep and at the end.
+
+#### 79. A folder save keeps the copy it replaces, or writes nothing (review R08; Brad: yes)
+- **Found:** with the history copy failed it saved anyway, and autosave then said "Saved automatically".
+- **As built:** every save that replaces a copy keeps its exact bytes first (a `…-recent.json` copy inside ten minutes of
+  the last spaced one); if it cannot, ⛔ Not saved, nothing written, work still unsaved. History is thinned only after both
+  land and reaches as far back as before. Autosave never writes over what its save said.
+
+#### 80. Moving, renaming or removing a service takes its dollars with it (review R09)
+- **Found:** on a board with no data pack, ▲▼ relabelled the dollars and removing a service cut the last column.
+- **As built:** `svcSaveList(list, from)` carries every per-service list in every year, the data, the packs, held
+  submittals and this appropriation's reprogramming rows (named rows keep their name -- integration); removal says what
+  the service holds first; a kept PPBE cycle fixes its services; a data-backed board shows the list only. A new Help
+  section says so. An import that reorders services now takes the buy lines with them (integration).
+
+#### 81. The reprogramming log reads each row's service from its own appropriation, in whole dollars (review R10; Brad: no fractional values)
+- **Found:** a $1M Full Fund row exported from O&M showed no service, and the summary by service totalled $0.
+- **As built:** each row keeps its service by name (sealed by its place), read against its own appropriation's list;
+  older rows are read by position and marked until picked; Unresolved is counted; the $M field takes whole dollars only;
+  a saved fraction is kept, marked and named in the export's Check column; every net is exact. A new Help section.
+
+**Checks for 72–81:** new scenarios in `audit-board.mjs`, `audit-import.mjs` and `audit-recon.mjs`; every new check fails on
+v1.96 unless labelled a CONTROL (W1 104 of 145, W2 42 of 204, W3 38 of 45, W4 29 of 36, W5 51 of 65, W6 137, the
+integration's 9 of 10). 162 new mutations and 11 retargeted, each presweept: 180 of 180 caught (those 173, and 7 existing ones on the import and restore code W3 changed; in three parts: 22, then 157 of 158, then 1 of 1 once a new check covered taking an appropriation from a consolidated file).
 
 ### v1.96 — 4 Oct 2026: items 64–70, built on Brad's "go" -- the menus, and the 4 October review of v1.95
 

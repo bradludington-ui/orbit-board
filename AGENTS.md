@@ -130,6 +130,26 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 - Give a long menu (more than about ten items) anything but folded groups built with `grp()` in `syncBtns`, one open
   at a time; or name a menu path to a folded item without its group -- `npm run menus` fails it. A list of choices
   (the offices) never folds.
+- Read a typed amount with anything but `parseAmt` (and `amtNo` in the editor), or a $M field with anything but
+  `amtReadM`: the whole entry reads as an amount or it is refused, and the figure it had stays. Text that cannot be read
+  never becomes zero, and nothing over `IN_MAX_AMT` goes in.
+- Let a negative allocation into a figure: `svcAlloc` floors each service at 0 (`svcAllocAsSaved` is the raw value). A
+  negative arriving in an older file is kept exactly as saved and listed under Needs attention for repair.
+- Place a whole-requirement source -- forced Disc or Mand, or a legacy `{m:'split', d, mnd}` -- anywhere but
+  `scalarSrcVec`: the lane engine walks it and the Two Spend Plans ask for it (through `fsDirVec`), inside the basis, so
+  no plan funds a service above what it asks for.
+- Write a list `savedHtmlOf()` carries anywhere but through `lsSet()`, under a key `fileKeyOf()` names, or fold those
+  lists into `DIRTY`: they move `_sideGen`, a file save acknowledges only what its bytes hold, and a folder save never
+  acknowledges them.
+- Let an import write before every refusal is settled -- a locked cycle, each appropriation's services, two files for one
+  appropriation, a file that cannot be read -- or remap a board's state without its data packs: `svcRelabelPacks` puts
+  an incoming board's packs in the new order, figures and all, not only the names.
+- Let a folder save replace a copy it could not keep first, thin the history before the write and the copy have both
+  landed, or let the automatic save write over what its save said.
+- Change a board's service list anywhere but `svcSaveList(list, from)`, or carry any per-service list across a list
+  change by position. A kept PPBE cycle fixes the services it holds.
+- Read a reprogramming row's service against `SVC` instead of `rpSvcOf()` (its own appropriation's list), net the log
+  anywhere but `rpNetM()`, or take a $M amount for it anywhere but `rpAmtTyped()` -- whole dollars only.
 - Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity`, `spmtDetail` and
   `spmtMenuGroups`, or the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.

@@ -3648,6 +3648,76 @@ drops its group fails `menu-paths`; on v1.95's fixture keyboard L fails 4 and th
 
 **Gate.** `npm run validate:math` passed on the final tree, 4 Oct 1:43–4:54 pm Eastern, 191.6 minutes: sweep 879/879 caught, 11 equivalent (890), fuzz seed 37296655. Every stage ran 35–50% slower than v1.95's, the unchanged fuzz and file verifier included -- allow about three hours.
 
+### v1.97 (items 62, 72–81): the 5 Oct engineering review of v1.96, and the money map's nine cells
+
+Built on Brad's go of 5 Oct 2026 in six workstreams (W1–W6, each in its own worktree, each check failing on v1.96 unless
+labelled a CONTROL) and integrated by hand. Brad's answers that shaped it: a folder save that cannot keep its history copy
+writes nothing (79); the nine deferred money-map cells are built (62); the reprogramming log takes whole dollars only (81).
+
+**72–75 -- typed money and the engine (W1).** `amtRead(s, o)` reads the WHOLE entry (optional `-` and `$`, digits with
+commas only between groups of three, a decimal part, K/M/B, spaces only between parts), rounds to a whole dollar on the
+digits (half away from zero, said), bounded by `IN_MAX_AMT`; below zero only with `{neg:true}`. `parseAmt` answers the
+figure, `null` for a blank (a deliberate clear) or `NaN` for a refusal; `amtNo(v, val, what, o)` keeps the old figure and
+says why. All 18 callers were audited. `amtReadM` (integration) is the same for $M fields -- a bare number is millions --
+used by the Funds Flow's partner/FMS money and the realignment's need, cap, target and credits ("750K" there was
+$750,000,000). `setBATot` and `clinSetReq` spread with `apportion`; a v1.96 fractional budget base reopens apportioned
+to its rounded total. `svcAlloc` floors each service at 0 (`svcAllocAsSaved` is raw); a saved negative is kept and
+listed under Needs attention (`allocNegOf`, `attLists().neg`, ➖). `scalarSrcVec(fo, basis)` (integration) places a
+whole-requirement source -- forced Disc/Mand, or a legacy split with mandatory against what discretionary leaves of each
+service -- and both `tiers()` and the Two Spend Plans (`fsDirVec`) read it.
+
+**76 -- every list the file carries marks it unsaved (W2).** `lsSet()` is the one counting point: `fileKeyOf(key)` names the
+open board's key `'board'` (moves `_saveGen`, sets `DIRTY`), every other key the saved file carries `'side'` (moves
+`_sideGen`), settings nothing; it counts before the write, so a refused write still counts (`_lsRefused`). The file save
+captures `_sideGen` with its bytes and `sideWrote()` acknowledges only that; the folder save never acknowledges the side
+lists; a download acknowledges nothing. `saveStateShow()` / `unsavedNow()` drive the indicator. The side state resets at
+the end of the boot script, as `DIRTY` does. Side lists stay out of `DIRTY` on purpose: it drives the folder autosave,
+the newer-copy refusal, the shared-state arrival and the cycle-view stash.
+
+**77–79 -- import, restore, folder (W3).** `importBoards` refuses a locked cycle first, sorts results into the order picked,
+refuses an unreadable file, two files for one appropriation, and a service set that differs from that appropriation's
+own list (other appropriations are now checked too); a remap is asked through `svcGuardImport` and the packs follow
+(`svcRelabelPacks`, integration -- all three remapping imports used to relabel the names only); then one `lsAll`, then
+`PUBS` and `applyStore`; a late refusal puts storage and `PUBS` back. `driveRestore` pins appropriation, year, `MS`,
+`_fyMoves` (counted in `switchYear`) and the copy's name before its first await; `moved()` is checked before the history
+keep and at the final synchronous boundary; the copy's `ap`/`fy`/`store.cur` must match its name. `_driveStorePushRun`
+always keeps the exact bytes it read (`driveStoreRead(dir, ap, fy, raw)`); `snapKeep(..., out)` returns 'kept'/'none'/
+'failed', a save under ten minutes after the newest spaced copy keeps its predecessor as `…-recent.json`, and
+`snapPrune(dir, fy, ap, keep, recents)` thins only after the copy and the write have both landed (the 24 spaced copies
+reach as far back as before). `snapList` takes only `NotFoundError` for "no history". `setStat` counts (`_statN`), and
+`liveTick` says "Saved automatically" only if nothing was said while its save ran.
+
+**80 -- a board's own service list (W4).** `svcSaveList(list, from)`: `from[k]` is where new service k sat before (-1 for
+new); the import's `svcRemapState(st, from, n0)` carries every year (an award of another width is left to the repair);
+`BASE_ASK`, `CLINS`, `DATA.budget` and any data pack naming the old list are rewritten; held submittals and this
+appropriation's reprogramming rows follow (a named row keeps its name and its `svcPos` seal moves with its place; a
+rename renames `svcName` -- integration). `svcRenameKeys(ren)` carries what is filed under a name. `svcListBlock` refuses
+a change under a kept PPBE cycle (its services keep names and places; one can be added at the end), and removal of a
+service with reprogramming rows or held-submittal figures on it. Removal says first what the service holds, by kind and
+year (`svcHeldBy`). One non-undoable `(services)` journal line; `jrnlBySvcPlace` stops putting back older entries that
+carry a place. On a data-backed board (`SVC_FROM_DATA`) the panel shows the list only. `svcRemapState` also carries
+`S.buys` (base, adjustment, unit cost) -- integration; an import that reordered services left them in the file's order.
+
+**81 -- the reprogramming log (W5).** A row carries `svcName`, `svcPos` (the seal: the name counts only while
+`svcPos === Number(r.svc)`) and `svcBy` ('pick' or 'pos'). `rpSvcsOf(ap)` finds an appropriation's own list (the board on
+screen, `APPNS`, the stored board's pack, the file's `PUBS` pack, else the newer `MS.svc`); `rpSvcOf(r)` is the only
+place a row's service is read; position-only rows are read against their own appropriation's list and marked "(by
+position)" until picked; Unresolved is a summary line and counted. `rpAmtText` / `rpAmtTyped` read the $M field exactly
+from its digits -- whole dollars only, anything finer refused with the dollar figure; a saved fraction is kept, marked
+and named in the export's Check column. `rpNetM` nets exactly (BigInt counts of the finest unit).
+
+**62 -- the nine cells (W5, W6).** Every cell is proven arithmetic by an oracle worked from the fixture (money map: 123
+proven, 206 n/a, 0 open). The Two Spend Plans oracle found the plans funding a service above its ask when allocated or
+directed above it, and a trimmed forced Disc/Mand row asking for its whole ask: `fsDirVec(it)` (inside `basisSvcOf`) is
+now what both plans read. The ACE breakout's note and the Excel Two-Plan Forecast's note (integration) said things that
+were not so; both now say what the export does.
+
+**Checks.** New scenarios in `audit-board.mjs` (W1, W4, integration), `audit-import.mjs` (W1, W2, W3, W5) and
+`audit-recon.mjs` (W5, W6, integration); 162 new mutations (1,052 in all) and 11 existing ones retargeted, each presweept. W6 seeded
+`.math-reports/catchers-*.json` (git-ignored) so recon is tried first for its ids -- order only, never the verdict.
+
+**Gate.** `npm run validate:math` passed on the final tree, 5 Oct 1:42–7:17 pm Eastern, 334.9 minutes: sweep 1041/1041 caught, 11 equivalent (1,052), fuzz seed 47996740, money map 123 proven / 206 n/a / 0 open. The suites stage took 7.4 minutes (4.8 in v1.96) and the sweep 319 (179); the fuzz and file verifier were unchanged, so the time is the new checks, not the machine -- allow about six hours.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

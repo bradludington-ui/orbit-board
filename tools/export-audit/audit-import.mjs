@@ -3623,13 +3623,14 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, 'folder, unreadable', 'and the board says so', /could not be read/.test(status(R.ev)) && /Nothing was written/.test(status(R.ev)), true);
     root.fail[nm] = false;
     // A HISTORY COPY THAT COULD NOT BE KEPT is said. (An ordinary save; the one it replaces is Brad's own.)
+    // v1.97 (item 79, Brad 5 Oct 2026): and nothing is written -- it saved all the same until then.
     await R.ev('driveStorePull(true)');
     root.dirs.history.files = {};                    // no recent copy, so this save would keep one
     root.fail['dir:history'] = true;
     R.ev(`S.notes.A='NO HISTORY'; save(); 'ok'`);
     const ph = await push(R.ev);
-    chk(name, 'folder, history', 'a save whose history copy fails still saves, and says the copy was not kept',
-      String(ph) + '|' + /could not be kept in the folder/.test(status(R.ev)), 'true|true');
+    chk(name, 'folder, history', 'a save whose history copy fails writes nothing, and says the copy was not kept',
+      String(ph) + '|' + /could not be kept in the folder/.test(status(R.ev)), 'false|true');
     root.fail['dir:history'] = false;
     // PUTTING AN EARLIER COPY BACK, THEN SAVING. The copy standing now goes into the history whatever
     // the spacing, and Save then writes: on v1.88 the base was the old copy's own time, so Save found a
@@ -5513,6 +5514,973 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end W4 ====
+// ==== v1.97 W1: money entry and the engine (items 72, 73, 74, 75) ====
+// The 5 Oct review of v1.96, R01, R03 and R04, at the file boundary: what an older file carries, and what a typed figure
+// does on its way through a save, an export and an import. Every check fails on v1.96 (SP/v197w/board196.html) unless it
+// says CONTROL. Each read goes through w1ev, so a function an older board lacks fails its own checks, not the block.
+const w1ev = (ev, code) => { try { return ev(code); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 120); } };
+const w1json = (ev, code) => { const r = w1ev(ev, code); try { return JSON.parse(r); } catch { return r; } };
+const w1sum = a => (Array.isArray(a) ? a : []).reduce((x, y) => x + y, 0);
+const W1SC = { services: ['USAF', 'ANG'], items: [it('X', 'AV', [1, 1]), it('Y', 'PSM', [30, 50]), it('W', 'TSS', [500, 700])],
+  disc: [100, 100], mand: [100, 100], order: ['X', 'Y', 'W'] };
+// a board as a file, its requirements part of the board's own data, after EXTRA has run
+const w1file = (extra = '') => { const b = boot(); seed(b.ev, W1SC);
+  b.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+  if (extra) b.ev(`(function(){ ${extra}; })(); save(); 'ok'`);
+  return b.ev('buildSavedHtml()'); };
+// ⬅ Import, through the door, a file named NAME holding TXT; every question answered yes, every alert recorded
+const w1import = (ev, name, txt) => ev(`new Promise(function(res){ window.__w1al=[]; window.alert=function(m){ window.__w1al.push(String(m)); };
+  window.confirm=function(){ return true; }; window.prompt=function(){ return '1'; };   // the one appropriation the file carries
+  var inp={files:[new File([${JSON.stringify(txt)}], ${JSON.stringify(name)})], value:'x'};
+  try{ importState(inp); }catch(e){ window.__w1al.push('THREW '+e.message); }
+  (function wait(n){ if(inp.value==='' || n>600) return res('done'); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+// what the browser holds afterwards: the import writes it and reopens, so the board it made is booted from it
+const w1ls = ev => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+
+// v1.97 W1, ITEM 74 (review R03): A NEGATIVE ALLOCATION IN AN OLDER FILE IS KEPT AS IT WAS, COUNTS AS ZERO, AND IS LISTED FOR
+// REPAIR. A board before v1.97 took -2 typed as an allocation and saved it. Opened, or imported, that file must neither
+// lose the figure nor let it into the arithmetic: on v1.96 the basis went below zero and d + m + u stopped adding up.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 — an older file’s negative allocation is kept, listed and counts as zero (item 74)';
+  try {
+  const J = JSON.stringify;
+  const html = w1file(`S.alloc.X={m:'t', v:-2}; S.alloc.Y={m:'s', v:[-7,20]}`);
+  const read = ev => w1json(ev, `JSON.stringify((function(){ const T=tiers(), o={};
+      ['X','Y'].forEach(function(id){ const x=itemById(id), t=T[id];
+        o[id]={alloc:S.alloc[id], basis:basisSvcOf(x), dmu:t.d.map(function(v,i){ return v+t.m[i]+t.u[i]; }), d:t.d, unf:unfSvcOf(x,t),
+               bt:beyondSvcOf(x,t).map(function(v,i){ return v+trimSvcOf(x)[i]; })}; });
+      o.neg=((attLists()||{}).neg||[]).map(function(r){ return [r.id, r.n]; });
+      return o; })())`);
+  // by hand: X's -2 counts as 0 -> basis [0,0], its [1,1] all unfunded; Y's USAF -7 counts as 0 -> basis [0,20], ANG draws 20
+  const want = { X: { alloc: { m: 't', v: -2 }, basis: [0, 0], d: [0, 0], unf: [1, 1] }, Y: { alloc: { m: 's', v: [-7, 20] }, basis: [0, 20], d: [0, 20], unf: [30, 30] },
+                 neg: [['X', ['allocation −$2']], ['Y', ['USAF allocation −$7']]] };
+  chk(name, 'the door', 'CONTROL — the import door takes the file: a negative within the bound is a figure, not a refusal (passes on v1.96)',
+    w1ev(boot().ev, `inboundCheck(${J(html)})`), '');
+  // OPENED
+  const O = boot({ html });
+  const o = read(O.ev);
+  chk(name, 'opened', 'CONTROL — each allocation is kept exactly as the file had it (passes on v1.96)', J([o.X && o.X.alloc, o.Y && o.Y.alloc]), J([want.X.alloc, want.Y.alloc]));
+  chk(name, 'opened', 'the basis is never below zero: X [0,0], Y [0,20]', J([o.X && o.X.basis, o.Y && o.Y.basis]), J([want.X.basis, want.Y.basis]));
+  chk(name, 'opened', 'd + m + u is the basis on every service', J([o.X && o.X.dmu, o.Y && o.Y.dmu]), J([o.X && o.X.basis, o.Y && o.Y.basis]));
+  chk(name, 'opened', 'X draws nothing and is $1 + $1 short; Y draws $20 of ANG and is $30 + $30 short; and beyond + trim is that shortfall on every service',
+    J([o.X && [o.X.d, o.X.unf, o.X.bt], o.Y && [o.Y.d, o.Y.unf, o.Y.bt]]), J([[want.X.d, want.X.unf, want.X.unf], [want.Y.d, want.Y.unf, want.Y.unf]]));
+  chk(name, 'opened', 'Needs attention lists both, each with what was saved', J(o.neg), J(want.neg));
+  // SAVED AGAIN after an unrelated edit, the figures go back into the file as they came
+  w1ev(O.ev, `setAsk('W',0,'600'); 'ok'`);
+  const again = read(boot({ html: w1ev(O.ev, 'buildSavedHtml()') }).ev);
+  chk(name, 'saved again', 'CONTROL — saved again and reopened, both are still as the older file had them (passes on v1.96)',
+    J([again.X && again.X.alloc, again.Y && again.Y.alloc]), J([want.X.alloc, want.Y.alloc]));
+  // IMPORTED through ⬅ Import into another board with the same services
+  const rcv = w1file(), I0 = boot({ html: rcv });
+  await w1import(I0.ev, 'older board.html', html);
+  const I = boot({ ls: w1ls(I0.ev), html: rcv });
+  const im = read(I.ev);
+  chk(name, 'imported', 'imported: kept as the file had them, the basis [0,0] and [0,20], and both listed for repair',
+    J([im.X && im.X.alloc, im.Y && im.Y.alloc, im.X && im.X.basis, im.Y && im.Y.basis, im.neg]),
+    J([want.X.alloc, want.Y.alloc, want.X.basis, want.Y.basis, want.neg]));
+  // REPAIRED: typed again, the figure replaces the one the file carried, and the line leaves the list
+  const n0 = w1ev(I.ev, `((attLists()||{}).neg||[]).length`);
+  w1ev(I.ev, `setAlloc('X','2'); setSvc('Y',0,'10'); 'ok'`);
+  chk(name, 'repaired', 'X set to $2 and Y’s USAF to $10: the two to repair become none, and the basis is [1,1] and [10,20]',
+    w1ev(I.ev, `JSON.stringify([${n0}, ((attLists()||{}).neg||[]).length, basisSvcOf(itemById('X')), basisSvcOf(itemById('Y'))])`), J([2, 0, [1, 1], [10, 20]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// v1.97 W1, ITEM 72 (review R01): A BUDGET BASE SAVED WITH FRACTIONS KEEPS THE TOTAL THAT WAS TYPED. Before v1.97, typing a
+// budget total stored each service as a fraction ($1 over three services as a third each), and opening the file rounded
+// each service on its own -- $1 came back as $0, $7 as $6. Opened now, the base is apportioned back to whole dollars that
+// add up to the total; the funding sources are added on top as always.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 — a budget base saved with fractions keeps the total that was typed (item 72)';
+  try {
+  const J = JSON.stringify;
+  // three services; the base as setBATot before v1.97 left it for $1 (discretionary) and $7 (mandatory), a source of [0,5,0]
+  const SC3 = { services: ['USAF', 'ANG', 'STOVL'], items: [it('X', 'AV', [1, 2, 3])], disc: [0, 0, 0], mand: [0, 0, 0], order: ['X'] };
+  const file3 = extra => { const b = boot(); seed(b.ev, SC3);
+    b.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); ${extra}; save(); 'ok'`);
+    return b.ev('buildSavedHtml()'); };
+  const html = file3(`S.bm={disc:[1/3,1/3,1/3], mand:[7/3,7/3,7/3], adds:[{name:'Add', pool:'disc', vec:[0,5,0]}]}`);
+  const o = w1json(boot({ html }).ev, `JSON.stringify({disc:S.bm.disc, mand:S.bm.mand, dl:S.discSvc, ml:S.mandSvc})`);
+  chk(name, 'opened', 'the base comes back in whole dollars adding up to the $1 and $7 typed',
+    J([[].concat(o.disc || [], o.mand || []).every(Number.isSafeInteger), w1sum(o.disc), w1sum(o.mand)]), J([true, 1, 7]));
+  chk(name, 'opened', 'the lanes are the base plus the source: $6 discretionary and $7 mandatory, each service its base plus its source',
+    J([w1sum(o.dl), w1sum(o.ml), (o.dl || []).every((v, i) => v === o.disc[i] + [0, 5, 0][i]), J(o.ml) === J(o.mand)]), J([6, 7, true, true]));
+  // CONTROL: a base already in whole dollars opens exactly as saved, and so does one with a figure below zero (rounded
+  // service by service as before -- a negative base is not a total that was typed)
+  const plain = w1json(boot({ html: file3(`S.bm={disc:[4,0,9], mand:[1,2,3], adds:[]}`) }).ev, `JSON.stringify([S.bm.disc, S.bm.mand])`);
+  const neg = w1json(boot({ html: file3(`S.bm={disc:[-1.4,2.6,0], mand:[0,0,0], adds:[]}`) }).ev, `JSON.stringify(S.bm.disc)`);
+  chk(name, 'control', 'CONTROL — a whole-dollar base opens as saved; one holding a figure below zero is rounded service by service as before (passes on v1.96)',
+    J([plain, neg]), J([[[4, 0, 9], [1, 2, 3]], [-1, 3, 0]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// v1.97 W1, ITEM 75 (review R04): A TYPED FIGURE IS HELD TO THE BOUND THE IMPORT DOOR USES, and goes through a save, an
+// export and an import unchanged. Before v1.97 a figure typed over $10 trillion was taken -- and the board's own saved
+// file was then refused by its own import door.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 — typed money is held to the import door’s bound, through save, export and import (item 75)';
+  try {
+  const J = JSON.stringify;
+  const B = boot({ html: w1file() });
+  // the same figure, typed and in a file: is it taken? (the file's own door, inboundCheck, decides the second)
+  const door = n => w1ev(B.ev, `String(inboundCheck(${J(w1file(`S.asks.W=[${n},700]`))})==='')`);
+  const typed = s => w1ev(B.ev, `(function(){ itemById('W').ask=[500,700]; S.asks.W=[500,700]; setAsk('W',0,${J(s)}); return String(itemById('W').ask[0]!==500); })()`);
+  chk(name, 'one bound', '$10,000,000,000,000 is taken typed and in a file; $10,000,000,000,001 is refused both ways',
+    J([[typed('$10,000,000,000,000'), door(10000000000000)], [typed('$10,000,000,000,001'), door(10000000000001)]]),
+    J([['true', 'true'], ['false', 'false']]));
+  // what the board saves after a figure over the bound was typed is a file its own door takes
+  w1ev(B.ev, `itemById('W').ask=[500,700]; S.asks.W=[500,700]; setAsk('W',0,'$10,000,000,000,001'); setAlloc('Y','$99,000,000,000,000'); 'ok'`);
+  chk(name, 'one bound', 'after $10,000,000,000,001 and $99 trillion are typed, the board’s saved file still passes its own import door',
+    w1ev(B.ev, `inboundCheck(buildSavedHtml())`), '');
+  // CONTROL: figures typed in each supported way go through a save, the workbook and an import exactly
+  w1ev(B.ev, `setAsk('W',0,'$1,234'); setAsk('W',1,'2.5M'); setAlloc('Y','750K'); setAsk('X',1,'$10,000,000,000,000'); 'ok'`);
+  const saved = w1ev(B.ev, 'buildSavedHtml()');
+  const R = boot({ html: saved });
+  const back = w1ev(R.ev, `JSON.stringify([itemById('W').ask, S.alloc.Y, itemById('X').ask])`);
+  const sheets = (() => { try { return JSON.parse(capture(B.ev)); } catch (e) { return []; } })();
+  const cells = new Set(); (sheets || []).forEach(sh => (sh.rows || []).forEach(r => (r || []).forEach(c => { const v = cv(c); if (typeof v === 'number') cells.add(v); })));
+  const rcv = w1file(), I0 = boot({ html: rcv });
+  await w1import(I0.ev, 'typed.html', saved);
+  const I = boot({ ls: w1ls(I0.ev), html: rcv });
+  const imp = w1ev(I.ev, `JSON.stringify([itemById('W').ask, S.alloc.Y, itemById('X').ask])`);
+  const want = J([[1234, 2500000], { m: 't', v: 750000 }, [1, 10000000000000]]);
+  chk(name, 'round trip', 'CONTROL — $1,234, 2.5M, 750K and $10,000,000,000,000 typed are exact after a save and after an import, and the workbook’s requirement values are $2,501,234 and $10,000,000,000,001 (passes on v1.96)',
+    J([back, [2501234, 10000000000001].every(v => cells.has(v)), imp]), J([want, true, want]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v1.97 W1 ====
+// ==== v1.97 W2: every edit the saved file carries marks the board unsaved (item 76) ====
+// v1.97, ITEM 76 (the 5 Oct review's R05). Every list a board file carries -- the reprogramming log, the locked cycles,
+// the cost estimates, the execution data, the BAE list, the destination list, another appropriation's board and this
+// one's -- marks the board unsaved when it changes, through the board's own door for it, and a save acknowledges only
+// what its bytes hold. Reproduced on v1.96: an edit to the reprogramming log left DIRTY false and the save generation
+// unmoved while the saved file carried the log, and an edit made while the file was being written was called saved.
+// The stand-in file and folder are v1.95 item 47's (W1H), whose writes can be HELD so a change lands at each wait.
+const V197W2 = (() => {
+  const H = W1H, J = JSON.stringify;
+  // Board code every case needs: a workbook built by the board's own writer, handed to an import as a picked file; the
+  // reprogramming row and Full Fund's board the edits start from; the two packages.
+  const prelude = `(function(){
+    globalThis.__wb=function(sheets, name){ const b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; };
+    globalThis.__aceRows=function(t){ const rows=[[],[],[],[],[]]; rows[4][ACE_COL.y0]=2027; const r=[]; r[ACE_COL.appn]='O&M'; r[ACE_COL.svc]='ANG';
+      r[ACE_COL.managed]='Y'; r[ACE_COL.pmo]='AIR VEHICLE'; r[ACE_COL.y0]=1.5; r[ACE_COL.ce]=t; rows.push(r);
+      rows.forEach(function(x){ for(let i=0;i<x.length;i++) if(x[i]===undefined) x[i]=''; }); return rows; };
+    globalThis.__ffStore=function(t){ return {base:2027, cur:2027, ts:2, dataPack:{services:SVC.slice(), items:[{id:'X', grp:'AV', ask:[1,2,3]}]},
+      years:{2027:{order:['X'], alloc:{}, mc:{}, fsrc:{}, custom:[], removed:[], discSvc:[100,200,300], mandSvc:[0,0,0], asks:{X:[100,200,300]}, notes:{X:t}}}}; };
+    globalThis.__ffPkg=function(t){ return {spmtPkg:PKG_VER, ap:'ff', dir:'issue', seq:1, by:'Manager', ts:Date.now(), ms:__ffStore(t)}; };
+    globalThis.__omPkg=function(t){ const ms=JSON.parse(JSON.stringify(MS)); ms.years[MS.cur]=JSON.parse(JSON.stringify(S));
+      ms.years[MS.cur].notes=Object.assign({}, ms.years[MS.cur].notes||{}, {A:t}); return {spmtPkg:PKG_VER, ap:'om', dir:'issue', seq:1, by:'Manager', ts:Date.now(), ms:ms}; };
+    return 'ok'; })()`;
+  // EACH LIST. `live` is the list in the board exactly as savedHtmlOf() writes it and `file` the same list read out of
+  // the bytes written, both serialised whole, so "the file has it" is the file's list being the board's, byte for byte.
+  // `mark` names what the edits changed, for a board reopened from the file. `saves`: this door also calls save(), so
+  // v1.96 already marked it unsaved -- a check of a save writing at the time is a control for it.
+  const LISTS = [
+    { k: 'rp', what: 'the reprogramming log (a row edited)',
+      setup: `RPDB.entries=(RPDB.entries||[]).concat([{id:'RPW2', ts:1, ap:'O&M', fy:2027, type:'BTR', svc:0, title:'first', amtM:0, dir:'deduct', pool:'disc', status:'Pending'}]); persistRp(); 'ok'`,
+      edit: t => `rpSetField('RPW2', 'title', ${J(t)})`,
+      live: 'JSON.stringify(RPDB)', file: p => J(p.rpDb),
+      mark: `JSON.stringify(rpAll().map(function(r){ return r.id+':'+r.title; }))` },
+    { k: 'cyc', what: 'the locked cycles (one unlocked or locked again)',
+      setup: `blCyc='PB'; blYr=2027; cycLock(); 'ok'`,
+      edit: () => `blLock('PB|2027', !blGet('PB|2027').locked)`,
+      live: 'JSON.stringify(CYCDB)', file: p => J(((p.cycDb || {}).byAp || {}).om),
+      mark: `JSON.stringify(Object.keys(CYCDB.cycles).map(function(k){ var c=CYCDB.cycles[k]; return k+':'+c.locked+':'+(c.unlocks||[]).length; }))` },
+    { k: 'ace', what: 'the cost estimates (one imported)',
+      edit: t => `importAce({files:[__wb([{name:'ACE', rows:__aceRows(${J(t)})}], '2025 ACE.xlsx')], value:''})`,
+      live: 'JSON.stringify(ACEDB)', file: p => J(p.aceDb),
+      mark: `JSON.stringify(Object.keys(ACEDB.sets||{}).map(function(k){ return k+':'+ACEDB.sets[k].fp; }))` },
+    { k: 'exec', what: 'the execution data (a CCaR QPE imported)',
+      edit: t => `importSrc({files:[__wb([{name:'O&M Raw Data', rows:[SRC_HDR.slice(), [2027,'2026-10','C1',${J(t)},'B1','','','PE','',12345]]}], 'QPE.xlsx')], value:''})`,
+      live: 'JSON.stringify(EXDB)', file: p => J(p.execDb),
+      mark: `JSON.stringify(((EXDB.all||{}).om||{}).rows||null)` },
+    { k: 'bud', what: 'the BAE budget list (an extract imported)', saves: true,
+      edit: t => `importBud({files:[__wb([{name:'BAE', rows:[['Budget Name'], ['USAF O&M - ANG CAM '+${J(t)}+' Discretionary AV']]}], 'BAE.xlsx')], value:''})`,
+      live: 'JSON.stringify(BUDDB)', file: p => J(p.budDb),
+      mark: `JSON.stringify((BUDDB.rows||[]).map(function(b){ return b.n+':'+(b.gone?1:0); }))` },
+    { k: 'dest', what: 'the destination list (one renamed)', saves: true,
+      edit: t => `flowSetEnt(0, 'n', ${J(t)})`,
+      live: 'JSON.stringify(DESTDB)', file: p => J(p.destDb),
+      mark: `JSON.stringify(DESTDB.ents.map(function(e){ return e.k+':'+e.n; }))` },
+    { k: 'ff', what: 'Full Fund’s board (a package taken while O&M is open)',
+      setup: `localStorage.setItem(_SLUGMAP.ff.key, JSON.stringify(__ffStore('first'))); 'ok'`,
+      edit: t => `pkgApply(__ffPkg(${J(t)}), 'pkg.json')`,
+      live: 'JSON.stringify(pubsFor(MS).ff)', file: p => J(p.appns.ff),
+      mark: `JSON.stringify((((pubsFor(MS).ff||{}).years||{})[2027]||{}).notes||null)` },
+    { k: 'om', what: 'this appropriation’s own board (a package taken for it)', board: true,
+      edit: t => `pkgApply(__omPkg(${J(t)}), 'pkg.json')`,
+      live: `String((S.notes||{}).A||'')`, file: p => String((((((p.appns || {}).om || {}).years || {})[2027] || {}).notes || {}).A || ''),
+      mark: `String((S.notes||{}).A||'')` },
+  ];
+  const run = async (ev, code) => { await ev(code); };
+  const header = H.header, status = H.status;
+  const saved = ev => /^Saved/.test(header(ev)), unsaved = ev => /^Unsaved changes/.test(header(ev));
+  // A board opened from F1 as Brad, its opening done, the list's starting point in place.
+  const open = async (F1, L) => {
+    const R = boot({ html: F1 }); H.wire(R.ev, 'Brad', H.KEY.brad);
+    await H.pause(5);                          // the opening's own bookkeeping runs once the page has loaded
+    R.ev(prelude);
+    if (L && L.setup) R.ev(L.setup);
+    return R;
+  };
+  // Reopen bytes in a browser whose storage refuses every read and write: the file alone is the record.
+  const openRefused = (html) => {
+    const dom = new JSDOM(html, { runScripts: 'dangerously', virtualConsole: new VirtualConsole(), url: 'https://example.invalid/board.html',
+      beforeParse(w) { const no = () => { throw new w.DOMException('The quota has been exceeded.', 'QuotaExceededError'); };
+        w.Storage.prototype.getItem = no; w.Storage.prototype.setItem = no; w.Storage.prototype.removeItem = no;
+        w.alert = () => {}; w.confirm = () => true; w.prompt = () => null; } });
+    return dom.window;
+  };
+  return { H, J, LISTS, run, header, status, saved, unsaved, open, openRefused, prelude };
+})();
+
+// ---- 76: an edit to each list at each wait of the file save; the bytes written; reopened without storage ----------
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 — every list the file carries marks the board unsaved, at each wait of the file save';
+  const V = V197W2, H = V.H;
+  try {
+    const F1 = H.baseFile('Brad', H.KEY.brad);
+    for (const L of V.LISTS) {
+      const mk = bootMark();
+      const R = await V.open(F1, L);
+      const f = H.disk(R.w, F1);
+      await R.ev('saveInPlaceFile()');
+      chk(name, L.k + ' — the start', 'a saved board reads Saved, its list in the file (a control)', V.saved(R.ev) + '|' + (L.file(H.pubOf(f.content)) === R.ev(L.live)), 'true|true');
+      // AN EDIT WHILE NOTHING IS BEING SAVED marks the board unsaved: the review's reproduction.
+      await V.run(R.ev, L.edit('W2 IDLE'));
+      chk(name, L.k + ' — an edit', L.what + ': the board reads unsaved' + (L.saves ? ' (a control: this door also calls save())' : ''), V.unsaved(R.ev), true);
+      await R.ev('saveInPlaceFile()');
+      chk(name, L.k + ' — an edit', 'Save writes it and the board reads saved again (a control)', (L.file(H.pubOf(f.content)) === R.ev(L.live)) + '|' + V.saved(R.ev), 'true|true');
+      // AT EACH WAIT. Before the bytes are built (the read), the edit is in them; after (open, write, close), it is not,
+      // and the board says so -- then the next Save writes it.
+      let n = 0;
+      for (const ph of ['read', 'open', 'write', 'close']) {
+        n++;
+        const tag = 'W2 ' + ph.toUpperCase() + ' ' + n;
+        const h0 = f.hits[ph] || 0;
+        f.hold[ph] = H.gate(); const g = f.hold[ph];
+        const p = R.ev('saveInPlaceFile()');
+        await H.until(() => (f.hits[ph] || 0) > h0);
+        const before = R.ev(L.live);
+        await V.run(R.ev, L.edit(tag));
+        const after = R.ev(L.live);
+        g.open(); await p;
+        const inFile = L.file(H.pubOf(f.content));
+        chk(name, L.k + ' — edit during the ' + ph, 'the edit changed the list (the fixture, a control)', after !== before, true);
+        if (ph === 'read') {
+          chk(name, L.k + ' — edit during the ' + ph, 'it landed before the bytes were built: the file has it and the board reads saved (a control)',
+            (inFile === after) + '|' + V.saved(R.ev) + '|' + /not in the file yet/.test(V.status(R.ev)), 'true|true|false');
+          continue;
+        }
+        chk(name, L.k + ' — edit during the ' + ph, 'the bytes written hold the list as it was when they were built (a control)', inFile === before, true);
+        chk(name, L.k + ' — edit during the ' + ph, L.what + ': the edit is not in the file, so the board reads unsaved and says so' + (L.saves ? ' (a control: this door also calls save())' : ''),
+          V.unsaved(R.ev) + '|' + /not in the file yet/.test(V.status(R.ev)), 'true|true');
+        await R.ev('saveInPlaceFile()');
+        chk(name, L.k + ' — edit during the ' + ph, 'the next Save writes it, and only then the board reads saved (a control)',
+          (L.file(H.pubOf(f.content)) === R.ev(L.live)) + '|' + V.saved(R.ev), 'true|true');
+      }
+      // REOPENED with no browser storage, and with storage refusing every read and write: the file alone carries it.
+      const want = R.ev(L.mark);
+      const A = boot({ html: f.content });
+      chk(name, L.k + ' — reopened', 'from the file in a browser with no storage, the list is as it was saved (a control)', A.ev(L.mark), want);
+      const w = V.openRefused(f.content);
+      let got = '(did not open)'; try { got = w.eval(L.mark); } catch (e) { got = 'threw: ' + e.message; }
+      chk(name, L.k + ' — reopened', 'and in a browser whose storage refuses every read and write (a control)', got, want);
+      try { w.close(); } catch (e) {}
+      bootRelease(mk, keepBoards());
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// ---- 76: the folder save writes the open board alone, so it acknowledges nothing else ------------------------------
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v1.97 — a folder save never acknowledges a list it does not write';
+  const V = V197W2, H = V.H;
+  try {
+    const F1 = H.baseFile('Brad', H.KEY.brad);
+    const SIDE = ['destDb', 'execDb', 'aceDb', 'rpDb', 'cycDb', 'budDb', 'appns'];
+    for (const L of V.LISTS.filter(x => !x.board)) {
+      const mk = bootMark();
+      const fold = H.folder();
+      const R = await V.open(F1, L); H.connect(R.ev, R.w, fold);
+      await R.ev('driveStorePush(false)');
+      await V.run(R.ev, L.edit('W2 FOLDER'));
+      const ok = await R.ev('driveStorePush(false)');
+      const copy = fold.copy(2027) || {};
+      chk(name, L.k, 'the folder save ran and its copy carries the board alone, none of the lists (a control)',
+        String(ok) + '|' + SIDE.filter(k => k in copy || k in (copy.store || {})).join(','), 'true|');
+      chk(name, L.k, 'the board it wrote is saved there (a control)', R.ev('String(DIRTY)'), 'false');
+      // Saving to the file again: the save in use now writes the lists, and this one has not been written anywhere.
+      R.ev(`_liveCfg.store=false; syncBtns(); 'ok'`);
+      chk(name, L.k, L.what + ': with Save writing the file again, the board reads unsaved — the folder save did not acknowledge it', V.unsaved(R.ev), true);
+      const f = H.disk(R.w, F1);
+      await R.ev('saveInPlaceFile()');
+      chk(name, L.k, 'the file save writes it, and the board reads saved (a control)', (L.file(H.pubOf(f.content)) === R.ev(L.live)) + '|' + V.saved(R.ev), 'true|true');
+      bootRelease(mk, keepBoards());
+    }
+    // THIS APPROPRIATION'S OWN BOARD, taken from a package while working out of the folder: that IS what the folder
+    // save writes, so the board reads unsaved there, and the folder save writes it and acknowledges it.
+    {
+      const L = V.LISTS.find(x => x.board);
+      const fold = H.folder();
+      const R = await V.open(F1, L); H.connect(R.ev, R.w, fold);
+      await R.ev('driveStorePush(false)');
+      await V.run(R.ev, L.edit('W2 OWN BOARD'));
+      chk(name, L.k, L.what + ': working out of the folder, the board reads unsaved — the folder save owes it', R.ev('String(DIRTY)') + '|' + V.unsaved(R.ev), 'true|true');
+      await R.ev('driveStorePush(false)');
+      chk(name, L.k, 'the folder save writes it and the board reads saved (a control)', fold.note(2027, 'A') + '|' + V.saved(R.ev), 'W2 OWN BOARD|true');
+    }
+    // AN EDIT TO A LIST AT EACH WAIT OF THE FOLDER SAVE -- the history copy, the copy itself, the lock: the board it wrote
+    // is saved there, with no "not in the folder yet" (the list never goes to the folder) and no autosave owed; the list
+    // is still owed to the file.
+    for (const kind of ['hist', 'main', 'lock']) {
+      const L = V.LISTS[0];
+      const fold = H.folder();
+      const R = await V.open(F1, L); H.connect(R.ev, R.w, fold);
+      R.ev(`setNote('A','W2 FIRST'); 'ok'`); await R.ev('driveStorePush(false)');
+      fold.root.dirs.history = undefined;   // let this save keep a history copy now, not ten minutes later
+      R.ev(`setNote('A','W2 BOARD'); 'ok'`);
+      fold.hold[kind] = H.gate(); const g = fold.hold[kind];
+      const p = R.ev('driveStorePush(false)');
+      await H.until(() => (fold.hits[kind] || 0) >= (kind === 'hist' ? 1 : 2));
+      await V.run(R.ev, L.edit('W2 DURING THE FOLDER ' + kind.toUpperCase()));
+      g.open(); await p;
+      const at = 'during the folder ' + kind + ' write', copy = fold.copy(2027) || {};
+      chk(name, at, 'the board is saved in the folder, with no change said to be missing from it, nothing owed to the autosave, and no list in the copy (a control)',
+        fold.note(2027, 'A') + '|' + R.ev('String(DIRTY)') + '|' + /not in the folder yet/.test(V.status(R.ev)) + '|' + ('rpDb' in copy || 'rpDb' in (copy.store || {})), 'W2 BOARD|false|false|false');
+      R.ev(`_liveCfg.store=false; syncBtns(); 'ok'`);
+      chk(name, at, 'and with Save writing the file again, the reprogramming log is still owed: the board reads unsaved', V.unsaved(R.ev), true);
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// ---- 76: a list browser storage refused never reads as saved; a download, and a setting, change nothing ------------
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v1.97 — a refused browser write never reads as saved';
+  const V = V197W2, H = V.H;
+  try {
+    const F1 = H.baseFile('Brad', H.KEY.brad);
+    const L = V.LISTS[0];
+    const fold = H.folder();
+    const R = await V.open(F1, L);
+    const f = H.disk(R.w, F1);
+    await R.ev('saveInPlaceFile()');
+    R.ev(`globalThis.__si=Storage.prototype.setItem; Storage.prototype.setItem=function(k,v){ if(k==='prio27reprog') throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return globalThis.__si.call(this,k,v); }; 'ok'`);
+    await V.run(R.ev, L.edit('W2 REFUSED'));
+    chk(name, 'refused', 'the reprogramming log is refused by storage (the fixture, a control)', /could not be kept in browser storage/.test(V.status(R.ev)) + '|' + R.ev(`String((localStorage.getItem('prio27reprog')||'').indexOf('W2 REFUSED')>=0)`), 'true|false');
+    chk(name, 'refused', 'the board reads unsaved', V.unsaved(R.ev), true);
+    // Working out of the shared folder, whose copy does not carry the log: still unsaved, and still after a folder save.
+    const refuse = () => R.ev(`Storage.prototype.setItem=function(k,v){ if(k==='prio27reprog') throw new DOMException('The quota has been exceeded.','QuotaExceededError'); return globalThis.__si.call(this,k,v); }; 'ok'`);
+    H.connect(R.ev, R.w, fold); R.ev(`syncBtns(); 'ok'`);
+    chk(name, 'refused, the folder in use', 'the log is held only on this page, so the board reads unsaved whichever save is in use', V.unsaved(R.ev), true);
+    await V.run(R.ev, L.edit('W2 REFUSED IN THE FOLDER'));
+    chk(name, 'refused, the folder in use', 'refused there, the message says the folder’s copy does not carry it and offers a file, not the Save that writes the board alone',
+      /does not carry it/.test(V.status(R.ev)) + '|' + /Save a copy/.test(V.status(R.ev)) + '|' + /Use 💾 Save/.test(V.status(R.ev)), 'true|true|false');
+    await R.ev('driveStorePush(false)');
+    chk(name, 'refused, the folder in use', 'and still after the folder save, which wrote the board alone', R.ev('String(DIRTY)') + '|' + V.unsaved(R.ev), 'false|true');
+    // STORAGE TAKES IT AGAIN: the next edit lands in storage, and working out of the folder the board reads as the folder
+    // save left it -- the folder save is not owed the log.
+    R.ev(`Storage.prototype.setItem=globalThis.__si; 'ok'`);
+    await V.run(R.ev, L.edit('W2 TAKEN'));
+    chk(name, 'storage takes it again', 'the log is in storage again, and the board, its folder copy written, reads saved (a control)',
+      R.ev(`String((localStorage.getItem('prio27reprog')||'').indexOf('W2 TAKEN')>=0)`) + '|' + V.saved(R.ev), 'true|true');
+    // Refused again, saving to the file: the file save writes it -- saved, and the file alone carries it, reopened with no
+    // storage or with storage refusing.
+    R.ev(`_liveCfg.store=false; 'ok'`); refuse();
+    await V.run(R.ev, L.edit('W2 REFUSED AGAIN'));
+    chk(name, 'refused, then the file save', 'refused again, the board reads unsaved', V.unsaved(R.ev), true);
+    await R.ev('saveInPlaceFile()');
+    chk(name, 'refused, then the file save', 'the file has the log and the board reads saved (a control)', (L.file(H.pubOf(f.content)) === R.ev(L.live)) + '|' + V.saved(R.ev), 'true|true');
+    const want = R.ev(L.mark);
+    chk(name, 'refused, then the file save', 'reopened with no storage, the edit storage refused is there (a control)', boot({ html: f.content }).ev(L.mark), want);
+    const w = V.openRefused(f.content); let got = '(did not open)'; try { got = w.eval(L.mark); } catch (e) { got = 'threw: ' + e.message; }
+    chk(name, 'refused, then the file save', 'and reopened with storage refusing every read and write (a control)', got, want);
+    try { w.close(); } catch (e) {}
+    // A REFUSED EDIT WHILE THE FILE IS BEING WRITTEN: not in the bytes, not in storage -- held on this page alone.
+    {
+      f.hold.write = H.gate(); const g = f.hold.write; const h0 = f.hits.write || 0;
+      const p = R.ev('saveInPlaceFile()');
+      await H.until(() => (f.hits.write || 0) > h0);
+      await V.run(R.ev, L.edit('W2 REFUSED DURING THE WRITE'));
+      g.open(); await p;
+      chk(name, 'refused during the write', 'an edit storage refused while the file was being written is in neither: the board reads unsaved and says so',
+        String(H.pubOf(f.content).rpDb.entries.some(r => r.title === 'W2 REFUSED DURING THE WRITE')) + '|' + V.unsaved(R.ev) + '|' + /not in the file yet/.test(V.status(R.ev)), 'false|true|true');
+      await R.ev('saveInPlaceFile()');
+      chk(name, 'refused during the write', 'the next Save writes it, and the board reads saved (a control)', (L.file(H.pubOf(f.content)) === R.ev(L.live)) + '|' + V.saved(R.ev), 'true|true');
+    }
+    R.ev(`Storage.prototype.setItem=globalThis.__si; 'ok'`);
+    // A DOWNLOAD IS NOT THE FILE: what follows it is unsaved, not "downloaded".
+    {
+      const D = await V.open(F1, L); H.disk(D.w, F1);
+      await D.ev('saveInPlaceFile()');
+      D.ev(`publishState(); 'ok'`);
+      chk(name, 'a download', 'after a download the header says so (a control)', /downloaded — not on the shared file yet/.test(V.header(D.ev)), true);
+      await V.run(D.ev, L.edit('W2 AFTER THE DOWNLOAD'));
+      chk(name, 'a download', 'an edit to the log after it is not in the copy downloaded: the header says unsaved, not downloaded', V.unsaved(D.ev), true);
+    }
+    // WHAT OPENING THE BOARD WRITES IS NOBODY'S CHANGE: a file saved before v1.85 with one-year baselines folds them into
+    // the cycle store as it opens, and writes it -- the board still opens saved.
+    {
+      const P = H.pubOf(F1);
+      P.appns.om.baselines = { 'PB|2026': { fy: 2026, ts: 5, by: 'Old', svc: H.SVC, disc: [1, 2, 3], mand: [0, 0, 0], reqs: [], pmo: {} } };
+      delete P.cycDb;
+      const F0 = F1.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + JSON.stringify(P).replace(/</g, '\\u003c') + b);
+      const O = boot({ html: F0 }); await H.pause(5);
+      chk(name, 'opening', 'a file whose opening folds old baselines into the cycle store opens saved (a control)',
+        O.ev(`Object.keys(CYCDB.cycles).join(',')`) + '|' + V.saved(O.ev), 'PB|2026|true');
+    }
+    // A SETTING IS NOT THE FILE'S: the colour, the workspace mode and the log's own filter leave a saved board saved.
+    {
+      const C = await V.open(F1, null); H.disk(C.w, F1);
+      await C.ev('saveInPlaceFile()');
+      C.ev(`themeSet('light'); uiSetMode('fund'); rpSetFy('ALL'); render(); 'ok'`);
+      chk(name, 'settings', 'the colour, the mode and a filter change no list the file carries: still saved (a control)', V.saved(C.ev), true);
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v1.97 W2 ====
+// ==== v1.97 W3: batch import, Put this back, folder save history (items 77, 78, 79) ====
+// v1.97, ITEMS 77-79 (the 5 Oct 2026 review of v1.96: R06, R07, R08). Each drives the board's own path -- the batch
+// import with real files, ↶ Put this back and the folder save against the stand-in shared folder (W1H) -- with a hook
+// on that folder that can HOLD or FAIL any one step: opening, listing, creating, writing or closing the history, and
+// reading the folder's copy. Every check fails on v1.96 (board196) except those labelled CONTROL.
+const W3RE = /(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/;
+const w3Pub = html => JSON.parse(html.match(W3RE)[2]);
+const w3WithPub = (html, f) => html.replace(W3RE, (m, a, b, c) => a + JSON.stringify(f(JSON.parse(b))).replace(/</g, '\\u003c') + c);
+const W3_THEIRS = ['AFRC', 'USAF', 'ANG'];      // W2_MINE, listed another way
+// A per-service list in W2_MINE's order, written in W3_THEIRS's -- as a board listing its services that way saved it.
+const w3Perm = v => Array.isArray(v) ? W3_THEIRS.map(s => v[W2_MINE.indexOf(s)]) : v;
+// Every input of the lanes is written that way: the lanes, and the budget components applyBudget() rebuilds them from.
+const w3Theirs = st => { const o = JSON.parse(JSON.stringify(st));
+  Object.values(o.years || {}).forEach(y => { if (!y) return; y.discSvc = w3Perm(y.discSvc); y.mandSvc = w3Perm(y.mandSvc);
+    if (y.bm) { y.bm.disc = w3Perm(y.bm.disc); y.bm.mand = w3Perm(y.bm.mand); (y.bm.adds || []).forEach(a => { a.vec = w3Perm(a.vec); }); } });
+  // v1.97 integration: the pack too -- a board listing its services that way saves its requirements' values that way
+  o.dataPack.services = W3_THEIRS.slice(); o.dataPack.budget = w3Perm(o.dataPack.budget);
+  (o.dataPack.items || []).forEach(it => { if (it) { it.ask = w3Perm(it.ask); if (Array.isArray(it.fy26)) it.fy26 = w3Perm(it.fy26); } });
+  return o; };
+// The pack's requirement values, by requirement and service NAME (v1.97 integration).
+const w3PackAsks = pk => Object.fromEntries((pk.items || []).map(it => [it.id, Object.fromEntries(pk.services.map((s, i) => [s, (it.ask || [])[i]]))]));
+// The lanes of every year of one appropriation's store, by service NAME, read from the store and its own list.
+const w3Lanes = (st, names) => Object.fromEntries(Object.keys(st.years || {}).sort().map(y => [y,
+  Object.fromEntries((names || st.dataPack.services).map((s, i) => [s, [(st.years[y].discSvc || [])[i], (st.years[y].mandSvc || [])[i]]]))]));
+// The files the batch tests pick, built once from W2's NEW board (O&M and Full Fund, services W2_MINE).
+let W3FILES = null;
+const w3Files = () => {
+  if (W3FILES) return W3FILES;
+  const { NEW } = w2Fx();
+  const only = (k, f) => w3WithPub(NEW.html, p => { p.appns = { [k]: p.appns[k] }; if (f) f(p.appns[k]); return p; });
+  W3FILES = {
+    both: NEW.html,
+    om: only('om'), ff: only('ff'),
+    om2: only('om', st => { Object.values(st.years).forEach(y => { y.titles = Object.assign({}, y.titles, { A: 'SECOND O&M' }); }); }),
+    theirs: w3WithPub(NEW.html, p => { p.appns.om = w3Theirs(p.appns.om); p.appns.ff = w3Theirs(p.appns.ff); return p; }),
+  };
+  return W3FILES;
+};
+// One batch import into a fresh OLD board. `files`: [{name, html, plan}] -- plan 'fail' makes that file's read fail,
+// a number holds its read back that many turns. `no`: answer No to the n-th service question. `before`/`during`: code
+// run before the import, and right after it is started (while the files are read).
+const w3Batch = async (files, o = {}) => {
+  const { J, status, pause } = W1H;
+  const { OLD } = w2Fx();
+  const T = boot({ html: OLD.html, ls: OLD.ls });
+  const plan = Object.fromEntries(files.filter(f => f.plan !== undefined).map(f => [f.name, f.plan]));
+  T.ev(`globalThis.__q=[]; globalThis.__al=[]; globalThis.__no=${J(o.no || 0)};
+    window.confirm=function(q){ q=String(q); globalThis.__q.push(q);
+      if(/DIFFERENT ORDER/.test(q)) return globalThis.__q.filter(function(x){ return /DIFFERENT ORDER/.test(x); }).length!==globalThis.__no;
+      return true; };
+    window.alert=function(m){ globalThis.__al.push(String(m)); };
+    globalThis.__FR0=globalThis.__FR0||FileReader; globalThis.__plan=${J(plan)};
+    window.FileReader=function(){ const r=new globalThis.__FR0(), real=r.readAsText.bind(r);
+      r.readAsText=function(f){ const p=globalThis.__plan[f.name];
+        if(p==='fail'){ setTimeout(function(){ Object.defineProperty(r, 'error', {value:new DOMException('The file could not be read.', 'NotReadableError')}); if(r.onerror) r.onerror(); }, 0); return; }
+        if(typeof p==='number'){ let n=p; const go=function(){ if(--n>0) setTimeout(go, 0); else real(f); }; setTimeout(go, 0); return; }
+        return real(f); };
+      return r; };
+    ${o.before || ''}; 'ok'`);
+  const lsBefore = w2LsOf(T.ev);
+  const plan0 = `JSON.stringify({pubs:PUBS, ms:(CYCVIEW && _cycStash)? _cycStash.MS : MS})`;
+  const memBefore = T.ev(plan0);
+  T.ev(`document.getElementById('shareStat').textContent='';
+    importBoards({ files:[${files.map(f => `new File([${J(f.html)}], ${J(f.name)})`).join(',')}], value:'x' }); ${o.during || ''}; 'ok'`);
+  // files are read on the timer, not on the next turn: wait for the outcome (20 seconds at most -- the batch that waits
+  // forever for a file it cannot read says nothing at all)
+  const done = /Imported:|Nothing was imported|is off while|Nothing imported/;
+  for (let i = 0; i < 4000 && !done.test(status(T.ev)); i++) await pause(5);
+  const lsAfter = w2LsOf(T.ev);
+  const keys = [...new Set(Object.keys(lsBefore).concat(Object.keys(lsAfter)))];
+  return { T, lsAfter, stat: status(T.ev),
+    changed: keys.filter(k => lsBefore[k] !== lsAfter[k]).sort(),        // every key whose bytes moved, added or removed
+    memSame: T.ev(plan0) === memBefore,
+    qs: JSON.parse(T.ev('JSON.stringify(globalThis.__q)')), svcQs: JSON.parse(T.ev('JSON.stringify(globalThis.__q)')).filter(q => /DIFFERENT ORDER/.test(q)).length };
+};
+// What a refused batch must leave: no key's bytes moved, memory as it was, a message saying so, and never "Imported".
+const w3Untouched = r => JSON.stringify([r.changed, r.memSame, /Imported:/.test(r.stat)]);
+const W3_UNTOUCHED = JSON.stringify([[], true, false]);
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 — ⇊ Import several boards at once decides before it writes (item 77)';
+  try {
+  const { J } = W1H;
+  const F = w3Files();
+  // CONTROL: two files, one per appropriation, taken whole.
+  { const r = await w3Batch([{ name: 'a-om.html', html: F.om }, { name: 'b-ff.html', html: F.ff }]);
+    chk(name, 'two files (a CONTROL)', 'both appropriations are written and the board says so',
+      J([r.changed.filter(k => /^prio27(om|ff)$/.test(k)), /Imported:/.test(r.stat)]), J([['prio27ff', 'prio27om'], true])); }
+  // A LOCKED CYCLE ON SCREEN: refused at once, before the question and before any file is read.
+  { const r = await w3Batch([{ name: 'new-board.html', html: F.both }], { before: `cycView('POM|2027')` });
+    chk(name, 'a locked cycle on screen', 'nothing is imported or asked: storage and memory are as they were, and it says why, not "Imported"',
+      J([w3Untouched(r), r.qs.length, /is off while/.test(r.stat)]), J([W3_UNTOUCHED, 0, true])); }
+  // ... and one put on screen while the files are read: the batch still decides before it writes.
+  { const r = await w3Batch([{ name: 'new-board.html', html: F.both }], { during: `cycView('POM|2027')` });
+    chk(name, 'a locked cycle put on screen meanwhile', 'nothing is imported: storage and memory are as they were, and it says why',
+      J([w3Untouched(r), /is off while/.test(r.stat)]), J([W3_UNTOUCHED, true])); }
+  // THE SERVICE QUESTION, ANSWERED NO -- for the appropriation on screen (the first question) or another (the second).
+  for (const n of [1, 2]) {
+    const r = await w3Batch([{ name: 'theirs.html', html: F.theirs }], { no: n });
+    chk(name, 'the services question answered No (question ' + n + ')', 'nothing is imported: storage and memory are as they were, and it says so',
+      J([w3Untouched(r), r.svcQs, /Nothing was imported/.test(r.stat)]), J([W3_UNTOUCHED, n, true]));
+  }
+  // ... AND ANSWERED YES: each appropriation is asked about against its own list, and what is stored is remapped and says
+  // so -- every lane of every year on its own service, by name, read against the fixture's own figures -- and reopening
+  // asks nothing again.
+  { const r = await w3Batch([{ name: 'theirs.html', html: F.theirs }]);
+    const want = { om: w3Lanes(w3Pub(F.both).appns.om), ff: w3Lanes(w3Pub(F.both).appns.ff) };
+    const stored = k => JSON.parse(r.lsAfter['prio27' + k]);
+    const pub = k => JSON.parse(r.T.ev(`JSON.stringify(PUBS[${J(k)}])`));
+    chk(name, 'the services question answered Yes', 'both appropriations are asked about, once each, and the board says Imported',
+      J([r.svcQs, /Imported:/.test(r.stat)]), J([2, true]));
+    for (const k of ['om', 'ff']) {
+      chk(name, 'answered Yes: ' + k + ' as stored', 'its list reads this board’s order, and every lane of every year sits on its own service',
+        J([stored(k).dataPack.services, w3Lanes(stored(k))]), J([W2_MINE, want[k]]));
+      chk(name, 'answered Yes: ' + k + ' in memory (PUBS)', 'the same', J([pub(k).dataPack.services, w3Lanes(pub(k))]), J([W2_MINE, want[k]]));
+      // v1.97 integration: the pack's own figures follow its names -- it names the services and the requirements' values
+      // when that appropriation is next opened; relabelled alone, every untouched value sat on another service
+      chk(name, 'answered Yes: ' + k + ' pack as stored', 'each requirement’s value in the pack sits on its own service, by name',
+        J(w3PackAsks(stored(k).dataPack)), J(w3PackAsks(w3Pub(F.both).appns[k].dataPack)));
+    }
+    // reopened, the board reads what was stored (a question asked while it opens is refused there, and it would open empty)
+    const R = boot({ html: w2Fx().OLD.html, ls: r.lsAfter });
+    const svcNow = JSON.parse(R.ev('JSON.stringify(SVC)')), lanes = JSON.parse(R.ev(`JSON.stringify(MS.years[MS.cur])`));
+    chk(name, 'answered Yes, then reopened', 'each lane on screen is its own service’s',
+      J(Object.fromEntries(svcNow.map((s, i) => [s, [lanes.discSvc[i], lanes.mandSvc[i]]]))), J(want.om[String(JSON.parse(R.ev('MS.cur')))])); }
+  // TWO FILES FOR ONE APPROPRIATION: refused, whichever finishes reading first.
+  for (const hold of [0, 1]) {
+    const fs = [{ name: 'first.html', html: F.om }, { name: 'second.html', html: F.om2 }];
+    fs[hold].plan = 20;
+    const r = await w3Batch(fs);
+    chk(name, 'two files for O&M, ' + fs[hold].name + ' read last', 'nothing is imported, and it names both files',
+      J([w3Untouched(r), /first\.html.*second\.html.*both O&M/.test(r.stat)]), J([W3_UNTOUCHED, true]));
+  }
+  // FILES FINISHING IN EITHER ORDER: the same result, said the same way, in the order they were picked.
+  { const run = async hold => { const fs = [{ name: 'a-om.html', html: F.om }, { name: 'b-ff.html', html: F.ff }]; fs[hold].plan = 20;
+      const r = await w3Batch(fs); return { stat: r.stat, om: r.lsAfter.prio27om, ff: r.lsAfter.prio27ff }; };
+    const x = await run(0), y = await run(1);
+    chk(name, 'files finishing in either order', 'the message lists them in the order picked, and is the same either way',
+      J([/O&M ← a-om\.html \[O&M\] · Full Fund ← b-ff\.html \[Full Fund\]/.test(x.stat), x.stat === y.stat]), J([true, true]));
+    chk(name, 'files finishing in either order (a CONTROL)', 'and what is stored is the same either way', J([x.om === y.om, x.ff === y.ff]), J([true, true])); }
+  // A FILE THAT CANNOT BE READ: the batch stops and says so; it waited for that file forever, silently.
+  { const r = await w3Batch([{ name: 'new-board.html', html: F.both }, { name: 'broken.html', html: F.ff, plan: 'fail' }]);
+    chk(name, 'the second file cannot be read', 'nothing is imported: storage and memory are as they were, and it names the file',
+      J([w3Untouched(r), /Nothing was imported/.test(r.stat) && /broken\.html/.test(r.stat) && /could not be read/.test(r.stat)]), J([W3_UNTOUCHED, true])); }
+  // THE BOARD REFUSES AFTER ALL, once the bytes are written (every refusal is settled first, so this takes a board that
+  // refuses for a reason nothing foresaw): the whole batch is put back.
+  { const r = await w3Batch([{ name: 'new-board.html', html: F.both }],
+      { before: `globalThis.__as0=applyStore; applyStore=function(raw){ if(raw && raw.years && raw!==MS && globalThis.__asNo){ globalThis.__asNo=false; return false; } return globalThis.__as0(raw); }; globalThis.__asNo=true` });
+    chk(name, 'the board on screen refuses after the write', 'every appropriation is put back in storage and memory, and it says nothing was imported',
+      J([w3Untouched(r), /Nothing was imported/.test(r.stat)]), J([W3_UNTOUCHED, true])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// THE FOLDER, WITH A HAND ON EVERY STEP. Wraps W1H's stand-in folder: K.hold[step]=gate() holds the next time that step
+// is reached, K.fail[step]={e, skip} throws e there (after `skip` more passes), K.hits counts each. Steps: 'perm' (asking
+// the folder's permission), 'mainRead' (reading a folder copy), and the history's 'histOpen' (opening it to list or
+// read), 'histList', 'histDir' (creating it), 'histCreate' (a new copy's file), 'histRead', 'histWrite', 'histClose'.
+const w3Hook = fold => {
+  const K = { hold: {}, fail: {}, hits: {} };
+  const step = async k => { K.hits[k] = (K.hits[k] || 0) + 1;
+    const g = K.hold[k]; if (g) { delete K.hold[k]; await g.p; }
+    const f = K.fail[k]; if (f) { if (f.skip) f.skip--; else { delete K.fail[k]; throw f.e; } } };
+  const root = fold.dir, qp = root.queryPermission, gfh = root.getFileHandle, gdh = root.getDirectoryHandle;
+  root.queryPermission = async o => { await step('perm'); return qp(o); };
+  root.getFileHandle = async (n, o) => { const h = await gfh(n, o);
+    return /^spmt-\d{4}-[a-z]+\.json$/.test(n) ? { ...h, getFile: async () => { await step('mainRead'); return h.getFile(); } } : h; };
+  root.getDirectoryHandle = async (n, o) => {
+    if (n === 'history') await step(o && o.create ? 'histDir' : 'histOpen');
+    const d = await gdh(n, o); if (n !== 'history') return d;
+    return { ...d,
+      values: async function* () { await step('histList'); yield* d.values(); },
+      getFileHandle: async (fn, fo) => { if (fo && fo.create) await step('histCreate'); const h = await d.getFileHandle(fn, fo);
+        return { ...h, getFile: async () => { await step('histRead'); return h.getFile(); },
+          createWritable: async () => { const wr = await h.createWritable();
+            return { write: async x => { await step('histWrite'); return wr.write(x); }, close: async () => { await step('histClose'); return wr.close(); } }; } }; } };
+  };
+  return K;
+};
+const w3Hist = fold => Object.assign({}, (fold.root.dirs.history || { files: {} }).files);
+const w3Err = (w, name) => w.eval(`new DOMException('refused', ${JSON.stringify(name)})`);
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 — ↶ Put this back pins its appropriation and year before its first wait (item 78)';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // FY28 is on the board; FY27's folder history holds HISTORY, and its folder copy is CURRENT, saved -- the board clean.
+  const fresh = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`switchYear(2028); setNote('A','FY28 OWN'); switchYear(2027); setNote('A','HISTORY'); 'ok'`); await A.ev('driveStorePush(false)');
+    fold.root.dirs.history = undefined;
+    A.ev(`setNote('A','CURRENT'); 'ok'`); await A.ev('driveStorePush(false)');
+    await A.ev('driveHistShow()');
+    return { A, fold, K: w3Hook(fold) };
+  };
+  const view = (A, fold, h0) => J([A.ev(`String(((MS.years[2027]||{}).notes||{}).A||'')`), A.ev(`String(((MS.years[2028]||{}).notes||{}).A||'')`),
+    /nothing was put back/i.test(status(A.ev)), Object.keys(w3Hist(fold)).filter(n => !(n in h0)).map(n => n.slice(0, 10) + (w3Hist(fold)[n] === fold.raw(2027) ? ' CURRENT' : ' OTHER'))]);
+  const MOVES = { away: `switchYear(2028)`, 'away and back': `switchYear(2028); switchYear(2027)` };
+  for (const s of ['perm', 'histRead', 'mainRead', 'histClose']) for (const mv of Object.keys(MOVES)) {
+    const { A, fold, K } = await fresh();
+    const h0 = w3Hist(fold), n0 = K.hits[s] || 0;
+    K.hold[s] = gate(); const g = K.hold[s];
+    const p = A.ev('driveRestore(0)');
+    await until(() => (K.hits[s] || 0) > n0);
+    A.ev(MOVES[mv] + `; 'ok'`); g.open(); await p;
+    // the restore's own copy of FY27 is already being written at the history close; nothing else is ever kept
+    const kept = s === 'histClose' ? ['spmt-2027- CURRENT'] : [];
+    chk(name, 'moved ' + mv + ' at ' + s + (s === 'histClose' && mv === 'away' ? ' (a CONTROL)' : ''),
+      'nothing is put back: FY27 and FY28 hold what they held, it says why, and the history holds nothing else',
+      view(A, fold, h0), J(['CURRENT', 'FY28 OWN', true, kept]));
+  }
+  // A LIST OF EARLIER COPIES READ FOR FY27, used on FY28.
+  { const { A, fold } = await fresh(); const h0 = w3Hist(fold);
+    A.ev(`switchYear(2028); 'ok'`); await A.ev('driveRestore(0)');
+    chk(name, 'a list read for FY27, used on FY28', 'nothing is put back, and it says the list is not for this year',
+      J([view(A, fold, h0), /is not for/.test(status(A.ev))]), J([J(['CURRENT', 'FY28 OWN', true, []]), true])); }
+  // A COPY WHOSE NAME SAYS FY27 BUT WHICH HOLDS FY28 (renamed by hand in the folder).
+  { const { A, fold } = await fresh(); const H = fold.root.dirs.history.files;
+    const j = JSON.parse(Object.values(H)[0]); j.fy = 2028; j.store.cur = 2028;
+    H['spmt-2027-om-29991231-235959.json'] = JSON.stringify(j);
+    await A.ev('driveHistShow()'); const h0 = w3Hist(fold);
+    await A.ev('driveRestore(0)');
+    chk(name, 'a copy named for FY27 that holds FY28', 'nothing is put back, and it says what the copy holds',
+      J([view(A, fold, h0), A.ev('MS.cur'), /holds O&M FY28/.test(status(A.ev))]), J([J(['CURRENT', 'FY28 OWN', true, []]), 2027, true])); }
+  // THE HISTORY REFUSING TO BE LISTED when the copy standing now is kept: that is not an empty history.
+  { const { A, fold, K } = await fresh(); const h0 = w3Hist(fold);
+    K.fail.histOpen = { e: w3Err(A.w, 'NotAllowedError'), skip: 1 };     // the read of the copy opens it first
+    await A.ev('driveRestore(0)');
+    chk(name, 'the history cannot be listed to keep the copy standing now', 'nothing is put back, and nothing is kept blind',
+      view(A, fold, h0), J(['CURRENT', 'FY28 OWN', true, []])); }
+  // CONTROL: nothing moved, nothing refused -- the copy is put back.
+  { const { A, fold } = await fresh(); await A.ev('driveRestore(0)');
+    chk(name, 'nothing moved (a CONTROL)', 'the earlier copy is put back', A.ev(`String(S.notes.A)`), 'HISTORY'); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 — a folder save keeps the copy it replaces, or writes nothing (item 79)';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, flags } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // FIRST saved to the folder, then SECOND -- which kept FIRST in the history, under a minute ago -- and THIRD on screen.
+  const fresh = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','FIRST'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','SECOND'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','THIRD'); 'ok'`);
+    return { A, fold, K: w3Hook(fold) };
+  };
+  const auto = A => A.ev(`_liveCfg.auto=true; _driveLive=true; 'ok'`);
+  // A SAVE WITHIN TEN MINUTES OF THE LAST COPY keeps the copy it replaces, byte for byte.
+  { const { A, fold } = await fresh(); const was = fold.raw(2027);
+    const ok = await A.ev('driveStorePush(false)');
+    chk(name, 'a save within ten minutes of the last copy', 'it saves, and the history holds the exact bytes it replaced',
+      J([ok, fold.note(2027, 'A'), Object.values(w3Hist(fold)).filter(t => t === was).length]), J([true, 'THIRD', 1])); }
+  // ... byte for byte even when the folder's copy was not written the way this board writes it.
+  { const { A, fold } = await fresh(); const t = JSON.stringify(JSON.parse(fold.raw(2027)), null, 1); fold.root.files['spmt-2027-om.json'] = t;
+    await A.ev('driveStorePush(false)');
+    chk(name, 'a folder copy laid out differently', 'the history holds it exactly as it was read', Object.values(w3Hist(fold)).includes(t), true); }
+  // EACH STEP OF THE HISTORY FAILING: nothing is written, the folder's copy keeps its bytes, the history is as it was,
+  // the work stays on screen and unsaved, and the board says why.
+  const FAILS = [['histOpen', 'NotAllowedError', 'the history cannot be opened (a refusal, not absence)'], ['histList', 'NotReadableError', 'listing'],
+    ['histCreate', 'NoModificationAllowedError', 'creating the copy'], ['histWrite', 'QuotaExceededError', 'writing it'], ['histClose', 'InvalidStateError', 'closing it']];
+  for (const [s, e, what] of FAILS) {
+    const { A, fold, K } = await fresh(); const was = fold.raw(2027), h0 = J(w3Hist(fold));
+    K.fail[s] = { e: w3Err(A.w, e) };
+    const ok = await A.ev('driveStorePush(false)');
+    const fl = flags(A.ev);
+    chk(name, 'the history fails at ' + s + ' (' + what + ')', 'nothing is written, the history is as it was, the work stays unsaved, and it says so',
+      J([ok, fold.raw(2027) === was, J(w3Hist(fold)) === h0, A.ev(`String(S.notes.A)`), fl.DIRTY, fl.base.dirty, /could not be kept in the folder’s history/.test(status(A.ev)) && /nothing was written/.test(status(A.ev))]),
+      J([false, true, true, 'THIRD', true, true, true]));
+  }
+  // ... with no history at all yet (genuine absence): the copy is kept, and the save goes in (a CONTROL).
+  { const { A, fold } = await fresh(); fold.root.dirs.history = undefined; const was = fold.raw(2027);
+    const ok = await A.ev('driveStorePush(false)');
+    chk(name, 'no history yet (a CONTROL)', 'genuine absence is not a failure: the copy is kept and the save goes in',
+      J([ok, Object.values(w3Hist(fold)).includes(was), fold.note(2027, 'A')]), J([true, true, 'THIRD'])); }
+  // THE AUTOMATIC SAVE: the refusal stays on screen, never replaced by "Saved automatically".
+  { const { A, fold, K } = await fresh(); const was = fold.raw(2027); auto(A);
+    K.fail.histClose = { e: w3Err(A.w, 'InvalidStateError') };
+    await A.ev('liveTick()');
+    chk(name, 'the automatic save, the history failing', 'nothing is written, the work stays unsaved, and the refusal is still what the board says',
+      J([fold.raw(2027) === was, A.ev('String(DIRTY)'), /could not be kept/.test(status(A.ev)), /automatically/.test(status(A.ev))]), J([true, 'true', true, false])); }
+  // ... and a warning from a save that did go in -- a change made while it wrote -- is not replaced either.
+  { const { A, fold } = await fresh(); auto(A);
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = A.ev('liveTick()');
+    await until(() => (fold.hits.main || 0) > n0);
+    A.ev(`setNote('A','FOURTH'); 'ok'`); g.open(); await p;
+    chk(name, 'the automatic save, a change made while it wrote', 'the board still says that change is not in the folder yet',
+      J([fold.note(2027, 'A'), A.ev('String(DIRTY)'), /not in the folder yet/.test(status(A.ev)), /automatically/.test(status(A.ev))]), J(['THIRD', 'true', true, false])); }
+  // CONTROL: an automatic save with nothing to say still says it saved.
+  { const { A, fold } = await fresh(); auto(A); await A.ev('liveTick()');
+    chk(name, 'the automatic save, nothing to say (a CONTROL)', 'it saves and says so', J([fold.note(2027, 'A'), /Saved to the shared folder automatically/.test(status(A.ev))]), J(['THIRD', true])); }
+  // HOW FAR BACK THE HISTORY REACHES. The clock is set: saves at 0, 1, 2, 3, 5, 15 and 16 minutes, and a copy kept by
+  // force at 4 (somebody else's work, or the copy standing before a put-back). What stays is what the ten-minute spacing
+  // always kept -- 1, the forced 4, and 15, the first ten minutes after it -- and the newest; the forced copy is never thinned.
+  { const fold = folder(); const A = boot({ html: F1 }); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`globalThis.__t0=Date.UTC(2026,9,5,12,0,0); globalThis.__t=globalThis.__t0; Date.now=function(){ return globalThis.__t; }; 'ok'`);
+    const at = async (m, note) => { A.ev(`globalThis.__t=globalThis.__t0+${m}*60000; setNote('A',${J(note)}); 'ok'`); return await A.ev('driveStorePush(false)'); };
+    // a copy's time read off its name, as the board writes it (local time, to the second)
+    const t0 = JSON.parse(A.ev('globalThis.__t0'));
+    const stamps = () => Object.keys(w3Hist(fold)).map(n => /-(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})(-recent)?\.json$/.exec(n)).filter(Boolean)
+      .map(m => [Math.round((new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6]).getTime() - t0) / 60000), !!m[7]]).sort((a, b) => a[0] - b[0]);
+    await at(0, 'M0'); await at(1, 'M1'); await at(2, 'M2'); await at(3, 'M3');
+    A.ev(`globalThis.__t=globalThis.__t0+4*60000; 'ok'`);
+    await A.ev(`(async function(){ return await snapKeep(_driveDir, 2027, 'om', 'SOMEBODY ELSE', true); })()`);
+    await at(5, 'M5'); await at(15, 'M15'); const last = fold.raw(2027); await at(16, 'M16');
+    chk(name, 'saves at 0, 1, 2, 3, 5, 15 and 16 minutes, and one kept by force at 4', 'the history holds the spaced copies, the forced one, and the newest',
+      J(stamps()), J([[1, false], [4, false], [15, false], [16, true]]));
+    chk(name, 'the newest', 'is exactly what the last save replaced', w3Hist(fold)[Object.keys(w3Hist(fold)).find(n => /-recent\.json$/.test(n))] === last, true); }
+  // ... and keeping every save takes nothing from it: 24 spaced copies stay, the newest beside them.
+  { const { A, fold } = await fresh(); const H = fold.root.dirs.history.files;
+    Object.keys(H).forEach(n => delete H[n]);
+    const t0 = JSON.parse(A.ev('Date.now()'));
+    for (let i = 1; i <= 24; i++) H[A.ev(`snapName(2027, 'om', ${t0 - 5 * 60000 - (i - 1) * 11 * 60000})`)] = 'SPACED ' + i;
+    await A.ev('driveStorePush(false)');
+    chk(name, '24 spaced copies, and a save five minutes after the newest', 'all 24 stay, and the copy it replaced is kept beside them',
+      J([Object.values(w3Hist(fold)).filter(t => /^SPACED /.test(t)).length, Object.keys(w3Hist(fold)).length]), J([24, 25])); }
+  // "SAVE YOURS OVER THEIRS" KEEPS THEIRS FOR GOOD, whatever the saves after it within ten minutes thin (a CONTROL on
+  // v1.96, which kept nothing within ten minutes and so thinned nothing; it holds the forced copy under the new thinning).
+  { const { A, fold } = await fresh(); await A.ev('driveStorePush(false)');
+    const j = JSON.parse(fold.raw(2027)); j.store.ts = j.store.ts + 1000; j.ts = j.store.ts; j.by = 'Bob';
+    j.store.years[j.store.cur].notes = Object.assign({}, j.store.years[j.store.cur].notes, { A: 'COLLEAGUE' });
+    fold.root.files['spmt-2027-om.json'] = JSON.stringify(j);
+    A.ev(`setNote('A','ALICE ONE'); 'ok'`);
+    const refused = await A.ev('driveStorePush(false)');
+    await A.ev(`driveResolve('mine')`);
+    A.ev(`setNote('A','ALICE TWO'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','ALICE THREE'); 'ok'`); await A.ev('driveStorePush(false)');
+    const theirs = Object.values(w3Hist(fold)).filter(t => { try { const x = JSON.parse(t); return x.store.years[x.store.cur].notes.A === 'COLLEAGUE'; } catch (e) { return false; } });
+    chk(name, 'Save yours over theirs, then two more saves (a CONTROL)', 'their copy is still in the history, and the folder holds the last save',
+      J([refused, theirs.length >= 1, fold.note(2027, 'A')]), J([false, true, 'ALICE THREE'])); }
+  // NOTHING IS THINNED BEFORE BOTH THE COPY AND THE SAVE HAVE LANDED: a save whose own write fails leaves every copy.
+  { const { A, fold } = await fresh(); await A.ev('driveStorePush(false)');      // keeps SECOND as the newest copy
+    A.ev(`setNote('A','FOURTH'); 'ok'`); const h0 = Object.keys(w3Hist(fold));
+    fold.failNext.main = new Error('the share went away');
+    try { await A.ev('driveStorePush(false)'); } catch (e) {}
+    chk(name, 'a save whose own write fails', 'every copy the history held is still there, and the work stays unsaved',
+      J([h0.length, h0.every(n => n in w3Hist(fold)), A.ev('String(DIRTY)')]), J([2, true, 'true'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v1.97 W3 ====
+// ==== v1.97 W4: a board’s own service list moves dollars with it (item 80) ====
+// ==== end v1.97 W4 ====
+// ==== v1.97 W5: the reprogramming log by service and in whole dollars, and its money-map cells (items 81, 62) ====
+// A log saved or shared by an older version holds each row's service only as a position. Opened here it is read
+// against EACH ROW'S OWN appropriation's list -- from the file's own slot for that appropriation -- marked as read by
+// position, counted, and never rewritten. Shared through the folder, a row keeps its service by name, an older list
+// still merges, and a change an older version made to a row's position is read from that position, not ignored.
+// The ATR/BTR log, read back from its bytes: each row by column name, and the summary's lines and TOTAL.
+const w5iLog = async (W, ap, fy) => {
+  const txt = await W.eval(`(async function(){
+    rpAp=${JSON.stringify(ap)}; rpFy=${JSON.stringify(fy)};
+    var cap=null,_B=window.Blob;
+    window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+    try{ exportReprog(); }catch(e){ window.Blob=_B; return JSON.stringify({__err:'threw '+String((e&&e.message)||e)}); }
+    window.Blob=_B;
+    if(!cap) return JSON.stringify({__err:'no file'});
+    return JSON.stringify(await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength))); })()`);
+  const bk = JSON.parse(txt), lg = bk['ATR-BTR Log'] || [];
+  const out = { err: bk.__err || (lg.length ? '' : 'no ATR-BTR Log sheet'), rows: [], sum: [], total: null };
+  let hdr = null, inSum = false;
+  lg.forEach(r => {
+    const l = String((r || [])[0] ?? '').trim();
+    if (/^(BTR|ATR)s\s+\(\d+\)$/.test(l)) { hdr = null; return; }
+    if (l === 'Appropriation') { hdr = r.map(c => String(c ?? '').trim()); return; }
+    if (/^Subtotal — /.test(l)) { hdr = null; return; }
+    if (hdr) { if (l) { const o = {}; hdr.forEach((h, j) => { o[h] = r[j]; }); out.rows.push(o); } return; }
+    if (l === 'Service' && String((r || [])[1] ?? '') === 'BTR net') { inSum = true; return; }
+    if (inSum && l === 'TOTAL') { out.total = [r[1], r[2], r[3]]; inSum = false; return; }
+    if (inSum && l) out.sum.push([l, r[1], r[2], r[3]]);
+  });
+  return out;
+};
+// What the Check column claims: '' | 'position N' | 'unresolved', and '+ fraction' when the amount is not whole dollars
+const w5iMark = t => { t = String(t ?? ''); const out = [];
+  if (/unresolved/i.test(t)) out.push('unresolved'); else { const p = /position (\d+) of/.exec(t); if (p) out.push('position ' + p[1]); }
+  if (/not a whole number of dollars/i.test(t)) out.push('fraction');
+  return out.join(' + '); };
+const W5I_FF = ['USN', 'USAF', 'STOVL', 'ANG'];    // Full Fund's own services: the same names as O&M's, in another order, and more
+
+// ══ v1.97 W5.6 — A SAVED BOARD'S LOG FROM BEFORE v1.97, REOPENED ══════════════════════════════════════════════════════
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 W5 — a saved board’s older log reopens with each row read from its own appropriation, marked, and nothing rewritten';
+  try {
+  // THE FILE: an O&M board (USAF, ANG, AFRC) carrying Full Fund's board in its slot, and a log as v1.96 wrote it --
+  // positions only, one position Full Fund's list does not have, and an amount saved with half a dollar in it
+  const A = boot();
+  seed(A.ev, { services: MINE, items: [it('A', 'PSM', [300, 200, 100])], disc: [600, 400, 200], mand: [0, 0, 0], order: ['A'] });
+  A.ev(`PUBS.ff={ts:5, years:{}, dataPack:{services:${JSON.stringify(W5I_FF)}, items:[{id:'F1', ask:[1,2,3,4]}], budget:[]}};
+    RPDB={ts:7, entries:[
+      {id:'L1', ts:1, ap:'FULL FUND', fy:2027, type:'BTR', svc:1, title:'ff at 2', amtM:1, dir:'add', pool:'disc', status:'Pending'},
+      {id:'L2', ts:2, ap:'O&M', fy:2027, type:'ATR', svc:2, title:'om at 3', amtM:0.250001, dir:'deduct', pool:'disc', status:'Pending'},
+      {id:'L3', ts:3, ap:'FULL FUND', fy:2026, type:'BTR', svc:7, title:'ff at 8', amtM:0.123457, dir:'add', pool:'disc', status:'Pending'},
+      {id:'L4', ts:4, ap:'O&M', fy:2027, type:'BTR', svc:0, title:'om half a dollar', amtM:0.0000005, dir:'add', pool:'disc', status:'Pending'}]}; 'ok'`);
+  const html = A.ev('buildSavedHtml()');
+  const fileLog = JSON.stringify(JSON.parse(html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]).rpDb.entries);
+  const R = boot({ html });
+  chk(name, 'opened', 'control: opening it rewrites no entry (the log is the file’s, byte for byte)', R.ev(`JSON.stringify(RPDB.entries)`), fileLog);
+  const g = await w5iLog(R.w, 'ALL', 'ALL');
+  chk(name, 'export', 'each row’s service from its OWN appropriation’s list -- Full Fund’s position 2 is USAF, not O&M’s ANG -- one Unresolved, each marked',
+    JSON.stringify(g.rows.map(o => [o['Requirement Short Title'], o['Service'], w5iMark(o['Check'])])),
+    JSON.stringify([['ff at 2', 'USAF', 'position 2'], ['ff at 8', 'Unresolved', 'unresolved'], ['om half a dollar', 'USAF', 'position 1 + fraction'], ['om at 3', 'AFRC', 'position 3']]));
+  // every dollar is in the summary: USAF $1,000,000 + $0.5, AFRC -$250,001, Unresolved $123,457, exactly
+  const X = s => Number(s);
+  chk(name, 'export', 'the summary carries every row, the half dollar and the Unresolved row included, and TOTAL is the detail’s, exactly',
+    JSON.stringify([g.sum.filter(l => l[3] !== 0).map(l => [l[0], l[1], l[2], l[3]]), g.total]),
+    JSON.stringify([[['USAF', X('1.0000005'), 0, X('1.0000005')], ['AFRC', 0, X('-0.250001'), X('-0.250001')], ['Unresolved', X('0.123457'), 0, X('0.123457')]],
+      [X('1.1234575'), X('-0.250001'), X('0.8734565')]]));
+  // THE TRACKER: the Full Fund row's picker is Full Fund's, opening on the service it was read as
+  const pk = JSON.parse(R.ev(`(function(){ rpAp='ALL'; rpFy='ALL'; rpOpen=true; rpView='log'; render();
+    var tr=[...document.querySelectorAll('#rpBody tr')].find(function(t){ return [...t.querySelectorAll('input')].some(function(i){ return i.value==='ff at 2'; }); });
+    var s=tr? tr.children[3].querySelector('select') : null;
+    return JSON.stringify(s? [[...s.options].map(function(o){ return o.value; }).filter(Boolean), s.options[s.selectedIndex].textContent] : null); })()`));
+  chk(name, 'tracker', 'the Full Fund row offers Full Fund’s services and shows USAF as read by position', JSON.stringify(pk), JSON.stringify([W5I_FF, '⚠ USAF (by position)']));
+  // SAVED AGAIN, the half dollar is still there as it was: kept until someone corrects it
+  const again = R.ev('buildSavedHtml()');
+  chk(name, 'saved again', 'control: the log saved again is the log it opened, the half dollar included',
+    JSON.stringify(JSON.parse(again.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]).rpDb.entries.map(e => [e.id, e.svc, e.amtM])),
+    JSON.stringify([['L1', 1, 1], ['L2', 2, 0.250001], ['L3', 7, 0.123457], ['L4', 0, 0.0000005]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+// ══ v1.97 W5.7 — THE SHARED LOG: by name through the folder, older lists merged, an older peer's change read ══════════
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v1.97 W5 — the shared log carries each row’s service by name; an older list merges, and an older peer’s change is read from its position';
+  try {
+  const { J, wire, KEY, baseFile, folder, connect } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  const fold = folder(); const A = boot({ html: F1 }); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+  A.ev(`PUBS.ff={ts:5, years:{}, dataPack:{services:${J(W5I_FF)}, items:[{id:'F1', ask:[1,2,3,4]}], budget:[]}};
+    RPDB.entries=[{id:'A1', ts:1, ap:'FULL FUND', fy:2027, type:'BTR', svc:0, title:'a1', amtM:0, dir:'add', pool:'disc', status:'Pending'},
+                  {id:'A2', ts:2, ap:'FULL FUND', fy:2027, type:'ATR', svc:0, title:'a2', amtM:0, dir:'deduct', pool:'disc', status:'Pending'},
+                  {id:'A3', ts:3, ap:'O&M', fy:2027, type:'BTR', svc:0, title:'a3', amtM:0, dir:'add', pool:'disc', status:'Pending'}];
+    rpSetField('A1','svc','STOVL'); rpSetField('A1','amtM','0.300001');
+    rpSetField('A2','svc','ANG'); rpSetField('A2','amtM','0.040002');
+    rpSetField('A3','svc','AFRC'); rpSetField('A3','amtM','5.000005'); 'ok'`);
+  const ok = await A.ev('driveRpPush(true)');
+  const pushed = JSON.parse(fold.root.files['spmt-reprog.json'] || '{"entries":[]}');
+  chk(name, 'shared', 'the folder’s log names each row’s service, with the position it sits at in its own appropriation’s list',
+    J([ok, pushed.entries.map(e => [e.id, e.svc, e.svcName, e.svcPos, e.svcBy])]),
+    J([true, [['A1', 2, 'STOVL', 2, 'pick'], ['A2', 3, 'ANG', 3, 'pick'], ['A3', 2, 'AFRC', 2, 'pick']]]));
+  // AN OLDER VERSION WORKS ON THE FOLDER'S LOG: it adds a row with a position only, moves A1 to position 1 (keeping the
+  // fields it does not know, as v1.96's merge and edit do), and retitles A2 without touching its service
+  const later = Date.now() + 60000;
+  const older = JSON.parse(J(pushed));
+  older.entries.forEach(e => { if (e.id === 'A1') { e.svc = 0; e.ts = later; } if (e.id === 'A2') { e.title = 'a2 retitled'; e.ts = later; } });
+  older.entries.push({ id: 'P1', ts: later, ap: 'FULL FUND', fy: 2027, type: 'BTR', svc: 1, title: 'p1 older', amtM: 0.7, dir: 'add', pool: 'disc', status: 'Pending' });
+  older.ts = later; fold.root.files['spmt-reprog.json'] = J(older);
+  await A.ev('driveRpPull(true)');
+  const g = await w5iLog(A.w, 'ALL', 'ALL');
+  chk(name, 'merged', 'the older list merges: its new row is read from Full Fund’s position 2 (USAF); A1 from the position the older version set (USN, not the STOVL it no longer is); A2 keeps ANG, picked',
+    J(g.rows.map(o => [o['Requirement Short Title'], o['Service'], w5iMark(o['Check'])])),
+    J([['a1', 'USN', 'position 1'], ['a3', 'AFRC', ''], ['p1 older', 'USAF', 'position 2'], ['a2 retitled', 'ANG', '']]));
+  chk(name, 'merged', 'and every row is in the summary, to the dollar: TOTAL BTR | ATR | net',
+    J((g.total || []).map(v => Math.round(v * 1e6))), J([300001 + 5000005 + 700000, -40002, 300001 + 5000005 + 700000 - 40002]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v1.97 W5 ====
+// ==== v1.97 W6: the money map’s nine open cells, except the reprogramming log (item 62) ====
+// v1.97 INTEGRATION: AN APPROPRIATION TAKEN FROM A CONSOLIDATED FILE, REMAPPED, BRINGS ITS PACK IN THIS ORDER, FIGURES
+// AND ALL. consTakeApply relabelled the pack's services after a remap and left its requirement values in the file's order;
+// the pack names the services and the values when that appropriation is next opened, so every untouched value sat on
+// another service. Full Fund is taken from W3's file whose services are listed [AFRC, USAF, ANG]; the remap is accepted.
+// FAILS ON v1.96 (the pack's values came back in the file's order under this board's names).
+await (async () => {
+  const __bm = bootMark();
+  const name = 'v1.97 integration — an appropriation taken from a consolidated file brings its pack in this order';
+  try {
+    const J = JSON.stringify, F = w3Files(), { OLD } = w2Fx();
+    const T = boot({ html: OLD.html, ls: OLD.ls });
+    T.ev(`globalThis.__q=[]; window.confirm=function(q){ globalThis.__q.push(String(q)); return true; }; window.alert=function(){}; 'ok'`);
+    T.ev(`consTakeApply(${J(w3Pub(F.theirs))}, ${J(F.theirs)}, 'theirs.html', ['ff'], false); 'ok'`);
+    const asked = JSON.parse(T.ev('JSON.stringify(globalThis.__q)')).filter(q => /DIFFERENT ORDER/.test(q)).length;
+    const st = JSON.parse(T.ev(`localStorage.getItem('prio27ff')`) || 'null');
+    chk(name, 'the services question', 'it is asked once, for Full Fund, and answered Yes', J(asked), J(1));
+    chk(name, 'Full Fund as stored', 'its pack names this board’s order, and each requirement’s value sits on its own service, by name',
+      J([st && st.dataPack && st.dataPack.services, st && st.dataPack ? w3PackAsks(st.dataPack) : null]),
+      J([W2_MINE, w3PackAsks(w3Pub(F.both).appns.ff.dataPack)]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.97 W6 ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();
