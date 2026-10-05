@@ -3476,6 +3476,135 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ==== end W4 ====
 
+// ==== v1.96 (item 65): long menus fold by the job ====
+// Brad, 4 Oct 2026: "The list of selectable items is long. I need them grouped together in a meaningful way ... open to
+// dropdowns within dropdowns". Decided: groups open in place under their heading, one at a time per menu, the last one
+// remembered in this browser; one home for each action; a Find box in Reports & exports. Every check here fails on v1.95,
+// where Reports & exports opened 25 items flat, Setup 19, File 15 and Filter 13.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w4Mark();
+  const name = 'v1.96 — a long menu folds by the job, one group open at a time (item 65)';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [500, 100]), it('B', 'PSM', [300, 50])],
+             disc: [600, 120], mand: [100, 20], order: ['A', 'B'] });
+  // What a person sees when a menu opens: every item, heading and box not folded away.
+  const shown = k => J(JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns(); const dd=document.getElementById('dd_'+${J(k)});
+      return JSON.stringify([].slice.call(dd.querySelectorAll('.mi, .gh, input')).filter(function(e){
+        const g=e.closest('.gbody'); return !e.hidden && !(g && g.hidden); }).length); })()`)));
+  ev(`menuGrpOpen={}; menuFindQ=''; 'ok'`);
+  chk(name, 'rows', 'opened with nothing unfolded: Reports & exports 8 (Find, Pre-flight, six groups), Setup 3, File 6, Filter 3, the year 9, Data 9',
+    J(['reports', 'setup', 'share', 'view', 'fy', 'data'].map(shown)), J(['8', '3', '6', '3', '9', '9']));
+  const heads = k => JSON.parse(ev(`(function(){ openMenu=${J(k)}; syncBtns();
+      return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
+        return h.querySelector('span:nth-child(2)').textContent; })); })()`));
+  chk(name, 'groups', 'Reports & exports is grouped by the job', J(heads('reports')),
+    J(['Spend plan & cash — FY27', 'Briefing', 'Five years & PPBE', 'Execution & reprogramming', 'CCaR & accounting files', 'Companion tools']));
+  chk(name, 'groups', 'Setup, File and Filter', J([heads('setup'), heads('share'), heads('view')]),
+    J([['Who and where', 'Codes and structure', 'Appearance — yours only'], ['Program offices', 'Writer and team', 'Boards and appropriations'],
+       ['Funding', 'Service — funded requirements only']]));
+  // Each group holds exactly what was decided, read off what its items call.
+  // String.raw: a template literal would eat the regular expressions' backslashes
+  const calls = (k, g) => JSON.parse(ev(String.raw`(function(){ syncBtns(); const b=document.getElementById('mg_'+${J(k)}+'_'+${J(g)}); if(!b) return '[]';
+      return JSON.stringify([].slice.call(b.querySelectorAll('.mi')).map(function(e){
+        const a=e.getAttribute('onclick')||''; const m=/mRun\(\s*([A-Za-z0-9_]+)\s*\)/.exec(a) || /getElementById\('([A-Za-z]+)'\)\.click/.exec(a)
+          || /mRun\(function\(\)\{\s*([A-Za-z]+)\(/.exec(a) || /mRun\(\(\)=>\{\s*([A-Za-z]+)\(/.exec(a); return m? m[1] : a.slice(0,30); })); })()`));
+  chk(name, 'contents', 'Spend plan & cash: the forecast, Two Spend Plans, CR Cash Needs and its 1A9A return, side by side',
+    J(calls('reports', 'spend')), J(['toggleFc', 'togglePlans', 'toggleCr', 'crExport']));
+  chk(name, 'contents', 'Briefing, Five years & PPBE, Execution & reprogramming, CCaR & accounting files, Companion tools',
+    J(['brief', 'fydp', 'exec', 'ccar', 'tools'].map(g => calls('reports', g))),
+    J([['exportExcel', 'exportPPT', 'toggleEd', 'execSynopsis', 'exportCSV'], ['toggleFydp', 'exportFydpPlan', 'toggleP2', 'exportCycCompare', 'toggleSp'],
+       ['toggleEx', 'toggleRp', 'exportReprog', 'toggleFlow'], ['exportSrc', 'toggleIds', 'exportCoa', 'exportAceTieout'], ['linkOpen', 'linkSet']]));
+  chk(name, 'contents', 'File: Program offices, Writer and team, Boards and appropriations',
+    J(['offices', 'team', 'boards'].map(g => calls('share', g))),
+    J([['publishPmoCopy', 'subOpenReview'], ['takePen', 'whoAmI', 'toggleLive', 'toggleJrnl', 'showLog'],
+       ['fullFile', 'exportOneAppn', 'stateFile', 'multiFile', 'togglePkg']]));
+  chk(name, 'contents', 'Setup: Who and where; Appearance holds the five themes and three densities',
+    J([calls('setup', 'who'), calls('setup', 'look').length]), J([['toggleSvcPanel', 'togglePmo', 'toggleEnt'], 8]));
+  // ONE HOME FOR EACH ACTION: on v1.95 Set base year and Reset were on two menus, realignment and WBS under Setup.
+  const homes = ev(`(function(){ syncBtns(); const out={};
+      ['setBaseYear','resetYear','toggleRlg','toggleExw'].forEach(function(f){ out[f]=[];
+        document.querySelectorAll('.menu[id^="m_"] .mdd').forEach(function(dd){
+          if([].slice.call(dd.querySelectorAll('.mi')).some(function(e){ return (e.getAttribute('onclick')||'').indexOf(f)>=0; })) out[f].push(dd.id); }); });
+      return JSON.stringify(out); })()`);
+  chk(name, 'one home', 'Set base year, Reset and Funding realignment on the year menu only; WBS from execution data under Data only', homes,
+    J({ setBaseYear: ['dd_fy'], resetYear: ['dd_fy'], toggleRlg: ['dd_fy'], toggleExw: ['dd_data'] }));
+  // ONE AT A TIME, a heading that says so, and its count
+  const state = k => ev(`(function(){ return JSON.stringify([].slice.call(document.querySelectorAll('#dd_'+${J(k)}+' .gh')).map(function(h){
+      const b=document.getElementById(h.getAttribute('aria-controls'));
+      return [h.getAttribute('data-g'), h.tagName, h.getAttribute('aria-expanded'), !!b && !b.hidden, +h.querySelector('.gn').textContent===(b? b.querySelectorAll('.mi').length : -1)]; })); })()`);
+  ev(`openMenu='reports'; menuGrp('reports','spend'); 'ok'`);
+  const s1 = JSON.parse(state('reports'));
+  ev(`menuGrp('reports','brief'); 'ok'`);
+  const s2 = JSON.parse(state('reports'));
+  chk(name, 'one at a time', 'opening Briefing closes Spend plan & cash; each heading is a button whose aria-expanded and count match its group',
+    J([s1.filter(x => x[2] === 'true').map(x => x[0]), s2.filter(x => x[2] === 'true').map(x => x[0]),
+       s2.every(x => x[1] === 'BUTTON' && x[4] && (x[2] === 'true') === x[3])]), J([['spend'], ['brief'], true]));
+  ev(`menuGrp('reports','brief'); 'ok'`);
+  chk(name, 'one at a time', 'pressed again, the open group folds', J(JSON.parse(state('reports')).filter(x => x[2] === 'true').length), '0');
+  // REMEMBERED IN THIS BROWSER, NEVER IN THE FILE
+  ev(`menuGrp('reports','exec'); 'ok'`);
+  const stored = ev(`localStorage.getItem('spmtMenuGroups')`);
+  const saved = ev(`buildSavedHtml()`);
+  const B = boot({ ls: { spmtMenuGroups: J({ reports: 'exec', setup: 'look' }) } });
+  seed(B.ev, { services: ['USAF', 'ANG'], items: [it('A', 'AV', [500, 100])], disc: [600, 120], mand: [100, 20], order: ['A'] });
+  const back = B.ev(`(function(){ openMenu='reports'; syncBtns(); const r=document.getElementById('mg_reports_exec');
+      openMenu='setup'; syncBtns(); const s=document.getElementById('mg_setup_look');
+      return JSON.stringify([!!r && !r.hidden, !!s && !s.hidden]); })()`);
+  chk(name, 'remembered', 'the open group is kept in this browser and a board opened later opens on it; the saved file does not carry it',
+    J([JSON.parse(stored || '{}').reports, back, saved.indexOf('"reports":"exec"') < 0]), J(['exec', '[true,true]', true]));
+  // FIND in Reports & exports
+  const find = q => JSON.parse(ev(`(function(){ openMenu='reports'; syncBtns(); menuFind(${J(q)});
+      const dd=document.getElementById('dd_reports');
+      const vis=[].slice.call(dd.querySelectorAll('.mi')).filter(function(e){ const g=e.closest('.gbody'); return !e.hidden && !(g && g.hidden); });
+      const none=dd.querySelector('.mnone');
+      return JSON.stringify({ n: vis.length, groups: vis.map(function(e){ const g=e.closest('.gbody'); return g? g.id.replace('mg_reports_','') : 'top'; })
+        .filter(function(v,i,a){ return a.indexOf(v)===i; }), none: !!none && !none.hidden,
+        heads: [].slice.call(dd.querySelectorAll('.gh')).filter(function(h){ return getComputedStyle(h).display!=='none'; }).length }); })()`));
+  const fx = find('excel'), fc = find('cash'), fz = find('zzqq');
+  chk(name, 'Find', 'typing "excel" lists the seven workbooks, from four groups at once',
+    J([fx.n, fx.groups, fx.none]), J([7, ['brief', 'fydp', 'exec', 'ccar'], false]));
+  chk(name, 'Find', 'a group’s name finds all of its items; nothing matching says so', J([fc.n, fc.groups, fz.n, fz.none]), J([4, ['spend'], 0, true]));
+  const after = JSON.parse(ev(`(function(){ openMenu=null; syncBtns(); openMenu='reports'; syncBtns();
+      const f=document.getElementById('mFind'); return JSON.stringify([f? f.value : null, menuFindQ]); })()`));
+  chk(name, 'Find', 'closing the menu clears it', J(after), J(['', '']));
+  chk(name, 'Find', 'and it is a labelled search box at the top of the menu',
+    ev(`(function(){ syncBtns(); const f=document.getElementById('dd_reports').firstElementChild; return JSON.stringify([f.tagName, f.type, f.getAttribute('aria-label')]); })()`),
+    J(['INPUT', 'search', 'Find a report or export']));
+  // FILTER: the group holding a filter that is on opens by itself, and the headings say what is on
+  const auto = JSON.parse(ev(`(function(){ menuGrpOpen={}; laneFilter='unf'; mcOnly=false; svcFilter=-1; openMenu=null; toggleMenu('view');
+      const a=menuGrpOpen.view, f=document.getElementById('mg_view_fund');
+      laneFilter=''; svcFilter=1; openMenu=null; toggleMenu('view');
+      const b=menuGrpOpen.view, now=[].slice.call(document.querySelectorAll('#dd_view .gh .now')).map(function(n){ return n.textContent; });
+      const items=[].slice.call(document.querySelectorAll('#mg_view_svc .mi')).map(function(e){ return e.textContent.replace(/^✓/,''); });
+      svcFilter=-1; openMenu=null; syncBtns(); return JSON.stringify([a, !!f && !f.hidden, b, now, items]); })()`));
+  chk(name, 'Filter', 'a filter that is on opens its group; the Service heading names the service and its items are the services by name',
+    J(auto), J(['fund', true, 'svc', ['', 'ANG'], ['Any service', 'USAF', 'ANG']]));
+  // A HEADING IS PRESSED LIKE A BUTTON: the click stays in the menu (the menu is drawn again under it, and the page's own
+  // click handler would otherwise read that as a click outside), and focus comes back to the heading
+  const clicked = JSON.parse(ev(`(function(){ menuGrpOpen={}; openMenu='reports'; syncBtns();
+      const h=document.querySelector('#dd_reports .gh[data-g="ccar"]'); h.focus();
+      h.dispatchEvent(new MouseEvent('click', {bubbles:true, cancelable:true, view:window}));
+      const g=document.getElementById('mg_reports_ccar'), a=document.activeElement;
+      return JSON.stringify([openMenu, !!g && !g.hidden, !!a && a.classList.contains('gh') && a.getAttribute('data-g')==='ccar' && a.isConnected]); })()`));
+  chk(name, 'pressed', 'a click on a heading keeps the menu open, opens the group, and leaves focus on that heading', J(clicked), J(['reports', true, true]));
+  // AN IMPORTED SERVICE NAME IS TEXT on the Service heading too (it says which service is chosen)
+  const H = boot();
+  seed(H.ev, { services: ['<img src=x id=pwnsvc>', 'ANG'], items: [it('A', 'AV', [500, 100])], disc: [600, 120], mand: [100, 20], order: ['A'] });
+  chk(name, 'escaped', 'a service named with markup is shown as text on the Service heading and in its group',
+    H.ev(`(function(){ svcFilter=0; openMenu='view'; syncBtns(); return JSON.stringify([!!document.getElementById('pwnsvc'),
+      /<img/.test(document.querySelector('#dd_view .gh[data-g="svc"] .now').textContent)]); })()`), J([false, true]));
+  chk(name, 'Setup', 'the Appearance heading says the theme and density in use',
+    ev(`(function(){ openMenu='setup'; syncBtns(); return document.querySelector('#dd_setup .gh[data-g="look"] .now').textContent; })()`), 'Harbor · Comfortable');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w4Release(__bm, []);
+  await _w4Settle();
+})();
+// ==== end v1.96 item 65 ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

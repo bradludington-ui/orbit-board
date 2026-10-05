@@ -774,7 +774,10 @@ table.sp tr.tot td{font-weight:800;background:var(--panelA);border-bottom:1px so
 .modal-bg.open{display:flex;align-items:flex-start;justify-content:center;padding-top:7vh}
 .modal{background:var(--panel);border:1px solid var(--gold);border-radius:10px;width:640px;max-width:92vw;max-height:80vh;overflow:auto;padding:14px 18px;box-shadow:0 18px 60px rgba(0,0,0,.7)}
 .modal h3{margin:0 0 10px;font-size:13px;color:var(--gold);letter-spacing:.6px;display:flex;align-items:center;gap:10px}
-.modal .x{margin-left:auto;background:none;border:1px solid var(--line);color:var(--dim);border-radius:5px;font-size:12px;font-weight:800;padding:3px 9px;cursor:pointer}
+/* v1.96 (item 64): every box's ✕ Close had a border at 1.4-1.6:1 and stood about 20px tall -- 1.4.11 and 2.5.8 both
+   failed, on all 49 boxes. The conformance run had never opened a box; it opens the 🔧 list now, and found it. The edge
+   token is the one every other control's edge uses (3:1 or more on every theme), and 24px is 2.5.8's minimum. */
+.modal .x{margin-left:auto;background:none;border:1px solid var(--edge);color:var(--dim);border-radius:5px;font-size:12px;font-weight:800;padding:4px 10px;min-height:24px;min-width:24px;cursor:pointer}
 .modal .x:hover{border-color:var(--red);color:var(--red)}
 .menu{position:relative;display:inline-block}
 .mdd{display:none;position:absolute;right:0;top:calc(100% + 5px);background:var(--panel);border:1px solid var(--line2);border-radius:10px;min-width:258px;z-index:200;box-shadow:0 16px 44px rgba(0,0,0,.6);padding:6px}
@@ -826,6 +829,28 @@ select.cesel{border-color:var(--edge)}
 input[type=date]{background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:10.5px;padding:3px 5px;font-family:inherit;color-scheme:dark}
 input[type=date]:focus{outline:none;border-color:var(--gold)}
 .mlbl{font-size:9px;color:var(--dim);padding:8px 12px 3px;letter-spacing:.5px;font-weight:800}
+/* v1.96 (item 65): A LONG MENU FOLDS. Its groups are headings that open in place, under themselves, one at a time --
+   a drop-down within the drop-down, never a side fly-out (File, Data and Setup sit at the window's right edge, and a
+   fly-out needs arrow keys nothing else here uses). A folded group's items stay in the page, hidden, so every path,
+   test and census that reads a menu's items still finds them; .mi sets display, so [hidden] is spelled out here. */
+.mdd [hidden]{display:none!important}
+button.gh{display:flex;gap:8px;align-items:center;width:100%;border:0;background:transparent;margin:0;padding:7px 11px;
+  border-radius:6px;font-family:inherit;font-size:11.5px;font-weight:700;color:var(--ink);text-align:left;line-height:inherit;
+  cursor:pointer;white-space:nowrap;box-sizing:border-box}
+button.gh:hover{background:var(--panel2)}
+button.gh:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.gh .chev{width:14px;flex:none;color:var(--gold);font-weight:800;display:inline-block;transition:transform .12s}
+.gh[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.gh .now{margin-left:auto;padding-left:14px;color:var(--dim);font-size:9px;font-weight:600}
+.gh .gn{flex:none;font-size:9px;color:var(--dim);border:1px solid var(--line);border-radius:9px;padding:0 6px;font-weight:700}
+.gbody{margin:0 0 4px 16px;border-left:2px solid var(--line);padding-left:4px}
+input.mfind{display:block;width:calc(100% - 12px);margin:4px 6px 6px;background:var(--panelA);border:1px solid var(--edge);border-radius:6px;
+  color:var(--ink);font-family:inherit;font-size:11.5px;padding:6px 9px;box-sizing:border-box}
+input.mfind:focus-visible{outline:2px solid var(--gold);outline-offset:0}
+.mdd.finding .gh,.mdd.finding .mlbl,.mdd.finding .msep{display:none}
+.mdd.finding .gbody{margin-left:0;border-left:0;padding-left:0}
+.mnone{font-size:11px;color:var(--dim);padding:8px 12px;white-space:normal}
+@media (prefers-reduced-motion:reduce){ .gh .chev{transition:none} }
 .foot b{color:var(--mut)}
 /* ---- 320px: WCAG 1.4.10 Reflow ----------------------------------------------------------------
    Section 508 requires the PAGE not to scroll sideways at 320 CSS px. It does NOT require a data
@@ -1494,7 +1519,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p>It is a single file. There is nothing to install, and it does not talk to the network — this guide is inside it too.</p>
 </section>
 <section data-part="office" data-id="o-name" data-t="Put your name in, and set your office">
-<p><b>Your name.</b> Go to <span class="mp" data-m="share">📁 File ▾ › ✎ My editor name…</span> and enter your name or initials. It travels with the submittal so the portfolio team knows whose input they are reading. If you skip this, the copy asks for your name the first time you change anything.</p>
+<p><b>Your name.</b> Go to <span class="mp" data-m="share">📁 File ▾ › Writer and team › ✎ My editor name…</span> and enter your name or initials. It travels with the submittal so the portfolio team knows whose input they are reading. If you skip this, the copy asks for your name the first time you change anything.</p>
 <p><b>Your office.</b> Press <b class="bt" data-q="#subBanner">🏢 set your office</b> in the bar at the top, then type your office’s name or its number from the list. The button then shows your office — for example <b>🏢 AV</b>. A submittal carries that office’s requirements only, so check it before you start; press the button again to change it.</p>
 </section>
 <section data-part="office" data-id="o-find" data-t="Find your requirements">
@@ -1536,7 +1561,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 </section>
 <section data-part="office" data-id="o-export" data-t="Exporting from your copy, and the five-year plan">
 <p>You can export the workbook and the slides from <b>Reports &amp; exports ▾</b> for your own working. Every file you export is stamped, in the file name and across the top of the first sheet, with the date the copy was published — <b>◨ PMO COPY (snapshot of …, NOT the current plan)</b>. Please leave the stamp on: a copy is out of date the moment the portfolio team moves a dollar, and the stamp is what stops a file from November being briefed in February as the current plan.</p>
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📊 Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation, with a tab for each office: each CCaR record with the requirements that roll up to it, requirement and allocation for each year, totals at the right and the bottom.</p>
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › Five years &amp; PPBE › 📊 Five-year spend plan…</span> then <b>📊 Export the workbook</b> gives the five-year plan for your copy’s appropriation, with a tab for each office: each CCaR record with the requirements that roll up to it, requirement and allocation for each year, totals at the right and the bottom.</p>
 </section>
 <section data-part="office" data-id="o-travels" data-t="What travels, and what does not">
 <table class="hx-t"><tr><th>Field</th><th>Sent?</th><th>Why</th></tr>
@@ -1558,7 +1583,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <section data-part="office" data-id="o-wrong" data-t="If something goes wrong">
 <dl class="hx-dl">
 <dt>The file opens as text, or nothing happens</dt><dd>Download it to your machine first, then right-click → Open with → Microsoft Edge.</dd>
-<dt>“Put your name in first”</dt><dd><span class="mp" data-m="share">📁 File ▾ › ✎ My editor name…</span>, then submit again.</dd>
+<dt>“Put your name in first”</dt><dd><span class="mp" data-m="share">📁 File ▾ › Writer and team › ✎ My editor name…</span>, then submit again.</dd>
 <dt>“Nothing to send yet”</dt><dd>You have not changed anything the submittal carries for your office. Moving rows in the whole portfolio does not count. If you did edit something, check 🏢 in the top bar names the right office.</dd>
 <dt>“…belongs to another programme office, so it is NOT being sent”</dt><dd>You edited a requirement your office does not own. Everything else still goes.</dd>
 <dt>“…missing mandatory fields and is NOT being sent”</dt><dd>A requirement you added is not complete; fill in what the message lists and submit again.</dd>
@@ -1575,34 +1600,35 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p>The top of the board stays in view as you scroll, in three lines. The first says what you are looking at — the <b>Appropriation</b>, the <b>Fiscal year</b>, the <b>PMO</b>, the search and <b>Filter ▾</b>, with any filter that is on shown as a chip you can take off with its ✕ — and whether your work is saved, with the latest message beside it (the <b>Message</b> button opens a long one whole, or brings back one you hid); <b>📁 File ▾</b>, top right, is everything to do with the file: saving it, bringing work in, sending work out, and working as a team. The second is the task at hand: <b>Review</b>, <b>Rank</b> (the ▲ ▼ arrows and the office’s own order), <b>Fund</b> (discretionary, mandatory and unfunded for every row, and the allocation box), <b>Compare</b> (locked cycles, snapshots, changes) and <b>Brief</b> (for the room — requirements can’t be edited there) — each shows its own tools, and none changes a figure — then <b>Reports &amp; exports ▾</b> (every view and every export), <b>Data ▾</b> (everything that brings data in) and <b>Setup ▾</b> (the shape of the board, and the colours and the density you see it in). The third is the funding posture: the budget authority left in each lane, mission critical, the whole budget, what is unfunded in each service and what needs attention; <b>Funding detail ▾</b> opens the scorecards, the discretionary fit and the funding panels. On a narrow window — below about 760 pixels, a phone — the board is for reading and checking a requirement; rank and fund on a wider screen.</p>
 <p><b>Everything works from the keyboard.</b> Tab moves through the top of the board and into a menu you have opened, item by item; Enter or Space runs what has focus; Esc closes a menu, a row’s ⋯ menu or the message and leaves you on the button that opened it. The Funding detail headers and the service chips work the same way. Type a figure in a row and press Tab: it is applied and you move on to the next field. Enter applies it and stays.</p>
 <p><b>Every box works the same way.</b> A report, an editor or a list opens with the keyboard inside it, and Tab and Shift+Tab go round the box, never out onto the board behind it. Esc closes the box on top and puts you back on what opened it. If you have typed something the box has not saved yet, Esc, <b>✕ Close</b> or a click outside asks <i>Discard what you typed?</i> first: Cancel keeps the box open with your text in it. Every menu, a row’s <b>⋯</b> included, opens whole on screen: near the bottom of the window it opens upward, and a long one scrolls.</p>
+<p><b>A long menu opens folded.</b> Reports &amp; exports, 📁 File, Setup and Filter show their everyday items and a heading for each group, with how many items it holds; press a heading, or Tab to it and press Enter, and the group opens under it. One group is open at a time, and each menu opens again on the group you used last, in this browser. In <b>Reports &amp; exports</b>, the <b>Find</b> box at the top lists every report and export whose name you type, from every group at once. A path in this guide names the group: <i>Reports &amp; exports ▾ › Spend plan &amp; cash › 📅 Spend Plan Forecast…</i>.</p>
 <p><b class="bt" data-q="#saveBtn">💾 Save</b> writes the board back into its own file. Your work is also kept in this browser as you go, so a closed tab loses nothing — but the file is the record: save before you share it or switch machines. If somebody saved the file after the copy you are working from, Save asks before it writes over their work; and if you open a newer file while this browser holds work that is in no saved copy, that work is kept aside, not lost — the top bar says <i>↶ work kept aside</i>, and one click puts it back.</p>
-<p><b>One writer per board file.</b> Each board file records its writer, and only that person’s browser saves it in place. Anyone else’s Save is refused and names the writer; they can still read the board, export, publish PMO copies and ⬇ Save a copy. The guarantee is the folder: give write access to the shared board file, or the shared folder, to its writer alone. To hand over, the folder’s owner moves write access to the new writer, who then uses <span class="mp" data-m="share">📁 File ▾ › ✍ Take the pen…</span>. It asks first, names the writer it replaces, and the old writer’s next Save is refused. Where two people can both write the file, this is cooperative only: two Saves can still overwrite each other.</p>
+<p><b>One writer per board file.</b> Each board file records its writer, and only that person’s browser saves it in place. Anyone else’s Save is refused and names the writer; they can still read the board, export, publish PMO copies and ⬇ Save a copy. The guarantee is the folder: give write access to the shared board file, or the shared folder, to its writer alone. To hand over, the folder’s owner moves write access to the new writer, who then uses <span class="mp" data-m="share">📁 File ▾ › Writer and team › ✍ Take the pen…</span>. It asks first, names the writer it replaces, and the old writer’s next Save is refused. Where two people can both write the file, this is cooperative only: two Saves can still overwrite each other.</p>
 <p><b>Saving is careful about timing.</b> One save runs at a time, and a change made while a save is writing stays marked unsaved until the next Save writes it. If earlier work is already kept aside, a newer copy is not loaded over new work: put the kept work back (what is on screen is kept aside in its place), ⬇ save it as a file, or discard it first. Nothing kept aside is removed except by putting it back or discarding it.</p>
 </section>
 <section data-part="team" data-id="t-publish" data-t="Publishing a PMO copy">
-<p><span class="mp" data-m="share">📁 File ▾ › 📤 Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
+<p><span class="mp" data-m="share">📁 File ▾ › Program offices › 📤 Publish PMO copy…</span> downloads a working snapshot of the board for the appropriation on screen. Programme offices open it, explore it, update their own requirements and send back a small submittal file. The copy is a sandbox: it cannot save over this board, the allocation is locked in it, and everything exported from it is stamped as a snapshot.</p>
 <p>Put it on Teams or in the shared folder and tell the offices which appropriation it is. Each office’s work is kept in its own browser against that copy, so publish a new copy only when there is a reason to — offices should submit from the old one before they move to the new.</p>
 <p>The copy carries this guide, and opens it from <b>📖 How this copy works</b> in its top bar; it never opens by itself.</p>
 </section>
 <section data-part="team" data-id="t-subs" data-t="Taking submittals back">
-<p><span class="mp" data-m="share">📁 File ▾ › ✉ Review submittals…</span> opens the review. Load each office’s <i>ORBIT SUBMITTAL … .json</i> with <b>⬅ Load a submittal file…</b> in the review; load them all and review them together.</p>
+<p><span class="mp" data-m="share">📁 File ▾ › Program offices › ✉ Review submittals…</span> opens the review. Load each office’s <i>ORBIT SUBMITTAL … .json</i> with <b>⬅ Load a submittal file…</b> in the review; load them all and review them together.</p>
 <p>Every proposed field arrives <b>unticked</b>, beside what the board says today. A field this board changed too since the copy was published is marked as a <b>conflict</b>. <b>📄 Export change report</b> gives the whole round as a workbook for the SFWG. Tick what you accept — a new requirement and an office’s ranking are each taken whole or not at all — then <b>✔ Apply ticked</b>. The allocation never travels in a submittal, and nothing is applied until you apply it.</p>
 <p>A submittal applies to the <b>fiscal year it was written for</b>. If that is not the year on screen, loading it says so, naming both years, and holds it for its own year; a second question lets you hold it for the year on screen instead. The review shows the year each submittal is held for, and <b>✔ Apply ticked</b> applies nothing while a ticked submittal is held for another year: switch to that year first. Award changes show each award’s date and its dollars by service. A submittal whose services are listed in a different order is matched up by name, awards included; one that does not say which services its figures are for, or carries a list for the wrong number of services, is refused and the figures are named.</p>
 </section>
 <section data-part="team" data-id="t-full" data-t="A new version: import the full board">
-<p>When a new version of ORBIT comes out, open the new file and use <span class="mp" data-m="share">📁 File ▾ › ⬅ Import a full board (new version)…</span>. Pick the board file you were working in. It takes <b>everything</b> that file carries: all four appropriations with every year, every locked cycle of every appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination list.</p>
+<p>When a new version of ORBIT comes out, open the new file and use <span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)…</span>. Pick the board file you were working in. It takes <b>everything</b> that file carries: all four appropriations with every year, every locked cycle of every appropriation, the BAE list, execution data, cost estimates, the reprogramming log and the destination list.</p>
 <p>One confirmation lists what comes across and says it <b>replaces</b> what the new board holds. If the new board already has work of its own on an appropriation, it names each change that would be lost and asks first. Anything the file does not carry — an appropriation it has no plan for, a list an older version did not save — is kept as the board has it, and the report says so. The board reopens with a report of what arrived. Files saved by v1.80 onward are accepted.</p>
 <p>It is all or nothing. If this browser’s storage refuses any part of it (it is full), nothing is imported: the board says which list was refused and stays exactly as it was. In the rare case that storage also refuses putting the old board back, the board says which lists hold the import and which are as they were, does not reopen, and offers two files to save — this board as it was, and the file you imported. Save both before doing anything else.</p>
 <p>Then press <b>💾 Save</b>, so the new file holds your work.</p>
 </section>
 <section data-part="team" data-id="t-one" data-t="One appropriation in or out">
-<p><span class="mp" data-m="share">📁 File ▾ › ⬇ Export one appropriation…</span> makes a working board file holding one appropriation: its plan, its locked cycles, its execution data and its BAE rows, with the destination list, cost estimates and reprogramming log. It opens on that appropriation, and edits and saves like any board — hand it to an appropriation lead.</p>
-<p><span class="mp" data-m="share">📁 File ▾ › ⬅ Import one appropriation…</span> takes appropriations back from any board file. It lists what the file holds and takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked cycles come with it. Nothing else on the board changes.</p>
-<p><span class="mp" data-m="share">📁 File ▾ › ⇊ Import several boards at once…</span> merges several board files in one go, and <span class="mp" data-m="share">📁 File ▾ › 🔁 Appropriation packages…</span> hands an appropriation to its manager and takes it back against a ledger.</p>
+<p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬇ Export one appropriation…</span> makes a working board file holding one appropriation: its plan, its locked cycles, its execution data and its BAE rows, with the destination list, cost estimates and reprogramming log. It opens on that appropriation, and edits and saves like any board — hand it to an appropriation lead.</p>
+<p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⬅ Import one appropriation…</span> takes appropriations back from any board file. It lists what the file holds and takes only what you name; each one is checked for work this board did meanwhile and previewed before it replaces anything, and its locked cycles come with it. Nothing else on the board changes.</p>
+<p><span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › ⇊ Import several boards at once…</span> merges several board files in one go, and <span class="mp" data-m="share">📁 File ▾ › Boards and appropriations › 🔁 Appropriation packages…</span> hands an appropriation to its manager and takes it back against a ledger.</p>
 </section>
 <section data-part="team" data-id="t-alloc" data-t="Allocating, and what does not draw">
 <p>A requirement’s allocation is typed per service as <b>Disc</b> and <b>Mand</b> dollars<span data-b="grid">, in the <b>BY SERVICE</b> table of the RECORD panel</span><span data-b="card">, in the rows <b>⊞ SVC</b> opens</span>. Whatever is left of the requirement value is that service’s UFR. A typed figure is paid only as far as that service’s lane still holds money at the requirement’s rank, and only up to the requirement value; the rest is not paid, and a <i>drew $…</i> line appears under the figure.</p>
-<p>To find every case at once, look at <b>Needs attention</b> at the top: <b>▲ N not drawn · $X</b> counts the requirements set higher than they draw, discretionary and mandatory together, and a click opens the fix list. To filter the list to them, use <span class="mp" data-m="view">Filter ▾ › ▲ Set higher than it draws</span> (or the same counter in the <b>DISCRETIONARY FIT</b> strip, under <b>Funding detail</b>). Each one carries a <b>▲ $… not drawn</b> flag on its row; hover it for each service and lane, what was typed, what was drawn and why.</p>
+<p>To find every case at once, look at <b>Needs attention</b> at the top: <b>▲ N not drawn · $X</b> counts the requirements set higher than they draw, discretionary and mandatory together, and a click opens the fix list. To filter the list to them, use <span class="mp" data-m="view">Filter ▾ › Funding › ▲ Set higher than it draws</span> (or the same counter in the <b>DISCRETIONARY FIT</b> strip, under <b>Funding detail</b>). Each one carries a <b>▲ $… not drawn</b> flag on its row; hover it for each service and lane, what was typed, what was drawn and why.</p>
 <p>The <b>fix list</b> (also <b>🔧 fix list</b> in the fit strip) lists every line in priority order with the reason — the service’s discretionary or mandatory ran out above this rank, or the figure was typed above the requirement value. <b>set to drawn</b> lowers the typed figure to what was paid; <b>set all to drawn</b> does every line, after saying how many and how much. <b>No funded dollar moves, and neither unfunded total moves</b>: the money stops counting as “allocated, but no lane could pay it” — the portfolio shortfall — and counts as never allocated. Each fix is journalled and can be typed again.</p>
 <p>Every other entry under <b>Needs attention</b> opens its list the same way, in priority order: <b>⚠ impact statements missing</b>, <b>○ without a CCaR record</b>, <b>📅 without an obligation date</b> (funded first, with what each leaves UNSCHEDULED), <b>◔ awards short of funding</b> and <b>🔧 awards repaired on opening</b>. <b>Go to it</b> selects the requirement and opens what to fill: the Impact statement editor, the CCaR record, or the award block’s date. Fix one and it leaves the list and the count at once.</p>
 </section>
@@ -1615,14 +1641,14 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p>In <b>CR Cash Needs</b> and the 1A9A return, each award’s dollars sit in the half of the month its own date falls in: the 1st to the 15th, or the 16th to the end. An award saved with a month and no day counts as the 1st. Nothing switches a half by hand — to move cash, change the award’s date. Two awards on the same date are taken in the order they arrived on it: one whose date you change goes to the bottom of that date’s group.</p>
 <p>The award block shows <b>Balance to schedule — discretionary + mandatory</b> for each service, and beside each award how it splits between the two; <b>↵ put on last</b> puts the whole remaining balance on the latest award, and every funded dollar then has a date. <b>Needs attention</b> lists every requirement whose awards fall short of its funding.</p>
 <p>An award arriving in a file is checked first: real months, days 1 to 31, whole dollars, one figure per service. An import or a submittal that carries one the board cannot read is refused, and the message names it; a figure written as text in an older file is converted, and said. A saved board you open is never refused for an award and never loses one. A list for the wrong number of services keeps its total, spread over the requirement’s values and marked <b>SPLIT INFERRED</b>; a figure or date that cannot be read is marked <b>NEEDS REPAIR</b>, and its cash is UNSCHEDULED until you enter it again. Each such award keeps the record as it was saved, shown in its award block, and is listed under <b>Needs attention › 🔧</b> with what was done and the split used, until you press <b>✓ Checked</b>.</p>
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="reports">Reports &amp; exports ▾ › ⚖ CR Cash Needs…</span> show it on screen. In the forecast, <b>Show</b> beside the title picks the whole portfolio, one PMO or one service: the roll-up is drawn for that view in the same format, with the breakdown beneath it the other way (a PMO by service, a service by PMO), and a requirement two offices share counts at each office’s share, in whole dollars that add up to the requirement. <b>⬇ Export this view</b> saves exactly what is on screen as a workbook. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="reports">Reports &amp; exports ▾ › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › Spend plan &amp; cash › 📅 Spend Plan Forecast…</span> and <span class="mp" data-m="reports">Reports &amp; exports ▾ › Spend plan &amp; cash › ⚖ CR Cash Needs…</span> show it on screen. In the forecast, <b>Show</b> beside the title picks the whole portfolio, one PMO or one service: the roll-up is drawn for that view in the same format, with the breakdown beneath it the other way (a PMO by service, a service by PMO), and a requirement two offices share counts at each office’s share, in whole dollars that add up to the requirement. <b>⬇ Export this view</b> saves exactly what is on screen as a workbook. In <b>Fund</b>, <span class="mp" data-m="basis">Spend plan basis ▾ › ◨ Discretionary only</span> is a what-if that withholds mandatory from every spend plan at once, and says so on each; it is off every time the board opens. <span class="mp" data-m="reports">Reports &amp; exports ▾ › Briefing › 📽 PowerPoint deck</span> carries a <b>Spend Plan by Month</b> chart — discretionary with mandatory stacked on it, UNSCHEDULED at the end, every figure printed beneath.</p>
 </section>
 <section data-part="team" data-id="t-dest" data-t="Destinations: one list for every appropriation">
-<p><span class="mp" data-m="setup">Setup ▾ › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
+<p><span class="mp" data-m="setup">Setup ▾ › Who and where › 📍 Destinations…</span> keeps where money can go — contractors, government activities and others. It is <b>one list for all four appropriations</b>, shown A to Z here and in every picker: a destination added on O&amp;M is there on Full Fund. A new one is placed first in the list, ready to name.</p>
 <p>The <i>Used by</i> column counts requirements here and on the other appropriations. A destination another appropriation or a locked cycle points at cannot be removed until those requirements point elsewhere — a locked cycle is a fixed point, so one it names stays. Where two appropriations named the same place with a different kind, the panel says so for you to settle.</p>
 </section>
 <section data-part="team" data-id="t-ids" data-t="The IDS batch for CCaR">
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📤 IDS Batch Import — Requirements…</span> opens a preview of the file CCaR imports, worked out from the plan on screen: <b>one row per Budget FY, budget and control number</b>. Everything that lands on the same budget and control number — two services, both lanes on a lane-less budget, two requirements sharing a control number — is added into that one row, and a row holding more than one requirement is marked for review. A mandatory line’s <b>Req. Amount</b> and <b>Req. Approved</b> are its mandatory draw; a discretionary line carries the discretionary draw <b>plus every unfunded dollar</b> on that service; a requirement with no money goes at Approved 0 on a discretionary budget, so CCaR still tracks it. Unfunded dollars never go on a mandatory budget.</p>
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › CCaR &amp; accounting files › 📤 IDS Batch Import — Requirements…</span> opens a preview of the file CCaR imports, worked out from the plan on screen: <b>one row per Budget FY, budget and control number</b>. Everything that lands on the same budget and control number — two services, both lanes on a lane-less budget, two requirements sharing a control number — is added into that one row, and a row holding more than one requirement is marked for review. A mandatory line’s <b>Req. Amount</b> and <b>Req. Approved</b> are its mandatory draw; a discretionary line carries the discretionary draw <b>plus every unfunded dollar</b> on that service; a requirement with no money goes at Approved 0 on a discretionary budget, so CCaR still tracks it. Unfunded dollars never go on a mandatory budget.</p>
 <p>Anything that cannot be uploaded correctly — no control number, one that is not all digits, no budget, a chosen budget that can no longer be used — stays off the upload sheet and is listed with its dollars and <b>every</b> reason on the file’s second sheet, <b>Missing data and anomalies</b>, which also reconciles every dollar of the plan. If nothing at all can be uploaded the file is still made, and its first line says <b>NO UPLOADABLE IDS ROWS</b>: it is a diagnostic, not an upload.</p>
 <p>The box’s summary gives <b>Req. Approved</b> with its discretionary and mandatory beside it, and the reconciliation shows both lanes for every line, so the mandatory in the file can be checked against the plan before it goes. The file itself is unchanged: each row is already one budget, and a budget is one lane or lane-less.</p>
 <p>Before it makes the file the box asks for <b>the reason</b> (written on every row), <b>Add or Update</b> for the whole file (Add unless you choose Update — CCaR may refuse an update to a record that has Authorized allocations), <b>the file ID</b> — filled in with today’s date and the time of day, for you to check and confirm, because ORBIT keeps no record of exports and cannot know which IDs CCaR has already seen — and <b>the ORG number</b>, confirmed for every row and service. ORBIT never writes Delete and keeps nothing about an export but the ORG. The export is off while a locked cycle is on screen, in a PMO copy, and whenever ORBIT’s own arithmetic check fails; the box says which.</p>
@@ -1631,7 +1657,7 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p><span class="mp" data-m="share">📁 File ▾ › 🩺 Save diagnostics…</span> makes a small text file for support instead of sending the board. It holds the version, what kind of file this is (the live board, a PMO copy and whose, or one appropriation), the browser and window, how the file was opened and where Save writes, browser storage and any write it refused, counts only, and the last 50 warnings and script errors with their times. <b>It never holds a dollar figure, a requirement title, a name, a CCaR record, a PID or a budget name</b>: in the messages a figure reads # and anything taken out reads …. The office code stays. The box shows exactly what Save writes; Cancel or Esc writes nothing; nothing is sent anywhere. The board keeps that list in memory only — never in the file, never in browser storage.</p>
 </section>
 <section data-part="team" data-id="t-fydp" data-t="The five-year plan by PMO">
-<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
+<p><span class="mp" data-m="reports">Reports &amp; exports ▾ › Five years &amp; PPBE › 📊 Five-year spend plan…</span> shows the FYDP window for the working plan or a locked cycle, by requirement, PMO and service. <b>📊 Export the workbook</b> adds a tab for each office after the three summary sheets: each CCaR record with its requirements beneath, requirement and allocation for every year, and a block for every appropriation the office has requirements in — each read from that appropriation’s own board, so every block ties to what that board prints. Each year’s money is shown under the PMO that year assigns: a requirement moved to another office is listed under each office, with the years that office held it, so every office’s year matches that year’s plan and its lock.</p>
 </section>
 <section data-part="team" data-id="t-names" data-t="The requirement’s written fields">
 <p data-b="grid">In the RECORD panel the three written fields sit straight under the title: <b>⚠ Impact statement</b>, <b>📄 Description &amp; note</b> (one box, the description first and the note underneath, each kept and sent as its own field) and <b>📋 Requirement edit</b>, which says how many of its fields are still to fill. Beneath them: the money, the CCaR record, PID and decision band, the by-service table, the BAE budget for each line, planning, and the award schedule.</p>
@@ -1968,7 +1994,7 @@ const PUB_FILE_TS = (function(){ try{ return fileTsOf(PUB); }catch(e){ return 0;
 // board's owner can write the shared file or folder. What ORBIT adds is COOPERATIVE: the file, and
 // each shared-folder copy, records its writer -- a name, and a fingerprint of a key this browser keeps
 // (the key itself never leaves the browser) -- and Save from any other browser is refused, naming the
-// writer. 📁 File › Take the pen is the only way to change writer. Where two people can both write the
+// writer. 📁 File › Writer and team › Take the pen is the only way to change writer. Where two people can both write the
 // file, two Saves can still race (the review's concurrent-writer finding), and the guide says so.
 let WRITER=null;          // the board file's recorded writer {by, fp, t}, as the file this came from carries it
 let _takePen=null;        // {from: the fingerprint being replaced}, between Take the pen and its save
@@ -2384,7 +2410,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.95 (3 Oct 2026)';
+const BUILD='v1.96 (4 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -4676,7 +4702,7 @@ function syncAddPanel(){
   _addPanelSvc=want;
   w.innerHTML = SVC.length
     ? SVC.map((s,i)=>'<input id="naSvc'+i+'" style="width:86px" placeholder="'+esc(s)+'" title="'+esc(s)+' '+FYL()+' requirement value">').join('')
-    : '<span class="hint">No services yet — set them up first in Setup › 🏷 Services.</span>';
+    : '<span class="hint">No services yet — set them up first in Setup › Who and where › 🏷 Services.</span>';
 }
 function defaultOrder(){
   return BASE_ITEMS.slice().sort((a,b)=>askTot(b)-askTot(a)).map(i=>i.id);
@@ -4851,7 +4877,13 @@ function svcGuardImport(st, pack, label, mineList){
 const AWD_YM=/^\d{4}-(0[1-9]|1[0-2])$/;
 const AWD_MN=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
 const AWD_MAX=1e13;               // the door's bound on an amount (IN_MAX_AMT), restated: see above
-const AWD_ORIG_MAX=100000;        // the original as text stays well inside the door's limit on text
+const AWD_ORIG_MAX=100000;        // one piece of the original as text, well inside the door's limit on any one text
+// v1.96 (item 70, review NR04): THE ORIGINAL IS KEPT WHOLE. It was cut at AWD_ORIG_MAX characters, and an award set aside
+// in the repair is in nothing else -- so its record was lost at the next Save. Longer than one piece, it is kept as a
+// list of pieces, each one the door takes, and read back joined. What the award block SHOWS is cut; what is kept is not.
+function awdOrigKeep(s){ s=String(s); if(s.length<=AWD_ORIG_MAX) return s;
+  const p=[]; for(let i=0;i<s.length;i+=AWD_ORIG_MAX) p.push(s.slice(i, i+AWD_ORIG_MAX)); return p; }
+function awdOrigText(o){ return Array.isArray(o)? o.map(function(x){ return String(x); }).join('') : String(o===undefined || o===null? '' : o); }
 // One figure: {v} zero or more (cv when it was written as text), or {bad} saying why not. At a door only plain
 // digits are read from text; on opening also "$1,000,000", the way applyState reads every other per-service figure.
 // A value as a message shows it: text as it is, anything else as JSON would write it.
@@ -4897,7 +4929,8 @@ function awdNorm(aw, o){
     if(!a || typeof a!=='object') return {why:'is not an award ('+awdShow(a)+')'};
     if(a.mode!=='single' && a.mode!=='inc') return {why:'is neither a single award nor incremental awards ('+awdModeIs(a)+')'};
     const f=a.fix;
-    if(f!==undefined && f!==null && (typeof f!=='object' || Array.isArray(f) || (f.orig!==undefined && typeof f.orig!=='string')
+    if(f!==undefined && f!==null && (typeof f!=='object' || Array.isArray(f)
+       || (f.orig!==undefined && typeof f.orig!=='string' && !(Array.isArray(f.orig) && f.orig.every(function(t){ return typeof t==='string'; })))
        || (f.n!==undefined && !(Array.isArray(f.n) && f.n.every(function(t){ return typeof t==='string'; })))
        || (f.how!==undefined && ['conv','split','repair'].indexOf(f.how)<0))) return {why:'carries a repair record no board wrote'};
     const c=JSON.parse(JSON.stringify(a));
@@ -4935,7 +4968,6 @@ function awdNorm(aw, o){
   // ── ON OPENING: never refused, never zeroed; repaired where it can be, flagged where it cannot ──
   let orig; try{ orig=JSON.stringify(aw); }catch(e){ orig=undefined; }
   orig=(orig===undefined)? String(aw) : orig;
-  if(orig.length>AWD_ORIG_MAX) orig=orig.slice(0, AWD_ORIG_MAX)+' … (cut at '+AWD_ORIG_MAX+' of '+orig.length+' characters)';
   let c;
   if(!a || typeof a!=='object'){
     c={mode:'single'}; said('repair', 'the record is not an award ('+inShow(orig)+'). Its cash is UNSCHEDULED until an award is entered.');
@@ -5013,7 +5045,7 @@ function awdNorm(aw, o){
     }
   }
   if(!notes.length) return {aw:aw, conv:[], fix:null};
-  c.fix={orig:orig, how:worst, n:notes, at:Date.now()};
+  c.fix={orig:awdOrigKeep(orig), how:worst, n:notes, at:Date.now()};
   return {aw:c, conv:[], fix:c.fix};
 }
 function applyState(st){
@@ -6853,7 +6885,7 @@ function pmoSubmit(){
   // THE PATH IN THIS MESSAGE IS THE FILE MENU, because that is where the item is. It said Tools,
   // which has no such entry -- so an office following it opened the one menu that could not help,
   // on the first step of the workflow. Checked against the rendered menu, not from memory.
-  if(!who || who==='unknown'){ alert('Put your name in first \u2014 \u{1F4C1} File \u203a \u270e My editor '
+  if(!who || who==='unknown'){ alert('Put your name in first \u2014 \u{1F4C1} File \u203a Writer and team \u203a \u270e My editor '
     + 'name\u2026\n\nIt travels with the submittal so the portfolio team knows whose input this is.'); return; }
   // THE BASELINE TRAVELS WITH THE SUBMITTAL. Without it a conflict cannot be seen: the reviewing
   // board would compare the proposal against itself and every field would look uncontested. What is
@@ -7815,8 +7847,22 @@ function publishJson(){
   a.download=expName(STATEFILE);
   a.click();
 }
+// v1.96 (item 69, review NR05): before the shared state file replaces the board, work no saved copy has is kept aside --
+// the rule the shared folder's copy has followed since v1.89. Other work already kept, or no room: nothing is loaded.
+function sharedKeepMine(st){
+  const own=ownUnsaved(MS, st, baseGet());
+  const ka=own? keepAside(MS, {why:'sidecar', by:(st&&st.by)||'', ts:+((st&&st.ts)||0)}, baseGet()) : true;
+  if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }
+  if(ka!==true){
+    setStat('\u26a0 The shared state file was <b>not loaded</b>: this browser holds work no saved copy has, and there is no room to keep it '
+      +'aside. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026).');
+    render(); return false;
+  }
+  return true;
+}
 function adoptShared(){
   if(!SHARED) return;
+  if(!sharedKeepMine(SHARED)) return;
   // A refused load leaves the board untouched, so there is nothing to persist and nothing to
   // report as loaded. Saying so beats a status line claiming a load that did not happen.
   if(applyStore(SHARED)===false) return;
@@ -7838,10 +7884,19 @@ function importBoards(inp){
     inp.value='';
     const refused=results.filter(r=>r.bad);
     if(refused.length){ inRefuse(refused[0].name, refused[0].bad+(files.length>1? ' (so none of the '+files.length+' files was taken)' : '')); return; }
+    // v1.96 (item 67, review NR02): ALL OR NOTHING, like the other imports since v1.95. Every appropriation is written
+    // through lsAll, and memory changes only once every write has landed. It wrote one at a time with lsSet and never
+    // looked: a refused second write left the first in storage, the second only in memory, and the message said both.
+    const take=results.filter(r=>r.slug&&r.st);
+    const W=take.map(r=>[_SLUGMAP[r.slug].key, JSON.stringify(r.st), _SLUGMAP[r.slug].t+' board data', _SLUGMAP[r.slug].t]);
+    if(W.length){
+      const done=lsAll(W);
+      if(!done.ok){ const r0=take[Math.max(0, done.at)]||take[0];
+        return fullImportUndone(done, W, r0.txt||'', files.length>1? r0.name+' (one of '+files.length+' files)' : r0.name); }
+      impMixedLift(W.map(function(w){ return w[0]; }));
+    }
     let applied=false;
-    results.forEach(r=>{
-      if(!r.slug||!r.st) return;
-      lsSet(_SLUGMAP[r.slug].key, JSON.stringify(r.st), _SLUGMAP[r.slug].t+' board data');
+    take.forEach(r=>{
       PUBS[r.slug]=r.st;
       if(r.slug===_AP.slug){ applied = applyStore(r.st)!==false; }
     });
@@ -7871,13 +7926,13 @@ function importBoards(inp){
         if(st&&st.appns){                     // another consolidated file: take every slot it carries
           const pks2=extractPacks(txt)||{};
           Object.keys(st.appns).forEach(k=>{
-            if(_SLUGMAP[k]&&st.appns[k]){ const s2=st.appns[k]; if(!_hasPack(s2)&&pks2[k]) s2.dataPack=pks2[k]; results.push({name:f.name+' ['+_SLUGMAP[k].t+']', slug:k, st:s2, why:''}); }
+            if(_SLUGMAP[k]&&st.appns[k]){ const s2=st.appns[k]; if(!_hasPack(s2)&&pks2[k]) s2.dataPack=pks2[k]; results.push({name:f.name+' ['+_SLUGMAP[k].t+']', slug:k, st:s2, why:'', txt:txt}); }
           });
           rec.why='consolidated — slots imported'; results.push(rec); finish(); return;
         }
         if(!slug){ rec.why='couldn\u2019t tell which appropriation this is'; }
         else if(!st||!(st.years||Array.isArray(st.order))){ rec.why='no saved state inside — open that board and \ud83d\udcbe Save it first'; }
-        else { rec.slug=slug; rec.st=st; const pk1=extractPacks(txt)||{}; if(!_hasPack(st)&&(pk1.only||pk1[slug])) st.dataPack=pk1.only||pk1[slug]; }
+        else { rec.slug=slug; rec.st=st; rec.txt=txt; const pk1=extractPacks(txt)||{}; if(!_hasPack(st)&&(pk1.only||pk1[slug])) st.dataPack=pk1.only||pk1[slug]; }
       }catch(e){ rec.why='unreadable'; }
       results.push(rec); finish();
     };
@@ -9634,7 +9689,7 @@ function coaDiverge(){
 function coaAddGroup(pmo){
   if(GROUPS.indexOf(pmo)<0){
     setStat('⚠ <b>'+esc(pmo)+'</b> is not an office on this board. Offices are added in '
-      +'Setup › 🏢 PMOs, and this tool only files groupings under ones that already exist.');
+      +'Setup › Who and where › 🏢 PMOs, and this tool only files groupings under ones that already exist.');
     return;
   }
   uiPrompt('Name the requirement / capability grouping under '+pmo+':','',function(v){
@@ -9744,7 +9799,7 @@ function coaPanelBody(){
     +'<b>This defines the structure you agree. It changes nothing on the board.</b> Reading '
     +'<b>FY'+(yrs[0]%100)+'–FY'+(yrs[yrs.length-1]%100)+'</b> — the budget year and the '
     +'FYDP — which holds <b>'+nRec+'</b> CCaR record'+(nRec===1?'':'s')+' across <b>'+nYr
-    +'</b> year'+(nYr===1?'':'s')+' of plan. Offices come from Setup › '
+    +'</b> year'+(nYr===1?'':'s')+' of plan. Offices come from Setup › Who and where › '
     +'🏢 PMOs; add one there and it can be used here.</div>';
 
   // ---- what disagrees, stated before the detail ------------------------------------------------
@@ -9848,7 +9903,7 @@ function coaPanelBody(){
     +'is kept so somebody can go and open the record. <b>Filed under a different office</b> means '
     +'this design and the board disagree about whose account it is, which is a decision for the room '
     +'rather than a correction to make here. Nothing in this panel writes to the board. '
-    +'Reports &amp; exports › 📒 Chart of Accounts takes the whole picture into the meeting.'
+    +'Reports &amp; exports › CCaR &amp; accounting files › 📒 Chart of Accounts takes the whole picture into the meeting.'
     +'</div>';
 
   el.innerHTML=h;
@@ -11032,7 +11087,7 @@ async function importSrc(inp){
     const bad=report.filter(t=>!t.found).length;
     flowRepSeen=false;                       // a fresh import gets a fresh look at the report
     setStat((bad? '\u26a0 CCaR QPE imported with '+bad+' tab'+(bad===1?'':'s')+' NOT FOUND — '
-               : '\ud83d\udce5 CCaR QPE imported — ')+msg.join(' \u00b7 ')+'. \ud83d\udcbe Save to bake it into this file. Open Reports &amp; exports \u203a \ud83d\udcc8 Active Year Execution.');
+               : '\ud83d\udce5 CCaR QPE imported — ')+msg.join(' \u00b7 ')+'. \ud83d\udcbe Save to bake it into this file. Open Reports &amp; exports \u203a Execution &amp; reprogramming \u203a \ud83d\udcc8 Active Year Execution.');
   }catch(e){
     setStat('\u26a0 Import failed: '+((e&&e.message)||e));
   }
@@ -12629,7 +12684,7 @@ function preflight(){
     add('note','crmoved','CR half-month: moved to the first half by the award\u2019s own date',
       'The CR views and the 1A9A now place each award in the half of the month its own date falls in. An old '
       +'half-month mark had these in the second half; their dates put them in the first. A wrong date is changed '
-      +'in the award block; if the dates are right, Reports &amp; exports \u203a \u2696 CR Cash Needs clears the old marks.',
+      +'in the award block; if the dates are right, Reports &amp; exports \u203a Spend plan &amp; cash \u203a \u2696 CR Cash Needs clears the old marks.',
       crMovedList().map(function(e){ return {id:e.id, label:pfName(e.id), sub:'award '+crMovedLbl(e)+' \u00b7 '+fM(e.amt)}; }));
   }
 
@@ -21064,7 +21119,7 @@ function bmPpRow(){
     +'Take the base from a PPBE position</div>';
   if(!opts.length){
     h+='<div class="hint" style="margin-top:4px">No logged PPBE position carries money for '+FYL()
-      +'. Log one under Reports &amp; exports › <b>PPBE Budget Positions</b> and it will be offered here.</div></div>';
+      +'. Log one under Reports &amp; exports › Five years &amp; PPBE › <b>PPBE Budget Positions</b> and it will be offered here.</div></div>';
     return h;
   }
   h+='<div class="fr" style="gap:8px;align-items:center;flex-wrap:wrap;margin-top:5px">'
@@ -21665,7 +21720,7 @@ function awdFixHtml(id){
     : rep? '\u26a0 NEEDS REPAIR \u2014 when this board was opened, part of this award could not be read. What could not be read is UNSCHEDULED until it is entered again.'
     : inf? '\u25c7 SPLIT INFERRED \u2014 repaired when this board was opened. The split by service is inferred, not the one recorded.'
     : '\u2139 Converted when this board was opened.';
-  const o=String(fx.orig===undefined? '' : fx.orig);
+  const o=awdOrigText(fx.orig);
   return '<div class="awdfix" style="margin-top:6px;padding:4px 6px;border-left:3px solid '+col+';font-size:9.5px">'
     +'<b style="color:'+col+'">'+esc(head)+'</b>'
     +(Array.isArray(fx.n)? fx.n : []).map(function(t){ return '<div style="margin-top:2px">'+esc(String(t))+'</div>'; }).join('')
@@ -23972,7 +24027,42 @@ function render(){
         return `<div class="fr" style="margin-bottom:4px"><span style="font-size:11px"><b>${esc(grpOf(it))}</b> — ${esc(it.title)}</span><button class="qb" onclick="restoreReq(${jsa(id)})">↩ restore</button></div>`;}).join('')+'</div>';
   } else { rp.style.display='none'; rp.innerHTML=''; }
 }
-let openMenu=null, _menuShown=null;   // _menuShown: the menu drawn open last, so a close can hand focus back
+let openMenu=null, _menuShown=null;
+// v1.96 (item 65): THE GROUP EACH MENU HAS OPEN -- one at a time -- and what Find in Reports & exports is looking for.
+// The open group is this browser's, like the colours: kept in browser storage, never in the file. A write that
+// storage refuses costs only the memory of which group was open, so it is not reported.
+let menuGrpOpen={}, menuFindQ='';
+try{ const g=JSON.parse(localStorage.getItem('spmtMenuGroups')||'{}');
+     if(g && typeof g==='object' && !Array.isArray(g)) Object.keys(g).forEach(function(k){ if(typeof g[k]==='string') menuGrpOpen[k]=g[k]; }); }catch(e){}
+function menuGrp(m, k){
+  menuGrpOpen[m] = (menuGrpOpen[m]===k)? '' : k;
+  try{ localStorage.setItem('spmtMenuGroups', JSON.stringify(menuGrpOpen)); }catch(e){}
+  syncBtns();
+  // the menu was drawn again: focus goes back to the heading that was pressed, so the keyboard is where it was
+  try{ const h=document.querySelector('#dd_'+m+' .gh[data-g="'+k+'"]'); if(h) h.focus({preventScroll:true}); }catch(e){}
+}
+// A group that holds a filter that is on opens by itself when Filter opens, unless the one open already holds one.
+function menuGrpAuto(){
+  const on={fund: !!laneFilter || !!mcOnly, svc: svcFilter>=0}, cur=menuGrpOpen.view;
+  if(cur && on[cur]) return;
+  if(on.fund) menuGrpOpen.view='fund'; else if(on.svc) menuGrpOpen.view='svc';
+}
+// FIND in Reports & exports: narrows every group at once as you type, in place -- the menu is not drawn again, so the
+// box keeps focus. A group's name finds all of its items.
+function menuFind(v){ menuFindQ=String(v==null? '' : v); menuFindApply(); fitMenus(); }
+function menuFindApply(){
+  const dd=document.getElementById('dd_reports'); if(!dd) return;
+  const q=menuFindQ.trim().toLowerCase();
+  dd.classList.toggle('finding', !!q);
+  let n=0;
+  dd.querySelectorAll('.mi').forEach(function(e){
+    const g=e.closest('.gbody'), h=g? g.previousElementSibling : null;
+    const hit=!q || (e.textContent||'').toLowerCase().indexOf(q)>=0 || !!(h && (h.textContent||'').toLowerCase().indexOf(q)>=0);
+    e.hidden=!hit; if(hit) n++; });
+  dd.querySelectorAll('.gbody').forEach(function(g){ const h=g.previousElementSibling;
+    g.hidden = q? false : !(h && h.getAttribute('aria-expanded')==='true'); });
+  const none=dd.querySelector('.mnone'); if(none) none.hidden=!(q && !n);
+}   // _menuShown: the menu drawn open last, so a close can hand focus back
 function fitMenu(){
   // toolbar dropdowns open leftward from their button; on a narrow window the right-hand
   // ones would run off screen, so nudge whichever is open back into view.
@@ -24011,7 +24101,7 @@ function syncSticky(){
   }catch(e){}
 }
 try{ window.addEventListener('resize', syncSticky); }catch(e){ /* layout nicety; a board that cannot listen for resize still works */ }
-function toggleMenu(m){ openMenu = openMenu===m? null : m; syncBtns(); }
+function toggleMenu(m){ openMenu = openMenu===m? null : m; if(openMenu==='view') menuGrpAuto(); syncBtns(); }
 // v1.92 (item 36): running an item hands focus back to its menu's button, so a keyboard user is left where
 // they were rather than on nothing (the item itself is redrawn away as the menu closes).
 function mRun(fn){ const back=openMenu? document.getElementById('b_'+openMenu) : null;
@@ -24111,6 +24201,19 @@ function syncBtns(){
   // five tab panels; this is one workspace shown five ways, and a button is what each of them is.
   UI_MODES.forEach(function(m){ const t=document.getElementById('tab_'+m); if(t) t.setAttribute('aria-pressed', uiMode===m?'true':'false'); });
   const mi=(label,fn,chk,sub,cls)=>`<button type="button" class="mi${cls?' '+cls:''}" onclick="${fn}"><span class="chk">${chk?'✓':''}</span>${label}${sub?`<span class="sub">${sub}</span>`:''}</button>`;
+  // v1.96 (item 65): A FOLDED GROUP -- a heading button that opens its items in place, one group at a time per menu.
+  // The heading says how many items it holds and, where the group is a choice, what is chosen. It stops its click
+  // here: the menu is drawn again under it, and the page's own click handler would read that as a click outside.
+  const grp=function(m, k, title, body, now){
+    const n=(body.match(/class="mi[" ]/g)||[]).length; if(!n) return '';
+    const open=menuGrpOpen[m]===k;
+    return '<button type="button" class="gh" data-g="'+k+'" aria-expanded="'+open+'" aria-controls="mg_'+m+'_'+k+'" '
+      +'onclick="event.stopPropagation();menuGrp('+jsa(m)+','+jsa(k)+')"><span class="chev" aria-hidden="true">\u25b8</span>'
+      +'<span>'+title+'</span><span class="now">'+(now||'')+'</span><span class="gn">'+n+'</span></button>'
+      +'<div class="gbody" id="mg_'+m+'_'+k+'"'+(open? '' : ' hidden')+'>'+body+'</div>';
+  };
+  // Find starts empty each time Reports & exports opens
+  if(openMenu!=='reports') menuFindQ='';
   // EVERY TOOLBAR MENU, READ OFF THE PAGE. A hand-kept list here left 🏢 PMO out when that menu
   // was added (v1.67): toggleMenu('pmo') set the flag and nothing opened, on every board, for
   // three days -- and the menu check kept a hand-kept list of its own, so it never looked. The
@@ -24162,12 +24265,15 @@ function syncBtns(){
       y===MS.cur,
       MS.years[y]? (y===MS.cur?'working now':'has data') : 'not started')).join('')+
     (extraYears.length? '<div class="msep"></div>'+extraYears.map(y=>mi('FY'+(y%100)+' (outside window)', y===MS.cur? "openMenu=null;syncBtns()":`mRun(()=>switchYear(${y}))`, y===MS.cur, MS.years[y]?'has data':'')).join(''):'')+
-    '<div class="msep"></div>'+
+    '<div class="msep"></div><div class="mlbl">Across the years</div>'+
     // It belongs here, beside the years it writes into, and it is a VERB about this board's
     // fiscal years - not part of the board's shape, which is what Tools holds.
     mi('🗓 Roll requirements forward…',"mRun(toggleRoll)",rollOpen,
        'copy chosen requirements into chosen out-years')+
-    '<div class="msep"></div>'+
+    // v1.96 (item 65): ONE HOME FOR EACH ACTION. Funding realignment moves whole requirements between years, and Set
+    // base year and Reset were here AND under Setup › Maintenance; all three live here now, and only here.
+    mi('💱 Funding realignment…',"mRun(toggleRlg)",rlgOpen,
+       'source a lump sum by moving whole requirements between years')+
     mi('⚙ Set base year…',"mRun(setBaseYear)",false,'rolls the 5-year window')+
     mi('🗑 Reset '+FYL()+' to blank…',"mRun(resetYear)",false,'empties this year only',' warn');
   const nFilt=(mcOnly?1:0)+(svcFilter>=0?1:0)+(laneFilter?1:0);
@@ -24229,18 +24335,23 @@ function syncBtns(){
   document.getElementById('dd_view').innerHTML=
     '<div class="mlbl">Display</div>'+
     mi('☰ By-service detail on every row',"svcAll=!svcAll;render()",svcAll)+
-    '<div class="msep"></div><div class="mlbl">Filter the requirement list</div>'+
+    // v1.96 (item 65): the filters fold into Funding and Service; the heading says what is on
+    '<div class="msep"></div>'+
+    grp('view','fund','Funding',
     mi('◧ Fully discretionary only',"laneFilter=laneFilter==='disc'?'':'disc';render()",laneFilter==='disc','every service paid from discretionary')+
     mi('◨ Spilling into mandatory',"laneFilter=laneFilter==='mand'?'':'mand';render()",laneFilter==='mand','any mandatory draw')+
     mi('◩ Any unfunded portion',"laneFilter=laneFilter==='unf'?'':'unf';render()",laneFilter==='unf','the lanes could not cover it')+
     mi('▲ Set higher than it draws',"laneFilter=laneFilter==='nd'?'':'nd';render()",laneFilter==='nd',(function(){ const N=ndData(); return N.n? N.n+' requirement'+(N.n===1?'':'s')+' · '+fMc(N.tot)+' not drawn' : 'none'; })())+
+    mi('★ Mission Critical only',"mcOnly=!mcOnly;render()",mcOnly),
+      ((laneFilter?1:0)+(mcOnly?1:0))? ((laneFilter?1:0)+(mcOnly?1:0))+' on' : '')+
     '<div class="msep"></div>'+
-    mi('★ Mission Critical only',"mcOnly=!mcOnly;render()",mcOnly)+
     // Prime Contracts and OGC moved to the 🏢 PMO menu, beside the offices. They answer the same
     // question -- whose requirements am I looking at -- and a control with two homes is a control
     // somebody changes in one place and looks for in the other.
+    grp('view','svc','Service \u2014 funded requirements only',
     mi('Any service',"svcFilter=-1;render()",svcFilter<0)+
-    SVC.map((s,i)=>mi(esc(s)+' — funded requirements only',`svcFilter=${i};render()`,svcFilter===i)).join('')+
+    SVC.map((s,i)=>mi(esc(s),`svcFilter=${i};render()`,svcFilter===i)).join(''),
+      (svcFilter>=0 && SVC[svcFilter]!==undefined)? esc(SVC[svcFilter]) : 'any service')+
     (nFilt? '<div class="msep"></div>'+mi('✕ Clear all filters',"mcOnly=false;svcFilter=-1;ptypeFilter='';laneFilter='';document.getElementById('q').value='';render()",false,'back to the full list'):'');
   // ── v1.90 (item 27): THE MENUS ARE GROUPED BY TASK ─────────────────────────────────────────────
   // Every item the Active year, Budget year, FYDP, Tools and Export menus held is here, BY THE SAME CALL:
@@ -24349,27 +24460,43 @@ function syncBtns(){
     hard: mi('⌨ Rank entry',"mRun(toggleHard)",hardOpen,'type a rank in any row; the list stays put'),
     full: mi('Present full screen',"mRun(briefFull)",false,'Esc to leave'),
   };
+  // v1.96 (item 65): GROUPED BY THE JOB, NOT THE FILE TYPE, AND FOLDED. Each on-screen view sits beside its own export:
+  // CR Cash Needs and its 1A9A return, Reprogramming Actions and the ATR/BTR log, the five-year plan and its workbook.
+  // ✈ Pre-flight check stays unfolded on top: the house rule is to run it before every export.
+  { const fe=document.activeElement, findFocus=!!(fe && fe.id==='mFind'), at=findFocus? fe.selectionStart : 0;
   document.getElementById('dd_reports').innerHTML=
-    lbl('Views — budget year ('+FYL()+')')+I.fc+I.cr+I.plans+I.ed+sep+
-    lbl('Views — active years')+I.ex+I.rp+I.flow+sep+
-    lbl('Views — FYDP')+I.sp+I.fydp+I.ppbe+sep+
-    lbl('Briefing products')+I.pf+I.xl+I.acex+I.fydpx+I.cycx+I.coax+I.ppt+sep+
-    lbl('Data exports')+I.drill+I.syn+I.atr+I.src+I.r1a9a+I.ids+sep+
-    lbl('Companion tools')+I.link+I.linkset;
+    '<input type="search" id="mFind" class="mfind" placeholder="Find a report or export\u2026" aria-label="Find a report or export" '
+      +'autocomplete="off" oninput="menuFind(this.value)" value="'+esc(menuFindQ)+'">'+
+    I.pf+sep+
+    grp('reports','spend','Spend plan &amp; cash \u2014 '+FYL(), I.fc+I.plans+I.cr+I.r1a9a)+sep+
+    grp('reports','brief','Briefing', I.xl+I.ppt+I.ed+I.syn+I.drill)+sep+
+    grp('reports','fydp','Five years &amp; PPBE', I.fydp+I.fydpx+I.ppbe+I.cycx+I.sp)+sep+
+    grp('reports','exec','Execution &amp; reprogramming', I.ex+I.rp+I.atr+I.flow)+sep+
+    grp('reports','ccar','CCaR &amp; accounting files', I.src+I.ids+I.coax+I.acex)+sep+
+    grp('reports','tools','Companion tools', I.link+I.linkset)+
+    '<div class="mnone" hidden>Nothing matches. Clear the box to see every group.</div>';
+  menuFindApply();
+  if(findFocus){ try{ const f=document.getElementById('mFind'); f.focus({preventScroll:true}); f.setSelectionRange(at,at); }catch(e){} } }
+  // v1.96 (item 65): WBS from execution data reads the imported execution data, so it is with the imports
   document.getElementById('dd_data').innerHTML=
-    lbl('Execution — CCaR')+I.qpe+I.qpecov+I.div+I.ccar+sep+
+    lbl('Execution — CCaR')+I.qpe+I.qpecov+I.div+I.ccar+I.exw+sep+
     lbl('Cost estimates')+I.acei+I.acet+sep+
     lbl('Budget extract — for the Spend Plan Source export')+I.bae+I.budl;
+  // v1.96 (item 65): three folded groups. Set base year, Reset and Funding realignment live on the year menu now, and
+  // WBS from execution data under Data -- one home each. Appearance says on its heading what is in use.
+  { const DENS=[['compact','Compact','the most rows on the screen'],['comfortable','Comfortable','two lines to a requirement'],
+          ['presentation','Presentation','larger type, for a room']];
+    const th=THEMES.filter(function(t){ return t.k===themeGet(); })[0], dn=DENS.filter(function(d){ return d[0]===uiDensity; })[0];
   document.getElementById('dd_setup').innerHTML=
-    lbl('The shape of this board')+I.svc+I.pmos+I.bands+I.coa+I.ent+I.rcn+I.si+sep+
-    lbl('Maintenance')+I.rlg+I.exw+I.base+sep+I.reset+sep+
-    lbl('Appearance — yours only, never saved into the file')
-    +THEMES.map(function(t,i){
+    grp('setup','who','Who and where', I.svc+I.pmos+I.ent)+sep+
+    grp('setup','codes','Codes and structure', I.bands+I.coa+I.rcn+I.si)+sep+
+    grp('setup','look','Appearance \u2014 yours only',
+      THEMES.map(function(t,i){
         return mi((t.k===themeGet()? '● ' : '○ ')+t.n,
                   'mRun(function(){themeSetIdx('+i+')})', t.k===themeGet(), t.d); }).join('')
-    +sep+[['compact','Compact','the most rows on the screen'],['comfortable','Comfortable','two lines to a requirement'],
-          ['presentation','Presentation','larger type, for a room']].map(function(d){
-        return mi('Density: '+d[1],"mRun(function(){uiSetDensity("+jsa(d[0])+")})",uiDensity===d[0],d[2]); }).join('');
+      +sep+DENS.map(function(d){
+        return mi('Density: '+d[1],"mRun(function(){uiSetDensity("+jsa(d[0])+")})",uiDensity===d[0],d[2]); }).join(''),
+      esc((th? th.n : '')+(dn? ' \u00b7 '+dn[1] : ''))); }
   document.getElementById('dd_basis').innerHTML=lbl('Spend plan basis')+I.scenD+I.scenDM;
   { const bb=document.getElementById('b_basis');
     if(bb) bb.textContent='Spend plan basis: '+(scenView==='disc'? 'Disc only' : 'Disc + Mand')+' ▾'; }
@@ -24395,53 +24522,59 @@ function syncBtns(){
     const fc=document.getElementById('fchips');
     if(fc) fc.innerHTML=F.map(function(f){ return '<span class="fchip">'+esc(f[0])
       +'<button type="button" onclick="'+f[1]+'" aria-label="Remove the filter: '+esc(f[0])+'" title="Remove this filter">✕</button></span>'; }).join(''); }
+  // v1.96 (item 65): SAVE ON TOP, THE REST FOLDED BY THE JOB. Publishing PMO copies and reviewing what comes back sit
+  // together (Review submittals was under Export); the writer, the name and the team's tools together; every way a
+  // board or an appropriation comes in or goes out together. Save diagnostics stays at the foot, unfolded.
+  { const _SB=(typeof SANDBOX!=='undefined' && SANDBOX);
+    const offices=mi('📤 Publish PMO copy…',"mRun(publishPmoCopy)",false,
+           'a working snapshot the offices cannot save over')
+        // always here, so the way to load the first submittal is where the guide says it is
+        + mi('✉ Review submittals…',"mRun(subOpenReview)",subOpen,
+             PMOSUBS.length? PMOSUBS.length+' held — '+esc(PMOSUBS.map(subFrom).join(', '))+' — nothing applied yet'
+                           : 'load each office’s submittal file and review them together');
   document.getElementById('dd_share').innerHTML=
-    '<div class="mlbl">Save</div>'+
-    mi('💾 Save',"mRun(saveInPlace)",false,(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place')+
-    mi('⬇ Save a copy…',"mRun(publishState)",false,(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy' : 'downloads a duplicate')+
-    // v1.95 (item 58): the only way the board changes writer.
-    mi('✍ Take the pen…',"mRun(takePen)",false,(typeof SANDBOX!=='undefined' && SANDBOX)? 'turned off in a PMO copy'
-      : (WRITER&&WRITER.by? (writerIsMe(WRITER)? 'you hold the pen' : WRITER.by+' holds the pen') : 'only the board’s writer saves it in place'))+
-    // v1.89: work this browser kept aside when a newer saved copy replaced it. Here as long as it is kept.
+    mi('💾 Save',"mRun(saveInPlace)",false,_SB? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place')+
+    mi('⬇ Save a copy…',"mRun(publishState)",false,_SB? 'turned off in a PMO copy' : 'downloads a duplicate')+
+    // v1.89: work this browser kept aside when a newer saved copy replaced it. Here, unfolded, as long as it is kept.
     (_keptMeta? mi('\u21b6 Put back work kept aside\u2026',"mRun(keptPutBack)",false,'kept '+shortTs(_keptMeta.t)+' \u00b7 from before '+keptWhere(_keptMeta)+' replaced it')
       +mi('⬇ Save work kept aside as a file…',"mRun(keptSaveFile)",false,'it stays kept aside')
       +mi('✕ Discard work kept aside…',"mRun(keptDiscard)",false,'cannot be undone') : '')+
-    // GROUPED BY WHAT THE FILE DOES (v1.86): save it, bring work in, send work out, work as a team. The
-    // PMO copy lived under Budget year, where nobody looking for a file to send would find it.
-    '<div class="msep"></div><div class="mlbl">Import</div>'+
-    mi('⬅ Import a full board (new version)…',"mRun(()=>document.getElementById('fullFile').click())",false,'everything in a previous board file \u2014 all four appropriations, every locked cycle, the lists')+
-    mi('⬅ Import one appropriation…',"mRun(()=>document.getElementById('stateFile').click())",false,'from any board file \u2014 checked and previewed first; nothing else changes')
-    +(typeof APPNS!=='undefined'? mi('⇊ Import several boards at once…',"mRun(()=>document.getElementById('multiFile').click())",false,'pick every board .html together'):'')
-    +mi('🔁 Appropriation packages…',"mRun(togglePkg)",pkgOpen,
-       (typeof APPNS!=='undefined')? 'hand an appropriation to its manager, take it back' : 'load what you were issued, send your work back')
-    +'<div class="msep"></div><div class="mlbl">Export</div>'
-    +mi('⬇ Export one appropriation…',"mRun(exportOneAppn)",false,'a working board file holding that appropriation alone')
-    +(SANDBOX
-      ? mi('✉ Submit input…',"mRun(pmoSubmit)",false,
+    // in a PMO copy, the one way out is unfolded on top
+    (_SB? mi('✉ Submit input…',"mRun(pmoSubmit)",false,
            myPmo()? 'send '+esc(myPmo())+'’s descriptions, impacts and values back'
-                  : 'pick your office, then send your input back')
-      : mi('📤 Publish PMO copy…',"mRun(publishPmoCopy)",false,
-           'a working snapshot the offices cannot save over')
-        // always here now, so the way to load the first submittal is where the guide says it is
-        + mi('✉ Review submittals…',"mRun(subOpenReview)",subOpen,
-             PMOSUBS.length? PMOSUBS.length+' held — '+esc(PMOSUBS.map(subFrom).join(', '))+' — nothing applied yet'
-                           : 'load each office’s submittal file and review them together'))
-    +'<div class="msep"></div><div class="mlbl">Team</div>'
-    +mi('📡 Live view\u2026',"mRun(toggleLive)",liveCfg().on, (function(){ const c=liveCfg();
+                  : 'pick your office, then send your input back') : '')+
+    '<div class="msep"></div>'+
+    (_SB? '' : grp('share','offices','Program offices', offices)+'<div class="msep"></div>')+
+    grp('share','team','Writer and team',
+      // v1.95 (item 58): the only way the board changes writer.
+      mi('✍ Take the pen…',"mRun(takePen)",false,_SB? 'turned off in a PMO copy'
+        : (WRITER&&WRITER.by? (writerIsMe(WRITER)? 'you hold the pen' : WRITER.by+' holds the pen') : 'only the board’s writer saves it in place'))
+      +mi('✎ My editor name…',"mRun(()=>{whoAmI(true);render();})",false,'stamped on your saves')
+      +mi('📡 Live view\u2026',"mRun(toggleLive)",liveCfg().on, (function(){ const c=liveCfg();
           const set=(c.mode==='drive')? !!c.folder : !!c.url;
           if(!set) return 'not set up';
           return (c.on? 'on \u00b7 ' : 'off \u00b7 ')
             +Object.keys((LIVEDB&&LIVEDB.peers)||{}).length+' other board(s)'; })())
-    +mi('\u{1F553} Change journal…',"mRun(toggleJrnl)",jrnlOpen,
+      +mi('\u{1F553} Change journal…',"mRun(toggleJrnl)",jrnlOpen,
         (function(){ const n=jrnlSinceCount(); return n? n+' change'+(n===1?'':'s')+' since you last looked'
                                                        : 'what changed, from what, by whom'; })())
-    +mi('🕘 Save history',"mRun(showLog)",false,'who saved, when')
-    +mi('✎ My editor name…',"mRun(()=>{whoAmI(true);render();})",false,'stamped on your saves')
+      +mi('🕘 Save history',"mRun(showLog)",false,'who saved, when'))+
+    '<div class="msep"></div>'+
+    grp('share','boards','Boards and appropriations',
+      mi('⬅ Import a full board (new version)…',"mRun(()=>document.getElementById('fullFile').click())",false,'everything in a previous board file \u2014 all four appropriations, every locked cycle, the lists')
+      +mi('⬇ Export one appropriation…',"mRun(exportOneAppn)",false,'a working board file holding that appropriation alone')
+      +mi('⬅ Import one appropriation…',"mRun(()=>document.getElementById('stateFile').click())",false,'from any board file \u2014 checked and previewed first; nothing else changes')
+      +(typeof APPNS!=='undefined'? mi('⇊ Import several boards at once…',"mRun(()=>document.getElementById('multiFile').click())",false,'pick every board .html together'):'')
+      +mi('🔁 Appropriation packages…',"mRun(togglePkg)",pkgOpen,
+       (typeof APPNS!=='undefined')? 'hand an appropriation to its manager, take it back' : 'load what you were issued, send your work back'))
     // v1.92 (item 18): for support, instead of the board
-    +'<div class="msep"></div><div class="mlbl">Support</div>'
-    +mi('🩺 Save diagnostics…',"mRun(toggleDiag)",false,'a small text file for support \u2014 no figures, titles or names');
+    +'<div class="msep"></div>'
+    +mi('🩺 Save diagnostics…',"mRun(toggleDiag)",false,'a small text file for support \u2014 no figures, titles or names'); }
   // v1.90: measured last, once everything the bars hold -- the filter chips, the mode's tools -- is in them
   fitTop(); syncSticky(); fitMenu();
+  // v1.96 (item 65): and the open menu fitted to the window again, now that it is drawn -- a group opening in place makes
+  // it taller and can make it wider, and the fit at the top of this function measured it before
+  fitMenus();
 }
 
 // ============ LIVE VIEW =======================================================================
@@ -25177,17 +25310,9 @@ async function driveRestore(i){
     const j=driveParse(txt);
     if(liveTooNew(j)){ setStat(liveTooNewMsg(j, 'That copy')); return; }
     if(!_hasPack(j.store)){ setStat('⚠ That copy carries no requirement data — nothing was changed.'); return; }
-    // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT ASIDE FIRST (v1.95, review), as it is before the folder's newer copy
-    // is loaded. Putting an earlier copy back replaced it unasked: it was then in no saved copy, not kept aside, not in
-    // the folder. No room to keep it, or other work already kept: nothing is put back.
-    const own=ownUnsaved(MS, j.store, baseGet());
-    const ka=own? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0)}, baseGet()) : true;
-    if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history')); render(); return; }
-    if(ka!==true){
-      setStat('\u26a0 <b>Nothing was put back.</b> This browser holds work no saved copy has, and there is no room to keep it '
-        +'aside. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then put the earlier copy back.');
-      render(); return;
-    }
+    // v1.96 (item 66, review NR01): THE APPROPRIATION AND YEAR THIS RESTORE IS FOR, pinned. The folder is read and written
+    // below, and the board stays live while it waits.
+    const pinAp=mySlug(), pinYr=MS.cur;
     // the copy standing now goes to history too, so this restore is itself reversible
     // Kept whatever the last one's age (v1.89): the ten-minute spacing could skip it, which made the
     // promise above untrue. A copy that cannot be read or kept stops the restore rather than being lost.
@@ -25196,6 +25321,25 @@ async function driveRestore(i){
     catch(e){ setStat('\u26a0 The copy in the folder now could not be read \u2014 <b>'+esc((e&&e.message)||String(e))+'</b> \u2014 so nothing was put back.'); return; }
     if(now && await snapKeep(dir, MS.cur, mySlug(), JSON.stringify(now), true)!=='kept'){
       setStat('\u26a0 The copy in the folder now could not be kept in the history, so nothing was put back.'); return; }
+    // v1.96 (item 66, review NR01): FROM HERE TO THE ADOPTION NOTHING WAITS. Whether the work on screen is in a saved copy
+    // is decided now, after the last wait, not before the folder was read: an edit typed while the history was being
+    // written is work no saved copy has, and it was replaced unasked -- not kept aside, not in the folder. A board moved
+    // to another appropriation or year meanwhile is not the one this copy belongs to: nothing is put back.
+    if(mySlug()!==pinAp || MS.cur!==pinYr){
+      setStat('\u26a0 <b>Nothing was put back.</b> The board moved to another appropriation or year while the folder was '
+        +'being read. Open '+esc(APPN_LBL[pinAp]||pinAp)+' FY'+(pinYr%100)+' and put the copy back from there.');
+      render(); return;
+    }
+    // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT ASIDE FIRST (v1.95, review), as it is before the folder's newer copy
+    // is loaded. No room to keep it, or other work already kept: nothing is put back, and the work stays on screen.
+    const own=ownUnsaved(MS, j.store, baseGet());
+    const ka=own? keepAside(MS, {why:'folder', by:j.by||'', ts:+((j.store&&j.store.ts)||j.ts||0)}, baseGet()) : true;
+    if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, 0, 'the folder\u2019s history')); render(); return; }
+    if(ka!==true){
+      setStat('\u26a0 <b>Nothing was put back.</b> This browser holds work no saved copy has, and there is no room to keep it '
+        +'aside. Save a copy of yours first (\ud83d\udcc1 File \u2192 \u2b07 Save a copy\u2026), then put the earlier copy back.');
+      render(); return;
+    }
     if(applyStore(j.store)===false) return;
     // WHAT SAVE WILL WRITE OVER IS THE COPY STANDING NOW, and it is in the history. The base was the
     // old copy's own time, so Save found a "newer" copy in the folder and refused, every time.
@@ -25482,8 +25626,25 @@ async function driveRpPush(quiet){
     const dir=await driveDir(true);
     // READ BEFORE WRITE. Writing our list alone would drop every entry somebody else added since
     // we loaded - which is the exact loss this whole function exists to prevent.
-    let cur=null;
-    try{ cur=driveParse(await driveRead(dir, DRIVE_RP)); }catch(e){ cur=null; }
+    // v1.96 (item 68, review NR03): ONLY "NO SUCH FILE" MEANS THERE IS NO LOG. Every failure to read or parse was taken for
+    // an empty folder, and our list was written over a log that was there -- with the actions only it held. A log that
+    // cannot be read, is refused, or is not whole (still syncing) now stops the share, and says so. One that can be read
+    // is kept in the folder's history before it is replaced.
+    let cur=null, txt=null;
+    try{ txt=await driveRead(dir, DRIVE_RP); }
+    catch(e){ if(!(e && e.name==='NotFoundError')){
+      const why=((e&&e.name)&&e.name!=='Error')? e.name : ((e&&e.message)||'error');
+      setStat('\u26d4 <b>The reprogramming log was not shared.</b> The folder\u2019s log is there, but it could not be read ('+esc(why)
+        +'). <b>Nothing was written over it.</b> Try again once it can be read.'); return false; } }
+    if(txt!==null){
+      try{ cur=driveParse(txt); }catch(e){ cur=undefined; }
+      if(!cur || typeof cur!=='object' || !Array.isArray(cur.entries)){
+        setStat('\u26d4 <b>The reprogramming log was not shared.</b> The folder\u2019s log is there, but it is not a whole log \u2014 '
+          +'it may still be syncing, or it was refused. <b>Nothing was written over it.</b> Try again once it can be read.'); return false; }
+      if(await snapKeep(dir, 'rp', 'log', txt, true)!=='kept'){
+        setStat('\u26d4 <b>The reprogramming log was not shared.</b> The folder\u2019s log could not be kept in the folder\u2019s history '
+          +'first, so <b>nothing was written over it</b>.'); return false; }
+    }
     if(cur) rpMerge(cur);
     RPDB.ts=Date.now();
     await driveWrite(dir, DRIVE_RP, JSON.stringify({v:1, by:whoIs()||'unknown',
@@ -26590,7 +26751,7 @@ function linkOpen(){
   document.body.appendChild(a); a.click();
   try{ document.body.removeChild(a); }catch(e){}   // some hosts detach it themselves
   setStat('\u{1F517} Opening <b>'+esc(L.name)+'</b>. If nothing appeared it is not in this folder \u2014 '
-    +'use Reports & exports \u203a change the linked tool to correct the name'
+    +'use Reports & exports \u203a Companion tools \u203a change the linked tool to correct the name'
     +(linkIsExe()? ', and give a full path: the .exe loads its page from inside the install folder, '
       +'not from where your boards are kept.' : '.'));
 }
@@ -29425,7 +29586,8 @@ try{ setTimeout(function(){
     });
   }catch(e){}
 }, 60); }catch(e){}
-loadShared(st=>{
+// v1.96 (item 69): the answer, named, so what it does with an answer that arrives after somebody has typed can be tested
+function sharedArrived(st){
   if(st===undefined){
     if(!pubActive() && !(typeof IS_SHELL!=='undefined'&&IS_SHELL) && !_impSaid && !_bootSaid) setStat(bootOwnMsg()||'No saved state in this copy — make sure you opened the latest board file from the shared drive (💾 Save bakes the state into the file). ⬅ Import also works with a .json state file.');
     return;
@@ -29435,14 +29597,26 @@ loadShared(st=>{
     return;
   }
   SHARED=st;
+  // v1.96 (item 69, review NR05): THE SAME RULES AS THE SHARED FOLDER'S COPY. The answer can arrive after the board has
+  // opened and somebody has typed, and a later time on it -- another clock -- said nothing about whether the work on screen
+  // was in any saved copy. Work typed in this session: nothing is replaced. Work no saved copy has from before: kept
+  // aside first, or nothing is loaded.
+  if(DIRTY){
+    setStat('\u26a0 The shared state file ('+esc(fmtTs(st.ts))+') arrived after you started working, so <b>nothing was replaced</b>. '
+      +'\ud83d\udcbe Save yours, or <button type="button" class="nb lnk" onclick="adoptShared()">load the shared one</button> '
+      +'(what you have is kept aside first).');
+    return;
+  }
   if((st.ts||0)>=(MS.ts||0)){
+    if(!sharedKeepMine(st)) return;
     if(applyStore(st)===false) return;
     persist(); render();
     setStat('🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published '+fmtTs(st.ts)+'.');
   } else {
-    setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <button type="button" class="nb lnk" onclick="adoptShared()">discard mine and load shared</button>, or 💾 Save yours.');
+    setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <button type="button" class="nb lnk" onclick="adoptShared()">load the shared one (yours is kept aside first)</button>, or 💾 Save yours.');
   }
-});
+}
+loadShared(sharedArrived);
 </script>
 </body>
 </html>

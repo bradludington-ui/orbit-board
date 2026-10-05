@@ -3596,6 +3596,58 @@ Checks: `audit-import.mjs` "v1.95 — ⬆ Publish now in the shared folder is th
 
 **The gate that passed v1.95** (4 Oct, 00:06–02:24 UTC, on the final tree, review fixes included): every stage clean, **137.9 min**, the sweep 127.7 min; 860 mutations, 849/849 caught, 11 equivalent; fuzz seed 819798525; the new "money map" stage: 329 cells, 114 proven, 206 n/a, 9 open. Before it, two runs. The first (3 Oct, 13:33–16:49 UTC) failed on one survivor, `excel-unf-vec`: F4 had moved the PMO tabs to `pmoPartsOf`, so `PICK.unf`'s per-service vector -- the line it mutates -- was read by nothing. A consumer moving away from a line turns its mutation EQUIVALENT without a word; only the sweep sees it. The dead vector is gone and the mutation is aimed at `pmoPartsOf`'s split. The second (16:54–19:19 UTC, 145.1 min, 841/841) passed on 2f19c9f; the review above then found the four doors, and the third run is on the tree that closes them. The first run's sweep took 184.7 min: new mutations have no catcher history, so each tries the suites in order; with the history, 134.3 and then 127.7.
 
+### v1.96 (items 64–70): the menus fold by the job; the 4 Oct review of v1.95 (NR01–NR05)
+
+Built on Brad's go of 4 Oct 2026 for items 64 and 65; items 66–70 were added the same day from an independent review of
+v1.95 (main 64f0319) that Brad pasted mid-build -- five ways work could still be lost, each reproduced by the review's own
+probes (its evidence package stayed on Brad's machine; the regressions re-create each probe from the report).
+
+**65 -- long menus fold.** `grp(m, k, title, items, now)` in `syncBtns` draws a heading button (`.gh`: `data-g`,
+`aria-expanded`, `aria-controls="mg_<m>_<k>"`, a count `.gn`, and `.now` -- what is chosen, for a choice) and a `.gbody` that
+is `hidden` until open. The items stay in the page, so `[onclick]` greps, menu-path checks, the census and the tests still
+find them; `.mdd [hidden]{display:none!important}` because `.mi` sets display. `menuGrpOpen[m]` holds the one open group per
+menu, in `localStorage.spmtMenuGroups` (never in the file); `menuGrp` toggles it, redraws, and puts focus back on the heading;
+the heading's onclick stops propagation -- the redraw detaches it, and the page's click handler would read that as a click
+outside. `menuGrpAuto` (from `toggleMenu('view')`) opens the Filter group that holds a filter that is on. Find:
+`#mFind` (`menuFind`/`menuFindApply`) filters in place by item text or group title (so the box keeps focus), emptied when
+Reports & exports closes (`if(openMenu!=='reports') menuFindQ=''`). `syncBtns` now ends with `fitMenus()`: the fit at its top
+measured the menu before it was drawn, and a group opening made it taller and wider (761×960, Segoe stand-in). Menus of ten
+or fewer (the year, Data) stay flat; the office picker never folds. Paths name their group (`Reports & exports ▾ › Spend plan
+& cash › …`); `menu-paths.mjs` reads each menu's shape (`READ_SHAPE`) and fails a path to a folded item that names none.
+Moved: Set base year and Reset (were also in Setup), Funding realignment → the year menu; WBS from execution data → Data.
+
+**64 -- the browser checks reach the repaired-award controls.** `buildPopulated` seeds a SPLIT INFERRED (two figures on a
+six-service board) and a NEEDS REPAIR award (date `2027-13`). Keyboard L uses the 🔧 entry, its list, Go to it, ✓ Checked;
+the standards run measures the list and the award block and records a `coverage` finding if either is absent. It found the
+`.modal .x` close button failing 1.4.11 and 2.5.8 on all 49 boxes -- now `--edge`, 24px minimum.
+
+**66 (NR01) -- ↶ Put this back.** `driveRestore` pins `mySlug()`/`MS.cur`, reads and keeps the folder's current copy, then
+-- after the last await, synchronously -- refuses if the board moved, decides `ownUnsaved`, `keepAside`s, and adopts. The
+keep used to be decided before the awaits, so an edit typed during the history write was replaced unasked.
+
+**67 (NR02) -- ⇊ Import several boards at once** commits through `lsAll` (`W`: `[key, text, what, say]`) before memory or
+`PUBS` change; a refusal goes to `fullImportUndone` with the refused file's text for the rescue; `impMixedLift` on success.
+
+**68 (NR03) -- `driveRpPush`** reads with only `NotFoundError` as "no log"; unreadable, refused or not whole (`entries` not a
+list) stops the share; a readable log is kept with `snapKeep(dir,'rp','log',txt,true)` before the merged one replaces it.
+
+**69 (NR05) -- the legacy shared state file.** The `loadShared` callback is `sharedArrived(st)`: `DIRTY` -- nothing replaced,
+a link to `adoptShared()`; otherwise `sharedKeepMine(st)` keeps work no saved copy has aside first ('occupied' or no room:
+nothing loaded). `adoptShared` keeps aside first too. Timestamps no longer decide whether local work is disposable.
+
+**70 (NR04) -- a repaired award's original** is kept whole: `awdOrigKeep` (pieces of `AWD_ORIG_MAX`=100,000 characters, under
+the door's `IN_MAX_TEXT`=200,000), read by `awdOrigText`; the door (`awdNorm` door) accepts a string or a list of strings.
+
+**Checks.** `audit-board.mjs` "v1.96 — a long menu folds by the job…" (8 fail on v1.95, then it throws). `audit-import.mjs`
+"v1.96 — …" NR01–NR05 (17 fail on v1.95 -- NR05's with only its callback named; 5 CONTROLs), and the v1.86 File test now
+asserts the new groups (2 more). The W1H folder mock gained `failRead[name]` (a read refused once). Mutations: 30 new
+(`menu-*` 17, `restore-*` 3, `batch-*` 2, `rp-*` 3, `sidecar-*`/`adopt-shared-no-keep` 3, `awd-orig-*` 2) and 3 retargeted
+(`draw-filter-svc`, `copy-file-menu`, `w3-open-orig-dropped`). Browser-only behaviour proven by hand: without the trailing
+`fitMenus()` the drop-down check fails; with the old `.modal .x` the standards run reports 6 new findings; a guide path that
+drops its group fails `menu-paths`; on v1.95's fixture keyboard L fails 4 and the standards run its coverage.
+
+**Gate.** `npm run validate:math` passed on the final tree, 4 Oct 1:43–4:54 pm Eastern, 191.6 minutes: sweep 879/879 caught, 11 equivalent (890), fuzz seed 37296655. Every stage ran 35–50% slower than v1.95's, the unchanged fuzz and file verifier included -- allow about three hours.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

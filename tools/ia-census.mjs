@@ -49,11 +49,21 @@ const census = await page.evaluate(() => {
       const box = btn ? btn.getBoundingClientRect() : null;
       let group = '(ungrouped)', pos = 0;
       const groups = [], items = [];
+      // v1.96 (item 65): a long menu FOLDS -- a heading (.gh) and, after it, its items in a .gbody. The items are read in
+      // the order they stand, under their group's heading, and marked folded: a person sees them only once it is opened.
+      const flat = [];
       for (const el of dd.children) {
         const cls = el.className || '';
+        if (cls.includes('gbody')) { for (const x of el.children) flat.push([x, true]); continue; }
+        flat.push([el, false]);
+      }
+      for (const [el, folded] of flat) {
+        const cls = el.className || '';
         if (cls.includes('mlbl')) { group = txt(el); if (!groups.includes(group)) groups.push(group); pos = 0; continue; }
+        if (el.tagName === 'BUTTON' && cls.split(' ').includes('gh')) { group = txt(el.querySelector('span:nth-child(2)') || el) + ' (folded)';
+          if (!groups.includes(group)) groups.push(group); pos = 0; continue; }
         if (cls.includes('msep')) continue;
-        if (!cls.includes('mi')) continue;
+        if (!cls.split(' ').includes('mi')) continue;
         // An item is <span.chk></span> LABEL TEXT <span.sub>hint</span>. The label is the element's
         // OWN text nodes: taking innerText and splitting on newlines ran the two together, which
         // reported every item as having no hint while the hint sat inside the label.

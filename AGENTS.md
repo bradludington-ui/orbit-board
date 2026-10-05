@@ -121,8 +121,17 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   year"), or apply a held submittal to a year other than its own.
 - Add money to a screen or an export without its row in `tools/money-map.json`: the gate's "money map" stage
   fails on a surface, a cell or a cited check that is unaccounted for.
-- Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity` and `spmtDetail`, or
-  the package signature `spmtPkg`.
+- Let a whole-store adoption -- ↶ Put this back, the folder's newer copy, the legacy shared state file -- decide
+  whether the work on screen is saved before its last wait: decide it, keep it aside (`keepAside`), and adopt in one
+  step after the last wait, with the appropriation and year it was asked for pinned. `'occupied'` or no room stops it.
+- Take a failure to read a shared side file (the reprogramming log, a cost estimate) for "no file": only
+  `NotFoundError` means absent; anything else stops the share. Keep the folder's copy in its history before replacing it.
+- Cut what a repaired award keeps as its original: `awdOrigKeep` keeps it whole, in pieces the import door takes.
+- Give a long menu (more than about ten items) anything but folded groups built with `grp()` in `syncBtns`, one open
+  at a time; or name a menu path to a folded item without its group -- `npm run menus` fails it. A list of choices
+  (the offices) never folds.
+- Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity`, `spmtDetail` and
+  `spmtMenuGroups`, or the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.
 - Work in this repository while another agent is changing it: one agent at a time, so changes do not
   collide.

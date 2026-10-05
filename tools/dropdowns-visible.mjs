@@ -3,8 +3,9 @@
 // by the list's own scroll box (194px of it hidden on the last row, at any window size) and Reports & exports
 // (877px) ran 232px past a 730px window with nothing to scroll.
 //
-// This opens every toolbar menu, and a row's ⋯ menu on the first and the last row of a long list and of a short
-// one, at four widths and two heights, the way a person does (a click on its button). For each it checks:
+// This opens every toolbar menu -- and, since v1.96 (item 65), every folded group in it -- and a row's ⋯ menu on the
+// first and the last row of a long list and of a short one, at four widths and two heights, the way a person does (a
+// click on its button, then on each group's heading). For each it checks:
 //   - the menu's box lies inside the window;
 //   - every item, scrolled into view inside the menu if the menu scrolls, is inside the window and is the
 //     thing actually under its own centre -- nothing around it (the list's edge, a box, the top) covers it.
@@ -67,6 +68,17 @@ for (const [font, FILE] of FONTS) for (const [W, h] of SIZES) {
     const r = await judge(p); looked++;
     if (r.none) bad.push(`${w}×${h} ${k}: its menu did not open`);
     else r.problems.forEach(x => bad.push(`${w}×${h} ${k} menu: ${x}`));
+    // v1.96 (item 65): A LONG MENU FOLDS. Each group is opened from its heading, the way a person does, and the menu is
+    // judged again with that group open: every item in it in the window and on top, the menu scrolling if it must.
+    const gs = await p.evaluate(k => [...document.querySelectorAll('#dd_' + k + ' .gh')].map(h => h.getAttribute('data-g')), k);
+    for (const g of gs) {
+      await p.click(`#dd_${k} .gh[data-g="${g}"]`); await p.waitForTimeout(100);
+      const rg = await judge(p); looked++;
+      const opened = await p.evaluate(([k, g]) => { const b = document.getElementById('mg_' + k + '_' + g); return !!b && !b.hidden; }, [k, g]);
+      if (rg.none) bad.push(`${w}×${h} ${k} › ${g}: the menu closed when the group was opened`);
+      else if (!opened) bad.push(`${w}×${h} ${k} › ${g}: the group did not open`);
+      else rg.problems.forEach(x => bad.push(`${w}×${h} ${k} › ${g}: ${x}`));
+    }
     await p.keyboard.press('Escape'); await p.waitForTimeout(60);
   }
   // A ROW'S ⋯ MENU on the first and the last row, in the whole list and in a short one

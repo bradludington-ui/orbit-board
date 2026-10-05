@@ -11,6 +11,12 @@
 //   E. The "work kept aside" put-back in the save state is a button, not a link with no address.
 //   F. The five workspace modes are buttons in a labelled group, one pressed; no ARIA tabs are claimed.
 //      Tab and Enter change the mode, a reload keeps it, and a stored value that is not a mode opens Review.
+//   G2. A long menu's folded groups (v1.96, item 65): Tab reaches each heading, Enter opens it in place and says so,
+//      Tab then reaches every item in it; opening the next closes the first. Find in Reports & exports narrows the
+//      menu as you type, and Tab goes straight to what it found.
+//   L. The repaired-award controls (v1.96, item 64): the 🔧 entry under Needs attention, its list, Go to it, and
+//      ✓ Checked in the award block, each reached and used from the keyboard. The board this runs on carries two
+//      awards the board repaired when it opened, so these controls are on screen to be checked.
 //
 //   node tools/keyboard-reach.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -206,8 +212,10 @@ console.log('\n' + FILE.split('/').pop());
     for (const k of MENUS) {
       await p.evaluate(() => { openMenu = null; syncBtns(); });
       await p.focus('#b_' + k); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
+      // v1.96 (item 65): what Tab can reach in an open menu -- its items, its group headings and its Find box -- and not
+      // the items of a group that is folded, which are in the page but hidden
       const o = await p.evaluate(k => ({ open: openMenu === k, exp: document.getElementById('b_' + k).getAttribute('aria-expanded'),
-        items: document.querySelectorAll('#dd_' + k + ' [onclick]').length }), k);
+        items: [...document.querySelectorAll('#dd_' + k + ' button, #dd_' + k + ' input')].filter(e => e.getClientRects().length > 0).length }), k);
       // Tab through the open menu: every item is reached, in order, and Tab past the last closes it
       let reached = 0, left = false;
       for (let i = 0; i < o.items + 2; i++) {
@@ -241,6 +249,88 @@ console.log('\n' + FILE.split('/').pop());
     chk('G · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
   } catch (e) { chk(`G · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
+// ── G2. A LONG MENU'S FOLDED GROUPS, AND FIND (v1.96, item 65) ─────────────────────────────────────────
+{
+  try {
+    const { p, ctx, errs } = await open('review');
+    await p.evaluate(() => { try { localStorage.removeItem('spmtMenuGroups'); } catch (e) {} menuGrpOpen = {}; openMenu = null; syncBtns(); });
+    const GROUPED = await p.evaluate(() => [...document.querySelectorAll('.menu[id^="m_"]')].filter(m => m.querySelector('.gh') && m.getClientRects().length)
+      .map(m => ({ k: m.id.slice(2), gs: [...m.querySelectorAll('.gh')].map(h => h.getAttribute('data-g')) })));
+    chk('G2 · the long menus have folded groups: File, Filter, Reports & exports, Setup', GROUPED.map(x => x.k).sort().join() === 'reports,setup,share,view',
+      GROUPED.map(x => x.k + ':' + x.gs.length).join(' '));
+    let groups = 0, items = 0; const miss = [];
+    for (const { k, gs } of GROUPED) {
+      await p.evaluate(() => { openMenu = null; syncBtns(); });
+      await p.focus('#b_' + k); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
+      for (const g of gs) {
+        const steps = await tabTo(p, '#b_' + k, `#dd_${k} .gh[data-g="${g}"]`, 30);
+        if (steps < 0) { miss.push(`${k}/${g}: heading never reached`); continue; }
+        await p.keyboard.press('Enter'); await p.waitForTimeout(80);
+        const st = await p.evaluate(([k, g]) => { const h = document.querySelector(`#dd_${k} .gh[data-g="${g}"]`), b = document.getElementById('mg_' + k + '_' + g);
+          return { open: openMenu === k, exp: h && h.getAttribute('aria-expanded'), focus: document.activeElement === h, shown: !!b && !b.hidden,
+            n: b ? b.querySelectorAll('.mi').length : 0, others: [...document.querySelectorAll(`#dd_${k} .gbody`)].filter(x => x !== b && !x.hidden).length }; }, [k, g]);
+        if (!(st.open && st.exp === 'true' && st.focus && st.shown && st.others === 0)) { miss.push(`${k}/${g}: Enter ${JSON.stringify(st)}`); continue; }
+        let reached = 0;
+        for (let i = 0; i < st.n; i++) {
+          await p.keyboard.press('Tab');
+          if (await p.evaluate(([k, g]) => { const a = document.activeElement, b = document.getElementById('mg_' + k + '_' + g); return !!(b && a && b.contains(a)); }, [k, g])) reached++;
+        }
+        groups++; items += reached;
+        if (reached !== st.n) miss.push(`${k}/${g}: Tab reached ${reached} of ${st.n}`);
+      }
+      await p.keyboard.press('Escape'); await p.waitForTimeout(60);
+    }
+    chk('G2 · Tab reaches every heading, Enter opens it in place and says so (one group open at a time), and Tab reaches every item in it',
+      miss.length === 0 && groups > 0, miss.length ? miss.slice(0, 4).join(' | ') : `${groups} group(s), ${items} item(s)`);
+    // FIND: the first stop in Reports & exports; typing narrows it, and the next Tab is the first thing it found
+    await p.evaluate(() => { openMenu = null; syncBtns(); });
+    await p.focus('#b_reports'); await p.keyboard.press('Enter'); await p.waitForTimeout(80);
+    await p.keyboard.press('Tab');
+    const first = await p.evaluate(() => document.activeElement && document.activeElement.id);
+    await p.keyboard.type('excel'); await p.waitForTimeout(120);
+    const shown = await p.evaluate(() => [...document.querySelectorAll('#dd_reports .mi')].filter(e => e.getClientRects().length > 0).map(e => e.textContent.trim().slice(0, 30)));
+    await p.keyboard.press('Tab');
+    const next = await p.evaluate(() => { const a = document.activeElement; return a ? a.textContent.trim().slice(0, 30) : null; });
+    chk('G2 · Find is the first stop in Reports & exports; typing "excel" shows the seven workbooks, and Tab goes to the first',
+      first === 'mFind' && shown.length === 7 && next === shown[0], JSON.stringify({ first, n: shown.length, next }));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(60);
+    const cleared = await p.evaluate(() => { openMenu = 'reports'; syncBtns(); return document.getElementById('mFind').value; });
+    chk('G2 · Esc closes it, and Find is empty when the menu opens again', cleared === '', JSON.stringify(cleared));
+    chk('G2 · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`G2 · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+}
+
+// ── L. THE REPAIRED-AWARD CONTROLS, FROM THE KEYBOARD (v1.96, item 64) ─────────────────────────────────
+// v1.95 drew them only when an award had been repaired on opening, and the board every browser check loads held none:
+// nothing checked that a keyboard could reach them. That board now carries two.
+{
+  try {
+    const { p, ctx, errs } = await open('review');
+    const have = await p.evaluate(() => ({ list: attLists().awfix.length, entry: !!document.querySelector('button.e[onclick=\'attShow("awfix")\']') }));
+    chk('L · the board opens with two awards it repaired, and Needs attention offers the 🔧 entry', have.list === 2 && have.entry, JSON.stringify(have));
+    const steps = await tabTo(p, '#q', 'button.e[onclick=\'attShow("awfix")\']', 60);
+    if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
+    const box = await p.evaluate(() => ({ open: attOpen, title: (document.getElementById('attTitle') || {}).textContent || '',
+      inBox: !!document.getElementById('attPanel').contains(document.activeElement) }));
+    chk('L · the 🔧 entry is reached with Tab and Enter opens its list, with the keyboard inside it',
+      steps >= 0 && box.open === 'awfix' && /REPAIRED/.test(box.title) && box.inBox, `${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify(box)}`);
+    const go = await tabTo(p, '#attPanel button', '#attPanel button.attgo', 20);
+    if (go >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(300); }
+    const at = await p.evaluate(() => ({ open: attOpen, cur: curRow, fix: !!((S.awards || {})[curRow] || {}).fix }));
+    chk('L · Go to it is reached and, with Enter, closes the list and selects the requirement whose award was repaired',
+      go >= 0 && at.open === null && at.fix, `${go >= 0 ? go + ' Tab(s)' : 'never reached'} · ${JSON.stringify(at)}`);
+    const before = await p.evaluate(() => attLists().awfix.length);
+    const ok = await tabTo(p, '#inspector button, #inspector input', 'button[onclick^="awdFixOk"]', 80);
+    if (ok >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
+    const after = await p.evaluate(id => ({ n: attLists().awfix.length, checked: !!(((S.awards || {})[id] || {}).fix || {}).ok }), at.cur);
+    chk('L · ✓ Checked is a button in the award block, reached with Tab, and Enter takes the award off the 🔧 list',
+      ok >= 0 && after.checked && after.n === before - 1, `${ok >= 0 ? ok + ' Tab(s)' : 'never reached'} · ${before} → ${JSON.stringify(after)}`);
+    chk('L · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    await ctx.close();
+  } catch (e) { chk(`L · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
 // ── H. THE FUNDING DETAIL HEADERS AND A FIT CHIP (v1.92, item 36) ─────────────────────────────────────
@@ -400,5 +490,5 @@ console.log('\n' + FILE.split('/').pop());
 }
 
 await b.close();
-console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, and Save diagnostics, and each one works\n');
+console.log(bad ? `\n${bad} keyboard check(s) failed\n` : '\nThe keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, and the repaired-award controls, and each one works\n');
 process.exit(bad ? 1 : 0);
