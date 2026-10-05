@@ -8,11 +8,15 @@ Current version: **v1.96**. Next: **v1.97**.
 
 ## Open
 
-#### 62. The money map's nine open cells (deferred by Brad, 3 Oct 2026)
+#### 62. The money map's nine open cells (deferred by Brad 3 Oct; in v1.97 on Brad's word, 5 Oct 2026)
 - Two Spend Plans × service, requirement and lane; the ATR/BTR log × appropriation, year and service; Funds Flow ×
   appropriation and year; the ACE tie-out × year. Each is listed in `tools/money-map.md` until it is built.
-- **5 Oct review (R12):** asks Brad to revisit this deferral under the zero-tolerance bar, or to exclude these
-  products from any claim that the money is proven. Items 72–81 do not close these cells.
+- **5 Oct review (R12):** asks Brad to revisit this deferral under the zero-tolerance bar. **Brad, 5 Oct 2026: yes --
+  build them in v1.97.**
+- **What:** each cell gets its own oracle in whole dollars, worked out independently of the code that makes the export,
+  with a different amount on every service, requirement, lane, appropriation and year so a swap cannot hide in a total;
+  the export is checked against it and the cell moves from open to proven. An agreement with another of the board's own
+  helpers does not count as proof. The ATR/BTR log × service cell is built after item 81.
 
 #### 63. Found while building v1.95, not built
 - *(The repaired-award test gap is now item 64.)*
@@ -110,7 +114,7 @@ Current version: **v1.96**. Next: **v1.97**.
   success with a warning, and autosave then replaces that warning with "Saved automatically". History is also
   skipped by design when the last copy is under ten minutes old. The copy replaced is always this person's own previous
   save (anyone else's newer save is refused first), so no one else's work is lost; but a bad save can't be undone.
-- **What (recommended; Brad to confirm):** keep the exact copy being replaced every time, and if it cannot be kept, write
+- **What (Brad, 5 Oct 2026: yes):** keep the exact copy being replaced every time, and if it cannot be kept, write
   nothing and say so -- the work stays on screen, unsaved. Autosave never replaces a warning with a success message.
 - **Acceptance:** each history step failing (list, create, write, close); no overwrite, the folder copy's bytes
   unchanged, the work still marked unsaved, and the warning still on screen after autosave.
@@ -133,8 +137,11 @@ Current version: **v1.96**. Next: **v1.97**.
   is still counted, so detail and summary always agree.
 - **Acceptance:** two appropriations with different and reordered lists; missing and out-of-range services; all and
   filtered exports; several years.
-- **Product question, not a defect:** the log takes $M with fractions (0.0000001 is about ten cents). Brad to say
-  whether the log stays in fractional $M.
+- **Whole dollars only (Brad, 5 Oct 2026: "no fractional values").** The log takes $M with fractions today (0.0000001
+  is about ten cents). Entries stay in $M, but every amount must come to a whole number of dollars ($1.5M is
+  $1,500,000); anything finer is refused with the dollar figure it would have been, never rounded silently. An entry
+  already saved with a fraction of a dollar is kept as it is, marked in the log and named by the export until someone
+  corrects it.
 
 ## Later
 
