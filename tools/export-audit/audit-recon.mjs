@@ -13,7 +13,7 @@
 //   agreement      the same quantity is the same number in every artefact that prints it
 //
 // A wrong algorithm can still satisfy an audit written against itself. It cannot satisfy these.
-import { boot, seed, stopAtFirstFailure } from './boot.mjs';
+import { boot, seed, stopAtFirstFailure, capture } from './boot.mjs';
 
 let failures = [];
 stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
@@ -3026,6 +3026,718 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end W7 ====
+// ==== v1.97 W1: money entry and the engine (items 72, 73, 74, 75) ====
+// ==== end v1.97 W1 ====
+// ==== v1.97 W2: every edit the saved file carries marks the board unsaved (item 76) ====
+// ==== end v1.97 W2 ====
+// ==== v1.97 W3: batch import, Put this back, folder save history (items 77, 78, 79) ====
+// ==== end v1.97 W3 ====
+// ==== v1.97 W4: a board’s own service list moves dollars with it (item 80) ====
+// ==== end v1.97 W4 ====
+// ==== v1.97 W5: the reprogramming log by service and in whole dollars, and its money-map cells (items 81, 62) ====
+// The ATR/BTR log is shared by all four appropriations. Every expectation below is worked out HERE from the fixture's
+// own rows and lists -- each row's service from its own appropriation's list, each amount in whole dollars, deducts
+// negative -- and the export is read back from its bytes and held to it to the dollar. Nothing asks the board.
+// SUITE_CHECKS=<file> records every check of these blocks with its verdict (as audit-import does), for fail-before runs.
+import { appendFileSync as _w5Append } from 'node:fs';
+const w5Chk = (scenario, where, what, got, want) => {
+  if (process.env.SUITE_CHECKS) _w5Append(process.env.SUITE_CHECKS, JSON.stringify([scenario, where, what, String(got) === String(want), String(got).slice(0, 300)]) + '\n');
+  chk(scenario, where, String(what), String(got), String(want));
+};
+// A $M cell as dollars, EXACTLY: a whole D is printed as D/1e6, and anything else is not whole dollars.
+const w5Dol = v => { if (typeof v !== 'number' || !isFinite(v)) return 'not a figure: ' + JSON.stringify(v);
+  const d = Math.round(v * 1e6); return d / 1e6 === v ? d : 'not whole dollars: ' + v; };
+// Whole dollars as a person types them in $M, by string arithmetic: 250001 is 0.250001
+const w5Typed = d => { const s = String(Math.abs(d)).padStart(7, '0'); return (d < 0 ? '-' : '') + s.slice(0, -6) + '.' + s.slice(-6); };
+const w5Sum = a => a.reduce((x, y) => x + y, 0);
+// One export of the log under a filter, read back from its bytes: each type's rows under its own header (by column
+// name), each type's subtotal, the summary's lines and TOTAL, and the line naming what is to check.
+const w5Read = async (W, ap, fy) => {
+  W.eval(`rpAp=${JSON.stringify(ap)}; rpFy=${JSON.stringify(fy)}; 'ok'`);
+  const bk = JSON.parse(await w6Book(W, 'exportReprog'));
+  const lg = bk['ATR-BTR Log'] || [];
+  const out = { err: bk.__err || (lg.length ? '' : 'no ATR-BTR Log sheet'), rows: { BTR: [], ATR: [] }, sub: {}, sum: [], total: null, note: '' };
+  let type = null, hdr = null, inSum = false;
+  lg.forEach(r => {
+    const l = String((r || [])[0] ?? '').trim();
+    const m = /^(BTR|ATR)s\s+\(\d+\)$/.exec(l); if (m) { type = m[1]; hdr = null; return; }
+    if (type && l === 'Appropriation') { hdr = r.map(c => String(c ?? '').trim()); return; }
+    const s = /^Subtotal — (BTR|ATR) \(net \$M\)$/.exec(l);
+    if (s) { out.sub[s[1]] = r[7]; type = null; hdr = null; return; }             // the subtotal sits where it always has
+    if (type && hdr) { if (l) { const o = {}; hdr.forEach((h, j) => { o[h] = r[j]; }); out.rows[type].push(o); } return; }
+    if (l === 'Service' && String((r || [])[1] ?? '') === 'BTR net') { inSum = true; return; }
+    if (inSum && l === 'TOTAL') { out.total = [r[1], r[2], r[3]]; inSum = false; return; }
+    if (inSum && l) { out.sum.push([l, r[1], r[2], r[3]]); return; }
+    if (/^⚠ \d+ entr/.test(l)) out.note = l;
+  });
+  return out;
+};
+// What the Check column says of a row, reduced to the claim: '' (nothing to check), 'position N', 'unresolved', 'fraction'
+const w5Mark = t => { t = String(t ?? ''); const out = [];
+  if (/unresolved/i.test(t)) out.push('unresolved'); else { const p = /position (\d+) of/.exec(t); if (p) out.push('position ' + p[1]); }
+  if (/not a whole number of dollars/i.test(t)) out.push('fraction');
+  return out.join(' + '); };
+
+// THE FIXTURE. Four appropriations, four different service lists -- the board's own (O&M), Full Fund's in the file's
+// slot (PUBS), Initial Spares' in this browser's stored board (with the file's slot naming other services, which must not
+// be read: the browser's copy is what that board opens with), and OPN, a board with no data pack that keeps its own list.
+// The same position names different services in each: position 2 is ANG on O&M, USAF on Full Fund, ANG on Spares.
+const W5L = { 'O&M': ['USAF', 'ANG', 'AFRC'], 'FULL FUND': ['USN', 'USAF', 'STOVL', 'ANG'], 'INITIAL SPARES': ['CV', 'ANG', 'USAF'], 'OPN': ['USCG', 'USAF'] };
+const W5AP = ['O&M', 'FULL FUND', 'INITIAL SPARES', 'OPN'];
+// Every row a different whole-dollar amount; three fiscal years; both types; deducts and adds. `pick` is chosen in the
+// picker (the real path); `idx` is a row an older version wrote, holding only a position; neither is a row with none.
+const W5ROWS = [
+  { id: 'W5-OM-1', ap: 'O&M', fy: 2027, type: 'BTR', dir: 'add', pick: 'ANG', d: 1500000 },
+  { id: 'W5-OM-2', ap: 'O&M', fy: 2026, type: 'ATR', dir: 'deduct', idx: 2, d: 250001 },
+  { id: 'W5-OM-3', ap: 'O&M', fy: 2025, type: 'BTR', dir: 'deduct', idx: 0, d: 2222222 },
+  { id: 'W5-FF-1', ap: 'FULL FUND', fy: 2027, type: 'BTR', dir: 'add', idx: 1, d: 1000000 },
+  { id: 'W5-FF-2', ap: 'FULL FUND', fy: 2025, type: 'ATR', dir: 'add', pick: 'STOVL', d: 3333333 },
+  { id: 'W5-FF-3', ap: 'FULL FUND', fy: 2027, type: 'BTR', dir: 'deduct', idx: 3, d: 777777 },
+  { id: 'W5-FF-4', ap: 'FULL FUND', fy: 2026, type: 'BTR', dir: 'add', idx: 9, d: 123457 },
+  { id: 'W5-FF-5', ap: 'FULL FUND', fy: 2027, type: 'ATR', dir: 'deduct', pick: 'USN', d: 1010101 },
+  { id: 'W5-SP-1', ap: 'INITIAL SPARES', fy: 2027, type: 'ATR', dir: 'deduct', idx: 0, d: 4200001 },
+  { id: 'W5-SP-2', ap: 'INITIAL SPARES', fy: 2026, type: 'BTR', dir: 'add', pick: 'USAF', d: 98765 },
+  { id: 'W5-OPN-1', ap: 'OPN', fy: 2025, type: 'BTR', dir: 'add', idx: 1, d: 5000003 },
+  { id: 'W5-OPN-2', ap: 'OPN', fy: 2027, type: 'ATR', dir: 'add', d: 64000 },
+];
+const w5Svc = e => e.pick || ((Number.isInteger(e.idx) && e.idx < W5L[e.ap].length) ? W5L[e.ap][e.idx] : 'Unresolved');
+const w5Want = e => e.pick ? '' : (w5Svc(e) === 'Unresolved' ? 'unresolved' : 'position ' + (e.idx + 1));
+const w5Net = es => w5Sum(es.map(e => e.dir === 'deduct' ? -e.d : e.d));
+const w5Board = () => {
+  const X = boot();
+  seed(X.ev, { services: W5L['O&M'], items: [it('A', 'PSM', [300, 200, 100])], disc: [600, 400, 200], mand: [0, 0, 0], order: ['A'] });
+  X.ev(`PUBS.ff={ts:5, years:{}, dataPack:{services:${JSON.stringify(W5L['FULL FUND'])}, items:[{id:'F1', ask:[1,2,3,4]}], budget:[]}};
+    PUBS.sp={ts:9, years:{}, dataPack:{services:['ZZA','ZZB','ZZC'], items:[{id:'S0', ask:[1,1,1]}], budget:[]}};
+    localStorage.setItem(_SLUGMAP.sp.key, JSON.stringify({ts:3, years:{}, dataPack:{services:${JSON.stringify(W5L['INITIAL SPARES'])}, items:[{id:'S1', ask:[1,2,3]}], budget:[]}}));
+    PUBS.opn={ts:2, years:{}, svc:${JSON.stringify(W5L['OPN'])}};
+    var E=rpAll(); E.length=0;
+    ${JSON.stringify(W5ROWS)}.forEach(function(e,k){
+      var r={id:e.id, ts:k+1, ap:e.ap, fy:e.fy, type:e.type, appn:'', pec:'', bpac:'', title:e.id, amtM:0, dir:e.dir, pool:'disc', status:'Pending', remarks:''};
+      if(e.idx!==undefined) r.svc=e.idx;
+      E.push(r); });
+    'ok'`);
+  // the picked services and every amount go in the way a person puts them in: the picker, and the $M field, typed
+  W5ROWS.forEach(e => {
+    if (e.pick) X.ev(`rpSetField(${JSON.stringify(e.id)}, 'svc', ${JSON.stringify(e.pick)}); 'ok'`);
+    X.ev(`rpSetField(${JSON.stringify(e.id)}, 'amtM', ${JSON.stringify(w5Typed(e.d))}); 'ok'`);
+  });
+  return X;
+};
+
+// ══ v1.97 W5.1 — THE LOG BY APPROPRIATION, YEAR AND SERVICE, ALL AND FILTERED, TO THE DOLLAR (items 81, 62) ═══════════
+await (async () => {
+  const name = 'v1.97 W5 — the ATR/BTR log by appropriation, fiscal year and service, all and filtered, to the dollar';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  // CONTROL: the fixture can catch a swap -- every appropriation, year, service and type nets to its own figure
+  const nets = [...W5AP.map(a => w5Net(W5ROWS.filter(e => e.ap === a))), ...[2025, 2026, 2027].map(y => w5Net(W5ROWS.filter(e => e.fy === y))),
+    ...[...new Set(W5ROWS.map(w5Svc))].map(s => w5Net(W5ROWS.filter(e => w5Svc(e) === s))), ...['BTR', 'ATR'].map(t => w5Net(W5ROWS.filter(e => e.type === t)))];
+  w5Chk(name, 'fixture', 'control: every appropriation, year, service and type nets to a figure no other has', new Set(nets).size, nets.length);
+  const X = w5Board();
+  const SCOPES = [['ALL', 'ALL'], ['FULL FUND', 'ALL'], ['ALL', 2027], ['INITIAL SPARES', 'ALL'], ['OPN', 'ALL'], ['FULL FUND', 2026], ['ALL', 2025], ['O&M', 'ALL']];
+  for (const [ap, fy] of SCOPES) {
+    const at = ap + ' × ' + (fy === 'ALL' ? 'all years' : 'FY' + (fy % 100));
+    const es = W5ROWS.filter(e => (ap === 'ALL' || e.ap === ap) && (fy === 'ALL' || e.fy === fy));
+    const g = await w5Read(X.w, ap, fy);
+    w5Chk(name, at, 'control: the log builds and reads back', g.err || 'ok', 'ok');
+    // THE DETAIL: every entry of this scope and no other, in its type's table, with its own appropriation and year, the
+    // service its own appropriation's list names, its dollars, its direction, and what is to check about it
+    const det = t => es.filter(e => e.type === t).map(e => [e.id, e.ap, 'FY' + (e.fy % 100), w5Svc(e), e.d, e.dir === 'deduct' ? 'Deduct' : 'Add', w5Want(e)]);
+    const got = t => g.rows[t].map(o => [o['Requirement Short Title'], o['Appropriation'], o['FY'], o['Service'], w5Dol(o['Total ($M)']), o['Add/Deduct'], w5Mark(o['Check'])]);
+    w5Chk(name, at + ' · detail', 'every entry in its type’s table, with its appropriation, year, its own appropriation’s service, dollars, direction and what is to check',
+      JSON.stringify({ BTR: got('BTR'), ATR: got('ATR') }), JSON.stringify({ BTR: det('BTR'), ATR: det('ATR') }));
+    // THE SUMMARY: a line for every service of the appropriations in scope, from their own lists, to the dollar
+    const bT = w5Net(es.filter(e => e.type === 'BTR')), aT = w5Net(es.filter(e => e.type === 'ATR'));
+    const lines = []; (ap === 'ALL' ? W5AP : [ap]).forEach(a => W5L[a].forEach(n => { if (!lines.includes(n)) lines.push(n); }));
+    if (es.some(e => w5Svc(e) === 'Unresolved')) lines.push('Unresolved');
+    const wantSum = lines.map(n => { const s = es.filter(e => w5Svc(e) === n);
+      return [n, w5Net(s.filter(e => e.type === 'BTR')), w5Net(s.filter(e => e.type === 'ATR')), w5Net(s)]; });
+    w5Chk(name, at + ' · summary', 'a line for every service of the appropriations in scope, each from its own list, Unresolved last when any; BTR | ATR | total, to the dollar',
+      JSON.stringify(g.sum.map(r => [r[0], w5Dol(r[1]), w5Dol(r[2]), w5Dol(r[3])])), JSON.stringify(wantSum));
+    // DETAIL NET EQUALS SUMMARY NET, EXACTLY: each subtotal and TOTAL to the dollar, the subtotal the very figure TOTAL
+    // prints, and the summary's lines adding to it
+    const T = g.total || [], lineD = k => w5Sum(g.sum.map(r => { const v = w5Dol(r[k]); return typeof v === 'number' ? v : NaN; }));
+    w5Chk(name, at + ' · detail = summary', 'subtotals BTR | ATR and TOTAL BTR | ATR | net to the dollar; each subtotal is TOTAL’s own figure; the lines add to TOTAL',
+      JSON.stringify([w5Dol(g.sub.BTR), w5Dol(g.sub.ATR), w5Dol(T[0]), w5Dol(T[1]), w5Dol(T[2]), g.sub.BTR === T[0], g.sub.ATR === T[1], lineD(1), lineD(2), lineD(3)]),
+      JSON.stringify([bT, aT, bT, aT, bT + aT, true, true, bT, aT, bT + aT]));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+
+// ══ v1.97 W5.2 — THE REVIEW'S CASE: a Full Fund row on an O&M board whose file holds no Full Fund list (R10) ══════════
+await (async () => {
+  const name = 'v1.97 W5 — a row whose service cannot be read is Unresolved, and still counted (R10)';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  // Reproduced on v1.96: a $1M FULL FUND row at position 2, exported from an O&M board with one service, printed no
+  // service, and the summary by service totalled $0 while the detail held $1M.
+  const X = boot();
+  seed(X.ev, { services: ['USAF'], items: [it('A', 'PSM', [1])], disc: [0], mand: [0], order: ['A'] });
+  X.ev(`RPDB.entries=[{id:'RP1', ts:1, ap:'FULL FUND', fy:2027, type:'BTR', svc:1, title:'R10 row', amtM:1, dir:'add', pool:'disc', status:'Pending'}]; 'ok'`);
+  const g = await w5Read(X.w, 'ALL', 'ALL');
+  const r = g.rows.BTR[0] || {};
+  w5Chk(name, 'detail', 'the row prints Unresolved, not a blank, and its Check says why', [r['Service'], w5Mark(r['Check'])].join(' | '), 'Unresolved | unresolved');
+  w5Chk(name, 'summary', 'an Unresolved line carries its $1,000,000, and TOTAL is the detail’s $1,000,000',
+    JSON.stringify([g.sum.filter(l => l[0] === 'Unresolved').map(l => [w5Dol(l[1]), w5Dol(l[3])]), (g.total || []).map(w5Dol)]), JSON.stringify([[[1000000, 1000000]], [1000000, 0, 1000000]]));
+  w5Chk(name, 'summary', 'and the export says an entry is to check', /^⚠ 1 entry to check/.test(g.note), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+
+// ══ v1.97 W5.3 — THE TRACKER: each row's picker is its own appropriation's, a row read by position says so, and picking confirms ═
+await (async () => {
+  const name = 'v1.97 W5 — the tracker offers each row its own appropriation’s services, and marks a row read by position until picked';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = w5Board();
+  // the row's service picker, found by the row's title, read as its options and the one selected
+  const picker = id => JSON.parse(X.ev(`(function(){ rpAp='ALL'; rpFy='ALL'; rpOpen=true; rpView='log'; render();
+    var tr=[...document.querySelectorAll('#rpBody tr')].find(function(t){ return [...t.querySelectorAll('input')].some(function(i){ return i.value===${JSON.stringify(id)}; }); });
+    var s=tr? tr.children[3].querySelector('select') : null;
+    return JSON.stringify(s? {opts:[...s.options].map(function(o){ return o.value; }), shown:s.options[s.selectedIndex].textContent} : null); })()`));
+  const ff = picker('W5-FF-2'), sp = picker('W5-SP-1');
+  w5Chk(name, 'Full Fund row', 'its picker offers Full Fund’s services, not the O&M board’s on screen', JSON.stringify((ff || {}).opts), JSON.stringify(W5L['FULL FUND']));
+  w5Chk(name, 'Spares row read by position', 'its picker offers Spares’ services, and shows its service as read by position, to confirm',
+    JSON.stringify(sp && [sp.opts.filter(Boolean), /^⚠ CV \(by position\)$/.test(sp.shown)]), JSON.stringify([W5L['INITIAL SPARES'], true]));
+  const un = picker('W5-FF-4');
+  w5Chk(name, 'Full Fund row at a position its list does not have', 'it shows as Unresolved', un && /Unresolved/.test(un.shown), true);
+  // PICKING CONFIRMS: the row now names its service, its mark is gone, and the export no longer asks
+  X.ev(`rpSetField('W5-SP-1', 'svc', 'ANG'); 'ok'`);
+  const sp2 = picker('W5-SP-1'), g = await w5Read(X.w, 'INITIAL SPARES', 'ALL');
+  const row = g.rows.ATR.find(o => o['Requirement Short Title'] === 'W5-SP-1') || {};
+  w5Chk(name, 'picked', 'the row names ANG, picked; its picker shows ANG; the export prints ANG with nothing to check',
+    JSON.stringify([X.ev(`(function(){ var r=rpAll().find(function(x){ return x.id==='W5-SP-1'; }); return r.svcName+'|'+r.svcBy; })()`), sp2 && sp2.shown, row['Service'], w5Mark(row['Check'])]),
+    JSON.stringify(['ANG|pick', 'ANG', 'ANG', '']));
+  // A NEW ENTRY on the Full Fund filter takes Full Fund's first service, by name
+  X.ev(`rpAp='FULL FUND'; rpFy=2027; rpAddEntry(); 'ok'`);
+  w5Chk(name, 'a new Full Fund entry', 'it starts on Full Fund’s first service, by name',
+    X.ev(`(function(){ var r=rpAll()[rpAll().length-1]; return r.ap+'|'+r.svcName+'|'+(typeof rpSvcOf==='function'? rpSvcOf(r).name : 'no reader'); })()`), 'FULL FUND|USN|USN');
+  // MOVING A ROW TO ANOTHER APPROPRIATION keeps the service it showed: Full Fund's position 2 is USAF, O&M's is ANG
+  X.ev(`rpSetField('W5-FF-1', 'ap', 'O&M'); 'ok'`);
+  w5Chk(name, 'moved to O&M', 'a row read by position keeps the service it showed (USAF), still to confirm, not O&M’s position 2 (ANG)',
+    X.ev(`(function(){ var r=rpAll().find(function(x){ return x.id==='W5-FF-1'; }); if(typeof rpSvcOf!=='function') return 'no reader: svc '+r.svc;
+      var s=rpSvcOf(r); return s.name+'|'+s.how; })()`), 'USAF|pos');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+
+// ══ v1.97 W5.4 — WHOLE DOLLARS IN THE $M FIELD (Brad, 5 Oct 2026: "no fractional values") ═════════════════════════════════
+await (async () => {
+  const name = 'v1.97 W5 — the $M field takes whole dollars only, refuses anything finer with its dollar figure, and keeps what it had';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 200])], disc: [600, 400], mand: [0, 0], order: ['A'] });
+  X.ev(`RPDB.entries=[{id:'RPW', ts:1, ap:APPN, fy:2027, type:'BTR', svc:0, title:'whole', amtM:2.5, dir:'add', pool:'disc', status:'Pending'}]; persistRp(); 'ok'`);
+  const state = () => X.ev(`(function(){ var r=rpAll()[0]; return JSON.stringify([r.amtM, r.ts, localStorage.getItem('prio27reprog')]); })()`);
+  const typed = t => { const before = state(); X.ev(`rpSetField('RPW', 'amtM', ${JSON.stringify(t)}); 'ok'`);
+    return { same: state() === before, amt: X.ev(`String(rpAll()[0].amtM)`), stat: X.ev(`(document.getElementById('shareStat')||{}).textContent||''`) }; };
+  // REFUSED, each with the row, its stamp and the stored log untouched
+  const fr = typed('1.2345678');
+  w5Chk(name, '1.2345678', 'refused: it is $1,234,567.8, not whole dollars; the row keeps 2.5, unstamped and unsaved, and the message says the dollar figure',
+    JSON.stringify([fr.same, fr.amt, /\$1,234,567\.8\b/.test(fr.stat), /not a whole number of dollars/.test(fr.stat)]), JSON.stringify([true, '2.5', true, true]));
+  const tiny = typed('0.0000001');
+  w5Chk(name, '0.0000001', 'refused: it is $0.1', JSON.stringify([tiny.same, /\$0\.1\b/.test(tiny.stat)]), JSON.stringify([true, true]));
+  ['100oops', '1.2.3', '1e3', '1,50', '$', '10000000.000001'].forEach(t => {
+    const r = typed(t);
+    w5Chk(name, t, 'not an amount in whole dollars within the bound: refused, and the entry keeps 2.5 untouched', JSON.stringify([r.same, r.amt, /not recorded/i.test(r.stat)]), JSON.stringify([true, '2.5', true]));
+  });
+  // ACCEPTED: whole dollars in every form the field reads (a control: v1.96 read these the same)
+  const ok = ['$1.5M', '1,500', '0.000001', '-2.25', ' 3 ', '7.000000'].map(t => { typed(t); return X.ev(`String(rpAll()[0].amtM)`); });
+  w5Chk(name, 'whole dollars', 'control: $1.5M, 1,500, 0.000001, -2.25, 3 and 7.000000 are recorded as 1.5, 1500, 0.000001, -2.25, 3 and 7',
+    JSON.stringify(ok), JSON.stringify(['1.5', '1500', '0.000001', '-2.25', '3', '7']));
+  // and each accepted figure is said in dollars, so a $M slip shows at once
+  typed('1,500');
+  w5Chk(name, '1,500', 'recorded, and the message gives it in dollars: $1,500,000,000', /\$1,500,000,000\b/.test(X.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+
+// ══ v1.97 W5.5 — AN ENTRY ALREADY SAVED WITH A FRACTION OF A DOLLAR: kept, marked, named, and counted exactly ═══════════
+await (async () => {
+  const name = 'v1.97 W5 — an entry saved with a fraction of a dollar is kept as it is, marked, named by the export and counted exactly';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 200])], disc: [600, 400], mand: [0, 0], order: ['A'] });
+  // $100,000.1 and $200,000.2 -- saved before v1.97, when the field took any fraction -- and a whole $3 deducted
+  X.ev(`RPDB.entries=[
+    {id:'RF1', ts:1, ap:APPN, fy:2027, type:'BTR', svc:0, svcName:'USAF', svcPos:0, svcBy:'pick', title:'frac one', amtM:0.1000001, dir:'add', pool:'disc', status:'Pending'},
+    {id:'RF2', ts:2, ap:APPN, fy:2027, type:'BTR', svc:1, svcName:'ANG', svcPos:1, svcBy:'pick', title:'frac two', amtM:0.2000002, dir:'add', pool:'disc', status:'Pending'},
+    {id:'RF3', ts:3, ap:APPN, fy:2027, type:'BTR', svc:1, svcName:'ANG', svcPos:1, svcBy:'pick', title:'whole', amtM:0.000003, dir:'deduct', pool:'disc', status:'Pending'}]; 'ok'`);
+  const before = X.ev(`JSON.stringify(RPDB.entries)`);
+  // THE TRACKER marks each one, with its dollar figure, and not the whole one
+  const marks = JSON.parse(X.ev(`(function(){ rpAp='ALL'; rpFy='ALL'; rpOpen=true; rpView='log'; render();
+    return JSON.stringify(['frac one','frac two','whole'].map(function(t){
+      var tr=[...document.querySelectorAll('#rpBody tr')].find(function(x){ return [...x.querySelectorAll('input')].some(function(i){ return i.value===t; }); });
+      var c=tr? tr.children[8] : null, m=c? c.querySelector('[title*="whole number of dollars"]') : null;
+      return m? m.getAttribute('title') : ''; })); })()`));
+  w5Chk(name, 'tracker', 'each fraction is marked with the dollar figure it holds, the whole one is not',
+    JSON.stringify(marks.map(t => (/\$100,000\.1\b/.test(t) && 'marked $100,000.1') || (/\$200,000\.2\b/.test(t) && 'marked $200,000.2') || t)), JSON.stringify(['marked $100,000.1', 'marked $200,000.2', '']));
+  const g = await w5Read(X.w, 'ALL', 'ALL');
+  w5Chk(name, 'export', 'the Check column names each fraction, and nothing else',
+    JSON.stringify(g.rows.BTR.map(o => [o['Requirement Short Title'], w5Mark(o['Check']), /\$\d[\d,]*\.\d/.test(String(o['Check'] ?? '')) ? 'with its dollars' : ''])),
+    JSON.stringify([['frac one', 'fraction', 'with its dollars'], ['frac two', 'fraction', 'with its dollars'], ['whole', '', '']]));
+  // COUNTED EXACTLY: 100,000.1 + 200,000.2 - 3 = 299,997.3 dollars, 0.2999973 $M, in the subtotal, the summary and TOTAL alike
+  const exact = Number('0.2999973');
+  // A CONTROL: v1.96 summed these in floating point, and the file's fifteen digits hide the difference at this size; the
+  // check holds the exact sum against a rule that drops or rounds the fraction.
+  w5Chk(name, 'export', 'control: each kept as it was saved, and the subtotal, the summary’s lines and TOTAL hold the exact 0.2999973 ($299,997.3)',
+    JSON.stringify([g.rows.BTR.map(o => o['Total ($M)']), g.sub.BTR === exact, (g.total || [])[0] === exact, (g.total || [])[2] === exact,
+      g.sum.map(l => [l[0], l[1]])]),
+    JSON.stringify([[0.1000001, 0.2000002, 0.000003], true, true, true, [['USAF', 0.1000001], ['ANG', Number('0.1999972')]]]));
+  w5Chk(name, 'export', 'and says how many are not whole dollars', /1 entr|2 entries/.test(g.note) && /2 not a whole number of dollars/.test(g.note), true);
+  w5Chk(name, 'nothing rewritten', 'control: tracking and exporting change no entry', X.ev(`JSON.stringify(RPDB.entries)`), before);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.97 W5 ====
+// ==== v1.97 W6: the money map’s nine open cells, except the reprogramming log (item 62) ====
+// ITEM 62 — SIX OF THE MONEY MAP'S NINE OPEN CELLS, each held by an INDEPENDENT ORACLE in whole dollars (the review's
+// R12: "verify exports against those oracles, not against their own generating helpers"). Nothing below asks the
+// board what a figure ought to be: the two spend plans are walked HERE from the fixture's asks, allocations and budget
+// authority; the funds flow's executed years are the fixture's own rows, by appropriation and by effective year; the
+// ACE tie-out's years are each year's own lane walk and estimate column, worked out here. Every amount differs -- by
+// service, requirement, lane, appropriation and year -- so a swap cannot hide in a total, and every figure is read
+// back from the workbook's own bytes and compared at the dollar. tools/money-map.json cites these scenario names.
+//
+// v1.97 W6.1 THE TWO SPEND PLANS -- every service, requirement and lane, from a walk done here.
+// The plan rules, as the board states them (planWant, fsDirected, basisSvcOf): each requirement asks a plan for its
+// ALLOCATION CLAMPED TO WHAT IT ASKS FOR (the basis -- "nobody is short of money they did not ask for"); a split asks
+// Plan A for its discretionary dollars and Plan B for both, inside the basis, discretionary first; a source forced to
+// Disc or Mand directs the ALLOCATION to that pot ("a trim is a trim however it was funded"), UFR nothing. Plan A walks
+// the discretionary budget authority alone, Plan B both pots, service lane by service lane, in priority order, each
+// row taking what it asks or what the lane has left. ALLOCATED, DISC and MAND ALLOCATED are the directed split where one
+// is set and the lane engine's own draw where none is -- and that draw is walked here too (disc then mand per service,
+// a directed row drawing its directed lanes). FAILS ON v1.96: the plans read the raw allocation and the raw split and
+// gave a forced row its whole ask, so a service allocated above its ask was funded above it, a trimmed forced row asked
+// for its trim, and every row below them was walked against the wrong lane balance.
+await (async () => {
+  const name = 'v1.97 W6 — the two spend plans: every service, requirement and lane, from an independent walk';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const J = JSON.stringify, S_ = a => a.reduce((x, y) => x + y, 0);
+  const SV = ['USAF', 'ANG', 'AFRC', 'USN'], Z = () => SV.map(() => 0);
+  const PL = { services: SV,
+    items: [it('P1', 'PSM', [410000, 52000, 31000, 27000]), it('P2', 'ATL', [230000, 61000, 18000, 44000]),
+            it('P3', 'TSS', [150000, 37000, 26000, 39000]), it('P4', 'AV',  [120000, 24000, 36000, 20000]),
+            it('P5', 'MxS', [ 88000, 13000, 47000, 22000]), it('P6', 'CDS', [ 55000,  9000, 14000,  6000]),
+            it('P7', 'BOP', [ 64000, 32000, 16000,  8000]), it('P8', 'PP',  [140000, 33000, 21000, 48000])],
+    disc: [700000, 180000, 95000, 66000], mand: [280000, 61000, 52000, 73000],
+    order: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8'],
+    // P2 is allocated ABOVE its ask in USAF and below it elsewhere; P4 and P7 are trimmed by a total that divides
+    // their ask exactly (three quarters); P5 and P8 by service, P8 to nothing in ANG
+    alloc: { P2: { m: 's', v: [260000, 40000, 18000, 30000] }, P4: { m: 't', v: 150000 }, P5: { m: 's', v: [70000, 13000, 30000, 22000] },
+             P7: { m: 't', v: 90000 }, P8: { m: 's', v: [140000, 0, 21000, 48000] } },
+    // P3 is directed above its ask in USAF (90 + 70 against 150) and in ANG (41 against 37); P4 forced to Disc and
+    // P5 to Mand, each with its trim; P6 forced to UFR
+    fsrc: { P3: { m: 'split', dv: [90000, 41000, 10000, 0], mv: [70000, 0, 9000, 25000] }, P4: { m: 'disc' }, P5: { m: 'mand' }, P6: { m: 'ufr' } } };
+  const X = boot(); seed(X.ev, PL);
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); 'ok'`);
+  // ---- the oracle, from PL alone
+  const ids = PL.order, itemOf = id => PL.items.find(x => x.id === id), ask = id => itemOf(id).ask;
+  const allocOf = id => { const a = PL.alloc[id], f = PL.fsrc[id];
+    if (f && f.m === 'split') return SV.map((_, i) => f.dv[i] + f.mv[i]);
+    if (!a) return ask(id).slice();
+    if (a.m === 's') return a.v.slice();
+    return ask(id).map(v => v * a.v / S_(ask(id))); };
+  const basisOf = id => allocOf(id).map((v, i) => Math.min(v, ask(id)[i]));
+  const dirOf = id => { const f = PL.fsrc[id], b = basisOf(id); if (!f) return null;
+    if (f.m === 'ufr') return { d: Z(), m: Z() };
+    if (f.m === 'disc') return { d: b, m: Z() };
+    if (f.m === 'mand') return { d: Z(), m: b };
+    const d = b.map((v, i) => Math.min(f.dv[i], v)); return { d, m: b.map((v, i) => Math.min(f.mv[i], v - d[i])) }; };
+  const lane = {}; { const dR = PL.disc.slice(), mR = PL.mand.slice();
+    ids.forEach(id => { const b = basisOf(id), f = PL.fsrc[id], dr = dirOf(id), d = Z(), m = Z();
+      SV.forEach((_, i) => {
+        d[i] = Math.min(f && f.m === 'split' ? Math.min(f.dv[i], b[i]) : dr ? dr.d[i] : b[i], Math.max(0, dR[i])); dR[i] -= d[i];
+        m[i] = Math.min(f && f.m === 'split' ? Math.min(f.mv[i], b[i] - d[i]) : dr ? dr.m[i] : b[i] - d[i], Math.max(0, mR[i])); mR[i] -= m[i]; });
+      lane[id] = { d, m }; }); }
+  const walk = (bud, wantOf) => { const rem = bud.slice(), o = {}; let cut = null;
+    ids.forEach((id, k) => { const want = wantOf(id), got = want.map((w, i) => { const g = Math.min(w, Math.max(0, rem[i])); rem[i] -= g; return g; });
+      const wantT = S_(want), gotT = S_(got), st = wantT <= 0 ? 'none' : gotT <= 0 ? 'cut' : gotT >= wantT ? 'full' : 'part';
+      if (!cut && (st === 'cut' || st === 'part')) cut = { rank: k + 1, id };
+      o[id] = { want, got, wantT, gotT, st }; });
+    return { rows: o, rem, cut }; };
+  const both = PL.disc.map((v, i) => v + PL.mand[i]);
+  const PA = walk(PL.disc, id => { const dr = dirOf(id); return dr ? dr.d : basisOf(id); });
+  const PB = walk(both, id => { const dr = dirOf(id); return dr ? dr.d.map((v, i) => v + dr.m[i]) : basisOf(id); });
+  const alc = id => { const dr = dirOf(id); return dr ? [S_(dr.d), S_(dr.m)] : [S_(lane[id].d), S_(lane[id].m)]; };
+  const unf = (P, id) => ask(id).map((v, i) => v - P.rows[id].got[i]);   // nothing is funded above its ask, so no floor
+  const stLbl = (P, id) => (PA.rows[id].st === 'none' && PB.rows[id].st === 'none')
+    ? (S_(ask(id)) > 0 ? 'NOT FUNDED — either plan' : 'NO REQUIREMENT')
+    : ({ full: 'Funded', part: 'PARTIAL', cut: 'NOT FUNDED', none: 'NOT IN THIS PLAN' })[P.rows[id].st];
+  // ---- the fixture does what it is for
+  const cells = PL.items.reduce((a, x) => a.concat(x.ask), []);
+  chk(name, 'fixture', 'every requirement’s ask differs in every service, and so does every lane’s budget authority',
+    new Set(cells).size + ':' + new Set(PL.disc.concat(PL.mand)).size, cells.length + ':' + 2 * SV.length);
+  chk(name, 'fixture', 'P2 is allocated above its ask, P3 directed above it, P4 and P5 forced with a trim',
+    J([allocOf('P2')[0] > ask('P2')[0], PL.fsrc.P3.dv[0] + PL.fsrc.P3.mv[0] > ask('P3')[0] && PL.fsrc.P3.dv[1] > ask('P3')[1],
+       S_(basisOf('P4')) < S_(ask('P4')), S_(basisOf('P5')) < S_(ask('P5'))]), J([true, true, true, true]));
+  chk(name, 'fixture', 'Plan A has a full, a partial, a cut, a not-in-this-plan and a neither row; both plans leave ANG money on the table',
+    J([['full', 'part', 'cut', 'none'].map(s => ids.some(id => PA.rows[id].st === s)), ids.some(id => PA.rows[id].st === 'none' && PB.rows[id].st === 'none'),
+       PA.rem[1] > 0, PB.rem[1] > 0, ids.some(id => PB.rows[id].st === 'part')]), J([[true, true, true, true], true, true, true, true]));
+  const bk = JSON.parse(await w6Book(X.w, 'exportPlans'));
+  chk(name, 'workbook', 'the two spend plans build and read back', bk.__err || 'ok', 'ok');
+  const FY = X.ev('FYL()');
+  // ---- the two plan tabs
+  [['a', 'PLAN A — Discretionary only', PA, PL.disc, 'DISCRETIONARY ONLY'],
+   ['b', 'PLAN B — Disc + Mandatory', PB, both, 'DISCRETIONARY + MANDATORY']].forEach(([key, tab, P, bud, pot]) => {
+    const rows = bk[tab] || [];
+    chk(name, tab, 'the tab is in the workbook', rows.length > 0, true);
+    chk(name, tab + ' · lane', 'it says which pot funds it', rows.some(r => w6Lbl(r) === 'Every figure on this tab is funded from ' + pot + '.'), true);
+    const vec = lbl => { const r = rows.find(x => w6Lbl(x) === lbl) || []; return SV.map((_, i) => num(r[1 + i])).concat([num(r[1 + SV.length])]); };
+    const withT = v => J(v.concat([S_(v)]));
+    const per = f => SV.map((_, i) => S_(ids.map(id => f(id, i))));
+    chk(name, tab + ' · service · lane', 'TOP LINE: this plan’s budget authority, service by service', J(vec('TOP LINE')), withT(bud));
+    chk(name, tab + ' · service', 'FUNDED BY THIS PLAN, service by service', J(vec('FUNDED BY THIS PLAN')), withT(per((id, i) => P.rows[id].got[i])));
+    chk(name, tab + ' · service', 'LEFT ON THE TABLE, service by service', J(vec('LEFT ON THE TABLE')), withT(P.rem.map(v => Math.max(0, v))));
+    chk(name, tab + ' · service', 'NOT COVERED, service by service', J(vec('NOT COVERED')), withT(per((id, i) => P.rows[id].want[i] - P.rows[id].got[i])));
+    chk(name, tab + ' · service', FY + ' REQUIREMENT, service by service', J(vec(FY + ' REQUIREMENT')), withT(per((id, i) => ask(id)[i])));
+    chk(name, tab + ' · service', 'UNFUNDED, service by service: the requirement less what this plan funds', J(vec('UNFUNDED')), withT(per((id, i) => unf(P, id)[i])));
+    chk(name, tab + ' · requirement', 'where the plan runs out', rows.some(r => w6Lbl(r) === 'The plan runs out at #' + P.cut.rank + ' — Ev ' + P.cut.id), true);
+    const h = headerRow(rows, 'Rank', 'Allocated'), tot = rows.findIndex((r, j) => j > h && /^TOTAL/.test(w6Lbl(r)));
+    const det = rows.slice(h + 1, tot).filter(r => r && w6Lbl(r) !== '');
+    chk(name, tab + ' · requirement', 'every requirement is a row, once, in rank order', J(det.map(r => [num(r[colOf(rows, h, 'Rank')]), String(r[colOf(rows, h, 'Requirement')])])),
+      J(ids.map((id, k) => [k + 1, 'Ev ' + id])));
+    const want = id => { const o = P.rows[id], a = alc(id), w = { PMO: itemOf(id).grp, [FY + ' Requirement']: S_(ask(id)), Allocated: a[0] + a[1],
+      'Disc allocated': a[0], 'Mand allocated': a[1], ['Funded from ' + pot]: o.gotT, Short: o.wantT - o.gotT, Unfunded: S_(unf(P, id)), Status: stLbl(P, id) };
+      SV.forEach((sv, i) => { w[sv + ' asked'] = o.want[i]; w[sv + ' funded'] = o.got[i]; }); return w; };
+    det.forEach(r => { const id = String(r[colOf(rows, h, 'Requirement')]).replace(/^Ev /, ''); if (!P.rows[id]) return;
+      const w = want(id);
+      Object.keys(w).forEach(k => { const c = colOf(rows, h, k);
+        chk(name, tab + ' · ' + id, k, c < 0 ? 'no column ' + k : (typeof w[k] === 'number' ? num(r[c]) : String(r[c] ?? '')), w[k]); });
+      // THE IDENTITIES, read off the row itself: no service funded above its ask; Unfunded is the requirement less Funded
+      SV.forEach((sv, i) => chk(name, tab + ' · ' + id + ' · ' + sv, 'IDENTITY — funded never above the ask', num(r[colOf(rows, h, sv + ' funded')]) <= ask(id)[i], true));
+      chk(name, tab + ' · ' + id, 'IDENTITY — Unfunded = ' + FY + ' Requirement − Funded', num(r[colOf(rows, h, 'Unfunded')]),
+        num(r[colOf(rows, h, FY + ' Requirement')]) - num(r[colOf(rows, h, 'Funded from ' + pot)])); });
+    const T = rows[tot] || [], tw = {};
+    ['FY Requirement', 'Allocated', 'Disc allocated', 'Mand allocated', 'Funded', 'Short', 'Unfunded'].forEach(k => { tw[k] = 0; });
+    ids.forEach(id => { const w = want(id); tw['FY Requirement'] += w[FY + ' Requirement']; tw.Allocated += w.Allocated; tw['Disc allocated'] += w['Disc allocated'];
+      tw['Mand allocated'] += w['Mand allocated']; tw.Funded += w['Funded from ' + pot]; tw.Short += w.Short; tw.Unfunded += w.Unfunded; });
+    chk(name, tab + ' · requirement', 'the TOTAL line counts every requirement and the one funded by neither', w6Lbl(T), 'TOTAL — 8 of 8 requirements (1 funded by neither plan)');
+    const tc = { 'FY Requirement': FY + ' Requirement', Allocated: 'Allocated', 'Disc allocated': 'Disc allocated', 'Mand allocated': 'Mand allocated',
+      Funded: 'Funded from ' + pot, Short: 'Short', Unfunded: 'Unfunded' };
+    Object.keys(tc).forEach(k => chk(name, tab + ' · TOTAL', k, num(T[colOf(rows, h, tc[k])]), tw[k]));
+    SV.forEach((sv, i) => {
+      chk(name, tab + ' · TOTAL · ' + sv, 'asked', num(T[colOf(rows, h, sv + ' asked')]), S_(ids.map(id => P.rows[id].want[i])));
+      chk(name, tab + ' · TOTAL · ' + sv, 'funded', num(T[colOf(rows, h, sv + ' funded')]), S_(ids.map(id => P.rows[id].got[i])));
+    });
+  });
+  // ---- A vs B: what the mandatory top line changes, row by row and lane by lane
+  {
+    const cmp = bk['A vs B'] || [];
+    const ln = lbl => num((cmp.find(r => w6Lbl(r) === lbl) || [])[3]);
+    const aT = S_(ids.map(id => PA.rows[id].gotT)), bT = S_(ids.map(id => PB.rows[id].gotT));
+    chk(name, 'A vs B · lane', 'Plan A buys (the discretionary pot), Plan B buys (both), and the difference is what mandatory pays for',
+      J([ln('Plan A buys'), ln('Plan B buys'), ln('Difference — what mandatory pays for')]), J([aT, bT, bT - aT]));
+    const h = headerRow(cmp, 'Rank', 'Allocated');
+    const det = cmp.slice(h + 1).filter(r => r && /^\d+$/.test(w6Lbl(r)));
+    chk(name, 'A vs B · requirement', 'every requirement is a row, once, in rank order', J(det.map(r => [num(r[0]), String(r[colOf(cmp, h, 'Requirement')])])),
+      J(ids.map((id, k) => [k + 1, 'Ev ' + id])));
+    det.forEach(r => { const id = String(r[colOf(cmp, h, 'Requirement')]).replace(/^Ev /, ''); if (!PA.rows[id]) return;
+      const a = alc(id), w = { PMO: itemOf(id).grp, [FY + ' Requirement']: S_(ask(id)), Allocated: a[0] + a[1], 'Disc allocated': a[0], 'Mand allocated': a[1],
+        'A funded (disc)': PA.rows[id].gotT, 'B funded (disc + mand)': PB.rows[id].gotT, 'B unfunded': S_(unf(PB, id)),
+        'A status': stLbl(PA, id), 'B status': stLbl(PB, id) };
+      Object.keys(w).forEach(k => { const c = colOf(cmp, h, k);
+        chk(name, 'A vs B · ' + id, k, c < 0 ? 'no column ' + k : (typeof w[k] === 'number' ? num(r[c]) : String(r[c] ?? '')), w[k]); }); });
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+
+// v1.97 W6.2 THE FUNDS FLOW -- every appropriation and every fiscal year. Execution imported for four appropriations
+// across two executed years, one amount per row and every one different; the OBBBA carry-over moves the FY25
+// mandatory rows into FY26; an unfunded-priority-list row rides under Lockheed; FY27 and FY28 are PLANNED years
+// answered from each year's own board, and FY29 is a year nobody has planned. Each year's workbook is held to the
+// fixture's rows for that year: every appropriation's line, the US total, the other sources typed in for THAT year,
+// the carry-over and UPL notes, the primes and OGCs, and every detail line's appropriation, service and dollars --
+// then the two executed years together, where a carried row counts once. ORACLE — passes on v1.96 because the export
+// was already right along both dimensions; its mutations prove each guard bites.
+await (async () => {
+  const name = 'v1.97 W6 — the funds flow: every appropriation and every fiscal year, executed, carried over and planned';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const J = JSON.stringify, S_ = a => a.reduce((x, y) => x + y, 0);
+  const SV = ['USAF', 'ANG', 'AFRC', 'USN'];
+  const ASK = { 2027: { F1: [310000, 47000, 23000, 19000], F2: [128000, 36000, 54000, 61000] },
+                2028: { F1: [290000, 51000, 25000, 17000], F2: [133000, 34000, 58000, 63000] } };
+  const DISC = [400000, 60000, 50000, 70000], MAND = [90000, 40000, 45000, 30000];
+  // [appropriation, year, title, budget cell, service, dollars, prime ('LM' | 'PW' | ''), UPL]
+  const ROWS = [
+    ['om', 2025, 'LM Air Vehicle Support', 'USAF O&M- CAM Discretionary AV', 'USAF', 1234567, 'LM', false],
+    ['om', 2025, 'Depot Repair Pods', 'ANG O&M Discretionary', 'ANG', 345679, '', false],
+    ['om', 2025, 'Initial Spares Kit', 'USN O&M OBBBA Mandatory', 'USN', 222223, '', false],
+    ['om', 2026, 'Software Sustainment', 'AFRC O&M Discretionary', 'AFRC', 456781, '', false],
+    ['om', 2026, 'PW Engine Support', 'USAF O&M Discretionary', 'USAF', 987653, 'PW', false],
+    ['ff', 2025, 'Workforce Travel', 'USAF Full Fund', 'USAF', 111119, '', false],
+    ['ff', 2025, 'Mandatory Spares', 'USN Full Fund Mandatory', 'USN', 77771, '', false],
+    ['ff', 2026, 'LM Modifications', 'ANG Full Fund', 'ANG', 654329, 'LM', false],
+    ['sp', 2026, 'Spares Kit', 'USAF Initial Spares', 'USAF', 299993, '', false],
+    ['sp', 2026, 'Unfunded Pods', 'AFRC Initial Spares', 'AFRC', 50021, 'LM', true],
+    ['opn', 2025, 'Support Equipment', 'USN OPN', 'USN', 433337, '', false],
+  ];
+  const OTHER = { 2025: { ip: 1100003, fms: 250007 }, 2026: { ip: 900011, fms: 410009 }, 2027: { ip: 520013, fms: 130027 } };
+  const carried = r => r[1] === 2025 && /OBBBA|Mandatory/.test(r[3]);          // the carry-over rule, FY25 -> FY26
+  const effFy = r => carried(r) ? 2026 : r[1];
+  const X = boot();
+  seed(X.ev, { services: SV, items: [it('F1', 'PSM', ASK[2027].F1), it('F2', 'TSS', ASK[2027].F2)], disc: DISC, mand: MAND, order: ['F1', 'F2'] });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    MS.years[MS.cur]=S; var y1=JSON.parse(JSON.stringify(S)); y1.asks=${J(ASK[2028])}; MS.years[MS.cur+1]=y1;
+    (function(){ var R=${J(ROWS)}, all={};
+      R.forEach(function(x,n){ var r=[]; for(var c=0;c<32;c++) r.push('');
+        r[0]=x[1]; r[1]=x[1]+'-03'; r[2]='JSF'+(100+n); r[3]=x[2]; r[4]=x[3]; r[7]='Event '+x[2]; r[9]=x[5]; r[10]='Allocated';
+        r[17]=x[7]? 'UPL' : ''; r[18]='Program (PSM)';
+        var a=all[x[0]]||(all[x[0]]={asOf:'2026-09', hdr:[], read:1, noFy:0, rows:{}}); (a.rows[x[1]]||(a.rows[x[1]]=[])).push(r); });
+      EXDB.all=all; EXDB.ts=Date.now(); })();
+    var C=flowCfg(); C.pseudo={on:true, label:'OBBBA', token:'OBBBA, Mandatory', from:2025, to:2026, col:4}; C.other=${J(OTHER)};
+    save(); 'ok'`);
+  const slugs = JSON.parse(X.ev('JSON.stringify(APPN_SLUGS)')), lbl = JSON.parse(X.ev('JSON.stringify(APPN_LBL)')), own = X.ev('mySlug()');
+  chk(name, 'fixture', 'every row, every year’s ask, every lane and every other source is a different amount',
+    (() => { const v = ROWS.map(r => r[5]).concat(DISC, MAND, ...Object.values(ASK).map(y => Object.values(y).flat()), ...Object.values(OTHER).map(o => [o.ip, o.fms]));
+      return new Set(v).size === v.length; })(), true);
+  chk(name, 'fixture', 'FY25 and FY26 are executed, FY27–FY29 planned, and both planned years’ lanes cover every ask',
+    X.ev(`[2025,2026,2027,2028,2029].map(flowYearKind).join(',')`) + ' ' + [2027, 2028].every(y => SV.every((_, i) => ASK[y].F1[i] + ASK[y].F2[i] <= DISC[i] + MAND[i])),
+    'exec,exec,plan,plan,plan true');
+  // what one year's workbook must hold, from the fixture alone
+  const expect = fy => {
+    const L = [];
+    if (fy === 2025 || fy === 2026) ROWS.filter(r => effFy(r) === fy).forEach(r => L.push({ t: r[2], ap: r[0], sv: r[4], v: r[5], prime: !!r[6], upl: r[7] }));
+    else if (ASK[fy]) ['F1', 'F2'].forEach(id => SV.forEach((sv, i) => { if (ASK[fy][id][i] > 0) L.push({ t: 'Req ' + id, ap: own, sv, v: ASK[fy][id][i], prime: false, upl: false }); }));
+    return L;
+  };
+  const key = l => [l.t, lbl[l.ap], l.sv, l.v].join('|');
+  const read = wb => { const ff = wb['Funds Flow'] || [];
+    const all = lab => ff.filter(r => w6Lbl(r) === lab).map(r => num(r[1]));
+    const one = lab => { const a = all(lab); return a.length ? a[0] : null; };
+    const ha = ff.findIndex(r => w6Lbl(r) === 'Appropriation' && String((r || [])[1] ?? '') === 'Amount');
+    const appn = slugs.map(s => num((ff.find((r, j) => j > ha && w6Lbl(r) === lbl[s]) || [])[1]));
+    const det = sh => (wb[sh] || []).slice(1).filter(r => r && w6Lbl(r)).map(r => [String(r[0]), String(r[2]), String(r[4]), num(r[5])].join('|'));
+    return { ff, all, one, appn, scope: w6Lbl(ff[1]), notes: ff.filter(r => /^NOTE:/.test(w6Lbl(r))).map(w6Lbl), prime: det('Prime Detail'), ogc: det('OGC Detail'), upl: det('Unfunded (UPL)') };
+  };
+  const yearCheck = (fy, G, L, other, multi) => {
+    const where = (multi ? 'FY25 + FY26' : 'FY' + (fy % 100)) + ' · ';
+    const us = S_(L.map(l => l.v)), byAp = slugs.map(s => S_(L.filter(l => l.ap === s).map(l => l.v)));
+    chk(name, where + 'appropriation', 'each appropriation’s line is its own rows for the year, the others nothing', J(G.appn), J(byAp));
+    chk(name, where + 'appropriation', 'US SERVICE FUNDING is every appropriation together', G.one('US SERVICE FUNDING'), us);
+    chk(name, where + 'fiscal year', 'US service appropriations, wherever it is stated', J(G.all('US service appropriations')), J([us, us]));
+    chk(name, where + 'fiscal year', 'the other sources typed in for this year', J([G.one('International Partners'), G.one('Foreign Military Sales'), G.one('Other sources total')]),
+      J([other.ip, other.fms, other.ip + other.fms]));
+    chk(name, where + 'fiscal year', 'TOTAL FUNDING, wherever it is stated, is US funding plus this year’s other sources',
+      J(G.all('TOTAL FUNDING').filter(v => v !== null)), J([us + other.ip + other.fms, us + other.ip + other.fms]));
+    chk(name, where + 'fiscal year', 'the primes and the other government costs are this year’s rows',
+      J([G.one('Prime total'), G.one('OGC total')]), J([S_(L.filter(l => l.prime).map(l => l.v)), S_(L.filter(l => !l.prime).map(l => l.v))]));
+    chk(name, where + 'appropriation · fiscal year', 'every detail line: its appropriation, service and dollars, on Prime Detail or OGC Detail, once',
+      J(G.prime.concat(G.ogc).sort()), J(L.map(key).sort()));
+    chk(name, where + 'appropriation · fiscal year', 'the primes’ lines are the LM, PW and UPL rows', J(G.prime.slice().sort()), J(L.filter(l => l.prime).map(key).sort()));
+    chk(name, where + 'fiscal year', 'the unfunded priority list states its own rows', J(G.upl.slice().sort()), J(L.filter(l => l.upl).map(key).sort()));
+  };
+  for (const fy of [2025, 2026, 2027, 2028, 2029]) {
+    X.ev(`flowFy=${fy}; 'ok'`);
+    const wb = JSON.parse(await w6Book(X.w, 'exportFlow'));
+    chk(name, 'FY' + (fy % 100), 'the funds flow builds and reads back', wb.__err || 'ok', 'ok');
+    const G = read(wb), L = expect(fy);
+    chk(name, 'FY' + (fy % 100) + ' · fiscal year', 'the workbook states the year it holds, and nothing else',
+      G.scope.replace(/ · \+ OBBBA FY25$/, '').replace(/ · PLANNED \(board allocation, O&M\)$/, ''), 'Scope: FY' + (fy % 100) + ' · all appropriations');
+    yearCheck(fy, G, L, OTHER[fy] || { ip: 0, fms: 0 }, false);
+    const moved = ROWS.filter(r => carried(r)), mv = S_(moved.map(r => r[5]));
+    chk(name, 'FY' + (fy % 100) + ' · fiscal year', 'the carry-over is stated where it lands, with its dollars and rows, and nowhere else',
+      J(G.notes.filter(n => /appropriated in FY/.test(n))), J(fy === 2026 ? ['NOTE: includes ' + mv + ' of OBBBA appropriated in FY2025 and counted here as FY2026 (' + moved.length
+        + ' plan events). Each row is counted in one fiscal year only.'] : []));
+    chk(name, 'FY' + (fy % 100) + ' · fiscal year', 'the unfunded priority list inside the total is stated in the year it is in',
+      J(G.notes.filter(n => /UNFUNDED requirements/.test(n)).map(n => num((/includes (\d+)/.exec(n) || [])[1]))), J(fy === 2026 ? [50021] : []));
+  }
+  // the two executed years together: a carried row counts once, in neither year twice, and the year note says so
+  X.ev(`flowFy=null; flowCfg().fys=[2025,2026]; 'ok'`);
+  const wbm = JSON.parse(await w6Book(X.w, 'exportFlow'));
+  X.ev(`flowCfg().fys=null; 'ok'`);
+  const Gm = read(wbm), Lm = expect(2025).concat(expect(2026));
+  chk(name, 'FY25 + FY26 · fiscal year', 'the scope is the two years', Gm.scope, 'Scope: FY25, FY26 · all appropriations');
+  yearCheck(null, Gm, Lm, { ip: OTHER[2025].ip + OTHER[2026].ip, fms: OTHER[2025].fms + OTHER[2026].fms }, true);
+  chk(name, 'FY25 + FY26 · fiscal year', 'it says the years are added together, and claims no carry-over (both years are in it)',
+    J([Gm.notes.some(n => n.indexOf('Fiscal years included: FY2025, FY2026.') > 0), Gm.notes.some(n => /appropriated in FY/.test(n))]), J([true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+
+// v1.97 W6.3 THE ACE TIE-OUT -- every fiscal year held to that year's own board and estimate. Two active years with
+// different asks, budget authority, allocations, WBS and confirmations, against one estimate whose every line states
+// a different figure in each year; the tie-out spans both (All active years). Each year's board funded is that year's
+// lane walk, done here from the fixture; its estimate is the lines that year confirms, read from that year's column;
+// the PMO blocks, the stray line, the lines nothing claims, the across-years matrix and the alignment breakout are each
+// held year by year. The breakout's lines carry the requirement's ALLOCATION, and its note now says so: it said they
+// add up to "what the board funds", which on this fixture is short of them by every dollar beyond both lanes (FAILS ON
+// v1.96 for that sentence only); every figure is ORACLE — passes on v1.96 because the export was already right by year.
+await (async () => {
+  const name = 'v1.97 W6 — the ACE tie-out: every fiscal year held to that year’s own board and estimate';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const J = JSON.stringify, S_ = a => a.reduce((x, y) => x + y, 0);
+  const SV = ['USAF', 'ANG', 'AFRC', 'USN'], ids = ['A1', 'A2', 'A3', 'A4'];
+  const PMO = { A1: 'PSM', A2: 'TSS', A3: 'ATL', A4: 'AV' };
+  const Y = {
+    2027: { ask: { A1: [210000, 31000, 17000, 9000], A2: [87000, 26000, 14000, 33000], A3: [64000, 11000, 53000, 7000], A4: [46000, 19000, 8000, 27000] },
+            alloc: {}, disc: [300000, 61000, 71000, 51000], mand: [56000, 22000, 10000, 30000],
+            wbs: { A1: '1.1', A2: '2.2', A3: '3.3' }, ok: { A1: true, A2: true } },
+    2028: { ask: { A1: [190000, 43000, 21000, 12000], A2: [99000, 28000, 16000, 35000], A3: [72000, 13000, 48000, 5000], A4: [57000, 18000, 6000, 29000] },
+            alloc: { A2: [91000, 28000, 16000, 32000] }, disc: [280000, 90000, 62000, 44000], mand: [100000, 4000, 24000, 25000],
+            wbs: { A1: '1.1', A2: '2.2', A3: '3.3', A4: '4.4' }, ok: { A1: true, A3: true, A4: true } } };
+  const LINES = [['PSM', '1.1', 205000, 233000], ['TSS', '2.2', 151000, 98000], ['ATL', '3.3', 73000, 77000], ['AV', '4.4', 15000, 101000], ['NOBODY', '9.9', 3000, 34000]];
+  const est = (w, fy) => { const l = LINES.find(x => x[1] === w); return l ? l[fy === 2027 ? 2 : 3] : 0; };
+  // each year's lane walk, here: per service, discretionary until dry, then mandatory, then beyond
+  const funded = fy => { const y = Y[fy], dR = y.disc.slice(), mR = y.mand.slice(), o = {};
+    ids.forEach(id => { const b = (y.alloc[id] || y.ask[id]).map((v, i) => Math.min(v, y.ask[id][i]));
+      o[id] = S_(b.map((v, i) => { const d = Math.min(v, Math.max(0, dR[i])); dR[i] -= d; const m = Math.min(v - d, Math.max(0, mR[i])); mR[i] -= m; return d + m; })); });
+    return o; };
+  const F = { 2027: funded(2027), 2028: funded(2028) };
+  const X = boot();
+  seed(X.ev, { services: SV, items: ids.map(id => it(id, PMO[id], Y[2027].ask[id])), disc: Y[2027].disc, mand: Y[2027].mand, order: ids });
+  const stOf = fy => { const y = Y[fy], wbs = {}, map = {}, alloc = {};
+    Object.keys(y.wbs).forEach(id => { wbs[id] = [{ w: y.wbs[id], v: [] }]; if (y.ok[id]) map[id] = { w: [y.wbs[id]], ok: true }; });
+    Object.keys(y.alloc).forEach(id => { alloc[id] = { m: 's', v: y.alloc[id] }; });
+    return { wbs, map, alloc }; };
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    var a=${J(stOf(2027))}; S.wbs=a.wbs; S.aceMap=a.map; S.alloc=a.alloc;
+    MS.years[MS.cur]=S; var y1=JSON.parse(JSON.stringify(S)), b=${J(stOf(2028))};
+    y1.asks=${J(Y[2028].ask)}; y1.discSvc=${J(Y[2028].disc)}; y1.mandSvc=${J(Y[2028].mand)};
+    y1.bm={disc:${J(Y[2028].disc)}, mand:${J(Y[2028].mand)}, adds:[]}; y1.wbs=b.wbs; y1.aceMap=b.map; y1.alloc=b.alloc;
+    MS.years[MS.cur+1]=y1;
+    ACEDB.sets={'2027ACE':{lines:${J(LINES)}.map(function(l){ var v={}; v[2027]=l[2]; v[2028]=l[3]; return {ap:mySlug(), pmo:l[0], wbs:l[1], v:v}; })}};
+    aceYr='all'; save(); 'ok'`);
+  chk(name, 'fixture', 'every ask, allocation, lane and estimate figure differs across requirements, services and years',
+    (() => { const v = [].concat(...[2027, 2028].map(fy => [].concat(...ids.map(id => Y[fy].ask[id]), Y[fy].disc, Y[fy].mand)), Y[2028].alloc.A2.filter((x, i) => x !== Y[2028].ask.A2[i]), ...LINES.map(l => [l[2], l[3]]));
+      return new Set(v).size === v.length; })(), true);
+  chk(name, 'fixture', 'the tie-out spans both years, and in each a requirement is funded short of its allocation',
+    X.ev('JSON.stringify(aceScopeYears())') + ' ' + [2027, 2028].every(fy => ids.some(id => F[fy][id] < S_(Y[fy].alloc[id] || Y[fy].ask[id]))), '[2027,2028] true');
+  const bk = JSON.parse(await w6Book(X.w, 'exportAceTieout'));
+  chk(name, 'workbook', 'the tie-out builds and reads back', bk.__err || 'ok', 'ok');
+  const FYL2 = fy => 'FY' + (fy % 100), YRS = [2027, 2028];
+  const eOf = (fy, id) => Y[fy].ok[id] ? est(Y[fy].wbs[id], fy) : null;
+  // ---- Mapping by Requirement: one row per requirement per year
+  {
+    const map = bk['Mapping by Requirement'] || [], h = headerRow(map, 'FY', 'PMO', 'Board funded', 'Estimate', 'Delta');
+    const c = k => colOf(map, h, k);
+    const rows = map.slice(h + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r)));
+    const got = rows.map(r => [w6Lbl(r), String(r[c('PMO')]), String(r[c('Requirement (CCaR Record Name)')]), String(r[c('Match')]),
+      num(r[c('Board funded')]), num(r[c('Estimate')]), num(r[c('Delta')])]);
+    const want = [].concat(...YRS.map(fy => ids.map(id => { const e = eOf(fy, id);
+      return [FYL2(fy), PMO[id], 'Req ' + id, Y[fy].ok[id] ? 'Confirmed - exact line' : (Y[fy].wbs[id] ? 'Suggested - NOT confirmed' : 'No match'),
+        F[fy][id], e, e === null ? null : F[fy][id] - e]; })));
+    chk(name, 'Mapping by Requirement · fiscal year', 'each year’s row of each requirement: that year’s mapping, board funded, estimate and delta', J(got), J(want));
+    const T = map.find((r, j) => j > h && w6Lbl(r) === 'TOTAL') || [];
+    const bT = S_(YRS.map(fy => S_(ids.map(id => F[fy][id])))), eT = S_(YRS.map(fy => S_(ids.map(id => eOf(fy, id) || 0))));
+    chk(name, 'Mapping by Requirement · fiscal year', 'TOTAL: every year’s board funded, confirmed estimate and delta', J([num(T[c('Board funded')]), num(T[c('Estimate')]), num(T[c('Delta')])]), J([bT, eT, bT - eT]));
+  }
+  // ---- Reconciliation by PMO: a block per year, each PMO's estimate read from that year's column
+  {
+    const pmo = bk['Reconciliation by PMO'] || [], h = headerRow(pmo, 'FY', 'PMO', 'Estimate', 'Board funded', 'Delta');
+    const got = pmo.slice(h + 1).filter(r => /^FY\d\d/.test(w6Lbl(r))).map(r => [w6Lbl(r), String(r[1] ?? '').split('   ')[0], num(r[2]), num(r[3]), num(r[4]), num(r[5]), num(r[6])]);
+    const want = [].concat(...YRS.map(fy => {
+      const L = ['ATL', 'AV', 'PSM', 'TSS'].map(p => { const mine = ids.filter(id => PMO[id] === p), e = S_(LINES.filter(l => l[0] === p).map(l => l[fy === 2027 ? 2 : 3])), b = S_(mine.map(id => F[fy][id]));
+        return [FYL2(fy), p, e, b, b - e, mine.filter(id => Y[fy].ok[id]).length, mine.length]; });
+      const eY = S_(L.map(r => r[2])), bY = S_(L.map(r => r[3]));
+      return L.concat([[FYL2(fy), 'NOBODY', est('9.9', fy), null, null, null, null], [FYL2(fy) + ' TOTAL', '', eY, bY, bY - eY, ids.filter(id => Y[fy].ok[id]).length, ids.length]]); }));
+    chk(name, 'Reconciliation by PMO · fiscal year', 'each year’s block: every office’s estimate and board funded, the stray line, the year’s total', J(got), J(want));
+  }
+  // ---- Lines Nothing Claims: per year, the lines that year's confirmations leave, at that year's figure
+  {
+    const orph = bk['Lines Nothing Claims'] || [];
+    const got = orph.filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [w6Lbl(r), String(r[1]), num(r[2])]);
+    const want = [].concat(...YRS.map(fy => LINES.filter(l => !ids.some(id => Y[fy].ok[id] && Y[fy].wbs[id] === l[1]))
+      .map(l => [FYL2(fy), l[1], est(l[1], fy)]).sort((a, b) => b[2] - a[2])));
+    chk(name, 'Lines Nothing Claims · fiscal year', 'each year’s unclaimed lines, at that year’s figure', J(got), J(want));
+  }
+  // ---- Across Active Years: a row per requirement, a column triple per year, and the years together
+  {
+    const ac = bk['Across Active Years'] || [], h = ac.findIndex(r => w6Lbl(r) === 'PMO');
+    const got = ac.slice(h + 1).filter(r => r && w6Lbl(r)).map(r => r.slice(0, 9).map((v, k) => k < 2 ? String(v) : (v === '' || v == null ? null : num(v))));
+    const want = ids.map(id => [PMO[id], 'Req ' + id].concat(...YRS.map(fy => { const e = eOf(fy, id); return [F[fy][id], e, e === null ? null : F[fy][id] - e]; }), [F[2027][id] + F[2028][id]]));
+    chk(name, 'Across Active Years · fiscal year', 'every requirement: each year’s board funded, estimate and delta under that year, and the years together', J(got), J(want));
+  }
+  // ---- the alignment breakout: each year's lines carry that year's allocation, and the note says what they add up to
+  {
+    const al = bk['Alignment Breakout'] || [], h = headerRow(al, 'FY', 'PMO', 'Line total');
+    const got = al.slice(h + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [w6Lbl(r), String(r[2]), String(r[4]), num(r[5]), num(r[6]), num(r[7])]);
+    const want = [].concat(...YRS.map(fy => ids.map(id => { const a = (Y[fy].alloc[id] || Y[fy].ask[id]);
+      return [FYL2(fy), 'Req ' + id, Y[fy].wbs[id] || '(no WBS)', S_(a), a[0] + a[1] + a[2], a[3]]; })));
+    chk(name, 'Alignment Breakout · fiscal year', 'each year’s line of each requirement: that year’s allocation, by the services each code governs', J(got), J(want));
+    const note = al.map(w6Lbl).find(t => /Every line here is a funding line/.test(t)) || '';
+    chk(name, 'Alignment Breakout · fiscal year', 'its note says the lines carry the allocation, not what the lanes pay — which they exceed here',
+      J([/Line total column carries the requirement’s allocation/.test(note), /not what the lanes pay/.test(note), /adds up to what the board funds/.test(note)]), J([true, true, false]));
+  }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// v1.97 INTEGRATION: A LEGACY SPLIT ASKS EACH PLAN FOR WHAT THE LANE ENGINE PLACES. W1 (item 73) places a legacy
+// whole-requirement split {d, mnd} with mandatory against what discretionary leaves; W6 (item 62) made the Two Spend
+// Plans read what was directed, but left a legacy split asking for its whole basis. One helper now places it for both
+// (scalarSrcVec). Worked by hand: ask [100, 60], split d 90 / mnd 50. Discretionary 90 over [100, 60] is 56.25 / 33.75,
+// whole dollars 56 / 34 (the larger remainder takes the dollar); mandatory 50 over what is left, [44, 26], is 31.43 /
+// 18.57, so 31 / 19. Plan A asks 56 / 34; Plan B 87 / 53; with lanes to spare the engine draws d 56 / 34, m 31 / 19 and
+// leaves 13 / 7 unfunded. FAILS ON v1.96: both plans asked for the whole ask (100 / 60). The engine line is a CONTROL:
+// this fixture has no tie, so v1.96's engine placed it the same way; item 73's own checks (audit-board) hold the tie.
+await (async () => {
+  const name = 'v1.97 integration — a legacy split asks each spend plan for what the lane engine places';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['A', 'B'], items: [it('L1', 'PSM', [100, 60])], disc: [1000, 1000], mand: [1000, 1000],
+                 order: ['L1'], fsrc: { L1: { m: 'split', d: 90, mnd: 50 } } });
+    const got = JSON.parse(X.ev(`(function(){ const it=itemById('L1'), t=tiers().L1;
+      return JSON.stringify({a:planWant(it,'a'), b:planWant(it,'b'), d:t.d, m:t.m, u:t.u}); })()`));
+    chk(name, 'Two Spend Plans · Plan A', 'a legacy split asks Plan A for its discretionary dollars, placed as the lane engine places them', J(got.a), J([56, 34]));
+    chk(name, 'Two Spend Plans · Plan B', 'and Plan B for both lanes, inside the basis', J(got.b), J([87, 53]));
+    chk(name, 'lane engine', 'CONTROL — the engine draws the same placement where the lanes can pay: d, m and what is left unfunded', J([got.d, got.m, got.u]), J([[56, 34], [31, 19], [13, 7]]));
+    // The Excel workbook's Two-Plan Forecast tab says how each kind of requirement asks the plans. It said one forced to
+    // MANDATORY "still competes for discretionary in Plan A" -- untrue since 7 Sep: it asks Plan A for nothing (W6's
+    // finding 4). FAILS ON v1.96.
+    const sh = JSON.parse(capture(X.ev)) || [];
+    const fc = sh.find(t => / Two-Plan Forecast$/.test(t.name));
+    const note = fc ? fc.rows.map(r => (r && r[0] && typeof r[0] === 'object') ? r[0].v : r && r[0]).filter(v => typeof v === 'string').find(v => /^TWO INDEPENDENT WALKS/.test(v)) || '' : '';
+    chk(name, 'Excel · Two-Plan Forecast · note', 'says a requirement forced to Mandatory asks Plan A for nothing, and no longer that it competes for discretionary there',
+      J([/forced to MANDATORY asks Plan A for nothing/.test(note), /competes for discretionary/.test(note)]), J([true, false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.97 W6 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
