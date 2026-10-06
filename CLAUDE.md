@@ -3763,6 +3763,83 @@ mutations (1,080 in all), each presweept.
 **Gate.** `npm run validate:math` passed on the final tree, 5 Oct 9:06 pm – 6 Oct 2:58 am Eastern, 352.3 minutes: sweep
 1069/1069 caught, 11 equivalent (1,080), fuzz seed 712613839, money map 123 proven / 206 n/a / 0 open.
 
+### v1.99 (items 85–98): the 6 Oct review of v1.98 -- exact splits, a batch that cannot be put back, the whole $M entry, a cycle's own list; whole quantities, codes refused, the funds flow's scope, estimate-only offices, side lists across a reload, an estimate's earlier copies
+
+Built on Brad's go of 6 Oct 2026. An independent review of v1.98 (main `0b6dc1b`) found four more; each was confirmed on
+v1.98 first.
+
+**`apportion` is exact (item 85).** Each weight is an exact integer (`apExact`: a whole number as itself; a fraction as its
+mantissa, all over the smallest power of two among them, read from the bits -- nothing is rounded), each share the exact
+BigInt quotient and remainder, floored toward minus infinity; leftover dollars go to the largest remainders, ties to the
+lower service; no weight, evenly. Floating point put a dollar on the wrong service when two remainders were close (it
+reached budget size: $100M over [19,698,320, 191,126,895, 89,174,792]) and let rounding noise settle exact ties. About 2 µs
+a split. The test's oracle makes fractions exact by doubling, a different route on purpose.
+
+**A batch that cannot be put back (item 86).** `lsAll` returns its before-reading (`held`) on success too; `importBoards`
+uses it and never reads storage a second time. After a late refusal: `lsPutBack(W, held)` tries every key, newest first,
+whatever happened to the one before, and reads each back ('was' / 'new' / '?'); `impBoardSnap` / `impBoardBack` keep and
+restore the board on screen (the old MS object is untouched by `applyStore`, which works on a copy) and `_jrnlOff`. All
+back → "Nothing was imported". Anything else → `batchImportUndone`: `IMP_MIXED_KEY` with the keys and `kind:'batch'`,
+`_impRescue = {pre, incs:[{text,name}], mixed:true}` (`fullImportRescue('inc0')`…, `impRescueBtns()`), and
+`impMixedBlock` holds Save, the folder and the autosave exactly as after a full import. `impMixedMsg` names the batch.
+
+**The whole $M entry (item 87).** `rpAmtTyped` reads the whole trimmed entry; longer than `RP_AMT_MAX` (200) is refused as
+such; `rpCut` shortens only what is quoted back.
+
+**A cycle's own RCN / EEIC list (item 88).** `cycLock` stores `rcn` (a copy of `rcnReg()`) on the cycle; `cycView` sets the
+throwaway `MS.rcn` from `cycRcnOf(c)`, so every RCN reader (`rcnReg()`) in the view reads the cycle's list. `cycRcnOf`
+returns null for a cycle without one (locked before v1.99, or a list that is not a list); then the view's message, the
+cycle's row (`.cyc-rcn-today`) and the RCN-EEIC tab's title (`cycRcnTodayNote()`) say `CYC_RCN_TODAY`. Nothing else a
+cycle reads is frozen yet -- destinations, bands, the BAE list, the data pack (item 89); the panel and Help say so (item 98).
+
+**Items 90–98 (Brad's scope of 6 Oct 2026).**
+- *Quantities (90).* `qtyRead(txt)` takes a whole number from 0 (digits, or groups of three with commas; blank is 0; a
+  safe integer) and refuses anything else, sign and Unicode minus included. `buyDollars(q,c)` is null unless both are safe
+  integers ≥ 0 and the product is a safe integer ≤ `IN_MAX_AMT`, read through `buyMax()`: `applyState` recomputes the buy
+  lines BEFORE the line declaring `IN_MAX_AMT` runs, and reading the const there threw and stopped the board opening (found
+  by the import suite; a check now opens a saved board with buy lines and wants no script error). A saved quantity that is
+  not one is kept as saved, counts $0 (`buyDollarsAt`), is listed (`buyBadOf`, `ATT_KIND.buy`) and marked in the panel.
+- *Codes (91).* `codeTake(val, kind)` → `{v}` or `{why}`; limits in `codeMax`. Prompt paths reopen holding the text
+  (`editPid(id, typed)`, `editCcar`, `clinAdd(pid, num, desc)`, `clinSetField(..., typed)`, `wbsQuick(id, typed)`); inline
+  fields keep what was typed, marked (`codeRefusedIn`); the new-requirement form refuses and keeps its text (no silent
+  `maxlength`). An imported code is kept whole: `codeIssues()` lists it (Needs attention `code`, Pre-flight `code`). It runs
+  as the board draws, so it reads a prime's CLINs through `clinListRO` -- `clinList` creates empty entries on a read, and
+  a reopened board then held CLIN entries its file never had (the round-trip fuzz caught it).
+- *Funds flow (92, 93).* `exportFlow` reads `flowCalc()` -- the panel's years and appropriations; `flowFy` is gone. Partner
+  and FMS money is portfolio-wide, once (`flowOtherNote()`). `flowYearKind(fy, slug)` decides executed or planned per
+  appropriation (`flowExecYears(slug)`); `flowYearMix` / `flowMixWords` name a mixed year in the scope.
+- *ACE tie-out (94).* An office with estimate lines and no requirement in a year is a row (estimate only) in the block and
+  its TOTAL; beneath it, `Estimate for this appropriation = the TOTAL + lines under no office`, and DOES NOT TIE if not.
+  The panel's `.aceestonly` row and `.aceacct` line say the same. Lines Nothing Claims notes beneath its list that it is not
+  a second count.
+- *Side lists (95).* Imports stage (`importSrc`: `nextAll`; `driveAcePull`: `staged`); `driveRpPush` keeps the merge
+  (`persistRp`) before writing the folder and says "kept in this browser, not shared"; `destFold` reports `touched` and
+  `destMigrate` stores it. Across a reload: `sideBootNote(key, fb)` keeps each store's file copy as text and what storage
+  held BEFORE opening (`.pre`); `sideBootCheck()` at the end of opening flags a list (and another appropriation's plan or
+  cycle store) storage held that a save would write over a different one. What opening an older file wrote itself is not
+  counted: it is remembered against `PUB_FILE_TS` under `SIDE_OPEN_KEY` ('prio27sideOpen'), so the next opening of the same
+  file reads it the same way. `sideUnsaved()` reads `sideBootNote.keys`; `sideWrote()` clears them; `sideBootSay()` names
+  them in the saved-state tooltip. A list storage refused while opening stays unsaved (`_lsRefused` is no longer cleared).
+  What opening writes into the destination list or a cycle store's list link is stored without a new time
+  (`_destOpening`) unless a key was made or moved (`stamp`): stamping it made two openings of one file save different
+  bytes (`boot-same` caught it).
+- *An estimate's earlier copies (96).* `aceHistShow()` lists `history/spmt-ace-<name>-<stamp>.json` (`ACE_HIST_RE`);
+  `aceRestore(i, gen)` pins the copy by name before the first wait (a list read again since refuses), runs Replace's
+  checks, keeps the folder's copy (`snapKeep(..., force, out)`) and reads it back byte for byte, reads the folder again
+  before the write, and writes the kept bytes exactly. The board is not changed. `snapMatch` escapes what it is given.
+- *Classify grid (97).* `matClinOwn(id)` counts a prime's CLINs with their own RCN / EEIC; the cell, the bulk preview
+  (`clinOwn`) and `.mat-rcnnote` say so. The setter is unchanged.
+- *Cycles (98).* The panel's `.cyc-keeps` hint and Help (`t-fydp`) say what a cycle keeps and what it reads as it is now.
+
+**Checks.** `audit-recon.mjs` "v1.99 item 85", "item 87", "item 88", "items 92–93", "item 94", "items 97–98";
+`audit-import.mjs` "v1.99 — a batch that cannot be put back…", "…side lists… (item 95)", "…a cost estimate the folder kept…
+(item 96)", and the version pattern (v1.99, v2.00, malformed labels, compared as (major, minor)); `audit-board.mjs` "v1.99 —
+a buy quantity…(item 90)", "…a code longer than its limit…(item 91)". Every check fails on v1.98 unless labelled a CONTROL.
+Expected changes kept to expectations, fixtures as they were: the funds-flow tests set the panel's selection
+(`flowCfg().fys`), and the v1.97 ACE tie-out test checks the new accounted-for line on its own. 59 new mutations, 7
+retargeted (1,139 in all).
+**Gate.** GATE_PLACEHOLDER
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

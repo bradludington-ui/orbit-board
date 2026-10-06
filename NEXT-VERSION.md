@@ -4,7 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.98**. Next: **v1.99**.
+Current version: **v1.99**. Next: **v2.00**.
 
 ## Open
 
@@ -13,7 +13,7 @@ Current version: **v1.98**. Next: **v1.99**.
 - **Two people sharing different cost estimates under one name at the same instant** can both write: a file share has
   no atomic create. The re-read after the replace question narrows it; it does not close it.
 - **A cost estimate kept in the folder's history** is not offered in ↶ Earlier copies; putting one back is a rename in
-  the folder. *(Now item 96, v1.99.)*
+  the folder. *(Item 96, v1.99: ↶ Cost estimates kept, in the Live view.)*
 - **An office's month in a shared requirement** can sit about a dollar from its exact share (the office's total and
   the requirement's months are exact) -- the price of whole dollars that add up both ways.
 - **Brad, 6 Oct 2026 (for v2.00):** the shared-name race (above) stays as it is, with the fingerprint protection kept. The
@@ -44,12 +44,12 @@ Current version: **v1.98**. Next: **v1.99**.
 - **Logged:** 5 Oct 2026, from the six workstreams' reports and the integration.
 - **⬇ Export funds flow writes the last fiscal year on screen, across every appropriation**, not what the panel shows (the
   panel showed FY25 + FY26 for O&M, 3,000; the export held FY26 for all appropriations, 2,000). Its Scope line says so.
-  Changing it changes what the export is for: Brad's call. *(Now item 92, v1.99.)*
+  Changing it changes what the export is for: Brad's call. *(Item 92, v1.99.)*
 - **A year with execution imported for any appropriation counts as executed for all of them**: Full Fund FY27 execution
   made O&M's planned FY27 print $0, with no warning. The rule is "execution wins per year"; per appropriation is a design
-  change. *(Now item 93, v1.99.)*
+  change. *(Item 93, v1.99.)*
 - **An office with an estimate line but no requirement in a year** is left off that year's ACE "Reconciliation by PMO"
-  block and its total (it is still listed under Lines Nothing Claims). *(Now item 94, v1.99.)*
+  block and its total (it is still listed under Lines Nothing Claims). *(Item 94, v1.99.)*
 - **The ACE alignment breakout carries the allocation, not what the lanes fund.** Its note now says so; whether it should
   carry funded dollars instead is Brad's call.
 - **A kept PPBE cycle fixes the services it holds** (item 80's choice): they cannot be moved, renamed or removed while it
@@ -58,7 +58,7 @@ Current version: **v1.98**. Next: **v1.99**.
   figure is typed again.
 - **The side lists' unsaved state lasts one session**, like `DIRTY`: list edits waiting in browser storage read as saved
   after a reload. Some list changes never reach the counter: an execution import that throws part-way, a log share that
-  merges and then fails to write, the destination list's default seed. *(Now item 95, v1.99.)*
+  merges and then fails to write, the destination list's default seed. *(Item 95, v1.99.)*
 - **A reprogramming row written by v1.96 carries only a place**, which v1.96's picker took from the board on screen. It
   is read against its own appropriation's list and marked "(by position)" until someone picks.
 - **PPBE values copied into the budget base** (`bmSeedFromPp`) are not apportioned; whole dollars when typed, so this
@@ -76,9 +76,9 @@ Current version: **v1.98**. Next: **v1.99**.
   money on the CLIN reads as the CLIN's standard. Nothing is lost -- the choices stay in the file -- but an older board
   reports it on the standard until it is opened in v1.98 again.
 - **A kept PPBE cycle** keeps its CLINs' pointers when a combination is removed from the list (a cycle is a fixed
-  point, as before for the requirements' own); in that cycle's view, that money reads as not assigned. *(Now item 88.)*
+  point, as before for the requirements' own); in that cycle's view, that money reads as not assigned. *(Item 88, v1.99: a cycle locked from v1.99 keeps its own list; one locked earlier reads today’s and says so.)*
 - **The Classify grid's RCN / EEIC column** sets the requirement's own combination, the default a CLIN with none of its
-  own uses. A CLIN's choices are made in its CLIN drill. *(Now item 97, v1.99: the grid says so; the setter is unchanged.)*
+  own uses. A CLIN's choices are made in its CLIN drill. *(Item 97, v1.99: the grid says so; the setter is unchanged.)*
 - **On the RCN-EEIC tab, a prime split across combinations** shows each combination's share of its ask prorated by the
   CLIN grid's allocation (the same split as its money), not each CLIN's own request.
 - **6 Oct review of v1.98:** an older version's reading of a v1.98 file should be tested editing and saving, not only
@@ -87,82 +87,6 @@ Current version: **v1.98**. Next: **v1.99**.
 - **Brad, 6 Oct 2026 (for v2.00):** the older-version reading stays for a compatibility review -- a partial version marker
   on folder copies cannot certify older readers as safe. The RCN-EEIC tab's ask for a split prime stays for review, because
   showing each CLIN's own request changes what the ask column means.
-
-#### 85–88. The 6 Oct engineering review of v1.98 (main `0b6dc1b`)
-- **Logged:** 6 Oct 2026, from an independent review Brad pasted. It does not sign v1.98 off against the zero-tolerance
-  bar for data loss and money math. It confirms R01–R10 of the 5 Oct review closed (R05 in part: item 82) and the money map
-  at 0 open, and finds four more. Each was confirmed again here on the same board file (blob `2b411be`): N01 and N03 by
-  running the board's own functions (`SP/rev198/n01*.mjs`, `n03.mjs`), N02 and N04 by reading the path line by line. Its
-  restated open points are under items 71, 82 and 84.
-- **Fail-before for every one:** each fix lands with a check that fails on v1.98 and a mutation that removes the fix.
-- **Brad, 6 Oct 2026: approved as built** (85: exact arithmetic, ties to the lower service, the $100M and 1:1:4 cases
-  tested independently; 86: every list tried, rescue files kept, shared saves held whenever restoring is incomplete; 87:
-  the whole $M entry; 88: new cycles keep their list, older ones marked, no past code guessed).
-
-#### 85. Splitting a total gives each odd dollar to the service it belongs to (review N01)
-- **Found (reproduced):** `apportion` works each share out in floating point and gives the leftover dollars to the
-  biggest fractions as floating point sees them. When two services' remainders are very close, the dollar can go to the
-  wrong one; the total still balances, so nothing calls it. The review's case: $7,652,408,746,072 over
-  [8,028,733,825,777, 532,030,733,303, 817,029,632,163] gives the first service $1 of the third's. It also happens at
-  budget size: $100,000,000 over [$19,698,320, $191,126,895, $89,174,792] gives the first service $1 of the second's
-  (their exact remainders are 154,037,258 and 154,037,259 out of 300,000,007). Random figures almost never hit it (none in
-  900,000 tries); near-ties built on purpose do (8,334 of 64,504).
-- **Also found here:** on an exact tie the rule is "the lower service first", but floating point decides instead.
-  $10,000,000 over 1 : 1 : 4 gives the two spare dollars to services 1 and 3, not 1 and 2. About 1% of the three-service
-  splits tried with small whole-number ratios are ties settled this way. Every share is within $1 of exact, and every
-  surface calls the same helper, so the surfaces agree with each other, but not with the stated rule.
-- **What:** a whole-dollar total over whole-dollar weights is split exactly, as integers (quotient and remainder, BigInt
-  where a product passes 2^53), with ties to the lower service. The one caller that can pass a fractional shape
-  (`clinSplit` with a modelled plan) gets an explicit rule of its own, not BigInt over fractions. Every caller is listed.
-- **What users see:** no total changes. Where a split is worked out again (a CLIN's lines, a spread total), a tied odd
-  dollar can sit on a different service than v1.98 printed.
-- **Acceptance:** both fixtures above; an independent BigInt oracle across the whole range to $10 trillion, with ties,
-  near-ties, zero weights and zero totals; every service's amount compared, not the total; a mutation that breaks the
-  remainder order is caught.
-
-#### 86. A batch import that cannot be put back says so, and holds the board (review N02)
-- **Found (read):** if the board on screen refuses an appropriation after ⇊ Import several boards has written storage (a
-  refusal the checks before the write are meant to rule out), the batch puts storage back with `every()`, which stops at
-  the first list it cannot put back: later lists are never tried. If the copy of storage taken before the write could
-  not be read, nothing is put back at all, although the write went ahead. Neither case sets the mixed-import hold or
-  offers the two rescue files a full import's failure does (`fullImportUndone`), and the message says storage could not
-  be put back and then "This board is exactly as it was."
-- **What:** take the before-copy from `lsAll`'s own snapshot, or refuse before writing if it cannot be read; try every
-  list and check each; any list not back as it was goes the way a full import's failure does: Save, folder publish and
-  autosave held, both rescue files offered, and a message naming which list holds what. An exception thrown by
-  `applyStore` part-way puts memory back as well.
-- **Acceptance:** a fault at the first, a middle and the last list; one failing while later ones could be put back; the
-  before-copy unreadable; `applyStore` returning false; `applyStore` throwing after changing memory. Stored bytes, `MS`,
-  `S`, `PUBS`, the rescue files and the hold all checked; Save, folder publish and autosave refuse until recovery. No
-  natural cause of the late refusal is known; this is the recovery path.
-
-#### 87. The reprogramming $M field reads the whole entry (review N03)
-- **Found (reproduced):** `rpAmtTyped` cuts the entry to 60 characters before reading it. "1", 59 spaces and "oops" (64
-  characters) is taken as $1M, and over a $5M row it replaces the figure and stamps the row. "0.000001", 52 zeros and "1"
-  (61 characters, not a whole number of dollars) is taken as exactly $1. The input has no length limit. Up to 60
-  characters, item 81's rule (whole entry, whole dollars) holds.
-- **What:** read the whole entry; refuse one longer than a stated limit with a message, keeping the row's figure, its
-  stamp and the log's. Only the text quoted back in the message is shortened, after the decision.
-- **Acceptance:** 59, 60, 61 and 64 characters; a valid start with a bad end; a nonzero digit past the sixth decimal; long
-  zero tails; large values; signs; blank. A refused entry changes no row, no stamp and no stored byte.
-- **Also seen here, Brad's call:** *(Now item 91, v1.99: refused, never cut.)* CCaR record (12 characters), PID (20) and CLIN number (20) entries are cut to length
-  without a word, so a 13-character CCaR record typed by mistake is stored as its first 12. Refusing an over-long code
-  instead, and keeping the old one, is a change in behavior.
-
-#### 88. A locked cycle keeps the RCN / EEIC list it was locked with (review N04)
-- **Found (read):** `cycLock` copies the years and the projection, not the appropriation's RCN / EEIC list, and `cycView`
-  copies today's appropriation and swaps in the locked years. So a locked cycle's pointers are read against today's list.
-  Remove a combination and the cycle's money reads "no RCN/EEIC assigned" (item 84); change a combination's RCN or EEIC
-  and the old cycle prints the new codes (not logged before). Dollars and totals do not change; the past's
-  classification does.
-- **What:** a cycle locked from v1.99 on carries the list it was locked with, and its view and every report from it read
-  that list; the working plan keeps reading today's. A cycle locked before v1.99 has no list: it is kept as it is, and its
-  view and reports say its codes are read against today's list -- no past code is made up. At build, list every other
-  board-level list a locked cycle reads from today (destinations, bands, the PMO list, the BAE list) and say which are
-  fixed the same way.
-- **Acceptance:** lock; rename, change and remove a combination in the working list; view and export the cycle -- every
-  code, service, dollar and month as locked, while the working plan takes the changes. An older cycle with no list is
-  marked, not filled in.
 
 #### 89. Found while building v1.99: what a locked cycle still reads from today
 - **Logged:** 6 Oct 2026, while building v1.99.
@@ -173,93 +97,9 @@ Current version: **v1.98**. Next: **v1.99**.
   Keeping them with the cycle the way item 88 keeps the RCN / EEIC list is the same kind of change; which of them matter
   is Brad's call. SI codes and PMOs are stored as codes and need nothing.
 - **Brad, 6 Oct 2026 (for v2.00):** keeping these lists with the cycle has priority. Until it is done, say which of a locked
-  cycle's classifications still read today's lists, and never claim the whole cycle is frozen (item 98, v1.99).
+  cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
+  PPBE cycles panel and Help say so.)*
 
-#### v1.99 scope (Brad, 6 Oct 2026)
-- **In v1.99:** items 85–88 (built), and 90–98 below. This approves the engineering direction; it does not certify the
-  branch or authorise publishing.
-- **The original regression fixtures are kept.** Where a fixed behaviour changes what an existing check expects (the
-  funds-flow scope, the executed year, the ACE reconciliation), the fixture stays and the expectation changes, each one
-  named in the release notes.
-- **The math gate:** implementation and the presweep finish first; then one full `npm run validate:math` on the final
-  candidate (about six hours in the background; approved). Any later code change re-runs the checks it touches. The
-  exact tested revision and every unresolved limitation are reported before release approval.
-- **Version labels:** v2.00 follows v1.99. Versions are compared as (major, minor) whole numbers, never as decimals; the
-  board's and the tools' version comparisons are checked for it.
-
-#### 90. Aircraft and engine quantities are whole numbers (found while scoping v1.99, 6 Oct)
-- **Found (read):** `setBuy` strips every non-digit and reads what is left: "1.5" is stored as 15, "−2" or "-2" as 2,
-  "abc" as 0. The adjusted quantity times the unit cost is the buy's dollars on its requirement.
-- **Brad, 6 Oct 2026:** strict non-negative whole numbers, the Unicode minus included; the resulting quantity × unit cost
-  is checked too -- no overflow and no loss of integer precision may enter the dollar figure. An invalid quantity in an
-  older file is kept as saved and flagged, never silently converted.
-- **What:** a quantity reader for the baseline and adjusted fields: a whole number from 0, with thousands separators, or
-  the entry is refused, the figure it had is kept, and the message says why. Quantity × unit cost must be a safe integer
-  within `IN_MAX_AMT`. A saved quantity that is not a whole number from 0 is kept exactly as saved, listed under Needs
-  attention, and counted as no buy until it is typed again (as a negative allocation is, item 74).
-
-#### 91. Codes over their limit are refused, never cut (from item 87)
-- **Limits (kept):** CCaR record 12, PID 20, CLIN number 20, CLIN description 140, WBS 40, RCN / EEIC in the list 10, PPBE
-  line codes 12.
-- **Brad, 6 Oct 2026:** an over-long typed entry is refused without changing existing data or discarding the form's text;
-  an imported value is flagged, not truncated; the same rules on every entry path.
-- **What:** one rule for every typed path -- prompts reopen holding the text, the new-requirement form keeps its text
-  (its silent 12-character `maxlength` goes), an inline field keeps what was typed until it is corrected, and the message
-  names the limit. Every path that brings a code in from a file (a PMO submittal, the CCaR records import, board,
-  appropriation and package imports, a data pack) keeps it whole and flags it (the import's report, Needs attention,
-  Pre-flight). The paths are listed at build. Two setters nothing calls are removed.
-
-#### 92. The funds-flow export writes the panel's selection (from item 82)
-- **Brad, 6 Oct 2026:** exactly the panel's selected years and appropriations; switched-off appropriations left out of the
-  by-appropriation table; partner/FMS money for the selected years included once, labelled portfolio-wide and not
-  affected by the appropriation filter -- shown that way on the panel and in the export.
-- **What:** the export reads `flowCalc()` (the panel's own scope), not the last year across every appropriation;
-  `flowFy` goes. Example: panel FY25 + FY26, O&M only (O&M 1,000 and 2,000; Full Fund 500 in FY26; partner 100 and 200):
-  the export says "FY25, FY26 · O&M", US 3,000, partner 300 portfolio-wide, 3,300 -- not "FY26 · all appropriations",
-  2,700.
-
-#### 93. Execution is decided per appropriation and year (from item 82)
-- **Brad, 6 Oct 2026:** approved; a total that mixes planned and executed money says so clearly.
-- **What:** `flowExecYears(slug)` and `flowYearKind(fy, slug)`; a year can be planned for one appropriation and executed
-  for another. Example: Full Fund FY27 executed 800, O&M FY27 planned 5,000: 5,800, marked "FY27: O&M planned, Full
-  Fund executed" -- not 800, with O&M at $0 and no word. The year buttons and the planned-year banner say the same.
-
-#### 94. An office with only estimate lines is in the ACE reconciliation (from item 82)
-- **Brad, 6 Oct 2026:** approved; prove that the office reconciliation plus the genuinely unclaimed lines account for the
-  estimate exactly, with nothing counted twice.
-- **What:** a row for an office with estimate lines and no requirement that year -- its estimate, board $0, the full
-  variance -- in the block and its total, on the panel and in the export. The block then states: office rows + lines under
-  no office = the estimate total. Example: PSM 900, TSS 400, LOG 250 (no requirement), 100 under no office; board PSM 1,000,
-  TSS 300: TOTAL 1,550 / 1,300 / −250, and 1,550 + 100 = 1,650, the estimate.
-
-#### 95. Side lists: staged imports, and unsaved survives a reload (from item 82)
-- **Brad, 6 Oct 2026:** staged imports, and differences from the saved file detected across a reload. A storage failure
-  leaves the changed content recoverable and visibly unsaved ("store immediately" alone is not enough when storage
-  refuses). A share that fails keeps the merged content and says plainly that it is kept here and not shared.
-- **What:** an execution import builds its result aside and takes it only when every tab is read; a cost-estimate pull
-  likewise; a log share keeps its merge in browser storage before writing the folder, and its message tells "kept in this
-  browser, not shared" from "shared"; the destination list's seed and two other list edits that changed memory without
-  storing it are counted; nothing waits between changing a side list and storing it. At opening, each list in browser
-  storage is compared with the copy the board file carries (timestamps aside); one that differs reads unsaved until 💾 Save
-  writes it. A list storage refused stays unsaved, in memory, until it is in the file.
-
-#### 96. Earlier copies of a cost estimate (from item 63)
-- **Brad, 6 Oct 2026:** approved. The estimate's identity is pinned before the first wait; the exact version being
-  replaced is kept; a restore is refused when keeping it fails. Tests include late edits and a change of selection while
-  it runs.
-- **What:** "↶ Earlier copies" for a cost estimate under the Live view, from the folder's history; putting one back runs
-  Replace's checks (whole, its own key, its fingerprint), keeps the folder's current copy first, reads again before it
-  writes, and changes only the folder.
-
-#### 97. The Classify grid says when a prime's CLINs carry their own RCN / EEIC (from item 84)
-- **Brad, 6 Oct 2026:** the explanatory text only; the setter is unchanged.
-
-#### 98. Say which classifications a locked cycle still reads from today (from item 89)
-- **Brad, 6 Oct 2026:** until those lists are kept with the cycle, say which of its classifications read today's lists, and
-  never claim the whole cycle is frozen.
-- **What:** the PPBE cycles panel and Help say what a locked cycle keeps (every year's plan, its projection, from v1.99 its
-  RCN / EEIC list) and what it still reads as it is now (destinations, bands, a budget set by rule, the requirement data
-  it never changed).
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -322,6 +162,211 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
+
+**The review's four, and the nine Brad scoped beside them.** An independent engineering review of v1.98 (6 Oct)
+confirmed the 5 Oct review's ten closed and the money map at 0 open, and found four more (85–88); each was confirmed again
+on v1.98 before it was logged, and each is fixed. Brad then scoped nine more from the open notes (90–98): whole-number
+quantities, codes refused rather than cut, the funds-flow export's scope and its executed years, the ACE reconciliation's
+estimate-only offices, side lists that stay unsaved across a reload, an estimate's earlier copies, and two pieces of
+wording. Every item has checks that fail on v1.98, and mutations that remove each fix.
+
+**What users may see:** no total changes on a board whose figures were valid. Where a split is worked out again a dollar
+on an exact tie can move to the lower service (item 85). A quantity or a code that was taken loosely before is refused
+now, and one already saved that is not valid is kept and listed under Needs attention (items 90, 91). ⬇ Export funds flow
+writes the panel's selection, and a year can be planned for one appropriation and executed for another (92, 93). The ACE
+tie-out's PMO block gains rows for offices with only estimate lines, and its TOTAL moves by their estimate (94). A board
+reopened with lists the file does not have reads Unsaved changes, and says which (95).
+
+**Expected changes to existing checks (fixtures kept, expectations changed):** the v1.97 funds-flow tests set the panel's
+selection (`flowCfg().fys`) where they set `flowFy`; the v1.97 ACE tie-out test checks the new accounted-for line apart
+from the office rows; the full-import version test's pattern reads any major version and is checked to have replaced the
+stamp.
+
+GATE_PLACEHOLDER
+
+#### Scope (Brad, 6 Oct 2026)
+- **In v1.99:** items 85–88 (built), and 90–98 below. This approves the engineering direction; it does not certify the
+  branch or authorise publishing.
+- **The original regression fixtures are kept.** Where a fixed behaviour changes what an existing check expects (the
+  funds-flow scope, the executed year, the ACE reconciliation), the fixture stays and the expectation changes, each one
+  named in the release notes.
+- **The math gate:** implementation and the presweep finish first; then one full `npm run validate:math` on the final
+  candidate (about six hours in the background; approved). Any later code change re-runs the checks it touches. The
+  exact tested revision and every unresolved limitation are reported before release approval.
+- **Version labels:** v2.00 follows v1.99. Versions are compared as (major, minor) whole numbers, never as decimals; the
+  board's and the tools' version comparisons are checked for it.
+
+#### 85. Splitting a total gives each odd dollar to the service it belongs to (review N01)
+- **Found:** `apportion` worked each share out in floating point. $100,000,000 over [19,698,320, 191,126,895, 89,174,792]
+  gave the first service $1 of the second's; the review's $7,652,408,746,072 gave the first $1 of the third's; and an
+  exact tie went where rounding noise put it ($10,000,000 over 1 : 1 : 4 gave the spare dollars to services 1 and 3). The
+  total balanced every time, so nothing called it.
+- **As built:** each weight is read as an exact integer (`apExact`: a whole number as itself; one with a fraction as its
+  mantissa, all over the smallest power of two among them -- exact, because that is what a floating-point number is);
+  each share is the exact BigInt quotient and remainder, floored; the leftover dollars go to the largest remainders, ties
+  to the lower service; no weight, evenly. All 16 callers are unchanged and now exact: the typed budget total, a total
+  allocation, an old-style split, a prime's CLINs, the offices' shares, a requirement added by total, the CLIN request,
+  a zeroed requirement's money spread back (`zeroSpread`), the absorber's floor, and the import's width repairs.
+- **Checks:** `audit-recon.mjs` "v1.99 item 85": an integer oracle written in the test (fractions made exact by doubling,
+  not by reading bits), eleven named splits, 1,576 swept cases (near-ties built at budget size, small ties, random to
+  $10 trillion), and the typed budget total, a total allocation, an old-style split, a CLIN split and the Spend Plan
+  Source's CLIN lines -- every service's dollars, not the total. 12 of 21 fail on v1.98; the rest are
+  CONTROLS. Mutations: 5 new, 2 retargeted (`apportion-naive-round`, `apportion-drops-remainder`).
+
+#### 86. A batch import that cannot be put back says so, and holds the board (review N02)
+- **Found:** when the board on screen refused its appropriation after ⇊ Import several boards had written storage, the
+  batch put storage back with `every()`, which stops at the first list that will not go back: it writes Full Fund before
+  O&M, so a stuck Full Fund left O&M never tried. When its own second reading of storage failed, it put nothing back. It
+  set no hold and offered no files, and said "This board is exactly as it was". A refusal that threw part-way left the
+  board on screen half-changed and the journal paused.
+- **As built:** the before-copy is `lsAll`'s own reading (it writes nothing when it cannot read); `lsPutBack` tries every
+  list, newest first, and reads each back; `impBoardSnap` / `impBoardBack` put the board on screen back after a throw,
+  journal included. Any list not as it was goes to `batchImportUndone`, as a full import's failure goes to
+  `fullImportUndone`: the mix is marked (`kind:'batch'`, so a reload names it), 💾 Save, the shared folder and the autosave
+  are held by the same `impMixedBlock`, the board as it was and each file taken are offered to save, and every list is
+  named. "Allow 💾 Save again" reads for either import. A new paragraph in Help, *One appropriation in or out*.
+- **Checks:** `audit-import.mjs` "v1.99 — a batch that cannot be put back…": a list stuck first, last, both, and with a
+  list that held nothing before; storage unreadable before the write; a refusal that throws after changing memory; the
+  hold on Save, the folder and the autosave, and after a reload. 22 of 23 fail on v1.98 (⬇ Save a copy is a
+  CONTROL). Faults are injected; no natural cause of the late refusal is known. Mutations: 8 new.
+
+#### 87. The reprogramming $M field reads the whole entry (review N03)
+- **Found:** `rpAmtTyped` cut the entry to 60 characters before reading it. "1", 59 spaces and "oops" was $1M and replaced a
+  $5M row; "0.000001", 52 zeros and "1" -- not whole dollars -- was $1.
+- **As built:** the whole entry is read; one longer than `RP_AMT_MAX` (200 characters) is refused as such; only the text
+  quoted back is shortened (`rpCut`), after the decision. A sentence in Help, *The reprogramming log*.
+- **Checks:** `audit-recon.mjs` "v1.99 item 87": twelve entries from 59 to 201 characters; a refused one leaves the row's
+  figure, its stamp, the log's stamp and the stored bytes as they were. 6 of 12 fail on v1.98 (the rest are
+  CONTROLS). Mutations: 2 new. The codes cut to length are item 91.
+
+#### 88. A locked cycle keeps the RCN / EEIC list it was locked with (review N04)
+- **Found:** `cycLock` kept the years and the projection, not the RCN / EEIC list, and `cycView` read today's. Give a
+  combination new codes and a locked cycle printed them; remove one and the cycle's money on it read "no RCN/EEIC
+  assigned". Dollars did not move; the record of the past did.
+- **As built:** `cycLock` keeps a copy of the list on the cycle (`rcn`); `cycView` puts it on screen (`cycRcnOf`), so the
+  view and every report taken from it -- the RCN-EEIC tab and its CLIN breakout, the Spend Plan Source, the ACE tie-out --
+  read the codes it was locked with. It travels with the cycle through the saved file and every import. A cycle locked
+  before v1.99 is left as it is and read against today's list, and says so in the view's message, on its line under PPBE
+  cycles and in the RCN-EEIC tab's title (`CYC_RCN_TODAY`); no past code is made up. A new paragraph in Help, *RCN / EEIC
+  on a prime’s CLINs*. The other lists a cycle reads from today are item 89.
+- **Checks:** `audit-recon.mjs` "v1.99 item 88": lock; renumber K1 and remove K3 in the working list; the view's RCN-EEIC
+  summary and Spend Plan Source lines as locked; the same after saving and reopening; an older cycle's three notices.
+  6 of 11 fail on v1.98 (the rest are CONTROLS). Mutations: 6 new.
+
+#### 89. Found while building v1.99
+- Logged under Open: what a locked cycle still reads from today (item 98 says it on the panel and in Help).
+
+#### 90. Aircraft and engine quantities are whole numbers (found while scoping v1.99)
+- **Found:** `setBuy` stripped every non-digit and read what was left: "1.5" was stored as 15, "−2" or "-2" as 2, "abc" as
+  0. The adjusted quantity times the unit cost is the buy's dollars on its requirement, and the product was checked only
+  when the cost was typed.
+- **As built:** `qtyRead` takes a whole number from 0 (digits, or groups of three with commas; blank is 0) and refuses
+  anything else -- a sign of either kind, a decimal point, a letter -- keeping the line as it was and saying so.
+  `buyDollars(q, c)` is the exact product, or nothing when either side is not a whole number from 0 or the product passes
+  $10 trillion (`IN_MAX_AMT`), whichever side is typed. A saved quantity that is not one is kept as saved, counts $0, is
+  marked "not counted" in the buys panel and listed under **✈ buy quantities to repair** until typed again.
+- **Found while testing it, and fixed:** the bound was read in a function `applyState` calls while the board opens,
+  before the line that declares it had run; on a board with buy lines that stopped the board opening. It is read through
+  `buyMax()`, and a check opens a saved board with buy lines and wants no script error.
+- **Checks:** `audit-board.mjs` "v1.99 — a buy quantity is a whole number…": eleven refused entries, five taken (CONTROLS),
+  both sides of the $10 trillion bound, saved quantities of −3, 2.5 and "7" kept and listed, the panel's totals, a save and
+  reopen, and repair by typing; every dollar figure computed in the test in BigInt. 14 of 25 fail on v1.98; the rest are CONTROLS. Mutations: 6 new, 1 retargeted.
+
+#### 91. Codes over their limit are refused, never cut (from item 87)
+- **Found:** a typed PID or RCN / EEIC was cut to its length without a word, the new-requirement form cut its CCaR record
+  to 12 as it was typed, a PMO submittal's CCaR record was cut to 12 on the way in, and a CLIN number or description, a
+  WBS or a PPBE line code took any length.
+- **As built:** one rule, `codeTake`, with the limits kept (CCaR record 12, PID 20, CLIN number 20, CLIN description 140,
+  WBS 40, RCN / EEIC 10, PPBE line codes 12). A typed code over its limit changes nothing and keeps the text where it was
+  typed: a box opens again holding it (PID, CCaR record, CLIN number and description, a CLIN's fields, WBS), an inline
+  field keeps it, marked (WBS, PPBE lines, RCN / EEIC), and the new-requirement form keeps everything typed. A code that
+  arrives in a file or a submittal is kept whole and listed under **✂ codes longer than their limit** and in Pre-flight.
+  Two setters nothing called are removed.
+- **Checks:** `audit-board.mjs` "v1.99 — a code longer than its limit…": each typed path at the limit (CONTROL) and one
+  over, the form, a submittal, a saved file reopened, and that reading a prime's CLINs creates nothing. 12 of 13 fail on
+  v1.98 (the one at the limit is a CONTROL). Mutations: 9 new.
+- **Found while testing it, and fixed:** the check reads every prime's CLINs as the board draws, through an accessor that
+  creates an empty entry when there is none, so a reopened board held empty CLIN entries its file never had (the round-trip
+  fuzz caught it on a buy line marked as a prime). It reads them without creating anything (`clinListRO`), as the Classify
+  grid's note (item 97) does.
+
+#### 92. The funds-flow export writes the panel's selection (from item 82)
+- **Found:** ⬇ Export funds flow wrote the last fiscal year on screen across every appropriation, whatever the panel
+  showed; partner and FMS money was not said to be portfolio-wide.
+- **As built:** the export reads `flowCalc()` -- exactly the panel's years and appropriations -- and `flowFy` is gone. A
+  switched-off appropriation is not in the by-appropriation table. Partner and FMS money for the selected years is counted
+  once and labelled **portfolio-wide**, not changed by the appropriation selection, on the panel and in the export.
+- **Checks:** `audit-recon.mjs` "v1.99 items 92–93": the review's own example (FY25 + FY26, O&M only: US $3,000, partner
+  $300, $3,300; no Full Fund line). Expected changes, fixtures kept: the v1.97 funds-flow tests now set the panel's
+  selection (`flowCfg().fys`) instead of `flowFy`. Mutations: 3 new, 1 retargeted (`v197w6-flow-appn-label`).
+
+#### 93. Execution is decided per appropriation and year (from item 82)
+- **Found:** a year with execution imported for any appropriation was an executed year for all of them, so this board's
+  own plan for it was not read: Full Fund FY27 executed $800 and O&M FY27 planned $5,000 printed $800.
+- **As built:** `flowExecYears(slug)` and `flowYearKind(fy, slug)`; a mixed year is named in the scope, the year buttons
+  and the banners (`FY27: O&M planned, FULL FUND executed`), and the export says the same.
+- **Checks:** `audit-recon.mjs` "v1.99 items 92–93": $5,800 = O&M $5,000 planned + Full Fund $800 executed; FY26,
+  executed for both, as before (CONTROL). Mutations: 1 new. Items 92 and 93 together: 8 of 11 fail on v1.98; the rest are CONTROLS.
+
+#### 94. An office with only estimate lines is in the ACE reconciliation (from item 82)
+- **Found:** an office with estimate lines and no requirement that year was left off the PMO block and its TOTAL (listed
+  only under Lines Nothing Claims), so the TOTAL looked tied when it was not.
+- **As built:** it has its own row (its estimate, board $0, the whole estimate as its variance) and is in the TOTAL, on
+  the panel and in the export. Beneath the TOTAL: *Estimate for this appropriation = the TOTAL + lines under no office*,
+  with DOES NOT TIE if it ever does not. Lines Nothing Claims says, beneath its list, that it is not a second count.
+- **Checks:** `audit-recon.mjs` "v1.99 item 94": PSM 900 / 1,000 / +100, TSS 400 / 300 / −100, ATL 250 / 0 / −250
+  (estimate only), TOTAL 1,550 / 1,300 / −250, and 1,550 + 100 = 1,650, the estimate. Expected change, fixture kept: the
+  v1.97 ACE tie-out test checks the new accounted-for line on its own (it ties in both years). 4 of 6 fail on v1.98; the rest are CONTROLS. Mutations: 2 new.
+
+#### 95. Side lists: staged imports, a failed share kept and said, and unsaved survives a reload (from item 82)
+- **Found:** an execution import and a check of the folder for cost estimates wrote into the board as they read, so a
+  failure part-way left half in memory, not stored and not counted unsaved; a log share stored its merge only after
+  writing the folder; a destination list that only joined a name was changed in memory alone; and a side list edited and
+  never saved read Saved once the board was reopened.
+- **As built:** both imports stage and take everything only once all of it is read. A log share keeps the merge in
+  browser storage first and says "kept in this browser, not shared" when the folder cannot be written (and that storage
+  refused it too, when it did). Every change to the destination list is stored and counted. At opening, each list --
+  this board's, and another appropriation's plan and locked cycles -- is compared with the file's copy (timestamps aside),
+  by the rule a save uses to choose between them; one browser storage held that differs reads unsaved, named in the
+  saved-state tooltip, until 💾 Save writes it. What opening an older file writes into its lists is still nobody's change
+  (v1.97, item 76): it is remembered against that file, so the next opening reads it the same way. A list storage refused
+  while opening stays unsaved.
+- **Found while testing it, and fixed:** storing the destination list as the board opened stamped it with the clock, so
+  two openings of one file saved different bytes (`boot-same`). What opening writes keeps the time it had, unless a key
+  was made or moved there (then it is stamped as before, so that reading is never made again).
+- **Checks:** `audit-import.mjs` "v1.99 — side lists…": an import whose second tab fails; a folder that fails after one
+  estimate; a log share whose write fails, with and without storage refusing; a destination name joined; and reopening
+  -- edited, saved, edited again, another appropriation's plan and cycles, a file newer than this browser's copy, a blank
+  board, and an older file opened twice and then edited. 12 of 23 fail on v1.98; the rest are CONTROLS. Mutations: 7 new, 3 retargeted.
+
+#### 96. Earlier copies of a cost estimate (from item 63)
+- **Found:** replacing the folder's estimate kept the one it replaced in the folder's history, and nothing offered it
+  back: putting one back was a rename in the folder by hand.
+- **As built:** 📡 Live view → **🕓 Cost estimates kept** lists them, newest first, under the estimate each was kept for.
+  **Put this back in the folder** pins the copy by its own name before the first wait (a list read again since puts
+  nothing back), runs Replace's checks (whole, its own estimate, its fingerprint), keeps the folder's copy in the history
+  first and reads it back byte for byte -- nothing is written when that fails -- reads the folder again just before the
+  write and stops if it changed, and writes the kept bytes exactly. Only the folder changes. `snapMatch` matches a name as
+  written (a '.' in an estimate's name made it match another's).
+- **Checks:** `audit-import.mjs` "v1.99 — a cost estimate the folder kept…": listed; No; Yes (history then folder, both
+  byte for byte, the board unchanged); the history refusing; a kept copy that does not read back; a late edit to the
+  folder's copy; the list read again and the board's estimate changed while it runs; a stale button; a copy not whole,
+  another estimate's, or off its fingerprint; a folder with no copy; and the name pattern. 16 of 18 fail on v1.98 (the fixture and the board left unchanged are CONTROLS). Mutations: 6 new.
+
+#### 97. The Classify grid says when a prime's CLINs carry their own RCN / EEIC (from item 84)
+- **As built:** the RCN / EEIC cell of a prime says "k of n CLINs carry their own"; the bulk set says what the column
+  sets (the requirement's own combination, the default a CLIN with none uses) and how many primes have CLINs that keep
+  their own. The setter is unchanged (a CONTROL checks it).
+- **Checks:** `audit-recon.mjs` "v1.99 items 97–98". Mutations: 3 new.
+
+#### 98. Say which classifications a locked cycle still reads from today (from item 89)
+- **As built:** the PPBE cycles panel no longer says a cycle "still reads correctly after requirements are renamed,
+  re-banded or removed". It and Help (*The five-year plan by PMO*) say what a cycle keeps -- every year's plan in its
+  window, its projection and, from v1.99, its RCN / EEIC list -- and what it still reads as it is now: the destination
+  list, the decision bands, a BAE budget set by rule, and requirement detail its plan never changed.
+- **Checks:** `audit-recon.mjs` "v1.99 items 97–98" (items 97 and 98 together: 7 of 9 fail on v1.98; the rest are CONTROLS). Mutations: 1 new.
 
 ### v1.98 — 5 Oct 2026: item 83, built on Brad's "go" -- RCN/EEIC by service on each CLIN
 
