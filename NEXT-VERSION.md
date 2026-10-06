@@ -27,6 +27,8 @@ Current version: **v1.98**. Next: **v1.99**.
   checks revisions atomically, closes it. Not reproduced with two real machines.
 - **The legacy shared state file opened by the Windows launcher** (`spmtSidecar=1`, XHR) answers into the same function the
   HTTPS path does, and is covered by the same checks; it was not run with a real launcher.
+- **6 Oct review of v1.98:** restates the shared-writer window as still open; a browser lock or another timestamp read does
+  not close it. Still no test with two real machines.
 
 
 #### 82. Found while building v1.97, not built
@@ -55,6 +57,9 @@ Current version: **v1.98**. Next: **v1.99**.
 - **Items 77–79 were run in jsdom against stand-in folders and file readers**, not with real File System Access in
   Chromium. A history folder that exists but cannot be opened now also stops the log and cost-estimate shares (stricter
   than before). Boards older than v1.97 neither see nor thin the new `…-recent.json` history copies.
+- **6 Oct review of v1.98:** restates the side-list, funds-flow and ACE bullets above. On the side lists: a change should
+  count before any write that can fail, and survive a reopen. On the funds flow and ACE: it asks for a worked example by
+  appropriation and year, and Brad's rule, before those totals are called certified.
 
 #### 84. Found while building v1.98, not built
 - **Logged:** 5 Oct 2026, while building v1.98.
@@ -62,11 +67,87 @@ Current version: **v1.98**. Next: **v1.99**.
   money on the CLIN reads as the CLIN's standard. Nothing is lost -- the choices stay in the file -- but an older board
   reports it on the standard until it is opened in v1.98 again.
 - **A kept PPBE cycle** keeps its CLINs' pointers when a combination is removed from the list (a cycle is a fixed
-  point, as before for the requirements' own); in that cycle's view, that money reads as not assigned.
+  point, as before for the requirements' own); in that cycle's view, that money reads as not assigned. *(Now item 88.)*
 - **The Classify grid's RCN / EEIC column** sets the requirement's own combination, the default a CLIN with none of its
   own uses. A CLIN's choices are made in its CLIN drill.
 - **On the RCN-EEIC tab, a prime split across combinations** shows each combination's share of its ask prorated by the
   CLIN grid's allocation (the same split as its money), not each CLIN's own request.
+- **6 Oct review of v1.98:** an older version's reading of a v1.98 file should be tested editing and saving, not only
+  opening. Windows and Edge with real SharePoint or OneDrive and their permissions, and the exports opened in Excel,
+  PowerPoint and CCaR, are still unchecked.
+
+#### 85–88. The 6 Oct engineering review of v1.98 (main `0b6dc1b`)
+- **Logged:** 6 Oct 2026, from an independent review Brad pasted. It does not sign v1.98 off against the zero-tolerance
+  bar for data loss and money math. It confirms R01–R10 of the 5 Oct review closed (R05 in part: item 82) and the money map
+  at 0 open, and finds four more. Each was confirmed again here on the same board file (blob `2b411be`): N01 and N03 by
+  running the board's own functions (`SP/rev198/n01*.mjs`, `n03.mjs`), N02 and N04 by reading the path line by line. Its
+  restated open points are under items 71, 82 and 84.
+- **Fail-before for every one:** each fix lands with a check that fails on v1.98 and a mutation that removes the fix.
+
+#### 85. Splitting a total gives each odd dollar to the service it belongs to (review N01)
+- **Found (reproduced):** `apportion` works each share out in floating point and gives the leftover dollars to the
+  biggest fractions as floating point sees them. When two services' remainders are very close, the dollar can go to the
+  wrong one; the total still balances, so nothing calls it. The review's case: $7,652,408,746,072 over
+  [8,028,733,825,777, 532,030,733,303, 817,029,632,163] gives the first service $1 of the third's. It also happens at
+  budget size: $100,000,000 over [$19,698,320, $191,126,895, $89,174,792] gives the first service $1 of the second's
+  (their exact remainders are 154,037,258 and 154,037,259 out of 300,000,007). Random figures almost never hit it (none in
+  900,000 tries); near-ties built on purpose do (8,334 of 64,504).
+- **Also found here:** on an exact tie the rule is "the lower service first", but floating point decides instead.
+  $10,000,000 over 1 : 1 : 4 gives the two spare dollars to services 1 and 3, not 1 and 2. About 1% of the three-service
+  splits tried with small whole-number ratios are ties settled this way. Every share is within $1 of exact, and every
+  surface calls the same helper, so the surfaces agree with each other, but not with the stated rule.
+- **What:** a whole-dollar total over whole-dollar weights is split exactly, as integers (quotient and remainder, BigInt
+  where a product passes 2^53), with ties to the lower service. The one caller that can pass a fractional shape
+  (`clinSplit` with a modelled plan) gets an explicit rule of its own, not BigInt over fractions. Every caller is listed.
+- **What users see:** no total changes. Where a split is worked out again (a CLIN's lines, a spread total), a tied odd
+  dollar can sit on a different service than v1.98 printed.
+- **Acceptance:** both fixtures above; an independent BigInt oracle across the whole range to $10 trillion, with ties,
+  near-ties, zero weights and zero totals; every service's amount compared, not the total; a mutation that breaks the
+  remainder order is caught.
+
+#### 86. A batch import that cannot be put back says so, and holds the board (review N02)
+- **Found (read):** if the board on screen refuses an appropriation after ⇊ Import several boards has written storage (a
+  refusal the checks before the write are meant to rule out), the batch puts storage back with `every()`, which stops at
+  the first list it cannot put back: later lists are never tried. If the copy of storage taken before the write could
+  not be read, nothing is put back at all, although the write went ahead. Neither case sets the mixed-import hold or
+  offers the two rescue files a full import's failure does (`fullImportUndone`), and the message says storage could not
+  be put back and then "This board is exactly as it was."
+- **What:** take the before-copy from `lsAll`'s own snapshot, or refuse before writing if it cannot be read; try every
+  list and check each; any list not back as it was goes the way a full import's failure does: Save, folder publish and
+  autosave held, both rescue files offered, and a message naming which list holds what. An exception thrown by
+  `applyStore` part-way puts memory back as well.
+- **Acceptance:** a fault at the first, a middle and the last list; one failing while later ones could be put back; the
+  before-copy unreadable; `applyStore` returning false; `applyStore` throwing after changing memory. Stored bytes, `MS`,
+  `S`, `PUBS`, the rescue files and the hold all checked; Save, folder publish and autosave refuse until recovery. No
+  natural cause of the late refusal is known; this is the recovery path.
+
+#### 87. The reprogramming $M field reads the whole entry (review N03)
+- **Found (reproduced):** `rpAmtTyped` cuts the entry to 60 characters before reading it. "1", 59 spaces and "oops" (64
+  characters) is taken as $1M, and over a $5M row it replaces the figure and stamps the row. "0.000001", 52 zeros and "1"
+  (61 characters, not a whole number of dollars) is taken as exactly $1. The input has no length limit. Up to 60
+  characters, item 81's rule (whole entry, whole dollars) holds.
+- **What:** read the whole entry; refuse one longer than a stated limit with a message, keeping the row's figure, its
+  stamp and the log's. Only the text quoted back in the message is shortened, after the decision.
+- **Acceptance:** 59, 60, 61 and 64 characters; a valid start with a bad end; a nonzero digit past the sixth decimal; long
+  zero tails; large values; signs; blank. A refused entry changes no row, no stamp and no stored byte.
+- **Also seen here, Brad's call:** CCaR record (12 characters), PID (20) and CLIN number (20) entries are cut to length
+  without a word, so a 13-character CCaR record typed by mistake is stored as its first 12. Refusing an over-long code
+  instead, and keeping the old one, is a change in behavior.
+
+#### 88. A locked cycle keeps the RCN / EEIC list it was locked with (review N04)
+- **Found (read):** `cycLock` copies the years and the projection, not the appropriation's RCN / EEIC list, and `cycView`
+  copies today's appropriation and swaps in the locked years. So a locked cycle's pointers are read against today's list.
+  Remove a combination and the cycle's money reads "no RCN/EEIC assigned" (item 84); change a combination's RCN or EEIC
+  and the old cycle prints the new codes (not logged before). Dollars and totals do not change; the past's
+  classification does.
+- **What:** a cycle locked from v1.99 on carries the list it was locked with, and its view and every report from it read
+  that list; the working plan keeps reading today's. A cycle locked before v1.99 has no list: it is kept as it is, and its
+  view and reports say its codes are read against today's list -- no past code is made up. At build, list every other
+  board-level list a locked cycle reads from today (destinations, bands, the PMO list, the BAE list) and say which are
+  fixed the same way.
+- **Acceptance:** lock; rename, change and remove a combination in the working list; view and export the cycle -- every
+  code, service, dollar and month as locked, while the working plan takes the changes. An older cycle with no list is
+  marked, not filled in.
 
 ## Later
 
