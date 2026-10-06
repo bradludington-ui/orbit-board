@@ -80,9 +80,11 @@ export function buildHostile(html) {
     // a prime's CLIN grid: a base line in the data pack, an edit over it, an addition, a WBS line
     var pr='PRIME-2';
     DATA.clins=DATA.clins||{}; DATA.clins[pr]=[{key:'c1', clin:'0001', desc:P('clinbasedesc'), ccar:'', ask:SVC.map(function(){ return 2000; })}];
-    ['clinAlloc','clinMeta','clinNew','clinRm','clinWbs','clinRcn'].forEach(function(k){ if(!S[k]||typeof S[k]!=='object') S[k]={}; });
+    ['clinAlloc','clinMeta','clinNew','clinRm','clinWbs','clinRcn','clinRcnSvc'].forEach(function(k){ if(!S[k]||typeof S[k]!=='object') S[k]={}; });
     S.clinNew[pr]=[{key:P('clinnewkey'), clin:P('clinno'), desc:P('clinnewdesc'), ccar:P('clinccar'), ask:SVC.map(function(){ return 500; })}];
     S.clinWbs[pr]={}; S.clinWbs[pr][P('clinkey')]=[{w:P('clinwbs'), v:[]}];
+    // v1.98 (item 83): a hostile CLIN key, service name and combination key in the CLIN's per-service choice
+    S.clinRcnSvc[pr]={}; S.clinRcnSvc[pr][P('clinnewkey')]={}; S.clinRcnSvc[pr][P('clinnewkey')][SVC[1]]=P('clinrcnsvc');
     S.ptype[pr]='PRIME';
     // a custom requirement, a removed one, the absorber, the ATR/BTR log, an added funding source
     S.custom.push({id:'NEW-9', grp:'PSM', team:'PSM', sect:'new', custom:true, title:P('customtitle'), event:P('customevent'),

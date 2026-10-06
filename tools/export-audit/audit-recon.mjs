@@ -3738,6 +3738,181 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v1.97 W6 ====
+// ==== v1.98 item 83: RCN/EEIC by service on a prime's CLINs; every RCN/EEIC surface reads one rule ====
+// THE ORACLE IS THIS TABLE, typed from the fixture's own numbers. A prime P with two CLINs and a different amount on every
+// service of every CLIN; a requirement R with its own ANG combination; Q with none. Which combination each dollar is on
+// (Brad, 5 Oct 2026: the CLIN wins): the CLIN's choice for the service, then the CLIN's standard, then the requirement's
+// choice for the service, then the requirement's own.
+//   P: requirement K4, its ANG K2.  CLIN 0001: standard K1, AFRC K3.  CLIN 0002: nothing of its own.
+//      CLIN 0001: USAF 401 K1 · ANG 251 K1 (the CLIN wins over P's ANG K2) · AFRC 31 K3 · USN 41 (Navy: no RCN/EEIC)
+//      CLIN 0002: USAF 299 K4 (P's own) · AFRC 59 K4
+//   R: K1, its ANG K2 -- USAF 503 K1 · ANG 127 K2.   Q: nothing -- USAF 71 on no combination.
+// FAILS ON v1.97: the RCN-EEIC by Month summary filed P's money under P's own (USAF 700 K4, ANG 251 K2, AFRC 90 K4); the
+// Spend Plan Source put CLIN 0001's AFRC on K1; the ACE breakout printed one code per line (K1 beside ANG's and AFRC's
+// money on CLIN 0001, K1 beside R's ANG) and the mapping counted P's combinations as 2 and R's as 1.
+const v198K = { K1: ['11111', 'AAAAA'], K2: ['22222', 'BBBBB'], K3: ['33333', 'CCCCC'], K4: ['44444', 'DDDDD'] };
+const v198Lab = k => v198K[k][0] + ' / ' + v198K[k][1];
+const v198NONE = '— no RCN/EEIC assigned —';
+const v198Board = (state) => {
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG', 'AFRC', 'USN'], items: [it('PRIME_P', 'AV', [700, 251, 90, 41]), it('R', 'AV', [503, 127, 0, 0]), it('Q', 'AV', [71, 0, 0, 0])],
+    disc: [5000, 5000, 5000, 5000], mand: [0, 0, 0, 0], order: ['PRIME_P', 'R', 'Q'] });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.ptype={PRIME_P:'PRIME'};
+    S.clinNew={PRIME_P:[{key:'n1',clin:'0001',desc:'air vehicle',ccar:'',ask:[401,251,31,41]},{key:'n2',clin:'0002',desc:'engines',ccar:'',ask:[299,0,59,0]}]};
+    S.clinAlloc={PRIME_P:{n1:[401,251,31,41], n2:[299,0,59,0]}};
+    MS.rcn=${JSON.stringify(Object.keys(v198K).map(k => ({ k, rcn: v198K[k][0], eeic: v198K[k][1], t: '', svc: k === 'K2' ? ['ANG'] : (k === 'K3' ? ['AFRC'] : ['USAF', 'ANG', 'AFRC']) })))};
+    ${state}
+    applyState(S); save(); 'ok'`);
+  return X;
+};
+// Read one section of the RCN-EEIC by Month tab: [service, label, TOTAL, the Ask column] for every row that carries money.
+const v198Sec = (rc, a, b) => { const out = []; let sv = null;
+  for (let j = a; j < b; j++) { const L = w6Lbl(rc[j]);
+    if (['USAF', 'ANG', 'AFRC'].includes(L)) { sv = L; continue; }
+    if (/TOTAL BY MONTH$/.test(L)) { sv = null; continue; }
+    if (!sv || num((rc[j] || [])[14]) === null) continue;
+    out.push([sv, L.replace(/\s+⚠ rides several combinations.*$/, ' ⚠'), num(rc[j][14]), num((rc[j] || [])[15])]); }
+  return out; };
+await (async () => {
+  const name = 'v1.98 item 83 — a prime’s CLINs put each service’s money on its own RCN/EEIC, and the summary, the CLIN breakout, the Spend Plan Source and the ACE breakout agree';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = v198Board(`S.rcnAsg={PRIME_P:'K4', R:'K1'}; S.rcnSvc={PRIME_P:{ANG:'K2'}, R:{ANG:'K2'}};
+      S.clinRcn={PRIME_P:{n1:'K1'}}; S.clinRcnSvc={PRIME_P:{n1:{AFRC:'K3'}}};
+      S.wbs={R:[{w:'2.2', v:[]}]}; S.aceMap={PRIME_P:{w:['1.1'], ok:true}, R:{w:['2.2'], ok:true}};
+      ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}, {ap:mySlug(), pmo:'AV', wbs:'2.2', v:{}}]}};
+      ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=900; ACEDB.sets['2027ACE'].lines[1].v[MS.cur]=600; aceYr='all';`);
+    chk(name, 'fixture', 'every requirement is funded in full on every service (discretionary)',
+      X.ev(`(function(){ var T=tiers(); return JSON.stringify(['PRIME_P','R','Q'].map(function(id){ return T[id].d.concat(T[id].m); })); })()`),
+      J([[700, 251, 90, 41, 0, 0, 0, 0], [503, 127, 0, 0, 0, 0, 0, 0], [71, 0, 0, 0, 0, 0, 0, 0]]));
+    // ---- RCN-EEIC by Month, from the workbook's bytes
+    const bk = JSON.parse(await w6Book(X.w, 'exportExcel'));
+    chk(name, 'workbook', 'the Excel workbook builds and reads back', bk.__err || 'ok', 'ok');
+    const rc = bk['RCN-EEIC by Month'] || [];
+    const iReq = rc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION');
+    const iPr = rc.findIndex(r => w6Lbl(r) === 'PRIME CONTRACTS, BROKEN OUT BY CLIN');
+    chk(name, 'RCN-EEIC by Month', 'the summary, the requirements and the prime contracts sections are all there', iReq > 0 && iPr > iReq, true);
+    chk(name, 'RCN-EEIC by Month · summary', 'each service’s money on the combination each CLIN puts it on; Q on none; each service total is its funded money',
+      J(v198Sec(rc, 0, iReq).map(r => r.slice(0, 3))),
+      J([['USAF', v198Lab('K1'), 401 + 503], ['USAF', v198Lab('K4'), 299], ['USAF', v198NONE, 71], ['USAF', 'USAF TOTAL', 700 + 503 + 71],
+        ['ANG', v198Lab('K1'), 251], ['ANG', v198Lab('K2'), 127], ['ANG', 'ANG TOTAL', 251 + 127],
+        ['AFRC', v198Lab('K3'), 31], ['AFRC', v198Lab('K4'), 59], ['AFRC', 'AFRC TOTAL', 90]]));
+    chk(name, 'RCN-EEIC by Month · requirements', 'P under each combination its CLINs use, with that share of its money and its ask, marked; the rows add to their combination',
+      J(v198Sec(rc, iReq, iPr)),
+      J([['USAF', v198Lab('K1') + '   (2 requirements)', 904, null], ['USAF', '#1  Req PRIME_P ⚠', 401, 401], ['USAF', '#2  Req R', 503, 503],
+        ['USAF', v198Lab('K4') + '   (1 requirement)', 299, null], ['USAF', '#1  Req PRIME_P ⚠', 299, 299],
+        ['USAF', v198NONE + '   — 1 requirement still to assign', 71, null], ['USAF', '#3  Req Q', 71, 71], ['USAF', 'USAF TOTAL', 1274, null],
+        ['ANG', v198Lab('K1') + '   (1 requirement)', 251, null], ['ANG', '#1  Req PRIME_P', 251, 251],
+        ['ANG', v198Lab('K2') + '   (1 requirement)', 127, null], ['ANG', '#2  Req R', 127, 127], ['ANG', 'ANG TOTAL', 378, null],
+        ['AFRC', v198Lab('K3') + '   (1 requirement)', 31, null], ['AFRC', '#1  Req PRIME_P ⚠', 31, 31],
+        ['AFRC', v198Lab('K4') + '   (1 requirement)', 59, null], ['AFRC', '#1  Req PRIME_P ⚠', 59, 59], ['AFRC', 'AFRC TOTAL', 90, null]]));
+    chk(name, 'RCN-EEIC by Month · prime contracts', 'each CLIN’s money on each service, under that service’s combination on that CLIN',
+      J(v198Sec(rc, iPr, rc.length).map(r => r.slice(0, 3))),
+      J([['USAF', 'Req PRIME_P   (2 CLINs funded)', 700], ['USAF', 'CLIN 0001   ' + v198Lab('K1'), 401], ['USAF', 'CLIN 0002   ' + v198Lab('K4'), 299], ['USAF', 'USAF — PRIMES TOTAL', 700],
+        ['ANG', 'Req PRIME_P   (1 CLIN funded)', 251], ['ANG', 'CLIN 0001   ' + v198Lab('K1'), 251], ['ANG', 'ANG — PRIMES TOTAL', 251],
+        ['AFRC', 'Req PRIME_P   (2 CLINs funded)', 90], ['AFRC', 'CLIN 0001   ' + v198Lab('K3'), 31], ['AFRC', 'CLIN 0002   ' + v198Lab('K4'), 59], ['AFRC', 'AFRC — PRIMES TOTAL', 90]]));
+    // ---- the Spend Plan Source: every line, by its amount (each is unique), with its CLIN and its EEIC and RCN
+    const sb = JSON.parse(await w6Book(X.w, 'exportSrc'));
+    chk(name, 'Spend Plan Source', 'the file builds and reads back', sb.__err || 'ok', 'ok');
+    const src = (Object.values(sb).find(rs => (rs || []).length > 1) || []).slice(1);
+    const got = src.map(r => [num(r[9]), String(r[25] ?? ''), String(r[26] ?? ''), String(r[27] ?? '')]).sort((a, b) => a[0] - b[0]);
+    const want = [[31, '0001', 'CCCCC', '33333'], [41, '0001', '', ''], [59, '0002', 'DDDDD', '44444'], [71, '', '', ''], [127, '', 'BBBBB', '22222'],
+      [251, '0001', 'AAAAA', '11111'], [299, '0002', 'DDDDD', '44444'], [401, '0001', 'AAAAA', '11111'], [503, '', 'AAAAA', '11111']];
+    chk(name, 'Spend Plan Source', 'every line: amount, CLIN, EEIC and RCN -- each service on each CLIN on its own combination', J(got), J(want));
+    // ---- AGREEMENT: the summary's combination totals are the source file's lines on those combinations, service by service
+    const srcBy = {}; [[401, 'USAF'], [299, 'USAF'], [503, 'USAF'], [71, 'USAF'], [251, 'ANG'], [127, 'ANG'], [31, 'AFRC'], [59, 'AFRC']].forEach(([a, sv]) => {
+      const l = got.find(x => x[0] === a); const lab = l && l[3] ? l[3] + ' / ' + l[2] : v198NONE; srcBy[sv + '|' + lab] = (srcBy[sv + '|' + lab] || 0) + a; });
+    const rollBy = {}; v198Sec(rc, 0, iReq).filter(r => !/TOTAL$/.test(r[1])).forEach(r => { rollBy[r[0] + '|' + r[1]] = r[2]; });
+    chk(name, 'agreement', 'the summary and the Spend Plan Source put the same dollars on the same combinations', J(Object.keys(rollBy).sort().map(k => [k, rollBy[k]])), J(Object.keys(srcBy).sort().map(k => [k, srcBy[k]])));
+    // ---- the ACE tie-out: the alignment breakout splits a line whose services differ; the mapping counts the combinations
+    const ab = JSON.parse(await w6Book(X.w, 'exportAceTieout'));
+    chk(name, 'ACE tie-out', 'the tie-out builds and reads back', ab.__err || 'ok', 'ok');
+    const al = ab['Alignment Breakout'] || [], ah = headerRow(al, 'FY', 'PMO', 'Line total');
+    const ac = k => colOf(al, ah, k);
+    const lines = al.slice(ah + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [String(r[2]), String(r[3] ?? ''), String(r[4] ?? ''), num(r[5]), num(r[6]), num(r[7]), String(r[ac('RCN')] ?? ''), String(r[ac('EEIC')] ?? '')]);
+    chk(name, 'ACE · alignment breakout', 'P’s CLIN 0001 is a line per combination and its Navy money a line of its own; CLIN 0002 one line; R a line per combination; the lines add to each CLIN',
+      J(lines), J([['Req PRIME_P', '0001', '(no WBS)', 652, 652, 0, '11111', 'AAAAA'], ['Req PRIME_P', '0001', '(no WBS)', 31, 31, 0, '33333', 'CCCCC'], ['Req PRIME_P', '0001', '(no WBS)', 41, 0, 41, '', ''],
+        ['Req PRIME_P', '0002', '(no WBS)', 358, 358, 0, '44444', 'DDDDD'],
+        ['Req R', '', '2.2', 503, 503, 0, '11111', 'AAAAA'], ['Req R', '', '2.2', 127, 127, 0, '22222', 'BBBBB'], ['Req Q', '', '(no WBS)', 71, 71, 0, '', '']]));
+    const mp = ab['Mapping by Requirement'] || [], mh = headerRow(mp, 'FY', 'PMO', 'Board funded');
+    const codes = mp.slice(mh + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [String(r[colOf(mp, mh, 'Requirement (CCaR Record Name)')]), String(r[colOf(mp, mh, 'RCN')] ?? ''), String(r[colOf(mp, mh, 'EEIC')] ?? '')]);
+    chk(name, 'ACE · mapping by requirement', 'P rides three combinations and R two, so both send the reader to the breakout; Q has none',
+      J(codes), J([['Req PRIME_P', '(3 combinations)', '(see breakout)'], ['Req R', '(2 combinations)', '(see breakout)'], ['Req Q', '', '']]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// A CLIN STILL POINTING AT A COMBINATION THAT WAS REMOVED (v1.97's ✕ left the CLINs' pointers behind) is money on no
+// combination. The summary prints only the list's combinations and the not-assigned row, so once it reads the CLINs
+// (this version) a pointer to anything else would put that money in no row and no total: the service totals below guard
+// it (a CONTROL on v1.97, whose summary read only the requirement). FAILS ON v1.97: the summary filed P under its own
+// (none) rather than CLIN 0002's K1, and the CLIN breakout named CLIN 0001's combination "(blank combo)".
+await (async () => {
+  const name = 'v1.98 item 83 — a CLIN pointing at a removed combination: its money is not assigned, never out of the totals';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = v198Board(`S.clinRcn={PRIME_P:{n1:'GONE', n2:'K1'}}; S.rcnAsg={R:'K1'};`);
+    const bk = JSON.parse(await w6Book(X.w, 'exportExcel'));
+    const rc = bk['RCN-EEIC by Month'] || [];
+    const iReq = rc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION');
+    chk(name, 'RCN-EEIC by Month · summary', 'USAF: K1 is CLIN 0002 and R; CLIN 0001’s money and Q’s are not assigned; the total is every funded dollar',
+      J(v198Sec(rc, 0, iReq).filter(r => r[0] === 'USAF').map(r => r.slice(0, 3))),
+      J([['USAF', v198Lab('K1'), 299 + 503], ['USAF', v198NONE, 401 + 71], ['USAF', 'USAF TOTAL', 700 + 503 + 71]]));
+    chk(name, 'RCN-EEIC by Month · summary', 'ANG and AFRC on CLIN 0001 are not assigned either, and every service total is its funded money',
+      J(v198Sec(rc, 0, iReq).filter(r => r[0] !== 'USAF' && /TOTAL$/.test(r[1])).map(r => r.slice(0, 3))),
+      J([['ANG', 'ANG TOTAL', 251 + 127], ['AFRC', 'AFRC TOTAL', 90]]));
+    const iPr = rc.findIndex(r => w6Lbl(r) === 'PRIME CONTRACTS, BROKEN OUT BY CLIN');
+    chk(name, 'RCN-EEIC by Month · prime contracts', 'CLIN 0001 reads as not assigned on every service; CLIN 0002 is K1',
+      J(v198Sec(rc, iPr, rc.length).filter(r => /^CLIN /.test(r[1])).map(r => r.slice(0, 3))),
+      J([['USAF', 'CLIN 0001   ' + v198NONE, 401], ['USAF', 'CLIN 0002   ' + v198Lab('K1'), 299], ['ANG', 'CLIN 0001   ' + v198NONE, 251],
+        ['AFRC', 'CLIN 0001   ' + v198NONE, 31], ['AFRC', 'CLIN 0002   ' + v198Lab('K1'), 59]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// A PRIME FUNDED NOTHING still needs its combinations: the NOT FUNDED list under each service names it under the
+// combination each CLIN puts that service on, with that CLIN grid's share of its ask, and the shares add to the ask.
+// FAILS ON v1.97: it was listed once, under the requirement's own combination (K4), with the whole ask.
+await (async () => {
+  const name = 'v1.98 item 83 — a prime funded nothing is listed under each CLIN’s combination, with its share of the ask';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = v198Board(`S.order=['R','Q','PRIME_P']; S.rcnAsg={PRIME_P:'K4', R:'K1'}; S.clinRcn={PRIME_P:{n1:'K1'}};
+      S.discSvc=[574,127,0,0]; S.mandSvc=[0,0,0,0]; S.bm={disc:[574,127,0,0], mand:[0,0,0,0], adds:[]};`);
+    chk(name, 'fixture', 'R and Q, ranked above P, take the whole budget; P is funded nothing',
+      X.ev(`(function(){ var T=tiers(); return JSON.stringify([T.R.d, T.Q.d, T.PRIME_P.d.concat(T.PRIME_P.m)]); })()`), J([[503, 127, 0, 0], [71, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0]]));
+    const bk = JSON.parse(await w6Book(X.w, 'exportExcel'));
+    const rc = bk['RCN-EEIC by Month'] || [];
+    const iReq = rc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION');
+    const iPr = rc.findIndex(r => w6Lbl(r) === 'PRIME CONTRACTS, BROKEN OUT BY CLIN');
+    const nf = []; let sv = null, on = false;
+    for (let j = iReq; j < (iPr > 0 ? iPr : rc.length); j++) { const L = w6Lbl(rc[j]);
+      if (['USAF', 'ANG', 'AFRC'].includes(L)) { sv = L; on = false; continue; }
+      if (/^A requirement appears once/.test(L)) break;        // the section's note, after the last service
+      if (/^NOT FUNDED/.test(L)) { on = true; nf.push([sv, 'NOT FUNDED', num((rc[j] || [])[15])]); continue; }
+      if (on && L) nf.push([sv, L.replace(/\s+⚠ rides several combinations.*$/, ' ⚠'), num((rc[j] || [])[15])]); }
+    chk(name, 'RCN-EEIC by Month · not funded', 'USAF: P under K1 (CLIN 0001, 401) and K4 (CLIN 0002, 299), marked; AFRC: K1 31 and K4 59; ANG: K1 251 -- each service’s shares add to its ask',
+      J(nf), J([['USAF', 'NOT FUNDED', 700], ['USAF', v198Lab('K1') + '   (1)', 401], ['USAF', '#3  Req PRIME_P ⚠', 401], ['USAF', v198Lab('K4') + '   (1)', 299], ['USAF', '#3  Req PRIME_P ⚠', 299],
+        ['ANG', 'NOT FUNDED', 251], ['ANG', v198Lab('K1') + '   (1)', 251], ['ANG', '#3  Req PRIME_P', 251],
+        ['AFRC', 'NOT FUNDED', 90], ['AFRC', v198Lab('K1') + '   (1)', 31], ['AFRC', '#3  Req PRIME_P ⚠', 31], ['AFRC', v198Lab('K4') + '   (1)', 59], ['AFRC', '#3  Req PRIME_P ⚠', 59]]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.98 item 83 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

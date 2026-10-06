@@ -150,6 +150,11 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   change by position. A kept PPBE cycle fixes the services it holds.
 - Read a reprogramming row's service against `SVC` instead of `rpSvcOf()` (its own appropriation's list), net the log
   anywhere but `rpNetM()`, or take a $M amount for it anywhere but `rpAmtTyped()` -- whole dollars only.
+- Ask which RCN/EEIC a dollar is on anywhere but `rcnOfClinSvc()` (a CLIN's money: its choice for the service, its
+  standard, then the requirement's) or `rcnAsgOf(id, service)` (a requirement's), or file money on the RCN/EEIC tab
+  under a key the list does not hold. Every RCN/EEIC surface reads that one rule, so they agree to the dollar.
+- Leave a pointer at a removed combination, or an added CLIN's RCN/EEIC or WBS behind when it is deleted for good: the
+  next added CLIN is given its key.
 - Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity`, `spmtDetail` and
   `spmtMenuGroups`, or the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.

@@ -313,6 +313,27 @@ for (const build of BUILDS) {
     for (const f of await page.evaluate(PROBE)) record(build, theme, f);
     if (!fixShown || !checkShown) record(build, theme, { sc: 'coverage', key: 'the repaired-award controls were not on screen to measure',
       detail: `the 🔧 list ${fixShown ? 'was' : 'was NOT'} open; ✓ Checked ${checkShown ? 'was' : 'was NOT'} drawn`, n: 1 });
+    // v1.98 (item 83): THE CLIN GRID'S RCN / EEIC BY SERVICE. A prime with two CLINs on the Air Force services: CLIN 0001
+    // with ANG on its own combination and its by-service line open, CLIN 0002 with services on no combination (the amber
+    // flag). The button in both states and the line's pickers must be on screen, or the run fails.
+    const rcnShown = await page.evaluate(() => { try {
+      if (typeof clinRcnCell !== 'function') return { b: false, s: false };
+      const id = gridIds()[0], A = SVC.map(sv => ['USAF', 'ANG', 'AFRC'].includes(sv) ? 1000 : 0);
+      if (!S.ptype) S.ptype = {}; S.ptype[id] = 'PRIME';
+      if (!S.clinNew) S.clinNew = {}; S.clinNew[id] = [{ key: 'n1', clin: '0001', desc: 'Air vehicle', ccar: '', ask: A.slice() },
+        { key: 'n2', clin: '0002', desc: 'Engines', ccar: '', ask: A.slice() }];
+      if (!S.clinAlloc) S.clinAlloc = {}; S.clinAlloc[id] = { n1: A.slice(), n2: A.slice() };
+      MS.rcn = [{ k: 'Q1', rcn: '12345', eeic: '59ABC', t: 'Standard', svc: ['USAF', 'ANG', 'AFRC'] }, { k: 'Q2', rcn: '12345', eeic: '59ANG', t: 'ANG', svc: ['ANG'] }];
+      if (!S.clinRcn) S.clinRcn = {}; S.clinRcn[id] = { n1: 'Q1' };
+      S.clinRcnSvc = {}; S.clinRcnSvc[id] = { n1: { ANG: 'Q2' }, n2: { ANG: 'Q2' } };
+      if (S.rcnAsg) delete S.rcnAsg[id];
+      clinOpen[id] = true; rcnClinOpen[id + '|n1'] = true; setCur(id); render();
+      const row = document.getElementById('row-' + id);
+      return { b: !!(row && row.querySelector('button.rcnby.on') && row.querySelector('button.rcnby.gap')), s: !!(row && row.querySelector('tr.rcnsub select')) };
+    } catch (e) { return { b: false, s: false }; } });
+    for (const f of await page.evaluate(PROBE)) record(build, theme, f);
+    if (!rcnShown.b || !rcnShown.s) record(build, theme, { sc: 'coverage', key: 'the CLIN grid’s RCN / EEIC by service was not on screen to measure',
+      detail: `the by-service button ${rcnShown.b ? 'was' : 'was NOT'} drawn in both states; its line ${rcnShown.s ? 'was' : 'was NOT'} open`, n: 1 });
 
     // 1.4.10 Reflow — the standard's own number is 320 CSS px. Measured once per build, on the
     // default theme only: a palette cannot change a layout width.

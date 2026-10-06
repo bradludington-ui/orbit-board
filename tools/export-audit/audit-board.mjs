@@ -2756,7 +2756,7 @@ for (const [label, allocB] of [['whole dollars', {m:'t', v:5000000}],
     ccar:'ZZDEL1', pid:'ZZDEL-PID', costElem:'ZZDEL-CE', fsrc:{m:'split', dv:[11,12,13], mv:[1,2,3]}, asks:[7,8,9],
     awards:{mode:'single', d:FYMON[2][0], day:9}, grp:GROUPS[1], si:'LA', dest:{to:flowEnts()[0].k, end:'ZZDEL end'},
     wbs:[{w:'9.9.9', v:[]}], clinWbs:{n1:[{w:'4.5.6', v:[]}]}, rcnAsg:'ZZDEL-RCN', rcnSvc:{USAF:'ZZDEL-RCNS'},
-    clinRcn:{n1:'ZZDEL-RCNC'}, aceMap:{w:['1.1.9'], ok:true}, upl:1, obCat:OB_CATS[1], budgetAsg:{USAF:'ZZDEL-BAE'},
+    clinRcn:{n1:'ZZDEL-RCNC'}, clinRcnSvc:{n1:{ANG:'ZZDEL-RCNCS'}}, aceMap:{w:['1.1.9'], ok:true}, upl:1, obCat:OB_CATS[1], budgetAsg:{USAF:'ZZDEL-BAE'},
     ptype:'PRIME', recNames:'ZZDEL record', clinAlloc:{n1:[5,6,7]}, clinMeta:{n1:{ask:[5,6,7], desc:'ZZDEL clin'}},
     clinNew:[{key:'n1', clin:'3099', desc:'ZZDEL new clin', ccar:'', ask:[1,1,1]}], clinRm:['0001'],
     crHalf:(function(){ var o={}; o[FYMON[2][0]]=1; return o; })(), band:'pdm', cons:'ZZDEL impact', minInc:250, mipr:'direct'}`;
@@ -4353,6 +4353,167 @@ await (async () => {
   }
 })();
 // ==== end v1.97 W6 ====
+// ==== v1.98 item 83: RCN/EEIC by service on a prime's CLINs ====
+// THE CLIN GRID (Brad, 5 Oct 2026): the CLIN's line stays as it is; its picker is the CLIN's standard for every Air Force
+// service on it; "by service" -- only on a CLIN carrying two or more of USAF, ANG and AFRC -- opens one line where a
+// service that differs gets its own; an exception is named with that line closed; a service whose money is on no
+// combination says "not set" (Brad: flag gaps); each picker offers only the combinations set up for its service(s), and a
+// saved choice that no longer fits, or points at a removed combination, is kept and marked, never changed.
+// FAILS ON v1.97: one picker per CLIN offering every combination, no button, no line, no flag.
+const v198Prime = (state) => {
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG', 'AFRC', 'USN'], items: [it('PRIME_P', 'AV', [700, 251, 31, 41])], disc: [5000, 5000, 5000, 5000], mand: [0, 0, 0, 0], order: ['PRIME_P'] });
+  X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+    S.ptype={PRIME_P:'PRIME'};
+    S.clinNew={PRIME_P:[{key:'n1',clin:'0001',desc:'air vehicle',ccar:'',ask:[401,251,31,41]},{key:'n2',clin:'0002',desc:'engines',ccar:'',ask:[299,0,0,0]}]};
+    S.clinAlloc={PRIME_P:{n1:[401,251,31,41], n2:[299,0,0,0]}};
+    MS.rcn=[{k:'K1',rcn:'11111',eeic:'AAAAA',t:'',svc:['USAF','ANG','AFRC']},{k:'K2',rcn:'22222',eeic:'BBBBB',t:'',svc:['ANG']},
+            {k:'K3',rcn:'33333',eeic:'CCCCC',t:'',svc:['AFRC']},{k:'K5',rcn:'55555',eeic:'EEEEE',t:'',svc:['USAF']}];
+    ${state}
+    MS.years[MS.cur]=S; applyState(S); save(); window.confirm=function(){ return true; }; window.alert=function(){}; 'ok'`);
+  return X;
+};
+const v198Cells = (X) => JSON.parse(X.ev(`(function(){ var d=document.createElement('div'); d.innerHTML=clinTable(itemById('PRIME_P'));
+  return JSON.stringify([].slice.call(d.querySelectorAll('td.rcnc')).map(function(td){
+    var b=td.querySelector('button.rcnby'), g=td.querySelector('.rcngap'), sel=td.querySelector('select');
+    return {btn:b? b.textContent.trim() : null, cls:b? b.className : '', gap:g? g.textContent.trim() : null,
+      opts:[].slice.call(sel.options).map(function(o){ return o.value+(o.selected?'*':''); }), bad:/rcnbad/.test(sel.className)}; })); })()`));
+const v198Strip = (X) => JSON.parse(X.ev(`(function(){ var d=document.createElement('div'); d.innerHTML=clinTable(itemById('PRIME_P'));
+  var tr=d.querySelectorAll('tr.rcnsub'); return JSON.stringify([].slice.call(tr).map(function(t){
+    return [].slice.call(t.querySelectorAll('label')).map(function(l){ var sel=l.querySelector('select');
+      return [l.querySelector('b').textContent, /gap/.test(l.className), [].slice.call(sel.options).map(function(o){ return o.value+(o.selected?'*':''); })]; }); })); })()`));
+{
+  const name = 'v1.98 item 83 — the CLIN grid: a standard per CLIN, a service that differs, gaps flagged, only fitting combinations offered';
+  try {
+    const J = JSON.stringify;
+    const X = v198Prime(`S.clinRcn={PRIME_P:{n1:'K1', n2:'K1'}};`);
+    chk(name, 'standard', 'CLIN 0001 (USAF, ANG, AFRC) offers only K1 -- the one set up for all three -- and a by service button; CLIN 0002 (USAF) offers K1 and K5 and no button',
+      J(v198Cells(X)), J([{ btn: 'by service ▾', cls: 'rcnby', gap: null, opts: ['', 'K1*'], bad: false }, { btn: null, cls: '', gap: null, opts: ['', 'K1*', 'K5'], bad: false }]));
+    chk(name, 'standard', 'closed, there is no by-service line', J(v198Strip(X)), J([]));
+    X.ev(`S.clinRcnSvc={PRIME_P:{n1:{ANG:'K2'}}}; render(); 'ok'`);
+    const c1 = v198Cells(X)[0] || {};
+    chk(name, 'a service differs', 'with ANG on K2, CLIN 0001’s button names it, with the line closed', J(c1.btn + ' | ' + c1.cls), J('ANG differs ▾ | rcnby on'));
+    X.ev(`if(typeof rcnClinOpen==='object') rcnClinOpen['PRIME_P|n1']=true; 'ok'`);
+    chk(name, 'by service', 'the line lists CLIN 0001’s three services; each offers "= CLIN’s" and the combinations set up for that service',
+      J(v198Strip(X)), J([[['USAF', false, ['*', 'K1', 'K5']], ['ANG', false, ['', 'K1', 'K2*']], ['AFRC', false, ['*', 'K1', 'K3']]]]));
+    X.ev(`S.clinRcn={}; render(); 'ok'`);
+    chk(name, 'gaps', 'with no standard and nothing on the requirement, CLIN 0001’s USAF and AFRC money is on nothing: the button says so; CLIN 0002 says USAF not set',
+      J(v198Cells(X).map(c => [c.btn, c.cls, c.gap])), J([['USAF · AFRC not set ▴', 'rcnby gap', null], [null, '', 'USAF not set']]));
+    chk(name, 'gaps', 'and the line marks those two services', J((v198Strip(X)[0] || []).map(l => [l[0], l[1]])), J([['USAF', true], ['ANG', false], ['AFRC', true]]));
+    X.ev(`S.rcnAsg={PRIME_P:'K1'}; render(); 'ok'`);
+    chk(name, 'the requirement fills in', 'a CLIN with none of its own uses the requirement’s: no gap left, ANG still differs',
+      J(v198Cells(X).map(c => [c.btn, c.gap])), J([['ANG differs ▴', null], [null, null]]));
+    X.ev(`S.clinRcn={PRIME_P:{n1:'K2'}}; S.clinRcnSvc.PRIME_P.n1.AFRC='GONE'; render(); 'ok'`);
+    const c0 = v198Cells(X)[0] || {};
+    chk(name, 'kept and marked', 'a saved standard that no longer fits (K2 is ANG only) is kept, selected and marked beside the one that fits; never changed',
+      J([c0.opts, c0.bad, X.ev(`S.clinRcn.PRIME_P.n1`)]), J([['', 'K1', 'K2*'], true, 'K2']));
+    chk(name, 'kept and marked', 'a pointer at a removed combination is AFRC money on nothing: flagged, and shown as removed in its picker',
+      J([c0.btn, (v198Strip(X)[0] || [])[2]]), J(['AFRC not set ▴', ['AFRC', true, ['', 'K1', 'K3', 'GONE*']]]));
+    const rec = JSON.parse(X.ev(`(function(){ var f=recFields('PRIME_P', itemById('PRIME_P')).filter(function(x){ return x.l==='RCN / EEIC'; })[0]||{};
+      return JSON.stringify([f.set, /not set: CLIN 0001 AFRC/.test(f.n||'')]); })()`));
+    chk(name, 'RECORD panel', 'the RCN / EEIC field reads the CLINs: not complete, naming CLIN 0001’s AFRC', J(rec), J([false, true]));
+    // the setters, as the controls call them
+    const set = JSON.parse(X.ev(`(function(){ if(typeof setRcnClinSvc!=='function') return 'null';
+      setRcnClinSvc('PRIME_P','n2','USAF','K5'); var a=JSON.stringify(S.clinRcnSvc.PRIME_P.n2);
+      setRcnClinSvc('PRIME_P','n2','USAF',''); var b=JSON.stringify((S.clinRcnSvc.PRIME_P||{}).n2===undefined);
+      rcnClinReset('PRIME_P','n1'); return JSON.stringify([a, b, JSON.stringify(S.clinRcnSvc.PRIME_P===undefined)]); })()`));
+    chk(name, 'setters', 'a service’s choice is filed under its name; clearing the last one removes the CLIN’s entry; ↺ clears the CLIN',
+      J(set), J(['{"USAF":"K5"}', 'true', 'true']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+// REMOVING A COMBINATION clears every pointer at it in every year: the requirements', their services', the CLINs' and
+// the CLINs' services'. FAILS ON v1.97: rcnUse() counted the CLINs and the confirmation said every assignment was
+// cleared, but the CLINs' pointers stayed.
+{
+  const name = 'v1.98 item 83 — removing a combination clears every pointer at it, the CLINs’ included, in every year';
+  try {
+    const J = JSON.stringify;
+    const X = v198Prime(`S.rcnAsg={PRIME_P:'K2'}; S.rcnSvc={PRIME_P:{ANG:'K2'}}; S.clinRcn={PRIME_P:{n1:'K2', n2:'K1'}};
+      S.clinRcnSvc={PRIME_P:{n1:{ANG:'K2', AFRC:'K1'}}};`);
+    X.ev(`var y=JSON.parse(JSON.stringify(S)); y.clinRcn={PRIME_P:{n1:'K2'}}; y.clinRcnSvc={PRIME_P:{n2:{ANG:'K2'}}}; MS.years[MS.cur+1]=y; window.__cf=[];
+      window.confirm=function(m){ window.__cf.push(String(m)); return true; }; 'ok'`);
+    chk(name, 'counted', 'K2 is pointed at eight times across the two years: the requirement, its ANG, a CLIN and a CLIN’s service, in each',
+      X.ev(`rcnUse('K2')`), '8');
+    X.ev(`rcnDel(1); 'ok'`);
+    const left = JSON.parse(X.ev(`JSON.stringify([MS.cur, MS.cur+1].map(function(y){ var t=MS.years[y]||{};
+      return [t.rcnAsg, t.rcnSvc, t.clinRcn, t.clinRcnSvc]; }))`));
+    chk(name, 'cleared', 'nothing points at K2 in either year; K1’s pointers are kept',
+      J(left), J([[{}, {}, { PRIME_P: { n2: 'K1' } }, { PRIME_P: { n1: { AFRC: 'K1' } } }], [{}, {}, {}, {}]]));
+    chk(name, 'said', 'the confirmation counted them all', X.ev(`/8 assignments \\(requirements, services and CLINs\\)/.test(window.__cf[0]||'')`), 'true');
+    chk(name, 'removed', 'and the list no longer holds K2', X.ev(`JSON.stringify(rcnReg().map(function(e){ return e.k; }))`), J(['K1', 'K3', 'K5']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+// AN ADDED CLIN DELETED FOR GOOD takes its RCN/EEIC and WBS with it: clinAdd gives the next one the first free key, so
+// what was left was silently the new CLIN's. A CLIN from the board's data, removed, keeps them: it can be put back.
+// FAILS ON v1.97: the new CLIN n1 arrived on the deleted one's K2 and its 9.9 WBS.
+{
+  const name = 'v1.98 item 83 — an added CLIN deleted for good takes its RCN/EEIC and WBS; the next added CLIN starts clean';
+  try {
+    const J = JSON.stringify;
+    const X = v198Prime(`CLINS.PRIME_P=[{clin:'0100', desc:'base line', ccar:'', ask:[0,0,0,0]}];
+      S.clinRcn={PRIME_P:{b0:'K1', n1:'K2'}}; S.clinRcnSvc={PRIME_P:{b0:{AFRC:'K3'}, n1:{ANG:'K2'}}};
+      S.clinWbs={PRIME_P:{b0:[{w:'1.1', v:[]}], n1:[{w:'9.9', v:[]}]}};`);
+    X.ev(`clinRemove('PRIME_P','n1'); var q=['0009','new line']; uiPrompt=function(m,d,cb){ cb(q.shift()); }; clinAdd('PRIME_P'); 'ok'`);
+    const after = JSON.parse(X.ev(`JSON.stringify({keys:clinList('PRIME_P').map(function(c){ return c.key+':'+c.clin; }),
+      rcn:rcnOfClin('PRIME_P','n1'), svc:JSON.stringify(((S.clinRcnSvc||{}).PRIME_P||{}).n1||null), wbs:wbsClin('PRIME_P','n1')})`));
+    chk(name, 'the next added CLIN', 'it takes n1 again, and starts with no combination, no service choice and no WBS of its own',
+      J(after), J({ keys: ['b0:0100', 'n2:0002', 'n1:0009'], rcn: '', svc: 'null', wbs: [] }));
+    X.ev(`clinRemove('PRIME_P','b0'); 'ok'`);
+    const kept = X.ev(`JSON.stringify([S.clinRcn.PRIME_P.b0, S.clinRcnSvc.PRIME_P.b0, S.clinWbs.PRIME_P.b0[0].w])`);
+    chk(name, 'a CLIN from the data (control)', 'removed, it keeps its combination, its service choice and its WBS', kept, J(['K1', { AFRC: 'K3' }, '1.1']));
+    X.ev(`clinRestore('PRIME_P','b0'); 'ok'`);
+    chk(name, 'a CLIN from the data (control)', 'and put back, it is on its combination again', X.ev(`rcnOfClin('PRIME_P','b0')`), 'K1');
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+// A SERVICE RENAMED keeps its CLIN choices; one REMOVED takes them with it -- before the renames, so a service renamed
+// onto the freed name keeps its own (AFRES -> ANG in the same change carries K3, never the removed ANG's K2). Every year.
+// FAILS ON v1.97: the choices stayed under the old names.
+await (async () => {
+  const __bm = _v7w4Mark();
+  const name = 'v1.98 item 83 — a service renamed keeps its CLIN RCN/EEIC choices; one removed takes them; every year';
+  try {
+  const J = JSON.stringify;
+  const B = w4Template(['USAF', 'ANG', 'AFRC', 'USN'], ['R']), ev = B.ev;
+  ev(`var id=S.custom[0].id; S.clinRcnSvc={}; S.clinRcnSvc[id]={n1:{ANG:'K2', AFRC:'K3'}}; MS.years[MS.cur]=S;
+    var y=JSON.parse(JSON.stringify(S)); y.clinRcnSvc={}; y.clinRcnSvc[id]={n1:{AFRC:'K3b'}, n2:{ANG:'K2b'}}; MS.years[MS.cur+1]=y; save(); 'ok'`);
+  const rd = () => JSON.parse(ev(`JSON.stringify([MS.cur, MS.cur+1].map(function(y){ return (MS.years[y].clinRcnSvc||{})[S.custom[0].id]||null; }))`));
+  ev(`svcSaveList(['USAF','ANG','AFRES','USN'], [0,1,2,3]); 'ok'`);
+  chk(name, 'renamed', 'AFRC renamed AFRES: its choices follow the new name, in both years', J(rd()),
+    J([{ n1: { ANG: 'K2', AFRES: 'K3' } }, { n1: { AFRES: 'K3b' }, n2: { ANG: 'K2b' } }]));
+  ev(`svcSaveList(['USAF','ANG','USN'], [0,2,3]); 'ok'`);
+  chk(name, 'removed, and a rename onto its name', 'ANG removed and AFRES renamed ANG in one change: the old ANG’s choices are gone, AFRES’s are ANG’s',
+    J(rd()), J([{ n1: { ANG: 'K3' } }, { n1: { ANG: 'K3b' } }]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 200), got: 'threw', want: 'ran' });
+  }
+  _v7w4Release(__bm, []);
+  await _v7w4Settle();
+})();
+// A COPY TO ANOTHER YEAR carries a CLIN's service choices with the CLIN's own; the import report counts them; a corrupt
+// container is a container again. FAILS ON v1.97: the copy arrived without them, and the report had no line for them.
+{
+  const name = 'v1.98 item 83 — a copy to another year carries the CLINs’ service choices; the import report counts them';
+  try {
+    const J = JSON.stringify;
+    const X = v198Prime(`S.clinRcn={PRIME_P:{n1:'K1'}}; S.clinRcnSvc={PRIME_P:{n1:{ANG:'K2'}}};`);
+    const cp = JSON.parse(X.ev(`(function(){ var r=yearCopy('PRIME_P', MS.cur+1, 'c'); var T=MS.years[MS.cur+1];
+      return JSON.stringify([r.ok, (T.clinRcn||{})[r.tid]||null, (T.clinRcnSvc||{})[r.tid]||null]); })()`));
+    chk(name, 'copy', 'the copy carries the CLIN’s standard and its ANG', J(cp), J([true, { n1: 'K1' }, { n1: { ANG: 'K2' } }]));
+    const inv = JSON.parse(X.ev(`JSON.stringify(importInventory(MS).cats.clinRcnSvc||null)`));
+    chk(name, 'import report', 'the report has a line for them, counting both years', J(inv && inv.n !== undefined ? inv.n : inv), J(2));
+    X.ev(`S.clinRcnSvc='junk'; applyState(S); 'ok'`);
+    chk(name, 'a corrupt container', 'one that arrives as a string is a container again', X.ev(`JSON.stringify([typeof S.clinRcnSvc, Array.isArray(S.clinRcnSvc)])`), J(['object', false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+}
+// ==== end v1.98 item 83 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
