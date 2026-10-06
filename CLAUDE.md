@@ -3718,6 +3718,51 @@ were not so; both now say what the export does.
 
 **Gate.** `npm run validate:math` passed on the final tree, 5 Oct 1:42–7:17 pm Eastern, 334.9 minutes: sweep 1041/1041 caught, 11 equivalent (1,052), fuzz seed 47996740, money map 123 proven / 206 n/a / 0 open. The suites stage took 7.4 minutes (4.8 in v1.96) and the sweep 319 (179); the fuzz and file verifier were unchanged, so the time is the new checks, not the machine -- allow about six hours.
 
+### v1.98 (item 83): RCN/EEIC by service on a prime's CLINs, and every RCN/EEIC surface reads one rule
+
+Built on Brad's go of 5 Oct 2026 after a prototype he saw first. His answers: the CLIN wins; flag gaps; include the
+RCN-EEIC by Month fix.
+
+**The rule.** `rcnOfClinSvc(id, clinKey, service)`: `clinRcnSvc[id][clinKey][service]` (a CLIN's choice for one
+service, filed by the service's NAME), then `clinRcn[id][clinKey]` (the CLIN's standard), then `rcnAsgOf(id, service)`
+(the requirement's choice for that service, then its own). `rcnOfClin` keeps its old meaning (standard, then the
+requirement) and is what the standard picker and the "= CLIN's" label read. Every RCN/EEIC surface asks
+`rcnOfClinSvc` for a CLIN's money and `rcnAsgOf(id, service)` for a requirement's: the RCN-EEIC by Month tab
+(`monSheet` with `clinOf`), the Spend Plan Source, `aceAlignRows` (the ACE breakout and the panel's expansion) and
+`rcnKeysOf` (now read off `aceAlignRows`' lines, so the mapping's "(n combinations)" is what the breakout prints).
+
+**RCN-EEIC by Month.** `monSheet` splits a prime's money per service by `clinSplit` (month by month, NO DATE and the
+ask the same way) and files each CLIN's part under `kk(clinOf(...))`: a key the list does not hold is NONE, because the
+rollup prints only `keysOf()` and the not-assigned row -- anything else was in no row and no total. A requirement row
+carries `mixed` when its service's money rides more than one combination; a prime funded nothing goes to `pend` the
+same way. A grid with nothing on a service (`clinSplit(...,0)` empty) leaves that money whole on the requirement's own.
+The SI tab passes no `clinOf` and is unchanged (its unknown codes now count as not set rather than vanishing).
+
+**`aceAlignRows`.** `push` groups a line's Air Force services by their combination; one group is one line (as before);
+several are a line per combination plus a line for the money no RCN/EEIC governs. The lines add to the line replaced.
+
+**The CLIN grid.** `clinRcnCell` / `clinRcnStrip` beside `clinTable`. `clinAfSvcs(id, c)` -- the Air Force services
+with money in the CLIN's grid or a request; the button shows for two or more. `clinRcnGaps(id, c)` -- services with grid
+money whose combination does not exist (`rcnEntry`), the amber flag, and what the RECORD panel's field reads for a
+prime. `rcnOptsFor(svs, chosen)` offers combinations that `rcnFits` every service in `svs`, plus a saved choice that
+does not (marked ⚠) or no longer exists (its own option). `rcnClinOpen[id+'|'+key]` is UI state only.
+
+**Hygiene.** `rcnDel` clears `clinRcn` and `clinRcnSvc` too (it cleared neither CLIN map before, though `rcnUse`
+counted `clinRcn`). `clinRemove` of an ADDED CLIN clears its `clinRcn`, `clinRcnSvc` and `clinWbs` -- `clinAdd` hands
+the next CLIN the first free `n<i>`, so they were inherited; a base CLIN keeps them for `clinRestore`. `clinRcnSvc` is
+on the normalise list, `IMP_CATS`, `REQ_MAPS`, `yearCopy`'s `cp()` list and `PKG_DIFF_NAMES`; `svcRenameKeys` re-keys
+it and `svcSaveList` drops a removed service's entries BEFORE the renames (so a rename onto a freed name keeps its own).
+The round-trip fuzz and the hostile board seed it.
+
+**Checks.** `audit-recon.mjs`: the RCN-EEIC tab (summary, requirements, prime contracts), the Spend Plan Source, their
+agreement, the ACE breakout and mapping, against a typed oracle; a CLIN on a removed combination; a prime funded
+nothing. `audit-board.mjs`: the grid's controls, flags and choices; removing a combination; deleting an added CLIN; a
+service renamed or removed; a copy, the import report and a corrupt container; and the REQ_MAPS sample. 28 new
+mutations (1,080 in all), each presweept.
+
+**Gate.** `npm run validate:math` passed on the final tree, 5 Oct 9:06 pm – 6 Oct 2:58 am Eastern, 352.3 minutes: sweep
+1069/1069 caught, 11 equivalent (1,080), fuzz seed 712613839, money map 123 proven / 206 n/a / 0 open.
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:

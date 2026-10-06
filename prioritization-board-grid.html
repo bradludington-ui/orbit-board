@@ -216,7 +216,10 @@ table.clingrid td.cd{text-align:left;color:var(--mut);max-width:260px;overflow:h
 table.clingrid td.cc{text-align:left;color:var(--gold)}
 table.clingrid td.cr{color:var(--dim)}
 table.clingrid td.ct{font-weight:700}
-table.clingrid td.ok{color:var(--line2)}
+/* v1.98 (item 83): the conformance run opens a CLIN drill now and found these, unmeasured until then: the "—" at
+   1.5-2.3:1 (1.4.3), the in-cell buttons' edges at 1.2-1.8:1 (1.4.11) and the row's 🧾 button 22px tall (2.5.8). */
+table.clingrid td.ok{color:var(--dim)}
+table.clingrid button.nb{border-color:var(--edge)}
 table.clingrid td.off{color:var(--amber);font-weight:700}
 table.clingrid td.cx{padding:0 2px}
 table.clingrid td.cx .qb{padding:2px 5px;font-size:9px;color:var(--dim)}
@@ -232,6 +235,26 @@ table.clingrid input{width:100%;min-width:74px;text-align:right;font-size:10px;p
 table.clingrid input:focus{border-color:var(--gold);outline:none}
 table.clingrid tfoot td{border-top:1px solid var(--line2);font-weight:800;background:var(--panelA)}
 table.clingrid tr.crow td{color:var(--mut)}
+/* v1.98 (item 83): RCN/EEIC by service on a CLIN */
+table.clingrid td.rcnc{text-align:left;white-space:nowrap}
+table.clingrid button.rcnby{margin-left:5px;font:inherit;font-size:9.5px;font-weight:700;color:var(--mut);background:none;
+  border:1px solid var(--line2);border-radius:12px;padding:3px 9px;min-height:24px;cursor:pointer}
+table.clingrid button.rcnby.on{color:var(--onGold);background:var(--gold);border-color:var(--gold)}
+table.clingrid button.rcnby.gap{color:var(--amber);border-color:var(--amber)}
+table.clingrid button.rcnby:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+table.clingrid .rcngap{margin-left:6px;color:var(--amber);font-weight:700;font-size:9.5px}
+table.clingrid select.rcnbad{border-color:var(--amber)}
+table.clingrid tr.rcnsub td{text-align:left;background:var(--panelA);padding:6px 10px 7px 28px;border-bottom:1px solid var(--line2)}
+.rcnstrip{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;font-size:10px}
+.rcnstrip .rl{color:var(--mut);font-weight:800;letter-spacing:.02em}
+.rcnstrip .rs{color:var(--dim)}
+.rcnstrip .rs b{color:var(--mut)}
+.rcnstrip label{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.rcnstrip label b{color:var(--ink)}
+.rcnstrip label.gap b{color:var(--amber)}
+.rcnstrip .ra{color:var(--dim);font-variant-numeric:tabular-nums}
+.rcnstrip .cesel{max-width:200px;font-size:10px}
+.rcnstrip .qb{min-height:24px}
 table.clingrid tr.cdiff td{background:var(--panel2)}
 /* The chart fills the width of its section. It used to carry width:100% AND a fixed height with
    xMinYMin meet, which scales to the SMALLER ratio — 1 on any container wider than the viewBox —
@@ -1127,7 +1150,7 @@ html[data-mode="brief"] .posture{min-height:74px}
 .row:hover .morec .rmbtn,.morec .rmbtn:focus-visible{border-color:var(--edge)}
 .morec .rowmenu.open .rmbtn{background:var(--gold);border-color:var(--gold);color:var(--onGold)}
 .morec .rowmenu .mdd{min-width:250px;right:0;left:auto}
-.row .clinbtn{height:22px;padding:0 5px;margin-left:6px;font-size:11px;min-height:0}
+.row .clinbtn{height:24px;min-width:24px;padding:0 5px;margin-left:6px;font-size:11px;min-height:0}
 .row .sect-new,.row .absorbtag,.row .teamtag{margin-left:6px}
 .row > .clin-detail,.row > .note-detail{grid-column:1/-1}
 
@@ -1662,6 +1685,11 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 <p>Anything that cannot be uploaded correctly — no control number, one that is not all digits, no budget, a chosen budget that can no longer be used — stays off the upload sheet and is listed with its dollars and <b>every</b> reason on the file’s second sheet, <b>Missing data and anomalies</b>, which also reconciles every dollar of the plan. If nothing at all can be uploaded the file is still made, and its first line says <b>NO UPLOADABLE IDS ROWS</b>: it is a diagnostic, not an upload.</p>
 <p>The box’s summary gives <b>Req. Approved</b> with its discretionary and mandatory beside it, and the reconciliation shows both lanes for every line, so the mandatory in the file can be checked against the plan before it goes. The file itself is unchanged: each row is already one budget, and a budget is one lane or lane-less.</p>
 <p>Before it makes the file the box asks for <b>the reason</b> (written on every row), <b>Add or Update</b> for the whole file (Add unless you choose Update — CCaR may refuse an update to a record that has Authorized allocations), <b>the file ID</b> — filled in with today’s date and the time of day, for you to check and confirm, because ORBIT keeps no record of exports and cannot know which IDs CCaR has already seen — and <b>the ORG number</b>, confirmed for every row and service. ORBIT never writes Delete and keeps nothing about an export but the ORG. The export is off while a locked cycle is on screen, in a PMO copy, and whenever ORBIT’s own arithmetic check fails; the box says which.</p>
+</section>
+<section data-part="team" data-id="t-rcn" data-t="RCN / EEIC on a prime’s CLINs">
+<p><span class="mp" data-m="setup">Setup ▾ › Codes and structure › 🗂 RCN / EEIC…</span> lists the RCN and EEIC combinations, each ticked for the services that may use it: USAF, ANG and AFRC. A requirement takes one in the RECORD panel, with another for a service that differs. A prime is funded one CLIN at a time, so in its <b>🧾 CLIN drill</b> each CLIN takes its own, and the CLIN’s pick is the <b>standard</b> for every Air Force service on it.</p>
+<p>Where one service on a CLIN differs, press <b>by service ▾</b> beside the CLIN’s pick. One line opens under the CLIN with each Air Force service it carries, its dollars and a picker that starts at <i>= CLIN’s</i>: change only the one that differs, and <b>↺ all on the CLIN’s</b> puts them back. With the line closed the button names it (<i>ANG differs</i>). A service whose money on the CLIN is on no combination says <b>not set</b>, in amber. Each picker lists the combinations ticked for its service; a choice that no longer fits is kept and marked ⚠, never changed.</p>
+<p>A dollar is on the CLIN’s choice for its service, then the CLIN’s own, then the requirement’s choice for that service, then the requirement’s own. The <b>RCN-EEIC by Month</b> tab of <span class="mp" data-m="reports">Reports &amp; exports ▾ › Briefing › 📊 Excel Workbook — full breakouts</span>, its CLIN breakout, the Spend Plan Source and the ACE tie-out all read that one rule, so they agree to the dollar; a prime whose CLINs differ is listed once under each combination, with its share. Removing a combination clears every requirement, service and CLIN pointing at it, and says how many.</p>
 </section>
 <section data-part="team" data-id="t-diag" data-t="When something goes wrong: Save diagnostics">
 <p><span class="mp" data-m="share">📁 File ▾ › 🩺 Save diagnostics…</span> makes a small text file for support instead of sending the board. It holds the version, what kind of file this is (the live board, a PMO copy and whose, or one appropriation), the browser and window, how the file was opened and where Save writes, browser storage and any write it refused, counts only, and the last 50 warnings and script errors with their times. <b>It never holds a dollar figure, a requirement title, a name, a CCaR record, a PID or a budget name</b>: in the messages a figure reads # and anything taken out reads …. The office code stays. The box shows exactly what Save writes; Cancel or Esc writes nothing; nothing is sent anywhere. The board keeps that list in memory only — never in the file, never in browser storage.</p>
@@ -2465,7 +2493,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v1.97 (5 Oct 2026)';
+const BUILD='v1.98 (5 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -2995,6 +3023,10 @@ function svcRenameKeys(ren){
   Object.keys(MS.years||{}).forEach(function(fy){ const st=MS.years[fy]||{};
     Object.keys(st.budgetAsg||{}).forEach(function(id){ st.budgetAsg[id]=reKey(st.budgetAsg[id], true); });
     Object.keys(st.rcnSvc||{}).forEach(function(id){ st.rcnSvc[id]=reKey(st.rcnSvc[id], false); });
+    // v1.98 (item 83): a CLIN's RCN/EEIC for one service, filed under the service's name the same way
+    const crs=st.clinRcnSvc;
+    if(crs && typeof crs==='object') Object.keys(crs).forEach(function(id){ const m=crs[id];
+      if(m && typeof m==='object') Object.keys(m).forEach(function(key){ m[key]=reKey(m[key], false); }); });
   });
   Object.keys(MS.ppbe||{}).forEach(function(key){ const P=MS.ppbe[key];
     if(!P || typeof P!=='object') return;
@@ -3056,6 +3088,15 @@ function svcSaveList(list, from){
       const k=from.indexOf(j); if(k>=0 && k!==j){ r.svc=k; if(named) r.svcPos=k; rpTouch(r); rpN++; } });
     if(rpN){ RPDB.ts=Date.now(); persistRp(); }
   }
+  // v1.98 (item 83): a CLIN's RCN/EEIC for a service that is gone goes with the service. Done before the renames, so a
+  // service renamed onto a name that was just freed keeps its own choices and not the removed service's.
+  { const goneN=old.filter(function(s0,j){ return from.indexOf(j)<0; });
+    if(goneN.length) Object.keys(MS.years).forEach(function(fy){ const A=(MS.years[fy]||{}).clinRcnSvc;
+      if(!A || typeof A!=='object') return;
+      Object.keys(A).forEach(function(id){ const m=A[id]; if(!m || typeof m!=='object') return;
+        Object.keys(m).forEach(function(key){ const o=m[key]; if(!o || typeof o!=='object') return;
+          goneN.forEach(function(sv){ delete o[sv]; }); if(!Object.keys(o).length) delete m[key]; });
+        if(!Object.keys(m).length) delete A[id]; }); }); }
   // a rename is the same service: what is filed under its name follows it
   const ren={};
   from.forEach(function(j,k){ if(j>=0 && old[j]!==list[k]) ren[old[j]]=list[k]; });
@@ -5345,7 +5386,7 @@ function applyState(st){
   //
   // A NEW CONTAINER BELONGS IN ONE OF THESE LISTS. The invariant test degrades whatever it finds in
   // a real board, so an omission here fails there rather than waiting for a bad file.
-  'mc notes desc cons minInc titles ccar pid costElem grp si dest wbs band tier alloc fsrc awards asks crHalf ptype budgetAsg rcn rcnSvc'
+  'mc notes desc cons minInc titles ccar pid costElem grp si dest wbs band tier alloc fsrc awards asks crHalf ptype budgetAsg rcn rcnSvc clinRcnSvc'
     .split(' ').forEach(function(k){ const v=S[k];
       if(v===null || typeof v!=='object' || Array.isArray(v)) S[k]={}; });
   'custom removed reprog'.split(' ').forEach(function(k){ if(!Array.isArray(S[k])) S[k]=[]; });
@@ -5645,6 +5686,7 @@ const IMP_CATS = [
   ['rcnAsg',    'RCN/EEIC assignments', null],
   ['rcnSvc',    'RCN/EEIC per service', null],
   ['clinRcn',   'RCN/EEIC (CLIN)',     null],
+  ['clinRcnSvc','RCN/EEIC by service (CLIN)', null],
   ['aceMap',    'ACE tie-out mappings', null],
   ['cons',      'consequences',        null],
   ['minInc',    'minimum increments',  null],
@@ -5816,7 +5858,7 @@ function yearHas(id, y){
 // award dates, destination, PID, impact statement, WBS, the UPL mark. `upl` is keyed 'r|<id>'.
 // A container added to the board and not to this list fails the round-trip fuzz by name.
 const REQ_MAPS=['alloc','mc','notes','desc','titles','ccar','pid','costElem','fsrc','asks','awards','grp','si','dest',
-   'wbs','clinWbs','rcnAsg','rcnSvc','clinRcn','aceMap','upl','obCat','budgetAsg','ptype','recNames',
+   'wbs','clinWbs','rcnAsg','rcnSvc','clinRcn','clinRcnSvc','aceMap','upl','obCat','budgetAsg','ptype','recNames',
    'clinAlloc','clinMeta','clinNew','clinRm','crHalf','band','cons','minInc','mipr'];
 // Everything one year state holds under one requirement's id: every REQ_MAPS container, the UPL mark
 // and the what-if levels. Only for an added requirement leaving a year for good -- a requirement from
@@ -5916,6 +5958,7 @@ function yearCopy(id, y, mode, opts){
   cp(T.rcnAsg, (S.rcnAsg||{})[id]);      // which RCN/EEIC funds it — the registry is board-level
   cp(T.rcnSvc, (S.rcnSvc||{})[id]);      // and the per-service overrides that sit over it
   cp(T.clinRcn, (S.clinRcn||{})[id]);    // one line of accounting per CLIN
+  cp(T.clinRcnSvc, (S.clinRcnSvc||{})[id]);   // and a service on it that differs (v1.98, item 83)
   cp(T.aceMap, (S.aceMap||{})[id]);      // the confirmed tie to the cost estimate
   cp(T.obCat, (S.obCat||{})[id]);        // obligation category — a Spend Plan Source column
   // The BAE budget name usually names a fiscal year, so a copy forward starts from last year's
@@ -8625,6 +8668,7 @@ const PKG_DIFF_NAMES={asks:'requirement values', desc:'descriptions', cons:'impa
   mc:'Mission Critical flags', fsrc:'discretionary / mandatory splits', pmoOrder:'office rankings',
   grp:'PMO assignments', ccar:'CCaR records', pid:'PIDs', recNames:'CCaR record names', mipr:'MIPR types',
   ptype:'prime / OGC', obCat:'obligation categories', wbs:'WBS', rcnSvc:'RCN / EEIC by service',
+  clinRcnSvc:'RCN / EEIC by service on CLINs',
   si:'Navy SI codes', dest:'destinations', costElem:'cost elements', budgetAsg:'budget assignments',
   crHalf:'CR half-months', minInc:'minimum useful increments', tier:'tiers within band',
   absorb:'shortfall absorbers', absorbFloor:'absorber floors', discSvc:'discretionary budget authority',
@@ -10400,6 +10444,11 @@ function rcnUse(k){
     Object.keys(c).forEach(function(id){
       Object.keys(c[id]||{}).forEach(function(key){ if(c[id][key]===k) n++; });
     });
+    // v1.98 (item 83): and a service on a CLIN that differs
+    const cs=(MS.years[y]||{}).clinRcnSvc||{};
+    Object.keys(cs).forEach(function(id){ const m=cs[id]; if(!m || typeof m!=='object') return;
+      Object.keys(m).forEach(function(key){ const o=m[key]; if(!o || typeof o!=='object') return;
+        Object.keys(o).forEach(function(s2){ if(o[s2]===k) n++; }); }); });
   });
   return n;
 }
@@ -10407,8 +10456,8 @@ function rcnDel(i){
   const L=rcnReg(), e=L[i]; if(!e) return;
   const n=rcnUse(e.k);
   if(!confirm('Remove RCN '+(e.rcn||'-----')+' / EEIC '+(e.eeic||'-----')+'?'
-    +(n? '\n\n'+n+' requirement'+(n===1?'':'s')+' currently point at it across all fiscal years. '
-        +'Their assignment is cleared -- they are not left pointing at something that no longer exists.'
+    +(n? '\n\n'+n+' assignment'+(n===1?'':'s')+' (requirements, services and CLINs) point at it across all fiscal '
+        +'years. Every one is cleared -- none is left pointing at something that no longer exists.'
       : '\n\nNothing points at it.'))) return;
   Object.keys(MS.years||{}).forEach(function(y){
     const a=(MS.years[y]||{}).rcnAsg||{};
@@ -10418,6 +10467,19 @@ function rcnDel(i){
       Object.keys(sv[id]||{}).forEach(function(s2){ if(sv[id][s2]===e.k) delete sv[id][s2]; });
       if(!Object.keys(sv[id]||{}).length) delete sv[id];
     });
+    // v1.98 (item 83): THE CLINs TOO. rcnUse() counted them and the confirmation said every assignment was cleared,
+    // but a CLIN kept pointing at the removed combination -- and the RCN/EEIC tab, which lists only the combinations
+    // that exist, left that CLIN's money out of its service totals.
+    const c=(MS.years[y]||{}).clinRcn||{};
+    Object.keys(c).forEach(function(id){ const m=c[id]; if(!m || typeof m!=='object') return;
+      Object.keys(m).forEach(function(key){ if(m[key]===e.k) delete m[key]; });
+      if(!Object.keys(m).length) delete c[id]; });
+    const cs=(MS.years[y]||{}).clinRcnSvc||{};
+    Object.keys(cs).forEach(function(id){ const m=cs[id]; if(!m || typeof m!=='object') return;
+      Object.keys(m).forEach(function(key){ const o=m[key]; if(!o || typeof o!=='object') return;
+        Object.keys(o).forEach(function(s2){ if(o[s2]===e.k) delete o[s2]; });
+        if(!Object.keys(o).length) delete m[key]; });
+      if(!Object.keys(m).length) delete cs[id]; });
   });
   L.splice(i,1);
   save(); render();
@@ -10469,15 +10531,58 @@ function setRcnClin(id, key, k){
   if(!Object.keys(S.clinRcn[id]).length) delete S.clinRcn[id];
   save(); render();
 }
-// Every distinct combination a requirement funds under: one for a non-prime, up to one per CLIN
-// for a prime.
+/* v1.98 (item 83, Brad 5 Oct 2026) - RCN/EEIC BY SERVICE ON A CLIN. The CLIN's combination (clinRcn) is its STANDARD
+   for every Air Force service on it; one service can differ (clinRcnSvc[id][clinKey][service name], filed by NAME like
+   the requirement's own per-service choice, so a service that moves keeps it). WHICH COMBINATION A DOLLAR IS ON -
+   Brad: THE CLIN WINS - the CLIN's choice for that service, then the CLIN's standard, then the requirement's choice for
+   that service, then the requirement's own. Every RCN/EEIC surface (the RCN-EEIC by Month tab, its CLIN breakout, the
+   Spend Plan Source, the ACE alignment breakout and mapping) asks THIS, so no two of them can disagree. */
+function clinRcnSvcOf(id, key){
+  const A=S.clinRcnSvc, m=(A && typeof A==='object')? A[id] : null, o=(m && typeof m==='object')? m[key] : null;
+  return (o && typeof o==='object' && !Array.isArray(o))? o : {};
+}
+function rcnOfClinSvc(id, key, svc){
+  const o=svc? clinRcnSvcOf(id, key)[svc] : '';
+  return (typeof o==='string' && o)? o : rcnOfClin(id, key, svc);
+}
+function setRcnClinSvc(id, key, svc, k){
+  if(!rcnApplies()) return;
+  if(!S.clinRcnSvc || typeof S.clinRcnSvc!=='object' || Array.isArray(S.clinRcnSvc)) S.clinRcnSvc={};
+  const A=S.clinRcnSvc;
+  if(!A[id] || typeof A[id]!=='object' || Array.isArray(A[id])) A[id]={};
+  if(!A[id][key] || typeof A[id][key]!=='object' || Array.isArray(A[id][key])) A[id][key]={};
+  if(k) A[id][key][svc]=String(k); else delete A[id][key][svc];
+  if(!Object.keys(A[id][key]).length) delete A[id][key];
+  if(!Object.keys(A[id]).length) delete A[id];
+  save(); render();
+}
+function rcnClinReset(id, key){
+  const A=S.clinRcnSvc;
+  if(A && typeof A==='object' && A[id] && typeof A[id]==='object'){ delete A[id][key]; if(!Object.keys(A[id]).length) delete A[id]; }
+  save(); render();
+}
+let rcnClinOpen={};
+function rcnClinToggle(id, key){ const k=id+'|'+key; rcnClinOpen[k]=!rcnClinOpen[k]; render(); }
+// The Air Force services a CLIN carries - money in its grid or a request - the only ones it can be asked about.
+function clinAfSvcs(id, c){
+  const v=clinVec(id, c)||[];
+  return RCN_SVCS.filter(function(sv){ const j=SVC.indexOf(sv);
+    return j>=0 && ((+v[j]||0)>0.5 || (+((c&&c.ask)||[])[j]||0)>0.5); });
+}
+// The services whose MONEY on this CLIN lands on no combination that exists - exactly the dollars the RCN/EEIC tab
+// lists as not assigned (Brad: flag them).
+function clinRcnGaps(id, c){
+  const v=clinVec(id, c)||[];
+  return RCN_SVCS.filter(function(sv){ const j=SVC.indexOf(sv);
+    return j>=0 && (+v[j]||0)>0.5 && !rcnEntry(rcnOfClinSvc(id, c.key, sv)); });
+}
+// May this combination carry money for every one of these services? (Its own list, ticked in the RCN/EEIC panel.)
+function rcnFits(e, svs){ const ok=Array.isArray(e && e.svc)? e.svc : RCN_SVCS; return svs.every(function(sv){ return ok.indexOf(sv)>=0; }); }
+// Every distinct combination a requirement funds under: read off the very lines the ACE alignment breakout prints, so
+// the mapping's "(n combinations)" and the breakout cannot disagree.
 function rcnKeysOf(id){
   const out=[];
-  if(clinApplies(id)){
-    clinList(id).forEach(function(c){ const k=rcnOfClin(id,c.key); if(k && out.indexOf(k)<0) out.push(k); });
-  } else {
-    const k=rcnAsgOf(id); if(k) out.push(k);
-  }
+  aceAlignRows(id).forEach(function(L){ if(L.rcn && out.indexOf(L.rcn)<0) out.push(L.rcn); });
   return out;
 }
 function setRcnAsg(id,k){
@@ -13442,10 +13547,28 @@ function aceAlignRows(id){
   const si=siApplies()? siOf(it) : '';
   const ce=DATA.costElems? (((S.costElem||{})[id])||'') : '';
   const out=[];
-  const push=function(kind, clin, key, w, v, rk){
+  const push0=function(kind, clin, key, w, v, rk){
     out.push({kind:kind, clin:clin, clinKey:key, w:w||'', v:(v||[]).slice(),
               tot:(v||[]).reduce(function(a,b){ return a+b; },0),
               rcn:rk||'', si:si, ce:ce});
+  };
+  // v1.98 (item 83): THE COMBINATION IS A SERVICE'S, not the line's. Each Air Force service's money on the line is on
+  // the combination rcnOfClinSvc() (a CLIN) or rcnAsgOf() (a requirement) gives THAT service. One combination for all of
+  // them - the usual case - is one line, as before. Where they differ, the line becomes one line per combination, each
+  // carrying only its own services' dollars, and the money no RCN/EEIC governs (Navy, USMC) goes on a line of its own:
+  // a code is printed only beside money it governs. The lines add up to the line they replace, to the dollar. Before,
+  // one code was printed for the whole line, so ANG money with its own combination read as the standard's.
+  const push=function(kind, clin, key, w, v, rk){
+    const grp={}, ord=[];
+    if(rcnApplies()) RCN_SVCS.forEach(function(sv){ const j=SVC.indexOf(sv);
+      if(j<0 || Math.abs(+(v||[])[j]||0)<=0.5) return;
+      const k=(key? rcnOfClinSvc(id, key, sv) : rcnAsgOf(id, sv))||'';
+      if(!Object.prototype.hasOwnProperty.call(grp, k)){ grp[k]=[]; ord.push(k); }
+      grp[k].push(j); });
+    if(ord.length<=1){ push0(kind, clin, key, w, v, ord.length? ord[0] : rk); return; }
+    ord.forEach(function(k){ push0(kind, clin, key, w, SVC.map(function(_,j){ return grp[k].indexOf(j)>=0? (+v[j]||0) : 0; }), k); });
+    const rest=SVC.map(function(sv,j){ return RCN_SVCS.indexOf(sv)>=0? 0 : (+(v||[])[j]||0); });
+    if(rest.some(function(x){ return Math.abs(x)>0.5; })) push0(kind, clin, key, w, rest, '');
   };
   const spread=function(kind, clin, key, list, parent, rk){
     const res=wbsResolve(list||[], parent);
@@ -16463,7 +16586,8 @@ function srcRowsOf(fy, St, T){
         // THE ROW KNOWS WHICH SERVICE IT IS FOR, so it must ask for that service's combination.
         // Reading one combination for every service put ANG and AFRC money under the USAF line of
         // accounting on every requirement whose services differ.
-        const rk = clin? (rcnOfClin(id, clin.key, svc)||rcnAsgOf(id, svc)) : rcnAsgOf(id, svc);
+        // v1.98 (item 83): a CLIN's line asks for the combination of THIS service on THIS CLIN (rcnOfClinSvc)
+        const rk = clin? rcnOfClinSvc(id, clin.key, svc) : rcnAsgOf(id, svc);
         const e=rk? rcnEntry(rk) : null;
         if(e){ r[26]=e.eeic||''; r[27]=e.rcn||''; }
       }
@@ -22782,6 +22906,14 @@ function clinRemove(pid,key){
     +(c.added? 'It is gone for good.' : 'It can be put back from “restore” under the grid.')
     +'\n\nIts allocation is removed with it. The row allocation is not touched.')) return;
   delete clinAllocMap(pid)[key];
+  // v1.98 (item 83): AN ADDED CLIN DELETED FOR GOOD TAKES ITS RCN/EEIC AND ITS WBS WITH IT. Its key is the one the next
+  // added CLIN is given (clinAdd takes the first free 'n<i>'), so what was left behind was silently the NEW CLIN's: its
+  // money on the deleted line's combination and split over the deleted line's WBS. A CLIN removed from the board's own
+  // data keeps them, because it can be put back.
+  if(c.added){
+    [S.clinRcn, S.clinRcnSvc, S.clinWbs].forEach(function(A){
+      if(A && typeof A==='object' && A[pid] && typeof A[pid]==='object'){ delete A[pid][key]; if(!Object.keys(A[pid]).length) delete A[pid]; } });
+  }
   if(c.added){ S.clinNew[pid]=clinNew(pid).filter(x=>x.key!==key); }
   else { clinRm(pid).push(key); }
   save(); render();
@@ -22985,7 +23117,14 @@ function recFields(id, it){
     }).join(' · ');
     const rdone=rsv.filter(function(sv){ return !!rcnAsgOf(id, sv); }).length;
     const rmix=rsv.length>1 && rsv.some(function(sv){ return rcnAsgOf(id,sv)!==rcnAsgOf(id,rsv[0]); });
-    acct.push(recF('RCN / EEIC', rsv.length? rdone===rsv.length : !!rcnAsgOf(id),
+    // v1.98 (item 83): A PRIME's MONEY IS ON ITS CLINs' COMBINATIONS (Brad: the CLIN wins), so for a prime with CLINs the
+    // field is complete when every service's money on every CLIN lands on one - what the CLIN grid flags, not this.
+    const rcl=(clinApplies(id)? clinList(id) : []);
+    const rgap=[]; let rafMoney=false;
+    rcl.forEach(function(c){ if(clinAfSvcs(id, c).length) rafMoney=true;
+      clinRcnGaps(id, c).forEach(function(sv){ rgap.push('CLIN '+c.clin+' '+sv); }); });
+    const rdoneAll=(rsv.length? rdone===rsv.length : !!rcnAsgOf(id));
+    acct.push(recF('RCN / EEIC', rcl.length? (!rgap.length && (rafMoney || rdoneAll)) : rdoneAll,
       recSel('setRcnAsg('+jsa(id)+',this.value)',
         'Which RCN + EEIC this requirement is funded under — USAF, ANG and AFRC only',
         '<option value="">'+(rmix? '— the services differ —'
@@ -23010,7 +23149,9 @@ function recFields(id, it){
       +(rmix? '<div style="margin-top:2px">the services are on DIFFERENT combinations — set them below</div>'
           : (rsv.length && rdone<rsv.length
               ? '<div style="margin-top:2px">'+(rsv.length-rdone)+' of '+rsv.length+' services not set</div>'
-              : ''))));
+              : ''))
+      +(rcl.length? '<div style="margin-top:2px">A CLIN with its own RCN/EEIC (🧾 CLIN drill) uses that; this is for a CLIN '
+          +'with none'+(rgap.length? ' — not set: '+esc(rgap.join(', ')) : '')+'</div>' : '')));
     if(rcnSvcOpen[id]) rsv.forEach(function(sv){
       const chosen=((S.rcnSvc||{})[id]||{})[sv]||'';
       acct.push(recF('↳ '+sv, !!rcnAsgOf(id, sv),
@@ -23439,6 +23580,69 @@ function wbsBody(){
   el.innerHTML=h;
 }
 
+// v1.98 (item 83, Brad 5 Oct 2026): THE CLIN's LINE STAYS AS IT IS. Its RCN/EEIC picker is the CLIN's STANDARD for
+// every Air Force service on it - one pick, the usual case. A CLIN carrying two or more of USAF, ANG and AFRC gets a
+// "by service" button that opens ONE line under it, where a service that differs is given its own. An exception is
+// named on the button with that line closed, and a service whose money lands on no combination is amber (Brad: flag
+// gaps). Each picker offers the combinations set up for its service(s); a saved choice that no longer fits is kept and
+// marked, never changed - and one pointing at a combination that no longer exists says so.
+function rcnOptFor(k, svs, chosen){
+  const e=rcnEntry(k), fit=!e || rcnFits(e, svs);
+  return '<option value="'+esc(k)+'"'+(chosen===k?' selected':'')+'>'
+    +(fit? '' : '⚠ ')+esc(rcnLabel(k)||'(blank)')+(fit? '' : ' — set up for '+esc((e.svc||[]).join(', ')||'none')+' only')+'</option>';
+}
+function rcnOptsFor(svs, chosen){
+  return rcnReg().filter(function(e){ return e.k===chosen || rcnFits(e, svs); })
+      .map(function(e){ return rcnOptFor(e.k, svs, chosen); }).join('')
+    +((chosen && !rcnEntry(chosen))? '<option value="'+esc(chosen)+'" selected>⚠ a combination since removed</option>' : '');
+}
+function clinRcnCell(pid, c){
+  const svs=clinAfSvcs(pid, c), mine=String(((S.clinRcn||{})[pid]||{})[c.key]||''), reqK=rcnAsgOf(pid);
+  const ex=svs.filter(function(sv){ return !!clinRcnSvcOf(pid, c.key)[sv]; });
+  const gaps=clinRcnGaps(pid, c), open=!!rcnClinOpen[pid+'|'+c.key];
+  const bad=(mine && (!rcnEntry(mine) || !rcnFits(rcnEntry(mine), svs)));
+  return '<td class="cw rcnc"><select class="cesel'+(bad?' rcnbad':'')+'" style="max-width:190px" '
+    +'onchange="setRcnClin('+jsa(pid)+','+jsa(c.key)+',this.value)" '
+    +'aria-label="RCN / EEIC for CLIN '+esc(c.clin)+'" '
+    +'title="CLIN '+esc(c.clin)+'’s RCN/EEIC — the standard for every Air Force service on it'
+    +(svs.length>1? '. by service gives one service its own.' : '')+'">'
+    +'<option value=""'+(mine?'':' selected')+'>'+(reqK? '— as the requirement ('+esc(rcnLabel(reqK)||'(blank)')+') —' : '— none —')+'</option>'
+    +rcnOptsFor(svs, mine)
+    +'</select>'
+    +(svs.length>1
+      ? '<button type="button" class="rcnby'+(gaps.length?' gap':(ex.length?' on':''))+'" aria-expanded="'+open+'" '
+        +'onclick="rcnClinToggle('+jsa(pid)+','+jsa(c.key)+')" '
+        +'title="'+(gaps.length? esc(gaps.join(', '))+' money on this CLIN is on no RCN/EEIC — ' : '')
+        +'give a service on CLIN '+esc(c.clin)+' its own RCN/EEIC">'
+        +(gaps.length? esc(gaps.join(' · '))+' not set'
+          : (ex.length? esc(ex.join(' · '))+(ex.length===1?' differs':' differ') : 'by service'))
+        +(open?' ▴':' ▾')+'</button>'
+      : (gaps.length? '<span class="rcngap" title="this CLIN’s '+esc(gaps.join(', '))+' money is on no RCN/EEIC">'
+          +esc(gaps.join(' · '))+' not set</span>' : ''))
+    +'</td>';
+}
+function clinRcnStrip(pid, c){
+  const svs=clinAfSvcs(pid, c);
+  if(!rcnClinOpen[pid+'|'+c.key] || svs.length<2) return '';
+  const std=rcnOfClin(pid, c.key), m=clinRcnSvcOf(pid, c.key), v=clinVec(pid, c)||[];
+  return '<tr class="rcnsub"><td colspan="'+(SVC.length+9)+'"><div class="rcnstrip">'
+    +'<span class="rl">↳ CLIN '+esc(c.clin)+' · RCN / EEIC by service</span>'
+    +'<span class="rs">CLIN’s: <b>'+(rcnEntry(std)? esc(rcnLabel(std)||'(blank)') : 'none')+'</b></span>'
+    +svs.map(function(sv){
+      const k=(typeof m[sv]==='string')? m[sv] : '', amt=+v[SVC.indexOf(sv)]||0;
+      const gap=amt>0.5 && !rcnEntry(rcnOfClinSvc(pid, c.key, sv));
+      const bad=!!k && (!rcnEntry(k) || !rcnFits(rcnEntry(k), [sv]));
+      return '<label'+(gap?' class="gap"':'')+'><b>'+esc(sv)+'</b><span class="ra">'+fM(amt)+'</span>'
+        +'<select class="cesel'+(bad?' rcnbad':'')+'" onchange="setRcnClinSvc('+jsa(pid)+','+jsa(c.key)+','+jsa(sv)+',this.value)" '
+        +'aria-label="RCN / EEIC for '+esc(sv)+' on CLIN '+esc(c.clin)+'" '
+        +'title="The RCN/EEIC '+esc(sv)+'’s money on CLIN '+esc(c.clin)+' is on">'
+        +'<option value=""'+(k?'':' selected')+'>= CLIN’s</option>'
+        +rcnOptsFor([sv], k)
+        +'</select></label>'; }).join('')
+    +(Object.keys(m).length? '<button type="button" class="qb" onclick="rcnClinReset('+jsa(pid)+','+jsa(c.key)+')" '
+        +'title="put every service on CLIN '+esc(c.clin)+' back on the CLIN’s RCN/EEIC">↺ all on the CLIN’s</button>' : '')
+    +'</div></td></tr>';
+}
 function clinTable(it){
   const pid=it.id;
   // One switch feeds the header cell, the body cell and the three summary rows. Padding the foot
@@ -23477,18 +23681,11 @@ function clinTable(it){
       +'<td class="cw"><button type="button" class="nb cedit" onclick="toggleWbs(&quot;clin&quot;,'+jsa(pid)+','+jsa(c.key)+')" '
         +'title="log the WBS for this CLIN — several are allowed, split by service">'
         +esc(wbsLabel('clin',pid,c.key)||'+ WBS')+'</button></td>'
-      +(rcnApplies()? '<td class="cw"><select class="cesel" style="max-width:180px" '
-        +'onchange="setRcnClin('+jsa(pid)+','+jsa(c.key)+',this.value)" '
-        +'title="One line of accounting funds a CLIN, so it carries ONE RCN/EEIC — whatever the '
-        +'WBS beneath it are">'
-        +'<option value="">— none —</option>'
-        +rcnReg().map(function(e){
-            return '<option value="'+esc(e.k)+'"'+(rcnOfClin(pid,c.key)===e.k?' selected':'')+'>'
-              +esc(rcnLabel(e.k)||'(blank)')+'</option>'; }).join('')
-        +'</select></td>' : '')
+      +(rcnApplies()? clinRcnCell(pid, c) : '')
       +'<td class="cx"><button class="qb" onclick="clinRemove('+jsa(pid)+','+jsa(c.key)+')" '
         +'title="'+(c.added?'delete this added CLIN':'remove this CLIN (restorable)')+'">✕</button></td>'
-      +'</tr>';
+      +'</tr>'
+      +(rcnApplies()? clinRcnStrip(pid, c) : '');
   }).join('');
 
   return '<div class="clin-detail">'
@@ -23523,6 +23720,8 @@ function clinTable(it){
         +gone.map(g=>'<button type="button" class="nb rtag" onclick="clinRestore('+jsa(pid)+','+jsa(g.key)+')" '
           +'title="'+esc(g.desc||'')+' — click to put it back">↩ '+esc(g.clin)+'</button>').join(' ')+'</div>' : '')
     +'<div class="svc-hint">'
+      +(rcnApplies()? 'A CLIN’s RCN / EEIC is the standard for every Air Force service on it; <b>by service</b> '
+        +'gives one service its own, and a service whose money is on none says <b>not set</b>. ' : '')
       +'Click a CLIN number, description or CCaR to change it. ＋ Add CLIN puts a new line on this '
       +'contract. Your changes sit over the board data, so removed lines can be put back and a fresh '
       +'data import never overwrites them. '
@@ -28286,9 +28485,11 @@ function exportAceTieout(){
                +'allocation (for a prime, each CLIN’s allocation in its grid), not what the lanes '
                +'pay, which is Board funded on the mapping tab.',s:0}]);
     if(isOm){
-      rows.push([{v:'One line of accounting funds a CLIN, so a CLIN carries ONE RCN/EEIC however '
-                 +'many WBS sit under it - even where the estimate associates different codes with '
-                 +'those WBS.',s:0}]);
+      rows.push([{v:'One line of accounting funds a CLIN, so a CLIN carries ONE RCN/EEIC for each Air '
+                 +'Force service however many WBS sit under it - even where the estimate associates '
+                 +'different codes with those WBS. A CLIN whose services are on different combinations '
+                 +'is a line per combination here, and the Navy and USMC money on it a line of its own; '
+                 +'together they are the CLIN’s line, to the dollar.',s:0}]);
       rows.push([{v:'A code is shown only against the services it governs: RCN/EEIC is USAF, ANG '
                  +'and AFRC; SI is Navy and USMC. A blank cell means that line holds no money that '
                  +'code governs.',s:0}]);
@@ -28885,6 +29086,18 @@ function exportExcel(){
     // the CLINs underneath it. Same pass again, so a CLIN row is a slice of a row above it.
     const prime=svcNames.map(function(){ return []; });
     const mk=function(){ return {m:FYMON.map(function(){ return 0; }), nod:0, its:[]}; };
+    // v1.98 (item 83): ONLY A KEY THE LIST HOLDS IS A COMBINATION. The rollup prints the list's combinations and the
+    // not-assigned row, and nothing else - so money filed under anything else (a pointer to a combination since
+    // removed) was in no row and no total. It is counted where it truly is: on no combination.
+    const known={}; keysOf().forEach(function(k){ known[k]=1; });
+    const kk=function(k){ return (k && Object.prototype.hasOwnProperty.call(known, k))? k : NONE; };
+    const addTo=function(g, k, m, nod, r){
+      if(!bag[g][k]) bag[g][k]=mk();
+      m.forEach(function(v,j){ bag[g][k].m[j]+=v; });
+      bag[g][k].nod+=nod;
+      bag[g][k].its.push(r);
+    };
+    const pendTo=function(g, k, r){ if(!pend[g][k]) pend[g][k]=[]; pend[g][k].push(r); };
     S.order.forEach(function(id){
       const it=itemById(id), pt=Tv[id];
       if(!it||!pt) return;
@@ -28895,38 +29108,58 @@ function exportExcel(){
         // accounting on every requirement whose services differ -- the same defect already
         // corrected in the spend plan source. keyOfReq ignores the argument where there is no
         // per-service dimension, so the SI sheet is unchanged by it.
-        const k=keyOfReq(it, svcNames[g])||NONE;
+        const k=kk(keyOfReq(it, svcNames[g]));
         const raw=sp.m[si]||[], nod=sp.unsch[si]||0;
         const row=FYMON.map(function(_,j){ return raw[j]||0; });
         const tot=row.reduce(function(a,b){ return a+b; },0)+nod;
         const ask=+((it.ask||[])[si])||0;
-        if(tot<=0.005){
-          if(O.detail && ask>0.005){ if(!pend[g][k]) pend[g][k]=[]; pend[g][k].push({id:id, it:it, ask:ask}); }
-          return;
-        }
-        if(!bag[g][k]) bag[g][k]=mk();
-        row.forEach(function(v,j){ bag[g][k].m[j]+=v; });
-        bag[g][k].nod+=nod;
-        bag[g][k].its.push({id:id, it:it, m:row, nod:nod, ask:ask});
         // A prime is obligated one CLIN at a time and each CLIN can ride its own line of
         // accounting, so its money is split HERE, through the same clinSplit the spend plan source
         // uses. Split per month, because each column is apportioned on its own and a split done
         // once on the total would not add up column by column.
-        if(O.clinOf && typeof clinApplies==='function' && clinApplies(id)){
+        // v1.98 (item 83): AND THE ROLLUP READS THAT SPLIT. It filed a prime's money under the requirement's own
+        // combination, so a prime whose combinations were set on its CLINs - nothing on the requirement - printed every
+        // dollar as "no RCN/EEIC assigned" while the CLIN breakout below it, and the Spend Plan Source, named the
+        // combination. Each CLIN's part now sits on the combination its CLIN puts THIS service on (rcnOfClinSvc), and
+        // the Ask beside it is the same CLIN grid's share of the requirement's ask - so the parts add up, month by
+        // month and in the Ask column, to the requirement's row they replace. A grid with nothing on this service gives
+        // no share to split by: that money stays whole on the requirement's own combination, as before.
+        let parts=null; const lines=[];
+        const isPrime=!!(O.clinOf && typeof clinApplies==='function' && clinApplies(id));
+        if(isPrime){
           const cl=clinList(id)||[];
-          const monS=FYMON.map(function(_,j){ return clinSplit(id, si, row[j]); });
-          const nodS=clinSplit(id, si, nod);
-          const lines=[];
-          if(cl.length && (nodS.length || monS.some(function(x){ return x.length; }))){
+          if(cl.length && clinSplit(id, si, 0).length){
+            const monS=FYMON.map(function(_,j){ return clinSplit(id, si, row[j]); });
+            const nodS=clinSplit(id, si, nod), askS=clinSplit(id, si, ask);
+            const at={};
+            parts=[];
             cl.forEach(function(c,ci){
               const cm=FYMON.map(function(_,j){ return (monS[j] && monS[j][ci])? monS[j][ci].part : 0; });
-              const cn=(nodS[ci]? nodS[ci].part : 0);
-              if(Math.abs(cm.reduce(function(a,b){ return a+b; },0)+cn)<=0.005) return;
-              lines.push({c:c, m:cm, nod:cn, ask:+((clinVec(id,c)||[])[si])||0});
+              const cn=(nodS[ci]? nodS[ci].part : 0), ca=(askS[ci]? askS[ci].part : 0);
+              const money=cm.reduce(function(a,b){ return a+b; },0)+cn;
+              const kc=kk(O.clinOf(id, c.key, svcNames[g]));
+              if(!Object.prototype.hasOwnProperty.call(at, kc)){
+                at[kc]=parts.length; parts.push({k:kc, m:FYMON.map(function(){ return 0; }), nod:0, ask:0, money:0}); }
+              const P=parts[at[kc]];
+              cm.forEach(function(v,j){ P.m[j]+=v; }); P.nod+=cn; P.ask+=ca; P.money+=money;
+              if(Math.abs(money)>0.005) lines.push({c:c, k:kc, m:cm, nod:cn, ask:+((clinVec(id,c)||[])[si])||0});
             });
           }
-          prime[g].push({id:id, it:it, m:row, nod:nod, ask:ask, lines:lines});
         }
+        if(tot<=0.005){
+          if(O.detail && ask>0.005){
+            if(parts){
+              const pp=parts.filter(function(P){ return P.ask>0.005; }), mx=pp.length>1;
+              pp.forEach(function(P){ pendTo(g, P.k, {id:id, it:it, ask:P.ask, mixed:mx}); });
+            } else pendTo(g, k, {id:id, it:it, ask:ask});
+          }
+          return;
+        }
+        if(parts){
+          const pp=parts.filter(function(P){ return Math.abs(P.money)>0.005 || P.ask>0.005; }), mx=pp.length>1;
+          pp.forEach(function(P){ addTo(g, P.k, P.m, P.nod, {id:id, it:it, m:P.m, nod:P.nod, ask:P.ask, mixed:mx}); });
+        } else addTo(g, k, row, nod, {id:id, it:it, m:row, nod:nod, ask:ask});
+        if(isPrime) prime[g].push({id:id, it:it, m:row, nod:nod, ask:ask, lines:lines});
       });
     });
     // The tab is dropped when there is nothing to place. But a board with no Air Force money funded
@@ -29006,11 +29239,10 @@ function exportExcel(){
       const nOf=function(b){ return b.its.length+' requirement'+(b.its.length===1?'':'s'); };
       const reqRow=function(r){
         // THIS SECTION IS BY REQUIREMENT, so the row is the requirement's title and nothing else.
-        // A prime whose CLINs carry different combinations rides more than one line of accounting
-        // inside a single service; its money sits here under the requirement's own combination and
-        // the PRIME CONTRACTS section below breaks it out CLIN by CLIN. Marked rather than left to
-        // be discovered - the number in this row is a sum across lines of accounting.
-        const mixed=O.mixedOf? !!O.mixedOf(r.id) : false;
+        // v1.98 (item 83): a prime whose CLINs put this service's money on different combinations
+        // appears once under EACH, with that combination's share; the PRIME CONTRACTS section below
+        // breaks it out CLIN by CLIN. Marked rather than left to be discovered.
+        const mixed=!!r.mixed;
         return line('    #'+(MR[r.id]||'-')+'  '+(recName(r.it)||dispTitle(r.it))
                     +(mixed? '   \u26a0 rides several combinations \u2014 see PRIME CONTRACTS below' : ''), r, 0,
                     [{v:r.ask,s:N},{v:ccarOf(r.it),s:B},{v:pidOf(r.it),s:0},{v:grpOf(r.it),s:0}]);
@@ -29063,7 +29295,8 @@ function exportExcel(){
                                           : labelOf(k)+'   ('+L.length+')'),s:B})
               .concat([{v:askOf(L),s:NB}]));
             L.forEach(function(r){
-              rows.push([{v:'    #'+(MR[r.id]||'-')+'  '+(recName(r.it)||dispTitle(r.it)),s:0}]
+              rows.push([{v:'    #'+(MR[r.id]||'-')+'  '+(recName(r.it)||dispTitle(r.it))
+                +(r.mixed? '   \u26a0 rides several combinations \u2014 its ask is split by its CLIN grid' : ''),s:0}]
                 .concat(FYMON.map(function(){ return ''; })).concat(['',''])
                 .concat([{v:r.ask,s:N},{v:ccarOf(r.it),s:B},{v:pidOf(r.it),s:0},{v:grpOf(r.it),s:0}]));
             });
@@ -29073,7 +29306,10 @@ function exportExcel(){
       });
       rows.push([{v:'A requirement appears once per service it carries funded money on, under the '
         +'combination THAT SERVICE is assigned \u2014 a per-service override is honoured here and '
-        +'in the rollup above. The rows under a combination add to that combination\u2019s row in '
+        +'in the rollup above. A prime\u2019s money is on its CLINs\u2019 combinations: the CLIN\u2019s '
+        +'choice for the service, else the CLIN\u2019s own, else the requirement\u2019s. A prime whose CLINs '
+        +'differ appears once under each combination, its money and its Ask split by its CLIN grid '
+        +'exactly as in PRIME CONTRACTS below. The rows under a combination add to that combination\u2019s row in '
         +'the rollup, and each service total here equals the same service total above it. Rank is '
         +'the board\u2019s master rank; Ask is that service\u2019s share of the requirement, so Ask '
         +'above TOTAL is money the service asked for and did not draw. NOT FUNDED sits BELOW each '
@@ -29114,9 +29350,8 @@ function exportExcel(){
             return;
           }
           p.lines.forEach(function(L){
-            const k=O.clinOf(p.id, L.c.key, svcNames[g]);
             rows.push(line('  CLIN '+String(L.c.clin==null? '' : L.c.clin)
-              +'   '+(k? labelOf(k) : noneLbl), L, 0,
+              +'   '+(L.k!==NONE? labelOf(L.k) : noneLbl), L, 0,
               [{v:L.ask,s:N},{v:L.c.ccar||'',s:B},'','',{v:L.c.desc||'',s:0}]));
           });
         });
@@ -29127,8 +29362,9 @@ function exportExcel(){
         +'money on each CLIN is PRORATED from what the board funded, by that CLIN’s share of '
         +'the CLIN grid — the same split the spend plan source file uses, so the two agree on '
         +'which CLIN a dollar belongs to. The last CLIN takes the rounding in every column, so the '
-        +'CLIN rows add to the prime exactly. A CLIN shows ITS OWN RCN/EEIC where one is set and '
-        +'the requirement’s where it is not. Ask on a CLIN row is what that CLIN asked for on '
+        +'CLIN rows add to the prime exactly. A CLIN row shows the combination that service\u2019s money '
+        +'on it is on: the CLIN\u2019s choice for the service, else the CLIN\u2019s own, else the '
+        +'requirement\u2019s. Ask on a CLIN row is what that CLIN asked for on '
         +'this service — from the grid, which is the request, not the allocation. PRIMES '
         +'TOTAL counts prime contracts only: it is part of the service total above, not equal to '
         +'it. A CLIN funded at zero is not listed.',s:0}]);
@@ -29144,11 +29380,10 @@ function exportExcel(){
         function(it, sv){ return rcnAsgOf(it.id, sv); },
         '\u2014 no RCN/EEIC assigned \u2014', null,
         {detail:true,
-         mixedOf:function(id){ return typeof clinApplies==='function' && clinApplies(id)
-                                   && typeof rcnKeysOf==='function' && rcnKeysOf(id).length>1; },
          // Only a classification a CLIN can actually carry earns a CLIN breakout. RCN/EEIC is one
          // - an SI code is not, so the SI tab declares none and is unchanged.
-         clinOf:function(id, key, sv){ return rcnOfClin(id, key, sv); }})
+         // v1.98 (item 83): per service on the CLIN, and the rollup reads it too
+         clinOf:function(id, key, sv){ return rcnOfClinSvc(id, key, sv); }})
     : null;
   const siSheet = (typeof siApplies==='function' && siApplies())
     ? monSheet('SI Codes by Month', document.title+' \u2014 Special Interest allocations by service and month',

@@ -146,7 +146,7 @@ const populate = (ev, sc) => ev(`(function(){
   // throws. Create any that are missing first -- the point of this tool is to fill every container,
   // and one that is absent until a user happens to touch it is exactly the kind that gets dropped.
   ['band','alloc','minInc','awards','cons','desc','notes','pid','mipr','obCat','costElem','fsrc','mc',
-   'dest','grp','asks','ccar','recNames','titles','wbs','ptype','rcnAsg','rcnSvc','clinRcn','si',
+   'dest','grp','asks','ccar','recNames','titles','wbs','ptype','rcnAsg','rcnSvc','clinRcn','clinRcnSvc','si',
    'budgetAsg','crHalf','clinAlloc','clinMeta','clinNew','clinRm','clinWbs','aceMap','upl','buys']
     .forEach(function(k){ if(!S[k] || typeof S[k]!=='object' || Array.isArray(S[k])) S[k]={}; });
   if(!S.custom) S.custom=[];
@@ -206,6 +206,8 @@ const populate = (ev, sc) => ev(`(function(){
     if(i%4===3) S.rcnAsg[id]='RCN-'+i;
     if(i%5===3){ S.rcnSvc[id]={}; S.rcnSvc[id][SVC[i%SVC.length]]='RCN-S'+i; }
     if(i%6===3){ S.clinRcn[id]={}; S.clinRcn[id]['n'+i]='RCN-C'+i; }
+    // v1.98 (item 83): a service on a CLIN that differs, filed by the service's name
+    if(i%6===4){ S.clinRcnSvc[id]={}; S.clinRcnSvc[id]['n'+i]={}; S.clinRcnSvc[id]['n'+i][SVC[i%SVC.length]]='RCN-CS'+i; }
     if(i%4===1){ S.budgetAsg[id]={}; S.budgetAsg[id][SVC[i%SVC.length]]='BAE FY'+(27+i%3); }
     if(i%3===2){ S.crHalf[id]={}; S.crHalf[id][FYMON[i%12][0]]=1; }
     // the confirmed tie to the cost estimate, and the UPL mark (keyed 'r|<id>', not the bare id)
