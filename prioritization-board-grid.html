@@ -16518,7 +16518,7 @@ function flowHtml(){
       +'title="Any of these, matched as whole words" onchange="flowSetPseudo(&quot;token&quot;,this.value)"></label>'
       +'<label>appropriated FY <input class="btn" style="font-size:10px;padding:4px 8px;width:66px" value="'+(parseInt(flowPseudo().from)||'')+'" '
       +'onchange="flowSetPseudo(&quot;from&quot;,this.value)"></label>'
-      +'<label>counts as FY <input class="btn" style="font-size:10px;padding:4px 8px;width:66px" value="'+flowPseudo().to+'" '
+      +'<label>counts as FY <input class="btn" style="font-size:10px;padding:4px 8px;width:66px" value="'+(parseInt(flowPseudo().to)||'')+'" '
       +'onchange="flowSetPseudo(&quot;to&quot;,this.value)"></label>'
       +'<span style="color:var(--dim);font-size:9.5px">'
       +(F.pseudo.n? '<b style="color:var(--gold)">'+F.pseudo.n+' rows \u00b7 '+fM2(F.pseudo.v)+'</b> pulled into this view'
@@ -23667,7 +23667,7 @@ function recFields(id, it){
     recSel('setDest('+jsa(id)+',&quot;to&quot;,this.value)',
       'Who receives this money first — a prime, or a government activity we MIPR to',
       '<option value=""'+(destOf(it).to?'':' selected')+'>— not logged —</option>'
-      +flowEntsAZ().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).to===e.k?' selected':'')
+      +flowEntsAZ().map(function(e){ return '<option value="'+esc(e.k)+'"'+(destOf(it).to===e.k?' selected':'')
         +'>'+esc(e.n)+(e.kind==='gov'?' (gov)':'')+'</option>'; }).join(''))));
   if(destIsOgc(it))
     F.push(recF('MIPR type', miprOf(id),
@@ -23688,7 +23688,7 @@ function recFields(id, it){
       recSel('setDest('+jsa(id)+',&quot;end&quot;,this.value)',
         'The ultimate recipient, when that activity awards our money on a commercial contract',
         '<option value=""'+(destOf(it).end?'':' selected')+'>— stops there —</option>'
-        +flowEntsAZ().map(function(e){ return '<option value="'+e.k+'"'+(destOf(it).end===e.k?' selected':'')
+        +flowEntsAZ().map(function(e){ return '<option value="'+esc(e.k)+'"'+(destOf(it).end===e.k?' selected':'')
           +'>'+esc(e.n)+'</option>'; }).join(''))));
   return F;
 }

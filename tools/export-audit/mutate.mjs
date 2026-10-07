@@ -3758,6 +3758,16 @@ const MUTATIONS = [
   { id: "v200-blLbl-raw", area: "blLbl", what: "a locked-cycle name is drawn without esc(), so a hostile cycle key becomes markup",
     find: "function blLbl(key){ const p=String(key).split('|'); return esc(p[0]+String(p[1]).slice(-2)); }",
     repl: "function blLbl(key){ const p=String(key).split('|'); return p[0]+String(p[1]).slice(-2); }" },
+  // found by the v2.00 self-audit (beyond the review's 27), fixed, and locked down here
+  { id: "v200-destkey-goesto-raw", area: "recFields", what: "an imported destination key is drawn raw into the Goes-to <option value>, so it becomes markup",
+    find: "'<option value=\"'+esc(e.k)+'\"'+(destOf(it).to===e.k?' selected':'')",
+    repl: "'<option value=\"'+e.k+'\"'+(destOf(it).to===e.k?' selected':'')" },
+  { id: "v200-destkey-awards-raw", area: "recFields", what: "an imported destination key is drawn raw into the Which-awards-to <option value>, so it becomes markup",
+    find: "'<option value=\"'+esc(e.k)+'\"'+(destOf(it).end===e.k?' selected':'')",
+    repl: "'<option value=\"'+e.k+'\"'+(destOf(it).end===e.k?' selected':'')" },
+  { id: "v200-flow-to-raw", area: "flowRulesPanel", what: "the funds-flow 'counts as FY' value is drawn without coercion, so an imported flow.pseudo.to becomes markup",
+    find: "counts as FY <input class=\"btn\" style=\"font-size:10px;padding:4px 8px;width:66px\" value=\"'+(parseInt(flowPseudo().to)||'')+'\"",
+    repl: "counts as FY <input class=\"btn\" style=\"font-size:10px;padding:4px 8px;width:66px\" value=\"'+flowPseudo().to+'\"" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

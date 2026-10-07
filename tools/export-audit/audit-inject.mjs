@@ -236,6 +236,10 @@ bootRelease(bm, []);
     ['A3j budget-list file count (budBody)', `esc(x.file)+'</td><td>'+esc(x.n)`],
     ['A4 QPE office (exBody)', `esc(g)+' <span style="color:var(--dim);font-size:8.5px">`],
     ['A5 shared-folder peer reqs (liveBody)', 'sum? esc(sum.reqs)'],
+    // found by the v2.00 self-audit, beyond the review's 27: an imported destination key and a funds-flow FY
+    ['A6 destination key, "Goes to" picker (recFields)', `'<option value="'+esc(e.k)+'"'+(destOf(it).to===e.k`],
+    ['A6 destination key, "Which awards to" picker (recFields)', `'<option value="'+esc(e.k)+'"'+(destOf(it).end===e.k`],
+    ['A3h flow FY "counts as" (matching-rules input)', `value="'+(parseInt(flowPseudo().to)||'')`],
   ];
   for (const [finding, needle] of srcSink) {
     SEEN.add(finding);
