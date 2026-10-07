@@ -4517,7 +4517,7 @@ function rlgBody(){
     +rlgExecYears().map(function(y){
         return '<option value="exec:'+y.fy+'"'+(String(rlgSrc)==='exec:'+y.fy?' selected':'')
           +'>FY'+(y.fy%100)+' execution</option>'; }).join('')
-    +rlgAllYears().map(function(y){ return '<option value="'+y+'"'
+    +rlgAllYears().map(function(y){ return '<option value="'+esc(y)+'"'
         +((rlgSrc===''&&y===MS.cur)||rlgSrc==String(y)?' selected':'')
         +'>FY'+(y%100)+' plan'+(y===MS.cur?' (budget)':'')
         +(rlgYearEmpty(y)?' \u2014 empty':'')+'</option>'; }).join('')
@@ -4533,7 +4533,7 @@ function rlgBody(){
         return '<option value="exec:'+y.fy+'"'+(String(rlgTo)==='exec:'+y.fy?' selected':'')
           +'>FY'+(y.fy%100)+' execution</option>'; }).join('')
     // The whole FYDP window, not just the years with state and the one after them.
-    +rlgAllYears().map(function(y){ return '<option value="'+y+'"'+(rlgTo===y?' selected':'')
+    +rlgAllYears().map(function(y){ return '<option value="'+esc(y)+'"'+(rlgTo===y?' selected':'')
         +'>FY'+(y%100)+(y===MS.cur?' (budget year)':' plan')
         +(rlgYearEmpty(y)?' \u2014 empty':'')+'</option>'; }).join('')
     +'</select>'
@@ -5870,10 +5870,20 @@ function importReportHtml(st){
       : '.')
     + importAceNote(st);
 }
+// v2.00 (item 99): A WHOLE NUMBER, OR THE FALLBACK. For the year and sequence fields a saved file carries. The board
+// writes them as numbers; a file that carried text in one had that text drawn straight into the page as markup.
+function wholeOr(v, d){
+  if(typeof v==='number') return Number.isInteger(v)? v : d;
+  if(typeof v==='string' && /^\s*-?\d+\s*$/.test(v)) return parseInt(v, 10);
+  return d;
+}
 function normalizeStore(raw){
   if(raw && raw.years && typeof raw.years==='object'){
+    raw.base=wholeOr(raw.base, 0);     // v2.00 (item 99): numbers from here on, whatever the file held
+    raw.cur=wholeOr(raw.cur, 0);
     if(!raw.base) raw.base=BASE_FY_DEFAULT;
-    if(!raw.cur || !raw.years[raw.cur]) raw.cur = raw.years[raw.base]? raw.base : parseInt(Object.keys(raw.years)[0]||BASE_FY_DEFAULT);
+    if(!raw.cur || !raw.years[raw.cur]) raw.cur = raw.years[raw.base]? raw.base : wholeOr(Object.keys(raw.years)[0], BASE_FY_DEFAULT);
+    pkgNums(raw);
     return raw;
   }
   // legacy single-year state → wrap as the base year
@@ -6521,7 +6531,7 @@ function jrnlCapture(){
 // PUTTING A VALUE BACK. An entry carries its own path, so undo needs no per-field knowledge.
 function jrnlSet(fy, path, v){
   const y=(MS.years||{})[fy]; if(!y) return false;
-  if(!path.length) return false;
+  if(!path.length || !jrnlPathSafe(path)) return false;
   let node=y;
   for(let i=0;i<path.length-1;i++){
     const k=path[i];
@@ -6534,7 +6544,10 @@ function jrnlSet(fy, path, v){
   else node[k]=JSON.parse(JSON.stringify(v));
   return true;
 }
-function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && !/^\(/.test(String(e.p[0]))
+// v2.00 (item 99): A PATH NEVER WALKS THROUGH JAVASCRIPT'S OWN OBJECTS. The import refuses these three as object keys;
+// a journal entry carries its path as plain text, so Put back refuses them here as well.
+function jrnlPathSafe(p){ return p.every(function(k){ k=String(k); return k!=='__proto__' && k!=='constructor' && k!=='prototype'; }); }
+function jrnlUndoable(e){ return !!(e && Array.isArray(e.p) && e.p.length && jrnlPathSafe(e.p) && !/^\(/.test(String(e.p[0]))
   && !jrnlBySvcPlace(e)
   && !(e.a&&e.a._b) && !(e.b&&e.b._b)); }
 // v1.97 (item 80): AN ENTRY RECORDED BEFORE THE SERVICE LIST CHANGED holds its figures by the places they had then, and
@@ -8558,11 +8571,20 @@ function pkgStoreOf(ap){
   if(ap===mySlug()) return MS;
   if(typeof _SLUGMAP!=='undefined' && _SLUGMAP[ap]){
     try{ const st=JSON.parse(localStorage.getItem(_SLUGMAP[ap].key)||'null');
-         if(st&&(st.years||Array.isArray(st.order))) return st; }
+         if(st&&(st.years||Array.isArray(st.order))) return pkgNums(st); }
     catch(e){ /* absent is normal — fall through to the publish slot */ }
   }
-  if(typeof PUBS!=='undefined' && PUBS && PUBS[ap]) return PUBS[ap];
+  if(typeof PUBS!=='undefined' && PUBS && PUBS[ap]) return pkgNums(PUBS[ap]);
   return null;
+}
+// v2.00 (item 99): A PACKAGE LEDGER'S SEQUENCE NUMBERS ARE WHOLE NUMBERS. Kept as text they reached the Packages panel
+// as markup, and ("3x" < 5) is false, which let an older return past the stale-package check in pkgApply.
+function pkgNums(st){
+  if(!st || typeof st!=='object') return st;
+  const L=st.sync, P=st.pkg;
+  if(L && typeof L==='object'){ if('seq' in L) L.seq=wholeOr(L.seq, 0); if('retSeq' in L) L.retSeq=wholeOr(L.retSeq, 0); }
+  if(P && typeof P==='object'){ if('seq' in P) P.seq=wholeOr(P.seq, 0); if('sentSeq' in P) P.sentSeq=wholeOr(P.sentSeq, 0); }
+  return st;
 }
 function pkgIsCons(){ return typeof APPNS!=='undefined'; }
 // A store only gains its requirement payload at save time, so a freshly opened board has none.
@@ -8639,7 +8661,7 @@ function pkgIssue(ap, quiet){
   // The staleness guard stands on this ledger entry, and save() only reaches browser storage.
   // Close the board without writing the file and the guard quietly stops protecting this
   // appropriation — a failure with no symptom, so say it here every time.
-  setStat('⬆ Issued '+(PKG_NAMES[ap]||ap)+' package #'+seq+'. Send it to the manager; import their '
+  setStat('⬆ Issued '+(PKG_NAMES[ap]||ap)+' package #'+esc(seq)+'. Send it to the manager; import their '
     +'return when it comes back. '+(savedOk
       ? '<b>Use 💾 Save now</b> so the record of this issue is in the file — the stale-package check depends on it.'
       : '⚠ <b>It could not be written to browser storage</b> — use 💾 Save now or this issue is not recorded at all.'));
@@ -8877,7 +8899,7 @@ function pkgBody(){
       const out=led.state==='out';
       h+='<tr><td style="text-align:left;font-weight:700">'+esc(nm)+'</td>'
         +'<td style="text-align:left;color:'+(!st?'var(--red)':(out?'var(--amber)':'var(--dim)'))+'">'
-        +(!st? 'no data on this board' : (out? 'OUT with the manager \u2014 #'+led.seq : (led.seq? 'in hand \u00b7 last cycle #'+led.seq : 'never issued')))+'</td>'
+        +(!st? 'no data on this board' : (out? 'OUT with the manager \u2014 #'+esc(led.seq) : (led.seq? 'in hand \u00b7 last cycle #'+esc(led.seq) : 'never issued')))+'</td>'
         +'<td style="text-align:left;font-size:9.5px;color:var(--dim)">'+(led.issuedTs? esc(fmtTs(led.issuedTs))+(led.issuedBy? ' \u00b7 '+esc(led.issuedBy):'') : '\u2014')+'</td>'
         +'<td style="text-align:left;font-size:9.5px;color:var(--dim)">'+(led.retTs? '#'+led.retSeq+' \u00b7 '+esc(fmtTs(led.retTs))+(led.retBy? ' \u00b7 '+esc(led.retBy):'') : '\u2014')+'</td>'
         +'<td><button class="btn" style="font-size:9.5px;padding:3px 9px"'+(st?'':' disabled')
@@ -8900,7 +8922,7 @@ function pkgBody(){
       +'Load the package you were issued, do your work here, then send a return package back.</div>';
     h+='<table class="fctab"><tr><th style="text-align:left">Working from</th><th style="text-align:left">Issued by</th>'
       +'<th style="text-align:left">When</th><th style="text-align:left">Sent back</th></tr>'
-      +'<tr><td style="text-align:left;font-weight:700">'+(p? 'package #'+p.seq : '\u2014 no package loaded \u2014')+'</td>'
+      +'<tr><td style="text-align:left;font-weight:700">'+(p? 'package #'+esc(p.seq) : '\u2014 no package loaded \u2014')+'</td>'
       +'<td style="text-align:left">'+(p&&p.from? esc(p.from):'\u2014')+'</td>'
       +'<td style="text-align:left">'+(p&&p.ts? esc(fmtTs(p.ts)):'\u2014')+'</td>'
       +'<td style="text-align:left;font-size:9.5px;color:var(--dim)">'
@@ -8926,6 +8948,14 @@ function pkgBody(){
 function pkgApply(pkg, fname){
   if(!pkg || pkg.spmtPkg!==PKG_VER || !pkg.ap || !pkg.ms){
     alert('That is not an ORBIT appropriation package.'); return false;
+  }
+  // v2.00 (item 99): its number is what the stale-package check below compares, so it has to be one.
+  if(pkg.seq!==undefined && pkg.seq!==null){
+    if(wholeOr(pkg.seq, null)===null){
+      alert('NOT IMPORTED — that package’s number is not a number, so it cannot be checked against this board’s record of what was issued.');
+      return false;
+    }
+    pkg.seq=wholeOr(pkg.seq, 0);
   }
   const ap=pkg.ap, nm=PKG_NAMES[ap]||ap, inbound=pkg.dir==='return';
   // A single board can only hold its own appropriation. It has no _SLUGMAP and no PUBS, and
@@ -9377,9 +9407,13 @@ function inAwdWhy(aw, n, svc, at){ const r=awdNorm(aw, {door:true, n:n, svc:svc}
 // The shapes that carry ids, names and amounts, recognised wherever they sit in the file: a requirement
 // list (a data pack), a year's plan (in a board, a cycle, a snapshot, a package), a band ladder, an office
 // or service list, a submittal.
-function inShapeWhy(o, path){
+function inShapeWhy(o, path, asPlan){
   if(Array.isArray(o)) return '';
   let w='';
+  // v2.00 (item 99): a change journal entry names its field by a path, as text - the key check in inWalk never sees it
+  if(Array.isArray(o.jrnl)) for(let i=0;i<o.jrnl.length;i++){ const e=o.jrnl[i];
+    if(e && typeof e==='object' && Array.isArray(e.p)) for(let j=0;j<e.p.length;j++)
+      if(IN_KEY_BAD.has(String(e.p[j]))) return 'the change journal entry at '+path+'.jrnl['+i+'] names a field '+inShow(e.p[j])+', which no board writes'; }
   const eachKey=function(m, fn){ if(!m || typeof m!=='object' || Array.isArray(m)) return ''; const ks=Object.keys(m);
     for(let i=0;i<ks.length;i++){ const r=fn(ks[i], m[ks[i]]); if(r) return r; } return ''; };
   const itemWhy=function(it, at){
@@ -9393,8 +9427,16 @@ function inShapeWhy(o, path){
     for(let i=0;i<o.items.length;i++) if((w=itemWhy(o.items[i], path+'.items['+i+']'))) return w;
     if((w=inAmtsWhy(o.budget, path+'.budget'))) return w;
   }
-  if(Array.isArray(o.order) && ('discSvc' in o || 'alloc' in o || 'custom' in o || 'mc' in o)){
-    for(let i=0;i<o.order.length;i++) if((w=inIdWhy(o.order[i], 'the requirement id at '+path+'.order['+i+']'))) return w;
+  // v2.00 (item 99): A YEAR'S PLAN IS A PLAN WHETHER OR NOT IT CARRIES ITS PRIORITY ORDER. The checks below used to
+  // start only on an order list, and the board rebuilds a missing order when it loads the year - so a plan that
+  // left it out skipped every id and award check and its ids reached the page. Each entry under a store's years
+  // is checked as a plan here (asPlan); one that has its order is checked anyway when the walk reaches it.
+  if(!asPlan && o.years && typeof o.years==='object' && !Array.isArray(o.years))
+    for(const fy of Object.keys(o.years)){ const y=o.years[fy];
+      if(y && typeof y==='object' && !Array.isArray(y) && !Array.isArray(y.order)
+         && (w=inShapeWhy(y, path+'.years.'+fy, true))) return w; }
+  if(asPlan || (Array.isArray(o.order) && ('discSvc' in o || 'alloc' in o || 'custom' in o || 'mc' in o))){
+    if(Array.isArray(o.order)) for(let i=0;i<o.order.length;i++) if((w=inIdWhy(o.order[i], 'the requirement id at '+path+'.order['+i+']'))) return w;
     if(Array.isArray(o.removed)) for(let i=0;i<o.removed.length;i++) if((w=inIdWhy(o.removed[i], 'the requirement id at '+path+'.removed['+i+']'))) return w;
     if(Array.isArray(o.custom)) for(let i=0;i<o.custom.length;i++) if((w=itemWhy(o.custom[i], path+'.custom['+i+']'))) return w;
     for(const k of IN_ID_MAPS) if((w=eachKey(o[k], function(id){ return IN_ID_BAD.test(id)? inIdWhy(id, 'the requirement id keying '+path+'.'+k) : ''; }))) return w;
@@ -19825,7 +19867,7 @@ function cycView(key){
   CYCVIEW=key;
   const V=JSON.parse(JSON.stringify(_cycStash.MS));     // a throwaway copy: MS-level edits die with it
   V.years=JSON.parse(JSON.stringify(c.years));
-  if(c.base) V.base=c.base;
+  if(c.base) V.base=wholeOr(c.base, V.base);
   // v1.99 (item 88): the RCN / EEIC list it was locked with, when it kept one. A cycle locked before v1.99 kept none:
   // its pointers are read against today's list, and the view, the cycle's line and the RCN-EEIC tab say so.
   const kept=cycRcnOf(c);
@@ -19922,7 +19964,7 @@ function blBody(){
   // ---- lock the window
   h+='<div class="fr" style="gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">'
     +PPBE_CYCLES.map(c=>'<button class="btn '+(blCyc===c?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="blCyc='+jsa(c)+';render()">'+c+'</button>').join(' ')
-    +' <label style="font-size:10px">year <input style="width:64px" value="'+blYr+'" onchange="blYr=parseInt(this.value)||blYr;render()"></label>'
+    +' <label style="font-size:10px">year <input style="width:64px" value="'+esc(blYr)+'" onchange="blYr=parseInt(this.value)||blYr;render()"></label>'
     +' <b style="color:var(--gold)">'+esc(blLbl(blKey(blCyc,blYr)))+'</b>'
     +' <input style="width:250px;font-size:10px" placeholder="note (optional) — e.g. as briefed to the PEO 3 Oct" value="'+esc(blNote||'')+'" onchange="blNote=this.value">'
     +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="cycLock()">🔒 Lock '+(ys.length? ys.map(fyl).join(', ') : 'nothing')+' as '+esc(blLbl(blKey(blCyc,blYr)))+'</button>'
@@ -22859,7 +22901,7 @@ function awardBlockHtml(it){
           <td colspan="2" style="padding:2px 6px">${(Math.abs(bal)>=1 && (aw.inc||[]).length)? `<button class="qb" style="color:var(--blue);white-space:nowrap" onclick="fillLastAwd(${jsa(it.id)})" title="put the remaining balance, discretionary + mandatory, on the latest award, per service — the residual mod">↵ put on last</button>`:''}</td></tr>
         </table>
         <span style="display:inline-block;margin-top:4px">
-          <input type="date" id="awdM-${it.id}" min="${fyMin()}" max="${fyMax()}" title="pick the new award's date from the calendar">
+          <input type="date" id="awdM-${esc(it.id)}" min="${fyMin()}" max="${fyMax()}" title="pick the new award's date from the calendar">
           <button class="qb" onclick="addAwd(${jsa(it.id)})" title="add an award at the picked date">＋ add date</button></span>
         <span style="font-size:9.5px;color:${Math.abs(bal)<1?'var(--green)':'var(--amber)'};margin-left:8px">awards ${fM(incSum)} vs <b>funded</b> ${fM(funded)}${pw.mT>0.5? ' (discretionary '+fM(pw.dT)+' + mandatory '+fM(pw.mT)+')' : ''}${Math.abs(bal)<1?' ✓':''}</span>
         <div style="font-size:9.5px;color:var(--dim);margin-top:2px">ℹ Each award is the whole award, both lanes. Discretionary fills them forward from the first; mandatory fills them backward from the last, so it always awards last.</div>
@@ -27316,6 +27358,13 @@ function confHdrs(extra){
   return h;
 }
 function confCreds(){ return liveKey()? 'omit' : 'include'; }
+// v2.00 (item 99): THE DOWNLOAD LINK COMES FROM THE SERVER and the request carries this machine's token, so it is
+// followed only when it is a path on the Confluence address set here - never to whatever host the link would name.
+function confSameHost(link){
+  const base=confBase();
+  if(typeof link!=='string' || link.charAt(0)!=='/') return false;
+  try{ return new URL(base+link).origin===new URL(base).origin; }catch(e){ return false; }
+}
 async function confList(fy){
   const c=liveCfg();
   if(!c.page) throw new Error('no Confluence page id set');
@@ -27355,7 +27404,7 @@ async function confPoll(quiet){
     const ap=String(a.title||'').slice(confPrefix(fy).length).replace(/\.json$/i,'');
     if(!ap || ap===mySlug()) continue;          // your own board is the live one
     const link=(a._links&&a._links.download)||'';
-    if(!link) continue;
+    if(!link || !confSameHost(link)) continue;
     const r=await liveNet(confBase()+link, {method:'GET', headers:confHdrs(),
                                             credentials:confCreds()});
     if(!r.ok){ continue; }                      // one unreadable attachment is not a failed refresh
@@ -28322,7 +28371,7 @@ function idsBody(){
     +'</div>'
     +'<label class="ids-ok"><input type="checkbox" id="idsOrgOk"'+(f.orgOk?' checked':'')+' onchange="idsForm.orgOk=this.checked"> '
       +'This ORG applies to every row and every service in this file.</label>'
-    +'<div class="hint" style="margin-top:4px">Budget FY <b>'+fy+'</b> · the workbook’s second sheet, <b>'+IDS_SHEET2
+    +'<div class="hint" style="margin-top:4px">Budget FY <b>'+esc(fy)+'</b> · the workbook’s second sheet, <b>'+IDS_SHEET2
       +'</b>, lists every contribution left out, every row for review and the reconciliation.</div>'
     +'</div>';
   h+='<div class="fr" style="margin-top:10px;gap:8px">'
