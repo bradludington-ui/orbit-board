@@ -22,6 +22,16 @@ Current version: **v1.99** (shipped 7 Oct, merged to main). Building: **v2.00** 
   corrected. Low-churn: it disturbs almost no mutations.
 - **Tests:** each confirmed hole becomes a check that fails on the pre-fix board and passes after; the security team verifies
   by running the suite and watching red turn green. New mutations remove each fix. One gate covers fixes and cleanup.
+- **Built (7 Oct 2026):** 23 display sinks now escape at the point they are drawn; `wholeOr()` coerces year, sequence,
+  buy-quantity and count fields to whole numbers in `normalizeStore`/`pkgNums` on load; `jrnlPathSafe` refuses
+  `__proto__`/`constructor`/`prototype` as journal path elements (and the import door refuses them in a journal entry);
+  `inShapeWhy` runs the id/award shape check on every year's plan whether or not it carries an `order` list; `pkgApply`
+  refuses a package whose sequence is not a number; `confSameHost` follows a Confluence download link only when it is a
+  path on the configured host. Reviewability: 42 section banners (§01–§42, anchored by function name), ~23 unused
+  functions removed, the PowerPoint template fenced and fingerprinted (`tools/tpl-parts.sha256`, checked by `check.mjs`),
+  stale comments corrected. Tests: `tools/export-audit/audit-inject.mjs` — 24 findings, clean on this board and 19 failing
+  on v1.99 (6388472); 8 new mutations (`v200-*`), all caught; 1,147 mutation targets, 0 not-applied. The import, hostile
+  and board suites pass; the full math gate is the release gate.
 
 #### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
 - The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
