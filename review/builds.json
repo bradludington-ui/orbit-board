@@ -1,0 +1,16 @@
+{
+  "about": "The reviewed releases of prioritization-board-grid.html. tools/review/which-build.mjs computes a board file's code fingerprint and looks it up here. Add an entry for each release, with the values tools/review/fingerprint.mjs --json prints for the release file at its commit. A new fingerprint scheme means every entry is recomputed.",
+  "scheme": "orbit-code-v1",
+  "builds": [
+    {
+      "release": "v1.99 candidate",
+      "build": "v1.99 (6 Oct 2026)",
+      "commit": "6de4432b83e7631022c5e04e2c325badba3d0bcc",
+      "blob": "b160bc031c7f70a4492f64394893d9b74bb0f327",
+      "fileSha256": "e3a8fe5f0a09fb30aa391b6570d834859ac0336a36430fa03dd87938922cd3bf",
+      "code": "e6a260ea42ed69376b1c248e7b69baf39f67891a9ddf6dcb8b7166b671ce6bff",
+      "script": "87bfb7d02901ab4c52c39ef8c8e47d518ac097d1f02f7a8eaca5f28c69700f5d",
+      "gate": "pending"
+    }
+  ]
+}

@@ -42,7 +42,11 @@
     "chrome": "node tools/chrome.mjs --selftest",
     "keys": "node tools/keyboard-reach.mjs",
     "dropdowns": "node tools/dropdowns-visible.mjs",
-    "dialogs": "node tools/dialogs-keyboard.mjs"
+    "dialogs": "node tools/dialogs-keyboard.mjs",
+    "review:bundle": "node tools/review/bundle.mjs",
+    "review:fingerprint": "node tools/review/fingerprint.mjs",
+    "review:which": "node tools/review/which-build.mjs",
+    "review:sinks": "node tools/review/sinks.mjs"
   },
   "devDependencies": {
     "jsdom": "^27.0.0"

@@ -25,6 +25,9 @@
 # The register of math defects this board has shipped. Source, not run output: the nightly gate
 # reads it as its first stage, so a copy that never reaches main takes the guard with it.
 !math-defects.json
+# The reviewed releases: the code fingerprint of each, which tools/review/which-build.mjs looks a board up in.
+# Source, not run output.
+!review/builds.json
 
 # tooling only — the board itself has no dependencies
 node_modules/
@@ -39,3 +42,7 @@ package-lock.json
 
 # Logo generator output. Run output, not source: the chosen files are copied up a level and committed.
 assets/logo/generated/
+
+# The security review bundle (tools/review/bundle.mjs): the board split into styles, markup and script, and
+# the PowerPoint template unpacked. Run output, regenerated from the board on demand.
+review/out/
