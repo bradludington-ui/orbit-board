@@ -5849,7 +5849,7 @@ function importAceNote(st){
   const mine = aceSetKeys();
   const missing = sets.filter(function(k){ return mine.indexOf(k) < 0; });
   if(!missing.length){
-    return ' The file also carried <b>' + sets.sort().join(', ') + '</b> \u2014 already held here, '
+    return ' The file also carried <b>' + esc(sets.sort().join(', ')) + '</b> \u2014 already held here, '
       + 'and an import never overwrites a cost estimate.';
   }
   return ' \u26a0 The file carried the cost estimate <b>' + missing.sort().join(', ') + '</b>, which was '
@@ -6592,7 +6592,7 @@ function jrnlLabel(e){
 }
 function jrnlShow(v){
   if(v===null||v===undefined) return '<span style="color:var(--dim)">not set</span>';
-  if(v&&v._b) return '<span style="color:var(--dim)">'+v._b+' characters</span>';
+  if(v&&v._b) return '<span style="color:var(--dim)">'+esc(v._b)+' characters</span>';
   if(typeof v==='number') return esc(fM? fM(v) : String(v));
   if(typeof v==='boolean') return v? 'yes':'no';
   if(Array.isArray(v)) return esc(v.map(x=>typeof x==='number'?(fM?fM(x):x):x).join(', ')).slice(0,120);
@@ -9058,7 +9058,7 @@ function pkgApply(pkg, fname){
   }
   const note=(lockKept.length? ' '+lockKept.length+' locked baseline'+(lockKept.length===1?'':'s')+' kept as they were.' : '')
     +(clash? ' Your local changes were discarded, as confirmed.' : '');
-  setStat((inbound?'📥 Merged ':'📥 Loaded ')+nm+' package #'+(pkg.seq||0)+(pkg.by? ' from '+pkg.by:'')+'.'+note
+  setStat((inbound?'📥 Merged ':'📥 Loaded ')+esc(nm)+' package #'+(pkg.seq||0)+(pkg.by? ' from '+esc(pkg.by):'')+'.'+note
     +(wrote? ' <b>Use 💾 Save</b> to write it into the file.'
            : ' ⚠ <b>It could not be written to browser storage</b> — 💾 Save now so it is not lost.'));
   render();
@@ -10034,7 +10034,7 @@ function importState(inp){
       }
       if(applyStore(st)===false){ inp.value=''; return; }
       save(); render();
-      setStat((fromBoard?'\u2b05 Imported saved state from '+f.name:'\ud83d\udcc2 State loaded from file')+(st.ts? ' (saved '+fmtTs(st.ts)+')':'')+'.'
+      setStat((fromBoard?'\u2b05 Imported saved state from '+esc(f.name):'\ud83d\udcc2 State loaded from file')+(st.ts? ' (saved '+fmtTs(st.ts)+')':'')+'.'
         + carriedTxt
         + importReportHtml(st)
         + ' Review, then \ud83d\udcbe Save to make it this board\u2019s shared picture.');
@@ -11810,7 +11810,7 @@ async function importSrc(inp){
   if(!f) return;
   try{
     const buf=await f.arrayBuffer();
-    setStat('\ud83d\udce5 Reading '+f.name+'\u2026');
+    setStat('\ud83d\udce5 Reading '+esc(f.name)+'\u2026');
     const sheets=await xlsxRead(buf);
     const msg=[], report=[];
     // v1.99 (item 95): STAGED. Every tab is read into a copy, and the board takes it only once all of them are read. It wrote
@@ -14292,7 +14292,7 @@ async function importAce(inp){
   const f=inp.files&&inp.files[0];
   if(!f) return;
   try{
-    setStat('\ud83d\udcc8 Reading '+f.name+'\u2026');
+    setStat('\ud83d\udcc8 Reading '+esc(f.name)+'\u2026');
     const sheets=await xlsxRead(await f.arrayBuffer());
     const first=Object.keys(sheets)[0];
     if(!first) throw new Error('no sheets in that workbook');
@@ -15383,7 +15383,7 @@ function flowCalc(arg){
   F.grand=F.tot+F.ip+F.fms;
   // the chart already states its scope; money pulled in from another year is a scope fact, not a
   // caveat, so it belongs in that same sentence
-  if(F.pseudo.n) F.label+=' \u00b7 + '+F.pseudo.token+' FY'+(F.pseudo.from%100);
+  if(F.pseudo.n) F.label+=' \u00b7 + '+esc(F.pseudo.token)+' FY'+(F.pseudo.from%100);
   return F;
 }
 // v1.99 (item 92): what partner and FMS money is, said the same way on the panel and in the export
@@ -15498,7 +15498,7 @@ function flowImportReport(){
       +'<td style="text-align:left">'+esc(t.tab)+'</td>'
       +'<td style="text-align:left;color:'+(bad?'var(--red)':(t.how==='exact'?'var(--green)':'var(--amber)'))+';font-weight:700">'
       +esc(bad? 'NOT FOUND' : (t.how==='exact'? 'found' : 'found as \u201c'+t.found+'\u201d ('+t.how+')'))+'</td>'
-      +'<td>'+(t.read||0)+'</td>'
+      +'<td>'+esc(t.read||0)+'</td>'
       +'<td style="font-weight:700;color:'+(t.kept?'var(--ink)':'var(--red)')+'">'+(t.kept||0)+'</td>'
       +'<td style="color:'+(dropped?'var(--amber)':'var(--dim)')+'">'+(t.noFy||0)+'</td>'
       +'<td style="text-align:left;color:'+(off?'var(--amber)':'var(--dim)')+'">'
@@ -16364,7 +16364,7 @@ function flowHtml(){
       +'onchange="flowSetPseudo(&quot;label&quot;,this.value)"></label>'
       +'<label>Budget cell says <input class="btn" style="font-size:10px;padding:4px 8px;width:170px" value="'+esc(flowPseudo().token)+'" '
       +'title="Any of these, matched as whole words" onchange="flowSetPseudo(&quot;token&quot;,this.value)"></label>'
-      +'<label>appropriated FY <input class="btn" style="font-size:10px;padding:4px 8px;width:66px" value="'+flowPseudo().from+'" '
+      +'<label>appropriated FY <input class="btn" style="font-size:10px;padding:4px 8px;width:66px" value="'+(parseInt(flowPseudo().from)||'')+'" '
       +'onchange="flowSetPseudo(&quot;from&quot;,this.value)"></label>'
       +'<label>counts as FY <input class="btn" style="font-size:10px;padding:4px 8px;width:66px" value="'+flowPseudo().to+'" '
       +'onchange="flowSetPseudo(&quot;to&quot;,this.value)"></label>'
@@ -16710,7 +16710,7 @@ function exBody(){
     +'<tr><th style="text-align:left">PMO</th>'+MN.map((x,k)=>'<th'+(PAST[k]?' style="'+PBG+'"':'')+'>'+x+'</th>').join('')+'<th style="border-left:1px solid var(--line)">Approved</th><th>Obligated</th><th>Not Alloc</th><th style="border-left:1px solid var(--gold)">Obl %</th></tr>';
   Object.keys(byP).sort().forEach(g=>{
     const P=byP[g], pp=P.tot>0? P.obl/P.tot:0;
-    h+='<tr><td style="text-align:left;font-weight:800;color:var(--gold)"><button type="button" class="nb" aria-expanded="'+(exX[g]?'true':'false')+'" onclick="exX['+jsa(g)+']=!exX['+jsa(g)+'];render()">'+(exX[g]?'\u25be ':'\u25b8 ')+g+' <span style="color:var(--dim);font-size:8.5px">'+Object.keys(P.titles).length+' titles</span></button></td>'
+    h+='<tr><td style="text-align:left;font-weight:800;color:var(--gold)"><button type="button" class="nb" aria-expanded="'+(exX[g]?'true':'false')+'" onclick="exX['+jsa(g)+']=!exX['+jsa(g)+'];render()">'+(exX[g]?'\u25be ':'\u25b8 ')+esc(g)+' <span style="color:var(--dim);font-size:8.5px">'+Object.keys(P.titles).length+' titles</span></button></td>'
       +P.m.map((v,k)=>'<td'+(PAST[k]?' style="'+PBG+'"':'')+'>'+(Math.abs(v)>5e3?fM2(v):'\u2014')+'</td>').join('')
       +'<td style="border-left:1px solid var(--line)">'+fM2(P.tot)+'</td><td style="color:var(--green)">'+fM2(P.obl)+'</td><td style="color:'+(P.tot-P.obl>5e3?'var(--amber)':'var(--dim)')+'">'+fM2(P.tot-P.obl)+'</td>'
       +'<td style="border-left:1px solid var(--gold);font-weight:800;color:'+(goal!==null&&pp<goal?'var(--red)':'var(--green)')+'">'+pct(pp)+'</td></tr>';
@@ -18650,7 +18650,7 @@ let ppOpen=false, ppCyc='PB', ppYr=null, ppSvcIdx=0;
 let blOpen=false, blCyc='PB', blYr=null, blNote='';
 function blStore(){ if(!CYCDB.cycles || typeof CYCDB.cycles!=='object') CYCDB.cycles={}; return CYCDB.cycles; }
 function blKey(cyc, yr){ return cyc+'|'+yr; }
-function blLbl(key){ const p=String(key).split('|'); return p[0]+String(p[1]).slice(-2); }
+function blLbl(key){ const p=String(key).split('|'); return esc(p[0]+String(p[1]).slice(-2)); }
 function blList(){ return Object.keys(blStore()).sort(); }
 function blGet(key){ return blStore()[key]||null; }
 // The projection a cycle holds for one fiscal year, or null when it never captured that year.
@@ -19984,7 +19984,7 @@ function blBody(){
   el.innerHTML=h;
 }
 const PPBE_CYCLES=['POM','BES','PB','DoN'];
-const ppLbl=k=>{ const [c,y]=k.split('|'); return c+(parseInt(y)%100); };
+const ppLbl=k=>{ const [c,y]=k.split('|'); return esc(c)+(parseInt(y)%100); };
 function toggleP2(){
   ppOpen=!ppOpen;
   if(ppYr===null) ppYr=MS.cur;
@@ -21004,8 +21004,8 @@ function posExecLine(s){
   const e=(s&&s.exec)||{};
   if(!e.imported) return 'plan only — no execution was imported when this was taken';
   if(!e.read) return 'plan only — execution was imported, but none of it was FY'+((s.fy||0)%100);
-  return e.read+' rows through '+esc(e.asOf||'?')+' · '+e.uniq+' on one requirement · '
-    +e.shared+' on a shared title · '+e.none+' matched none';
+  return esc(e.read)+' rows through '+esc(e.asOf||'?')+' · '+esc(e.uniq)+' on one requirement · '
+    +esc(e.shared)+' on a shared title · '+esc(e.none)+' matched none';
 }
 function posBody(){
   const bg=document.getElementById('posPanel'), el=document.getElementById('posBody');
@@ -22069,7 +22069,7 @@ function bmSeedFromPp(key){
   });
   if(!confirm('Take '+FYL()+'’s base budget authority from '+lbl+'?\n\n'
     +lines.join('\n')
-    +(v.absent.length? '\n\nLEFT ALONE — '+lbl+' says nothing about: '+v.absent.join(', ')
+    +(v.absent.length? '\n\nLEFT ALONE — '+lbl+' says nothing about: '+esc(v.absent.join(', '))
                       +'\n(a position that does not mention a service is not a position that says zero)' : '')
     +(v.outside.length? '\n\nIGNORED — '+lbl+' carries services this board does not: '+v.outside.join(', ') : '')
     +'\n\nAdded funding sources are not touched, and you can edit any of these afterwards.')) return;
@@ -22079,7 +22079,7 @@ function bmSeedFromPp(key){
   applyBudget(); save(); render();
   setStat('🏛 '+FYL()+'’s base budget authority taken from <b>'+esc(lbl)+'</b> for '
     +v.covered.length+' service'+(v.covered.length===1?'':'s')
-    +(v.absent.length? '; '+v.absent.join(', ')+' left as '+(v.absent.length===1?'it was':'they were') : '')
+    +(v.absent.length? '; '+esc(v.absent.join(', '))+' left as '+(v.absent.length===1?'it was':'they were') : '')
     +'. These are the board’s numbers now — edit them freely.');
 }
 // Forget the link without touching a single figure. The numbers stay; only the claim about where
@@ -25034,8 +25034,8 @@ function buysPanel(){
     let rows='';
     SVC.forEach((s,i)=>{
       rows+=`<tr><td>${esc(s)}</td>
-        <td><input class="qty" value="${b.base[i]||0}" onchange="setBuy(${jsa(t)},'base',${i},this.value)" onfocus="this.select()" title="baseline quantity (reference)"></td>
-        <td><input class="qty" value="${b.adj[i]||0}" onchange="setBuy(${jsa(t)},'adj',${i},this.value)" onfocus="this.select()" title="adjusted quantity — drives the total"></td>
+        <td><input class="qty" value="${esc(b.base[i]||0)}" onchange="setBuy(${jsa(t)},'base',${i},this.value)" onfocus="this.select()" title="baseline quantity (reference)"></td>
+        <td><input class="qty" value="${esc(b.adj[i]||0)}" onchange="setBuy(${jsa(t)},'adj',${i},this.value)" onfocus="this.select()" title="adjusted quantity — drives the total"></td>
         <td><input ${dis} value="${b.cost[i]? Math.round(b.cost[i]).toLocaleString():''}" placeholder="unit cost" onchange="setBuy(${jsa(t)},'cost',${i},this.value)" onfocus="this.select()"></td>
         <td style="font-weight:800;color:var(--gold)">${buyDollarsAt(b,i)===null? '<span class="buybad" style="color:var(--amber)" title="not a whole-number quantity and cost making an exact figure -- counted as $0 until it is typed again">⚠ not counted</span>' : fM(buyDollarsAt(b,i))}</td></tr>`;
     });
@@ -25326,7 +25326,7 @@ function render(){
       fundM && _bd? `<span class="x">${_bi>=0? _bi+' · ':''}${esc(_bd.n)}</span>` : ''].filter(Boolean).join(' · ');
     const _band=`<div class="bandc" title="Decision band — the funding rule travels with the band. Set it on the RECORD panel; manage the ladder in ⚖ Bands.">`
       +(_bd? `<i style="background:${readableOn(_bd.c,'#ffffff',1)}"></i><span><span class="n">${_bi>=0? _bi : ''}</span> ${esc(_bd.n)}</span>` : '<span class="none">— no band</span>')+`</div>`;
-    const _lane=`<div class="lanec" title="Disc ${fM(t.dT)} · Mand ${fM(t.mT)} · Unfunded ${fM(t.uT)}${t.set?' · funding source SET manually ('+t.set.toUpperCase()+')':''}">`
+    const _lane=`<div class="lanec" title="Disc ${fM(t.dT)} · Mand ${fM(t.mT)} · Unfunded ${fM(t.uT)}${t.set?' · funding source SET manually ('+esc(t.set.toUpperCase())+')':''}">`
       +`<span class="meter" aria-hidden="true"><b class="d" style="width:${_w(t.dT)}%"></b><b class="m" style="width:${_w(t.mT)}%"></b></span>`
       +`<span class="ll ${_lk}">${t.set?'⚙ ':''}${_ll.charAt(0)+_ll.slice(1).toLowerCase()}</span>`
       +(svcFilter>=0? `<span class="sfl" style="color:${sfLeft>0.5?'var(--green)':'var(--red)'}" title="${esc(SVC[svcFilter])} discretionary remaining after this row and everything above it">${esc(SVC[svcFilter])} disc ${sfLeft>0.5? fM(sfLeft)+' left':'exhausted'}</span>`:'')
@@ -27788,7 +27788,7 @@ function liveBody(){
         +'<td style="text-align:left">'+esc(P.by||'—')+'</td>'
         +'<td>'+esc(liveAge(P.ts))+'</td>'
         +'<td>FY'+((P.fy||0)%100)+'</td>'
-        +'<td>'+(P.tooNew? 'newer build'+(P.build? ' '+esc(P.build):'') : (sum? sum.reqs : '—'))
+        +'<td>'+(P.tooNew? 'newer build'+(P.build? ' '+esc(P.build):'') : (sum? esc(sum.reqs) : '—'))
         +'</td></tr>';
     });
     h+='</table>';
@@ -27851,7 +27851,7 @@ function budRegBody(){
       +'<th style="text-align:left">File</th><th>Budgets</th><th>Imported</th></tr>';
     files.forEach(function(x){
       h+='<tr><td style="text-align:left"><b>'+esc(x.dept)+'</b></td>'
-        +'<td style="text-align:left">'+esc(x.file)+'</td><td>'+x.n+'</td>'
+        +'<td style="text-align:left">'+esc(x.file)+'</td><td>'+esc(x.n)+'</td>'
         +'<td>'+esc(new Date(x.ts).toISOString().slice(0,10))+'</td></tr>';
     });
     h+='</table>';

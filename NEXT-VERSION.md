@@ -4,7 +4,29 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.99**. Next: **v2.00**.
+Current version: **v1.99** (shipped 7 Oct, merged to main). Building: **v2.00** — the security version.
+
+## Building now — v2.00 (the security version)
+
+#### 99. Imported text shown as page code, plus the reviewability cleanup (Brad, 7 Oct 2026)
+- **Found** reviewing v1.99 for Brad's security team: values from an imported board, PMO package, QPE workbook or a peer's
+  folder file reach the page as HTML without escaping, so a crafted file can run its own script. 27 holes reproduced on
+  v1.98 and v1.99 through the board's own import paths, audited, and shown running in Chromium. Details and crafted files
+  are in the owner's private annex, outside the repo.
+- **The fixes:** escape each value where it is shown (about 20 sinks); read year, sequence, buy-quantity and count fields as
+  numbers when they load; refuse `__proto__` / `constructor` / `prototype` as journal path elements, not only as object
+  keys; validate custom ids and award keys even when a plan has no `order` list; allow-list the Confluence download host
+  before attaching credentials. Do not make the import check refuse more (boards people hold must keep opening).
+- **The cleanup (folded in, Brad 7 Oct):** about 35 section headings so a reviewer can navigate the file; ~140 dead lines
+  removed; the 1.6 MB PowerPoint template fenced with a recorded fingerprint so reviewers can skip it; misleading comments
+  corrected. Low-churn: it disturbs almost no mutations.
+- **Tests:** each confirmed hole becomes a check that fails on the pre-fix board and passes after; the security team verifies
+  by running the suite and watching red turn green. New mutations remove each fix. One gate covers fixes and cleanup.
+
+#### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
+- The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
+  CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
+  Not in the v2.00 code build; it follows once they answer.
 
 ## Open
 
