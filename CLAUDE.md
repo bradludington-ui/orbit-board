@@ -3838,7 +3838,12 @@ a buy quantity…(item 90)", "…a code longer than its limit…(item 91)". Ever
 Expected changes kept to expectations, fixtures as they were: the funds-flow tests set the panel's selection
 (`flowCfg().fys`), and the v1.97 ACE tie-out test checks the new accounted-for line on its own. 59 new mutations, 7
 retargeted (1,139 in all).
-**Gate.** GATE_PLACEHOLDER
+**Gate.** `npm run validate:math` passed on the candidate tree (`5942e58`), 7 Oct 2026, run as a restart-proof batch runner
+(same nine stages, commands and pass rules, sweep in twelve saved batches) after four six-hour single runs were each ended
+by a container restart: 5:09 am – 2:58 pm Eastern on one container, sweep 1128/1128 caught, 11 equivalent (1,139), 0 survived
+/ not applied / crashed / disagreeing, fuzz seed 721033589, money map 123 proven / 206 n/a / 0 open. Independent
+expected-versus-actual on the candidate board: 23 comparisons, 0 differences. The batch runner is kept at
+`scratchpad/v199/gate-chunked/` with per-stage and per-batch logs.
 
 ## Colour: one token, one job
 

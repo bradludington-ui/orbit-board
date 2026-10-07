@@ -184,7 +184,16 @@ selection (`flowCfg().fys`) where they set `flowFy`; the v1.97 ACE tie-out test 
 from the office rows; the full-import version test's pattern reads any major version and is checked to have replaced the
 stamp.
 
-GATE_PLACEHOLDER
+**The final check** passed on the candidate tree (`5942e58`, board blob `b160bc0`), 7 Oct 2026. Four six-hour runs of
+`npm run validate:math` were each ended by a container restart, so the gate was run as a restart-proof batch runner — the
+same nine stages, the same commands, the same pass rules, with every stage and every sweep batch saved as it finished and
+the sweep split into twelve batches. It ran 5:09 am – 2:58 pm Eastern on one uninterrupted container, every stage clean —
+the defect register (13 defects, 43 mutations), money coverage (26 of 26 surfaces), the money map (329 cells: 123 proven,
+206 not applicable, 0 open), the trace matrix (92 cells), all eight suites, every browser check, the fuzz (seed 721033589)
+and the file verifier — and **all 1,128 planted mistakes caught** across the twelve batches (11 more change nothing by
+design), 0 survived, 0 not applied, 0 crashed, and 0 disagreeing between batches: v1.98's 1,069 plus 59 new, all presweept
+first. Independent expected-versus-actual on the candidate board: 23 comparisons, 0 differences. The candidate's code and
+tests are byte-identical to what the gate tested; only this line and its twin in CLAUDE.md were written in afterwards.
 
 #### Scope (Brad, 6 Oct 2026)
 - **In v1.99:** items 85–88 (built), and 90–98 below. This approves the engineering direction; it does not certify the
