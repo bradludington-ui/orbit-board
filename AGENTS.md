@@ -155,6 +155,27 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   under a key the list does not hold. Every RCN/EEIC surface reads that one rule, so they agree to the dollar.
 - Leave a pointer at a removed combination, or an added CLIN's RCN/EEIC or WBS behind when it is deleted for good: the
   next added CLIN is given its key.
+- Split a whole-dollar total anywhere but `apportion()`, or work a share out in floating point: it is exact (`apExact`
+  weights, BigInt quotient and remainder), largest remainder first, ties to the lower service.
+- Put several keys back with `every()` or anything that stops at the first failure: `lsPutBack()` tries each and reads it
+  back, and a list not as it was goes to the mixed-import hold (`batchImportUndone`, `fullImportUndone`) -- never "exactly as
+  it was". Take the before-copy from `lsAll`'s own reading, never a second one.
+- Cut typed text before deciding whether it is valid: read the whole entry, refuse one that is too long, and shorten only
+  the text quoted back.
+- Lock a cycle without the lists its pointers are read through: a cycle keeps its RCN / EEIC list (`rcn`), and its view
+  reads it (`cycRcnOf`). One without says so (`CYC_RCN_TODAY`); never fill a past code in.
+- Cut a code to its length, typed or imported: a typed one over its limit is refused (`codeTake`) and the text stays where
+  it was typed; an imported one is kept whole and listed (`codeIssues`).
+- Read a quantity loosely, or multiply one into dollars without `buyDollars()`: a whole number from 0, and a product that
+  is a safe integer within `IN_MAX_AMT`, or the line counts $0 and is listed.
+- Read a `const` declared further down from code that runs while the board opens (`applyState` and everything it calls):
+  it throws, and the board stops opening. Read it through a function that cannot throw (`buyMax()`).
+- Export the funds flow from anything but `flowCalc()` -- the panel's selection -- or decide a year executed for every
+  appropriation because one has execution (`flowYearKind(fy, slug)`).
+- Count a side list as saved because a counter started at zero: what browser storage held before opening, and a save
+  would write over a different copy, is unsaved (`sideBootCheck`) -- while what opening an older file wrote itself is not.
+- Write a side list into memory part-way through an import or a folder read: stage it, and take it only once all of it
+  is read.
 - Rename the browser-storage keys `spmtTheme`, `spmtSeen`, `spmtMode`, `spmtDensity`, `spmtDetail` and
   `spmtMenuGroups`, or the package signature `spmtPkg`.
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.

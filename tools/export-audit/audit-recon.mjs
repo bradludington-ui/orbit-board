@@ -2408,9 +2408,9 @@ await (async () => {
     (f1 === funded) + ' ' + (w6S(E1.A) > R.A.fT) + ' ' + ids.some(id => id !== 'A' && w6S(E1[id]) < R[id].fT), 'true true true');
   chk(name, 'next year', 'flowCalc for next year is next year’s lane walk, and this year’s is unchanged',
     X.ev(`flowCalc(MS.cur+1).tot+'|'+flowCalc(MS.cur+1).appn[mySlug()]+'|'+flowCalc(MS.cur).tot`), [f1, f1, funded].join('|'));
-  X.ev(`flowFy=MS.cur+1; 'ok'`);
+  X.ev(`flowCfg().fys=[MS.cur+1]; flowCfg().aps=null; 'ok'`);   // v1.99 (item 92): the export writes the panel's selection
   const wb1 = JSON.parse(await w6Book(X.w, 'exportFlow'));
-  X.ev(`flowFy=MS.cur; 'ok'`);
+  X.ev(`flowCfg().fys=null; 'ok'`);
   const ff1 = Object.values(wb1).find(rs => (rs || []).some(r => w6Lbl(r) === 'US SERVICE FUNDING')) || [];
   chk(name, 'next year · workbook', 'US SERVICE FUNDING is next year’s funded topline', num((ff1.find(r => w6Lbl(r) === 'US SERVICE FUNDING') || [])[1]), f1);
   const want1 = {}; ids.forEach(id => SV.forEach((sv, i) => { if (E1[id][i] > 0) want1[R[id].title + '|' + sv] = E1[id][i]; }));
@@ -3559,7 +3559,7 @@ await (async () => {
     chk(name, where + 'fiscal year', 'the unfunded priority list states its own rows', J(G.upl.slice().sort()), J(L.filter(l => l.upl).map(key).sort()));
   };
   for (const fy of [2025, 2026, 2027, 2028, 2029]) {
-    X.ev(`flowFy=${fy}; 'ok'`);
+    X.ev(`flowCfg().fys=[${fy}]; flowCfg().aps=null; 'ok'`);   // v1.99 (item 92): the panel's selection, one year
     const wb = JSON.parse(await w6Book(X.w, 'exportFlow'));
     chk(name, 'FY' + (fy % 100), 'the funds flow builds and reads back', wb.__err || 'ok', 'ok');
     const G = read(wb), L = expect(fy);
@@ -3574,7 +3574,7 @@ await (async () => {
       J(G.notes.filter(n => /UNFUNDED requirements/.test(n)).map(n => num((/includes (\d+)/.exec(n) || [])[1]))), J(fy === 2026 ? [50021] : []));
   }
   // the two executed years together: a carried row counts once, in neither year twice, and the year note says so
-  X.ev(`flowFy=null; flowCfg().fys=[2025,2026]; 'ok'`);
+  X.ev(`flowCfg().fys=[2025,2026]; flowCfg().aps=null; 'ok'`);
   const wbm = JSON.parse(await w6Book(X.w, 'exportFlow'));
   X.ev(`flowCfg().fys=null; 'ok'`);
   const Gm = read(wbm), Lm = expect(2025).concat(expect(2026));
@@ -3661,7 +3661,12 @@ await (async () => {
   // ---- Reconciliation by PMO: a block per year, each PMO's estimate read from that year's column
   {
     const pmo = bk['Reconciliation by PMO'] || [], h = headerRow(pmo, 'FY', 'PMO', 'Estimate', 'Board funded', 'Delta');
-    const got = pmo.slice(h + 1).filter(r => /^FY\d\d/.test(w6Lbl(r))).map(r => [w6Lbl(r), String(r[1] ?? '').split('   ')[0], num(r[2]), num(r[3]), num(r[4]), num(r[5]), num(r[6])]);
+    // v1.99 (item 94): each year's block ends with the estimate accounted for -- checked below, apart from the office rows
+    const idn = r => /^Estimate for this appropriation = the TOTAL/.test(String(r[1] ?? ''));
+    const got = pmo.slice(h + 1).filter(r => /^FY\d\d/.test(w6Lbl(r)) && !idn(r)).map(r => [w6Lbl(r), String(r[1] ?? '').split('   ')[0], num(r[2]), num(r[3]), num(r[4]), num(r[5]), num(r[6])]);
+    chk(name, 'Reconciliation by PMO · fiscal year', 'v1.99 (item 94): each year’s estimate, accounted for: the office rows plus the stray line, and it ties',
+      J(pmo.slice(h + 1).filter(idn).map(r => [w6Lbl(r), num(r[2]), /DOES NOT TIE/.test(String(r[1]))])),
+      J(YRS.map(fy => [FYL2(fy), S_(LINES.map(l => l[fy === 2027 ? 2 : 3])), false])));
     const want = [].concat(...YRS.map(fy => {
       const L = ['ATL', 'AV', 'PSM', 'TSS'].map(p => { const mine = ids.filter(id => PMO[id] === p), e = S_(LINES.filter(l => l[0] === p).map(l => l[fy === 2027 ? 2 : 3])), b = S_(mine.map(id => F[fy][id]));
         return [FYL2(fy), p, e, b, b - e, mine.filter(id => Y[fy].ok[id]).length, mine.length]; });
@@ -3913,6 +3918,375 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v1.98 item 83 ====
+// ==== v1.99 item 85 (review N01): a split total gives each odd dollar to the service it belongs to ====
+// THE ORACLE IS INTEGER ARITHMETIC, written here and not read from the board: every weight is made an exact fraction by
+// doubling it until it is whole (a different route from the board's, which reads the number's bits), put over one
+// denominator, and each share is the exact quotient with its exact remainder; leftover dollars go to the largest
+// remainders, ties to the lower service. No weight: evenly.
+// FAILS ON v1.98, which worked each share out in floating point: $100,000,000 over [19,698,320, 191,126,895, 89,174,792]
+// gave [6,566,107, 63,708,963, 29,724,930] -- the first service $1 of the second's (remainders 154,037,258 and
+// 154,037,259 of 300,000,007) -- and $10,000,000 over 1 : 1 : 4 gave [1,666,667, 1,666,666, 6,666,667], the tie to the
+// third service.
+const v199Exact = (T, w) => {
+  const fr = w.map(x => { x = (Number.isFinite(x) && x > 0) ? x : 0; let d = 1n, v = x; while (!Number.isInteger(v)) { v *= 2; d *= 2n; } return [BigInt(v), d]; });
+  const F = fr.some(f => f[0] > 0n) ? fr : fr.map(() => [1n, 1n]);
+  const L = F.reduce((a, f) => (a > f[1] ? a : f[1]), 1n), W = F.map(f => f[0] * (L / f[1])), s = W.reduce((a, b) => a + b, 0n), t = BigInt(Math.round(T));
+  const q = [], r = []; W.forEach(x => { const p = t * x; let d = p / s, m = p - d * s; if (m < 0n) { d -= 1n; m += s; } q.push(d); r.push(m); });
+  let left = t - q.reduce((a, b) => a + b, 0n);
+  const ord = r.map((v, i) => ({ i, v })).sort((a, b) => (a.v < b.v ? 1 : a.v > b.v ? -1 : a.i - b.i));
+  for (let k = 0; left > 0n; k++, left--) q[ord[k].i]++;
+  return q.map(Number); };
+// Near-ties at budget size, built on purpose: with T and the sum s coprime, w2 = w1 + T^-1 (mod s) has a remainder exactly
+// one more than w1's. Random figures almost never land this close; the board must still be exact when they do.
+const v199Inv = (a, m) => { let [r0, r1, s0, s1] = [m, a % m, 0n, 1n]; while (r1) { const q = r0 / r1; [r0, r1] = [r1, r0 - q * r1]; [s0, s1] = [s1, s0 - q * s1]; } return ((s0 % m) + m) % m; };
+const v199NearTies = n => { const out = [];
+  for (const [T, s] of [[100000000, 300000007], [250000000, 600000001], [1000000000, 900000011], [2500000000, 300000007]]) {
+    const Ti = v199Inv(BigInt(T) % BigInt(s), BigInt(s));
+    for (let k = 0; k < n / 4; k++) {
+      const w1 = BigInt(1000003 + k * 99991) % BigInt(s), w2 = (w1 + Ti) % BigInt(s), w3 = BigInt(s) - w1 - w2;
+      if (w3 < 0n) continue;
+      out.push([T, (k % 2) ? [Number(w2), Number(w1), Number(w3)] : [Number(w1), Number(w2), Number(w3)]]); } }
+  return out; };
+await (async () => {
+  const name = 'v1.99 item 85 — a split total gives each odd dollar to the service it belongs to: exact, ties to the lower service';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const W = [19698320, 191126895, 89174792], E8 = v199Exact(100000000, W), TIE = v199Exact(10000000, [1000, 1000, 4000]);
+    w5Chk(name, 'oracle', 'CONTROL — the oracle’s own answers: the near-tie and the tie (worked by hand in the comment)',
+      J([E8, TIE]), J([[6566106, 63708964, 29724930], [1666667, 1666667, 6666666]]));
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', 'AV', W), it('B', 'AV', [1000, 1000, 4000]), it('L', 'AV', W), it('P', 'AV', [300000007, 0, 0])],
+      disc: [1e9, 1e9, 1e9], mand: [0, 0, 0], order: ['A', 'B', 'L', 'P'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.alloc={A:{m:'t', v:100000000}, B:{m:'t', v:10000000}, P:{m:'s', v:[100000000,0,0]}};
+      S.fsrc={L:{m:'split', d:100000000, mnd:0}};
+      S.ptype={P:'PRIME'};
+      S.clinNew={P:[{key:'n1',clin:'0001',desc:'one',ccar:'',ask:[19698320,0,0]},{key:'n2',clin:'0002',desc:'two',ccar:'',ask:[191126895,0,0]},{key:'n3',clin:'0003',desc:'three',ccar:'',ask:[89174792,0,0]}]};
+      S.clinAlloc={P:{n1:[19698320,0,0], n2:[191126895,0,0], n3:[89174792,0,0]}};
+      applyState(S); save(); 'ok'`);
+    // ---- the helper: named cases, then a sweep -- every service's dollars, not the total
+    const ap = cases => JSON.parse(X.ev(`JSON.stringify(${J(cases)}.map(function(c){ return apportion(c[0], c[1]); }))`));
+    const NAMED = [['the review’s case, $7,652,408,746,072', 7652408746072, [8028733825777, 532030733303, 817029632163]],
+      ['a near-tie at budget size, $100,000,000', 100000000, W], ['an exact tie, $10,000,000 over 1 : 1 : 4', 10000000, [1000, 1000, 4000]],
+      ['an exact tie, $2 over 1 : 3 : 10', 2, [1, 3, 10]], ['a deduction, -$7 over 1 : 2 : 4', -7, [1, 2, 4]], ['a deduction that does not divide, -$1 over three equal services', -1, [1, 1, 1]], ['no weight: $7 evenly', 7, [0, 0, 0]],
+      ['fractional weights, $100 over 0.1 : 0.2 : 0.3', 100, [0.1, 0.2, 0.3]], ['$10,000,000,000,000 over six equal services', 1e13, [1, 1, 1, 1, 1, 1]],
+      ['weights 600 orders apart', 1, [1e-300, 1e300]], ['weights the board does not take (Infinity, NaN, negative)', 5, [Infinity, NaN, -3, 2]]];
+    const got = ap(NAMED.map(c => [c[1], c[2]]));
+    // the first four fail on v1.98; the rest are CONTROLS (v1.98 already had them right) that hold the edges
+    NAMED.forEach((c, i) => w5Chk(name, 'apportion: ' + c[0], (i >= 4 ? 'CONTROL — ' : '') + 'every service’s dollars are the exact split, ties to the lower service', J(got[i]), J(v199Exact(c[1], c[2]))));
+    let seedN = 20261006; const rnd = () => { seedN = (seedN * 1103515245 + 12345) % 2147483648; return seedN / 2147483648; };
+    const SWEEP = v199NearTies(400);
+    for (let a = 1; a <= 12; a++) for (let b = 1; b <= 12; b++) for (let c = 1; c <= 12; c += 3) SWEEP.push([1 + ((a * b * c) % 97), [a, b, c]]);
+    for (let i = 0; i < 600; i++) { const k = 2 + Math.floor(rnd() * 5), mag = 10 ** (3 + Math.floor(rnd() * 10));
+      SWEEP.push([Math.floor(rnd() * mag), Array.from({ length: k }, () => (rnd() < 0.15 ? 0 : rnd() < 0.2 ? rnd() * mag : Math.floor(rnd() * mag)))]); }
+    const sg = ap(SWEEP);
+    const bad = SWEEP.map((c, i) => [c, sg[i], v199Exact(c[0], c[1])]).filter(x => J(x[1]) !== J(x[2]));
+    w5Chk(name, 'apportion: ' + SWEEP.length + ' cases -- built near-ties, small ties, random to $10 trillion', 'none differs from the exact split, service by service',
+      bad.length ? bad.length + ' differ, e.g. ' + J(bad[0]) : 'none', 'none');
+    // ---- every surface that spreads a total by it, read where the board keeps the result
+    const ev = c => { try { return JSON.parse(X.ev(c)); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
+    w5Chk(name, 'a typed budget total, $100,000,000', 'the base and the live lane hold the exact split of the base’s shape',
+      J(ev(`(function(){ S.bm={disc:${J(W)}, mand:[0,0,0], adds:[]}; applyBudget(); setBATot('disc','$100,000,000'); return JSON.stringify([S.bm.disc, S.discSvc]); })()`)), J([E8, E8]));
+    w5Chk(name, 'a typed budget total, $10,000,000 over 1 : 1 : 4', 'the tie goes to the lower service',
+      J(ev(`(function(){ S.bm={disc:[1000,1000,4000], mand:[0,0,0], adds:[]}; applyBudget(); setBATot('disc','$10,000,000'); var r=S.bm.disc.slice();
+        S.bm={disc:[1e9,1e9,1e9], mand:[0,0,0], adds:[]}; applyBudget(); return JSON.stringify(r); })()`)), J(TIE));
+    w5Chk(name, 'a total allocation, $100,000,000 on A', 'each service’s allocation is the exact split in the shape of the ask', J(ev(`JSON.stringify(svcAlloc(itemById('A')))`)), J(E8));
+    w5Chk(name, 'a total allocation, $10,000,000 on B (1 : 1 : 4)', 'the tie goes to the lower service', J(ev(`JSON.stringify(svcAlloc(itemById('B')))`)), J(TIE));
+    w5Chk(name, 'an old-style split, $100,000,000 discretionary on L', 'the lane engine funds each service its exact share', J(ev(`JSON.stringify(tiers().L.d)`)), J(E8));
+    w5Chk(name, 'a prime’s CLINs, $100,000,000 on USAF', 'each CLIN’s part is the exact split by the CLIN grid',
+      J(ev(`JSON.stringify(clinSplit('P', 0, 100000000).map(function(x){ return x.part; }))`)), J(E8));
+    const sb = JSON.parse(await w6Book(X.w, 'exportSrc'));
+    w5Chk(name, 'Spend Plan Source', 'CONTROL — the file builds and reads back', sb.__err || 'ok', 'ok');
+    const src = (Object.values(sb).find(rs => (rs || []).length > 1) || []).slice(1);
+    const pl = ['0001', '0002', '0003'].map(c => src.filter(r => String(r[25] ?? '') === c).reduce((a, r) => a + (num(r[9]) || 0), 0));
+    w5Chk(name, 'Spend Plan Source', 'P’s USAF lines, CLIN by CLIN, carry the exact split', J(pl), J(E8));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.99 item 85 ====
+// ==== v1.99 item 87 (review N03): the reprogramming $M field reads the whole entry ====
+// FAILS ON v1.98, which cut the entry to 60 characters before reading it: "1", 59 spaces and "oops" was $1M (over this $5M
+// row it replaced the figure and stamped the row), and "0.000001", 52 zeros and "1" -- not whole dollars -- was $1.
+await (async () => {
+  const name = 'v1.99 item 87 — the $M field reads the whole entry, however long, and a refused one changes nothing';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+  const J = JSON.stringify;
+  const X = boot();
+  seed(X.ev, { services: ['USAF', 'ANG'], items: [it('A', 'PSM', [300, 200])], disc: [600, 400], mand: [0, 0], order: ['A'] });
+  X.ev(`RPDB.entries=[{id:'RPW', ts:1, ap:APPN, fy:2027, type:'BTR', svc:0, title:'whole', amtM:5, dir:'add', pool:'disc', status:'Pending'}]; RPDB.ts=1; persistRp(); 'ok'`);
+  // the row's figure, the row's stamp, the log's stamp and the stored bytes
+  const state = () => X.ev(`(function(){ var r=rpAll()[0]; return JSON.stringify([r.amtM, r.ts, RPDB.ts, localStorage.getItem('prio27reprog')]); })()`);
+  const typed = t => { const before = state(); X.ev(`rpSetField('RPW', 'amtM', ${J(t)}); 'ok'`);
+    const r = { same: state() === before, amt: X.ev(`String(rpAll()[0].amtM)`), stat: X.ev(`(document.getElementById('shareStat')||{}).textContent||''`) };
+    X.ev(`(function(){ var r=rpAll()[0]; r.amtM=5; r.ts=1; RPDB.ts=1; persistRp(); })(); 'ok'`);   // the row as it was, for the next case
+    return r; };
+  // [what, entry, refused?, what it is recorded as when taken, the message (refused)]
+  const CASES = [
+    ['64 characters: "1", 59 spaces, "oops"', '1' + ' '.repeat(59) + 'oops', true, null, /does not read as an amount/],
+    ['61 characters: "0.000001", 52 zeros, "1" (not whole dollars)', '0.000001' + '0'.repeat(52) + '1', true, null, /not a whole number of dollars/],
+    ['64 characters: a valid start, a bad end', '4.5' + '0'.repeat(60) + 'x', true, null, /does not read as an amount/],
+    ['63 characters: a nonzero digit past the sixth decimal', '2.000000' + '0'.repeat(54) + '7', true, null, /not a whole number of dollars/],
+    ['73 characters: a sign, then spaces, then a stray digit', '-1' + ' '.repeat(70) + '2', true, null, /does not read as an amount/],
+    ['201 characters', '6.' + '0'.repeat(199), true, null, /201 characters long/],
+    ['CONTROL — 59 characters: "1", spaces, "M"', '1' + ' '.repeat(57) + 'M', false, '1', null],
+    ['CONTROL — 60 characters: "2." and zeros', '2.' + '0'.repeat(58), false, '2', null],
+    ['CONTROL — 61 characters: "3." and zeros (the whole entry is whole dollars)', '3.' + '0'.repeat(59), false, '3', null],
+    ['CONTROL — 200 characters: "6." and zeros', '6.' + '0'.repeat(198), false, '6', null],
+    ['CONTROL — over $10 trillion', '10000001', true, null, /more than the \$10,000,000,000,000/],
+    ['CONTROL — blank is a clear', '   ', false, '0', null],
+  ];
+  CASES.forEach(([lbl, t, refused, amt, msg]) => {
+    const r = typed(t);
+    if (refused) w5Chk(name, lbl, 'refused: the row’s figure, its stamp, the log’s stamp and the stored bytes are unchanged, and the message says why',
+      J([r.same, r.amt, msg.test(r.stat)]), J([true, '5', true]));
+    else w5Chk(name, lbl, 'recorded as the whole entry reads', r.amt, amt);
+  });
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.99 item 87 ====
+// ==== v1.99 item 88 (review N04): a locked cycle keeps the RCN / EEIC list it was locked with ====
+// On v1.98's fixture: P's CLIN 0001 is on K1 (11111 / AAAAA) with its AFRC on K3 (33333 / CCCCC). Lock the window; then,
+// in the working list, give K1 new codes (99999 / ZZZZZ) and remove K3. FAILS ON v1.98: the cycle's view read today's
+// list, so its RCN-EEIC tab printed 99999 / ZZZZZ for the money locked on 11111 / AAAAA, and filed K3's money under
+// "no RCN/EEIC assigned"; the Spend Plan Source taken from the view did the same.
+await (async () => {
+  const name = 'v1.99 item 88 — a locked cycle’s view and every report from it read the RCN / EEIC list it was locked with';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = v198Board(`S.rcnAsg={PRIME_P:'K4', R:'K1'}; S.rcnSvc={PRIME_P:{ANG:'K2'}, R:{ANG:'K2'}};
+      S.clinRcn={PRIME_P:{n1:'K1'}}; S.clinRcnSvc={PRIME_P:{n1:{AFRC:'K3'}}};`);
+    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
+    const key = ev(`window.confirm=function(){ return true; }; MS.base=MS.cur; blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
+    w5Chk(name, 'lock', 'CONTROL — the window is locked', ev(`!!(blGet(${J(key)}) && blGet(${J(key)}).locked)`), 'true');
+    // the working list changes: K1 renumbered, K3 removed (its pointers in the working plan cleared, as rcnDel does)
+    ev(`(function(){ var L=rcnReg(), i=L.findIndex(function(e){ return e.k==='K1'; }); rcnSet(i,'rcn','99999'); rcnSet(i,'eeic','ZZZZZ');
+      rcnDel(rcnReg().findIndex(function(e){ return e.k==='K3'; })); })(); 'ok'`);
+    const summary = async () => { const bk = JSON.parse(await w6Book(X.w, 'exportExcel')); const rc = bk['RCN-EEIC by Month'] || [];
+      const iReq = rc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION');
+      return { rows: v198Sec(rc, 0, iReq).map(r => r.slice(0, 3)), title: w6Lbl(rc[0] || []) }; };
+    const srcLines = async () => { const sb = JSON.parse(await w6Book(X.w, 'exportSrc'));
+      const src = (Object.values(sb).find(rs => (rs || []).length > 1) || []).slice(1);
+      return src.map(r => [num(r[9]), String(r[25] ?? ''), String(r[26] ?? ''), String(r[27] ?? '')]).sort((a, b) => a[0] - b[0]); };
+    const LOCKED = [['USAF', v198Lab('K1'), 401 + 503], ['USAF', v198Lab('K4'), 299], ['USAF', v198NONE, 71], ['USAF', 'USAF TOTAL', 1274],
+      ['ANG', v198Lab('K1'), 251], ['ANG', v198Lab('K2'), 127], ['ANG', 'ANG TOTAL', 378],
+      ['AFRC', v198Lab('K3'), 31], ['AFRC', v198Lab('K4'), 59], ['AFRC', 'AFRC TOTAL', 90]];
+    const LOCKED_SRC = [[31, '0001', 'CCCCC', '33333'], [41, '0001', '', ''], [59, '0002', 'DDDDD', '44444'], [71, '', '', ''], [127, '', 'BBBBB', '22222'],
+      [251, '0001', 'AAAAA', '11111'], [299, '0002', 'DDDDD', '44444'], [401, '0001', 'AAAAA', '11111'], [503, '', 'AAAAA', '11111']];
+    // THE WORKING PLAN takes the change (a CONTROL: v1.98 did this too)
+    const w = await summary();
+    w5Chk(name, 'the working plan', 'CONTROL — K1’s money prints 99999 / ZZZZZ, and K3’s, its pointer cleared, falls to the CLIN’s standard',
+      J(w.rows.filter(r => r[0] === 'USAF' || r[0] === 'AFRC').map(r => r[1])), J(['99999 / ZZZZZ', v198Lab('K4'), v198NONE, 'USAF TOTAL', '99999 / ZZZZZ', v198Lab('K4'), 'AFRC TOTAL']));
+    // THE CYCLE'S VIEW: every code as locked
+    ev(`cycView(${J(key)}); 'ok'`);
+    const v = await summary();
+    w5Chk(name, 'the cycle’s view · RCN-EEIC by Month', 'every dollar on the code it was locked on: K1 still 11111 / AAAAA, K3 still 33333 / CCCCC', J(v.rows), J(LOCKED));
+    w5Chk(name, 'the cycle’s view · Spend Plan Source', 'every line’s EEIC and RCN as locked', J(await srcLines()), J(LOCKED_SRC));
+    w5Chk(name, 'the cycle’s view', 'CONTROL — it says nothing about today’s list: this cycle kept its own',
+      J([/today’s list/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`)), /today’s list/.test(v.title)]), J([false, false]));
+    ev(`cycLeave(); 'ok'`);
+    const w2 = await summary();
+    w5Chk(name, 'back on the working plan', 'CONTROL — today’s codes again', J(w2.rows), J(w.rows));
+    // SAVED AND REOPENED: the cycle's list is in the file
+    const R = boot({ html: ev('buildSavedHtml()') });
+    const rv = (() => { try { R.ev(`cycView(${J(key)}); 'ok'`); return 'ok'; } catch (e) { return 'threw'; } })();
+    const rb = JSON.parse(await w6Book(R.w, 'exportExcel')); const rrc = rb['RCN-EEIC by Month'] || [];
+    w5Chk(name, 'saved and reopened, the cycle’s view', 'still every code as locked',
+      J([rv, v198Sec(rrc, 0, rrc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION')).map(r => r.slice(0, 3))]), J(['ok', LOCKED]));
+    // A CYCLE LOCKED BEFORE v1.99 kept no list: read against today's, and said so -- in the view, on its line, on the tab
+    ev(`delete blGet(${J(key)}).rcn; cycView(${J(key)}); 'ok'`);
+    const o = await summary();
+    w5Chk(name, 'a cycle locked before v1.99', 'its view says its codes are read against today’s list',
+      /read against today’s list/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`)), true);
+    w5Chk(name, 'a cycle locked before v1.99', 'the RCN-EEIC tab’s title says so', /read against today’s list/.test(o.title), true);
+    w5Chk(name, 'a cycle locked before v1.99', 'CONTROL — and no code is made up: it prints today’s', J(o.rows.filter(r => r[0] === 'USAF').map(r => r[1])),
+      J(['99999 / ZZZZZ', v198Lab('K4'), v198NONE, 'USAF TOTAL']));
+    ev(`cycLeave(); blOpen=true; blBody(); 'ok'`);
+    w5Chk(name, 'a cycle locked before v1.99', 'its line under PPBE cycles says (RCN / EEIC: today’s list)',
+      /\(RCN \/ EEIC: today’s list\)/.test(ev(`document.getElementById('blBody').textContent`)), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.99 item 88 ====
+// ==== v1.99 items 92 and 93 (from item 82): the funds-flow export writes the panel's selection; execution by appropriation and year ====
+// Execution: O&M FY25 $1,000 (USAF) and FY26 $2,000 (ANG); Full Fund FY26 $500 and FY27 $800 (USAF). Partner money typed
+// for FY25 $100 and FY26 $200. The board is on O&M; its FY27 plan asks $5,000 and both lanes cover it. Every expected
+// figure below is the fixture's own arithmetic.
+// ITEM 92 -- the panel set to FY25 + FY26, O&M only: the export says so and holds O&M's $3,000, the partner $300 once,
+// labelled portfolio-wide, $3,300 in all, and no Full Fund line. FAILS ON v1.98: it wrote the last year on screen across
+// every appropriation (FY26 · all appropriations, $2,500).
+// ITEM 93 -- FY27, every appropriation: O&M planned ($5,000) and Full Fund executed ($800), $5,800, and the scope names
+// which is which. FAILS ON v1.98: any execution made the whole year executed, so O&M's plan was not read ($800).
+await (async () => {
+  const name = 'v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decided per appropriation and year';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG'], items: [it('F1', 'PSM', [5000, 0])], disc: [10000, 10000], mand: [0, 0], order: ['F1'] });
+    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
+    const ROWS = [['om', 2025, 'Depot Pods', 'USAF O&M Discretionary', 1000], ['om', 2026, 'Software', 'ANG O&M Discretionary', 2000],
+                  ['ff', 2026, 'Travel', 'USAF Full Fund', 500], ['ff', 2027, 'Spares', 'USAF Full Fund', 800]];
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      MS.cur=2027; MS.years[2027]=S;
+      (function(){ var R=${J(ROWS)}, all={};
+        R.forEach(function(x,n){ var r=[]; for(var c=0;c<32;c++) r.push('');
+          r[0]=x[1]; r[1]=x[1]+'-03'; r[2]='JSF'+(200+n); r[3]=x[2]; r[4]=x[3]; r[7]='Event '+x[2]; r[9]=x[4]; r[10]='Allocated'; r[18]='Program (PSM)';
+          var a=all[x[0]]||(all[x[0]]={asOf:'2026-09', hdr:[], read:1, noFy:0, rows:{}}); (a.rows[x[1]]||(a.rows[x[1]]=[])).push(r); });
+        EXDB.all=all; EXDB.ts=Date.now(); })();
+      var C=flowCfg(); C.other={2025:{ip:100, fms:0}, 2026:{ip:200, fms:0}}; save(); 'ok'`);
+    const own = ev('mySlug()'), lbl = JSON.parse(ev('JSON.stringify(APPN_LBL)'));
+    const esc = t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), MIX = new RegExp('FY27: ' + esc(lbl.om) + ' planned, ' + esc(lbl.ff) + ' executed');
+    w5Chk(name, 'fixture', 'CONTROL — the board is on O&M, in FY27', own + '|' + ev('MS.cur'), 'om|2027');
+    const read = wb => { const ff = wb['Funds Flow'] || [];
+      const one = lab => { const r = ff.find(x => w6Lbl(x) === lab); return r ? num(r[1]) : null; };
+      const ha = ff.findIndex(r => w6Lbl(r) === 'Appropriation' && String((r || [])[1] ?? '') === 'Amount');
+      const ap = ha < 0 ? [] : ff.slice(ha + 1).filter(r => Object.values(lbl).includes(w6Lbl(r))).map(r => [w6Lbl(r), num(r[1])]);
+      const tot = ff.filter(x => w6Lbl(x) === 'TOTAL FUNDING').map(x => num(x[1])).filter(v => v !== null);
+      return { scope: w6Lbl(ff[1] || []), us: one('US SERVICE FUNDING'), ip: one('International Partners'), tot: tot.length ? tot[0] : null, ap,
+               wide: ff.some(r => /PORTFOLIO-WIDE/.test(w6Lbl(r))), note: ff.some(r => /counted once, for the years in scope/.test(w6Lbl(r))),
+               mixed: ff.filter(r => MIX.test(w6Lbl(r))).length }; };
+    // ── ITEM 92: FY25 + FY26, O&M only ──
+    // as a person does it: the selection made on the panel, the panel on screen, then ⬇ Export (v1.98 took the export's
+    // year from the panel's last drawing -- one year, every appropriation)
+    ev(`flowCfg().fys=[2025,2026]; flowCfg().aps=['om']; flowOpen=true; flowBody(); 'ok'`);
+    const P = JSON.parse(ev(`JSON.stringify((function(){ var F=flowCalc(); return [F.tot, F.ip, F.grand, F.label]; })())`));
+    w5Chk(name, 'item 92 · the panel', 'CONTROL — the panel: US $3,000, partner $300, $3,300, FY25, FY26 · O&M', J(P), J([3000, 300, 3300, 'FY25, FY26 · O&M']));
+    const G = read(JSON.parse(await w6Book(X.w, 'exportFlow')));
+    w5Chk(name, 'item 92 · the export', 'states the panel’s scope: FY25, FY26 · O&M', G.scope, 'Scope: FY25, FY26 · O&M');
+    w5Chk(name, 'item 92 · the export', 'US $3,000 (O&M’s two years), partner $300 once, TOTAL $3,300', J([G.us, G.ip, G.tot]), J([3000, 300, 3300]));
+    w5Chk(name, 'item 92 · the export', 'by appropriation: O&M $3,000 alone; Full Fund, switched off, is left out', J(G.ap), J([[lbl.om, 3000]]));
+    w5Chk(name, 'item 92 · the export', 'the partner money is labelled portfolio-wide, and the note says the selection does not change it', J([G.wide, G.note]), J([true, true]));
+    const pan = ev(`flowOpen=true; flowBody(); document.getElementById('flowBody').textContent`);
+    w5Chk(name, 'item 92 · the panel', 'says the same: portfolio-wide, counted once, not changed by the appropriation selection',
+      J([/PORTFOLIO-WIDE/.test(pan), /counted once, for the years in scope/.test(pan)]), J([true, true]));
+    // ── ITEM 93: FY27, every appropriation ──
+    ev(`flowCfg().fys=[2027]; flowCfg().aps=null; flowOpen=true; flowBody(); 'ok'`);
+    const Q = JSON.parse(ev(`JSON.stringify((function(){ var F=flowCalc(); return [F.tot, F.appn.om, F.appn.ff, F.execV, F.planV, F.label]; })())`));
+    w5Chk(name, 'item 93 · FY27', 'O&M planned $5,000 and Full Fund executed $800: $5,800, each counted its own way',
+      J(Q.slice(0, 5)), J([5800, 5000, 800, 800, 5000]));
+    w5Chk(name, 'item 93 · FY27', 'the scope names the mix: FY27: O&M planned, Full Fund executed', MIX.test(Q[5]), true);
+    const G2 = read(JSON.parse(await w6Book(X.w, 'exportFlow')));
+    w5Chk(name, 'item 93 · the export', 'US $5,800; by appropriation O&M $5,000 and Full Fund $800; the mix stated',
+      J([G2.us, G2.ap.filter(r => r[1]), MIX.test(G2.scope) || G2.mixed > 0]), J([5800, [[lbl.om, 5000], [lbl.ff, 800]], true]));
+    // a year executed for O&M too is executed for both (a CONTROL: one kind of money, said as before)
+    w5Chk(name, 'item 93 · FY26', 'CONTROL — FY26 is executed for both: O&M $2,000 and Full Fund $500',
+      ev(`JSON.stringify((function(){ var F=flowCalc(2026); return [F.tot, F.appn.om, F.appn.ff]; })())`), J([2500, 2000, 500]));
+    ev(`flowCfg().fys=null; flowCfg().aps=null; 'ok'`);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.99 items 92–93 ====
+// ==== v1.99 item 94 (from item 82): an office with only estimate lines is in the ACE reconciliation ====
+// The estimate: PSM $900 (1.1), TSS $400 (2.2), ATL $250 (3.3) and $100 under a PMO no office reports under (NOBODY, 9.9).
+// The board: R1 (PSM) funded $1,000 and confirmed on 1.1; R2 (TSS) funded $300 and confirmed on 2.2; no requirement is ATL's.
+// Expected: PSM 900 / 1,000 / +100; TSS 400 / 300 / −100; ATL 250 / 0 / −250 (estimate only); TOTAL 1,550 / 1,300 / −250;
+// and 1,550 + 100 = 1,650, the estimate. FAILS ON v1.98: ATL was left off the block and its total (TOTAL 1,300 / 1,300).
+await (async () => {
+  const name = 'v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG'], items: [it('R1', 'PSM', [600, 400]), it('R2', 'TSS', [300, 0])], disc: [10000, 10000], mand: [0, 0], order: ['R1', 'R2'] });
+    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
+    const LINES = [['PSM', '1.1', 900], ['TSS', '2.2', 400], ['ATL', '3.3', 250], ['NOBODY', '9.9', 100]];
+    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.wbs={R1:[{w:'1.1', v:[]}], R2:[{w:'2.2', v:[]}]}; S.aceMap={R1:{w:['1.1'], ok:true}, R2:{w:['2.2'], ok:true}}; MS.years[MS.cur]=S;
+      ACEDB.sets={'2027ACE':{lines:${J(LINES)}.map(function(l){ var v={}; v[MS.cur]=l[2]; return {ap:mySlug(), pmo:l[0], wbs:l[1], v:v}; })}};
+      spAce='2027ACE'; aceYr=MS.cur; save(); 'ok'`);
+    w5Chk(name, 'fixture', 'CONTROL — R1 is funded $1,000 and R2 $300', ev(`(function(){ var T=tiers(); return [T.R1.dT+T.R1.mT, T.R2.dT+T.R2.mT].join('|'); })()`), '1000|300');
+    const bk = JSON.parse(await w6Book(X.w, 'exportAceTieout'));
+    const pmo = bk['Reconciliation by PMO'] || [];
+    const FY = 'FY' + (Number(ev('MS.cur')) % 100);
+    const rows = pmo.filter(r => w6Lbl(r) === FY || w6Lbl(r) === FY + ' TOTAL').map(r => [w6Lbl(r), String(r[1] ?? '').split('   ')[0], num(r[2]), r[3] === '' || r[3] == null ? null : num(r[3]), r[4] === '' || r[4] == null ? null : num(r[4])]);
+    const off = rows.filter(r => ['ATL', 'PSM', 'TSS'].includes(r[1]));
+    w5Chk(name, 'Reconciliation by PMO', 'each office: ATL 250 / 0 / −250 (estimate only), PSM 900 / 1,000 / +100, TSS 400 / 300 / −100',
+      J(off), J([[FY, 'ATL', 250, 0, -250], [FY, 'PSM', 900, 1000, 100], [FY, 'TSS', 400, 300, -100]]));
+    w5Chk(name, 'Reconciliation by PMO', 'the TOTAL is the three offices: 1,550 / 1,300 / −250', J(rows.filter(r => r[0] === FY + ' TOTAL').map(r => [r[2], r[3], r[4]])), J([[1550, 1300, -250]]));
+    w5Chk(name, 'Reconciliation by PMO', 'CONTROL — the $100 under no office is stated beside it, outside the TOTAL', J(rows.filter(r => r[1] === 'NOBODY').map(r => r[2])), J([100]));
+    const idn = pmo.find(r => /^Estimate for this appropriation = the TOTAL/.test(String((r || [])[1] ?? '')));
+    w5Chk(name, 'Reconciliation by PMO', 'the estimate, accounted for: 1,550 + 100 = 1,650, each line once, and it ties',
+      J(idn ? [num(idn[2]), /DOES NOT TIE/.test(String(idn[1]))] : 'no such line'), J([1650, false]));
+    const pan = ev(`aceOpen=true; aceBody(); JSON.stringify([document.querySelectorAll('#aceBody tr.aceestonly').length, (document.querySelector('#aceBody .aceacct')||{}).textContent||''])`);
+    let pj; try { pj = JSON.parse(pan); } catch { pj = [0, pan]; }
+    w5Chk(name, 'the panel', 'ATL has its estimate-only row, and the estimate is stated as the TOTAL plus the lines under no office',
+      J([pj[0], /= the TOTAL/.test(pj[1]) && !/does not tie/.test(pj[1])]), J([1, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.99 item 94 ====
+// ==== v1.99 items 97 and 98 (from items 84 and 89): what the Classify grid sets, and what a locked cycle keeps ====
+// ITEM 97 -- on v1.98's fixture PRIME_P's CLIN 0001 carries its own RCN / EEIC and 0002 does not. The Classify grid's
+// RCN / EEIC column sets the requirement's own combination (the default a CLIN with none uses); it now says, on the prime's
+// row, that 1 of 2 CLINs carries its own, and the bulk preview says those CLINs keep theirs. The setter is unchanged: a
+// bulk set changes the requirements' own combination and no CLIN's (a CONTROL). ITEM 98 -- the PPBE cycles panel no longer
+// says a locked cycle "still reads correctly after requirements are renamed, re-banded or removed"; it and Help say what
+// the cycle keeps and which lists it still reads as they are now. FAILS ON v1.98 except the CONTROLs.
+await (async () => {
+  const name = 'v1.99 items 97–98 — the Classify grid says a prime’s CLINs keep their own RCN / EEIC; the cycles panel says what a cycle keeps';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const X = v198Board(`S.rcnAsg={PRIME_P:'K4', R:'K1'}; S.clinRcn={PRIME_P:{n1:'K1'}};`);
+    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
+    const g = JSON.parse(ev(`(function(){ matOpen=true; matBulkF=''; matBulkV=''; matBody();
+      const rows=[].slice.call(document.querySelectorAll('#matBody tr')), own=rows.filter(function(r){ return /PRIME_P|Req PRIME_P/.test(r.textContent); })
+        .map(function(r){ const n=r.querySelector('.mat-clinown'); return n? n.textContent : ''; });
+      const others=rows.filter(function(r){ return !/PRIME_P/.test(r.textContent); }).map(function(r){ return r.querySelectorAll('.mat-clinown').length; });
+      return JSON.stringify({own:own, others:others.reduce(function(a,b){ return a+b; },0)}); })()`) || '{}');
+    w5Chk(name, 'item 97 · the Classify grid', 'the prime’s RCN / EEIC cell says 1 of 2 CLINs carries its own', J(g.own), J(['1 of 2 CLINs carries its own']));
+    w5Chk(name, 'item 97 · the Classify grid', 'CONTROL — a requirement with no CLINs says nothing of them', J(g.others), J(0));
+    const p = JSON.parse(ev(`(function(){ matBulkF='RCN / EEIC'; matBulkV='K2'; matBody(); const P=matBulkPreview();
+      return JSON.stringify([P.clinOwn, (document.querySelector('#matBody .mat-prev .mat-clinown')||{}).textContent||'', (document.querySelector('#matBody .mat-rcnnote')||{}).textContent||'']); })()`) || '[]');
+    w5Chk(name, 'item 97 · the bulk preview', 'it counts the prime whose CLINs keep their own, and says so', J([p[0], p[1]]), J([1, '1 prime has CLINs with their own, which keep it']));
+    w5Chk(name, 'item 97 · the bulk preview', 'and says what the column sets: the requirement’s own, not a CLIN’s', /not changed here/.test(p[2]) && /default a CLIN with none/.test(p[2]), true);
+    const w = ev(`(function(){ window.confirm=function(){ return true; }; matApplyBulk(); return JSON.stringify([S.rcnAsg.PRIME_P, S.rcnAsg.R, S.clinRcn.PRIME_P.n1, rcnOfClinSvc('PRIME_P','n1','USAF'), rcnOfClinSvc('PRIME_P','n2','USAF')]); })()`);
+    w5Chk(name, 'item 97 · the setter, unchanged', 'CONTROL — the bulk set writes the requirements’ own (K2); CLIN 0001 keeps K1, and 0002, with none of its own, follows K2',
+      w, J(['K2', 'K2', 'K1', 'K1', 'K2']));
+    // ITEM 98
+    const c = ev(`(function(){ window.confirm=function(){ return true; }; MS.base=MS.cur; blCyc='PB'; blYr=MS.cur; cycLock();
+      blOpen=true; blBody(); const h=(document.querySelector('#blBody .cyc-keeps')||{}).textContent||'';
+      const T=document.getElementById('helpDoc'), help=((T && T.content && T.content.querySelector('section[data-id="t-fydp"] .cyc-keeps'))||{}).textContent||'';
+      return JSON.stringify([h, help, (document.getElementById('blBody')||{}).textContent||'']); })()`);
+    let cj; try { cj = JSON.parse(c); } catch { cj = ['', '', c]; }
+    w5Chk(name, 'item 98 · the PPBE cycles panel', 'no longer claims the cycle reads correctly after re-banding', /still reads correctly after/.test(cj[2]), false);
+    w5Chk(name, 'item 98 · the PPBE cycles panel', 'says what it keeps, and that it does not keep every list it is read through',
+      J([/RCN \/ EEIC list/.test(cj[0]), /does not keep every list/.test(cj[0])]), J([true, true]));
+    w5Chk(name, 'item 98 · the PPBE cycles panel', 'names what it still reads as it is now: destinations, decision bands, a budget set by rule, requirement detail',
+      J(['destination list', 'decision bands', 'BAE budget set by rule', 'requirement detail'].map(t => cj[0].includes(t))), J([true, true, true, true]));
+    w5Chk(name, 'item 98 · Help', 'the five-year plan’s Help says the same', J(['keeps', 'destination list', 'decision bands', 'BAE budget set by rule'].map(t => cj[1].includes(t))), J([true, true, true, true]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v1.99 items 97–98 ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

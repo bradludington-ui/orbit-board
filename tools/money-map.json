@@ -664,6 +664,20 @@
    "anchor": "const name = 'W7 — F2: the Spend Plan Source dates an incremental award a line per increment'",
    "basis": "arithmetic",
    "asserts": "The Spend Plan Source read back: every line — requirement, service and lane (its BAE budget, verbatim), Date, Month and Amount — against a table written from the fixture (an incremental award stored out of order: a line per increment on its own day, discretionary forward, mandatory backward, the uncovered remainder on 31 August; a day past the month's end its last day; a single award date, and none, one line as before); each requirement's lines per service and lane add up to the lane's draw; an increment's lines differ only in Month, Date and Amount; the same columns. Agreement too: each service's lines by month are forecast()'s months and UNSCHEDULED, each requirement's CR windows crData()'s, each lane's lines spendPlanByMonth()'s."
+  },
+  "v199.flow": {
+   "file": "tools/export-audit/audit-recon.mjs",
+   "scenario": "v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decided per appropriation and year",
+   "anchor": "const name = 'v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decided per appropriation and year'",
+   "basis": "arithmetic",
+   "asserts": "The panel set to FY25 + FY26, O&M only: the export states that scope, US $3,000 (O&M’s two years), partner $300 once and labelled portfolio-wide, $3,300, and no Full Fund line; FY27 across every appropriation: O&M planned $5,000 and Full Fund executed $800, $5,800, with the mix named. Every figure is the fixture’s own arithmetic."
+  },
+  "v199.ace": {
+   "file": "tools/export-audit/audit-recon.mjs",
+   "scenario": "v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for",
+   "anchor": "const name = 'v1.99 item 94 — an office with only estimate lines is a row of the ACE reconciliation, and the estimate is accounted for'",
+   "basis": "arithmetic",
+   "asserts": "Reconciliation by PMO with an office (ATL) that has only estimate lines: each office’s estimate, board funded and delta, the TOTAL of the three offices (1,550 / 1,300 / −250), the line under no office (100) outside it, and the estimate accounted for: 1,550 + 100 = 1,650, tied. The panel says the same."
   }
  },
  "surfaces": {
@@ -1403,24 +1417,26 @@
     "appropriation": {
      "status": "proven",
      "checks": [
-      "w697.flow"
+      "w697.flow",
+      "v199.flow"
      ],
      "see": [
       "w6.flow",
       "re.flow"
      ],
-     "note": "execution under four appropriations in two years: each appropriation’s line and each detail line’s appropriation, year by year and both years together. As built, not changed: a year with execution imported for ANY appropriation is an executed year for all of them, so this board’s own plan for it is not read (v1.97 W6 report)"
+     "note": "execution under four appropriations in two years: each appropriation’s line and each detail line’s appropriation, year by year and both years together. v1.99 (item 93): execution is decided per appropriation and year -- a year executed for one appropriation and planned for another reads each its own way, and the scope says the total mixes them (it read the whole year as executed, and this board’s own plan for it was not read)"
     },
     "fiscalYear": {
      "status": "proven",
      "checks": [
-      "w697.flow"
+      "w697.flow",
+      "v199.flow"
      ],
      "see": [
       "w6.flow",
       "re.flow"
      ],
-     "note": "two executed years with the OBBBA carry-over, two planned years from their own state, a year nobody planned, and both executed years together. As built, not changed: ⬇ Export funds flow writes the last fiscal year on screen, every appropriation, not the whole selection; its Scope line says which (v1.97 W6 report)"
+     "note": "two executed years with the OBBBA carry-over, two planned years from their own state, a year nobody planned, and both executed years together. v1.99 (item 92): ⬇ Export funds flow writes exactly the panel’s selection -- its years and its appropriations -- with the selected years’ partner and FMS money once, labelled portfolio-wide (it wrote the last fiscal year on screen, every appropriation)"
     },
     "service": {
      "status": "proven",
@@ -1601,12 +1617,13 @@
     "fiscalYear": {
      "status": "proven",
      "checks": [
-      "w697.ace"
+      "w697.ace",
+      "v199.ace"
      ],
      "see": [
       "re.ace"
      ],
-     "note": "two active years, every sheet held year by year. As built, not changed: an office on the board with an estimate line but no requirement in a year is left off that year’s PMO block and its total (the line is listed under Lines Nothing Claims) (v1.97 W6 report)"
+     "note": "two active years, every sheet held year by year. v1.99 (item 94): an office with estimate lines and no requirement in a year has its own row (estimate only, board $0) in that year’s block and total, and the block states that its rows plus the lines under no office are the estimate (it was left off the block)"
     },
     "service": {
      "status": "n/a",

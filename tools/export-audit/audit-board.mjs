@@ -20,10 +20,14 @@ stopAtFirstFailure(failures);   // in the mutation sweep only: see boot.mjs
 import { readFileSync as _selfRead } from 'node:fs';
 import { fileURLToPath as _selfPath } from 'node:url';
 const SEEN = new Set();
+// SUITE_CHECKS=<file> records every check (v1.99), as audit-import and audit-recon do, so a fail-before run can be counted
+import { appendFileSync as _ckAppend } from 'node:fs';
+const CHECKS = process.env.SUITE_CHECKS || '';
 const chk = (scenario, where, what, got, want) => {
   SEEN.add(scenario);
   const ok = typeof got === 'number' && typeof want === 'number'
     ? Math.abs(got - want) <= 0.005 : String(got) === String(want);
+  if (CHECKS) _ckAppend(CHECKS, JSON.stringify([scenario, where, what, ok, String(got).slice(0, 400)]) + '\n');
   if (!ok) failures.push({ scenario, where, what, got, want });
 };
 const sum = a => a.reduce((x, y) => x + y, 0);
@@ -3930,6 +3934,160 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   chk(name, 'CLIN request', '$100 over a CLIN asking [1, 2] is [33, 67]: whole dollars, adding up to $100',
     w1ev(ev, `(function(){ S.clinNew={P1:[{key:'n1', clin:'0001', desc:'a', ccar:'', ask:[1,2]}]}; clinSetReq('P1','n1','$100'); return JSON.stringify(S.clinNew.P1[0].ask); })()`),
     J([33, 67]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w1Release(__bm, []);
+  await _w1Settle();
+})();
+
+// v1.99, ITEM 90 (from item 82 in the 6 Oct review): A QUANTITY IS A WHOLE NUMBER FROM 0, AND WHAT IT MAKES WITH A UNIT
+// COST IS EXACT. A typed quantity was read loosely (a sign, a decimal, a Unicode minus, letters), and the dollars a quantity
+// and a unit cost made were checked only when the cost was typed. Now: a quantity that is not a whole number from 0 is
+// refused and the line keeps what it had; a quantity times a unit cost past $10 trillion is refused whichever side is
+// typed; a quantity an older file saved that is not one is kept as saved, counts $0, and is listed. Every dollar figure
+// is computed here independently, in BigInt. FAILS ON v1.98 except the checks marked CONTROL.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w1Mark();
+  const name = 'v1.99 — a buy quantity is a whole number, and what it makes is exact (item 90)';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('BUY-AC', 'AV', [0, 0]), it('BUY-ENG', 'AV', [0, 0]), it('X', 'PSM', [40, 60])],
+             disc: [10000000, 10000000], mand: [0, 0], order: ['BUY-AC', 'BUY-ENG', 'X'] });
+  const fresh = `DATA.buys=true; S.buys={ac:{base:[1,1], adj:[2,3], cost:[1000,2000], locked:false}, eng:{base:[0,0], adj:[0,0], cost:[0,0], locked:false}}; recomputeBuys(false)`;
+  // the dollars a line makes, by BigInt: q × c, or null past $10 trillion
+  const MAX = 10000000000000n;
+  const make = (q, c) => { const p = BigInt(q) * BigInt(c); return p <= MAX ? Number(p) : null; };
+  // TYPED QUANTITIES: each entry the field refuses leaves the line as it was, and says so
+  const typed = (s) => w1json(ev, `JSON.stringify((function(){ ${fresh}; setStat(''); setBuy('ac','adj',0,${J(s)});
+      return [S.buys.ac.adj[0], /not changed/i.test(document.getElementById('shareStat').textContent), itemById('BUY-AC').ask[0]]; })())`);
+  for (const s of ['-1', '−1', '1.5', '2.0', '1e3', '12,34', '+5', 'five', '0x10', '9007199254740993', '2 3'])
+    chk(name, 'typed quantity ' + J(s), (s === '9007199254740993' ? 'CONTROL — ' : '') + 'refused: the line keeps 2 and $2,000, and the board says it was not changed', J(typed(s)), J([2, true, 2000]));
+  for (const [s, q] of [['7', 7], ['1,234', 1234], [' 12 ', 12], ['0', 0]])
+    chk(name, 'typed quantity ' + J(s), 'CONTROL — taken as ' + q + ', and the requirement asks exactly ' + q + ' × $1,000', J(typed(s).filter((_, i) => i !== 1)), J([q, make(q, 1000)]));
+  chk(name, 'typed quantity ""', 'CONTROL — a blank is 0: the line asks $0', J(typed('').filter((_, i) => i !== 1)), J([0, 0]));
+  // THE PRODUCT, WHICHEVER SIDE IS TYPED: 10,000,000 × $2,000,000 is $20 trillion -- refused, nothing changed
+  const big = w1json(ev, `JSON.stringify((function(){ ${fresh}; S.buys.ac.cost=[2000000, 2000]; recomputeBuys(false); setStat('');
+      setBuy('ac','adj',0,'10,000,000'); return [S.buys.ac.adj[0], itemById('BUY-AC').ask[0], /more than/.test(document.getElementById('shareStat').textContent)]; })())`);
+  chk(name, 'a quantity that would make $20 trillion', 'CONTROL — refused when the QUANTITY is typed: the line keeps 2 × $2,000,000 (v1.97 item 75 refused it too)', J(big), J([2, make(2, 2000000), true]));
+  const edge = w1json(ev, `JSON.stringify((function(){ ${fresh}; S.buys.ac.cost=[2000000, 2000]; recomputeBuys(false);
+      setBuy('ac','adj',0,'5,000,000'); const a=[S.buys.ac.adj[0], itemById('BUY-AC').ask[0]];
+      setBuy('ac','adj',0,'5,000,001'); return a.concat([S.buys.ac.adj[0], itemById('BUY-AC').ask[0]]); })())`);
+  chk(name, 'at the bound', '5,000,000 × $2,000,000 is exactly $10 trillion and is taken; 5,000,001 is refused (the first a CONTROL)',
+    J(edge), J([5000000, make(5000000, 2000000), 5000000, make(5000000, 2000000)]));
+  // A QUANTITY AN OLDER FILE SAVED THAT IS NOT ONE: kept as saved, $0, listed under Needs attention -- never converted
+  const old = w1json(ev, `JSON.stringify((function(){ DATA.buys=true; S.buys={ac:{base:[1,1], adj:[-3, 2.5], cost:[1000,2000], locked:false},
+        eng:{base:[0,0], adj:[4,'7'], cost:[500,600], locked:false}}; recomputeBuys(false);
+      const L=(attLists().buy||[]);
+      return [S.buys.ac.adj, S.buys.eng.adj, itemById('BUY-AC').ask, itemById('BUY-ENG').ask, L.map(function(r){ return [r.id, r.n.length]; })]; })())`);
+  chk(name, 'saved quantities that are not whole numbers from 0', 'CONTROL — kept exactly as saved (-3, 2.5 and the text "7")', J([old[0], old[1]]), J([[-3, 2.5], [4, '7']]));
+  chk(name, 'saved quantities that are not whole numbers from 0', 'each such line counts $0; a good line on the same table still counts exactly',
+    J([old[2], old[3]]), J([[0, 0], [make(4, 500), 0]]));
+  chk(name, 'saved quantities that are not whole numbers from 0', 'Needs attention lists both tables, with each bad line', J(old[4]), J([['BUY-AC', 2], ['BUY-ENG', 1]]));
+  // THE PANEL: the bad line says it is not counted, and the table's total is what the good lines make
+  const pan = w1json(ev, `JSON.stringify((function(){ buysOpen=true; buysPanel(); const t=document.getElementById('buysBody').textContent;
+      return [document.querySelectorAll('#buysBody .buybad').length, t.indexOf(fM(${make(4, 500)}))>=0]; })())`);
+  chk(name, 'the buys panel', 'the three bad lines are marked not counted, and the engine table’s total is 4 × $500', J(pan), J([3, true]));
+  // SAVED AND REOPENED: the saved figures are still as they were (nothing converted on the way)
+  const R = boot({ html: ev('buildSavedHtml()') });
+  chk(name, 'saved and reopened', 'CONTROL — the board opens with no script error (opening recomputes the buy lines before the bound is declared)', J(R.errors), '[]');
+  chk(name, 'saved and reopened', 'the quantities are still -3, 2.5 and "7", and still count $0',
+    w1ev(R.ev, `JSON.stringify([S.buys.ac.adj, S.buys.eng.adj, itemById('BUY-AC').ask])`), J([[-3, 2.5], [4, '7'], [0, 0]]));
+  // REPAIRED BY TYPING: the line takes the typed figure and leaves the list
+  const fix = w1json(ev, `JSON.stringify((function(){ setBuy('ac','adj',0,'6'); setBuy('ac','adj',1,'1'); setBuy('eng','adj',1,'7');
+      return [S.buys.ac.adj, itemById('BUY-AC').ask, itemById('BUY-ENG').ask, (attLists().buy||[]).length]; })())`);
+  chk(name, 'repaired by typing', 'CONTROL — each line takes its figure, makes it exactly, and the list empties',
+    J(fix), J([[6, 1], [make(6, 1000), make(1, 2000)], [make(4, 500), make(7, 600)], 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w1Release(__bm, []);
+  await _w1Settle();
+})();
+
+// v1.99, ITEM 91 (from item 87, review N03): A CODE LONGER THAN ITS LIMIT IS REFUSED, NEVER CUT. A typed PID, CCaR record,
+// RCN or EEIC was cut to its length without a word (a cut code can be another record), the new-requirement form cut its
+// CCaR to 12 as it was typed, a PMO submittal's CCaR record was cut to 12 on the way in, and a CLIN number or description,
+// a WBS or a PPBE line code took any length. Now every typed path refuses one over its limit -- nothing changes, and the
+// text typed is kept where it was typed (a prompt opens again holding it, an inline field keeps it, marked) -- and a code
+// that arrives in a file is kept whole and listed (Needs attention, Pre-flight). FAILS ON v1.98 except the CONTROLs.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w1Mark();
+  const name = 'v1.99 — a code longer than its limit is refused when typed and flagged when imported, never cut (item 91)';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('X', 'AV', [500, 700]), it('P', 'PSM', [400, 600])],
+             disc: [10000, 10000], mand: [0, 0], order: ['X', 'P'] });
+  // the board's prompt, answered from a list; every text it opened with is kept
+  w1ev(ev, `BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });   // a file that carries them
+    globalThis.__pr=[]; globalThis.__ans=[]; uiPrompt=function(q, d, cb){ __pr.push(String(d)); if(__ans.length) cb(__ans.shift()); };
+    S.ptype=S.ptype||{}; S.ptype.P='PRIME'; S.pid.X='PID-OLD'; S.ccar.X='CC-OLD'; save(); 'ok'`);
+  const L = n => 'A'.repeat(n);
+  const ask = (code, answers) => w1json(ev, `JSON.stringify((function(){ __pr=[]; __ans=${J(answers)}; setStat(''); ${code};
+      return {pr:__pr.slice(), stat:document.getElementById('shareStat').textContent}; })())`);
+  // PID: 21 refused (kept PID-OLD; the box opens again holding the 21); 20 taken (a CONTROL)
+  let r = ask(`editPid('X')`, [L(21)]);
+  chk(name, 'PID, typed', '21 characters: refused, the PID stays, and the box opens again holding what was typed',
+    J([w1ev(ev, `S.pid.X`), r.pr.length, r.pr[1], /at most 20/.test(r.stat)]), J(['PID-OLD', 2, L(21), true]));
+  ask(`editPid('X')`, [L(20)]);
+  chk(name, 'PID, typed', 'CONTROL — 20 characters are taken whole', w1ev(ev, `S.pid.X`), L(20));
+  // CCaR record: 13 refused, 12 taken
+  r = ask(`editCcar('X')`, [L(13)]);
+  chk(name, 'CCaR record, typed', '13 characters: refused, the record stays, and the box opens again holding them',
+    J([w1ev(ev, `ccarOf(itemById('X'))`), r.pr[1], /at most 12/.test(r.stat)]), J(['CC-OLD', L(13), true]));
+  // CLIN number and description, on a prime
+  const n0 = Number(w1ev(ev, `clinList('P').length`));
+  r = ask(`clinAdd('P')`, [L(21)]);
+  chk(name, 'CLIN number, typed', '21 characters: no CLIN is added, and the box opens again holding them',
+    J([Number(w1ev(ev, `clinList('P').length`)) - n0, r.pr[1], /at most 20/.test(r.stat)]), J([0, L(21), true]));
+  // the number box opens again holding 0001; taking it, the description box opens holding the 141 characters
+  r = ask(`clinAdd('P')`, ['0001', 'D'.repeat(141), '0001']);
+  chk(name, 'CLIN description, typed', '141 characters: no CLIN is added, and both boxes open again holding what was typed',
+    J([Number(w1ev(ev, `clinList('P').length`)) - n0, r.pr.slice(2), /at most 140/.test(r.stat)]), J([0, ['0001', 'D'.repeat(141)], true]));
+  ask(`clinAdd('P')`, ['0001', 'Engines']);
+  const key = w1ev(ev, `clinList('P').filter(function(c){ return c.clin==='0001'; })[0].key`);
+  r = ask(`clinSetField('P',${J(key)},'ccar')`, [L(13)]);
+  chk(name, 'a CLIN’s CCaR record, typed', '13 characters: refused, kept as it was, the box opens again holding them',
+    J([w1ev(ev, `clinList('P').filter(function(c){ return c.key===${J(key)}; })[0].ccar||''`), r.pr[1]]), J(['', L(13)]));
+  // WBS: the box, and the inline field
+  r = ask(`wbsQuick('X')`, ['1.'.repeat(20) + '1']);
+  chk(name, 'WBS, typed in the box', '41 characters: refused, the box opens again holding them',
+    J([w1ev(ev, `JSON.stringify(wbsReq('X'))`), r.pr[1], /at most 40/.test(r.stat)]), J(['[]', '1.'.repeat(20) + '1', true]));
+  const inl = w1json(ev, `JSON.stringify((function(){ wbsStore('req','X','',[{w:'1.1', v:[]}]); const el=document.createElement('input'); el.value=${J(L(41))};
+      wbsSetNum('req','X','',0,el.value,el); return [wbsReq('X')[0].w, el.value, el.getAttribute('aria-invalid')]; })())`);
+  chk(name, 'WBS, typed inline', '41 characters: refused, the WBS stays 1.1, and the field keeps what was typed, marked', J(inl), J(['1.1', L(41), 'true']));
+  // RCN / EEIC in the list
+  const rc = w1json(ev, `JSON.stringify((function(){ MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA'}]; const el=document.createElement('input');
+      rcnSet(0,'rcn','12345678901',el); rcnSet(0,'eeic','ABCDEFGHIJK',el); return [MS.rcn[0].rcn, MS.rcn[0].eeic, el.getAttribute('aria-invalid')]; })())`);
+  chk(name, 'RCN and EEIC, typed', '11 characters each: refused, the list keeps 11111 / AAAAA, and the field is marked', J(rc), J(['11111', 'AAAAA', 'true']));
+  // THE NEW-REQUIREMENT FORM: a 13-character CCaR adds nothing, and the form keeps what was typed
+  const nf = w1json(ev, `JSON.stringify((function(){ render(); syncAddPanel(); const n0=S.custom.length, al=[], _a=window.alert; window.alert=function(m){ al.push(String(m)); };
+      document.getElementById('naTitle').value='Proposed one'; document.getElementById('naEvent').value='e'; document.getElementById('naGrp').value='AV';
+      document.getElementById('naSvc0').value='100'; document.getElementById('naSvc1').value=''; document.getElementById('naTot').value='';
+      document.getElementById('naCcar').value=${J(L(13))};
+      try{ addReq(); }finally{ window.alert=_a; }
+      return [S.custom.length-n0, document.getElementById('naCcar').value, document.getElementById('naTitle').value, document.getElementById('naCcar').hasAttribute('maxlength')]; })())`);
+  chk(name, 'the new-requirement form', '13 characters of CCaR: nothing is added, the form keeps the CCaR and the title, and the field has no silent cut',
+    J(nf), J([0, L(13), 'Proposed one', false]));
+  // READING CHANGES NOTHING: the check runs as the board draws, so a prime with no CLIN entries must not gain empty ones
+  const ro = w1json(ev, `JSON.stringify((function(){ ['clinMeta','clinNew','clinRm'].forEach(function(k){ if(S[k]) delete S[k].P; });
+      codeIssues(); attLists(); return ['clinMeta','clinNew','clinRm'].map(function(k){ return !!(S[k] && S[k].P!==undefined); }); })())`);
+  chk(name, 'reading a prime’s CLINs', 'the code check and Needs attention create no empty CLIN entries (a saved board would read differently)', J(ro), J([false, false, false]));
+  // IMPORTED: a PMO submittal's 15-character CCaR record is kept whole, and listed
+  const im = w1json(ev, `JSON.stringify((function(){ const ok=pmoAcceptProposal({prop:{nid:'n9', grp:'AV', title:'From the office', ask:[10,20], ccar:${J(L(15))}},
+        src:'s1', from:'PSM', by:'Office'});
+      const id=S.custom[S.custom.length-1].id;
+      const pf=(preflight().find.filter(function(f){ return f.k==='code'; })[0]||{rows:[]}).rows.filter(function(x){ return x.id===id; }).length;
+      const at=(attLists().code||[]).filter(function(x){ return x.id===id; }).length;
+      return [S.ccar[id], pf, at]; })())`);
+  chk(name, 'a PMO submittal', 'its 15-character CCaR record is kept whole, listed under Pre-flight and under Needs attention', J(im), J([L(15), 1, 1]));
+  // A FILE THAT CARRIES ONE: kept whole through save and reopen, and listed
+  w1ev(ev, `S.pid.P=${J(L(25))}; save(); 'ok'`);
+  const R = boot({ html: ev('buildSavedHtml()') });
+  chk(name, 'a saved file carrying a 25-character PID', 'reopened, it is kept whole and Needs attention lists it',
+    w1ev(R.ev, `JSON.stringify([S.pid.P, (attLists().code||[]).some(function(x){ return x.id==='P'; })])`), J([L(25), true]));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
   }
