@@ -41,6 +41,13 @@ const SUITES = [
   // screen by screen. After import on purpose: it catches the narrowest slice of all -- the door and the
   // escaping -- so every other mutation should be caught before it has to run.
   ['hostile', join(HERE, 'audit-hostile.mjs')],
+  // v2.00 (item 99): the injection regression. The hostile sweep opens the board's common surfaces;
+  // this one pins each confirmed review finding to its own surface and to its escaped form in the
+  // source, and holds the structural guards (numbers on load, the journal path check, the Confluence
+  // host allow-list). It is last for the same reason import and hostile are: it is narrow, and a
+  // mutation that breaks export math should be caught long before it. The guard mutations below are
+  // what it is here to catch.
+  ['inject', join(HERE, 'audit-inject.mjs')],
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
@@ -3725,6 +3732,32 @@ const MUTATIONS = [
     find: "    if(clinApplies(id)) clinListRO(id).forEach(function(c){",
     repl: "    if(clinApplies(id)) clinList(id).forEach(function(c){" },
   // ==== end v1.99 items 90–98 ====
+
+  // ---- v2.00 (item 99): the security fixes, each broken on purpose for audit-inject to catch ------
+  { id: "v200-wholeor-keeps-text", area: "wholeOr", what: "a non-integer year or sequence is kept as text on load instead of coerced, so its markup reaches the page",
+    find: "function wholeOr(v, d){\n  if(typeof v==='number') return Number.isInteger(v)? v : d;\n  if(typeof v==='string' && /^\\s*-?\\d+\\s*$/.test(v)) return parseInt(v, 10);\n  return d;\n}",
+    repl: "function wholeOr(v, d){\n  if(typeof v==='number') return v;\n  if(typeof v==='string') return v;\n  return d;\n}" },
+  { id: "v200-jrnl-path-proto", area: "jrnlPathSafe", what: "the journal path guard passes __proto__, so Put back can walk into Object.prototype",
+    find: "function jrnlPathSafe(p){ return p.every(function(k){ k=String(k); return k!=='__proto__' && k!=='constructor' && k!=='prototype'; }); }",
+    repl: "function jrnlPathSafe(p){ return true; }" },
+  { id: "v200-conf-host-open", area: "confSameHost", what: "the Confluence download allow-list is removed, so a server-named host receives the token",
+    find: "  if(typeof link!=='string' || link.charAt(0)!=='/') return false;\n  try{ return new URL(base+link).origin===new URL(base).origin; }catch(e){ return false; }",
+    repl: "  return true;" },
+  { id: "v200-pkg-seq-text", area: "pkgApply", what: "a package whose sequence is not a number is accepted, bypassing the stale-package check",
+    find: "    if(wholeOr(pkg.seq, null)===null){\n      alert('NOT IMPORTED — that package’s number is not a number, so it cannot be checked against this board’s record of what was issued.');\n      return false;\n    }",
+    repl: "    if(false){\n      alert('x');\n      return false;\n    }" },
+  { id: "v200-jrnlshow-raw", area: "jrnlShow", what: "the change-journal size marker is drawn without esc(), so an imported _b value becomes markup",
+    find: "if(v&&v._b) return '<span style=\"color:var(--dim)\">'+esc(v._b)+' characters</span>';",
+    repl: "if(v&&v._b) return '<span style=\"color:var(--dim)\">'+v._b+' characters</span>';" },
+  { id: "v200-posexec-raw", area: "posExecLine", what: "the snapshot execution counts are drawn without esc(), so imported counts become markup",
+    find: "  return esc(e.read)+' rows through '+esc(e.asOf||'?')+' \\u00b7 '+esc(e.uniq)+' on one requirement \\u00b7 '",
+    repl: "  return e.read+' rows through '+esc(e.asOf||'?')+' \\u00b7 '+esc(e.uniq)+' on one requirement \\u00b7 '" },
+  { id: "v200-shape-order-gate", area: "inShapeWhy", what: "the plan-shape check runs only when an order list is present, so a plan without one skips id validation",
+    find: "  if(asPlan || (Array.isArray(o.order) && ('discSvc' in o || 'alloc' in o || 'custom' in o || 'mc' in o))){",
+    repl: "  if(Array.isArray(o.order) && ('discSvc' in o || 'alloc' in o || 'custom' in o || 'mc' in o)){" },
+  { id: "v200-blLbl-raw", area: "blLbl", what: "a locked-cycle name is drawn without esc(), so a hostile cycle key becomes markup",
+    find: "function blLbl(key){ const p=String(key).split('|'); return esc(p[0]+String(p[1]).slice(-2)); }",
+    repl: "function blLbl(key){ const p=String(key).split('|'); return p[0]+String(p[1]).slice(-2); }" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

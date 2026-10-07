@@ -8994,7 +8994,7 @@ function pkgBody(){
         +'<td style="text-align:left;font-size:9.5px;color:var(--dim)">'+(led.issuedTs? esc(fmtTs(led.issuedTs))+(led.issuedBy? ' \u00b7 '+esc(led.issuedBy):'') : '\u2014')+'</td>'
         +'<td style="text-align:left;font-size:9.5px;color:var(--dim)">'+(led.retTs? '#'+led.retSeq+' \u00b7 '+esc(fmtTs(led.retTs))+(led.retBy? ' \u00b7 '+esc(led.retBy):'') : '\u2014')+'</td>'
         +'<td><button class="btn" style="font-size:9.5px;padding:3px 9px"'+(st?'':' disabled')
-        +' onclick="pkgIssue('+jsa(ap)+')">\u2b06 Issue'+(led.seq? ' #'+(led.seq+1):'')+'</button> '
+        +' onclick="pkgIssue('+jsa(ap)+')">\u2b06 Issue'+(led.seq? ' #'+esc(led.seq+1):'')+'</button> '
         +'<button class="btn" style="font-size:9.5px;padding:3px 9px"'+(st?'':' disabled')
         +' title="you were sent this whole file to work on one appropriation: save just that one, for the board it came from"'
         +' onclick="pkgSendBack('+jsa(ap)+')">\u2b06 Send back</button></td></tr>';

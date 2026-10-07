@@ -124,7 +124,7 @@ for (const [lbl, env] of [['suites', { BOARD: GRID }]]) {
   const passed = (r.out.match(/ALL CHECKS PASSED/g) || []).length;
   const legacy = /every legacy Force setting computes exactly as before/.test(r.out);
   const ok = r.code === 0 && legacy && passed >= 7;
-  note({ ...r, ok, detail: ok ? `all 8 suites clean (${passed} banners + the legacy line)`
+  note({ ...r, ok, detail: ok ? `all suites clean (${passed} banners + the legacy line)`
     : `exit ${r.code}, ${passed} banner(s), legacy line ${legacy ? 'present' : 'MISSING'}` });
   console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${lbl}  (${passed} banners${legacy ? ' + legacy' : ', LEGACY LINE MISSING'})`);
 }
