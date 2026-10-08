@@ -3768,6 +3768,16 @@ const MUTATIONS = [
   { id: "v200-flow-to-raw", area: "flowRulesPanel", what: "the funds-flow 'counts as FY' value is drawn without coercion, so an imported flow.pseudo.to becomes markup",
     find: "counts as FY <input class=\"btn\" style=\"font-size:10px;padding:4px 8px;width:66px\" value=\"'+(parseInt(flowPseudo().to)||'')+'\"",
     repl: "counts as FY <input class=\"btn\" style=\"font-size:10px;padding:4px 8px;width:66px\" value=\"'+flowPseudo().to+'\"" },
+  // text fidelity: an escape where text is built or is not HTML changes what a person reads and what a workbook carries
+  { id: "v200-flowlabel-built-escaped", area: "flowCalc", what: "the funds-flow label is escaped when built, so a pseudo-appropriation named O&M reads O&amp;M on screen and in the workbook's Scope line",
+    find: "if(F.pseudo.n) F.label+=' \\u00b7 + '+F.pseudo.token+' FY'+(F.pseudo.from%100);",
+    repl: "if(F.pseudo.n) F.label+=' \\u00b7 + '+esc(F.pseudo.token)+' FY'+(F.pseudo.from%100);" },
+  { id: "v200-flowlabel-status-raw", area: "exportFlow", what: "the export status line draws the funds-flow label raw, so a hostile pseudo-appropriation name becomes markup",
+    find: "setStat('⬇ Exported: funds flow '+esc(F.label)+' — summary, prime detail, OGC detail.');",
+    repl: "setStat('⬇ Exported: funds flow '+F.label+' — summary, prime detail, OGC detail.');" },
+  { id: "v200-confirm-escaped", area: "bmSeedFromPp", what: "the budget-authority confirm() escapes the service names, so a service named with & reads &amp; in the dialog",
+    find: "says nothing about: '+v.absent.join(', ')",
+    repl: "says nothing about: '+esc(v.absent.join(', '))" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

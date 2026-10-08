@@ -2620,7 +2620,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.00 (7 Oct 2026)';
+const BUILD='v2.00 (8 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -15535,7 +15535,7 @@ function flowCalc(arg){
   F.grand=F.tot+F.ip+F.fms;
   // the chart already states its scope; money pulled in from another year is a scope fact, not a
   // caveat, so it belongs in that same sentence
-  if(F.pseudo.n) F.label+=' \u00b7 + '+esc(F.pseudo.token)+' FY'+(F.pseudo.from%100);
+  if(F.pseudo.n) F.label+=' \u00b7 + '+F.pseudo.token+' FY'+(F.pseudo.from%100);
   return F;
 }
 // v1.99 (item 92): what partner and FMS money is, said the same way on the panel and in the export
@@ -16667,7 +16667,7 @@ function exportFlow(){
   a.download=expName('ORBIT Funds Flow - '+F.label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()
     +' '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
-  setStat('⬇ Exported: funds flow '+F.label+' — summary, prime detail, OGC detail.');
+  setStat('⬇ Exported: funds flow '+esc(F.label)+' — summary, prime detail, OGC detail.');
 }
 // ==============================================================================================================
 // §28  ACTIVE-YEAR EXECUTION AND THE SPEND PLAN SOURCE EXPORT
@@ -22233,7 +22233,7 @@ function bmSeedFromPp(key){
   });
   if(!confirm('Take '+FYL()+'’s base budget authority from '+lbl+'?\n\n'
     +lines.join('\n')
-    +(v.absent.length? '\n\nLEFT ALONE — '+lbl+' says nothing about: '+esc(v.absent.join(', '))
+    +(v.absent.length? '\n\nLEFT ALONE — '+lbl+' says nothing about: '+v.absent.join(', ')
                       +'\n(a position that does not mention a service is not a position that says zero)' : '')
     +(v.outside.length? '\n\nIGNORED — '+lbl+' carries services this board does not: '+v.outside.join(', ') : '')
     +'\n\nAdded funding sources are not touched, and you can edit any of these afterwards.')) return;

@@ -71,7 +71,7 @@ function display(finding, surface, exprOrContainer, { container = null, pre = nu
     if (container) { B.ev(exprOrContainer); r = JSON.parse(B.ev(`JSON.stringify(window.__show(${JSON.stringify(container)}))`)); }
     else r = JSON.parse(B.ev(`JSON.stringify(window.__draw(${exprOrContainer}))`));
   } catch (e) { r = { live: false, drawn: false, threw: e.message }; }
-  if (r.threw) failures.push({ finding, what: `${surface} threw: ${r.threw}`, got: 'threw', want: 'drew' });
+  if (r.threw) { SEEN.add(finding); failures.push({ finding, what: `${surface} threw: ${r.threw}`, got: 'threw', want: 'drew' }); }
   else {
     if (drawn) chk(finding, `${surface}: the value is drawn`, r.drawn, true);
     chk(finding, `${surface}: and it is text, not live`, r.live, false);
@@ -83,7 +83,7 @@ function display(finding, surface, exprOrContainer, { container = null, pre = nu
 // is absent (as on a board from before the fix), that is itself the failure — the guard is not there.
 function probe(B, finding, expr) {
   try { return JSON.parse(B.ev(expr)); }
-  catch (e) { failures.push({ finding, what: `the guard is absent or threw: ${e.message}`.slice(0, 160), got: 'threw', want: 'guarded' }); return null; }
+  catch (e) { SEEN.add(finding); failures.push({ finding, what: `the guard is absent or threw: ${e.message}`.slice(0, 160), got: 'threw', want: 'guarded' }); return null; }
 }
 
 const bm = bootMark();
@@ -106,46 +106,15 @@ display('A3b locked-cycle name (blLbl)', 'cycle label',
 display('A3d snapshot exec counts (posExecLine)', 'Snapshots',
   `posExecLine({fy:2027, exec:{imported:true, read:${JSON.stringify(P('a3d'))}, asOf:'x', uniq:1, shared:0, none:0}})`);
 
-// ---- A3e — aircraft/engine buy quantities (buys table row) ----------------------------------------
-// The sink is value="${b.base[i]||0}" in the buys table; esc() closes it.
-display('A3e buy quantities (buys row)', 'Aircraft & Engine',
-  `(function(){ var b={base:[${JSON.stringify(P('a3e'))},0], adj:[0,0], cost:[0,0], locked:false};
-     return '<input class="qty" value="'+esc(b.base[0]||0)+'">'; })()`);
-
-// ---- A3f — funding-source mode in the lane-chip title ---------------------------------------------
-// .toUpperCase() uppercases the payload, so __pw never calls (case); the attribute break-out (an
-// <img>) is what proves it. esc() closes it either way.
-display('A3f fsrc mode in lane title', 'lane chip title',
-  `(function(){ S.fsrc={R0:{m:${JSON.stringify(P('a3f'))}, d:0, mnd:0}}; var t=tiers().R0||{dT:0,mT:0,uT:0,set:${JSON.stringify(P('a3f'))}};
-     return '<div class="lanec" title="Disc 0 \\u00b7 funding source SET manually ('+esc(t.set)+')">x</div>'; })()`);
-
-// ---- A3g — requirement id in a plan with no order list (award id attribute) -----------------------
-display('A3g award id attribute (awardBlockHtml)', 'RECORD award block',
-  `(function(){ var id=${JSON.stringify(P('a3g'))};
-     return '<input type="date" id="awdM-'+esc(id)+'">'; })()`);
-
-// ---- A3h — funds-flow label (export status) and FY (matching rules) -------------------------------
-display('A3h flow label (export status)', 'Funds Flow export',
-  `(function(){ return '<span>Exported '+esc(${JSON.stringify(P('a3h1'))})+'</span>'; })()`);
-display('A3h flow FY (matching rules input)', 'Funds Flow matching rules',
-  `(function(){ return '<input value="'+(parseInt(${JSON.stringify(P('a3h2'))})||'')+'">'; })()`,
-  { drawn: false });
-
 // ---- A3i — PPBE position / Spruills funding note (ppLbl) -------------------------------------------
 display('A3i ppbe cycle note (ppLbl)', 'PPBE positions / Spruills',
   `ppLbl(${JSON.stringify(P('a3i') + '|2027')})`);
 
-// ---- A3j — budget-list provenance file count ------------------------------------------------------
-display('A3j budget-list file count', 'BAE register',
-  `(function(){ return '<td>'+esc(${JSON.stringify(P('a3j'))})+'</td>'; })()`);
-
-// ---- A4 — CCaR QPE office name in the execution panel (esc(g)) -------------------------------------
-display('A4 QPE office in exBody', 'Active Year Execution',
-  `(function(){ return '<div>'+esc(${JSON.stringify(P('a4'))})+'</div>'; })()`);
-
-// ---- A5 — shared-folder peer requirement count ----------------------------------------------------
-display('A5 live peer reqs', 'Live view peers',
-  `(function(){ var sum={reqs:${JSON.stringify(P('a5'))}}; return '<td>'+(sum? esc(sum.reqs) : '\\u2014')+'</td>'; })()`);
+// The other display sinks (A3e buys, A3f lane title, A3g award id, A3h funds-flow label and FYs, A3j budget list,
+// A4 execution office, A5 live peers, A6 destination keys) sit deep inside panel renders. Each is pinned to its
+// escaped form in the board source below, which fails on a board that draws it raw. (An earlier draft of this suite
+// had runtime checks for these sinks that built their own escaped markup instead of calling the board; they passed on
+// any board, proved nothing, and were removed before v2.00 was gated.)
 
 // ---- A3c — budget year kept as text: numbers on load fixes every sink at once ----------------------
 // normalizeStore must turn a non-numeric year into a number, so the year sinks (rlgBody, ppBody, IDS)
@@ -240,6 +209,7 @@ bootRelease(bm, []);
     ['A6 destination key, "Goes to" picker (recFields)', `'<option value="'+esc(e.k)+'"'+(destOf(it).to===e.k`],
     ['A6 destination key, "Which awards to" picker (recFields)', `'<option value="'+esc(e.k)+'"'+(destOf(it).end===e.k`],
     ['A3h flow FY "counts as" (matching-rules input)', `value="'+(parseInt(flowPseudo().to)||'')`],
+    ['A3h funds-flow label, export status line (exportFlow)', `setStat('⬇ Exported: funds flow '+esc(F.label)+'`],
   ];
   for (const [finding, needle] of srcSink) {
     SEEN.add(finding);
@@ -247,16 +217,46 @@ bootRelease(bm, []);
   }
 }
 
+// ---- TEXT FIDELITY: an escape belongs where text is drawn as HTML, and nowhere else ----------------
+// esc() turns & < " ' into entities. Applied where a value is BUILT, or to text that is not HTML (a confirm()
+// dialog, a workbook cell), it changes what a person reads: "O&M" becomes "O&amp;M". v2.00's first candidate did
+// exactly that twice, and these guard it. They pass on v1.99 too; they exist to fail on a board that over-escapes.
+const FID = new Set();
+const fid = (name, what, got, want) => { FID.add(name); if (String(got) !== String(want)) failures.push({ finding: name, what, got: String(got), want: String(want) }); };
+{
+  // T1 — a pseudo-appropriation named with "&": the funds-flow label (the panel heading, the chart, the workbook's
+  // Scope line) carries the name as typed.
+  const B = fresh();
+  const out = probe(B, 'T1 funds-flow label keeps "&" (flowCalc / exportFlow Scope)', `(function(){
+    var row=[]; for(var i=0;i<25;i++) row.push(''); row[3]='Title A'; row[4]='O&M Carry, Mandatory'; row[7]='Event'; row[9]=1000; row[18]='AV';
+    EXDB={ts:Date.now(), all:{}}; EXDB.all[mySlug()]={rows:{2026:[row]}};
+    var C=flowCfg(); C.pseudo={on:true, label:'O&M Carry', token:'O&M Carry', from:2026, to:2027, col:4}; C.fys=[2027];
+    var F=flowCalc();
+    return JSON.stringify({ n:F.pseudo.n, label:F.label }); })()`);
+  if (out) {
+    fid('T1 funds-flow label keeps "&" (flowCalc / exportFlow Scope)', 'the fixture pulls one row into the pseudo-appropriation', out.n, 1);
+    fid('T1 funds-flow label keeps "&" (flowCalc / exportFlow Scope)', 'the label reads "O&M Carry", not "O&amp;M Carry"',
+      /O&M Carry/.test(out.label) && !/&amp;/.test(out.label), true);
+  }
+}
+{
+  // T2 — a confirm() dialog is plain text: the budget-authority question names the services a position is silent
+  // about as they are, with no entities.
+  const src = readFileSync(BOARD, 'utf8');
+  fid('T2 budget-authority question is plain text (bmSeedFromPp confirm)', 'the confirm() text does not esc() the service names',
+    src.includes(`says nothing about: '+esc(`), false);
+}
+
 // ---- report ---------------------------------------------------------------------------------------
 const line = '='.repeat(96);
 console.log(`\n${line}`);
 if (failures.length) {
-  console.log(`INJECTION REGRESSION — ${failures.length} FAILING CHECK(S) across ${SEEN.size} findings\n`);
+  console.log(`INJECTION REGRESSION — ${failures.length} FAILING CHECK(S) across ${SEEN.size} findings and ${FID.size} text-fidelity guards\n`);
   for (const f of failures) console.log(`  FAIL  [${f.finding}] ${f.what}  (got ${f.got}, want ${f.want})`);
   console.log(`\n${line}\n`);
   process.exit(1);
 }
-console.log(`INJECTION REGRESSION — all clear across ${SEEN.size} findings: every hostile value is drawn as text, and the structural guards hold`);
+console.log(`INJECTION REGRESSION — all clear across ${SEEN.size} findings and ${FID.size} text-fidelity guards: every hostile value is drawn as text, the structural guards hold, and nothing is escaped where it is not drawn as HTML`);
 console.log(`\nALL CHECKS PASSED`);   // the gate counts this banner alongside the other suites
 console.log(`${line}\n`);
 process.exit(0);

@@ -4,45 +4,7 @@ Changes are logged here as they come up and built together as ONE version when B
 Nothing on this list touches the board until then. On go: build every open item, run the full
 math gate once, bump the version once, push once, and move the items to *Shipped* with the version.
 
-Current version: **v1.99** (shipped 7 Oct, merged to main). Building: **v2.00** — the security version.
-
-## Building now — v2.00 (the security version)
-
-#### 99. Imported text shown as page code, plus the reviewability cleanup (Brad, 7 Oct 2026)
-- **Found** reviewing v1.99 for Brad's security team: values from an imported board, PMO package, QPE workbook or a peer's
-  folder file reach the page as HTML without escaping, so a crafted file can run its own script. 27 holes reproduced on
-  v1.98 and v1.99 through the board's own import paths, audited, and shown running in Chromium. Details and crafted files
-  are in the owner's private annex, outside the repo.
-- **The fixes:** escape each value where it is shown (about 20 sinks); read year, sequence, buy-quantity and count fields as
-  numbers when they load; refuse `__proto__` / `constructor` / `prototype` as journal path elements, not only as object
-  keys; validate custom ids and award keys even when a plan has no `order` list; allow-list the Confluence download host
-  before attaching credentials. Do not make the import check refuse more (boards people hold must keep opening).
-- **The cleanup (folded in, Brad 7 Oct):** about 35 section headings so a reviewer can navigate the file; ~140 dead lines
-  removed; the 1.6 MB PowerPoint template fenced with a recorded fingerprint so reviewers can skip it; misleading comments
-  corrected. Low-churn: it disturbs almost no mutations.
-- **Tests:** each confirmed hole becomes a check that fails on the pre-fix board and passes after; the security team verifies
-  by running the suite and watching red turn green. New mutations remove each fix. One gate covers fixes and cleanup.
-- **Self-audit (7 Oct 2026):** an independent adversarial pass over the v2.00 diff (four reviewers, each finding verified)
-  found **two more injection sinks the review's 27 had missed**, both now fixed and covered: an imported **destination
-  key** (`e.k`) drawn raw into the RECORD panel's "Goes to" / "Which awards to" `<option value>` (the neighbouring name
-  was already escaped), and the funds-flow **"counts as FY"** input (`flow.pseudo.to`) left raw while its sibling
-  "appropriated FY" (`.from`) was coerced. No math-safety or cleanup-safety findings — the fixes change no figure and the
-  cleanup is behaviour-neutral.
-- **Built (7 Oct 2026):** 25 display sinks now escape at the point they are drawn; `wholeOr()` coerces year, sequence,
-  buy-quantity and count fields to whole numbers in `normalizeStore`/`pkgNums` on load; `jrnlPathSafe` refuses
-  `__proto__`/`constructor`/`prototype` as journal path elements (and the import door refuses them in a journal entry);
-  `inShapeWhy` runs the id/award shape check on every year's plan whether or not it carries an `order` list; `pkgApply`
-  refuses a package whose sequence is not a number; `confSameHost` follows a Confluence download link only when it is a
-  path on the configured host. Reviewability: 42 section banners (§01–§42, anchored by function name), ~23 unused
-  functions removed, the PowerPoint template fenced and fingerprinted (`tools/tpl-parts.sha256`, checked by `check.mjs`),
-  stale comments corrected. Tests: `tools/export-audit/audit-inject.mjs` — 27 findings, clean on this board and 22 failing
-  on v1.99 (6388472); 11 new mutations (`v200-*`), all caught; 1,150 mutation targets, 0 not-applied. The import, hostile
-  and board suites pass; the full math gate is the release gate.
-
-#### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
-- The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
-  CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
-  Not in the v2.00 code build; it follows once they answer.
+Current version: **v2.00**. Next: **v2.01**.
 
 ## Open
 
@@ -138,6 +100,22 @@ Current version: **v1.99** (shipped 7 Oct, merged to main). Building: **v2.00** 
   cycle's classifications still read today's lists, and never claim the whole cycle is frozen. *(Item 98, v1.99: the
   PPBE cycles panel and Help say so.)*
 
+#### 100. DoD security standards for the IL5 Azure environment — follows, pending the security team's answers
+- The traceability table (NIST SP 800-53 Rev. 5, DISA ASD STIG, DoDI 8500.01, NIST SP 800-88 Rev. 1, CWE, MITRE ATT&CK),
+  CUI markings on exports, and the control mapping depend on the security team's answers to the 15 deployment questions.
+  Not in the v2.00 code build; it follows once they answer.
+
+#### 101. The 1400px editors check measures before the drawer settles (logged 8 Oct 2026, for the next version)
+- **Found** in the v2.00 gate (7 Oct, 7:11 PM ET): `tools/editors-reachable.mjs` reported the page 1px too wide at exactly
+  1400px in the Segoe stand-in +6% run. Not reproduced in 13 repeat runs (7 on v2.00 `608444e`, 6 on v1.99 `6388472`), some
+  under full sweep load; the whole browser stage passed on one re-run. Fonts are awaited first, so font loading is ruled out.
+- **Likely cause:** the check measures once, a fixed 300 ms after clicking a row; at 1400px the RECORD panel opens as a
+  drawer, and a reading taken before layout settles can catch a passing pixel.
+- **Fix:** wait for layout to settle (two animation frames and equal back-to-back readings, or the drawer's
+  `transitionend`) instead of the fixed 300 ms. Test tool only; the board does not change. Prove it: force the early
+  reading (fails), then the settled one (passes).
+- **Brad, 8 Oct 2026:** next version, not v2.00.
+
 ## Later
 
 Logged and kept, but not in the next version. Each needs Brad's go again when its time comes.
@@ -200,6 +178,73 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
   their own columns on every sheet, including a requirement with a PID and no CCaR number.
 
 ## Shipped
+
+### v2.00 — 8 Oct 2026: item 99, built on Brad's "go" of 7 Oct -- the security version
+
+**Imported text is drawn as text.** A security review of v1.99 for Brad's security team confirmed 27 places where a value
+from an imported board, PMO package, QPE workbook or a peer's folder file reached the page as HTML, so a crafted file
+could run its own script. A self-audit of the v2.00 diff found two more of the same kind, and a second audit found two
+places where the first candidate escaped text that is not HTML, so "O&M" would have read "O&amp;M". All are fixed; each
+has a check that fails on v1.99 (or, for the two text-fidelity guards, on the first candidate) and passes now, and a
+mutation removes each fix. The cleanup Brad folded in -- section banners, dead code out, the PowerPoint template fenced,
+stale comments -- changes no behaviour. Details and crafted files are in the owner's private annex, outside the repo.
+
+**What users may see:** nothing on a board this board wrote. Every figure, label and export reads as before, and text
+with "&", "<" or quotes reads as typed. A file whose year, sequence, buy-quantity or count fields hold text where a number
+belongs loads with whole numbers. A PMO package whose sequence is not a number is refused, and says why. Put back refuses
+a journal path through `__proto__`, `constructor` or `prototype`, and the import check refuses a journal entry that
+carries one; it also checks a plan's custom ids and award keys whether or not the plan has an `order` list. A board this
+board wrote carries none of these, so every board people hold still opens. A Confluence download link is followed only
+when it is a path on the configured host.
+
+**Expected changes to existing checks:** none. No existing check, fixture or mutation changed; `audit-inject` joins
+`audit:suites` and the sweep's catching set, and 14 mutations are added (1,139 to 1,153).
+
+GATE_V200
+
+#### 99. Imported text shown as page code, plus the reviewability cleanup (Brad, 7 Oct 2026)
+- **Found** reviewing v1.99 for Brad's security team: values from an imported board, PMO package, QPE workbook or a peer's
+  folder file reach the page as HTML without escaping, so a crafted file can run its own script. 27 holes reproduced on
+  v1.98 and v1.99 through the board's own import paths, audited, and shown running in Chromium. Details and crafted files
+  are in the owner's private annex, outside the repo.
+- **The fixes:** escape each value where it is shown (about 20 sinks); read year, sequence, buy-quantity and count fields as
+  numbers when they load; refuse `__proto__` / `constructor` / `prototype` as journal path elements, not only as object
+  keys; validate custom ids and award keys even when a plan has no `order` list; allow-list the Confluence download host
+  before attaching credentials. Do not make the import check refuse more (boards people hold must keep opening).
+- **The cleanup (folded in, Brad 7 Oct):** about 35 section headings so a reviewer can navigate the file; ~140 dead lines
+  removed; the 1.6 MB PowerPoint template fenced with a recorded fingerprint so reviewers can skip it; misleading comments
+  corrected. Low-churn: it disturbs almost no mutations.
+- **Tests:** each confirmed hole becomes a check that fails on the pre-fix board and passes after; the security team verifies
+  by running the suite and watching red turn green. New mutations remove each fix. One gate covers fixes and cleanup.
+- **Self-audit (7 Oct 2026):** an independent adversarial pass over the v2.00 diff (four reviewers, each finding verified)
+  found **two more injection sinks the review's 27 had missed**, both now fixed and covered: an imported **destination
+  key** (`e.k`) drawn raw into the RECORD panel's "Goes to" / "Which awards to" `<option value>` (the neighbouring name
+  was already escaped), and the funds-flow **"counts as FY"** input (`flow.pseudo.to`) left raw while its sibling
+  "appropriated FY" (`.from`) was coerced. No math-safety or cleanup-safety findings — the fixes change no figure and the
+  cleanup is behaviour-neutral.
+- **Second audit (8 Oct 2026): escaping in the wrong place.** `esc()` is right only where text is drawn as HTML. The
+  first candidate (`608444e`) escaped twice where text is not HTML, which changes what a person reads: the funds-flow
+  label was escaped when it was BUILT, so a pseudo-appropriation named `O&M Carry` read `O&amp;M Carry` on the panel
+  heading, in the chart and in the exported workbook's Scope line; and the budget-authority `confirm()` (plain text)
+  escaped the service names. Fixed: the label is built raw and escaped where it is drawn (the one raw HTML use, the export
+  status line, now escapes); the confirm() names stay plain. A second pass checked every escape v2.00 added against where
+  its text goes (HTML, attribute, dialog, workbook cell, file name, document title): no other one changes text. The
+  `608444e` gate had passed (8/8 stages, 1,139/1,139 caught), but it gated a board with these two defects, so the fixed
+  board is gated again from the start.
+- **Built (7 Oct 2026):** 25 display sinks now escape at the point they are drawn; `wholeOr()` coerces year, sequence,
+  buy-quantity and count fields to whole numbers in `normalizeStore`/`pkgNums` on load; `jrnlPathSafe` refuses
+  `__proto__`/`constructor`/`prototype` as journal path elements (and the import door refuses them in a journal entry);
+  `inShapeWhy` runs the id/award shape check on every year's plan whether or not it carries an `order` list; `pkgApply`
+  refuses a package whose sequence is not a number; `confSameHost` follows a Confluence download link only when it is a
+  path on the configured host. Reviewability: 42 section banners (§01–§42, anchored by function name), ~23 unused
+  functions removed, the PowerPoint template fenced and fingerprinted (`tools/tpl-parts.sha256`, checked by `check.mjs`),
+  stale comments corrected. Tests: `tools/export-audit/audit-inject.mjs` — 21 checks covering every finding (a runtime
+  draw where the surface renders on its own, a probe for each structural guard, and a pin on the escaped form for sinks
+  deep inside a panel render) plus 2 text-fidelity guards; clean on this board, 23 failing on v1.99 (`6388472`) and 3 on
+  the first candidate (`608444e`). An earlier draft had eight runtime checks that built their own escaped markup instead
+  of calling the board, so they passed on any board; they were replaced by the source pins before gating. 14 new
+  mutations (`v200-*`), all caught; 1,153 mutation targets, 0 not-applied. The import, hostile and board suites pass;
+  the full math gate is the release gate.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 

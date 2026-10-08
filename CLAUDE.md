@@ -3845,6 +3845,57 @@ by a container restart: 5:09 am – 2:58 pm Eastern on one container, sweep 1128
 expected-versus-actual on the candidate board: 23 comparisons, 0 differences. The batch runner is kept at
 `scratchpad/v199/gate-chunked/` with per-stage and per-batch logs.
 
+### v2.00 (item 99): imported text is drawn as text -- the security review's 27 injection holes and 2 more, structural guards, and a file a reviewer can navigate
+
+Built on Brad's go of 7 Oct 2026. A security review of v1.99 for Brad's security team confirmed 27 places where a value
+from an imported board, package, workbook, peer folder file or side store reached the page as HTML; each was reproduced on
+v1.98 and v1.99 and shown running in Chromium. Details and crafted files are in the owner's private annex, outside the repo.
+A self-audit of the v2.00 diff (four independent reviewers, each finding verified) found two more of the same kind before
+the gate, and a second audit found two places where the first candidate escaped text that is not HTML.
+
+**Escaped where drawn.** 25 display sinks now pass the value through `esc()` at the point it is written into markup, an
+attribute or an inline handler -- among them the journal's size marker (`jrnlShow`), `blLbl`, `ppLbl`, `posExecLine`'s
+counts, the Packages panel's sequence, buy quantities, the lane chip's funding-source title, the RECORD panel's destination
+keys and award-date id, the budget list's file counts, the execution panel's office, the live view's peer count, and status
+lines that name a file or a sender. The rule: a value that did not come from this board's own code is escaped where it is
+drawn, however it arrived; the import check is not relied on to have cleaned it.
+
+**Escape where drawn, and nowhere else.** `esc()` turns & < " ' into entities, which is right only where the string is
+parsed as HTML. Escape at the point a value is written into markup -- never where a value is BUILT, and never on text that
+is not HTML: a `confirm()` / `alert()` message, a workbook cell, a download file name, `document.title`, or a string that
+will be escaped again later. The first v2.00 candidate (`608444e`) broke this twice: `flowCalc` escaped the
+pseudo-appropriation token into `F.label`, so "O&M Carry" read "O&amp;M Carry" on the panel heading, in the chart and in
+the workbook's Scope line; and `bmSeedFromPp`'s `confirm()` escaped the service names. `F.label` is now built raw; every
+HTML use escapes it (`flowT`, the panel heading, the TOTAL row, the export status line) and the workbook and file name use
+it raw. Two text-fidelity guards in `audit-inject` (T1 drives `flowCalc` with an "&" name, T2 pins the plain confirm) fail
+on a board that over-escapes.
+
+**Numbers on load.** `wholeOr(v, d)` returns a whole number or the fallback. `normalizeStore` reads `MS.base` and `MS.cur`
+through it; `pkgNums` (from `normalizeStore` and `pkgStoreOf`) does the same for a package ledger's `seq` / `retSeq` and
+`MS.pkg.seq` / `sentSeq`; the cycle view reads `c.base` through it. The funds-flow matching-rules editor draws both FYs as
+`parseInt(...)||''`. A board the board wrote already holds whole numbers in every one of these, so nothing typed changes.
+
+**Structural guards.** `jrnlPathSafe`: Put back (`jrnlSet`, `jrnlUndoable`) refuses `__proto__` / `constructor` /
+`prototype` as a path element, and the import check refuses a journal entry that carries one. `inShapeWhy(o, path, asPlan)`
+checks every entry under a store's `years` as a plan whether or not it has an `order` list (the board rebuilds a missing
+order on load, so skipping the check let its ids through). `pkgApply` refuses a package whose `seq` is not a whole number.
+`confSameHost(link)` follows a Confluence download link only when it is a path ("/...") on the configured host.
+
+**Reviewability.** 42 section banners (`// §NN TITLE`, anchored to a function, with the table of sections at §01 -- search
+for §). About 23 functions nothing called were removed (`removeYear`, the chip picker, `rpAdd` / `rpSet` / `rpDel`, ...),
+stale comments corrected, and the PowerPoint template line fenced: `check.mjs` parses `TPL_PARTS` as JSON, requires every
+value to be base64, and checks the line's SHA-256 against `tools/tpl-parts.sha256` (re-record it on a deliberate template
+change).
+
+**Checks.** `tools/export-audit/audit-inject.mjs` (in `audit:suites` and last in the mutation sweep's catching set): 21
+checks covering every finding -- a runtime draw through the board's own renderer where the surface renders on its own, a
+probe for each structural guard, and a pin to the escaped form in the source for sinks deep inside a panel render -- plus
+the 2 text-fidelity guards. Clean on v2.00; 23 checks fail on v1.99 (`BOARD=<a v1.99 board> node
+tools/export-audit/audit-inject.mjs`) and 3 on the first candidate. A runtime check must call the board's function: an
+earlier draft had eight that built their own escaped markup, passed on any board, and were replaced by source pins before
+the gate. 14 new mutations (`v200-*`) each undo one fix or re-add one over-escape; all caught (1,153 in all).
+**Gate.** GATE_V200
+
 ## Colour: one token, one job
 
 Two tokens were each doing two jobs, and both only showed up when a light theme arrived:
