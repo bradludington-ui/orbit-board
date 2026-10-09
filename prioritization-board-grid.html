@@ -3170,7 +3170,7 @@ function svcListBlock(list, from){
     return false; });
   if(cyc.length) why.push('A PPBE cycle reads its figures by each service’s place in this list, and a cycle is a fixed point:\n'
     + cyc.map(function(k){ const c=blGet(k);
-        return '  • '+blLbl(k)+(c.locked? ' (locked)' : ' (unlocked)')+' holds '+(svcCycSvcs(c)||old.slice(0, svcCycWidth(c))).join(', '); }).join('\n')
+        return '  • '+blLblTxt(k)+(c.locked? ' (locked)' : ' (unlocked)')+' holds '+(svcCycSvcs(c)||old.slice(0, svcCycWidth(c))).join(', '); }).join('\n')
     + '\nThose services keep their names and places while it is kept. A service can still be added at the end of the list.');
   const gone=old.map(function(s,j){ return j; }).filter(function(j){ return from.indexOf(j)<0; });
   if(gone.length){
@@ -3301,6 +3301,7 @@ function svcAdd(){
   if(!svcEditable()) return;
   uiPrompt('Add a service (e.g. USAF, USMC-B, USMC-C, USN):','',v=>{
     v=(v||'').trim(); if(!v) return;
+    const why=typedNameWhy(v, 'The service name'); if(why){ alert(why+' — not added.'); return; }
     if(SVC.some(x=>x.toLowerCase()===v.toLowerCase())){ alert('"'+v+'" is already in the list.'); return; }
     if(!svcSaveList(SVC.concat([v]), SVC.map((s,k)=>k).concat([-1]))) return;
     setStat('🏷 Added service <b>'+esc(v)+'</b> — requirement values and allocations can now be entered for it.');
@@ -3311,6 +3312,7 @@ function svcRen(i){
   const was=SVC[i]; if(was===undefined) return;
   uiPrompt('Rename "'+was+'" to:', was, v=>{
     v=(v||'').trim(); if(!v||v===was) return;
+    const why=typedNameWhy(v, 'The service name'); if(why){ alert(why+' — not renamed.'); return; }
     if(SVC.some((x,k)=>k!==i && x.toLowerCase()===v.toLowerCase())){ alert('"'+v+'" is already in the list.'); return; }
     const l=SVC.slice(); l[i]=v;
     if(svcSaveList(l, SVC.map((s,k)=>k)))
@@ -3468,7 +3470,7 @@ function aceBody(){
     +'</select>'
     +'<span style="font-size:9px;color:var(--dim)">requirements and estimate are read in the '
       +'<b>same</b> year</span>'
-    +'<span style="font-size:9.5px;color:var(--dim)">'+(set.lines?set.lines.length:0)+' cost lines \u00b7 '
+    +'<span style="font-size:9.5px;color:var(--dim)">'+(Array.isArray(set.lines)?set.lines.length:0)+' cost lines \u00b7 '
     +aceWbs.length+' WBS in '+esc(APPN_LBL[mySlug()]||mySlug())+'</span></div>';
 
   // ---- the three numbers that get asked first
@@ -5938,7 +5940,7 @@ function importAceNote(st){
     return ' The file also carried <b>' + esc(sets.sort().join(', ')) + '</b> \u2014 already held here, '
       + 'and an import never overwrites a cost estimate.';
   }
-  return ' \u26a0 The file carried the cost estimate <b>' + missing.sort().join(', ') + '</b>, which was '
+  return ' \u26a0 The file carried the cost estimate <b>' + esc(missing.sort().join(', ')) + '</b>, which was '
     + '<b>not</b> brought across \u2014 an estimate lives in its own store so that importing a board '
     + 'cannot overwrite one you already hold. Load it again with Data \u203a '
     + '\ud83d\udce5 Import Annual Cost Estimate\u2026 if you want the tie-out on this build.';
@@ -6023,7 +6025,7 @@ function shiftAwardYears(st, dy){
 function switchYear(y){
   y=parseInt(y);
   if(CYCVIEW && !MS.years[y]){
-    setStat('🔒 <b>'+esc(blLbl(CYCVIEW))+'</b> holds no FY'+(y%100)+' plan — it was locked with FY'
+    setStat('🔒 <b>'+blLbl(CYCVIEW)+'</b> holds no FY'+(y%100)+' plan — it was locked with FY'
       +cycHeld(CYCVIEW).map(function(v){ return v%100; }).join(', FY')+'.');
     return;
   }
@@ -6043,7 +6045,7 @@ function switchYear(y){
   MS.years[y]=S;
   const tag=document.getElementById('fyTag'); if(tag) tag.textContent=FYL();
   const fh=document.getElementById('fcTitle'); if(fh) fh.textContent='📅 '+FYL()+' PROJECTED SPEND PLAN FORECAST — OCT '+(MS.cur-1)+' – SEP '+MS.cur;
-  if(CYCVIEW){ render(); setStat('👁 <b>Viewing '+esc(blLbl(CYCVIEW))+' (locked)</b> — '+FYL()+'. Read only.'); return; }
+  if(CYCVIEW){ render(); setStat('👁 <b>Viewing '+blLbl(CYCVIEW)+' (locked)</b> — '+FYL()+'. Read only.'); return; }
   save(); render();
   setStat('🗓 Working '+FYL()+' — every year keeps its own priorities, BA, allocations, and forecast; all years save and share together.');
 }
@@ -6355,7 +6357,7 @@ function rollBody(){
   h+='<div style="margin-bottom:8px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">'
     +'<span class="rlg-lbl" style="width:120px">ROLL INTO</span>';
   rollYears().forEach(function(y){
-    const st=MS.years[y], n=st&&st.order? st.order.length : 0;
+    const st=MS.years[y], n=st&&Array.isArray(st.order)? st.order.length : 0;
     h+='<button class="btn'+(rollYrs[y]?' on':'')+'" style="font-size:10px;padding:4px 10px;font-weight:700" '
       +'onclick="rollToggleYear('+y+')" title="'+(n? n+' requirement'+(n===1?'':'s')+' there now' : 'blank so far')+'">'
       +'FY'+(y%100)+'</button>';
@@ -6645,7 +6647,7 @@ function jrnlBySvcPlace(e){
 function jrnlUndo(i){
   const e=(MS.jrnl||[])[i];
   if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, a line saying what could not be recorded, a figure recorded by its service’s place before the service list changed, or the value is too large to have been recorded in full.'); return; }
-  if(!confirm('Put '+jrnlLabel(e)+' back to what it was before '+(e.by||'?')+' changed it?\n\nThis is recorded in the journal too.')) return;
+  if(!confirm('Put '+diagPlain(jrnlLabel(e))+' back to what it was before '+(e.by||'?')+' changed it?\n\nThis is recorded in the journal too.')) return;
   const fy=e.fy||MS.cur;
   if(!jrnlSet(fy, e.p, e.a)){ setStat('⚠ That value could not be put back — the shape of the state has moved on since.'); return; }
   if(fy===MS.cur) applyState(MS.years[MS.cur]);
@@ -6717,7 +6719,7 @@ function jrnlBody(){
   const q=jrnlOnly.toLowerCase();
   const rows=all.map((e,i)=>({e:e,i:i}))
     .filter(x=>!jrnlSinceOnly || (x.e.t>seen && x.e.by!==me))
-    .filter(x=>!q || (jrnlLabel(x.e)+' '+(x.e.by||'')).replace(/<[^>]+>/g,'').toLowerCase().indexOf(q)>=0)
+    .filter(x=>!q || (diagPlain(jrnlLabel(x.e))+' '+(x.e.by||'')).toLowerCase().indexOf(q)>=0)
     .reverse();
   let h='<div class="hint" style="margin-bottom:8px">Every field that changed in this file, newest first — '
     +'what it was, what it became, and who did it. A save of more than '+JRNL_PER_SAVE+' changes records the first '
@@ -6807,7 +6809,7 @@ var _statN=0;
 function setStat(html){
   _statN++;
   if(CYCVIEW && (Date.now()-_cycRefusedAt)<1500 && !/^🔒/.test(String(html)))
-    html='🔒 <b>Not kept — '+esc(blLbl(CYCVIEW))+' is a locked view.</b> '+html;
+    html='🔒 <b>Not kept — '+blLbl(CYCVIEW)+' is a locked view.</b> '+html;
   try{ if(diagIsWarn(html)) diagNote('warning', html); }catch(e){}
   const el=document.getElementById('shareStat'); if(el) el.innerHTML=html;
   // v1.90: the line lives beside the save state now. A message shows itself there until the next one or
@@ -8267,7 +8269,7 @@ function expTitle(){
 // The name the file lands under, so it is marked in the mail that forwards it as well as inside.
 function expName(n){
   let s=String(n);
-  if(CYCVIEW && !/LOCKED\]/.test(s)){ const j=s.lastIndexOf('.'); s=(j>0? s.slice(0,j) : s)+' ['+blLbl(CYCVIEW)+' LOCKED]'+(j>0? s.slice(j) : ''); }
+  if(CYCVIEW && !/LOCKED\]/.test(s)){ const j=s.lastIndexOf('.'); s=(j>0? s.slice(0,j) : s)+' ['+blLblTxt(CYCVIEW)+' LOCKED]'+(j>0? s.slice(j) : ''); }
   if(!SANDBOX) return s;
   if(/PMO COPY|SUBMITTAL/.test(s)) return s;          // already says exactly what it is
   const i=s.lastIndexOf('.');
@@ -8386,7 +8388,7 @@ async function _saveInPlaceFileRun(){
     else baseSet({file:LASTKNOWN});
     sideWrote(sideAt);              // what changed after the bytes were built is still unsaved
     syncBtns();
-    setStat('💾 Saved in place by <b>'+esc(MS.by||whoAmI())+'</b> — "'+(h.name||FNAME)+'" now carries this state. '+fmtTs(Date.now())
+    setStat('💾 Saved in place by <b>'+esc(MS.by||whoAmI())+'</b> — "'+esc(h.name||FNAME)+'" now carries this state. '+fmtTs(Date.now())
       +(may==='claim'? ' You are now this board’s <b>writer</b>: only you save it in place.' : may==='take'? ' You now <b>hold the pen</b> for this board.' : '')
       +((clean && _sideGen===sideAt)? '' : ' <b>A change made while it was saving is not in the file yet</b> — 💾 Save again to write it.'));
   }catch(e){
@@ -8399,7 +8401,7 @@ async function _saveInPlaceFileRun(){
         +'. Nothing was written, and your work is still here, unsaved. <button type="button" class="nb lnk" onclick="publishState()">⬇ Save a copy</button>');
       return;
     }
-    setStat('⚠ In-place save failed ('+((e&&e.message)||e)+') — downloading a copy instead.');
+    setStat('⚠ In-place save failed ('+esc((e&&e.message)||e)+') — downloading a copy instead.');
     publishState();
   }
 }
@@ -8937,7 +8939,8 @@ function pkgMineSince(cur, inc){
   return mine.filter(function(e){ return !theirs[key(e)] && (e.t||0)>cut; });
 }
 function pkgMineLines(list){
-  const plain=function(h){ return String(h).replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&quot;/g,'"').replace(/&amp;/g,'&'); };
+  // v2.00: the label is markup; a confirm() is text. diagPlain decodes every entity (it left &#39; behind: Pilot&#39;s).
+  const plain=function(h){ return diagPlain(h); };
   return list.slice(0,12).map(function(e){ return '  • '+plain(jrnlLabel(e))+' ('+(e.by||'?')+', '+fmtTs(e.t)+')'; }).join('\n')
     +(list.length>12? '\n  • … and '+(list.length-12)+' more' : '');
 }
@@ -9040,6 +9043,12 @@ function pkgApply(pkg, fname){
   if(!pkg || pkg.spmtPkg!==PKG_VER || !pkg.ap || !pkg.ms){
     alert('That is not an ORBIT appropriation package.'); return false;
   }
+  // v2.00 (item 99): the appropriation is a KEY here (PUBS, _SLUGMAP, the ledger), so it has to be one of this board's own.
+  // An unknown code reached the status line as the package's own text, and __proto__ handed back Object.prototype as
+  // the store, whose ledger then wrote .sync onto every object in the page. Every real package names om, ff, sp or opn.
+  if(!Object.prototype.hasOwnProperty.call(PKG_NAMES, pkg.ap)){
+    alert('NOT IMPORTED — that package names an appropriation this board does not have ('+inShow(pkg.ap)+').'); return false;
+  }
   // v2.00 (item 99): its number is what the stale-package check below compares, so it has to be one.
   if(pkg.seq!==undefined && pkg.seq!==null){
     if(wholeOr(pkg.seq, null)===null){
@@ -9109,7 +9118,7 @@ function pkgApply(pkg, fname){
       clash=true;
       if(!confirm('CONFLICT — '+nm+' has changed on THIS board since that copy was saved.\n\n'
         +'Taking it will DISCARD your changes here:\n\n'+pkgMineLines(mine)
-        +'\n\nTake it anyway and lose the above?')) { setStat('Import cancelled — '+nm+' left as it is.'); return false; }
+        +'\n\nTake it anyway and lose the above?')) { setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false; }
     }
   }
   if(inbound && cur && pkg.baseSig){
@@ -9120,7 +9129,7 @@ function pkgApply(pkg, fname){
       if(!confirm('CONFLICT — '+nm+' has changed on THIS board since package #'+(pkg.seq||0)+' was issued.\n\n'
         +'Taking this package will DISCARD your changes here:\n\n'
         +rows.map(r=>'  • '+r[0]+' — '+r[1]).join('\n')
-        +'\n\nTake the package anyway and lose the above?')) { setStat('Import cancelled — '+nm+' left as it is.'); return false; }
+        +'\n\nTake the package anyway and lose the above?')) { setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false; }
     }
   }
 
@@ -9131,7 +9140,7 @@ function pkgApply(pkg, fname){
       +'This REPLACES '+nm+' on this board:\n\n'
       +rows.map(r=>'  • '+r[0]+' — '+r[1]).join('\n')
       +'\n\nExecution data, cost estimates and the reprogramming log are NOT touched.\n\nProceed?')){
-    setStat('Import cancelled — '+nm+' left as it is.'); return false;
+    setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false;
   }
 
   // ---- 4. locked baselines. They are kept as they are, but that has to be a stated outcome:
@@ -9142,12 +9151,12 @@ function pkgApply(pkg, fname){
     if(!confirm('LOCKED BASELINES — '+nm+'\n\n'
       +'This package carries a different version of '+lockClash.length+' locked baseline'
       +(lockClash.length===1?'':'s')+':\n\n'
-      +lockClash.map(k=>'  • '+blLbl(k)).join('\n')
+      +lockClash.map(k=>'  • '+blLblTxt(k)).join('\n')
       +'\n\nA locked baseline is never changed by a package. Yours will be kept exactly as they are '
       +'and the package version will be ignored.\n\n'
       +(inbound? 'If the manager meant to change one, unlock it here and ask for it again.\n\n':'')
       +'Continue?')){
-      setStat('Import cancelled — '+nm+' left as it is.'); return false;
+      setStat('Import cancelled — '+esc(nm)+' left as it is.'); return false;
     }
   }
 
@@ -9477,6 +9486,9 @@ function inIdWhy(v, what){
   if(IN_ID_BAD.test(v)) return what+' '+inShow(v)+' contains a character an id may not carry (a quote mark, < >, a backslash, | or an invisible control character)';
   return '';
 }
+// v2.00 (item 99): a name typed into this board follows the rule a name read from a file does. A name the import check
+// would refuse made a board that could not be imported back, and three names are object keys that walk into Object.prototype.
+function typedNameWhy(v, what){ return inNameWhy(v, what) || (IN_KEY_BAD.has(v)? what+' '+inShow(v)+' is a name this board keeps for itself' : ''); }
 function inNameWhy(v, what){
   if(typeof v!=='string') return what+' is not text ('+inShow(JSON.stringify(v))+')';
   if(v.length>200) return what+' '+inShow(v)+' is longer than 200 characters';
@@ -9526,7 +9538,7 @@ function inShapeWhy(o, path, asPlan){
   // start only on an order list, and the board rebuilds a missing order when it loads the year - so a plan that
   // left it out skipped every id and award check and its ids reached the page. Each entry under a store's years
   // is checked as a plan here (asPlan); one that has its order is checked anyway when the walk reaches it.
-  if(!asPlan && o.years && typeof o.years==='object' && !Array.isArray(o.years))
+  if(!asPlan && o.years && typeof o.years==='object')
     for(const fy of Object.keys(o.years)){ const y=o.years[fy];
       if(y && typeof y==='object' && !Array.isArray(y) && !Array.isArray(y.order)
          && (w=inShapeWhy(y, path+'.years.'+fy, true))) return w; }
@@ -9738,7 +9750,7 @@ function fullImportText(txt, fname){
     const next=JSON.parse(JSON.stringify(c)); next.ts=now;
     if(k===mySlug()) cycMine=next;
     W.push([_SLUGMAP[k].key+'-cyc', JSON.stringify(next), 'The locked PPBE cycles for '+_SLUGMAP[k].t, 'the locked cycles for '+_SLUGMAP[k].t]);
-    if(Object.keys(next.cycles).length) cyTook.push(_SLUGMAP[k].t+' '+Object.keys(next.cycles).sort().map(blLbl).join(', '));
+    if(Object.keys(next.cycles).length) cyTook.push(_SLUGMAP[k].t+' '+Object.keys(next.cycles).sort().map(blLblTxt).join(', '));
   });
   // the board-wide stores the file carries
   const bud=has.bud? JSON.parse(JSON.stringify(J.budDb)) : null, ex=has.ex? JSON.parse(JSON.stringify(J.execDb)) : null,
@@ -10303,6 +10315,7 @@ function pmoSave(list){
 function pmoAdd(){
   uiPrompt('Name the new PMO:','',function(v){
     v=(v||'').trim(); if(!v) return;
+    const why=typedNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not added.'); return; }
     if(GROUPS.indexOf(v)>=0){ setStat('⚠ <b>'+esc(v)+'</b> is already on the list.'); return; }
     pmoSave(GROUPS.concat([v]));
     setStat('Added PMO <b>'+esc(v)+'</b> — it is now offered wherever a requirement’s office '
@@ -10321,6 +10334,7 @@ function pmoRename(i){
   }
   uiPrompt('Rename "'+g+'" to:', g, function(v){
     v=(v||'').trim(); if(!v||v===g) return;
+    const why=typedNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not renamed.'); return; }
     if(GROUPS.indexOf(v)>=0){ setStat('⚠ <b>'+esc(v)+'</b> is already on the list.'); return; }
     // Every override naming the old office moves with it, IN EVERY YEAR — this list is board-level
     // and a rename that only fixed the year on screen would strand the others.
@@ -12003,9 +12017,9 @@ async function importSrc(inp){
     flowRepSeen=false;                       // a fresh import gets a fresh look at the report
     setStat((stored===false? '\u26a0 <b>Browser storage refused the import</b> \u2014 it is on this board, in memory, and unsaved: 💾 Save keeps it in the file. ' : '')
              +(bad? '\u26a0 CCaR QPE imported with '+bad+' tab'+(bad===1?'':'s')+' NOT FOUND — '
-               : '\ud83d\udce5 CCaR QPE imported — ')+msg.join(' \u00b7 ')+'. \ud83d\udcbe Save to bake it into this file. Open Reports &amp; exports \u203a Execution &amp; reprogramming \u203a \ud83d\udcc8 Active Year Execution.');
+               : '\ud83d\udce5 CCaR QPE imported — ')+esc(msg.join(' \u00b7 '))+'. \ud83d\udcbe Save to bake it into this file. Open Reports &amp; exports \u203a Execution &amp; reprogramming \u203a \ud83d\udcc8 Active Year Execution.');
   }catch(e){
-    setStat('\u26a0 Import failed: '+((e&&e.message)||e));
+    setStat('\u26a0 Import failed: '+esc((e&&e.message)||e));
   }
   inp.value='';
 }
@@ -13264,7 +13278,7 @@ function idsFormProblems(f){
 }
 // Why the export would refuse before anything is asked: the board on screen, then ORBIT's own arithmetic.
 function idsBoardRefusal(){
-  if(CYCVIEW) return {kind:'locked', msg:'The IDS export is off while '+blLbl(CYCVIEW)+' is on screen. A locked cycle is a past '
+  if(CYCVIEW) return {kind:'locked', msg:'The IDS export is off while '+blLblTxt(CYCVIEW)+' is on screen. A locked cycle is a past '
     +'plan, and its figures would go to CCaR as if they were today’s. Leave the view to export the working plan.'};
   if(typeof SANDBOX!=='undefined' && SANDBOX) return {kind:'copy', msg:'The IDS export is off in a PMO copy. A copy does not '
     +'hold the portfolio’s allocation, so its Approved figures are not the ones CCaR should receive. The portfolio team '
@@ -13629,7 +13643,7 @@ function pfCopy(){
   R.find.forEach(function(f){
     L.push('');
     L.push(({block:'BLOCKS',fix:'FIX',note:'WORTH KNOWING'})[f.sev]+' — '
-      +f.t.replace(/<[^>]+>/g,'')+' ('+f.rows.length+')');
+      +diagPlain(f.t)+' ('+f.rows.length+')');
     f.rows.forEach(function(r){ L.push('   '+r.label+(r.sub? '  ['+r.sub+']':'')); });
   });
   const txt=L.join(String.fromCharCode(10));
@@ -14129,7 +14143,7 @@ function aceStamp(set){
   if(!set) return '';
   return (set.locked?'\ud83d\udd12 locked':'unlocked')
     +' \u00b7 imported '+fmtTs(set.ts)+(set.by? ' by '+esc(set.by):'')
-    +' \u00b7 '+(set.lines?set.lines.length:0)+' cost lines'
+    +' \u00b7 '+(Array.isArray(set.lines)?set.lines.length:0)+' cost lines'
     +(aceIntact(set)? '' : ' \u00b7 <span style="color:var(--red);font-weight:800">FIGURES CHANGED SINCE IMPORT</span>');
 }
 // ---- Budget Allocation Extract (BAE) -------------------------------------------------------
@@ -14197,7 +14211,7 @@ async function importBud(inp){
     save(); render();
     const mine=kept.filter(function(b){ return b.ap===mySlug(); }).length;
     const st=budAutoStats();
-    setStat('💰 <b>'+esc(f.name)+'</b> ('+D.depts.join(', ')+') — <b>'+D.added.length+'</b> added, '
+    setStat('💰 <b>'+esc(f.name)+'</b> ('+esc(D.depts.join(', '))+') — <b>'+D.added.length+'</b> added, '
       +D.same.length+' unchanged, <b'+(D.gone.length?' style="color:var(--amber)"':'')+'>'
       +D.gone.length+'</b> retired'
       +(D.goneUse? ' carrying <b style="color:var(--amber)">'+D.goneUse+'</b> assignment'
@@ -15023,7 +15037,7 @@ function flowEntUseMap(){
   const same=function(x){ return x; };
   const viaOld=function(m){ return function(x){ return Object.prototype.hasOwnProperty.call(m, x)? m[x] : ''; }; };
   Object.keys((CYCDB&&CYCDB.cycles)||{}).sort().forEach(function(c){
-    add(appnName(mySlug())+' locked '+blLbl(c), destStoreStates(CYCDB.cycles[c]), same);
+    add(appnName(mySlug())+' locked '+blLblTxt(c), destStoreStates(CYCDB.cycles[c]), same);
   });
   APPN_SLUGS.forEach(function(ap){
     if(ap===mySlug()) return;
@@ -15036,7 +15050,7 @@ function flowEntUseMap(){
     if(cs && cs.cycles){
       const sg=DESTDB.lsig[ap];
       const tr=(cs.dv && Array.isArray(cs.ents))? same : viaOld((sg && DESTDB.lmap[sg])||{});
-      Object.keys(cs.cycles).sort().forEach(function(c){ add(appnName(ap)+' locked '+blLbl(c), destStoreStates(cs.cycles[c]), tr); });
+      Object.keys(cs.cycles).sort().forEach(function(c){ add(appnName(ap)+' locked '+blLblTxt(c), destStoreStates(cs.cycles[c]), tr); });
     }
   });
   return out;
@@ -15651,8 +15665,8 @@ function flowImportReport(){
       +'<td style="text-align:left;color:'+(bad?'var(--red)':(t.how==='exact'?'var(--green)':'var(--amber)'))+';font-weight:700">'
       +esc(bad? 'NOT FOUND' : (t.how==='exact'? 'found' : 'found as \u201c'+t.found+'\u201d ('+t.how+')'))+'</td>'
       +'<td>'+esc(t.read||0)+'</td>'
-      +'<td style="font-weight:700;color:'+(t.kept?'var(--ink)':'var(--red)')+'">'+(t.kept||0)+'</td>'
-      +'<td style="color:'+(dropped?'var(--amber)':'var(--dim)')+'">'+(t.noFy||0)+'</td>'
+      +'<td style="font-weight:700;color:'+(t.kept?'var(--ink)':'var(--red)')+'">'+esc(t.kept||0)+'</td>'
+      +'<td style="color:'+(dropped?'var(--amber)':'var(--dim)')+'">'+esc(t.noFy||0)+'</td>'
       +'<td style="text-align:left;color:'+(off?'var(--amber)':'var(--dim)')+'">'
       +(off? 'switched OFF above' : 'yes')+'</td></tr>';
   });
@@ -18208,7 +18222,7 @@ function planBody(){
     +'<tr><td>Left on the table</td><td>'+(t.left>0.5? '<b style="color:var(--green)">'+fM(t.left)+'</b>' : '<span class="z">—</span>')+'</td></tr>'
     +'<tr><td>Not covered</td><td>'+(t.short>0.5? '<b style="color:var(--red)">'+fM(t.short)+'</b>' : '<span class="z">—</span>')+'</td></tr>'
     +'<tr><td>Requirements</td><td><b>'+t.full+'</b> funded · <b>'+t.part+'</b> partial · <b>'+t.cut+'</b> cut</td></tr>'
-    +(cut? '<tr><td>Runs out at</td><td>#'+cut.rank+' '+esc(dispTitle(itemById(cut.id))||'').slice(0,34)+'</td></tr>' : '')
+    +(cut? '<tr><td>Runs out at</td><td>#'+cut.rank+' '+esc(String(dispTitle(itemById(cut.id))||'').slice(0,34))+'</td></tr>' : '')
     +'</table></div>';
 
   let h='<div class="planhead">'
@@ -18806,7 +18820,11 @@ let ppOpen=false, ppCyc='PB', ppYr=null, ppSvcIdx=0;
 let blOpen=false, blCyc='PB', blYr=null, blNote='';
 function blStore(){ if(!CYCDB.cycles || typeof CYCDB.cycles!=='object') CYCDB.cycles={}; return CYCDB.cycles; }
 function blKey(cyc, yr){ return cyc+'|'+yr; }
-function blLbl(key){ const p=String(key).split('|'); return esc(p[0]+String(p[1]).slice(-2)); }
+// v2.00 (item 99): a cycle key's label in two forms. blLblTxt is the text: a dialog, the window title, a file name, a
+// workbook cell, or a label escaped where it is drawn. blLbl is that text escaped once, for the places that write it into
+// markup as it is (menu items, hints). A key from a file can carry any text, so neither form is escaped again.
+function blLblTxt(key){ const p=String(key).split('|'); return p[0]+String(p[1]).slice(-2); }
+function blLbl(key){ return esc(blLblTxt(key)); }
 function blList(){ return Object.keys(blStore()).sort(); }
 function blGet(key){ return blStore()[key]||null; }
 // The projection a cycle holds for one fiscal year, or null when it never captured that year.
@@ -18850,7 +18868,7 @@ function cycLock(){
   const yr=blYr||MS.cur, key=blKey(blCyc, yr);
   const had=blGet(key);
   if(had && had.locked){
-    setStat('⚠ <b>'+esc(blLbl(key))+'</b> is locked. Unlock it first if you really mean to replace it.');
+    setStat('⚠ <b>'+blLbl(key)+'</b> is locked. Unlock it first if you really mean to replace it.');
     return;
   }
   MS.years[MS.cur]=S;
@@ -18858,12 +18876,12 @@ function cycLock(){
   if(!ys.length){ setStat('⚠ Nothing to lock — no year in the FYDP window holds a plan.'); return; }
   const b=+MS.base||+MS.cur, win=[]; for(let y=b; y<=b+4; y++) win.push(y);
   const blank=win.filter(y=>ys.indexOf(y)<0);
-  if(!confirm('Lock the FYDP window as '+blLbl(key)+'?\n\n'
+  if(!confirm('Lock the FYDP window as '+blLblTxt(key)+'?\n\n'
     +'FY'+ys.map(y=>y%100).join(', FY')+' — every requirement, its value, allocation and funding by '
     +'service, the PMO roll-up and the budget authority of each year — are copied whole and LOCKED.'
     +(blank.length? '\n\nFY'+blank.map(y=>y%100).join(', FY')+' hold'+(blank.length===1?'s':'')
       +' no plan yet and will be recorded as such.' : '')
-    +(had? '\n\nThis replaces the existing '+blLbl(key)+' cycle.' : '')
+    +(had? '\n\nThis replaces the existing '+blLblTxt(key)+' cycle.' : '')
     +'\n\nThe working board is not changed.')) return;
   const years={}, proj={};
   // the projection first: aceWithYear leaves the year normalised, and the copy taken after it is
@@ -18880,13 +18898,13 @@ function cycLock(){
   if(!MS.cycle) MS.cycle=key;      // an untagged working plan IS the plan just locked, until it is retagged
   blNote='';
   save(); render();
-  setStat('🔒 <b>'+esc(blLbl(key))+'</b> locked — FY'+ys.map(y=>y%100).join(', FY')+' frozen. It is the '
+  setStat('🔒 <b>'+blLbl(key)+'</b> locked — FY'+ys.map(y=>y%100).join(', FY')+' frozen. It is the '
     +'reference the working plan’s deltas are read against, and a Budget source in the Spruills.'
-    +(MS.cycle===key? ' The working plan is still tagged '+esc(blLbl(key))+' — <button class="qb" onclick="cycRetagNext()">🏷 Retag it as '+esc(blLbl(blKey(cycNextOf(key).cyc, cycNextOf(key).yr)))+'</button> when the next cycle opens, and what you allocate from then on is its delta.' : ''));
+    +(MS.cycle===key? ' The working plan is still tagged '+blLbl(key)+' — <button class="qb" onclick="cycRetagNext()">🏷 Retag it as '+blLbl(blKey(cycNextOf(key).cyc, cycNextOf(key).yr))+'</button> when the next cycle opens, and what you allocate from then on is its delta.' : ''));
 }
 function blLock(key,on){
   const b=blGet(key); if(!b) return;
-  if(!on && !confirm('Unlock '+blLbl(key)+'?\n\nA locked cycle is meant to be a fixed point in time. '
+  if(!on && !confirm('Unlock '+blLblTxt(key)+'?\n\nA locked cycle is meant to be a fixed point in time. '
     +'Unlocking lets it be overwritten or deleted. The unlock is stamped with your name.')) return;
   b.locked=!!on;
   if(!Array.isArray(b.unlocks)) b.unlocks=[];
@@ -18895,9 +18913,9 @@ function blLock(key,on){
 }
 function blDelete(key){
   const b=blGet(key); if(!b) return;
-  if(key===CYCVIEW){ setStat('⚠ <b>'+esc(blLbl(key))+'</b> is on screen — leave the view before deleting it.'); return; }
-  if(b.locked){ setStat('⚠ <b>'+esc(blLbl(key))+'</b> is locked — unlock it before deleting.'); return; }
-  if(!confirm('Delete the '+blLbl(key)+' cycle?\n\nIt cannot be recovered.')) return;
+  if(key===CYCVIEW){ setStat('⚠ <b>'+blLbl(key)+'</b> is on screen — leave the view before deleting it.'); return; }
+  if(b.locked){ setStat('⚠ <b>'+blLbl(key)+'</b> is locked — unlock it before deleting.'); return; }
+  if(!confirm('Delete the '+blLblTxt(key)+' cycle?\n\nIt cannot be recovered.')) return;
   delete blStore()[key];
   if(MS.cycleRef===key){ MS.cycleRef=''; save(); }
   persistCyc(); render();
@@ -18941,8 +18959,8 @@ function cycSetWorking(cyc, yr){
   const y=(yr===null)? (parseInt(cur[1],10)||MS.cur) : (parseInt(yr,10)||MS.cur);
   MS.cycle= c? blKey(c, y) : '';
   save(); render();
-  setStat(MS.cycle? '🏷 Working plan tagged <b>'+esc(blLbl(MS.cycle))+'</b>'
-    +(MS.cycleRef? ' — deltas read against '+esc(blLbl(MS.cycleRef)) : '') : '🏷 Working plan untagged.');
+  setStat(MS.cycle? '🏷 Working plan tagged <b>'+blLbl(MS.cycle)+'</b>'
+    +(MS.cycleRef? ' — deltas read against '+blLbl(MS.cycleRef) : '') : '🏷 Working plan untagged.');
 }
 // ============================ THE FIVE-YEAR SPEND PLAN ======================================
 // One source -- the working plan, or any locked cycle -- printed across its window: one row per
@@ -18970,12 +18988,12 @@ function fydpData(src){
   src=src||'working';
   const out={src:src, label:'', years:[], held:[], proj:{}, svc:SVC.slice(), ts:0, by:''};
   if(src==='working'){
-    out.label='the working plan'+(MS.cycle? ' ('+blLbl(MS.cycle)+')' : '');
+    out.label='the working plan'+(MS.cycle? ' ('+blLblTxt(MS.cycle)+')' : '');
     out.years=fydpWindow();
     out.years.forEach(function(y){ if(!MS.years[y]) return; out.proj[y]=aceWithYear(y, cycProjOf); out.held.push(y); });
   } else {
     const c=blGet(src); if(!c) return null;
-    out.label=blLbl(src)+' (locked)'; out.ts=c.ts||0; out.by=c.by||'';
+    out.label=blLblTxt(src)+' (locked)'; out.ts=c.ts||0; out.by=c.by||'';
     const b=+c.base||+MS.base||+MS.cur;
     for(let y=b; y<=b+4; y++) out.years.push(y);
     Object.keys(c.proj||{}).map(Number).forEach(function(y){ if(out.years.indexOf(y)<0) out.years.push(y); });
@@ -19183,7 +19201,7 @@ function exportFydpPlan(){
     const hdr=['Service'];
     D.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocated', fyl(y)+' Funded', fyl(y)+' Unfunded', fyl(y)+' Disc BA', fyl(y)+' Mand BA', fyl(y)+' PPBE position', fyl(y)+' Requirement − position'); if(hasAce) hdr.push(fyl(y)+' ACE estimate'); });
     hdr.push('FYDP Requirement','FYDP Allocated','FYDP Funded','FYDP Unfunded','FYDP Disc BA','FYDP Mand BA','FYDP PPBE position','FYDP Requirement − position'); if(hasAce) hdr.push('FYDP ACE estimate');
-    const posNote=' PPBE position: the official position logged under '+(posKey? blLbl(posKey) : 'the plan’s cycle tag — none is set, so no position is printed')+' in 🏛 PPBE Budget Positions, by service and year, as it stands now; — where none is logged. Requirement − position is the plan’s requirement less it. The FYDP position is printed only when every held year logs one.';
+    const posNote=' PPBE position: the official position logged under '+(posKey? blLblTxt(posKey) : 'the plan’s cycle tag — none is set, so no position is printed')+' in 🏛 PPBE Budget Positions, by service and year, as it stands now; — where none is logged. Requirement − position is the plan’s requirement less it. The FYDP position is printed only when every held year logs one.';
     const rows=[[{v:cpy(title+' — BY SERVICE'),s:TI}],[{v:note.v+posNote,s:0}],[],hdr.map(function(v){ return {v:v,s:H}; })];
     const K=['ask','alloc','fund','unf','disc','mand'];
     const pos=function(sv, y){ return sv===null? fydpPosTot(D, y) : fydpPos(D, sv, y); };   // one service, or the services added for TOTAL
@@ -19216,7 +19234,7 @@ function exportFydpPlan(){
     const bytes=buildXlsx(sheets);
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
-    a.download=expName('ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLbl(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+    a.download=expName('ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLblTxt(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
     a.click();
     setStat('📊 FYDP spend plan exported — '+esc(D.label)+', '+span+', '+R.n+' requirements across '+D.held.length+' planned year'+(D.held.length===1?'':'s')+'.'+P.said);
   };
@@ -19379,11 +19397,11 @@ function fydpTake(a, r, want, src){
   if(+r.ts!==+want){ a.why='its board opened a different saved state than the newest one here'; return; }
   if(r.shell){ a.none=true; a.why='holds no requirements on this board'; return; }
   const X=r.D;
-  if(!X){ a.why=(src==='working')? 'its board holds no working plan' : 'has no '+blLbl(src)+' lock'; return; }
+  if(!X){ a.why=(src==='working')? 'its board holds no working plan' : 'has no '+blLblTxt(src)+' lock'; return; }
   if(X.src!==src || !Array.isArray(X.held) || !Array.isArray(X.years) || !X.years.length
      || X.held.some(function(y){ return !X.proj || !X.proj[y] || !Array.isArray(X.proj[y].reqs); })){
     a.why='its board answered in a shape this one cannot read'; return; }
-  if(!X.held.length){ a.none=true; a.why='holds no plan in '+(src==='working'? 'its window' : blLbl(src)); return; }
+  if(!X.held.length){ a.none=true; a.why='holds no plan in '+(src==='working'? 'its window' : blLblTxt(src)); return; }
   a.D=X; a.cycle=r.cycle||''; a.ts=+r.ts||0; a.by=r.by||'';
 }
 // Every appropriation for the PMO tabs, in the board's order: [{k, D, why, none, own, skip}]. The one
@@ -19405,7 +19423,7 @@ function fydpGather(D, done){
       const cs=cycStoreOf(a.k);
       if(cs.bad){ a.why='its locked cycles in this browser could not be read'; return; }
       const c=cs.c && cs.c.cycles[src];
-      if(!c || !Object.keys(c.proj||{}).length){ a.why='has no '+blLbl(src)+' lock'; return; }
+      if(!c || !Object.keys(c.proj||{}).length){ a.why='has no '+blLblTxt(src)+' lock'; return; }
     }
     left++; waiting.push(appnName(a.k));
     let over=false;
@@ -19448,7 +19466,7 @@ function fydpPmoSheets(D, A, taken){
     return X.label+(a.own? ', as it stands on this board' : ', its newest saved copy'+(a.ts? ' ('+fmtTs(a.ts)+(a.by? ', '+a.by : '')+')' : ''));
   };
   const note='One block per appropriation this office holds requirements in, each read by that appropriation’s own board from '
-    +(D.src==='working'? 'its working plan' : blLbl(D.src)+' as locked')+', so each block ties to the By PMO sheet that board prints. '
+    +(D.src==='working'? 'its working plan' : blLblTxt(D.src)+' as locked')+', so each block ties to the By PMO sheet that board prints. '
     +'Under each CCaR record, the requirements that roll up to it; requirements with no CCaR record last. Requirement and Allocation '
     +'(the board’s Allocated) for each fiscal year, the FYDP total at the right, each block’s total at the bottom. A year the plan never '
     +'held prints —, not 0, and is outside the totals. Appropriations are not added together.';
@@ -19477,7 +19495,7 @@ function fydpPmoSheets(D, A, taken){
       const X=g.a.D, R=g.R;
       nY=Math.max(nY, X.years.length);
       const warn=(X.src==='working' && g.a.cycle!==(MS.cycle||''))
-        ? ' — ⚠ its working plan is tagged '+(g.a.cycle? blLbl(g.a.cycle) : 'with no cycle')+', this one '+(MS.cycle? blLbl(MS.cycle) : 'with none') : '';
+        ? ' — ⚠ its working plan is tagged '+(g.a.cycle? blLblTxt(g.a.cycle) : 'with no cycle')+', this one '+(MS.cycle? blLblTxt(MS.cycle) : 'with none') : '';
       rows.push([{v:appnLbl(g.a.k)+' — '+X.label+' — '+spanOf(X)+warn, s:SEC}]);
       const hdr=['CCaR record','Requirement'];
       X.years.forEach(function(y){ hdr.push(fyl(y)+' Requirement', fyl(y)+' Allocation'); });
@@ -19527,8 +19545,8 @@ function fydpBody(){
   const aceFydpV=function(est){ let t=0,n=0,txt=null; D.years.forEach(function(y){ const v=est(y); if(typeof v==='string'){ txt=v; return; } if(v===null||v===undefined) return; n++; t+=v; }); return txt? txt : (n? t : null); };
   let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">Source '
     +'<select style="font-size:10px;padding:3px 6px" onchange="fydpSetSrc(this.value)" title="the working plan as it stands, or a locked cycle as it was locked">'
-    +'<option value="working"'+(fydpSrc==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+esc(blLbl(MS.cycle))+')':'')+'</option>'
-    +cycReportable().map(function(k){ return '<option value="'+esc(k)+'"'+(fydpSrc===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>'; }).join('')
+    +'<option value="working"'+(fydpSrc==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+blLbl(MS.cycle)+')':'')+'</option>'
+    +cycReportable().map(function(k){ return '<option value="'+esc(k)+'"'+(fydpSrc===k?' selected':'')+'>'+blLbl(k)+' (locked)</option>'; }).join('')
     +'</select> Cost estimate '
     +(aceKeys.length
       ? '<select style="font-size:10px;padding:3px 6px" onchange="fydpSetAce(this.value)" title="the annual cost estimate printed beside the plan — this appropriation’s lines, as they stand now">'
@@ -19564,7 +19582,7 @@ function fydpBody(){
     const pk=fydpPosKey(D), T=fydpSub(R.order, R.rows, D);
     const gap=function(v){ return Math.abs(v)<0.5? '$0' : cycSgn(v); };
     h+='<div class="hint fydppos" style="margin-top:6px">'+(pk
-      ? 'PPBE position <b>'+esc(blLbl(pk))+'</b> beside the plan: '+D.held.map(function(y){ const p=fydpPosTot(D, y);
+      ? 'PPBE position <b>'+blLbl(pk)+'</b> beside the plan: '+D.held.map(function(y){ const p=fydpPosTot(D, y);
           return fyl(y)+' '+(p===null? '<span class="z">none logged</span>' : fM(p)+' · requirement − position '+gap(T.fy[y].ask-p)); }).join(' · ')
       : 'No cycle tag on the working plan, so no PPBE position is printed beside it.')+'</div>';
   }
@@ -19586,8 +19604,8 @@ let cycCmpOpen=false, cycCmpA='', cycCmpB='working';
 function toggleCycCmp(){ cycCmpOpen=!cycCmpOpen; render(); }
 function cycCmpSet(which, v){ if(which==='A') cycCmpA=v||''; else cycCmpB=v||'working'; render(); }
 function cycCmpOpenWith(a, b){ cycCmpA=a||''; cycCmpB=b||'working'; cycCmpOpen=true; blOpen=false; render(); }
-function cycCmpLbl(src){ return src==='working'? 'WORKING' : blLbl(src); }
-function cycCmpLong(src){ return src==='working'? 'the working plan'+(MS.cycle? ' ('+blLbl(MS.cycle)+')' : '') : blLbl(src)+' (locked)'; }
+function cycCmpLbl(src){ return src==='working'? 'WORKING' : blLblTxt(src); }
+function cycCmpLong(src){ return src==='working'? 'the working plan'+(MS.cycle? ' ('+blLblTxt(MS.cycle)+')' : '') : blLblTxt(src)+' (locked)'; }
 const CMP_K=['ask','alloc','fund','unf'], CMP_KL={ask:'Requirement', alloc:'Allocated', fund:'Funded', unf:'Unfunded'};
 // EACH SIDE'S YEAR UNDER THE PMO THAT SIDE ASSIGNS THAT YEAR (v1.95, Brad's Q2: "leave the PMO assigned
 // by year, as it's reported as that PMO in that year"). The PMO roll-ups -- Compare's subtotals and By
@@ -19752,8 +19770,8 @@ function cycCmpBody(){
   if(cycCmpB!=='working' && held.indexOf(cycCmpB)<0) cycCmpB='working';
   const pick=(which, v)=>'<select style="font-size:10px;padding:3px 6px" onchange="cycCmpSet('+jsa(which)+', this.value)">'
     +(which==='A'? '<option value=""'+(v?'':' selected')+'>— pick —</option>' : '')
-    +'<option value="working"'+(v==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+esc(blLbl(MS.cycle))+')':'')+'</option>'
-    +held.map(k=>'<option value="'+esc(k)+'"'+(v===k?' selected':'')+'>'+esc(blLbl(k))+' (locked)</option>').join('')+'</select>';
+    +'<option value="working"'+(v==='working'?' selected':'')+'>the working plan'+(MS.cycle? ' ('+blLbl(MS.cycle)+')':'')+'</option>'
+    +held.map(k=>'<option value="'+esc(k)+'"'+(v===k?' selected':'')+'>'+blLbl(k)+' (locked)</option>').join('')+'</select>';
   let h='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">A '+pick('A', cycCmpA)+' ⇄ B '+pick('B', cycCmpB)
     +' <span style="color:var(--dim);font-size:10px">Δ is B less A</span>'
     +(cycCmpA && cycCmpA!==cycCmpB? ' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="exportCycCompare()">⇄ Export the workbook</button>' : '')+'</div>';
@@ -19851,7 +19869,7 @@ function cycSgn(v){ return (v>0? '<span class="up">+' : '<span class="dn">−')+
 function cycDeltaChip(id){
   const D=cycDeltaCur(); if(!D) return '';
   const r=D.rows[id]; if(!r || !r.changed) return '';
-  const lbl=blLbl(D.ref), parts=[];
+  const lbl=blLblTxt(D.ref), parts=[];
   if(r.isNew) parts.push('<b>NEW</b> since '+esc(lbl));
   if(Math.abs(r.ask)>0.5) parts.push('req '+cycSgn(r.ask));
   if(Math.abs(r.alloc)>0.5) parts.push('alloc '+cycSgn(r.alloc));
@@ -19866,8 +19884,8 @@ function cycDeltaChip(id){
 function cycDeltaInsp(id){
   const D=cycDeltaCur(); if(!D || typeof inspField!=='function') return '';
   const r=D.rows[id]; if(!r) return '';
-  const lbl=blLbl(D.ref);
-  if(!r.changed) return inspField('Since '+lbl, '<span style="color:var(--dim)">unchanged</span>');
+  const lbl=blLblTxt(D.ref);
+  if(!r.changed) return inspField('Since '+esc(lbl), '<span style="color:var(--dim)">unchanged</span>');
   const line=(what, was, now, d)=> what+' '+fM(was)+' → '+fM(now)+' ('+cycSgn(d)+')';
   const L=[];
   if(r.isNew) L.push('<b>NEW</b> — not in '+esc(lbl));
@@ -19878,7 +19896,7 @@ function cycDeltaInsp(id){
   if(!r.isNew && r.bandWas!==r.bandNow) L.push('band '+esc(r.bandWas||'—')+' → '+esc(r.bandNow||'—'));
   if(!r.isNew && r.grpWas!==r.grp) L.push('PMO '+esc(r.grpWas||'—')+' → '+esc(r.grp));
   if(!r.isNew && r.mcWas!==r.mcNow) L.push(r.mcNow? '★ starred since' : '★ unstarred since');
-  return inspField('Since '+lbl, '<div class="dchip" style="margin:0">'+L.join('</div><div class="dchip" style="margin:2px 0 0">')+'</div>');
+  return inspField('Since '+esc(lbl), '<div class="dchip" style="margin:0">'+L.join('</div><div class="dchip" style="margin:2px 0 0">')+'</div>');
 }
 // WHO, AND WHEN, from the journal: the last entry since the lock that names this requirement.
 // Order edits are not journaled (JRNL_SKIP), so a rank change carries no name and says so.
@@ -19909,8 +19927,8 @@ function cycChgBody(){
   const ref=cycDeltaRef();
   if(!ref){ el.innerHTML='<div class="hint">No reference cycle. Lock one under 📌 PPBE cycles, or pick a locked cycle there as the reference, and the changes since it appear here, on every row, and in the record panel.</div>'; return; }
   const D=cycDeltaCur();
-  if(!D){ el.innerHTML='<div class="hint"><b>'+esc(blLbl(ref))+'</b> holds no '+FYL()+' plan, so there is nothing to compare this year against. It holds FY'+cycHeld(ref).map(function(v){ return v%100; }).join(', FY')+'.</div>'; return; }
-  const lbl=blLbl(D.ref);
+  if(!D){ el.innerHTML='<div class="hint"><b>'+blLbl(ref)+'</b> holds no '+FYL()+' plan, so there is nothing to compare this year against. It holds FY'+cycHeld(ref).map(function(v){ return v%100; }).join(', FY')+'.</div>'; return; }
+  const lbl=blLblTxt(D.ref);
   const rows=Object.keys(D.rows).map(k=>D.rows[k]).filter(r=>r.changed)
     .sort((a,b)=> Math.abs(b.fund)-Math.abs(a.fund) || Math.abs(b.ask)-Math.abs(a.ask));
   const sum=a=>a.reduce((x,y)=>x+y,0);
@@ -19918,7 +19936,7 @@ function cycChgBody(){
   const remAsk=sum(D.removed.map(r=>r.askWas)), remAlloc=sum(D.removed.map(r=>r.allocWas)), remFund=sum(D.removed.map(r=>r.fundWas));
   const closes=Math.abs((rowsAsk-remAsk)-D.tot.ask)<0.5 && Math.abs((rowsAlloc-remAlloc)-D.tot.alloc)<0.5 && Math.abs((rowsFund-remFund)-D.tot.fund)<0.5;
   let h='<div class="hint" style="margin-bottom:8px">'+FYL()+' as it stands → against <b>'+esc(lbl)+'</b>, locked '+esc(fmtTs(D.ts))+(D.by? ' by '+esc(D.by):'')
-    +(MS.cycle? ' · working plan tagged <b>'+esc(blLbl(MS.cycle))+'</b>':'')
+    +(MS.cycle? ' · working plan tagged <b>'+blLbl(MS.cycle)+'</b>':'')
     +' · '+D.nChanged+' changed · '+D.nNew+' new · '+D.nRemoved+' removed</div>';
   h+='<table class="po"><thead><tr><th></th><th class="n">'+esc(lbl)+'</th><th class="n">Now</th><th class="n">Change</th></tr></thead><tbody>'
     +'<tr><td><b>'+FYL()+' requirement</b></td><td class="n">'+fM(D.tot.askWas)+'</td><td class="n">'+fM(D.tot.askNow)+'</td><td class="n">'+(Math.abs(D.tot.ask)<0.5? '<span class="z">—</span>' : cycSgn(D.tot.ask))+'</td></tr>'
@@ -19970,7 +19988,7 @@ function cycView(key){
   const c=blGet(key); if(!c) return;
   const held=cycHeld(key);
   if(!held.length){
-    setStat('⚠ <b>'+esc(blLbl(key))+'</b> holds no plan to show — it was migrated from a one-year baseline, '
+    setStat('⚠ <b>'+blLbl(key)+'</b> holds no plan to show — it was migrated from a one-year baseline, '
       +'which kept a projection and no state. It can still be compared, and read in the Spruills.');
     return;
   }
@@ -19988,10 +20006,10 @@ function cycView(key){
   MS=V;
   const y= MS.years[_cycStash.MS.cur]? +_cycStash.MS.cur : held[0];
   MS.cur=y; FYMON=fyMonths(y); applyState(MS.years[y]); MS.years[y]=S;
-  document.title=_cycStash.title+' — '+blLbl(key)+' LOCKED VIEW';
+  document.title=_cycStash.title+' — '+blLblTxt(key)+' LOCKED VIEW';
   cycSyncTags();
   render();
-  setStat('👁 <b>Viewing '+esc(blLbl(key))+' (locked)</b> — the plan as it stood '+esc(fmtTs(c.ts))
+  setStat('👁 <b>Viewing '+blLbl(key)+' (locked)</b> — the plan as it stood '+esc(fmtTs(c.ts))
     +(c.by? ' by '+esc(c.by):'')+', holding FY'+held.map(function(v){ return v%100; }).join(', FY')
     +'. Read only: nothing changed here is kept, and nothing can be saved, loaded, locked or sent '
     +'as the board until you <button class="qb" onclick="cycLeave()">↩ leave the view</button>.'
@@ -20015,7 +20033,7 @@ function cycLeave(quiet){
   cycSyncTags();
   if(quiet) return;
   render();
-  setStat('↩ Back on the working plan'+(MS.cycle? ' — <b>'+esc(blLbl(MS.cycle))+'</b>':'')+'.');
+  setStat('↩ Back on the working plan'+(MS.cycle? ' — <b>'+blLbl(MS.cycle)+'</b>':'')+'.');
 }
 function cycSyncTags(){
   const tag=document.getElementById('fyTag'); if(tag) tag.textContent=FYL();
@@ -20029,7 +20047,7 @@ function cycReapply(){
 function cycRefuse(what){
   cycReapply();
   _cycRefusedAt=Date.now();
-  setStat('🔒 <b>'+esc(what)+' is off while '+esc(blLbl(CYCVIEW))+' is on screen.</b> It is a locked cycle, read only — '
+  setStat('🔒 <b>'+esc(what)+' is off while '+blLbl(CYCVIEW)+' is on screen.</b> It is a locked cycle, read only — '
     +'the change was not kept. <button class="qb" onclick="cycLeave()">↩ Leave the view</button> to work the plan.');
   return false;
 }
@@ -20043,8 +20061,8 @@ function toggleBl(){ blOpen=!blOpen; render(); }
 function blBody(){
   // the header tag, kept current on every render whether or not the panel is open
   { const t=document.getElementById('cycTag');
-    if(t) t.textContent= CYCVIEW? ('VIEWING '+blLbl(CYCVIEW)+' (locked)')
-      : (MS.cycle? (blLbl(MS.cycle)+((MS.cycleRef&&MS.cycleRef!==MS.cycle)? ' · vs '+blLbl(MS.cycleRef) : '')) : ''); }
+    if(t) t.textContent= CYCVIEW? ('VIEWING '+blLblTxt(CYCVIEW)+' (locked)')
+      : (MS.cycle? (blLblTxt(MS.cycle)+((MS.cycleRef&&MS.cycleRef!==MS.cycle)? ' · vs '+blLblTxt(MS.cycleRef) : '')) : ''); }
   const bg=document.getElementById('blPanel'), el=document.getElementById('blBody');
   if(!bg||!el) return;
   bg.className='modal-bg'+(blOpen?' open':'');
@@ -20059,7 +20077,7 @@ function blBody(){
   const wc=MS.cycle? MS.cycle.split('|') : ['', String(MS.cur)];
 
   let h='';
-  if(CYCVIEW) h+='<div class="hint" style="margin-bottom:8px;color:var(--gold)">👁 <b>'+esc(blLbl(CYCVIEW))+' is on screen, read only.</b> Locking, retagging and the reference are off until you <button class="qb" onclick="cycLeave()">↩ leave the view</button>.</div>';
+  if(CYCVIEW) h+='<div class="hint" style="margin-bottom:8px;color:var(--gold)">👁 <b>'+blLbl(CYCVIEW)+' is on screen, read only.</b> Locking, retagging and the reference are off until you <button class="qb" onclick="cycLeave()">↩ leave the view</button>.</div>';
   // ---- the working plan: what it is tagged, and what its deltas are read against
   h+='<div class="fr" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px">'
     +'<span>Working plan is tagged</span>'
@@ -20067,20 +20085,20 @@ function blBody(){
     +'<option value=""'+(wc[0]?'':' selected')+'>(untagged)</option>'
     +PPBE_CYCLES.map(c=>'<option value="'+c+'"'+(wc[0]===c?' selected':'')+'>'+c+'</option>').join('')+'</select>'
     +'<input style="width:64px" value="'+esc(wc[1])+'" title="cycle year" onchange="cycSetWorking(null, this.value)">'
-    +((MS.cycle && MS.cycle===MS.cycleRef)? ' <button class="qb" onclick="cycRetagNext()" title="the working plan is still tagged as the cycle it was locked as">🏷 Retag as '+esc(blLbl(blKey(cycNextOf(MS.cycle).cyc, cycNextOf(MS.cycle).yr)))+'</button>' : '')
+    +((MS.cycle && MS.cycle===MS.cycleRef)? ' <button class="qb" onclick="cycRetagNext()" title="the working plan is still tagged as the cycle it was locked as">🏷 Retag as '+blLbl(blKey(cycNextOf(MS.cycle).cyc, cycNextOf(MS.cycle).yr))+'</button>' : '')
     +'<span style="margin-left:14px">deltas read against</span>'
     +'<select style="font-size:10px;padding:3px 6px" onchange="MS.cycleRef=this.value;save();render()" title="The locked cycle the working plan’s changes are measured from">'
     +'<option value=""'+(MS.cycleRef?'':' selected')+'>(none)</option>'
-    +keys.map(k=>'<option value="'+esc(k)+'"'+(MS.cycleRef===k?' selected':'')+'>'+esc(blLbl(k))+'</option>').join('')+'</select>'
+    +keys.map(k=>'<option value="'+esc(k)+'"'+(MS.cycleRef===k?' selected':'')+'>'+blLbl(k)+'</option>').join('')+'</select>'
     +'</div>';
 
   // ---- lock the window
   h+='<div class="fr" style="gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px">'
     +PPBE_CYCLES.map(c=>'<button class="btn '+(blCyc===c?'on':'')+'" style="font-size:10px;padding:4px 10px" onclick="blCyc='+jsa(c)+';render()">'+c+'</button>').join(' ')
     +' <label style="font-size:10px">year <input style="width:64px" value="'+esc(blYr)+'" onchange="blYr=parseInt(this.value)||blYr;render()"></label>'
-    +' <b style="color:var(--gold)">'+esc(blLbl(blKey(blCyc,blYr)))+'</b>'
+    +' <b style="color:var(--gold)">'+blLbl(blKey(blCyc,blYr))+'</b>'
     +' <input style="width:250px;font-size:10px" placeholder="note (optional) — e.g. as briefed to the PEO 3 Oct" value="'+esc(blNote||'')+'" onchange="blNote=this.value">'
-    +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="cycLock()">🔒 Lock '+(ys.length? ys.map(fyl).join(', ') : 'nothing')+' as '+esc(blLbl(blKey(blCyc,blYr)))+'</button>'
+    +' <button class="btn on" style="font-size:10px;padding:4px 10px" onclick="cycLock()">🔒 Lock '+(ys.length? ys.map(fyl).join(', ') : 'nothing')+' as '+blLbl(blKey(blCyc,blYr))+'</button>'
     +'</div>'
     +'<div class="hint" style="margin-bottom:10px">A lock copies the FYDP window — '+fyl(b0)+'–'+fyl(b0+4)
     +((ys.indexOf(+MS.cur)>=0 && win.indexOf(+MS.cur)<0)? ' and '+fyl(MS.cur)+' on screen' : '')
@@ -20105,9 +20123,9 @@ function blBody(){
     const held=Object.keys(c.proj||{}).map(Number).sort((a,b)=>a-b);
     const ask=P? (P.reqs||[]).reduce((a,r)=>a+r.ask.reduce((x,y)=>x+y,0),0) : null;
     const fund=P? (P.reqs||[]).reduce((a,r)=>a+(r.fund||r.alloc).reduce((x,y)=>x+y,0),0) : null;
-    h+='<tr><td><b>'+esc(blLbl(k))+'</b>'
+    h+='<tr><td><b>'+blLbl(k)+'</b>'
       +(k===MS.cycleRef? ' <span class="chip" style="font-size:9px;padding:1px 6px">reference</span>':'')
-      +(c.from? '<div style="font-size:9px;color:var(--dim)">from '+esc(blLbl(c.from))+'</div>':'')+'</td>'
+      +(c.from? '<div style="font-size:9px;color:var(--dim)">from '+blLbl(c.from)+'</div>':'')+'</td>'
       +'<td>'+esc(fmtTs(c.ts))+'</td><td>'+esc(c.by||'')+'</td>'
       +'<td>'+(held.length? held.map(fyl).join(', ') : '—')
       +(c.partial? ' <span style="color:var(--amber)" title="a one-year baseline from before cycles held the window: comparable, a Spruills source, not viewable on the drill">(one year, migrated)</span>':'')
@@ -20139,7 +20157,9 @@ function blBody(){
   el.innerHTML=h;
 }
 const PPBE_CYCLES=['POM','BES','PB','DoN'];
-const ppLbl=k=>{ const [c,y]=k.split('|'); return esc(c)+(parseInt(y)%100); };
+// v2.00 (item 99): the same two forms for a PPBE position key (see blLblTxt / blLbl).
+const ppLblTxt=k=>{ const [c,y]=String(k).split('|'); return c+(parseInt(y)%100); };
+const ppLbl=k=>esc(ppLblTxt(k));
 function toggleP2(){
   ppOpen=!ppOpen;
   if(ppYr===null) ppYr=MS.cur;
@@ -20311,7 +20331,7 @@ function ppLineDel(sv, k){
 }
 function ppDel(){
   if(!MS.ppbe[ppKey()]) return;
-  if(!confirm('Delete the entire '+ppLbl(ppKey())+' position for this appropriation?')) return;
+  if(!confirm('Delete the entire '+ppLblTxt(ppKey())+' position for this appropriation?')) return;
   delete MS.ppbe[ppKey()];
   save(); render();
 }
@@ -20343,7 +20363,7 @@ function ppBody(){
     +'</select>'
     +' <b style="color:var(--gold);margin-left:8px">'+ppLbl(ppKey())+'</b>'
     +(MS.ppbe[ppKey()]?' <button class="qb" style="color:var(--red)" onclick="ppDel()">\u2715 delete position</button>':'')
-    +'<span style="float:right;font-size:9.5px;color:var(--dim)">Logged: '+(logged.length? logged.map(k=>'<button type="button" class="nb chip" style="font-size:9px;padding:2px 7px" onclick="ppCyc='+jsa(k.split('|')[0])+';ppYr=Number('+jsa(k.split('|')[1])+');render()">'+esc(ppLbl(k))+'</button>').join(' '):'none yet')+'</span></div>';
+    +'<span style="float:right;font-size:9.5px;color:var(--dim)">Logged: '+(logged.length? logged.map(k=>'<button type="button" class="nb chip" style="font-size:9px;padding:2px 7px" onclick="ppCyc='+jsa(k.split('|')[0])+';ppYr=Number('+jsa(k.split('|')[1])+');render()">'+ppLbl(k)+'</button>').join(' '):'none yet')+'</span></div>';
 
   {
     const hidden=ppOutside(P, yrs);
@@ -20722,7 +20742,7 @@ function pmoDrillHtml(pmoKey, years){
   // labels come from the selectors, so the drill always states what it is reading
   const costSrc = (spAce==='board')? 'Board requirements' : spAce;
   const budSrc  = (spFund==='board')? 'Board allocation'
-    : (String(spFund).indexOf('bl|')===0? blLbl(spFund.slice(3))+' cycle' : ppLbl(spFund));
+    : (String(spFund).indexOf('bl|')===0? blLblTxt(spFund.slice(3))+' cycle' : ppLblTxt(spFund));
   const scope   = (spDrillSvc==='ALL')? 'all services' : spDrillSvc;
   const svcsOf  = b=> (spDrillSvc==='ALL')? b.svcs : b.svcs.filter(sv=>sv===spDrillSvc);
 
@@ -20902,8 +20922,8 @@ function spBodyDraw(el){
       : '')
     +'&nbsp;&nbsp;<label style="font-size:10px">Budget source: <select onchange="spFund=this.value;render()" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--gold);font-weight:700;font-size:10px;padding:3px 4px">'
     +'<option value="board" '+(spFund==='board'?'selected':'')+'>Board budgets (working)</option>'
-    +blList().map(k=>'<option value="bl|'+esc(k)+'" '+(spFund==='bl|'+k?'selected':'')+'>'+esc(blLbl(k))+' cycle (locked plan)</option>').join('')
-    +cycles.map(k=>'<option value="'+esc(k)+'" '+(spFund===k?'selected':'')+'>'+esc(ppLbl(k))+' (official, by service)</option>').join('')
+    +blList().map(k=>'<option value="bl|'+esc(k)+'" '+(spFund==='bl|'+k?'selected':'')+'>'+blLbl(k)+' cycle (locked plan)</option>').join('')
+    +cycles.map(k=>'<option value="'+esc(k)+'" '+(spFund===k?'selected':'')+'>'+ppLbl(k)+' (official, by service)</option>').join('')
     +'</select></label>'
     +'&nbsp;<label style="font-size:10px">Cost data: <select onchange="setSpAce(this.value)" style="background:var(--panelA);border:1px solid var(--line);border-radius:4px;color:var(--ink);font-size:10px;padding:3px 4px">'
     +'<option value="board" '+(spAce==='board'?'selected':'')+'>Board requirements (current)</option>'
@@ -22993,7 +23013,7 @@ function awardBlockHtml(it){
         <tr><th style="text-align:left;color:var(--dim);padding:2px 6px">Month</th>${SVC.map(s=>`<th style="color:var(--dim);padding:2px 6px">${esc(s)}</th>`).join('')}<th style="color:var(--gold);padding:2px 6px">Total</th><th style="color:var(--dim);padding:2px 6px" title="how this award splits: discretionary fills the awards forward from the first, mandatory backward from the last">Disc · Mand</th><th style="color:var(--blue);padding:2px 6px" title="funded dollars, both lanes, still unscheduled after this award — the last one has to clear it">Remaining</th><th></th></tr>
         ${(()=>{ let run=funded; return (aw.inc||[]).map((a,i)=>{ run-=incTot(a); const q=sp.by[i]||{dv:0,mv:0}; return `<tr>
           <td style="padding:2px 6px"><input type="date" value="${awDateVal(a.d,a.day)}" min="${fyMin()}" max="${fyMax()}" style="color:var(--green);font-weight:700" onchange="setAwdIncDate(${jsa(it.id)},${i},this.value)" title="click for the calendar — this award's obligation date (day sets the CR half-month window)">${a.fx? awdFxTag(a.fx) : ''}</td>
-          ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc(${jsa(it.id)},${i},${si},this.value)" onfocus="this.select()" title="${s} award for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}, both lanes"></td>`).join('')}
+          ${SVC.map((s,si)=>`<td style="padding:2px 3px"><input style="width:86px" value="${(a.sv&&a.sv[si])?Math.round(a.sv[si]).toLocaleString():''}" placeholder="0" onchange="setAwdIncSvc(${jsa(it.id)},${i},${si},this.value)" onfocus="this.select()" title="${esc(s)} award for ${(FYMON.find(x=>x[0]===a.d)||[,a.d])[1]}, both lanes"></td>`).join('')}
           <td style="padding:2px 6px;font-weight:800;color:var(--gold);white-space:nowrap">${fM(incTot(a))}</td>
           <td class="awdsplit" style="padding:2px 6px;white-space:nowrap;color:var(--dim)" title="placed by the board's one rule: discretionary forward from the first award, mandatory backward from the last">${lanes(q.dv,q.mv)}</td>
           <td style="padding:2px 6px;font-weight:800;white-space:nowrap;color:${Math.abs(run)<1?'var(--green)':(run<0?'var(--red)':'var(--blue)')}" title="${Math.abs(run)<1?'fully scheduled at this award':(run<0? fM(-run)+' MORE has been scheduled than is funded':fM(run)+' of the funded amount is still unscheduled after this award')}">${Math.abs(run)<1?'✓ $0':fM(run)}</td>
@@ -24475,7 +24495,7 @@ function ceSummary(){
   document.getElementById('ceWarn').innerHTML = shorts.length?
     '<span style="background:var(--tintA);color:var(--tintAi);font-weight:800;font-size:10px;border:1px solid var(--amber);border-radius:4px;padding:2px 8px;margin-left:6px">'+shorts.join('  ·  ')+'</span>' : '';
   const tabs = ['ALL',...pmosPresent].map(g=>
-    `<button type="button" class="nb chip ${ceTab===g?'on':''}" aria-pressed="${ceTab===g?'true':'false'}" onclick="ceTab=${jsa(g)};render()" style="font-size:11px;padding:4px 11px">${g==='ALL'?'Cost Element (ALL PMOs)':g}</button>`).join(' ');
+    `<button type="button" class="nb chip ${ceTab===g?'on':''}" aria-pressed="${ceTab===g?'true':'false'}" onclick="ceTab=${jsa(g)};render()" style="font-size:11px;padding:4px 11px">${g==='ALL'?'Cost Element (ALL PMOs)':esc(g)}</button>`).join(' ');
   const keys=[...COST_ELEMS.filter(c=>byCE[c]), ...(byCE['— Unassigned —']? ['— Unassigned —']:[])];
   const tot=mk();
   keys.forEach(k=>{ const a=byCE[k]; a.disc.forEach((v,i)=>tot.disc[i]+=v); a.mand.forEach((v,i)=>tot.mand[i]+=v); tot.mc+=a.mc; tot.n+=a.n; });
@@ -25339,7 +25359,7 @@ function render(){
   if(CYCVIEW){
     const c=blGet(CYCVIEW)||{};
     h+='<div class="cutline" style="margin:0 0 8px;color:var(--gold)"><span class="l" style="background:var(--gold)"></span>'
-      +'\ud83d\udd12 VIEWING '+esc(blLbl(CYCVIEW))+' (LOCKED) \u2014 '+FYL()+' as it stood '+esc(fmtTs(c.ts))+(c.by? ' by '+esc(c.by):'')
+      +'\ud83d\udd12 VIEWING '+blLbl(CYCVIEW)+' (LOCKED) \u2014 '+FYL()+' as it stood '+esc(fmtTs(c.ts))+(c.by? ' by '+esc(c.by):'')
       +' \u2014 read only: nothing changed here is kept '
       +'<button class="qb" onclick="cycLeave()">\u21a9 Leave the view</button><span class="l" style="background:var(--gold)"></span></div>';
   }
@@ -25443,11 +25463,11 @@ function render(){
     h+=`<div class="row t-${t.tier} ${id.startsWith('BUY-')?'buy':''}" id="row-${esc(id)}"
         ondragstart="dstart(event,${jsa(id)})" ondragend="dend(event);this.removeAttribute('draggable')" ondragover="dover(event,${jsa(id)})" ondragleave="dleave(event)" ondrop="ddrop(event,${jsa(id)})">
       <div class="rank">${brief? `<b>${hardOpen? liveRank[id] : rank}</b>${S.mc[id]?'<span class="mcmark" title="Mission Critical">★</span>':''}` : `${canDrag? `<span class="grip" onmousedown="gripDown(this)" title="Drag to reorder" aria-hidden="true">⠿</span>` : `<span class="grip" style="cursor:default;opacity:.45" title="${esc(hardOpen? 'Rank entry is on — type a rank instead' : 'Drag is paused while searching or filtering')}" aria-hidden="true">⠿</span>`}
-        <input value="${hardOpen? liveRank[id] : rank}" aria-label="Rank of ${esc(dispTitle(it))}" ${hardOpen?'style="border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)"':''} onchange="setRank(${jsa(id)},this.value)" onfocus="this.select()" title="${hardOpen? 'RANK-ENTRY MODE — type the target rank; the row stays put here but moves in the real order (box shows its current rank)' : (pmoMode()? filter+'’s own rank (master unaffected)' : 'master rank')}">
+        <input value="${hardOpen? liveRank[id] : rank}" aria-label="Rank of ${esc(dispTitle(it))}" ${hardOpen?'style="border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)"':''} onchange="setRank(${jsa(id)},this.value)" onfocus="this.select()" title="${hardOpen? 'RANK-ENTRY MODE — type the target rank; the row stays put here but moves in the real order (box shows its current rank)' : (pmoMode()? esc(filter)+'’s own rank (master unaffected)' : 'master rank')}">
         ${rankM? `<span class="ud"><button onclick="bump(${jsa(id)},-1)" aria-label="Move up">▲</button><button onclick="bump(${jsa(id)},1)" aria-label="Move down">▼</button></span>` : ''}`}</div>
       <div class="pmoc"><div class="gchip" style="background:${GCOLOR[grpOf(it)]}">${esc(grpOf(it))}</div>
         ${(rankM||pmoMode())? `<div class="pmor" title="${pmoMode()? 'where this requirement sits in the whole portfolio' : esc(grpOf(it))+' #'+PR[id]+' — this office’s own order'}">${pmoMode()? 'master #'+MR[id] : '#'+PR[id]}</div>` : ''}</div>
-      <div class="reqc"><div class="tt"><span class="t1" title="${esc(dispTitle(it))}">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${it.team}</span>`:''}${it.custom?'<span class="sect-new">ADDED</span>':''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched — this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">⚑ ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' · +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}${(!brief && clinApplies(id))? `<button class="clinbtn ${clinOpen[id]?'on':''}" onclick="toggleClin(${jsa(id)})" title="CLIN drill — allocate this prime contract line by line, by service" aria-label="CLIN drill">🧾</button>`:''}<span class="xg">${_xg}</span></div>
+      <div class="reqc"><div class="tt"><span class="t1" title="${esc(dispTitle(it))}">${esc(dispTitle(it))}</span>${DATA.teams&&it.team?`<span class="teamtag ${it.team==='ATL'?'atl':'btl'}">${esc(it.team)}</span>`:''}${it.custom?'<span class="sect-new">ADDED</span>':''}${S.absorb===id?`<span class="absorbtag ${AB.unabsorbedTot>0.5?'over':''}" title="This requirement is nominated to absorb the portfolio shortfall. Its allocation above is untouched — this is what it would be giving up.${AB.unabsorbedTot>0.5?' '+fM(AB.unabsorbedTot)+' of the shortfall is beyond what it can cover above its floor.':''}">⚑ ABSORBING ${fM(AB.absorbedTot)}${AB.unabsorbedTot>0.5?' · +'+fM(AB.unabsorbedTot)+' UNABSORBED':''}</span>`:''}${(!brief && clinApplies(id))? `<button class="clinbtn ${clinOpen[id]?'on':''}" onclick="toggleClin(${jsa(id)})" title="CLIN drill — allocate this prime contract line by line, by service" aria-label="CLIN drill">🧾</button>`:''}<span class="xg">${_xg}</span></div>
         <div class="t2"><span class="ids">${_sec}</span><span class="excs">${_excH}${cycDeltaChip(id)}</span></div></div>
       ${fundM? `<div class="num">${fM(_ask)}</div>${_amt(t.dT,'d')}${_amt(t.mT,'m')}${_amt(_u,'u')}
       <div class="acts alloc">${isSvc?'<span class="mode-tag">SVC</span>':''}
@@ -25465,8 +25485,8 @@ function render(){
   if(!h) h='<div style="color:var(--dim);padding:30px;text-align:center">No requirements match.</div>';
   document.getElementById('list').innerHTML=h;
   document.getElementById('pmoActs').innerHTML = pmoMode()?
-    `<button class="btn warn" style="font-size:11px;padding:5px 10px" onclick="zeroPMO()" title="set every ${filter} allocation to $0 — start the PMO's allocations from a clean slate">⓪ Zero ${filter} allocations</button>
-     <button class="btn" style="font-size:11px;padding:5px 10px" onclick="restorePMO()" title="set every ${filter} allocation back to its requested amount">↺ ${filter} as-requested</button>` : '';
+    `<button class="btn warn" style="font-size:11px;padding:5px 10px" onclick="zeroPMO()" title="set every ${esc(filter)} allocation to $0 — start the PMO's allocations from a clean slate">⓪ Zero ${esc(filter)} allocations</button>
+     <button class="btn" style="font-size:11px;padding:5px 10px" onclick="restorePMO()" title="set every ${esc(filter)} allocation back to its requested amount">↺ ${esc(filter)} as-requested</button>` : '';
   document.getElementById('rmChipWrap').innerHTML = S.removed.length?
     `<button type="button" class="nb chip ${rmOpen?'on':''}" aria-pressed="${rmOpen?'true':'false'}" onclick="rmOpen=!rmOpen;render()">🗑 Removed <span class="n">${S.removed.length}</span></button>`:'';
   const rp=document.getElementById('rmPanel');
@@ -25790,7 +25810,7 @@ function syncBtns(){
   const winYears=[]; for(let y=MS.base;y<MS.base+5;y++) winYears.push(y);
   const extraYears=Object.keys(MS.years).map(Number).filter(y=>!winYears.includes(y)).sort();
   document.getElementById('dd_fy').innerHTML=
-    '<div class="mlbl">'+(CYCVIEW? 'VIEWING '+esc(blLbl(CYCVIEW))+' (locked) — ' : '')+'Future Years Defense Plan — FY'+(MS.base%100)+' – FY'+((MS.base+4)%100)+'</div>'+
+    '<div class="mlbl">'+(CYCVIEW? 'VIEWING '+blLbl(CYCVIEW)+' (locked) — ' : '')+'Future Years Defense Plan — FY'+(MS.base%100)+' – FY'+((MS.base+4)%100)+'</div>'+
     winYears.map(y=>mi('FY'+(y%100)+(y===MS.base?'  (base year)':''),
       y===MS.cur? "openMenu=null;syncBtns()" : `mRun(()=>switchYear(${y}))`,
       y===MS.cur,
@@ -25912,7 +25932,7 @@ function syncBtns(){
     xl: mi('📊 Excel Workbook — full breakouts',"mRun(exportExcel)",false,'streams · forecast · CR · PMOs'+(DATA.costElems?' · CE':'')),
     acex: mi('📈 ACE Tie-Out (Excel)',"mRun(exportAceTieout)",false,'mapping · PMO reconciliation · unclaimed lines'),
     fydpx: mi('📊 FYDP Spend Plan (Excel)',"mRun(exportFydpPlan)",false,(fydpSrc==='working'? 'the working plan' : blLbl(fydpSrc)+' (locked)')+' · by requirement, PMO, service, a tab per PMO'),
-    cycx: mi('⇄ Cycle Comparison (Excel)',"mRun(exportCycCompare)",false,(cycCmpA? cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB) : 'pick A in ⇄ Compare two cycles')+' · compare, changes, by PMO'),
+    cycx: mi('⇄ Cycle Comparison (Excel)',"mRun(exportCycCompare)",false,(cycCmpA? esc(cycCmpLbl(cycCmpA)+' ⇄ '+cycCmpLbl(cycCmpB)) : 'pick A in ⇄ Compare two cycles')+' · compare, changes, by PMO'),
     // It reaches every appropriation, so it says so on the menu.
     coax: mi('📒 Chart of Accounts (Excel)',"mRun(exportCoa)",false,
        'appropriation → PMO → requirement → CCaR record · all appns'),
@@ -25932,7 +25952,7 @@ function syncBtns(){
     qpecov: mi('📈 QPE coverage…',"mRun(toggleQpe)",qpeOpen,'which columns come back filled in — and which ORBIT needs'),
     div: mi('⚖ ORBIT vs CCaR…',"mRun(toggleDiv)",divOpen,'where the board and the last pull disagree'),
     ccar: mi('📇 Import CCaR Records…',"mRun(()=>document.getElementById('ccarFile').click())",false,
-        ccarIdx()? ((MS.ccarIdx.n||0)+' record'+((MS.ccarIdx.n||0)===1?'':'s')+' — Title and OPR') : 'sources Title and OPR'),
+        ccarIdx()? ((wholeOr(MS.ccarIdx.n,0))+' record'+(wholeOr(MS.ccarIdx.n,0)===1?'':'s')+' — Title and OPR') : 'sources Title and OPR'),
     acet: mi('📈 ACE tie-out…',"mRun(toggleAce)",aceOpen,
        aceSetKeys().length? aceSetKeys().sort().map(esc).join(', ')+' loaded' : 'no estimate imported yet'),
     acei: mi('📥 Import Annual Cost Estimate…',"mRun(()=>document.getElementById('aceFile').click())",false,
@@ -26036,7 +26056,7 @@ function syncBtns(){
     if(cv) cv.innerHTML = CYCVIEW
       ? '<button class="btn on" onclick="cycLeave()" title="Back to the working plan">↩ Leave the locked view</button>'
       : blList().filter(function(k){ return cycHeld(k).length; }).map(function(k){
-          return '<button class="btn" onclick="cycView('+jsa(k)+')" title="read only">👁 View '+esc(blLbl(k))+'</button>'; }).join(''); }
+          return '<button class="btn" onclick="cycView('+jsa(k)+')" title="read only">👁 View '+blLbl(k)+'</button>'; }).join(''); }
   // Below 1100px the mode's tools fold into one menu -- the same functions, listed.
   { const T={ review:I.add+I.mat, rank:I.hard+I.po+sep+I.ro, fund:I.bm+I.split+sep+lbl('Spend plan basis')+I.scenD+I.scenDM+sep+I.bands+I.ed,
               compare:I.chg+I.cmp+I.snap+I.bl+(I.views? sep+I.views : ''), brief:I.full+I.ppt+I.syn };
@@ -26079,7 +26099,7 @@ function syncBtns(){
     grp('share','team','Writer and team',
       // v1.95 (item 58): the only way the board changes writer.
       mi('✍ Take the pen…',"mRun(takePen)",false,_SB? 'turned off in a PMO copy'
-        : (WRITER&&WRITER.by? (writerIsMe(WRITER)? 'you hold the pen' : WRITER.by+' holds the pen') : 'only the board’s writer saves it in place'))
+        : (WRITER&&WRITER.by? (writerIsMe(WRITER)? 'you hold the pen' : esc(WRITER.by)+' holds the pen') : 'only the board’s writer saves it in place'))
       +mi('✎ My editor name…',"mRun(()=>{whoAmI(true);render();})",false,'stamped on your saves')
       +mi('📡 Live view\u2026',"mRun(toggleLive)",liveCfg().on, (function(){ const c=liveCfg();
           const set=(c.mode==='drive')? !!c.folder : !!c.url;
@@ -27321,18 +27341,21 @@ function rpMerge(theirs){
   let added=0, updated=0, buried=0, kept=0;
   // their tombstones apply to our rows
   Object.keys(theirGone).forEach(function(id){
+    if(IN_KEY_BAD.has(id)) return;
     const t=+theirGone[id]||0;
     if(!gone[id] || gone[id]<t) gone[id]=t;
   });
   ((theirs&&theirs.entries)||[]).forEach(function(r){
-    if(!r||!r.id) return;
+    // v2.00 (item 99): byId is a plain object, so an id of __proto__ would hand back Object.prototype and the
+    // update below would write the entry's fields onto it. A row's id is text the board wrote; refuse the three.
+    if(!r||!r.id||IN_KEY_BAD.has(String(r.id))) return;
     const bur=+gone[r.id]||0;
     // deleted here, and the deletion is not older than their copy of the row
     if(bur && bur>=(+r.ts||0)){ buried++; return; }
     const have=byId[r.id];
     if(!have){ mine.push(JSON.parse(JSON.stringify(r))); byId[r.id]=r; added++; return; }
     const t1=+have.ts||0, t2=+r.ts||0;
-    if(t2>t1){ Object.keys(r).forEach(function(k){ have[k]=r[k]; }); updated++; }
+    if(t2>t1){ Object.keys(r).forEach(function(k){ if(!IN_KEY_BAD.has(k)) have[k]=r[k]; }); updated++; }
     else kept++;
   });
   // and our own tombstones apply to rows we are still holding
@@ -28460,7 +28483,11 @@ function linkCfg(){
 function linkIsExe(){ return /electron/i.test(String(navigator.userAgent||'')); }
 // A file:// page can navigate to another HTML file. It cannot start a program - a link to an .exe,
 // .bat, .cmd or .py is refused with no error at all, which reads exactly like a broken button.
-function linkOpenable(n){ return /\.html?$/i.test(String(n||'').trim()); }
+function linkOpenable(n){ n=String(n||'').trim();
+  // v2.00 (item 99): the name comes from the board, so an imported board can set it; javascript:...//x.html ends in .html
+  const sch=/^([a-z][a-z0-9+.-]*):/i.exec(n);
+  if(sch && !/^[a-z]:[\\/]/i.test(n) && !/^(file|https?)$/i.test(sch[1])) return false;
+  return /\.html?$/i.test(n); }
 function linkSet(){
   const L=linkCfg();
   uiPrompt('File name of the companion tool, as it sits in this folder.\n\n'
