@@ -181,3 +181,16 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
 - Commit or push from a scheduled or unattended run. The nightly jobs validate and report only.
 - Work in this repository while another agent is changing it: one agent at a time, so changes do not
   collide.
+
+## Read-only monitoring roles
+
+The four monitoring profiles are listed in [.agents/monitoring/README.md](.agents/monitoring/README.md): money review, data preservation, regression checks and environment acceptance. They report findings to Brad and do not edit, commit, push, merge or publish. Scheduled tasks are configured separately. Real Windows/shared-folder/native-export acceptance requires a human operator. The one-editing-agent rule and all release checks above still apply.
+
+
+## Implementation ownership and handoffs
+
+Before beginning work, read [WORK-ASSIGNMENTS.md](WORK-ASSIGNMENTS.md) alongside CLAUDE.md. Brad assigns implementation scope; a review finding is not permission to fix it. Claude is the default release implementer and integrator; Codex independently reviews and may implement specifically assigned fixes or tests. These are defaults, not an assertion that either agent is currently working.
+
+Only one agent may edit repository code at a time, including tests. Use isolated branches and disposable review copies. Before changing owners, the outgoing owner stops edits and hands off an exact commit SHA, scope, validation results and remaining risks; Brad confirms the next owner. Separate branches do not waive this rule. Never infer that another session has stopped from a stale assignment file. If ownership is unclear, continue read-only work and ask Brad before dependent edits.
+
+Pin review feedback to the handed-off SHA. Further pushes are new review work. One designated gate owner runs the release gate; other agents inspect evidence rather than starting duplicate long runs. Merge and publish require Brad's authorization. Scheduled monitors remain read-only even when an interactive Codex task is assigned implementation work.
