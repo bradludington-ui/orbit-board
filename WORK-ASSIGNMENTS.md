@@ -15,7 +15,25 @@ Brad controls assignments and release scope. Read this file and AGENTS.md before
 
 ## Current implementation assignment
 
-No implementation task is assigned by this setup. Existing sessions may still be active: confirm their status with Brad before editing code. The four recurring monitors retain read-only scope.
+- Task and approved scope: v2.00 (item 99), the security version: the security review's injection holes, the structural
+  guards and the reviewability cleanup (Brad, 7 Oct); and, confirmed by Brad on 9 Oct, every hole the final review and the
+  full sweep of the board found, plus the built-in-name key class (an id, name, title or key such as __proto__,
+  constructor or toString).
+- Owner and outgoing owner's explicit stopped status: Claude (Claude Code session on claude/orbit-v2.00), confirmed by Brad
+  on 9 Oct. No outgoing owner: Claude has held v2.00 since 7 Oct.
+- Allowed files and excluded scope: prioritization-board-grid.html, tools/**, package.json, NEXT-VERSION.md, CLAUDE.md and
+  this entry. Excluded: AGENTS.md, .agents/**, item 100 (DoD standards, waiting on the security team) and item 101 (next
+  version).
+- Isolated branch and base commit SHA: claude/orbit-v2.00, based on v1.99 (6388472), main merged in at f9b4413.
+- Status: editing.
+- Required bounded checks and designated gate owner: tools/check.mjs, npm run audit:suites, audit-inject against v1.99 and
+  the candidate, a presweep of every new mutation; gate owner Claude (npm run validate:math, run as the restart-proof
+  batch runner).
+- Handoff commit SHA and changed files: given at the PR.
+- Known risks, blocked checks and reviewer findings: listed in NEXT-VERSION.md under v2.00 at the PR.
+- Brad's integration/merge/publication authorization, if given: not given. Nothing merges without Brad's go.
+
+The four recurring monitors retain read-only scope.
 
 ## Assignment template
 
