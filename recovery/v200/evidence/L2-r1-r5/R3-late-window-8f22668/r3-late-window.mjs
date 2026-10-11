@@ -27,6 +27,7 @@ const dir = st => ({ kind: 'directory', name: 'synthetic', queryPermission: asyn
   getDirectoryHandle: async (n, o) => { if (!st.dirs[n]) { if (o?.create) st.dirs[n] = { files: {}, dirs: {} }; else throw nf(); } return dir(st.dirs[n]); },
   removeEntry: async n => { delete st.files[n]; },
   values: async function* () { for (const n of Object.keys(st.files)) yield { kind: 'file', name: n, getFile: async () => ({ text: async () => st.files[n] }) }; } });
+if (process.argv[5] === 'wait80') await new Promise(r => setTimeout(r, 80));   // let the opening's own timers run first (DIRTY reset at 0 ms, folder auto-connect at 60 ms), as the suite's R5 fixture does
 B.w.__folder = dir(root);
 B.ev(`_liveCfg=Object.assign(liveCfg(),{store:true,mode:'drive',on:false}); _driveDir=globalThis.__folder; 'ok'`);
 const st = () => JSON.parse(B.ev(`JSON.stringify({view:CYCVIEW, note:S.notes.A, DIRTY:DIRTY, baseDirty:_baseDirty, record:(function(){ try{ return !!(baseGet()||{}).dirty; }catch(e){ return 'n/a'; } })(), gen:_saveGen})`));
@@ -52,5 +53,5 @@ B.ev(`setNote('A','AFTER'); 'ok'`);
 out.afterLaterEdit = { state: st(), folder: folderNote() };
 out.nextSave = { ret: await B.ev('driveStorePush(false)'), folder: folderNote(), history: hist(), state: st(), status: stat() };
 out.errors = B.errors;
-out.hold = HOLD; out.variant = process.argv[4] || 'edited'; console.log(J(out, null, 1));
+out.hold = HOLD; out.variant = process.argv[4] || 'edited'; out.opening = process.argv[5] || 'connect at once'; console.log(J(out, null, 1));
 bootRelease(0); process.exit(0);

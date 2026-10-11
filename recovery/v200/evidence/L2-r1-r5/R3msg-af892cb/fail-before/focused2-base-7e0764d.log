@@ -1,0 +1,20 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/R3msg/base-7e0764d.html node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/R3msg/focused-R3msg.mjs
+# cwd: /home/user/orbit-board
+# git: 27a5ebffb64f571eab70429d74a97bb17b25bdd5
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:01:39Z / 18:01:39 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+scenarios heard: ["v2.00 (R3) — a save that lands under a locked view says it saved the working plan"]
+2 FAILING CHECK(S)
+
+--- v2.00 (R3) — a save that lands under a locked view says it saved the working plan | (a) PB27 put on screen during the write
+    the board says it saved the working plan, built before PB27 was put on screen, and that nothing in PB27 is saved
+        got [false,true]   want [true,false]
+--- v2.00 (R3) — a save that lands under a locked view says it saved the working plan | (b) the quiet autosave, PB27 put on screen during the write
+    the working plan saved, and the board says so, with no "not kept"
+        got [true,"WORKING TWO",false,true]   want [true,"WORKING TWO",true,false]
+
+# end: 2026-10-11T22:01:46Z / 18:01:46 EDT
+# exit: 1  duration_s: 6.9

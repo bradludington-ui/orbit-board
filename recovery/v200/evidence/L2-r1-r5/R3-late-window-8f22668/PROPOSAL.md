@@ -21,3 +21,23 @@ message text, plus a mutation that restores the old message.
 **Related, also not built:**
 - An in-place file save in the same window refuses, because `buildSavedHtml` refuses during a view. The R3 draft
   reported that its status then names the fallback, "Downloading a …". That was not re-checked here.
+
+---
+
+**Status at 6:00 PM ET:**
+- **Item 1, the message:** approved by Brad and built in `af892cb`.
+
+## Item 2, proposed and not built: the stale on-screen "unsaved" flag after leaving a locked view
+
+**What happens:** a folder save lands while a locked view is on screen, and the board was unsaved when the save began.
+After leaving the view, the screen reads unsaved (`DIRTY` true). Yet the folder and this browser's record (`_baseDirty`,
+the stored record) hold the working plan as saved (see `CORRECTION.md`).
+
+**Cause:** `cycView` stashes `DIRTY`, and `cycLeave` restores the stash. The save that landed cleared only the view's flag.
+
+**Proposed:**
+- When a folder save lands clean under a view, also clear the stashed flag: `if(CYCVIEW && clean && _cycStash)
+  _cycStash.dirty=false;` next to the save's `DIRTY=false`.
+- Test it with the probe's sequence, using the suite fixture.
+- Add a mutation that removes the line.
+- Effect: after leaving the view, the screen agrees with the folder and the record. Nothing written changes.
