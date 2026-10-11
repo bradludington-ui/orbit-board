@@ -221,8 +221,15 @@ rule an imported one does. A cost estimate is not filed under a built-in name. A
 only when it is a path on the configured host, and the companion link opens a file, a path or a web page, never a
 script address. A board this board wrote carries none of the refused shapes, so every board people hold still opens.
 
-**Expected changes to existing checks:** no check's pass rule changed. The edits to existing checks:
+**Expected changes to existing checks:** one check's pass rule changed, and the edits to existing checks follow it.
 
+- **The v1.88 check in `audit-hostile` ("a file that could run code or change a figure is refused, whole, at every way
+  in") asked that a file carrying keys named `toString`, `valueOf`, `hasOwnProperty` and `isPrototypeOf` pass the
+  door.** v2.00's key rule refuses exactly those names, so the check now asks the opposite: each name, in a file of its
+  own, is refused, and the reason names the field. A new control keeps the check's v1.88 purpose, that the door
+  refuses no more than it must: keys that only look like those names (`ToString`, `valueOf_`, `hasOwnproperty`,
+  `isPrototype`, `proto`, `__proto`, `Constructor`) pass. Corrected 11 Oct, after the earlier notes and commit said
+  the suites passed (see "Validation record" below).
 - 7 existing mutations were retargeted, because the lines they search for were rewritten:
   - `fydp-panel-position-hidden`, `delta-chip-on-unchanged`, `view-title-unmarked`, `view-header-unmarked` and
     `view-delete-on-screen`, for the label split;
@@ -350,9 +357,17 @@ GATE_V200
     - **Second candidate (`23a18ee`):** 22 finding checks, T3 and T4 fail (124 assertions).
     - **Head before the key-class fix (`2ed059d`):** the 8 key checks and the typed-name check fail (80 assertions).
   - 135 mutations (`v200-*`). Each one undoes one fix or re-adds one over-escape; a fix applied in several places
-    through one function or rule is covered by mutating that function or rule. Each was presweept against
-    `audit-inject` alone and caught, the 19 added for the re-verification included. There are 1,274 mutation targets
-    in all, each matching exactly once.
+    through one function or rule is covered by mutating that function or rule. There are 1,274 mutation targets in
+    all, each matching exactly once. Matching once makes a mutation applicable; it does not show that one is caught.
+    The earlier notes said each `v200-*` was presweept against `audit-inject` alone and caught. At `1c94537` that was
+    false for two: `audit-inject` passes with `v200-id-builtin-open` or `v200-spmt-pmo-open` applied, because the K1
+    inputs for those rules sit in fields the value-key rule (`IN_VAL_KEYS`) also refuses. K1 now has two inputs that
+    reach only those rules: a valueOf id in a plan's priority order, and a submittal whose office name carries markup.
+  - **Validation record, corrected 11 Oct.** Commit `cdfc4ff` said `npm run audit:suites` passes. It did not: the
+    full suites run on that tree failed (exit 1, 8 min 51 s, 1 failing check, the v1.88 `audit-hostile` check
+    above), and the chain stopped there, so `audit-inject` did not run in it. The presweep was stopped and the gate
+    not started (Brad, 11 Oct). Candidate `1c94537` is not gate-ready. Results for the corrected tree are recorded
+    with its own commit, fresh.
 - **Corrections to the notes written for the earlier candidates.** The final review found that they claimed more than
   the code and tests did. Corrected above:
   - buy quantities and counts were never converted on load;
