@@ -49,9 +49,28 @@ Notes on these results:
   It shows that the lookalike control is sensitive.
 - **Concurrency:** the "after" runs were six in parallel on four CPUs, which is why audit-hostile took longer there.
 
+## The other eight suites (fresh, `suites-at-764d288/`)
+
+These ran at `764d288`. That commit only adds recovery notes on top of `9b27e80`: `git diff 9b27e80 764d288` is empty for
+the board, `tools/` and `package.json`, and the blob list is in `blobs-764d288.txt`. They ran in two capped lanes:
+`audit-import` alone, and the other seven one after another.
+
+| Suite | Exit | Duration | Verdict |
+|---|---|---|---|
+| audit-import | 0 | 534.4 s | ALL CHECKS PASSED (**89% of the 600 s cap**) |
+| audit-board | 0 | 158.8 s | ALL CHECKS PASSED |
+| audit-recon | 0 | 53.6 s | ALL CHECKS PASSED |
+| audit-other | 0 | 33.9 s | ALL CHECKS PASSED |
+| audit (Excel) | 0 | 8.7 s | ALL CHECKS PASSED |
+| boot-same | 0 | 11.7 s | identical either way |
+| audit-ppt | 0 | 3.9 s | ALL CHECKS PASSED |
+| legacy-fsrc | 0 | 2.8 s | every legacy Force setting computes exactly as before |
+
+All ten jsdom suites have now passed fresh at the layer-1 tree: these eight, and `audit-hostile` and `audit-inject`
+above.
+
 ## Not run at this SHA (pending)
 
-- `audit-import`, `audit-board`, `audit-other`, `audit-recon`, `audit.mjs`, `audit-ppt`, `boot-same`, `legacy-fsrc`.
-- `verify:grid` and the standards check.
-- The board is unchanged from `1c94537`, but every earlier result at that blob was lost, so none is reused.
+- `verify:grid` and the standards check. The board is unchanged from `1c94537`, but every earlier result at that blob
+  was lost, so none is reused.
 - Presweep and full gate: paused (Brad).
