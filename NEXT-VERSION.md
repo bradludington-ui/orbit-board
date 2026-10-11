@@ -674,8 +674,10 @@ result for it was run fresh against these commits.
 
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
-  - **U1:** a carried-row omission from the ALL YEARS total. Tracked as its own finding, with a reproduction under way.
-  - **U2:** keptPutBack loses data in R5's race.
+  - **U1:** a carried-row omission from the ALL YEARS total. Reproduced; it predates R1. A one-line correction was built on
+    a disposable copy and measured: $540,000,000 → $660,000,000 on the fixture, and a saved FY25-only selection stays FY25
+    after reopening. Not committed; it waits for Brad, as does one edge (a plan the board still holds for the carry year).
+  - **U2:** keptPutBack loses data in R5's race. Only the change count is missing; the repair scope is proposed.
   - **U3:** a Save queued behind a running save under the hold.
   - **U4:** the folder save's window for the hold.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
@@ -685,8 +687,10 @@ result for it was run fresh against these commits.
     $0/$1/$2 where exact largest-remainder arithmetic and the CLIN source workbook give $1/$1/$1.
   - **U10 (P2): a refused edit changes a locked-cycle export's codes.** A refused RCN edit in a locked view still
     exports under the edited code.
-  - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`. They have not been verified
-    on the current tree.
+  - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`, and again here on the current
+    tree (`4a6f7c7`) with bounded synthetic probes.
+  - **U13:** the folder pull adopts a newer copy without counting it as a change, so a save still writing can mark that
+    copy saved. Read from the code, not reproduced. R5 covers the history restore only.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 

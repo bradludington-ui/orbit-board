@@ -1,0 +1,110 @@
+{
+ "E3": {
+  "offered": [
+   2025,
+   2026,
+   2027,
+   2028,
+   2029,
+   2030,
+   2031
+  ],
+  "all": {
+   "sel": [
+    2025,
+    2026,
+    2027,
+    2028,
+    2029,
+    2030,
+    2031
+   ],
+   "t": [
+    660000000,
+    60000000,
+    600000000
+   ],
+   "appn": {
+    "om": 640000000,
+    "ff": 0,
+    "sp": 20000000,
+    "opn": 0
+   },
+   "label": "FY25–FY31 · all years · all appropriations · FY26: O&M planned, INITIAL SPARES executed, FULL FUND, OPN not in this total · FY27, FY28, FY29, FY30, FY31 planned"
+  },
+  "fy26": {
+   "sel": [
+    2026
+   ],
+   "t": [
+    120000000,
+    20000000,
+    100000000
+   ],
+   "appn": {
+    "om": 100000000,
+    "ff": 0,
+    "sp": 20000000,
+    "opn": 0
+   },
+   "label": "FY26 · all appropriations · FY26: O&M planned, INITIAL SPARES executed, FULL FUND, OPN not in this total · + OBBBA FY25"
+  },
+  "kind26om": "plan",
+  "errors": []
+ },
+ "E1": {
+  "offered": [
+   2025,
+   2026,
+   2027,
+   2028,
+   2029,
+   2030,
+   2031
+  ],
+  "all": {
+   "sel": [
+    2025,
+    2026,
+    2027,
+    2028,
+    2029,
+    2030,
+    2031
+   ],
+   "t": [
+    660000000,
+    160000000,
+    500000000
+   ],
+   "appn": {
+    "om": 640000000,
+    "ff": 0,
+    "sp": 20000000,
+    "opn": 0
+   },
+   "label": "FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"
+  },
+  "fy26": {
+   "sel": [
+    2026
+   ],
+   "t": [
+    120000000,
+    120000000,
+    0
+   ],
+   "appn": {
+    "om": 100000000,
+    "ff": 0,
+    "sp": 20000000,
+    "opn": 0
+   },
+   "label": "FY26 · all appropriations · + OBBBA FY25"
+  },
+  "kind26om": "exec",
+  "errors": []
+ }
+}
+E3 ALL 660000000 | existing rule (plan read) 660000000: true | carried-only 560000000: false
+E1 ALL 660000000 | execution wins 660000000: true | FY26 120000000: true

@@ -1,0 +1,133 @@
+
+================================================================================================
+45 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25
+    FY25 reads its $300M plan: $300M, $0 executed, $300M planned, labelled planned
+        got {"sel":[2025],"t":[0,0,0],"label":"FY25 · O&M"}   want {"sel":[2025],"t":[300000000,0,300000000],"label":"FY25 · O&M · PLANNED (board allocation, O&M)"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY26
+    FY26 = $100M executed, $0 planned, $100M total, the carried OBBBA named
+        got {"sel":[2026],"t":[600000000,100000000,500000000],"label":"FY26 · O&M · PLANNED (board allocation, O&M) · + OBBBA FY25"}   want {"sel":[2026],"t":[100000000,100000000,0],"label":"FY26 · O&M · + OBBBA FY25"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY26 · the export
+    US SERVICE FUNDING 100000000, O&M 100000000, TOTAL FUNDING 100000000 twice, no planned-and-executed NOTE
+        got ["ok","Scope: FY26 · O&M · PLANNED (board allocation, O&M) · + OBBBA FY25",[600000000],[600000000],[600000000,600000000],["NOTE: planned and executed money in one total — FY26: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation."]]   want ["ok","Scope: FY26 · O&M · + OBBBA FY25",[100000000],[100000000],[100000000,100000000],[]]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26
+    FY25 + FY26 = $400M: $100M executed, $300M planned, labelled planned + executed
+        got {"sel":[2025,2026],"t":[600000000,100000000,500000000],"label":"FY25, FY26 · O&M · FY26 planned, the rest executed"}   want {"sel":[2025,2026],"t":[400000000,100000000,300000000],"label":"FY25, FY26 · O&M · FY25 planned, the rest executed"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the panel
+    says planned and executed money in one total, year by year, with each amount
+        got [false,false]   want [true,true]
+    the year chips agree: FY25 marked plan, FY26 not; and beside executed money no year is called PLANNED, not executed (Brad, 11 Oct)
+        got [["FY25 [on]","FY26 · plan [on]"],""]   want [["FY25 · plan [on]","FY26 [on]"],""]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the export
+    US SERVICE FUNDING 400000000, O&M 400000000, TOTAL FUNDING 400000000 twice, the scope as the panel
+        got ["ok","Scope: FY25, FY26 · O&M · FY26 planned, the rest executed",[600000000],[600000000],[600000000,600000000]]   want ["ok","Scope: FY25, FY26 · O&M · FY25 planned, the rest executed",[400000000],[400000000],[400000000,400000000]]
+    and a NOTE: planned and executed money in one total, FY25 planned, FY26 executed
+        got [false]   want [true]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · saved FY25 only, reopened
+    the selection stays FY25 (never silently all years), $300M planned, labelled planned
+        got {"saved":[2025],"sel":[2025],"t":[0,0,0],"label":"FY25 · O&M"}   want {"saved":[2025],"sel":[2025],"t":[300000000,0,300000000],"label":"FY25 · O&M · PLANNED (board allocation, O&M)"}
+    the FY25 chip is there, on, marked plan; the export writes the same scope and $300M
+        got [["FY25 [on]"],"Scope: FY25 · O&M",[0]]   want [["FY25 · plan [on]"],"Scope: FY25 · O&M · PLANNED (board allocation, O&M)",[300000000]]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY26
+    FY26 = $100M executed, $0 planned
+        got {"sel":[2026],"t":[600000000,100000000,500000000],"label":"FY26 · O&M · PLANNED (board allocation, O&M) · + OBBBA FY25"}   want {"sel":[2026],"t":[100000000,100000000,0],"label":"FY26 · O&M · + OBBBA FY25"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY25 + FY26
+    FY25 + FY26 = $140M executed, $0 planned
+        got {"sel":[2025,2026],"t":[640000000,140000000,500000000],"label":"FY25, FY26 · O&M · FY26 planned, the rest executed"}   want {"sel":[2025,2026],"t":[140000000,140000000,0],"label":"FY25, FY26 · O&M"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY25 + FY26 · the panel
+    one kind of money: no planned-and-executed note, no year called PLANNED, neither chip marked plan
+        got ["Planned and executed money in one total. FY25: O&M executed; FY26: O&M planned. Executed money is the imported CCaR QPE; planned money is O&M’s own allocation. $140.00M executed, $500.00M planned.","",["FY25 [on]","FY26 · plan [on]"]]   want ["","",["FY25 [on]","FY26 [on]"]]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY25 + FY26 · the export
+    the export agrees: US SERVICE FUNDING 140000000, O&M 140000000, TOTAL FUNDING 140000000 twice, no planned-and-executed NOTE
+        got ["ok","Scope: FY25, FY26 · O&M · FY26 planned, the rest executed",[640000000],[640000000],[640000000,640000000],["NOTE: planned and executed money in one total — FY25: O&M executed; FY26: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation."]]   want ["ok","Scope: FY25, FY26 · O&M",[140000000],[140000000],[140000000,140000000],[]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | A · ALL YEARS
+    CONTROL — $140M = $40M + $100M executed, $0 planned
+        got [[2025,2026,2027,2028,2029,2030],[640000000,140000000,500000000]]   want [[2025,2026,2027,2028,2029,2030],[140000000,140000000,0]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | A · ALL YEARS · the export
+    planned years holding $0 do not make a mix: US SERVICE FUNDING 140000000 and no planned-and-executed NOTE
+        got ["ok",[640000000],["NOTE: planned and executed money in one total — FY25: O&M executed; FY26: O&M planned; FY27: O&M planned; FY28: O&M planned; FY29: O&M planned; FY30: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation."]]   want ["ok",[140000000],[]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | A · ALL YEARS · the panel
+    no planned-and-executed box, no year called PLANNED, not executed; the planned note states $140.00M executed and $0.00M planned
+        got ["Planned and executed money in one total. FY25: O&M executed; FY26: O&M planned; FY27: O&M planned; FY28: O&M planned; FY29: O&M planned; FY30: O&M planned. Executed money is the imported CCaR QPE; planned money is O&M’s own allocation. $140.00M executed, $500.00M planned.","",[false]]   want ["","",[true]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY26 + FY27
+    CONTROL — $100M executed (carried into FY26), $0 planned (FY27 never planned)
+        got [[2026,2027],[600000000,100000000,500000000]]   want [[2026,2027],[100000000,100000000,0]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY26 + FY27 · the export
+    a planned year holding $0 beside an executed one: US SERVICE FUNDING 100000000 and no planned-and-executed NOTE
+        got ["ok",[600000000],["NOTE: planned and executed money in one total — FY26: O&M planned; FY27: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation."]]   want ["ok",[100000000],[]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY26 + FY27 · the panel
+    no planned-and-executed box, no year called PLANNED, not executed; the planned note states $100.00M executed and $0.00M planned
+        got ["Planned and executed money in one total. FY26: O&M planned; FY27: O&M planned. Executed money is the imported CCaR QPE; planned money is O&M’s own allocation. $100.00M executed, $500.00M planned.","",[false]]   want ["","",[true]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 + FY26
+    CONTROL — $400M = $100M executed + $300M planned
+        got [[2025,2026],[600000000,100000000,500000000]]   want [[2025,2026],[400000000,100000000,300000000]]
+    CONTROL — still said as both on the panel and in the export (the R1 block holds their words)
+        got [false,[600000000],1]   want [true,[400000000],1]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 + FY26 · the panel
+    not "FY25 is PLANNED, not executed" beside $100M executed: $100.00M executed and $300.00M planned, the FY25 rows stored under FY25 and counted in FY26
+        got ["",["This total holds $100.00M executed and $500.00M planned. FY26 is a planned year. Nothing in scope has executed in that year yet, so the chart reads O&M’s own allocation for it — what the board intends to fund, one line per requirement per funded service, the same grain the Spend Plan Source export uses. A planned year covers O&M only — another appropriation’s requirements are not reachable from this board."]]   want ["",["This total holds $100.00M executed and $300.00M planned. FY25 is a planned year. The rows stored under FY25 are counted in FY26 (OBBBA), so the chart reads O&M’s own allocation for it — what the board intends to fund, one line per requirement per funded service, the same grain the Spend Plan Source export uses. A planned year covers O&M only — another appropriation’s requirements are not reachable from this board."]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 alone
+    CONTROL — $300M, all planned, and still called PLANNED, not executed; no planned-and-executed box or NOTE
+        got [[2025],[0,0,0],"","",[0],[]]   want [[2025],[300000000,0,300000000],"FY25","",[300000000],[]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 alone · the planned note
+    says the rows stored under FY25 are counted in FY26, not that nothing has executed in it
+        got [[],false]   want [[true],false]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · the FY25 button
+    its tooltip says the O&M rows are stored under FY25 and counted in FY26, so FY25 is read from its plan (never "no O&M execution imported")
+        got FY2025 is answered from the imported CCaR QPE   want FY2025: the O&M rows imported for it are stored under FY2025 and counted in FY2026 (OBBBA), so FY2025 O&M is read from its plan — this board’s own allocation
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · the FY26 and FY27 buttons
+    CONTROL — FY26 is answered from the import; FY27, with no rows stored under it, has no O&M execution imported
+        got ["FY2026 has no O&M execution imported, so O&M is answered from this board’s own allocation","FY2027 has no O&M execution imported, so O&M is answered from this board’s own allocation"]   want ["FY2026 is answered from the imported CCaR QPE","FY2027 has no O&M execution imported, so O&M is answered from this board’s own allocation"]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | S · O&M with no FY25 rows, Spares' FY25 row carried · FY25 alone · the planned note
+    nothing in scope has executed in FY25; another appropriation's carried rows are not given as O&M's reason
+        got [[],false]   want [[true],false]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · year availability
+    FY26 is offered beside FY25 and the window, unmarked: O&M execution is counted in it
+        got [[2025,2027,2028,2029,2030,2031],["FY25","FY27 · plan","FY28 · plan","FY29 · plan","FY30 · plan","FY31 · plan"]]   want [[2025,2026,2027,2028,2029,2030,2031],["FY25","FY26","FY27 · plan","FY28 · plan","FY29 · plan","FY30 · plan","FY31 · plan"]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ALL YEARS
+    ALL YEARS = 40 + 100 + 20 + 350 + 150 = $660M: $160M executed, $500M planned; O&M 640, Initial Spares 20
+        got {"sel":[2025,2027,2028,2029,2030,2031],"t":[540000000,40000000,500000000],"appn":{"om":540000000,"ff":0,"sp":0,"opn":0},"label":"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"}   want {"sel":[2025,2026,2027,2028,2029,2030,2031],"t":[660000000,160000000,500000000],"appn":{"om":640000000,"ff":0,"sp":20000000,"opn":0},"label":"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"}
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ALL YEARS · the panel
+    total funding $660.00M; the planned-and-executed box names FY26 and says $160.00M executed, $500.00M planned
+        got ["540.00",false,false]   want ["660.00",true,true]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ALL YEARS · the export
+    TOTAL FUNDING 660000000 twice, US SERVICE FUNDING 660000000, US service appropriations twice; O&M 640000000, FULL FUND 0, INITIAL SPARES 20000000, OPN 0
+        got ["ok",[540000000,540000000],[540000000],[540000000,540000000],[[540000000],[0],[0],[0]]]   want ["ok",[660000000,660000000],[660000000],[660000000,660000000],[[640000000],[0],[20000000],[0]]]
+    the years-added NOTE lists FY2026, and the planned-and-executed NOTE names it
+        got [false,false]   want [true,true]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ownership
+    each carried row is counted once, in FY26, on its own appropriation, service, office and amount — in the calculation and the export detail
+        got [[],[]]   want [[["Carried Spares","sp",2026,"USAF","Program (ATL)",20000000,false],["Carried Support","om",2026,"USAF","Program (PSM)",100000000,false]],[["Carried Spares","Event Carried Spares","INITIAL SPARES","ATL","USAF",20000000,"OBLIGATED"],["Carried Support","Event Carried Support","O&M","PSM","USAF",100000000,"OBLIGATED"]]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · each year alone
+    the offered years one at a time: 40 + 120 + 500 + 0 + 0 + 0 + 0 = $660M, each carried dollar in FY26 only
+        got [40000000,540000000,500000000,0,0,0,0]   want [40000000,120000000,500000000,0,0,0,0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · ALL YEARS · O&M
+    O&M alone = 40 + 100 + 350 + 150 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · saved FY26 only, reopened
+    the selection stays FY26 (never silently all years): 100 + 20 = $120M executed, the carried OBBBA named
+        got {"saved":[2026],"sel":[2025,2027,2028,2029,2030,2031],"t":[540000000,40000000,500000000],"label":"FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed"}   want {"saved":[2026],"sel":[2026],"t":[120000000,120000000,0],"label":"FY26 · all appropriations · + OBBBA FY25"}
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | variant A · saved FY26 only, reopened · the export
+    the same scope, TOTAL FUNDING 120000000 twice, INITIAL SPARES 20000000, and the OBBBA NOTE with the amount
+        got ["ok","Scope: FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed",[540000000,540000000],[0],false]   want ["ok","Scope: FY26 · all appropriations · + OBBBA FY25",[120000000,120000000],[20000000],true]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A2 · ALL YEARS
+    every FY25 row carried: FY25 offered (marked plan), FY26 offered; 100 + 20 + 350 + 150 = $620M, $120M executed; O&M 600, Initial Spares 20
+        got [["FY25","FY27 · plan","FY28 · plan","FY29 · plan","FY30 · plan","FY31 · plan"],[500000000,0,500000000],{"om":500000000,"ff":0,"sp":0,"opn":0}]   want [["FY25 · plan","FY26","FY27 · plan","FY28 · plan","FY29 · plan","FY30 · plan","FY31 · plan"],[620000000,120000000,500000000],{"om":600000000,"ff":0,"sp":20000000,"opn":0}]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A2P · ALL YEARS
+    FY25 reads its plan (every FY25 row counts in FY26): 100 + 20 + 30 + 15 + 350 + 150 = $665M, $120M executed, $545M planned
+        got [500000000,0,500000000]   want [665000000,120000000,545000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A2P · saved FY25 only, reopened
+    CONTROL — the selection stays FY25 alone (never all years, never FY26): its $45M plan, the carried rows not in it
+        got [{"saved":[2025],"sel":[2025],"t":[0,0,0],"label":"FY25 · all appropriations"},[]]   want [{"saved":[2025],"sel":[2025],"t":[45000000,0,45000000],"label":"FY25 · all appropriations · PLANNED (board allocation, O&M)"},[]]
+    CONTROL — only the FY25 chip is on, marked plan; the export writes the same scope and TOTAL FUNDING 45000000 twice, no carried row
+        got [["FY25 [on]"],"Scope: FY25 · all appropriations",[0,0],[]]   want [["FY25 · plan [on]"],"Scope: FY25 · all appropriations · PLANNED (board allocation, O&M)",[45000000,45000000],[]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A3 · ALL YEARS
+    only another appropriation carries: FY26 offered, marked plan for O&M; 40 + 20 + 350 + 150 = $560M, $60M executed; Initial Spares 20
+        got ["FY27 · plan",[540000000,40000000,500000000],0]   want ["FY26 · plan",[560000000,60000000,500000000],20000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | V4 · ALL YEARS
+    the carried row is behind an ordinary one and nothing else carries: FY26 offered; 40 + 100 + 350 + 150 = $640M, $140M executed; FY26 alone $100M
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],[540000000,40000000,500000000]]   want [[2025,2026,2027,2028,2029,2030,2031],[640000000,140000000,500000000],[100000000,100000000,0]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | V4 · FY26 · the export
+    TOTAL FUNDING 100000000 twice, O&M 100000000, the carried row in the detail
+        got ["ok",[540000000,540000000],[540000000],[]]   want ["ok",[100000000,100000000],[100000000],["Carried Support"]]

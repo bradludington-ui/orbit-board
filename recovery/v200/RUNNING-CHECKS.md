@@ -50,3 +50,17 @@ interrupted run is recorded as INCOMPLETE. All values below were read from the l
   4. verify:grid and standards;
   5. applicability.
 - **When it restarts:** once the product tree is final, against that tree.
+
+## Update at 7:38 PM ET
+
+**Final-tree driver.** PID 308 was still listed one second after its stop signal, and was gone at the next check, 7:18 PM
+ET. It had started nothing: `final-d1ee751/` holds only `driver.out`.
+
+**Sensitivity sequence.** Still running in the same driver (PID 299, af892cb clone). Since the restart:
+- `v200-r4-no-recheck` was repeated and **caught**: exit 1, 534.1 s, 3 failing, in the R4 block.
+- `v200-r4-held-quietly` was **caught**: exit 1, 491.5 s, 1 failing, in the R4 block.
+- **Now running:** `v200-r4-said-not-held`. Its process chain is sens-import subshell 1758, run.sh 1759, then
+  `timeout --kill-after=20 900` 1774 (process group 1774), then node 1777. It started 23:33:19 UTC.
+- **Still queued:** `v200-r5-restore-gen`, `v200-r5-restore-basedirty`, `unsaved-flag-never-set`, `impmixed-file-unguarded`.
+
+**Alongside it.** Only bounded U1 probes ran, one at a time, from 7:22 to 7:29 PM ET; each took under 12 s. No full suite ran.
