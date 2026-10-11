@@ -4144,6 +4144,29 @@ const MUTATIONS = [
   { id: "v200-rpgone-inherited", area: "rpMerge", what: "a reprogramming row is buried by an inherited tombstone (key re-verification)",
     find: "    const g=(r && r.id && Object.prototype.hasOwnProperty.call(gone, r.id))? gone[r.id] : 0;\n    if(g && (+g||0) >= (+r.ts||0)){ mine.splice(i,1); buried++; }",
     repl: "    if(r && r.id && (+gone[r.id]||0) >= (+r.ts||0) && gone[r.id]){ mine.splice(i,1); buried++; }" },
+  // v2.00 (R1, the review of main f9b4413; Brad, 11 Oct): execution precedence by appropriation and EFFECTIVE fiscal year.
+  // The first five ids are the lost implementation's; scan-stops-early and mix-words-one-kind guard code this one adds.
+  { id: "v200-r1-raw-year-exec", area: "flowExecYears", what: "execution is decided by the year the workbook files a row under, not the year it counts in: FY26 reads its whole plan beside the FY25 OBBBA rows carried into it, and FY25 reads $0",
+    find: "  const EA=execAllOf(), PS=raw? null : flowPseudo(); const y={};",
+    repl: "  const EA=execAllOf(), PS=null; const y={};" },
+  { id: "v200-r1-saved-year-widens", area: "flowYears", what: "the year buttons offer only the years execution counts in, so a saved FY25-only selection whose rows all count as FY26 silently becomes all years",
+    find: "  flowExecYears(null, true).forEach(f=>y[f]=1);",
+    repl: "  flowExecYears().forEach(f=>y[f]=1);" },
+  { id: "v200-r1-mixed-disclosure-b", area: "flowIsMixed", what: "only a year holding both kinds is said to mix them: FY25 planned beside FY26 executed ($400M) is said neither on the panel nor in the export",
+    find: "function flowIsMixed(F){ return F.execYs.length>0 && F.planYs.length>0; }",
+    repl: "function flowIsMixed(F){ return F.mixYs.length>0; }" },
+  { id: "v200-r1-export-note", area: "exportFlow", what: "the export notes a same-year mix only, so the $400M of FY25 planned and FY26 executed carries no NOTE while the panel says it",
+    find: "  if(flowIsMixed(F)) sum.splice(3,0,['NOTE: planned and executed money in one total",
+    repl: "  if(F.mixYs.length) sum.splice(3,0,['NOTE: planned and executed money in one total" },
+  { id: "v200-r1-help-claim", area: "flowHtml (matching rules)", what: "the matching rules say again that with both years selected the total is unchanged",
+    find: "+'Each row is counted once, in its effective year \\u2014 never twice. A year with execution counted in it is read from that execution, never also from the plan; a year left with none is a planned year, read from this board\\u2019s allocation. So switching this on can change a total even with both years selected.</div>'",
+    repl: "+'Each row belongs to exactly one year either way, so it can never appear twice \\u2014 select both years and the total is unchanged.</div>'" },
+  { id: "v200-r1-scan-stops-early", area: "flowExecYears", what: "the year scan stops at each year's first row, so FY25's carried OBBBA row behind an ordinary one goes unseen and FY26 reads its plan beside it",
+    find: "      return !(PS&&PS.on&&+f===PS.from) || (y[+f] && y[PS.to]); }); }); });",
+    repl: "      return true; }); }); });" },
+  { id: "v200-r1-mix-words-one-kind", area: "flowMixWords", what: "a year of one kind is written as both, with an empty side: 'FY25: O&M planned,  executed; FY26:  planned, O&M executed'",
+    find: "  return 'FY'+(y%100)+': '+[m.plan.length? L(m.plan)+' planned' : '', m.exec.length? L(m.exec)+' executed' : '', m.none.length? L(m.none)+' not in this total' : ''].filter(Boolean).join(', ');",
+    repl: "  return 'FY'+(y%100)+': '+L(m.plan)+' planned, '+L(m.exec)+' executed'+(m.none.length? ', '+L(m.none)+' not in this total' : '');" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
