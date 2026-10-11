@@ -1,0 +1,58 @@
+MUTATION APPLICABILITY -- R3 draft (applicability is counted separately from the catch)
+Patched board: wt/prioritization-board-grid.html, blob c0c31072380d9e8e9bcb95a1c170945897d694d3
+Base board:    9b27e80 prioritization-board-grid.html, blob 42e8111810b11c0500adb2fd029194c0ccbd9780
+Counted by reading each board as text (Python str.count). mutate.mjs was read as text only; it was never imported or run.
+
+1. NEW ENTRIES (out/mutations.json)
+   All three share one find: "  if(cycBlock('Writing to the shared folder')) return false;\n"
+
+   id                               patched count   line    base count
+   v200-r3-cycblock-gone            1               26740   0 (the line is new in this fix)
+   v200-r3-cycblock-falls-through   1               26740   0
+   v200-r3-cycblock-says-saved      1               26740   0
+
+   The find cannot match the function's first line. That line is
+   "  if(sandboxBlock('Writing to the shared folder')||cycBlock('Writing to the shared folder')) return;", and there
+   cycBlock follows "||", not "  if(". It also returns nothing, not false.
+
+2. CATCHES. Each mutant was made by one replace of the find in the patched board and run under the focused harness
+   (focused.mjs, holding the committed block byte-for-byte). See evidence.md for commands and timings.
+
+   id                               exit  failing checks (all in "v2.00 (R3) — a locked view is never written to the working folder")
+   v200-r3-cycblock-gone            1     (a) nothing is written to the folder (no copy, no history, no lock), and it is byte-identical
+                                            got [["hist:…","main:spmt-2027-om.json","lock:spmt-2027-om.lock.json"],false]  want [[],true]
+                                          (a) the save does not tell its caller it saved               got true  want false
+                                          (a) the board does not say saved, and says writing to the folder is off   got [true,false]  want [false,true]
+                                          (b) nothing is written, it reports failure, and no publish is recorded
+                                            got [true,["hist:…","main:…","lock:…"],false,true,<time>]  want [true,[],true,false,1]
+   v200-r3-cycblock-falls-through   1     the same four checks, with the same got values
+   v200-r3-cycblock-says-saved      1     (a) the save does not tell its caller it saved               got true  want false
+                                          (b) nothing is written, it reports failure, and no publish is recorded
+                                            got [true,[],true,true,<time>]  want [true,[],true,false,1]
+
+   No catch came from a crash, a boot error or a scenario that did not run. Each mutant's run heard the scenario. All
+   three controls passed under every mutant: "(a) the save reached the read…", "(a) then the view left" (both checks) and
+   "(c) … (a CONTROL)". Within the block, checks run in order. So under MUT_FIRST_FAIL=1 the block's first failing
+   check would be "(a) nothing is written…" for gone and falls-through, and "(a) the save does not tell its caller it
+   saved" for says-saved. The full audit-import.mjs was not run (it is the lead's), so whether earlier blocks pass
+   under these mutants is not shown here.
+
+3. EXISTING ENTRIES IN mutate.mjs (blob of tools/export-audit/mutate.mjs at 9b27e80; unchanged by this draft)
+   Method: findscan.py reads mutate.mjs as text. It finds every "find:" and decodes the JS expression that follows
+   without evaluating it. That expression can be:
+   - a '…', "…" or `…` literal (escapes decoded);
+   - a String.raw`…` literal (kept raw);
+   - literals joined with +;
+   - a top-level const that holds one of these.
+   Each decoded string was then counted on both boards.
+     "find:" entries ............................ 1274   (1274 "{ id: " entries; 1274 distinct ids)
+       forms: 1110 double-quoted, 119 single-quoted, 38 template, 2 String.raw, 5 const references
+       (DREW_LINE_FIND ×2, DIRECTED_LINE_FIND ×1, DREW_WHY_FIND ×2)
+     resolved ................................... 1274   unresolved: 0
+     count != 1 on the base board ............... 0
+     count != 1 on the patched board ............ 0
+     count changed between base and patched ..... 0
+   Result: no existing entry's count changed. None needs re-anchoring for this fix.
+   Per-entry data: logs/findscan.json; summary: logs/findscan.txt.
+   Scope: this proves only that the R3 fix leaves every existing anchor applicable. The other drafts (R4, R5, ...) need
+   the same scan on the integrated board.

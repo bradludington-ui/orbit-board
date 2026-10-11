@@ -1,0 +1,39 @@
+after first push false  false
+after WORKING TWO true WORKING TWO 4
+before call true
+after call sync true
+before during false 4
+after during false false
+before leave false false
+after first push false  false
+after WORKING TWO true WORKING TWO 4
+before call true
+after call sync true
+before during false 4
+after during false false
+after first push false  false
+after WORKING TWO true WORKING TWO 4
+before call true
+after call sync true
+before during false 4
+after during false null
+
+================================================================================================
+scenarios heard: ["v2.00 (R3) — a locked view is never written to the working folder"]
+5 FAILING CHECK(S)
+
+--- v2.00 (R3) — a locked view is never written to the working folder | (a) PB27 put on screen during the read
+    nothing is written to the folder (no copy, no history, no lock), and it is byte-identical
+        got [["hist:spmt-2027-om-20261011-205856.json","main:spmt-2027-om.json","lock:spmt-2027-om.lock.json"],false]   want [[],true]
+--- v2.00 (R3) — a locked view is never written to the working folder | (a) PB27 put on screen during the read
+    the save does not tell its caller it saved
+        got true   want false
+--- v2.00 (R3) — a locked view is never written to the working folder | (a) PB27 put on screen during the read
+    the board does not say saved, and says writing to the folder is off
+        got [true,false]   want [false,true]
+--- v2.00 (R3) — a locked view is never written to the working folder | (a) then the view left
+    the working plan is back, still unsaved
+        got ["WORKING TWO","false"]   want ["WORKING TWO","true"]
+--- v2.00 (R3) — a locked view is never written to the working folder | (b) ⬆ Publish now, PB27 put on screen during the read
+    nothing is written, it reports failure, and no publish is recorded
+        got [true,["hist:spmt-2027-om-20261011-205858.json","main:spmt-2027-om.json","lock:spmt-2027-om.lock.json"],false,true,1791752338935]   want [true,[],true,false,1]
