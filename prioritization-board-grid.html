@@ -2542,7 +2542,7 @@ function syncViewPrefs(){
     if(typeof MS.spSvc==='string') spSvc=MS.spSvc;
     if(typeof MS.spPrior==='boolean') spPrior=MS.spPrior;
     if(typeof MS.spDrillSvc==='string') spDrillSvc=MS.spDrillSvc;
-    if(spAce!=='board' && !(ACEDB.sets||{})[spAce]) spAce='board';
+    if(spAce!=='board' && !Object.prototype.hasOwnProperty.call(ACEDB.sets||{}, spAce)) spAce='board';
   }catch(e){}
 }
 function setSpAce(v){ spAce=v; MS.spAce=v; save(); render(); }
@@ -2620,7 +2620,7 @@ if(DATA.buys){
 }
 const BASE_ITEMS = DATA.items.slice();
 const BASE_ASK = {}; BASE_ITEMS.forEach(i=>BASE_ASK[i.id]=i.ask.slice());
-const BUILD='v2.00 (8 Oct 2026)';
+const BUILD='v2.00 (11 Oct 2026)';
 function dataPackOf(){
   // complete data payload so a SHELL template can rehydrate from any saved board
   return JSON.parse(JSON.stringify({
@@ -3301,7 +3301,7 @@ function svcAdd(){
   if(!svcEditable()) return;
   uiPrompt('Add a service (e.g. USAF, USMC-B, USMC-C, USN):','',v=>{
     v=(v||'').trim(); if(!v) return;
-    const why=typedNameWhy(v, 'The service name'); if(why){ alert(why+' — not added.'); return; }
+    const why=inNameWhy(v, 'The service name'); if(why){ alert(why+' — not added.'); return; }
     if(SVC.some(x=>x.toLowerCase()===v.toLowerCase())){ alert('"'+v+'" is already in the list.'); return; }
     if(!svcSaveList(SVC.concat([v]), SVC.map((s,k)=>k).concat([-1]))) return;
     setStat('🏷 Added service <b>'+esc(v)+'</b> — requirement values and allocations can now be entered for it.');
@@ -3312,7 +3312,7 @@ function svcRen(i){
   const was=SVC[i]; if(was===undefined) return;
   uiPrompt('Rename "'+was+'" to:', was, v=>{
     v=(v||'').trim(); if(!v||v===was) return;
-    const why=typedNameWhy(v, 'The service name'); if(why){ alert(why+' — not renamed.'); return; }
+    const why=inNameWhy(v, 'The service name'); if(why){ alert(why+' — not renamed.'); return; }
     if(SVC.some((x,k)=>k!==i && x.toLowerCase()===v.toLowerCase())){ alert('"'+v+'" is already in the list.'); return; }
     const l=SVC.slice(); l[i]=v;
     if(svcSaveList(l, SVC.map((s,k)=>k)))
@@ -3940,7 +3940,7 @@ function rlgExecYears(){
   if(!ex||!ex.rows) return [];
   return Object.keys(ex.rows).map(Number).sort(function(a,b){ return a-b; })
     .map(function(fy){
-      const byT={}; let tot=0, obl=0;
+      const byT=Object.create(null); let tot=0, obl=0;
       (ex.rows[fy]||[]).forEach(function(r){
         const t=String(r[3]||'').trim()||'(untitled)';
         const a=+r[9]||0;
@@ -3970,7 +3970,7 @@ function rlgCapacity(fy){
   if(!y) return out;
   out.cap=y.free;
   const ex=(execAllOf()||{})[mySlug()];
-  const byT={};
+  const byT=Object.create(null);
   ((ex&&ex.rows&&ex.rows[+fy])||[]).forEach(function(r){
     const t=String(r[3]||'').trim()||'(untitled)';
     const a=+r[9]||0;
@@ -4027,7 +4027,7 @@ function rlgUplScan(){
   Object.keys(all).forEach(function(ap){
     const ex=all[ap]; if(!ex||!ex.rows) return;
     Object.keys(ex.rows).map(Number).sort().forEach(function(fy){
-      const byT={};
+      const byT=Object.create(null);
       (ex.rows[fy]||[]).forEach(function(r){
         if(isAlloc(r[10])) return;                       // obligated money is not available
         const t=String(r[3]||'').trim()||'(untitled)';
@@ -4036,7 +4036,7 @@ function rlgUplScan(){
         // individual ROWS, so only those are UPL; a manual mark is on the REQUIREMENT, so the whole
         // of its unobligated money is the pot. Summing the title for a file-flagged row overstated
         // FY24 Full Fund by 24x — 4.9M claimed against 0.2M actually flagged.
-        if(!byT[t]) byT[t]={t:t, vAll:0, vFile:0, ev:{}, evUpl:{}, pmo:PMO_SHORT(r[18]), file:false};
+        if(!byT[t]) byT[t]={t:t, vAll:0, vFile:0, ev:Object.create(null), evUpl:Object.create(null), pmo:PMO_SHORT(r[18]), file:false};
         byT[t].vAll+=a;
         const e=String(r[7]||'').trim(); if(e) byT[t].ev[e]=1;
         if(flowIsUpl(r)){ byT[t].file=true; byT[t].vFile+=a; if(e) byT[t].evUpl[e]=1; }
@@ -4200,11 +4200,11 @@ function rlgPool(src){
     out.basis='FY'+(fy%100)+' execution (as reported)';
     // group the year's plan events by title; a title is the unit a person recognises, and the
     // execution file has no requirement id
-    const byT={};
+    const byT=Object.create(null);
     (ex.rows[fy]||[]).forEach(function(r){
       const t=String(r[3]||'').trim()||'(untitled)';
       const a=+r[9]||0;
-      if(!byT[t]) byT[t]={t:t, tot:0, obl:0, pmo:PMO_SHORT(r[18]), ev:{}, ym:'',
+      if(!byT[t]) byT[t]={t:t, tot:0, obl:0, pmo:PMO_SHORT(r[18]), ev:Object.create(null), ym:'',
                           sv:SVC.map(function(){ return 0; })};
       // The EARLIEST obligation month across the event's rows: the first moment any of it is
       // committed is what decides whether it can be deferred.
@@ -7246,7 +7246,7 @@ function myPmo(){ try{ return localStorage.getItem('prio27pmo')||''; }catch(e){ 
 // else appended, because a requirement whose office was dropped from GROUPS still has an owner and
 // that owner still has to be able to submit for it.
 function pmoChoices(){
-  const seen={};
+  const seen=Object.create(null);
   (S.order||[]).forEach(function(id){ const it=itemById(id); if(it) seen[grpOf(it)]=1; });
   const out=pmoKeys(seen).filter(Boolean);
   return out.length? out : GROUPS.slice();
@@ -7713,7 +7713,7 @@ function pmoApply(){
   // (pmoTake), and switching years leaves the held packages where they are -- so the year is checked HERE, at the
   // write, every time. One ticked package for another year stops the whole apply, naming every office's year:
   // nothing is written to a year the reviewer did not confirm.
-  const forOf={};
+  const forOf=Object.create(null);
   rows.forEach(function(r){ forOf[r.from]=(PMOSUBS[r.src]||{}).forFy; });
   if(Object.keys(forOf).some(function(o){ return forOf[o]!==MS.cur; })){
     const away=Object.keys(forOf).filter(function(o){ return forOf[o]!==MS.cur; });
@@ -9415,8 +9415,9 @@ function consTakeApply(fullSt, txt, fname, pick, all){
 // What it holds a file to -- in effect the saved format, written down in CLAUDE.md ("What a file may
 // carry"), so a later version changes it deliberately:
 //   - at most IN_MAX_BYTES of text, nested no deeper than IN_MAX_DEPTH;
-//   - no field named __proto__, constructor or prototype: no board writes one, and one reaches inside the
-//     program when the object it sits in is copied;
+//   - no field named __proto__, constructor or prototype, and (v2.00) no field, requirement id or service, office
+//     or band name that is any other name every object already answers to (toString, valueOf, hasOwnProperty
+//     ...: IN_KEY_BAD): no board writes one, and used as a key one reads back, or writes into, the built-in;
 //   - every number finite and within +/-IN_MAX_NUM; every AMOUNT -- a requirement's value by service, the
 //     budget, the lanes, an allocation, a split, a proposed value -- a number within +/-IN_MAX_AMT, or,
 //     where the board has always read one, a figure written as text ("1,234,567");
@@ -9429,9 +9430,15 @@ function consTakeApply(fullSt, txt, fname, pick, all){
 // would lose that version's data when the file goes back.
 const IN_MAX_BYTES=64*1024*1024, IN_MAX_DEPTH=64, IN_MAX_TEXT=200000, IN_MAX_NUM=1e15, IN_MAX_AMT=1e13;
 const IN_ID_BAD=/[\u0000-\u001f\u007f<>"'`\\|]/, IN_NAME_BAD=/[\u0000-\u001f\u007f<>"`\\]/;
-// A Set, not an object: an object answers IN_KEY_BAD['constructor'] and ['__proto__'] from Object.prototype
-// whether they are listed or not -- and would also refuse a genuine key named toString or valueOf.
-const IN_KEY_BAD=new Set(['__proto__', 'constructor', 'prototype']);
+// v2.00 (item 99): THE NAMES EVERY OBJECT ALREADY ANSWERS TO. As a key on an ordinary object, a name Object.prototype
+// carries (toString, valueOf, hasOwnProperty, constructor, __proto__ ...) reads back the built-in rather than the board's
+// own entry, and a write through it can reach every object on the page. No board writes one as a field, an id or a
+// name, so the import check refuses all of them there and a typed name is held to the same rule. The list is read
+// from this browser's own Object.prototype. A Set, not an object: an object would answer these very names from
+// Object.prototype whether they were listed or not.
+const IN_KEY_BAD=new Set(['__proto__', 'prototype'].concat(Object.getOwnPropertyNames(Object.prototype)));
+// v2.00 (item 99): the fields whose text value the board later uses as a key (checked against IN_KEY_BAD wherever they sit)
+const IN_VAL_KEYS=['id', 'nid', 'k', 'key', 'grp', 'pmo', 'svc', 'ap'];
 // the per-requirement maps: every key in these is a requirement id
 const IN_ID_MAPS=['mc','notes','desc','cons','minInc','titles','ccar','pid','costElem','grp','band','alloc','fsrc','awards','asks','recNames'];
 function inShow(v){ const s=String(v); return '“'+(s.length>60? s.slice(0,60)+'…' : s).replace(/[\u0000-\u001f\u007f]/g,'?')+'”'; }
@@ -9484,15 +9491,17 @@ function inIdWhy(v, what){
   if(typeof v!=='string') return what+' is not text ('+inShow(JSON.stringify(v))+')';
   if(!v.length || v.length>80) return what+' '+(v.length? inShow(v)+' is longer than 80 characters' : 'is empty');
   if(IN_ID_BAD.test(v)) return what+' '+inShow(v)+' contains a character an id may not carry (a quote mark, < >, a backslash, | or an invisible control character)';
+  if(IN_KEY_BAD.has(v)) return what+' '+inShow(v)+' is a name every object already answers to, so no board uses it as an id';
+  if(/^__/.test(v)) return what+' '+inShow(v)+' begins with two underscores, which the board keeps for its own bookkeeping (__rem, __cut)';
   return '';
 }
-// v2.00 (item 99): a name typed into this board follows the rule a name read from a file does. A name the import check
-// would refuse made a board that could not be imported back, and three names are object keys that walk into Object.prototype.
-function typedNameWhy(v, what){ return inNameWhy(v, what) || (IN_KEY_BAD.has(v)? what+' '+inShow(v)+' is a name this board keeps for itself' : ''); }
+// A service, office or band name, read from a file or (v2.00, item 99) typed into this board: a typed name the import
+// check would refuse made a board that could not be imported back.
 function inNameWhy(v, what){
   if(typeof v!=='string') return what+' is not text ('+inShow(JSON.stringify(v))+')';
   if(v.length>200) return what+' '+inShow(v)+' is longer than 200 characters';
   if(IN_NAME_BAD.test(v)) return what+' '+inShow(v)+' contains a character a name may not carry (double quotes, < >, a backslash or an invisible control character)';
+  if(IN_KEY_BAD.has(v)) return what+' '+inShow(v)+' is a name every object already answers to, so no board uses it as a name';
   return '';
 }
 function inAmtWhy(v, where){
@@ -9529,7 +9538,9 @@ function inShapeWhy(o, path, asPlan){
       || ((it.grp!==undefined && it.grp!==null && it.grp!=='')? inNameWhy(it.grp, 'the office at '+at+'.grp') : '')
       || inAmtsWhy(it.ask, at+'.ask') || inAmtsWhy(it.fy26, at+'.fy26');
   };
-  if(Array.isArray(o.items) && (Array.isArray(o.services) || Array.isArray(o.budget))){
+  // v2.00 (item 99): a data pack with only its items is still a requirement list (the board fills its services from the
+  // plan), so its ids and offices are checked wherever it sits under a dataPack
+  if(Array.isArray(o.items) && (Array.isArray(o.services) || Array.isArray(o.budget) || /\.dataPack$/.test(path))){
     if(Array.isArray(o.services)) for(let i=0;i<o.services.length;i++) if((w=inNameWhy(o.services[i], 'the service name at '+path+'.services['+i+']'))) return w;
     for(let i=0;i<o.items.length;i++) if((w=itemWhy(o.items[i], path+'.items['+i+']'))) return w;
     if((w=inAmtsWhy(o.budget, path+'.budget'))) return w;
@@ -9570,9 +9581,28 @@ function inShapeWhy(o, path, asPlan){
     if(!b || typeof b!=='object') continue;
     if(b.id!==undefined && b.id!==null && (w=inNameWhy(String(b.id), 'the band id at '+at))) return w;
     if(b.c!==undefined && b.c!==null && b.c!=='' && !/^#[0-9a-fA-F]{3,8}$/.test(String(b.c))) return 'the colour of the band at '+at+' is not a colour ('+inShow(b.c)+')'; }
+  // v2.00 (item 99): A VALUE THE BOARD USES AS A KEY. Wherever it sits, a field named for an id, a key, an office, a
+  // service or an appropriation holds text the board later looks things up by -- a cycle's requirement and its office,
+  // a CLIN's key, a funds-flow category, a PPBE line, a reprogramming entry, an estimate line's office and service. None
+  // may be a name every object already answers to, and an id may not be one of the board's own bookkeeping keys.
+  for(const f of IN_VAL_KEYS) if(typeof o[f]==='string' && (IN_KEY_BAD.has(o[f]) || ((f==='id' || f==='nid') && /^__/.test(o[f]))))
+    return 'the '+f+' at '+path+' is '+inShow(o[f])+', a name the board keeps for itself or every object already answers to';
+  // the estimate's office alignment: {set: {board office: estimate office}} -- the estimate office is a key too
+  if(o.aceAlign && typeof o.aceAlign==='object' && (w=eachKey(o.aceAlign, function(set, m){
+    return eachKey(m, function(bp, a){ return IN_KEY_BAD.has(String(a))? 'the estimate office at '+path+'.aceAlign.'+set+'.'+bp+' is '+inShow(a)+', a name every object already answers to' : ''; }); }))) return w;
+  // v2.00 (item 99): a destination is looked up by its key wherever it is used -- in a destination list, or named by a
+  // requirement's destination -- so a key may not be a name every object already answers to
+  for(const bag of ['dest','ents']) if(Array.isArray(o[bag])) for(let i=0;i<o[bag].length;i++){ const e=o[bag][i];
+    if(e && typeof e==='object' && IN_KEY_BAD.has(String(e.k))) return 'the destination key at '+path+'.'+bag+'['+i+'] '+inShow(e.k)+' is a name every object already answers to'; }
+  if(o.dest && typeof o.dest==='object' && !Array.isArray(o.dest) && (w=eachKey(o.dest, function(id, d){
+    if(!d || typeof d!=='object') return '';
+    for(const f of ['to','end']) if(IN_KEY_BAD.has(String(d[f]))) return 'the destination at '+path+'.dest.'+id+'.'+f+' '+inShow(d[f])+' is a name every object already answers to';
+    return ''; }))) return w;
   if(Array.isArray(o.pmos)) for(let i=0;i<o.pmos.length;i++) if((w=inNameWhy(o.pmos[i], 'the office name at '+path+'.pmos['+i+']'))) return w;
   if(Array.isArray(o.svc)) for(let i=0;i<o.svc.length;i++) if((w=inNameWhy(o.svc[i], 'the service name at '+path+'.svc['+i+']'))) return w;
   if(o.spmtPkg && o.dir==='submit'){
+    // v2.00 (item 99): the office a submittal comes from is a name the board looks that office's ranking up by
+    if(o.pmo!==undefined && o.pmo!==null && o.pmo!=='' && (w=inNameWhy(o.pmo, 'the office at '+path+'.pmo'))) return w;
     for(const bag of ['items','base']) if((w=eachKey(o[bag], function(id, one){ const at=path+'.'+bag+'.'+id;
       return inIdWhy(id, 'the requirement id at '+at) || (one && typeof one==='object'? inAmtsWhy(one.asks, at+'.asks') : ''); }))) return w;
     if(Array.isArray(o.added)) for(let i=0;i<o.added.length;i++){ const a=o.added[i], at=path+'.added['+i+']';
@@ -10315,7 +10345,7 @@ function pmoSave(list){
 function pmoAdd(){
   uiPrompt('Name the new PMO:','',function(v){
     v=(v||'').trim(); if(!v) return;
-    const why=typedNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not added.'); return; }
+    const why=inNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not added.'); return; }
     if(GROUPS.indexOf(v)>=0){ setStat('⚠ <b>'+esc(v)+'</b> is already on the list.'); return; }
     pmoSave(GROUPS.concat([v]));
     setStat('Added PMO <b>'+esc(v)+'</b> — it is now offered wherever a requirement’s office '
@@ -10334,7 +10364,7 @@ function pmoRename(i){
   }
   uiPrompt('Rename "'+g+'" to:', g, function(v){
     v=(v||'').trim(); if(!v||v===g) return;
-    const why=typedNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not renamed.'); return; }
+    const why=inNameWhy(v, 'The office name'); if(why){ setStat('⚠ '+esc(why)+' — not renamed.'); return; }
     if(GROUPS.indexOf(v)>=0){ setStat('⚠ <b>'+esc(v)+'</b> is already on the list.'); return; }
     // Every override naming the old office moves with it, IN EVERY YEAR — this list is board-level
     // and a rename that only fixed the year on screen would strand the others.
@@ -11284,7 +11314,7 @@ function forecast(fundOf, view){
   const literal = !fundOf;
   const mi={}; FYMON.forEach(([k],i)=>mi[k]=i);
   const mk=()=>({m:FYMON.map(_=>0), unsch:0, tot:0});
-  const byPMO={}, bySvc={}, roll={};
+  const byPMO=Object.create(null), bySvc={}, roll={};
   // ONE PMO OR ONE SERVICE (v1.93, item 41): the same placement, every figure multiplied by the view's factor
   // per service -- a PMO's share of each requirement (pmoSharesOf), or 1 on the one service and 0 elsewhere --
   // so every view adds back to the whole portfolio, month by month. view is {pmo:'AV'} or {svc:i}, or none.
@@ -12011,7 +12041,7 @@ async function importSrc(inp){
                  unreadable:(XLSX_LAST&&XLSX_LAST.unreadable)||[]};
     EXDB.ts=Date.now();
     const stored=persistExdb();      // a refusal is counted unsaved by lsSet; the message below must not hide it
-    exA=null; exFy=null; exX={}; exXT={};
+    exA=null; exFy=null; exX=Object.create(null); exXT={};
     render();
     const bad=report.filter(t=>!t.found).length;
     flowRepSeen=false;                       // a fresh import gets a fresh look at the report
@@ -13781,7 +13811,7 @@ function execRowsFor(fys){
 function execWbsScan(fys){
   const rows=execRowsFor(fys);
   const scan={rows:rows.length, withWbs:0, unparsed:[], props:[], conflicts:[], unmatched:[],
-              matchedRows:0, sharedRows:0, sharedNames:{}, byKey:{}};
+              matchedRows:0, sharedRows:0, sharedNames:Object.create(null), byKey:{}};
   if(!rows.length) return scan;
 
   // index the board both ways; record name first because it is the key the funds flow measured
@@ -13902,7 +13932,7 @@ function acePmoFor(k, boardPmo){ return aceAlign(k)[boardPmo] || boardPmo; }
 // Board PMOs that share one ACE PMO -- their estimate is a single number spanning all of them, so
 // the view groups them rather than inventing a split.
 function acePmoGroups(k){
-  const groups={};
+  const groups=Object.create(null);
   GROUPS.forEach(function(g){ const a=acePmoFor(k,g); (groups[a]=groups[a]||[]).push(g); });
   return groups;
 }
@@ -14240,10 +14270,10 @@ function divOne(set){ const k=Object.keys(set); return k.length===1? k[0] : ''; 
 
 // What CCaR holds, from the last Spend Plan Source pull, keyed by CCaR number.
 function divCcarSide(){
-  const by={}, rows=(typeof execRowsFor==='function')? execRowsFor([MS.cur]) : [];
+  const by=Object.create(null), rows=(typeof execRowsFor==='function')? execRowsFor([MS.cur]) : [];
   rows.forEach(function(r){
     const num=ccarNorm(r[2]); if(!num) return;
-    const b=by[num] || (by[num]={amt:0, n:0, titles:{}, buds:{}, oprs:{}, pmos:{}, raw:String(r[2]||'').trim()});
+    const b=by[num] || (by[num]={amt:0, n:0, titles:Object.create(null), buds:Object.create(null), oprs:Object.create(null), pmos:Object.create(null), raw:String(r[2]||'').trim()});
     b.amt += (+r[9]||0); b.n++;
     const t=String(r[3]||'').trim(); if(t) b.titles[t]=1;
     const bu=String(r[4]||'').trim(); if(bu) b.buds[bu]=1;
@@ -14463,6 +14493,8 @@ async function importAce(inp){
     if(!first) throw new Error('no sheets in that workbook');
     const label=(f.name.match(/(20\d\d)\s*ACE/i)||[null,''])[1];
     const key=label? label+'ACE' : f.name.replace(/\.xlsx$/i,'');
+    // v2.00 (item 99): the estimate is filed under this name, so it cannot be one every object already answers to
+    if(IN_KEY_BAD.has(key)) throw new Error('the estimate would be filed as '+inShow(key)+', a name every object already answers to \u2014 rename the file and import it again');
     const set=aceParse(sheets[first], key);
     const nAp=Object.keys(set.appn).length;
     if(!nAp) throw new Error('nothing matched the expected columns \u2014 check this is the ACE layout');
@@ -14537,7 +14569,7 @@ function svcBoardOf(sv){
   const a=SVC_ALIAS[sv];
   return (a && SVC.indexOf(a)>=0)? a : '';
 }
-let exOpen=false, exFy=null, exX={}, exXT={}, exA=null, exSvc='ALL', exView='appn';
+let exOpen=false, exFy=null, exX=Object.create(null), exXT={}, exA=null, exSvc='ALL', exView='appn';
 // Scopes the BOTTOM PAIR only. Not persisted: it is a way of looking, not a property of the
 // board, and a panel reopening into a filter nobody set is how a partial figure gets read as
 // the whole. Reset whenever the appropriation or the fiscal year moves, because a PMO that
@@ -14563,9 +14595,9 @@ function execAllOf(){
   if(MS.exec&&MS.exec.rows) return {[mySlug()]:MS.exec};
   return {};
 }
-function exSetA(a){ exA=a; exView='appn'; exFy=null; exX={}; exXT={}; exPmo='ALL'; render(); }
+function exSetA(a){ exA=a; exView='appn'; exFy=null; exX=Object.create(null); exXT={}; exPmo='ALL'; render(); }
 function exSetView(v){ exView=v; render(); }
-function exSetSvc(v){ exSvc=v; exX={}; exXT={}; render(); }
+function exSetSvc(v){ exSvc=v; exX=Object.create(null); exXT={}; render(); }
 function exWindow(){
   const d=new Date();
   const AFY=(d.getMonth()+1)>=10? d.getFullYear()+1 : d.getFullYear();
@@ -14589,7 +14621,7 @@ function repYmOf(ex){
 // same requirement in two different offices on one screen.
 function exAgg(ex,fy,pmo){
   const W=exWindow();
-  const byP={}, byS={}; let tot=0, obl=0;
+  const byP=Object.create(null), byS=Object.create(null); let tot=0, obl=0;
   (ex.rows[fy]||[]).forEach(r=>{
     const sv=svcOfBudget(r[4]);
     if(exSvc!=='ALL'&&sv!==exSvc) return;
@@ -14597,7 +14629,7 @@ function exAgg(ex,fy,pmo){
     const amt=r[9]||0, ok=isAlloc(r[10]);
     tot+=amt; if(ok) obl+=amt;
     const g=PMO_SHORT(r[18]);
-    if(!byP[g]) byP[g]={m:Array(W.NCOL).fill(0), tot:0, obl:0, titles:{}};
+    if(!byP[g]) byP[g]={m:Array(W.NCOL).fill(0), tot:0, obl:0, titles:Object.create(null)};
     const P=byP[g];
     const k=W.ymIdx(r[1]); if(k>=0) P.m[k]+=amt;
     P.tot+=amt; if(ok) P.obl+=amt;
@@ -14744,7 +14776,7 @@ function flowSubs(){
   });
   return C.subs;
 }
-function flowSubOf(catKey){ const L=flowSubs()[catKey]; return (L&&L.length)? L : null; }
+function flowSubOf(catKey){ const S2=flowSubs(), L=Object.prototype.hasOwnProperty.call(S2, catKey)? S2[catKey] : null; return (Array.isArray(L)&&L.length)? L : null; }
 // Which categories are expanded. Migrated from the single `subOn` flag so no existing chart changes
 // shape on upgrade: off stays off everywhere, on means Workforce and nothing else — which is what
 // that flag actually did, since Workforce was the only category with a scheme.
@@ -14849,7 +14881,7 @@ function destJoin(hit, e, from){
 }
 // The keys a plan's requirements point at, in every state given.
 function destRefs(states){
-  const r={};
+  const r=Object.create(null);
   states.forEach(function(st){ const D=st&&st.dest; if(!D || typeof D!=='object') return;
     Object.keys(D).forEach(function(id){ const v=D[id]; if(v && typeof v==='object'){ if(v.to) r[v.to]=1; if(v.end) r[v.end]=1; } }); });
   return r;
@@ -14859,7 +14891,7 @@ function destRefs(states){
 // store must be kept). `refs` are the keys its requirements use: a destination deleted here comes back
 // only while something still points at it.
 function destFold(list, from, v186, refs){
-  const al={};
+  const al=Object.create(null);
   let fresh=false;
   // v1.99 (item 95): `fresh` says a key had to change; `touched` says anything the destination list holds changed -- a
   // destination added under its own key, a joined name, a map entry or the list's signature -- so it is stored and
@@ -14999,7 +15031,7 @@ function destMigrate(){
 // A SUBMITTAL FROM A PMO COPY names destinations by the copy's list. A copy on v1.86 sends that list
 // with it; one published before carries the appropriation's old list, read as it was read here.
 function destPkgIn(pkg){
-  const refs={};
+  const refs=Object.create(null);
   const each=function(fn){
     [pkg.items, pkg.base].forEach(function(m){ Object.keys(m||{}).forEach(function(id){ if(m[id] && m[id].dest && typeof m[id].dest==='object') fn(m[id].dest); }); });
     (pkg.added||[]).forEach(function(a){ if(a && a.dest && typeof a.dest==='object') fn(a.dest); });
@@ -15008,7 +15040,9 @@ function destPkgIn(pkg){
   let al;
   if(Array.isArray(pkg.dest)){ al=destFold(pkg.dest, pkg.ap||mySlug(), true, refs); if(al.fresh || al.touched) persistDest(); }
   else { const sg=DESTDB.lsig[pkg.ap||mySlug()]; al=(sg && DESTDB.lmap[sg])||{}; }
-  each(function(d){ if(d.to && al[d.to] && al[d.to]!==d.to) d.to=al[d.to]; if(d.end && al[d.end] && al[d.end]!==d.end) d.end=al[d.end]; });
+  // v2.00 (item 99): a stored list's re-pointing is an ordinary object, so only its own entries re-point a destination
+  const moves=function(k){ return !!k && Object.prototype.hasOwnProperty.call(al, k) && al[k]!==k; };
+  each(function(d){ if(moves(d.to)) d.to=al[d.to]; if(moves(d.end)) d.end=al[d.end]; });
 }
 function flowEnt(k){ return flowEnts().filter(function(e){ return e.k===k; })[0] || null; }
 // How many requirements point at this destination, on either hop. Asked before a delete, because
@@ -15027,10 +15061,10 @@ function flowEntUse(k){
 // by its appropriation's old keys, so it is read through that list.
 // Read once for the whole list, {board key: {where: requirements}}: each other plan is a large parse.
 function flowEntUseMap(){
-  const out={};
+  const out=Object.create(null);
   const add=function(where, states, tr){
     states.forEach(function(ys){ Object.keys((ys&&ys.dest)||{}).forEach(function(id){ const d=ys.dest[id]||{};
-      const seen={};
+      const seen=Object.create(null);
       [d.to, d.end].forEach(function(x){ const k=x? tr(x) : ''; if(!k || seen[k]) return; seen[k]=1;
         const o=out[k]||(out[k]={}); o[where]=(o[where]||0)+1; }); }); });
   };
@@ -15150,7 +15184,7 @@ function destOf(it){
 // MIPR TYPE. How an OGC's money is sent: Direct Cite, or Reimbursable. The board records WHICH and
 // stops there -- how the money is actually sent and when are internal decisions this deliberately
 // does not model, so nothing downstream keys off this beyond printing it.
-const MIPR_LBL={direct:'MIPR Direct Cite', reimb:'MIPR Reimbursable'};
+const MIPR_LBL=Object.assign(Object.create(null), {direct:'MIPR Direct Cite', reimb:'MIPR Reimbursable'});
 function miprOf(id){ return (S.mipr||{})[id]||''; }
 function setMipr(id,v){
   if(!S.mipr) S.mipr={};
@@ -15209,7 +15243,7 @@ function flowReqIndex(){
 }
 // What the requirements behind one title agree on. '' = none logged; DEST_SPLIT = they disagree.
 function flowDestResolve(ids, axis){
-  const seen={};
+  const seen=Object.create(null);
   (ids||[]).forEach(function(id){
     const it=itemById(id); if(!it) return;
     const k=(axis==='end')? destEndOf(it) : destOf(it).to;
@@ -17582,7 +17616,7 @@ function bandImport(inp){
     const list=(pack&&Array.isArray(pack.bands))? pack.bands : (Array.isArray(pack)? pack : null);
     if(!list||!list.length){ setStat('\u26a0 That file does not carry a band ladder.'); inp.value=''; return; }
     // take only the fields a band is made of, and give anything malformed a safe default
-    const clean=[], seen={};
+    const clean=[], seen=Object.create(null);
     list.forEach(b=>{
       if(!b||typeof b!=='object') return;
       let id=(''+(b.id||b.n||'')).toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,12);
@@ -18826,7 +18860,7 @@ function blKey(cyc, yr){ return cyc+'|'+yr; }
 function blLblTxt(key){ const p=String(key).split('|'); return p[0]+String(p[1]).slice(-2); }
 function blLbl(key){ return esc(blLblTxt(key)); }
 function blList(){ return Object.keys(blStore()).sort(); }
-function blGet(key){ return blStore()[key]||null; }
+function blGet(key){ const c=blStore(); return Object.prototype.hasOwnProperty.call(c, key)? c[key]||null : null; }
 // The projection a cycle holds for one fiscal year, or null when it never captured that year.
 function cycProj(key, fy){ const c=blGet(key); return (c && c.proj && c.proj[fy])? c.proj[fy] : null; }
 // THE YEARS A LOCK TAKES: the FYDP window, and the year on screen when it sits outside it (FY27
@@ -18843,7 +18877,7 @@ function cycWindowYears(){
 // what the lanes actually paid -- d+m from tiers(), the figure every other surface calls Funded.
 function cycProjOf(){
   const T=tiers();
-  const reqs=[], pmo={};
+  const reqs=[], pmo=Object.create(null);
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const p=T[id]||{d:[],m:[]};
@@ -19068,7 +19102,7 @@ function fydpAceReq(k, id, y, st){
   return n? t : null;
 }
 // board PMOs that share one estimate PMO: the figure is printed on the first and the rest name it
-function fydpAceShare(k, groups){ const seen={}, out={}; groups.forEach(function(g){ const a=acePmoFor(k, g.grp); if(seen[a]){ out[g.grp]=seen[a]; } else seen[a]=g.grp; }); return out; }
+function fydpAceShare(k, groups){ const seen=Object.create(null), out={}; groups.forEach(function(g){ const a=acePmoFor(k, g.grp); if(seen[a]){ out[g.grp]=seen[a]; } else seen[a]=g.grp; }); return out; }
 // EACH YEAR'S MONEY UNDER THE PMO THAT YEAR ASSIGNS (v1.95, Brad, 3 Oct 2026: "PMOs can change under
 // reorganizations, leave the PMO assigned by year, as it's reported as that PMO in that year"). A row
 // is one requirement under one PMO, holding the years that PMO held it: moved from AV in FY27 to TSS
@@ -19096,7 +19130,7 @@ function fydpRows(D){
     row.tot=t;
     row.home=(last[row.id]===k);       // the row a year it does not hold is shown on (the latest year's PMO)
   });
-  const byG={}; order.forEach(function(k){ const g=rows[k].grp||'(no PMO)'; (byG[g]=byG[g]||[]).push(k); });
+  const byG=Object.create(null); order.forEach(function(k){ const g=rows[k].grp||'(no PMO)'; (byG[g]=byG[g]||[]).push(k); });
   const groups=pmoKeys(byG).map(function(g){ return {grp:g, ids:byG[g].slice().sort(function(a,b){ return rows[a].rank-rows[b].rank; })}; });
   return {rows:rows, groups:groups, order:order, at:at, n:Object.keys(at).length};
 }
@@ -19676,7 +19710,7 @@ function exportCycCompare(){
     +(D.onlyA.length? ' Only in '+la+': '+D.onlyA.map(fyl).join(', ')+'.' : '')+(D.onlyB.length? ' Only in '+lb+': '+D.onlyB.map(fyl).join(', ')+'.' : ''), s:0};
   const dash={v:'—', s:0};
   const tri=(ra,rb,d,k,st)=>[ra? {v:ra[k],s:st} : dash, rb? {v:rb[k],s:st} : dash, {v:d[k],s:st}];
-  const byG={}; D.order.forEach(id=>{ const g=D.rows[id].grp||'(no PMO)'; (byG[g]=byG[g]||[]).push(id); });
+  const byG=Object.create(null); D.order.forEach(id=>{ const g=D.rows[id].grp||'(no PMO)'; (byG[g]=byG[g]||[]).push(id); });
   const subOf=(ids,y)=>{ const Y=D.fy[y], s={a:{},b:{},d:{}}; CMP_K.forEach(k=>{ s.a[k]=0; s.b[k]=0; s.d[k]=0; });
     ids.forEach(k0=>{ const r=Y.filed[k0]; if(!r) return; CMP_K.forEach(k=>{ s.a[k]+=r.a? r.a[k]:0; s.b[k]+=r.b? r.b[k]:0; s.d[k]+=r.d[k]; }); }); return s; };
   const totOf=y=>{ const Y=D.fy[y], t={a:{},b:{},d:{}}; CMP_K.forEach(k=>{ t.a[k]=Y.tot[k].a; t.b[k]=Y.tot[k].b; t.d[k]=Y.tot[k].d; }); return t; };
@@ -20280,7 +20314,7 @@ function ppCell(P, sv, k, fy){
 // Every line the position holds, including any whose label has since been removed — that money is
 // still logged and must not vanish from a total because a row was deleted from the list.
 function ppKeysOf(P, sv){
-  const seen={}, out=[];
+  const seen=Object.create(null), out=[];
   ((P.lines||{})[sv]||[]).forEach(l=>{ if(!seen[l.k]){ seen[l.k]=1; out.push(l.k); } });
   Object.keys((P.val||{})[sv]||{}).forEach(k=>{ if(!seen[k]){ seen[k]=1; out.push(k); } });
   return out;
@@ -20291,7 +20325,7 @@ function ppSvcFy(Praw, sv, fy){
   return {d:d, m:m, t:d+m};
 }
 function ppSvcsOf(Praw){
-  const P=ppNorm(Praw), seen={};
+  const P=ppNorm(Praw), seen=Object.create(null);
   Object.keys(P.lines||{}).forEach(x=>seen[x]=1);
   Object.keys(P.val||{}).forEach(x=>seen[x]=1);
   return Object.keys(seen);
@@ -20300,8 +20334,8 @@ function ppSetV(sv, k, fy, which, val){
   const P=ppPos(), v=parseAmt(val, {neg:true});
   if(amtNo(v, val, 'The position figure', {neg:true})) return;
   if(!P.val) P.val={};
-  if(!P.val[sv]) P.val[sv]={};
-  if(!P.val[sv][k]) P.val[sv][k]={};
+  if(!Object.prototype.hasOwnProperty.call(P.val, sv)) P.val[sv]={};
+  if(!Object.prototype.hasOwnProperty.call(P.val[sv], k)) P.val[sv][k]={};
   const cur=P.val[sv][k][fy]||{d:0,m:0};
   cur[which]= (v===null? 0 : v);
   if(!cur.d && !cur.m) delete P.val[sv][k][fy]; else P.val[sv][k][fy]=cur;
@@ -20519,7 +20553,7 @@ function spRecOf(id, st){
 // as projected. st is that year's state, for an added requirement's record name. A projection that
 // carries no rows (none has since cycles began) is read as its own roll-up rather than as nothing.
 function spProjByPmo(P, st){
-  const out={};
+  const out=Object.create(null);
   if(!P) return out;
   const n=(P.svc||[]).length;
   if(!Array.isArray(P.reqs)){
@@ -20631,7 +20665,7 @@ function spGather(){
     const exAp=(typeof EXDB!=='undefined' && EXDB && EXDB.all)? EXDB.all[d.slug] : null;
     const inPlay=y=> !!(d.ms && d.ms.years && d.ms.years[y])
                   || !!(exAp && exAp.rows && exAp.rows[y]);
-    const block={name:d.name, rows:{}, req:{}, bud:{}, years, ppbe:d.ppbe||{}, isFF:!!(d.data&&d.data.costElems)};
+    const block={name:d.name, rows:Object.create(null), req:{}, bud:{}, years, ppbe:d.ppbe||{}, isFF:!!(d.data&&d.data.costElems)};
     years.forEach(y=>{
       const na = y<MS.base && !inPlay(y);
       const st = d.ms && d.ms.years? d.ms.years[y] : null;
@@ -20672,7 +20706,7 @@ function pmoDetail(pmoKey, years){
   spDefs().forEach(d=>{
     const slug=APPN_SLUG[d.name];
     const svcs=((d.data&&d.data.services&&d.data.services.length)? d.data.services : SVC).slice();
-    const req={}, bud={}, hasBud={};
+    const req=Object.create(null), bud=Object.create(null), hasBud={};
     svcs.forEach(sv=>{ req[sv]={}; bud[sv]={}; });
     // requirements — the estimate carries the PMO x service cross on its cost lines
     if(aceSet){
@@ -20710,7 +20744,7 @@ function pmoDetail(pmoKey, years){
     //                so it is carried through as the service's whole control and labelled that way
     // A baseline resolves at PMO level, which a PPBE position cannot — see below.
     const blSrc = (String(spFund).indexOf('bl|')===0)? spFund.slice(3) : null;
-    const ctl={}, ctlSvcLevel=(spFund!=='board' && !blSrc);
+    const ctl=Object.create(null), ctlSvcLevel=(spFund!=='board' && !blSrc);
     svcs.forEach(sv=>{ ctl[sv]={}; });
     if(blSrc){
       // the frozen plan: that PMO's allocation by service, for EVERY year the cycle holds
@@ -21023,7 +21057,7 @@ function posWhen(s){ return s&&s.ts? new Date(s.ts).toLocaleDateString(undefined
    a snapshot that could not tell them apart would be the same ambiguity the QPE report exists to
    remove. */
 function posExec(fy){
-  const out={fy:fy, asOf:'', read:0, uniq:0, shared:0, none:0, pos:{}, cand:{}, imported:false};
+  const out={fy:fy, asOf:'', read:0, uniq:0, shared:0, none:0, pos:Object.create(null), cand:Object.create(null), imported:false};
   const ex=(typeof EXDB!=='undefined' && EXDB && EXDB.all)? EXDB.all[mySlug()] : null;
   if(!ex || !ex.rows) return out;
   out.imported=true;
@@ -21051,8 +21085,8 @@ function posExec(fy){
     const sv=(typeof svcBoardOf==='function'? svcBoardOf(svcOfBudget(r[4])) : svcOfBudget(r[4]))||'?';
     const ym=String(r[1]||'');
     const b=isAlloc(r[10])? 'ob' : 'pl';        // obligated, or planned and not yet
-    if(!out.pos[key]) out.pos[key]={};
-    if(!out.pos[key][sv]) out.pos[key][sv]={};
+    if(!out.pos[key]) out.pos[key]=Object.create(null);
+    if(!out.pos[key][sv]) out.pos[key][sv]=Object.create(null);
     if(!out.pos[key][sv][ym]) out.pos[key][sv][ym]={ob:0, pl:0};
     out.pos[key][sv][ym][b]+=amt;
   });
@@ -24326,7 +24360,7 @@ function pmoMatrix(){
   const el=document.getElementById('pmBody');
   const T=tiers();
   const mk=()=>({disc:SVC.map(_=>0), mand:SVC.map(_=>0), unf:SVC.map(_=>0), mc:0, n:0});
-  const byG={};
+  const byG=Object.create(null);
   const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0);
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
@@ -24472,7 +24506,7 @@ function ceSummary(){
   const pmosPresent=GROUPS.filter(g=>DATA.items.some(i=>grpOf(i)===g));
   if(ceTab!=='ALL' && !pmosPresent.includes(ceTab)) ceTab='ALL';
   const mk=()=>({disc:SVC.map(_=>0), mand:SVC.map(_=>0), mc:0, n:0});
-  const byCE={};
+  const byCE=Object.create(null);
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     if(ceTab!=='ALL' && grpOf(it)!==ceTab) return;
@@ -24925,7 +24959,7 @@ function exportPPT(){
   // that is not on the configured list still appears rather than taking its money with it. The two
   // are meant to be read against each other, so they must not compute "by PMO" differently.
   {
-    const byG={}, seenIds={};
+    const byG=Object.create(null), seenIds={};
     S.order.forEach(id=>{
       const it=itemById(id), p=T[id]; if(!it||!p) return;
       // each office's part, in whole dollars (pmoPartsOf, v1.95)
@@ -25011,7 +25045,7 @@ function exportPPT(){
   }
   // ---- FF only: cost element rollup ----
   if(DATA.costElems){
-    const byCE={};
+    const byCE=Object.create(null);
     S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return;
       const ce=(S.costElem||{})[id]||'— Unassigned —';
       if(!byCE[ce]) byCE[ce]={d:0,m:0,u:0,n:0};
@@ -27337,7 +27371,7 @@ function rpTouch(r){ if(r) r.ts=Date.now(); return r; }
 function rpMerge(theirs){
   const mine=rpAll(), gone=rpGone();
   const theirGone=(theirs&&theirs.gone)||{};
-  const byId={}; mine.forEach(function(r){ if(r&&r.id) byId[r.id]=r; });
+  const byId=Object.create(null); mine.forEach(function(r){ if(r&&r.id) byId[r.id]=r; });
   let added=0, updated=0, buried=0, kept=0;
   // their tombstones apply to our rows
   Object.keys(theirGone).forEach(function(id){
@@ -27346,8 +27380,8 @@ function rpMerge(theirs){
     if(!gone[id] || gone[id]<t) gone[id]=t;
   });
   ((theirs&&theirs.entries)||[]).forEach(function(r){
-    // v2.00 (item 99): byId is a plain object, so an id of __proto__ would hand back Object.prototype and the
-    // update below would write the entry's fields onto it. A row's id is text the board wrote; refuse the three.
+    // v2.00 (item 99): an id of __proto__ or hasOwnProperty would hand back a built-in, and the update below would write
+    // the entry's fields onto it. byId has no prototype, and a row's id is text the board wrote: none is one of these.
     if(!r||!r.id||IN_KEY_BAD.has(String(r.id))) return;
     const bur=+gone[r.id]||0;
     // deleted here, and the deletion is not older than their copy of the row
@@ -27361,7 +27395,8 @@ function rpMerge(theirs){
   // and our own tombstones apply to rows we are still holding
   for(let i=mine.length-1; i>=0; i--){
     const r=mine[i];
-    if(r && r.id && (+gone[r.id]||0) >= (+r.ts||0) && gone[r.id]){ mine.splice(i,1); buried++; }
+    const g=(r && r.id && Object.prototype.hasOwnProperty.call(gone, r.id))? gone[r.id] : 0;
+    if(g && (+g||0) >= (+r.ts||0)){ mine.splice(i,1); buried++; }
   }
   return {added:added, updated:updated, buried:buried, kept:kept};
 }
@@ -29209,7 +29244,7 @@ function exportAceTieout(){
       // the Mapping sheet still counted it if a requirement confirmed it -- two sheets of one export
       // disagreeing with nothing saying why. Stated here, and kept out of the total: it is nobody's
       // to claim, and a reader can see the difference instead of hunting for it.
-      const stray={};
+      const stray=Object.create(null);
       (set.lines||[]).forEach(function(l){
         if(l.ap!==mySlug() || groups[l.pmo]) return;
         const v=(l.v&&l.v[sc.fy])||0; if(!v) return;
@@ -29588,7 +29623,7 @@ function exportExcel(){
   };
   // PMO x service matrix (all boards)
   const mkA=()=>({disc:SVC.map(_=>0),mand:SVC.map(_=>0),mc:0,mcs:0});
-  const byGX={};
+  const byGX=Object.create(null);
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const p=T[id];
@@ -30243,7 +30278,7 @@ function exportExcel(){
   let byP=null;
   if(DATA.costElems){
     // Cost Element matrix
-    const byCE={};
+    const byCE=Object.create(null);
     S.order.forEach(id=>{
       const it=itemById(id); if(!it) return;
       const p=T[id], ce=ceOf(id);
@@ -30255,7 +30290,7 @@ function exportExcel(){
     const ceKeys=[...COST_ELEMS.filter(c=>byCE[c]), ...(byCE['— Unassigned —']? ['— Unassigned —']:[])];
     sheets.push(matrixSheet('Cost Element Matrix', document.title+' — Cost Element funding (Disc lane | Mand spillover)','Cost Element',byCE,ceKeys));
     // CE by PMO
-    byP={};
+    byP=Object.create(null);
     S.order.forEach(id=>{
       const it=itemById(id); if(!it) return;
       const p=T[id], ce=ceOf(id);
@@ -30270,7 +30305,7 @@ function exportExcel(){
         const mv =tot('m');
         const uv =tot('u');
         const mcs=S.mc[id]? tot('mcs') : 0;
-        if(!byP[g]) byP[g]={tot:{n:0,ask:0,disc:0,mc:0,mcs:0,mand:0,unf:0},ce:{}};
+        if(!byP[g]) byP[g]={tot:{n:0,ask:0,disc:0,mc:0,mcs:0,mand:0,unf:0},ce:Object.create(null)};
         if(!byP[g].ce[ce]) byP[g].ce[ce]={n:0,ask:0,disc:0,mc:0,mcs:0,mand:0,unf:0};
         [byP[g].tot,byP[g].ce[ce]].forEach(a=>{
           a.n++; a.ask+=ask; a.disc+=dv; a.mand+=mv; a.unf+=uv;

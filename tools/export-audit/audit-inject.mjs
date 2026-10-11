@@ -2,10 +2,16 @@
 // holes a security review of v1.99 found: values an imported board, package, workbook or peer file
 // carries that reached the page as HTML without esc(), so a crafted file could run its own script.
 //
-// Each check plants one hostile value in the exact state field the finding names, renders the exact
-// surface that draws it, and asks: did the payload become an ELEMENT (markup, or an attribute it
-// broke out of), or an inline handler that CALLS it? If so the value was injected. None of these
-// surfaces ever draws an <img> or a __pw() call of its own, so either is proof the value ran.
+// Four kinds of check, and each says which it is:
+//  - a RUNTIME DRAW plants one hostile value in the exact state field the finding names, renders the surface that
+//    draws it, and asks: did the payload become an ELEMENT (markup, or an attribute it broke out of), or an inline
+//    handler that CALLS it? None of these surfaces draws an <img> or a __pw() call of its own, so either is proof the
+//    value ran;
+//  - a PROBE drives one structural guard (the import check, a merge, a path or link rule) with the input it refuses;
+//  - a SOURCE PIN asserts the escaped form of a sink deep inside a panel render is in the board source. A pin proves the
+//    fix is present; it is not a runtime draw, and no other suite plants these fields;
+//  - the KEY checks (K1-K6, from the key sweep) drive the board's own functions with names every object already
+//    answers to (toString, __proto__ ...) and ask that nothing reaches Object.prototype and every dollar is counted.
 //
 // The payload is the review's own marker, carrying all three break-outs:
 //   <text>'"><img src=x onerror=__pw('<tag>')>');__pw('<tag>');//
@@ -150,9 +156,10 @@ display('A3i ppbe cycle note (ppLbl)', 'PPBE positions / Spruills',
 
 // The other display sinks (A3e buys, A3f lane title, A3g award id, A3h funds-flow label and FYs, A3j budget list,
 // A4 execution office, A5 live peers, A6 destination keys) sit deep inside panel renders. Each is pinned to its
-// escaped form in the board source below, which fails on a board that draws it raw. (An earlier draft of this suite
+// escaped form in the board source below, which fails on a board that draws it raw. (The first candidate, 608444e, also
 // had runtime checks for these sinks that built their own escaped markup instead of calling the board; they passed on
-// any board, proved nothing, and were removed before v2.00 was gated.)
+// any board and proved nothing. 608444e was gated with them; they were removed in 23a18ee on 8 Oct, before any later
+// candidate was gated.)
 
 // ---- A3c — budget year kept as text: numbers on load fixes every sink at once ----------------------
 // normalizeStore must turn a non-numeric year into a number, so the year sinks (rlgBody, ppBody, IDS)
@@ -241,9 +248,12 @@ display('A3i ppbe cycle note (ppLbl)', 'PPBE positions / Spruills',
 {
   const B = fresh();
   const out = probe(B, 'N2 reprogramming merge keys (rpMerge)', `(function(){
-    rpMerge({ entries:[ { id:'__proto__', ts:9e12, pwnRp:'PWNED' } ], gone:{ '__proto__':1 } });
-    return JSON.stringify({ polluted: ({}).pwnRp==='PWNED' }); })()`);
-  if (out) chk('N2 reprogramming merge keys (rpMerge)', 'a folder or imported entry with id __proto__ does not pollute Object.prototype', out.polluted, false);
+    var res=rpMerge({ entries:[ { id:'__proto__', ts:9e12, pwnRp:'PWNED' } ], gone:{ '__proto__':1 } });
+    return JSON.stringify({ polluted: ({}).pwnRp==='PWNED', added: res.added+res.updated }); })()`);
+  if (out) {
+    chk('N2 reprogramming merge keys (rpMerge)', 'a folder or imported entry with id __proto__ does not pollute Object.prototype', out.polluted, false);
+    chk('N2 reprogramming merge keys (rpMerge)', 'and it is refused, not merged as a row', out.added, 0);
+  }
 }
 // N3 — the companion link opens a file, a path or a web page, never a script URL that happens to end in .html
 {
@@ -276,16 +286,186 @@ display('A3i ppbe cycle note (ppLbl)', 'PPBE positions / Spruills',
 {
   const B = fresh();
   const out = probe(B, 'E2 typed office and service names (pmoAdd, pmoRename, svcAdd, svcRen)', `JSON.stringify({
-    markup: typedNameWhy(${JSON.stringify('x"><img src=x>')}, 'The office name'), proto: typedNameWhy('__proto__', 'The office name'),
-    ok: typedNameWhy('O&M Ops', 'The office name') })`);
+    markup: inNameWhy(${JSON.stringify('x"><img src=x>')}, 'The office name'), proto: inNameWhy('__proto__', 'The office name'),
+    method: inNameWhy('toString', 'The office name'), ok: inNameWhy('O&M Ops', 'The office name') })`);
   if (out) {
     chk('E2 typed office and service names (pmoAdd, pmoRename, svcAdd, svcRen)', 'a name with quotes or < > is refused', !!out.markup, true);
     chk('E2 typed office and service names (pmoAdd, pmoRename, svcAdd, svcRen)', 'a name that is an object key of Object.prototype is refused', !!out.proto, true);
+    chk('E2 typed office and service names (pmoAdd, pmoRename, svcAdd, svcRen)', 'a name that is a method every object has (toString) is refused', !!out.method, true);
     chk('E2 typed office and service names (pmoAdd, pmoRename, svcAdd, svcRen)', 'an ordinary name with & is taken', out.ok, '');
   }
   const src = readFileSync(BOARD, 'utf8');
   chk('E2 typed office and service names (pmoAdd, pmoRename, svcAdd, svcRen)', 'all four prompts apply the rule',
-    (src.match(/const why=typedNameWhy\(v, 'The (office|service) name'\);/g) || []).length, 4);
+    (src.match(/const why=inNameWhy\(v, 'The (office|service) name'\);/g) || []).length, 4);
+}
+
+// ---- found by the key sweep (8-9 Oct): THE NAMES EVERY OBJECT ALREADY ANSWERS TO -------------------
+// A name Object.prototype carries (toString, constructor, hasOwnProperty, __proto__ ...) used as a key on an ordinary
+// object reads back the built-in, and a write through it lands on every object in the page. The import check refuses
+// them as fields, ids and names; the maps that group workbook rows and estimate lines by title, office, month, service
+// or cost element have no prototype. Each check drives the board's own function with those names and asks that
+// nothing is written onto Object.prototype, nothing throws, and every dollar is still counted.
+const POLLUTED = `['tot','obl','ob','pl','n','ev','m','titles','vAll','vFile','2027','d','u','disc','mand','mc','ask','alloc','fund','call','pwnRp']
+  .filter(function(k){ return ({})[k]!==undefined; }).join(',')`;
+const XROW = (ym, title, amt, pmo) => `(function(){ var r=[]; for(var i=0;i<26;i++) r.push(''); r[1]=${JSON.stringify(ym)}; r[2]='J1';
+  r[3]=${JSON.stringify(title)}; r[4]='USAF X'; r[7]='EV '+${JSON.stringify(title)}; r[9]=${amt};
+  r[10]='Not Allocated'; r[18]=${JSON.stringify(pmo || 'Office (AV)')}; return r; })()`;   // not yet obligated, so the UPL scan groups it too
+const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor', 2000), XROW('2027-02', 'toString', 3000),
+  XROW('2027-03', 'Plain', 4000, 'Office (__proto__)'), XROW('__proto__', 'hasOwnProperty', 5000)].join(',') + ']';
+{
+  const B = fresh();
+  const out = probe(B, 'K1 built-in names at the import check (inboundCheck)', `JSON.stringify({
+    key: inboundCheck(JSON.stringify({ a:{ toString:1 } })),
+    id: inboundCheck(JSON.stringify({ services:['USAF'], items:[{ id:'valueOf', ask:[1] }] })),
+    name: inboundCheck(JSON.stringify({ pmos:['hasOwnProperty'] })),
+    pmo: inboundCheck(JSON.stringify({ spmtPkg:1, dir:'submit', pmo:'__proto__', items:{} })),
+    ok: inboundCheck(JSON.stringify({ services:['USAF'], items:[{ id:'R1', grp:'AV', ask:[1] }], pmos:['AV','O&M Ops'], note:'constructor' })),
+    every: Object.getOwnPropertyNames(Object.prototype).every(function(n){ return IN_KEY_BAD.has(n); }) })`);
+  if (out) {
+    const F = 'K1 built-in names at the import check (inboundCheck)';
+    chk(F, 'a field named toString is refused', !!out.key, true);
+    chk(F, 'a requirement id valueOf is refused', !!out.id, true);
+    chk(F, 'an office name hasOwnProperty is refused', !!out.name, true);
+    chk(F, 'a submittal from office __proto__ is refused', !!out.pmo, true);
+    chk(F, 'an ordinary file (and a note that merely reads "constructor") still imports', out.ok, '');
+    chk(F, 'the rule covers every name this browser\'s Object.prototype carries', out.every, true);
+  }
+}
+{
+  const F = 'K2 execution rows keyed by title, office and month (exAgg, rlgExecYears, rlgCapacity, rlgUplScan, rlgPool, posExec)';
+  const B = fresh();
+  const out = probe(B, F, `(function(){ var rows=${XROWS}; EXDB.all={}; EXDB.all[mySlug()]={rows:{2027:rows}};
+    var o={};
+    try{ var a=exAgg({rows:{2027:rows}}, 2027), t=0;
+      Object.keys(a.byP).forEach(function(g){ Object.keys(a.byP[g].titles).forEach(function(k){ t+=a.byP[g].titles[k].tot; }); });
+      o.exTot=a.tot; o.exTitles=t; }catch(e){ o.exThrew=e.message; }
+    try{ rlgExecYears(); rlgCapacity(2027); rlgUplScan(); rlgPool('exec:2027'); o.rlg='ran'; }catch(e){ o.rlg=e.message; }
+    try{ var p=posExec(2027), s=0; Object.keys(p.pos).forEach(function(k){ var x=posTot(p.pos,k); s+=x.ob+x.pl; }); o.pos=s; }catch(e){ o.pos=e.message; }
+    o.polluted=${POLLUTED}; return JSON.stringify(o); })()`);
+  if (out) {
+    chk(F, 'the execution grid aggregates without stopping', out.exThrew || '', '');
+    chk(F, 'every title\'s dollars are under a title (15,000 of 15,000)', out.exTitles, 15000);
+    chk(F, 'the reallocation scans run', out.rlg, 'ran');
+    chk(F, 'the execution position counts every row (15,000 of 15,000)', out.pos, 15000);
+    chk(F, 'nothing is written onto Object.prototype', out.polluted, '');
+  }
+}
+{
+  const F = 'K3 estimate lines, cost elements and MIPR types keyed by name (pmoDetail, ceSummary, MIPR_LBL)';
+  const B = fresh();
+  const out = probe(B, F, `(function(){ var o={};
+    ACEDB.sets={ X:{ lines:[ { ap:mySlug(), pmo:'AV', svc:'__proto__', v:{2027:7} }, { ap:mySlug(), pmo:'AV', svc:'constructor', v:{2027:7} } ] } }; spAce='X';
+    try{ pmoDetail('AV', [2027]); o.drill='ran'; }catch(e){ o.drill=e.message; }
+    o.objectFn=(Object[2027]===undefined)? '' : String(Object[2027]);
+    DATA.costElems=true;
+    try{ S.costElem={ R0:'constructor' }; ceSummary(); S.costElem={ R0:'__proto__' }; ceSummary(); o.ce='ran'; }catch(e){ o.ce=e.message; }
+    o.mipr=String(MIPR_LBL['constructor']||'');
+    o.polluted=${POLLUTED}; return JSON.stringify(o); })()`);
+  if (out) {
+    chk(F, 'the PMO drill runs on estimate lines naming __proto__ and constructor', out.drill, 'ran');
+    chk(F, 'nothing is written onto the Object constructor', out.objectFn, '');
+    chk(F, 'the cost element panel runs on cost elements named constructor and __proto__', out.ce, 'ran');
+    chk(F, 'a MIPR type of constructor is not a MIPR type', out.mipr, '');
+    chk(F, 'nothing is written onto Object.prototype', out.polluted, '');
+  }
+}
+{
+  const F = 'K4 reprogramming merge, a method-named id (rpMerge)';
+  const B = fresh();
+  const out = probe(B, F, `(function(){ rpMerge({ entries:[ { id:'hasOwnProperty', ts:9e12, call:'x', pwnRp:'PWNED' } ] });
+    var ok=true; try{ Object.prototype.hasOwnProperty.call({ a:1 }, 'a'); }catch(e){ ok=false; }
+    return JSON.stringify({ callOk:ok, onBuiltin:Object.prototype.hasOwnProperty.pwnRp==='PWNED' }); })()`);
+  if (out) {
+    chk(F, 'every hasOwnProperty.call guard in the page still works', out.callOk, true);
+    chk(F, 'nothing is written onto the built-in', out.onBuiltin, false);
+  }
+}
+{
+  const F = 'K6 destination keys and cycle names (inboundCheck, destFold, destRemap, destPkgIn, blGet)';
+  const B = fresh();
+  const out = probe(B, F, `(function(){ var o={};
+    o.doorList=inboundCheck(JSON.stringify({ ap:'om', dest:[ { k:'constructor', n:'X' } ] }));
+    o.doorMap=inboundCheck(JSON.stringify({ dest:{ R0:{ to:'toString' } } }));
+    o.doorOk=inboundCheck(JSON.stringify({ dest:{ R0:{ to:'d1', end:'d2' } }, ents:[ { k:'d1', n:'Alpha' } ] }));
+    var e0=DESTDB.ents[0]; var al=destFold([ { k:'zz9', n:e0.n } ], null, true, {});
+    var st={ dest:{ R0:{ to:'constructor', end:'zz9' } } }; destRemap([st], al);
+    o.remapTo=typeof st.dest.R0.to+':'+st.dest.R0.to; o.remapEnd=st.dest.R0.end===e0.k;
+    var pkg={ ap:mySlug(), items:{ R0:{ dest:{ to:'constructor', end:'toString' } } } }; destPkgIn(pkg);
+    o.pkgTo=typeof pkg.items.R0.dest.to+':'+pkg.items.R0.dest.to; o.pkgEnd=typeof pkg.items.R0.dest.end;
+    MS.cycleRef='toString'; o.cycRef=cycDeltaRef();
+    return JSON.stringify(o); })()`);
+  if (out) {
+    chk(F, 'a destination list keyed constructor is refused at the door', !!out.doorList, true);
+    chk(F, 'a requirement sent to destination toString is refused at the door', !!out.doorMap, true);
+    chk(F, 'ordinary destinations still import', out.doorOk, '');
+    chk(F, 're-pointing leaves a destination named constructor as it is', out.remapTo, 'string:constructor');
+    chk(F, 're-pointing still moves the destination it was asked to', out.remapEnd, true);
+    chk(F, 'a package naming destination constructor keeps the name', out.pkgTo, 'string:constructor');
+    chk(F, 'a package naming destination toString keeps text', out.pkgEnd, 'string');
+    chk(F, 'a reference cycle named toString is not a locked cycle', out.cycRef, '');
+  }
+}
+// ---- found by re-verifying the key sweep against the fixed board (11 Oct) ---------------------------
+{
+  const F = 'K7 values the board uses as keys, at the import check (IN_VAL_KEYS, items-only packs, ids the board keeps)';
+  const B = fresh();
+  const out = probe(B, F, `(function(){ var c=function(o){ return inboundCheck(JSON.stringify(o)); }; return JSON.stringify({
+    packId: c({ svc:['USAF'], dataPack:{ items:[ { id:'constructor', ask:[1] } ] } }),
+    packGrp: c({ svc:['USAF'], dataPack:{ items:[ { id:'R1', grp:'__proto__', ask:[1] } ] } }),
+    packMarkup: c({ svc:['USAF'], dataPack:{ items:[ { id:'R<b>1', ask:[1] } ] } }),
+    cycleGrp: c({ cycles:{ 'PB|2027':{ proj:{ 2027:{ reqs:[ { id:'R1', grp:'constructor' } ] } } } } }),
+    clinKey: c({ clinNew:{ P1:[ { key:'__proto__', clin:'0001' } ] } }),
+    flowCat: c({ flow:{ cats:[ { k:'constructor', n:'x' } ] } }),
+    ppbeLine: c({ ppbe:{ 'PB|2027':{ lines:{ USAF:[ { k:'__proto__' } ] } } } }),
+    rpEntry: c({ rpDb:{ entries:[ { id:'hasOwnProperty', amt:1 } ] } }),
+    aceLine: c({ sets:{ X:{ lines:[ { ap:'om', pmo:'constructor', svc:'USAF', v:{} } ] } } }),
+    aceAlign: c({ aceAlign:{ '2025ACE':{ PSM:'constructor' } } }),
+    remId: c({ services:['USAF'], items:[ { id:'__rem', ask:[1] } ] }),
+    remOrder: c({ years:{ 2027:{ order:[ 'R1', '__rem' ], discSvc:[0] } } }),
+    ok: c({ svc:['USAF'], dataPack:{ items:[ { id:'R1', grp:'AV', ask:[1] } ] }, clinNew:{ P1:[ { key:'n0' } ] },
+      flow:{ cats:[ { k:'work' } ] }, ppbe:{ 'PB|2027':{ lines:{ USAF:[ { k:'L1' } ] } } }, aceAlign:{ '2025ACE':{ PSM:'AV' } },
+      rpDb:{ entries:[ { id:'RP1' } ] }, sets:{ X:{ lines:[ { ap:'om', pmo:'AV', svc:'USAF', v:{} } ] } } }) }); })()`);
+  if (out) {
+    chk(F, 'a data pack with only items is checked: an id constructor is refused', !!out.packId, true);
+    chk(F, 'a data pack with only items is checked: an office __proto__ is refused', !!out.packGrp, true);
+    chk(F, 'a data pack with only items is checked: an id carrying markup is refused', !!out.packMarkup, true);
+    chk(F, "a locked cycle's requirement office constructor is refused", !!out.cycleGrp, true);
+    chk(F, 'a CLIN key __proto__ is refused', !!out.clinKey, true);
+    chk(F, 'a funds-flow category key constructor is refused', !!out.flowCat, true);
+    chk(F, 'a PPBE line key __proto__ is refused', !!out.ppbeLine, true);
+    chk(F, 'a reprogramming entry id hasOwnProperty is refused', !!out.rpEntry, true);
+    chk(F, 'an estimate line naming office constructor is refused', !!out.aceLine, true);
+    chk(F, 'an estimate office alignment to constructor is refused', !!out.aceAlign, true);
+    chk(F, 'a requirement id __rem (the lane engine\'s own key) is refused', !!out.remId, true);
+    chk(F, 'a plan whose order names __rem is refused', !!out.remOrder, true);
+    chk(F, 'ordinary values of every one of these still import', out.ok, '');
+  }
+}
+{
+  const F = 'K8 lookups by a value the board uses as a key (flowSubOf, ppSetV, rpMerge tombstones, acePmoGroups, fydpAceShare, spProjByPmo, forecast)';
+  const B = fresh();
+  const out = probe(B, F, `(function(){ var o={};
+    o.flowSub=[flowSubOf('constructor'), flowSubOf('hasOwnProperty'), flowSubOf('toString')].map(function(x){ return x===null? 'null' : typeof x; }).join(',');
+    try{ var P=ppPos(); P.val={}; ppSetV(SVC[0], '__proto__', 2027, 'd', '5'); o.pp=({})[2027]===undefined? 'clean' : 'polluted'; }catch(e){ o.pp='threw '+e.message; }
+    RPDB.entries=[ { id:'hasOwnProperty', amt:2500000 } ]; RPDB.gone={};
+    var res=rpMerge({ entries:[], gone:{} }); o.rpKept=RPDB.entries.length+'/'+res.buried;
+    MS.aceAlign={ X:{ AV:'constructor', PSM:'__proto__' } };
+    try{ var g=acePmoGroups('X'); o.groups=['__proto__','constructor'].map(function(k){ return (Object.prototype.hasOwnProperty.call(g,k) && Array.isArray(g[k]))? g[k].join('+') : 'missing'; }).join(','); }catch(e){ o.groups='threw '+e.message; }
+    try{ var sh=fydpAceShare('X', [ { grp:'AV' }, { grp:'PSM' }, { grp:'TSS' } ]);
+      o.share=Object.keys(sh).map(function(k){ return typeof sh[k]; }).join(','); }catch(e){ o.share='threw '+e.message; }
+    try{ var sp=spProjByPmo({ svc:['USAF'], reqs:[ { id:'R1', grp:'constructor', ask:[5], alloc:[5], fund:[5] }, { id:'R2', grp:'__proto__', ask:[7], alloc:[7], fund:[7] } ] }, null);
+      o.sp=Object.keys(sp).sort().join(',')+':'+(sp['__proto__']? sp['__proto__'].ask[0] : 'none'); }catch(e){ o.sp='threw '+e.message; }
+    try{ DATA.items[0].grp='__proto__'; forecast(); o.fc=(({}).tot===undefined && ({}).unsch===undefined)? 'clean' : 'polluted'; }catch(e){ o.fc='threw '+e.message; }
+    return JSON.stringify(o); })()`);
+  if (out) {
+    chk(F, 'a category named after a built-in has no sub-ladder', out.flowSub, 'null,null,null');
+    chk(F, 'a PPBE figure for a line keyed __proto__ is written to the line, not onto every object', out.pp, 'clean');
+    chk(F, 'a reprogramming row is not buried by an inherited tombstone', out.rpKept, '1/0');
+    chk(F, 'estimate offices named after built-ins group as text, each holding its own board office', out.groups, 'PSM,AV');
+    chk(F, 'an office sharing an estimate office is named by text, never a built-in', out.share.indexOf('function')<0 && out.share.indexOf('threw')<0, true);
+    chk(F, "a cycle's requirements under offices named after built-ins add up under those names", out.sp, '__proto__,constructor:7');
+    chk(F, 'the forecast by office writes nothing onto Object.prototype', out.fc, 'clean');
+  }
 }
 
 bootRelease(bm, []);
@@ -293,9 +473,9 @@ bootRelease(bm, []);
 // ---- display sinks whose surface is deep in a panel render, checked at the source -----------------
 // These are the same esc()-at-display pattern the runtime checks above prove; each lives inside a
 // large panel (the funds-flow editors, the buy table, the execution and budget-list panels) that is
-// awkward to drive in isolation. The hostile sweep (audit-hostile, hostile-render) opens them and
-// confirms nothing runs; here each fix is pinned to its exact escaped form in the board source, so
-// the check is present on the fixed board and absent — the raw sink — on the pre-fix board.
+// awkward to drive in isolation. These are SOURCE PINS ONLY: the hostile sweep (audit-hostile, hostile-render) does not
+// plant these fields, so nothing else covers them. Each fix is pinned to its exact escaped form in the board source,
+// so the check is present on the fixed board and absent -- the raw sink -- on the pre-fix board.
 {
   const src = readFileSync(BOARD, 'utf8');
   const srcSink = [
@@ -338,6 +518,45 @@ bootRelease(bm, []);
     ['E2 writer, office, service and team names', "\">${esc(it.team)}</span>"],
     ['E2 writer, office, service and team names', '>⓪ Zero ${esc(filter)} allocations</button>'],
     ['E2 writer, office, service and team names', '↺ ${esc(filter)} as-requested</button>'],
+    // the key sweep (8-9 Oct): every map a workbook or estimate value is a key in, and the two refusals
+    ['K5 safe maps and refusals (source)', `const byT=Object.create(null); let tot=0, obl=0;`],
+    ['K5 safe maps and refusals (source)', `ev:Object.create(null), evUpl:Object.create(null), pmo:PMO_SHORT(r[18]), file:false};`],
+    ['K5 safe maps and refusals (source)', `pmo:PMO_SHORT(r[18]), ev:Object.create(null), ym:'',`],
+    ['K5 safe maps and refusals (source)', `sharedNames:Object.create(null), byKey:{}};`],
+    ['K5 safe maps and refusals (source)', `titles:Object.create(null), buds:Object.create(null), oprs:Object.create(null), pmos:Object.create(null), raw:`],
+    ['K5 safe maps and refusals (source)', `const byP=Object.create(null), byS=Object.create(null); let tot=0, obl=0;`],
+    ['K5 safe maps and refusals (source)', `none:0, pos:Object.create(null), cand:Object.create(null), imported:false};`],
+    ['K5 safe maps and refusals (source)', `const reqs=[], pmo=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `const block={name:d.name, rows:Object.create(null), req:{}, bud:{}, years,`],
+    ['K5 safe maps and refusals (source)', `const ctl=Object.create(null), ctlSvcLevel=`],
+    ['K5 safe maps and refusals (source)', `const byG=Object.create(null), seenIds={};`],
+    ['K5 safe maps and refusals (source)', `ce:Object.create(null)};`],
+    ['K5 safe maps and refusals (source)', `const forOf=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `function flowEntUseMap(){\n  const out=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `function flowDestResolve(ids, axis){\n  const seen=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `function pmoChoices(){\n  const seen=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `function ppKeysOf(P, sv){\n  const seen=Object.create(null), out=[];`],
+    ['K5 safe maps and refusals (source)', `const P=ppNorm(Praw), seen=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `const clean=[], seen=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `const byId=Object.create(null); mine.forEach(`],
+    ['K5 safe maps and refusals (source)', `if(spAce!=='board' && !Object.prototype.hasOwnProperty.call(ACEDB.sets||{}, spAce)) spAce='board';`],
+    ['K5 safe maps and refusals (source)', `if(IN_KEY_BAD.has(key)) throw new Error('the estimate would be filed as '`],
+    ['K5 safe maps and refusals (source)', `function destRefs(states){\n  const r=Object.create(null);`],
+    // found by re-verifying the key sweep (11 Oct): maps no runtime check reaches
+    ['K5 safe maps and refusals (source)', `let exOpen=false, exFy=null, exX=Object.create(null), exXT={}`],
+    ['K5 safe maps and refusals (source)', `    exA=null; exFy=null; exX=Object.create(null); exXT={};`],
+    ['K5 safe maps and refusals (source)', `exFy=null; exX=Object.create(null); exXT={}; exPmo='ALL'; render(); }`],
+    ['K5 safe maps and refusals (source)', `function exSetSvc(v){ exSvc=v; exX=Object.create(null); exXT={}; render(); }`],
+    ['K5 safe maps and refusals (source)', `  const byG=Object.create(null); order.forEach(function(k){ const g=rows[k].grp||'(no PMO)';`],
+    ['K5 safe maps and refusals (source)', `  const byG=Object.create(null); D.order.forEach(id=>{ const g=D.rows[id].grp||'(no PMO)';`],
+    ['K5 safe maps and refusals (source)', `  const byGX=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `      const stray=Object.create(null);\n      (set.lines||[]).forEach(function(l){`],
+    // maps no runtime check above reaches: the PMO panel, the deck's cost-element rollup, the workbook's two matrices
+    ['K5 safe maps and refusals (source)', `  const byG=Object.create(null);\n  const allD=SVC.map(_=>0), allM=SVC.map(_=>0), allU=SVC.map(_=>0);`],
+    ['K5 safe maps and refusals (source)', `    const byCE=Object.create(null);\n    S.order.forEach(id=>{const it=itemById(id),p=T[id]; if(!it||!p)return;`],
+    ['K5 safe maps and refusals (source)', `    const byCE=Object.create(null);\n    S.order.forEach(id=>{\n      const it=itemById(id); if(!it) return;\n      const p=T[id], ce=ceOf(id);`],
+    ['K5 safe maps and refusals (source)', `    // CE by PMO\n    byP=Object.create(null);`],
+    ['K5 safe maps and refusals (source)', `function destPkgIn(pkg){\n  const refs=Object.create(null);`],
   ];
   for (const [finding, needle] of srcSink) {
     SEEN.add(finding);
@@ -363,7 +582,8 @@ bootRelease(bm, []);
 // ---- TEXT FIDELITY: an escape belongs where text is drawn as HTML, and nowhere else ----------------
 // esc() turns & < " ' into entities. Applied where a value is BUILT, or to text that is not HTML (a confirm()
 // dialog, a workbook cell), it changes what a person reads: "O&M" becomes "O&amp;M". v2.00's first candidate did
-// exactly that twice, and these guard it. They pass on v1.99 too; they exist to fail on a board that over-escapes.
+// exactly that twice, and these guard it. They pass on v1.99 too. T1 drives flowCalc at runtime; T2-T4 pin the plain
+// forms in the source, so each guards the over-escapes it names -- not every possible over-escape.
 const FID = new Set();
 const fid = (name, what, got, want) => { FID.add(name); if (String(got) !== String(want)) failures.push({ finding: name, what, got: String(got), want: String(want) }); };
 {
@@ -434,7 +654,7 @@ if (failures.length) {
   console.log(`\n${line}\n`);
   process.exit(1);
 }
-console.log(`INJECTION REGRESSION — all clear across ${SEEN.size} findings and ${FID.size} text-fidelity guards: every hostile value is drawn as text, the structural guards hold, and nothing is escaped where it is not drawn as HTML`);
+console.log(`INJECTION REGRESSION — all clear across ${SEEN.size} findings and ${FID.size} text-fidelity guards: every hostile value checked is drawn as text, the structural and key guards hold, and the text-fidelity guards hold`);
 console.log(`\nALL CHECKS PASSED`);   // the gate counts this banner alongside the other suites
 console.log(`${line}\n`);
 process.exit(0);

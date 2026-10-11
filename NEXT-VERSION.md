@@ -179,26 +179,59 @@ Logged and kept, but not in the next version. Each needs Brad's go again when it
 
 ## Shipped
 
-### v2.00 — 8 Oct 2026: item 99, built on Brad's "go" of 7 Oct -- the security version
+### v2.00 — 11 Oct 2026: item 99, built on Brad's "go" of 7 Oct -- the security version
 
-**Imported text is drawn as text.** A security review of v1.99 for Brad's security team confirmed 27 places where a value
-from an imported board, PMO package, QPE workbook or a peer's folder file reached the page as HTML, so a crafted file
-could run its own script. A self-audit of the v2.00 diff found two more of the same kind, and a second audit found two
-places where the first candidate escaped text that is not HTML, so "O&M" would have read "O&amp;M". All are fixed; each
-has a check that fails on v1.99 (or, for the two text-fidelity guards, on the first candidate) and passes now, and a
-mutation removes each fix. The cleanup Brad folded in -- section banners, dead code out, the PowerPoint template fenced,
-stale comments -- changes no behaviour. Details and crafted files are in the owner's private annex, outside the repo.
+**Imported text is drawn as text, and imported names cannot reach inside the program.** A security review of v1.99 for
+Brad's security team confirmed 27 places where a value from an imported board, PMO package, QPE workbook or a peer's
+folder file reached the page as HTML, so a crafted file could run its own script. Four later passes over the candidates
+found more of the same kind and two related kinds; every one found is fixed in this candidate:
+
+- a self-audit of the first candidate's diff (7 Oct) found 2 more injection sinks;
+- a second audit (8 Oct) found 2 places where the first candidate escaped text that is not HTML, so "O&M" would have
+  read "O&amp;M";
+- a final review and a full sweep of the second candidate (8 Oct) found further raw sinks -- siblings of fixed ones, and
+  others the earlier passes had missed -- and a label helper that escaped where the label is built;
+- a key sweep (8-9 Oct) found that an imported or workbook name such as `__proto__`, `constructor` or `toString`, used
+  as an object key, could write onto every object in the page, crash a panel, or drop dollars from a figure. On
+  9 Oct Brad put that class in v2.00: one rule refuses those names as fields, ids and names at the import check and on
+  typed input, and the maps that group workbook rows have no prototype;
+- an independent re-verification of the key sweep's 63 candidates (10-11 Oct) found 14 of them still open on the
+  fixed tree, and 10 siblings of the fixed ones. The rule now also covers the values the board uses as keys, and the
+  remaining maps have no prototype.
+
+Each fix has a check that fails on v1.99 and passes now (`audit-inject`, below). The cleanup Brad folded in -- section
+banners, dead code out, the PowerPoint template fenced, stale comments -- changes no behaviour. Details and crafted files
+are in the owner's private annex, outside the repo.
 
 **What users may see:** nothing on a board this board wrote. Every figure, label and export reads as before, and text
-with "&", "<" or quotes reads as typed. A file whose year, sequence, buy-quantity or count fields hold text where a number
-belongs loads with whole numbers. A PMO package whose sequence is not a number is refused, and says why. Put back refuses
-a journal path through `__proto__`, `constructor` or `prototype`, and the import check refuses a journal entry that
-carries one; it also checks a plan's custom ids and award keys whether or not the plan has an `order` list. A board this
-board wrote carries none of these, so every board people hold still opens. A Confluence download link is followed only
-when it is a path on the configured host.
+with "&", "<" or quotes reads as typed. A file whose year or sequence fields hold text where a number belongs loads with
+whole numbers. These files are now refused, and say why:
 
-**Expected changes to existing checks:** none. No existing check, fixture or mutation changed; `audit-inject` joins
-`audit:suites` and the sweep's catching set, and 14 mutations are added (1,139 to 1,153).
+- a PMO package whose sequence is not a number, or that names an appropriation this board does not have;
+- a file that carries a field, a requirement id, an office, service or band name, a submittal's office, or a
+  destination key named after a built-in (`__proto__`, `constructor`, `toString`, `valueOf`, `hasOwnProperty` and the
+  rest of what every object already answers to);
+- a file whose id, key, office, service, appropriation or group value, wherever it sits, is one of those names, or
+  whose requirement id begins with two underscores (the board keeps `__rem` and `__cut` for itself).
+
+Put back refuses a journal path through one of those names. The import check reads a plan's ids and awards whether or
+not the plan has an `order` list, including a store whose years are a list, and a data pack's requirements even when it
+carries only its items. A typed office or service name follows the
+rule an imported one does. A cost estimate is not filed under a built-in name. A Confluence download link is followed
+only when it is a path on the configured host, and the companion link opens a file, a path or a web page, never a
+script address. A board this board wrote carries none of the refused shapes, so every board people hold still opens.
+
+**Expected changes to existing checks:** no check's pass rule changed. The edits to existing checks:
+
+- 7 existing mutations were retargeted, because the lines they search for were rewritten:
+  - `fydp-panel-position-hidden`, `delta-chip-on-unchanged`, `view-title-unmarked`, `view-header-unmarked` and
+    `view-delete-on-screen`, for the label split;
+  - `door-proto` and `door-constructor`, for the wider key rule. Each still removes exactly the name it is named for.
+- validate-math's suites line no longer says "8 suites", and its comment now counts nine suites, eight of which print
+  the banner.
+
+`audit-inject` joins `audit:suites` and the sweep's catching set. 135 mutations are added (1,139 to 1,274), each
+matching its target exactly once.
 
 GATE_V200
 
@@ -207,44 +240,125 @@ GATE_V200
   folder file reach the page as HTML without escaping, so a crafted file can run its own script. 27 holes reproduced on
   v1.98 and v1.99 through the board's own import paths, audited, and shown running in Chromium. Details and crafted files
   are in the owner's private annex, outside the repo.
-- **The fixes:** escape each value where it is shown (about 20 sinks); read year, sequence, buy-quantity and count fields as
-  numbers when they load; refuse `__proto__` / `constructor` / `prototype` as journal path elements, not only as object
-  keys; validate custom ids and award keys even when a plan has no `order` list; allow-list the Confluence download host
-  before attaching credentials. Do not make the import check refuse more (boards people hold must keep opening).
-- **The cleanup (folded in, Brad 7 Oct):** about 35 section headings so a reviewer can navigate the file; ~140 dead lines
-  removed; the 1.6 MB PowerPoint template fenced with a recorded fingerprint so reviewers can skip it; misleading comments
-  corrected. Low-churn: it disturbs almost no mutations.
-- **Tests:** each confirmed hole becomes a check that fails on the pre-fix board and passes after; the security team verifies
-  by running the suite and watching red turn green. New mutations remove each fix. One gate covers fixes and cleanup.
-- **Self-audit (7 Oct 2026):** an independent adversarial pass over the v2.00 diff (four reviewers, each finding verified)
-  found **two more injection sinks the review's 27 had missed**, both now fixed and covered: an imported **destination
-  key** (`e.k`) drawn raw into the RECORD panel's "Goes to" / "Which awards to" `<option value>` (the neighbouring name
-  was already escaped), and the funds-flow **"counts as FY"** input (`flow.pseudo.to`) left raw while its sibling
-  "appropriated FY" (`.from`) was coerced. No math-safety or cleanup-safety findings — the fixes change no figure and the
-  cleanup is behaviour-neutral.
+- **The fixes (as logged):** escape each value where it is shown; read year and sequence fields as numbers when they load;
+  refuse `__proto__` / `constructor` / `prototype` as journal path elements, not only as object keys; validate custom ids
+  and award keys even when a plan has no `order` list; allow-list the Confluence download host before attaching
+  credentials. Do not make the import check refuse more than needed (boards people hold must keep opening).
+- **The cleanup (folded in, Brad 7 Oct):** section headings so a reviewer can navigate the file; dead code removed; the
+  1.6 MB PowerPoint template fenced with a recorded fingerprint so reviewers can skip it; misleading comments corrected.
+- **Tests:** each confirmed hole becomes a check that fails on the pre-fix board and passes after; the security team
+  verifies by running the suite and watching red turn green. A mutation removes each fix. One gate covers fixes and
+  cleanup.
+- **Self-audit (7 Oct 2026):** an independent adversarial pass over the first candidate's diff (four reviewers, each
+  finding verified) found **two more injection sinks** the review's 27 had missed: an imported destination key drawn raw
+  into the RECORD panel's "Goes to" / "Which awards to" options, and the funds-flow "counts as FY" input. Both fixed and
+  covered.
 - **Second audit (8 Oct 2026): escaping in the wrong place.** `esc()` is right only where text is drawn as HTML. The
-  first candidate (`608444e`) escaped twice where text is not HTML, which changes what a person reads: the funds-flow
-  label was escaped when it was BUILT, so a pseudo-appropriation named `O&M Carry` read `O&amp;M Carry` on the panel
-  heading, in the chart and in the exported workbook's Scope line; and the budget-authority `confirm()` (plain text)
-  escaped the service names. Fixed: the label is built raw and escaped where it is drawn (the one raw HTML use, the export
-  status line, now escapes); the confirm() names stay plain. A second pass checked every escape v2.00 added against where
-  its text goes (HTML, attribute, dialog, workbook cell, file name, document title): no other one changes text. The
-  `608444e` gate had passed (8/8 stages, 1,139/1,139 caught), but it gated a board with these two defects, so the fixed
-  board is gated again from the start.
-- **Built (7 Oct 2026):** 25 display sinks now escape at the point they are drawn; `wholeOr()` coerces year, sequence,
-  buy-quantity and count fields to whole numbers in `normalizeStore`/`pkgNums` on load; `jrnlPathSafe` refuses
-  `__proto__`/`constructor`/`prototype` as journal path elements (and the import door refuses them in a journal entry);
-  `inShapeWhy` runs the id/award shape check on every year's plan whether or not it carries an `order` list; `pkgApply`
-  refuses a package whose sequence is not a number; `confSameHost` follows a Confluence download link only when it is a
-  path on the configured host. Reviewability: 42 section banners (§01–§42, anchored by function name), ~23 unused
-  functions removed, the PowerPoint template fenced and fingerprinted (`tools/tpl-parts.sha256`, checked by `check.mjs`),
-  stale comments corrected. Tests: `tools/export-audit/audit-inject.mjs` — 21 checks covering every finding (a runtime
-  draw where the surface renders on its own, a probe for each structural guard, and a pin on the escaped form for sinks
-  deep inside a panel render) plus 2 text-fidelity guards; clean on this board, 23 failing on v1.99 (`6388472`) and 3 on
-  the first candidate (`608444e`). An earlier draft had eight runtime checks that built their own escaped markup instead
-  of calling the board, so they passed on any board; they were replaced by the source pins before gating. 14 new
-  mutations (`v200-*`), all caught; 1,153 mutation targets, 0 not-applied. The import, hostile and board suites pass;
-  the full math gate is the release gate.
+  first candidate (`608444e`) escaped twice where text is not HTML: the funds-flow label was escaped when it was BUILT,
+  so `O&M Carry` read `O&amp;M Carry` on the panel heading, in the chart and in the workbook's Scope line; and the
+  budget-authority `confirm()` escaped the service names. Both fixed. `608444e` had passed its gate (8/8 stages,
+  1,139/1,139 caught), but it gated a board with these defects, so it was superseded.
+- **Final review and full sweep of the second candidate (`23a18ee`, 8 Oct 2026).** The gate run on `23a18ee` was stopped
+  when the review found live sinks. Fixed in this candidate:
+  - the package Cancel lines, which drew the appropriation name raw, beside the success line that escaped it; a package
+    naming an appropriation this board does not have is now refused;
+  - the CCaR import report's kept and no-FY counts, beside the escaped read count;
+  - the BAE import's department list;
+  - file names and error text in status lines (save in place, the QPE import);
+  - the cost-estimate set names in the estimate note;
+  - the writer's name, an award's service title, the cost-element tab, a row's team tag and the office filter's
+    buttons;
+  - counts that now read as whole numbers rather than escaped text: the CCaR records count in the Data menu, the roll
+    panel's year count, and the cost-estimate line counts;
+  - the companion link, which no longer opens a script address that ends in `.html`;
+  - the reprogramming merge, which keyed rows by an imported id in a plain object;
+  - the import check, which now reads a store whose years are a list;
+  - typed office and service names, which now follow the import rule;
+  - plain text that must not carry entities: the package conflict dialog, the journal search, the pre-flight copy, a cut
+    requirement's title and the Put back question now decode markup to text (`diagPlain`) rather than show tags or
+    entities.
+  The cycle and position labels now come in two forms: `blLblTxt` / `ppLblTxt` give text for dialogs, file names,
+  `document.title` and workbook cells, and `blLbl` / `ppLbl` escape it once for markup. The 35 places that escaped
+  `blLbl` / `ppLbl` a second time no longer do.
+- **Key sweep (8-9 Oct 2026); Brad put the class in v2.00 on 9 Oct.** An imported or workbook value used as a property
+  name on an ordinary object can name something every object already has. Measured on the pre-fix head:
+  - an execution row whose month cell read `__proto__` dropped $5,000 of $15,000 from the execution position;
+  - a title of `__proto__` stopped the Execution panel and wrote `tot` and `obl` onto every object;
+  - an estimate line naming service `__proto__` wrote onto `Object.prototype`;
+  - a cost element named `constructor` stopped the cost-element panel;
+  - a MIPR type named `constructor` would have exported the text `function Object() { [native code] }`;
+  - a reprogramming entry with id `hasOwnProperty` broke every `hasOwnProperty.call` guard in the page;
+  - a destination named `constructor` was re-pointed to the `Object` function and lost on the next save.
+  Fixed by one rule and safe maps:
+  - `IN_KEY_BAD` is now every name `Object.prototype` carries, plus `__proto__` and `prototype`, read from the browser
+    itself;
+  - the import check refuses those names as fields, as requirement ids (`inIdWhy`), as office, service and band names
+    (`inNameWhy`), as a submittal's office, and as destination keys;
+  - typed office and service names use the same `inNameWhy`, and a cost estimate is not filed under one;
+  - 57 maps, on 50 lines, are created without a prototype (`Object.create(null)`): those that group workbook rows,
+    estimate lines, cost elements, offices and destinations, and the MIPR list;
+  - the saved estimate choice, a package's destination re-pointing and the cycle store are read by own key only.
+  No board this board wrote uses any of these names, so every board people hold still opens.
+- **Re-verification of the key sweep (10-11 Oct 2026).** Independent reviewers re-checked each of the 63 candidates
+  against the fixed tree. 14 were still open, 1 was not a defect, and they found 10 siblings. Measured before the fix:
+  - an office named `constructor` in a locked cycle stopped the five-year spend plan, the cycle comparison and the
+    Spruills panel;
+  - a data pack carrying only its items passed the import check, so an office named `__proto__` reached the office
+    list; the forecast then wrote `tot` and `unsch` onto every object, and that office's ranking was never saved;
+  - a CLIN key, an RCN/EEIC lookup, a funds-flow category and a PPBE position line named `__proto__` swapped a map's
+    prototype or read the built-in;
+  - an estimate line whose office was `constructor` read as claimed by an office, so the ACE tie-out left its
+    $5,000,000 out of the TOTAL and out of the unclaimed lines, and the workbook said it did not tie without listing it;
+  - the five-year spend plan workbook printed `function Object() { [native code] }` as an office's estimate;
+  - a requirement id `__rem` collided with the plan walk's own bookkeeping, and the Two Spend Plans stopped;
+  - the Execution panel opened an office named `__proto__` already expanded, and it could not be collapsed.
+  Fixed in this candidate:
+  - `IN_VAL_KEYS`: the import check refuses a built-in name as the value of an `id`, `nid`, `k`, `key`, `grp`, `pmo`,
+    `svc` or `ap` field wherever it sits, and an id or `nid` beginning with two underscores;
+  - a data pack holding only its items is checked as a requirement list;
+  - the estimate office alignment, a destination map's targets and a submittal's office are checked;
+  - the remaining maps keyed by an office, a group or a category have no prototype (the forecast, the five-year plan
+    rows, the cycle comparison, the PMO matrix, the Execution panel's open rows, the ACE groups and shares, the
+    Spruills projection, the tie-out's unclaimed lines);
+  - the funds-flow sub-categories, the PPBE position values and the reprogramming merge's deletion marks are read by own
+    key only.
+- **Built:**
+  - Every sink above, and each of the review's 27, escapes the value at the point it is drawn.
+  - `wholeOr()` reads year and sequence fields as whole numbers on load (`MS.base` / `MS.cur`, a package ledger's
+    sequences, a cycle's base). Buy quantities and counts are escaped where they are drawn, not converted on load.
+  - `jrnlPathSafe` and the import check refuse a journal path through a built-in name.
+  - `inShapeWhy` checks every year's plan, with or without an `order` list, in a store or a list of years.
+  - `pkgApply` refuses a package whose sequence is not a number, or whose appropriation the board does not have.
+  - `confSameHost` follows a Confluence download link only on the configured host.
+  - `linkOpenable` opens only a file, a path or an http(s) page.
+  - Reviewability: 42 section banners (§01–§42, anchored by function name). 21 unused functions and 2 unused variables
+    removed. The PowerPoint template fenced and fingerprinted (`tools/tpl-parts.sha256`, checked by `check.mjs`). Stale
+    comments corrected.
+  - Tests: `tools/export-audit/audit-inject.mjs` holds checks for 44 findings plus 4 text-fidelity guards. They come in
+    four kinds, and the suite's header says which is which: a runtime draw through the board's own renderer, a probe
+    of a structural guard, a pin to the escaped form in the source for a sink deep inside a panel render (the hostile
+    sweep does not plant those fields, so the pin is their only check), and the key checks K1–K8. Clean on this
+    candidate.
+  - Fail-before results:
+    - **v1.99 (`6388472`):** all 44 finding checks fail. T3 and T4 also fail, because they pin the plain-text helpers
+      v2.00 introduced; T1 and T2 pass there. That is 159 failing assertions in all.
+    - **First candidate (`608444e`):** 23 finding checks and all 4 guards fail (127 assertions).
+    - **Second candidate (`23a18ee`):** 22 finding checks, T3 and T4 fail (124 assertions).
+    - **Head before the key-class fix (`2ed059d`):** the 8 key checks and the typed-name check fail (80 assertions).
+  - 135 mutations (`v200-*`). Each one undoes one fix or re-adds one over-escape; a fix applied in several places
+    through one function or rule is covered by mutating that function or rule. Each was presweept against
+    `audit-inject` alone and caught, the 19 added for the re-verification included. There are 1,274 mutation targets
+    in all, each matching exactly once.
+- **Corrections to the notes written for the earlier candidates.** The final review found that they claimed more than
+  the code and tests did. Corrected above:
+  - buy quantities and counts were never converted on load;
+  - not every fix had a check and a mutation (every fix in this candidate has both);
+  - "23 checks fail on v1.99" counted failing assertions, not checks;
+  - 21 functions and 2 variables were removed, not "about 23 functions";
+  - validate-math's suites message had been edited;
+  - the first candidate was gated with eight self-built runtime checks that proved nothing; they were removed in
+    `23a18ee` on 8 Oct, before any later candidate was gated;
+  - `blLbl` / `ppLbl` escaped where the label is built, which the notes called escaping where drawn.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 
