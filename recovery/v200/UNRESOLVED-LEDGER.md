@@ -1,6 +1,7 @@
 # v2.00: unresolved ledger (opened 11 Oct 2026, 6:30 PM ET)
 
-These findings and gaps are known but not fixed. Each one stays here until Brad decides it or its fix is integrated with
+These findings and gaps are known but not fixed. U9 and U10 were restored on 11 Oct, at 6:35 PM ET, from the review record Brad
+supplied. Each one stays here until Brad decides it or its fix is integrated with
 fresh evidence. A review finding is not permission to fix.
 
 Recorded at backup branch head `46b28b5b342e175fe099502e9f262dada3b2063a`. The board there is the board of
@@ -16,8 +17,30 @@ Recorded at backup branch head `46b28b5b342e175fe099502e9f262dada3b2063a`. The b
 | U6 | **R3: quiet-autosave wording.** When the re-check refuses an autosave, it replaces the locked-view banner with "the change was not kept", though no change was made. | R3 adversarial review (minor) | Review text | Message-only. To propose |
 | U7 | **R2: the checked and stored forms are written twice.** `rcnSet` builds the trimmed, upper-cased EEIC for the check and again for the store; a later edit to one could break them apart. | R2 adversarial review (minor) | Review text | Robustness only. To propose |
 | U8 | **R1: Help, the matching-rules sentence, and the FY26 button.** The Help document's funds-flow section is not updated. The new matching-rules sentence overstates for appropriations other than the board's own. The FY26 button does not say that rows stored under FY25 count in it. | R1 adversarial review; R1 follow-up draft | Review texts | After the R1 follow-up is integrated: wording within R1's approved scope |
-| U9 | **The PMO split disagreement.** | Codex's review of `main` `f9b4413` (11 Oct) | **The finding's text is not in this session's surviving record.** It was given before 9:49 AM ET, and the morning's context was lost with the environment. Nothing in the repository or on GitHub holds it. | **Preserved unresolved** (Brad, 11 Oct). The review text is needed again to reproduce it. No guess is recorded here |
-| U10 | **The locked-cycle RCN export defect.** | Codex's review of `main` `f9b4413` (11 Oct) | **The finding's text is not in this session's surviving record**, for the same reason. Related, already shipped: v1.99 item 88 ("a locked cycle keeps the RCN / EEIC list it was locked with"). Whether this defect is a gap in item 88 is not known. | **Preserved unresolved** (Brad, 11 Oct). The review text is needed again |
+| U9 | **P2: PMO split disagreement.**
+
+**Fixture** (synthetic): USAF, O&M FY27, PRIME-3, $3 of discretionary funding. CLINs 0010, 0002 and 0008 carry weights 1:2:3 for MxS, AV and TSS.
+
+**Expected:** independent BigInt largest-remainder arithmetic gives **$1/$1/$1**. The CLIN source workbook agrees.
+
+**Actual:** the PMO parts, the forecast and the PMO Matrix export give **$0/$1/$2**. The total balances, but ownership disagrees.
+
+**At $9:** expected $2/$3/$4, actual $1/$3/$5. Non-tie controls pass.
+
+**Cause (per the record):** PMO weights are normalized by floating-point division before the exact split. | The review of `main` (Codex), as Brad supplied it at 6:28 PM ET, 11 Oct (`surviving/review-record-U9-U10-received-2026-10-11.md`) | **Reproduced per that record** on `main` `f9b4413` (board `b160bc03…`) and on WIP `e635775` (board `fd728f1c…`). Both board blobs were confirmed here against the repository. Two bounded whole-board runs completed: 29 checks passed and 5 ownership checks failed, with no crashes or timeouts. **Not verified at the current pinned tree** (`8e2dbe5`, board `82c7f446…`, the same board as `af892cb`). | **Unresolved**, pending reproduction on the current pinned tree. Not fixed |
+| U10 | **P2: refused edits change a locked-cycle export's codes.**
+
+**Steps:**
+1. Lock PB27 with RCN/EEIC 11111/AAAAA.
+2. Change the working codes to 99999/ZZZZZ, save and reopen.
+3. View PB27, open Setup → Codes and structure → RCN/EEIC, and enter 77777 in the enabled RCN field.
+4. Export Excel.
+
+**Expected:** USAF $900 and ANG $200 stay under 11111/AAAAA.
+
+**Actual:** Save says "the change was not kept", but the RCN-EEIC by Month sheet exports those dollars under 77777/AAAAA, labelled LOCKED VIEW. The stored cycle and the working codes stay intact.
+
+**Cause (per the record):** the setter changes the registry before the refusal, and the refusal restores only the year state. | The review of `main` (Codex), as Brad supplied it at 6:28 PM ET, 11 Oct (same file) | **Reproduced per that record** on `main` `f9b4413` and WIP `e635775` (blobs as for U9). Two bounded runs completed: 44 assertions passed and 9 failed. These were synthetic jsdom checks. **Not verified at the current pinned tree** (`8e2dbe5` / `af892cb`, board `82c7f446…`). Related: v1.99 item 88 (a locked cycle keeps its own RCN/EEIC list). | **Unresolved**, pending reproduction on the current pinned tree. Not fixed |
 | U11 | **Tracked from the morning: neighbouring writer and restore risks.** `takePen`, `driveExecPush`, `driveAcePush`, `driveAceReplace`, `aceRestore`, `driveRpPush`, `driveStorePull` load-theirs, and the hold message overwritten by the "Saved in place" status. | The 9:51 AM ET working summary ("tracked separately, not to implement") | None in this session | Tracked; not examined since the reset |
 | U12 | **Documentation work C** (`orbit-docs`; its agent never reported) | 9:51 AM ET working summary | None | Tracked |
 

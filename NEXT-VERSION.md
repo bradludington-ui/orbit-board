@@ -628,8 +628,12 @@ result for it was run fresh against these commits.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
   - **U7:** R2's checked and stored expressions are written twice.
   - **U8:** R1's Help and wording remainders.
-  - **U9 and U10:** two findings from the review of `main`, the **PMO split disagreement** and the **locked-cycle RCN
-    export defect**, preserved unresolved. Their text was lost with the session's morning record and is needed again.
+  - **U9 (P2): PMO split disagreement.** At $3 split 1:2:3, the PMO parts, the forecast and the PMO Matrix export give
+    $0/$1/$2 where exact largest-remainder arithmetic and the CLIN source workbook give $1/$1/$1.
+  - **U10 (P2): a refused edit changes a locked-cycle export's codes.** A refused RCN edit in a locked view still
+    exports under the edited code.
+  - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`. They have not been verified
+    on the current tree.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 
