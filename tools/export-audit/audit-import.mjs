@@ -7003,6 +7003,70 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.00 R4 ====
+// ==== v2.00 (R5): a restore during a save stays unsaved ====
+// ↶ Put this back marked the board unsaved but did not count as a change. A folder save still writing when the copy was
+// put back found nothing changed while it wrote and marked the board saved: the earlier copy on screen, the save's copy in
+// the folder, and nothing on screen or in this browser's record saying they differ. The restore now counts as a change, and
+// records unsaved work as an edit does, so that save leaves the board unsaved and the next Save writes the copy put back.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (R5) — a restore during a save stays unsaved';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, flags, pause } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // FY27's folder history holds HISTORY, and its folder copy is CURRENT, saved: the board clean, the earlier copies listed.
+  // The folder is connected once the opening's own timers have run, the one that connects to the folder at 60 ms included.
+  const fresh = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); await pause(80);
+    wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','HISTORY'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','CURRENT'); 'ok'`); await A.ev('driveStorePush(false)');
+    await A.ev('driveHistShow()');
+    return { A, fold };
+  };
+  // A folder save held at the close of its write of the copy itself; `during` runs there, then the write lands. `view`: what
+  // is on screen, what the folder holds, and unsaved work as the screen (DIRTY), this browser (_baseDirty) and its record say.
+  const held = async (A, fold, during) => {
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = A.ev('driveStorePush(false)');
+    const reached = await until(() => (fold.hits.main || 0) > n0);
+    if (during) await A.ev(during);
+    g.open(); const ret = await p; const fl = flags(A.ev);
+    return { reached, ret, view: [A.ev('String(S.notes.A)'), fold.note(2027, 'A'), fl.DIRTY, A.ev('_baseDirty'), !!fl.base.dirty] };
+  };
+  const kept = (fold, note) => Object.values((fold.root.dirs.history || { files: {} }).files).some(t => { try { return JSON.parse(t).store.years['2027'].notes.A === note; } catch (e) { return false; } });
+  // (a) WORKING SAVED, AND THE EARLIER COPY PUT BACK WHILE THAT SAVE WRITES: HISTORY is on screen, the folder keeps WORKING --
+  // what that save wrote -- and the board stays unsaved, on screen and in this browser's record, and says it is not in the folder.
+  { const { A, fold } = await fresh();
+    A.ev(`setNote('A','WORKING'); 'ok'`);
+    const r = await held(A, fold, 'driveRestore(0)');
+    chk(name, '(a) WORKING saved, HISTORY put back during its write', 'the save waited at its write, then went in (a CONTROL)', J([r.reached, r.ret]), J([true, true]));
+    chk(name, '(a) WORKING saved, HISTORY put back during its write', 'HISTORY on screen, WORKING in the folder, and unsaved: DIRTY, _baseDirty, the stored record',
+      J(r.view), J(['HISTORY', 'WORKING', true, true, true]));
+    chk(name, '(a) WORKING saved, HISTORY put back during its write', 'the board says the change is not in the folder yet', /not in the folder yet/.test(status(A.ev)), true);
+    const ok = await A.ev('driveStorePush(false)'); const fl = flags(A.ev);
+    chk(name, '(a) then Save', 'it writes HISTORY with no clash and ends saved, and WORKING is kept in the history (a CONTROL)',
+      J([ok, fold.note(2027, 'A'), fl.DIRTY, !!fl.base.dirty, kept(fold, 'WORKING')]), J([true, 'HISTORY', false, false, true])); }
+  // (b) A SAVE WITH NOTHING NEW (⬆ Publish now, or Save again), HISTORY PUT BACK WHILE IT WRITES: the board was clean, so this
+  // browser's record said saved before the restore; it says unsaved after it, and so does the screen.
+  { const { A, fold } = await fresh();
+    const r = await held(A, fold, 'driveRestore(0)');
+    chk(name, '(b) a clean board saved, HISTORY put back during its write', 'HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record',
+      J([r.reached, r.ret, ...r.view]), J([true, true, 'HISTORY', 'CURRENT', true, true, true]));
+    chk(name, '(b) a clean board saved, HISTORY put back during its write', 'the board says the change is not in the folder yet', /not in the folder yet/.test(status(A.ev)), true); }
+  // (c) CONTROL: the same held save with nothing put back ends saved, and says so.
+  { const { A, fold } = await fresh();
+    A.ev(`setNote('A','WORKING'); 'ok'`);
+    const r = await held(A, fold, '');
+    chk(name, '(c) WORKING saved, nothing put back (a CONTROL)', 'WORKING on screen and in the folder, and saved: DIRTY, _baseDirty, the stored record; the board says Saved',
+      J([r.reached, r.ret, ...r.view, /✅ Saved/.test(status(A.ev)), /not in the folder yet/.test(status(A.ev))]), J([true, true, 'WORKING', 'WORKING', false, false, false, true, false])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (R5) ====
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const __bm = bootMark();

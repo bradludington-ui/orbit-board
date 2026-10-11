@@ -1921,8 +1921,9 @@ const MUTATIONS = [
     find: "  if(base && ('dirty' in base)) return !!base.dirty;",
     repl: "  if(base && ('dirty' in base)) return false;" },
   { id: "unsaved-flag-never-set", area: "save", what: "an edit never marks the work as unsaved in this browser's record",
-    find: "  try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}\n",
-    repl: "" },
+    // anchored on its indent: v2.00 (R5)'s driveRestore repeats the line deeper in (re-anchored 11 Oct; same purpose)
+    find: "\n  try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}\n",
+    repl: "\n" },
   { id: "download-clears-unsaved", area: "publishState", what: "a download says the work is saved, though the shared file does not have it (v1.88 and before)",
     find: "  _dlOnly=true; try{ syncBtns(); }catch(e){}",
     repl: "  DIRTY=false; try{ syncBtns(); }catch(e){}" },
@@ -4198,6 +4199,13 @@ const MUTATIONS = [
   { id: "v200-r4-said-not-held", area: "_saveInPlaceFileRun", what: "after the read the board says Save is refused, but the Save goes on and writes the mix over the board file",
     find: "    if(impMixedBlock('Saving to the board file')) return;   // v2.00 (R4):",
     repl: "    impMixedBlock('Saving to the board file');   // v2.00 (R4):" },
+  // v2.00 (R5, the same review; Brad, 11 Oct): a restore during a save stays unsaved.
+  { id: "v200-r5-restore-gen", area: "driveRestore", what: "Put this back does not count as a change, so a folder save still writing when the copy was put back finds nothing changed and marks the board saved: the earlier copy on screen, the save's copy in the folder, and nothing saying they differ",
+    find: "    _saveGen++; DIRTY=true;\n    try{ if(!_baseDirty){",
+    repl: "    DIRTY=true;\n    try{ if(!_baseDirty){" },
+  { id: "v200-r5-restore-basedirty", area: "driveRestore", what: "Put this back leaves this browser's record saying saved when the board was clean, so the copy put back reads as saved after a save that was writing meanwhile, and after a reopen",
+    find: "    _saveGen++; DIRTY=true;\n    try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}\n",
+    repl: "    _saveGen++; DIRTY=true;\n" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
