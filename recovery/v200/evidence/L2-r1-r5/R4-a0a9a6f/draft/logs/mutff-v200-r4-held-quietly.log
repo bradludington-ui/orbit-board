@@ -1,0 +1,4 @@
+
+1 FAILING CHECK(S) -- stopped at the first (MUT_FIRST_FAIL)
+
+--- {"scenario":"v2.00 (R4) — a save already waiting does not write past a mixed-import hold","where":"the import stops part-way during the read","what":"the board says the save is refused, and that nothing writes over the board file","got":false,"want":true}

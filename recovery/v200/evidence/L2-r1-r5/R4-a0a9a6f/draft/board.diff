@@ -1,0 +1,12 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 42e8111..be23027 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -8341,6 +8341,7 @@ async function _saveInPlaceFileRun(){
+       return;
+     }
+     let p;                             // the file's saved state; none in a file the picker just made
++    if(impMixedBlock('Saving to the board file')) return;   // v2.00 (R4): checked again after the read: an import that stopped part-way while it waited sets the hold, and the bytes built below would carry its mix
+     if(txt.length){                    // an empty file is one the picker just made: nothing in it to lose
+       const mm=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
+       try{ p=mm? JSON.parse(mm[1]) : undefined; }catch(e){ p=undefined; }

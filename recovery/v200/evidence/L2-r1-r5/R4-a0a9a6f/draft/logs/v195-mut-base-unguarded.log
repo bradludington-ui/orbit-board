@@ -1,0 +1,40 @@
+
+================================================================================================
+15 FAILING CHECK(S)
+
+--- v1.95 — after an import that cannot be put back, nothing writes over the board file until asked | 💾 Save to the board file
+    refused: the file is not written, and the message says why and offers both copies
+        got [1,false,false,false]   want [0,true,true,true]
+--- v1.95 — after an import that cannot be put back, nothing writes over the board file until asked | reloaded
+    💾 Save is still refused; the board file is not written
+        got [1,false]   want [0,true]
+--- v1.95 — after an import that cannot be put back, nothing writes over the board file until asked | allow saving again
+    declined: still refused, the mark kept
+        got [2,true]   want [0,true]
+    and 💾 Save writes the board file
+        got 3   want 1
+--- v2.00 (R4) — a save already waiting does not write past a mixed-import hold | the import stops part-way during the read
+    nothing is written: the file is never opened for writing
+        got [1,1]   want [0,0]
+    the board file keeps its bytes
+        got false   want true
+    the board says the save is refused, and that nothing writes over the board file
+        got false   want true
+--- v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched | hold on, read not held
+    refused before the file is touched: no permission request, no read, no open
+        got perm 1 · read 1 · open 1   want perm 0 · read 0 · open 0
+    Save is refused at once: the request is over, and the board says so
+        got [true,false]   want [true,true]
+    nothing is written
+        got [1,1]   want [0,0]
+    the board file keeps its bytes
+        got false   want true
+--- v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched | hold on, read held and the hold cleared during it
+    refused before the file is touched: no permission request, no read, no open
+        got perm 1 · read 1 · open 0   want perm 0 · read 0 · open 0
+    Save is refused at once: the request is over, and the board says so
+        got [false,false]   want [true,true]
+    clearing the hold does not bring the refused Save back: nothing is written
+        got [1,1]   want [0,0]
+    the board file keeps its bytes
+        got false   want true

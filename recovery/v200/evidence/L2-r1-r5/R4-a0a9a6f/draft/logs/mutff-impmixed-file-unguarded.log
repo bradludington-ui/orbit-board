@@ -1,0 +1,4 @@
+
+1 FAILING CHECK(S) -- stopped at the first (MUT_FIRST_FAIL)
+
+--- {"scenario":"v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched","where":"hold on, read not held","what":"refused before the file is touched: no permission request, no read, no open","got":"perm 1 · read 1 · open 0","want":"perm 0 · read 0 · open 0"}
