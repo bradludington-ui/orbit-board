@@ -1,0 +1,7 @@
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · wording
+    the matching rules no longer say the total is unchanged: each row once, in its effective year, execution never also from the plan
+        got [true,false,false]   want [false,true,true]

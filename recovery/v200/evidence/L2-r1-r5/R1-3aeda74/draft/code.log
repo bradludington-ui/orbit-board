@@ -1,0 +1,16 @@
+# cmd: X=1 node code-runtime-probe.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/xcheck/draft-R1/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:02:28Z / 17:02:28 EDT
+# cap: 600s  grace: 10s
+{"name":"ASCII over-limit typed EEIC refused; old code unchanged","actual":"ABCDE","expected":"ABCDE","kind":"control","status":"passed"}
+{"name":"ASCII refusal preserves typed field text","actual":"ABCDEFGHIJK","expected":"ABCDEFGHIJK","kind":"control","status":"passed"}
+{"name":"permitted trimmed code normalized to uppercase","actual":"ABCDE","expected":"ABCDE","kind":"control","status":"passed"}
+{"name":"R2 normalized over-limit Unicode expansion refused; previous code retained","actual":"SSSSSSSSSSSSSSSSSSSS","expected":"ABCDE","kind":"defect","status":"failed"}
+{"name":"R2 accepted EEIC may not exceed10after uppercase normalization","actual":false,"expected":true,"kind":"defect","status":"failed"}
+{"name":"whole-board boot has no jsdom script errors","actual":[],"expected":[],"kind":"control","status":"passed"}
+{"passed":4,"failed":2}
+
+# end: 2026-10-11T21:02:30Z / 17:02:30 EDT
+# exit: 1  duration_s: 1.8

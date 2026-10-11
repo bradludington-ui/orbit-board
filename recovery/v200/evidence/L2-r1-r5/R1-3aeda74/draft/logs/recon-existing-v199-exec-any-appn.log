@@ -1,0 +1,21 @@
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decided per appropriation and year | item 93 · FY27
+    O&M planned $5,000 and Full Fund executed $800: $5,800, each counted its own way
+        got [800,0,800,800,0]   want [5800,5000,800,800,5000]
+    the scope names the mix: FY27: O&M planned, Full Fund executed
+        got false   want true
+--- v1.99 items 92–93 — the funds-flow export is the panel’s selection, and execution is decided per appropriation and year | item 93 · the export
+    US $5,800; by appropriation O&M $5,000 and Full Fund $800; the mix stated
+        got [800,[["FULL FUND",800]],false]   want [5800,[["O&M",5000],["FULL FUND",800]],true]

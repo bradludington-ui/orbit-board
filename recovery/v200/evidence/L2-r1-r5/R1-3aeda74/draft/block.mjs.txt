@@ -1,0 +1,104 @@
+// ==== v2.00 (R1): funds flow -- execution precedence by appropriation and EFFECTIVE fiscal year ====
+// The board is on O&M, its five-year plan from FY26; FY25 is offered because the workbook files rows under it. Each year's pot
+// is its own, set in that year's S.bm (applyState rebuilds the lanes from it): FY25 $300M, FY26 $500M, one service, one
+// requirement asking $900M, so each year's plan is its whole pot. The OBBBA rule is on: an FY25 O&M row whose Budget cell
+// says OBBBA counts as FY26. Every expected figure below is the fixture's own arithmetic.
+// VARIANT B -- O&M's only FY25 row is the $100M OBBBA one. FY25 reads its $300M plan; FY26 reads $100M executed and $0 planned;
+// FY25 + FY26 = $400M, $100M executed and $300M planned, said as such on the panel and in the export (US SERVICE FUNDING
+// 400000000 and a NOTE: planned and executed money in one total). Saved FY25-only and reopened, the selection stays FY25.
+// VARIANT A -- FY25 also holds a $40M ordinary row: FY25 = $40M executed (a CONTROL), FY26 = $100M executed, FY25 + FY26 =
+// $140M executed, and the export agrees with no planned-and-executed NOTE.
+// Raw execution (EXDB.all) is read, never rewritten; the matching rules no longer claim the total is unchanged.
+// FAILS ON 9b27e80, except the two CONTROLs and the raw-history guards: execution was decided by the workbook's year, so FY26
+// read its $500M plan beside the $100M carried ($600M) and FY25 was "executed" with nothing left in it ($0).
+await (async () => {
+  const name = 'v2.00 (R1) — execution precedence by appropriation and effective year';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const POT = { 2025: 300000000, 2026: 500000000 };
+    const row = (n, title, budget, amt) => { const r = Array(32).fill(''); r[0] = 2025; r[1] = '2025-03'; r[2] = 'JSF' + (300 + n); r[3] = title;
+      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = 'Program (PSM)'; return r; };
+    const CARRY = row(1, 'Carried Support', 'USAF O&M OBBBA Mandatory', 100000000), OWN = row(2, 'Depot Pods', 'USAF O&M Discretionary', 40000000);
+    const open = rows => {
+      const X = boot();
+      seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [900000000])], disc: [POT[2026]], mand: [0], order: ['F1'] });
+      const ALL = { om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: rows } } };
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        var POT=${J(POT)}; MS.base=2026; MS.cur=2026; FYMON=fyMonths(2026); MS.years={};
+        [2025,2026].forEach(function(y){ var st=JSON.parse(JSON.stringify(S)); st.bm={disc:[POT[y]], mand:[0], adds:[]}; st.discSvc=[POT[y]]; MS.years[y]=st; });
+        applyState(MS.years[2026]); MS.years[2026]=S;
+        EXDB.all=${J(ALL)}; EXDB.ts=1;
+        var C=flowCfg(); C.pseudo={on:true, label:'OBBBA', token:'OBBBA, Mandatory', from:2025, to:2026, col:4}; C.other={}; C.fys=null; C.aps=['om'];
+        save(); 'ok'`);
+      return { X, ALL };
+    };
+    const calc = (X, fys) => JSON.parse(X.ev(`(function(){ if(${J(fys)}) flowCfg().fys=${J(fys)}; var F=flowCalc();
+      return JSON.stringify({sel:flowSelYears(), t:[F.tot, F.execV, F.planV], label:F.label}); })()`));
+    const panel = X => JSON.parse(X.ev(`(function(){ flowOpen=true; flowRuleOpen=true; flowBody(); var b=document.getElementById('flowBody'), m=b.querySelector('.flowmix');
+      var chips=[].slice.call(b.querySelectorAll('button')).filter(function(x){ return /^FY\\d\\d/.test(x.textContent); })
+        .map(function(x){ return x.textContent+(x.classList.contains('on')? ' [on]' : ''); });
+      var pl=/(FY\\d\\d(?:, FY\\d\\d)*) (?:is|are) PLANNED, not executed/.exec(b.textContent);
+      return JSON.stringify({mix:m? m.textContent : '', planned:pl? pl[1] : '', chips:chips, text:b.textContent}); })()`));
+    const book = async X => { const wb = JSON.parse(await w6Book(X.w, 'exportFlow')), ff = wb['Funds Flow'] || [];
+      const all = lab => ff.filter(r => w6Lbl(r) === lab).map(r => num(r[1])).filter(v => v !== null);
+      return { err: wb.__err || 'ok', scope: w6Lbl(ff[1] || []), us: all('US SERVICE FUNDING'), tot: all('TOTAL FUNDING'), om: all('O&M'),
+               mixNote: ff.map(w6Lbl).filter(t => /^NOTE: planned and executed money in one total/.test(t)) }; };
+    // ── VARIANT B: the only FY25 O&M row is carried to FY26 ──
+    const B = open([CARRY]);
+    w5Chk(name, 'variant B · fixture', 'CONTROL — the board is on O&M, its plan from FY26; FY25 and FY26 each hold their own pot',
+      B.X.ev(`mySlug()+'|'+MS.base+'|'+MS.cur+'|'+MS.years[2025].bm.disc[0]+'|'+MS.years[2026].bm.disc[0]`), 'om|2026|2026|300000000|500000000');
+    w5Chk(name, 'variant B · FY25', 'FY25 reads its $300M plan: $300M, $0 executed, $300M planned, labelled planned',
+      J(calc(B.X, [2025])), J({ sel: [2025], t: [300000000, 0, 300000000], label: 'FY25 · O&M · PLANNED (board allocation, O&M)' }));
+    w5Chk(name, 'variant B · FY26', 'FY26 = $100M executed, $0 planned, $100M total, the carried OBBBA named',
+      J(calc(B.X, [2026])), J({ sel: [2026], t: [100000000, 100000000, 0], label: 'FY26 · O&M · + OBBBA FY25' }));
+    const GB26 = await book(B.X);
+    w5Chk(name, 'variant B · FY26 · the export', 'US SERVICE FUNDING 100000000, O&M 100000000, TOTAL FUNDING 100000000 twice, no planned-and-executed NOTE',
+      J([GB26.err, GB26.scope, GB26.us, GB26.om, GB26.tot, GB26.mixNote]), J(['ok', 'Scope: FY26 · O&M · + OBBBA FY25', [100000000], [100000000], [100000000, 100000000], []]));
+    w5Chk(name, 'variant B · FY25 + FY26', 'FY25 + FY26 = $400M: $100M executed, $300M planned, labelled planned + executed',
+      J(calc(B.X, [2025, 2026])), J({ sel: [2025, 2026], t: [400000000, 100000000, 300000000], label: 'FY25, FY26 · O&M · FY25 planned, the rest executed' }));
+    const PB = panel(B.X);
+    w5Chk(name, 'variant B · FY25 + FY26 · the panel', 'says planned and executed money in one total, year by year, with each amount',
+      J([/^Planned and executed money in one total\. FY25: O&M planned; FY26: O&M executed\./.test(PB.mix), /\$100\.00M executed, \$300\.00M planned\./.test(PB.mix)]), J([true, true]));
+    w5Chk(name, 'variant B · FY25 + FY26 · the panel', 'the year chips and the planned note agree: FY25 marked plan, FY26 not, and only FY25 called PLANNED',
+      J([PB.chips.filter(c => / \[on\]$/.test(c)), PB.planned]), J([['FY25 · plan [on]', 'FY26 [on]'], 'FY25']));
+    const GB = await book(B.X);
+    w5Chk(name, 'variant B · FY25 + FY26 · the export', 'US SERVICE FUNDING 400000000, O&M 400000000, TOTAL FUNDING 400000000 twice, the scope as the panel',
+      J([GB.err, GB.scope, GB.us, GB.om, GB.tot]), J(['ok', 'Scope: FY25, FY26 · O&M · FY25 planned, the rest executed', [400000000], [400000000], [400000000, 400000000]]));
+    w5Chk(name, 'variant B · FY25 + FY26 · the export', 'and a NOTE: planned and executed money in one total, FY25 planned, FY26 executed',
+      J(GB.mixNote.map(t => t.startsWith('NOTE: planned and executed money in one total — FY25: O&M planned; FY26: O&M executed.'))), J([true]));
+    w5Chk(name, 'variant B · wording', 'the matching rules no longer say the total is unchanged: each row once, in its effective year, execution never also from the plan',
+      J([/total is unchanged/.test(PB.text), /Each row is counted once, in its effective year/.test(PB.text), /never also from the plan/.test(PB.text)]), J([false, true, true]));
+    // saved with FY25 alone, reopened: still FY25, still planned, and the export writes the same scope
+    B.X.ev(`flowCfg().fys=[2025]; save(); 'ok'`);
+    const R = boot({ html: B.X.ev('buildSavedHtml()') });
+    const RS = JSON.parse(R.ev(`(function(){ var F=flowCalc(); return JSON.stringify({saved:flowCfg().fys, sel:flowSelYears(), t:[F.tot, F.execV, F.planV], label:F.label}); })()`));
+    w5Chk(name, 'variant B · saved FY25 only, reopened', 'the selection stays FY25 (never silently all years), $300M planned, labelled planned',
+      J(RS), J({ saved: [2025], sel: [2025], t: [300000000, 0, 300000000], label: 'FY25 · O&M · PLANNED (board allocation, O&M)' }));
+    const PR = panel(R), GR = await book(R);
+    w5Chk(name, 'variant B · saved FY25 only, reopened', 'the FY25 chip is there, on, marked plan; the export writes the same scope and $300M',
+      J([PR.chips.filter(c => / \[on\]$/.test(c)), GR.scope, GR.us]), J([['FY25 · plan [on]'], 'Scope: FY25 · O&M · PLANNED (board allocation, O&M)', [300000000]]));
+    w5Chk(name, 'variant B · raw history', 'the execution rows are exactly as imported, in the board and in the reopened copy',
+      J([B.X.ev('JSON.stringify(EXDB.all)') === J(B.ALL), R.ev('JSON.stringify(EXDB.all)') === J(B.ALL)]), J([true, true]));
+    // ── VARIANT A: FY25 also holds a $40M row of its own ──
+    const A = open([OWN, CARRY]);
+    w5Chk(name, 'variant A · FY25', 'CONTROL — FY25 = $40M executed, $0 planned',
+      J(calc(A.X, [2025])), J({ sel: [2025], t: [40000000, 40000000, 0], label: 'FY25 · O&M' }));
+    w5Chk(name, 'variant A · FY26', 'FY26 = $100M executed, $0 planned',
+      J(calc(A.X, [2026])), J({ sel: [2026], t: [100000000, 100000000, 0], label: 'FY26 · O&M · + OBBBA FY25' }));
+    w5Chk(name, 'variant A · FY25 + FY26', 'FY25 + FY26 = $140M executed, $0 planned',
+      J(calc(A.X, [2025, 2026])), J({ sel: [2025, 2026], t: [140000000, 140000000, 0], label: 'FY25, FY26 · O&M' }));
+    const PA = panel(A.X), GA = await book(A.X);
+    w5Chk(name, 'variant A · FY25 + FY26 · the panel', 'one kind of money: no planned-and-executed note, no year called PLANNED, neither chip marked plan',
+      J([PA.mix, PA.planned, PA.chips.filter(c => / \[on\]$/.test(c))]), J(['', '', ['FY25 [on]', 'FY26 [on]']]));
+    w5Chk(name, 'variant A · FY25 + FY26 · the export', 'the export agrees: US SERVICE FUNDING 140000000, O&M 140000000, TOTAL FUNDING 140000000 twice, no planned-and-executed NOTE',
+      J([GA.err, GA.scope, GA.us, GA.om, GA.tot, GA.mixNote]), J(['ok', 'Scope: FY25, FY26 · O&M', [140000000], [140000000], [140000000, 140000000], []]));
+    w5Chk(name, 'variant A · raw history', 'the execution rows are exactly as imported', A.X.ev('JSON.stringify(EXDB.all)') === J(A.ALL), true);
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.00 (R1) ====
