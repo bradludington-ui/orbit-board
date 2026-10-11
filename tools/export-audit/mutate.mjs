@@ -4174,6 +4174,16 @@ const MUTATIONS = [
   { id: "v200-r2-eeic-not-upper", area: "rcnSet", what: "the EEIC check trims but does not upper-case, as if upper-casing never changed a length: ﬃ×4 passes as 4 characters and is kept as 12",
     find: "codeTake(field==='eeic'? String(val||'').trim().toUpperCase() : val, field)",
     repl: "codeTake(field==='eeic'? String(val||'').trim() : val, field)" },
+  // v2.00 (R3, the same review; Brad, 11 Oct): a locked view is never written to the working folder.
+  { id: "v200-r3-cycblock-gone", area: "_driveStorePushRun", what: "a folder save does not ask again after its read whether a locked cycle is on screen, so a cycle put on screen while it read is written over the working plan's copy, its history kept, and Saved said",
+    find: "  if(cycBlock('Writing to the shared folder')) return false;\n",
+    repl: "" },
+  { id: "v200-r3-cycblock-falls-through", area: "_driveStorePushRun", what: "the re-check after the read says writing is off but does not stop, so the locked plan is still written to the folder",
+    find: "  if(cycBlock('Writing to the shared folder')) return false;\n",
+    repl: "  cycBlock('Writing to the shared folder');\n" },
+  { id: "v200-r3-cycblock-says-saved", area: "_driveStorePushRun", what: "the re-check refuses but tells its caller it saved, so ⬆ Publish now records a publish (Live view: Saved just now) and the autosave counts it as saved",
+    find: "  if(cycBlock('Writing to the shared folder')) return false;\n",
+    repl: "  if(cycBlock('Writing to the shared folder')) return true;\n" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

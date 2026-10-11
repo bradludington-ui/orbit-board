@@ -26753,6 +26753,9 @@ async function _driveStorePushRun(quiet, fyAsked){
       +'📡 Live view → ↶ Earlier copies, then Save.');
     render(); return false;
   }
+  // v2.00 (R3): A LOCKED CYCLE PUT ON SCREEN WHILE THE FOLDER WAS BEING READ is not the board. The bytes below would be the
+  // locked plan, written over the working plan's copy with that copy kept as history, and "Saved" said. Nothing is written.
+  if(cycBlock('Writing to the shared folder')) return false;
   // The year moved while the folder was being read: what is on screen is another year's board now.
   if(MS.cur!==fy){
     setStat('⚠ Not saved: the board moved to FY'+(MS.cur%100)+' while the shared folder’s copy of FY'+(fy%100)
