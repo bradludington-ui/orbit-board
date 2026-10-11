@@ -441,16 +441,23 @@ result for it was run fresh against these commits.
   exactly once.
 
   **Limits:**
-  - `flowExecYears` now reads rows rather than counting them. It stops once a year's two possible years are both
-    marked, newest year first. On 8,000-row synthetic sets a panel draw is as fast as before, except when every FY25 row
-    of an appropriation moves. That case takes about twice as long (jsdom: 0.30 s → 0.66 s a draw).
+  - **Speed (corrected 11 Oct, after the adversarial review).** `flowExecYears` now reads rows rather than counting
+    them. It stops once a year's two possible years are both marked, newest year first, so it is quick when FY26 rows are
+    imported. With the OBBBA rule on and **no FY26 rows imported**, it reads every FY25 row on every one of the panel's
+    ~150 year questions. On 4 appropriations × 2,000 FY25 rows (jsdom), a panel draw went from 273 ms to 847 ms (about
+    3×) with no row carried, and from 312 ms to 792 ms with every row carried. With the plan window FY27–31 it went from
+    159 ms to 709 ms. The first figure written here ("as fast as before, about 2× in one case") came from sets that
+    always held FY26 rows, and understated it.
   - The FY25 year button's tooltip still says FY25 "has no O&M execution imported" when its rows were imported and all
     count as FY26. The planned-year note likewise says "nothing in scope has executed in that year yet". That wording is
     unchanged.
-  - A year that only carried rows count in, outside the plan window and with no rows of its own, is still not offered
-    as a year button. This is unchanged from before.
-  - An FY25 that the board has no state for reads $0 planned ("a year nobody has planned holds no money"). This is
-    unchanged.
+  - **Money completeness, for Brad's decision (found before this change, not changed by it).** A year that only
+    carried rows count in -- outside the plan window and with no rows of its own -- is not offered as a year button, and
+    the ALL YEARS total **leaves those carried dollars out, with nothing on screen or in the export saying so**. The
+    adversarial review confirmed it. It is proposed to Brad as its own finding rather than folded into R1.
+  - An FY25 that the board holds no plan for, whose rows all count as FY26, now reads **$0 planned** (labelled PLANNED,
+    its chip marked plan). Before it read $0 executed. The first note here called this unchanged; the adversarial review
+    showed it changed. No dollar figure changes: it is $0 either way.
 
 - **R2 — an EEIC is checked in the form it is stored** (the same review; fix approved by Brad on 11 Oct). The RCN / EEIC list keeps an
   EEIC trimmed and upper-cased, but item 91's limit (v1.99: a code over its limit is refused, never cut) measured it
@@ -566,7 +573,8 @@ result for it was run fresh against these commits.
     ("⏳ A save is already under way"), not refused at once. When its turn comes it is refused before any file
     access, but only if the hold still stands. If the person allows saving again first, the queued Save runs and
     writes. A scratch run showed this. Brad's wording ("refuse immediately") may want `saveInPlaceFile` to refuse it
-    at once, as it does for a locked view.
+    at once, as it does for a locked view. The adversarial review found that the 💾 Save button and Take the pen go
+    through `saveInPlace()`, which queues the same way, so a refusal at once would be needed there as well.
   - Not examined: the folder save (`_driveStorePushRun`) also checks the hold only before its folder read.
 
 - **R5 — a restore during a save stays unsaved** (the same review; fix approved by Brad on 11 Oct).
@@ -600,10 +608,16 @@ result for it was run fresh against these commits.
       repeats the line it targets. It still removes only `save()`'s line, and existing blocks still catch it, for
       example "v1.95 — Save acknowledges exactly what it wrote (the shared folder)".
     - Both new finds match the board once. Every other existing mutation still matches exactly once.
-  - **Tracked, not changed (proposed to Brad separately, 11 Oct).** ↶ Put back of work kept aside (`keptPutBack`) has the same gap. It sets `DIRTY` and the
+  - **What users may see.** A plain ↶ Put this back, with no save running, now also marks this browser's record unsaved.
+    So a reopen keeps the copy put back aside and loads the folder's newer copy with a message, where before it replaced
+    it without a word. That protects the work better. It also fills the kept-aside slot, so a later keep-aside can answer
+    that the slot is taken.
+  - **DATA LOSS, for Brad's decision (proposed separately, 11 Oct; outside R5's approved scope).** ↶ Put back of work kept aside (`keptPutBack`) has the same gap. It sets `DIRTY` and the
     record but does not count a change. In a scratch run on the patched board, kept work put back while a folder save
     was writing was then marked saved: `DIRTY`, `_baseDirty` and the record were false, and the folder held HISTORY,
-    not the work put back. R5 covers ↶ Put this back only, so this is left for a decision. It is not covered by a check.
+    not the work put back. The adversarial review then reopened that board: the work put back was **in no copy at all**
+    -- not on screen, not kept aside, not in the folder, not in its history. R5 covers ↶ Put this back only, so this
+    is left for Brad's decision. It is not covered by a check.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 

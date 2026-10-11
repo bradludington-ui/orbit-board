@@ -2657,7 +2657,9 @@ const MUTATIONS = [
   { id: 'impmixed-not-kept', area: 'fullImportUndone', what: 'a reload lifts the hold on Save',
     find: "  try{ localStorage.setItem(IMP_MIXED_KEY, JSON.stringify({t:Date.now(), file:String(fname||''), keys:mixedKeys})); }catch(e){}\n", repl: "" },
   { id: 'impmixed-file-unguarded', area: 'saveInPlaceFile', what: 'Save writes the mix over the board file',
-    find: "  if(impMixedBlock('Saving to the board file')) return;\n", repl: "" },
+    // anchored on its indent: v2.00 (R4) repeats the line deeper in, after the read (re-anchored 11 Oct; same purpose -- it removes
+    // only the check at the start of _saveInPlaceFileRun; before, it stayed unique only through the R4 line's trailing comment)
+    find: "\n  if(impMixedBlock('Saving to the board file')) return;\n", repl: "\n" },
   { id: 'impmixed-folder-unguarded', area: 'driveStorePush', what: 'the folder save and autosave write the mix',
     find: "  if(impMixedBlock('Writing to the shared folder', quiet)) return false;\n", repl: "" },
   { id: 'impmixed-clear-unasked', area: 'impMixedClear', what: 'allowing Save again is not asked',
@@ -4182,7 +4184,7 @@ const MUTATIONS = [
   { id: "v200-r3-cycblock-falls-through", area: "_driveStorePushRun", what: "the re-check after the read says writing is off but does not stop, so the locked plan is still written to the folder",
     find: "  if(cycBlock('Writing to the shared folder')) return false;\n",
     repl: "  cycBlock('Writing to the shared folder');\n" },
-  { id: "v200-r3-cycblock-says-saved", area: "_driveStorePushRun", what: "the re-check refuses but tells its caller it saved, so ⬆ Publish now records a publish (Live view: Saved just now) and the autosave counts it as saved",
+  { id: "v200-r3-cycblock-says-saved", area: "_driveStorePushRun", what: "the re-check refuses but tells its caller it saved, so ⬆ Publish now records a publish (Live view: Saved just now)",
     find: "  if(cycBlock('Writing to the shared folder')) return false;\n",
     repl: "  if(cycBlock('Writing to the shared folder')) return true;\n" },
   // v2.00 (R2, Brad 11 Oct): the refusal says the limit is on the EEIC as it is kept, trimmed and upper-cased.

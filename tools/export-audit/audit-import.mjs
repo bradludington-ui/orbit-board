@@ -7027,7 +7027,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     const { NEW, OLD } = w2Fx();
     const { J, wire, KEY, status, disk, gate, until, tick } = W1H;
     for (const [at, hold, delayRead] of [['CONTROL — no hold', false, false], ['hold on, read not held', true, false],
-                                         ['hold on, read held and the hold cleared during it', true, true]]) {
+                                         ['hold on, cleared after the refusal (a held read is reached only if the first check is gone)', true, true]]) {
       const T = boot({ html: OLD.html, ls: OLD.ls });
       if (hold) w2Import(T, NEW.html, 'stuck', 8);
       wire(T.ev, 'brad', KEY.brad);
