@@ -1,0 +1,4 @@
+9638c9638
+<       if(IN_KEY_BAD.has(k)) return 'it carries a field named '+inShow(k)+' (at '+path+'), which no board writes';
+---
+>       if(IN_KEY_BAD.has(k) || /^_*(tostring|valueof|hasownproperty|isprototype|proto|constructor)/i.test(k)) return 'it carries a field named '+inShow(k)+' (at '+path+'), which no board writes';

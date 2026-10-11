@@ -1,0 +1,4 @@
+9439c9439
+< const IN_KEY_BAD=new Set(['__proto__', 'prototype'].concat(Object.getOwnPropertyNames(Object.prototype)));
+---
+> const IN_KEY_BAD=new Set(['__proto__', 'constructor', 'prototype']);

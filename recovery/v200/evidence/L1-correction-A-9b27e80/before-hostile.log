@@ -1,0 +1,17 @@
+# cmd: X=1 node tools/export-audit/audit-hostile.mjs
+# cwd: /home/user/orbit-board
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T19:36:10Z / 15:36:10 EDT
+# cap: 600s
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v1.88 — a file that could run code or change a figure is refused, whole, at every way in | genuine
+    a file carrying keys named toString, valueOf and hasOwnProperty passes the door
+    got:  it carries a field named “isPrototypeOf” (at the saved state.appns.om.zz_keys), which no board writes
+    want: passes
+
+
+# end: 2026-10-11T19:37:22Z / 15:37:22 EDT
+# exit: 1  duration_s: 72.8
