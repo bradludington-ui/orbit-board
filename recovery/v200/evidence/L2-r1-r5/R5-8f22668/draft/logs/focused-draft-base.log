@@ -1,0 +1,17 @@
+
+================================================================================================
+scenarios heard: ["v2.00 (R5) — a restore during a save stays unsaved"]
+4 FAILING CHECK(S)
+
+--- v2.00 (R5) — a restore during a save stays unsaved | (a) WORKING saved, HISTORY put back during its write
+    HISTORY on screen, WORKING in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+        got ["HISTORY","WORKING",false,false,false]   want ["HISTORY","WORKING",true,true,true]
+--- v2.00 (R5) — a restore during a save stays unsaved | (a) WORKING saved, HISTORY put back during its write
+    the board says the change is not in the folder yet
+        got false   want true
+--- v2.00 (R5) — a restore during a save stays unsaved | (b) a clean board saved, HISTORY put back during its write
+    HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+        got [true,true,"[\"HISTORY\",\"CURRENT\",false,false,false]"]   want [true,true,"[\"HISTORY\",\"CURRENT\",true,true,true]"]
+--- v2.00 (R5) — a restore during a save stays unsaved | (b) a clean board saved, HISTORY put back during its write
+    the board says the change is not in the folder yet
+        got false   want true

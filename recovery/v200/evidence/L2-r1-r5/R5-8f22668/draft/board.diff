@@ -1,0 +1,17 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 42e8111..33b091d 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -27007,7 +27007,11 @@ async function driveRestore(i){
+     driveBaseSet(mySlug(), now? +((now.store&&now.store.ts)||now.ts||0) : 0);
+     persist();
+     try{ jrnlSync('restored the copy from '+pretty); }catch(e){}
+-    DIRTY=true;
++    // v2.00 (R5): THE COPY PUT BACK IS UNSAVED WORK, counted as an edit is. A folder save still writing when it was put back
++    // found the count unmoved and marked it saved, while the folder holds what that save wrote. Now that save leaves it
++    // unsaved and the next Save writes it; this browser's record says unsaved too, so a reopen keeps it aside, not replaced.
++    _saveGen++; DIRTY=true;
++    try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}
+     setStat('↶ Put back the copy from <b>'+esc(pretty)+'</b>. It is on screen and in this '
+       +'browser; press \u{1F4BE} Save to write it back to the folder for everyone.'
+       +(own? ' What was on screen, in no saved copy, is <b>kept aside</b>: '

@@ -1,0 +1,68 @@
+MUTATION APPLICABILITY -- R5 draft (applicability is counted separately from the catch)
+Patched board: wt/prioritization-board-grid.html, blob 33b091d5804a744d974e35c9adb06b25e6ef2cef (sha256 4497f8e1…2a91)
+Base board:    9b27e80 prioritization-board-grid.html, blob 42e8111810b11c0500adb2fd029194c0ccbd9780 (sha256 03ad86aa…fe8ff7)
+Counted by reading each board as text (Python str.count). mutate.mjs was read as text only. It was never imported or run.
+
+1. NEW ENTRIES (out/mutations.json)
+
+   id                          patched count   line    base count   mutant blob
+   v200-r5-restore-gen         1               27013   0            7728d7cd9e11781f8522ad1c182630ce2b07ad56
+   v200-r5-restore-basedirty   1               27013   0            e7c9827d23cf91407f8363538a586415d89b3723
+
+   Both finds start on the fix's own line in driveRestore, "    _saveGen++; DIRTY=true;", and run on into the next line, so
+   neither can match save()'s lines (2-space indent, other neighbours) or the v1.97 board-key line
+   ("  else if(kind==='board'){ try{ _saveGen++; DIRTY=true; }catch(e){} }").
+   - v200-r5-restore-gen:       "    _saveGen++; DIRTY=true;\n    try{ if(!_baseDirty){"  ->  "    DIRTY=true;\n    try{ if(!_baseDirty){"
+   - v200-r5-restore-basedirty: "    _saveGen++; DIRTY=true;\n    try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}\n"
+                                ->  "    _saveGen++; DIRTY=true;\n"
+
+2. CATCHES. Each mutant is the patched board with its find replaced once. It was run under the focused harness
+   (out/focused.mjs, which holds the committed block byte for byte). See evidence.md for commands and timings.
+
+   id                          exit  failing checks (scenario "v2.00 (R5) — a restore during a save stays unsaved")
+   v200-r5-restore-gen         1     4 failing checks, the same 4 as on base:
+                                     (a) HISTORY on screen, WORKING in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+                                         got ["HISTORY","WORKING",false,false,false]  want ["HISTORY","WORKING",true,true,true]
+                                     (a) the board says the change is not in the folder yet               got false  want true
+                                     (b) HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+                                         got [true,true,"HISTORY","CURRENT",false,false,false]  want [true,true,"HISTORY","CURRENT",true,true,true]
+                                     (b) the board says the change is not in the folder yet               got false  want true
+   v200-r5-restore-basedirty   1     1 failing check:
+                                     (b) HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+                                         got [true,true,"HISTORY","CURRENT",true,false,false]  want [true,true,"HISTORY","CURRENT",true,true,true]
+                                     (In (a) the edit before the save had already set the record to unsaved, so only (b), the board
+                                     clean before the restore, can see this line. That is why (b) exists.)
+
+   Every failure is a check's assertion: no crash, no boot error, and no "block threw". The block's controls ((a) the save went
+   in, (a) then Save, (c)) pass under both mutants.
+   In the full audit-import, the R5 block sits last, just before the scenario-ran guard. Under MUT_FIRST_FAIL=1 the mutant
+   reaches it after every earlier block. The full suite was not run here (the lead runs it alone).
+   Mutation sweep order: both ids start "v200-", so FIRST_BY_PREFIX tries audit-inject first (order only). The catcher is
+   audit-import.
+
+3. EXISTING ENTRIES, counted on the patched board
+   - recovery/v200/bin/mcount.py (copied unchanged; a text-only JS string reader): 1,274 entries, all parsed.
+       patched: 1,273 match once; MULTIPLE: unsaved-flag-never-set x2; MISSING: none   (logs/mcount-patched.json)
+       base:    1,274 match once                                                        (logs/mcount-base.json)
+   - Cross-check, bin/findscan.py (regex for find:, then json.loads on the literal): 1,270 literals decoded. The 4 entries
+     with String.raw or other escapes, and 2 "BUY-AC" matches inside data, were not decoded; mcount.py counts those 4 once.
+     The decoded literals agree with mcount: the only entry not exactly once is unsaved-flag-never-set [patched 2, base 1]
+     (logs/findscan.txt).
+
+   unsaved-flag-never-set: no longer applies (2 matches). Its find
+       "  try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}\n"
+   is now also a substring of the R5 line, which sits at a 4-space indent in driveRestore.
+   PROPOSED RE-ANCHOR (out/reanchor.json). Same purpose: save() never marks this browser's record unsaved.
+       find: "\n  try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}\n"
+       repl: "\n"
+     - applicability: patched 1 (save(), line 6770); base 1. On base, the re-anchored mutant is byte-identical to the old
+       entry's mutant. The R5 line does not match, because its "\n" is followed by 4 spaces, not 2.
+     - catch (patched mutant, blob 31e022bcb8c17b2ab941a68231ff0d10416ea2f6). Run under regress.mjs, which holds five existing
+       audit-import blocks verbatim: exit 1, 18 failing checks, for example
+         "v1.95 — Save acknowledges exactly what it wrote (the shared folder) | edit during the main write":
+         the folder copy holds what was built; the later edit stays unsaved   got BEFORE|true|false   want BEFORE|true|true
+       Other failing blocks: v1.89 "the file is newer" (6), "no room to keep it" (2), the v1.95 shared-folder block (4),
+       v1.95 Put this back (2) and v1.96 NR01 (4).
+     - The new R5 block alone does not catch it (focused.mjs on that mutant: ALL CHECKS PASSED). The R5 line sets the record
+       itself, so the earlier blocks above are what keep this entry caught.
+   No other existing entry changed count.
