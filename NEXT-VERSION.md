@@ -619,6 +619,18 @@ result for it was run fresh against these commits.
     -- not on screen, not kept aside, not in the folder, not in its history. R5 covers ↶ Put this back only, so this
     is left for Brad's decision. It is not covered by a check.
 
+- **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+  `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
+  - **U1:** a carried-row omission from the ALL YEARS total. Tracked as its own finding, with a reproduction under way.
+  - **U2:** keptPutBack loses data in R5's race.
+  - **U3:** a Save queued behind a running save under the hold.
+  - **U4:** the folder save's window for the hold.
+  - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
+  - **U7:** R2's checked and stored expressions are written twice.
+  - **U8:** R1's Help and wording remainders.
+  - **U9 and U10:** two findings from the review of `main`, the **PMO split disagreement** and the **locked-cycle RCN
+    export defect**, preserved unresolved. Their text was lost with the session's morning record and is needed again.
+
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 
 **The review's four, and the nine Brad scoped beside them.** An independent engineering review of v1.98 (6 Oct)
