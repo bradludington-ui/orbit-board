@@ -70,3 +70,31 @@ Each layer gets its own focused fail-before/pass-after evidence against its new 
 7. **Sensitivity runs** again, against the new SHAs: R1–R5, folder guard, partial lift, M4, M11, R4b, R3–R5.
 
 UI work is separate and not part of this branch.
+
+## Status log (Eastern time)
+
+- **11 Oct, about 4:04 PM:** the container restarted (uptime 0 min at 4:05 PM). The disk survived: the clone,
+  `node_modules`, the scratch evidence and every pushed commit were intact. Nothing was lost; the branch head was
+  `2a6e8b2`, already pushed.
+- **11 Oct, 4:04 PM, Brad's rules for running:**
+  - `audit-import` runs alone, capped at 900 s with a 20 s termination grace. Every other command keeps the 600 s
+    cap. A timeout is incomplete, never a pass.
+  - `verify:grid` and `standards` wait until the R1–R5 board changes are integrated.
+  - Record the full commit SHAs, board and tool blobs, environment, commands and outcomes.
+  - Two minutes of each 30-minute chunk are kept for checkpointing.
+  - UI work stays separate. The presweep and full gate stay paused.
+  - The runner `bin/run.sh` takes `grace=<s>`.
+- **11 Oct, 4:06 PM, the independent probes have not been received.** Brad's messages of 3:28 PM and 4:04 PM name
+  "attached independent probes", but both arrived as plain text, with no file, document or pasted attachment in the
+  session record. These places were searched and hold no probe files:
+  - the container's disk (every file changed since 3:52 PM);
+  - every branch of `orbit-board` and `Word-Matching-`;
+  - issue #12, the only issue updated on 11 Oct;
+  - Dropbox ("probe", changed since 10 Oct);
+  - Google Drive (recent files, and a full-text search since 10 Oct).
+
+  **Layer 2 (R1–R5) is not started.** When the probes arrive, their exact list goes here before any layer-2 work. Their
+  independent expectations are kept as written. Only paths, dependencies and output bindings are adapted.
+- **Note on `4713611`:** its message describes this status log, but the edit had not applied when it was committed, so
+  that commit holds only `bin/`. The log is added in the commit after it. History is not rewritten, because the
+  branch is pushed.
