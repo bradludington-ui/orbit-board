@@ -26831,6 +26831,12 @@ async function _driveStorePushRun(quiet, fyAsked){
   // A history copy that could not be kept stops the save above (v1.97, item 79): there is no "saved, but" any more.
   const lateNote = clean? '' : ' <b>A change made while it was saving is not in the folder yet</b> — it is saved next time.';
   const penNote = may==='claim'? ' You are now its <b>writer</b>.' : may==='take'? ' You now <b>hold the pen</b> for it.' : '';
+  // v2.00 (R3, Brad 11 Oct): A SAVE THAT LANDS UNDER A LOCKED VIEW SAYS WHAT IT SAVED -- the working plan, its bytes built before
+  // the cycle was put on screen. persist() above refuses in the view, and that refusal put "🔒 Not kept" before "✅ Saved", which
+  // read as a refusal and named no plan. Said whether or not the save was quiet: the refusal is on screen either way.
+  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '
+    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '
+    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }
   if(!quiet || !clean || may!=='me') setStat('✅ Saved '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)
     +' to the shared folder — '+Math.round(body.length/1024)+' KB. Everyone sees it on their '
     +'next refresh.'+penNote+lateNote);

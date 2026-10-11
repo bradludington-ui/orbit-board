@@ -516,12 +516,32 @@ result for it was run fresh against these commits.
     clean one. In every case:
     - the folder got the working plan whose bytes were built, never the locked plan, and history kept the copy it
       replaced;
-    - after leaving the view, the board read saved, which is correct;
+    - after leaving the view, **the screen reads unsaved again** (`DIRTY`), though the folder and this browser's record
+      (`_baseDirty`, the stored record) both hold the working plan as saved. `cycView` keeps the unsaved flag as it
+      was when the view opened, and `cycLeave` puts it back; the save that landed meanwhile cleared only the view's.
+      This happens when the board was unsaved as the save began. Only the screen flag is stale; the next Save writes
+      the same plan again. A first run of the probe missed it: it connected the folder before the board's opening
+      timers had run, and they cleared the flag during the hold. Tracked; a fix is proposed to Brad separately;
     - a later edit read unsaved, and the next Save wrote it.
 
-    The status line is wrong: it says "🔒 Not kept — PB27 is a locked view. ✅ Saved O&M FY27 to the shared folder".
-    That contradicts itself, and does not say the working plan is what was saved. A message-only change is proposed
-    to Brad separately. The evidence is in `recovery/v200/evidence/L2-r1-r5/R3-late-window-8f22668/`.
+    The status line was wrong: it said "🔒 Not kept — PB27 is a locked view. ✅ Saved O&M FY27 to the shared folder".
+    That contradicts itself, and does not say the working plan is what was saved. The prefix came from `persist()`,
+    which refuses in the view. The evidence is in `recovery/v200/evidence/L2-r1-r5/R3-late-window-8f22668/`.
+  - **The message, as Brad approved on 11 Oct.** A folder save that lands while a locked view is on screen now says
+    "✅ Saved the working plan of O&M FY27 to the shared folder — N KB, built before PB27 was put on screen. PB27
+    is a locked view: nothing in it is saved. Everyone sees the working plan on their next refresh." It never says
+    "Not kept".
+    - It is said for the quiet autosave too. That save used to say nothing on success, which left `persist()`'s
+      "not kept" refusal on screen.
+    - This is a message change only. What is written, the history, and the unsaved flags are unchanged.
+    - **Test:** `audit-import.mjs`, "v2.00 (R3) — a save that lands under a locked view says it saved the working
+      plan":
+      - Save, with PB27 put on screen during the copy's write: the folder content, the history and the flags as
+        controls, plus the message;
+      - the quiet autosave in the same window;
+      - a held save with nothing put on screen, which still says "✅ Saved O&M FY27" (a control).
+    - **Mutations:** `v200-r3-landed-view-unsaid` (the old message) and `v200-r3-landed-view-prefix` ("Not kept"
+      left in front).
 
 - **R4 — a Save already waiting does not write past a mixed-import hold** (the same review; fix approved by Brad on 11 Oct). `_saveInPlaceFileRun` checked the hold
   once, before it waited for permission and for the board file's read. If a full import stopped part-way during that

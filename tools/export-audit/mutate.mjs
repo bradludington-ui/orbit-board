@@ -4206,6 +4206,13 @@ const MUTATIONS = [
   { id: "v200-r5-restore-basedirty", area: "driveRestore", what: "Put this back leaves this browser's record saying saved when the board was clean, so the copy put back reads as saved after a save that was writing meanwhile, and after a reopen",
     find: "    _saveGen++; DIRTY=true;\n    try{ if(!_baseDirty){ _baseDirty=true; baseSet({dirty:true}); } }catch(e){}\n",
     repl: "    _saveGen++; DIRTY=true;\n" },
+  // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+  { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+    find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",
+    repl: "" },
+  { id: "v200-r3-landed-view-prefix", area: "_driveStorePushRun", what: "the landed-under-a-view message is said, but persist's refusal still puts “🔒 Not kept” before it",
+    find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat(",
+    repl: "  if(CYCVIEW){ setStat(" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

@@ -6911,6 +6911,65 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.00 (R3) ====
+// ==== v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan ====
+// The later window R3 does not refuse: PB27 put on screen AFTER the save built its bytes, while its copy is being written. The
+// folder rightly gets the working plan; the board said "🔒 Not kept — PB27 is a locked view. ✅ Saved O&M FY27 …" (persist()'s
+// own refusal in the view put the prefix there), which read as a refusal and named no plan. It now says the working plan was
+// saved and the locked view was not. Nothing written or flagged changes. FAILS ON 7e0764d except the CONTROLs.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (R3) — a save that lands under a locked view says it saved the working plan';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, flags, pause } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // PB27 is locked holding LOCKED; the folder's copy holds WORKING, saved; WORKING TWO is on screen, unsaved.
+  const fresh = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); await pause(5);     // the opening's own bookkeeping runs once the page has loaded
+    wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','LOCKED'); blCyc='PB'; blYr=2027; cycLock(); setNote('A','WORKING'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','WORKING TWO'); 'ok'`);
+    return { A, fold };
+  };
+  // A folder save held at the close of its write of the copy itself -- its bytes already built; `during` runs there.
+  const held = async (A, fold, call, during) => {
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = A.ev(call);
+    const reached = await until(() => (fold.hits.main || 0) > n0);
+    if (during) A.ev(during + `; 'ok'`);
+    g.open(); const ret = await p; const fl = flags(A.ev);
+    return { reached, ret, view: A.ev('String(CYCVIEW)'), folder: fold.note(2027, 'A'), unsaved: [fl.DIRTY, A.ev('_baseDirty'), !!fl.base.dirty] };
+  };
+  const kept = (fold, note) => Object.values((fold.root.dirs.history || { files: {} }).files).some(t => { try { return JSON.parse(t).store.years['2027'].notes.A === note; } catch (e) { return false; } });
+  const SAID = /^✅ Saved the working plan of O&M FY27 to the shared folder — \d+ KB, built before PB27 was put on screen\. PB27 is a locked view: nothing in it is saved\. Everyone sees the working plan on their next refresh\.$/;
+  // (a) SAVE, AND PB27 PUT ON SCREEN WHILE THE COPY IS BEING WRITTEN: the folder gets the working plan, the copy it replaced is kept,
+  // the board reads saved, and the message says the working plan was saved and the locked view was not -- no "Not kept".
+  { const { A, fold } = await fresh();
+    const r = await held(A, fold, 'driveStorePush(false)', `cycView('PB|2027')`), st = status(A.ev);
+    chk(name, '(a) PB27 put on screen during the write', 'the save waited at its write, then landed: WORKING TWO in the folder, WORKING kept in history, saved (a CONTROL)',
+      J([r.reached, r.ret, r.view, r.folder, kept(fold, 'WORKING'), ...r.unsaved]), J([true, true, 'PB|2027', 'WORKING TWO', true, false, false, false]));
+    chk(name, '(a) PB27 put on screen during the write', 'the board says it saved the working plan, built before PB27 was put on screen, and that nothing in PB27 is saved',
+      J([SAID.test(st), /Not kept/.test(st)]), J([true, false])); }
+  // Not checked here: after leaving the view the screen reads unsaved (cycLeave puts back the flag cycView kept) though the
+  // folder and this browser's record hold the working plan -- tracked and proposed to Brad separately; a message change only.
+  // (b) THE QUIET AUTOSAVE: it said nothing on success, so persist()'s refusal ("Writing to browser storage is off … not kept") was
+  // left on screen. It says the same as (a).
+  { const { A, fold } = await fresh();
+    const r = await held(A, fold, 'driveStorePush(true)', `cycView('PB|2027')`), st = status(A.ev);
+    chk(name, '(b) the quiet autosave, PB27 put on screen during the write', 'the working plan saved, and the board says so, with no "not kept"',
+      J([r.ret, r.folder, SAID.test(st), /not kept/i.test(st)]), J([true, 'WORKING TWO', true, false])); }
+  // (c) CONTROL: the same held save with nothing put on screen says Saved as before.
+  { const { A, fold } = await fresh();
+    const r = await held(A, fold, 'driveStorePush(false)', ''), st = status(A.ev);
+    chk(name, '(c) nothing put on screen during the write (a CONTROL)', 'the save writes the working plan and says Saved O&M FY27 as before',
+      J([r.ret, r.folder, /^✅ Saved O&M FY27 to the shared folder — \d+ KB\. Everyone sees it on their next refresh\./.test(st), SAID.test(st)]),
+      J([true, 'WORKING TWO', true, false])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (R3) message ====
 
 // ==== v2.00 R4: Save and the mixed-import hold (R4, R4b) ====
 // v2.00 (R4): A SAVE ALREADY WAITING DOES NOT WRITE PAST A MIXED-IMPORT HOLD. _saveInPlaceFileRun checked the hold once,
