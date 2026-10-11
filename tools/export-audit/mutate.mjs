@@ -4188,6 +4188,16 @@ const MUTATIONS = [
   { id: "v200-r2-why-unexplained", area: "rcnSet", what: "an EEIC refusal no longer says the limit is on the EEIC trimmed and upper-cased: ten ß typed are reported as “SSSSSSSSSSSSSSSSSSSS”, 20 characters",
     find: "    if(r.why && field==='eeic') r.why=eeicWhy(val);\n",
     repl: "" },
+  // v2.00 (R4, the same review; Brad, 11 Oct): a save already waiting does not write past a mixed-import hold.
+  { id: "v200-r4-no-recheck", area: "_saveInPlaceFileRun", what: "a Save already waiting on the board file's read is not checked again for the mixed-import hold, so it writes the mix an import that stopped part-way during the read left",
+    find: "    if(impMixedBlock('Saving to the board file')) return;   // v2.00 (R4):",
+    repl: "    if(false) return;   // v2.00 (R4):" },
+  { id: "v200-r4-held-quietly", area: "_saveInPlaceFileRun", what: "the Save stopped by the hold after the read says nothing, so the board never says it did not save",
+    find: "    if(impMixedBlock('Saving to the board file')) return;   // v2.00 (R4):",
+    repl: "    if(impMixedBlock('Saving to the board file', true)) return;   // v2.00 (R4):" },
+  { id: "v200-r4-said-not-held", area: "_saveInPlaceFileRun", what: "after the read the board says Save is refused, but the Save goes on and writes the mix over the board file",
+    find: "    if(impMixedBlock('Saving to the board file')) return;   // v2.00 (R4):",
+    repl: "    impMixedBlock('Saving to the board file');   // v2.00 (R4):" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
