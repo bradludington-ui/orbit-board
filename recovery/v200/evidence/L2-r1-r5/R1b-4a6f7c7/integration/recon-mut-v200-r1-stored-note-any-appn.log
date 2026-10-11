@@ -1,0 +1,25 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/R1bint/mut-v200-r1-stored-note-any-appn.html node tools/export-audit/audit-recon.mjs
+# cwd: /home/user/orbit-board
+# git: 2b5b02b66dc66f2ebecf0df114d1582d62696f26
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:40:08Z / 18:40:08 EDT
+# cap: 600s  grace: 10s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | S · O&M with no FY25 rows, Spares' FY25 row carried · FY25 alone · the planned note
+    nothing in scope has executed in FY25; another appropriation's carried rows are not given as O&M's reason
+        got [[false],true]   want [[true],false]
+
+# end: 2026-10-11T22:40:57Z / 18:40:57 EDT
+# exit: 1  duration_s: 49.2

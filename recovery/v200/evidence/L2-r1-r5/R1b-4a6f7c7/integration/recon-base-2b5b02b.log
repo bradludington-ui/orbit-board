@@ -1,0 +1,49 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/R1bint/base-2b5b02b.html node tools/export-audit/audit-recon.mjs
+# cwd: /home/user/orbit-board
+# git: 2b5b02b66dc66f2ebecf0df114d1582d62696f26
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:38:28Z / 18:38:28 EDT
+# cap: 600s  grace: 10s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+9 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the panel
+    the year chips agree: FY25 marked plan, FY26 not; and beside executed money no year is called PLANNED, not executed (Brad, 11 Oct)
+        got [["FY25 · plan [on]","FY26 [on]"],"FY25"]   want [["FY25 · plan [on]","FY26 [on]"],""]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | E · ALL YEARS · the panel
+    no year is called PLANNED, not executed beside $40M executed; the planned note states $40.00M executed and $500.00M planned
+        got ["FY26, FY27, FY28, FY29, FY30",1,[false]]   want ["",1,[true]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | A · ALL YEARS · the export
+    planned years holding $0 do not make a mix: US SERVICE FUNDING 140000000 and no planned-and-executed NOTE
+        got ["ok",[140000000],["NOTE: planned and executed money in one total — FY25: O&M executed; FY26: O&M executed; FY27: O&M planned; FY28: O&M planned; FY29: O&M planned; FY30: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation."]]   want ["ok",[140000000],[]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | A · ALL YEARS · the panel
+    no planned-and-executed box, no year called PLANNED, not executed; the planned note states $140.00M executed and $0.00M planned
+        got ["Planned and executed money in one total. FY25: O&M executed; FY26: O&M executed; FY27: O&M planned; FY28: O&M planned; FY29: O&M planned; FY30: O&M planned. Executed money is the imported CCaR QPE; planned money is O&M’s own allocation. $140.00M executed, $0.00M planned.","FY27, FY28, FY29, FY30",[false]]   want ["","",[true]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY26 + FY27 · the export
+    a planned year holding $0 beside an executed one: US SERVICE FUNDING 100000000 and no planned-and-executed NOTE
+        got ["ok",[100000000],["NOTE: planned and executed money in one total — FY26: O&M executed; FY27: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation."]]   want ["ok",[100000000],[]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY26 + FY27 · the panel
+    no planned-and-executed box, no year called PLANNED, not executed; the planned note states $100.00M executed and $0.00M planned
+        got ["Planned and executed money in one total. FY26: O&M executed; FY27: O&M planned. Executed money is the imported CCaR QPE; planned money is O&M’s own allocation. $100.00M executed, $0.00M planned.","FY27",[false]]   want ["","",[true]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 + FY26 · the panel
+    not "FY25 is PLANNED, not executed" beside $100M executed: $100.00M executed and $300.00M planned, the FY25 rows stored under FY25 and counted in FY26
+        got ["FY25",["FY25 is PLANNED, not executed. Nothing in scope has executed in that year yet, so the chart reads O&M’s own allocation — what the board intends to fund, one line per requirement per funded service, the same grain the Spend Plan Source export uses. This scope mixes the two: $100.00M executed, $300.00M planned. A planned year covers O&M only — another appropriation’s requirements are not reachable from this board."]]   want ["",["This total holds $100.00M executed and $300.00M planned. FY25 is a planned year. The rows stored under FY25 are counted in FY26 (OBBBA), so the chart reads O&M’s own allocation for it — what the board intends to fund, one line per requirement per funded service, the same grain the Spend Plan Source export uses. A planned year covers O&M only — another appropriation’s requirements are not reachable from this board."]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 alone · the planned note
+    says the rows stored under FY25 are counted in FY26, not that nothing has executed in it
+        got [[false],true]   want [[true],false]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · the FY25 button
+    its tooltip says the O&M rows are stored under FY25 and counted in FY26, so FY25 is read from its plan (never "no O&M execution imported")
+        got FY2025 has no O&M execution imported, so O&M is answered from this board’s own allocation   want FY2025: the O&M rows imported for it are stored under FY2025 and counted in FY2026 (OBBBA), so FY2025 O&M is read from its plan — this board’s own allocation
+
+# end: 2026-10-11T22:39:17Z / 18:39:17 EDT
+# exit: 1  duration_s: 49.1
