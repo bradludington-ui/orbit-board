@@ -1,0 +1,4 @@
+15466c15466
+< function flowIsMixed(F){ return F.execYs.length>0 && F.planYs.length>0; }
+---
+> function flowIsMixed(F){ return F.mixYs.length>0; }

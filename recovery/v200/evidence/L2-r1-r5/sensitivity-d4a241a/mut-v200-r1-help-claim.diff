@@ -1,0 +1,4 @@
+16578c16578
+<       +'Each row is counted once, in its effective year \u2014 never twice. A year with execution counted in it is read from that execution, never also from the plan; a year left with none is a planned year, read from this board\u2019s allocation. So switching this on can change a total even with both years selected.</div>'
+---
+>       +'Each row belongs to exactly one year either way, so it can never appear twice \u2014 select both years and the total is unchanged.</div>'

@@ -1,0 +1,4 @@
+16658c16658
+<   if(flowIsMixed(F)) sum.splice(3,0,['NOTE: planned and executed money in one total \u2014 '
+---
+>   if(F.mixYs.length) sum.splice(3,0,['NOTE: planned and executed money in one total \u2014 '

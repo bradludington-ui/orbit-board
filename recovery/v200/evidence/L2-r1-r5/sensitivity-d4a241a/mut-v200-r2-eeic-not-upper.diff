@@ -1,0 +1,4 @@
+10855c10855
+<   if(field==='rcn' || field==='eeic'){ const r=codeTake(field==='eeic'? String(val||'').trim().toUpperCase() : val, field);
+---
+>   if(field==='rcn' || field==='eeic'){ const r=codeTake(field==='eeic'? String(val||'').trim() : val, field);
