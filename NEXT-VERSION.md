@@ -229,6 +229,10 @@ script address. A board this board wrote carries none of the refused shapes, so 
   - `door-proto` and `door-constructor`, for the wider key rule. Each still removes exactly the name it is named for.
 - validate-math's suites line no longer says "8 suites", and its comment now counts nine suites, eight of which print
   the banner.
+- The sweep tries `audit-inject` first for a `v200-*` mutation that has no catcher on record (`FIRST_BY_PREFIX` in
+  `mutate.mjs`), as it already did for a mutation whose catcher is on record. Order only: caught still means some suite
+  failed, and a survivor must still pass every suite. With no catcher on record (a fresh checkout, as the gate runs),
+  each of these mutations otherwise ran the seven suites above `audit-inject` before reaching it.
 
 `audit-inject` joins `audit:suites` and the sweep's catching set. 135 mutations are added (1,139 to 1,274), each
 matching its target exactly once.

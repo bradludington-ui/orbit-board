@@ -4181,7 +4181,13 @@ const JOBS = Math.max(1, Number(process.env.MUT_JOBS) || cpus().length);
 const CATCHERS = join(HERE, '..', '..', '.math-reports', 'catchers-' + BOARD.split('/').pop().replace(/\.html$/, '') + '.json');
 let LAST = {};
 try { LAST = JSON.parse(readFileSync(CATCHERS, 'utf8')) || {}; } catch { LAST = {}; }
-const orderFor = (id) => { const first = LAST[id];
+// A SECURITY MUTATION TRIES audit-inject FIRST (v2.00). Each v200-* mutation breaks an escape or a guard that only
+// audit-inject is built to see, so with no catcher on record (a fresh checkout, as the gate runs) every one paid for
+// the seven suites above it before reaching the one that catches it: the 8 Oct gate's last 50 took 76 minutes. A
+// catcher on record still goes first. The verdict cannot change: caught means some suite failed, and a survivor must
+// pass every suite, in any order.
+const FIRST_BY_PREFIX = [['v200-', 'inject']];
+const orderFor = (id) => { const first = LAST[id] || (FIRST_BY_PREFIX.find(p => id.startsWith(p[0])) || [])[1];
   return first && SUITES.some(s => s[0] === first) ? [...SUITES.filter(s => s[0] === first), ...SUITES.filter(s => s[0] !== first)] : SUITES; };
 const runSuite = (path, file) => new Promise(done => {
   // Each suite is capped at 2.5 GB of heap (v1.86). Four run at once; uncapped, V8 grew each toward its

@@ -3957,6 +3957,9 @@ assertions, not checks.
 
 135 mutations (`v200-*`) each undo one fix or re-add one over-escape, and each is caught by `audit-inject` alone. Seven
 existing mutations were retargeted to lines v2.00 rewrote. That makes 1,274 targets, each matching exactly once.
+With no catcher on record, `mutate.mjs` tries `audit-inject` first for a `v200-*` id (`FIRST_BY_PREFIX`); a recorded
+catcher still goes first. Order only, never the verdict. Add a prefix there when a new family has one suite built to
+see it.
 
 **Gate.** GATE_V200
 
