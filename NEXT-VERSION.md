@@ -510,10 +510,18 @@ result for it was run fresh against these commits.
     - `v200-r3-cycblock-says-saved` refuses but returns true: the return check and ⬆ Publish now's "no publish
       recorded" check fail.
     - Each new find matches the board once, and every existing mutation still matches exactly once.
-  - **Limit, not changed.** A cycle put on screen after the bytes are built (while the history copy, the copy itself or
-    the lock is being written) is not checked again. The folder still gets the working plan, which is correct, but the
-    board then says "🔒 Not kept — … ✅ Saved …". After leaving the view, the board shows unsaved until the next Save.
-    This was seen in a scratch run and is not covered by a check.
+  - **Tracked, not changed: the later window (bounded probe, 11 Oct).** Sometimes a cycle is put on screen **after**
+    the save has built its bytes, while its history copy, main copy or lock is being written. That case is not
+    checked again. A bounded probe at `8f22668` held the save at each of those writes, on an edited board and on a
+    clean one. In every case:
+    - the folder got the working plan whose bytes were built, never the locked plan, and history kept the copy it
+      replaced;
+    - after leaving the view, the board read saved, which is correct;
+    - a later edit read unsaved, and the next Save wrote it.
+
+    The status line is wrong: it says "🔒 Not kept — PB27 is a locked view. ✅ Saved O&M FY27 to the shared folder".
+    That contradicts itself, and does not say the working plan is what was saved. A message-only change is proposed
+    to Brad separately. The evidence is in `recovery/v200/evidence/L2-r1-r5/R3-late-window-8f22668/`.
 
 - **R4 — a Save already waiting does not write past a mixed-import hold** (the same review; fix approved by Brad on 11 Oct). `_saveInPlaceFileRun` checked the hold
   once, before it waited for permission and for the board file's read. If a full import stopped part-way during that
