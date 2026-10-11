@@ -474,8 +474,12 @@ result for it was run fresh against these commits.
     two behave the same; they are different edits. `v199-rcn-cut` still matches once and is still caught, so it
     needs no re-anchor here.
   - **Limits:**
-    - The refusal message shows the stored form. Ten ß are reported as "SSSSSSSSSSSSSSSSSSSS" is 20 characters,
-      and the message does not say the text was upper-cased.
+    - **The refusal says why (Brad, 11 Oct).** It says the limit is on the EEIC as it is kept, trimmed and
+      upper-cased, and names what was typed when upper-casing changed it: "The EEIC is measured as it is kept,
+      trimmed and upper-cased: “ßßßßßßßßßß” becomes “SSSSSSSSSSSSSSSSSSSS”, 20 characters; it can be at most 10."
+      The field's own explanation reads the same. The RCN, kept as typed, keeps item 91's wording. Checked in
+      `audit-board.mjs`, "v2.00 (R2) — an EEIC refusal says the limit is on the EEIC trimmed and upper-cased";
+      mutation `v200-r2-why-unexplained`.
     - Length is counted as before, in UTF-16 code units (`String.length`), the same count `codeIssues` uses.
     - An EEIC that arrives in a file is stored as it arrives, without upper-casing. `codeIssues` therefore already
       measures the stored form, and it is still kept whole and listed, as in item 91.

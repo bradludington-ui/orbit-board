@@ -4130,6 +4130,41 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   _w1Release(__bm, []);
   await _w1Settle();
 })();
+// v2.00 (R2, Brad 11 Oct): THE REFUSAL SAYS THE LIMIT IS ON THE EEIC AS IT IS KEPT -- trimmed and upper-cased -- and names
+// what was typed when upper-casing changed it. "The EEIC “SSSSSSSSSSSSSSSSSSSS” is 20 characters" read as wrong to someone who
+// typed ten ß. The RCN, kept as typed, keeps item 91's wording. Expected texts are literals. FAILS ON 529e07e except the CONTROL.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w1Mark();
+  const name = 'v2.00 (R2) — an EEIC refusal says the limit is on the EEIC trimmed and upper-cased';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('X', 'AV', [500, 700])], disc: [10000, 10000], mand: [0, 0], order: ['X'] });
+  // [the status line, the field's own explanation]
+  const refused = (field, t) => w1json(ev, `JSON.stringify((function(){ MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA'}]; setStat(''); const el=document.createElement('input');
+      el.value=${J(t)}; rcnSet(0,${J(field)},el.value,el);
+      return [document.getElementById('shareStat').textContent, el.title]; })())`);
+  const SZ = 'ß', W20 = 'S'.repeat(20);
+  const eeic = why => J(['⚠ EEIC not changed. ' + why + '.', why]);
+  chk(name, 'EEIC typed as ß×10', 'the refusal says the EEIC is measured trimmed and upper-cased, and that the ten ß typed become twenty S',
+    J(refused('eeic', SZ.repeat(10))),
+    eeic('The EEIC is measured as it is kept, trimmed and upper-cased: “' + SZ.repeat(10) + '” becomes “' + W20 + '”, 20 characters; it can be at most 10. Nothing was changed'));
+  chk(name, 'EEIC typed as " abcdefghijk "', 'trimmed and upper-cased it is ABCDEFGHIJK, 11 characters, and the refusal says so',
+    J(refused('eeic', ' abcdefghijk ')),
+    eeic('The EEIC is measured as it is kept, trimmed and upper-cased: “abcdefghijk” becomes “ABCDEFGHIJK”, 11 characters; it can be at most 10. Nothing was changed'));
+  chk(name, 'EEIC typed as ABCDEFGHIJK', 'unchanged by upper-casing: the refusal names it once, 11 characters',
+    J(refused('eeic', 'ABCDEFGHIJK')),
+    eeic('The EEIC is measured as it is kept, trimmed and upper-cased: “ABCDEFGHIJK” is 11 characters; it can be at most 10. Nothing was changed'));
+  chk(name, 'RCN typed as 12345678901', 'CONTROL — the RCN keeps item 91\'s wording',
+    J(refused('rcn', '12345678901')),
+    J(['⚠ RCN not changed. The RCN “12345678901” is 11 characters; it can be at most 10. Nothing was changed.',
+       'The RCN “12345678901” is 11 characters; it can be at most 10. Nothing was changed']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w1Release(__bm, []);
+  await _w1Settle();
+})();
 // ==== end v1.97 W1 ====
 // ==== v1.97 W2: every edit the saved file carries marks the board unsaved (item 76) ====
 // ==== end v1.97 W2 ====

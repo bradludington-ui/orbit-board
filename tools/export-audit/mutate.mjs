@@ -4184,6 +4184,10 @@ const MUTATIONS = [
   { id: "v200-r3-cycblock-says-saved", area: "_driveStorePushRun", what: "the re-check refuses but tells its caller it saved, so ⬆ Publish now records a publish (Live view: Saved just now) and the autosave counts it as saved",
     find: "  if(cycBlock('Writing to the shared folder')) return false;\n",
     repl: "  if(cycBlock('Writing to the shared folder')) return true;\n" },
+  // v2.00 (R2, Brad 11 Oct): the refusal says the limit is on the EEIC as it is kept, trimmed and upper-cased.
+  { id: "v200-r2-why-unexplained", area: "rcnSet", what: "an EEIC refusal no longer says the limit is on the EEIC trimmed and upper-cased: ten ß typed are reported as “SSSSSSSSSSSSSSSSSSSS”, 20 characters",
+    find: "    if(r.why && field==='eeic') r.why=eeicWhy(val);\n",
+    repl: "" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

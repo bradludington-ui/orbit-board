@@ -10847,12 +10847,20 @@ function rcnAdd(){
   L.push({k:'r'+Date.now().toString(36)+'_'+L.length, rcn:'', eeic:'', t:'', svc:RCN_SVCS.slice()});
   save(); render();
 }
+// v2.00 (R2): AN EEIC IS MEASURED AS IT IS KEPT -- trimmed and upper-cased -- and its refusal says so, naming what was typed
+// when upper-casing changed it. "The EEIC “ßßßßßßßßßß” is 20 characters" read as wrong: ten were typed.
+function eeicWhy(val){
+  const typed=String(val==null? '' : val).trim(), kept=typed.toUpperCase();
+  return 'The EEIC is measured as it is kept, trimmed and upper-cased: '+(kept!==typed? inShow(typed)+' becomes '+inShow(kept)+', ' : inShow(kept)+' is ')
+    +kept.length+' characters; it can be at most '+codeMax('eeic')+'. Nothing was changed';
+}
 function rcnSet(i,field,val,el){
   const L=rcnReg(), e=L[i]; if(!e) return;
   // v1.99 (item 91): over 10 is refused, never cut; the field keeps what was typed, marked
   // v2.00 (R2): an EEIC is checked in the form it is stored, trimmed and upper-cased. Upper-casing can lengthen it
   // (ß becomes SS, ﬃ becomes FFI): ten ß passed the check as 10 characters and were stored as 20.
   if(field==='rcn' || field==='eeic'){ const r=codeTake(field==='eeic'? String(val||'').trim().toUpperCase() : val, field);
+    if(r.why && field==='eeic') r.why=eeicWhy(val);
     if(r.why){ codeRefusedIn(el, (field==='rcn'? 'RCN' : 'EEIC')+' not changed', r.why); return; } }
   if(field==='rcn')  e.rcn=String(val||'').trim();
   else if(field==='eeic') e.eeic=String(val||'').trim().toUpperCase();
