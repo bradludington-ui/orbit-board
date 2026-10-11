@@ -4167,6 +4167,13 @@ const MUTATIONS = [
   { id: "v200-r1-mix-words-one-kind", area: "flowMixWords", what: "a year of one kind is written as both, with an empty side: 'FY25: O&M planned,  executed; FY26:  planned, O&M executed'",
     find: "  return 'FY'+(y%100)+': '+[m.plan.length? L(m.plan)+' planned' : '', m.exec.length? L(m.exec)+' executed' : '', m.none.length? L(m.none)+' not in this total' : ''].filter(Boolean).join(', ');",
     repl: "  return 'FY'+(y%100)+': '+L(m.plan)+' planned, '+L(m.exec)+' executed'+(m.none.length? ', '+L(m.none)+' not in this total' : '');" },
+  // v2.00 (R2, the same review; Brad, 11 Oct): an EEIC is checked in the form it is stored, trimmed and upper-cased.
+  { id: "v200-r2-eeic-checked-raw", area: "rcnSet", what: "an EEIC is checked as typed (the v1.99 check), not in the form it is stored: ten ß pass as 10 characters and are kept as 20",
+    find: "  if(field==='rcn' || field==='eeic'){ const r=codeTake(field==='eeic'? String(val||'').trim().toUpperCase() : val, field);",
+    repl: "  if(field==='rcn' || field==='eeic'){ const r=codeTake(val, field);" },
+  { id: "v200-r2-eeic-not-upper", area: "rcnSet", what: "the EEIC check trims but does not upper-case, as if upper-casing never changed a length: ﬃ×4 passes as 4 characters and is kept as 12",
+    find: "codeTake(field==='eeic'? String(val||'').trim().toUpperCase() : val, field)",
+    repl: "codeTake(field==='eeic'? String(val||'').trim() : val, field)" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
