@@ -24,3 +24,15 @@ is byte-identical to its draft's `block.mjs.txt`, and `node --check` parses the 
 - **Committed-suite sensitivity:** pending. It needs a full audit-import for each mutation.
 
 **Tracked, not changed (proposed separately):** `keptPutBack` has the same gap as R5.
+
+## The full audit-import.mjs at 8f22668, run alone (5:37–5:47 PM ET)
+
+- **Command:** `node tools/export-audit/audit-import.mjs`, from the main clone. HEAD was `8f22668` and no tracked file
+  was changed. It ran through `bin/run.sh` with a **900 s cap and 20 s grace** (Brad's 4:04 PM rule), in its own
+  process group.
+- **Concurrency:** no other suite or probe of mine ran during it. The workflow agents (verifiers and the R1 follow-up
+  draft) were working in their own scratch clones on the same 4-CPU machine.
+- **Result:** exit 0, **595.6 s, ALL CHECKS PASSED.** That covers every existing block, the R3, R4, R4b and R5 blocks,
+  and the scenario-ran guard. The log is `audit-import-full.log`.
+- **During the run:** the evidence commit `89b1e6e` was pushed. It changed only `recovery/`, so the board and `tools/`
+  stayed those of `8f22668` throughout.
