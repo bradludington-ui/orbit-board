@@ -1,6 +1,6 @@
 # v2.00: unresolved ledger (opened 11 Oct 2026, 6:30 PM ET)
 
-These findings and gaps are known but not fixed. U9 and U10 were restored on 11 Oct, at 6:35 PM ET, from the review record Brad
+These findings and gaps are known but not fixed. U9 and U10 were restored on 11 Oct, at 6:29 PM ET, from the review record Brad
 supplied. Each one stays here until Brad decides it or its fix is integrated with
 fresh evidence. A review finding is not permission to fix.
 
@@ -27,7 +27,7 @@ Recorded at backup branch head `46b28b5b342e175fe099502e9f262dada3b2063a`. The b
 
 **At $9:** expected $2/$3/$4, actual $1/$3/$5. Non-tie controls pass.
 
-**Cause (per the record):** PMO weights are normalized by floating-point division before the exact split. | The review of `main` (Codex), as Brad supplied it at 6:28 PM ET, 11 Oct (`surviving/review-record-U9-U10-received-2026-10-11.md`) | **Reproduced per that record** on `main` `f9b4413` (board `b160bc03…`) and on WIP `e635775` (board `fd728f1c…`). Both board blobs were confirmed here against the repository. Two bounded whole-board runs completed: 29 checks passed and 5 ownership checks failed, with no crashes or timeouts. **Not verified at the current pinned tree** (`8e2dbe5`, board `82c7f446…`, the same board as `af892cb`). | **Unresolved**, pending reproduction on the current pinned tree. Not fixed |
+**Cause (per the record):** PMO weights are normalized by floating-point division before the exact split. | The review of `main` (Codex), as Brad supplied it at 6:28 PM ET, 11 Oct (`surviving/review-record-U9-U10-received-2026-10-11.md`) | **Reproduced per that record** on `main` `f9b4413` (board `b160bc03…`) and on WIP `e635775` (board `fd728f1c…`). Both board blobs were confirmed here against the repository. Two bounded whole-board runs completed: 29 checks passed and 5 ownership checks failed, with no crashes or timeouts. **Not verified at the current pinned tree** (`8e2dbe5`, board `82c7f446…`, the same board as `af892cb`). | **Unresolved**, pending reproduction on the current pinned tree (bounded reproduction under way since 6:31 PM ET, workflow `wf_2330ead5-cc0`, with `main` as its positive control). Not fixed |
 | U10 | **P2: refused edits change a locked-cycle export's codes.**
 
 **Steps:**
@@ -40,7 +40,7 @@ Recorded at backup branch head `46b28b5b342e175fe099502e9f262dada3b2063a`. The b
 
 **Actual:** Save says "the change was not kept", but the RCN-EEIC by Month sheet exports those dollars under 77777/AAAAA, labelled LOCKED VIEW. The stored cycle and the working codes stay intact.
 
-**Cause (per the record):** the setter changes the registry before the refusal, and the refusal restores only the year state. | The review of `main` (Codex), as Brad supplied it at 6:28 PM ET, 11 Oct (same file) | **Reproduced per that record** on `main` `f9b4413` and WIP `e635775` (blobs as for U9). Two bounded runs completed: 44 assertions passed and 9 failed. These were synthetic jsdom checks. **Not verified at the current pinned tree** (`8e2dbe5` / `af892cb`, board `82c7f446…`). Related: v1.99 item 88 (a locked cycle keeps its own RCN/EEIC list). | **Unresolved**, pending reproduction on the current pinned tree. Not fixed |
+**Cause (per the record):** the setter changes the registry before the refusal, and the refusal restores only the year state. | The review of `main` (Codex), as Brad supplied it at 6:28 PM ET, 11 Oct (same file) | **Reproduced per that record** on `main` `f9b4413` and WIP `e635775` (blobs as for U9). Two bounded runs completed: 44 assertions passed and 9 failed. These were synthetic jsdom checks. **Not verified at the current pinned tree** (`8e2dbe5` / `af892cb`, board `82c7f446…`). Related: v1.99 item 88 (a locked cycle keeps its own RCN/EEIC list). | **Unresolved**, pending reproduction on the current pinned tree (bounded reproduction under way since 6:31 PM ET, workflow `wf_2330ead5-cc0`, with `main` as its positive control). Not fixed |
 | U11 | **Tracked from the morning: neighbouring writer and restore risks.** `takePen`, `driveExecPush`, `driveAcePush`, `driveAceReplace`, `aceRestore`, `driveRpPush`, `driveStorePull` load-theirs, and the hold message overwritten by the "Saved in place" status. | The 9:51 AM ET working summary ("tracked separately, not to implement") | None in this session | Tracked; not examined since the reset |
 | U12 | **Documentation work C** (`orbit-docs`; its agent never reported) | 9:51 AM ET working summary | None | Tracked |
 
