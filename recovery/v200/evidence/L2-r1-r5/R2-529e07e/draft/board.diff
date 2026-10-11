@@ -1,0 +1,15 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 42e8111..62276be 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -10850,7 +10850,9 @@ function rcnAdd(){
+ function rcnSet(i,field,val,el){
+   const L=rcnReg(), e=L[i]; if(!e) return;
+   // v1.99 (item 91): over 10 is refused, never cut; the field keeps what was typed, marked
+-  if(field==='rcn' || field==='eeic'){ const r=codeTake(val, field);
++  // v2.00 (R2): an EEIC is checked in the form it is stored, trimmed and upper-cased. Upper-casing can lengthen it
++  // (ß becomes SS, ﬃ becomes FFI): ten ß passed the check as 10 characters and were stored as 20.
++  if(field==='rcn' || field==='eeic'){ const r=codeTake(field==='eeic'? String(val||'').trim().toUpperCase() : val, field);
+     if(r.why){ codeRefusedIn(el, (field==='rcn'? 'RCN' : 'EEIC')+' not changed', r.why); return; } }
+   if(field==='rcn')  e.rcn=String(val||'').trim();
+   else if(field==='eeic') e.eeic=String(val||'').trim().toUpperCase();
