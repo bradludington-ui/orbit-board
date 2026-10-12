@@ -185,3 +185,18 @@ workflow was launched at 6:08:07 AM ET.)
   started, so the approvals could be folded in; its two safety builders had run about 3 minutes (the partial U1/U14
   directory is kept as `rec/L3/u14-aborted-0611`; nothing else was written). Relaunched as `wf_ed273e24-21b` (safety:
   U13; U1 then U14) and `wf_d5c82278-87a` (UI: M1, then S1–S5, each part reviewed). Nothing else is running.
+
+## Update at 6:18 AM ET: UI bundle backups; the final-tree queue pinned to the integration SHA
+
+- **UI branch backup** (`rec/bin/ui-bundle.sh`): `claude/v200-ui` is bundled from `4a6f7c7` into
+  `recovery/v200/ui-backup/` on this branch, then RESTORED to prove it: a fresh clone of `claude/v200-fixes-wip` from
+  GitHub, `git bundle verify`, fetch of the branch from the bundle, and the restored tip, tree and full commit list
+  compared with the local branch. First backup `90cbacf` at 6:17 AM ET: tip `eba613f`, tree `27a0e1b8`, 9 commits,
+  identical. It runs again at every checkpoint and whenever the UI branch moves; a superseded bundle leaves the tree
+  but stays in history; every manifest stays.
+- **The final-tree queue** (`rec/bin/final-tree-v2.sh`) now takes the pinned integration SHA and refuses to start
+  unless its clone is exactly at that SHA with no tracked change. It runs every suite in `audit:suites`, the new
+  `audit-ui`, the sensitivity of every v2.00 mutation at that tree (audit-import's alone; audit-recon, audit-board and
+  audit-ui for theirs, which includes M1's cancellation and rollback mutations), `verify:grid` and `standards`,
+  applicability, and an informational lane (check, math-defects, money-coverage, trace-matrix, money-map,
+  roundtrip-fuzz). `validate-math` is not run: it executes mutate.mjs.
