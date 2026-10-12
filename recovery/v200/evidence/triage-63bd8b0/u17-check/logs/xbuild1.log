@@ -1,0 +1,8 @@
+head + w1h verbatim from the builder
+node --check ok
+src/x-body.mjs 98a4fef41c96ca01126f22a0c02cdf0806674a23
+x-probe.mjs 2a3c60145c82a4e11541f2ae6a6d309f22ea2216
+q.sh 5b9f953cda78b907319908ad5753aad0064b5d3f
+rr.sh c54677659ce1cb905cba8c76092d2746105bd588
+mm.sh 375047d54d79e9323a3d26ff15ca74d082d5b783
+xbuild.sh 82bb291bbc591f2697e8b56e86e82e4db302e5de

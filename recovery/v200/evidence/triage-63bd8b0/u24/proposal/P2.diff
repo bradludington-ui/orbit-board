@@ -1,0 +1,18 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 98eed7e..4dd1b42 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -7027,8 +7027,11 @@ function bootTakeFile(){
+   if(!confirm('Open the saved file\u2019s version and replace what is on screen?\n\n'
+     +'This browser\u2019s own work is NOT kept \u2014 only in a copy you saved yourself.')) return;
+   if(applyStore(PUB)===false) return;
+-  LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+-  persist(); DIRTY=false; render();
++  // (proposed, outside U24) WORKING OUT OF THE SHARED FOLDER, the file's version is not the folder's copy: it stays unsaved, so a
++  // reopen keeps it aside before a folder copy replaces it, and the header does not say Saved. The file's time is still recorded.
++  const fold=driveStoreOn();
++  LASTKNOWN=PUB_FILE_TS; _baseDirty=fold; baseSet({file:LASTKNOWN, dirty:fold});
++  persist(); DIRTY=fold; render();
+   setStat('\ud83d\udce6 Opened the saved file\u2019s version \u2014 last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>' : '')+' '+esc(fmtTs(PUB.ts))+'.');
+ }
+ function buildSavedHtml(opts){

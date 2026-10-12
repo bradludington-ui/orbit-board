@@ -1,0 +1,45 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] fixture.bobBase: bob loaded brad's copy: [returned, screen, his base = v1 ts]
+     expected [true,"BRAD-1",true]
+     observed [true,"BRAD-1",true]
+PASS [fixture] C1.bobCopy: bob's copy is the folder's current copy: [content, by, writer, bob DIRTY, bob record dirty]
+     expected ["BOB-2","Bob","Bob",false,false]
+     observed ["BOB-2","Bob","Bob",false,false]
+PASS [predict] C1.refresh: the refresh with no save under way ([returned, _saveBusy, screen, record dirty, _saveGen unchanged, kept slot, the folder copy was read, folder writes other than the lock, U13 refusal words said])
+     expected [true,0,"BOB-2",false,true,null,true,0,false]
+     observed [true,0,"BOB-2",false,true,null,true,0,false]
+PASS [contract] C1.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["BOB-2",false,"BOB-2"]]
+     observed ["BOB-2",true,"BOB-2"]
+PASS [predict] C1.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["BOB-2",true,"BOB-2"]
+     expected false
+     observed false
+PASS [contract] C1.K2: CONTRACT after a later refresh (or the board says the copies differ) [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["BOB-2",false,"BOB-2"]]
+     observed ["BOB-2",true,"BOB-2"]
+PASS [contract] C1.K3: CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["BOB-2",false,"BOB-2"]]
+     observed ["BOB-2",true,"BOB-2"]
+PASS [contract] C1.reach: CONTRACT: BOB-2/$650 and BRAD-1/$700 each remain in some reachable copy (BOB-2 counting bob's own board) ([BOB-2 reachable, BRAD-1 reachable])
+     expected [true,true]
+     observed [true,true]
+PASS [related (U18, not U17)] C1.U18: bob's copy BOB-2/$650 is in the shared folder (head or history)
+     expected "(observed only)"
+     observed true
+PASS [predict] C1.V3next: Brad's next 💾 Save from where the route ended ["questions asked","screen before","head before","head after","status says","recorded clean after","record names the head"]
+     expected [0,"BOB-2","BOB-2","BOB-2","pen",true,true]
+     observed [0,"BOB-2","BOB-2","BOB-2","pen",true,true]
+PASS [contract] C1.U17.V3: U17 (V3next): from a record that says saved while the screen differs from the copy it names, 💾 Save writes the screen copy over a folder head holding different content and asks nothing ([record falsely clean before, wrote over a different head without asking])
+     expected {"not":[true,true]}
+     observed [false,false]
+whereNow {"BOB-2":{"folderHead":true,"folderHistory":[],"screen":true,"storage":true,"keptSlot":false,"bobScreen":true,"bobStorage":true},"BRAD-1":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-144804.json"],"screen":false,"storage":false,"keptSlot":false,"bobScreen":false,"bobStorage":false}}
+u17state {"tuple":["BOB-2",true,"BOB-2"],"falselyClean":false}
+nextFrom {"K":["BOB-2",true,"BOB-2"],"falselyClean":false,"head":"BOB-2","history":["spmt-2027-om-20261012-144804.json BRAD-1"]}
+v3parts {"falselyClean":false,"wroteOver":false,"overwritten":"BOB-2","overwrittenNowIn":{"folderHead":true,"folderHistory":[],"screen":true,"storage":true,"keptSlot":false}}
+ids {"board":"1375b72b6707faa57c50d528e01ce9611f194998","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"6b65ff659b6f2f374b29b2707cf1ce049a5eecf2","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/c137/prioritization-board-grid.html"}
+SUMMARY C1 save board=pre: 13 pass, 0 fail | fixture 4/4 | predict 3/3 | contract 5/5 | harness 0/0

@@ -1,0 +1,17 @@
+SHc-fold-Wauto probe d9e816ec board 98eed7e8
+  end       screen BRAD-2 | recordedClean true | base BRAD-2 | falselyClean false | kept BRAD-2 | stored BRAD-2
+      BRAD-2   ["screen","storage","kept","folder"]
+      SHARED   ["sidecar"]
+      status: Shared state loaded (published 10/12/2026, 3:42:07 PM).
+  reopened  screen BRAD-2 | recordedClean true | base BRAD-2 | falselyClean false | kept BRAD-2 | stored BRAD-2
+      BRAD-2   ["screen","storage","kept","folder"]
+      SHARED   ["sidecar"]
+      status: Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 3:42:06 PM by unknown). 💾 Save writes them into the file.
+  edited    screen BRAD-2 | recordedClean false | base BRAD-2 | falselyClean false | kept BRAD-2 | stored BRAD-2
+      BRAD-2   ["screen","storage","kept","folder"]
+      SHARED   ["sidecar"]
+      status: Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 3:42:06 PM by unknown). 💾 Save writes them into the file.
+  refresh   screen BRAD-2 | recordedClean true | base BRAD-2 | falselyClean false | kept BRAD-2 | stored BRAD-2
+      BRAD-2   ["screen","storage","kept","folder"]
+      SHARED   ["sidecar"]
+      status: Shared state loaded (published 10/12/2026, 3:42:07 PM).

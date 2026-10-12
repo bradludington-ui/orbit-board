@@ -1,0 +1,68 @@
+| route | board | U17 state: expected / observed [screen, clean, base copy] | K2 later refresh / K3 reopen | V3next: U17? (overwritten copy now in) | V4putback: U17? [falsely clean, claim, claim false, screen copy kept nowhere] | fixture+predict checks (all 3 runs) |
+|---|---|---|---|---|---|---|
+| S1harness | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| S1harness | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| S1tick | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| S1tick | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| S1perm | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| S1perm | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| S1open | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| S1open | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| S1pen | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| S1pen | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| V1same | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| V1same | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| V1sameperm | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| V1sameperm | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| V2live | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| V2live | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| W2pull | 63bd8b0 | false / false [BRAD-1,true,BRAD-1] | ok [BRAD-1,true,BRAD-1] / ok [BRAD-1,true,BRAD-1] | no (BRAD-1: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| W2pull | 1375b72b | true / true [BOB-2,true,BRAD-1] | FAIL [BOB-2,true,BRAD-1] / FAIL [BOB-2,true,BRAD-1] | **U17** (BRAD-1: history (-recent)) | no [true,none,false,false] | 20/20 |
+| W2tick | 63bd8b0 | false / false [BRAD-1,true,BRAD-1] | ok [BRAD-1,true,BRAD-1] / ok [BRAD-1,true,BRAD-1] | no (BRAD-1: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| W2tick | 1375b72b | true / true [BOB-2,true,BRAD-1] | FAIL [BOB-2,true,BRAD-1] / FAIL [BOB-2,true,BRAD-1] | **U17** (BRAD-1: history (-recent)) | no [true,none,false,false] | 20/20 |
+| Ca | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| Ca | 1375b72b | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| Cb | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| Cb | 1375b72b | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| Cc | 63bd8b0 | false / false [REMOTE,true,REMOTE] | ok [REMOTE,true,REMOTE] / ok [REMOTE,true,REMOTE] | no (REMOTE: folderHead, history, screen, storage) | no [false,in-folder,false,true] | 16/16 |
+| Cc | 1375b72b | false / false [REMOTE,true,REMOTE] | ok [REMOTE,true,REMOTE] / ok [REMOTE,true,REMOTE] | no (REMOTE: folderHead, history, screen, storage) | no [false,in-folder,false,true] | 16/16 |
+| C1 | 63bd8b0 | false / false [BOB-2,true,BOB-2] | ok [BOB-2,true,BOB-2] / ok [BOB-2,true,BOB-2] | no (BOB-2: folderHead, screen, storage) | no [false,none,false,false] | 14/14 |
+| C1 | 1375b72b | false / false [BOB-2,true,BOB-2] | ok [BOB-2,true,BOB-2] / ok [BOB-2,true,BOB-2] | no (BOB-2: folderHead, screen, storage) | no [false,none,false,false] | 14/14 |
+| C3 | 63bd8b0 | false / false [BRAD-1,true,BRAD-1] | ok [BRAD-1,true,BRAD-1] / ok [BRAD-1,true,BRAD-1] | no (BRAD-1: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 16/16 |
+| C3 | 1375b72b | false / false [BRAD-1,true,BRAD-1] | ok [BRAD-1,true,BRAD-1] / ok [BRAD-1,true,BRAD-1] | no (BRAD-1: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 16/16 |
+| U25ws | 63bd8b0 | false / false [REMOTE,true,REMOTE] | ok / ok | no (WORKING: folderHead) | no [false,none,false,false] | 20/20 |
+| U25ws | 1375b72b | false / false [REMOTE,true,REMOTE] | ok / ok | no (WORKING: folderHead) | no [false,none,false,false] | 20/20 |
+| U25wf | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| U25wf | 1375b72b | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| U25mid | 63bd8b0 | false / false [WORKING,true,WORKING] | ok [WORKING,true,WORKING] / ok [WORKING,true,WORKING] | no (WORKING: folderHead, history (-recent), screen, storage) | no [false,none,false,false] | 20/20 |
+| U25mid | 1375b72b | true / true [REMOTE,true,WORKING] | FAIL [REMOTE,true,WORKING] / FAIL [REMOTE,true,WORKING] | **U17** (WORKING: history (-recent), keptSlot) | **U17** [true,in-folder,true,true] | 20/20 |
+| L20 | 63bd8b0 | false / false [REMOTE,true,REMOTE] | ok [REMOTE,true,REMOTE] / ok [REMOTE,true,REMOTE] | no (REMOTE: folderHead, history (-recent), screen, storage) | no [false,in-folder,false,false] | 20/20 |
+| L20 | 1375b72b | false / false [REMOTE,true,REMOTE] | ok [REMOTE,true,REMOTE] / ok [REMOTE,true,REMOTE] | no (REMOTE: folderHead, history (-recent), screen, storage) | no [false,in-folder,false,false] | 20/20 |
+| SHd | 63bd8b0 | true / true [SHARED,true,BRAD-2] | ok [BRAD-2,true,BRAD-2] / ok [BRAD-2,true,BRAD-2] | **U17** (BRAD-2: history (-recent), keptSlot) | no [true,in-file,false,true] | 29/29 |
+| SHd | 1375b72b | true / true [SHARED,true,BRAD-2] | ok [BRAD-2,true,BRAD-2] / ok [BRAD-2,true,BRAD-2] | **U17** (BRAD-2: history (-recent), keptSlot) | no [true,in-file,false,true] | 29/29 |
+| SHdC | 63bd8b0 | false / false [SHARED,false,BRAD-1] | ok [SHARED,false,BRAD-1] / ok [SHARED,false,BRAD-1] | no (BRAD-1: history) | no [false,in-place,false,false] | 23/23 |
+| SHdC | 1375b72b | false / false [SHARED,false,BRAD-1] | ok [SHARED,false,BRAD-1] / ok [SHARED,false,BRAD-1] | no (BRAD-1: history) | no [false,in-place,false,false] | 23/23 |
+| SHdk | 63bd8b0 | true / true [SHARED,true,BRAD-2] | FAIL [SHARED,true,BRAD-2] / FAIL [SHARED,true,BRAD-2] | **U17** (BRAD-2: history (-recent), keptSlot) | no [true,in-file,false,true] | 29/29 |
+| SHdk | 1375b72b | true / true [SHARED,true,BRAD-2] | FAIL [SHARED,true,BRAD-2] / FAIL [SHARED,true,BRAD-2] | **U17** (BRAD-2: history (-recent), keptSlot) | no [true,in-file,false,true] | 29/29 |
+| SHdkC | 63bd8b0 | false / false [SHARED,false,BRAD-1] | ok [SHARED,false,BRAD-1] / ok [SHARED,false,BRAD-1] | no (BRAD-1: history) | no [false,in-place,false,false] | 23/23 |
+| SHdkC | 1375b72b | false / false [SHARED,false,BRAD-1] | ok [SHARED,false,BRAD-1] / ok [SHARED,false,BRAD-1] | no (BRAD-1: history) | no [false,in-place,false,false] | 23/23 |
+| SHa | 63bd8b0 | true / true [SHARED,true,BRAD-1] | FAIL [SHARED,true,BRAD-1] / FAIL [SHARED,true,BRAD-1] | **U17** (BRAD-1: history (-recent)) | no [true,none,false,false] | 23/23 |
+| SHa | 1375b72b | true / true [SHARED,true,BRAD-1] | FAIL [SHARED,true,BRAD-1] / FAIL [SHARED,true,BRAD-1] | **U17** (BRAD-1: history (-recent)) | no [true,none,false,false] | 23/23 |
+| SHaC | 63bd8b0 | true / true [SHARED,true,BRAD-1] | FAIL [SHARED,true,BRAD-1] / FAIL [SHARED,true,BRAD-1] | **U17** (BRAD-1: history) | no [true,none,false,false] | 17/17 |
+| SHaC | 1375b72b | true / true [SHARED,true,BRAD-1] | FAIL [SHARED,true,BRAD-1] / FAIL [SHARED,true,BRAD-1] | **U17** (BRAD-1: history) | no [true,none,false,false] | 17/17 |
+| BT | 63bd8b0 | true / true [F1,true,BRAD-2] | ok [BRAD-2,true,BRAD-2] / ok [BRAD-2,true,BRAD-2] | **U17** (BRAD-2: history (-recent)) | no [true,none,false,false] | 23/23 |
+| BT | 1375b72b | true / true [F1,true,BRAD-2] | ok [BRAD-2,true,BRAD-2] / ok [BRAD-2,true,BRAD-2] | **U17** (BRAD-2: history (-recent)) | no [true,none,false,false] | 23/23 |
+| BTC | 63bd8b0 | true / true [F1,true,BRAD-1] | ok [BRAD-1,true,BRAD-1] / ok [BRAD-1,true,BRAD-1] | **U17** (BRAD-1: history) | no [true,none,false,false] | 17/17 |
+| BTC | 1375b72b | true / true [F1,true,BRAD-1] | ok [BRAD-1,true,BRAD-1] / ok [BRAD-1,true,BRAD-1] | **U17** (BRAD-1: history) | no [true,none,false,false] | 17/17 |
+| IB | 63bd8b0 | false / false [IMPORT,false,BRAD-2] | ok [IMPORT,false,BRAD-2] / ok [IMPORT,false,BRAD-2] | no (BRAD-2: history (-recent)) | no [false,none,false,false] | 23/23 |
+| IB | 1375b72b | false / false [IMPORT,false,BRAD-2] | ok [IMPORT,false,BRAD-2] / ok [IMPORT,false,BRAD-2] | no (BRAD-2: history (-recent)) | no [false,none,false,false] | 23/23 |
+| IBC | 63bd8b0 | false / false [IMPORT,false,BRAD-1] | ok [IMPORT,false,BRAD-1] / ok [IMPORT,false,BRAD-1] | no (BRAD-1: history) | no [false,none,false,false] | 17/17 |
+| IBC | 1375b72b | false / false [IMPORT,false,BRAD-1] | ok [IMPORT,false,BRAD-1] / ok [IMPORT,false,BRAD-1] | no (BRAD-1: history) | no [false,none,false,false] | 17/17 |
+| FBT | 63bd8b0 | true / true [F1,true,BRAD-2] | - / ok [BRAD-2,true,BRAD-2] | **U17** (BRAD-2: earlier file version only) | no [true,none,false,false] | 20/20 |
+| FBT | 1375b72b | true / true [F1,true,BRAD-2] | - / ok [BRAD-2,true,BRAD-2] | **U17** (BRAD-2: earlier file version only) | no [true,none,false,false] | 20/20 |
+| FBTC | 63bd8b0 | false / false [F1,true,F1] | - / ok [BRAD-1,true,BRAD-1] | no (BRAD-1: earlier file version only) | no [false,none,false,false] | 15/15 |
+| FBTC | 1375b72b | false / false [F1,true,F1] | - / ok [BRAD-1,true,BRAD-1] | no (BRAD-1: earlier file version only) | no [false,none,false,false] | 15/15 |
+| FSHd | 63bd8b0 | true / true [SHARED,true,BRAD-2] | - / ok [BRAD-2,true,BRAD-2] | **U17** (BRAD-2: keptSlot, earlier file version only) | **U17** [true,in-file,true,true] | 23/23 |
+| FSHd | 1375b72b | true / true [SHARED,true,BRAD-2] | - / ok [BRAD-2,true,BRAD-2] | **U17** (BRAD-2: keptSlot, earlier file version only) | **U17** [true,in-file,true,true] | 23/23 |
+| FSHdC | 63bd8b0 | false / false [SHARED,false,BRAD-1] | - / ok [SHARED,false,BRAD-1] | no (BRAD-1: earlier file version only) | no [false,in-place,false,false] | 17/17 |
+| FSHdC | 1375b72b | false / false [SHARED,false,BRAD-1] | - / ok [SHARED,false,BRAD-1] | no (BRAD-1: earlier file version only) | no [false,in-place,false,false] | 17/17 |

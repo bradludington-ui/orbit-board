@@ -1,0 +1,12 @@
+ok   BT-file-Wcf         RUN    finished, no error, board 98eed7e8 
+ok   BT-file-Wcf         HOLD   held [reached, busy, target, DIRTY, asked] 
+ok   BT-file-Wcf         FIX    the person clicked 'open the file’s version' and answered its one ques 
+ok   BT-file-Wcf         CF     COUNTERFACTUAL mark applied: [DIRTY, record dirty, screen] 
+ok   BT-file-Wcf         PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   BT-file-Wcf         PRED   end 
+ok   BT-file-Wcf         PRED   reopen 
+ok   BT-file-Wcf         K      K1/K2/K3 falsely clean 
+ok   BT-file-Wcf         REACH  end: BRAD-2, KEPT-0, CAROL-F in a board copy 
+ok   BT-file-Wcf         REACH  reopened: BRAD-2, KEPT-0, CAROL-F in a board copy 
+ok   BT-file-Wcf         REACH  edited: BRAD-2, KEPT-0, CAROL-F in a board copy 
+TOTAL 19 checks, 8 fail

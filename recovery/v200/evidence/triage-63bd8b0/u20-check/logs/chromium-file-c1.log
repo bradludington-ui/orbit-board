@@ -1,0 +1,9 @@
+INFO F1 env A, B: [protocol, origin, secure context, typeof navigator.locks, typeof request] [["file:","null",true,"object","function"],["file:","null",true,"object","function"]]
+INFO F1 while A holds (raw) {"aHolds":true,"aErr":null,"aBusy":1,"bBusy":0,"bRan":false,"bErr":null,"qA":{"held":1,"pending":1},"qB":{"held":1,"pending":1}}
+INFO F1 after A released (raw) {"bDone":true,"bRan":true,"busyInside":1,"bBusy":0,"bErr":null}
+PASS F1 same file, two tabs: A holds; B waits uncounted: [A holds, A err, A busy, B busy, B ran, B err] got=[true,null,1,0,false,null]
+PASS F1 same file: then B runs (counted inside) and ends: [ran, busy inside, busy after, err] got=[true,1,0,null]
+INFO F2 env A, B: [protocol, origin, secure context, typeof navigator.locks, typeof request] [["file:","null",true,"object","function"],["file:","null",true,"object","function"]]
+INFO F2 two different files: while A holds (raw) {"aHolds":true,"aErr":null,"aBusy":1,"bBusy":0,"bRan":false,"bErr":null,"qA":{"held":1,"pending":1},"qB":{"held":1,"pending":1}}
+INFO F2 two different files: after A released (raw) {"bDone":true,"bRan":true,"busyInside":1,"bBusy":0,"bErr":null}
+chromium-file done 2 pass 0 fail

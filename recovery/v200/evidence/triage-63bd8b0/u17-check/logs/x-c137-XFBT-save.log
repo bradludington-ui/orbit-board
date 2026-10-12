@@ -1,0 +1,46 @@
+PASS [fixture] fixture.v1: BRAD-1 saved into the board file
+     expected ["BRAD-1",1]
+     observed ["BRAD-1",1]
+PASS [fixture] fixture.x1: the other machine saved X-1 into the file, asking nothing ([file, questions])
+     expected ["X-1",0]
+     observed ["X-1",0]
+PASS [fixture] fixture.reopen1: reopening: the newer file X-1 opens and BRAD-2 is kept aside ([screen, kept, clean, record names X-1, put-back link])
+     expected ["X-1","BRAD-2",true,"X-1",true]
+     observed ["X-1","BRAD-2",true,"X-1",true]
+PASS [fixture] fixture.x2: the other machine saved X-2 ([file, questions])
+     expected ["X-2",0]
+     observed ["X-2",0]
+PASS [predict] XFBT.boot: the opening: newer file, work cannot be kept aside (kept slot occupied), "open the file's version" offered ([screen, kept, button bootTakeFile(), file])
+     expected ["BRAD-3","BRAD-2",true,"X-2"]
+     observed ["BRAD-3","BRAD-2",true,"X-2"]
+PASS [fixture] fixture.held: the 💾 Save into the file reached its close and is held ([reached, _saveBusy])
+     expected [true,1]
+     observed [true,1]
+PASS [predict] XFBT.heldAsked: the save asked HOLD ON (the file is newer than the copy on screen came from), answered OK ([questions])
+     expected 1
+     observed 1
+PASS [predict] XFBT.linkHeld: while the save writes, the status line still shows the button (bootTakeFile)
+     expected true
+     observed true
+PASS [predict] XFBT.adopt: the other copy is put on screen (DOM click: clicked) ([screen, _saveBusy, _saveGen unchanged, kept slot, said])
+     expected ["X-2",1,true,"BRAD-2",true]
+     observed ["X-2",1,true,"BRAD-2",true]
+PASS [predict] XFBT.file: the file once settled
+     expected "BRAD-3"
+     observed "BRAD-3"
+PASS [predict] XFBT.K1: once settled [screen, recorded clean, the file version the record names]
+     expected ["X-2",true,"BRAD-3"]
+     observed ["X-2",true,"BRAD-3"]
+FAIL [contract] XFBT.contractK1: recorded clean only against a file version holding what is on screen
+     expected "not falsely clean"
+     observed ["X-2",true,"BRAD-3"]
+PASS [predict] XFBT.V3next: the next 💾 Save ["questions","screen before","file before","file after","status","clean after","record names file"]
+     expected [0,"X-2","BRAD-3","X-2","saved-file",true,true]
+     observed [0,"X-2","BRAD-3","X-2","saved-file",true,true]
+PASS [predict] XFBT.reachBRAD3: BRAD-3 in a copy this board can reach after the next Save (file, screen, storage, kept slot)
+     expected false
+     observed false
+u17state {"tuple":["X-2",true,"BRAD-3"],"falselyClean":true}
+whereBRAD3 {"file":false,"screen":false,"storage":false,"keptSlot":false,"earlierFileVersionsOnly":["10/12/2026, 15:13:11 ET"]}
+ids {"board":"1375b72b6707faa57c50d528e01ce9611f194998","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"c47a43b62bf00e391aafa040de32f37109e10699","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/c137/prioritization-board-grid.html"}
+SUMMARY XFBT save board=pre: 13 pass, 1 fail | fixture 5/5 | predict 8/8 | contract 0/1 | harness 0/0

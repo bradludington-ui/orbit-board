@@ -1,0 +1,42 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] fixture.bobBase: bob loaded brad's copy: [returned, screen, his base = v1 ts]
+     expected [true,"BRAD-1",true]
+     observed [true,"BRAD-1",true]
+PASS [fixture] C3.held: brad's 💾 Save with nothing unsaved reached its write and is held: [reached, DIRTY, record dirty, _saveBusy, head ts = v1 ts]
+     expected [true,false,false,1,true]
+     observed [true,false,false,1,true]
+PASS [predict] C3.refresh: the refresh during the held save ([returned, _saveBusy, screen, record dirty, _saveGen unchanged, kept slot, the folder copy was read, folder writes other than the lock, U13 refusal words said])
+     expected [false,1,"BRAD-1",false,true,null,true,0,false]
+     observed [false,1,"BRAD-1",false,true,null,true,0,false]
+PASS [fixture] C3.head: the folder head after brad's save lands: the bytes it built ([content, by, writer])
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [contract] C3.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["BRAD-1",false,"BRAD-1"]]
+     observed ["BRAD-1",true,"BRAD-1"]
+PASS [predict] C3.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["BRAD-1",true,"BRAD-1"]
+     expected false
+     observed false
+PASS [contract] C3.K2: CONTRACT after a later refresh (or the board says the copies differ) [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["BRAD-1",false,"BRAD-1"]]
+     observed ["BRAD-1",true,"BRAD-1"]
+PASS [contract] C3.K3: CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["BRAD-1",false,"BRAD-1"]]
+     observed ["BRAD-1",true,"BRAD-1"]
+PASS [predict] C3.V4putback: ↶ put it back, then 💾 Save ["kept before","the question's claim","screen before","head before","put back says","kept after","screen after put back","head after Save","Save says"]
+     expected [null,"none","BRAD-1","BRAD-1","nothing kept",null,"BRAD-1","BRAD-1","saved"]
+     observed [null,"none","BRAD-1","BRAD-1","nothing kept",null,"BRAD-1","BRAD-1","saved"]
+PASS [contract] C3.U17.V4: U17 (V4putback): from a record that says saved while the screen differs from the copy it names, ↶ Put back's question says the screen copy is still in the shared folder (the folder head holds other content) and the screen copy is then kept nowhere but history ([record falsely clean before, the claim false, the screen copy kept nowhere but history])
+     expected {"not":[true,true,true]}
+     observed [false,false,false]
+whereNow {"BOB-2":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false,"bobScreen":false,"bobStorage":false},"BRAD-1":{"folderHead":true,"folderHistory":["spmt-2027-om-20261012-191113.json"],"screen":true,"storage":true,"keptSlot":false,"bobScreen":true,"bobStorage":true}}
+u17state {"tuple":["BRAD-1",true,"BRAD-1"],"falselyClean":false}
+nextFrom {"K":["BRAD-1",true,"BRAD-1"],"falselyClean":false,"head":"BRAD-1","history":["spmt-2027-om-20261012-191113.json BRAD-1"]}
+v4parts {"falselyClean":false,"claim":"none","falseClaim":false,"notKept":false,"screenCopyIn":{"folderHead":true,"folderHistory":["spmt-2027-om-20261012-191113.json","spmt-2027-om-20261012-191115-recent.json"],"screen":true,"storage":true,"keptSlot":false},"saveAfterPutBackAsked":0,"saveAfterPutBackSays":"saved"}
+ids {"board":"1375b72b6707faa57c50d528e01ce9611f194998","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"6b65ff659b6f2f374b29b2707cf1ce049a5eecf2","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/c137/prioritization-board-grid.html"}
+SUMMARY C3 putback board=pre: 12 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 4/4 | harness 0/0

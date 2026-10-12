@@ -1,0 +1,65 @@
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/base:
+total 3684
+drwxr-xr-x  3 root root    4096 Oct 12 08:54 .
+drwxr-xr-x 13 root root    4096 Oct 12 15:23 ..
+lrwxrwxrwx  1 root root      35 Oct 12 08:54 node_modules -> /home/user/orbit-board/node_modules
+-rw-rw-r--  1 root root    3018 Oct 12 08:53 package.json
+-r--r--r--  1 root root 3751019 Oct 12 08:53 prioritization-board-grid.html
+-rw-r--r--  1 root root     477 Oct 12 08:54 runtime-encoding-shim.mjs
+dr-xr-xr-x  4 root root    4096 Oct 12 08:53 tools
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24:
+total 376
+drwxr-xr-x  7 root root   4096 Oct 12 11:45 .
+drwxr-xr-x 13 root root   4096 Oct 12 15:23 ..
+-rw-r--r--  1 root root  11731 Oct 12 11:41 PROPOSAL.md
+-rw-r--r--  1 root root  94065 Oct 12 11:46 README.md
+drwxr-xr-x  3 root root   4096 Oct 12 08:54 b63
+-rw-r--r--  1 root root  21948 Oct 12 11:36 check.mjs
+drwxr-xr-x  2 root root  12288 Oct 12 11:46 logs
+-rwxr-xr-x  1 root root    983 Oct 12 11:36 matrix.sh
+drwxr-xr-x  2 root root  12288 Oct 12 11:45 out
+-rw-r--r--  1 root root 154113 Oct 12 11:46 pids.txt
+drwxr-xr-x  3 root root   4096 Oct 12 11:34 proposal
+-rwxr-xr-x  1 root root   1693 Oct 12 11:03 q.sh
+-rwxr-xr-x  1 root root   1733 Oct 12 11:03 run.sh
+drwxr-xr-x  2 root root   4096 Oct 12 11:45 src
+-rw-r--r--  1 root root  34857 Oct 12 11:36 u24probe.mjs
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24/b63:
+total 3684
+drwxr-xr-x 3 root root    4096 Oct 12 08:54 .
+drwxr-xr-x 7 root root    4096 Oct 12 11:45 ..
+lrwxrwxrwx 1 root root      35 Oct 12 08:54 node_modules -> /home/user/orbit-board/node_modules
+-rw-rw-r-- 1 root root    3018 Oct 12 08:53 package.json
+-r--r--r-- 1 root root 3751019 Oct 12 08:53 prioritization-board-grid.html
+-rw-r--r-- 1 root root     477 Oct 12 08:54 runtime-encoding-shim.mjs
+dr-xr-xr-x 4 root root    4096 Oct 12 08:53 tools
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24/proposal:
+total 36
+drwxr-xr-x 3 root root 4096 Oct 12 11:34 .
+drwxr-xr-x 7 root root 4096 Oct 12 11:45 ..
+-rw-r--r-- 1 root root 3016 Oct 12 11:34 P1.diff
+-rw-r--r-- 1 root root 1178 Oct 12 11:34 P2.diff
+-rw-r--r-- 1 root root 1145 Oct 12 11:34 P3.diff
+-rw-r--r-- 1 root root 1660 Oct 12 11:34 P4.diff
+-rw-r--r-- 1 root root 5020 Oct 12 11:33 mkpatch.py
+drwxr-xr-x 6 root root 4096 Oct 12 11:33 patched-copies-NEVER-RUN
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24/src:
+total 140
+drwxr-xr-x 2 root root  4096 Oct 12 11:45 .
+drwxr-xr-x 7 root root  4096 Oct 12 11:45 ..
+-rw-r--r-- 1 root root 19648 Oct 12 11:35 check.r1-89fdae3f.mjs.txt
+-rw-r--r-- 1 root root   825 Oct 12 11:45 cmp-passes.mjs
+-rw-r--r-- 1 root root  4444 Oct 12 11:36 edit-check-clean.py
+-rw-r--r-- 1 root root  2321 Oct 12 11:36 edit-probe-clean.py
+-rw-r--r-- 1 root root  1343 Oct 12 11:41 edit-proposal.py
+-rw-r--r-- 1 root root  1322 Oct 12 11:39 evo-table.mjs
+-rw-r--r-- 1 root root   734 Oct 12 11:45 idcheck.mjs
+-rw-r--r-- 1 root root  2248 Oct 12 11:39 runs-table.mjs
+-rw-r--r-- 1 root root  1757 Oct 12 11:19 show.mjs
+-rw-r--r-- 1 root root   591 Oct 12 11:38 texts.mjs
+-rw-r--r-- 1 root root 34208 Oct 12 11:29 u24probe.dev-b5c75307.mjs.txt
+-rw-r--r-- 1 root root 34334 Oct 12 11:36 u24probe.r1-035db96c.mjs.txt

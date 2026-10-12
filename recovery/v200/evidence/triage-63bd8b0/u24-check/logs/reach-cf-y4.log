@@ -1,0 +1,16 @@
+BT-file-Wcf probe d9e816ec board 98eed7e8
+  end       screen CAROL-F | recordedClean true | base BRAD-2 | falselyClean true | kept KEPT-0 | stored CAROL-F
+      BRAD-2   ["file"]
+      KEPT-0   ["kept"]
+      CAROL-F  ["screen","storage","outside:versionHistory"]
+      status: 💾 Saved in place by Carol — "Board.html" now carries this state. 10/12/2026, 3:42:22 PM
+  reopened  screen CAROL-F | recordedClean false | base BRAD-2 | falselyClean false | kept KEPT-0 | stored CAROL-F
+      BRAD-2   ["file"]
+      KEPT-0   ["kept"]
+      CAROL-F  ["screen","storage","outside:versionHistory"]
+      status: ⚠ Brad saved a newer copy to the saved file (10/12/2026, 3:42:22 PM), but this browser already keeps earlier work aside (kept 10/12/2026, 3:42:21 PM) and holds new work b
+  edited    screen CAROL-F | recordedClean false | base BRAD-2 | falselyClean false | kept KEPT-0 | stored CAROL-F
+      BRAD-2   ["file"]
+      KEPT-0   ["kept"]
+      CAROL-F  ["screen","storage","outside:versionHistory"]
+      status: ⚠ Brad saved a newer copy to the saved file (10/12/2026, 3:42:22 PM), but this browser already keeps earlier work aside (kept 10/12/2026, 3:42:21 PM) and holds new work b

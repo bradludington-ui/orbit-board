@@ -1,0 +1,448 @@
+// u24probe.mjs -- U24 on the committed head 63bd8b0 (board 98eed7e8): bounded reproductions with healthy controls.
+//   usage: node u24probe.mjs <boardRoot> <scenario> <outJson>
+// U24 (ledger, by code only): sharedArrived/adoptShared, bootTakeFile and importBoards put another copy on screen during a
+// save without refusing or counting a change; a save landing afterwards would record the board saved against its own copy
+// while the screen shows the adopted one (U13's shape).
+// Each path is reached the way a person reaches it (the page's own buttons, its own sidecar request, its own file input):
+//   SH  the shared state file next to the board (loadShared -> sharedArrived, once per opening; its "load the shared one"
+//       link -> adoptShared). On https the page fetches it; here window.fetch is a stub installed BEFORE the page parses, whose
+//       answer is held until the probe releases it (the only way to deliver it during a save: it is asked for once, at opening).
+//       SHc = the link clicked; SHa = the answer itself arriving (automatic load).
+//   BT  "open the file's version" (bootTakeFile), offered in the status line only when an opening found the file newer, this
+//       browser's own work unsaved, and no room to keep it (here: other work already kept aside -- the occupied slot).
+//   IB  "Import several boards at once" (importBoards), File menu > Boards and appropriations, through the page's #multiFile
+//       input (the picker's answer set on the real element, then its change event).
+// SAVE TARGETS: fold = the shared folder (W1H's folder mock, u20's tagged version: a write's close can be held);
+//               file = the board file in place (W1H's disk mock, u19/u20's version: each phase can be held once; `versions` stands
+//               in for Teams' version history, which is outside the board).
+// KINDS: W = the path's action while a 💾 Save is held at the close of its main write (bytes built, nothing recorded yet);
+//        C1 = the same action with no save under way; C2 = the same save with no action (it lands); C3 = the save lands, THEN the
+//        action; Wnow/Wread/Wclean/C1clean = boundary variants named in the scenario table below.
+// Reproduction and measurement only: nothing in any board or tool is changed. The probe records OBSERVED values (board code is
+// read for them only). Expected values are hand-written literals in check.mjs.
+// BOUNDED: every wait is until() (a deadline) or within() (a timer); a watchdog ends the run at 150 s, writing what it has.
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+
+const root = resolve(process.argv[2]);
+const scenario = process.argv[3];
+const outPath = resolve(process.argv[4]);
+const SCEN = {
+  // path A, the link: Brad typed BRAD-2 after saving BRAD-1; the shared state file (SHARED, Carol's) arrives late -> nothing replaced, link offered
+  'SHc-fold-W': 1, 'SHc-fold-C1': 1, 'SHc-fold-C2': 1, 'SHc-file-W': 1, 'SHc-file-C1': 1, 'SHc-file-C2': 1,
+  // path A from a CLEAN record (nothing unsaved after BRAD-1): the link is the 'your local changes are newer' one; the answer auto-loads
+  'SHc-fold-Wclean': 1, 'SHc-fold-C1clean': 1, 'SHc-file-C1clean': 1, 'SHa-fold-Wclean': 1, 'SHa-fold-C1clean': 1, 'SHa-file-C1clean': 1,
+  // path A, the answer itself: Brad reopens with BRAD-2 unsaved (DIRTY false, record dirty); SHARED stamped an hour ahead (Carol's clock)
+  //   Wnow: SHARED stamped at real time (after BRAD-2 was typed, before the save restamps the board); Wread: the file save held at its READ
+  'SHa-fold-W': 1, 'SHa-fold-Wnow': 1, 'SHa-fold-C1': 1, 'SHa-fold-C2': 1, 'SHa-file-W': 1, 'SHa-file-Wread': 1, 'SHa-file-C1': 1, 'SHa-file-C2': 1,
+  // path B: Brad's third opening finds Carol's newer file (CAROL-F, her download copied over the shared file), BRAD-2 unsaved, KEPT-0 already kept
+  'BT-file-W': 1, 'BT-file-C1': 1, 'BT-file-C2': 1, 'BT-file-C3': 1, 'BT-fold-W': 1, 'BT-fold-C1': 1, 'BT-fold-C2': 1, 'BT-fold-C3': 1,
+  // path C: Brad saved BRAD-1, typed BRAD-2; Carol's board file (IMPORT) imported. *clean: nothing typed after BRAD-1 (the record clean)
+  'IB-fold-W': 1, 'IB-fold-C1': 1, 'IB-fold-C2': 1, 'IB-fold-Wclean': 1, 'IB-fold-C1clean': 1, 'IB-file-W': 1, 'IB-file-C1': 1, 'IB-file-C2': 1, 'IB-file-Wclean': 1, 'IB-file-C1clean': 1,
+};
+if (!SCEN[scenario]) throw new Error('unknown scenario ' + scenario);
+const [PATH, MODE, KIND] = scenario.split('-');
+delete process.env.BOARD;
+delete process.env.MUT_FIRST_FAIL;
+await import(pathToFileURL(root + '/runtime-encoding-shim.mjs').href);
+const { boot, seed, bootMark, bootRelease, settleBoards, BOARD } = await import(pathToFileURL(root + '/tools/export-audit/boot.mjs').href);
+const req = createRequire(root + '/package.json');
+const { JSDOM, VirtualConsole } = req('jsdom');
+const blobOf = buf => createHash('sha1').update(`blob ${buf.length}\0`).update(buf).digest('hex');
+const boardPath = root + '/prioritization-board-grid.html';
+if (resolve(BOARD) !== boardPath) throw new Error(`boot.mjs BOARD is ${BOARD}, not ${boardPath}`);
+const IDS = {
+  board: blobOf(readFileSync(boardPath)), bootMjs: blobOf(readFileSync(root + '/tools/export-audit/boot.mjs')),
+  shim: blobOf(readFileSync(root + '/runtime-encoding-shim.mjs')), probe: blobOf(readFileSync(new URL(import.meta.url))),
+  jsdom: req('jsdom/package.json').version, BOARD: resolve(BOARD),
+  started: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }) + ' ET', scenario,
+};
+console.log('IDS', JSON.stringify(IDS));
+const OUT = { IDS, scenario, path: PATH, mode: MODE, kind: KIND, steps: {}, notes: [], errors: [] };
+const R = OUT.steps;
+let FOLD = null, FILE = null;
+const finish = (code, why) => {
+  OUT.folderLog = FOLD ? FOLD.log : null; OUT.folderWrites = FOLD ? FOLD.writes.map(w => w.tag + ':' + w.path) : null;
+  OUT.fileWrites = FILE ? FILE.writes : null; OUT.fileHits = FILE ? FILE.hits : null;
+  OUT.finished = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }) + ' ET';
+  if (why) OUT.incomplete = why;
+  writeFileSync(outPath, JSON.stringify(OUT, null, 1));
+  console.log(scenario, why || 'done', 'errors', OUT.errors.length, 'wrote', outPath);
+  process.exit(code);
+};
+setTimeout(() => finish(3, 'WATCHDOG: incomplete at 150 s'), 150000).unref();
+
+// ---- W1H helpers (as in rec/L4/u20/u20probe.mjs and tools/export-audit/audit-import.mjs's W1H) ----
+const J = JSON.stringify;
+const SVC = ['USAF', 'ANG', 'AFRC'];
+const mk = (id, ask) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: 'Req ' + id, event: 'E' + id, ccar: '', fy26: [0, 0, 0], ask, alloc: null });
+const tick = () => new Promise(r => setImmediate(r));
+const until = async (cond, ms = 5000) => { const end = Date.now() + ms; while (Date.now() < end) { if (cond()) return true; await tick(); } return !!cond(); };
+const within = (p, ms = 8000) => Promise.race([Promise.resolve(p).then(v => ({ ok: true, v: v === undefined ? '(undefined)' : v }), e => ({ ok: false, e: String((e && e.message) || e) })),
+  new Promise(r => setTimeout(() => r({ timedOut: true }), ms))]);
+const gate = () => { let res, rej; const p = new Promise((a, b) => { res = a; rej = b; }); return { p, open: () => res(), fail: e => rej(e) }; };
+const pause = ms => new Promise(r => setTimeout(r, ms));
+const lsOf = ev => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+const KEY = { brad: 'b0000000000000000000000000000001', carol: 'd0000000000000000000000000000004' };
+const wire = (ev, name, key) => ev(`localStorage.setItem('prio27who', ${J(name)}); localStorage.setItem('prio27writerKey', ${J(key)});
+    globalThis.__q=[]; globalThis.__yes=true; globalThis.__dl=0;
+    window.confirm=function(q){ globalThis.__q.push(String(q)); return globalThis.__yes; }; window.alert=function(q){ globalThis.__q.push('ALERT: '+String(q)); };
+    URL.createObjectURL=function(){ globalThis.__dl++; return 'blob:x'; }; URL.revokeObjectURL=function(){}; 'ok'`);
+const qs = ev => JSON.parse(ev('JSON.stringify(globalThis.__q)'));
+const status = ev => ev(`(document.getElementById('shareStat')||{}).textContent||''`).replace(/\s+/g, ' ').trim();
+const header = ev => ev(`(document.getElementById('saveState')||{}).textContent||''`).replace(/\s+/g, ' ').trim();
+const pubOf = html => { const m = html.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/); return m ? JSON.parse(m[1]) : null; };
+const fileTs = html => { const p = pubOf(html); let t = 0; Object.keys(p.appns).forEach(k => { const s = p.appns[k]; if (s && s.ts > t) t = s.ts; }); return t; };
+const baseFile = (by, key) => {
+  const A = boot(); seed(A.ev, { services: SVC, items: [mk('A', [900, 200, 100]), mk('B', [400, 100, 50])], disc: [2000, 600, 300], mand: [500, 150, 80], order: ['A', 'B'] });
+  A.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); save(); 'ok'`);
+  A.ev(`localStorage.setItem('prio27writerKey', ${J(key)}); if(typeof writerFp==='function') WRITER={by:${J(by)}, fp:writerFp(), t:1}; 'ok'`);
+  const h = A.ev('buildSavedHtml()'); try { A.w.close(); } catch {} return h;
+};
+// THE BOARD FILE ON DISK (u19/u20's disk; `versions` = every content the file held, a stand-in for Teams' version history,
+// OUTSIDE the board). One file object can be attached to several boards (the same file reopened).
+const newFile = content => ({ content, writes: 0, hits: {}, hold: {}, versions: [content] });
+const attachDisk = (w, f) => {
+  const wait = async ph => { f.hits[ph] = (f.hits[ph] || 0) + 1; const g = f.hold[ph]; if (g) { delete f.hold[ph]; await g.p; } };
+  w.__disk = { name: 'Board.html', requestPermission: async () => 'granted',
+    getFile: async () => { await wait('read'); const c = f.content; return { text: async () => c }; },
+    createWritable: async () => { await wait('open');
+      let buf = ''; return { write: async x => { buf += String(x); await wait('write'); },
+        close: async () => { await wait('close'); f.content = buf; f.writes++; f.versions.push(buf); } }; } };
+  w.eval(`FH=globalThis.__disk; window.showSaveFilePicker=function(){ throw new Error('the picker was opened'); }; 'ok'`);
+  return f;
+};
+// THE SHARED FOLDER (u20's tagged mock: each tab its own handle onto one folder; one-shot holds by {tag, op, path}).
+const NM = 'spmt-2027-om.json';
+const folder = () => {
+  const rootD = { files: {}, dirs: {} };
+  const fold = { root: rootD, holds: [], log: [], writes: [] };
+  const at = async (tag, op, p) => { fold.log.push(tag + ':' + op + ':' + p);
+    const h = fold.holds.find(x => !x.hit && (!x.tag || x.tag === tag) && x.op === op && x.path === p); if (h) { h.hit = 1; await h.g.p; } };
+  const nf = () => { const e = new Error('not found'); e.name = 'NotFoundError'; return e; };
+  const dirOf = (st, tag, path) => ({ kind: 'directory', name: path || 'shared',
+    queryPermission: async () => { fold.log.push(tag + ':perm:' + (path || '/')); return 'granted'; },
+    requestPermission: async () => { fold.log.push(tag + ':ask:' + (path || '/')); return 'granted'; },
+    getFileHandle: async (n, o) => { const p = (path ? path + '/' : '') + n;
+      if (!(n in st.files)) { if (o && o.create) st.files[n] = ''; else { fold.log.push(tag + ':miss:' + p); throw nf(); } }
+      return { kind: 'file', name: n,
+        getFile: async () => { await at(tag, 'read', p); const c = st.files[n]; return { text: async () => c }; },
+        createWritable: async () => { let buf = ''; return { write: async x => { buf += String(x); },
+          close: async () => { await at(tag, 'close', p); st.files[n] = buf; fold.writes.push({ tag, path: p, n: fold.log.length }); } }; } }; },
+    getDirectoryHandle: async (n, o) => { if (!st.dirs[n]) { if (o && o.create) st.dirs[n] = { files: {}, dirs: {} }; else throw nf(); } return dirOf(st.dirs[n], tag, (path ? path + '/' : '') + n); },
+    removeEntry: async n => { fold.log.push(tag + ':remove:' + (path ? path + '/' : '') + n); delete st.files[n]; },
+    values: async function* () { for (const n of Object.keys(st.files)) yield { kind: 'file', name: n, getFile: async () => ({ text: async () => st.files[n] }) }; } });
+  fold.dirFor = tag => dirOf(rootD, tag, '');
+  fold.holdOnce = spec => { const h = { ...spec, g: gate(), hit: 0 }; fold.holds.push(h); return h; };
+  FOLD = fold;
+  return fold;
+};
+const connect = (ev, w, fold, tag) => { w.__fold = fold.dirFor(tag); ev(`_liveCfg=Object.assign(liveCfg(), {store:true, mode:'drive', on:false}); _driveDir=globalThis.__fold; 'ok'`); };
+
+// ---- bootX: boot.mjs's boot(), the same page split and jsdom options, plus a hook BEFORE the page parses (here: window.fetch),
+// which boot() does not offer. Used only for path A's boards (the sidecar request is made once, by the page's last line).
+const PH = '<script type="text/x-orbit-program"></script>';
+function splitProgram(src) {
+  const pm = src.indexOf('id="pubMode"'); if (pm < 0) return null;
+  const a = src.indexOf('<script>', pm), b = src.lastIndexOf('</script>');
+  if (a < 0 || b < a || !/^\s*<\/body>\s*<\/html>\s*$/.test(src.slice(b + 9))) return null;
+  return { page: src.slice(0, a) + PH + src.slice(b + 9), code: src.slice(a + 8, b) };
+}
+function bootX({ html, ls = null, before = null }) {
+  const vc = new VirtualConsole(); const errors = []; vc.on('jsdomError', e => errors.push(e.message));
+  const split = splitProgram(html);
+  const dom = new JSDOM(split ? split.page : html, { runScripts: 'dangerously', virtualConsole: vc, url: 'https://example.invalid/board.html',
+    beforeParse(win) { if (ls) for (const k of Object.keys(ls)) { try { win.localStorage.setItem(k, ls[k]); } catch {} } if (before) before(win); } });
+  const w = dom.window;
+  if (split) {
+    const ph = w.document.querySelector('script[type="text/x-orbit-program"]');
+    const sc = w.document.createElement('script'); sc.textContent = split.code;
+    const later = [];
+    for (let n = ph; n && n !== w.document.documentElement; n = n.parentNode) for (let x = n.nextSibling; x; x = x.nextSibling) later.push([n.parentNode, x]);
+    later.forEach(([, x]) => x.remove()); ph.replaceWith(sc); later.forEach(([parent, x]) => parent.appendChild(x));
+  }
+  w.URL.createObjectURL = () => 'blob:stub'; w.URL.revokeObjectURL = () => {};
+  w.HTMLAnchorElement.prototype.click = function () {};
+  w.alert = () => {}; w.confirm = () => true; w.prompt = () => null;
+  for (const g of ['Blob', 'Response', 'Request', 'Headers', 'ReadableStream', 'WritableStream', 'TransformStream', 'DecompressionStream', 'CompressionStream'])
+    if (typeof globalThis[g] === 'function') w[g] = globalThis[g];
+  return { dom, w, ev: code => w.eval(code), errors, split: !!split };
+}
+// THE SIDECAR: the page's fetch(STATEFILE) answered with `text` once the gate opens (never, if it is never opened).
+const sidecar = text => { const s = { text, calls: [], g: gate(), opened: false };
+  s.install = win => { win.fetch = function (url, opts) { s.calls.push({ url: String(url), cache: opts && opts.cache });
+    return s.g.p.then(() => ({ ok: true, text: () => Promise.resolve(s.text) })); }; };
+  s.open = () => { s.opened = true; s.g.open(); };
+  return s; };
+
+// ---- the page's own controls ----
+const clickSave = ev => ev(`(function(){ var b=document.getElementById('saveBtn'); if(!b) return null; b.click(); return _saveChain; })()`);
+const clickStatus = (ev, call) => ev(`(function(){ var bs=[].slice.call(document.querySelectorAll('#shareStat button')).filter(function(b){ return (b.getAttribute('onclick')||'')===${J(call)}; });
+  if(bs.length!==1) return 'BUTTONS:'+bs.length; bs[0].click(); return 'clicked'; })()`);
+const settle = async T => { await within(T.ev('_saveChain'), 8000); for (let i = 0; i < 5; i++) await pause(10); };
+
+// ---- THE FIXTURES (literal): requirement A's note and its allocation total, whole dollars ----
+const KNOWN = [['BRAD-1', 700], ['BRAD-2', 720], ['SHARED', 600], ['KEPT-0', 500], ['CAROL-1', 640], ['CAROL-F', 650], ['IMPORT', 610], ['Z-EDIT', 720]];
+const type = (ev, note, amt) => ev(`setNote('A', ${J(note)}); setAlloc('A', ${J(String(amt))}); 'ok'`);
+const whose = c => { if (!c || c.err) return c ? 'unreadable' : null;
+  for (const [n, a] of KNOWN) if (c.note === n && c.alloc === a) return n;
+  if (c.note === '' && (c.alloc == null || c.alloc === 0)) return 'F0';
+  return 'other:' + c.note + '/' + c.alloc; };
+const et = t => t ? new Date(+t).toLocaleString('en-US', { timeZone: 'America/New_York', hour12: false }) + ' ET' : null;
+const ofYearN = st => { try { const y = (st.years || {})[st.cur] || {}; const a = (y.alloc || {}).A;
+  const c = { note: String((y.notes || {}).A || ''), alloc: (a && typeof a === 'object') ? a.v : (a == null ? null : a), ts: +(st.ts || 0), by: st.by || '' }; c.whose = whose(c); return c; }
+  catch (e) { return { err: String(e.message), whose: 'unreadable' }; } };
+const folderCopy = txt => { try { const j = JSON.parse(txt); const c = ofYearN(j.store || j); c.ts = +((j.store && j.store.ts) || j.ts || 0); c.by = j.by || c.by; c.writer = (j.writer && j.writer.by) || ''; return c; }
+  catch (e) { return { err: String(e.message), whose: 'unreadable' }; } };
+const fileCopy = html => { try { const p = pubOf(html); const c = ofYearN(p.appns.om); c.fileTs = fileTs(html); c.writer = (p.writer && p.writer.by) || ''; return c; }
+  catch (e) { return { err: String(e.message), whose: 'unreadable' }; } };
+const headOf = fold => { const t = fold.root.files[NM]; return t == null ? null : folderCopy(t); };
+const histOf = fold => Object.entries((fold.root.dirs.history || { files: {} }).files).filter(([n]) => /^spmt-2027-om-/.test(n)).sort()
+  .map(([n, t]) => ({ name: n.replace(/^spmt-2027-om-/, ''), ...folderCopy(t) }));
+// the board's own state (read only)
+const boardState = ev => JSON.parse(ev(`(function(){
+  function ofYear(st){ try{ var y=(st.years||{})[st.cur]||{}; var a=(y.alloc||{}).A; return {note:String((y.notes||{}).A||''), alloc:(a&&typeof a==='object')? a.v : (a==null? null : a), ts:+(st.ts||0), by:st.by||''}; }catch(e){ return {err:String(e.message)}; } }
+  var a=(S.alloc||{}).A;
+  var screen={note:String((S.notes||{}).A||''), alloc:(a&&typeof a==='object')? a.v : (a==null? null : a), ts:+(MS.ts||0), by:MS.by||''};
+  var stored=null; try{ stored=ofYear(JSON.parse(localStorage.getItem(_AP.key))); }catch(e){ stored={err:String(e.message)}; }
+  var kept=null; try{ var k=localStorage.getItem(_AP.key+'.kept'); if(k){ var i=k.indexOf('\\n'); var m=JSON.parse(k.slice(0,i)); kept=ofYear(JSON.parse(k.slice(i+1))); kept.why=m.why; kept.keptBy=m.by; kept.forTs=m.ts; } }catch(e){ kept={err:String(e.message)}; }
+  var btns=[].slice.call(document.querySelectorAll('#shareStat button')).map(function(b){ return b.getAttribute('onclick')||''; });
+  return JSON.stringify({screen:screen, stored:stored, kept:kept, DIRTY:DIRTY, _baseDirty:_baseDirty, base:baseGet(), LASTKNOWN:LASTKNOWN,
+    driveBase:driveBaseOf(mySlug()), gen:_saveGen, busy:_saveBusy, shared:(SHARED? ofYear(SHARED) : null), pub:(PUB? ofYear(PUB) : null), pubFileTs:PUB_FILE_TS,
+    bootHeld:_bootHeld, bootKept:_bootKept, isShell:IS_SHELL, writer:(WRITER&&WRITER.by)||'', statusBtns:btns, slug:mySlug(), cur:MS.cur, unsavedNow:unsavedNow(),
+    driveNeed:_driveNeed, driveLive:_driveLive});
+})()`));
+// ONE OBSERVATION: the board, what it says, and the save target; the contract's terms, computed from what was read.
+//   recordedClean = DIRTY, _baseDirty and the record's `dirty` all false.
+//   the record's base copy: folder -> the folder copy (head or history) whose time is driveBaseOf(om); file -> the file content
+//   (current, or an earlier version: outside the board) whose fileTs is the record's `file` time (= LASTKNOWN).
+//   falselyClean = recordedClean while the screen's content differs from that copy's (or no such copy exists).
+const snap = (T, ctx, label) => {
+  const b = boardState(T.ev);
+  b.screen.whose = whose(b.screen); if (b.stored) b.stored.whose = whose(b.stored); if (b.kept) b.kept.whose = whose(b.kept);
+  if (b.shared) b.shared.whose = whose(b.shared); if (b.pub) b.pub.whose = whose(b.pub);
+  const o = { label, at: et(Date.now()), ...b, status: status(T.ev), header: header(T.ev) };
+  o.recordedClean = !b.DIRTY && !b._baseDirty && !(b.base && b.base.dirty);
+  if (ctx.fold) {
+    o.head = headOf(ctx.fold); o.hist = histOf(ctx.fold);
+    const bc = [o.head, ...o.hist].find(c => c && c.ts === b.driveBase);
+    o.baseCopy = bc ? { whose: bc.whose, where: bc === o.head ? 'folder head' : 'folder history', ts: bc.ts } : { whose: 'none', ts: b.driveBase };
+  }
+  if (ctx.f) {
+    o.file = fileCopy(ctx.f.content); o.fileWrites = ctx.f.writes;
+    const vs = ctx.f.versions.map(fileCopy);
+    const bf = +((b.base && b.base.file) || 0);
+    const cur = vs[vs.length - 1];
+    const bc = (cur.fileTs === bf) ? cur : vs.slice().reverse().find(v => v.fileTs === bf);
+    o.baseCopy = bc ? { whose: bc.whose, where: bc === cur ? 'file (current)' : 'an earlier file version (outside the board)', ts: bf } : { whose: 'none', ts: bf };
+    o.lastknownIsBase = b.LASTKNOWN === bf;
+  }
+  o.falselyClean = o.recordedClean && o.screen.whose !== o.baseCopy.whose;
+  o.reach = reachOf(o, ctx);
+  return o;
+};
+// WHERE EACH LEAF CONTENT IS. In the board's reach: screen, this browser's storage, the kept slot, the folder's copy and its
+// history, the board file. Also listed: the shared state file (path A: the page fetches it at every opening and offers it), the
+// imported file (path C: the person's own file, which can be imported again), and the file's earlier versions (outside).
+const reachOf = (o, ctx) => { const r = {};
+  for (const m of ctx.markers) { const p = [];
+    if (o.screen.whose === m) p.push('screen'); if (o.stored && o.stored.whose === m) p.push('storage'); if (o.kept && o.kept.whose === m) p.push('kept');
+    if (o.head && o.head.whose === m) p.push('folder'); if (o.hist && o.hist.some(h => h.whose === m)) p.push('history');
+    if (o.file && o.file.whose === m) p.push('file');
+    if (ctx.sharedText && whose(ofYearN(JSON.parse(ctx.sharedText))) === m) p.push('sidecar');
+    if (!ctx.f && ctx.prog && fileCopy(ctx.prog).whose === m) p.push('boardFile');
+    if (ctx.impHtml && fileCopy(ctx.impHtml).whose === m) p.push('importSource');
+    if (ctx.f && !p.includes('file') && ctx.f.versions.some(v => fileCopy(v).whose === m)) p.push('outside:versionHistory');
+    r[m] = p; }
+  return r; };
+
+// ================================================================================================ SETUPS
+// Each returns ctx = { A (the board under test), fold | f, prog (the board file a reopen opens), markers, ... }.
+const F0 = baseFile('Brad', KEY.brad);
+R.F0 = { fileTs: fileTs(F0), writer: fileCopy(F0).writer, content: fileCopy(F0).whose };
+
+// ---- path A: SHARED = Carol's board state, what 📁 → "download the .json state file" writes (JSON.stringify(MS)) ----
+const mkSharedText = async ahead => {
+  const C = boot({ html: F0 }); await pause(80); wire(C.ev, 'Carol', KEY.carol);
+  if (ahead) C.ev(`(function(){ var real=Date.now; Date.now=function(){ return real.call(Date)+${ahead}; }; return 'ok'; })()`);
+  type(C.ev, 'SHARED', 600);
+  const t = C.ev('JSON.stringify(MS)'); try { C.w.close(); } catch {} return t;
+};
+const HOUR = 3600000;
+async function setupSHc() {
+  const sharedText = await mkSharedText(0);                      // published earlier (before Brad's session)
+  const sc = sidecar(sharedText);
+  const A = bootX({ html: F0, before: win => sc.install(win) }); await pause(80);
+  wire(A.ev, 'Brad', KEY.brad);
+  const clean = /clean$/.test(KIND);
+  const ctx = { A, sc, sharedText, markers: [clean ? 'BRAD-1' : 'BRAD-2', 'SHARED'], prog: F0 };
+  if (MODE === 'fold') { ctx.fold = folder(); connect(A.ev, A.w, ctx.fold, 'A'); }
+  else { ctx.f = FILE = attachDisk(A.w, newFile(F0)); }
+  R.bootX = { split: A.split, fetchCalls: sc.calls.slice(), statusAtOpen: status(A.ev) };
+  type(A.ev, 'BRAD-1', 700);
+  R.save1 = await within(clickSave(A.ev)); await settle(A);
+  R.afterSave1 = snap(A, ctx, 'brad saved BRAD-1');
+  if (!clean) type(A.ev, 'BRAD-2', 720);
+  sc.open(); R.arrived = await until(() => A.ev('!!SHARED')); await pause(10);
+  R.setup = snap(A, ctx, clean ? 'the shared state file arrived; brad clean at BRAD-1' : 'the shared state file arrived after brad typed BRAD-2');
+  return ctx;
+}
+async function setupSHa() {
+  // session 1: Brad saves BRAD-1, types BRAD-2, closes the board with it unsaved
+  const A1 = boot({ html: F0 }); await pause(80); wire(A1.ev, 'Brad', KEY.brad);
+  const clean = /clean$/.test(KIND);
+  const ctx = { markers: [clean ? 'BRAD-1' : 'BRAD-2', 'SHARED'] };
+  if (MODE === 'fold') { ctx.fold = folder(); connect(A1.ev, A1.w, ctx.fold, 'A1'); ctx.prog = F0; }
+  else { ctx.f = FILE = attachDisk(A1.w, newFile(F0)); }
+  type(A1.ev, 'BRAD-1', 700); R.save1 = await within(clickSave(A1.ev)); await settle(A1);
+  if (!clean) type(A1.ev, 'BRAD-2', 720); await pause(5);
+  R.session1 = snap(A1, ctx, clean ? 'session 1 closing: clean at BRAD-1' : 'session 1 closing: BRAD-2 unsaved');
+  const ls1 = lsOf(A1.ev); try { A1.w.close(); } catch {}
+  if (MODE === 'file') ctx.prog = ctx.f.content;
+  // Carol's state file: an hour ahead (her clock), or at real time (Wnow) -- after BRAD-2 was typed either way
+  await pause(5);
+  ctx.sharedText = await mkSharedText(KIND === 'Wnow' ? 0 : HOUR);
+  ctx.sc = sidecar(ctx.sharedText);
+  // session 2: Brad reopens (the request for the state file is answered late, or never)
+  const A = bootX({ html: ctx.prog, ls: ls1, before: win => ctx.sc.install(win) }); await pause(80);
+  wire(A.ev, 'Brad', KEY.brad); ctx.A = A;
+  if (MODE === 'fold') { connect(A.ev, A.w, ctx.fold, 'A'); R.opening = await within(A.ev('driveAutoConnect()')); await pause(5); }
+  else attachDisk(A.w, ctx.f);
+  R.bootX = { split: A.split, fetchCalls: ctx.sc.calls.slice() };
+  R.setup = snap(A, ctx, 'reopened with BRAD-2 unsaved; the state file not answered yet');
+  R.setup.sharedTsMinusNow = JSON.parse(ctx.sharedText).ts - Date.now();
+  return ctx;
+}
+// ---- path B: the occupied kept slot, built by ordinary use; Carol's copies reach the board file by her download copied over it ----
+async function setupBT() {
+  const ctx = { markers: ['BRAD-2', 'CAROL-F', 'KEPT-0'] };
+  // Brad, opening 1: saves BRAD-1, types KEPT-0, closes with it unsaved
+  const B1 = boot({ html: F0 }); await pause(80); wire(B1.ev, 'Brad', KEY.brad);
+  if (MODE === 'fold') { ctx.fold = folder(); connect(B1.ev, B1.w, ctx.fold, 'B1'); ctx.prog = F0; }
+  else ctx.f = FILE = attachDisk(B1.w, newFile(F0));
+  type(B1.ev, 'BRAD-1', 700); R.save1 = await within(clickSave(B1.ev)); await settle(B1);
+  type(B1.ev, 'KEPT-0', 500); await pause(5);
+  R.open1 = snap(B1, ctx, 'opening 1 closing: KEPT-0 unsaved');
+  const ls1 = lsOf(B1.ev); try { B1.w.close(); } catch {}
+  // Carol (her browser cannot save in place: her 💾 Save downloads the board, which she copies over the shared board file)
+  const fileNow = () => MODE === 'file' ? ctx.f.content : ctx.prog;
+  const C = boot({ html: fileNow() }); await pause(80); wire(C.ev, 'Carol', KEY.carol);
+  await pause(5); type(C.ev, 'CAROL-1', 640);
+  const FC1 = C.ev('buildSavedHtml()');
+  const putFile = h => { if (MODE === 'file') { ctx.f.content = h; ctx.f.versions.push(h); } else ctx.prog = h; };
+  putFile(FC1); R.carol1 = fileCopy(FC1);
+  // Brad, opening 2: the file is newer -> KEPT-0 kept aside, CAROL-1 opened; he types BRAD-2 and closes with it unsaved
+  const B2 = boot({ html: fileNow(), ls: ls1 }); await pause(80); wire(B2.ev, 'Brad', KEY.brad);
+  if (MODE === 'fold') { connect(B2.ev, B2.w, ctx.fold, 'B2'); R.open2connect = await within(B2.ev('driveAutoConnect()')); }
+  else attachDisk(B2.w, ctx.f);
+  R.open2 = snap(B2, ctx, 'opening 2: the file newer, KEPT-0 kept aside');
+  type(B2.ev, 'BRAD-2', 720); await pause(5);
+  R.open2end = snap(B2, ctx, 'opening 2 closing: BRAD-2 unsaved');
+  const ls2 = lsOf(B2.ev); try { B2.w.close(); } catch {}
+  // Carol again: CAROL-F, downloaded and copied over the board file
+  await pause(5); type(C.ev, 'CAROL-F', 650);
+  const FC2 = C.ev('buildSavedHtml()'); putFile(FC2); R.carolF = fileCopy(FC2); try { C.w.close(); } catch {}
+  // Brad, opening 3 (the board under test)
+  const A = boot({ html: fileNow(), ls: ls2 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); ctx.A = A;
+  if (MODE === 'fold') { connect(A.ev, A.w, ctx.fold, 'A'); R.opening = await within(A.ev('driveAutoConnect()')); await pause(5); }
+  else attachDisk(A.w, ctx.f);
+  R.setup = snap(A, ctx, "opening 3: the file newer again, BRAD-2 unsaved, KEPT-0 already kept -> 'open the file’s version' offered");
+  return ctx;
+}
+// ---- path C ----
+async function setupIB() {
+  const clean = /clean$/.test(KIND);
+  const ctx = { markers: [clean ? 'BRAD-1' : 'BRAD-2', 'IMPORT'] };
+  const A = boot({ html: F0 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); ctx.A = A;
+  if (MODE === 'fold') { ctx.fold = folder(); connect(A.ev, A.w, ctx.fold, 'A'); ctx.prog = F0; }
+  else ctx.f = FILE = attachDisk(A.w, newFile(F0));
+  type(A.ev, 'BRAD-1', 700); R.save1 = await within(clickSave(A.ev)); await settle(A);
+  if (!clean) { type(A.ev, 'BRAD-2', 720); await pause(5); }
+  // the board file Carol sends Brad: her board, opened from the same board file, IMPORT typed, its saved file (what 💾 Save builds)
+  const C = boot({ html: F0 }); await pause(80); wire(C.ev, 'Carol', KEY.carol); type(C.ev, 'IMPORT', 610);
+  ctx.impHtml = C.ev('buildSavedHtml()'); try { C.w.close(); } catch {}
+  R.impFile = fileCopy(ctx.impHtml);
+  R.setup = snap(A, ctx, clean ? 'brad saved BRAD-1 (nothing unsaved)' : 'brad saved BRAD-1, typed BRAD-2');
+  return ctx;
+}
+
+// ================================================================================================ THE ACTIONS
+async function act(ctx) {
+  const A = ctx.A, q0 = qs(A.ev).length, gen0 = A.ev('_saveGen');
+  let how;
+  if (PATH === 'SHc') { how = clickStatus(A.ev, 'adoptShared()'); await pause(10); }
+  else if (PATH === 'SHa') { ctx.sc.open(); how = { arrived: await until(() => A.ev('!!SHARED')) }; await pause(10); }
+  else if (PATH === 'BT') { how = clickStatus(A.ev, 'bootTakeFile()'); await pause(10); }
+  else {
+    // 📁 File menu > Boards and appropriations > ⇊ Import several boards at once… (the page's own item: mRun -> #multiFile.click()),
+    // then the picker's answer: the file set on #multiFile and its change event (onchange="importBoards(this)").
+    const item = A.ev(`(function(){
+      var fb=document.getElementById('b_share'); if(!fb) return 'NO FILE MENU'; fb.click();
+      var gh=document.querySelector('#dd_share .gh[data-g="boards"]'); if(!gh) return 'NO GROUP'; if(gh.getAttribute('aria-expanded')!=='true') gh.click();
+      var bs=[].slice.call(document.querySelectorAll('#dd_share button.mi')).filter(function(b){ return /multiFile/.test(b.getAttribute('onclick')||''); });
+      if(bs.length!==1) return 'ITEMS:'+bs.length; var t=bs[0].textContent, vis=!bs[0].closest('[hidden]'), open=openMenu; bs[0].click();
+      return t+' | menu open: '+open+' | group shown: '+vis; })()`);
+    await pause(20);
+    A.w.__impFile = new A.w.File([ctx.impHtml], 'ORBIT O&M board - Carol.html', { type: 'text/html' });
+    A.ev(`(function(){ var el=document.getElementById('multiFile'); Object.defineProperty(el,'files',{value:[globalThis.__impFile], configurable:true}); el.dispatchEvent(new Event('change')); return 'ok'; })()`);
+    const done = await until(() => /Imported:|Nothing was imported|was not imported|Nothing imported/.test(status(A.ev)), 8000);
+    await pause(10);
+    how = { menuItem: item, finished: done };
+  }
+  return { how, asked: qs(A.ev).slice(q0).map(q => q.slice(0, 400)), genMoved: A.ev('_saveGen') !== gen0 };
+}
+
+// ================================================================================================ THE RUN
+async function reopen(ctx, label) {
+  const A = ctx.A, ls = lsOf(A.ev);
+  const html = MODE === 'file' ? ctx.f.content : ctx.prog;
+  const Z = boot({ html, ls }); await pause(80); wire(Z.ev, 'Brad', KEY.brad);
+  const o = {};
+  if (MODE === 'fold') { connect(Z.ev, Z.w, ctx.fold, 'Z'); o.connect = await within(Z.ev('driveAutoConnect()')); await pause(5); }
+  else attachDisk(Z.w, ctx.f);
+  o.opened = snap(Z, ctx, label);
+  // one ordinary edit afterwards (requirement B's note): what was only in this browser's storage is then written over
+  Z.ev(`setNote('B', 'Z-EDIT-B'); 'ok'`); await pause(5);
+  o.afterEdit = snap(Z, ctx, label + ', then one ordinary edit');
+  try { Z.w.close(); } catch {}
+  return o;
+}
+const t0 = Date.now();
+const mark = bootMark();
+try {
+  const ctx = PATH === 'SHc' ? await setupSHc() : PATH === 'SHa' ? await setupSHa() : PATH === 'BT' ? await setupBT() : await setupIB();
+  const A = ctx.A;
+  const held = /^W/.test(KIND);
+  let H = null, pSave = null;
+  if (held) {
+    const at = KIND === 'Wread' ? 'read' : 'close';
+    const q0 = qs(A.ev).length;
+    if (ctx.fold) { const h = ctx.fold.holdOnce({ tag: 'A', op: at, path: NM }); H = { open: () => h.g.open(), hit: () => h.hit === 1 }; }
+    else { const g = gate(); ctx.f.hold[at] = g; H = { open: () => g.open(), hit: () => (ctx.f.hits[at] || 0) >= 1 && !ctx.f.hold[at] }; }
+    pSave = clickSave(A.ev);
+    R.heldReached = await until(H.hit);
+    await pause(10);
+    R.atHold = snap(A, ctx, '💾 Save held at its ' + (at === 'read' ? 'read of the file' : 'main write'));
+    R.atHold.asked = qs(A.ev).slice(q0).map(q => q.slice(0, 400));
+  }
+  if (KIND === 'C2' || KIND === 'C3') {
+    const q0 = qs(A.ev).length;
+    R.saveRet = await within(clickSave(A.ev)); await settle(A);
+    R.saved = snap(A, ctx, '💾 Save landed (no action)'); R.saved.asked = qs(A.ev).slice(q0).map(q => q.slice(0, 400));
+  }
+  if (KIND !== 'C2') {
+    R.act = await act(ctx);
+    R.afterAct = snap(A, ctx, 'after the action' + (held ? ', save still held' : ''));
+  }
+  if (H) { H.open(); R.saveRet = await within(pSave); await settle(A); }
+  R.end = snap(A, ctx, 'the end state');
+  R.reopen = await reopen(ctx, 'reopened from the end state');
+  if (ctx.fold) { R.refresh = await within(A.ev('driveStorePull(true)')); await pause(5); R.afterRefresh = snap(A, ctx, 'a quiet refresh from the end state'); }
+  R.fetchCalls = ctx.sc ? ctx.sc.calls : null;
+} catch (e) { OUT.errors.push(String((e && e.stack) || e).slice(0, 1500)); console.log('THREW', String((e && e.stack) || e).slice(0, 1500)); }
+OUT.wall_s = ((Date.now() - t0) / 1000).toFixed(1);
+try { bootRelease(mark); await within(settleBoards(), 5000); } catch {}
+finish(OUT.errors.length ? 2 : 0);

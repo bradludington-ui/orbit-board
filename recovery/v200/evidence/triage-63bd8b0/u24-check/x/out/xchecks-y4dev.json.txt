@@ -1,0 +1,305 @@
+{
+ "pass": "y4dev",
+ "rows": [
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "want": [
+    true,
+    1,
+    "BRAD-1",
+    true,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "FIX",
+   "what": "the person clicked 'load the shared one' (no question)",
+   "got": [
+    "clicked",
+    0
+   ],
+   "want": [
+    "clicked",
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "FIX",
+   "what": "the autosave was on and armed before the tick [auto, live, DIRTY]",
+   "got": [
+    true,
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "PRED",
+   "what": "after the autosave landed, before its refresh [screen, busy, recorded clean, base, FALSELY CLEAN]",
+   "got": [
+    "SHARED",
+    0,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "want": [
+    "SHARED",
+    0,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "PRED",
+   "what": "what the status line says at the end",
+   "got": "shared-loaded",
+   "want": "shared-loaded",
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "SHARED",
+    1,
+    false,
+    true,
+    true,
+    "BRAD-2"
+   ],
+   "want": [
+    "SHARED",
+    1,
+    false,
+    true,
+    true,
+    "BRAD-2"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "BRAD-2",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "BRAD-2",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "BRAD-2",
+    true,
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "BRAD-2",
+    true,
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "PRED",
+   "what": "refresh",
+   "got": [
+    "BRAD-2",
+    true,
+    false
+   ],
+   "want": [
+    "BRAD-2",
+    true,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    false,
+    false,
+    false
+   ],
+   "want": [
+    false,
+    false,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "REACH",
+   "what": "end: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "SHc-fold-Wauto",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, SHARED in a board copy",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  }
+ ]
+}

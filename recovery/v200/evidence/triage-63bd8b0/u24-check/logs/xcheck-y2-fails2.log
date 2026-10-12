@@ -1,0 +1,9 @@
+FAIL SHc-fold-Wedit      RUN    output present 
+FAIL SHc-file-Wedit      RUN    output present 
+FAIL SHc-fold-Wread      RUN    output present 
+FAIL SHc-file-Wread      RUN    output present 
+FAIL SHc-fold-Whist      RUN    output present 
+FAIL SHa-fold-Wlate      RUN    output present 
+FAIL IB-fold-C3clean     RUN    output present 
+FAIL IB-fold-C1oldclean  RUN    output present 
+TOTAL 19 checks, 8 fail

@@ -1,0 +1,9 @@
+W1H block (b63 L3745-3813) identical to u13codex/w1h-block.txt
+c137 L3745-3813 identical too
+node --check ok
+src/head.mjs 403725b1d966196d1c6bea95c1f6b599df9a691e
+src/w1h.mjs e771578d5d28c538c8e8ba05ca712718c1e8333b
+src/body.mjs d222095dba8a9d10e7b7b5495fed1db0156432f5
+u17-probe.mjs 5f12fe62459af1514ecec269a84125d8dfd02e37
+q.sh 48c98d716f12f279bca8eb11e70715a8b70bc4fe
+build.sh 5e5bbbbfea7c65c8cedae2fcb077748eed370163

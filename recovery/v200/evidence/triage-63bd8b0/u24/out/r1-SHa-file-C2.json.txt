@@ -1,0 +1,527 @@
+{
+ "IDS": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "035db96cc1f741020de96c8d749478cd0bf7896f",
+  "jsdom": "27.4.0",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24/b63/prioritization-board-grid.html",
+  "started": "10/12/2026, 11:33:05 AM ET",
+  "scenario": "SHa-file-C2"
+ },
+ "scenario": "SHa-file-C2",
+ "path": "SHa",
+ "mode": "file",
+ "kind": "C2",
+ "steps": {
+  "F0": {
+   "fileTs": 1791819185756,
+   "writer": "Brad",
+   "content": "F0"
+  },
+  "save1": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "session1": {
+   "label": "session 1 closing: BRAD-2 unsaved",
+   "at": "10/12/2026, 11:33:06 ET",
+   "screen": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819186683,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "stored": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819186683,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "kept": null,
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791819186504,
+    "dirty": true
+   },
+   "LASTKNOWN": 1791819186504,
+   "driveBase": 0,
+   "gen": 5,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791819185756,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791819185756,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": true,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 11:33:06 AM",
+   "header": "Unsaved changes",
+   "recordedClean": false,
+   "file": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819186504,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "fileTs": 1791819186504,
+    "writer": "Brad"
+   },
+   "fileWrites": 1,
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "file (current)",
+    "ts": 1791819186504
+   },
+   "lastknownIsBase": true,
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [
+     "screen",
+     "storage"
+    ],
+    "SHARED": []
+   }
+  },
+  "bootX": {
+   "split": true,
+   "fetchCalls": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ]
+  },
+  "setup": {
+   "label": "reopened with BRAD-2 unsaved; the state file not answered yet",
+   "at": "10/12/2026, 11:33:07 ET",
+   "screen": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819186683,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "stored": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819186683,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791819186504,
+    "dirty": true
+   },
+   "LASTKNOWN": 1791819186504,
+   "driveBase": 0,
+   "gen": 0,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819186504,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "pubFileTs": 1791819186504,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "",
+   "header": "Saved 11:33 AM",
+   "recordedClean": false,
+   "file": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819186504,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "fileTs": 1791819186504,
+    "writer": "Brad"
+   },
+   "fileWrites": 1,
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "file (current)",
+    "ts": 1791819186504
+   },
+   "lastknownIsBase": true,
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [
+     "screen",
+     "storage"
+    ],
+    "SHARED": [
+     "sidecar"
+    ]
+   },
+   "sharedTsMinusNow": 3599512
+  },
+  "saveRet": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "saved": {
+   "label": "💾 Save landed (no action)",
+   "at": "10/12/2026, 11:33:07 ET",
+   "screen": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819187753,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "stored": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819187753,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791819187753,
+    "dirty": false
+   },
+   "LASTKNOWN": 1791819187753,
+   "driveBase": 0,
+   "gen": 1,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819186504,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "pubFileTs": 1791819186504,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 11:33:07 AM",
+   "header": "Saved 11:33 AM",
+   "recordedClean": true,
+   "file": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819187753,
+    "by": "Brad",
+    "whose": "BRAD-2",
+    "fileTs": 1791819187753,
+    "writer": "Brad"
+   },
+   "fileWrites": 2,
+   "baseCopy": {
+    "whose": "BRAD-2",
+    "where": "file (current)",
+    "ts": 1791819187753
+   },
+   "lastknownIsBase": true,
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [
+     "screen",
+     "storage",
+     "file"
+    ],
+    "SHARED": [
+     "sidecar"
+    ]
+   },
+   "asked": []
+  },
+  "end": {
+   "label": "the end state",
+   "at": "10/12/2026, 11:33:07 ET",
+   "screen": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819187753,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "stored": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819187753,
+    "by": "Brad",
+    "whose": "BRAD-2"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791819187753,
+    "dirty": false
+   },
+   "LASTKNOWN": 1791819187753,
+   "driveBase": 0,
+   "gen": 1,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819186504,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "pubFileTs": 1791819186504,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 11:33:07 AM",
+   "header": "Saved 11:33 AM",
+   "recordedClean": true,
+   "file": {
+    "note": "BRAD-2",
+    "alloc": 720,
+    "ts": 1791819187753,
+    "by": "Brad",
+    "whose": "BRAD-2",
+    "fileTs": 1791819187753,
+    "writer": "Brad"
+   },
+   "fileWrites": 2,
+   "baseCopy": {
+    "whose": "BRAD-2",
+    "where": "file (current)",
+    "ts": 1791819187753
+   },
+   "lastknownIsBase": true,
+   "falselyClean": false,
+   "reach": {
+    "BRAD-2": [
+     "screen",
+     "storage",
+     "file"
+    ],
+    "SHARED": [
+     "sidecar"
+    ]
+   }
+  },
+  "reopen": {
+   "opened": {
+    "label": "reopened from the end state",
+    "at": "10/12/2026, 11:33:08 ET",
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791819187753,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791819187753,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "DIRTY": false,
+    "_baseDirty": false,
+    "base": {
+     "file": 1791819187753,
+     "dirty": false
+    },
+    "LASTKNOWN": 1791819187753,
+    "driveBase": 0,
+    "gen": 0,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791819187753,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "pubFileTs": 1791819187753,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": false,
+    "driveNeed": "",
+    "driveLive": false,
+    "status": "📦 Opened with the saved board state — last saved by Brad 10/12/2026, 11:33:07 AM. Make changes and 💾 Save to pass it on.",
+    "header": "Saved 11:33 AM",
+    "recordedClean": true,
+    "file": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791819187753,
+     "by": "Brad",
+     "whose": "BRAD-2",
+     "fileTs": 1791819187753,
+     "writer": "Brad"
+    },
+    "fileWrites": 2,
+    "baseCopy": {
+     "whose": "BRAD-2",
+     "where": "file (current)",
+     "ts": 1791819187753
+    },
+    "lastknownIsBase": true,
+    "falselyClean": false,
+    "reach": {
+     "BRAD-2": [
+      "screen",
+      "storage",
+      "file"
+     ],
+     "SHARED": [
+      "sidecar"
+     ]
+    }
+   },
+   "afterEdit": {
+    "label": "reopened from the end state, then one ordinary edit",
+    "at": "10/12/2026, 11:33:08 ET",
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791819188276,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791819188276,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "DIRTY": true,
+    "_baseDirty": true,
+    "base": {
+     "file": 1791819187753,
+     "dirty": true
+    },
+    "LASTKNOWN": 1791819187753,
+    "driveBase": 0,
+    "gen": 1,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791819187753,
+     "by": "Brad",
+     "whose": "BRAD-2"
+    },
+    "pubFileTs": 1791819187753,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": true,
+    "driveNeed": "",
+    "driveLive": false,
+    "status": "📦 Opened with the saved board state — last saved by Brad 10/12/2026, 11:33:07 AM. Make changes and 💾 Save to pass it on.",
+    "header": "Unsaved changes",
+    "recordedClean": false,
+    "file": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791819187753,
+     "by": "Brad",
+     "whose": "BRAD-2",
+     "fileTs": 1791819187753,
+     "writer": "Brad"
+    },
+    "fileWrites": 2,
+    "baseCopy": {
+     "whose": "BRAD-2",
+     "where": "file (current)",
+     "ts": 1791819187753
+    },
+    "lastknownIsBase": true,
+    "falselyClean": false,
+    "reach": {
+     "BRAD-2": [
+      "screen",
+      "storage",
+      "file"
+     ],
+     "SHARED": [
+      "sidecar"
+     ]
+    }
+   }
+  },
+  "fetchCalls": [
+   {
+    "url": "prio-state-om.json",
+    "cache": "no-store"
+   }
+  ]
+ },
+ "notes": [],
+ "errors": [],
+ "wall_s": "2.6",
+ "folderLog": null,
+ "folderWrites": null,
+ "fileWrites": 2,
+ "fileHits": {
+  "read": 2,
+  "open": 2,
+  "write": 2,
+  "close": 2
+ },
+ "finished": "10/12/2026, 11:33:08 AM ET"
+}

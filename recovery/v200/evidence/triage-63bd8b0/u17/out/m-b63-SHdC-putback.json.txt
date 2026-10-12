@@ -1,0 +1,631 @@
+{
+ "scenario": "SHdC",
+ "next": "putback",
+ "board": "u13",
+ "ids": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "92f62853ce26153304fff5c5560a9fefdfcb4f31",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/b63/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 10:29:11 ET",
+ "steps": [
+  {
+   "step": "sharedFile",
+   "ts": 1791815353755,
+   "tsET": "10/12/2026, 10:29:13 ET",
+   "minusRealNow": -84
+  },
+  {
+   "step": "arrived",
+   "brad": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815353922,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 10:29:13 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791815352328,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791815353109
+     }
+    },
+    "driveBaseOf": 1791815353109,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815353922,
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "label": "the shared state file arrived after brad started typing",
+    "baseFolder": 1791815353109,
+    "status": "⚠ The shared state file (10/12/2026, 2:29:13 PM) arrived after you started working, so nothing was replaced. 💾 Save yours, or load the shared one (what you have is kept aside first).",
+    "header": "Unsaved changes",
+    "at": "10/12/2026, 10:29:14 ET"
+   },
+   "sharedTs": 1791815353755
+  },
+  {
+   "step": "adoption",
+   "how": "adoptShared()",
+   "brad": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791815353755,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED",
+     "tsET": "10/12/2026, 10:29:13 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791815352328,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791815353109
+     }
+    },
+    "driveBaseOf": 1791815353109,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791815353755,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791815353755,
+      "base": {
+       "file": 1791815352328,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791815353109
+       }
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "label": "after the adoption",
+    "baseFolder": 1791815353109,
+    "status": "Shared state loaded (published 10/12/2026, 2:29:13 PM).",
+    "header": "Unsaved changes · ↶ work kept aside",
+    "at": "10/12/2026, 10:29:14 ET"
+   },
+   "folder": {
+    "label": "after the adoption",
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791815353109,
+     "payloadTs": 1791815353109,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:29:13 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 0,
+    "at": "10/12/2026, 10:29:14 ET"
+   }
+  },
+  {
+   "step": "landed",
+   "brad": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791815353755,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED",
+     "tsET": "10/12/2026, 10:29:13 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791815352328,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791815353109
+     }
+    },
+    "driveBaseOf": 1791815353109,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791815353755,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791815353755,
+      "base": {
+       "file": 1791815352328,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791815353109
+       }
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "label": "brad after the adoption",
+    "baseFolder": 1791815353109,
+    "status": "Shared state loaded (published 10/12/2026, 2:29:13 PM).",
+    "header": "Unsaved changes · ↶ work kept aside",
+    "at": "10/12/2026, 10:29:14 ET"
+   },
+   "folder": {
+    "label": "landed",
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791815353109,
+     "payloadTs": 1791815353109,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:29:13 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 0,
+    "at": "10/12/2026, 10:29:14 ET"
+   }
+  },
+  {
+   "step": "V4putback",
+   "question": "Put back the work this browser kept aside on 10/12/2026, 2:29:14 PM?\n\nWhat is on screen now is replaced by it. What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.",
+   "afterPutBack": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815353922,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 10:29:13 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791815352328,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791815353109
+     }
+    },
+    "driveBaseOf": 1791815353109,
+    "_saveGen": 5,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815353922,
+     "whose": "BRAD-2"
+    },
+    "kept": {
+     "meta": {
+      "why": "swap",
+      "by": "Brad",
+      "ts": 1791815353755,
+      "base": {
+       "file": 1791815352328,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791815353109
+       }
+      }
+     },
+     "note": "SHARED",
+     "alloc": 600,
+     "whose": "SHARED"
+    },
+    "label": "after ↶ put it back",
+    "baseFolder": 1791815353109,
+    "status": "↶ Put back the work kept aside on 10/12/2026, 2:29:14 PM. 💾 Save will ask before it writes over the saved file, which Carol saved after it. What was on screen is kept aside in its place: put that back.",
+    "header": "Unsaved changes · ↶ work kept aside",
+    "at": "10/12/2026, 10:29:14 ET"
+   },
+   "saveAsked": [],
+   "afterSave": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815354227,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 10:29:14 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791815352328,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791815354227
+     }
+    },
+    "driveBaseOf": 1791815354227,
+    "_saveGen": 5,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815354227,
+     "whose": "BRAD-2"
+    },
+    "kept": {
+     "meta": {
+      "why": "swap",
+      "by": "Brad",
+      "ts": 1791815353755,
+      "base": {
+       "file": 1791815352328,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791815353109
+       }
+      }
+     },
+     "note": "SHARED",
+     "alloc": 600,
+     "whose": "SHARED"
+    },
+    "label": "after put back, then 💾 Save",
+    "baseFolder": 1791815354227,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 2:29 PM · ↶ work kept aside",
+    "at": "10/12/2026, 10:29:14 ET"
+   },
+   "folder": {
+    "label": "after put back + save",
+    "head": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815354227,
+     "payloadTs": 1791815354227,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 10:29:14 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-142914.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791815353109,
+      "payloadTs": 1791815353109,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:29:13 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-142914.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 1,
+    "at": "10/12/2026, 10:29:14 ET"
+   },
+   "where": {
+    "X": {
+     "folderHead": false,
+     "folderHistory": [],
+     "screen": false,
+     "storage": false,
+     "keptSlot": true
+    },
+    "Y": {
+     "folderHead": true,
+     "folderHistory": [],
+     "screen": true,
+     "storage": true,
+     "keptSlot": false
+    }
+   }
+  }
+ ],
+ "contract": "the board must never be recorded clean (saved) while what is on screen differs from the copy its record names as base; each content must remain in some reachable copy; and from such a record (U17) 💾 Save must not write the screen copy over a different head without asking, nor ↶ Put back claim the screen copy is still in the folder when it is not and then keep nothing aside",
+ "cfg": {
+  "fam": "adopt",
+  "mode": "click",
+  "held": false
+ },
+ "expected": {
+  "adopt": [
+   "SHARED",
+   0,
+   true,
+   "BRAD-2",
+   true
+  ],
+  "u17": false,
+  "v3": [
+   0,
+   "SHARED",
+   "BRAD-1",
+   "SHARED",
+   "saved",
+   true,
+   true
+  ],
+  "v4": [
+   "BRAD-2",
+   "in-place",
+   "SHARED",
+   "BRAD-1",
+   "put back",
+   "SHARED",
+   "BRAD-2",
+   "BRAD-2",
+   "saved"
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "SHARED",
+   false,
+   "BRAD-1"
+  ],
+  "falselyClean": false
+ },
+ "nextFrom": {
+  "K": [
+   "SHARED",
+   false,
+   "BRAD-1"
+  ],
+  "falselyClean": false,
+  "head": "BRAD-1",
+  "history": []
+ },
+ "v4parts": {
+  "falselyClean": false,
+  "claim": "in-place",
+  "falseClaim": false,
+  "notKept": false,
+  "screenCopyIn": {
+   "folderHead": false,
+   "folderHistory": [],
+   "screen": false,
+   "storage": false,
+   "keptSlot": true
+  },
+  "saveAfterPutBackAsked": 0,
+  "saveAfterPutBackSays": "saved"
+ },
+ "endedET": "10/12/2026, 10:29:14 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)",
+   "expected": [
+    "BRAD-1",
+    "Brad",
+    "Brad"
+   ],
+   "observed": [
+    "BRAD-1",
+    "Brad",
+    "Brad"
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.bradClean",
+   "kind": "fixture",
+   "what": "brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]",
+   "expected": [
+    "BRAD-1",
+    false,
+    false,
+    false,
+    true
+   ],
+   "observed": [
+    "BRAD-1",
+    false,
+    false,
+    false,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.sharedClock",
+   "kind": "fixture",
+   "what": "the shared state file is stamped at or before real time",
+   "expected": true,
+   "observed": true,
+   "pass": true
+  },
+  {
+   "id": "fixture.typed",
+   "kind": "fixture",
+   "what": "brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])",
+   "expected": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.arrived",
+   "kind": "fixture",
+   "what": "the shared state file arrives after brad typed BRAD-2/$720: nothing is replaced and 'load the shared one' is offered ([screen, DIRTY, record dirty, SHARED held, said])",
+   "expected": [
+    "BRAD-2",
+    true,
+    true,
+    true,
+    true
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    true,
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "SHdC.adopt",
+   "kind": "predict",
+   "what": "the other copy is put on screen with no save under way ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])",
+   "expected": [
+    "SHARED",
+    0,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "observed": [
+    "SHARED",
+    0,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "SHdC.K1",
+   "kind": "contract",
+   "what": "CONTRACT once settled [screen, recorded clean, base copy]",
+   "expected": [
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     false,
+     "BRAD-1"
+    ]
+   ],
+   "observed": [
+    "SHARED",
+    false,
+    "BRAD-1"
+   ],
+   "pass": true
+  },
+  {
+   "id": "SHdC.U17state",
+   "kind": "predict",
+   "what": "U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base [\"SHARED\",false,\"BRAD-1\"]",
+   "expected": false,
+   "observed": false,
+   "pass": true
+  },
+  {
+   "id": "SHdC.V4putback",
+   "kind": "predict",
+   "what": "↶ put it back, then 💾 Save [\"kept before\",\"the question's claim\",\"screen before\",\"head before\",\"put back says\",\"kept after\",\"screen after put back\",\"head after Save\",\"Save says\"]",
+   "expected": [
+    "BRAD-2",
+    "in-place",
+    "SHARED",
+    "BRAD-1",
+    "put back",
+    "SHARED",
+    "BRAD-2",
+    "BRAD-2",
+    "saved"
+   ],
+   "observed": [
+    "BRAD-2",
+    "in-place",
+    "SHARED",
+    "BRAD-1",
+    "put back",
+    "SHARED",
+    "BRAD-2",
+    "BRAD-2",
+    "saved"
+   ],
+   "pass": true
+  },
+  {
+   "id": "SHdC.U17.V4",
+   "kind": "contract",
+   "what": "U17 (V4putback): from a record that says saved while the screen differs from the copy it names, ↶ Put back's question says the screen copy is still in the shared folder (the folder head holds other content) and the screen copy is then kept nowhere but history ([record falsely clean before, the claim false, the screen copy kept nowhere but history])",
+   "expected": {
+    "not": [
+     true,
+     true,
+     true
+    ]
+   },
+   "observed": [
+    false,
+    false,
+    false
+   ],
+   "pass": true
+  }
+ ]
+}

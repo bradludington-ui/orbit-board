@@ -1,0 +1,35 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] fixture.sharedClock: PREREQUISITE: the shared state file is stamped about an hour ahead of real time (59:55 to 60:00 min)
+     expected true
+     observed true
+PASS [fixture] fixture.typed: brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])
+     expected ["BRAD-2",true,true]
+     observed ["BRAD-2",true,true]
+PASS [fixture] fixture.arrived: the shared state file arrives after brad typed BRAD-2/$720: nothing is replaced and 'load the shared one' is offered ([screen, DIRTY, record dirty, SHARED held, said])
+     expected ["BRAD-2",true,true,true,true]
+     observed ["BRAD-2",true,true,true,true]
+PASS [predict] SHdkC.adopt: the other copy is put on screen with no save under way ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])
+     expected ["SHARED",0,true,"BRAD-2",true]
+     observed ["SHARED",0,true,"BRAD-2",true]
+PASS [contract] SHdkC.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["SHARED",false,"BRAD-1"]]
+     observed ["SHARED",false,"BRAD-1"]
+PASS [predict] SHdkC.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["SHARED",false,"BRAD-1"]
+     expected false
+     observed false
+PASS [predict] SHdkC.V4putback: ↶ put it back, then 💾 Save ["kept before","the question's claim","screen before","head before","put back says","kept after","screen after put back","head after Save","Save says"]
+     expected ["BRAD-2","in-place","SHARED","BRAD-1","put back","SHARED","BRAD-2","BRAD-2","saved"]
+     observed ["BRAD-2","in-place","SHARED","BRAD-1","put back","SHARED","BRAD-2","BRAD-2","saved"]
+PASS [contract] SHdkC.U17.V4: U17 (V4putback): from a record that says saved while the screen differs from the copy it names, ↶ Put back's question says the screen copy is still in the shared folder (the folder head holds other content) and the screen copy is then kept nowhere but history ([record falsely clean before, the claim false, the screen copy kept nowhere but history])
+     expected {"not":[true,true,true]}
+     observed [false,false,false]
+u17state {"tuple":["SHARED",false,"BRAD-1"],"falselyClean":false}
+nextFrom {"K":["SHARED",false,"BRAD-1"],"falselyClean":false,"head":"BRAD-1","history":[]}
+v4parts {"falselyClean":false,"claim":"in-place","falseClaim":false,"notKept":false,"screenCopyIn":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":true},"saveAfterPutBackAsked":0,"saveAfterPutBackSays":"saved"}
+ids {"board":"98eed7e801af20270f755eadffb2fa72355c30e5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"6b65ff659b6f2f374b29b2707cf1ce049a5eecf2","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/b63/prioritization-board-grid.html"}
+SUMMARY SHdkC putback board=u13: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0

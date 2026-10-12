@@ -1,0 +1,24 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -6490,11 +6490,18 @@
+ //   wait captures its own target and bytes when it starts, and re-reads everything it checks.
+ let _saveGen=0, _saveChain=Promise.resolve(), _saveBusy=0;
+ function saveSerial(fn){
+-  const go=function(){ _saveBusy++; return Promise.resolve().then(fn).finally(function(){ _saveBusy--; }); };
++  const go=function(){ return Promise.resolve().then(fn); };
++  // v2.00 (U20): COUNTED FROM THE MOMENT IT ASKS FOR THE LOCK, not from the moment it gets it. A save waiting for another
++  // tab's save (Web Locks) was not counted, so ↶ Put back (U2) and the folder's refresh (U13) took it for no save at all: a
++  // refresh then recorded the folder's copy as the one the work came from, and the waiting save wrote over that copy
++  // without asking. It is under way from here until its lock is released, as a save waiting in this tab's own queue is.
+   const run=function(){
++    _saveBusy++;
++    let p=null;
+     try{ if(typeof navigator!=='undefined' && navigator.locks && typeof navigator.locks.request==='function')
+-      return navigator.locks.request('orbit-save', {mode:'exclusive'}, go); }catch(e){}
+-    return go();
++      p=navigator.locks.request('orbit-save', {mode:'exclusive'}, go); }catch(e){ p=null; }
++    if(!p) p=go();
++    return Promise.resolve(p).finally(function(){ _saveBusy--; });
+   };
+   if(_saveBusy){ try{ setStat('⏳ A save is already under way — this one runs as soon as it finishes.'); }catch(e){} }
+   const p=_saveChain.then(run, run);

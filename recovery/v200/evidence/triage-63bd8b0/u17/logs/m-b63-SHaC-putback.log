@@ -1,0 +1,29 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] fixture.sharedNewer: the shared state file is newer than what is on screen, as its automatic load requires ([SHARED ts > MS.ts])
+     expected [true]
+     observed [true]
+PASS [predict] SHaC.adopt: the other copy is put on screen with no save under way ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])
+     expected ["SHARED",0,true,null,true]
+     observed ["SHARED",0,true,null,true]
+FAIL [contract] SHaC.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["SHARED",true,"SHARED"],["BRAD-1",true,"BRAD-1"],["SHARED",false,"BRAD-1"]]
+     observed ["SHARED",true,"BRAD-1"]
+PASS [predict] SHaC.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["SHARED",true,"BRAD-1"]
+     expected true
+     observed true
+PASS [predict] SHaC.V4putback: ↶ put it back, then 💾 Save ["kept before","the question's claim","screen before","head before","put back says","kept after","screen after put back","head after Save","Save says"]
+     expected [null,"none","SHARED","BRAD-1","nothing kept",null,"SHARED","SHARED","saved"]
+     observed [null,"none","SHARED","BRAD-1","nothing kept",null,"SHARED","SHARED","saved"]
+PASS [contract] SHaC.U17.V4: U17 (V4putback): from a record that says saved while the screen differs from the copy it names, ↶ Put back's question says the screen copy is still in the shared folder (the folder head holds other content) and the screen copy is then kept nowhere but history ([record falsely clean before, the claim false, the screen copy kept nowhere but history])
+     expected {"not":[true,true,true]}
+     observed [true,false,false]
+u17state {"tuple":["SHARED",true,"BRAD-1"],"falselyClean":true}
+nextFrom {"K":["SHARED",true,"BRAD-1"],"falselyClean":true,"head":"BRAD-1","history":[]}
+v4parts {"falselyClean":true,"claim":"none","falseClaim":false,"notKept":false,"screenCopyIn":{"folderHead":true,"folderHistory":[],"screen":true,"storage":true,"keptSlot":false},"saveAfterPutBackAsked":0,"saveAfterPutBackSays":"saved"}
+ids {"board":"98eed7e801af20270f755eadffb2fa72355c30e5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"92f62853ce26153304fff5c5560a9fefdfcb4f31","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/b63/prioritization-board-grid.html"}
+SUMMARY SHaC putback board=u13: 7 pass, 1 fail | fixture 3/3 | predict 3/3 | contract 1/2 | harness 0/0

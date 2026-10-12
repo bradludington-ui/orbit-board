@@ -1,0 +1,1320 @@
+{
+ "scenario": "L20",
+ "next": "putback",
+ "board": "u13",
+ "ids": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "6b65ff659b6f2f374b29b2707cf1ce049a5eecf2",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/b63/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 15:09:56 ET",
+ "steps": [
+  {
+   "step": "remote",
+   "head": {
+    "note": "REMOTE",
+    "alloc": 650,
+    "ts": 1791835800118,
+    "payloadTs": 1791835800118,
+    "by": "Brad",
+    "writer": "Brad",
+    "whose": "REMOTE",
+    "tsET": "10/12/2026, 16:10:00 ET"
+   },
+   "realAfter": 1791832200337,
+   "realAfterET": "10/12/2026, 15:10:00 ET",
+   "tsMinusRealAfter": 3599781,
+   "payloadTsMinusRealAfter": 3599781,
+   "history": []
+  },
+  {
+   "step": "adopt",
+   "connect": true,
+   "brad": {
+    "screen": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791835800118,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 16:10:00 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791835800118
+     }
+    },
+    "driveBaseOf": 1791835800118,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791835800118,
+     "whose": "REMOTE"
+    },
+    "kept": null,
+    "label": "brad after the opening's connect adopted REMOTE",
+    "baseFolder": 1791835800118,
+    "status": "⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.",
+    "header": "Saved 8:10 PM",
+    "at": "10/12/2026, 15:10:01 ET"
+   },
+   "folder": {
+    "label": "after adopt",
+    "head": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791835800118,
+     "payloadTs": 1791835800118,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 16:10:00 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 1,
+    "at": "10/12/2026, 15:10:01 ET"
+   }
+  },
+  {
+   "step": "edit",
+   "brad": {
+    "screen": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "WORKING",
+     "tsET": "10/12/2026, 15:10:01 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791835800118
+     }
+    },
+    "driveBaseOf": 1791835800118,
+    "_saveGen": 2,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "whose": "WORKING"
+    },
+    "kept": null,
+    "label": "brad after editing WORKING",
+    "baseFolder": 1791835800118,
+    "status": "⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.",
+    "header": "Unsaved changes",
+    "at": "10/12/2026, 15:10:01 ET"
+   }
+  },
+  {
+   "step": "reopen",
+   "how": "harness",
+   "connect": "(not run: the harness connect only -- no opening pull)",
+   "perm": null,
+   "brad": {
+    "screen": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "WORKING",
+     "tsET": "10/12/2026, 15:10:01 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791835800118
+     }
+    },
+    "driveBaseOf": 1791835800118,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "whose": "WORKING"
+    },
+    "kept": null,
+    "label": "reopened: harness",
+    "baseFolder": 1791835800118,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 7:09:58 PM by unknown). 💾 Save writes them into the file.",
+    "header": "Saved 7:10 PM",
+    "at": "10/12/2026, 15:10:02 ET"
+   },
+   "folder": {
+    "label": "after reopen",
+    "head": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791835800118,
+     "payloadTs": 1791835800118,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 16:10:00 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 1,
+    "at": "10/12/2026, 15:10:02 ET"
+   }
+  },
+  {
+   "step": "lockWait",
+   "asked": true,
+   "brad": {
+    "screen": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "WORKING",
+     "tsET": "10/12/2026, 15:10:01 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791835800118
+     }
+    },
+    "driveBaseOf": 1791835800118,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "whose": "WORKING"
+    },
+    "kept": null,
+    "label": "the save is waiting for the lock another tab holds",
+    "baseFolder": 1791835800118,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 7:09:58 PM by unknown). 💾 Save writes them into the file.",
+    "header": "Saved 7:10 PM",
+    "at": "10/12/2026, 15:10:02 ET"
+   },
+   "folder": {
+    "label": "save waiting for the lock",
+    "head": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791835800118,
+     "payloadTs": 1791835800118,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 16:10:00 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 1,
+    "at": "10/12/2026, 15:10:02 ET"
+   }
+  },
+  {
+   "step": "refresh",
+   "how": "pull",
+   "returned": true,
+   "saveGenBefore": 0,
+   "brad": {
+    "screen": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791835800118,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 16:10:00 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791835800118
+     }
+    },
+    "driveBaseOf": 1791835800118,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791835800118,
+     "whose": "REMOTE"
+    },
+    "kept": {
+     "meta": {
+      "why": "folder",
+      "by": "Brad",
+      "ts": 1791835800118,
+      "base": {
+       "file": 1791832198183,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791835800118
+       }
+      }
+     },
+     "note": "WORKING",
+     "alloc": 700,
+     "whose": "WORKING"
+    },
+    "label": "brad after the refresh",
+    "baseFolder": 1791835800118,
+    "status": "⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now. This browser held work no saved copy had; it is kept aside: put it back (or from 📁 File, any time).",
+    "header": "Saved 8:10 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:10:02 ET"
+   },
+   "folder": {
+    "label": "after the refresh",
+    "head": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791835800118,
+     "payloadTs": 1791835800118,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 16:10:00 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 2,
+    "at": "10/12/2026, 15:10:02 ET"
+   },
+   "readsDuring": 1,
+   "readLog": [
+    "REMOTE @ 10/12/2026, 15:10:00 ET",
+    "REMOTE @ 10/12/2026, 15:10:02 ET"
+   ],
+   "writesDuring": [],
+   "lockWritesDuring": []
+  },
+  {
+   "step": "landed",
+   "brad": {
+    "screen": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 15:10:02 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832202268
+     }
+    },
+    "driveBaseOf": 1791832202268,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "whose": "REMOTE"
+    },
+    "kept": {
+     "meta": {
+      "why": "folder",
+      "by": "Brad",
+      "ts": 1791835800118,
+      "base": {
+       "file": 1791832198183,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791835800118
+       }
+      }
+     },
+     "note": "WORKING",
+     "alloc": 700,
+     "whose": "WORKING"
+    },
+    "label": "brad after the save landed",
+    "baseFolder": 1791832202268,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 7:10 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:10:02 ET"
+   },
+   "folder": {
+    "label": "after the save landed",
+    "head": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "payloadTs": 1791832202268,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 15:10:02 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-191002.json",
+      "note": "REMOTE",
+      "alloc": 650,
+      "ts": 1791835800118,
+      "payloadTs": 1791835800118,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "REMOTE",
+      "tsET": "10/12/2026, 16:10:00 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-191002.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 3,
+    "at": "10/12/2026, 15:10:02 ET"
+   },
+   "folderWritesSinceRefresh": [
+    "hist:spmt-2027-om-20261012-191002.json",
+    "main:spmt-2027-om.json",
+    "lock:spmt-2027-om.lock.json"
+   ]
+  },
+  {
+   "step": "laterRefresh",
+   "returned": false,
+   "brad": {
+    "screen": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 15:10:02 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832202268
+     }
+    },
+    "driveBaseOf": 1791832202268,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "whose": "REMOTE"
+    },
+    "kept": {
+     "meta": {
+      "why": "folder",
+      "by": "Brad",
+      "ts": 1791835800118,
+      "base": {
+       "file": 1791832198183,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791835800118
+       }
+      }
+     },
+     "note": "WORKING",
+     "alloc": 700,
+     "whose": "WORKING"
+    },
+    "label": "brad after a later refresh",
+    "baseFolder": 1791832202268,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 7:10 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:10:02 ET"
+   },
+   "folder": {
+    "label": "later refresh",
+    "head": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "payloadTs": 1791832202268,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 15:10:02 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-191002.json",
+      "note": "REMOTE",
+      "alloc": 650,
+      "ts": 1791835800118,
+      "payloadTs": 1791835800118,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "REMOTE",
+      "tsET": "10/12/2026, 16:10:00 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-191002.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 4,
+    "at": "10/12/2026, 15:10:02 ET"
+   }
+  },
+  {
+   "step": "reopenAgain",
+   "connect": true,
+   "afterConnect": {
+    "screen": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 15:10:02 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832202268
+     }
+    },
+    "driveBaseOf": 1791832202268,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "whose": "REMOTE"
+    },
+    "kept": {
+     "meta": {
+      "why": "folder",
+      "by": "Brad",
+      "ts": 1791835800118,
+      "base": {
+       "file": 1791832198183,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791835800118
+       }
+      }
+     },
+     "note": "WORKING",
+     "alloc": 700,
+     "whose": "WORKING"
+    },
+    "label": "reopened again, after the opening's connect",
+    "baseFolder": 1791832202268,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 7:09:58 PM by unknown). 💾 Save writes them into the file.",
+    "header": "Saved 7:10 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:10:03 ET"
+   },
+   "refresh": false,
+   "afterRefresh": {
+    "screen": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 15:10:02 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832202268
+     }
+    },
+    "driveBaseOf": 1791832202268,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "whose": "REMOTE"
+    },
+    "kept": {
+     "meta": {
+      "why": "folder",
+      "by": "Brad",
+      "ts": 1791835800118,
+      "base": {
+       "file": 1791832198183,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791835800118
+       }
+      }
+     },
+     "note": "WORKING",
+     "alloc": 700,
+     "whose": "WORKING"
+    },
+    "label": "reopened again, after a refresh",
+    "baseFolder": 1791832202268,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 7:09:58 PM by unknown). 💾 Save writes them into the file.",
+    "header": "Saved 7:10 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:10:03 ET"
+   },
+   "folder": {
+    "label": "final (before next)",
+    "head": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "payloadTs": 1791832202268,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 15:10:02 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-191002.json",
+      "note": "REMOTE",
+      "alloc": 650,
+      "ts": 1791835800118,
+      "payloadTs": 1791835800118,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "REMOTE",
+      "tsET": "10/12/2026, 16:10:00 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-191002.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 6,
+    "at": "10/12/2026, 15:10:03 ET"
+   }
+  },
+  {
+   "step": "V4putback",
+   "question": "Put back the work this browser kept aside on 10/12/2026, 7:10:02 PM?\n\nWhat is on screen now is replaced by it. What is on screen now is still in the shared folder it came from, and 💾 Save will ask before writing over that.",
+   "afterPutBack": {
+    "screen": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "WORKING",
+     "tsET": "10/12/2026, 15:10:01 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791835800118
+     }
+    },
+    "driveBaseOf": 1791835800118,
+    "_saveGen": 1,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "whose": "WORKING"
+    },
+    "kept": null,
+    "label": "after ↶ put it back",
+    "baseFolder": 1791835800118,
+    "status": "↶ Put back the work kept aside on 10/12/2026, 7:10:02 PM. 💾 Save will ask before it writes over the shared folder, which Brad saved after it.",
+    "header": "Unsaved changes",
+    "at": "10/12/2026, 15:10:03 ET"
+   },
+   "saveAsked": [],
+   "afterSave": {
+    "screen": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "WORKING",
+     "tsET": "10/12/2026, 15:10:01 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791832198183,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791835800118
+     }
+    },
+    "driveBaseOf": 1791835800118,
+    "_saveGen": 1,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "WORKING",
+     "alloc": 700,
+     "ts": 1791832201493,
+     "whose": "WORKING"
+    },
+    "kept": null,
+    "label": "after put back, then 💾 Save",
+    "baseFolder": 1791835800118,
+    "status": "⛔ Brad saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the folder’s history).",
+    "header": "Unsaved changes",
+    "at": "10/12/2026, 15:10:03 ET"
+   },
+   "folder": {
+    "label": "after put back + save",
+    "head": {
+     "note": "REMOTE",
+     "alloc": 650,
+     "ts": 1791832202268,
+     "payloadTs": 1791832202268,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "REMOTE",
+     "tsET": "10/12/2026, 15:10:02 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-191002.json",
+      "note": "REMOTE",
+      "alloc": 650,
+      "ts": 1791835800118,
+      "payloadTs": 1791835800118,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "REMOTE",
+      "tsET": "10/12/2026, 16:10:00 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-191002.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 7,
+    "at": "10/12/2026, 15:10:03 ET"
+   },
+   "where": {
+    "X": {
+     "folderHead": true,
+     "folderHistory": [
+      "spmt-2027-om-20261012-191002.json"
+     ],
+     "screen": false,
+     "storage": false,
+     "keptSlot": false
+    },
+    "Y": {
+     "folderHead": false,
+     "folderHistory": [],
+     "screen": true,
+     "storage": true,
+     "keptSlot": false
+    }
+   }
+  }
+ ],
+ "contract": "the board must never be recorded clean (saved) while what is on screen differs from the copy its record names as base; each content must remain in some reachable copy; and from such a record (U17) 💾 Save must not write the screen copy over a different head without asking, nor ↶ Put back claim the screen copy is still in the folder when it is not and then keep nothing aside",
+ "cfg": {
+  "fam": "skew",
+  "ahead": 3600000,
+  "reopen": "harness",
+  "lock": true,
+  "pull": "pull"
+ },
+ "expected": {
+  "refresh": [
+   true,
+   0,
+   "REMOTE",
+   false,
+   true,
+   "WORKING",
+   true,
+   0,
+   false
+  ],
+  "u17": false,
+  "v3": [
+   0,
+   "REMOTE",
+   "REMOTE",
+   "REMOTE",
+   "saved",
+   true,
+   true
+  ],
+  "v4": [
+   "WORKING",
+   "in-folder",
+   "REMOTE",
+   "REMOTE",
+   "put back",
+   null,
+   "WORKING",
+   "REMOTE",
+   "clash"
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "REMOTE",
+   true,
+   "REMOTE"
+  ],
+  "falselyClean": false
+ },
+ "whereNow": {
+  "REMOTE": {
+   "folderHead": true,
+   "folderHistory": [
+    "spmt-2027-om-20261012-191002.json"
+   ],
+   "screen": true,
+   "storage": true,
+   "keptSlot": false
+  },
+  "WORKING": {
+   "folderHead": false,
+   "folderHistory": [],
+   "screen": false,
+   "storage": false,
+   "keptSlot": true
+  }
+ },
+ "nextFrom": {
+  "K": [
+   "REMOTE",
+   true,
+   "REMOTE"
+  ],
+  "falselyClean": false,
+  "head": "REMOTE",
+  "history": [
+   "spmt-2027-om-20261012-191002.json REMOTE"
+  ]
+ },
+ "v4parts": {
+  "falselyClean": false,
+  "claim": "in-folder",
+  "falseClaim": false,
+  "notKept": false,
+  "screenCopyIn": {
+   "folderHead": true,
+   "folderHistory": [
+    "spmt-2027-om-20261012-191002.json"
+   ],
+   "screen": false,
+   "storage": false,
+   "keptSlot": false
+  },
+  "saveAfterPutBackAsked": 0,
+  "saveAfterPutBackSays": "clash"
+ },
+ "endedET": "10/12/2026, 15:10:03 ET",
+ "checks": [
+  {
+   "id": "fixture.remote",
+   "kind": "fixture",
+   "what": "the folder's pre-existing copy is REMOTE/$650, by Brad, writer Brad, no history",
+   "expected": [
+    "REMOTE",
+    "Brad",
+    "Brad",
+    0
+   ],
+   "observed": [
+    "REMOTE",
+    "Brad",
+    "Brad",
+    0
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.remoteClock",
+   "kind": "fixture",
+   "what": "PREREQUISITE: REMOTE store.ts and payload ts are ONE HOUR AHEAD of real time (each minus real time after its write, within 59:55 to 60:00 min)",
+   "expected": [
+    true,
+    true
+   ],
+   "observed": [
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.adopt",
+   "kind": "fixture",
+   "what": "Brad's board adopted REMOTE: [connect returned, screen, DIRTY, _baseDirty, record dirty, record base = REMOTE ts, driveBaseOf = REMOTE ts, MS.ts = REMOTE ts, kept slot]",
+   "expected": [
+    true,
+    "REMOTE",
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    null
+   ],
+   "observed": [
+    true,
+    "REMOTE",
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    null
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.edit",
+   "kind": "fixture",
+   "what": "WORKING on screen and unsaved: [screen, DIRTY, record dirty, base still REMOTE ts, the edit's MS.ts is earlier than REMOTE ts]",
+   "expected": [
+    "WORKING",
+    true,
+    true,
+    true,
+    true
+   ],
+   "observed": [
+    "WORKING",
+    true,
+    true,
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.reopened",
+   "kind": "fixture",
+   "what": "reopened with WORKING unsaved in browser storage: [screen, DIRTY (session), record dirty, base = REMOTE ts, kept slot]",
+   "expected": [
+    "WORKING",
+    false,
+    true,
+    true,
+    null
+   ],
+   "observed": [
+    "WORKING",
+    false,
+    true,
+    true,
+    null
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.lockWait",
+   "kind": "fixture",
+   "what": "the save waits for another tab's lock: [asked for the lock, _saveBusy, folder writes since Save was pressed, head still REMOTE, screen]",
+   "expected": [
+    true,
+    0,
+    0,
+    "REMOTE",
+    "WORKING"
+   ],
+   "observed": [
+    true,
+    0,
+    0,
+    "REMOTE",
+    "WORKING"
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.refresh",
+   "kind": "predict",
+   "what": "the refresh while a save waits for the lock ([returned, _saveBusy, screen, record dirty, _saveGen unchanged, kept slot, the folder copy was read, folder writes other than the lock, U13 refusal words said])",
+   "expected": [
+    true,
+    0,
+    "REMOTE",
+    false,
+    true,
+    "WORKING",
+    true,
+    0,
+    false
+   ],
+   "observed": [
+    true,
+    0,
+    "REMOTE",
+    false,
+    true,
+    "WORKING",
+    true,
+    0,
+    false
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.head",
+   "kind": "predict",
+   "what": "the folder head after the waiting save ran: what was on screen when it started (REMOTE, adopted while it waited) ([content, by, writer, head ts != REMOTE ts, status])",
+   "expected": [
+    "REMOTE",
+    "Brad",
+    "Brad",
+    true,
+    "saved"
+   ],
+   "observed": [
+    "REMOTE",
+    "Brad",
+    "Brad",
+    true,
+    "saved"
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.K1",
+   "kind": "contract",
+   "what": "CONTRACT once settled [screen, recorded clean, base copy]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "REMOTE",
+     false,
+     "REMOTE"
+    ]
+   ],
+   "observed": [
+    "REMOTE",
+    true,
+    "REMOTE"
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.U17state",
+   "kind": "predict",
+   "what": "U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base [\"REMOTE\",true,\"REMOTE\"]",
+   "expected": false,
+   "observed": false,
+   "pass": true
+  },
+  {
+   "id": "L20.K2",
+   "kind": "contract",
+   "what": "CONTRACT after a later refresh (or the board says the copies differ) [screen, recorded clean, base copy]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "REMOTE",
+     false,
+     "REMOTE"
+    ]
+   ],
+   "observed": [
+    "REMOTE",
+    true,
+    "REMOTE"
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.K3",
+   "kind": "contract",
+   "what": "CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen, recorded clean, base copy]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "REMOTE",
+     false,
+     "REMOTE"
+    ]
+   ],
+   "observed": [
+    "REMOTE",
+    true,
+    "REMOTE"
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.reach",
+   "kind": "contract",
+   "what": "CONTRACT: REMOTE/$650 and WORKING/$700 each remain in some reachable copy ([REMOTE reachable, WORKING reachable])",
+   "expected": [
+    true,
+    true
+   ],
+   "observed": [
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.V4putback",
+   "kind": "predict",
+   "what": "↶ put it back, then 💾 Save [\"kept before\",\"the question's claim\",\"screen before\",\"head before\",\"put back says\",\"kept after\",\"screen after put back\",\"head after Save\",\"Save says\"]",
+   "expected": [
+    "WORKING",
+    "in-folder",
+    "REMOTE",
+    "REMOTE",
+    "put back",
+    null,
+    "WORKING",
+    "REMOTE",
+    "clash"
+   ],
+   "observed": [
+    "WORKING",
+    "in-folder",
+    "REMOTE",
+    "REMOTE",
+    "put back",
+    null,
+    "WORKING",
+    "REMOTE",
+    "clash"
+   ],
+   "pass": true
+  },
+  {
+   "id": "L20.U17.V4",
+   "kind": "contract",
+   "what": "U17 (V4putback): from a record that says saved while the screen differs from the copy it names, ↶ Put back's question says the screen copy is still in the shared folder (the folder head holds other content) and the screen copy is then kept nowhere but history ([record falsely clean before, the claim false, the screen copy kept nowhere but history])",
+   "expected": {
+    "not": [
+     true,
+     true,
+     true
+    ]
+   },
+   "observed": [
+    false,
+    false,
+    false
+   ],
+   "pass": true
+  }
+ ]
+}

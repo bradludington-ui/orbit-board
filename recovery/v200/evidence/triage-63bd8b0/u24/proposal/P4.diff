@@ -1,0 +1,22 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 98eed7e..fd7f916 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -8385,7 +8385,7 @@ async function _saveInPlaceFileRun(){
+     // THE BYTES, AND WHICH SAVE THEY ARE (v1.95, item 47): built once, here, before the write's first
+     // wait. `wrote` is the time a later Save will find in the file -- fileTsOf over everything written.
+     const html=buildSavedHtml();
+-    const gen=_saveGen, wrote=fileTsOf({appns:PUBS});
++    const gen=_saveGen, wrote=fileTsOf({appns:PUBS}), byWrote=MS.by||whoAmI();   // (proposed) who these bytes say saved them
+     const sideAt=_sideGen;          // v1.97 (item 76): every other list the file carries, as these bytes hold it
+     const w=await h.createWritable();
+     await w.write(html);
+@@ -8397,7 +8397,7 @@ async function _saveInPlaceFileRun(){
+     else baseSet({file:LASTKNOWN});
+     sideWrote(sideAt);              // what changed after the bytes were built is still unsaved
+     syncBtns();
+-    setStat('💾 Saved in place by <b>'+esc(MS.by||whoAmI())+'</b> — "'+esc(h.name||FNAME)+'" now carries this state. '+fmtTs(Date.now())
++    setStat('💾 Saved in place by <b>'+esc(byWrote)+'</b> — "'+esc(h.name||FNAME)+'" now carries this state. '+fmtTs(Date.now())
+       +(may==='claim'? ' You are now this board’s <b>writer</b>: only you save it in place.' : may==='take'? ' You now <b>hold the pen</b> for this board.' : '')
+       +((clean && _sideGen===sideAt)? '' : ' <b>A change made while it was saving is not in the file yet</b> — 💾 Save again to write it.'));
+   }catch(e){

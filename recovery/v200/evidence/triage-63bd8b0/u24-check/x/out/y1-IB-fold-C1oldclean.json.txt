@@ -1,0 +1,557 @@
+{
+ "IDS": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "47859d6058bc3f302cf5df22850be3dd83d12117",
+  "jsdom": "27.4.0",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24-check/b63/prioritization-board-grid.html",
+  "started": "10/12/2026, 3:34:41 PM ET",
+  "scenario": "IB-fold-C1oldclean"
+ },
+ "scenario": "IB-fold-C1oldclean",
+ "path": "IB",
+ "mode": "fold",
+ "kind": "C1oldclean",
+ "steps": {
+  "F0": {
+   "fileTs": 1791833683194,
+   "writer": "Brad",
+   "content": "F0"
+  },
+  "save1": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "impFile": {
+   "note": "IMPORT",
+   "alloc": 610,
+   "ts": 1791833685260,
+   "by": "Carol",
+   "whose": "IMPORT",
+   "fileTs": 1791833685260,
+   "writer": "Brad"
+  },
+  "setup": {
+   "label": "brad saved BRAD-1 (nothing unsaved)",
+   "at": "10/12/2026, 15:34:45 ET",
+   "screen": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833685591,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "stored": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833685591,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791833683194,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791833685591
+    }
+   },
+   "LASTKNOWN": 1791833683194,
+   "driveBase": 1791833685591,
+   "gen": 2,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791833683194,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791833683194,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You are now its writer.",
+   "header": "Saved 3:34 PM",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833685591,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791833685591
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "screen",
+     "storage",
+     "folder"
+    ],
+    "IMPORT": [
+     "importSource"
+    ]
+   }
+  },
+  "act": {
+   "how": {
+    "menuItem": "⇊ Import several boards at once…pick every board .html together | menu open: share | group shown: true",
+    "finished": true
+   },
+   "asked": [
+    "Import 1 board file(s) into this consolidated board?\n\nEach file is matched to its appropriation automatically (O&M / Full Fund / Initial Spares) and REPLACES that appropriation’s current data here — all fiscal years included."
+   ],
+   "genMoved": true
+  },
+  "afterAct": {
+   "label": "after the action",
+   "at": "10/12/2026, 15:34:46 ET",
+   "screen": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833685260,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "stored": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833685260,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "kept": null,
+   "DIRTY": true,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791833683194,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791833685591
+    }
+   },
+   "LASTKNOWN": 1791833683194,
+   "driveBase": 1791833685591,
+   "gen": 3,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791833683194,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791833683194,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": true,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "⬅ Imported: O&M ← ORBIT O&M board - Carol.html [O&M]. Switch appropriations from the dropdown to see each. 💾 Save to bake all of it into this file. Skipped: ORBIT O&M board - Carol.html (consolidated — slots imported)",
+   "header": "Unsaved changes",
+   "recordedClean": false,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833685591,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791833685591
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "IMPORT": [
+     "screen",
+     "storage",
+     "importSource"
+    ]
+   }
+  },
+  "end": {
+   "label": "the end state",
+   "at": "10/12/2026, 15:34:46 ET",
+   "screen": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833685260,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "stored": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833685260,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "kept": null,
+   "DIRTY": true,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791833683194,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791833685591
+    }
+   },
+   "LASTKNOWN": 1791833683194,
+   "driveBase": 1791833685591,
+   "gen": 3,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791833683194,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791833683194,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": true,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "⬅ Imported: O&M ← ORBIT O&M board - Carol.html [O&M]. Switch appropriations from the dropdown to see each. 💾 Save to bake all of it into this file. Skipped: ORBIT O&M board - Carol.html (consolidated — slots imported)",
+   "header": "Unsaved changes",
+   "recordedClean": false,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833685591,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791833685591
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "IMPORT": [
+     "screen",
+     "storage",
+     "importSource"
+    ]
+   }
+  },
+  "reopen": {
+   "connect": {
+    "ok": true,
+    "v": true
+   },
+   "opened": {
+    "label": "reopened from the end state",
+    "at": "10/12/2026, 15:34:47 ET",
+    "screen": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833685591,
+     "by": "Brad",
+     "whose": "BRAD-1"
+    },
+    "stored": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833685591,
+     "by": "Brad",
+     "whose": "BRAD-1"
+    },
+    "kept": null,
+    "DIRTY": false,
+    "_baseDirty": false,
+    "base": {
+     "file": 1791833683194,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791833685591
+     }
+    },
+    "LASTKNOWN": 1791833683194,
+    "driveBase": 1791833685591,
+    "gen": 0,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "",
+     "alloc": null,
+     "ts": 1791833683194,
+     "by": "unknown",
+     "whose": "F0"
+    },
+    "pubFileTs": 1791833683194,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": false,
+    "driveNeed": "",
+    "driveLive": true,
+    "status": "⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.",
+    "header": "Saved 3:34 PM",
+    "recordedClean": true,
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833685591,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "writer": "Brad"
+    },
+    "hist": [],
+    "baseCopy": {
+     "whose": "BRAD-1",
+     "where": "folder head",
+     "ts": 1791833685591
+    },
+    "falselyClean": false,
+    "reach": {
+     "BRAD-1": [
+      "screen",
+      "storage",
+      "folder"
+     ],
+     "IMPORT": [
+      "importSource"
+     ]
+    }
+   },
+   "afterEdit": {
+    "label": "reopened from the end state, then one ordinary edit",
+    "at": "10/12/2026, 15:34:47 ET",
+    "screen": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833687009,
+     "by": "Brad",
+     "whose": "BRAD-1"
+    },
+    "stored": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833687009,
+     "by": "Brad",
+     "whose": "BRAD-1"
+    },
+    "kept": null,
+    "DIRTY": true,
+    "_baseDirty": true,
+    "base": {
+     "file": 1791833683194,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791833685591
+     }
+    },
+    "LASTKNOWN": 1791833683194,
+    "driveBase": 1791833685591,
+    "gen": 1,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "",
+     "alloc": null,
+     "ts": 1791833683194,
+     "by": "unknown",
+     "whose": "F0"
+    },
+    "pubFileTs": 1791833683194,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": true,
+    "driveNeed": "",
+    "driveLive": true,
+    "status": "⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.",
+    "header": "Unsaved changes",
+    "recordedClean": false,
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833685591,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "writer": "Brad"
+    },
+    "hist": [],
+    "baseCopy": {
+     "whose": "BRAD-1",
+     "where": "folder head",
+     "ts": 1791833685591
+    },
+    "falselyClean": false,
+    "reach": {
+     "BRAD-1": [
+      "screen",
+      "storage",
+      "folder"
+     ],
+     "IMPORT": [
+      "importSource"
+     ]
+    }
+   }
+  },
+  "refresh": {
+   "ok": true,
+   "v": false
+  },
+  "afterRefresh": {
+   "label": "a quiet refresh from the end state",
+   "at": "10/12/2026, 15:34:47 ET",
+   "screen": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833685260,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "stored": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833685260,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "kept": null,
+   "DIRTY": true,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791833683194,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791833685591
+    }
+   },
+   "LASTKNOWN": 1791833683194,
+   "driveBase": 1791833685591,
+   "gen": 3,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791833683194,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791833683194,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": true,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "⚠ Brad saved O&M to the shared folder just now, and you have unsaved changes. Nothing was replaced. Save yours, or reload to take theirs.",
+   "header": "Unsaved changes",
+   "recordedClean": false,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833685591,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791833685591
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "IMPORT": [
+     "screen",
+     "storage",
+     "importSource"
+    ]
+   }
+  },
+  "fetchCalls": null
+ },
+ "notes": [],
+ "errors": [],
+ "wall_s": "3.9",
+ "folderLog": [
+  "A:perm:/",
+  "A:miss:spmt-2027-om.json",
+  "A:close:spmt-2027-om.json",
+  "A:close:spmt-2027-om.lock.json",
+  "Z:perm:/",
+  "Z:perm:/",
+  "Z:read:spmt-2027-om.json",
+  "Z:perm:/",
+  "Z:miss:spmt-exec.json",
+  "Z:perm:/",
+  "Z:perm:/",
+  "Z:miss:spmt-reprog.json",
+  "A:perm:/",
+  "A:read:spmt-2027-om.json"
+ ],
+ "folderWrites": [
+  "A:spmt-2027-om.json",
+  "A:spmt-2027-om.lock.json"
+ ],
+ "fileWrites": null,
+ "fileHits": null,
+ "finished": "10/12/2026, 3:34:47 PM ET"
+}

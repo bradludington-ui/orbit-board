@@ -595,3 +595,44 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   scratch copies, two independent adversarial reviewers per round (data loss and money; test adequacy), up to three fix
   rounds. The lead commits each fix separately, rebasing in turn; one full audit-import run alone on the combined drafts
   before integration. The UI S1-S5 workflow continues (S1, S2, S3, S5 built; S4 in progress).
+
+## Update at 7:33 PM ET: Codex's cycle-export cases added; the fix workflows were stopped by a usage limit and restarted
+
+- **Brad, about 6:05 PM ET (verbatim):** "Add Codex's two cycle-export P1 cases to the blocker workflow: * Duplicate `K1`
+  registry entries. * One registry entry named `__none__`. Both accept an imported cycle and export USAF $1,800 / ANG $400
+  from independently expected $900 / $200. Preserve those expectations, include ordinary-key controls, and verify actual
+  XLSX after import and reopening. Also record the malformed saved-year selection and pending registry-text findings
+  explicitly. If deferred, name their limits in the matrix and release notes. Keep U20/U29–U31 open. Provide their raw
+  reproduction, recovery and control logs alongside the final matrix; the status summary alone doesn't establish
+  independent verification. Continue the approved workflows. Preserve separate safety/UI commits, complete UI-C1's checks
+  after integration, and pin the combined tree before final validation."
+- **Ledger:** U32 (duplicate `K1`) and U33 (an entry named `__none__`) were added as **P1, money**, with Brad's literals
+  kept (USAF $900, ANG $200 expected; $1,800 / $400 exported). Both are by code at `d66dd60`: `monSheet` walks the
+  registry's keys and adds a listed key's bag once per listing, and its not-assigned bucket is the string `__none__`. Neither
+  is reproduced here yet. U34 (the malformed saved-year selection) and U35 (the pending registry-text findings; Codex's
+  text has not reached the lead) are recorded and not yet measured. If any of them is deferred, the evidence matrix and
+  NEXT-VERSION.md's "Not covered" will name its limits. U20 and U29–U31 stay open.
+- **Codex tracks.** A third group was added to the fix workflow (`wf_882701ab-22b`, from 6:13 PM ET) with three tracks:
+  - **cycreg (U32, U33):** reproduce through the product's import, then refuse at import and count each key once at
+    export. It reads the actual XLSX after import and after reopening, with ordinary-key controls.
+  - **yearsel (U34):** probe each malformed shape; fix if clearly right, else state the limits.
+  - **regtext (U35):** every way registry text enters and leaves.
+- **Stopped by a usage limit.** All three fix workflows stopped between 6:16 and 6:18 PM ET, when every builder hit the
+  session usage limit ("resets 12am (UTC)", i.e. 8:00 PM ET). This was not a defect, and no builder returned a result.
+  - Partial work was left in `rec/L6/<track>`:
+    - u9 and u10: a fix on c1, with focused runs under way.
+    - u19: its fix in progress.
+    - u20u30: c1 and c2.
+    - cycreg: only its folders.
+  - adopt, u18, hold, u28, yearsel and regtext had not started.
+  - The UI S1–S5 review kept running; its reviewer was active at 7:27 PM ET.
+  - At 7:30 PM ET the lead checked that no process of the stopped builders was still running. The only node or Chromium
+    processes were the UI reviewer's.
+- **Restarted at 7:31 PM ET** with the same tracks and one added instruction: continue from the track's folder, and re-run
+  any step whose log has no exit record. The new runs are save `wf_12f3bad9-2bc`, math `wf_041e5055-bb1` and codex
+  `wf_66312e0c-108`.
+- **Raw logs.** The triage folders behind U17, U20 and U24, and behind U29, U30 and U31, are stored as written in
+  `evidence/triage-63bd8b0/`, together with the independent checkers' folders (`*-check`).
+  - Board files (`*.html`, 16) and symlinks (8) are left out and listed with their sha256 in `EXCLUDED.txt`.
+  - Working copies of 63bd8b0 and a8891e1, which are byte-identical by git blob id, are replaced by `TREE.txt`.
+  - `MANIFEST.sha256` covers the 2,253 stored files and was checked with `sha256sum -c`.

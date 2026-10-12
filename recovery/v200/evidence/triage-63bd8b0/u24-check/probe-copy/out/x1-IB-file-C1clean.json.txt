@@ -1,0 +1,452 @@
+{
+ "IDS": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "6d3a0eb2ad20d0d262d472dca4834cac172cdd62",
+  "jsdom": "27.4.0",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24-check/b63/prioritization-board-grid.html",
+  "started": "10/12/2026, 3:32:17 PM ET",
+  "scenario": "IB-file-C1clean"
+ },
+ "scenario": "IB-file-C1clean",
+ "path": "IB",
+ "mode": "file",
+ "kind": "C1clean",
+ "steps": {
+  "F0": {
+   "fileTs": 1791833538597,
+   "writer": "Brad",
+   "content": "F0"
+  },
+  "save1": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "impFile": {
+   "note": "IMPORT",
+   "alloc": 610,
+   "ts": 1791833542300,
+   "by": "Carol",
+   "whose": "IMPORT",
+   "fileTs": 1791833542300,
+   "writer": "Brad"
+  },
+  "setup": {
+   "label": "brad saved BRAD-1 (nothing unsaved)",
+   "at": "10/12/2026, 15:32:22 ET",
+   "screen": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833540814,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "stored": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833540814,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791833540814,
+    "dirty": false
+   },
+   "LASTKNOWN": 1791833540814,
+   "driveBase": 0,
+   "gen": 3,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791833538597,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791833538597,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 3:32:20 PM",
+   "header": "Saved 3:32 PM",
+   "recordedClean": true,
+   "file": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833540814,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "fileTs": 1791833540814,
+    "writer": "Brad"
+   },
+   "fileWrites": 1,
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "file (current)",
+    "ts": 1791833540814
+   },
+   "lastknownIsBase": true,
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "screen",
+     "storage",
+     "file"
+    ],
+    "IMPORT": [
+     "importSource"
+    ]
+   }
+  },
+  "act": {
+   "how": {
+    "menuItem": "⇊ Import several boards at once…pick every board .html together | menu open: share | group shown: true",
+    "finished": true
+   },
+   "asked": [
+    "Import 1 board file(s) into this consolidated board?\n\nEach file is matched to its appropriation automatically (O&M / Full Fund / Initial Spares) and REPLACES that appropriation’s current data here — all fiscal years included."
+   ],
+   "genMoved": true
+  },
+  "afterAct": {
+   "label": "after the action",
+   "at": "10/12/2026, 15:32:22 ET",
+   "screen": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833542300,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "stored": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833542300,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "kept": null,
+   "DIRTY": true,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791833540814,
+    "dirty": false
+   },
+   "LASTKNOWN": 1791833540814,
+   "driveBase": 0,
+   "gen": 4,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791833538597,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791833538597,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": true,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "⬅ Imported: O&M ← ORBIT O&M board - Carol.html [O&M]. Switch appropriations from the dropdown to see each. 💾 Save to bake all of it into this file. Skipped: ORBIT O&M board - Carol.html (consolidated — slots imported)",
+   "header": "Unsaved changes",
+   "recordedClean": false,
+   "file": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833540814,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "fileTs": 1791833540814,
+    "writer": "Brad"
+   },
+   "fileWrites": 1,
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "file (current)",
+    "ts": 1791833540814
+   },
+   "lastknownIsBase": true,
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "file"
+    ],
+    "IMPORT": [
+     "screen",
+     "storage",
+     "importSource"
+    ]
+   }
+  },
+  "end": {
+   "label": "the end state",
+   "at": "10/12/2026, 15:32:22 ET",
+   "screen": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833542300,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "stored": {
+    "note": "IMPORT",
+    "alloc": 610,
+    "ts": 1791833542300,
+    "by": "Carol",
+    "whose": "IMPORT"
+   },
+   "kept": null,
+   "DIRTY": true,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791833540814,
+    "dirty": false
+   },
+   "LASTKNOWN": 1791833540814,
+   "driveBase": 0,
+   "gen": 4,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791833538597,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791833538597,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": true,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "⬅ Imported: O&M ← ORBIT O&M board - Carol.html [O&M]. Switch appropriations from the dropdown to see each. 💾 Save to bake all of it into this file. Skipped: ORBIT O&M board - Carol.html (consolidated — slots imported)",
+   "header": "Unsaved changes",
+   "recordedClean": false,
+   "file": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791833540814,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "fileTs": 1791833540814,
+    "writer": "Brad"
+   },
+   "fileWrites": 1,
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "file (current)",
+    "ts": 1791833540814
+   },
+   "lastknownIsBase": true,
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "file"
+    ],
+    "IMPORT": [
+     "screen",
+     "storage",
+     "importSource"
+    ]
+   }
+  },
+  "reopen": {
+   "opened": {
+    "label": "reopened from the end state",
+    "at": "10/12/2026, 15:32:23 ET",
+    "screen": {
+     "note": "IMPORT",
+     "alloc": 610,
+     "ts": 1791833542300,
+     "by": "Carol",
+     "whose": "IMPORT"
+    },
+    "stored": {
+     "note": "IMPORT",
+     "alloc": 610,
+     "ts": 1791833542300,
+     "by": "Carol",
+     "whose": "IMPORT"
+    },
+    "kept": null,
+    "DIRTY": false,
+    "_baseDirty": false,
+    "base": {
+     "file": 1791833540814,
+     "dirty": false
+    },
+    "LASTKNOWN": 1791833540814,
+    "driveBase": 0,
+    "gen": 0,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833540814,
+     "by": "Brad",
+     "whose": "BRAD-1"
+    },
+    "pubFileTs": 1791833540814,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": false,
+    "driveNeed": "",
+    "driveLive": false,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 3:32:20 PM by Brad). 💾 Save writes them into the file.",
+    "header": "Saved 3:32 PM",
+    "recordedClean": true,
+    "file": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833540814,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "fileTs": 1791833540814,
+     "writer": "Brad"
+    },
+    "fileWrites": 1,
+    "baseCopy": {
+     "whose": "BRAD-1",
+     "where": "file (current)",
+     "ts": 1791833540814
+    },
+    "lastknownIsBase": true,
+    "falselyClean": true,
+    "reach": {
+     "BRAD-1": [
+      "file"
+     ],
+     "IMPORT": [
+      "screen",
+      "storage",
+      "importSource"
+     ]
+    }
+   },
+   "afterEdit": {
+    "label": "reopened from the end state, then one ordinary edit",
+    "at": "10/12/2026, 15:32:23 ET",
+    "screen": {
+     "note": "IMPORT",
+     "alloc": 610,
+     "ts": 1791833543350,
+     "by": "Brad",
+     "whose": "IMPORT"
+    },
+    "stored": {
+     "note": "IMPORT",
+     "alloc": 610,
+     "ts": 1791833543350,
+     "by": "Brad",
+     "whose": "IMPORT"
+    },
+    "kept": null,
+    "DIRTY": true,
+    "_baseDirty": true,
+    "base": {
+     "file": 1791833540814,
+     "dirty": true
+    },
+    "LASTKNOWN": 1791833540814,
+    "driveBase": 0,
+    "gen": 1,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833540814,
+     "by": "Brad",
+     "whose": "BRAD-1"
+    },
+    "pubFileTs": 1791833540814,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": true,
+    "driveNeed": "",
+    "driveLive": false,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 3:32:20 PM by Brad). 💾 Save writes them into the file.",
+    "header": "Unsaved changes",
+    "recordedClean": false,
+    "file": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791833540814,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "fileTs": 1791833540814,
+     "writer": "Brad"
+    },
+    "fileWrites": 1,
+    "baseCopy": {
+     "whose": "BRAD-1",
+     "where": "file (current)",
+     "ts": 1791833540814
+    },
+    "lastknownIsBase": true,
+    "falselyClean": false,
+    "reach": {
+     "BRAD-1": [
+      "file"
+     ],
+     "IMPORT": [
+      "screen",
+      "storage",
+      "importSource"
+     ]
+    }
+   }
+  },
+  "fetchCalls": null
+ },
+ "notes": [],
+ "errors": [],
+ "wall_s": "4.9",
+ "folderLog": null,
+ "folderWrites": null,
+ "fileWrites": 1,
+ "fileHits": {
+  "read": 1,
+  "open": 1,
+  "write": 1,
+  "close": 1
+ },
+ "finished": "10/12/2026, 3:32:23 PM ET"
+}

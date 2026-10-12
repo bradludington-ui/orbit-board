@@ -1,0 +1,16 @@
+BT-file-W probe 6d3a0eb2 board 98eed7e8
+  end       screen CAROL-F | recordedClean true | base BRAD-2 | falselyClean true | kept KEPT-0 | stored CAROL-F
+      BRAD-2   ["file"]
+      KEPT-0   ["kept"]
+      CAROL-F  ["screen","storage","outside:versionHistory"]
+      status: 💾 Saved in place by Carol — "Board.html" now carries this state. 10/12/2026, 3:29:04 PM
+  reopened  screen BRAD-2 | recordedClean true | base BRAD-2 | falselyClean false | kept KEPT-0 | stored CAROL-F
+      BRAD-2   ["screen","file"]
+      KEPT-0   ["kept"]
+      CAROL-F  ["storage","outside:versionHistory"]
+      status: 📦 Opened with the saved board state — last saved by Brad 10/12/2026, 3:29:04 PM. Make changes and 💾 Save to pass it on.
+  edited    screen BRAD-2 | recordedClean false | base BRAD-2 | falselyClean false | kept KEPT-0 | stored BRAD-2
+      BRAD-2   ["screen","storage","file"]
+      KEPT-0   ["kept"]
+      CAROL-F  ["outside:versionHistory"]
+      status: 📦 Opened with the saved board state — last saved by Brad 10/12/2026, 3:29:04 PM. Make changes and 💾 Save to pass it on.

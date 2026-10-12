@@ -1,0 +1,13 @@
+x-b63-XSHd-save start=2026-10-12T15:09:39EDT exit=0 wall_s=6.9  | SUMMARY XSHd save board=u13: 7 pass, 1 fail | fixture 3/3 | predict 4/4 | contract 0/1 | harness 0/0
+x-b63-XSHe-save start=2026-10-12T15:09:46EDT exit=0 wall_s=8.4  | SUMMARY XSHe save board=u13: 7 pass, 1 fail | fixture 2/2 | predict 5/5 | contract 0/1 | harness 0/0
+x-b63-XSHdL-save start=2026-10-12T15:09:55EDT exit=0 wall_s=6.3  | SUMMARY XSHdL save board=u13: 7 pass, 1 fail | fixture 3/3 | predict 4/4 | contract 0/1 | harness 0/0
+x-b63-XSHn-save start=2026-10-12T15:10:01EDT exit=0 wall_s=6.5  | SUMMARY XSHn save board=u13: 8 pass, 1 fail | fixture 4/4 | predict 4/4 | contract 0/1 | harness 0/0
+x-b63-XFBT-save start=2026-10-12T15:10:07EDT exit=0 wall_s=9.6  | SUMMARY XFBT save board=u13: 13 pass, 1 fail | fixture 5/5 | predict 8/8 | contract 0/1 | harness 0/0
+x-b63-XFBTC-save start=2026-10-12T15:10:17EDT exit=0 wall_s=13.9  | SUMMARY XFBTC save board=u13: 11 pass, 0 fail | fixture 4/4 | predict 6/6 | contract 1/1 | harness 0/0
+x-b63-XFBTL-save start=2026-10-12T15:10:31EDT exit=0 wall_s=14.6  | SUMMARY XFBTL save board=u13: 14 pass, 0 fail | fixture 5/5 | predict 8/8 | contract 1/1 | harness 0/0
+x-b63-XFSHd-save start=2026-10-12T15:10:46EDT exit=0 wall_s=8.9  | SUMMARY XFSHd save board=u13: 9 pass, 1 fail | fixture 3/3 | predict 6/6 | contract 0/1 | harness 0/0
+x-b63-XFSHd-putback start=2026-10-12T15:10:55EDT exit=0 wall_s=10.8  | SUMMARY XFSHd putback board=u13: 8 pass, 1 fail | fixture 3/3 | predict 5/5 | contract 0/1 | harness 0/0
+x-b63-XFSHn-save start=2026-10-12T15:11:06EDT exit=0 wall_s=11.4  | SUMMARY XFSHn save board=u13: 9 pass, 1 fail | fixture 2/2 | predict 7/7 | contract 0/1 | harness 0/0
+x-b63-XFSHn-putback start=2026-10-12T15:11:17EDT exit=0 wall_s=11.4  | SUMMARY XFSHn putback board=u13: 8 pass, 1 fail | fixture 2/2 | predict 6/6 | contract 0/1 | harness 0/0
+x-b63-XFSHdL-save start=2026-10-12T15:11:29EDT exit=0 wall_s=9.7  | SUMMARY XFSHdL save board=u13: 9 pass, 1 fail | fixture 3/3 | predict 6/6 | contract 0/1 | harness 0/0
+x-b63-XFSHdL-putback start=2026-10-12T15:11:38EDT exit=0 wall_s=11.8  | SUMMARY XFSHdL putback board=u13: 8 pass, 1 fail | fixture 3/3 | predict 5/5 | contract 0/1 | harness 0/0

@@ -1,0 +1,34 @@
+PASS [fixture] fixture.v1: BRAD-1 saved into the board file
+     expected ["BRAD-1",1]
+     observed ["BRAD-1",1]
+PASS [fixture] fixture.arrived: BRAD-2 typed; the shared file arrived; link offered ([screen, DIRTY, button])
+     expected ["BRAD-2",true,true]
+     observed ["BRAD-2",true,true]
+PASS [fixture] fixture.held: the 💾 Save into the file reached its close and is held ([reached, _saveBusy])
+     expected [true,1]
+     observed [true,1]
+PASS [predict] XFSHd.linkHeld: while the save writes, the status line still shows the button (adoptShared)
+     expected true
+     observed true
+PASS [predict] XFSHd.adopt: the other copy is put on screen (DOM click: clicked) ([screen, _saveBusy, _saveGen unchanged, kept slot, said])
+     expected ["SHARED",1,true,"BRAD-2",true]
+     observed ["SHARED",1,true,"BRAD-2",true]
+PASS [predict] XFSHd.file: the file once settled
+     expected "BRAD-2"
+     observed "BRAD-2"
+PASS [predict] XFSHd.K1: once settled [screen, recorded clean, the file version the record names]
+     expected ["SHARED",true,"BRAD-2"]
+     observed ["SHARED",true,"BRAD-2"]
+FAIL [contract] XFSHd.contractK1: recorded clean only against a file version holding what is on screen
+     expected "not falsely clean"
+     observed ["SHARED",true,"BRAD-2"]
+PASS [predict] XFSHd.V3next: the next 💾 Save ["questions","screen before","file before","file after","status","clean after","record names file"]
+     expected [0,"SHARED","BRAD-2","SHARED","saved-file",true,true]
+     observed [0,"SHARED","BRAD-2","SHARED","saved-file",true,true]
+PASS [predict] XFSHd.reachBRAD-2: BRAD-2 in a copy this board can reach after the next Save (file, screen, storage, kept slot)
+     expected true
+     observed true
+u17state {"tuple":["SHARED",true,"BRAD-2"],"falselyClean":true}
+whereBRAD3 {"file":false,"screen":false,"storage":false,"keptSlot":true,"earlierFileVersionsOnly":["10/12/2026, 15:10:54 ET"]}
+ids {"board":"98eed7e801af20270f755eadffb2fa72355c30e5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"c47a43b62bf00e391aafa040de32f37109e10699","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/b63/prioritization-board-grid.html"}
+SUMMARY XFSHd save board=u13: 9 pass, 1 fail | fixture 3/3 | predict 6/6 | contract 0/1 | harness 0/0

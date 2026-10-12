@@ -1,0 +1,10 @@
+{
+ "jsdom": "27.4.0",
+ "file:///C:/Teams/Board.html": {
+  "error": "SecurityError: localStorage is not available for opaque origins"
+ },
+ "https://example.invalid/board.html": {
+  "origin": "https://example.invalid",
+  "ls": "1"
+ }
+}

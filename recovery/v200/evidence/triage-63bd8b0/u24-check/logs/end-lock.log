@@ -1,0 +1,6 @@
+ls: cannot access '/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/AUDIT_IMPORT_RUNNING': No such file or directory
+238
+126
+ls-lock start="2026-10-12 15:23:55 EDT" exit=2 wall_s=10.258487856 log=logs/ls-lock.log 
+xcheck-y2-fails start="2026-10-12 15:37:15 EDT" exit=1 wall_s=.031037304 log=logs/xcheck-y2-fails.log 
+end-ob-head start="2026-10-12 15:42:44 EDT" exit=128 wall_s=.028679837 log=logs/end-ob-head.log 

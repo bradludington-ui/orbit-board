@@ -1,0 +1,1270 @@
+{
+ "scenario": "W2tick",
+ "next": "save",
+ "board": "pre",
+ "ids": {
+  "board": "1375b72b6707faa57c50d528e01ce9611f194998",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "6b65ff659b6f2f374b29b2707cf1ce049a5eecf2",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/c137/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 10:44:18 ET",
+ "steps": [
+  {
+   "step": "start",
+   "v1": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791816262155,
+    "payloadTs": 1791816262155,
+    "by": "Brad",
+    "writer": "Brad",
+    "whose": "BRAD-1",
+    "tsET": "10/12/2026, 10:44:22 ET"
+   },
+   "brad": {
+    "screen": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816262155,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:44:22 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816262155
+     }
+    },
+    "driveBaseOf": 1791816262155,
+    "_saveGen": 2,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816262155,
+     "whose": "BRAD-1"
+    },
+    "kept": null,
+    "label": "brad after his first 💾 Save",
+    "baseFolder": 1791816262155,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You are now its writer.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:22 ET"
+   },
+   "bobLoad": true,
+   "bob": {
+    "screen": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816262155,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:44:22 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816262155
+     }
+    },
+    "driveBaseOf": 1791816262155,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816262155,
+     "whose": "BRAD-1"
+    },
+    "kept": null,
+    "label": "bob after loading the folder copy",
+    "baseFolder": 1791816262155,
+    "status": "⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:23 ET"
+   },
+   "folder": {
+    "label": "after the first save",
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816262155,
+     "payloadTs": 1791816262155,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:44:22 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 1,
+    "at": "10/12/2026, 10:44:23 ET"
+   }
+  },
+  {
+   "step": "held",
+   "reached": true,
+   "brad": {
+    "screen": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816263982,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:44:23 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816262155
+     }
+    },
+    "driveBaseOf": 1791816262155,
+    "_saveGen": 2,
+    "_saveBusy": 1,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816262155,
+     "whose": "BRAD-1"
+    },
+    "kept": null,
+    "label": "brad, save held at the close of its write",
+    "baseFolder": 1791816262155,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You are now its writer.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:23 ET"
+   },
+   "folder": {
+    "label": "brad save held",
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816262155,
+     "payloadTs": 1791816262155,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:44:22 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-144423.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816262155,
+      "payloadTs": 1791816262155,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:22 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-144423.json",
+     "main:spmt-2027-om.json"
+    ],
+    "reads": 2,
+    "at": "10/12/2026, 10:44:23 ET"
+   }
+  },
+  {
+   "step": "bob",
+   "bobHead": {
+    "note": "BOB-2",
+    "alloc": 650,
+    "ts": 1791816264603,
+    "payloadTs": 1791816264603,
+    "by": "Bob",
+    "writer": "Bob",
+    "whose": "BOB-2",
+    "tsET": "10/12/2026, 10:44:24 ET"
+   },
+   "bobAsked": [
+    "Take the pen for O&M FY27 in the shared folder from Brad (its writer since 10/12/2026, 2:44:22 PM)?\n\nDo this only when the pen has been handed to you. A proper "
+   ],
+   "bob": {
+    "screen": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "by": "Bob",
+     "cur": 2027,
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816264603
+     }
+    },
+    "driveBaseOf": 1791816264603,
+    "_saveGen": 2,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "whose": "BOB-2"
+    },
+    "kept": null,
+    "label": "bob after taking the pen and saving",
+    "baseFolder": 1791816264603,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You now hold the pen for it.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:24 ET"
+   },
+   "folder": {
+    "label": "bob saved",
+    "head": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "payloadTs": 1791816264603,
+     "by": "Bob",
+     "writer": "Bob",
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-144423.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816262155,
+      "payloadTs": 1791816262155,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:22 ET"
+     },
+     {
+      "name": "spmt-2027-om-20261012-144424-recent.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816262155,
+      "payloadTs": 1791816262155,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:22 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-144423.json",
+     "main:spmt-2027-om.json",
+     "hist:spmt-2027-om-20261012-144424-recent.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 4,
+    "at": "10/12/2026, 10:44:24 ET"
+   }
+  },
+  {
+   "step": "refresh",
+   "how": "tick",
+   "returned": "(undefined)",
+   "brad": {
+    "screen": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "by": "Bob",
+     "cur": 2027,
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816264603
+     }
+    },
+    "driveBaseOf": 1791816264603,
+    "_saveGen": 2,
+    "_saveBusy": 1,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "whose": "BOB-2"
+    },
+    "kept": null,
+    "label": "brad after the refresh, save still held",
+    "baseFolder": 1791816264603,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You are now its writer.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:25 ET"
+   },
+   "folder": {
+    "label": "after the refresh",
+    "head": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "payloadTs": 1791816264603,
+     "by": "Bob",
+     "writer": "Bob",
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-144423.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816262155,
+      "payloadTs": 1791816262155,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:22 ET"
+     },
+     {
+      "name": "spmt-2027-om-20261012-144424-recent.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816262155,
+      "payloadTs": 1791816262155,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:22 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-144423.json",
+     "main:spmt-2027-om.json",
+     "hist:spmt-2027-om-20261012-144424-recent.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 5,
+    "at": "10/12/2026, 10:44:25 ET"
+   },
+   "readsDuring": 1,
+   "writesDuring": []
+  },
+  {
+   "step": "landed",
+   "brad": {
+    "screen": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "by": "Bob",
+     "cur": 2027,
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816263982
+     }
+    },
+    "driveBaseOf": 1791816263982,
+    "_saveGen": 2,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "whose": "BOB-2"
+    },
+    "kept": null,
+    "label": "brad after the save landed",
+    "baseFolder": 1791816263982,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:25 ET"
+   },
+   "folder": {
+    "label": "landed",
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816263982,
+     "payloadTs": 1791816263982,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:44:23 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-144423.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816262155,
+      "payloadTs": 1791816262155,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:22 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-144423.json",
+     "main:spmt-2027-om.json",
+     "hist:spmt-2027-om-20261012-144424-recent.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 5,
+    "at": "10/12/2026, 10:44:25 ET"
+   }
+  },
+  {
+   "step": "laterRefresh",
+   "returned": "(undefined)",
+   "brad": {
+    "screen": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "by": "Bob",
+     "cur": 2027,
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816263982
+     }
+    },
+    "driveBaseOf": 1791816263982,
+    "_saveGen": 2,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "whose": "BOB-2"
+    },
+    "kept": null,
+    "label": "brad after a later refresh",
+    "baseFolder": 1791816263982,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:25 ET"
+   }
+  },
+  {
+   "step": "reopen",
+   "connect": true,
+   "afterConnect": {
+    "screen": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "by": "Bob",
+     "cur": 2027,
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816263982
+     }
+    },
+    "driveBaseOf": 1791816263982,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "whose": "BOB-2"
+    },
+    "kept": null,
+    "label": "reopened, after the opening's connect",
+    "baseFolder": 1791816263982,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 2:44:20 PM by unknown). 💾 Save writes them into the file.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:26 ET"
+   },
+   "refresh": false,
+   "afterRefresh": {
+    "screen": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "by": "Bob",
+     "cur": 2027,
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816263982
+     }
+    },
+    "driveBaseOf": 1791816263982,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "whose": "BOB-2"
+    },
+    "kept": null,
+    "label": "reopened, after a refresh",
+    "baseFolder": 1791816263982,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 2:44:20 PM by unknown). 💾 Save writes them into the file.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:26 ET"
+   },
+   "folder": {
+    "label": "reopen",
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791816263982,
+     "payloadTs": 1791816263982,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:44:23 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-144423.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816262155,
+      "payloadTs": 1791816262155,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:22 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-144423.json",
+     "main:spmt-2027-om.json",
+     "hist:spmt-2027-om-20261012-144424-recent.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 8,
+    "at": "10/12/2026, 10:44:26 ET"
+   }
+  },
+  {
+   "step": "V3next",
+   "asked": [],
+   "before": {
+    "screen": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "by": "Bob",
+     "cur": 2027,
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:24 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816263982
+     }
+    },
+    "driveBaseOf": 1791816263982,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816264603,
+     "whose": "BOB-2"
+    },
+    "kept": null,
+    "label": "the end of the route, before save",
+    "baseFolder": 1791816263982,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 2:44:20 PM by unknown). 💾 Save writes them into the file.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:26 ET"
+   },
+   "after": {
+    "screen": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816266630,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:26 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791816260215,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791816266630
+     }
+    },
+    "driveBaseOf": 1791816266630,
+    "_saveGen": 0,
+    "_saveBusy": 0,
+    "_driveLive": true,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816266630,
+     "whose": "BOB-2"
+    },
+    "kept": null,
+    "label": "after Brad's next 💾 Save",
+    "baseFolder": 1791816266630,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 2:44 PM",
+    "at": "10/12/2026, 10:44:26 ET"
+   },
+   "folder": {
+    "label": "after the next save",
+    "head": {
+     "note": "BOB-2",
+     "alloc": 650,
+     "ts": 1791816266630,
+     "payloadTs": 1791816266630,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BOB-2",
+     "tsET": "10/12/2026, 10:44:26 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-144423.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816262155,
+      "payloadTs": 1791816262155,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:22 ET"
+     },
+     {
+      "name": "spmt-2027-om-20261012-144426-recent.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791816263982,
+      "payloadTs": 1791816263982,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 10:44:23 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-144423.json",
+     "main:spmt-2027-om.json",
+     "hist:spmt-2027-om-20261012-144424-recent.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-144426-recent.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 9,
+    "at": "10/12/2026, 10:44:26 ET"
+   },
+   "where": {
+    "X": {
+     "folderHead": true,
+     "folderHistory": [],
+     "screen": true,
+     "storage": true,
+     "keptSlot": false
+    },
+    "Y": {
+     "folderHead": false,
+     "folderHistory": [
+      "spmt-2027-om-20261012-144423.json",
+      "spmt-2027-om-20261012-144426-recent.json"
+     ],
+     "screen": false,
+     "storage": false,
+     "keptSlot": false
+    }
+   }
+  }
+ ],
+ "contract": "the board must never be recorded clean (saved) while what is on screen differs from the copy its record names as base; each content must remain in some reachable copy; and from such a record (U17) 💾 Save must not write the screen copy over a different head without asking, nor ↶ Put back claim the screen copy is still in the folder when it is not and then keep nothing aside",
+ "cfg": {
+  "fam": "pen",
+  "held": true,
+  "bob": true,
+  "pull": "tick",
+  "measured": true
+ },
+ "expected": {
+  "refresh": [
+   "(liveTick returns nothing)",
+   1,
+   "BOB-2",
+   false,
+   true,
+   null,
+   true,
+   0,
+   false
+  ],
+  "u17": true,
+  "v3": [
+   0,
+   "BOB-2",
+   "BRAD-1",
+   "BOB-2",
+   "saved",
+   true,
+   true
+  ],
+  "v4": [
+   null,
+   "none",
+   "BOB-2",
+   "BRAD-1",
+   "nothing kept",
+   null,
+   "BOB-2",
+   "BOB-2",
+   "saved"
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "BOB-2",
+   true,
+   "BRAD-1"
+  ],
+  "falselyClean": true
+ },
+ "whereNow": {
+  "BOB-2": {
+   "folderHead": false,
+   "folderHistory": [],
+   "screen": true,
+   "storage": true,
+   "keptSlot": false,
+   "bobScreen": true,
+   "bobStorage": true
+  },
+  "BRAD-1": {
+   "folderHead": true,
+   "folderHistory": [
+    "spmt-2027-om-20261012-144423.json"
+   ],
+   "screen": false,
+   "storage": false,
+   "keptSlot": false,
+   "bobScreen": false,
+   "bobStorage": false
+  }
+ },
+ "nextFrom": {
+  "K": [
+   "BOB-2",
+   true,
+   "BRAD-1"
+  ],
+  "falselyClean": true,
+  "head": "BRAD-1",
+  "history": [
+   "spmt-2027-om-20261012-144423.json BRAD-1"
+  ]
+ },
+ "v3parts": {
+  "falselyClean": true,
+  "wroteOver": true,
+  "overwritten": "BRAD-1",
+  "overwrittenNowIn": {
+   "folderHead": false,
+   "folderHistory": [
+    "spmt-2027-om-20261012-144423.json",
+    "spmt-2027-om-20261012-144426-recent.json"
+   ],
+   "screen": false,
+   "storage": false,
+   "keptSlot": false
+  }
+ },
+ "endedET": "10/12/2026, 10:44:26 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)",
+   "expected": [
+    "BRAD-1",
+    "Brad",
+    "Brad"
+   ],
+   "observed": [
+    "BRAD-1",
+    "Brad",
+    "Brad"
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.bradClean",
+   "kind": "fixture",
+   "what": "brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]",
+   "expected": [
+    "BRAD-1",
+    false,
+    false,
+    false,
+    true
+   ],
+   "observed": [
+    "BRAD-1",
+    false,
+    false,
+    false,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.bobBase",
+   "kind": "fixture",
+   "what": "bob loaded brad's copy: [returned, screen, his base = v1 ts]",
+   "expected": [
+    true,
+    "BRAD-1",
+    true
+   ],
+   "observed": [
+    true,
+    "BRAD-1",
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "W2tick.held",
+   "kind": "fixture",
+   "what": "brad's 💾 Save with nothing unsaved reached its write and is held: [reached, DIRTY, record dirty, _saveBusy, head ts = v1 ts]",
+   "expected": [
+    true,
+    false,
+    false,
+    1,
+    true
+   ],
+   "observed": [
+    true,
+    false,
+    false,
+    1,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "W2tick.bobCopy",
+   "kind": "fixture",
+   "what": "bob's copy is the folder's current copy: [content, by, writer, bob DIRTY, bob record dirty]",
+   "expected": [
+    "BOB-2",
+    "Bob",
+    "Bob",
+    false,
+    false
+   ],
+   "observed": [
+    "BOB-2",
+    "Bob",
+    "Bob",
+    false,
+    false
+   ],
+   "pass": true
+  },
+  {
+   "id": "W2tick.bobNewer",
+   "kind": "fixture",
+   "what": "bob's copy is newer than the MS.ts brad's held save built",
+   "expected": [
+    true
+   ],
+   "observed": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "W2tick.refresh",
+   "kind": "predict",
+   "what": "the refresh during the held save ([returned, _saveBusy, screen, record dirty, _saveGen unchanged, kept slot, the folder copy was read, folder writes other than the lock, U13 refusal words said])",
+   "expected": [
+    "(liveTick returns nothing)",
+    1,
+    "BOB-2",
+    false,
+    true,
+    null,
+    true,
+    0,
+    false
+   ],
+   "observed": [
+    "(liveTick returns nothing)",
+    1,
+    "BOB-2",
+    false,
+    true,
+    null,
+    true,
+    0,
+    false
+   ],
+   "pass": true
+  },
+  {
+   "id": "W2tick.head",
+   "kind": "fixture",
+   "what": "the folder head after brad's save lands: the bytes it built ([content, by, writer])",
+   "expected": [
+    "BRAD-1",
+    "Brad",
+    "Brad"
+   ],
+   "observed": [
+    "BRAD-1",
+    "Brad",
+    "Brad"
+   ],
+   "pass": true
+  },
+  {
+   "id": "W2tick.K1",
+   "kind": "contract",
+   "what": "CONTRACT once settled [screen, recorded clean, base copy]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "BOB-2",
+     false,
+     "BRAD-1"
+    ]
+   ],
+   "observed": [
+    "BOB-2",
+    true,
+    "BRAD-1"
+   ],
+   "pass": false
+  },
+  {
+   "id": "W2tick.U17state",
+   "kind": "predict",
+   "what": "U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base [\"BOB-2\",true,\"BRAD-1\"]",
+   "expected": true,
+   "observed": true,
+   "pass": true
+  },
+  {
+   "id": "W2tick.K2",
+   "kind": "contract",
+   "what": "CONTRACT after a later refresh (or the board says the copies differ) [screen, recorded clean, base copy]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "BOB-2",
+     false,
+     "BRAD-1"
+    ]
+   ],
+   "observed": [
+    "BOB-2",
+    true,
+    "BRAD-1"
+   ],
+   "pass": false
+  },
+  {
+   "id": "W2tick.K3",
+   "kind": "contract",
+   "what": "CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen, recorded clean, base copy]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "BOB-2",
+     false,
+     "BRAD-1"
+    ]
+   ],
+   "observed": [
+    "BOB-2",
+    true,
+    "BRAD-1"
+   ],
+   "pass": false
+  },
+  {
+   "id": "W2tick.reach",
+   "kind": "contract",
+   "what": "CONTRACT: BOB-2/$650 and BRAD-1/$700 each remain in some reachable copy (BOB-2 counting bob's own board) ([BOB-2 reachable, BRAD-1 reachable])",
+   "expected": [
+    true,
+    true
+   ],
+   "observed": [
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "W2tick.U18",
+   "kind": "related (U18, not U17)",
+   "what": "bob's copy BOB-2/$650 is in the shared folder (head or history)",
+   "expected": "(observed only)",
+   "observed": false,
+   "pass": true
+  },
+  {
+   "id": "W2tick.V3next",
+   "kind": "predict",
+   "what": "Brad's next 💾 Save from where the route ended [\"questions asked\",\"screen before\",\"head before\",\"head after\",\"status says\",\"recorded clean after\",\"record names the head\"]",
+   "expected": [
+    0,
+    "BOB-2",
+    "BRAD-1",
+    "BOB-2",
+    "saved",
+    true,
+    true
+   ],
+   "observed": [
+    0,
+    "BOB-2",
+    "BRAD-1",
+    "BOB-2",
+    "saved",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "W2tick.U17.V3",
+   "kind": "contract",
+   "what": "U17 (V3next): from a record that says saved while the screen differs from the copy it names, 💾 Save writes the screen copy over a folder head holding different content and asks nothing ([record falsely clean before, wrote over a different head without asking])",
+   "expected": {
+    "not": [
+     true,
+     true
+    ]
+   },
+   "observed": [
+    true,
+    true
+   ],
+   "pass": false
+  }
+ ]
+}

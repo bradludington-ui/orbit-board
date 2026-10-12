@@ -1,0 +1,8 @@
+r-c137-V1sameperm-save start=2026-10-12T15:08:16EDT exit=0 wall_s=6.0  | SUMMARY V1sameperm save board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-V1sameperm-putback start=2026-10-12T15:08:23EDT exit=0 wall_s=4.6  | SUMMARY V1sameperm putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-V2live-save start=2026-10-12T15:08:27EDT exit=0 wall_s=15.1  | SUMMARY V2live save board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-V2live-putback start=2026-10-12T15:08:42EDT exit=0 wall_s=16.1  | SUMMARY V2live putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-W2pull-save start=2026-10-12T15:08:58EDT exit=0 wall_s=6.5  | SUMMARY W2pull save board=pre: 12 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-W2pull-putback start=2026-10-12T15:09:05EDT exit=0 wall_s=7.2  | SUMMARY W2pull putback board=pre: 13 pass, 3 fail | fixture 7/7 | predict 3/3 | contract 2/5 | harness 0/0
+r-c137-W2tick-save start=2026-10-12T15:09:12EDT exit=0 wall_s=7.0  | SUMMARY W2tick save board=pre: 12 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0
+r-c137-W2tick-putback start=2026-10-12T15:09:19EDT exit=0 wall_s=6.2  | SUMMARY W2tick putback board=pre: 13 pass, 3 fail | fixture 7/7 | predict 3/3 | contract 2/5 | harness 0/0
