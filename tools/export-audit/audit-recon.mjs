@@ -4506,6 +4506,316 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (R1, Brad's decisions of 11 Oct) ====
+// ==== v2.00 (U1): a row carried into a year neither imported nor planned is offered, and counted in ALL YEARS ====
+// The board is on O&M, two services, its five-year plan FY27-FY31 (MS.base 2027); FY27's pot is USAF $350M + ANG $150M and one
+// requirement asks more, so FY27 reads $500M planned; FY28-FY31 were never planned and hold $0. The OBBBA rule is on (FY25 ->
+// FY26, Budget cell). No row is filed under FY26 and FY26 is outside the window. FY25 rows, each filed under FY25:
+//   O&M  'Ordinary FY25 Support'  ANG O&M Discretionary        $40,000,000   Program (TSS)  -- counts in FY25
+//   O&M  'Carried Support'        USAF O&M OBBBA               $100,000,000  Program (PSM)  -- counts in FY26
+//   SP   'Carried Spares'         USAF Spares Initial Mandatory $20,000,000  Program (ATL)  -- counts in FY26
+// Every expected figure is the fixture's own arithmetic. VARIANT A holds all three: ALL YEARS = 40 + 100 + 20 + 350 + 150 =
+// $660M, $160M executed and $500M planned; FY26 alone = 100 + 20 = $120M. A2: every FY25 row is carried ($620M). A2P: A2 with an
+// FY25 plan of USAF $30M + ANG $15M ($665M). A3: only Initial Spares carries ($560M). V4: only O&M carries, its carried row filed
+// BEHIND an ordinary one ($640M) -- the money-level guard on the year scan stopping early. Saved FY26 alone and reopened, the
+// selection stays FY26; saved FY25 alone (A, and A2P where every FY25 row is carried) or FY25 + FY27, it stays exactly that.
+// CONTROLS: FY26 already offered (C(ii) window from FY26, C(iii) an O&M FY26 row, C(iii-b) a Full Fund FY26 row), and the rule
+// off (C(iv)). Raw execution (EXDB.all) is read, never rewritten.
+// THE INDEPENDENT ARITHMETIC AND THE SAVED-SELECTION CONTROLS (Brad, 12 Oct, 6:11 AM ET: "Preserve the independent arithmetic
+// and saved-selection controls"). The U1 demonstration's board: O&M, one service, F1 asking $1,000M; plan window FY27-FY31,
+// FY27's pot $500M, and a GENUINE own FY26 plan of $300M made the way a person makes one (switchYear(2026) answered Cancel, a
+// blank year; F1 restored; its pot set; back to FY27). Workbook: Initial Spares FY25 'USAF Spares Initial Mandatory PSM' $100M,
+// counted in FY26; O&M FY25 'USAF O&M Discretionary' $40M, counted in FY25. FY26 x {O&M, Initial Spares} = 300 + 100 = $400M,
+// x O&M = $300M, x Initial Spares = $100M, each read three times on its own: the calculation, the panel's printed total and
+// the exported workbook. Those reads answer window.confirm OK (a roll-forward copy, the worst case) and count it: it is never
+// asked. The plan removed by the board's own 🗑 Reset FY26 to blank (resetYear), and separately as a year the board does not
+// hold: 100 / 0 / 100, with no cloned budget (no figure of FY27's $500M, no plan row, the year not made), on the board and on a
+// reopened copy. Saved FY25 alone, reopened, stays FY25 alone ($40M), with the plan held and after each removal. A DETECTOR
+// CONTROL: a roll-forward clone made on purpose (switchYear answered OK) is seen by the same no-clone checks. Where EVERY FY25
+// row is counted in FY26 (no O&M row at all), saved FY25 alone still reopens as FY25 alone: the case the R1 raw-years line in
+// flowYears() is for (v200-r1-saved-year-widens).
+// FAILS ON 4a6f7c7, 0c6ff00 and 63bd8b0 (U13), except the CONTROLs and the raw-history guards (in the demonstration, also the
+// checks that nothing is asked or made, and Initial Spares alone holding no FY27 money): FY26 was not offered, so ALL YEARS was
+// $540M and the $120M carried was in no year, on screen or in the export, and a saved FY26 selection silently became all years.
+await (async () => {
+  const name = 'v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const row = (fy, title, budget, amt, office) => { const r = Array(32).fill(''); r[0] = fy; r[1] = fy + '-03'; r[2] = 'U1' + fy; r[3] = title;
+      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = office; return r; };
+    const OM_ORD = row(2025, 'Ordinary FY25 Support', 'ANG O&M Discretionary', 40000000, 'Program (TSS)');
+    const OM_CARRY = row(2025, 'Carried Support', 'USAF O&M OBBBA', 100000000, 'Program (PSM)');
+    const SP_CARRY = row(2025, 'Carried Spares', 'USAF Spares Initial Mandatory PSM', 20000000, 'Program (ATL)');
+    const OM_26 = row(2026, 'FY26 Support', 'USAF O&M Discretionary', 7000000, 'Program (LOG)');
+    const FF_26 = row(2026, 'FY26 Full Fund Buy', 'USAF Full Fund', 3000000, 'Program (ATL)');
+    const CARRIED = ['Carried Spares', 'Carried Support'];
+    // rows by appropriation, each in its own workbook year, in the order given
+    const open = (rows, o = {}) => {
+      const X = boot();
+      seed(X.ev, { services: ['USAF', 'ANG'], items: [it('F1', 'PSM', [350000000, 150000000])], disc: [350000000, 150000000], mand: [0, 0], order: ['F1'] });
+      const ALL = {};
+      Object.keys(rows).forEach(a => { const by = {}; rows[a].forEach(r => { (by[r[0]] ||= []).push(r); }); ALL[a] = { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: by }; });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        S.bm={disc:[350000000,150000000], mand:[0,0], adds:[]}; MS.base=${o.base || 2027}; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S};
+        var p25=${J(o.plan25 || null)}; if(p25){ var st=JSON.parse(JSON.stringify(S)); st.bm={disc:p25, mand:[0,0], adds:[]}; st.discSvc=p25.slice(); MS.years[2025]=st; }
+        applyState(S); MS.years[2027]=S;
+        EXDB.all=${J(ALL)}; EXDB.ts=1;
+        var C=flowCfg(); C.pseudo={on:${o.off ? 'false' : 'true'}, label:'OBBBA', token:'OBBBA, Mandatory', from:2025, to:2026, col:4}; C.other={}; C.fys=null; C.aps=null;
+        save(); 'ok'`);
+      return { X, ALL };
+    };
+    const calc = (X, fys, aps) => JSON.parse(X.ev(`(function(){ flowCfg().fys=${J(fys)}; flowCfg().aps=${J(aps || null)}; flowSel=''; var F=flowCalc();
+      return JSON.stringify({sel:flowSelYears(), t:[F.tot, F.execV, F.planV], appn:F.appn, label:F.label}); })()`));
+    const offered = X => JSON.parse(X.ev(`JSON.stringify(flowYears())`));
+    const recs = X => JSON.parse(X.ev(`(function(){ var F=flowCalc(), rows=F.prime.LM.rows.concat(F.prime.PW.rows);
+      F.ext.keys.forEach(function(k){ rows=rows.concat(F.ext.by[k].rows); });
+      return JSON.stringify(rows.filter(function(r){ return ${J(CARRIED)}.indexOf(r.ttl)>=0; })
+        .map(function(r){ return [r.ttl, r.ap, r.fy, r.svc, r.pmoFull, r.v, !!r.plan]; }).sort()); })()`));
+    const panel = X => JSON.parse(X.ev(`(function(){ flowOpen=true; flowSel=''; flowBody(); var b=document.getElementById('flowBody'), m=b.querySelector('.flowmix');
+      var chips=[].slice.call(b.querySelectorAll('button')).filter(function(x){ return /^FY\\d\\d/.test(x.textContent); })
+        .map(function(x){ return x.textContent+(x.classList.contains('on')? ' [on]' : ''); });
+      var tf=/total funding \\$([\\d,]+\\.\\d\\d)M/.exec(b.textContent);
+      return JSON.stringify({chips:chips, total:tf? tf[1] : '', mix:m? m.textContent : ''}); })()`));
+    const cell = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+    const book = async X => { const wb = JSON.parse(await w6Book(X.w, 'exportFlow')), ff = wb['Funds Flow'] || [];
+      const all = lab => ff.filter(r => w6Lbl(r) === lab).map(r => num(cell(r[1]))).filter(v => v !== null);
+      const det = s => (wb[s] || []).slice(1).map(r => r.map(cell)).filter(r => CARRIED.indexOf(r[0]) >= 0);
+      return { err: wb.__err || 'ok', scope: w6Lbl(ff[1] || []), tot: all('TOTAL FUNDING'), us: all('US SERVICE FUNDING'), usAp: all('US service appropriations'),
+               lines: [all('O&M'), all('FULL FUND'), all('INITIAL SPARES'), all('OPN')], notes: ff.map(w6Lbl).filter(t => /^NOTE: /.test(t)),
+               carried: det('Prime Detail').concat(det('OGC Detail')).sort() }; };
+    const reopen = (X, fys) => { X.ev(`flowCfg().fys=${J(fys)}; flowCfg().aps=null; save(); 'ok'`); return boot({ html: X.ev('buildSavedHtml()') }); };
+    const saved = R => JSON.parse(R.ev(`(function(){ var F=flowCalc(); return JSON.stringify({saved:flowCfg().fys, sel:flowSelYears(), t:[F.tot, F.execV, F.planV], label:F.label}); })()`));
+    const CHIPS = ['FY25', 'FY26', 'FY27 · plan', 'FY28 · plan', 'FY29 · plan', 'FY30 · plan', 'FY31 · plan'];
+    const YEARS = '[2025,2026,2027,2028,2029,2030,2031]';
+    // ── VARIANT A: ordinary O&M, carried O&M behind it, carried Initial Spares ──
+    const A = open({ om: [OM_ORD, OM_CARRY], sp: [SP_CARRY] });
+    w5Chk(name, 'variant A · fixture', 'CONTROL — the board is on O&M, its plan from FY27; FY27 holds USAF $350M + ANG $150M; the rule carries FY25 OBBBA to FY26',
+      A.X.ev(`mySlug()+'|'+MS.base+'|'+MS.cur+'|'+MS.years[2027].bm.disc.join('|')+'|'+flowPseudo().on+'|'+flowPseudo().from+'>'+flowPseudo().to`), 'om|2027|2027|350000000|150000000|true|2025>2026');
+    w5Chk(name, 'variant A · year availability', 'FY26 is offered beside FY25 and the window, unmarked: O&M execution is counted in it',
+      J([offered(A.X), panel(A.X).chips]), J([JSON.parse(YEARS), CHIPS]));
+    w5Chk(name, 'variant A · ALL YEARS', 'ALL YEARS = 40 + 100 + 20 + 350 + 150 = $660M: $160M executed, $500M planned; O&M 640, Initial Spares 20',
+      J(calc(A.X, null)), J({ sel: JSON.parse(YEARS), t: [660000000, 160000000, 500000000], appn: { om: 640000000, ff: 0, sp: 20000000, opn: 0 },
+        label: 'FY25–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed' }));
+    const PA = panel(A.X);
+    w5Chk(name, 'variant A · ALL YEARS · the panel', 'total funding $660.00M; the planned-and-executed box names FY26 and says $160.00M executed, $500.00M planned',
+      J([PA.total, /FY26: O&M, INITIAL SPARES executed/.test(PA.mix), /\$160\.00M executed, \$500\.00M planned\.$/.test(PA.mix)]), J(['660.00', true, true]));
+    const GA = await book(A.X);
+    w5Chk(name, 'variant A · ALL YEARS · the export', 'TOTAL FUNDING 660000000 twice, US SERVICE FUNDING 660000000, US service appropriations twice; O&M 640000000, FULL FUND 0, INITIAL SPARES 20000000, OPN 0',
+      J([GA.err, GA.tot, GA.us, GA.usAp, GA.lines]), J(['ok', [660000000, 660000000], [660000000], [660000000, 660000000], [[640000000], [0], [20000000], [0]]]));
+    w5Chk(name, 'variant A · ALL YEARS · the export', 'the years-added NOTE lists FY2026, and the planned-and-executed NOTE names it',
+      J([GA.notes.some(t => /Fiscal years included: FY2025, FY2026, FY2027, FY2028, FY2029, FY2030, FY2031\.$/.test(t)),
+         GA.notes.some(t => t.startsWith('NOTE: planned and executed money in one total') && /FY26: O&M, INITIAL SPARES executed/.test(t))]), J([true, true]));
+    w5Chk(name, 'variant A · ownership', 'each carried row is counted once, in FY26, on its own appropriation, service, office and amount — in the calculation and the export detail',
+      J([recs(A.X), GA.carried]), J([[['Carried Spares', 'sp', 2026, 'USAF', 'Program (ATL)', 20000000, false], ['Carried Support', 'om', 2026, 'USAF', 'Program (PSM)', 100000000, false]],
+        [['Carried Spares', 'Event Carried Spares', 'INITIAL SPARES', 'ATL', 'USAF', 20000000, 'OBLIGATED'], ['Carried Support', 'Event Carried Support', 'O&M', 'PSM', 'USAF', 100000000, 'OBLIGATED']]]));
+    w5Chk(name, 'variant A · each year alone', 'the offered years one at a time: 40 + 120 + 500 + 0 + 0 + 0 + 0 = $660M, each carried dollar in FY26 only',
+      J(JSON.parse(YEARS).map(y => calc(A.X, [y]).t[0])), J([40000000, 120000000, 500000000, 0, 0, 0, 0]));
+    w5Chk(name, 'variant A · ALL YEARS · O&M', 'O&M alone = 40 + 100 + 350 + 150 = $640M: $140M executed, $500M planned',
+      J(calc(A.X, null, ['om']).t), J([640000000, 140000000, 500000000]));
+    // saved FY26 alone, reopened: still FY26, its carried money, and the OBBBA NOTE
+    const R26 = reopen(A.X, [2026]);
+    w5Chk(name, 'variant A · saved FY26 only, reopened', 'the selection stays FY26 (never silently all years): 100 + 20 = $120M executed, the carried OBBBA named',
+      J(saved(R26)), J({ saved: [2026], sel: [2026], t: [120000000, 120000000, 0], label: 'FY26 · all appropriations · + OBBBA FY25' }));
+    const G26 = await book(R26);
+    w5Chk(name, 'variant A · saved FY26 only, reopened · the export', 'the same scope, TOTAL FUNDING 120000000 twice, INITIAL SPARES 20000000, and the OBBBA NOTE with the amount',
+      J([G26.err, G26.scope, G26.tot, G26.lines[2], G26.notes.some(t => t.startsWith('NOTE: includes 120000000 of OBBBA appropriated in FY2025 and counted here as FY2026'))]),
+      J(['ok', 'Scope: FY26 · all appropriations · + OBBBA FY25', [120000000, 120000000], [20000000], true]));
+    // saved FY25 alone, reopened: still FY25 alone -- FY26 is not added and the carried rows stay out of it
+    const R25 = reopen(A.X, [2025]);
+    w5Chk(name, 'variant A · saved FY25 only, reopened', 'CONTROL — the selection stays FY25 alone: $40M executed, the carried rows not in it',
+      J([saved(R25), recs(R25)]), J([{ saved: [2025], sel: [2025], t: [40000000, 40000000, 0], label: 'FY25 · all appropriations' }, []]));
+    const P25 = panel(R25), G25 = await book(R25);
+    w5Chk(name, 'variant A · saved FY25 only, reopened', 'CONTROL — only the FY25 chip is on; the export writes the same scope, TOTAL FUNDING 40000000 twice, no carried row',
+      J([P25.chips.filter(c => / \[on\]$/.test(c)), G25.scope, G25.tot, G25.carried]), J([['FY25 [on]'], 'Scope: FY25 · all appropriations', [40000000, 40000000], []]));
+    // a list saved before FY26 was offered keeps exactly its years
+    const R2527 = reopen(A.X, [2025, 2027]);
+    w5Chk(name, 'variant A · saved FY25 + FY27, reopened', 'CONTROL — the selection stays FY25 + FY27 (FY26 not added): 40 + 500 = $540M',
+      J([saved(R2527).sel, saved(R2527).t, panel(R2527).chips.filter(c => / \[on\]$/.test(c))]), J([[2025, 2027], [540000000, 40000000, 500000000], ['FY25 [on]', 'FY27 · plan [on]']]));
+    w5Chk(name, 'variant A · raw history', 'the execution rows are exactly as imported, in the board and in each reopened copy',
+      J([A.X, R26, R25, R2527].map(B => B.ev('JSON.stringify(EXDB.all)') === J(A.ALL))), J([true, true, true, true]));
+    // ── A2: every FY25 row is carried ──
+    const A2 = open({ om: [OM_CARRY], sp: [SP_CARRY] });
+    w5Chk(name, 'A2 · ALL YEARS', 'every FY25 row carried: FY25 offered (marked plan), FY26 offered; 100 + 20 + 350 + 150 = $620M, $120M executed; O&M 600, Initial Spares 20',
+      J([panel(A2.X).chips, calc(A2.X, null).t, calc(A2.X, null).appn]),
+      J([['FY25 · plan', 'FY26', 'FY27 · plan', 'FY28 · plan', 'FY29 · plan', 'FY30 · plan', 'FY31 · plan'], [620000000, 120000000, 500000000], { om: 600000000, ff: 0, sp: 20000000, opn: 0 }]));
+    // ── A2P: A2 with an FY25 plan; saved FY25 alone and reopened ──
+    const A2P = open({ om: [OM_CARRY], sp: [SP_CARRY] }, { plan25: [30000000, 15000000] });
+    w5Chk(name, 'A2P · ALL YEARS', 'FY25 reads its plan (every FY25 row counts in FY26): 100 + 20 + 30 + 15 + 350 + 150 = $665M, $120M executed, $545M planned',
+      J(calc(A2P.X, null).t), J([665000000, 120000000, 545000000]));
+    const RP = reopen(A2P.X, [2025]);
+    w5Chk(name, 'A2P · saved FY25 only, reopened', 'CONTROL — the selection stays FY25 alone (never all years, never FY26): its $45M plan, the carried rows not in it',
+      J([saved(RP), recs(RP)]), J([{ saved: [2025], sel: [2025], t: [45000000, 0, 45000000], label: 'FY25 · all appropriations · PLANNED (board allocation, O&M)' }, []]));
+    const PP = panel(RP), GP = await book(RP);
+    w5Chk(name, 'A2P · saved FY25 only, reopened', 'CONTROL — only the FY25 chip is on, marked plan; the export writes the same scope and TOTAL FUNDING 45000000 twice, no carried row',
+      J([PP.chips.filter(c => / \[on\]$/.test(c)), GP.scope, GP.tot, GP.carried]),
+      J([['FY25 · plan [on]'], 'Scope: FY25 · all appropriations · PLANNED (board allocation, O&M)', [45000000, 45000000], []]));
+    // ── A3: only Initial Spares carries ──
+    const A3 = open({ om: [OM_ORD], sp: [SP_CARRY] });
+    w5Chk(name, 'A3 · ALL YEARS', 'only another appropriation carries: FY26 offered, marked plan for O&M; 40 + 20 + 350 + 150 = $560M, $60M executed; Initial Spares 20',
+      J([panel(A3.X).chips[1], calc(A3.X, null).t, calc(A3.X, null).appn.sp]), J(['FY26 · plan', [560000000, 60000000, 500000000], 20000000]));
+    // ── V4: only O&M carries, its carried row behind an ordinary one ──
+    const V4 = open({ om: [OM_ORD, OM_CARRY] });
+    w5Chk(name, 'V4 · ALL YEARS', 'the carried row is behind an ordinary one and nothing else carries: FY26 offered; 40 + 100 + 350 + 150 = $640M, $140M executed; FY26 alone $100M',
+      J([offered(V4.X), calc(V4.X, null).t, calc(V4.X, [2026]).t]), J([JSON.parse(YEARS), [640000000, 140000000, 500000000], [100000000, 100000000, 0]]));
+    const GV = await book(V4.X);
+    w5Chk(name, 'V4 · FY26 · the export', 'TOTAL FUNDING 100000000 twice, O&M 100000000, the carried row in the detail',
+      J([GV.err, GV.tot, GV.lines[0], GV.carried.map(r => r[0])]), J(['ok', [100000000, 100000000], [100000000], ['Carried Support']]));
+    // ── CONTROLS: FY26 already offered, or the rule off ──
+    const Cii = open({ om: [OM_CARRY, OM_ORD], sp: [SP_CARRY] }, { base: 2026 });
+    w5Chk(name, 'C(ii) · window from FY26', 'CONTROL — ALL YEARS $660M; FY26 $120M',
+      J([calc(Cii.X, null).t[0], calc(Cii.X, [2026]).t[0]]), J([660000000, 120000000]));
+    const Ciii = open({ om: [OM_CARRY, OM_ORD, OM_26], sp: [SP_CARRY] });
+    w5Chk(name, 'C(iii) · an O&M FY26 row', 'CONTROL — ALL YEARS 660 + 7 = $667M; FY26 100 + 20 + 7 = $127M',
+      J([calc(Ciii.X, null).t[0], calc(Ciii.X, [2026]).t[0]]), J([667000000, 127000000]));
+    const Ciiib = open({ om: [OM_CARRY, OM_ORD], sp: [SP_CARRY], ff: [FF_26] });
+    w5Chk(name, 'C(iii-b) · a Full Fund FY26 row', 'CONTROL — ALL YEARS 660 + 3 = $663M; FY26 100 + 20 + 3 = $123M',
+      J([calc(Ciiib.X, null).t[0], calc(Ciiib.X, [2026]).t[0]]), J([663000000, 123000000]));
+    const Civ = open({ om: [OM_CARRY, OM_ORD], sp: [SP_CARRY] }, { off: true });
+    w5Chk(name, 'C(iv) · the rule off', 'CONTROL — nothing carries: FY26 not offered; ALL YEARS $660M; FY25 100 + 40 + 20 = $160M',
+      J([offered(Civ.X), calc(Civ.X, null).t[0], calc(Civ.X, [2025]).t[0]]), J([[2025, 2027, 2028, 2029, 2030, 2031], 660000000, 160000000]));
+    // ── THE INDEPENDENT ARITHMETIC: a genuine own FY26 plan beside another appropriation's carried row ──
+    const NM = { om: 'O&M', sp: 'Initial Spares' }, nm = aps => aps.map(a => NM[a]).join(' + ');
+    const DEMO_SP = row(2025, 'Demo Carried Spares', 'USAF Spares Initial Mandatory PSM', 100000000, 'Program (ATL)');
+    const DEMO_OM = row(2025, 'Demo Ordinary Support', 'USAF O&M Discretionary', 40000000, 'Program (TSS)');
+    const demo = withOm => {
+      const X = boot();
+      seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000000000])], disc: [500000000], mand: [0], order: ['F1'] });
+      const ALL = { sp: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [DEMO_SP] } } };
+      if (withOm) ALL.om = { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [DEMO_OM] } };
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        S.bm={disc:[500000000], mand:[0], adds:[]}; MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S};
+        applyState(S); MS.years[2027]=S;
+        EXDB.all=${J(ALL)}; EXDB.ts=1;
+        var C=flowCfg(); C.pseudo={on:true, label:'OBBBA', token:'OBBBA, Mandatory', from:2025, to:2026, col:4}; C.other={}; C.fys=null; C.aps=null;
+        save(); 'ok'`);
+      return { X, ALL };
+    };
+    // window.confirm answering `ans`, every question counted and kept
+    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };
+    // the exported workbook read back from its bytes; window.confirm is left as it is, so the count covers the export too
+    const dBook = async X => { const wb = JSON.parse(await X.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+        window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+        try{ exportFlow(); }catch(e){ window.Blob=_B; return JSON.stringify({__err:'threw '+String((e&&e.message)||e)}); }
+        window.Blob=_B; if(!cap) return JSON.stringify({__err:'no file'});
+        var ab=cap.buffer.slice(cap.byteOffset,cap.byteOffset+cap.byteLength); return JSON.stringify(await xlsxRead(ab)); })()`));
+      const ff = wb['Funds Flow'] || [], all = lab => ff.filter(r => w6Lbl(r) === lab).map(r => num(cell(r[1]))).filter(v => v !== null);
+      return { err: wb.__err || 'ok', scope: w6Lbl(ff[1] || []), tot: all('TOTAL FUNDING'), us: all('US SERVICE FUNDING'), om: all('O&M'), sp: all('INITIAL SPARES'),
+               nums: Object.keys(wb).filter(s => s !== '__err').flatMap(s => wb[s].flatMap(r => (r || []).map(cell).filter(v => typeof v === 'number'))) }; };
+    // the calculation's own figures and rows, and the panel's $M figures, for "no figure is FY27's $500M"
+    const dNums = X => JSON.parse(X.ev(`(function(){ var F=flowCalc(), rows=F.prime.LM.rows.concat(F.prime.PW.rows);
+      F.ext.keys.forEach(function(k){ rows=rows.concat(F.ext.by[k].rows); });
+      return JSON.stringify({nums:[F.tot,F.grand,F.us,F.execV,F.planV].concat(Object.keys(F.appn).map(function(k){ return F.appn[k]; })).concat(rows.map(function(r){ return r.v; })),
+        plan:rows.filter(function(r){ return !!r.plan; }).length, titles:rows.map(function(r){ return r.ttl; }).sort()}); })()`));
+    const dPanelM = X => { X.ev(`flowOpen=true; flowSel=''; flowBody(); 'ok'`);
+      return [...X.w.document.getElementById('flowBody').textContent.matchAll(/\$([\d,]+\.\d\d)M/g)].map(m => m[1]); };
+    const y26 = X => JSON.parse(X.ev(`JSON.stringify(MS.years[2026]? {disc:MS.years[2026].discSvc, order:MS.years[2026].order, removed:MS.years[2026].removed, own:MS.years[2026]!==MS.years[2027]} : 'not held')`));
+    const D = demo(true), DX = D.X;
+    counted(DX.w, false);                                   // "FY26 has no data yet": Cancel, a BLANK year
+    DX.ev(`switchYear(2026); 'ok'`);
+    if (JSON.parse(DX.ev('JSON.stringify(S.removed)')).indexOf('F1') >= 0) DX.ev(`restoreReq('F1'); 'ok'`);
+    DX.ev(`bmSetBase('disc', 0, '300000000'); switchYear(2027); 'ok'`);
+    w5Chk(name, 'demo · fixture', 'CONTROL — a genuine own FY26 plan made on the product path: one question (FY26 has no data yet), answered Cancel; FY26 pot $300M in its own year, F1 on it; FY27 pot $500M; the workbook files FY25 only',
+      J([DX.w.__cc, /^FY26 has no data yet/.test(DX.w.__ccMsgs[0] || ''), y26(DX), JSON.parse(DX.ev('JSON.stringify([MS.years[2027].discSvc, flowExecYears(null, true)])'))]),
+      J([1, true, { disc: [300000000], order: ['F1'], removed: [], own: true }, [[500000000], [2025]]]));
+    counted(DX.w, true);                                    // from here on every question is answered OK -- a roll-forward copy -- and counted
+    const ARITH = [[['om', 'sp'], [400000000, 100000000, 300000000], { om: 300000000, ff: 0, sp: 100000000, opn: 0 }, '400.00', [300000000], [100000000]],
+                   [['om'], [300000000, 0, 300000000], { om: 300000000, ff: 0, sp: 0, opn: 0 }, '300.00', [300000000], []],
+                   [['sp'], [100000000, 100000000, 0], { om: 0, ff: 0, sp: 100000000, opn: 0 }, '100.00', [], [100000000]]];
+    for (const [aps, t, appn, pm, om, sp] of ARITH) {
+      const F = calc(DX, [2026], aps), P = panel(DX), B = await dBook(DX), tot = t[0];
+      w5Chk(name, 'demo · FY26 × ' + nm(aps), `the calculation: ${tot} ($${t[1]} executed, $${t[2]} planned), by appropriation`,
+        J([F.sel, F.t, F.appn]), J([[2026], t, appn]));
+      w5Chk(name, 'demo · FY26 × ' + nm(aps), `read on its own from the panel: total funding $${pm}M; and from the exported workbook: TOTAL FUNDING ${tot} twice, US SERVICE FUNDING ${tot}, O&M ${J(om)}, INITIAL SPARES ${J(sp)}`,
+        J([P.total, B.err, B.tot, B.us, B.om, B.sp]), J([pm, 'ok', [tot, tot], [tot], om, sp]));
+    }
+    const DA = calc(DX, null, null), DAB = await dBook(DX);
+    w5Chk(name, 'demo · ALL YEARS with the plan', 'ALL YEARS = 40 + 100 + 300 + 500 = $940M: $140M executed, $800M planned; the export TOTAL FUNDING 940000000 twice',
+      J([DA.t, DAB.tot]), J([[940000000, 140000000, 800000000], [940000000, 940000000]]));
+    w5Chk(name, 'demo · the reads asked nothing', 'window.confirm was not called by any of these reads (the calculation, the panel, the export), and FY26 and FY27 are as they were',
+      J([DX.w.__cc, y26(DX), JSON.parse(DX.ev('JSON.stringify(MS.years[2027].discSvc)'))]), J([0, { disc: [300000000], order: ['F1'], removed: [], own: true }, [500000000]]));
+    // saved FY25 alone, reopened, with the plan held: FY25 alone
+    const DR25 = reopen(DX, [2025]); counted(DR25.w, true);
+    const DP25 = panel(DR25), DB25 = await dBook(DR25);
+    w5Chk(name, 'demo · saved FY25 only, reopened', 'CONTROL — the selection stays FY25 alone: $40M executed, the carried row not in it; only the FY25 chip on; the export writes the same scope and TOTAL FUNDING 40000000 twice',
+      J([saved(DR25), dNums(DR25).titles, DP25.chips.filter(c => / \[on\]$/.test(c)), DB25.scope, DB25.tot, DR25.w.__cc]),
+      J([{ saved: [2025], sel: [2025], t: [40000000, 40000000, 0], label: 'FY25 · all appropriations' }, ['Demo Ordinary Support'], ['FY25 [on]'], 'Scope: FY25 · all appropriations', [40000000, 40000000], 0]));
+    // the plan removed by the board's own 🗑 Reset FY26 to blank
+    counted(DX.w, true);
+    DX.ev(`flowCfg().fys=null; flowCfg().aps=null; switchYear(2026); 'ok'`); const askSwitch = DX.w.__cc;
+    DX.ev(`resetYear(); 'ok'`); const askReset = DX.w.__cc, msgReset = DX.w.__ccMsgs[0] || '';
+    DX.ev(`switchYear(2027); 'ok'`);
+    w5Chk(name, 'demo · removed by 🗑 Reset FY26 to blank', 'CONTROL — switching to the existing FY26 asked nothing; Reset asked once ("Reset FY26 to BLANK?"); FY26 is blank -- pot 0, no requirement, F1 in Removed -- and still its own year; back on FY27',
+      J([askSwitch, askReset, /^Reset FY26 to BLANK\?/.test(msgReset), DX.w.__cc, JSON.parse(DX.ev('MS.cur')), y26(DX)]),
+      J([0, 1, true, 1, 2027, { disc: [0], order: [], removed: ['F1'], own: true }]));
+    const removedReads = async (B, tag, held) => {
+      counted(B.w, true);
+      for (const [aps, tot, pm] of [[['om', 'sp'], 100000000, '100.00'], [['om'], 0, '0.00'], [['sp'], 100000000, '100.00']]) {
+        const F = calc(B, [2026], aps), P = panel(B), X2 = await dBook(B), N = dNums(B), M = dPanelM(B);
+        w5Chk(name, `demo · ${tag} · FY26 × ${nm(aps)}`, `${tot} in the calculation (all executed), the panel ($${pm}M) and the export (TOTAL FUNDING twice)`,
+          J([F.sel, F.t, P.total, X2.err, X2.tot]), J([[2026], [tot, tot, 0], pm, 'ok', [tot, tot]]));
+        w5Chk(name, `demo · ${tag} · FY26 × ${nm(aps)}`, 'no cloned budget: no figure is FY27\'s $500M -- the calculation, every exported cell, the panel\'s $M figures -- and no plan row',
+          J([N.nums.filter(v => v === 500000000), X2.nums.filter(v => v === 500000000), M.filter(m => m === '500.00'), N.plan]), J([[], [], [], 0]));
+      }
+      const A = calc(B, null, null);
+      w5Chk(name, `demo · ${tag} · ALL YEARS`, 'ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned', J(A.t), J([640000000, 140000000, 500000000]));
+      w5Chk(name, `demo · ${tag} · nothing made`, `no FY26 plan record; FY26 ${held ? 'still the blank year Reset left' : 'still not a year the board holds'}; window.confirm not called by the reads`,
+        J([JSON.parse(B.ev(`JSON.stringify(flowPlanRecs(2026,'om'))`)), y26(B), B.w.__cc]),
+        J([[], held ? { disc: [0], order: [], removed: ['F1'], own: true } : 'not held', 0]));
+    };
+    // saved FY25 alone, reopened, after the plan is removed: still FY25 alone, $40M (the second half of the saved-FY25 control)
+    const removed25 = async (B, tag, held) => {
+      const R = reopen(B, [2025]); counted(R.w, true);
+      const P = panel(R), G = await dBook(R);
+      w5Chk(name, `demo · ${tag} · saved FY25 only, reopened`, 'CONTROL — the selection stays FY25 alone: $40M executed, the carried row not in it; only the FY25 chip on; the export writes the same scope and TOTAL FUNDING 40000000 twice; nothing asked',
+        J([saved(R), dNums(R).titles, P.chips.filter(c => / \[on\]$/.test(c)), G.err, G.scope, G.tot, R.w.__cc]),
+        J([{ saved: [2025], sel: [2025], t: [40000000, 40000000, 0], label: 'FY25 · all appropriations' }, ['Demo Ordinary Support'], ['FY25 [on]'], 'ok', 'Scope: FY25 · all appropriations', [40000000, 40000000], 0]));
+      w5Chk(name, `demo · ${tag} · saved FY25 only, reopened`, `CONTROL — the reopened copy holds FY26 as the board left it (${held ? 'the blank year Reset left' : 'not a year it holds'}); the execution rows exactly as imported; no error`,
+        J([y26(R), R.ev('JSON.stringify(EXDB.all)') === J(D.ALL), R.errors.length]), J([held ? { disc: [0], order: [], removed: ['F1'], own: true } : 'not held', true, 0]));
+    };
+    await removedReads(DX, 'reset to blank', true);
+    DX.ev(`flowCfg().fys=null; flowCfg().aps=null; save(); 'ok'`);
+    const DRR = boot({ html: DX.ev('buildSavedHtml()') });
+    await removedReads(DRR, 'reset to blank, reopened', true);
+    await removed25(DX, 'reset to blank', true);
+    // the plan removed as a year the board does not hold (no product path deletes a year; the state is removed and saved)
+    const E = demo(true), EX = E.X;
+    counted(EX.w, false); EX.ev(`switchYear(2026); 'ok'`);
+    if (JSON.parse(EX.ev('JSON.stringify(S.removed)')).indexOf('F1') >= 0) EX.ev(`restoreReq('F1'); 'ok'`);
+    EX.ev(`bmSetBase('disc', 0, '300000000'); switchYear(2027); delete MS.years[2026]; save(); 'ok'`);
+    await removedReads(EX, 'not held', false);
+    EX.ev(`flowCfg().fys=null; flowCfg().aps=null; save(); 'ok'`);
+    const ERR = boot({ html: EX.ev('buildSavedHtml()') });
+    await removedReads(ERR, 'not held, reopened', false);
+    await removed25(EX, 'not held', false);
+    w5Chk(name, 'demo · raw history', 'the execution rows are exactly as imported, and no board or reopened copy reported an error',
+      J([[DX, DR25, DRR, EX, ERR].map(B => B.ev('JSON.stringify(EXDB.all)') === J(D.ALL)), [DX, DR25, DRR, EX, ERR].map(B => B.errors.length)]),
+      J([[true, true, true, true, true], [0, 0, 0, 0, 0]]));
+    // DETECTOR CONTROL: a cloned budget, when one IS made, is seen by the same checks. On the board where FY26 is not held,
+    // switchYear(2026) answered OK -- the roll-forward copy of FY27 -- and back to FY27: FY26 is held again, holding FY27's $500M.
+    counted(EX.w, true); EX.ev(`switchYear(2026); switchYear(2027); 'ok'`); const askClone = EX.w.__cc;
+    const CF = calc(EX, [2026], ['om']), CN = dNums(EX), CB = await dBook(EX), CM = dPanelM(EX);
+    w5Chk(name, 'demo · detector control · a roll-forward clone made on purpose', 'CONTROL — switching to FY26 asked once, answered OK, and the reads after it asked nothing; FY26 is now held, a copy of FY27: pot $500M, F1 on it',
+      J([askClone, EX.w.__cc, y26(EX)]), J([1, 1, { disc: [500000000], order: ['F1'], removed: [], own: true }]));
+    w5Chk(name, 'demo · detector control · a roll-forward clone made on purpose', 'the no-clone checks see it: FY26 × O&M = $500M planned, and a figure of $500M in the calculation, in the export and on the panel, and a plan row',
+      J([CF.t, CN.nums.indexOf(500000000) >= 0, CB.nums.indexOf(500000000) >= 0, CM.indexOf('500.00') >= 0, CN.plan > 0]), J([[500000000, 0, 500000000], true, true, true, true]));
+    // From here on EX holds the FY26 clone made above, on purpose; nothing below reads EX.
+    // ── SAVED FY25 ALONE WHERE EVERY FY25 ROW IS COUNTED IN FY26 (no O&M row at all) ──
+    const H = demo(false), HX = H.X;
+    w5Chk(name, 'demo · every FY25 row carried · fixture', 'CONTROL — the workbook files FY25 only, and holds no O&M row',
+      HX.ev(`JSON.stringify([flowExecYears(null, true), !!EXDB.all.om])`), J([[2025], false]));
+    const HR = reopen(HX, [2025]); counted(HR.w, true);
+    const HP = panel(HR);
+    w5Chk(name, 'demo · every FY25 row carried · saved FY25 only, reopened', 'CONTROL — still FY25 alone (never all years): $0, its only row is counted in FY26, and O&M FY25 is read from its plan, which holds none; only the FY25 chip on, marked plan',
+      J([saved(HR), HP.chips.filter(c => / \[on\]$/.test(c)), HR.errors.length, HR.w.__cc]),
+      J([{ saved: [2025], sel: [2025], t: [0, 0, 0], label: 'FY25 · all appropriations · PLANNED (board allocation, O&M)' }, ['FY25 · plan [on]'], 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.00 (U1) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

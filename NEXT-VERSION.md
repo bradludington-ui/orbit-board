@@ -725,11 +725,31 @@ result for it was run fresh against these commits.
     runs in the final-tree queue).
   - **Not covered:** a copy another writer saves during the save is still written over and kept nowhere in the folder (U18);
     a save waiting for another tab's Web Lock is not counted (U20); the other adoption paths in the ledger (U24).
+- **U1 — a carried row is counted in an offered year and in ALL YEARS** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own
+  commit, followed by U14 separately. Preserve the independent arithmetic and saved-selection controls."). A row the carryover
+  rule counts in a year that is neither a workbook year nor in the plan window was counted in no year: FY25 OBBBA rows counted
+  as FY26, when FY26 was neither imported nor planned, were left out of ALL YEARS, the panel and the export with nothing said,
+  and a saved FY26 selection silently showed every year. On the synthetic fixture ALL YEARS was $540,000,000 of $660,000,000,
+  short exactly the $120,000,000 carried. The year buttons now offer every year a row is counted in, beside the workbook's
+  years and the window. A selection saved for FY25 alone stays FY25 alone after reopening. Predates R1.
+  - **What users may see:** a year button for a year a carried row is counted in (FY26 in the example), and ALL YEARS higher
+    by the carried amount.
+  - **Test:** audit-recon "v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS" (78 checks): the
+    independent arithmetic (FY26 × {O&M, Initial Spares} = $400M, O&M $300M, Initial Spares $100M, each read apart from the
+    calculation, the panel and the export); the plan removed by Reset to blank and as a year the board does not hold
+    (100 / 0 / 100, no cloned budget, nothing asked), with a detector control (a roll-forward copy made on purpose is seen by
+    the same checks); and the saved FY25-only controls, reopened, with the plan held, after each removal, and where every
+    FY25 row is carried. 47 checks fail on the board before the change; every control passes on both.
+  - **Mutations:** `v200-u1-year-unoffered`, `v200-u1-own-appn-only`; the R1 mutation `v200-r1-saved-year-widens` also fails
+    the carried-FY25 control.
+  - **Not closed by this change alone:** a saved FY26 that rests only on a counted row becomes all years when the carryover
+    rule is switched off, and a plan held outside the window is in no year. U14, next, closes both.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
-  - **U1:** a carried-row omission from the ALL YEARS total. Reproduced; it predates R1. A one-line correction was built on
-    a disposable copy and measured: $540,000,000 → $660,000,000 on the fixture, and a saved FY25-only selection stays FY25
-    after reopening. Not committed; it waits for Brad, as does one edge (a plan the board still holds for the carry year).
+  - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
+    separately"): a row carried into a year neither imported nor planned is offered and counted (above). The board's own
+    plan for that year is counted beside it, also where another appropriation's row opens the year (FY26 × {O&M, Initial
+    Spares} = $400M). The independent arithmetic and the saved-selection controls are committed checks.
   - **U2: complete** (accepted by Brad, 12 Oct): the change count (U2 1 of 2) and the refusal while a save is under way
     (2 of 2) are both above. audit-import passes at both commits, and each new mutation is caught, in runs made alone.
     Its separate reopening and adoption findings stay open in the ledger (U15–U20).

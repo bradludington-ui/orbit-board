@@ -4232,6 +4232,14 @@ const MUTATIONS = [
   { id: "v200-u13-clash-while-saving", area: "driveStorePull", what: "with nothing recorded for the folder, a refresh during a save says the folder's copy was saved after the copy being worked from -- a clash nobody can know of -- and offers to load it or save over it",
     find: "    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }\n",
     repl: "    if(!base && !_saveBusy) driveBaseSet(mySlug(), theirs);\n" },
+  // v2.00 (U1; Brad, 11 Oct: "Track the carried-row omission as a separate finding"; 12 Oct: "Proceed with U1 as its own commit"): a row carried into a year
+  // neither imported nor planned is offered, and counted in ALL YEARS.
+  { id: "v200-u1-year-unoffered", area: "flowYears", what: "the year buttons offer the workbook's years and the plan window only: FY25 OBBBA rows carried into FY26, a year with neither, are counted in no year -- ALL YEARS $540M of $660M on the panel and in the export, nothing said, and a saved FY26 becomes all years",
+    find: "  flowExecYears(null).forEach(f=>y[f]=1);         // v2.00 (U1): and every year a row is COUNTED in, so ALL YEARS holds every dollar",
+    repl: "" },
+  { id: "v200-u1-own-appn-only", area: "flowYears", what: "only this board's appropriation opens the year its rows are carried into: Initial Spares' $20M carried into FY26 is in no year when O&M carries nothing ($540M of $560M)",
+    find: "  flowExecYears(null).forEach(f=>y[f]=1);         // v2.00 (U1)",
+    repl: "  flowExecYears(flowPlanSlug()).forEach(f=>y[f]=1);         // v2.00 (U1)" },
   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",
