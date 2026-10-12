@@ -10,38 +10,50 @@
 #     A13 an outdir that already holds results; A14 a git clean filter passed through GIT_CONFIG_* that makes an always-ACCEPT
 #     gate.sh hash as the pinned one (R3); A15 a replace ref reached through GIT_DIR that substitutes the pinned commit (R4);
 #     A16 BASH_ENV turning a refusal into ACCEPT (E13); A17 exported functions faking git and python3 to run an altered mkmut
-#     (E14); A18 the preamble is byte-identical in every runner script; A19 a script run through another shell.
+#     (E14); A18 the preamble is byte-identical in every runner script; A19 a script run through another shell; A20 a preset
+#     RUNNER_ENV_CLEAN marker with a dirty environment (review 2 S1); A21 FIRSTFAIL and RUNNER_LOCK from the launch shell are
+#     cleared and said by the queue (review 2 S3).
 #  G. THE GATE, on logs written by run.sh itself from fake suites. G1 banner then exit 1; G2 banner then timeout; G3 banner then
 #     run.sh interrupted; G4 failing-check line with exit 0; G5 exit 0 without the verdict; G6 CONTROL, banner and exit 0;
-#     G7 the suite prints its own end and exit lines and run.sh is interrupted (E1b); G8 an orphan prints the banner after
-#     run.sh's exit (E11); G9 NOT ALL CHECKS PASSED (E10); G10 SHELLOPTS with monitor and a late exit 1 (E12, M2); G11 a NUL
+#     G7 the suite prints its own end and exit lines and run.sh is interrupted (E1b); G8 a leftover of the suite's own group
+#     is ended with the run, so its late banner never lands (E11; review 2 S2); G8b a line written after run.sh's record;
+#     G9 NOT ALL CHECKS PASSED (E10); G10 SHELLOPTS with monitor and a late exit 1 (E12: under bash -p and set +m job control
+#     stays off, so this checks the recorded exit end to end; setsid -w is defence in depth no case can isolate); G11 a NUL
 #     byte in a passing log (E8, no false refusal); G12 "TIMED OUT" in a passing log's text (E9, no false refusal); G13 run.sh
 #     never overwrites a log; G14 a header naming another commit; G15 the two-line standards verdict, and its control; G16
-#     --exit-only, accepted at exit 0 and refused at exit 1; G17 a banner followed by more output.
+#     --exit-only, accepted at exit 0 and refused at exit 1; G17 a banner followed by more output; G18 every queue suite's
+#     REAL passing output (committed evidence logs at the runner commit) replayed through run.sh and gated on its row of
+#     verdicts.tsv -- the table the queue uses -- all ACCEPT, and audit-inject's on the old one-line verdict REFUSE (review 2
+#     M1). Not covered here: a full queue run past the clone check (it would back up to orbit-board and take the live lock);
+#     the reviews' own end-to-end harnesses cover it.
 # ---- runner preamble v5 begin: byte-identical in every runner shell script (runner-selftest case A18 checks it) ----
 # Runner correction 2 (after the independent review of 40f7979, S1): a FIXED environment, whatever this was launched with.
 # bash -p ignores BASH_ENV, ENV, SHELLOPTS, BASHOPTS and inherited functions. The first pass re-executes this script under
-# env -i (same PID), keeping only the runner's own variables and the network proxy; every other value is set here.
+# env -i (same PID), keeping only the runner's own variables and the network proxy; every other value is set here. The
+# second pass then REFUSES if anything else is in its environment, so presetting the marker cannot skip the clean-up
+# (runner correction 2b, after the review of 0c189f0, S1).
 [[ $- == *p* ]] || { echo "REFUSED: $(basename "$0") must run as its own program (#!/bin/bash -p), not through another shell"; exit 2; }
 if [ "${RUNNER_ENV_CLEAN:-}" != "$$" ]; then
   _k=(); for _v in RUNNER_SHA SNAP SNAPROOT RUNNER_PIDS RUNNER_REFUSALS RUNNER_LOCK FIRSTFAIL; do [[ -v $_v ]] && _k+=("$_v=${!_v}"); done
   _p=${RUNNER_NET_PROXY:-${HTTPS_PROXY:-${https_proxy:-}}}; _n=${RUNNER_NET_NOPROXY:-${NO_PROXY:-${no_proxy:-}}}
   exec /usr/bin/env -i RUNNER_ENV_CLEAN=$$ RUNNER_NET_PROXY="$_p" RUNNER_NET_NOPROXY="$_n" "${_k[@]}" /bin/bash -p "$0" "$@"
 fi
+_x=$(/usr/bin/env -0 | /usr/bin/tr '\0\n' '\n ' | /usr/bin/sed -n 's/=.*//p' | /usr/bin/grep -v -x -E 'RUNNER_ENV_CLEAN|RUNNER_NET_PROXY|RUNNER_NET_NOPROXY|RUNNER_SHA|SNAP|SNAPROOT|RUNNER_PIDS|RUNNER_REFUSALS|RUNNER_LOCK|FIRSTFAIL|PWD|OLDPWD|SHLVL|_' | /usr/bin/tr '\n' ' ')
+[ -z "$_x" ] || { echo "REFUSED: $(basename "$0") was started with an environment it did not clean (unexpected: $_x)"; exit 2; }
 export PATH=/opt/node22/bin:/usr/local/bin:/usr/bin:/bin HOME=/root LANG=C.UTF-8 GIT_TERMINAL_PROMPT=0 GIT_NO_REPLACE_OBJECTS=1 \
   HTTPS_PROXY="$RUNNER_NET_PROXY" https_proxy="$RUNNER_NET_PROXY" NO_PROXY="$RUNNER_NET_NOPROXY" no_proxy="$RUNNER_NET_NOPROXY" \
   GIT_SSL_CAINFO=/root/.ccr/ca-bundle.crt NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt NODE_OPTIONS=--max-old-space-size=8192 \
   NODE_PATH=/usr/local/lib/node_modules_global PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
   NPM_CONFIG_UPDATE_NOTIFIER=false PYTHONDONTWRITEBYTECODE=1
-umask 022; set +m; unset _k _v _p _n
+umask 022; set +m; unset _k _v _p _n _x
 REPO=/home/user/orbit-board
 # A refusal prints REFUSED and, when the queue set RUNNER_REFUSALS, records it there too, so a refusal inside $( ) or in a
 # background lane (which ends only that subshell) still stops the queue at its next check (review S5).
 refuse(){ echo "REFUSED: $1"; [ -n "${RUNNER_REFUSALS:-}" ] && echo "$(date -u +%FT%TZ) $(basename "$0"): $1" >> "$RUNNER_REFUSALS"; exit 2; }
-# provenance git: no system or global config, no replace refs, the one repository (review S1)
-pg(){ GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git --no-replace-objects -C "$REPO" "$@"; }
+# provenance git: no system or global config, no replace refs, no grafts, the one repository (reviews S1)
+pg(){ GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_GRAFT_FILE=/dev/null git --no-replace-objects -C "$REPO" "$@"; }
 # a file's git blob id, computed directly: no git config, filter or line-ending conversion can change it (review S1)
-blob(){ python3 -I -c 'import hashlib,sys;d=open(sys.argv[1],"rb").read();print(hashlib.sha1(b"blob %d\0"%len(d)+d).hexdigest())' "$1"; }
+blob(){ python3 -I -S -c 'import hashlib,sys;d=open(sys.argv[1],"rb").read();print(hashlib.sha1(b"blob %d\0"%len(d)+d).hexdigest())' "$1"; }
 frozen(){ [ ! -L "$1" ] && lsattr -d "$1" 2>/dev/null | awk '{print $1}' | grep -q i; }
 # vh <file>... : each helper, immediately before it runs: in the snapshot, a regular immutable file, its directories frozen
 # up to the snapshot root, and byte for byte the runner commit's blob.
@@ -62,7 +74,8 @@ snapcheck(){ local want got p
   want=$( { printf 'd recovery\nd recovery/v200\nd recovery/v200/bin\n'; pg ls-tree -r "$RUNNER_SHA" recovery/v200/bin/ | awk -F'\t' '{split($1,a," "); print (a[2]=="blob" ? "f "$2" "a[3] : "x "$2)}'; } | sort)
   got=$(cd "$SNAPROOT" && find . -mindepth 1 -printf '%y %P\n' | while IFS=' ' read -r t p; do if [ "$t" = f ]; then echo "f $p $(blob "$p")"; else echo "$t $p"; fi; done | sort)
   [ "$want" = "$got" ] || { diff <(echo "$want") <(echo "$got") | head -20; refuse "the snapshot $SNAPROOT is not exactly recovery/v200/bin at $RUNNER_SHA"; }
-  for p in "$SNAPROOT" $(cd "$SNAPROOT" && find . -mindepth 1 -printf "$SNAPROOT/%P\n"); do frozen "$p" || refuse "$p in the snapshot is not immutable (chattr +i)"; done
+  frozen "$SNAPROOT" || refuse "$SNAPROOT in the snapshot is not immutable (chattr +i)"
+  while IFS= read -r -d '' p; do frozen "$p" || refuse "$p in the snapshot is not immutable (chattr +i)"; done < <(find "$SNAPROOT" -mindepth 1 -print0)
   echo "$want" | grep -c '^f '; }
 # backedup : RUNNER_SHA is on origin's claude/v200-fixes-wip as it is NOW; a failed read or fetch refuses (review S2). Prints the tip.
 backedup(){ local tip
@@ -152,7 +165,8 @@ printf '#!/bin/bash\necho "CONFORMANCE HOLDS AGAINST THE BASELINE \xe2\x80\x94 3
 printf '#!/bin/bash\necho "ALL CHECKS PASSED"\necho "step 2: more output"\nexit 0\n' > banner-then-more.sh
 chmod +x ./*.sh
 rn() { timeout 60 "$GB/run.sh" "$F/$1.log" "${2:-10}" ${3:+grace=$3} -- "$F/$1.sh" > /dev/null; }
-for k in banner-exit1 failing-exit0 noverdict-exit0 pass notall-exit0 nul-pass timedout-text-pass standards-pass banner-then-more orphan-banner; do rn $k; done
+printf '#!/bin/bash\necho "ALL CHECKS PASSED"\nexit 0\n' > pass-late.sh; chmod +x pass-late.sh
+for k in banner-exit1 failing-exit0 noverdict-exit0 pass notall-exit0 nul-pass timedout-text-pass standards-pass banner-then-more orphan-banner pass-late; do rn $k; done
 rn banner-timeout 2 1
 # interrupt run.sh itself: TERM to OUR OWN timeout process ($!), which passes it to run.sh, so run.sh never writes its trailer or
 # exit record; then end the fake suite by the process group run.sh recorded. No process is found by name.
@@ -182,6 +196,10 @@ bad=; for s in final-tree-v5 alone-run sens-import sens run gate backup-run over
 row "A18 the preamble is byte-identical in all 9 runner scripts, each #!/bin/bash -p" "identical" "${bad:+differs:$bad}${bad:-identical}"
 out=$(timeout 60 bash "$GB/gate.sh" "$F/pass.log" - 'ALL CHECKS PASSED'); rc=$?
 row "A19 a runner script run through another shell" "exit 2; must run as its own program" "exit $rc; $(has "$out" 'must run as its own program' 'must run as its own program')"
+out=$(timeout 60 bash -c 'exec env RUNNER_ENV_CLEAN=$$ GIT_ALTERNATE_OBJECT_DIRECTORIES=/nonexistent "$0" "$@"' "$GB/gate.sh" "$F/banner-exit1.log" - 'ALL CHECKS PASSED'); rc=$?
+row "A20 a preset RUNNER_ENV_CLEAN marker with a dirty environment (review 2 S1)" "exit 2; did not clean; names GIT_ALTERNATE_OBJECT_DIRECTORIES" "exit $rc; $(has "$out" 'did not clean' 'did not clean'); $(has "$out" 'GIT_ALTERNATE_OBJECT_DIRECTORIES' 'names GIT_ALTERNATE_OBJECT_DIRECTORIES')"
+X=$T/A21; mk "$X"; frz "$X"; ALL+=("$X"); out=$(q "$X" FIRSTFAIL=1 RUNNER_LOCK=$T/A21.lock); rc=$?
+row "A21 FIRSTFAIL and RUNNER_LOCK from the launch shell (review 2 S3)" "exit 2; cleared and said; stopped at the clone" "exit $rc; $(grep -q "launched with FIRSTFAIL=1 RUNNER_LOCK=$T/A21.lock; cleared" "$X/summary.txt" 2>/dev/null && echo 'cleared and said' || echo 'not said'); $(has "$out" 'REFUSED: clone HEAD' 'stopped at the clone')"
 # --- G. the gate ---
 row "G1 banner then exit 1" REFUSE "$(g banner-exit1 'ALL CHECKS PASSED')"
 row "G2 banner then timeout" REFUSE "$(g banner-timeout 'ALL CHECKS PASSED')"
@@ -190,9 +208,11 @@ row "G4 failing-check line with exit 0" REFUSE "$(g failing-exit0 'ALL CHECKS PA
 row "G5 exit 0 without the verdict" REFUSE "$(g noverdict-exit0 'ALL CHECKS PASSED')"
 row "G6 CONTROL: banner and exit 0" ACCEPT "$(g pass 'ALL CHECKS PASSED')"
 row "G7 suite prints its own end and exit lines, run.sh interrupted (E1b)" "REFUSE no exit record" "$(o=$("$GB/gate.sh" "$F/selftrailer.log" - 'ALL CHECKS PASSED'); has "$o" 'no exit record' 'REFUSE no exit record')"
-row "G8 an orphan prints the banner after run.sh's exit (E11)" "orphan printed; REFUSE written after the exit" "$(tail -1 "$F/orphan-banner.log" | grep -qx 'ALL CHECKS PASSED' && echo 'orphan printed' || echo 'orphan did not print'); $(o=$("$GB/gate.sh" "$F/orphan-banner.log" - 'ALL CHECKS PASSED'); has "$o" 'written to after the exit' 'REFUSE written after the exit')"
+row "G8 a leftover of the suite's group is ended with the run (E11)" "late banner never landed; REFUSE no verdict" "$(grep -aqx 'ALL CHECKS PASSED' "$F/orphan-banner.log" && echo 'late banner LANDED' || echo 'late banner never landed'); $(o=$("$GB/gate.sh" "$F/orphan-banner.log" - 'ALL CHECKS PASSED'); has "$o" 'is not the completion verdict' 'REFUSE no verdict')"
+echo "ALL CHECKS PASSED" >> "$F/pass-late.log"
+row "G8b a line written to the log after run.sh's record" "REFUSE written after the exit" "$(o=$("$GB/gate.sh" "$F/pass-late.log" - 'ALL CHECKS PASSED'); has "$o" 'written to after the exit' 'REFUSE written after the exit')"
 row "G9 NOT ALL CHECKS PASSED with exit 0 (E10)" REFUSE "$(g notall-exit0 'ALL CHECKS PASSED')"
-row "G10 SHELLOPTS monitor, banner then exit 1 (E12, M2)" "run.sh recorded exit 1 after the suite; REFUSE recorded exit 1" "$(grep -q 'exit=1 dur=[2-9]' "$F/G10-run.out" && echo 'run.sh recorded exit 1 after the suite' || echo "run.sh said: $(cat "$F/G10-run.out")"); $(o=$("$GB/gate.sh" "$F/banner-late-exit1.log" - 'ALL CHECKS PASSED'); has "$o" 'recorded exit 1' 'REFUSE recorded exit 1')"
+row "G10 SHELLOPTS monitor, banner then exit 1 (E12)" "run.sh recorded exit 1 after the suite; REFUSE recorded exit 1" "$(grep -q 'exit=1 dur=[2-9]' "$F/G10-run.out" && echo 'run.sh recorded exit 1 after the suite' || echo "run.sh said: $(cat "$F/G10-run.out")"); $(o=$("$GB/gate.sh" "$F/banner-late-exit1.log" - 'ALL CHECKS PASSED'); has "$o" 'recorded exit 1' 'REFUSE recorded exit 1')"
 row "G11 a NUL byte in a passing log (E8)" ACCEPT "$(g nul-pass 'ALL CHECKS PASSED')"
 row "G12 TIMED OUT in a passing log's text (E9)" ACCEPT "$(g timedout-text-pass 'ALL CHECKS PASSED')"
 cp "$F/pass.log" "$F/pass.copy"; out=$(timeout 60 "$GB/run.sh" "$F/pass.log" 10 -- "$F/noverdict-exit0.sh"); rc=$?
@@ -202,6 +222,23 @@ SV1='These are DEBT, not a pass\. They are printed every run until they are clos
 row "G15 the standards verdict (two lines), and in the wrong order" "ACCEPT REFUSE" "$(g standards-pass "$SV1" "$SV2") $(g standards-pass "$SV2" "$SV1")"
 row "G16 --exit-only at exit 0, and at exit 1" "ACCEPT-EXIT-ONLY REFUSE" "$(g noverdict-exit0 --exit-only) $(g banner-exit1 --exit-only)"
 row "G17 a banner followed by more output" REFUSE "$(g banner-then-more 'ALL CHECKS PASSED')"
+# G18: real passing outputs, replayed and gated on the queue's own table
+EV=recovery/v200/evidence; RP=$T/real; mkdir -p "$RP"; g18=; g18n=0
+for e in "check:$EV/runner-0c189f0/smoke-592d629/logs/check.log" "audit-import:$EV/L2-u2/sens-import-u2c2/completed/BASELINE.log" \
+  "audit-board:$EV/L1-correction-A-9b27e80/suites-at-764d288/audit-board.log" "audit-hostile:$EV/L1-correction-A-9b27e80/after-hostile.log" \
+  "audit-ppt:$EV/L1-correction-A-9b27e80/suites-at-764d288/audit-ppt.log" "legacy-fsrc:$EV/runner-0c189f0/smoke-592d629/logs/legacy-fsrc.log" \
+  "boot-same:$EV/runner-0c189f0/smoke-592d629/logs/boot-same.log" "audit-recon:$EV/runner-0c189f0/smoke-592d629/logs/audit-recon.log" \
+  "audit-inject:$EV/L1-correction-A-9b27e80/after-inject.log" "audit-other:$EV/runner-0c189f0/smoke-592d629/logs/audit-other.log" \
+  "audit:$EV/ui/c1-build-822918e/logs/audit-822918e.log" "audit-ui:$EV/ui/c1-build-822918e/logs/audit-ui-822918e.log" \
+  "standards:$EV/runner-0c189f0/smoke-592d629/logs/standards.log"; do
+  s=${e%%:*}; src=${e#*:}; pg show "$RUNNER_SHA:$src" | grep -av '^# ' > "$RP/$s.out"
+  printf '#!/bin/bash\ncat "%s"\nexit 0\n' "$RP/$s.out" > "$RP/$s.sh"; chmod +x "$RP/$s.sh"
+  timeout 60 "$GB/run.sh" "$RP/$s.log" 30 -- "$RP/$s.sh" > /dev/null
+  a=$(awk -F'\t' -v s="$s" '$1==s{print $2}' "$GB/verdicts.tsv"); b=$(awk -F'\t' -v s="$s" '$1==s{print $3}' "$GB/verdicts.tsv")
+  r=$("$GB/gate.sh" "$RP/$s.log" - "$a" ${b:+"$b"} | awk '{print $1}'); g18n=$((g18n+1)); [ "$r" = ACCEPT ] || g18="$g18 $s:$r"
+done
+row "G18 every queue suite's real passing output, on verdicts.tsv" "13 ACCEPT" "$g18n ${g18:+not:$g18}${g18:-ACCEPT}"
+row "G18b audit-inject's real output on the old one-line verdict (review 2 M1)" REFUSE "$("$GB/gate.sh" "$RP/audit-inject.log" - 'ALL CHECKS PASSED' | awk '{print $1}')"
 for d in "${ALL[@]}"; do chattr -R -i "$d/runner" 2>/dev/null; done
 echo "selftest done $(et): $fails failing case(s) of $(awk -F'\t' '$4=="PASS"||$4=="FAIL"' "$R" | wc -l)" | tee -a "$R"
 [ $fails = 0 ]

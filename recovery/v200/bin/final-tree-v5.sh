@@ -14,6 +14,11 @@
 #  - every helper is checked immediately before it runs (backup-run included); a refusal anywhere -- inside $( ) or a
 #    background lane too -- is recorded in REFUSALS.txt and stops the queue at its next check; every helper's exit status is
 #    checked (S5); python3 -I everywhere (M1).
+# Runner correction 2b (after the review of 0c189f0): every baseline is gated on its suite's real ending, from ONE table,
+# verdicts.tsv (audit-inject ends with a rule line after its banner, M1); a second-pass environment check that a preset
+# marker cannot skip, and no grafts (S1); run.sh ends the recorded group before its record (S2); FIRSTFAIL and RUNNER_LOCK
+# from the launch shell are cleared and said (S3); backup-run commits only its destination and a failed backup is recorded,
+# not a stop (S4); a lane stops at its next suite after a refusal, and a stop or a signal is recorded and backed up (S6).
 # BOOTSTRAP (the only commands run outside the snapshot; the summary records this script's own invocation):
 #   O=<new outdir>; mkdir "$O" "$O/runner" && git -C /home/user/orbit-board archive <runner-sha> recovery/v200/bin \
 #     | tar -x -C "$O/runner" && chattr -R +i "$O/runner" && \
@@ -25,27 +30,31 @@
 # ---- runner preamble v5 begin: byte-identical in every runner shell script (runner-selftest case A18 checks it) ----
 # Runner correction 2 (after the independent review of 40f7979, S1): a FIXED environment, whatever this was launched with.
 # bash -p ignores BASH_ENV, ENV, SHELLOPTS, BASHOPTS and inherited functions. The first pass re-executes this script under
-# env -i (same PID), keeping only the runner's own variables and the network proxy; every other value is set here.
+# env -i (same PID), keeping only the runner's own variables and the network proxy; every other value is set here. The
+# second pass then REFUSES if anything else is in its environment, so presetting the marker cannot skip the clean-up
+# (runner correction 2b, after the review of 0c189f0, S1).
 [[ $- == *p* ]] || { echo "REFUSED: $(basename "$0") must run as its own program (#!/bin/bash -p), not through another shell"; exit 2; }
 if [ "${RUNNER_ENV_CLEAN:-}" != "$$" ]; then
   _k=(); for _v in RUNNER_SHA SNAP SNAPROOT RUNNER_PIDS RUNNER_REFUSALS RUNNER_LOCK FIRSTFAIL; do [[ -v $_v ]] && _k+=("$_v=${!_v}"); done
   _p=${RUNNER_NET_PROXY:-${HTTPS_PROXY:-${https_proxy:-}}}; _n=${RUNNER_NET_NOPROXY:-${NO_PROXY:-${no_proxy:-}}}
   exec /usr/bin/env -i RUNNER_ENV_CLEAN=$$ RUNNER_NET_PROXY="$_p" RUNNER_NET_NOPROXY="$_n" "${_k[@]}" /bin/bash -p "$0" "$@"
 fi
+_x=$(/usr/bin/env -0 | /usr/bin/tr '\0\n' '\n ' | /usr/bin/sed -n 's/=.*//p' | /usr/bin/grep -v -x -E 'RUNNER_ENV_CLEAN|RUNNER_NET_PROXY|RUNNER_NET_NOPROXY|RUNNER_SHA|SNAP|SNAPROOT|RUNNER_PIDS|RUNNER_REFUSALS|RUNNER_LOCK|FIRSTFAIL|PWD|OLDPWD|SHLVL|_' | /usr/bin/tr '\n' ' ')
+[ -z "$_x" ] || { echo "REFUSED: $(basename "$0") was started with an environment it did not clean (unexpected: $_x)"; exit 2; }
 export PATH=/opt/node22/bin:/usr/local/bin:/usr/bin:/bin HOME=/root LANG=C.UTF-8 GIT_TERMINAL_PROMPT=0 GIT_NO_REPLACE_OBJECTS=1 \
   HTTPS_PROXY="$RUNNER_NET_PROXY" https_proxy="$RUNNER_NET_PROXY" NO_PROXY="$RUNNER_NET_NOPROXY" no_proxy="$RUNNER_NET_NOPROXY" \
   GIT_SSL_CAINFO=/root/.ccr/ca-bundle.crt NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt NODE_OPTIONS=--max-old-space-size=8192 \
   NODE_PATH=/usr/local/lib/node_modules_global PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
   NPM_CONFIG_UPDATE_NOTIFIER=false PYTHONDONTWRITEBYTECODE=1
-umask 022; set +m; unset _k _v _p _n
+umask 022; set +m; unset _k _v _p _n _x
 REPO=/home/user/orbit-board
 # A refusal prints REFUSED and, when the queue set RUNNER_REFUSALS, records it there too, so a refusal inside $( ) or in a
 # background lane (which ends only that subshell) still stops the queue at its next check (review S5).
 refuse(){ echo "REFUSED: $1"; [ -n "${RUNNER_REFUSALS:-}" ] && echo "$(date -u +%FT%TZ) $(basename "$0"): $1" >> "$RUNNER_REFUSALS"; exit 2; }
-# provenance git: no system or global config, no replace refs, the one repository (review S1)
-pg(){ GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git --no-replace-objects -C "$REPO" "$@"; }
+# provenance git: no system or global config, no replace refs, no grafts, the one repository (reviews S1)
+pg(){ GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null GIT_GRAFT_FILE=/dev/null git --no-replace-objects -C "$REPO" "$@"; }
 # a file's git blob id, computed directly: no git config, filter or line-ending conversion can change it (review S1)
-blob(){ python3 -I -c 'import hashlib,sys;d=open(sys.argv[1],"rb").read();print(hashlib.sha1(b"blob %d\0"%len(d)+d).hexdigest())' "$1"; }
+blob(){ python3 -I -S -c 'import hashlib,sys;d=open(sys.argv[1],"rb").read();print(hashlib.sha1(b"blob %d\0"%len(d)+d).hexdigest())' "$1"; }
 frozen(){ [ ! -L "$1" ] && lsattr -d "$1" 2>/dev/null | awk '{print $1}' | grep -q i; }
 # vh <file>... : each helper, immediately before it runs: in the snapshot, a regular immutable file, its directories frozen
 # up to the snapshot root, and byte for byte the runner commit's blob.
@@ -66,7 +75,8 @@ snapcheck(){ local want got p
   want=$( { printf 'd recovery\nd recovery/v200\nd recovery/v200/bin\n'; pg ls-tree -r "$RUNNER_SHA" recovery/v200/bin/ | awk -F'\t' '{split($1,a," "); print (a[2]=="blob" ? "f "$2" "a[3] : "x "$2)}'; } | sort)
   got=$(cd "$SNAPROOT" && find . -mindepth 1 -printf '%y %P\n' | while IFS=' ' read -r t p; do if [ "$t" = f ]; then echo "f $p $(blob "$p")"; else echo "$t $p"; fi; done | sort)
   [ "$want" = "$got" ] || { diff <(echo "$want") <(echo "$got") | head -20; refuse "the snapshot $SNAPROOT is not exactly recovery/v200/bin at $RUNNER_SHA"; }
-  for p in "$SNAPROOT" $(cd "$SNAPROOT" && find . -mindepth 1 -printf "$SNAPROOT/%P\n"); do frozen "$p" || refuse "$p in the snapshot is not immutable (chattr +i)"; done
+  frozen "$SNAPROOT" || refuse "$SNAPROOT in the snapshot is not immutable (chattr +i)"
+  while IFS= read -r -d '' p; do frozen "$p" || refuse "$p in the snapshot is not immutable (chattr +i)"; done < <(find "$SNAPROOT" -mindepth 1 -print0)
   echo "$want" | grep -c '^f '; }
 # backedup : RUNNER_SHA is on origin's claude/v200-fixes-wip as it is NOW; a failed read or fetch refuses (review S2). Prints the tip.
 backedup(){ local tip
@@ -77,6 +87,7 @@ backedup(){ local tip
   echo "$tip"; }
 # ---- runner preamble v5 end ----
 RUNNER_SHA=${1:-}; C=${2:-}; O=${3:-}; D=${4:-}; PIN=${5:-}; MAN=${6:-}
+CLEARED=; for _v in FIRSTFAIL RUNNER_LOCK; do [[ -v $_v ]] && CLEARED="$CLEARED $_v=${!_v}"; unset $_v; done   # the queue uses neither (S3)
 [[ "$RUNNER_SHA" =~ ^[0-9a-f]{40}$ ]] || refuse "<runner-sha> must be a full 40-hex commit, got '$RUNNER_SHA'"
 B=$(cd "$(dirname "$0")" && pwd -P); SNAPROOT=$(cd "$B/../../.." && pwd -P); SNAP=$B; export RUNNER_SHA SNAP SNAPROOT
 OD=$(cd "$O" 2>/dev/null && pwd -P) || refuse "the outdir '$O' does not exist (the bootstrap makes it, with the snapshot in <outdir>/runner)"
@@ -88,10 +99,15 @@ vh "$0"
 O=$OD; export RUNNER_PIDS="$O/pids.txt" RUNNER_REFUSALS="$O/REFUSALS.txt"
 mkdir -p "$O/import" "$O/suites" "$O/sens"
 et() { TZ=America/New_York date '+%I:%M:%S %p ET'; }
-stop() { echo "STOPPED $(et): $1" | tee -a "$O/summary.txt"; exit "${2:-2}"; }
+stop() { echo "STOPPED $(et): $1" | tee -a "$O/summary.txt"; cp "$O/summary.txt" "$O/suites/summary-all.txt" 2>/dev/null
+  [ -f "$RUNNER_REFUSALS" ] && cp "$RUNNER_REFUSALS" "$O/suites/REFUSALS.txt"
+  if ( vh "$B/backup-run.sh" ) > /dev/null 2>&1; then "$B/backup-run.sh" "$O/suites" "$D/suites" "final tree STOPPED" > /dev/null 2>&1; fi   # best effort
+  exit "${2:-2}"; }
+trap 'stop "the queue received a signal" 3' TERM INT HUP
 chk() { [ ! -s "$RUNNER_REFUSALS" ] || stop "a helper was refused: $(tail -1 "$RUNNER_REFUSALS")"; }
 { echo "runner $RUNNER_SHA (on origin's claude/v200-fixes-wip, now $TIP) snapshot $SNAPROOT verified $(et): $NF files, nothing else, every blob equal, every entry immutable"
-  echo "invocation: $0 $*"; echo "pid $$, cwd $PWD; environment fixed by the runner preamble (env -i, bash -p)"; } >> "$O/summary.txt"
+  echo "invocation: $0 $*"; echo "pid $$, cwd $PWD; environment fixed by the runner preamble (env -i, bash -p); proxy ${RUNNER_NET_PROXY:-none}"
+  [ -z "$CLEARED" ] || echo "launched with$CLEARED; cleared (the queue uses neither)"; } >> "$O/summary.txt"
 pg ls-tree -r "$RUNNER_SHA" recovery/v200/bin/ > "$O/suites/runner-blobs.txt"
 H=$(git -C "$C" rev-parse --verify -q HEAD 2>/dev/null); P=$(git -C "$C" rev-parse --verify -q "$PIN^{commit}" 2>/dev/null)
 [[ "$H" =~ ^[0-9a-f]{40}$ ]] && [ "$H" = "$P" ] && [ -z "$(git -C "$C" status --porcelain --untracked-files=no 2>&1)" ] || refuse "clone HEAD '$H' is not the pinned '$PIN' (or the clone is missing, or it has tracked changes)"
@@ -103,30 +119,31 @@ cp "$MAN" "$O/suites/manifest.tsv"
 echo "start $(et) pinned tree $H ($(git -C "$C" rev-parse HEAD^{tree}))" >> "$O/summary.txt"
 git -C "$C" ls-tree -r HEAD prioritization-board-grid.html tools package.json > "$O/blobs.txt"; cp "$O/blobs.txt" "$O/suites/blobs.txt"
 gate() { vh "$B/gate.sh"; "$B/gate.sh" "$@"; }
+vd() { vh "$B/verdicts.tsv"; awk -F'\t' -v s="$1" -v k="$2" '$1==s{print $k; n++} END{exit n!=1}' "$B/verdicts.tsv" || refuse "verdicts.tsv has no single row for $1"; }
+gv() { local a b; a=$(vd "$2" 2) || exit 2; b=$(vd "$2" 3) || exit 2; gate "$1" "$H" "$a" ${b:+"$b"}; }   # gv <log> <suite>: the gate on that suite's own verdict
 runs() { local lg=$1 cap=$2; shift 2; vh "$B/run.sh"; (cd "$C" && "$B/run.sh" "$lg" "$cap" "$@" > /dev/null) || refuse "run.sh did not record $(basename "$lg")"; }
 bk() { local x; vh "$B/backup-run.sh"; "$B/backup-run.sh" "$@"; x=$?; chk; [ $x = 0 ] || echo "backup FAILED (backup-run.sh exit $x) $(et): $3; the logs stay in $1" >> "$O/summary.txt"; }
 # 0. npm run check, first and mandatory
 runs "$O/suites/check.log" 600 X=1 -- npm run check --silent
-G=$(gate "$O/suites/check.log" "$H" 'all checks passed'); chk; echo "check | $G" >> "$O/suites/summary.txt"
+G=$(gv "$O/suites/check.log" check); chk; echo "check | $G" >> "$O/suites/summary.txt"
 if [ "${G%% *}" != ACCEPT ]; then echo "STOPPED $(et): npm run check did not pass at the pinned tree ($G); nothing else runs until its failures are resolved" >> "$O/summary.txt"
   bk "$O/suites" "$D/suites" "final tree: npm run check failed, queue stopped"; exit 5; fi
 # 1. baseline
 vh "$B/alone-run.sh"; "$B/alone-run.sh" "$C" "$O/import" "$D/import" "final tree audit-import baseline" BASELINE; AX=$?; chk
-[ $AX = 0 ] || stop "the audit-import baseline did not complete alone (alone-run exit $AX: 3 = a refused helper or run, 4 = three overlapped attempts)" 4
-GI=$(gate "$O/import/BASELINE.log" "$H" 'ALL CHECKS PASSED'); chk; echo "baseline audit-import: $GI" >> "$O/summary.txt"
-v() { local g; g=$(gate "$O/suites/$1.log" "$H" "$2"); echo "$1 | $(grep -a -E '^# exit' "$O/suites/$1.log") | $g" >> "$O/suites/summary.txt"; }
-L1=("audit-board::ALL CHECKS PASSED" "audit-hostile::ALL CHECKS PASSED" "audit-ppt::ALL CHECKS PASSED" "legacy-fsrc::  every legacy Force setting computes exactly as before" "boot-same::every page, source, save and error list is identical either way")
-L2=("audit-recon::ALL CHECKS PASSED" "audit-inject::ALL CHECKS PASSED" "audit-other::ALL CHECKS PASSED" "audit::ALL CHECKS PASSED" "audit-ui::ALL CHECKS PASSED")
-( for e in "${L1[@]}"; do s=${e%%::*}; runs "$O/suites/$s.log" 600 X=1 -- node tools/export-audit/$s.mjs; v "$s" "${e#*::}"; done ) &
-( for e in "${L2[@]}"; do s=${e%%::*}; runs "$O/suites/$s.log" 600 X=1 -- node tools/export-audit/$s.mjs; v "$s" "${e#*::}"; done ) &
+[ $AX = 0 ] || stop "the audit-import baseline did not complete alone (alone-run exit $AX: 3 = a refused helper or run, 4 = three overlapped attempts, 5 = never quiet within an hour)" 4
+GI=$(gv "$O/import/BASELINE.log" audit-import); chk; echo "baseline audit-import: $GI" >> "$O/summary.txt"
+v() { local g; g=$(gv "$O/suites/$1.log" "$1"); echo "$1 | $(grep -a -E '^# exit' "$O/suites/$1.log") | $g" >> "$O/suites/summary.txt"; }
+L1=(audit-board audit-hostile audit-ppt legacy-fsrc boot-same); L2=(audit-recon audit-inject audit-other audit audit-ui)
+( for s in "${L1[@]}"; do [ -s "$RUNNER_REFUSALS" ] && break; runs "$O/suites/$s.log" 600 X=1 -- node tools/export-audit/$s.mjs; v "$s"; done ) &
+( for s in "${L2[@]}"; do [ -s "$RUNNER_REFUSALS" ] && break; runs "$O/suites/$s.log" 600 X=1 -- node tools/export-audit/$s.mjs; v "$s"; done ) &
 wait; chk
 runs "$O/suites/verify-grid.log" 600 X=1 -- npm run verify:grid --silent
-G=$(gate "$O/suites/verify-grid.log" "$H" --exit-only); chk; echo "verify:grid | $G" >> "$O/suites/summary.txt"
+G=$(gv "$O/suites/verify-grid.log" verify-grid); chk; echo "verify:grid | $G" >> "$O/suites/summary.txt"
 runs "$O/suites/standards.log" 600 X=1 -- npm run standards --silent
-G=$(gate "$O/suites/standards.log" "$H" 'These are DEBT, not a pass\. They are printed every run until they are closed\.' 'CONFORMANCE HOLDS AGAINST THE BASELINE — [0-9]+ known finding\(s\), [0-9]+ instance\(s\), nothing new'); chk; echo "standards | $G" >> "$O/suites/summary.txt"
+G=$(gv "$O/suites/standards.log" standards); chk; echo "standards | $G" >> "$O/suites/summary.txt"
 vh "$B/mcount.py" "$B/mcread.py"; python3 -I "$B/mcount.py" "$C/tools/export-audit/mutate.mjs" "$C/prioritization-board-grid.html" > "$O/suites/applicability.json" || stop "mcount.py failed"
 sed 's/^/baseline: /' "$O/suites/summary.txt" >> "$O/summary.txt"; bk "$O/suites" "$D/suites" "final tree baseline"
-passed() { local G; if [ "$1" = audit-import ]; then G=$(gate "$O/import/BASELINE.log" "$H" 'ALL CHECKS PASSED'); else G=$(gate "$O/suites/$1.log" "$H" 'ALL CHECKS PASSED'); fi; chk; [ "${G%% *}" = ACCEPT ]; }
+passed() { local G; if [ "$1" = audit-import ]; then G=$(gv "$O/import/BASELINE.log" audit-import); else G=$(gv "$O/suites/$1.log" "$1"); fi; chk; [ "${G%% *}" = ACCEPT ]; }
 # 2. sensitivity, by category then suite; only through the gate
 for cat in new affected reimpl; do
   for s in audit-import audit-recon audit-board audit-ui; do
@@ -136,7 +153,7 @@ for cat in new affected reimpl; do
     echo "sensitivity $cat $s ($(echo $IDS | wc -w)) start $(et)" >> "$O/summary.txt"
     if [ $s = audit-import ]; then
       vh "$B/alone-run.sh"; "$B/alone-run.sh" "$C" "$O/sens/$cat-import" "$D/sens-$cat-import" "final tree $cat audit-import sensitivity" $IDS; AX=$?; chk
-      [ $AX = 0 ] || echo "$cat audit-import sensitivity stopped (alone-run exit $AX: 3 = a refused helper or run, 4 = three overlapped attempts) $(et)" >> "$O/summary.txt"
+      [ $AX = 0 ] || echo "$cat audit-import sensitivity stopped (alone-run exit $AX: 3 = a refused helper or run, 4 = three overlapped attempts, 5 = never quiet within an hour) $(et)" >> "$O/summary.txt"
     else
       vh "$B/sens.sh"; "$B/sens.sh" "$C" "$O/sens/$cat-${s#audit-}" "$s.mjs" $IDS > /dev/null; SX=$?; chk; [ $SX = 0 ] || stop "sens.sh exited $SX ($cat $s)"
       bk "$O/sens/$cat-${s#audit-}" "$D/sens-$cat-${s#audit-}" "final tree $cat $s sensitivity"

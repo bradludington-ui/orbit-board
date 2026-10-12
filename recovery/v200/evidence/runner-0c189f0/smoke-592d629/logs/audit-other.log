@@ -1,0 +1,12 @@
+# cmd: X=1 node tools/export-audit/audit-other.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/clone
+# git: 592d62967bd9cd610ec29bc4a380a55b5671cb4d
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T14:53:54Z / 10:53:54 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-12T14:54:35Z / 10:54:35 EDT
+# exit: 0  duration_s: 41.5

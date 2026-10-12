@@ -395,3 +395,38 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   "TIMED OUT" texts accepted without a false refusal). All 15 recorded PIDs were gone afterwards. Evidence:
   `evidence/runner-0c189f0/selftest/` (BOOTSTRAP.txt is the full command; the 80b2d0b run is kept as superseded).
 - **Independent re-review of `0c189f0`** started at 10:55 AM ET (background; same rules as the first review).
+
+## Update at 11:32 AM ET: runner correction 2b; verify:grid fails at every commit in this container (U28)
+
+- **Smoke, end:** verify:grid at `592d629` exited 1 (361.1 s); gate.sh REFUSED it, rightly. The failure is layout-fits.mjs
+  section J: six checks, row R019's "$123,456,789" cut in its cell at widths 761-1023 px (rank, fund, brief; harbor and
+  parchment). **Not the runner's environment:** layout-fits alone gave the same six failures under the old inherited
+  environment (no LANG), with LANG=C.UTF-8, and under run.sh's fixed environment (11:01-11:09 AM ET). **Not a v2.00
+  change:** the same six at `1c94537` (reset base), `3aeda74`, `4a6f7c7`, `a8891e1`, `f9b4413` (main) and `f81e954`
+  (v1.91, which added the check), 11:09-11:28 AM ET. Opened as **U28** (ledger); evidence
+  `evidence/runner-0c189f0/layout-verify-grid/` and `smoke-592d629/ab/`. No fix proposed or made.
+- **Independent re-review of `0c189f0`** (10:56-11:24 AM ET; `evidence/runner-0c189f0/review-VERDICT.md`): **not approved**,
+  one must-fix: **M1** the verdict-last rule REFUSES every passing audit-inject baseline (it prints a 96-character `=` rule
+  after its banner; reproduced from a real passing log and end to end). Requirements 1-4 MET in normal operation; earlier
+  M1, M2, S2, S4, S6, S7, S9 fixed. Should-fixes: S1 a preset RUNNER_ENV_CLEAN marker skips the env -i clean-up (and repo
+  grafts can fake the backup check); S2 a suite's own leftover process can rewrite the log and its record; S3 FIRSTFAIL and
+  RUNNER_LOCK pass from the launch shell into the queue; S4 backup-run commits the whole index and treats a busy index as
+  "nothing new"; S5 self-test labels and gaps; S6 lanes keep running after a refusal and a stop is not backed up; S7 CRLF
+  and trailing-space false refusals; S8 an outdir with a space or % is falsely refused; S9 Chromium escapes recorded-group
+  cleanup (documented); S10 alone-run's quiet wait is unbounded. Its own self-test re-run: 36/36. It found no evidence the
+  fixed environment breaks the suites.
+- **Runner correction 2b** (this commit; records only): **M1** every baseline is gated on its suite's real ending from ONE
+  table, `verdicts.tsv`, used by the queue and the self-test (audit-inject: the rule line, with ALL CHECKS PASSED before
+  it); **S1** the second pass refuses any variable outside the allowlist (a preset marker no longer skips the clean-up),
+  `GIT_GRAFT_FILE=/dev/null` in provenance git, `python3 -I -S` for blob ids; **S2** run.sh ends the run's recorded process
+  group before writing its record (a process that leaves the group on purpose is out of scope, now said in gate.sh);
+  **S3** the queue clears FIRSTFAIL and RUNNER_LOCK and says so; **S4** backup-run stages and commits only its destination
+  (`git commit --only`), and a busy index, failed commit or wrong branch is "backup FAILED" (exit 3, recorded), not a
+  silent "nothing new" or a stop; **S6** each lane stops at its next suite after a refusal, and a stop or a signal is
+  recorded and backed up (best effort); **S7** trailing spaces and CR are dropped before the whole-line match; **S8** the
+  freeze check reads find -print0; **S10** the quiet wait is bounded at an hour (exit 5). New self-test cases: G18 every
+  queue suite's real passing output (committed evidence logs) replayed and gated on verdicts.tsv, and audit-inject's on
+  the old one-line verdict (must REFUSE); A20 a preset marker with a dirty environment; A21 FIRSTFAIL/RUNNER_LOCK cleared
+  and said; G8 now shows the suite's leftover ended with the run, G8b a line written after the record. Not in the
+  self-test: a full queue run past the clone check (it would back up to orbit-board and take the live lock); the review's
+  end-to-end harness covers it.

@@ -1,0 +1,7 @@
+341 2026-10-12T14:50:56Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/logs/check.log
+421 2026-10-12T14:51:01Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/logs/legacy-fsrc.log
+495 2026-10-12T14:51:06Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/logs/boot-same.log
+674 2026-10-12T14:51:24Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/logs/standards.log
+1489 2026-10-12T14:52:15Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/logs/audit-recon.log
+7165 2026-10-12T14:53:54Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/logs/audit-other.log
+8823 2026-10-12T14:54:35Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/logs/verify-grid.log

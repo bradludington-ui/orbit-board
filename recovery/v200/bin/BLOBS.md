@@ -5,22 +5,23 @@
 # running it, against that commit. Every runner shell script starts with the same preamble (bash -p, re-exec under env -i, a
 # fixed environment, provenance git without system/global config or replace refs, blob ids computed directly). run.sh waits
 # with setsid -w and writes <log>.exit; gate.sh accepts only that record, an unchanged log and the verdict as the suite's last
-# line. runner-selftest.sh holds the bounded refusal checks.
+# line, on the suite's row of verdicts.tsv (runner correction 2b). runner-selftest.sh holds the bounded refusal checks.
 
 ## The final-tree queue (v5) and what it runs
-d78bb3301e44b7a9a18e528d40033ffc824f04ce  final-tree-v5.sh
-8dbf1d622f21801d9064d3bb84789a0d352cf544  gate.sh
-f540388631da9decae9dcb3318d60ec85a9ced27  run.sh
-a800c817ae49089c598b219f927a4c593294153a  alone-run.sh
-bffa326eaed13f3d9c28f13589826931e18eb645  sens-import.sh
-fb616ebd2174bc471b9b08f9352507a1ad743c2b  sens.sh
-f69a68e8f83254609d0024f4e087c494aae6be45  backup-run.sh
-3a41d4d8ed0191fb74c99a2d8eb1028d508dd583  overlap-watch.sh
+ca809fedf178306bb8394936bb09491a6429c69b  final-tree-v5.sh
+277d95e78c97272187e207f53262cb5d05bac5fe  gate.sh
+d683526c62c81cc2ef8f990544bb9396133de8e4  run.sh
+d6c62f93ee2b5a0e8004b442ed274bef37aaf57c  alone-run.sh
+6f74b3247cfb01f42285a9f0caadf6c22921489d  sens-import.sh
+c667f5acaf8f0cdb3c974c9cfdfed82be281bb45  sens.sh
+fba63f1dc443c3dfe2abff2f3f16ca4c8e09913c  backup-run.sh
+68eae07124ff7885befb44066ea115b25fd0c9ed  overlap-watch.sh
 1fcbca06819a40388c4e8b34aa2758e1f750c071  mkmanifest.py
 140b7b6a9c7d9d9b75f7bfdf6a0fe82d1912c8eb  mkmut.py
 8e46e669ab4292a9dfd6243e14fb4e0463eef66e  mcread.py
 852f06ec5a61a1c1393bae794f1c10362aa36cf9  mcount.py
-a2a52bf4033328746abda425c3fdfcd9fd54f3c9  runner-selftest.sh
+08df6da148e627cfb2ed07f0b8aef3602a7b381d  verdicts.tsv
+b6922118988975a0e89e7477eebdd7c48d897713  runner-selftest.sh
 
 ## Superseded, held, or used by earlier runs (not run by v5)
 8d42c95384d487764d794a3290cae95ebb6d6733  final-tree-v4.sh  (runner correction 1, 40f7979: NOT APPROVED by its review -- M1, M2; superseded by v5)
