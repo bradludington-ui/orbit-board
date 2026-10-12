@@ -1420,6 +1420,8 @@ html.ui-on.ui-e640 .row .num{grid-column:2;grid-row:2;text-align:left}
 html.ui-on.ui-e640 .row .mcc{grid-column:3;grid-row:1}
 html.ui-on.ui-e640 .row .morec{grid-column:4;grid-row:1}
 html.ui-on.ui-e640 .gridhead{display:none}
+/* the context bar carries Cycle as well now: on a phone its group wraps rather than push the page sideways */
+html.ui-on.ui-e640 .hdr .ctx{flex:1 1 auto;min-width:0;max-width:100%;flex-wrap:wrap;row-gap:6px}
 @media (max-width:1100px){ #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
 html.ui-on.ui-e940 #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
 /* 900px AND NARROWER: the sidebar sits as the 64px rail whatever was chosen for wide windows (html.ui-narrow, set by
