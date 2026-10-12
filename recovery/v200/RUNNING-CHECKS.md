@@ -441,7 +441,8 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
 
 ## Update at 3:03 PM ET: second usage-limit stop and container restart
 
-- From about 11:40 AM ET agents failed with "session limit, resets 7pm (UTC)": UI fix:M1#2 (mid-way: it had committed
+- At 11:57 AM ET (the failed agents' transcripts were last written 11:57:46-11:57:58 AM ET; this line first said "from
+  about 11:40 AM ET", unchecked, and is corrected here) agents failed with "session limit, resets 7pm (UTC)": UI fix:M1#2 (mid-way: it had committed
   58803c9..5a298b7 on claude/v200-ui and left an uncommitted CHUNK3.md edit) and verify:M1#3; safety verify:U1-U14#2; triage
   check:U17, check:U20, check:U24; the third runner re-review (of 60c984c). The container restarted at 3:01:38 PM ET. Nothing
   committed was lost; scratch, both UI worktrees and the bundles are intact. The UI bundle at 5a298b7 was backed up and
@@ -450,3 +451,6 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   time later than the clock); U1/U14 fix round 2 (U14 test gaps: switching a year off, and "only"), 10:30-11:10 AM ET; triage
   probes U17, U19 (and its checker), U20 and U24, all REPRODUCED on 63bd8b0 in the scope given in each README (rec/L4/u17, u19,
   u20, u24). The failed agents are being re-run from their workflows' run ids (finished agents are not re-run).
+- Resumed at 3:04-3:05 PM ET: the three workflows from their run ids (only the failed agents re-run; the M1 fix-round retry is
+  told what its stopped run had already committed and left uncommitted, and not to redo or amend it), and the runner re-review
+  of 60c984c as a fresh agent (rec/L5/review-runner3b).
