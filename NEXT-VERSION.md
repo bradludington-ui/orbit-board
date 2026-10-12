@@ -683,13 +683,29 @@ result for it was run fresh against these commits.
     and in the folder's history for a folder. The busy-save refusal, a separate commit, closes this.
   - Test: audit-import "v2.00 (U2) — work put back during a save stays unsaved": folder and file races, a live
     refresh, reopens, and a direct count check. Mutation `v200-u2-putback-gen`.
+- **U2 — ↶ Put back waits for a save to finish** (Brad, 11 Oct: "Proceed with U2's counter repair and busy-save refusal as
+  separate commits"). This is the busy-save refusal. While a save is under way, ↶ Put back of the work kept aside now
+  changes nothing: what is on screen and the work kept aside stay exactly as they were, nothing is asked, and the board
+  says "Not put back: a save was under way. Nothing was changed … Put it back once the save has finished". The line is
+  in the past tense because a quiet autosave says nothing when it lands, so the line can still be on screen afterwards.
+  Once the save has finished (saved, failed, refused, canceled or thrown), putting the work back works as before: the
+  folder's refresh then leaves the folder's copy alone, and a reopen keeps both copies. This closes what the counter
+  alone left open. That the next 💾 Save asks before writing over the copy was measured in the draft probe (`u2variants`,
+  B5), not in this block.
+  - **What users may see:** a put-back pressed during a save is refused and must be pressed again once the save has
+    finished. The top bar's ↶ work kept aside stays offered throughout.
+  - **Test:** audit-import "v2.00 (U2) — put back waits for a save to finish". It covers folder saves that go in, fail,
+    are refused, or throw (an autosave); board-file saves that go in, fail, or are canceled; and an autosave that lands
+    after the refusal. Each scenario then checks the retry and a reopen, and for the folder the refresh as well.
+    Mutation `v200-u2-putback-while-saving`.
+  - **Not covered:** a save waiting for another tab's Web Lock is not counted as under way until it starts.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1:** a carried-row omission from the ALL YEARS total. Reproduced; it predates R1. A one-line correction was built on
     a disposable copy and measured: $540,000,000 → $660,000,000 on the fixture, and a saved FY25-only selection stays FY25
     after reopening. Not committed; it waits for Brad, as does one edge (a plan the board still holds for the carry year).
-  - **U2:** keptPutBack loses data in R5's race. The change count is added (above, U2 1 of 2); refusing ↶ Put back while
-    a save is under way (2 of 2) is drafted, not committed.
+  - **U2:** keptPutBack loses data in R5's race. The change count (U2 1 of 2) and the refusal while a save is under way
+    (2 of 2) are both above; their full runs, alone, are still to come.
   - **U3:** a Save queued behind a running save under the hold.
   - **U4:** the folder save's window for the hold.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
