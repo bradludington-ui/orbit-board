@@ -1,0 +1,10 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/mut/v200-u14-allyears-keeps-saved.html","BOARD_set":true,"board":"73560508104a07efd7b2918025a8f74337022481","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/h/focused-u1-u14.mjs","harnessBlob":"9f45b969dea146568a7d57eb782bb1d16718c30a","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/12/2026, 3:55:36 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5b · reopened, then ALL YEARS clicked
+    reopened: [2026, 2027] saved, $500M; ALL YEARS only on its own click: nothing saved, every offered year, 140 + 500 = $640M
+        got [[2026,2027],[2027],500000000,true,[2025,2026,2027,2028,2029,2030,2031],[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000]]   want [[2026,2027],[2027],500000000,true,null,[2025,2027,2028,2029,2030,2031],[640000000,140000000,500000000]]
+# exit 1 at 10/12/2026, 3:56:03 PM ET
+exit 1

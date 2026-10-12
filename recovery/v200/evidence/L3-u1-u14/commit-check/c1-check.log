@@ -1,0 +1,60 @@
+check start 3:46:26 PM ET
+
+checking prioritization-board-grid.html
+31614 lines, 3.57 MB
+
+syntax
+  ok    main script parses (29592 lines)
+
+appropriations
+  ok    APPN_SLUGS = [om, ff, sp, opn]
+  ok    APPN_LBL covers all 4
+  ok    APPN_NAME covers all 4
+  ok    _SLUGMAP covers all 4
+  ok    SRC_TABS covers all 4
+  ok    APPNS covers all 4 (keyed by label)
+  ok    _AP covers all 4 (keyed by label)
+  ok    _AP slugs round-trip to their labels
+
+save path
+  ok    exactly one literal pubState tag
+  ok    buildSavedHtml’s regex matches it
+  ok    SRC0 captured at boot
+
+no data committed
+  ok    pubState is null
+  ok    APPNS is empty
+
+offline
+  ok    no external hosts (2 namespace URIs only)
+  ok    no linked scripts or stylesheets
+
+inline handlers
+  ok    all 324 inline handler names resolve
+
+handler values
+  ok    every value written into an inline handler goes through jsa()
+
+keyboard reach (markup)
+  ok    every element with a click handler is a native control or a labelled SVG role="button" group (backdrops excepted)
+
+boxes
+  ok    all 44 boxes are direct children of <body> with an id, a .modal, a name and a close control
+
+award order
+  ok    the award-order rule's own test: 21 unsafe forms refused (the review's three bypasses among them), 12 valid forms passed
+  ok    every sort of awards uses awdCmp (7 of 131 sorts are of awards)
+
+powerpoint template
+  ok    TPL_PARTS parses as 71 base64 parts and holds no code
+  ok    the template line matches its recorded fingerprint
+
+BUILD  v2.00 (11 Oct 2026)
+
+tracked by git
+  ok    prioritization-board-grid.html
+  ok    tools/row-controls.json
+
+all checks passed
+
+exit 0

@@ -1,0 +1,10 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/mut/v200-u14-only-keeps-saved.html","BOARD_set":true,"board":"a6684666e07314c50210204d130ec734b0f2dd00","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/h/focused-u1-u14.mjs","harnessBlob":"9f45b969dea146568a7d57eb782bb1d16718c30a","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/12/2026, 3:55:09 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5c · a year's only beside the saved FY26
+    FY27's only chooses again: [2027] saved, $500M planned, no saved year left that is not available, no notice; the label FY27 alone, only FY27 lit
+        got [true,[2026,2027],[2027],[500000000,0,500000000],"FY27 · all appropriations · PLANNED (board allocation, O&M) · saved FY26 not available, not counted","The saved year selection includes FY26, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY27–FY31). It stays in the saved selection and is not counted: this total counts FY27 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.",["FY27 · plan [on]"]]   want [true,[2027],[2027],[500000000,0,500000000],"FY27 · all appropriations · PLANNED (board allocation, O&M)","",["FY27 · plan [on]"]]
+# exit 1 at 10/12/2026, 3:55:35 PM ET
+exit 1

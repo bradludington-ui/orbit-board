@@ -1,0 +1,95 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u1/mut/v200-u1-own-appn-only.html","BOARD_set":true,"board":"f9d702e948e9257b5c43e0a108d15f347eec61d3","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u1/h/focused-u1.mjs","harnessBlob":"7022b2e48d0f49b2fa7bc1979566a2afb643c790","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/12/2026, 3:47:58 PM ET"}
+
+================================================================================================
+33 FAILING CHECK(S)
+
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A3 · ALL YEARS
+    only another appropriation carries: FY26 offered, marked plan for O&M; 40 + 20 + 350 + 150 = $560M, $60M executed; Initial Spares 20
+        got ["FY27 · plan",[540000000,40000000,500000000],0]   want ["FY26 · plan",[560000000,60000000,500000000],20000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · FY26 × O&M + Initial Spares
+    the calculation: 400000000 ($100000000 executed, $300000000 planned), by appropriation
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],{"om":540000000,"ff":0,"sp":0,"opn":0}]   want [[2026],[400000000,100000000,300000000],{"om":300000000,"ff":0,"sp":100000000,"opn":0}]
+    read on its own from the panel: total funding $400.00M; and from the exported workbook: TOTAL FUNDING 400000000 twice, US SERVICE FUNDING 400000000, O&M [300000000], INITIAL SPARES [100000000]
+        got ["540.00","ok",[540000000,540000000],[540000000],[540000000],[0]]   want ["400.00","ok",[400000000,400000000],[400000000],[300000000],[100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · FY26 × O&M
+    the calculation: 300000000 ($0 executed, $300000000 planned), by appropriation
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],{"om":540000000,"ff":0,"sp":0,"opn":0}]   want [[2026],[300000000,0,300000000],{"om":300000000,"ff":0,"sp":0,"opn":0}]
+    read on its own from the panel: total funding $300.00M; and from the exported workbook: TOTAL FUNDING 300000000 twice, US SERVICE FUNDING 300000000, O&M [300000000], INITIAL SPARES []
+        got ["540.00","ok",[540000000,540000000],[540000000],[540000000],[]]   want ["300.00","ok",[300000000,300000000],[300000000],[300000000],[]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · FY26 × Initial Spares
+    the calculation: 100000000 ($100000000 executed, $0 planned), by appropriation
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],{"om":0,"ff":0,"sp":0,"opn":0}]   want [[2026],[100000000,100000000,0],{"om":0,"ff":0,"sp":100000000,"opn":0}]
+    read on its own from the panel: total funding $100.00M; and from the exported workbook: TOTAL FUNDING 100000000 twice, US SERVICE FUNDING 100000000, O&M [], INITIAL SPARES [100000000]
+        got ["0.00","ok",[0,0],[0],[],[0]]   want ["100.00","ok",[100000000,100000000],[100000000],[],[100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · ALL YEARS with the plan
+    ALL YEARS = 40 + 100 + 300 + 500 = $940M: $140M executed, $800M planned; the export TOTAL FUNDING 940000000 twice
+        got [[540000000,40000000,500000000],[540000000,540000000]]   want [[940000000,140000000,800000000],[940000000,940000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank · FY26 × O&M + Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank · FY26 × O&M
+    0 in the calculation (all executed), the panel ($0.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[0,0,0],"0.00","ok",[0,0]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank · FY26 × Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],"0.00","ok",[0,0]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank · ALL YEARS
+    ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank, reopened · FY26 × O&M + Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank, reopened · FY26 × O&M
+    0 in the calculation (all executed), the panel ($0.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[0,0,0],"0.00","ok",[0,0]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank, reopened · FY26 × Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],"0.00","ok",[0,0]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · reset to blank, reopened · ALL YEARS
+    ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held · FY26 × O&M + Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held · FY26 × O&M
+    0 in the calculation (all executed), the panel ($0.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[0,0,0],"0.00","ok",[0,0]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held · FY26 × Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],"0.00","ok",[0,0]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held · ALL YEARS
+    ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held, reopened · FY26 × O&M + Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held, reopened · FY26 × O&M
+    0 in the calculation (all executed), the panel ($0.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[540000000,40000000,500000000],"540.00","ok",[540000000,540000000]]   want [[2026],[0,0,0],"0.00","ok",[0,0]]
+    no cloned budget: no figure is FY27's $500M -- the calculation, every exported cell, the panel's $M figures -- and no plan row
+        got [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]   want [[],[],[],0]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held, reopened · FY26 × Initial Spares
+    100000000 in the calculation (all executed), the panel ($100.00M) and the export (TOTAL FUNDING twice)
+        got [[2025,2027,2028,2029,2030,2031],[0,0,0],"0.00","ok",[0,0]]   want [[2026],[100000000,100000000,0],"100.00","ok",[100000000,100000000]]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · not held, reopened · ALL YEARS
+    ALL YEARS = 40 + 100 + 500 = $640M: $140M executed, $500M planned
+        got [540000000,40000000,500000000]   want [640000000,140000000,500000000]
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | demo · detector control · a roll-forward clone made on purpose
+    the no-clone checks see it: FY26 × O&M = $500M planned, and a figure of $500M in the calculation, in the export and on the panel, and a plan row
+        got [[540000000,40000000,500000000],true,true,true,true]   want [[500000000,0,500000000],true,true,true,true]
+# exit 1 at 10/12/2026, 3:48:09 PM ET
+exit 1

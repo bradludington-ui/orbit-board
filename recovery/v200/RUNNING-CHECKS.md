@@ -490,3 +490,26 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   ran 10:30-11:09 AM ET. That agent was told to verify the earlier fixes and not redo them. Triage checkers: **U17 agrees
   (REPRODUCED)**, disputing the builder's attribution of SHd/SHdk/FSHd to the save; **U20 agrees (REPRODUCED)**; U24's checker
   is running. The UI M1 fix-round-2 retry (with its resume note) is running.
+
+## Update at 3:58 PM ET: U1 and U14 committed; triage outcomes; U29-U31 opened
+
+- **U1/U14 review.** The round-3 adversarial review of fix round 2's bytes (11:12-11:58 AM ET; its agent stopped at the usage
+  limit after writing `VERDICT.md`, kept as `evidence/L3-u1-u14/review-round3-VERDICT.md`): **sound, with issues; no must-fix.**
+  Its should-fix 1 (three narrowing routes no U14 check takes; the product right on all three) has drafted checks (S5e) set
+  aside, unapplied, for Brad. The resumed fix-round agent confirmed both round-2 must-fixes fixed and the deliverables
+  byte-identical (3:03-3:43 PM ET). The workflow's further re-review of the same bytes was stopped as redundant.
+- **U1 COMMITTED `0b4144ad32b1056a0d26d5d4e90d716d5b480422`** (3:46:41 PM ET; parent `9ef4f28`): board `bc674ee5`, audit-recon
+  `7224512f`, mutate `b71105e6` (each equal to the reviewed draft), NEXT-VERSION.md's U1 entry. Before committing: npm run check
+  passed; mcount 1314/1314 once (text). Commit check on the committed content (git archive of parent and commit; the
+  builder's mkfocused.py on the committed suite; runner.mjs): U1 block 31/47 on the parent board, 78/0 after; both U1
+  mutations caught (47, 33); R1 blocks 38/0 on both.
+- **U14 COMMITTED `d66dd60fd4f205732e032c6c244409c480dba21c`** (3:48:35 PM ET; parent U1): board `fce8a391`, audit-recon `529e36f7`,
+  mutate `cbc6defc` (each equal to the reviewed draft), NEXT-VERSION.md's U14 entry and both Unresolved lines. npm run check
+  passed; mcount 1328/1328 once. Commit check: U14 block 63/0 after, 23/40 on the U1 commit, 19/44 on the pre-U1 board (U1
+  31/47 there); all 14 U14 mutations and both U1 mutations caught. Evidence: `evidence/L3-u1-u14/commit-check/`.
+- **Triage (all on 63bd8b0; every checker agrees):** U17 REPRODUCED, only through U24's paths now (U13 closed all ten earlier
+  routes); U19 REPRODUCED, data loss (five routes); U20 REPRODUCED on one route, now P1; U24 REPRODUCED for adoptShared,
+  sharedArrived (folder) and bootTakeFile (file), not for importBoards, which IS counted (the ledger row was wrong). **New:**
+  U29 adoptShared on a clean board is falsely clean with no save (file mode: data loss); U30 the older "taken as the base"
+  path overwrites unasked with no second tab; U31 importBoards never marks this browser's record dirty. Ledger updated. No
+  proposal applied.
