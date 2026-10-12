@@ -699,6 +699,32 @@ result for it was run fresh against these commits.
     after the refusal. Each scenario then checks the retry and a reopen, and for the folder the refresh as well.
     Mutation `v200-u2-putback-while-saving`.
   - **Not covered:** a save waiting for another tab's Web Lock is not counted as under way until it starts.
+- **U13 — a refresh during a save loads nothing** (Brad, 12 Oct, 6:00 AM ET: "implement U13's refusal to adopt another copy
+  while saving, as a separate commit. Re-check immediately before adoption after any waits."). The folder's refresh (the Live
+  timer, the bar's Connect, the opening's own connect) used to load a newer folder copy while a save was still writing. The
+  save, landing, found nothing changed and marked the board saved against the copy it wrote, while the screen showed the copy
+  loaded; the next refresh and a reopen said nothing. No second writer was needed: a copy already in the folder, stamped ahead
+  of this machine's clock, was enough. Now the refresh checks for a save under way after its last wait, just before it would
+  change anything, and while one is under way it loads nothing and changes nothing: what is on screen, browser storage, this
+  browser's record, the change count and the work kept aside stay exactly as they were. With nothing recorded for the folder,
+  it also no longer records the folder's copy as the one the work came from during a save (a save still to read the folder
+  would then have written over that copy without asking).
+  - **What users may see:** a Connect during a save (or during Load theirs, which waits in the same queue) says "⏳ The shared
+    folder’s copy of O&M FY27 was not loaded: a save or Load theirs was under way, so this board kept its own copy of O&M FY27.
+    The folder’s copy is checked again on the next refresh once that has finished …", until the save says how it ended. The
+    words name the board's copy only, because the same Connect still loads the execution data, the reprogramming log and cost
+    estimates. The Live timer says nothing and tries again at its next tick. The unsaved-changes warning is unchanged.
+  - **Test:** audit-import "v2.00 (U13) — a refresh during a save loads nothing" (71 checks): the copy stamped an hour ahead,
+    reopened two ways, with every refresh during a held save; a second writer saving during the save; refreshes held at their
+    read or their first wait while a save starts; nothing recorded for the folder (no clash said); the next refresh after a
+    save that went in, failed, was refused or was canceled; a Connect during a save that loads the folder's execution data and
+    reprogramming log; a Connect during Load theirs; and three controls. 42 checks fail on the board before the change; every
+    control passes on both.
+  - **Mutations:** `v200-u13-pull-while-saving`, `v200-u13-base-while-saving`, `v200-u13-pull-unchecked`,
+    `v200-u13-said-nothing-loaded`, `v200-u13-clash-while-saving`; each caught by the focused block (full-suite sensitivity
+    runs in the final-tree queue).
+  - **Not covered:** a copy another writer saves during the save is still written over and kept nowhere in the folder (U18);
+    a save waiting for another tab's Web Lock is not counted (U20); the other adoption paths in the ledger (U24).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1:** a carried-row omission from the ALL YEARS total. Reproduced; it predates R1. A one-line correction was built on
@@ -718,12 +744,12 @@ result for it was run fresh against these commits.
     exports under the edited code.
   - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`, and again here on the current
     tree (`4a6f7c7`) with bounded synthetic probes.
-  - **U13:** a folder pull during a save that is still writing can adopt a folder copy stamped later than the save, and
-    the save then records the board as saved against the bytes it wrote while it shows the adopted copy. Reproduced on
-    synthetic data with a second writer, and, on the current board and on `main`, with **no** second writer: a copy
-    already in the folder, stamped one hour ahead of this machine's clock, a reopen carrying unsaved work whose opening
-    pull had not adopted that copy, and a refresh during the save (the Live timer does it with no user action). How often
-    a copy is stamped ahead was not measured. Counting the adoption as a change does not fix it on its own.
+  - **U13: built as its own commit** (selected by Brad, 12 Oct, 6:00 AM ET): a refresh during a save loads nothing,
+    checked after its last wait (above). Its separate reopening and adoption findings stay open in the ledger (U16–U18,
+    U20), with those found while building and reviewing it (U21–U27): a false clash in a save's last window; ↻ Refresh
+    now's words; Live view's "Loaded" time; three other adoption paths that do not wait for a save (unverified); a save
+    that starts and ends during a refresh's read; status lines left false after an autosave; older refusals that say
+    nothing was loaded or replaced while the same Connect loads execution data.
   - **U14:** a plan the board holds for a year outside its plan window, with no row counted in that year, is in no total,
     and the ALL YEARS label's year range still names that year. Measured with the carryover rule off and on; not changed
     by U1; the scope is mapped and it needs a decision.
