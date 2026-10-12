@@ -48,6 +48,10 @@ const SUITES = [
   // mutation that breaks export math should be caught long before it. The guard mutations below are
   // what it is here to catch.
   ['inject', join(HERE, 'audit-inject.mjs')],
+  // v2.00 UI chunk 3: the new UI's promises where it drives the board's own loaders -- the PMO batch, all or nothing.
+  // Last on purpose: it catches only the UI track's own mutations (v200-ui3-*), and a mutation to the money is caught
+  // long before it.
+  ['ui', join(HERE, 'audit-ui.mjs')],
 ];
 
 // area: which surface the line belongs to. find/replace: the deliberate break.
@@ -4249,6 +4253,42 @@ const MUTATIONS = [
   { id: "v200-r1-stored-note-any-appn", area: "flowBody (planned note)", what: "the planned note asks every appropriation in scope whether rows are stored under its planned year, so another appropriation's carried rows are given as the reason O&M's year is read from its plan",
     find: "MV=PY.filter(y=>flowStoredIn(y, [F.planSlug]))",
     repl: "MV=PY.filter(y=>flowStoredIn(y, F.aps))" },
+  // v2.00 UI chunk 3 (M1, Brad 12 Oct): "All submissions at once" is all or nothing. A file that would ask is refused before
+  // anything loads; a real run that fails part-way is put back whole; the message says only what is checked to be true.
+  // Each is caught by audit-ui.mjs.
+  { id: "v200-ui3-asks-loaded", area: "uiSubMany", what: "a batch holding a file that would ask is loaded anyway: the question is put part-way through the load, and Cancel there leaves the earlier files' destination lists on the board (the M1 defect's road)",
+    find: "  if(out.asks.length){\n    const n=out.asks.length;",
+    repl: "  if(false){\n    const n=out.asks.length;" },
+  { id: "v200-ui3-dry-asks-unheard", area: "uiTakeDry", what: "the dry run answers pmoTake's questions without keeping them, so no file is ever found to ask and the batch asks part-way again",
+    find: "    window.confirm=function(m){ asks.push(String(m)); return true; };",
+    repl: "    window.confirm=function(m){ return true; };" },
+  { id: "v200-ui3-no-putback", area: "uiSubMany", what: "a real run that fails part-way is not put back: the earlier files' destination lists stay in the board, the saved file and browser storage, as in chunk 2",
+    find: "      const bad=uiBatchPut(was);",
+    repl: "      const bad={};" },
+  { id: "v200-ui3-putback-no-dest", area: "uiBatchPut", what: "the put-back restores the review but not the destination list: Depot Zulu stays in memory and in the saved file",
+    find: "  step('dest', function(){ DESTDB=was.destdb; uiGraphPut(was.dest); });\n",
+    repl: "" },
+  { id: "v200-ui3-putback-dest-copy", area: "uiBatchPut", what: "the destination list is put back as a copy, not in place: equal as text, but it is no longer the plan's own list (MS.flow.ents) or the cycles'",
+    find: "  step('dest', function(){ DESTDB=was.destdb; uiGraphPut(was.dest); });",
+    repl: "  step('dest', function(){ DESTDB=JSON.parse(was.destTxt); });" },
+  { id: "v200-ui3-putback-no-storage", area: "uiBatchPut", what: "browser storage is not put back: prio27destdb keeps what the batch wrote, and the board reopened in this browser reads it",
+    find: "  if(was.ls){\n    const now=uiLsAll();",
+    repl: "  if(false){\n    const now=uiLsAll();" },
+  { id: "v200-ui3-putback-no-save-state", area: "uiBatchPut", what: "the save state is not put back: a board that read Saved reads Unsaved changes after a batch that changed nothing",
+    find: "  step('save', function(){ const s=JSON.parse(was.save);",
+    repl: "  if(0) step('save', function(){ const s=JSON.parse(was.save);" },
+  { id: "v200-ui3-putback-writes-all", area: "uiBatchPut", what: "the put-back writes every key of browser storage back, changed or not: writes nobody asked for",
+    find: "      Object.keys(was.ls).forEach(function(k){ if(now[k]!==was.ls[k]) step('ls:'+k,",
+    repl: "      Object.keys(was.ls).forEach(function(k){ if(true) step('ls:'+k," },
+  { id: "v200-ui3-pick-lost", area: "uiBatchPut", what: "the put-back clears the review's ticks instead of restoring them",
+    find: " Object.assign(was.pick, was.pickAt); PMOPICK=was.pick;",
+    repl: "" },
+  { id: "v200-ui3-claim-unchecked", area: "uiSubMany (refuse)", what: "the message says nothing on the board was changed whatever the check found: a put-back storage refused is called complete",
+    find: "    if(!diff.length) tail='The submittal review is exactly as it was before'",
+    repl: "    if(true) tail='The submittal review is exactly as it was before'" },
+  { id: "v200-ui3-check-blind-storage", area: "uiBatchDiff", what: "the check never compares browser storage, so a stored list the put-back could not restore goes unsaid",
+    find: "    ks.forEach(function(k){ if(now[k]!==was.ls[k]) L.push({k:'ls:'+k, what:uiLsName(k)}); });",
+    repl: "    ks.forEach(function(k){ if(false) L.push({k:'ls:'+k, what:uiLsName(k)}); });" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
