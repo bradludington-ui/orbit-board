@@ -54,7 +54,7 @@ Recorded at backup branch head `46b28b5b342e175fe099502e9f262dada3b2063a`. The b
 | U21 | **A refresh in a save's last window raises a false clash about the board's own copy.** After the save's copy is written but before it is recorded (while history pruning and the lock heartbeat run), a refresh says "Brad saved … after the copy you are working from"; after an autosave the line stays on screen while the board is saved and consistent. Nothing is lost. | U13 builder (N1), 12 Oct, 6:51 AM ET (`rec/L3/u13/README.md`, O5a/O5b/O4) | Measured on `1375b72b` and on the U13 draft board `a88a1e5b` (predates U13) | Open, P2; a one-condition option exists, not built |
 | U22 | **↻ Refresh now during a save says "Live view refreshed" though nothing was loaded.** `livePoll(false)` pulls quietly, then reports a refresh. | U13 builder (N2), 12 Oct | Measured on `a88a1e5b` (O2) | Open, P2/P3 |
 | U23 | **Live view's "Loaded …" time moves on a refresh that loaded nothing**, reading "just now" during a save; by code, `livePoll` also clears the error a failed read set. | U13 builder (N3), 12 Oct | Measured on `a88a1e5b` (O2); the error clearing by code | Open, P2 |
-| U24 | **Three more paths put another copy on screen during a save without refusing or counting a change:** `sharedArrived`/`adoptShared`, `bootTakeFile` and `importBoards`. A save landing afterwards would record the board saved against its own copy while the screen shows the adopted one: U13's shape. | U13 builder's enumeration (N4), 12 Oct | **By code only, not run** | Open, P1 by shape; needs a reproduction before any fix |
+| U24 | **Three more paths put another copy on screen during a save without refusing or counting a change:** `sharedArrived`/`adoptShared`, `bootTakeFile` and `importBoards`. A save landing afterwards would record the board saved against its own copy while the screen shows the adopted one: U13's shape. | U13 builder's enumeration (N4), 12 Oct | **By code only, not run** | Open; **unverified, severity provisional** (P1 by shape). Brad, 7:04 AM ET: bounded reproductions with healthy controls go into the post-commit triage; any fix is proposed separately, never folded into U13 |
 
 **U15–U20 triage (12 Oct, for Brad's 7:10 AM ET checkpoint).** Priority: **P1** = a copy of someone's work can end in no
 copy the board can reach, or money or a record is misstated; **P2** = misleading state or wording with nothing lost (or
@@ -70,6 +70,16 @@ from `4a6f7c7` (board `4d273c06`) only by U2's two edits in `keptPutBack`.
 | U18 | P1 | Two writers: Bob takes the pen and saves while Brad's folder save is writing; Brad's save then writes over Bob's copy, which is kept nowhere in the folder. | Measured on `4d273c06` (`u13probe`); by code at `a8891e1`. | Open; related to U4/U11; U13's refusal keeps Brad's record consistent but not Bob's copy. Needs its own decision. |
 | U19 | P1 | A board-file save lands; then ↶ Put back (nothing kept in its place, S1 is saved) and 💾 Save's "HOLD ON" confirm answered OK write K over S1; S1 is in no copy this board can reach (the product points to Teams version history, outside the mock). | Observed on `4e303ff3` (the U2b draft over `4d273c06`); by code at `a8891e1`. | Open; not selected. |
 | U20 | P2 (P1 if reproduced) | Two tabs: a save waiting for another tab's Web Lock is not counted in `_saveBusy` until it starts, so U2's put-back refusal and U13's adoption refusal cannot see it. | Not run; by code at `a8891e1` (and U13's commit once made). | Open; untested. |
+
+**UI track (kept separate from the safety items; local branch `claude/v200-ui`, backed up as restore-verified bundles in
+`ui-backup/`).**
+
+| id | finding | status |
+|---|---|---|
+| UI-M1 | "All submissions at once" was not all-or-nothing on Cancel; the message said nothing changed | Fixed at `aac8574` (board `ba8d0204`); `audit-ui` 289 checks pass there, 131 fail on `f95fee2`; 11 `v200-ui3-*` mutations each caught (runs after the 6:52:44 AM ET amend of `eb4dbfb`; `eb4dbfb`-labelled logs are superseded, not reused). **Independent review running** (on `c41a7c2`: same board and tools as `aac8574`) |
+| UI-S1, S2, S3, S5, S4 | Approved by Brad, 6:11 AM ET, within his scopes | Next part of the UI workflow, after M1's review |
+| UI-C1 | **`npm run check` fails since chunk 1**: "10 value(s) reach inline handler code without jsa()" in chunk 1's UI code (uiColSet, uiSetDensity, the flyout's getElementById and uiMenuSoon, uiDTab). The values are the program's own constants. Base `4a6f7c7` passes. Neither chunk review reported it | Open; new (M1 builder, 12 Oct); not selected |
+| UI-m1…m7 | The chunk-2 review's minors (CHUNK2-REVIEW.md §7) | Open; not selected |
 
 **Evidence gaps (not findings):**
 - R3–R5 committed-suite sensitivity ran at `af892cb` (`evidence/L2-r1-r5/sensitivity-af892cb/`; reuse to `4a6f7c7` justified there). U2's ran alone at `4e90af4` and `a8891e1` (`evidence/L2-u2/`). The final-tree queue, once the selected changes are integrated and pinned, runs every v2.00 mutation again at that tree.

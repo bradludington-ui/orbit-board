@@ -235,3 +235,18 @@ workflow was launched at 6:08:07 AM ET.)
 - **U13 builder finished at 6:51 AM ET** (`rec/L3/u13`); its review is running. Its new findings are U21–U24 in the ledger.
 - **The UI builder amended its own M1 commit**: `eb4dbfb` (bundled at `216773a`) became `aac8574` (6 lines in the board
   and audit-ui); bundled and restore-verified at `8236737`.
+
+## Update at 7:06 AM ET: Brad's 7:04 AM points
+
+- **U13's late guard** is the essential protection. Its general review is running; a second, independent reviewer
+  (started about 7:05 AM ET, `rec/L3/verify-U13-lateguard`) checks only that no step before the guard (every early
+  return, every function it calls, every entry route) changes a folder copy, storage, a base record or a dirty flag
+  during a save, with instrumented writes and byte-for-byte snapshots, controls on the before board, and an entry-only
+  mutant. U13 is committed only after both.
+- **U24** stays unverified, severity provisional. Its bounded reproductions with healthy controls join the post-commit
+  triage with U17, U19 and U20; any fix is proposed separately.
+- **M1's evidence** is at `aac8574`: every reported audit-ui and mutation run started after the amend (6:52:44 AM ET).
+  No `eb4dbfb` result is reused. The review runs on `c41a7c2`, whose board and tools equal `aac8574`'s (its diff touches
+  only `ui-concept/`). The final tree reruns them on the integrated code.
+- U21–U23 stay separate open findings. The next decision waits for the committed U13 review, the U17/U19/U20
+  reproductions and the final-tree evidence matrix. Presweep, full gate and the 135-mutation lane held.
