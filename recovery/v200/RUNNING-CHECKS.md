@@ -345,7 +345,8 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
 
 ## Update at 10:52 AM ET: runner correction 2 (the independent review of 40f7979 did not approve it)
 
-- **Correction (10:55 AM ET):** this heading first said "10:54 AM ET", a time later than the clock: commit `80b2d0b` was
+- **Correction (10:54 AM ET; this note itself first said "10:55 AM ET", again later than the clock -- its commit `0c189f0` was
+  made at 10:54:33 AM ET -- and is corrected here at 10:56 AM ET):** this heading first said "10:54 AM ET", a time later than the clock: commit `80b2d0b` was
   made at 10:52:54 AM ET. Corrected here.
 
 - **Review of `40f7979`** (10:09–10:29 AM ET; `evidence/runner-40f7979/review/VERDICT.md`): **not approved**. Req 1 and 4
@@ -385,3 +386,12 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   and the queue is launched with it cleared too), with one tidy-up in gate.sh (a NUL byte is dropped before the last-line
   check instead of drawing a bash warning; G11's outcome was already ACCEPT). The self-test is re-run at that commit.
 - **Smoke, continued:** audit-recon exit 0 (98.4 s), ACCEPTED on `ALL CHECKS PASSED` as its last line.
+- **Self-test at `0c189f0`** (frozen snapshot; bootstrap 10:54:43 AM ET, done 10:55:25 AM ET, exit 0): **36/36 PASS**. A1-A19
+  provenance and environment (including the reviewer's attacks, each shown live first where it applies: R3 clean filter via
+  GIT_CONFIG_*, R4 replace ref via GIT_DIR, E13 BASH_ENV, E14 exported git/python3 functions, R1 `..x`, R5 unreachable
+  origin, a single unfrozen file, an unfrozen root, a link, a used outdir, a run through another shell, the preamble identical
+  in all 9 scripts); G1-G17 the gate on logs written by run.sh (including E1b self-printed trailer, E11 orphan banner after
+  the exit, E10 NOT ALL CHECKS PASSED, E12 SHELLOPTS monitor -- run.sh now records the suite's real exit 1 -- and the NUL and
+  "TIMED OUT" texts accepted without a false refusal). All 15 recorded PIDs were gone afterwards. Evidence:
+  `evidence/runner-0c189f0/selftest/` (BOOTSTRAP.txt is the full command; the 80b2d0b run is kept as superseded).
+- **Independent re-review of `0c189f0`** started at 10:55 AM ET (background; same rules as the first review).
