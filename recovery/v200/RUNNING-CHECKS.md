@@ -546,3 +546,23 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   times masked); 13 of 19 PNGs byte-identical, the other 6 differ only in the window title strip (0 pixels below y = 90). Bundle
   at 670c467 backed up and restore-verified (`0960361`). **S1-S5** (Brad-approved, each its own commit, reviewed) started from
   the UI workflow with that resolution recorded; the builder is told U28 is a known container difference not to be "fixed".
+
+## Update at 5:05 PM ET: runner 2d APPROVED by its review; correction 2e (process-cleanup safety)
+
+- **Review of `e42cfb6` (runner correction 2d): APPROVED** (`evidence/runner-e42cfb6/review-VERDICT.md`): no must-fix; requirements 1-4
+  MET; cccb714's MF1, MF2, SF1, SF3-SF6 fixed (all its e2e runs re-run; the clone-check stop leaves the scratch REPO and remote
+  unchanged); SF2 fixed for runs that register within about 1 s; gate, run.sh and verdicts.tsv unchanged, all 13 endings
+  match (audit-ui at 670c467); no false ACCEPT, no unstopped refusal, no false refusal of a real baseline. Its self-test from a
+  new frozen snapshot against the real orbit-board was 41/42: A22 failed only because the lead pushed `efae245` (records) as it
+  ran; the self-test itself made no commit or push. Should-fixes: SF-A a stop could TERM a stale recorded group (a renamed
+  attempt's) whose PID had been reused by another process (shown with a decoy in a private PID namespace); SF-B a run
+  registering more than about 1 s after a stop escaped; SF-C A22 fails on any other session's push; SF-D an audit-import under
+  about 1 s is UNWATCHED (real runs are minutes; left as is); SF-E a TERM to alone-run alone released the lock while its run
+  went on; SF-F, SF-G small.
+- **Runner correction 2e** (this commit; records only), because SF-A and SF-E touch Brad's process rules: run.sh puts
+  `RUNNER_RUNLOG=<log>` in the run's own environment, and a stop (`endruns_in`, now in the shared preamble) signals a recorded
+  group ONLY if its leader still carries that run's RUNNER_RUNLOG -- a reused PID or a renamed attempt's stale record is never
+  signalled (checked live: the real run ended with exit 143; a decoy record and a wrong-log record were left alone); a stop
+  looks for late runs three times after its wait (SF-B); alone-run ends its own recorded runs before it releases the lock, and
+  only once its outdir is known (SF-E); A22 now fails only on a commit the self-test could have made (a "final tree" backup or
+  anything under evidence/x), not on other sessions' pushes (SF-C).

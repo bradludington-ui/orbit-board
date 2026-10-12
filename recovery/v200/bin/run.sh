@@ -6,7 +6,8 @@
 # whatever the shell's job control (M2); python3 -I (M1). After the trailer it writes <logfile>.exit -- the exit, duration,
 # and the finished log's size and blob id -- which gate.sh requires, so output that merely looks like a trailer counts for
 # nothing (S3). An existing log or .exit is never overwritten. Returns 0 once the run is recorded (whatever the command's
-# exit), 2 when it refuses. Runner correction 2b (review of 0c189f0, S2): once the command has ended, run.sh ends the run's
+# exit), 2 when it refuses. Runner correction 2e: the run's own environment carries RUNNER_RUNLOG=<logfile>, which a stop
+# checks before signalling the recorded group, so a reused PID is never signalled. Runner correction 2b (review of 0c189f0, S2): once the command has ended, run.sh ends the run's
 # recorded process group (setsid made it; the recorded PID leads it), so no leftover of the suite's own group can write
 # the log or the record afterwards. A process that leaves that group deliberately (Playwright's browsers start in their own
 # session) is not reached; no current suite writes to its log that way.
@@ -75,13 +76,20 @@ backedup(){ local tip
   pg merge-base --is-ancestor "$RUNNER_SHA" "$tip" 2>/dev/null || refuse "$RUNNER_SHA is not on origin's claude/v200-fixes-wip (now $tip): not a backed-up commit"
   pg merge-base --is-ancestor "$tip" refs/heads/claude/v200-fixes-wip 2>/dev/null || refuse "$REPO's claude/v200-fixes-wip does not hold origin's tip $tip, so every backup push would be refused: bring it up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   echo "$tip"; }
+# endruns_in <dir|""> : TERM the recorded process group of every run (under <dir>, or any) whose log has no exit record yet --
+# but ONLY if that group's leader still carries the run's own RUNNER_RUNLOG in its environment, so a PID reused by another
+# process, or the stale record of a renamed attempt, is never signalled (runner correction 2e, review of e42cfb6, SF-A).
+endruns_in(){ local p t l; [ -f "${RUNNER_PIDS:-}" ] || return 0
+  while read -r p t l; do [ -n "$l" ] || continue; [ -z "$1" ] || case "$l" in "$1"/*) ;; *) continue;; esac; [ -f "$l.exit" ] && continue
+    [[ "$p" =~ ^[0-9]+$ ]] && tr '\0' '\n' 2>/dev/null < "/proc/$p/environ" | grep -qxF "RUNNER_RUNLOG=$l" && kill -TERM -- "-$p" 2>/dev/null
+  done < "$RUNNER_PIDS"; }
 # ---- runner preamble v5 end ----
 LOG=$1; CAP=$2; shift 2; GRACE=10; case "${1:-}" in grace=*) GRACE=${1#grace=}; shift;; esac
 ENVS=(); while [ "${1:-}" != "--" ]; do [ $# -gt 0 ] || refuse "run.sh: no -- before the command"; ENVS+=("$1"); shift; done; shift
 [ ! -e "$LOG" ] && [ ! -e "$LOG.exit" ] || refuse "run.sh: $LOG or its .exit already exists (a log is never overwritten)"
 { echo "# cmd: ${ENVS[*]} $*"; echo "# cwd: $PWD"; echo "# git: $(git rev-parse HEAD 2>/dev/null)"; echo "# node: $(node --version)  jsdom: $(node -e "console.log(require('jsdom/package.json').version)" 2>/dev/null)"; echo "# start: $(date -u +%FT%TZ) / $(TZ=America/New_York date '+%H:%M:%S %Z')"; echo "# cap: ${CAP}s  grace: ${GRACE}s"; } > "$LOG"
 S=$(date +%s.%N)
-setsid -w env "${ENVS[@]}" timeout --kill-after="$GRACE" "$CAP" "$@" >> "$LOG" 2>&1 &
+setsid -w env RUNNER_RUNLOG="$LOG" "${ENVS[@]}" timeout --kill-after="$GRACE" "$CAP" "$@" >> "$LOG" 2>&1 &
 P=$!; echo "$P $(date -u +%FT%TZ) $LOG" >> "${RUNNER_PIDS:-$(dirname "$0")/pids.txt}"   # RUNNER_PIDS: the snapshot is immutable
 wait $P; X=$?; kill -KILL -- -$P 2>/dev/null   # the recorded group only
 D=$(python3 -I -c "import time;print(round(time.time()-$S,1))")

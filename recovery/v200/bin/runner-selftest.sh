@@ -92,6 +92,13 @@ backedup(){ local tip
   pg merge-base --is-ancestor "$RUNNER_SHA" "$tip" 2>/dev/null || refuse "$RUNNER_SHA is not on origin's claude/v200-fixes-wip (now $tip): not a backed-up commit"
   pg merge-base --is-ancestor "$tip" refs/heads/claude/v200-fixes-wip 2>/dev/null || refuse "$REPO's claude/v200-fixes-wip does not hold origin's tip $tip, so every backup push would be refused: bring it up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   echo "$tip"; }
+# endruns_in <dir|""> : TERM the recorded process group of every run (under <dir>, or any) whose log has no exit record yet --
+# but ONLY if that group's leader still carries the run's own RUNNER_RUNLOG in its environment, so a PID reused by another
+# process, or the stale record of a renamed attempt, is never signalled (runner correction 2e, review of e42cfb6, SF-A).
+endruns_in(){ local p t l; [ -f "${RUNNER_PIDS:-}" ] || return 0
+  while read -r p t l; do [ -n "$l" ] || continue; [ -z "$1" ] || case "$l" in "$1"/*) ;; *) continue;; esac; [ -f "$l.exit" ] && continue
+    [[ "$p" =~ ^[0-9]+$ ]] && tr '\0' '\n' 2>/dev/null < "/proc/$p/environ" | grep -qxF "RUNNER_RUNLOG=$l" && kill -TERM -- "-$p" 2>/dev/null
+  done < "$RUNNER_PIDS"; }
 # ---- runner preamble v5 end ----
 RUNNER_SHA=${1:-}; T0=${2:-}
 [[ "$RUNNER_SHA" =~ ^[0-9a-f]{40}$ ]] || refuse "<runner-sha> must be a full 40-hex commit"
@@ -248,8 +255,12 @@ for e in "check:$EV/runner-0c189f0/smoke-592d629/logs/check.log" "audit-import:$
 done
 row "G18 every queue suite's real passing output, on verdicts.tsv" "13 ACCEPT" "$g18n ${g18:+not:$g18}${g18:-ACCEPT}"
 row "G18b audit-inject's real output on the old one-line verdict (review 2 M1)" REFUSE "$("$GB/gate.sh" "$RP/audit-inject.log" - 'ALL CHECKS PASSED' | awk '{print $1}')"
+# 2e (review of e42cfb6, SF-C): another session may commit or push meanwhile; what must hold is that no commit made in the
+# window is the queue's (a "final tree" backup) or touches recovery/v200/evidence/x, the self-test's destination.
 H1=$(pg rev-parse HEAD); O1=$(GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git -C / ls-remote "$ORIGIN" refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}'); S1=$(git -C "$REPO" status --porcelain -- recovery/v200/evidence | wc -l)
-row "A22 orbit-board and origin untouched by the whole self-test (review of cccb714, MF1)" "HEAD same; origin same; evidence status same" "HEAD $([ "$H0" = "$H1" ] && echo same || echo "MOVED $H0 -> $H1"); origin $([ -n "$O0" ] && [ "$O0" = "$O1" ] && echo same || echo "MOVED '$O0' -> '$O1'"); evidence status $([ "$S0" = "$S1" ] && echo same || echo "CHANGED $S0 -> $S1")"
+mine=$( { pg log --format='%s' "$H0..$H1"; [ -n "$O0" ] && [ -n "$O1" ] && pg log --format='%s' "$O0..$O1" 2>/dev/null; } | grep -c '^recovery/v200: final tree' )
+touched=$( { pg log --name-only --format= "$H0..$H1"; [ -n "$O0" ] && [ -n "$O1" ] && pg log --name-only --format= "$O0..$O1" 2>/dev/null; } | grep -c '^recovery/v200/evidence/x/' )
+row "A22 no commit or push by the self-test (review of cccb714, MF1; e42cfb6 SF-C)" "0 queue commits; 0 under evidence/x; origin read; evidence status same" "$mine queue commits; $touched under evidence/x; origin $([ -n "$O0" ] && [ -n "$O1" ] && echo read || echo 'NOT READ'); evidence status $([ "$S0" = "$S1" ] && echo same || echo "CHANGED $S0 -> $S1")"
 for d in "${ALL[@]}"; do chattr -R -i "$d/runner" 2>/dev/null; done
 echo "selftest done $(et): $fails failing case(s) of $(awk -F'\t' '$4=="PASS"||$4=="FAIL"' "$R" | wc -l)" | tee -a "$R"
 [ $fails = 0 ]

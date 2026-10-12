@@ -31,6 +31,8 @@
 # (MF2); alone-run's failed backups count toward exit 6 (SF1); a stop ends runs that registered just after it began (SF2);
 # check, verify:grid, standards and every backup are waited for in the background, so a signal is handled at once (SF3);
 # a failed stop backup is recorded (SF6); the local branch must hold origin's tip at launch (SF5, in the preamble).
+# Runner correction 2e (after the review of e42cfb6, which approved 2d): a stop signals a recorded group only if it is still
+# that run's (SF-A, endruns_in in the preamble), and looks for late-registering runs after its wait, not before (SF-B).
 # BOOTSTRAP (the only commands run outside the snapshot; the summary records this script's own invocation):
 #   O=<new outdir>; mkdir "$O" "$O/runner" && git -C /home/user/orbit-board archive <runner-sha> recovery/v200/bin \
 #     | tar -x -C "$O/runner" && chattr -R +i "$O/runner" && \
@@ -103,6 +105,13 @@ backedup(){ local tip
   pg merge-base --is-ancestor "$RUNNER_SHA" "$tip" 2>/dev/null || refuse "$RUNNER_SHA is not on origin's claude/v200-fixes-wip (now $tip): not a backed-up commit"
   pg merge-base --is-ancestor "$tip" refs/heads/claude/v200-fixes-wip 2>/dev/null || refuse "$REPO's claude/v200-fixes-wip does not hold origin's tip $tip, so every backup push would be refused: bring it up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   echo "$tip"; }
+# endruns_in <dir|""> : TERM the recorded process group of every run (under <dir>, or any) whose log has no exit record yet --
+# but ONLY if that group's leader still carries the run's own RUNNER_RUNLOG in its environment, so a PID reused by another
+# process, or the stale record of a renamed attempt, is never signalled (runner correction 2e, review of e42cfb6, SF-A).
+endruns_in(){ local p t l; [ -f "${RUNNER_PIDS:-}" ] || return 0
+  while read -r p t l; do [ -n "$l" ] || continue; [ -z "$1" ] || case "$l" in "$1"/*) ;; *) continue;; esac; [ -f "$l.exit" ] && continue
+    [[ "$p" =~ ^[0-9]+$ ]] && tr '\0' '\n' 2>/dev/null < "/proc/$p/environ" | grep -qxF "RUNNER_RUNLOG=$l" && kill -TERM -- "-$p" 2>/dev/null
+  done < "$RUNNER_PIDS"; }
 # ---- runner preamble v5 end ----
 RUNNER_SHA=${1:-}; C=${2:-}; O=${3:-}; D=${4:-}; PIN=${5:-}; MAN=${6:-}
 CLEARED=; for _v in FIRSTFAIL RUNNER_LOCK; do [[ -v $_v ]] && CLEARED="$CLEARED $_v=${!_v}"; unset $_v; done   # the queue uses neither (S3)
@@ -118,12 +127,11 @@ O=$OD; export RUNNER_PIDS="$O/pids.txt" RUNNER_REFUSALS="$O/REFUSALS.txt"
 mkdir -p "$O/import" "$O/suites" "$O/sens"
 et() { TZ=America/New_York date '+%I:%M:%S %p ET'; }
 LANES=; FG=; CURBK=; BKF=; STARTED=
-endruns() { local p t l; [ -f "$RUNNER_PIDS" ] || return 0   # end every recorded run that has no exit record yet, by its recorded group
-  while read -r p t l; do [ -n "$l" ] && [ ! -f "$l.exit" ] && kill -TERM -- "-$p" 2>/dev/null; done < "$RUNNER_PIDS"; }
+endruns() { endruns_in ""; }   # every recorded run with no exit record yet, verified as still that run (preamble)
 stop() { local e x n p; trap '' TERM INT HUP; echo "STOPPED $(et): $1" | tee -a "$O/summary.txt"; touch "$O/STOP"
   kill $LANES $FG 2>/dev/null; endruns
   for n in 1 2 3 4 5 6 7 8 9 10; do sleep 1; endruns; x=0; for p in $LANES $FG; do kill -0 "$p" 2>/dev/null && x=1; done; [ $x = 0 ] && break; done
-  endruns; sleep 1   # a run that registered just after the stop began is ended too
+  for n in 1 2 3; do sleep 1; endruns; done   # a run that registered after the stop began is ended too
   cp "$O/summary.txt" "$O/suites/summary-all.txt" 2>/dev/null; [ -f "$RUNNER_REFUSALS" ] && cp "$RUNNER_REFUSALS" "$O/suites/REFUSALS.txt"
   if [ -z "$STARTED" ]; then echo "(stopped before the queue started: nothing backed up, orbit-board untouched)" >> "$O/summary.txt"
   elif ( vh "$B/backup-run.sh" ) > /dev/null 2>&1; then for e in "$O/suites::$D/suites" "$O/import::$D/import" ${CURBK:+"$CURBK"}; do   # best effort
