@@ -8116,6 +8116,7 @@ function pmoNoListRefuse(pkg){
 }
 // Take delivery of a submittal: hold it for review, record what this board said at the moment the
 // PMO copy was published so a conflict can be spotted, and open the review. NOTHING IS APPLIED.
+// v2.00 (UI S3): uiTakeDry dry-runs this on a copy, holding back only alert, confirm, setStat, subOpenReview, destPkgIn, PMOSUBS and PMOPICK -- anything else this comes to change must be held back there too.
 function pmoTake(pkg, fname){
   pkg.items=(pkg.items && typeof pkg.items==='object')? pkg.items : {};
   pkg.added=(Array.isArray(pkg.added)? pkg.added : []).filter(function(a){ return a && typeof a==='object'; });

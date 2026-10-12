@@ -1179,6 +1179,58 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ==== end v2.00 UI chunk 3 (S2) ====
 
+// ==== v2.00 UI chunk 3 (S3): a refused batch, from a board that reads Saved, changes nothing and writes nothing ====
+// The chunk 2 review's S3: the batch's dry run (uiTakeDry) runs the board's own pmoTake on a copy of each file with alert,
+// confirm, setStat, subOpenReview, destPkgIn, PMOSUBS and PMOPICK held back. That is sound only while those are everything
+// pmoTake changes: one that came to write a journal line, browser storage or a counter would leak through the dry run with
+// nothing to say so. Every M1 case above starts from a board already reading Unsaved changes, where a dry run that marked
+// the board unsaved would show nothing; these start from a board opened from its saved file, which reads Saved. Brad, 12
+// Oct: "add the refused-batch test and note. Verify storage, MS and DESTDB remain unchanged, including no unintended
+// writes." The note is the comment above pmoTake. Expected values are written out by hand, as above.
+const S3_ASK = (f, q) => '⚠ None of the 2 submittal files was loaded: “' + f + '” would ask a question before it could be loaded, and a batch loads only files that need no answer'
+  + '\n\n' + SAME + '\n\n  • “' + f + '” — ' + q + '\n\nLoad it on its own (PMO Import › One submission), where its question is asked about that file alone; then load the rest.';
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (S3) — a refused batch, from a board that reads Saved, changes nothing and writes nothing';
+  const __bm = bootMark();
+  try {
+    for (const [where, list, said] of [
+      ['a good file, then a malformed one (refused as the files are read)', [F.AV, F.BROKEN],
+        '⚠ None of the 2 submittal files was loaded: “broken.json” is not a programme office’s submittal\n\n' + SAME],
+      ['the same office twice (refused before the dry run)', [F.AV, F.AVcopy],
+        '⚠ None of the 2 submittal files was loaded: “AV.json” and “AV-copy.json” are both from AV. A batch takes one submittal per office — load the one you mean\n\n' + SAME],
+      ['a good file, then one of the wrong width (refused by the dry run, which ran pmoTake on both)', [F.AV, F.WIDTH],
+        '⚠ None of the 2 submittal files was loaded: “PSM-wrong-width.json” would not be taken — ⚠ That submittal proposes requirement values with the wrong number of services for 1 requirement (S01).\n\n' + SAME],
+      ['a good file, then one that would ask (the dry run ran pmoTake on both; AV’s list and its own held back)', [F.AV, F.NOFY],
+        S3_ASK('PSM-no-year.json', 'That submittal does not say which fiscal year it was written for.')],
+      ['a good file, then one with no office (asked after its own list is folded in, so the dry run held that fold back)', [F.AV, F.NOPMO],
+        S3_ASK('no-office.json', 'That submittal does not say which programme office it is from.')]]) {
+      const { S0, X } = await readySaved();
+      X.ev('window.__s3=[MS, MS.jrnl, DESTDB, DESTDB.ents, DESTDB.lmap, PMOSUBS, PMOPICK]; 1');
+      const A = stNow(X);
+      chk(name, where, 'CONTROL — before: reads Saved, nothing unsaved, storage holding the plan’s base only, the eight seeded destinations, TSS held',
+        J([A.unsaved, /^Saved /.test(A.head), Object.keys(A.ls), A.dest, JSON.parse(A.review).subs.map(p => p.pmo)]), J([false, true, ['prio27om.base'], SEEDED, ['TSS']]));
+      const b = await batch(X, list);
+      chk(name, where, 'refused, nothing taken, nothing asked', J([b.r.ok, b.r.taken, b.asked]), J([false, 0, []]));
+      chk(name, where, 'the message', J(b.said), J([said]));
+      chk(name, where, 'setItem and removeItem were never called, for any key', J(b.writes), J([]));
+      const Z = stNow(X);
+      chk(name, where, 'browser storage: every key and value exactly as before, and the one key it held', J([J(Z.ls) === J(A.ls), Object.keys(Z.ls)]), J([true, ['prio27om.base']]));
+      chk(name, where, 'MS: the same object and the same journal, exactly as before', J([X.ev('MS===window.__s3[0] && MS.jrnl===window.__s3[1]'), Z.plan === A.plan]), J([true, true]));
+      chk(name, where, 'DESTDB: the same objects (the list, its ents, its lmap), exactly as before, the eight seeded',
+        J([X.ev('DESTDB===window.__s3[2] && DESTDB.ents===window.__s3[3] && DESTDB.lmap===window.__s3[4]'), Z.destTxt === A.destTxt, Z.dest]), J([true, true, SEEDED]));
+      chk(name, where, 'the review: the same objects, exactly as before', J([X.ev('PMOSUBS===window.__s3[5] && PMOPICK===window.__s3[6]'), Z.review === A.review]), J([true, true]));
+      chk(name, where, 'still reads Saved: the save state exactly as before, the header Saved, nothing unsaved', J([Z.save, /^Saved /.test(Z.head), Z.unsaved]), J([A.save, true, false]));
+      chk(name, where, 'no page errors', J([S0.errors, X.errors]), J([[], []]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 UI chunk 3 (S3) ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one

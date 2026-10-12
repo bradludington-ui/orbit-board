@@ -4357,6 +4357,21 @@ const MUTATIONS = [
   { id: "v200-ui3-lastedit-no-year-filter", area: "uiLastEdit", what: "the year filter is dropped: FY28's note on a requirement is shown in FY27 as that requirement's last edit there",
     find: "      if(+e.fy!==+MS.cur) continue;\n      if(!e.p.length || k==='removed') return null;",
     repl: "      if(!e.p.length || k==='removed') return null;" },
+  // v2.00 UI chunk 3 (S3, Brad 12 Oct): "add the refused-batch test and note. Verify storage, MS and DESTDB remain unchanged,
+  // including no unintended writes." What a pmoTake that came to change more than uiTakeDry holds back would leak through
+  // the dry run. Each is caught by audit-ui.mjs.
+  { id: "v200-ui3-dry-marks-unsaved", area: "uiTakeDry", what: "the dry run marks the board unsaved: a refused batch leaves a board that read Saved counting itself unsaved, with nothing changed",
+    find: "    pmoTake(pkg, name);\n    ok=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; });",
+    repl: "    pmoTake(pkg, name); DIRTY=true;\n    ok=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; });" },
+  { id: "v200-ui3-dry-writes-journal", area: "uiTakeDry", what: "the dry run writes a line into the change journal: a refused batch changes the plan (MS.jrnl) and the saved file",
+    find: "    pmoTake(pkg, name);\n    ok=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; });",
+    repl: "    pmoTake(pkg, name); jrnlAdd({t:Date.now(), by:'dry run', fy:MS.cur, p:['(load)'], a:null, b:String(name), f:1});\n    ok=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; });" },
+  { id: "v200-ui3-dry-writes-storage", area: "uiTakeDry", what: "the dry run writes browser storage: a refused batch leaves a key nobody asked for",
+    find: "    pmoTake(pkg, name);\n    ok=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; });",
+    repl: "    pmoTake(pkg, name); try{ localStorage.setItem('prio27uiDry', String(name)); }catch(e){}\n    ok=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; });" },
+  { id: "v200-ui3-dry-folds-dest", area: "uiTakeDry", what: "the dry run no longer holds destPkgIn back: a refused batch folds its files' destination lists into the board and writes them to browser storage",
+    find: "window.setStat=function(){}; window.subOpenReview=function(){}; window.destPkgIn=function(){};",
+    repl: "window.setStat=function(){}; window.subOpenReview=function(){};" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
