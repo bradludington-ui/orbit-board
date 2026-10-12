@@ -1,0 +1,177 @@
+{
+ "fails": [],
+ "R": {
+  "kpi: seeded cards": "PASS",
+  "kpi: forced card error -> all four say unavailable": "PASS",
+  "kpi: no dollar figure (stale or new) left on the cards": "PASS",
+  "kpi: no page error from the forced throw": "PASS",
+  "kpi: render completed, 14 rows drawn": "PASS",
+  "kpi: posture strip still drawn with the board figure": "PASS",
+  "kpi: posture after an edit equals the twin board without the forced error": "PASS",
+  "kpi: saved payload with the forced error == twin without it": "PASS",
+  "kpi: save() wrote the same storage keys as the twin": "PASS",
+  "kpi: throw escaping uiKpis -> scoreboard guard -> unavailable": "PASS",
+  "kpi: render completes with uiKpis throwing": "PASS",
+  "kpi: cards come back with the board figures once drawing works": "PASS",
+  "kpiForced": {
+   "na": [
+    "unavailable",
+    "unavailable",
+    "unavailable",
+    "unavailable"
+   ],
+   "na2": [
+    "unavailable",
+    "unavailable",
+    "unavailable",
+    "unavailable"
+   ],
+   "back": [
+    "$383,000,000",
+    "$182,000,000",
+    "$34,000,000",
+    "$167,000,000"
+   ],
+   "kpiErr": ""
+  },
+  "perm: Add in review follows Review-only": "PASS",
+  "perm: Add in rank follows Review-only": "PASS",
+  "perm: Add in fund follows Review-only": "PASS",
+  "perm: Add in compare follows Review-only": "PASS",
+  "perm: Add in brief follows Review-only": "PASS",
+  "permAdd": {
+   "review": {
+    "handler": true,
+    "opened": true,
+    "baseOffersInFoldedMenu": true
+   },
+   "rank": {
+    "handler": false,
+    "opened": false,
+    "baseOffersInFoldedMenu": false
+   },
+   "fund": {
+    "handler": false,
+    "opened": false,
+    "baseOffersInFoldedMenu": false
+   },
+   "compare": {
+    "handler": false,
+    "opened": false,
+    "baseOffersInFoldedMenu": false
+   },
+   "brief": {
+    "handler": false,
+    "opened": false,
+    "baseOffersInFoldedMenu": false
+   }
+  },
+  "perm: PMO Import offered on the working board": "PASS",
+  "perm: dd_share exists": "PASS",
+  "perm: File menu offers Program offices on the working board": "PASS",
+  "perm: copy is a SANDBOX": "PASS",
+  "perm: base rule -- File menu hides Program offices in a PMO copy": "PASS",
+  "perm: html.ui-sandbox set in a PMO copy (hides the PMO card)": "PASS",
+  "perm: PMO card choice and uiImpGo refuse in a PMO copy": "PASS",
+  "perm: uiSubMany refuses in a PMO copy": "PASS",
+  "perm: Add in a PMO copy, Review (base offers #toolAdd there too)": "PASS",
+  "perm: no errors in the PMO copy": "PASS",
+  "batch a: valid then malformed JSON: refused": "PASS",
+  "batch a: valid then malformed JSON: review state preserved exactly (subs, ticks, rows, open)": "PASS",
+  "batch a: valid then malformed JSON: nothing applied to the board (payload identical)": "PASS",
+  "batch a: valid then malformed JSON: storage unchanged": "PASS",
+  "batch a: valid then malformed JSON: reopening the review shows the pre-batch state": "PASS",
+  "batch a: valid then malformed JSON: no errors": "PASS",
+  "batch msg a: valid then malformed JSON": "⚠ None of the 2 submittal files was loaded: “broken.json” is not a programme office’s submittal\n\nThe submittal review is exactly as it was before (1 held), and nothing on the board was changed.",
+  "batch a: valid then wrong-width submittal (refused by pmoTake in the dry run): refused": "PASS",
+  "batch a: valid then wrong-width submittal (refused by pmoTake in the dry run): review state preserved exactly (subs, ticks, rows, open)": "PASS",
+  "batch a: valid then wrong-width submittal (refused by pmoTake in the dry run): nothing applied to the board (payload identical)": "PASS",
+  "batch a: valid then wrong-width submittal (refused by pmoTake in the dry run): storage unchanged": "PASS",
+  "batch a: valid then wrong-width submittal (refused by pmoTake in the dry run): reopening the review shows the pre-batch state": "PASS",
+  "batch a: valid then wrong-width submittal (refused by pmoTake in the dry run): no errors": "PASS",
+  "batch msg a: valid then wrong-width submittal (refused by pmoTake in the dry run)": "⚠ None of the 2 submittal files was loaded: “PSM-wrong-width.json” would not be taken — ⚠ That submittal proposes requirement values with the wrong number of services for 1 requirement (S01).\n\nThe submittal review is exa",
+  "batch b: same office twice, differing content: refused": "PASS",
+  "batch b: same office twice, differing content: review state preserved exactly (subs, ticks, rows, open)": "PASS",
+  "batch b: same office twice, differing content: nothing applied to the board (payload identical)": "PASS",
+  "batch b: same office twice, differing content: storage unchanged": "PASS",
+  "batch b: same office twice, differing content: reopening the review shows the pre-batch state": "PASS",
+  "batch b: same office twice, differing content: no errors": "PASS",
+  "batch msg b: same office twice, differing content": "⚠ None of the 2 submittal files was loaded: “AV.json” and “AV-again.json” are both from AV. A batch takes one submittal per office — load the one you mean\n\nThe submittal review is exactly as it was before (1 held), and n",
+  "batch b: same office twice, identical content: refused": "PASS",
+  "batch b: same office twice, identical content: review state preserved exactly (subs, ticks, rows, open)": "PASS",
+  "batch b: same office twice, identical content: nothing applied to the board (payload identical)": "PASS",
+  "batch b: same office twice, identical content: storage unchanged": "PASS",
+  "batch b: same office twice, identical content: reopening the review shows the pre-batch state": "PASS",
+  "batch b: same office twice, identical content: no errors": "PASS",
+  "batch msg b: same office twice, identical content": "⚠ None of the 2 submittal files was loaded: “AV.json” and “AV.json” are both from AV. A batch takes one submittal per office — load the one you mean\n\nThe submittal review is exactly as it was before (1 held), and nothing",
+  "batch c0: cancel in the real run -> earlier files taken back out": "PASS",
+  "batch c0: review and board exactly as before": "PASS",
+  "batch c: storage throws, valid batch: outcome loaded": "PASS",
+  "batch c: storage throws, valid batch: review identical to the same batch with storage working": "PASS",
+  "batch c: storage throws, valid batch: board payload unchanged": "PASS",
+  "batch c: storage throws, valid batch: storage unchanged (nothing half-written)": "PASS",
+  "batch c: storage throws, valid batch: reopening shows the state": "PASS",
+  "batch c: storage throws, valid batch: no errors": "PASS",
+  "batch c: storage throws, valid then malformed: outcome refused": "PASS",
+  "batch c: storage throws, valid then malformed: review identical to the same batch with storage working": "PASS",
+  "batch c: storage throws, valid then malformed: review preserved exactly": "PASS",
+  "batch c: storage throws, valid then malformed: board payload unchanged": "PASS",
+  "batch c: storage throws, valid then malformed: storage unchanged (nothing half-written)": "PASS",
+  "batch c: storage throws, valid then malformed: reopening shows the state": "PASS",
+  "batch c: storage throws, valid then malformed: no errors": "PASS",
+  "batch ok AV.json,PSM.json,TSS-second.json: loaded": "PASS",
+  "batch ok AV.json,PSM.json,TSS-second.json: identical to loading one by one": "PASS",
+  "batch ok AV.json,PSM.json,TSS-second.json: held in pick order": "PASS",
+  "batch ok AV.json,PSM.json,TSS-second.json: nothing applied to the board": "PASS",
+  "batch ok AV.json,PSM.json,TSS-second.json: nothing ticked (as a load does)": "PASS",
+  "batch ok PSM.json,TSS-second.json,AV.json: loaded": "PASS",
+  "batch ok PSM.json,TSS-second.json,AV.json: identical to loading one by one": "PASS",
+  "batch ok PSM.json,TSS-second.json,AV.json: held in pick order": "PASS",
+  "batch ok PSM.json,TSS-second.json,AV.json: nothing applied to the board": "PASS",
+  "batch ok PSM.json,TSS-second.json,AV.json: nothing ticked (as a load does)": "PASS",
+  "meta: lifecycle shown as pending": "PASS",
+  "meta: no journal line for S03 -> no last-edit line": "PASS",
+  "meta: after an edit to S03, its own journal line is shown": "PASS",
+  "meta: S04 (not edited) shows no last-edit line -- never the board-wide time": "PASS",
+  "meta: no \"Last change\" board-wide label anywhere": "PASS",
+  "meta: a later board-wide (load) line -> the journal cannot answer -> omitted": "PASS",
+  "metaSamples": {
+   "o1": "Lifecycle pending — the board has no lifecycle field for a requirement yetLast recorded edit 9/21/2026, 2:13:20 PM · unknown · note (change journal; ranking moves are not journalled)",
+   "j": [
+    {
+     "t": 1790000000000,
+     "by": "unknown",
+     "fy": 2027,
+     "p": [
+      "bm",
+      "mand",
+      1
+     ],
+     "a": null,
+     "b": 6000000
+    },
+    {
+     "t": 1790000000000,
+     "by": "unknown",
+     "fy": 2027,
+     "p": [
+      "bm",
+      "mand",
+      2
+     ],
+     "a": null,
+     "b": 3000000
+    }
+   ]
+  },
+  "cyc: a locked cycle exists for the probe": "PASS",
+  "cyc: menu offers working plan + locked cycles to view, read only": "PASS",
+  "cyc: choosing a locked cycle calls cycView (CYCVIEW set)": "PASS",
+  "cyc: button and chip say read only": "PASS",
+  "cyc: Working plan calls cycLeave": "PASS",
+  "cyc: a key that is not a held locked cycle is ignored": "PASS",
+  "cyc: no errors": "PASS",
+  "chip: says who holds the pen when it is not this browser": "PASS",
+  "chip: reading the pen wrote no writer key": "PASS"
+ }
+}

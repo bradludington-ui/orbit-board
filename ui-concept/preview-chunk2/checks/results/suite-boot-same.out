@@ -1,0 +1,6 @@
+same  prioritization-board-grid.html as shipped parse 3530 ms · fast 746 ms
+same  prioritization-board-grid.html seeded, rendered parse 2061 ms · fast 742 ms
+same  prioritization-board-grid.html reopened from its save parse 2650 ms · fast 803 ms
+same  prioritization-board-grid.html a published PMO copy parse 2684 ms · fast 937 ms
+every page, source, save and error list is identical either way
+exit 0  18s
