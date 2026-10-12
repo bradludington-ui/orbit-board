@@ -36,9 +36,12 @@ const LONG = '⚠ The shared folder holds a newer save by K Jones (10:42). Your 
   + 'File › Put back work kept aside restores it. Nothing was written over.';
 
 const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
-const open = async (mode, w = 1440) => {
+// v2.00 (UI S4): docked -- the RECORD panel docked beside the table, set as View › Record panel › Docked beside the table
+// sets it (prio27uiDock = '1' in this browser). Without it the panel slides over the table, the board's default.
+const open = async (mode, w = 1440, docked = false) => {
   const ctx = await b.newContext({ viewport: { width: w, height: 1000 } });
   await ctx.addInitScript(m => { try { localStorage.setItem('spmtTheme', 'harbor'); if (m !== null) localStorage.setItem('spmtMode', m); } catch (e) {} }, mode === undefined ? null : mode);
+  if (docked) await ctx.addInitScript(() => { try { localStorage.setItem('prio27uiDock', '1'); } catch (e) {} });
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + LIVE);
@@ -111,9 +114,11 @@ console.log('\n' + FILE.split('/').pop());
 }
 
 // ── D. THE RECORD PANEL'S CCaR RECORD, PID AND RENAME, FROM THE KEYBOARD ────────────────────────────────
-{
+// v2.00 (UI S4): twice, the panel sliding over the table (the default) and docked beside it. Sliding over, the panel is
+// closed with Esc before its row is picked again: open, its scrim takes the click meant for the row.
+for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   try {
-    const { p, ctx, errs } = await open('review');
+    const { p, ctx, errs } = await open('review', 1440, docked);
     const answers = [];
     p.on('dialog', d => d.type() === 'prompt' ? d.accept(answers.shift() || '') : d.accept());
     const id = await p.evaluate(() => gridRows()[1].id.replace(/^row-/, ''));
@@ -129,20 +134,24 @@ console.log('\n' + FILE.split('/').pop());
       answers.push(value);
       if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
       const got = await p.evaluate(({ id, src }) => (new Function('id', 'return (' + src + ')(id)'))(id), { id, src: read.toString() });
-      chk(`D · ${what} is a button, reached with Tab and changed from the keyboard`, !!shape && shape.tag === 'BUTTON' && steps >= 0 && got === value,
+      chk(`D · ${what} is a button, reached with Tab and changed from the keyboard (${pass})`, !!shape && shape.tag === 'BUTTON' && steps >= 0 && got === value,
         `${shape ? shape.tag : 'missing'} · ${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · now ${JSON.stringify(got)}`);
       // the next field is reached from the panel's top again; put the panel back on screen after the prompt
+      if (!docked) { await p.keyboard.press('Escape'); await p.waitForTimeout(250); }
       await p.click('#row-' + id + ' .t1'); await p.waitForTimeout(200);
     }
-    chk('D · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    const pos = await p.evaluate(() => getComputedStyle(document.getElementById('inspector')).position);
+    chk(`D · the panel was ${docked ? 'docked beside the table' : 'a drawer over the table'} (${pass})`, docked ? pos !== 'fixed' : pos === 'fixed', 'position: ' + pos);
+    chk(`D · nothing threw (${pass})`, errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
-  } catch (e) { chk(`D · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+  } catch (e) { chk(`D · the section ran on this board (${pass})`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
 // ── D2. THE LANE-WALK PIN CHIP, FROM THE KEYBOARD ──────────────────────────────────────────────────────
-{
+// v2.00 (UI S4): twice, sliding over and docked, as D
+for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   try {
-    const { p, ctx, errs } = await open('review');
+    const { p, ctx, errs } = await open('review', 1440, docked);
     // every fixture requirement is pinned, so one is put back on the automatic lane walk first
     const id = await p.evaluate(() => { const i = gridRows()[2].id.replace(/^row-/, ''); delete S.fsrc[i]; render(); return i; });
     {
@@ -153,12 +162,12 @@ console.log('\n' + FILE.split('/').pop());
       const steps = await tabTo(p, '#inspector', sel, 60);
       if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
       const r = await p.evaluate(({ id, s }) => ({ fsrc: ((S.fsrc || {})[id] || {}).m || '', chip: !!document.querySelector(s) }), { id, s: sel });
-      chk('D2 · the lane-walk pin chip is a button, reached with Tab and used with Enter', tag === 'BUTTON' && steps >= 0 && r.fsrc === 'split' && !r.chip,
+      chk(`D2 · the lane-walk pin chip is a button, reached with Tab and used with Enter (${pass})`, tag === 'BUTTON' && steps >= 0 && r.fsrc === 'split' && !r.chip,
         `${tag} · ${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify(r)}`);
     }
-    chk('D2 · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    chk(`D2 · nothing threw (${pass})`, errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
-  } catch (e) { chk(`D2 · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+  } catch (e) { chk(`D2 · the section ran on this board (${pass})`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
 // ── E. THE "WORK KEPT ASIDE" PUT-BACK ─────────────────────────────────────────────────────────────────

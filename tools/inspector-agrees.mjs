@@ -14,10 +14,18 @@ const SC = { services:['STOVL','USMC CV','USN'],
   disc:[100,45,55], mand:[40,20,25], order:['A','B','C','D','E','F','G'], mc:{A:true,C:true} };
 
 const b = await chromium.launch({ executablePath: CHROME });
+// v2.00 (UI S4): TWICE -- the RECORD panel as it opens by default, sliding over the table (closed with Esc between rows,
+// as a person closes it before picking the next: open, its scrim takes the click meant for the row), and docked beside
+// the table, set as View › Record panel › Docked beside the table sets it (prio27uiDock = '1' in this browser), where every
+// row is picked straight from the table as before. The figures are checked the same way in both.
+let bad = 0;
+const errs = [];
+for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
+console.log(`  ${pass}:`);
 const p = await b.newPage({ viewport:{width:1700,height:1000} });
-const errs = []; p.on('pageerror', e => errs.push(String(e)));
+p.on('pageerror', e => errs.push(String(e)));
 await p.goto('file://' + FILE);
-await p.evaluate(()=>localStorage.setItem('spmtTheme','harbor'));
+await p.evaluate(d=>{ localStorage.setItem('spmtTheme','harbor'); if(d) localStorage.setItem('prio27uiDock','1'); }, docked);
 await p.reload(); await p.waitForTimeout(700);
 await p.evaluate(sc=>{ SVC.length=0; sc.services.forEach(s=>SVC.push(s)); DATA.services=SVC; MS.cur=2027; MS.base=2027;
   const st={order:sc.order,alloc:{},mc:sc.mc,fsrc:{},custom:[],removed:[],discSvc:sc.disc,mandSvc:sc.mand};
@@ -26,9 +34,12 @@ await p.evaluate(sc=>{ SVC.length=0; sc.services.forEach(s=>SVC.push(s)); DATA.s
   S.pmoOrder={}; sc.items.forEach(i=>{ (S.pmoOrder[i.grp]=S.pmoOrder[i.grp]||[]).push(i.id); }); render(); }, SC);
 await p.waitForTimeout(300);
 
-let bad = 0;
 for (const id of SC.order) {
   await p.click('#row-' + id); await p.waitForTimeout(120);
+  // where the panel is: a drawer over the table, open, or docked beside it -- the pass says which it must be
+  const where = await p.evaluate(() => { const i = document.getElementById('inspector'), cs = getComputedStyle(i);
+    return cs.position === 'fixed' ? (i.classList.contains('open') ? 'drawer, open' : 'drawer, shut') : 'docked'; });
+  if (where !== (docked ? 'docked' : 'drawer, open')) { bad++; console.log(`  FAIL  ${id}  the RECORD panel is ${where}, not ${docked ? 'docked' : 'a drawer, open'}`); }
   const r = await p.evaluate(rid => {
     const sum = a => (a||[]).reduce((x,y)=>x+y,0);
     const t = tiers(null, scenOpt())[rid];
@@ -63,9 +74,15 @@ for (const id of SC.order) {
   if (!ok) { bad++;
     console.log(`  FAIL  ${id}  panel ${JSON.stringify({...got, unfunded:unfGot, mcShortage:mcGot})}  engine ${JSON.stringify({...want, unfunded:unfWant, mcShortage:mcWant})}`); }
   else console.log(`  ok    ${id}  req ${got.requirement} · D ${got.discretionary} · M ${got.mandatory} · unf ${unfGot} · ★ ${mcGot}`);
+  // sliding over: Esc closes it, and the next row is picked from the table once the scrim is gone
+  if (!docked) { await p.keyboard.press('Escape'); await p.waitForTimeout(260);
+    const shut = await p.evaluate(() => !document.getElementById('inspector').classList.contains('open') && getComputedStyle(document.getElementById('drawerScrim')).display === 'none');
+    if (!shut) { bad++; console.log(`  FAIL  ${id}  Esc did not close the RECORD panel`); } }
+}
+await p.close();
 }
 await b.close();
 if (errs.length) { console.log('\n  page errors:', errs.length); errs.slice(0,3).forEach(e=>console.log('   ', e.slice(0,140))); }
 console.log(bad ? `\n  ${bad} row(s) where the inspector disagrees with the lane engine\n`
-                : '\n  the inspector agrees with the lane engine on every row\n');
+                : '\n  the inspector agrees with the lane engine on every row, sliding over and docked\n');
 process.exit(bad || errs.length ? 1 : 0);

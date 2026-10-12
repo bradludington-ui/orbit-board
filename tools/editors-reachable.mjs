@@ -67,14 +67,22 @@ const standin = f => /Segoe stand-in/.test(f);
 
 // 1400 and 1366 straddle the breakpoint the drawer turns on; 1024 is a half-tiled window.
 const WIDTHS = [1920, 1600, 1440, 1400, 1366, 1280, 1024];
+// v2.00 (UI S4): EVERY CHECK TWICE. The RECORD panel slides over the table by default, at every width; docked beside it is a
+// choice kept in the browser (View › Record panel › Docked beside the table writes prio27uiDock = '1', set here the same
+// way), and docked is the board's own layout -- beside the rows above 1400px, a drawer below. Docked keeps every assertion
+// this file has always made about where the panel is; sliding over, the panel must be a drawer at every width.
+const PASSES = [['sliding over (the default)', false], ['docked (View › Record panel › Docked beside the table)', true]];
+const dockedCtx = async (ctx, docked) => { if (docked) await ctx.addInitScript(() => { try { localStorage.setItem('prio27uiDock', '1'); } catch (e) {} }); };
 const b = await chromium.launch({ executablePath: CHROME,
                                   args:['--no-sandbox'] });
 let bad = 0;
+for (const [pass, docked] of PASSES)
 for (const [f, file] of Object.entries(made)) {
   const grid = /grid/.test(f);
-  console.log('\n' + f);
+  console.log('\n' + f + ' — ' + pass);
   for (const w of WIDTHS) {
     const ctx = await b.newContext({ viewport:{width:w, height:768} });
+    await dockedCtx(ctx, docked);
     const p = await ctx.newPage();
     const errs = [];
     p.on('pageerror', e => errs.push(e.message));
@@ -116,7 +124,7 @@ for (const [f, file] of Object.entries(made)) {
         .filter(t => t.getBoundingClientRect().width > 0 && t.scrollWidth > t.clientWidth + 1).map(t => t.textContent);
       return { ask:reach(h=>/setAsk\(/.test(h)), impact:reach(h=>/toggleCons/.test(h)),
                lookalike, over: document.documentElement.scrollWidth - innerWidth,
-               place:_place, scrim:_scrimShown, clipped };
+               place:_place, scrim:_scrimShown, clipped, dock: document.documentElement.classList.contains('ui-dock') };
     });
     const fails = [];
     if (r.ask < 1)     fails.push('no requirement-value editor');
@@ -125,7 +133,8 @@ for (const [f, file] of Object.entries(made)) {
     if (r.lookalike)   fails.push(`${r.lookalike} chip(s) look clickable and are not`);
     if (r.clipped.length) fails.push(`an editor button's label is cut off: ${r.clipped.join(' | ')}`);
     if (grid) {
-      const wantDocked = w > 1400;
+      if (r.dock !== docked) fails.push(docked ? 'the docked setting did not take' : 'the panel is docked without the setting');
+      const wantDocked = docked && w > 1400;
       if (wantDocked && r.place !== 'beside the rows')
         fails.push(`the RECORD panel is ${r.place}, not beside the rows`);
       if (!wantDocked && r.place !== 'drawer')
@@ -148,11 +157,13 @@ for (const [f, file] of Object.entries(made)) {
 // field the PMO workflow exists to collect. Now they sit straight under the title: at the two laptop
 // sizes people use, with and without an award schedule (which makes the panel longer), all three must
 // be on screen without scrolling, and none clipped.
+for (const [pass, docked] of PASSES)
 for (const [f, file] of Object.entries(made)) {
-  console.log('\n' + f + ' — the three written editors, above the fold');
+  console.log('\n' + f + ' — the three written editors, above the fold — ' + pass);
   for (const [w, h] of [[1366, 768], [1440, 900]]) {
     for (const id of ['R003', 'R004']) {
       const ctx = await b.newContext({ viewport:{width:w, height:h} });
+      await dockedCtx(ctx, docked);
       const p = await ctx.newPage();
       const errs = [];
       p.on('pageerror', e => errs.push(e.message));
@@ -188,5 +199,5 @@ for (const [f, file] of Object.entries(made)) {
 }
 await b.close();
 console.log(bad ? `\n${bad} width(s) failed\n` : '\nEvery editor is reachable at every width, neither build scrolls sideways, and the written editors are above the fold'
-  + ` and unclipped, in this machine's font and in a Segoe-like stand-in +${STANDIN_SCALE - 100}%\n`);
+  + ` and unclipped, in this machine's font and in a Segoe-like stand-in +${STANDIN_SCALE - 100}%, with the RECORD panel sliding over and docked\n`);
 process.exit(bad ? 1 : 0);
