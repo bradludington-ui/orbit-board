@@ -435,3 +435,6 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   and G8b. Its log carried git's "grafts are deprecated" hint once per provenance call (`GIT_GRAFT_FILE=/dev/null` triggers
   it; harmless, never in a suite log). This commit silences it (`-c advice.graftFileDeprecated=false` in provenance git)
   and nothing else; the self-test is re-run at this commit and the runner goes to an independent re-review.
+- **11:35 AM ET:** self-test at `60c984c` (frozen snapshot; 11:34:42-11:35:30 AM ET, exit 0): **41/41 PASS**, no git hints. Evidence
+  `evidence/runner-60c984c/selftest/` (with the G18 replays of the 13 real suite endings). **The runner to review and use
+  is `60c984c621846fb3fd1eec002dda97815399f82b`.** Independent re-review started.

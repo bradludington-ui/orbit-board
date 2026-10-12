@@ -1,0 +1,16 @@
+# cmd:  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-60c984c/cases/real/legacy-fsrc.sh
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-60c984c/cases/fake
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-12T15:35:26Z / 11:35:26 EDT
+# cap: 30s  grace: 10s
+  ok   legacy fsrc 'mand' still honoured — all mandatory (d 0 · m 60 · u 0)
+  ok   legacy fsrc 'disc' still honoured — all discretionary (d 60 · m 0 · u 0)
+  ok   legacy fsrc 'ufr' still honoured — all unfunded (d 0 · m 0 · u 60)
+
+  every legacy Force setting computes exactly as before
+
+
+
+# end: 2026-10-12T15:35:26Z / 11:35:26 EDT
+# exit: 0  duration_s: 0.1
