@@ -52,6 +52,21 @@ Recorded at backup branch head `46b28b5b342e175fe099502e9f262dada3b2063a`. The b
 | U19 | **Put back after a file save: the retry can write over the copy that save wrote, leaving it in no copy this board can reach.** With S1 saved into the board file, ↶ Put back keeps nothing in its place (S1 is saved), and the file Save's "HOLD ON" confirm writes K over S1; the product's prompt points to Teams version history, outside the mock. | The U2 draft probe (`u2variants/README.md`, caveats), 11 Oct | Observed in the U2b retry run (file) | Open |
 | U20 | **A save waiting for another tab's Web Lock is not counted as under way** until it starts, so U2's refusal and U13's refusal do not see it. | U2 draft probe caveats and U2 commit 2's NEXT-VERSION note, 11 Oct | Not tested | Open |
 
+**U15–U20 triage (12 Oct, for Brad's 7:10 AM ET checkpoint).** Priority: **P1** = a copy of someone's work can end in no
+copy the board can reach, or money or a record is misstated; **P2** = misleading state or wording with nothing lost (or
+recoverable only outside the board); **P3** = cosmetic. "Measured" means a bounded run on that board; "by code" means the
+code path is unchanged there and was not re-run. Current safety head: `a8891e1` (board `1375b72b`), whose board differs
+from `4a6f7c7` (board `4d273c06`) only by U2's two edits in `keptPutBack`.
+
+| id | priority | trigger | affected SHA | disposition |
+|---|---|---|---|---|
+| U15 | P2 | Reopen a board that holds unsaved work in this browser: the header reads "Saved …" from `DIRTY` (false in a new session) while the record says unsaved and the status warns. | Measured on `5e43f9e8` (the U2a draft over `4d273c06`); by code at `4a6f7c7` and `a8891e1`. | Open; not selected. |
+| U16 | P2 | A folder copy stamped ahead of this machine's clock that is also the copy the work came from; reopen with unsaved work; the opening's own connect runs. It sets the work aside (kept, nothing lost) and loads that copy, saying "saved … just now". | Measured on `4d273c06` (`4a6f7c7`) and main `f9b4413` (`b160bc03`); by code at `a8891e1`. | Open; not selected. |
+| U17 | P1 | Reach U13's falsely-clean end state; then 💾 Save writes the adopted copy over the head without asking (the other copy goes to history as a `-recent` copy that pruning can later remove), or ↶ Put back asks a false question and keeps nothing aside. | Measured on `4d273c06` and `f9b4413`; by code at `a8891e1`. | Open; re-measure on U13's commit, whose refusal should make the measured routes unable to reach that state. |
+| U18 | P1 | Two writers: Bob takes the pen and saves while Brad's folder save is writing; Brad's save then writes over Bob's copy, which is kept nowhere in the folder. | Measured on `4d273c06` (`u13probe`); by code at `a8891e1`. | Open; related to U4/U11; U13's refusal keeps Brad's record consistent but not Bob's copy. Needs its own decision. |
+| U19 | P1 | A board-file save lands; then ↶ Put back (nothing kept in its place, S1 is saved) and 💾 Save's "HOLD ON" confirm answered OK write K over S1; S1 is in no copy this board can reach (the product points to Teams version history, outside the mock). | Observed on `4e303ff3` (the U2b draft over `4d273c06`); by code at `a8891e1`. | Open; not selected. |
+| U20 | P2 (P1 if reproduced) | Two tabs: a save waiting for another tab's Web Lock is not counted in `_saveBusy` until it starts, so U2's put-back refusal and U13's adoption refusal cannot see it. | Not run; by code at `a8891e1` (and U13's commit once made). | Open; untested. |
+
 **Evidence gaps (not findings):**
 - R3–R5 committed-suite sensitivity ran at `af892cb` (`evidence/L2-r1-r5/sensitivity-af892cb/`; reuse to `4a6f7c7` justified there). U2's ran alone at `4e90af4` and `a8891e1` (`evidence/L2-u2/`). The final-tree queue, once the selected changes are integrated and pinned, runs every v2.00 mutation again at that tree.
 - The reviewer's re-check of the nine existing `driveRestore`-area mutations on the R5 board did not finish; the final-tree queue covers them.
