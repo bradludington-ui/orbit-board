@@ -271,3 +271,16 @@ workflow was launched at 6:08:07 AM ET.)
 - **After the cherry-pick** onto `claude/v200-ui`, all of it is repeated on the exact resulting commit, including any
   conflict resolution, and the independent review reads that commit's diff. The holds stay until the reviews and the
   pinned-tree matrix are complete.
+
+## Update at 7:57 AM ET: U13's two reviews
+
+- **General review #1** (workflow `wf_ed273e24-21b`): sound, with issues. Must-fix: the Connect refusal said "Nothing was
+  loaded from the shared folder" while the same Connect still pulls the execution/ACE/RP stores. Should-fix: status-line
+  checks for (3c) and after landing; four "(a CONTROL)" checks in (4a)–(4d) are preconditions. A fix round is running.
+- **Late-guard review** (Brad's 7:04 AM point; `evidence/L3-u13/lateguard-review/`): **holds, with listed non-copy side
+  effects.** 346 cells with a save under way (5 calls, 13 branches, 4 timings) changed no copy, storage, base record or
+  dirty flag before the guard, on `a88a1e5b`; 242/242 on the builder's revised `98eed7e8` (message only). Controls:
+  no save under way, after equals before in every cell; the guard moved to the top lets U13's adoption through in 9
+  cells (a save starting during the refresh's own wait). Side effects outside the pull, listed: the lock heartbeat, a
+  queued autosave, the Connect's permission flags, the picker. New boundary finding opened as U25; the U13 reviewer's
+  pre-existing status-line findings as U26.

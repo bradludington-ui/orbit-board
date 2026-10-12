@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13-lateguard/h/mkmut.py", line 10, in <module>
+    block=src[i:j]; assert block.count('\n')==5, block
+                           ^^^^^^^^^^^^^^^^^^^^
+AssertionError:   if(_saveBusy){
+    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+    render(); return false;
+  }
+

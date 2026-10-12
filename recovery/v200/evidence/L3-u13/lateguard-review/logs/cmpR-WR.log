@@ -1,0 +1,22 @@
+R2-rev2-W vs A2-after-W, mode WR (win): 52 cells identical, 3 differ
+--- ('WR', 'B10-lateguard', 'ac')
+   listed:
+      R2-rev2-W: ["_driveLive", "_statN", "diagN", "status"]
+      A2-after-W: ["_driveLive", "_statN", "status"]
+   status:
+      R2-rev2-W: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "
+--- ('WR', 'B10-lateguard', 'cn')
+   listed:
+      R2-rev2-W: ["_driveLive", "_statN", "diagN", "status"]
+      A2-after-W: ["_driveLive", "_statN", "status"]
+   status:
+      R2-rev2-W: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "
+--- ('WR', 'B10-lateguard', 'p0')
+   listed:
+      R2-rev2-W: ["_statN", "diagN", "status"]
+      A2-after-W: ["_statN", "status"]
+   status:
+      R2-rev2-W: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "

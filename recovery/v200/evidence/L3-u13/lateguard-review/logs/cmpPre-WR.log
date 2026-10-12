@@ -1,0 +1,77 @@
+A2-after-W vs B2-before-W, mode WR (preWait): 45 cells identical, 10 differ
+--- ('WR', 'B06-notnewer-nobase', 'ac')
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder AGE, after the copy you are working from. Nothi"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+--- ('WR', 'B06-notnewer-nobase', 'cn')
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder AGE, after the copy you are working from. Nothi"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+--- ('WR', 'B06-notnewer-nobase', 'p0')
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder AGE, after the copy you are working from. Nothi"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+--- ('WR', 'B06-notnewer-nobase', 'p1')
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder AGE, after the copy you are working from. Nothi"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+--- ('WR', 'B06-notnewer-nobase', 'tk')
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder AGE, after the copy you are working from. Nothi"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+--- ('WR', 'B10-lateguard', 'ac')
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   status:
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
+--- ('WR', 'B10-lateguard', 'cn')
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   status:
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
+--- ('WR', 'B10-lateguard', 'p0')
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   ret:
+      A2-after-W: false
+      B2-before-W: true
+   status:
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
+--- ('WR', 'B10-lateguard', 'p1')
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   ret:
+      A2-after-W: false
+      B2-before-W: true
+   status:
+      A2-after-W: "Opened with this browser’s copy of the board — it has changes made after this file was last saved (##/##/####, ##:##:## "
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
+--- ('WR', 'B10-lateguard', 'tk')
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   status:
+      A2-after-W: "Opened with this browser’s copy of the board — it has changes made after this file was last saved (##/##/####, ##:##:## "
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside"
