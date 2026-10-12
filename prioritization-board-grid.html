@@ -1637,7 +1637,7 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <div class="uiMenu"><button type="button" class="btn" id="uiColsBtn" aria-expanded="false" onclick="uiPop('uiColsPop',this)" title="Show or hide table columns"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M6 2.5v11M10 2.5v11"/></svg>Columns</button><div class="uiPop" id="uiColsPop"></div></div>
     <div class="uiMenu"><button type="button" class="btn" id="uiDensBtn" aria-expanded="false" onclick="uiPop('uiDensPop',this)" title="Row density, and how the RECORD panel opens: sliding over the table or docked beside it"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5h12M2 8h12M2 12.5h12"/></svg>View</button><div class="uiPop" id="uiDensPop"></div></div>
     <span class="sp"></span>
-    <button type="button" class="btn" id="uiImpBtn" onclick="uiImpOpen()" title="Bring a board, an appropriation or PMO submittals in"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg>Import</button>
+    <button type="button" class="btn" id="uiImpBtn" onclick="uiImpOpen(this)" title="Bring a board, an appropriation or PMO submittals in"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg>Import</button>
     <button type="button" class="btn pri" id="uiAddBtn" onclick="uiAddReq()" title="Add a requirement to the year on screen — the same as Add requirement in Review"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
   </div>
 </div>
@@ -32174,7 +32174,7 @@ function uiGo(k, btn){
   if(k==='fund'){ if(uiMode!=='fund') uiSetMode('fund'); return; }
   if(k==='cyc'){ if(uiMode!=='compare') uiSetMode('compare'); return; }
   if(k==='brief'){ if(uiMode!=='brief') uiSetMode('brief'); return; }
-  if(k==='imp'){ uiImpOpen(); return; }
+  if(k==='imp'){ uiImpOpen(btn); return; }
   if(k==='setup'){ uiMenuSoon('setup'); return; }
 }
 // a section's own items: each is the menu item's own call, run the way the menu runs it (mRun)
@@ -32324,8 +32324,14 @@ function uiAddReq(){
   return true;
 }
 // ── THE IMPORT BOX ───────────────────────────────────────────────────────────────────────────────────────────
-function uiImpOpen(){
+// v2.00 (UI S4): THE KEYBOARD GOES BACK TO THE CONTROL THAT OPENED THE BOX. The board's own box controller hands the
+// keyboard, on Esc, ✕ Close, Cancel or a click outside, to the last control it was on before the box opened. A browser
+// whose buttons take no focus on a click (Safari; Firefox on a Mac) left that the search box, or wherever the keyboard last
+// was, rather than Import. So the control that opened it -- the toolbar's Import, or the sidebar's Imports -- takes the
+// keyboard first, and the controller hands it back there.
+function uiImpOpen(from){
   uiFlyClose(); uiPopsClose(); uiPeekClose();
+  if(from && typeof from.focus==='function'){ try{ from.focus({preventScroll:true}); }catch(e){} }
   if(UI2.imp==='pmo' && uiSandbox()) UI2.imp='full';
   uiImpDraw();
   const p=document.getElementById('uiImpPanel'); if(p) p.classList.add('open');

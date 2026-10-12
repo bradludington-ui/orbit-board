@@ -36,14 +36,15 @@ await p.waitForTimeout(200);
 const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .modal-bg[id]')].map(bg => {
   const oc = bg.getAttribute('onclick') || '';
   let pat = (/this\)\s*([A-Za-z0-9_]+)\(/.exec(oc) || [])[1] || null;
-  const KNOWN = { helpClose: 'openHelp(', fldClose: 'toggleCons(', subClose: 'subOpenReview(', attClose: 'attShow(' };
+  // v2.00 (UI S4): the Import box closes with uiImpClose() and opens with uiImpOpen(), from the toolbar's Import button
+  const KNOWN = { helpClose: 'openHelp(', fldClose: 'toggleCons(', subClose: 'subOpenReview(', attClose: 'attShow(', uiImpClose: 'uiImpOpen(' };
   if (pat && KNOWN[pat]) pat = KNOWN[pat]; else if (pat) pat += '(';
   if (!pat) { const v = (/this\)\s*([A-Za-z0-9_]+)\s*=/.exec(oc) || [])[1];
     pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', recOpen: 'toggleRec(', ndOpen: 'ndOpen=true' })[v] || null; }
   return { id: bg.id, pat };
 }));
 const bad = [], skipped = [], viaFn = [];
-let opened = 0, typed = 0;
+let opened = 0, typed = 0, impBack = 0;
 const st = () => p.evaluate(() => { const a = document.activeElement;
   const bg = a && a.closest ? a.closest('body > .modal-bg') : null;
   return { in: bg ? bg.id : null, id: a ? (a.id || a.tagName.toLowerCase()) : null }; });
@@ -163,6 +164,34 @@ for (const box of BOXES) {
   } else if (await isOpen(box.id)) { await p.keyboard.press('Escape'); await p.waitForTimeout(150); }
   await p.evaluate(() => { const f = document.querySelector('[data-probe-f]'); if (f) f.removeAttribute('data-probe-f'); });
 }
+// v2.00 (UI S4): THE IMPORT BOX HANDS THE KEYBOARD BACK TO THE CONTROL THAT OPENED IT -- the toolbar's Import or the
+// sidebar's Imports -- on Esc, ✕ Close, Cancel and a click outside. Opened from the keyboard (Enter), and by a mouse click
+// on a button that takes no focus from the click (as Safari's and Firefox's on a Mac do not: the press is held back here),
+// with the keyboard last in the search box -- where it would be handed back to if the box did not know its opener.
+if (await p.evaluate(() => !!document.getElementById('uiImpPanel'))) {
+  for (const opener of ['#uiImpBtn', '#uiNav_imp']) for (const how of ['key', 'click']) for (const close of ['Escape', 'close', 'cancel', 'outside']) {
+    await p.evaluate(() => { window.scrollTo(0, 0); });
+    await p.focus('#q');
+    if (how === 'key') { await p.focus(opener); await p.keyboard.press('Enter'); }
+    else {
+      await p.evaluate(sel => { const b = document.querySelector(sel); b.__noFocus = e => e.preventDefault(); b.addEventListener('mousedown', b.__noFocus); }, opener);
+      await p.click(opener);
+      await p.evaluate(sel => { const b = document.querySelector(sel); b.removeEventListener('mousedown', b.__noFocus); }, opener);
+    }
+    await p.waitForTimeout(200);
+    const o = await st();
+    if (!(await isOpen('uiImpPanel')) || o.in !== 'uiImpPanel') { bad.push(`uiImpPanel from ${opener} (${how}): did not open with the keyboard in it`); await p.evaluate(() => uiImpClose()); continue; }
+    if (close === 'Escape') await p.keyboard.press('Escape');
+    else if (close === 'close') await p.click('#uiImpPanel h3 button.x');
+    else if (close === 'cancel') await p.click('#uiImpPanel .uiImpFoot button:has-text("Cancel")');
+    else { const at = await outside('uiImpPanel'); if (!at) { bad.push('uiImpPanel: no point on the backdrop outside the box'); continue; } await p.mouse.click(at[0], at[1]); }
+    await p.waitForTimeout(200);
+    const c = await st();
+    if (await isOpen('uiImpPanel')) { bad.push(`uiImpPanel from ${opener} (${how}): ${close} did not close it`); await p.evaluate(() => uiImpClose()); continue; }
+    if ('#' + c.id !== opener) bad.push(`uiImpPanel from ${opener} (${how}): ${close} left the keyboard on ${c.id}, not on ${opener}`);
+    else impBack++;
+  }
+}
 // ONE BOX OPENED FROM ANOTHER: the top one closes first and the keyboard goes back into the one below
 await p.evaluate(() => { document.body.focus(); togglePf(); });
 await p.waitForTimeout(200);
@@ -175,6 +204,7 @@ if (back.in !== 'pfPanel' || !(await isOpen('pfPanel'))) bad.push(`stacked: Esc 
 await p.keyboard.press('Escape'); await p.waitForTimeout(200);
 await b.close();
 console.log(`\nboxes: ${opened} opened (${opened - viaFn.length} from their own menu or button by keyboard, ${viaFn.length} by their switch: ${viaFn.join(', ') || 'none'}), ${typed} with a text field typed in`);
+if (impBack) console.log(`the Import box handed the keyboard back to its opener ${impBack} time(s) of 16 (two openers, by key and by a click that takes no focus, each way of closing it)`);
 skipped.forEach(x => console.log('  — skipped: ' + x));
 if (errs.length) bad.push('page errors: ' + errs.slice(0, 3).join(' | '));
 if (bad.length) { console.log(`${bad.length} PROBLEM(S)`); bad.slice(0, 80).forEach(x => console.log('  ✗ ' + x)); process.exit(1); }
