@@ -86,7 +86,7 @@ verdicts carry over.
 The R4b case label is used only as text. The focused reruns below show the R4b checks reaching the same verdict under the
 new name.
 
-## 7. Focused reruns, labelled separately from the full-suite catches (8:59–9:12 PM ET)
+## 7. Focused reruns, labelled separately from the full-suite catches (9:02–9:12 PM ET)
 
 **The harness.** It copies verbatim from each commit's own suite:
 - the imports, the failure list, `keepBoards` and `SEEN`/`chk`;
