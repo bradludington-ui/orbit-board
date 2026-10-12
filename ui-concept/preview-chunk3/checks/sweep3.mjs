@@ -5,6 +5,12 @@
 //                     as the rail, docked, and docked with the rail: on screen without scrolling the strip, not cut by it,
 //                     and the thing under its own centre (elementFromPoint), so a click there reaches it. Rows are checked
 //                     at each width too (overflow, a cell outside its row, a cut money figure, the page scrolling sideways).
+//   part = reports -- S5: Reports & exports opened from its button, then each of its folded groups opened from its heading,
+//                     at 760, 761 and 1000 and every width 700-1900 in steps of 20, with the sidebar open (at 900 and
+//                     narrower: open over the page, which the click on Reports closes, as any click outside it does) and as
+//                     the rail: the menu inside the window and clear of the sidebar, and every item, scrolled into view
+//                     inside the menu, inside the window and the thing under its own centre. At 760, 761 and 1000 every
+//                     other toolbar menu and its groups too.
 // Each setting is made as a person makes it: the sidebar's own ‹ button, View › Record panel › Docked beside the table.
 import { chromium } from '/home/user/orbit-ui/node_modules/playwright-core/index.mjs';
 import { pathToFileURL } from 'node:url';
@@ -110,6 +116,63 @@ if (part === 'posture') {
     }
     await p.context().close();
   }
+}
+// ONE OPEN TOOLBAR MENU, judged as dropdowns-visible judges it -- and against the sidebar's edge as well
+const MENU = () => {
+  const dd = document.querySelector('.menu.open > .mdd'); if (!dd) return { none: true };
+  const W = innerWidth, H = innerHeight, r = dd.getBoundingClientRect(), out = [];
+  const side = document.getElementById('uiSide');
+  const sideR = (side && getComputedStyle(side).display !== 'none') ? side.getBoundingClientRect().right : 0;
+  if (r.top < -0.5 || r.left < -0.5 || r.bottom > H + 0.5 || r.right > W + 0.5) out.push('the menu runs outside the window');
+  if (r.left < sideR - 0.5) out.push('the menu starts under the sidebar (' + Math.round(r.left) + ' < ' + Math.round(sideR) + ')');
+  const items = [...dd.querySelectorAll('.mi, button, select, input')].filter(e => e.offsetParent !== null || getComputedStyle(e).position === 'fixed');
+  items.forEach(e => {
+    e.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    const c = e.getBoundingClientRect(), x = c.left + Math.min(c.width / 2, 20), y = c.top + c.height / 2;
+    const label = (e.textContent || e.getAttribute('aria-label') || e.tagName).replace(/\s+/g, ' ').trim().slice(0, 40);
+    if (c.top < -0.5 || c.bottom > H + 0.5 || c.left < -0.5 || c.right > W + 0.5) { out.push('"' + label + '" is outside the window'); return; }
+    const top = document.elementFromPoint(x, y);
+    if (!top || !(top === e || e.contains(top))) out.push('"' + label + '" is covered by ' + (top ? (top.id ? '#' + top.id : top.tagName.toLowerCase() + '.' + String(top.className).split(' ')[0]) : 'nothing'));
+  });
+  return { items: items.length, left: Math.round(r.left), right: Math.round(r.right), sideR: Math.round(sideR), sideways: dd.scrollWidth > dd.clientWidth + 1, problems: out };
+};
+if (part === 'reports') {
+  const ws = [760, 761, 1000].concat(widths.filter(w => w !== 760 && w !== 1000));
+  for (const [cfg, rail] of [['sidebar open', false], ['rail', true]]) {
+    const res = out.res[cfg] = { bad: [], looked: 0 };
+    for (const w of ws) {
+      const p = await open(w, 900);
+      await setRail(p, rail && w > 900);   // at 900 and narrower the sidebar is the rail whatever was chosen
+      const keys = [760, 761, 1000].includes(w) ? await p.evaluate(() => [...document.querySelectorAll('.menu[id^="m_"]')].map(m => m.id.slice(2))
+        .filter(k => { const bt = document.getElementById('b_' + k); if (!bt) return false; const c = bt.getBoundingClientRect(); return c.width > 0 && c.height > 0; })) : ['reports'];
+      for (const k of keys) {
+        await p.evaluate(() => window.scrollTo(0, 0));
+        if (!rail && w <= 900) { await p.click('#uiCollapse'); await p.waitForTimeout(80); }   // the sidebar open over the page
+        await p.click('#b_' + k); await p.waitForTimeout(120);
+        const gs = await p.evaluate(k => [...document.querySelectorAll('#dd_' + k + ' .gh')].map(h => h.getAttribute('data-g')), k);
+        for (const g of [null, ...gs]) {
+          if (g) { await p.click(`#dd_${k} .gh[data-g="${g}"]`); await p.waitForTimeout(100); }
+          const r = await p.evaluate(MENU); res.looked++;
+          const at = w + ' ' + k + (g ? ' › ' + g : '');
+          if (r.none) res.bad.push(at + ': the menu is not open');
+          else r.problems.forEach(x => res.bad.push(at + ': ' + x));
+          if (k === 'reports' && [760, 761, 1000, 1440].includes(w)) (res.edges = res.edges || {})[at] = { left: r.left, right: r.right, sidebarEdge: r.sideR, items: r.items, scrollsSideways: r.sideways };
+        }
+        await p.keyboard.press('Escape'); await p.waitForTimeout(60);
+      }
+      await p.context().close();
+    }
+  }
+  await browser.close();
+  out.errs = errs;
+  writeFileSync(OUT, JSON.stringify(out, null, 1));
+  const n = Object.values(out.res).reduce((a, c) => a + c.bad.length, 0);
+  console.log(part, 'problems:', n, '· page errors:', errs.length);
+  for (const [cfg, c] of Object.entries(out.res)) {
+    const ws2 = [...new Set(c.bad.map(x => +x.split(' ')[0]))];
+    console.log(`  ${cfg.padEnd(14)} ${c.looked} opened · ${ws2.length ? c.bad.length + ' problem(s) at ' + ws2.length + ' width(s): ' + ws2.join(' ') : 'every item in the window, clear of the sidebar and on top'}`);
+  }
+  process.exit(n || errs.length ? 1 : 0);
 }
 await browser.close();
 out.errs = errs;

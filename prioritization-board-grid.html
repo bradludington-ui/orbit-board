@@ -32143,6 +32143,29 @@ function uiRailToggle(){
   try{ fitTop(); syncSticky(); }catch(e){}
 }
 function uiMenuSoon(m){ setTimeout(function(){ if(openMenu!==m) toggleMenu(m); }, 0); }
+// v2.00 (UI S5): A TOOLBAR MENU STAYS CLEAR OF THE SIDEBAR. The board's own fitMenus() keeps an open menu inside the
+// window, 8px from its left edge -- the edge the sidebar now covers. Reports & exports hangs from its button's right edge
+// and, with Five years & PPBE or CCaR & accounting files unfolded, is wider than the room to that button's left: at 760
+// and 1000 it was moved to 8px and 191px, and its items there (✈ Pre-flight check among them) lay under the sidebar
+// (chunk 2 review, S5). After fitMenus() has placed a toolbar menu, this moves it right to the sidebar's edge and 8px
+// more; one wider than the room right of the sidebar is held to that room and scrolls, as fitMenus() holds one to the
+// window. fitMenus() itself is unchanged: it is wrapped here, as the board wraps render(), so every call -- a menu opened,
+// a group unfolded, Find typed in, a resize, a scroll -- is followed by this. A menu in the rows or a box (fitMenus'
+// fixed-position branch) is left as it places it.
+function uiMenuFit(){
+  if(!UI2 || !UI2.on) return;
+  const side=document.getElementById('uiSide'); if(!side) return;
+  const sr=side.getBoundingClientRect(); if(!(sr.width>0)) return;
+  const pad=8, CW=(document.documentElement && document.documentElement.clientWidth) || window.innerWidth || 0, L=Math.ceil(sr.right)+pad;
+  [].slice.call(document.querySelectorAll('.menu.open > .mdd')).forEach(function(dd){ try{
+    if(dd.parentElement.closest('.gridwrap, #list, #inspector, .modal-bg, .posture')) return;
+    let q=dd.getBoundingClientRect(); if(!(q.width>0) || q.left>=L-0.5) return;
+    if(q.width>CW-L-pad){ dd.style.maxWidth=(CW-L-pad)+'px'; dd.style.overflowX='auto'; q=dd.getBoundingClientRect(); }
+    const was=/translateX\((-?[\d.]+)px\)/.exec(dd.style.transform||''), dx=(was? +was[1] : 0)+(L-q.left);
+    dd.style.transform='translateX('+Math.ceil(dx)+'px)';
+  }catch(e){} });
+}
+try{ fitMenus=(function(own){ return function(){ own.apply(this, arguments); try{ uiMenuFit(); }catch(e){} }; })(fitMenus); }catch(e){}
 function uiGo(k, btn){
   uiPopsClose();
   if(k==='fydp' || k==='exec' || k==='hist'){ if(UI2.fly===k) uiFlyClose(); else uiFlyOpen(k, btn); return; }
