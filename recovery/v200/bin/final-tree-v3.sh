@@ -20,6 +20,12 @@ H=$(git -C "$C" rev-parse HEAD); [ "$H" = "$(git -C "$C" rev-parse "$PIN")" ] &&
 python3 -I "$B/mkmanifest.py" "$C/tools/export-audit/mutate.mjs" "$C/prioritization-board-grid.html" "$(dirname "$MAN")/affected.txt" > "$O/manifest.check.tsv" 2>/dev/null || python3 -I "$B/mkmanifest.py" "$C/tools/export-audit/mutate.mjs" "$C/prioritization-board-grid.html" > "$O/manifest.check.tsv"
 cmp -s "$MAN" "$O/manifest.check.tsv" || { echo "REFUSED: $MAN is not the manifest of this clone (see $O/manifest.check.tsv)"; exit 2; }
 cp "$MAN" "$O/suites/manifest.tsv"
+# PROVENANCE: every script this queue runs must equal its backed-up copy in recovery/v200/bin on claude/v200-fixes-wip.
+RB=/home/user/orbit-board/recovery/v200/bin; : > "$O/suites/scripts.txt"
+for f in final-tree-v3.sh mkmanifest.py alone-run.sh sens-import.sh overlap-watch.sh backup-run.sh sens.sh run.sh mkmut.py mcread.py mcount.py; do
+  echo "$(git hash-object "$B/$f")  $f" >> "$O/suites/scripts.txt"
+  cmp -s "$B/$f" "$RB/$f" || { echo "REFUSED: $f differs from its backed-up copy in $RB"; exit 2; }; done
+echo "scripts: equal to recovery/v200/bin at $(git -C /home/user/orbit-board rev-parse --short HEAD) (blobs in suites/scripts.txt)" >> "$O/summary.txt"
 echo "start $(et) pinned $H tree $(git -C "$C" rev-parse HEAD^{tree})" >> "$O/summary.txt"
 git -C "$C" ls-tree -r HEAD prioritization-board-grid.html tools package.json > "$O/blobs.txt"; cp "$O/blobs.txt" "$O/suites/blobs.txt"
 # 0. npm run check, first and mandatory

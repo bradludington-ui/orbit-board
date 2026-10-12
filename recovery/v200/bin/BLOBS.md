@@ -2,7 +2,7 @@
 # The final-tree queue is final-tree-v3.sh; its helpers are listed under it. Copied 9:05 AM ET, 12 Oct.
 
 ## The final-tree queue (v3) and what it calls
-e10208baa1fcfb4379a7488f54ce0676c77f1ec9  final-tree-v3.sh
+a879738c333af7f8561405e16d019e8c537fabcc  final-tree-v3.sh
 1fcbca06819a40388c4e8b34aa2758e1f750c071  mkmanifest.py
 d969d48fe97fc7be6653543675969d23dff712bb  alone-run.sh
 4874e0588dd98f810bd7e6d4c2bd36e2ff159454  sens-import.sh
