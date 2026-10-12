@@ -1,0 +1,14 @@
+- **U2 — ↶ Put back waits for a save to finish** (Brad, 11 Oct: "Proceed with U2's counter repair and busy-save refusal as
+  separate commits"). This is the busy-save refusal. While a save is under way, ↶ Put back of the work kept aside now
+  changes nothing: what is on screen and the work kept aside stay exactly as they were, nothing is asked, and the board
+  says "Not put back: a save was under way. Nothing was changed … Put it back once the save has finished". The line is
+  in the past tense because a quiet autosave says nothing when it lands, so the line can still be on screen afterwards.
+  Once the save has finished (saved, failed, refused, canceled or thrown), putting the work back works as before, and
+  the next Save asks before it writes over the copy that save wrote. This closes what the counter alone left open.
+  - **What users may see:** a put-back pressed during a save is refused and must be pressed again once the save has
+    finished. The top bar's ↶ work kept aside stays offered throughout.
+  - **Test:** audit-import "v2.00 (U2) — put back waits for a save to finish". It covers folder saves that go in, fail,
+    are refused, or throw (an autosave); board-file saves that go in, fail, or are canceled; and an autosave that lands
+    after the refusal. Each scenario checks the retry, then the refresh and a reopen. Mutation
+    `v200-u2-putback-while-saving`.
+  - **Not covered:** a save waiting for another tab's Web Lock is not counted as under way until it starts.

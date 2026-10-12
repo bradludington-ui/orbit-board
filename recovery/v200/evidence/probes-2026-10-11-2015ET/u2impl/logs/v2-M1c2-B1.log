@@ -1,0 +1,9 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/mut/v200-u2-putback-gen--on-c2.html","BOARD_set":true,"board":"e2edf3651b97e5065d0779d265b8e2f4926d5373","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/c2/tools/export-audit/focused-u2-block1.mjs","harnessBlob":"e98846d5ee90a0ffbb22fdf814587c285688b954","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f720ce184998cf31cad50d288f78c2f7bac19bd6","started":"10/11/2026, 10:31:22 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U2) — work put back during a save stays unsaved | (d) K put back with no save running
+    no save was running, and the put-back moved the change count by exactly one (read from _saveGen)
+        got [0,0]   want [0,1]
+# exit 1 at 10/11/2026, 10:31:34 PM ET

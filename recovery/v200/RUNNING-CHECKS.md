@@ -98,3 +98,16 @@ belong to the workflow, are recorded in `uichunk2/pids.txt`, and were not killed
 **How it counts.** This BASELINE is labelled OVERLAPPED and is not the alone run Brad's rule requires. It is allowed to
 finish and is kept. BASELINE and `v200-u2-putback-gen` are run again, alone, once the UI workflow is idle. The driver stays
 paused until then.
+
+## Update at 10:28 PM ET: commit-1 BASELINE ended; its paused driver stopped
+
+- **BASELINE (OVERLAPPED):** ended 10:26:43 PM ET, exit 0, 534.8 s, ALL CHECKS PASSED. Backed up as
+  `evidence/L2-u2/sens-import-u2c1/overlapped/`. It does not count as the alone run.
+- **The driver** (`sens-import.sh`, process group 30196, recorded above) was waiting on PAUSE with nothing running. It
+  held the lock, which blocked the focused checks and the UI workflow's suites for no reason. I stopped that process group
+  at 10:27:40 PM ET; its outer shell then removed the lock, as it is written to. `v200-u2-putback-gen` never started.
+- **Focused U2 checks** (revised commit 2) started at 10:27 PM ET, one at a time, 600 s caps. They are not full suites.
+- **The alone runs** at commit 1 (BASELINE and `v200-u2-putback-gen`) and at commit 2 wait until the UI workflow is
+  idle. At 10:28 PM ET it was running its own screenshots, `tools/layout-fits.mjs` and `audit.mjs`. Each alone run
+  will carry `rec/bin/overlap-watch.sh`, which records, and never kills, any node or Chromium process started outside
+  the run's clone while it runs.

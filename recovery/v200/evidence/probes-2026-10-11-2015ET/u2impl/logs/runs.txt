@@ -14,3 +14,23 @@ M2c2-B1 exit=0 wall_s=14.475859212
 BOTH-on-c2 exit=0 wall_s=32.375347683 
 B1-on-c1-repeat exit=0 wall_s=12.682588960 
 BOTH-on-c2-repeat exit=0 wall_s=31.829118207 
+focused v2 start 10:27:51 PM ET
+v2-B2-on-base exit=1 wall_s=36.484668114 
+v2-B2-on-c1 exit=1 wall_s=32.157762358 
+v2-B2-on-c2 exit=0 wall_s=35.499197461 
+v2-B1-on-c2 exit=0 wall_s=16.943612857 
+v2-BOTH-on-c2 exit=0 wall_s=45.624564032 
+v2-M2c2-B2 exit=1 wall_s=28.854104419 
+v2-M2c2-B1 exit=0 wall_s=14.211399414 
+v2-M1c2-B1 exit=1 wall_s=13.002247005 
+v2-M1c2-B2 exit=0 wall_s=28.537702229 
+v2-M1c1-B1 exit=1 wall_s=13.012237593 
+focused v2 end 10:32:16 PM ET
+focused v3 start 10:32:50 PM ET (block 2 with (h) refresh+reopen; harness block2 320622e0, both 32cc5ac7)
+v3-B2-on-c2 exit=0 wall_s=58.187358341 
+v3-B2-on-base exit=1 wall_s=60.749090681 
+v3-B2-on-c1 exit=1 wall_s=60.830810299 
+v3-BOTH-on-c2 exit=0 wall_s=62.683748390 
+v3-M2c2-B2 exit=1 wall_s=31.378452266 
+v3-M1c2-B2 exit=0 wall_s=31.041980586 
+focused v3 end 10:37:55 PM ET

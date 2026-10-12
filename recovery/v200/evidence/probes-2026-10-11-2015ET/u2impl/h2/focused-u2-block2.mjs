@@ -285,7 +285,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       J(retry(A)), J([1, 'K', true, true, true, 'S1']));
     await afterFolder(A, fold, sc, 'N', ['K', 'S1']); }
   // (h) THE FOLDER, THE AUTOSAVE LANDS AFTER THE REFUSAL: a quiet autosave says nothing when it lands, so the refusal's own
-  // line is what stays on screen -- it must not claim that a save is still under way.
+  // line is what stays on screen -- it must not claim that a save is still under way. The refresh and a reopen follow.
   { const sc = '(h) the folder: put back while the autosave writes; the autosave goes in';
     const { A, fold } = await inFolder();
     live(A.ev);
@@ -298,7 +298,8 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, sc, 'once the autosave has landed, the status line does not say a save IS under way',
       /save is under way/i.test(st), false);
     chk(name, sc, 'put back again: one question; K on screen, unsaved; nothing kept in its place (S1 is saved)',
-      J(retry(A)), J([1, 'K', true, true, true, null])); }
+      J(retry(A)), J([1, 'K', true, true, true, null]));
+    await afterFolder(A, fold, sc, 'S1', ['S1', 'K']); }
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
   }

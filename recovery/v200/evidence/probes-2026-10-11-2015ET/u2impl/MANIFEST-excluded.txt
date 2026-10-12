@@ -1,4 +1,4 @@
-# Not copied (reproducible): node_modules symlinks, tools/ trees, and board copies. Each board copy's path and blob:
+# Not copied (reproducible): node_modules symlinks, tools/ trees, and board copies. Each board copy's path and blob (refreshed 10:38 PM ET):
 ./base/prioritization-board-grid.html 4d273c0680132caafc4cbc8ca09c1533735c86de
 ./c1/prioritization-board-grid.html c08c6d2c9a31c5933c8939651c0adbad3c093c22
 ./c2/prioritization-board-grid.html 1375b72b6707faa57c50d528e01ce9611f194998
@@ -16,3 +16,15 @@
 ./verify/mut/V8-refusal-hides-kept-entry.html ad125928e147dda86ef2c3ee70a17d5b21535f0d
 ./verify/tmp/apply-c1only/prioritization-board-grid.html c08c6d2c9a31c5933c8939651c0adbad3c093c22
 ./verify/tmp/apply1/prioritization-board-grid.html 8a0d23b6d1b3d6438c6ffef71788ac53261b4782
+./base/tools/export-audit/focused-u2-block1.mjs e98846d5ee90a0ffbb22fdf814587c285688b954
+./base/tools/export-audit/focused-u2-block2.mjs 320622e07b863db1ddf19a5a135b4b25b27577b9
+./base/tools/export-audit/focused-u2-both.mjs 32cc5ac772e47018425e21dd22ef15064b00e52f
+./base/tools/export-audit/audit-import.mjs fc3117a075176879bedaab66a586b2c7a23be498
+./c1/tools/export-audit/focused-u2-block1.mjs e98846d5ee90a0ffbb22fdf814587c285688b954
+./c1/tools/export-audit/focused-u2-block2.mjs 320622e07b863db1ddf19a5a135b4b25b27577b9
+./c1/tools/export-audit/focused-u2-both.mjs 32cc5ac772e47018425e21dd22ef15064b00e52f
+./c1/tools/export-audit/audit-import.mjs e63768bf23b80e4a34ea24f705c7cecada5e5213
+./c2/tools/export-audit/focused-u2-block1.mjs e98846d5ee90a0ffbb22fdf814587c285688b954
+./c2/tools/export-audit/focused-u2-block2.mjs 320622e07b863db1ddf19a5a135b4b25b27577b9
+./c2/tools/export-audit/focused-u2-both.mjs 32cc5ac772e47018425e21dd22ef15064b00e52f
+./c2/tools/export-audit/audit-import.mjs ed9a3437745b35690424cc2610b5bf2e5155f632

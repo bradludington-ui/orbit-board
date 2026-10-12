@@ -1,0 +1,31 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/mut/v200-u2-putback-gen--on-c1.html","BOARD_set":true,"board":"0d587506d7f6797c3e4bdb42c983af5012859693","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/c1/tools/export-audit/focused-u2-block1.mjs","harnessBlob":"e98846d5ee90a0ffbb22fdf814587c285688b954","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f720ce184998cf31cad50d288f78c2f7bac19bd6","started":"10/11/2026, 10:32:03 PM ET"}
+
+================================================================================================
+9 FAILING CHECK(S)
+
+--- v2.00 (U2) — work put back during a save stays unsaved | (a) the folder: K put back while S1’s save writes
+    once it lands: K on screen, S1 in the folder, unsaved (DIRTY, _baseDirty, the record) and said; S1 kept aside — or, refused, S1 on screen and saved, K still kept
+        got ["K","S1",false,false,false,false,"S1"]   want ["K","S1",true,true,true,true,"S1"]
+--- v2.00 (U2) — work put back during a save stays unsaved | (a) the folder: then the refresh
+    what is on screen is not replaced (K; refused: S1), and K and S1 are each still in a copy here or in the folder
+        got ["S1",false,true]   want ["K",true,true]
+--- v2.00 (U2) — work put back during a save stays unsaved | (a) the folder: then 💾 Save
+    it writes K: K on screen and in the folder, and saved
+        got ["S1","S1",false,false]   want ["K","K",false,false]
+--- v2.00 (U2) — work put back during a save stays unsaved | (b) the folder: reopened once the save lands, and refreshed
+    K stays on screen, unsaved by the record, with S1 kept aside — or, refused, S1 on screen and K kept aside
+        got ["S1","S1",false]   want ["K","S1",true]
+    K and S1 are each still in a copy here or in the folder
+        got [false,true]   want [true,true]
+--- v2.00 (U2) — work put back during a save stays unsaved | (c) the board file: K put back while S1’s save writes
+    once it lands: K on screen, S1 in the file, unsaved (DIRTY, _baseDirty, the record) and said; S1 kept aside — or, refused, S1 on screen and saved, K still kept
+        got ["K","S1",false,false,false,false,"S1"]   want ["K","S1",true,true,true,true,"S1"]
+--- v2.00 (U2) — work put back during a save stays unsaved | (c) the board file: reopened once the save lands
+    K stays on screen, unsaved by the record, with S1 kept aside — or, refused, S1 on screen and K kept aside
+        got ["S1","S1",false]   want ["K","S1",true]
+    K and S1 are each still in a copy here or in the file
+        got [false,true]   want [true,true]
+--- v2.00 (U2) — work put back during a save stays unsaved | (d) K put back with no save running
+    no save was running, and the put-back moved the change count by exactly one (read from _saveGen)
+        got [0,0]   want [0,1]
+# exit 1 at 10/11/2026, 10:32:16 PM ET
