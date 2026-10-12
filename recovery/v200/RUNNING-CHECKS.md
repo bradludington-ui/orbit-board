@@ -155,7 +155,11 @@ At commit 2 the counter is caught by (d) alone, as block 1 was written to be: wi
 save is refused, so block 1's race scenarios accept either outcome, and (d) keeps the count itself tested. Overlapped
 attempts (10:17 PM BASELINE; `v200-u2-putback-gen` attempts 1–3) are kept and do not count.
 
-## Update at 6:16 AM ET, 12 Oct: a restart while idle; Brad's decisions; the next work started
+## Update at 6:09 AM ET, 12 Oct: a restart while idle; Brad's decisions; the next work started
+
+(First committed in `2f16302` with this heading at 6:16 AM ET and the start at 6:14 AM ET; both were written at 6:09 AM
+ET, later than the clock. Corrected from the session's own timestamps: the U1 diff was shown at 6:05:37 AM ET and the
+workflow was launched at 6:08:07 AM ET.)
 
 - **Restart.** The container booted again at 6:00:21 AM ET (`/proc/stat` btime), after the session sat idle from about
   12:30 AM ET. Nothing was running: every U2 run had finished and was backed up. The disk survived (scratch, both clones,
@@ -165,6 +169,6 @@ attempts (10:17 PM BASELINE; `v200-u2-putback-gen` attempts 1–3) are kept and 
   chunk 3 with cancellation and failed-rollback tests; layout tests updated for the slide-over default, keeping docked
   checks. S1–S5 shown, not applied. Then integrate and pin, run the final-tree queue once, and report its evidence matrix
   and the unresolved ledger. The presweep and the full gate stay paused until Brad has reviewed that matrix.
-- **Work started 6:14 AM ET** as workflow `wf_1c65fbc2-2c5`: three tracks (U13; U1+U14; UI chunk 3), each with a builder,
+- **Work started 6:08 AM ET** as workflow `wf_1c65fbc2-2c5`: three tracks (U13; U1+U14; UI chunk 3), each with a builder,
   an adversarial verifier and up to two fix rounds. Safety tracks write drafts only, in `rec/L3/` (base: a read-only
   archive of `0c6ff00`); the UI track commits only on the local `claude/v200-ui`. No full audit-import runs meanwhile.

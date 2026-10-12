@@ -1,6 +1,6 @@
 # v2.00: unresolved ledger (opened 11 Oct 2026, 6:30 PM ET)
 
-These findings and gaps are known but not fixed. Updated by 7:38 PM ET on 11 Oct (U1, U2, U11; U13 added), and at 9:05 PM ET (U2 and U13 measured; U14 added), and at 10:25 PM ET (U2's counter committed; U13's no-second-writer case reproduced; U14's scope mapped), and on 12 Oct at 6:15 AM ET (Brad's decisions of 6:00 AM: U2 accepted; U13, U1, U14 and UI M1 selected; U15–U20 opened from earlier evidence). U9 and U10 were restored on 11 Oct, at 6:29 PM ET, from the review record Brad
+These findings and gaps are known but not fixed. Updated by 7:38 PM ET on 11 Oct (U1, U2, U11; U13 added), and at 9:05 PM ET (U2 and U13 measured; U14 added), and at 10:25 PM ET (U2's counter committed; U13's no-second-writer case reproduced; U14's scope mapped), and on 12 Oct at 6:09 AM ET (Brad's decisions of 6:00 AM: U2 accepted; U13, U1, U14 and UI M1 selected; U15–U20 opened from earlier evidence). U9 and U10 were restored on 11 Oct, at 6:29 PM ET, from the review record Brad
 supplied. Each one stays here until Brad decides it or its fix is integrated with
 fresh evidence. A review finding is not permission to fix.
 
