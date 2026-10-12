@@ -32101,7 +32101,7 @@ function uiPopFill(id){
     const cs=UI_COLS.filter(function(c){ return map[c[0]]!==undefined; });
     p.innerHTML='<div class="uiFh">Columns</div>'
       + cs.map(function(c){ return '<label><input type="checkbox" '+(UI2.cols[c[0]]? '' : 'checked')
-        +' onchange="uiColSet(\''+c[0]+'\', !this.checked)"> '+c[1]+'</label>'; }).join('')
+        +' onchange="uiColSet('+jsa(c[0])+', !this.checked)"> '+c[1]+'</label>'; }).join('')
       + '<div class="note">#, Requirement, the money, ★ and ⋯ always show. Applies where the row has room for every column. '
       + 'Kept in this browser; the board file does not change.</div>';
   } else if(id==='uiCycPop'){
@@ -32118,7 +32118,7 @@ function uiPopFill(id){
   } else {
     p.innerHTML='<div class="uiFh">Density</div>'
       + [['comfortable','Comfortable'],['compact','Compact']].map(function(d){
-          return '<button type="button" class="o" aria-pressed="'+(uiDensity===d[0]?'true':'false')+'" onclick="uiPopsClose();uiSetDensity(\''+d[0]+'\')">'+d[1]+'</button>'; }).join('')
+          return '<button type="button" class="o" aria-pressed="'+(uiDensity===d[0]?'true':'false')+'" onclick="uiPopsClose();uiSetDensity('+jsa(d[0])+')">'+d[1]+'</button>'; }).join('')
       + (uiMode==='brief'? '<div class="note">Brief always reads at the presentation size.</div>' : '')
       + '<div class="uiFh" style="margin-top:6px">Record panel</div>'
       + [[false,'Slides over the table (default)'],[true,'Docked beside the table']].map(function(d){
@@ -32181,8 +32181,8 @@ function uiGo(k, btn){
 function uiFlyItems(k){
   const has=function(fn){ return typeof window[fn]==='function'; };
   const it=function(lbl, sub, fn){ return has(fn)? '<button type="button" onclick="uiFlyClose();mRun('+fn+')">'+lbl+(sub? '<small>'+sub+'</small>' : '')+'</button>' : ''; };
-  const file=function(lbl, sub, id){ return '<button type="button" onclick="uiFlyClose();mRun(function(){ document.getElementById(\''+id+'\').click(); })">'+lbl+'<small>'+sub+'</small></button>'; };
-  const menu=function(lbl, sub, m){ return '<button type="button" onclick="uiFlyClose();uiMenuSoon(\''+m+'\')">'+lbl+'<small>'+sub+'</small></button>'; };
+  const file=function(lbl, sub, id){ return '<button type="button" onclick="uiFlyClose();mRun(function(){ document.getElementById('+jsa(id)+').click(); })">'+lbl+'<small>'+sub+'</small></button>'; };
+  const menu=function(lbl, sub, m){ return '<button type="button" onclick="uiFlyClose();uiMenuSoon('+jsa(m)+')">'+lbl+'<small>'+sub+'</small></button>'; };
   const sep='<div class="uiFsep"></div>';
   if(k==='fydp') return '<div class="uiFh">FYDP</div>'
     + it('📊 Five-year spend plan…', 'by requirement · PMO · service — a locked cycle or the working plan', 'toggleFydp')
@@ -32286,7 +32286,7 @@ function uiDrawerTabs(){
   const bd=ins.querySelector('.insp-bd'); if(!bd || bd.querySelector('.uiDTabs')) return;
   const strip=document.createElement('div'); strip.className='uiDTabs'; strip.setAttribute('role','group'); strip.setAttribute('aria-label','Record sections');
   strip.innerHTML=[['overview','Overview'],['funding','Funding'],['history','History']].map(function(t){
-    return '<button type="button" data-k="'+t[0]+'" aria-pressed="'+(UI_DTAB===t[0]? 'true' : 'false')+'" onclick="uiDTab(\''+t[0]+'\')">'+t[1]+'</button>'; }).join('');
+    return '<button type="button" data-k="'+t[0]+'" aria-pressed="'+(UI_DTAB===t[0]? 'true' : 'false')+'" onclick="uiDTab('+jsa(t[0])+')">'+t[1]+'</button>'; }).join('');
   const meta=bd.querySelector('.insp-meta');
   if(meta && meta.parentNode===bd) bd.insertBefore(strip, meta.nextSibling); else bd.insertBefore(strip, bd.firstChild);
   const id=(typeof curRow!=='undefined' && curRow)? String(curRow) : '';
