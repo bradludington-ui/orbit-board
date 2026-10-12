@@ -539,3 +539,10 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   post-commit check still reads HEAD (benign; next push carries it), stray empty dirs, `# cmd:` unchecked.
 - **4:25 PM ET:** self-test at `e42cfb6` (frozen snapshot; 4:24:37-4:25:15 PM ET, exit 0): **42/42 PASS**, including A22 (orbit-board's HEAD,
   origin's tip and the evidence tree unchanged by the whole run; also confirmed by hand). Evidence `evidence/runner-e42cfb6/selftest/`.
+- **4:42 PM ET:** **UI M1, review round 3** (after fix round 2: 58803c9 board fix to `2d1d855e`, e439683, b418340, 775903f, 5a298b7 tests,
+  90ccabf CHUNK3.md): sound, with issues; **one must-fix, evidence only**: the committed screenshots were at `aac8574` (board
+  `ba8d0204`), not the final board. Resolved by the lead: local commit `670c467` on claude/v200-ui retakes them with the committed
+  script on `2d1d855e` (4:40:21 PM ET, exit 0): shots.json identical to the earlier set and to the reviewer's retake (paths and
+  times masked); 13 of 19 PNGs byte-identical, the other 6 differ only in the window title strip (0 pixels below y = 90). Bundle
+  at 670c467 backed up and restore-verified (`0960361`). **S1-S5** (Brad-approved, each its own commit, reviewed) started from
+  the UI workflow with that resolution recorded; the builder is told U28 is a known container difference not to be "fixed".
