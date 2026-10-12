@@ -1,0 +1,20 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/mut/m2-refuse-sets-base.html","BOARD_set":true,"board":"7d7bffa9dd611ff01e7badb1d545dee23460a0a9","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/after/tools/export-audit/focused-u13.mjs","harnessBlob":"4d4d57d337857b854dcabee5d6c47d83133820db","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/12/2026, 8:12:25 AM ET"}
+
+================================================================================================
+6 FAILING CHECK(S)
+
+--- v2.00 (U13) — a refresh during a save loads nothing | (2) a second writer saves during the save
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [false,true,false,0,true]   want [false,true,true,0,true]
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,false,0,true]   want [true,true,true,0,true]
+    while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,false,0,true]   want ["(nothing)",true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4c) the save is refused: a newer copy was saved before it read the folder
+    while the save waits at its read, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,false,0,true]   want ["(nothing)",true,true,0,true]
+    the save is refused and says so: nothing written, NEWER still the folder’s copy; WORKING on screen, unsaved; no save under way (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)
+        got [false,"WORKING",700,"WORKING",700,true,0]   want [true,"NEWER",750,"WORKING",700,false,0]
+    the next refresh (the Live tick) is an ordinary one: NEWER is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside
+        got ["WORKING",700,true,true,null]   want ["NEWER",750,true,true,["WORKING",700]]
+# exit 1 at 10/12/2026, 8:12:50 AM ET

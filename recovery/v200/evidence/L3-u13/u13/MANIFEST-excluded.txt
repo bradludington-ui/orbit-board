@@ -1,0 +1,14 @@
+# Not copied: node_modules, tools trees, before/after copies and board files (*.html). Board blobs:
+./after/prioritization-board-grid.html 98eed7e801af20270f755eadffb2fa72355c30e5
+./before/prioritization-board-grid.html 1375b72b6707faa57c50d528e01ce9611f194998
+./mut/v200-u13-base-while-saving--on-after.html 6f4baa4ae2dabb2927f91eafba295bf0e3d9180d
+./mut/v200-u13-clash-while-saving--on-after.html 5006437ed5119743ec0e5cbbfbeea4348378a85f
+./mut/v200-u13-pull-unchecked--on-after.html c355f22210e399919f053009af9499fcc8a64ebc
+./mut/v200-u13-pull-while-saving--on-after.html 8620ccf62ec9d878a5863d418f6a4963e279abd9
+./mut/v200-u13-said-nothing-loaded--on-after.html 2f48c4d78f39603047f565b6f8117a3e54db37c7
+./mut/var-entry-only--on-before.html 1eeb45a60e7bcd667846cd0a32eb350c3fb0eb5e
+./superseded-r1/board.after.html a88a1e5b932b94225a29cdcfec0678f828847ddd
+./superseded-r1/mut/v200-u13-base-while-saving--on-after.html ebfcf7d075e3db5148d220cedc876f03e7c88fd3
+./superseded-r1/mut/v200-u13-pull-unchecked--on-after.html 328c1c3d5099a291317a8fec4ab20da284e10203
+./superseded-r1/mut/v200-u13-pull-while-saving--on-after.html 270b7833cbe979798c20c3429fdf8305133dc9e9
+./superseded-r1/mut/var-entry-only--on-before.html 1eeb45a60e7bcd667846cd0a32eb350c3fb0eb5e

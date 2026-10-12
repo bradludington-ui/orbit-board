@@ -1,0 +1,11 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u13/mut/v200-u13-base-while-saving--on-after.html","BOARD_set":true,"board":"6f4baa4ae2dabb2927f91eafba295bf0e3d9180d","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u13/after/tools/export-audit/focused-u13.mjs","harnessBlob":"4d4d57d337857b854dcabee5d6c47d83133820db","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/12/2026, 7:38:54 AM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U13) — a refresh during a save loads nothing | (3c) nothing recorded for the folder; the opening’s connect while a save waits at its read
+    the opening’s connect while the save waits at its read -- [the save waits, a save under way, nothing changed byte for byte: nothing recorded]
+        got [true,1,false]   want [true,1,true]
+    then the save, finding nothing recorded, asks: nothing written, X still the folder’s copy, MINE on screen and unsaved, the choice offered
+        got ["MINE",720,"MINE",720,false,false,false]   want ["X",600,"MINE",720,true,true,true]
+# exit 1 at 10/12/2026, 7:39:21 AM ET

@@ -1,0 +1,13 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/mut/m2-resolve-unqueued.html","BOARD_set":true,"board":"a102be617c7d77d64ebdf8ea9af6d8777874499a","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/after/tools/export-audit/focused-u13.mjs","harnessBlob":"4d4d57d337857b854dcabee5d6c47d83133820db","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/12/2026, 8:11:14 AM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U13) — a refresh during a save loads nothing | (6b) a Connect while Load theirs waits at its read
+    Load theirs waits at its read, counted as a save is; the Connect loads nothing -- [Load theirs waits, returned, counted, nothing changed byte for byte, said word for word]
+        first differs at char 11 of 193/307
+          got  …[true,true,false,false,"⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now. This brows…
+          want …[true,true,true,true,"⏳ The shared folder’s copy of O&M FY27 was not loaded: a save or Load theirs wa…
+    then Load theirs loads REMOTE, saved and recorded against the folder’s copy; WORKING kept aside, and said
+        got ["REMOTE",650,true,true,["WORKING",700],false]   want ["REMOTE",650,true,true,["WORKING",700],true]
+# exit 1 at 10/12/2026, 8:11:38 AM ET

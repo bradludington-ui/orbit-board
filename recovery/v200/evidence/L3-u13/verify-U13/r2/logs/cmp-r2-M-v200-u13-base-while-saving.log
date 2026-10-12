@@ -1,0 +1,3 @@
+mine 71 checks, 2 fail | builder 71 checks, 2 fail
+differences 0
+  fail 2 | (3c) nothing recorded for the folder; the opening’s connect while a save waits at its read

@@ -1,0 +1,16 @@
+my-m2-after-ownunsaved | 71 checks | 0 fail | throws 0 | CONTROL fails 0 | 
+my-m2-between-waits | 71 checks | 4 fail | throws 0 | CONTROL fails 0 | 3a:2 3c:1 5:1
+my-m2-connect-overwrites | 71 checks | 10 fail | throws 0 | CONTROL fails 0 | 1:4 2:1 3c:1 4d:1 6a:2 6b:1
+my-m2-connect-silent | 71 checks | 10 fail | throws 0 | CONTROL fails 0 | 1:4 2:1 3a:1 4d:1 6a:2 6b:1
+my-m2-connect-stops | 71 checks | 2 fail | throws 0 | CONTROL fails 0 | 6a:2
+my-m2-entry-only | 71 checks | 6 fail | throws 0 | CONTROL fails 0 | 3a:2 3b:2 3c:1 5:1
+my-m2-lbl-no-esc | 71 checks | 0 fail | throws 0 | CONTROL fails 0 | 
+my-m2-quiet-says | 71 checks | 7 fail | throws 0 | CONTROL fails 0 | 1:2 2:1 3b:1 4a:1 4b:1 4c:1
+my-m2-refuse-only-clean | 71 checks | 35 fail | throws 0 | CONTROL fails 0 | 1:12 3a:2 3b:2 4a:3 4b:3 4c:2 4d:3 6a:6 6b:2
+my-m2-refuse-only-others | 71 checks | 35 fail | throws 0 | CONTROL fails 0 | 1:12 3a:2 3b:2 4a:3 4b:3 4c:2 4d:3 6a:6 6b:2
+my-m2-refuse-sets-base | 71 checks | 6 fail | throws 0 | CONTROL fails 0 | 2:3 4c:3
+my-m2-refuse-touches-livedb | 71 checks | 0 fail | throws 0 | CONTROL fails 0 | 
+my-m2-resolve-unqueued | 71 checks | 2 fail | throws 0 | CONTROL fails 0 | 6b:2
+my-m2-words-full-year | 71 checks | 10 fail | throws 0 | CONTROL fails 0 | 1:4 2:1 3a:1 4d:1 6a:2 6b:1
+my-m2-words-nothing-changed | 71 checks | 10 fail | throws 0 | CONTROL fails 0 | 1:4 2:1 3a:1 4d:1 6a:2 6b:1
+my-m2-words-save-only | 71 checks | 10 fail | throws 0 | CONTROL fails 0 | 1:4 2:1 3a:1 4d:1 6a:2 6b:1

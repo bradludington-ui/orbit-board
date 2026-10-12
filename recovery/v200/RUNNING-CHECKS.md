@@ -284,3 +284,18 @@ workflow was launched at 6:08:07 AM ET.)
   cells (a save starting during the refresh's own wait). Side effects outside the pull, listed: the lock heartbeat, a
   queued autosave, the Connect's permission flags, the picker. New boundary finding opened as U25; the U13 reviewer's
   pre-existing status-line findings as U26.
+
+## Update at 8:54 AM ET: U13 committed
+
+- **U13 = `63bd8b0`** (8:53 AM ET), on top of `b9221fd`; pushed. Board `98eed7e8` (from `1375b72b`), audit-import
+  `4aba2506` (+339, one block after the U2 put-back-waits end marker), mutate `3ddaa30d` (+16, five entries before the R3
+  anchor). Before committing: base blobs verified, the three files copied and their blobs verified, `npm run check`'s tool
+  passed (2.5 s), 1312 mutations each matching once (text), and the focused block re-run by the lead on the committed
+  content: 42 of 71 fail on `1375b72b` (exit 1, 23.2 s), all pass on `98eed7e8` (exit 0, 23.2 s), ending 8:52:54 and
+  8:53:17 AM ET.
+- **Reviews:** general review #1 sound-with-issues (Connect wording; fixed), #2 no must-fix; the late-guard review holds.
+  Process lapses both builder and reviewers disclosed (a few unbounded python/shell one-liners on their own files; every
+  node run bounded with the lock checked) are recorded here as reported.
+- **Evidence:** `evidence/L3-u13/` (build, both reviews, the commit check). U27 opened from the fix round.
+- Still to come for U13: the full audit-import alone and its full-suite sensitivity, in the final-tree queue; U17
+  re-measured on `63bd8b0` in the post-commit triage.

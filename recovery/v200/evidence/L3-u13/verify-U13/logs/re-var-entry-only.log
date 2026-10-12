@@ -1,0 +1,35 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/mut/var-entry-only--on-before.html","BOARD_set":true,"board":"1eeb45a60e7bcd667846cd0a32eb350c3fb0eb5e","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/before/tools/export-audit/focused-u13.mjs","harnessBlob":"bb7958ab8995bbcee65a55ad35d46d50d6de0c5f","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/12/2026, 7:02:50 AM ET"}
+
+================================================================================================
+11 FAILING CHECK(S)
+
+--- v2.00 (U13) — a refresh during a save loads nothing | (1) no second writer; reopened by the harness
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+    while the save is held, driveAutoConnect(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (1) no second writer; reopened with the folder’s edit permission not kept
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+    while the save is held, driveAutoConnect(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (2) a second writer saves during the save
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (3a) the refresh held at its read of the folder’s copy; a save starts meanwhile
+    the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, said]
+        got [true,false,false]   want [false,true,true]
+    once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in the folder’s history; nothing kept aside
+        got ["REMOTE",650,"WORKING",700,true,true,true,["WORKING",700]]   want ["WORKING",700,"WORKING",700,true,true,true,null]
+--- v2.00 (U13) — a refresh during a save loads nothing | (3b) the refresh held at its first wait (the folder’s permission); a save starts meanwhile
+    the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, nothing said]
+        got [true,false,false]   want [false,true,true]
+    once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in the folder’s history; nothing kept aside
+        got ["REMOTE",650,"WORKING",700,true,true,true,["WORKING",700]]   want ["WORKING",700,"WORKING",700,true,true,true,null]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel
+    while the save waits at its read, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (5) Cb: work typed in this session; a refresh during the save
+    while the save is held, the refresh gives the unsaved-changes message as before, and changes nothing
+        got [false,true,false,false]   want [false,true,true,false]
+# exit 1 at 10/12/2026, 7:03:09 AM ET

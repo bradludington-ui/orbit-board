@@ -1,0 +1,40 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/mut/m2-connect-silent.html","BOARD_set":true,"board":"fa6644e6ece7f03ca6c7e362dc73782c42eb5589","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/after/tools/export-audit/focused-u13.mjs","harnessBlob":"4d4d57d337857b854dcabee5d6c47d83133820db","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/12/2026, 8:10:02 AM ET"}
+
+================================================================================================
+10 FAILING CHECK(S)
+
+--- v2.00 (U13) — a refresh during a save loads nothing | (1) no second writer; reopened by the harness
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+    while the save is held, driveAutoConnect(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (1) no second writer; reopened with the folder’s edit permission not kept
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+    while the save is held, driveAutoConnect(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (2) a second writer saves during the save
+    while the save is held, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (3a) the refresh held at its read of the folder’s copy; a save starts meanwhile
+    the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, said]
+        got [false,true,false]   want [false,true,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel
+    while the save waits at its read, driveConnectNow(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [true,true,true,0,false]   want [true,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (6a) driveConnectNow() during a save, with newer execution data and a reprogramming log in the folder
+    and it says so of the board’s copy alone -- [word for word, says nothing was loaded, says nothing was changed]
+        first differs at char 4 of 101/299
+          got  …["⏳ Asking for the shared folder… if the browser asks under the address bar, answer it.",false…
+          want …["⏳ The shared folder’s copy of O&M FY27 was not loaded: a save or Load theirs was under way, …
+--- v2.00 (U13) — a refresh during a save loads nothing | (6a) driveAutoConnect() during a save, with newer execution data and a reprogramming log in the folder
+    and it says so of the board’s copy alone -- [word for word, says nothing was loaded, says nothing was changed]
+        first differs at char 2 of 186/299
+          got  …["Opened with this browser’s copy of the board — it has changes made after this file was las…
+          want …["⏳ The shared folder’s copy of O&M FY27 was not loaded: a save or Load theirs was under way…
+--- v2.00 (U13) — a refresh during a save loads nothing | (6b) a Connect while Load theirs waits at its read
+    Load theirs waits at its read, counted as a save is; the Connect loads nothing -- [Load theirs waits, returned, counted, nothing changed byte for byte, said word for word]
+        first differs at char 24 of 109/307
+          got  …[true,true,true,true,"⏳ Asking for the shared folder… if the browser asks under the address bar, answer it."]…
+          want …[true,true,true,true,"⏳ The shared folder’s copy of O&M FY27 was not loaded: a save or Load theirs was under way, …
+# exit 1 at 10/12/2026, 8:10:24 AM ET

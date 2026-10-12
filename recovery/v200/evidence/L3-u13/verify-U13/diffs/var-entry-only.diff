@@ -1,0 +1,9 @@
+@@ -26672,7 +26672,7 @@
+ }
+ // ADOPT THE FOLDER'S COPY, but never over unsaved work and never a copy that is older than ours.
+ async function driveStorePull(quiet){
+-  if(!driveStoreOn()) return false;
++  if(!driveStoreOn() || _saveBusy) return false;
+   let dir;
+   try{ dir=await driveDir(false,'read'); }
+   catch(e){

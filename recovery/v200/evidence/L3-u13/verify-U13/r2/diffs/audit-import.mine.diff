@@ -1,0 +1,348 @@
+--- before/tools/export-audit/audit-import.mjs	2026-10-12 11:54:29.534276531 +0000
++++ after/tools/export-audit/audit-import.mjs	2026-10-12 11:54:29.567713434 +0000
+@@ -7458,6 +7458,345 @@
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U2) put back waits ====
++// ==== v2.00 (U13): a refresh during a save loads nothing ====
++// The folder's refresh -- the Live timer's, the bar's Connect, the opening's own connect -- loaded a newer folder copy while
++// a save was still writing. The save, landing, found nothing changed while it wrote, marked the board saved and recorded
++// the copy IT wrote as the one the work on screen came from: the copy loaded stayed on screen recorded as saved, the save's
++// copy was in the folder, and the next refresh and a reopen said nothing. No second writer is needed: a copy already in the
++// folder, stamped ahead of this machine's clock (Brad's other machine, its clock an hour fast), is "newer" than the save's
++// own copy. Now the refresh loads nothing while a save is under way -- checked after its last wait, just before it would
++// change anything -- and changes nothing: what is on screen and in browser storage, the record, the change count and the
++// work kept aside stay byte for byte as they were. A Connect says so, of the board's own copy only: the same Connect goes on
++// to load the execution data and the reprogramming log from the folder. The Live timer says nothing. Once the save has
++// finished -- saved, failed, refused or canceled -- the next refresh is an ordinary one again.
++await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
++  const __bm = bootMark();
++  const name = 'v2.00 (U13) — a refresh during a save loads nothing';
++  try {
++  const { J, wire, KEY, status, qs, baseFile, folder, connect, gate, until, pause, lsOf } = W1H;
++  const F1 = baseFile('Brad', KEY.brad);
++  const NM = 'spmt-2027-om.json', HOUR = 3600000;
++  // Requirement A -- its note and its allocation, in dollars -- on screen, in a copy's text, in browser storage, kept aside.
++  const scr = ev => JSON.parse(ev(`JSON.stringify([String(S.notes.A||''), (S.alloc.A&&typeof S.alloc.A==='object')? S.alloc.A.v : (S.alloc.A==null? null : S.alloc.A)])`));
++  const inCopy = txt => { try { const j = JSON.parse(txt), st = j.store || j, y = (st.years || {})[st.cur] || {}, a = (y.alloc || {}).A;
++    return [String((y.notes || {}).A || ''), (a && typeof a === 'object') ? a.v : (a == null ? null : a)]; } catch (e) { return ['(unreadable)', null]; } };
++  const stored = ev => inCopy(ev('localStorage.getItem(_AP.key)'));
++  const kept = ev => { const s = ev(`localStorage.getItem(_AP.key+'.kept')`); return s == null ? null : inCopy(s.slice(s.indexOf('\n') + 1)); };
++  // The folder's copy, its time, and its history.
++  const head = fold => fold.raw(2027) == null ? ['(no copy)', null] : inCopy(fold.raw(2027));
++  const headTs = fold => { const j = fold.copy(2027); return j ? +((j.store && j.store.ts) || j.ts || 0) : 0; };
++  const inHist = (fold, c) => Object.values((fold.root.dirs.history || { files: {} }).files).some(t => J(inCopy(t)) === J(c));
++  // Saved, by all three -- this session (DIRTY), _baseDirty and this browser's record -- and the record names the folder's copy.
++  const saved = ev => JSON.parse(ev('JSON.stringify([DIRTY, _baseDirty, !!baseGet().dirty])')).every(x => !x);
++  const onHead = (ev, fold) => headTs(fold) > 0 && +ev('driveBaseOf(mySlug())') === headTs(fold);
++  // EVERYTHING A REFUSED REFRESH LEAVES AS IT WAS, byte for byte: what is on screen (MS), DIRTY, _baseDirty, the folder's time
++  // the work came from and this browser's record of it, the change count every save checks (_saveGen), the work kept aside,
++  // and what browser storage holds.
++  const state = ev => ev(`JSON.stringify([JSON.stringify(MS), DIRTY, _baseDirty, JSON.stringify(_driveBase), localStorage.getItem(_AP.key+'.base'), _saveGen, localStorage.getItem(_AP.key+'.kept'), localStorage.getItem(_AP.key)])`);
++  const writes = fold => fold.log.filter(x => /^(main|hist):/.test(x)).length;   // the folder's copy and its history (not the lock)
++  const live = ev => ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);   // working out of the folder turns these on
++  // WHAT A CONNECT SAYS WHEN IT LOADS NOTHING DURING A SAVE, word for word. It names the board's copy and nothing wider (6a),
++  // and Load theirs as well as a save: Load theirs runs in the save's queue and is counted the same way (6b).
++  const SAID = '⏳ The shared folder’s copy of O&M FY27 was not loaded: a save or Load theirs was under way, so this board kept its own copy of O&M FY27. '
++    + 'The folder’s copy is checked again on the next refresh once that has finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).';
++  const said = st => st === SAID;
++  // REMOTE: requirement A's note REMOTE, $650, saved into an empty folder through the product by Brad's other machine, whose
++  // clock runs `ahead` (its own window's Date.now). Its bytes are what each case's own folder starts with.
++  const writeRemote = async ahead => {
++    const f0 = folder(), R = boot({ html: F1 }); await pause(80); wire(R.ev, 'Brad', KEY.brad); connect(R.ev, R.w, f0);
++    if (ahead) R.ev(`(function(){ var real=Date.now; Date.now=function(){ return real.call(Date)+${ahead}; }; return 'ok'; })()`);
++    R.ev(`setNote('A','REMOTE'); setAlloc('A','650'); 'ok'`); await R.ev('saveInPlace()'); await pause(5);
++    return f0.raw(2027);
++  };
++  const withCopy = txt => { const fold = folder(); fold.root.files[NM] = txt; return fold; };
++  const tsOf = txt => { const j = JSON.parse(txt); return +((j.store && j.store.ts) || j.ts || 0); };
++  const REMOTE = await writeRemote(HOUR);
++  chk(name, 'the fixture', 'REMOTE is the folder’s copy: REMOTE, $650, saved by Brad, stamped more than 59 minutes ahead of this clock (a CONTROL)',
++    J([...inCopy(REMOTE), JSON.parse(REMOTE).by, tsOf(REMOTE) - Date.now() > 59 * 60000]), J(['REMOTE', 650, 'Brad', true]));
++  // BRAD opens the board with REMOTE in the folder, and his opening loads it. He types WORKING, $700, and closes it unsaved.
++  const brad = async txt => {
++    const fold = withCopy(txt), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
++    await A.ev('driveAutoConnect()'); await pause(5);
++    const v = [...scr(A.ev), saved(A.ev), onHead(A.ev, fold)];
++    A.ev(`setNote('A','WORKING'); setAlloc('A','700'); 'ok'`); await pause(5);
++    return { v, LS: lsOf(A.ev), A, fold };
++  };
++  const b1 = await brad(REMOTE);
++  chk(name, 'the fixture', 'Brad’s opening loads REMOTE: on screen, saved, recorded against the folder’s copy (a CONTROL)', J(b1.v), J(['REMOTE', 650, true, true]));
++  // BRAD REOPENS the board: his browser (WORKING unsaved in it, recorded against REMOTE) and a folder holding REMOTE, connected
++  // by the harness (no opening pull) -- or, `perm`, with the folder's edit permission not kept: the opening's own connect
++  // stops at one click, and 💾 Save asks for the permission itself.
++  const reopen = async (fold, perm, ls) => {
++    const B = boot({ html: F1, ls: { ...(ls || b1.LS) } }); await pause(80); wire(B.ev, 'Brad', KEY.brad);
++    if (perm) { fold.perm = 'prompt'; fold.dir.queryPermission = async () => fold.perm; fold.dir.requestPermission = async () => (fold.perm = 'granted'); }
++    connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`);   // the folder's name, as its pick stored it (a Connect needs it)
++    const c = perm ? await B.ev('driveAutoConnect()') : null; await pause(5);
++    return { B, c };
++  };
++  // 💾 Save, held at the close of its write of the folder's copy: by then it has read the folder, kept the copy it replaces
++  // in the history and built its bytes.
++  const held = async (B, fold) => {
++    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
++    const p = B.ev('saveInPlace()'); const ok = await until(() => (fold.hits.main || 0) > n0);
++    return { g, p, ok };
++  };
++  // The save, or a refresh, held at its read of the folder's copy (the first read after this), or at its first wait -- the
++  // folder asked what this page may do (the first ask after this).
++  const holdRead = fold => { const gh = fold.dir.getFileHandle, g = gate(); let hit = 0;
++    fold.dir.getFileHandle = async (n, o) => { if (!hit && n === NM && !(o && o.create)) { hit = 1; await g.p; } return gh(n, o); };
++    return { g, hit: () => hit }; };
++  const holdAsk = fold => { const q = fold.dir.queryPermission, g = gate(); let hit = 0;
++    fold.dir.queryPermission = async m => { if (!hit) { hit = 1; await g.p; } return q(m); };
++    return { g, hit: () => hit }; };
++  // ONE REFRESH WHILE A SAVE IS UNDER WAY: what it returned, that a save was under way, that nothing changed (against `s0`,
++  // read once the save was held), what it wrote to the folder's copy or its history, and what it said -- a quiet refresh
++  // nothing, a Connect that nothing was loaded and why.
++  const REFRESH = { pull: 'driveStorePull(true)', connect: 'driveConnectNow()', auto: 'driveAutoConnect()', tick: 'liveTick()' };
++  const refresh = async (B, fold, how, s0) => {
++    if (how === 'tick') live(B.ev);
++    const st0 = status(B.ev), w0 = writes(fold);
++    const r = await B.ev(REFRESH[how]); await pause(5);
++    const st = status(B.ev), quiet = how === 'pull' || how === 'tick';
++    return [r === undefined ? '(nothing)' : r, B.ev('_saveBusy') > 0, state(B.ev) === s0, writes(fold) - w0, quiet ? st === st0 : said(st)];
++  };
++  const RQ = ': loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]';
++  const EXPECT = { pull: [false, true, true, 0, true], connect: [true, true, true, 0, true], auto: [true, true, true, 0, true], tick: ['(nothing)', true, true, 0, true] };
++  // ONCE THE SAVE HAS LANDED: a later refresh changes nothing, and a reopen (this browser, the same folder, the opening's own
++  // connect, then a refresh) opens `want`, which the folder's copy holds, saved and recorded against it.
++  const landedThen = async (B, fold, sc, want) => {
++    const s1 = state(B.ev); const pulled = await B.ev('driveStorePull(true)'); live(B.ev); await B.ev('liveTick()'); await pause(5);
++    chk(name, sc, 'then a refresh (driveStorePull, the Live tick): nothing loaded, nothing changed', J([pulled, state(B.ev) === s1]), J([false, true]));
++    const C = boot({ html: F1, ls: lsOf(B.ev) }); await pause(80); wire(C.ev, 'Brad', KEY.brad); connect(C.ev, C.w, fold);
++    await C.ev('driveAutoConnect()'); const again = await C.ev('driveStorePull(true)'); await pause(5);
++    chk(name, sc, 'then reopened (the opening’s connect, then a refresh): on screen, in the folder’s copy, saved and recorded against it; nothing kept aside',
++      J([again, ...scr(C.ev), ...head(fold), saved(C.ev), onHead(C.ev, fold), kept(C.ev)]), J([false, ...want, ...want, true, true, null]));
++  };
++  // (1) NO SECOND WRITER. Brad reopens with WORKING unsaved; 💾 Save is held at its write; while it is held every refresh runs
++  // in turn -- driveStorePull(true), the bar's Connect, the opening's own connect, the Live timer's tick -- and each loads
++  // nothing. The save then lands. Reopened by the harness, and with the folder's edit permission not kept.
++  for (const perm of [false, true]) {
++    const sc = '(1) no second writer; reopened ' + (perm ? 'with the folder’s edit permission not kept' : 'by the harness');
++    const fold = withCopy(REMOTE); const { B, c } = await reopen(fold, perm);
++    chk(name, sc, 'WORKING on screen, unsaved by this browser’s record (not this session), recorded against REMOTE, nothing kept aside; REMOTE the folder’s copy'
++      + (perm ? '; the opening stopped at one click' : '') + ' (a CONTROL)',
++      J([...scr(B.ev), B.ev('DIRTY'), !!B.ev('baseGet().dirty'), +B.ev('driveBaseOf(mySlug())') === tsOf(REMOTE), kept(B.ev), ...head(fold), ...(perm ? [c, B.ev('_driveNeed')] : [])]),
++      J(['WORKING', 700, false, true, true, null, 'REMOTE', 650, ...(perm ? [false, 'click'] : [])]));
++    const h = await held(B, fold); const s0 = state(B.ev);
++    chk(name, sc, 'the save is held at its write; REMOTE is still the folder’s copy, stamped after the save’s own (a CONTROL)',
++      J([h.ok, B.ev('_saveBusy'), ...head(fold), headTs(fold) > +B.ev('MS.ts')]), J([true, 1, 'REMOTE', 650, true]));
++    for (const how of ['pull', 'connect', 'auto', 'tick'])
++      chk(name, sc, 'while the save is held, ' + REFRESH[how] + RQ, J(await refresh(B, fold, how, s0)), J(EXPECT[how]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'once the save lands: WORKING on screen, in browser storage and the folder’s copy; saved, recorded against it; REMOTE in the folder’s history; nothing kept aside',
++      J([...scr(B.ev), ...stored(B.ev), ...head(fold), saved(B.ev), onHead(B.ev, fold), inHist(fold, ['REMOTE', 650]), kept(B.ev)]),
++      J(['WORKING', 700, 'WORKING', 700, 'WORKING', 700, true, true, true, null]));
++    chk(name, sc, 'once the save lands, the status line says how it ended -- [it saved, the refused Connect’s words gone]',
++      J([/^✅ Saved O&M FY27 to the shared folder/.test(status(B.ev)), status(B.ev).includes('was not loaded')]), J([true, false]));
++    await landedThen(B, fold, sc, ['WORKING', 700]);
++  }
++  // (2) A SECOND WRITER SAVES DURING BRAD'S SAVE. Brad has saved BRAD-1, $700; Bob loads it and types BOB-2, $650. Brad presses
++  // 💾 Save with nothing unsaved and it is held at its write; Bob takes the pen, which saves BOB-2 into the folder at once.
++  // Brad's refresh loads nothing, and his save lands. It writes BRAD-1 over BOB-2, which is then in no copy in the folder
++  // (U18, open; not this block's) -- Bob's own board still holds it.
++  { const sc = '(2) a second writer saves during the save';
++    const fold = folder(), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fold);
++    A.ev(`_liveCfg.folder='shared'; setNote('A','BRAD-1'); setAlloc('A','700'); 'ok'`); await A.ev('saveInPlace()'); await pause(5);
++    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); connect(Bb.ev, Bb.w, fold);
++    await Bb.ev('driveStorePull(false)'); Bb.ev(`setNote('A','BOB-2'); setAlloc('A','650'); 'ok'`); await pause(5);
++    chk(name, sc, 'Brad: BRAD-1 saved, the folder’s copy; Bob loaded it and typed BOB-2 (a CONTROL)',
++      J([...scr(A.ev), saved(A.ev), ...head(fold), ...scr(Bb.ev)]), J(['BRAD-1', 700, true, 'BRAD-1', 700, 'BOB-2', 650]));
++    const h = await held(A, fold); const s0 = state(A.ev); await pause(5);   // Bob's copy is stamped after Brad's
++    await Bb.ev('takePen()'); await pause(5);
++    chk(name, sc, 'while Brad’s save is held, Bob takes the pen: BOB-2 is the folder’s copy, saved by Bob, stamped after Brad’s save built its own (a CONTROL)',
++      J([h.ok, ...head(fold), fold.copy(2027).by, headTs(fold) > +A.ev('MS.ts')]), J([true, 'BOB-2', 650, 'Bob', true]));
++    for (const how of ['pull', 'connect', 'tick'])
++      chk(name, sc, 'while the save is held, ' + REFRESH[how] + RQ, J(await refresh(A, fold, how, s0)), J(EXPECT[how]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'once Brad’s save lands: BRAD-1 on screen, in browser storage and the folder’s copy; saved, recorded against it; nothing kept aside',
++      J([...scr(A.ev), ...stored(A.ev), ...head(fold), saved(A.ev), onHead(A.ev, fold), kept(A.ev)]), J(['BRAD-1', 700, 'BRAD-1', 700, 'BRAD-1', 700, true, true, null]));
++    await landedThen(A, fold, sc, ['BRAD-1', 700]);
++    chk(name, sc, 'Bob’s own board still holds BOB-2, on screen and in its browser storage', J([...scr(Bb.ev), ...stored(Bb.ev)]), J(['BOB-2', 650, 'BOB-2', 650]));
++  }
++  // (3) THE CHECK IS MADE AFTER THE REFRESH'S WAITS. The refresh starts with no save under way and is held -- (a) at its read
++  // of the folder's copy, (b) at its first wait, the folder asked what this page may do; 💾 Save starts meanwhile and is held
++  // at its write; then the refresh is let go. A refresh that checked only when it started would load REMOTE here.
++  for (const [k, how, holdOf, at] of [['a', 'driveStorePull(false)', holdRead, 'its read of the folder’s copy'], ['b', 'driveStorePull(true)', holdAsk, 'its first wait (the folder’s permission)']]) {
++    const sc = '(3' + k + ') the refresh held at ' + at + '; a save starts meanwhile';
++    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
++    const busy0 = B.ev('_saveBusy'), st0 = status(B.ev), hr = holdOf(fold);
++    const pr = B.ev(how); const reached = await until(() => hr.hit());
++    const h = await held(B, fold); const s0 = state(B.ev);
++    hr.g.open(); const r = await pr; await pause(5);
++    chk(name, sc, 'no save under way when the refresh started; it waited; the save started and is held at its write (a CONTROL)',
++      J([busy0, reached, h.ok, B.ev('_saveBusy')]), J([0, true, true, 1]));
++    chk(name, sc, 'the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, ' + (k === 'a' ? 'said' : 'nothing said') + ']',
++      J([r, state(B.ev) === s0, k === 'a' ? said(status(B.ev)) : status(B.ev) === st0]), J([false, true, true]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in the folder’s history; nothing kept aside',
++      J([...scr(B.ev), ...head(fold), saved(B.ev), onHead(B.ev, fold), inHist(fold, ['REMOTE', 650]), kept(B.ev)]), J(['WORKING', 700, 'WORKING', 700, true, true, true, null]));
++  }
++  // (3c) NOTHING RECORDED FOR THE FOLDER (a browser that has not loaded from it): a refresh takes a copy that is not newer
++  // than the screen as the one the work came from -- but not while a save is under way, or a save still to read the folder
++  // finds it recorded and writes over it without asking. Brad's other browser has saved X, $600; this browser types MINE,
++  // $720; 💾 Save waits at its read of the folder while the opening's own connect runs. The save then asks, as it does when
++  // nothing is recorded.
++  { const sc = '(3c) nothing recorded for the folder; the opening’s connect while a save waits at its read';
++    const fold = folder(), X = boot({ html: F1 }); await pause(80); wire(X.ev, 'Brad', KEY.brad); connect(X.ev, X.w, fold);
++    X.ev(`setNote('A','X'); setAlloc('A','600'); 'ok'`); await X.ev('saveInPlace()'); await pause(5);
++    const C = boot({ html: F1 }); await pause(80); wire(C.ev, 'Brad', KEY.brad); connect(C.ev, C.w, fold);
++    C.ev(`setNote('A','MINE'); setAlloc('A','720'); 'ok'`); await pause(5);
++    chk(name, sc, 'nothing recorded for the folder; MINE on screen, unsaved; X the folder’s copy, stamped before MINE was typed (a CONTROL)',
++      J([+C.ev('driveBaseOf(mySlug())'), ...scr(C.ev), C.ev('DIRTY'), ...head(fold), headTs(fold) < +C.ev('MS.ts')]), J([0, 'MINE', 720, true, 'X', 600, true]));
++    const hr = holdRead(fold); const p = C.ev('saveInPlace()'); const reached = await until(() => hr.hit());
++    const s0 = state(C.ev), st0 = status(C.ev); await C.ev('driveAutoConnect()'); await pause(5);
++    chk(name, sc, 'the opening’s connect while the save waits at its read -- [the save waits, a save under way, nothing changed byte for byte: nothing recorded]',
++      J([reached, C.ev('_saveBusy'), state(C.ev) === s0]), J([true, 1, true]));
++    // With nothing recorded there is no telling whether anybody saved after this work: no clash is said, during a save or not.
++    chk(name, sc, 'and it says nothing -- [the status line as it was, a clash said]',
++      J([status(C.ev) === st0, /after the copy you are working from/.test(status(C.ev))]), J([true, false]));
++    hr.g.open(); await p; await pause(5);
++    chk(name, sc, 'then the save, finding nothing recorded, asks: nothing written, X still the folder’s copy, MINE on screen and unsaved, the choice offered',
++      J([...head(fold), ...scr(C.ev), C.ev('DIRTY'), /Nothing was written/.test(status(C.ev)), /Save yours over theirs/.test(status(C.ev))]), J(['X', 600, 'MINE', 720, true, true, true]));
++  }
++  // (4) ONCE THE SAVE HAS FINISHED, THE NEXT REFRESH IS AN ORDINARY ONE. A refresh loads nothing while the save runs; the save
++  // then (a) lands, and Brad's other browser saves NEWER, $750, after it; (b) fails, the folder refusing its write; (c) is
++  // refused, NEWER having been saved before it read the folder; (d) is canceled, the folder's copy having no writer recorded.
++  // The next refresh loads the newer copy, keeping aside work no saved copy has, and the record names what is on screen.
++  const other = async (fold, note, amt) => {   // Brad's other browser: loads the folder's copy, types, saves
++    const N = boot({ html: F1 }); await pause(80); wire(N.ev, 'Brad', KEY.brad); connect(N.ev, N.w, fold);
++    await N.ev('driveStorePull(false)'); N.ev(`setNote('A',${J(note)}); setAlloc('A',${J(String(amt))}); 'ok'`); await N.ev('saveInPlace()'); await pause(5);
++  };
++  { const sc = '(4a) the save lands; a newer copy is saved after it';
++    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
++    const h = await held(B, fold); const s0 = state(B.ev);
++    chk(name, sc, 'while the save is held, ' + REFRESH.tick + RQ, J(await refresh(B, fold, 'tick', s0)), J(EXPECT.tick));
++    h.g.open(); await h.p; await pause(5);
++    await other(fold, 'NEWER', 750);
++    chk(name, sc, 'the save landed (WORKING, saved); then Brad’s other browser loaded WORKING and saved NEWER over it (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)',
++      J([...scr(B.ev), saved(B.ev), B.ev('_saveBusy'), ...head(fold), inHist(fold, ['WORKING', 700])]), J(['WORKING', 700, true, 0, 'NEWER', 750, true]));
++    const r = await B.ev('driveStorePull(true)'); await pause(5);
++    chk(name, sc, 'the next refresh loads NEWER: on screen and in browser storage, saved, recorded against the folder’s copy; nothing kept aside (WORKING is saved, in the history)',
++      J([r, ...scr(B.ev), ...stored(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev)]), J([true, 'NEWER', 750, 'NEWER', 750, true, true, null]));
++  }
++  { const sc = '(4b) the save fails: the folder refuses its write';
++    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
++    const h = await held(B, fold); const s0 = state(B.ev);
++    chk(name, sc, 'while the save is held, ' + REFRESH.pull + RQ, J(await refresh(B, fold, 'pull', s0)), J(EXPECT.pull));
++    fold.failNext.main = new Error('The shared folder is read-only'); h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'the save failed and says so: REMOTE still the folder’s copy; WORKING on screen, unsaved; no save under way (read from _saveBusy) (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)',
++      J([/Could not save to the shared folder/.test(status(B.ev)), ...head(fold), ...scr(B.ev), saved(B.ev), B.ev('_saveBusy')]), J([true, 'REMOTE', 650, 'WORKING', 700, false, 0]));
++    const r = await B.ev('driveStorePull(true)'); await pause(5);
++    chk(name, sc, 'the next refresh is an ordinary one: REMOTE, later than what is on screen, is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside',
++      J([r, ...scr(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev)]), J([true, 'REMOTE', 650, true, true, ['WORKING', 700]]));
++  }
++  { const sc = '(4c) the save is refused: a newer copy was saved before it read the folder';
++    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
++    await other(fold, 'NEWER', 750);
++    chk(name, sc, 'Brad’s other browser loaded REMOTE and saved NEWER over it; REMOTE in the folder’s history (a CONTROL)',
++      J([...head(fold), inHist(fold, ['REMOTE', 650])]), J(['NEWER', 750, true]));
++    const hr = holdRead(fold); const p = B.ev('saveInPlace()'); await until(() => hr.hit()); const s0 = state(B.ev);
++    chk(name, sc, 'while the save waits at its read, ' + REFRESH.tick + RQ, J(await refresh(B, fold, 'tick', s0)), J(EXPECT.tick));
++    hr.g.open(); await p; await pause(5);
++    chk(name, sc, 'the save is refused and says so: nothing written, NEWER still the folder’s copy; WORKING on screen, unsaved; no save under way (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)',
++      J([/Nothing was written/.test(status(B.ev)), ...head(fold), ...scr(B.ev), saved(B.ev), B.ev('_saveBusy')]), J([true, 'NEWER', 750, 'WORKING', 700, false, 0]));
++    await B.ev('liveTick()'); await pause(5);
++    chk(name, sc, 'the next refresh (the Live tick) is an ordinary one: NEWER is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside',
++      J([...scr(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev)]), J(['NEWER', 750, true, true, ['WORKING', 700]]));
++  }
++  { const sc = '(4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel';
++    const j = JSON.parse(REMOTE); delete j.writer;   // REMOTE as a board before v1.95 wrote it: no writer recorded
++    const fold = withCopy(JSON.stringify(j)); const { B } = await reopen(fold, false);
++    const hr = holdRead(fold); const p = B.ev('globalThis.__yes=false; saveInPlace()'); await until(() => hr.hit()); const s0 = state(B.ev);
++    chk(name, sc, 'while the save waits at its read, ' + REFRESH.connect + RQ, J(await refresh(B, fold, 'connect', s0)), J(EXPECT.connect));
++    const q0 = qs(B.ev).length; hr.g.open(); await p; await pause(5);
++    chk(name, sc, 'the save asked once and was canceled: nothing written, REMOTE still the folder’s copy; WORKING on screen, unsaved; no save under way (a precondition, not a control: before U13 the refresh during the save has already loaded the folder’s copy)',
++      J([qs(B.ev).length - q0, /Save canceled — nothing written/.test(status(B.ev)), ...head(fold), ...scr(B.ev), saved(B.ev), B.ev('_saveBusy')]),
++      J([1, true, 'REMOTE', 650, 'WORKING', 700, false, 0]));
++    B.ev(`globalThis.__yes=true; 'ok'`); const r = await B.ev('driveStorePull(true)'); await pause(5);
++    chk(name, sc, 'the next refresh is an ordinary one: REMOTE, later than what is on screen, is loaded, saved and recorded against the folder’s copy; WORKING, in no saved copy, kept aside',
++      J([r, ...scr(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev)]), J([true, 'REMOTE', 650, true, true, ['WORKING', 700]]));
++  }
++  // (5) CONTROLS. (Cc) No save under way: the refresh loads REMOTE as it always has, keeping WORKING aside. (Cb) Work typed in
++  // this session: the refresh during the save gives the unsaved-changes message as it always has. (Ca) REMOTE not stamped
++  // ahead: nothing to load, during the save or after.
++  { const sc = '(5) Cc: no save under way';
++    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
++    const r = await B.ev('driveStorePull(true)'); await pause(5);
++    chk(name, sc, 'the refresh loads REMOTE as before: on screen and in browser storage, saved, recorded against the folder’s copy; WORKING kept aside, and said',
++      J([r, B.ev('_saveBusy'), ...scr(B.ev), ...stored(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev), /kept aside/.test(status(B.ev))]),
++      J([true, 0, 'REMOTE', 650, 'REMOTE', 650, true, true, ['WORKING', 700], true]));
++  }
++  { const sc = '(5) Cb: work typed in this session; a refresh during the save';
++    const { A, fold } = b1; A.ev(`_liveCfg.folder='shared'; 'ok'`);
++    chk(name, sc, 'WORKING typed in this session, unsaved (DIRTY) (a CONTROL)', J([...scr(A.ev), A.ev('DIRTY')]), J(['WORKING', 700, true]));
++    const h = await held(A, fold); const s0 = state(A.ev);
++    const r = await A.ev('driveStorePull(true)'); await pause(5); const st = status(A.ev);
++    chk(name, sc, 'while the save is held, the refresh gives the unsaved-changes message as before, and changes nothing',
++      J([r, state(A.ev) === s0, /and you have unsaved changes\. Nothing was replaced\. Save yours, or reload to take theirs\./.test(st), /was not loaded|Nothing was loaded/.test(st)]),
++      J([false, true, true, false]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it',
++      J([...scr(A.ev), ...head(fold), saved(A.ev), onHead(A.ev, fold)]), J(['WORKING', 700, 'WORKING', 700, true, true]));
++  }
++  { const sc = '(5) Ca: REMOTE not stamped ahead';
++    const REMOTE0 = await writeRemote(0), b0 = await brad(REMOTE0);
++    const fold = withCopy(REMOTE0); const { B } = await reopen(fold, false, b0.LS);
++    chk(name, sc, 'Brad’s opening loaded REMOTE (saved, recorded against it); reopened with WORKING unsaved (a CONTROL)',
++      J([...b0.v, ...scr(B.ev), !!B.ev('baseGet().dirty')]), J(['REMOTE', 650, true, true, 'WORKING', 700, true]));
++    const h = await held(B, fold); const s0 = state(B.ev);
++    chk(name, sc, 'while the save is held, REMOTE is not later than the save’s own copy, and the refresh loads nothing, as before',
++      J([headTs(fold) < +B.ev('MS.ts'), await B.ev('driveStorePull(true)'), state(B.ev) === s0]), J([true, false, true]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; REMOTE in the folder’s history; nothing kept aside',
++      J([...scr(B.ev), ...head(fold), saved(B.ev), onHead(B.ev, fold), inHist(fold, ['REMOTE', 650]), kept(B.ev)]), J(['WORKING', 700, 'WORKING', 700, true, true, true, null]));
++  }
++  // (6) THE WORDS ARE TRUE WHERE THE CONNECT GOES ON TO LOAD OTHER THINGS. (a) The folder also holds newer execution data and a
++  // reprogramming log, shared through the product by Alice's board (EXDB and RPDB set as the v1.95 W2 block's fixture sets
++  // them). During a held save Brad presses the bar's Connect (the folder's edit permission not kept), or his opening's own
++  // connect runs. The board's copy is not loaded; the same Connect loads the execution data and the log. So the words name
++  // the board's copy alone, and never say that nothing was loaded from the folder. (b) Load theirs runs in the save's queue:
++  // a Connect while it waits at its read is refused in the same words, and Load theirs then loads REMOTE, keeping WORKING aside.
++  for (const [how, perm] of [['connect', true], ['auto', false]]) {
++    const sc = '(6a) ' + REFRESH[how] + ' during a save, with newer execution data and a reprogramming log in the folder';
++    const fold = withCopy(REMOTE);
++    const X = boot({ html: F1 }); await pause(80); wire(X.ev, 'Alice', KEY.alice); connect(X.ev, X.w, fold);
++    X.ev(`(function(){ const t=Date.now();
++      EXDB={ts:t, all:{om:{fy:2027, rows:[['EXEC-1', 5000]]}}}; persistExdb();
++      RPDB={ts:t, entries:[{id:'rp-1', ts:t, ap:'om', amt:25000, what:'a reprogramming'}]}; persistRp(); return 'ok'; })()`);
++    const shared = [await X.ev('driveExecPush(true)'), await X.ev('driveRpPush(true)')]; await pause(5);
++    const { B } = await reopen(fold, perm);
++    const extra = ev => JSON.parse(ev(`JSON.stringify([Object.keys(EXDB.all||{}), rpAll().map(function(r){ return r.id; })])`));
++    chk(name, sc, 'Alice shared both; Brad’s board holds neither; WORKING on screen; REMOTE the folder’s copy (a CONTROL)',
++      J([...shared, ...extra(B.ev), ...scr(B.ev), ...head(fold)]), J([true, true, [], [], 'WORKING', 700, 'REMOTE', 650]));
++    const h = await held(B, fold); const s0 = state(B.ev);
++    const r = await B.ev(REFRESH[how]); await pause(5); const st = status(B.ev);
++    chk(name, sc, 'while the save is held, the Connect loads the execution data and the log but not the board’s copy -- [returned, a save under way, nothing changed byte for byte, execution data, the log]',
++      J([r, B.ev('_saveBusy') > 0, state(B.ev) === s0, ...extra(B.ev)]), J([true, true, true, ['om'], ['rp-1']]));
++    chk(name, sc, 'and it says so of the board’s copy alone -- [word for word, says nothing was loaded, says nothing was changed]',
++      J([st, /Nothing was loaded/i.test(st), /Nothing was changed/i.test(st)]), J([SAID, false, false]));
++    h.g.open(); await h.p; await pause(5);
++    chk(name, sc, 'once the save lands: WORKING on screen and the folder’s copy, saved, recorded against it; the status line says it saved, the Connect’s words gone',
++      J([...scr(B.ev), ...head(fold), saved(B.ev), onHead(B.ev, fold), /^✅ Saved O&M FY27 to the shared folder/.test(status(B.ev)), status(B.ev).includes('was not loaded')]),
++      J(['WORKING', 700, 'WORKING', 700, true, true, true, false]));
++  }
++  { const sc = '(6b) a Connect while Load theirs waits at its read';
++    const fold = withCopy(REMOTE); const { B } = await reopen(fold, false);
++    const hr = holdRead(fold); const pr = B.ev(`driveResolve('theirs')`); const reached = await until(() => hr.hit()); const s0 = state(B.ev);
++    const r = await B.ev('driveConnectNow()'); await pause(5);
++    chk(name, sc, 'Load theirs waits at its read, counted as a save is; the Connect loads nothing -- [Load theirs waits, returned, counted, nothing changed byte for byte, said word for word]',
++      J([reached, r, B.ev('_saveBusy') > 0, state(B.ev) === s0, status(B.ev)]), J([true, true, true, true, SAID]));
++    hr.g.open(); await pr; await pause(5);
++    chk(name, sc, 'then Load theirs loads REMOTE, saved and recorded against the folder’s copy; WORKING kept aside, and said',
++      J([...scr(B.ev), saved(B.ev), onHead(B.ev, fold), kept(B.ev), /^⬇ Loaded Brad’s copy of O&M FY27\. Your work is kept aside/.test(status(B.ev))]),
++      J(['REMOTE', 650, true, true, ['WORKING', 700], true]));
++  }
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, keepBoards());
++  await settleBoards();
++})();
++// ==== end v2.00 (U13) ====
+ 
+ await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+   const __bm = bootMark();
