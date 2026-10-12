@@ -172,3 +172,16 @@ workflow was launched at 6:08:07 AM ET.)
 - **Work started 6:08 AM ET** as workflow `wf_1c65fbc2-2c5`: three tracks (U13; U1+U14; UI chunk 3), each with a builder,
   an adversarial verifier and up to two fix rounds. Safety tracks write drafts only, in `rec/L3/` (base: a read-only
   archive of `0c6ff00`); the UI track commits only on the local `claude/v200-ui`. No full audit-import runs meanwhile.
+
+## Update at 6:13 AM ET: Brad's 6:11 AM approvals; the work relaunched as two workflows
+
+- **Brad, 6:11 AM ET:** U1 as its own commit, then U14 separately, preserving the independent arithmetic and
+  saved-selection controls. Approved within his stated scopes: S1, S2, S3, S5, and S4 (tools updated for relocated
+  controls and the slide-over default with docked coverage kept; the Import dialog's opener/return-focus fixed; the 1152
+  wrap shown usable, not waived). M1 and U13 continue as separate fixes with focused tests and independent reviews. The
+  final-tree queue, presweep and full gate stay held until the selected changes are integrated and pinned; then the
+  queue runs once.
+- **Relaunch.** Workflow `wf_1c65fbc2-2c5` (launched 6:08 AM ET) was stopped at 6:11 AM ET before its UI builder had
+  started, so the approvals could be folded in; its two safety builders had run about 3 minutes (the partial U1/U14
+  directory is kept as `rec/L3/u14-aborted-0611`; nothing else was written). Relaunched as `wf_ed273e24-21b` (safety:
+  U13; U1 then U14) and `wf_d5c82278-87a` (UI: M1, then S1–S5, each part reviewed). Nothing else is running.
