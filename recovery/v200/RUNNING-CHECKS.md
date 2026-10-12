@@ -484,3 +484,9 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   backup paths); the review's end-to-end harness does.
 - **3:38 PM ET:** self-test at `cccb714` (frozen snapshot; 3:37:29-3:38:13 PM ET, exit 0): **41/41 PASS**. Evidence
   `evidence/runner-cccb714/selftest/`. Independent re-review of `cccb714` started.
+- **3:39 PM ET:** the resumed workflows replayed less from cache than expected (a workflow resume replays only the longest unchanged
+  prefix of agent calls): the safety workflow re-ran U13's review on the committed head (again **no must-fix**; should-fix: the
+  base guard is tested on one route only) and started U1/U14's first fix round a second time, although that round already
+  ran 10:30-11:09 AM ET. That agent was told to verify the earlier fixes and not redo them. Triage checkers: **U17 agrees
+  (REPRODUCED)**, disputing the builder's attribution of SHd/SHdk/FSHd to the save; **U20 agrees (REPRODUCED)**; U24's checker
+  is running. The UI M1 fix-round-2 retry (with its resume note) is running.
