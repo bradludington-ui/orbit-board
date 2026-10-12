@@ -25,6 +25,12 @@
 //      v1.90 pushed Fund's allocation box off the row at 761-884px and Rank's star at 761-804, cut Brief's
 //      last money column, and scrolled sideways at 761-808; nothing looked below 1024.
 //
+//   v2.00 (UI S4, fix round): C, E AND I TWICE -- the RECORD panel sliding over the table (the board's default now) and
+//   docked beside it (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser). Docked above
+//   1400px is the layout these checks were written against (v1.89 clipped the row menus there), and beside the sidebar it
+//   is the narrowest grid the board has (248-982px at 1440). Each pass also checks where the panel is, so a docked pass
+//   that ran with the panel sliding over says so and fails.
+//
 //   node tools/layout-fits.mjs [--board FILE]
 import { chromium } from 'playwright-core';
 import { boot, seed } from './export-audit/boot.mjs';
@@ -77,16 +83,33 @@ const file = join(dir, 'board.html');
 writeFileSync(file, ev('buildSavedHtml()'));
 
 const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
-const open = async (w, h, mode, density) => {
+// v2.00 (UI S4, fix round): docked -- the RECORD panel docked beside the table, set as View › Record panel › Docked beside
+// the table sets it (prio27uiDock = '1' in this browser). Without it the panel slides over the table, the board's default.
+const PASSES = [['sliding over', false], ['docked', true]];
+const open = async (w, h, mode, density, docked = false) => {
   const ctx = await b.newContext({ viewport: { width: w, height: h } });
   await ctx.addInitScript(([m, d]) => { try { localStorage.setItem('spmtTheme', 'harbor');
     if (m) localStorage.setItem('spmtMode', m); if (d) localStorage.setItem('spmtDensity', d); } catch (e) {} }, [mode || '', density || '']);
+  if (docked) await ctx.addInitScript(() => { try { localStorage.setItem('prio27uiDock', '1'); } catch (e) {} });
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + file);
   await p.waitForFunction(() => typeof render === 'function' && document.querySelectorAll('#list .row').length > 0, null, { timeout: 40000 });
   await p.waitForTimeout(250);
   return { p, ctx, errs };
+};
+// v2.00 (UI S4, fix round): where the RECORD panel is -- docked beside the grid (in the page, to the grid's right) or a
+// drawer (fixed, over the table) -- and whether the docked setting is on. `placed` judges it against what the pass asks.
+const where = () => { const i = document.getElementById('inspector'), cs = getComputedStyle(i), r = i.getBoundingClientRect(),
+  g = document.querySelector('.gridwrap').getBoundingClientRect();
+  return { fixed: cs.position === 'fixed', shown: cs.display !== 'none' && r.width > 0, beside: r.left >= g.right - 1,
+    dock: document.documentElement.classList.contains('ui-dock'), grid: [Math.round(g.left), Math.round(g.right)] }; };
+// docked: beside the grid above 1400px, a drawer at 1400 and narrower (the board's own breakpoint); sliding over: a drawer
+const placed = (r, w, docked) => {
+  if (r.dock !== docked) return docked ? 'the docked setting did not take' : 'the panel is docked without the setting';
+  const want = docked && w > 1400 ? 'docked beside the grid' : 'a drawer';
+  const got = !r.fixed && r.shown && r.beside ? 'docked beside the grid' : (r.fixed ? 'a drawer' : 'neither docked beside the grid nor a drawer');
+  return got === want ? '' : `the RECORD panel is ${got}, not ${want}`;
 };
 
 console.log('\n' + FILE.split('/').pop());
@@ -161,10 +184,12 @@ console.log('\n' + FILE.split('/').pop());
 }
 
 // ── C. NO ROW CONTROL IS CLIPPED, AT ANY WIDTH ────────────────────────────────────────────────────────
+// v2.00 (UI S4, fix round): twice, the RECORD panel sliding over and docked; each width also says where the panel was
+for (const [pass, docked] of PASSES)
 for (const mode of ['review', 'rank', 'fund']) {
-  const fails = [];
+  const fails = [], misplaced = []; let narrow = null;
   for (const w of [1920, 1745, 1680, 1600, 1536, 1440, 1401, 1366, 1280, 1152, 1024]) {
-    const { p, ctx } = await open(w, 900, mode);
+    const { p, ctx } = await open(w, 900, mode, undefined, docked);
     const r = await p.evaluate(() => {
       const gw = document.querySelector('.gridwrap').getBoundingClientRect();
       const out = [];
@@ -176,9 +201,15 @@ for (const mode of ['review', 'rank', 'fund']) {
       return { out, docW: document.documentElement.scrollWidth, winW: innerWidth };
     });
     if (r.out.length || r.docW > r.winW) fails.push(`${w}px: ${r.out.length} clipped${r.out.length ? ' (' + r.out[0] + ')' : ''}${r.docW > r.winW ? ', page ' + r.docW + 'px wide' : ''}`);
+    const at = await p.evaluate(where), why = placed(at, w, docked);
+    if (why) misplaced.push(`${w}px: ${why}`);
+    if (w > 1400 && (!narrow || at.grid[1] - at.grid[0] < narrow[1])) narrow = [w, at.grid[1] - at.grid[0], at.grid.join('-')];
     await ctx.close();
   }
-  chk(`C · ${mode}: every row control inside the grid at 1024-1920px`, fails.length === 0, fails.slice(0, 3).join('; '));
+  chk(`C · ${mode}: every row control inside the grid at 1024-1920px (${pass})`, fails.length === 0,
+    fails.length ? fails.slice(0, 3).join('; ') : (narrow ? `the grid ${narrow[2]}px at ${narrow[0]}, its narrowest above 1400` : ''));
+  chk(`C · ${mode}: the RECORD panel was ${docked ? 'docked beside the grid above 1400px, a drawer at 1400 and below' : 'a drawer at every width'} (${pass})`,
+    misplaced.length === 0, misplaced.slice(0, 3).join('; '));
 }
 
 // ── D. THE FIRST REQUIREMENT IS ON THE SCREEN WHEN THE BOARD OPENS ────────────────────────────────────
@@ -192,14 +223,16 @@ for (const [w, h] of [[1920, 1080], [1440, 1000], [1366, 768], [1024, 768]]) {
 }
 
 // ── E. BRIEF IS READ-ONLY ─────────────────────────────────────────────────────────────────────────────
-{
-  const { p, ctx } = await open(1440, 900, 'brief');
+// v2.00 (UI S4, fix round): twice, sliding over and docked -- at 1440 docked is the panel beside the rows, which Brief hides
+for (const [pass, docked] of PASSES) {
+  const { p, ctx } = await open(1440, 900, 'brief', undefined, docked);
   const r = await p.evaluate(() => ({
     controls: document.querySelectorAll('#list .row input, #list .row select, #list .row button, #list .row [onchange], #list .row [onmousedown], #list .row [onclick]').length,
     drag: document.querySelectorAll('#list .row[draggable]').length,
-    panel: getComputedStyle(document.getElementById('inspector')).display }));
-  chk('E · Brief draws no control on any row', r.controls === 0 && r.drag === 0, `${r.controls} control(s), ${r.drag} draggable row(s)`);
-  chk('E · and no RECORD panel', r.panel === 'none', r.panel);
+    panel: getComputedStyle(document.getElementById('inspector')).display, dock: document.documentElement.classList.contains('ui-dock') }));
+  chk(`E · Brief draws no control on any row (${pass})`, r.controls === 0 && r.drag === 0, `${r.controls} control(s), ${r.drag} draggable row(s)`);
+  chk(`E · and no RECORD panel (${pass})`, r.panel === 'none', r.panel);
+  chk(`E · the docked setting was ${docked ? 'on' : 'off'} (${pass})`, r.dock === docked, 'ui-dock ' + r.dock);
   await ctx.close();
 }
 
@@ -262,10 +295,11 @@ for (const [w, h] of [[1920, 1080], [1440, 1000], [1366, 768], [1024, 768]]) {
 }
 
 // ── I. EVERY "LANE SHORT" FIGURE IS READ WHOLE (v1.91, item 28) ─────────────────────────────────────────
-{
-  const fails = []; let notes = 0, big = 0;
+// v2.00 (UI S4, fix round): twice, sliding over and docked; each page also says where the panel the figures were read in was
+for (const [pass, docked] of PASSES) {
+  const fails = [], misplaced = []; let notes = 0, big = 0;
   for (const [w, h] of [[1920, 1000], [1440, 900], [1024, 768]]) for (const d of ['compact', 'comfortable', 'presentation']) {
-    const { p, ctx } = await open(w, h, 'review', d);
+    const { p, ctx } = await open(w, h, 'review', d, docked);
     const r = await p.evaluate(async () => {
       const out = []; let n = 0, whole = 0;
       for (const row of [...document.querySelectorAll('#list .row')]) {
@@ -284,11 +318,15 @@ for (const [w, h] of [[1920, 1080], [1440, 1000], [1366, 768], [1024, 768]]) {
     });
     notes += r.n; big += r.whole;
     r.out.slice(0, 2).forEach(x => fails.push(`${w}px ${d}: ${x}`));
+    const why = placed(await p.evaluate(where), w, docked);
+    if (why) misplaced.push(`${w}px ${d}: ${why}`);
     await ctx.close();
   }
-  chk('I · every "lane short" figure fits its cell, whole, at 1920, 1440 and 1024 in every density', fails.length === 0 && notes > 0,
+  chk(`I · every "lane short" figure fits its cell, whole, at 1920, 1440 and 1024 in every density (${pass})`, fails.length === 0 && notes > 0,
     fails.length ? fails.slice(0, 3).join('; ') : `${notes} notes read`);
-  chk('I · and the nine-digit one is printed whole', big >= 9, `$123,456,789 seen ${big} time(s)`);
+  chk(`I · and the nine-digit one is printed whole (${pass})`, big >= 9, `$123,456,789 seen ${big} time(s)`);
+  chk(`I · the figures were read in the RECORD panel ${docked ? 'docked beside the grid at 1920 and 1440, a drawer at 1024' : 'as a drawer at every width'} (${pass})`,
+    misplaced.length === 0, misplaced.slice(0, 3).join('; '));
 }
 
 // ── J. 761-1023px, EVERY WIDTH, EVERY MODE (v1.91, item 31) ─────────────────────────────────────────────
@@ -353,5 +391,6 @@ for (const [w, h] of [[1920, 1080], [1440, 1000], [1366, 768], [1024, 768]]) {
 }
 
 await b.close();
-console.log(bad ? `\n${bad} layout check(s) failed\n` : '\nThe layout holds: the posture is the scorecards, no menu item was lost, nothing is clipped, the requirements are on screen, Brief is read-only, and the modes change no data\n');
+console.log(bad ? `\n${bad} layout check(s) failed\n` : '\nThe layout holds: the posture is the scorecards, no menu item was lost, nothing is clipped, the requirements are on screen, Brief is read-only, and the modes change no data'
+  + ' -- with the RECORD panel sliding over and docked\n');
 process.exit(bad ? 1 : 0);
