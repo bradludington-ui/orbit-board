@@ -576,3 +576,22 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   exactly (no prefix collision; spaces, * and [ab] handled); SF-E fixed; SF-C fixed (two nits). **The runner to use is
   `2bfb59022ec74e1abe36a7cfd6a13ce5aabd9aed`** (blobs in `bin/BLOBS.md`). The final-tree queue stays held until the selected changes
   are integrated and pinned.
+
+## Update at 5:53 PM ET: Brad: "Don't wait for me. Let's keep pressing throughout to get this next version published."
+
+- **How the lead reads it** (said to Brad): holds that existed only to wait for Brad lift -- the integration plan (a local,
+  unpushed integration branch; `--no-ff` merges of claude/v200-fixes-wip and claude/v200-ui, every commit kept; a restore-verified
+  bundle; pin; the final-tree queue ONCE from runner `2bfb590`) goes ahead, and the presweep, full gate and 135-mutation lane
+  run after the matrix without waiting for his review. The lead now decides the release blockers rather than leaving them
+  waiting. **Still gated:** the publish step itself (a PR or merge to main, claude/orbit-v2.00), asked once at the end without
+  stopping any work before it.
+- **Release blockers, decided by the lead** (the can't-fails are data loss and money): U19; U20 then U30; U24, U29 (U17) and U31;
+  U18; U3 and U4; U9; U10; and an investigation of U28. Decision principles given to every builder: never lose any copy of
+  anyone's work (keep both and ask or say); refuse or ask rather than guess; money and every export exact; words stay true;
+  the smallest change; every existing expectation preserved or listed. Not taken as blockers (P2/P3 wording or state, to
+  stay in the ledger and the release notes unless time allows): U5-U8, U15, U16, U21-U23, U25-U27.
+- **Started:** fix workflows "save" (U19, U20/U30, adoption, U18, hold; `wf_8989967b-7b5`) and "math" (U9, U10, U28;
+  `wf_03203484-33b`), from a read-only base of HEAD's product (`rec/L6/base`: board fce8a391). Each track: a builder on cumulative
+  scratch copies, two independent adversarial reviewers per round (data loss and money; test adequacy), up to three fix
+  rounds. The lead commits each fix separately, rebasing in turn; one full audit-import run alone on the combined drafts
+  before integration. The UI S1-S5 workflow continues (S1, S2, S3, S5 built; S4 in progress).
