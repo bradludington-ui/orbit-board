@@ -1277,6 +1277,143 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 .kb{border:1px solid var(--line2);border-radius:4px;padding:0 5px;font-size:11px;font-family:ui-monospace,Consolas,monospace}
 @media (max-width:720px){.hx-toc{grid-template-columns:1fr}}
 </style>
+<style id="uiV2css">
+/* ── v2.00 UI (chunk 1): THE NAVY SIDEBAR, THE CONTEXT BAR, THE KPI CARDS, THE TOOLBAR AND THE IMPORT BOX ──────
+   PRESENTATION ONLY. Every control here calls a function the board already had (uiSetMode, toggleMenu, the menus'
+   own handlers, the file inputs' own .click()); nothing here computes, saves or reads a figure of its own. All of
+   it is switched on by the class ui-on, which the UI script sets on <html> AFTER the page source (SRC0) is taken,
+   so a saved board carries none of it. */
+:root{--uiNav:#0f2236;--uiNav2:#152c44;--uiNavAct:#1c4e63;--uiNavInk:#dbe6f0;--uiNavMut:#8fa6bb;--uiNavAcc:#6fd3c7;--uiSideW:232px}
+html.ui-rail{--uiSideW:64px}
+#uiSide,#uiPage,#uiFly,.uiPop{display:none}
+html.ui-on body{padding-left:var(--uiSideW)}
+html.ui-on #uiSide{display:flex;flex-direction:column;gap:2px;position:fixed;left:0;top:0;bottom:0;width:var(--uiSideW);z-index:55;
+  padding:14px 10px;background:var(--uiNav);color:var(--uiNavInk);overflow-y:auto;overflow-x:hidden;box-sizing:border-box}
+#uiSide .uiBrand{display:flex;align-items:flex-start;gap:10px;padding:2px 6px 14px;position:relative}
+#uiSide .uiLogo{width:30px;height:30px;flex:none;color:#fff;--orbit-accent:var(--uiNavAcc)}
+#uiSide .uiBt{display:flex;flex-direction:column;min-width:0}
+#uiSide .uiBt b{font-size:20px;font-weight:800;letter-spacing:.5px;color:#fff;line-height:1.05}
+#uiSide .uiBt small{font-size:11px;color:var(--uiNavMut);margin-top:4px;white-space:nowrap}
+#uiSide #uiCollapse{margin-left:auto;background:transparent;border:0;color:var(--uiNavMut);font-size:16px;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}
+#uiSide #uiCollapse:hover,#uiSide #uiCollapse:focus-visible{background:var(--uiNav2);color:#fff}
+#uiSide .uiNi{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;
+  color:var(--uiNavInk);font:600 13px/1.2 inherit;text-align:left;cursor:pointer;position:relative;white-space:nowrap}
+#uiSide .uiNi:hover,#uiSide .uiNi:focus-visible{background:var(--uiNav2);color:#fff;outline:none}
+#uiSide .uiNi.on{background:var(--uiNavAct);color:#fff}
+#uiSide .uiNi.on::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--uiNavAcc)}
+#uiSide .uiNi .ic{width:18px;height:18px;flex:none;display:grid;place-items:center}
+#uiSide .uiNi .ic svg{width:16px;height:16px}
+#uiSide .uiNi .car{margin-left:auto;color:var(--uiNavMut);font-size:11px}
+#uiSide .uiGrp{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--uiNavMut);padding:12px 12px 4px}
+#uiSide .uiFoot{margin-top:auto;font-size:11px;color:var(--uiNavMut);padding:10px 12px 2px;border-top:1px solid #213a54;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ui-rail #uiSide{padding:14px 8px;overflow:visible}
+html.ui-rail #uiSide .uiBt,html.ui-rail #uiSide .uiNi .t,html.ui-rail #uiSide .uiNi .car,html.ui-rail #uiSide .uiGrp,html.ui-rail #uiSide .uiFoot .t{display:none}
+html.ui-rail #uiSide .uiBrand{flex-direction:column;align-items:center;padding:2px 0 12px;gap:8px}
+html.ui-rail #uiSide #uiCollapse{margin:0}
+html.ui-rail #uiSide .uiNi{justify-content:center;padding:10px}
+html.ui-rail #uiSide .uiNi.on::before{left:-8px}
+html.ui-rail #uiSide .uiNi:hover::after,html.ui-rail #uiSide .uiNi:focus-visible::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:#0b1826;color:#fff;font-size:12px;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.3);z-index:2;pointer-events:none}
+/* the section flyout: the section's own items, each the same call as its menu item */
+html.ui-on #uiFly.open{display:block;position:fixed;z-index:56;left:calc(var(--uiSideW) + 6px);min-width:280px;max-width:380px;max-height:80vh;overflow:auto;
+  background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.28)}
+#uiFly .uiFh{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);padding:6px 10px 4px}
+#uiFly button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font:600 12.5px/1.3 inherit;padding:8px 10px;border-radius:7px;cursor:pointer}
+#uiFly button small{display:block;font-weight:400;color:var(--dim);font-size:11px;margin-top:2px}
+#uiFly button:hover,#uiFly button:focus-visible{background:var(--panel2);outline:none}
+#uiFly button:disabled{opacity:.55;cursor:default}
+#uiFly .uiFsep{height:1px;background:var(--line);margin:4px 6px}
+/* the context bar: the logo moved to the sidebar; Cycle and the Editable chip join Appropriation, year and PMO */
+html.ui-on .hdr .brand{display:none}
+html.ui-on .hdr{background:var(--panel)}
+html.ui-on .hdr .ctx .tlbl{display:inline}
+.uiCyc,.uiChip{display:none}
+html.ui-on .uiCyc{display:inline-flex;align-items:center;gap:6px}
+html.ui-on .uiChip{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:4px 10px;font-weight:700;font-size:11.5px;white-space:nowrap}
+html.ui-on .uiChip.ed{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
+html.ui-on .uiChip.ro{background:color-mix(in srgb,var(--mut) 16%,transparent);color:var(--mut)}
+html.ui-on #saveState{border-radius:7px;padding:4px 10px;background:color-mix(in srgb,var(--amber) 14%,transparent);font-weight:700}
+html.ui-on #saveState:empty{display:none}
+html.ui-on #saveState::before{content:"File: ";font-weight:600;opacity:.8}
+/* the task bar: the five tabs are the sidebar's now; Requirements keeps its Review / Rank switch */
+html.ui-on .tbar .tabs .tab{display:none}
+html.ui-on[data-mode="review"] .tbar #tab_review,html.ui-on[data-mode="review"] .tbar #tab_rank,
+html.ui-on[data-mode="rank"] .tbar #tab_review,html.ui-on[data-mode="rank"] .tbar #tab_rank{display:inline-flex}
+html.ui-on:not([data-mode="review"]):not([data-mode="rank"]) .tbar .tabs,
+html.ui-on:not([data-mode="review"]):not([data-mode="rank"]) .tbar .tabs + .csep{display:none}
+/* the funding posture strip is the Funding section's; the KPI cards carry its four headline figures elsewhere */
+html.ui-on:not([data-mode="fund"]) #posture{display:none}
+/* the page heading, the KPI cards and the toolbar */
+html.ui-on #uiPage{display:block;padding:10px 18px 2px}
+#uiPage .uiHd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:2px 0 10px}
+#uiPage .uiHd h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.3px;color:var(--ink)}
+#uiPage .uiHd .uiSub{color:var(--mut);font-size:12.5px}
+#uiKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
+#uiKpis:empty{display:none}
+#uiKpis .k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;min-width:0;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+#uiKpis .k .l{color:var(--mut);font-size:12px;font-weight:700}
+#uiKpis .k .v{font-size:21px;font-weight:800;letter-spacing:-.3px;margin-top:3px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+#uiKpis .k .x{color:var(--dim);font-size:11.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#uiKpis .k .i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none}
+#uiKpis .k .i svg{width:16px;height:16px}
+#uiKpis .k.ask .i{background:color-mix(in srgb,var(--blue,#2f63c9) 14%,transparent);color:var(--blue,#2f63c9)}
+#uiKpis .k.disc .i{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
+#uiKpis .k.mand .i{background:color-mix(in srgb,var(--purp) 14%,transparent);color:var(--purp)}
+#uiKpis .k.ufr .i{background:color-mix(in srgb,var(--mut) 14%,transparent);color:var(--mut)}
+#uiKpis .k.ufr.short .v{color:var(--red)}
+.uiTools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+html.ui-on .uiTools .srch{flex:1 1 220px;max-width:360px}
+html.ui-on .uiTools .srch input{width:100%}
+.uiTools .sp{margin-left:auto}
+.uiTools .uiMenu{position:relative;display:inline-block}
+html.ui-on .uiPop.open{display:block;position:absolute;top:calc(100% + 4px);left:0;z-index:70;min-width:230px;background:var(--panel);color:var(--ink);
+  border:1px solid var(--line2);border-radius:9px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+.uiPop .uiFh{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);padding:5px 8px 3px}
+.uiPop label,.uiPop button.o{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:0;background:transparent;color:var(--ink);font:600 12.5px/1.3 inherit;border-radius:6px;cursor:pointer;text-align:left}
+.uiPop label:hover,.uiPop button.o:hover{background:var(--panel2)}
+.uiPop button.o[aria-pressed="true"]::before{content:"✓";color:var(--green);font-weight:800}
+.uiPop button.o[aria-pressed="false"]::before{content:"";width:9px}
+.uiPop .note{font-size:11px;color:var(--dim);padding:5px 8px 3px;line-height:1.4}
+/* with the sidebar open beside a docked RECORD panel (1400px and up, today's behaviour), the columns are sized to
+   the room left; the rail and the narrower windows keep today's widths */
+@media (min-width:1400px) and (max-width:1760px){
+  html.ui-on:not(.ui-rail){--rowcols:50px 46px minmax(140px,1fr) 128px 100px 96px 100px 26px 26px}
+  html.ui-on:not(.ui-rail)[data-mode="rank"]{--rowcols:96px 50px minmax(120px,1fr) 120px 100px 92px 92px 26px 26px}
+  html.ui-on:not(.ui-rail)[data-mode="fund"]{--rowcols:46px 40px minmax(120px,1fr) 96px 90px 90px 90px 100px 26px 26px}
+  html.ui-on:not(.ui-rail) .gridsplit{grid-template-columns:minmax(0,1fr) clamp(360px,26vw,600px)}
+}
+@media (max-width:1760px){
+  html.ui-on:not(.ui-rail)[data-mode="brief"]{--rowcols:40px 56px minmax(180px,1fr) 150px 110px 100px 100px 100px 110px}
+}
+@media (max-width:1100px){ #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:900px){ html.ui-on:not(.ui-rail){--uiSideW:64px} html.ui-on #uiSide .uiBt,html.ui-on #uiSide .uiNi .t,html.ui-on #uiSide .uiGrp,html.ui-on #uiSide .uiFoot .t{display:none} }
+/* Density: compact (the board's own density setting, set from the toolbar) tightens the new chrome too */
+html.ui-on[data-density="compact"] #uiKpis .k{padding:8px 12px}
+html.ui-on[data-density="compact"] #uiKpis .k .v{font-size:18px}
+html.ui-on[data-density="compact"] #uiPage .uiHd h2{font-size:20px}
+/* the Import box: three choices, the chosen one's details, Cancel / Continue to review */
+#uiImpPanel .modal.uiImp{width:880px;max-width:94vw;border-color:var(--line2);border-radius:14px;padding:18px 22px}
+#uiImpPanel h3{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:17px}
+#uiImpPanel h3 .x{margin-left:auto}
+#uiImpPanel .lead{margin:0 0 14px;color:var(--mut);font-size:12.5px;line-height:1.5}
+.uiImpCh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.uiImpCh .uiCard{display:flex;flex-direction:column;align-items:flex-start;gap:7px;padding:14px;border:1.5px solid var(--line2);border-radius:11px;background:var(--panel2);color:var(--ink);text-align:left;cursor:pointer;font:inherit;min-width:0}
+.uiImpCh .uiCard:hover{border-color:var(--mut)}
+.uiImpCh .uiCard[aria-pressed="true"]{border-color:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 22%,transparent);background:var(--panel)}
+.uiImpCh .uiCard .ico{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;background:color-mix(in srgb,var(--green) 13%,transparent);color:var(--green)}
+.uiImpCh .uiCard .ico svg{width:18px;height:18px}
+.uiImpCh .uiCard b{font-size:14px}
+.uiImpCh .uiCard .d{font-size:12px;line-height:1.5;color:var(--mut)}
+.uiImpCh .uiCard .w{font-size:11px;color:var(--dim);border-top:1px solid var(--line);padding-top:7px;margin-top:auto;width:100%}
+.uiImpSub{margin-top:14px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:var(--panel2);font-size:12.5px;line-height:1.5}
+.uiImpSub .uiOpt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);margin-top:8px;cursor:pointer}
+.uiImpSub .uiOpt input{margin-top:3px}
+.uiImpSub .uiOpt small{display:block;color:var(--mut);font-size:11.5px}
+.uiImpFoot{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}
+.uiImpFoot .more{font-size:11.5px;color:var(--mut);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.uiImpFoot .sp{margin-left:auto}
+@media (max-width:760px){ .uiImpCh{grid-template-columns:1fr} }
+</style>
 <script>
 /* The theme is applied HERE, before the body exists. Set from the main script it would paint the
    default palette and then swap, which is a visible flash on every open. The key carries no
@@ -1306,6 +1443,28 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 </script>
 </head>
 <body>
+<!-- v2.00 UI (chunk 1): THE NAVY SIDEBAR. Hidden until the UI script sets html.ui-on (after the page source is
+     taken). Each section runs what the board already had: a workspace mode (uiSetMode), a menu (toggleMenu), or a
+     short list of that section's own menu items, each the same call as the item. -->
+<nav id="uiSide" aria-label="Sections">
+  <div class="uiBrand">
+    <svg class="uiLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" aria-hidden="true"><mask id="uiLogoO" maskUnits="userSpaceOnUse" x="0" y="0.51" width="106.91" height="106.91"><rect x="0" y="0.51" width="106.91" height="106.91" fill="#fff"/><circle cx="86.17" cy="28.41" r="18.7" fill="#000"/></mask><circle cx="53.45" cy="53.96" r="41.51" fill="none" stroke="currentColor" stroke-width="15" mask="url(#uiLogoO)"/><circle cx="53.45" cy="53.96" r="9.55" fill="currentColor"/><circle cx="86.17" cy="28.41" r="12.33" fill="var(--orbit-accent, currentColor)"/></svg>
+    <span class="uiBt"><b>ORBIT</b><small>Portfolio Funding Board</small></span>
+    <button type="button" id="uiCollapse" onclick="uiRailToggle()" aria-label="Collapse the sidebar" title="Collapse the sidebar to icons">&#8249;</button>
+  </div>
+  <button type="button" class="uiNi" id="uiNav_req" data-tip="Requirements" onclick="uiGo('req',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M2 8h12M2 12h8"/></svg></span><span class="t">Requirements</span></button>
+  <button type="button" class="uiNi" id="uiNav_fund" data-tip="Funding" onclick="uiGo('fund',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="4" width="13" height="8.5" rx="1"/><circle cx="8" cy="8.2" r="1.8"/></svg></span><span class="t">Funding</span></button>
+  <button type="button" class="uiNi" id="uiNav_fydp" data-tip="FYDP" aria-haspopup="true" onclick="uiGo('fydp',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 11V8M8 11V5M11 11V7"/></svg></span><span class="t">FYDP</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_exec" data-tip="Execution" aria-haspopup="true" onclick="uiGo('exec',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 12l4-4 3 3 5-6"/><path d="M10 5h4v4"/></svg></span><span class="t">Execution</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_cyc" data-tip="Cycles &amp; compare" onclick="uiGo('cyc',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 5h10l-2.5-2.5M14 11H4l2.5 2.5"/></svg></span><span class="t">Cycles &amp; compare</span></button>
+  <button type="button" class="uiNi" id="uiNav_brief" data-tip="Brief" onclick="uiGo('brief',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M8 11v2.5M5 14h6"/></svg></span><span class="t">Brief</span></button>
+  <div class="uiGrp">Board</div>
+  <button type="button" class="uiNi" id="uiNav_imp" data-tip="Imports" onclick="uiGo('imp',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg></span><span class="t">Imports</span></button>
+  <button type="button" class="uiNi" id="uiNav_hist" data-tip="History &amp; recovery" aria-haspopup="true" onclick="uiGo('hist',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2 2.5v3h3"/><path d="M8 5v3.2l2 1.3"/></svg></span><span class="t">History &amp; recovery</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_setup" data-tip="Setup" aria-haspopup="true" onclick="uiGo('setup',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></span><span class="t">Setup</span><span class="car">&#9656;</span></button>
+  <div class="uiFoot"><span class="t" id="uiFootT">ORBIT</span></div>
+</nav>
+<div id="uiFly" role="group" aria-label="Section items"></div>
 <div id="subBanner"></div>
 <div id="topStack">
 <!-- v1.90 (item 27): ONE STICKY TOP -- the context bar, the task bar and the funding posture. The
@@ -1389,6 +1548,21 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
   <input type="file" id="ccarFile" accept=".xlsx" style="display:none" onchange="importCcarRecs(this)">
 </div>
 <div class="posture" id="posture" role="region" aria-label="Funding posture"></div>
+</div>
+<!-- v2.00 UI (chunk 1): the page heading, the four KPI cards (whole dollars, the figures scoreboard() already
+     worked out for the posture strip) and the toolbar. The search box and the Filter menu are moved in here by the
+     UI script, by the same ids. -->
+<div id="uiPage">
+  <div class="uiHd"><h2 id="uiTitle">Requirements</h2><span class="uiSub" id="uiSubT"></span></div>
+  <div id="uiKpis" aria-label="Headline figures"></div>
+  <div class="uiTools" id="uiTools" role="group" aria-label="Table tools">
+    <span id="uiToolsMoved" style="display:contents"></span>
+    <div class="uiMenu"><button type="button" class="btn" id="uiColsBtn" aria-expanded="false" onclick="uiPop('uiColsPop',this)" title="Show or hide table columns"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M6 2.5v11M10 2.5v11"/></svg>Columns</button><div class="uiPop" id="uiColsPop"></div></div>
+    <div class="uiMenu"><button type="button" class="btn" id="uiDensBtn" aria-expanded="false" onclick="uiPop('uiDensPop',this)" title="Comfortable or compact rows"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5h12M2 8h12M2 12.5h12"/></svg>Density</button><div class="uiPop" id="uiDensPop"></div></div>
+    <span class="sp"></span>
+    <button type="button" class="btn" id="uiImpBtn" onclick="uiImpOpen()" title="Bring a board, an appropriation or PMO submittals in"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg>Import</button>
+    <button type="button" class="btn pri" id="uiAddBtn" onclick="toggleAdd()" title="Add a requirement to the year on screen — the same as Add requirement in Review"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
+  </div>
 </div>
 <div id="driveBar"></div>
 <!-- The scorecards, the fit strip and the funding panels, unchanged, under "Funding detail". -->
@@ -1960,6 +2134,28 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
      it rendered underneath the rows while the 570px column beside them stayed empty. The board
      looked like the panel had simply stopped appearing. It is a fixed-position overlay and belongs
      in neither column. -->
+<!-- v2.00 UI (chunk 1): THE IMPORT BOX. Three choices; each runs exactly what its menu item or the submittal
+     review runs today. "Import several boards at once" stays in File ▾ and is linked from the foot of this box. -->
+<div class="modal-bg" id="uiImpPanel" onclick="if(event.target===this)uiImpClose()">
+  <div class="modal uiImp">
+    <h3>Import <button type="button" class="x" onclick="uiImpClose()">✕ Close</button></h3>
+    <p class="lead">What does the file you are bringing in hold? Nothing is read until you pick the file, and every import checks and previews before it changes anything.</p>
+    <div class="uiImpCh">
+      <button type="button" class="uiCard" id="uiImpC_full" aria-pressed="true" onclick="uiImpPick('full')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="1.2"/><path d="M2 6h12M6 6v7.5"/></svg></span><b>Full board</b><span class="d">Everything in a previous board file — all four appropriations, every locked cycle and the lists. Use it when a new version of ORBIT comes out.</span><span class="w">Replaces this board · one file</span></button>
+      <button type="button" class="uiCard" id="uiImpC_one" aria-pressed="false" onclick="uiImpPick('one')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3M5.5 8.5h5M5.5 11h5"/></svg></span><b>One appropriation</b><span class="d">Takes only the appropriations you name from any board file. Each is checked and previewed first; nothing else changes.</span><span class="w">Adds or replaces what you name · one file</span></button>
+      <button type="button" class="uiCard" id="uiImpC_pmo" aria-pressed="false" onclick="uiImpPick('pmo')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M1.5 4.5h13v9h-13z"/><path d="M1.5 4.5 8 9l6.5-4.5"/></svg></span><b>PMO Import</b><span class="d">Programme offices’ submittals. Each opens in the submittal review: every proposed field arrives unticked, beside what the board says today. Nothing is applied until you apply it.</span><span class="w">One submission, or all of them at once</span></button>
+    </div>
+    <div class="uiImpSub" id="uiImpSub"></div>
+    <div class="uiImpFoot">
+      <span class="more">Also: <button type="button" class="qb" onclick="uiImpClose();document.getElementById('multiFile').click()" title="pick every board .html together — the same as File ▾ › Boards and appropriations">⇊ Import several boards at once…</button><button type="button" class="qb" onclick="uiImpClose();setTimeout(function(){ toggleMenu('data'); },0)" title="execution, cost estimates, the budget extract, CCaR records">Data imports ▾</button></span>
+      <span class="sp"></span>
+      <button type="button" class="btn" onclick="uiImpClose()">Cancel</button>
+      <button type="button" class="btn pri" id="uiImpGo" onclick="uiImpGo()">Continue to review</button>
+    </div>
+  </div>
+</div>
+<!-- several submittals picked together: each is handed, one at a time, to the same loader as ⬅ Load a submittal file -->
+<input type="file" id="uiSubMulti" accept=".json" multiple style="display:none" onchange="uiSubMany(this)">
 <button class="drawerscrim" id="drawerScrim" type="button" tabindex="-1"
         aria-label="Close the record panel" onclick="drawerClose()"></button>
 
@@ -22227,6 +22423,9 @@ function scoreboard(){
         +'<div class="pp ppatt"><div class="k">Needs attention</div>'+(att? '<div class="pplist">'+att+'</div>' : '<div class="e" style="color:var(--dim)">nothing flagged</div>')+'</div>'
         +'<div class="ppdet"><button type="button" class="btn" onclick="fundDetailToggle()" aria-controls="fundDetail" aria-expanded="'+(fundDetailOpen?'true':'false')+'"'
           +' title="The scorecards, the discretionary fit and the funding panels">Funding detail <span class="car" aria-hidden="true">'+(fundDetailOpen?'▴':'▾')+'</span></button></div>';
+      // v2.00 UI (chunk 1): the KPI cards print these same figures -- handed over, never worked out again
+      window.UI_KPI={ask:ask, dUsed:dUsed, mUsed:mUsed, u2Amt:u2Amt, dBA:dBA, mBA:mBA, uN:uN, n:S.order.length};
+      if(typeof uiKpis==='function') uiKpis();
     } }
 }
 // One line saying what the nominated requirement is eating, and what nobody is eating.
@@ -31581,6 +31780,302 @@ function sharedArrived(st){
   }
 }
 loadShared(sharedArrived);
+// ==============================================================================================================
+// v2.00 UI (chunk 1): THE NAVY SIDEBAR, THE CONTEXT BAR, THE KPI CARDS, THE TOOLBAR AND THE IMPORT BOX
+//   PRESENTATION ONLY. The last thing the program does, long after the page source (SRC0) is taken:
+//   nothing it moves or adds is ever written into a saved board. Every control calls a function the board already
+//   had -- uiSetMode, toggleMenu, mRun with a menu item's own function, the file inputs' own .click(),
+//   subOpenReview, importState, uiSetDensity. It computes no money: the KPI cards print the figures scoreboard()
+//   worked out for the posture strip, through the board's own whole-dollar fM().
+//   Its own preferences (the sidebar as a rail, the hidden columns) are READ at opening and WRITTEN only when the
+//   person changes them, under keys prefixed prio27ui. Opening the board writes nothing.
+// ==============================================================================================================
+var UI2={on:false, rail:false, cols:{}, imp:'full', pmoHow:'one', fly:'', t:0};
+var UI_SEC={review:'req', rank:'req', fund:'fund', compare:'cyc', brief:'brief'};
+var UI_TTL={req:'Requirements', fund:'Funding', cyc:'Cycles & compare', brief:'Brief'};
+var UI_NAV=['req','fund','fydp','exec','cyc','brief','imp','hist','setup'];
+// the columns a person may hide, and where each sits in each mode's row (the order render() draws the cells in)
+var UI_COLS=[['pmo','PMO'],['band','Decision band'],['cum','Cumulative'],['lane','Lane']];
+var UI_COLIX={ review:{pmo:1,band:3,cum:5,lane:6,n:9}, rank:{pmo:1,band:3,cum:5,lane:6,n:9}, compare:{pmo:1,band:3,cum:5,lane:6,n:9},
+               fund:{pmo:1,n:10}, brief:{pmo:1,band:3,cum:8,n:9} };
+function uiPrefRead(){
+  try{ UI2.rail = localStorage.getItem('prio27uiRail')==='1'; }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem('prio27uiCols')||'{}'); UI2.cols=(c && typeof c==='object' && !Array.isArray(c))? c : {}; }catch(e){ UI2.cols={}; }
+}
+// written only from a person's own click
+function uiPrefWrite(k, v, what){
+  try{ if(typeof lsSet==='function') lsSet(k, v, what); else localStorage.setItem(k, v); }catch(e){}
+}
+function uiBoot(){
+  if(UI2.on) return;
+  const h=document.documentElement, side=document.getElementById('uiSide'), pg=document.getElementById('uiPage');
+  if(!side || !pg) return;
+  uiPrefRead();
+  // the search box, the Filter menu and its chips move into the toolbar, by the same ids
+  const mv=document.getElementById('uiToolsMoved');
+  [document.querySelector('.hdr .srch'), document.getElementById('m_view'), document.getElementById('fchips')].forEach(function(el){
+    if(el && mv) mv.appendChild(el); });
+  // the context bar: Cycle beside Appropriation, the Editable chip beside the file's save state
+  const ctx=document.querySelector('.hdr .ctx');
+  if(ctx && !document.getElementById('uiCycBtn')){
+    const c=document.createElement('span'); c.className='uiCyc';
+    c.innerHTML='<span class="tlbl">Cycle</span><button type="button" class="btn" id="uiCycBtn" onclick="uiSetMode(\'compare\')" '
+      +'title="The working plan, or the locked PPBE cycle on screen — Cycles &amp; compare holds the cycle tools">Working plan</button>';
+    ctx.insertBefore(c, ctx.firstChild);
+  }
+  const ss=document.getElementById('saveState');
+  if(ss && ss.parentNode && !document.getElementById('uiEdChip')){
+    const e=document.createElement('span'); e.className='uiChip ed'; e.id='uiEdChip'; ss.parentNode.insertBefore(e, ss); }
+  if(!document.getElementById('uiColsCss')){ const st=document.createElement('style'); st.id='uiColsCss'; document.head.appendChild(st); }
+  h.classList.add('ui-on'); h.classList.toggle('ui-rail', !!UI2.rail);
+  UI2.on=true;
+  try{ const b=document.getElementById('uiFootT'); if(b) b.textContent='ORBIT '+(typeof BUILD!=='undefined'? BUILD : ''); }catch(e){}
+  uiKpis();
+  document.addEventListener('click', uiDocClick);
+  document.addEventListener('keydown', uiKey);
+  window.addEventListener('resize', function(){ clearTimeout(UI2.t); UI2.t=setTimeout(uiCols, 120); });
+  try{ fitTop(); syncSticky(); }catch(e){}
+}
+function uiPmoLabel(){ const b=document.getElementById('b_pmo'); return b? b.textContent.replace(/\s*▾\s*$/,'').trim() : ''; }
+function uiCycLabel(){
+  try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) return blLbl(CYCVIEW)+' (locked)'; }catch(e){}
+  return 'Working plan';
+}
+// the active section, the heading, the cycle and the Editable chip -- read from the board's own state
+function uiSync(){
+  if(!UI2 || !UI2.on) return;
+  const sec=UI_SEC[uiMode]||'req';
+  UI_NAV.forEach(function(k){ const b=document.getElementById('uiNav_'+k); if(!b) return;
+    b.classList.toggle('on', k===sec); if(k===sec) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  const t=document.getElementById('uiTitle'); if(t) t.textContent=UI_TTL[sec]||'Requirements';
+  const st=document.getElementById('uiSubT');
+  if(st){ let ap=''; try{ ap=apLabel(); }catch(e){}
+    st.textContent=['FY'+((typeof MS!=='undefined' && MS && MS.cur)||''), ap, uiPmoLabel(), uiCycLabel().toLowerCase()].filter(Boolean).join(' · '); }
+  const cb=document.getElementById('uiCycBtn'); if(cb) cb.textContent=uiCycLabel()+' ▾';
+  const ec=document.getElementById('uiEdChip');
+  if(ec){ let ro='';
+    try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) ro='🔒 Read only — locked cycle'; }catch(e){}
+    if(!ro && uiMode==='brief') ro='Presentation view';
+    let sb=false; try{ sb=(typeof SANDBOX!=='undefined' && !!SANDBOX); }catch(e){}
+    ec.className='uiChip '+(ro? 'ro' : 'ed');
+    ec.textContent= ro || ('✎ Editable'+(sb? ' · PMO copy' : '')); }
+  const cl=document.getElementById('uiCollapse');
+  if(cl){ cl.innerHTML=UI2.rail? '&#8250;' : '&#8249;';
+    const l=UI2.rail? 'Expand the sidebar' : 'Collapse the sidebar to icons'; cl.setAttribute('aria-label', l); cl.title=l; }
+}
+// THE FOUR KPI CARDS. scoreboard() hands over the figures it has just printed in the posture strip (UI_KPI);
+// nothing here adds, rounds or re-derives a figure beyond fM()'s own whole dollars.
+function uiKpis(){
+  if(!UI2 || !UI2.on) return;
+  uiSync();
+  const el=document.getElementById('uiKpis');
+  if(el){
+    const K=window.UI_KPI;
+    if(!K || typeof SVC==='undefined' || !SVC.length){ el.innerHTML=''; }
+    else {
+      const ic={
+        ask:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2" width="11" height="12" rx="1.2"/><path d="M5 5.5h6M5 8h6M5 10.5h4"/></svg>',
+        disc:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5V8l4 3.5"/></svg>',
+        mand:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 6.5 8 3l6 3.5M3 6.5v6M6.3 6.5v6M9.7 6.5v6M13 6.5v6M2 13.5h12"/></svg>',
+        ufr:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M3 8h10M3 11.5h10"/></svg>' };
+      const card=function(cls, lbl, v, x, i){
+        return '<div class="k '+cls+'"><div style="min-width:0"><div class="l">'+lbl+'</div>'
+          +'<div class="v" data-v="'+Math.round(v)+'" title="'+fM(v)+'">'+fM(v)+'</div><div class="x">'+x+'</div></div>'
+          +'<span class="i" aria-hidden="true">'+i+'</span></div>'; };
+      el.innerHTML=
+          card('ask', 'Total Ask', K.ask, K.n+' requirement'+(K.n===1?'':'s'), ic.ask)
+        + card('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA', ic.disc)
+        + card('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA', ic.mand)
+        + card('ufr'+(K.u2Amt>0.5? ' short' : ''), 'Total UFR', K.u2Amt,
+               K.u2Amt>0.5? (K.uN+' requirement'+(K.uN===1?'':'s')+' short') : 'nothing unfunded', ic.ufr);
+    }
+  }
+  uiCols();
+}
+// ── Columns: hide a column by taking its track out of the row template and its cell out of every row ──────────
+function uiTracks(s){
+  const out=[]; let d=0, cur='';
+  for(let i=0;i<s.length;i++){ const ch=s[i];
+    if(ch==='(') d++; else if(ch===')') d--;
+    if(/\s/.test(ch) && d===0){ if(cur){ out.push(cur); cur=''; } } else cur+=ch; }
+  if(cur) out.push(cur);
+  return out;
+}
+function uiCols(){
+  const h=document.documentElement, st=document.getElementById('uiColsCss');
+  if(!UI2 || !UI2.on || !st) return;
+  h.style.removeProperty('--rowcols');
+  let css='';
+  const map=UI_COLIX[uiMode];
+  const hide=map? UI_COLS.map(function(c){ return c[0]; }).filter(function(k){ return UI2.cols[k] && map[k]!==undefined; }) : [];
+  if(hide.length){
+    let tr=[]; try{ tr=uiTracks(getComputedStyle(h).getPropertyValue('--rowcols').trim()); }catch(e){}
+    // only where the row is the full set of cells: a narrow window draws fewer, and is left as it is
+    if(tr.length===map.n){
+      const ix=hide.map(function(k){ return map[k]; });
+      h.style.setProperty('--rowcols', tr.filter(function(t,i){ return ix.indexOf(i)<0; }).join(' '));
+      css=ix.map(function(i){ return '.gridhead>:nth-child('+(i+1)+'),#list .row>:nth-child('+(i+1)+')'; }).join(',')+'{display:none!important}';
+    }
+  }
+  if(st.textContent!==css) st.textContent=css;
+}
+function uiColSet(k, hide){
+  if(hide) UI2.cols[k]=true; else delete UI2.cols[k];
+  uiPrefWrite('prio27uiCols', JSON.stringify(UI2.cols), 'Your table columns');
+  uiCols();
+}
+// ── the toolbar's two small menus ────────────────────────────────────────────────────────────────────────────
+function uiPopsClose(){
+  ['uiColsPop','uiDensPop'].forEach(function(id){ const p=document.getElementById(id); if(p) p.classList.remove('open'); });
+  ['uiColsBtn','uiDensBtn'].forEach(function(id){ const b=document.getElementById(id); if(b) b.setAttribute('aria-expanded','false'); });
+}
+function uiPopFill(id){
+  const p=document.getElementById(id); if(!p) return;
+  if(id==='uiColsPop'){
+    const map=UI_COLIX[uiMode]||{};
+    const cs=UI_COLS.filter(function(c){ return map[c[0]]!==undefined; });
+    p.innerHTML='<div class="uiFh">Columns</div>'
+      + cs.map(function(c){ return '<label><input type="checkbox" '+(UI2.cols[c[0]]? '' : 'checked')
+        +' onchange="uiColSet(\''+c[0]+'\', !this.checked)"> '+c[1]+'</label>'; }).join('')
+      + '<div class="note">#, Requirement, the money, ★ and ⋯ always show. Kept in this browser; the board file does not change.</div>';
+  } else {
+    p.innerHTML='<div class="uiFh">Density</div>'
+      + [['comfortable','Comfortable'],['compact','Compact']].map(function(d){
+          return '<button type="button" class="o" aria-pressed="'+(uiDensity===d[0]?'true':'false')+'" onclick="uiPopsClose();uiSetDensity(\''+d[0]+'\')">'+d[1]+'</button>'; }).join('')
+      + (uiMode==='brief'? '<div class="note">Brief always reads at the presentation size.</div>' : '');
+  }
+}
+function uiPop(id, btn){
+  const p=document.getElementById(id); if(!p) return;
+  const open=!p.classList.contains('open');
+  uiPopsClose(); uiFlyClose();
+  if(open){ uiPopFill(id); p.classList.add('open'); if(btn) btn.setAttribute('aria-expanded','true'); }
+}
+// ── the sidebar ──────────────────────────────────────────────────────────────────────────────────────────────
+function uiRailToggle(){
+  UI2.rail=!UI2.rail;
+  document.documentElement.classList.toggle('ui-rail', UI2.rail);
+  uiPrefWrite('prio27uiRail', UI2.rail? '1' : '0', 'Your sidebar');
+  uiFlyClose(); uiSync(); uiCols();
+  try{ fitTop(); syncSticky(); }catch(e){}
+}
+function uiMenuSoon(m){ setTimeout(function(){ if(openMenu!==m) toggleMenu(m); }, 0); }
+function uiGo(k, btn){
+  uiPopsClose();
+  if(k==='fydp' || k==='exec' || k==='hist'){ if(UI2.fly===k) uiFlyClose(); else uiFlyOpen(k, btn); return; }
+  uiFlyClose();
+  if(k==='req'){ if(uiMode!=='review' && uiMode!=='rank') uiSetMode('review'); return; }
+  if(k==='fund'){ if(uiMode!=='fund') uiSetMode('fund'); return; }
+  if(k==='cyc'){ if(uiMode!=='compare') uiSetMode('compare'); return; }
+  if(k==='brief'){ if(uiMode!=='brief') uiSetMode('brief'); return; }
+  if(k==='imp'){ uiImpOpen(); return; }
+  if(k==='setup'){ uiMenuSoon('setup'); return; }
+}
+// a section's own items: each is the menu item's own call, run the way the menu runs it (mRun)
+function uiFlyItems(k){
+  const has=function(fn){ return typeof window[fn]==='function'; };
+  const it=function(lbl, sub, fn){ return has(fn)? '<button type="button" onclick="uiFlyClose();mRun('+fn+')">'+lbl+(sub? '<small>'+sub+'</small>' : '')+'</button>' : ''; };
+  const file=function(lbl, sub, id){ return '<button type="button" onclick="uiFlyClose();mRun(function(){ document.getElementById(\''+id+'\').click(); })">'+lbl+'<small>'+sub+'</small></button>'; };
+  const menu=function(lbl, sub, m){ return '<button type="button" onclick="uiFlyClose();uiMenuSoon(\''+m+'\')">'+lbl+'<small>'+sub+'</small></button>'; };
+  const sep='<div class="uiFsep"></div>';
+  if(k==='fydp') return '<div class="uiFh">FYDP</div>'
+    + it('📊 Five-year spend plan…', 'by requirement · PMO · service — a locked cycle or the working plan', 'toggleFydp')
+    + it('📐 Spruills — Reqs vs Funding…', 'ACE × PPBE cycle · all appns', 'toggleSp')
+    + it('🏛 PPBE Budget Positions…', 'POM · BES · PB · DoN', 'toggleP2')
+    + it('🚰 Funds Flow (Sewer Chart)…', 'any year or combination — active years through the FYDP', 'toggleFlow')
+    + it('📊 FYDP Spend Plan (Excel)', 'by requirement, PMO, service, a tab per PMO', 'exportFydpPlan')
+    + sep + menu('Reports & exports ▾', 'every view and every export', 'reports');
+  if(k==='exec') return '<div class="uiFh">Execution</div>'
+    + it('📈 Active Year Execution…', 'obligations vs OSD goals', 'toggleEx')
+    + it('⚖ Reprogramming Actions…', 'ATR / BTR across the active years', 'toggleRp')
+    + it('📅 Spend Plan Forecast…', 'the budget year, month by month', 'toggleFc')
+    + it('⚖ CR Cash Needs…', 'half/full month · Service/PMO', 'toggleCr')
+    + sep
+    + file('📥 Import CCaR QPE…', 'monthly CCaR pull (.xlsx)', 'srcFile')
+    + it('📈 QPE coverage…', 'which columns come back filled in', 'toggleQpe')
+    + it('⚖ ORBIT vs CCaR…', 'where the board and the last pull disagree', 'toggleDiv')
+    + sep + menu('Data ▾', 'everything that brings data in', 'data');
+  if(k==='hist'){
+    let kept=false; try{ kept=(typeof _keptMeta!=='undefined' && !!_keptMeta); }catch(e){}
+    return '<div class="uiFh">History &amp; recovery</div>'
+      + it('🕓 Change journal…', 'what changed, from what, by whom', 'toggleJrnl')
+      + it('🕘 Save history', 'who saved, when', 'showLog')
+      + it('↶ Earlier copies…', 'kept in the shared folder — in 📡 Live view', 'toggleLive')
+      + sep
+      + (kept? it('↶ Put back work kept aside…', 'from before a newer saved copy replaced it', 'keptPutBack')
+             + it('⬇ Save work kept aside as a file…', 'it stays kept aside', 'keptSaveFile')
+             + it('✕ Discard work kept aside…', 'cannot be undone', 'keptDiscard')
+           : '<button type="button" disabled>↶ Work kept aside<small>nothing is kept aside in this browser</small></button>');
+  }
+  return '';
+}
+function uiFlyOpen(k, btn){
+  const f=document.getElementById('uiFly'); if(!f) return;
+  f.innerHTML=uiFlyItems(k);
+  UI2.fly=k; f.classList.add('open');
+  try{ const r=btn.getBoundingClientRect(); let top=r.top;
+    const hgt=f.offsetHeight; if(top+hgt>window.innerHeight-8) top=Math.max(8, window.innerHeight-8-hgt);
+    f.style.top=top+'px'; }catch(e){}
+  UI_NAV.forEach(function(n){ const b=document.getElementById('uiNav_'+n); if(b) b.setAttribute('aria-expanded', n===k? 'true' : 'false'); });
+  try{ const b=f.querySelector('button:not([disabled])'); if(b) b.focus({preventScroll:true}); }catch(e){}
+}
+function uiFlyClose(){
+  const f=document.getElementById('uiFly'); if(f){ f.classList.remove('open'); }
+  if(UI2.fly){ const b=document.getElementById('uiNav_'+UI2.fly); if(b) b.setAttribute('aria-expanded','false'); }
+  UI2.fly='';
+}
+function uiDocClick(e){
+  const t=e.target; if(!t || !t.closest) return;
+  if(!t.closest('.uiMenu')) uiPopsClose();
+  if(UI2.fly && !t.closest('#uiFly') && !t.closest('#uiSide')) uiFlyClose();
+}
+function uiKey(e){
+  if(e.key!=='Escape') return;
+  if(UI2.fly){ const k=UI2.fly; uiFlyClose(); const b=document.getElementById('uiNav_'+k); try{ if(b) b.focus(); }catch(x){} }
+  uiPopsClose();
+}
+// ── THE IMPORT BOX ───────────────────────────────────────────────────────────────────────────────────────────
+function uiImpOpen(){
+  uiFlyClose(); uiPopsClose();
+  uiImpDraw();
+  const p=document.getElementById('uiImpPanel'); if(p) p.classList.add('open');
+}
+function uiImpClose(){ const p=document.getElementById('uiImpPanel'); if(p) p.classList.remove('open'); }
+function uiImpPick(k){ UI2.imp=k; uiImpDraw(); }
+function uiImpDraw(){
+  ['full','one','pmo'].forEach(function(k){ const b=document.getElementById('uiImpC_'+k); if(b) b.setAttribute('aria-pressed', UI2.imp===k? 'true' : 'false'); });
+  const s=document.getElementById('uiImpSub'); if(!s) return;
+  let held=0; try{ held=PMOSUBS.length; }catch(e){}
+  if(UI2.imp==='full') s.innerHTML='<b>Full board — a new version of ORBIT.</b> Pick the previous board’s <i>.html</i>. '
+    +'It is read and checked whole, and you see what it holds before anything is replaced. The same as 📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)…';
+  else if(UI2.imp==='one') s.innerHTML='<b>One appropriation.</b> Pick any board file. You name the appropriations to take; each is checked '
+    +'and previewed first, and nothing else on this board changes. The same as ⬅ Import one appropriation…';
+  else s.innerHTML='<b>PMO Import.</b> Programme offices’ <i>ORBIT SUBMITTAL … .json</i> files open in the submittal review'
+    +(held? ' — <b>'+held+'</b> held there now' : '')+'.'
+    +'<label class="uiOpt"><input type="radio" name="uiPmoHow" value="one" '+(UI2.pmoHow!=='all'? 'checked' : '')+' onchange="UI2.pmoHow=\'one\'">'
+    +'<span><b>One submission</b><small>one office’s file — the same as ⬅ Load a submittal file… in the review</small></span></label>'
+    +'<label class="uiOpt"><input type="radio" name="uiPmoHow" value="all" '+(UI2.pmoHow==='all'? 'checked' : '')+' onchange="UI2.pmoHow=\'all\'">'
+    +'<span><b>All submissions at once</b><small>pick every office’s file together. Each is loaded into the same review in turn, '
+    +'exactly as if you had loaded them one by one — nothing is merged, and nothing is applied until you apply it.</small></span></label>';
+}
+function uiImpGo(){
+  const k=UI2.imp;
+  uiImpClose();
+  if(k==='full'){ document.getElementById('fullFile').click(); return; }
+  if(k==='one'){ document.getElementById('stateFile').click(); return; }
+  // PMO Import: the submittal review, then its own loader
+  subOpenReview();
+  if(UI2.pmoHow==='all') document.getElementById('uiSubMulti').click();
+  else document.getElementById('stateFile').click();
+}
+// ALL SUBMISSIONS AT ONCE: each picked file goes, in the order picked, through importState -- the one loader
+// ⬅ Load a submittal file uses for one file. Nothing new reads, merges or applies anything.
+function uiSubMany(inp){
+  const fs=[].slice.call((inp && inp.files) || []);
+  try{ inp.value=''; }catch(e){}
+  fs.forEach(function(f){ importState({files:[f], value:''}); });
+}
+uiBoot();
 </script>
 </body>
 </html>
