@@ -254,7 +254,7 @@ workflow was launched at 6:08:07 AM ET.)
 ## Update at 7:14 AM ET: Brad's 7:12 AM approvals: UI-C1, and npm run check first
 
 - **UI-C1** approved as a separate UI commit. Built in its own worktree (`scratchpad/ui-c1-wt`, local branch
-  `claude/v200-ui-c1` from `c41a7c2`, started about 7:16 AM ET) so it never edits the checkout the UI workflow uses.
+  `claude/v200-ui-c1` from `c41a7c2`, started at 7:14 AM ET; first written here as 7:16, later than the clock, and corrected) so it never edits the checkout the UI workflow uses.
   Once the UI workflow ends, the commit is cherry-picked onto `claude/v200-ui`; the independent review and the
   before-fail/after-pass evidence are then taken on that exact committed diff.
 - **npm run check is now step 0 of `final-tree-v3.sh`**, mandatory: if it does not pass at the pinned tree, the queue
