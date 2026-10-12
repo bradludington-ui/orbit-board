@@ -1,0 +1,47 @@
+board after blob b4c55e38aca79f1310d82f84ca7933321b536b64: passed 424, failed 0 ({"contract":0,"control":0,"fixture":0}), recorded 98; product=state agree [{"K":1,"ok":true},{"K":1000000,"ok":true}]
+fixture   product|K=1: 4P/0F  product|K=1000000: 4P/0F  state|K=1: 3P/0F  state|K=1000000: 3P/0F
+c7        product|K=1: 5P/0F  product|K=1000000: 5P/0F  state|K=1: 5P/0F  state|K=1000000: 5P/0F
+c1        product|K=1: 8P/0F  product|K=1000000: 10P/0F  state|K=1: 8P/0F  state|K=1000000: 10P/0F
+c2        product|K=1: 7P/0F  product|K=1000000: 8P/0F  state|K=1: 7P/0F  state|K=1000000: 8P/0F
+c3        product|K=1: 7P/0F  product|K=1000000: 8P/0F  state|K=1: 7P/0F  state|K=1000000: 8P/0F
+c1-3      product|K=1: 1P/0F  product|K=1000000: 1P/0F  state|K=1: 1P/0F  state|K=1000000: 1P/0F
+c6        product|K=1: 3P/0F  product|K=1000000: 3P/0F  state|K=1: 3P/0F  state|K=1000000: 3P/0F
+c5        product|K=1: 8P/0F  product|K=1000000: 8P/0F  state|K=1: 8P/0F  state|K=1000000: 8P/0F
+c4        product|K=1: 8P/0F  product|K=1000000: 8P/0F  state|K=1: 8P/0F  state|K=1000000: 8P/0F
+c4a       product|K=1: 16P/0F  product|K=1000000: 18P/0F  state|K=1: 16P/0F  state|K=1000000: 18P/0F
+c4b       product|K=1: 16P/0F  product|K=1000000: 18P/0F  state|K=1: 16P/0F  state|K=1000000: 18P/0F
+c4c       product|K=1: 16P/0F  product|K=1000000: 18P/0F  state|K=1: 16P/0F  state|K=1000000: 18P/0F
+detector  product|K=1: 2P/0F  product|K=1000000: 2P/0F  state|K=1: 2P/0F  state|K=1000000: 2P/0F
+agree     product=state|K=1: 1P/0F  product=state|K=1000000: 1P/0F
+--- after|product|K=1
+c1 {"sel":[2026],"tot":400,"exec":100,"plan":300,"panel":"0.00","xlTot":[400,400],"xlUs":[400],"om":[300],"sp":[100],"mix":true,"note":true,"label":"FY26 · O&M + INITIAL SPARES · FY26: O&M planned, INITIAL SPARES executed · + OBBBA FY25"}
+c2 {"sel":[2026],"tot":300,"exec":0,"plan":300,"panel":"0.00","xlTot":[300,300],"xlUs":[300],"om":[300],"sp":[],"mix":false,"note":false,"label":"FY26 · O&M · PLANNED (board allocation, O&M)"}
+c3 {"sel":[2026],"tot":100,"exec":100,"plan":0,"panel":"0.00","xlTot":[100,100],"xlUs":[100],"om":[],"sp":[100],"mix":false,"note":false,"label":"FY26 · INITIAL SPARES · + OBBBA FY25"}
+c4 c4a {"sel":[2026],"tot":100,"exec":100,"plan":0,"panel":"0.00","xlTot":[100,100],"om":[0],"sp":[100],"label":"FY26 · O&M + INITIAL SPARES · FY26: O&M planned, INITIAL SPARES executed · + OBBBA FY25","boxes":0}
+c4 c4b {"sel":[2026],"tot":0,"exec":0,"plan":0,"panel":"0.00","xlTot":[0,0],"om":[0],"sp":[],"label":"FY26 · O&M · PLANNED (board allocation, O&M)","boxes":1}
+c4 c4c {"sel":[2026],"tot":100,"exec":100,"plan":0,"panel":"0.00","xlTot":[100,100],"om":[],"sp":[100],"label":"FY26 · INITIAL SPARES · + OBBBA FY25","boxes":0}
+c4reopen c4a {"sel":[2026],"tot":100,"exec":100,"plan":0,"panel":"0.00","xlTot":[100,100],"om":[0],"sp":[100],"label":"FY26 · O&M + INITIAL SPARES · FY26: O&M planned, INITIAL SPARES executed · + OBBBA FY25","boxes":0}
+c4reopen c4b {"sel":[2026],"tot":0,"exec":0,"plan":0,"panel":"0.00","xlTot":[0,0],"om":[0],"sp":[],"label":"FY26 · O&M · PLANNED (board allocation, O&M)","boxes":1}
+c4reopen c4c {"sel":[2026],"tot":100,"exec":100,"plan":0,"panel":"0.00","xlTot":[100,100],"om":[],"sp":[100],"label":"FY26 · INITIAL SPARES · + OBBBA FY25","boxes":0}
+c4 seq ["undefined","undefined","undefined","undefined","undefined","undefined","undefined","undefined","undefined"] reopen seq ["undefined","undefined","undefined","undefined","undefined","undefined","undefined","undefined","undefined"]
+chip26 {"fy":2026,"text":"FY26 · plan","title":"FY2026 has no O&M execution imported, so O&M is answered from this board’s own allocation; other appropriations’ execution for it is read from their import","on":false}
+c6 {"with":[940,140,800,[940,940]],"without":[640,140,500,[640,640]],"reopen":640}
+c5-with-plan {"saved":[2025],"sel":[2025],"tot":40,"label":"FY25 · all appropriations","chipsOn":["FY25 [on]"],"scope":["Scope: FY25 · all appropriations"],"xlTot":[40,40],"yearsInCopy":[2026,2027],"confirm":0,"errors":0}
+c5-after-removal {"saved":[2025],"sel":[2025],"tot":40,"label":"FY25 · all appropriations","chipsOn":["FY25 [on]"],"scope":["Scope: FY25 · all appropriations"],"xlTot":[40,40],"yearsInCopy":[2027],"confirm":0,"errors":0}
+detector {"v2026":"defined","d26":[500],"tot":500,"planV":500,"hits500":2,"confirm":1}
+--- after|product|K=1000000
+c1 {"sel":[2026],"tot":400000000,"exec":100000000,"plan":300000000,"panel":"400.00","xlTot":[400000000,400000000],"xlUs":[400000000],"om":[300000000],"sp":[100000000],"mix":true,"note":true,"label":"FY26 · O&M + INITIAL SPARES · FY26: O&M planned, INITIAL SPARES executed · + OBBBA FY25"}
+c2 {"sel":[2026],"tot":300000000,"exec":0,"plan":300000000,"panel":"300.00","xlTot":[300000000,300000000],"xlUs":[300000000],"om":[300000000],"sp":[],"mix":false,"note":false,"label":"FY26 · O&M · PLANNED (board allocation, O&M)"}
+c3 {"sel":[2026],"tot":100000000,"exec":100000000,"plan":0,"panel":"100.00","xlTot":[100000000,100000000],"xlUs":[100000000],"om":[],"sp":[100000000],"mix":false,"note":false,"label":"FY26 · INITIAL SPARES · + OBBBA FY25"}
+c4 c4a {"sel":[2026],"tot":100000000,"exec":100000000,"plan":0,"panel":"100.00","xlTot":[100000000,100000000],"om":[0],"sp":[100000000],"label":"FY26 · O&M + INITIAL SPARES · FY26: O&M planned, INITIAL SPARES executed · + OBBBA FY25","boxes":0}
+c4 c4b {"sel":[2026],"tot":0,"exec":0,"plan":0,"panel":"0.00","xlTot":[0,0],"om":[0],"sp":[],"label":"FY26 · O&M · PLANNED (board allocation, O&M)","boxes":1}
+c4 c4c {"sel":[2026],"tot":100000000,"exec":100000000,"plan":0,"panel":"100.00","xlTot":[100000000,100000000],"om":[],"sp":[100000000],"label":"FY26 · INITIAL SPARES · + OBBBA FY25","boxes":0}
+c4reopen c4a {"sel":[2026],"tot":100000000,"exec":100000000,"plan":0,"panel":"100.00","xlTot":[100000000,100000000],"om":[0],"sp":[100000000],"label":"FY26 · O&M + INITIAL SPARES · FY26: O&M planned, INITIAL SPARES executed · + OBBBA FY25","boxes":0}
+c4reopen c4b {"sel":[2026],"tot":0,"exec":0,"plan":0,"panel":"0.00","xlTot":[0,0],"om":[0],"sp":[],"label":"FY26 · O&M · PLANNED (board allocation, O&M)","boxes":1}
+c4reopen c4c {"sel":[2026],"tot":100000000,"exec":100000000,"plan":0,"panel":"100.00","xlTot":[100000000,100000000],"om":[],"sp":[100000000],"label":"FY26 · INITIAL SPARES · + OBBBA FY25","boxes":0}
+c4 seq ["undefined","undefined","undefined","undefined","undefined","undefined","undefined","undefined","undefined"] reopen seq ["undefined","undefined","undefined","undefined","undefined","undefined","undefined","undefined","undefined"]
+chip26 {"fy":2026,"text":"FY26 · plan","title":"FY2026 has no O&M execution imported, so O&M is answered from this board’s own allocation; other appropriations’ execution for it is read from their import","on":false}
+c6 {"with":[940000000,140000000,800000000,[940000000,940000000]],"without":[640000000,140000000,500000000,[640000000,640000000]],"reopen":640000000}
+c5-with-plan {"saved":[2025],"sel":[2025],"tot":40000000,"label":"FY25 · all appropriations","chipsOn":["FY25 [on]"],"scope":["Scope: FY25 · all appropriations"],"xlTot":[40000000,40000000],"yearsInCopy":[2026,2027],"confirm":0,"errors":0}
+c5-after-removal {"saved":[2025],"sel":[2025],"tot":40000000,"label":"FY25 · all appropriations","chipsOn":["FY25 [on]"],"scope":["Scope: FY25 · all appropriations"],"xlTot":[40000000,40000000],"yearsInCopy":[2027],"confirm":0,"errors":0}
+detector {"v2026":"defined","d26":[500000000],"tot":500000000,"planV":500000000,"hits500":2,"confirm":1}

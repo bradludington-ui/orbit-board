@@ -1,0 +1,6 @@
+IDS {"board":"c8dfc867bdd47e47ea39992460a19cbe734a8177","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"363beee755d233a1c35ce873bce168c0dda351c2","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2variants/verify/mut/boards/M5-noCheckpointOverwrite/prioritization-board-grid.html","started":"10/11/2026, 8:52:15 PM ET","variant":"U2a"}
+folder.race done 4.5s
+folder.norace done 2.7s
+file.race done 3.3s
+file.norace done 2.6s
+wrote /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2variants/verify/mut/M5-noCheckpointOverwrite.json

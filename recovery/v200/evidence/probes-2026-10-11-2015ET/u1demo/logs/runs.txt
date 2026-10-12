@@ -1,0 +1,5 @@
+after-1 exit=0 wall_s=12.419382000 
+after-2 exit=0 wall_s=11.517049117 
+before-1 exit=3 wall_s=14.041215325 
+after-3 exit=0 wall_s=12.695971319 
+before-2 exit=0 wall_s=11.827657288 

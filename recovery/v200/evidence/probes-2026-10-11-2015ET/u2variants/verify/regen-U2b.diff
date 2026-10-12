@@ -1,0 +1,8 @@
+@@ -6945,6 +6945,7 @@
+ function keptPutBack(){
+   const k=keptCopy();
+   if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
++  if(_saveBusy){ setStat('⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged.'); render(); return; }   // v2.00 (U2)
+   // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT IN ITS PLACE (v1.95, item 50): putting work back
+   // never throws away the work it replaces. The slot it frees takes what is on screen.
+   const nowUnsaved=!!(DIRTY || baseGet().dirty);

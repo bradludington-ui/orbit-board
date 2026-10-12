@@ -1,0 +1,11 @@
+file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2variants/check.mjs:47
+      [r.retry.applicable, r.retry.putBack.prompts.length, r.retry.putBack.where.screen, fl(r.retry.putBack.flags)], [true, 1, K, [true, true, true]]);
+                                           ^
+
+TypeError: Cannot read properties of undefined (reading 'prompts')
+    at file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2variants/check.mjs:47:44
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.0

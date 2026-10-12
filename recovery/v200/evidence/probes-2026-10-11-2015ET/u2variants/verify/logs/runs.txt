@@ -1,0 +1,11 @@
+RERUN-BASE exit=0 wall_s=15.786380919 ended=2026-10-11 20:48:36 EDT
+RERUN-U2a exit=0 wall_s=16.019290856 ended=2026-10-11 20:48:52 EDT
+RERUN-U2b exit=0 wall_s=17.084819841 ended=2026-10-11 20:49:09 EDT
+RERUN-U2ab exit=0 wall_s=16.981626500 ended=2026-10-11 20:49:26 EDT
+MUT-M1-keptTouch exit=0 wall_s=15.904903061 ended=2026-10-11 20:51:44 EDT
+MUT-M2-msTouch exit=0 wall_s=15.004034083 ended=2026-10-11 20:51:59 EDT
+MUT-M3-alwaysRefuse exit=0 wall_s=15.360616664 ended=2026-10-11 20:52:15 EDT
+MUT-M5-noCheckpointOverwrite exit=0 wall_s=15.086234975 ended=2026-10-11 20:52:30 EDT
+EXT-BASE exit=0 wall_s=10.946210695 ended=2026-10-11 20:54:35 EDT
+EXT-U2a exit=0 wall_s=11.113343784 ended=2026-10-11 20:54:46 EDT
+EXT-U2b exit=0 wall_s=10.726001153 ended=2026-10-11 20:54:57 EDT

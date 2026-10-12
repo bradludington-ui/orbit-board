@@ -1,0 +1,19 @@
+FAILED | before|X1-resetYear | X2 | with the plan: FY26 x {O&M,IS} / {O&M} / {IS} / ALL YEARS = 300+100 / 300 / 100 / 40+100+300+500 | expected [400000000,300000000,100000000,940000000] | actual [540000000,540000000,0,540000000]
+RECORDED | before|X1-resetYear | X1 | FY26 year state after resetYear (it stays DEFINED, blank) | expected undefined | actual {"disc":[0],"discSvc":[0],"order":[],"removed":["F1"],"same27":false}
+FAILED | before|X1-resetYear | X1 | board: FY26 x ["om","sp"] = 100000000 in flowCalc, panel $100.00M, export TOTAL FUNDING twice | expected [[2026],100000000,"100.00",[100000000,100000000]] | actual [[2025,2027,2028,2029,2030,2031],540000000,"540.00",[540000000,540000000]]
+FAILED | before|X1-resetYear | X1 | board: FY26 x ["om","sp"]: no figure equals 500000000 (FY27's pot) in flowCalc, export, panel; no plan row | expected [[],[],[],0] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]
+FAILED | before|X1-resetYear | X1 | board: FY26 x ["om"] = 0 in flowCalc, panel $0.00M, export TOTAL FUNDING twice | expected [[2026],0,"0.00",[0,0]] | actual [[2025,2027,2028,2029,2030,2031],540000000,"540.00",[540000000,540000000]]
+FAILED | before|X1-resetYear | X1 | board: FY26 x ["om"]: no figure equals 500000000 (FY27's pot) in flowCalc, export, panel; no plan row | expected [[],[],[],0] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]
+FAILED | before|X1-resetYear | X1 | board: FY26 x ["sp"] = 100000000 in flowCalc, panel $100.00M, export TOTAL FUNDING twice | expected [[2026],100000000,"100.00",[100000000,100000000]] | actual [[2025,2027,2028,2029,2030,2031],0,"0.00",[0,0]]
+FAILED | before|X1-resetYear | X1 | board: ALL YEARS = 40 + 100 + 500 = 640000000 | expected 640000000 | actual 540000000
+RECORDED | before|X1-resetYear | X1 | board: FY26 chip after the reset | expected undefined | actual null
+FAILED | before|X1-resetYear | X1 | reopened: FY26 x ["om","sp"] = 100000000 in flowCalc, panel $100.00M, export TOTAL FUNDING twice | expected [[2026],100000000,"100.00",[100000000,100000000]] | actual [[2025,2027,2028,2029,2030,2031],540000000,"540.00",[540000000,540000000]]
+FAILED | before|X1-resetYear | X1 | reopened: FY26 x ["om","sp"]: no figure equals 500000000 (FY27's pot) in flowCalc, export, panel; no plan row | expected [[],[],[],0] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]
+FAILED | before|X1-resetYear | X1 | reopened: FY26 x ["om"] = 0 in flowCalc, panel $0.00M, export TOTAL FUNDING twice | expected [[2026],0,"0.00",[0,0]] | actual [[2025,2027,2028,2029,2030,2031],540000000,"540.00",[540000000,540000000]]
+FAILED | before|X1-resetYear | X1 | reopened: FY26 x ["om"]: no figure equals 500000000 (FY27's pot) in flowCalc, export, panel; no plan row | expected [[],[],[],0] | actual [[500000000,500000000],[500000000,500000000],["500.00","500.00"],1]
+FAILED | before|X1-resetYear | X1 | reopened: FY26 x ["sp"] = 100000000 in flowCalc, panel $100.00M, export TOTAL FUNDING twice | expected [[2026],100000000,"100.00",[100000000,100000000]] | actual [[2025,2027,2028,2029,2030,2031],0,"0.00",[0,0]]
+FAILED | before|X1-resetYear | X1 | reopened: ALL YEARS = 40 + 100 + 500 = 640000000 | expected 640000000 | actual 540000000
+RECORDED | before|X1-resetYear | X1 | reopened: FY26 chip after the reset | expected undefined | actual null
+RECORDED | before|X3-FY25-all-carried | X3 | flowYears() with every FY25 row counted as FY26 | expected undefined | actual [2025,2027,2028,2029,2030,2031]
+RECORDED | before|X3-FY25-all-carried | X3 | reopened chips | expected undefined | actual [["FY25 · plan",true],["FY27 · plan",false],["FY28 · plan",false],["FY29 · plan",false],["FY30 · plan",false],["FY31 · plan",false]]
+{"board":"before","boardBlob":"4d273c0680132caafc4cbc8ca09c1533735c86de","probeBlob":"064d56da998abe63f87bc3623990fe5680b27676","passed":14,"failed":13,"ms":4379}

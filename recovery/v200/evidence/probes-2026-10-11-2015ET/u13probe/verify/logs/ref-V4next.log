@@ -1,0 +1,32 @@
+PASS [fixture] fixture.v1: the folder's first copy is brad's content, written by Brad (writer Brad)
+     expected ["brad","Brad","Brad"]
+     observed ["brad","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: screen brad, DIRTY false, _baseDirty false, record dirty false, base = v1 ts
+     expected ["brad",false,false,false,true,true]
+     observed ["brad",false,false,false,true,true]
+PASS [fixture] fixture.bobBase: bob loaded brad's copy: screen brad, his base = v1 ts
+     expected [true,"brad",true]
+     observed [true,"brad",true]
+PASS [fixture] V4next.held: the save reached its write and is held; DIRTY during the save
+     expected [true,false,1]
+     observed [true,false,1]
+PASS [fixture] V4next.bob.bobCopy: bob's newer copy is the folder's current copy: bob's content, by Bob, writer Bob, bob clean
+     expected ["bob","Bob","Bob",false,false]
+     observed ["bob","Bob","Bob",false,false]
+PASS [refute] V4next.adopt: the refresh (driveStorePull(true)) adopts bob during the held save ([adopted, _saveBusy, note, $])
+     expected [true,1,"BOB-2",650]
+     observed [true,1,"BOB-2",650]
+FAIL [contract] V4next.K1-literal: CONTRACT (literal): [screen note, $, recorded clean, base-copy note, $] -- recorded clean only against a copy holding what is on screen
+     expected [["BOB-2",650,true,"BOB-2",650],["BRAD-1",700,true,"BRAD-1",700],["BOB-2",650,false,"BRAD-1",700],["BRAD-1",700,false,"BRAD-1",700]]
+     observed ["BOB-2",650,true,"BRAD-1",700]
+PASS [record] V4next.head: the folder head after the save lands: brad's built bytes ([note, $, by, writer])
+     expected ["BRAD-1",700,"Brad","Brad"]
+     observed ["BRAD-1",700,"Brad","Brad"]
+PASS [refute] V4.bradNext: README 'not run' claim: Brad's next Save writes BOB-2/$650 under Brad's name with no question; BRAD-1/$700 (Brad's written ts) kept in history ([questions asked, head note, $, by, writer, BRAD-1/$700 at that ts in history])
+     expected [0,"BOB-2",650,"Brad","Brad",true]
+     observed [0,"BOB-2",650,"Brad","Brad",true]
+PASS [refute] V4.bobNext: README 'not run' claim: Bob's next Save is refused ([head unchanged, head note, said Nothing was written])
+     expected [true,"BOB-2",true]
+     observed [true,"BOB-2",true]
+ids {"board":"4d273c0680132caafc4cbc8ca09c1533735c86de","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"1a54cc12a812ceb92a1e95406c263592fd21c045","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u13probe/verify/board/prioritization-board-grid.html"}
+V4next: 9 pass, 1 fail

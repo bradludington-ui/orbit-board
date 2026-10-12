@@ -1,0 +1,4 @@
+6948c6948
+<   if(_saveBusy){ setStat('⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged.'); render(); return; }   // v2.00 (U2)
+---
+>   if(_saveBusy>=0){ setStat('⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged.'); render(); return; }   // v2.00 (U2)
