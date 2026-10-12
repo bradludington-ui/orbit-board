@@ -1297,7 +1297,7 @@ html.ui-on #uiSide{display:flex;flex-direction:column;gap:2px;position:fixed;lef
 #uiSide #uiCollapse{margin-left:auto;background:transparent;border:0;color:var(--uiNavMut);font-size:16px;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}
 #uiSide #uiCollapse:hover,#uiSide #uiCollapse:focus-visible{background:var(--uiNav2);color:#fff}
 #uiSide .uiNi{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;
-  color:var(--uiNavInk);font:600 13px/1.2 inherit;text-align:left;cursor:pointer;position:relative;white-space:nowrap}
+  color:var(--uiNavInk);font-family:inherit;font-weight:600;font-size:13px;line-height:1.2;text-align:left;cursor:pointer;position:relative;white-space:nowrap}
 #uiSide .uiNi:hover,#uiSide .uiNi:focus-visible{background:var(--uiNav2);color:#fff;outline:none}
 #uiSide .uiNi.on{background:var(--uiNavAct);color:#fff}
 #uiSide .uiNi.on::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--uiNavAcc)}
@@ -1318,7 +1318,7 @@ html.ui-rail #uiSide .uiNi:hover::after,html.ui-rail #uiSide .uiNi:focus-visible
 html.ui-on #uiFly.open{display:block;position:fixed;z-index:56;left:calc(var(--uiSideW) + 6px);min-width:280px;max-width:380px;max-height:80vh;overflow:auto;
   background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.28)}
 #uiFly .uiFh{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);padding:6px 10px 4px}
-#uiFly button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font:600 12.5px/1.3 inherit;padding:8px 10px;border-radius:7px;cursor:pointer}
+#uiFly button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font-family:inherit;font-weight:600;font-size:12.5px;line-height:1.3;padding:8px 10px;border-radius:7px;cursor:pointer}
 #uiFly button small{display:block;font-weight:400;color:var(--dim);font-size:11px;margin-top:2px}
 #uiFly button:hover,#uiFly button:focus-visible{background:var(--panel2);outline:none}
 #uiFly button:disabled{opacity:.55;cursor:default}
@@ -1334,7 +1334,6 @@ html.ui-on .uiChip.ed{background:color-mix(in srgb,var(--green) 14%,transparent)
 html.ui-on .uiChip.ro{background:color-mix(in srgb,var(--mut) 16%,transparent);color:var(--mut)}
 html.ui-on #saveState{border-radius:7px;padding:4px 10px;background:color-mix(in srgb,var(--amber) 14%,transparent);font-weight:700}
 html.ui-on #saveState:empty{display:none}
-html.ui-on #saveState::before{content:"File: ";font-weight:600;opacity:.8}
 /* the task bar: the five tabs are the sidebar's now; Requirements keeps its Review / Rank switch */
 html.ui-on .tbar .tabs .tab{display:none}
 html.ui-on[data-mode="review"] .tbar #tab_review,html.ui-on[data-mode="review"] .tbar #tab_rank,
@@ -1365,11 +1364,13 @@ html.ui-on #uiPage{display:block;padding:10px 18px 2px}
 html.ui-on .uiTools .srch{flex:1 1 220px;max-width:360px}
 html.ui-on .uiTools .srch input{width:100%}
 .uiTools .sp{margin-left:auto}
+.uiTools > .btn,.uiTools .uiMenu > .btn{display:inline-flex;align-items:center;gap:6px}
+.uiPop input[type=checkbox],.uiImpSub .uiOpt input[type=radio]{width:15px;height:15px;min-width:0;margin:0;flex:none;accent-color:var(--green)}
 .uiTools .uiMenu{position:relative;display:inline-block}
 html.ui-on .uiPop.open{display:block;position:absolute;top:calc(100% + 4px);left:0;z-index:70;min-width:230px;background:var(--panel);color:var(--ink);
   border:1px solid var(--line2);border-radius:9px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
 .uiPop .uiFh{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);padding:5px 8px 3px}
-.uiPop label,.uiPop button.o{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:0;background:transparent;color:var(--ink);font:600 12.5px/1.3 inherit;border-radius:6px;cursor:pointer;text-align:left}
+.uiPop label,.uiPop button.o{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:0;background:transparent;color:var(--ink);font-family:inherit;font-weight:600;font-size:12.5px;line-height:1.3;border-radius:6px;cursor:pointer;text-align:left}
 .uiPop label:hover,.uiPop button.o:hover{background:var(--panel2)}
 .uiPop button.o[aria-pressed="true"]::before{content:"✓";color:var(--green);font-weight:800}
 .uiPop button.o[aria-pressed="false"]::before{content:"";width:9px}
@@ -1391,6 +1392,15 @@ html.ui-on .uiPop.open{display:block;position:absolute;top:calc(100% + 4px);left
 html.ui-on[data-density="compact"] #uiKpis .k{padding:8px 12px}
 html.ui-on[data-density="compact"] #uiKpis .k .v{font-size:18px}
 html.ui-on[data-density="compact"] #uiPage .uiHd h2{font-size:20px}
+/* the RECORD panel's Overview / Funding / History tabs. They take the reader to that part of the record and never
+   hide any of it: a field another control sends the keyboard to (a row chip, Go to it) is always there to reach. */
+.uiDTabs,.uiDHist{display:none}
+html.ui-on #inspector .uiDTabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:8px 0 10px;position:sticky;top:0;z-index:2;background:var(--panelA,var(--panel))}
+html.ui-on #inspector .uiDTabs button{border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;padding:7px 12px;font-family:inherit;font-weight:700;font-size:12.5px;color:var(--mut);cursor:pointer}
+html.ui-on #inspector .uiDTabs button[aria-pressed="true"]{color:var(--green);border-bottom-color:var(--green)}
+html.ui-on #inspector .uiDHist{display:block;margin-top:14px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
+html.ui-on #inspector .uiDHist .h{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);margin-bottom:6px}
+html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
 /* the Import box: three choices, the chosen one's details, Cancel / Continue to review */
 #uiImpPanel .modal.uiImp{width:880px;max-width:94vw;border-color:var(--line2);border-radius:14px;padding:18px 22px}
 #uiImpPanel h3{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:17px}
@@ -31831,6 +31841,8 @@ function uiBoot(){
   UI2.on=true;
   try{ const b=document.getElementById('uiFootT'); if(b) b.textContent='ORBIT '+(typeof BUILD!=='undefined'? BUILD : ''); }catch(e){}
   uiKpis();
+  try{ const ins=document.getElementById('inspector'); if(ins && typeof MutationObserver!=='undefined') new MutationObserver(uiDrawerTabs).observe(ins, {childList:true}); }catch(e){}
+  uiDrawerTabs();
   document.addEventListener('click', uiDocClick);
   document.addEventListener('keydown', uiKey);
   window.addEventListener('resize', function(){ clearTimeout(UI2.t); UI2.t=setTimeout(uiCols, 120); });
@@ -32033,6 +32045,34 @@ function uiKey(e){
   if(e.key!=='Escape') return;
   if(UI2.fly){ const k=UI2.fly; uiFlyClose(); const b=document.getElementById('uiNav_'+k); try{ if(b) b.focus(); }catch(x){} }
   uiPopsClose();
+}
+// ── THE RECORD PANEL'S TABS: drawn onto each RECORD panel the board draws (inspectorBody is not changed) ─────────
+var UI_DTAB='overview';
+function uiDrawerTabs(){
+  if(!UI2 || !UI2.on) return;
+  const ins=document.getElementById('inspector'); if(!ins) return;
+  const bd=ins.querySelector('.insp-bd'); if(!bd || bd.querySelector('.uiDTabs')) return;
+  const strip=document.createElement('div'); strip.className='uiDTabs'; strip.setAttribute('role','group'); strip.setAttribute('aria-label','Record sections');
+  strip.innerHTML=[['overview','Overview'],['funding','Funding'],['history','History']].map(function(t){
+    return '<button type="button" data-k="'+t[0]+'" aria-pressed="'+(UI_DTAB===t[0]? 'true' : 'false')+'" onclick="uiDTab(\''+t[0]+'\')">'+t[1]+'</button>'; }).join('');
+  const meta=bd.querySelector('.insp-meta');
+  if(meta && meta.parentNode===bd) bd.insertBefore(strip, meta.nextSibling); else bd.insertBefore(strip, bd.firstChild);
+  const hist=document.createElement('div'); hist.className='uiDHist';
+  hist.innerHTML='<div class="h">History</div><p>What changed on this board \u2014 from what, to what, by whom \u2014 is kept in the change journal; '
+    +'every save is in the save history.</p><button type="button" class="qb" onclick="mRun(toggleJrnl)">\ud83d\udd53 Change journal\u2026</button> '
+    +'<button type="button" class="qb" onclick="mRun(showLog)">\ud83d\udd58 Save history</button>';
+  bd.appendChild(hist);
+}
+function uiDTab(k){
+  UI_DTAB=k;
+  const ins=document.getElementById('inspector'); if(!ins) return;
+  [].slice.call(ins.querySelectorAll('.uiDTabs button')).forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-k')===k? 'true' : 'false'); });
+  const bd=ins.querySelector('.insp-bd'); if(!bd) return;
+  let to=null;
+  if(k==='overview') to=bd.querySelector('.uiDTabs');
+  else if(k==='funding') to=bd.querySelector('.insp-lbl') || bd.querySelector('.insp-split');
+  else to=bd.querySelector('.uiDHist');
+  try{ if(to) to.scrollIntoView({block:'start', behavior:'auto'}); }catch(e){}
 }
 // ── THE IMPORT BOX ───────────────────────────────────────────────────────────────────────────────────────────
 function uiImpOpen(){
