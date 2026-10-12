@@ -689,8 +689,11 @@ result for it was run fresh against these commits.
     exports under the edited code.
   - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`, and again here on the current
     tree (`4a6f7c7`) with bounded synthetic probes.
-  - **U13:** the folder pull adopts a newer copy without counting it as a change, so a save still writing can mark that
-    copy saved. Read from the code, not reproduced. R5 covers the history restore only.
+  - **U13:** a folder pull during a save that is still writing can adopt another writer's newer copy, and the save then
+    records that copy as saved against the bytes it wrote. Reproduced on synthetic data; the window is narrow (another
+    writer must take the pen and save inside the write). Counting the adoption as a change does not fix it on its own.
+  - **U14:** a plan the board holds for a year outside its plan window, with no row counted in that year, is in no total.
+    Measured; not changed by U1; it needs a decision.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 
