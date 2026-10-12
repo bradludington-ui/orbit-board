@@ -301,3 +301,12 @@ workflow was launched at 6:08:07 AM ET.)
   re-measured on `63bd8b0` in the post-commit triage.
 - **Correction:** commit `b954eed` says "U27 opened", but its ledger edit failed (a script matched two "U17" rows) and the
   ledger was not changed in it. The U13 status, the U17 note and U27 are added in the next commit.
+
+## Update at 8:55 AM ET: the post-commit triage started
+
+Workflow `wf_d92fc4e6-08d` on a read-only archive of `63bd8b0` (`rec/L4/base`): U17 re-measured on the U13 commit (every
+route that reached it before, controls on `1375b72b`, and a search for any remaining route, e.g. U25's boundary); U19
+reproduced on the committed head (board-file save, then Put back and Save's HOLD ON; controls); a bounded U20 lock-wait
+probe (a shared, FIFO, exclusive in-process Web Lock mock for two tabs; controls); U24's three paths each tried during a
+held folder save and a held file save, with controls, or shown unreachable by code. Each probe is read-only, has its own
+adversarial checker, and puts any correction in a separate PROPOSAL.md, never applied.
