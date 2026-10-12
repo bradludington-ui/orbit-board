@@ -9,3 +9,5 @@ DONE
 v200-u2-putback-gen | applies once | audit-import | # exit: 1  duration_s: 486.6 | 9 FAILING CHECK(S) | blob 0d587506d7f6797c3e4bdb42c983af5012859693 | scenarios {'v2.00 (U2) — work put back during a save stays unsaved': 7}
 DONE
   ^ v200-u2-putback-gen attempt 3 OVERLAPPED (see OVERLAP.txt; log kept as v200-u2-putback-gen-OVERLAPPED-3.log); repeated
+v200-u2-putback-gen | applies once | audit-import | # exit: 1  duration_s: 554.0 | 9 FAILING CHECK(S) | blob 0d587506d7f6797c3e4bdb42c983af5012859693 | scenarios {'v2.00 (U2) — work put back during a save stays unsaved': 7}
+DONE
