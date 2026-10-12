@@ -342,3 +342,35 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   CONTROL unaltered snapshot verified, stopped only at the missing clone; A7 an unfrozen snapshot refused; G1 banner + exit 1,
   G2 banner + timeout (exit 124), G3 banner + interrupted runner (no end line), G4 failing-check line + exit 0, G5 exit 0
   without the verdict: all REFUSED; G6 CONTROL banner + exit 0 ACCEPTED. Evidence: `evidence/runner-40f7979/selftest/`.
+
+## Update at 10:54 AM ET: runner correction 2 (the independent review of 40f7979 did not approve it)
+
+- **Review of `40f7979`** (10:09–10:29 AM ET; `evidence/runner-40f7979/review/VERDICT.md`): **not approved**. Req 1 and 4
+  met; Req 2 and 3 not met, narrowly. Two must-fixes: **M1** `python3 -c` without `-I` in sens-import.sh (imports `re` and
+  `collections` from the launch directory; reproduced with planted modules) and in run.sh; **M2** run.sh's `setsid` without
+  `-w` records exit 0 at once when job control is on (reproduced: banner then exit 1 was ACCEPTED four seconds later).
+  Should-fixes S1–S9 (environment trust: git filters via `GIT_CONFIG_*`, replace refs via `GIT_DIR`, `BASH_ENV`, exported
+  functions; a failed fetch passed silently; in-band trailer markers, a banner after the trailer, `NOT ALL CHECKS PASSED`;
+  a `..x` file and an unfrozen snapshot root; refusals inside `$( )` and lanes that did not stop the queue; `.` as the
+  verdict for verify:grid and standards; NUL and "TIMED OUT" false refusals; self-test gaps; a truncated BOOTSTRAP.txt).
+  The reviewer found none of them triggered in the environment the queue runs in; its re-run of the self-test was 13/13.
+- **Runner correction 2** (this commit; records only, recovery/v200/bin): both must-fixes and every should-fix.
+  - One preamble, byte-identical in all nine runner shell scripts: `#!/bin/bash -p` and a re-exec under `env -i` (same
+    PID) keeping only the runner's own variables and the proxy; a fixed PATH/HOME/LANG/NODE_OPTIONS/NODE_PATH/Playwright/CA
+    environment (the values these runs already used, now set rather than inherited); provenance git with no system or
+    global config and no replace refs; blob ids computed directly in `python3 -I`.
+  - The runner commit must be on origin's claude/v200-fixes-wip at launch (`ls-remote`); a failed read refuses.
+  - The snapshot is `<outdir>/runner`, frozen whole (root included), checked entry for entry with `find`, links refused;
+    `vh` re-checks the frozen directories and the file at every call; the outdir must be new.
+  - run.sh: `setsid -w`; `python3 -I`; writes `<log>.exit` (exit, duration, the finished log's size and blob) after the
+    trailer; never overwrites a log. gate.sh: requires that record, an unchanged log, run.sh's header and trailer, the
+    pinned commit in the header, and the verdict as the suite's LAST line (whole-line match; standards on its real two-line
+    verdict; verify:grid labelled ACCEPT-EXIT-ONLY); `grep -a`; anchored `# TIMED OUT`.
+  - A refusal anywhere is recorded in `REFUSALS.txt` and stops the queue at its next check; every helper's exit status is
+    checked; backup-run is checked immediately before each call. backup-run's retry loop always stopped after the first try
+    and a failed push passed silently (found while doing this); it now retries and reports a failed push.
+  - final-tree-v4.sh stays in the directory, marked superseded and not approved; the queue is final-tree-v5.sh.
+- **Real-suite smoke** (scratch working copy of these scripts, before this commit, at `592d629`, 10:50–10:52 AM ET): under
+  the fixed environment npm run check, legacy-fsrc, boot-same and standards ran with exit 0, and the new gate ACCEPTED each on
+  its exact verdict (the controls -- a wrong verdict, a wrong line order, another commit -- were REFUSED). audit-recon,
+  audit-other and verify:grid were still running at this commit; their result is recorded with the self-test.
