@@ -15,7 +15,8 @@ for id in "$@"; do
   if ! python3 -I "$B/mkmut.py" "$C/tools/export-audit/mutate.mjs" "$C/prioritization-board-grid.html" "$id" "$M" > "$O/mut-$id.json"; then
     echo "$id NOT APPLICABLE" | tee -a "$O/summary.txt"; rm -f "$O/RUNNING"; continue; fi
   diff "$C/prioritization-board-grid.html" "$M" > "$O/mut-$id.diff"
-  (cd "$C" && "$B/run.sh" "$O/$id.log" 900 grace=20 BOARD="$M" -- node tools/export-audit/audit-import.mjs > /dev/null)
+  FF=; [ "$FIRSTFAIL" = 1 ] && FF="MUT_FIRST_FAIL=1"   # first-catch mode (pre-reset chain fallback only): the suite stops at its first failed check
+  (cd "$C" && "$B/run.sh" "$O/$id.log" 900 grace=20 BOARD="$M" $FF -- node tools/export-audit/audit-import.mjs > /dev/null)
   X=$(grep -E '^# exit' "$O/$id.log"); V=$(grep -m1 -o -E '[0-9]+ FAILING CHECK\(S\)|ALL CHECKS PASSED' "$O/$id.log"); T=$(grep -c 'TIMED OUT' "$O/$id.log")
   SC=$(python3 -c "
 import re,collections,sys; t=open('$O/$id.log',encoding='utf-8').read(); print(dict(collections.Counter(re.findall(r'^--- (.+?) \| ',t,re.M))))")
