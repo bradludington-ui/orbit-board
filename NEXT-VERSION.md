@@ -688,7 +688,8 @@ result for it was run fresh against these commits.
   - **U1:** a carried-row omission from the ALL YEARS total. Reproduced; it predates R1. A one-line correction was built on
     a disposable copy and measured: $540,000,000 → $660,000,000 on the fixture, and a saved FY25-only selection stays FY25
     after reopening. Not committed; it waits for Brad, as does one edge (a plan the board still holds for the carry year).
-  - **U2:** keptPutBack loses data in R5's race. Only the change count is missing; the repair scope is proposed.
+  - **U2:** keptPutBack loses data in R5's race. The change count is added (above, U2 1 of 2); refusing ↶ Put back while
+    a save is under way (2 of 2) is drafted, not committed.
   - **U3:** a Save queued behind a running save under the hold.
   - **U4:** the folder save's window for the hold.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
@@ -700,13 +701,15 @@ result for it was run fresh against these commits.
     exports under the edited code.
   - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`, and again here on the current
     tree (`4a6f7c7`) with bounded synthetic probes.
-  - **U13:** a folder pull during a save that is still writing can adopt another writer's newer copy, and the save then
-    records that copy as saved against the bytes it wrote. Reproduced on synthetic data with a second writer. Codex's
-    earlier case, with no second writer (a pre-existing copy dated ahead, a reopen with unsaved work, a refresh during the
-    save), is being reproduced; how often it can happen is not stated until that comparison is done. Counting the
-    adoption as a change does not fix it on its own.
-  - **U14:** a plan the board holds for a year outside its plan window, with no row counted in that year, is in no total.
-    Measured; not changed by U1; it needs a decision.
+  - **U13:** a folder pull during a save that is still writing can adopt a folder copy stamped later than the save, and
+    the save then records the board as saved against the bytes it wrote while it shows the adopted copy. Reproduced on
+    synthetic data with a second writer, and, on the current board and on `main`, with **no** second writer: a copy
+    already in the folder, stamped one hour ahead of this machine's clock, a reopen carrying unsaved work whose opening
+    pull had not adopted that copy, and a refresh during the save (the Live timer does it with no user action). How often
+    a copy is stamped ahead was not measured. Counting the adoption as a change does not fix it on its own.
+  - **U14:** a plan the board holds for a year outside its plan window, with no row counted in that year, is in no total,
+    and the ALL YEARS label's year range still names that year. Measured with the carryover rule off and on; not changed
+    by U1; the scope is mapped and it needs a decision.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 

@@ -81,7 +81,9 @@ An idle session's container is reclaimed, and the processes with it. The disk su
 `summary.txt` gets its DONE line or when the driver is gone. That should keep the container alive until the runs finish.
 If it does not, the next restart shows it.
 
-## Update at 10:26 PM ET: the commit-1 BASELINE did not run alone
+## Update at 10:24 PM ET: the commit-1 BASELINE did not run alone
+
+(First committed in f32be26 headed "10:26 PM ET"; it was written at 10:23–10:24 PM ET, so the heading was corrected.)
 
 **What runs.** The U2 commit-1 run started at 10:17:48 PM ET in the clone `rec/L2/wt-u2c1` (HEAD `4e90af4`, board
 `c08c6d2c`, audit-import `e63768bf`), output `rec/L2/sens-import-u2c1/`. The lock `AUDIT_IMPORT_RUNNING` was set. Driver:
