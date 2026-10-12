@@ -430,3 +430,8 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   and said; G8 now shows the suite's leftover ended with the run, G8b a line written after the record. Not in the
   self-test: a full queue run past the clone check (it would back up to orbit-board and take the live lock); the review's
   end-to-end harness covers it.
+- **11:34 AM ET:** self-test at `706f721` (frozen snapshot; 11:33:10-11:33:58 AM ET, exit 0): **41/41 PASS**, including G18 (all 13 queue
+  suites' real passing outputs ACCEPTED on verdicts.tsv; audit-inject's REFUSED on the old one-line verdict), A20, A21, G8
+  and G8b. Its log carried git's "grafts are deprecated" hint once per provenance call (`GIT_GRAFT_FILE=/dev/null` triggers
+  it; harmless, never in a suite log). This commit silences it (`-c advice.graftFileDeprecated=false` in provenance git)
+  and nothing else; the self-test is re-run at this commit and the runner goes to an independent re-review.
