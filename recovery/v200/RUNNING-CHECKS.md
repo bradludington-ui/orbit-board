@@ -124,3 +124,16 @@ paused until then.
   runs, with `overlap-watch.sh` recording (never killing) anything seen alongside. An attempt with anything seen is kept
   as `<id>-OVERLAPPED-<n>.log` and repeated, up to three attempts. Each finished attempt is backed up at once
   (`evidence/L2-u2/sens-import-u2c1-alone/`, `…/sens-import-u2c2/`).
+
+## Update at 11:47 PM ET: commit-1 results; the first driver stopped; the remaining runs restarted
+
+- **Commit 1 BASELINE, alone:** 10:41:35 PM ET, exit 0, 483.1 s, **ALL CHECKS PASSED**, nothing seen alongside
+  (`ad0dd2f`). This is the alone BASELINE for `4e90af4`; the 10:17 PM run stays OVERLAPPED.
+- **Commit 1 `v200-u2-putback-gen`:** three attempts, each **caught** (exit 1, 9 failing checks, all 7 failing scenarios
+  in "v2.00 (U2) — work put back during a save stays unsaved"; 498.5, 504.4 and 486.6 s). All three overlapped the UI
+  chunk-2 reviewer's Playwright probes (`uichunk2/rv2`), so none counts; each is kept as `…-OVERLAPPED-<n>.log`
+  (`b41e99e`, `1cc9313`, `dc082dd`). The driver then stopped, as written (exit 4, 11:42 PM ET), and cleared the lock.
+- **UI workflow** `wf_2a4e903a-382` completed by 11:36 PM ET; nothing of it runs now.
+- **Restart:** `rec/bin/alone-u2b.sh` (a copy of the first driver with only the id list and attempt numbering changed),
+  started 11:47 PM ET as process group 29586: commit 1 `v200-u2-putback-gen` (attempts from 4), then commit 2 BASELINE,
+  `v200-u2-putback-while-saving`, `v200-u2-putback-gen`.
