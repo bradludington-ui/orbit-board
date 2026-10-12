@@ -690,8 +690,10 @@ result for it was run fresh against these commits.
   - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`, and again here on the current
     tree (`4a6f7c7`) with bounded synthetic probes.
   - **U13:** a folder pull during a save that is still writing can adopt another writer's newer copy, and the save then
-    records that copy as saved against the bytes it wrote. Reproduced on synthetic data; the window is narrow (another
-    writer must take the pen and save inside the write). Counting the adoption as a change does not fix it on its own.
+    records that copy as saved against the bytes it wrote. Reproduced on synthetic data with a second writer. Codex's
+    earlier case, with no second writer (a pre-existing copy dated ahead, a reopen with unsaved work, a refresh during the
+    save), is being reproduced; how often it can happen is not stated until that comparison is done. Counting the
+    adoption as a change does not fix it on its own.
   - **U14:** a plan the board holds for a year outside its plan window, with no row counted in that year, is in no total.
     Measured; not changed by U1; it needs a decision.
 
