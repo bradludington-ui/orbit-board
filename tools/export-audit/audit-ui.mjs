@@ -934,6 +934,46 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (M1) — the save state put back is the one taken after the files were read';
+  const __bm = bootMark();
+  try {
+    // A part-way failure is put back to the board as it was once its files were read -- its save state too. Every case of
+    // the fix round started from a board that already read Unsaved changes, so a put-back that kept the save state from
+    // BEFORE the reads went unseen (the verifier's w06). Here the board is opened from its saved file and reads Saved; Depot
+    // Mid is folded in while the files are read (stored, and in no saved file), then Cancel part-way. The header must keep
+    // saying Unsaved changes: a board that read Saved there would let Depot Mid be lost from the shared file on closing.
+    {
+      const where = 'a board opened from its saved file · Depot Mid folded in while the files are read · AV taken, then Cancel on no year';
+      const { S0, X } = await readySaved();
+      const A = stNow(X);
+      chk(name, where, 'CONTROL — before: reads Saved, nothing unsaved, storage holding the plan’s base only, the eight seeded destinations',
+        J([A.unsaved, /^Saved /.test(A.head), Object.keys(A.ls), A.dest]), J([false, true, ['prio27om.base'], SEEDED]));
+      whileRead(X, `destPkgIn({dest:[{k:'dMid', n:'Depot Mid', kind:'gov', t:''}]}); window.__unsavedAfterReads=unsavedNow();
+        window.__saveAfterReads=JSON.stringify([_sideGen, _sideSaved, _dlOnly, DIRTY, _saveGen, JSON.stringify(_lsRefused)]);`);
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY]);
+      chk(name, where, 'CONTROL — once the files were read, Depot Mid had made the board unsaved', X.ev('window.__unsavedAfterReads'), true);
+      chk(name, where, 'not loaded; AV had been taken; put back and checked', J(b.r), J({ ok: false, taken: 1, asks: [], back: true, same: true, left: [] }));
+      chk(name, where, 'the message is the plain one', J(b.said), J([HEAD_NOFY + '\n\n' + SAME]));
+      chk(name, where, 'storage writes: Depot Mid’s, then AV’s, then the put-back', J(b.writes), J(['set prio27destdb', 'set prio27destdb', 'set prio27destdb']));
+      const Z = stNow(X);
+      chk(name, where, 'the header says Unsaved changes, and the board counts itself unsaved: Depot Mid is in no saved file', J([Z.head, Z.unsaved]), J(['Unsaved changes', true]));
+      chk(name, where, 'the save state is exactly the one taken once the files were read', J(Z.save) === X.ev('window.__saveAfterReads'), true);
+      chk(name, where, 'Depot Mid kept on screen and in the copy kept in this browser; Depot Zulu in neither',
+        J([Z.dest, JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n)]), J([SEEDED.concat(['Depot Mid']), SEEDED.concat(['Depot Mid'])]));
+      chk(name, where, 'the review exactly as before: TSS held', J([Z.review === A.review, JSON.parse(Z.review).subs.map(p => p.pmo)]), J([true, ['TSS']]));
+      chk(name, where, 'the board reopened in this browser reads Depot Mid with the seeded eight, without errors', J(reopen(X)),
+        J({ dest: SEEDED.concat(['Depot Mid']), errors: [] }));
+      chk(name, where, 'no page errors', J([S0.errors, X.errors]), J([[], []]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.00 UI chunk 3 (M1, fix round 2) ====
 
 {

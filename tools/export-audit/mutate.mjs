@@ -4328,6 +4328,10 @@ const MUTATIONS = [
   { id: "v200-ui3-reads-same-list", area: "uiSubMany (refuse)", what: "the message says reopening would read the stored list 'instead of the destination list on screen' when the two are the same",
     find: "          const reads=t!==null && isFinite(t) && t>=(+DESTDB.ts||0) && held!==uiJson(DESTDB);",
     repl: "          const reads=t!==null && isFinite(t) && t>=(+DESTDB.ts||0);" },
+  // v2.00 UI chunk 3 (M1, fix round 2): the verifier's w06, which no check could see. Caught by audit-ui.mjs.
+  { id: "v200-ui3-snapshot-keeps-old-save", area: "uiSubMany", what: "the snapshot taken after the files are read keeps the save state from before them: a board that read Saved, given a destination while the files were read, reads Saved again after a part-way failure, though that destination is in no saved file",
+    find: "  // here to the end nothing waits, so nothing else can change the board while the batch runs\n  was=uiBatchSnap();",
+    repl: "  // here to the end nothing waits, so nothing else can change the board while the batch runs\n  was=Object.assign(uiBatchSnap(), {save:was.save});" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));
