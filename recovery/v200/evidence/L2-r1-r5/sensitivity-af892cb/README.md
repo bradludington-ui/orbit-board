@@ -1,4 +1,11 @@
-# Committed-suite sensitivity in audit-import at `af892cb12713dd22afd9a84c0ec604b30614f6ea`: PARTIAL backup (7:46 PM ET)
+# Committed-suite sensitivity in audit-import at `af892cb12713dd22afd9a84c0ec604b30614f6ea`: PARTIAL backup (7:46 PM ET; reorganized 8:24 PM ET)
+
+**Layout (Brad, 8:14 PM ET: "Preserve interrupted and completed runs separately"):**
+- `completed/` holds only runs with an end line and an exit code.
+- `interrupted/` holds the three runs cut off by container restarts, numbered in order. None of them counts.
+- `mutants/` holds each mutant's diff and its mkmut record.
+- `summary.txt` is the driver's own running record. Interrupted lines are marked INCOMPLETE there.
+- `REUSE-JUSTIFICATION.md` says whether these results stand for `4a6f7c7`; it is pending its dynamic premise.
 
 **Where it runs:** a git clone at af892cb (`scratchpad/rec/L2/wt-af892cb`), since audit-import's v1.86 block needs git.
 
