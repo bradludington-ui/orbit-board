@@ -569,3 +569,10 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
 - **5:06 PM ET:** self-test at `2bfb590` (frozen snapshot; 5:05:29-5:06:08 PM ET, exit 0): **42/42 PASS** (A22: 0 queue commits, 0 under
   evidence/x, origin read, evidence status same). Evidence `evidence/runner-2bfb590/selftest/`. The reviewer that approved 2d is
   asked to check the 2e delta.
+- **5:17 PM ET:** **2e delta review: approval stands, no must-fix** (appended to `evidence/runner-e42cfb6/review-VERDICT.md`). SF-A fixed (a decoy
+  holding a stale record's group id left alive in a PID namespace; a group carrying the run's own RUNNER_RUNLOG ended); SF-B
+  narrowed (late runs at +1.7 s now ended; a 4.6 s start-up still escapes, so the margin is about 4 s); the extra variable breaks
+  nothing (fake queue DONE with every baseline ACCEPT; real npm run check, legacy-fsrc, boot-same ACCEPT); endruns_in matches
+  exactly (no prefix collision; spaces, * and [ab] handled); SF-E fixed; SF-C fixed (two nits). **The runner to use is
+  `2bfb59022ec74e1abe36a7cfd6a13ce5aabd9aed`** (blobs in `bin/BLOBS.md`). The final-tree queue stays held until the selected changes
+  are integrated and pinned.

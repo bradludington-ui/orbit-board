@@ -313,3 +313,59 @@ product suite ran; all suites were fakes.
 - I killed only my own recorded PIDs and groups, and decoys inside my own PID namespace.
 - `chattr -i` was used only on my snapshots. **0 immutable entries remain under `$W`** (4:59 PM ET).
 - The scratch lock left by run5 ("someone else's run") was removed.
+
+## 2e delta (2bfb590), reviewed 5:06-5:16 PM ET
+
+**Verdict: approval stands.** 2e fixes SF-A, SF-C and SF-E, and narrows SF-B. There is no must-fix.
+
+- **Scope and setup.** I reviewed `git diff e42cfb6 2bfb590 -- recovery/v200/bin`.
+  - **Diff:** 2e changes run.sh, the preamble (`endruns_in`), stop()'s tail, alone-run's EXIT trap and A22.
+  - **Checked:** BLOBS.md matches all 14 blobs, and the preamble is identical in all 9 scripts.
+  - **Harness:** `$W/delta-2e/e2e`, the same harness rebuilt on 2bfb590.
+  - **Records:** every PID is in `delta-2e/pids.txt` (86); none are alive and none of my snapshots are immutable.
+  - **orbit-board** is unchanged (HEAD 31ee327, the lead's).
+
+**1. SF-A (d27, run in a private PID namespace).**
+- **The stale-PGID decoy:** a plain environment with the PGID of attempt 1's stale record was **left ALIVE**. The control was also ALIVE.
+- **A second decoy** carried `RUNNER_RUNLOG=<that BASELINE.log>` with attempt 2's stale PGID, and was ended. That is by design: only the run's
+  own processes carry that string.
+
+**2. SF-B (d25).**
+- **Fixed for the reported timing:** runs registering at +1.7 s (clone-slow) are now ended (143) at +2.0 s, in 2/2 runs. The queue exits at
+  +4.3 s.
+- **Residual, low:** a 4.6 s start-up (clone-slower) still escapes. audit-hostile finished exit 0 at +10.8 s. The margin is now about 4 s,
+  roughly 13 times the normal start-up.
+
+**3. The extra environment variable.**
+- **Fake suites (d1):** DONE, exit 0, all 13 baselines ACCEPT and verify:grid ACCEPT-EXIT-ONLY.
+- **Real suites** (allowed exception, scratch clone at 31ee327 through 2e's run.sh and gate.sh): `npm run check`, legacy-fsrc and boot-same
+  all ACCEPT.
+- **Code check:** the suites read only named env keys. The env spreads are in validate-math and mutate.mjs, which the queue never runs.
+
+**4. `endruns_in` (unit E1-E7, `delta-2e/unit/results.txt`).** The function was taken verbatim from 2bfb590.
+- **An empty dir** matches every verified record.
+- **`<dir>`** matches only that dir and below it:
+  - `import` does not match `import2`;
+  - a dir with a space is handled correctly;
+  - `*` and `[ab]` are matched literally.
+- **Always skipped:** a record whose log has an exit record, an environment naming another log, and an environment holding a longer string.
+- **A trailing slash** matches nothing. That fails safe, and the queue never passes one.
+
+**5. alone-run's trap.**
+- It reaches only `"$O/"*` records, and each is verified by its environment.
+- `O` is its own second argument, set after `vh`, and the queue gives every stage its own outdir.
+- **d29:** TERM to alone-run on its own now ends the run (143 at +0.0 s) before the lock goes.
+
+**6. A22 (unit K1-K6, `delta-2e/unit/a22-results.txt`).**
+- **Another session's commit and push:** PASS.
+- **Every self-test write path FAILs it:**
+  - a "final tree" backup commit, whether or not it is pushed, even if the branch is reset back afterwards;
+  - any commit under `evidence/x`.
+- **Two nits:**
+  - If `H0` is empty, the HEAD range is vacuous (K6). Require H0 and H1 non-empty, as "origin read" already does for the origin range.
+  - "evidence status same" still counts files across the whole window, so another session's untracked evidence files can still trip it.
+
+**Other nits.**
+- A group whose `timeout` leader has already exited is no longer signalled. Its leftovers are then ended only by run.sh.
+- stop() now waits about 2 s longer before backing up. d23, with the launcher's `timeout -k 10 12`, still ended the suite and pushed
+  STOPPED.
