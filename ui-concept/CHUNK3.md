@@ -2,13 +2,14 @@
 
 Branch `claude/v200-ui`, local only, not pushed. Chunk 2 ended at `eba613f` (its review); its board commit is `f95fee2` (board `9f61d32b…`). Base product `4a6f7c7` (board `4d273c06…`).
 
-Chunk 3 is done in parts, each a separate fix with its own tests and its own review. Brad, 12 Oct, 6:00 AM ET: *"Fix UI M1 in chunk 3, with cancellation and failed-rollback tests."* 6:11 AM ET: *"Continue M1 and U13 as separate fixes with their focused tests and independent reviews."*
+Chunk 3 is done in parts, each a separate fix with its own tests and its own review. Brad, 12 Oct, 6:00 AM ET: *"Fix UI M1 in chunk 3, with cancellation and failed-rollback tests."* 6:11 AM ET: *"Continue M1 and U13 as separate fixes with their focused tests and independent reviews."* Part 2 is the review items Brad approved at 6:11 AM ET (S1–S5); see "Part 2" at the end.
 
 | Part | What | Board commit | Board blob |
 |---|---|---|---|
 | 1 | M1: "All submissions at once" is all or nothing | `aac8574` | `ba8d020431afc0ead32cc6ee6fa66d6b301ce583` |
 | 1, fix round | M1's tests, after its independent review: the cases the review found no test could see | `fc01792` (tests only) | unchanged: `ba8d0204…` |
 | 1, fix round 2 | M1 after its second review: a batch refused before it takes anything says only what is true of it; then tests for the save state taken after the reads, the other storage keys, and the saved file and reopening after a failed put-back | `58803c9` (board and its tests), then `e439683`, `b418340`, `775903f`, `5a298b7` (tests only) | `2d1d855edda98f9179d7254ef0d4c5ff7f46b26f` |
+| 2 | The chunk 2 review's S1–S5, each its own commit: the posture strip wraps (S1); "Last recorded edit" and board-wide journal lines (S2); the refused-batch check and the note at `pmoTake` (S3); Reports clear of the sidebar (S5); the Import box's opener and the browser tools (S4) | `2916f0a`, `088acf8`, `cb86178`, `8f331a8`, `8325909` (board and its tests or tools), then `0af09b6`, `df05821`, `2ce11b6` (tools only) | `5e9e5a5e383e0553342f822050b36da7d23e9eab` |
 
 **Integration stays pending** until each part has been reviewed.
 
@@ -438,3 +439,213 @@ program screenshots of the M1 messages at the exact board commit" was not met at
   top, which shows the board file's name: 0 differing pixels below y = 90 in each (ImageMagick `compare`).
 - No message quoted in this file changes.
 
+
+---
+
+## Part 2 — the chunk 2 review's S1–S5
+
+Brad, 12 Oct, 6:11 AM ET, verbatim: *"S1: fix wrapping and verify every posture control is visible and usable across the reported widths, including 1440. S2: consider board-wide journal events before filtering by year; suppress a misleading 'Last recorded edit.' S3: add the refused-batch test and note. Verify storage, MS and DESTDB remain unchanged, including no unintended writes. S5: make every affected Reports item visible and clickable at 760 and 1000. S4: update tools for relocated controls and the slide-over default, retaining docked coverage. Preserve meaningful keyboard, focus, visibility and interaction assertions. Fix the Import dialog's opener/return-focus mapping. For the 1152 context-bar wrap, show that all controls remain usable; do not simply waive the failure."* (6:00 AM: *"Update layout tests for the slide-over default while retaining checks for optional docking."*)
+
+Started from `670c467` (M1, board `2d1d855e…`). Each item is its own commit; S4 is four (one product fix, three tool groups). Every check, screenshot and result below was taken at the commit it names; the final board is **`5e9e5a5e383e0553342f822050b36da7d23e9eab`** (commits `8325909` to `2ce11b6` and after). The board file is still an empty template: "Synthetic", "SYN-", "Depot Zulu", "Depot Mid" and "probe note" occur 0 times in it. Against base the board diff is still **insertions only** (1,056 added, 0 removed); against `670c467`, 51 added and 5 removed, all five in chunk 1's and chunk 2's own UI code.
+
+| Commit | Item | What | Board blob |
+|---|---|---|---|
+| `2916f0a` | S1 | the posture strip wraps in Funding and Brief at every width; `checks/sweep3.mjs` (posture) | `80457192…` |
+| `088acf8` | S2 | board-wide journal lines read before the year filter; audit-ui S2 section; 5 mutations | `832e8384…` |
+| `cb86178` | S3 | the comment at `pmoTake`; audit-ui S3 section; 4 mutations | `e0a90736…` |
+| `8f331a8` | S5 | a toolbar menu stays clear of the sidebar; `sweep3.mjs` (reports) | `773c5af3…` |
+| `8325909` | S4 | the Import box gives the keyboard back to its opener; dialogs-keyboard and panels-render know its opener | `5e9e5a5e…` |
+| `0af09b6` | S4 | inspector-agrees, editors-reachable, keyboard-reach D/D2: a slide-over pass and a docked pass | unchanged |
+| `df05821` | S4 | keyboard-reach A, F, L re-pointed to where chunk 1 moved the controls | unchanged |
+| `2ce11b6` | S4 | toolbar-fits: every control at the top on screen, whole and clickable | unchanged |
+| `83c589f` | — | screenshots at `2ce11b6` (board `5e9e5a5e…`) and the script that took them | unchanged |
+
+### S1. The posture strip wraps; every control in it is on screen and clickable
+
+**What was wrong.** chunk 2 wrapped the strip only where the room was under 1100px, and in Brief under 1400px. In Funding at a room of 1101–1400 (1440 among the windows, with the sidebar open) and in Brief wider than that, Needs attention's last entries and **Funding detail** sat past the right edge inside the strip's scroller.
+
+**The fix (CSS only).** `html.ui-on .posture{flex-wrap:wrap;overflow:visible}`: the strip wraps wherever its items do not fit on one line; where they fit it is one line, as before. The strip shows only in Funding and Brief, so this is those two.
+
+**Checked** by `ui-concept/preview-chunk3/checks/sweep3.mjs posture` (committed): every control in the strip, in Funding and Brief, at every width 700–1900 in steps of 20 (1440 among them), with the sidebar open, as the rail, docked, and docked with the rail, set as a person sets them. A control passes when it is inside the strip and the window, the strip does not scroll, and the control is the element under its own centre (`elementFromPoint`). The rows are checked at each width too. Its seed is the chunk 2 review's (nine-digit figures), plus one requirement without a CCaR record so Needs attention carries one entry more.
+
+| Board | Widths with a control cut off or covered (of 61, per mode and setting) |
+|---|---|
+| `f95fee2` (chunk 2) and `670c467` (M1) | **111**: sidebar open Funding 1340–1800 (24), Brief 1640–1860 (12); rail Funding 1180–1620 (23), Brief 1480–1700 (12); docked Funding 1340–1400 (4), Brief 1640–1860 (12); docked + rail Funding 1180–1400 (12), Brief 1480–1700 (12) |
+| `2ce11b6` (final) | **0**, in all eight; no row problem and no page error |
+
+Screenshots at 1440: `part2/f-1440-funding-posture-strip-{sidebar-open,rail,docked}.png` and `part2/b-1440-brief-posture-strip-{sidebar-open,rail,docked}.png`. The strip wraps to two lines (99px in Funding, 110px in Brief, sidebar open), Funding detail on the second at the right.
+
+### S2. A board-wide journal line recorded under another year suppresses "Last recorded edit"
+
+**What was wrong.** `uiLastEdit` filtered the journal by the year on screen before it looked for a board-wide line, so a service-list change made while FY28 was on screen left FY27's record saying "Last recorded edit … note" over figures it had moved.
+
+**The board-wide kinds, found by reading every `jrnlAdd` and `jrnlSync` in the board:**
+
+| Kind | Written by | Board-wide? |
+|---|---|---|
+| `(load)` | `jrnlSync(note)` — only the folder restore ("restored the copy from …") | yes: a whole copy |
+| `(services)` | `svcSaveList` | yes: every year's figures move with their service |
+| `(more)` | `jrnlCapture`, past 200 changes in one save | yes: the uncounted changes can be in any year |
+| `(unrecorded)` | `jrnlCapture`, when the walk fails | yes: the same |
+| `(writer)` | `writerJournal` — the pen changing hands | no: it changes no field and no figure |
+| `[]` (empty path) | `jrnlCapture` — a whole fiscal year created, removed or replaced | no: that year's own |
+| `removed` | `jrnlCapture` — the year's removed list | no: that year's own |
+
+**The fix** (`uiLastEdit` only): every kind in brackets except `(writer)` is read **before** the year filter; a kind in brackets this does not know is taken as board-wide too. The whole year and `removed` stay after the filter, as before.
+
+**Tests** (`audit-ui.mjs`, a new marked section; nothing above it changed). Each case is the board's own calls: a note on S03 in FY27 (`setNote`), FY28 opened (`switchYear`, rolled forward), something done there, FY27 opened again; then `uiLastEdit('S03')` and the RECORD panel's Overview and History, read after the board's own `setCur`.
+
+| Case (all while FY28 is on screen unless said) | FY27's record |
+|---|---|
+| CONTROL: nothing done in FY28 | names the note, exactly |
+| `svcSaveList(['USAF','ANG'])` (as the chunk 2 review's `svcline.mjs`); S03's FY27 value becomes `[7,000,000, 2,000,000]` | **no line** |
+| `jrnlSync('restored the copy from probe')` — the board's own call the folder restore makes (the folder cannot be reached in jsdom) | **no line** |
+| 201 notes written at once (the test's write), then the board's own `save()`: it records 200 and `(more)` | **no line** |
+| a save whose journal walk throws once (fault injected): `(unrecorded)` | **no line** |
+| the service list changed while FY27 is on screen | no line (as before) |
+| the pen changed hands (`writerJournal`) | names the note |
+| a note on S03 in FY28 | names FY27's note; FY28 names FY28's |
+| S05 removed in FY28 (`removeReq`) | names the note |
+
+44 checks; on the board before S2 (`2916f0a`, and `670c467`), 8 fail, all in the four board-wide cases. The chunk 2 review's `rv2/probe.mjs` goes from 129 PASS, 1 FAIL (S2) to **130 PASS, 0 FAIL**.
+
+**Mutations** (appended to the `v200-ui3` group at the end of `MUTATIONS`):
+
+| Mutation | What it breaks | audit-ui at `2ce11b6` (604 checks) |
+|---|---|---|
+| `v200-ui3-lastedit-year-first` | the year filter before the board-wide check (chunk 2's S2) | caught: 8 |
+| `v200-ui3-lastedit-services-only` | only the service list taken as board-wide | caught: 6 |
+| `v200-ui3-lastedit-writer-wide` | the pen's line taken as board-wide | caught: 2 |
+| `v200-ui3-lastedit-removed-wide` | another year's removal taken as board-wide | caught: 2 |
+| `v200-ui3-lastedit-no-year-filter` | the year filter dropped | caught: 7 |
+
+### S3. A refused batch from a board that reads Saved changes nothing and writes nothing; the note at `pmoTake`
+
+**The note** (comment only; `pmoTake` is otherwise byte-identical to base), one line above it:
+`// v2.00 (UI S3): uiTakeDry dry-runs this on a copy, holding back only alert, confirm, setStat, subOpenReview, destPkgIn, PMOSUBS and PMOPICK -- anything else this comes to change must be held back there too.`
+
+**Tests** (`audit-ui.mjs`, a new marked section). Every M1 case starts from a board already reading *Unsaved changes*, where a dry run that marked the board unsaved shows nothing. These start from a board opened from its saved file (reads *Saved*; storage holds the plan's base only), TSS held, storage instrumented (every `setItem` and `removeItem` logged). Five refusals: a good file then a malformed one (the chunk 2 review's D(a)); the same office twice; a good file then one of the wrong width (refused by the dry run, which ran `pmoTake` on both); a good file then one that would ask; a good file then one with no office (asked after its own list is folded in). Each: refused, nothing taken, nothing asked, the message literally; **`setItem` and `removeItem` never called**; every storage key and value as before, and the one key it held; `MS` the same object with the same journal, as text as before; `DESTDB`, its `ents` and `lmap` the same objects, as text as before, the eight seeded; the review the same objects, as before; the save state as before, the header *Saved*, nothing unsaved. 50 checks, all passing at `670c467` too: the behaviour was already right; this is the check the review asked for.
+
+| Mutation | What it breaks | audit-ui at `2ce11b6` (604 checks) |
+|---|---|---|
+| `v200-ui3-dry-marks-unsaved` | the dry run marks the board unsaved | caught: 6, all in this section; it passes all 510 M1 checks (a focused harness of the M1 sections alone) |
+| `v200-ui3-dry-writes-journal` | the dry run writes a journal line | caught: 119 |
+| `v200-ui3-dry-writes-storage` | the dry run writes a storage key | caught: 69 |
+| `v200-ui3-dry-folds-dest` | `destPkgIn` no longer held back | caught: 114 |
+
+### S5. Every Reports item is on screen and clickable at 760, 761 and 1000
+
+**What was wrong.** Reports & exports hangs from its button's right edge. With Five years & PPBE or CCaR & accounting files unfolded it is wider than the room to the button's left, and the board's own `fitMenus()` moved it to 8px (760, 761) or 191px (1000) from the window's edge, under the sidebar.
+
+**The fix.** The UI wraps `fitMenus()` — its body unchanged — as the board wraps `render()`: after it places a toolbar menu, the new `uiMenuFit()` moves it right to the sidebar's edge plus 8px, and holds a menu wider than the room right of the sidebar to that room, scrolling, as `fitMenus()` does at the window's edge. A menu in the rows or a box (`fitMenus`' fixed-position branch) is left as it places it.
+
+**Checked** by `sweep3.mjs reports`: Reports and each of its groups unfolded from its heading, at 760, 761, 1000 and every width 700–1900 in steps of 20 (and every other toolbar menu at 760, 761 and 1000), sidebar open (at 900 and narrower, opened over the page; the click on Reports closes it, as any click outside it does) and as the rail. 479 menus judged per setting: the menu inside the window and clear of the sidebar, every item scrolled into view inside the window and the element under its own centre.
+
+| Board | Problems |
+|---|---|
+| `f95fee2` (chunk 2) and `cb86178` (before S5) | 612 each (sidebar open: 366 at 17 widths; rail: 246 at 10), Filter at 1000 included |
+| `2ce11b6` (final) | **0**; no menu scrolls sideways. Five years & PPBE at 760: 72–676px; at 1000 with the sidebar open: 240–844px |
+
+`tools/dropdowns-visible.mjs` (unchanged) **passes**: 408 drop-downs at 8 window sizes, in both fonts. Screenshots: `part2/r-{760,1000}-{sidebar-open,rail}-reports-{five-years-ppbe,ccar-accounting}-unfolded.png`.
+
+### S4. The browser tools, and the Import box's opener
+
+**The product fix.** The board's own box controller hands the keyboard back to the last control it was on before a box opened. Opened by keyboard it already returned to Import (checked before the change, 8 of 8). But a browser whose buttons take no focus from a click (Safari; Firefox on a Mac) left it on the search box, or wherever it last was. Emulated in Chromium (the press on the opener held back), 12 of 12 closings landed on `#q`. `uiImpOpen(from)` now gives the keyboard to the control that opened it first; `#uiImpBtn` passes `this`, the sidebar's Imports passes its button. After: 12 of 12 on the opener, at 1440 and at 800 (the sidebar over the page).
+
+**The tools.** No assertion was deleted or loosened; each change is listed with the line it replaces (`670c467` line numbers).
+
+| Tool | Old | New | Why |
+|---|---|---|---|
+| `dialogs-keyboard.mjs:39` | `KNOWN` had no entry for `uiImpClose` ("uiImpPanel: did not open") | `uiImpClose: 'uiImpOpen('`; plus 16 checks: two openers (Import, Imports) × by key and by a focus-less click × Esc, ✕ Close, Cancel, a click outside — the keyboard on the opener | the tool reads a box's opener off its backdrop's close call, which named none. On `8f331a8`'s board the new checks fail 8 of 16 (the click cases); at `8325909`, 16 of 16 |
+| `panels-render.mjs:51` | no `SPECIAL` entry; it ran `uiImpClose()` to open ("uiImpPanel opens: display:none") | `uiImpPanel: 'uiImpOpen();'` | the same; opened, it passes all four of its checks |
+| `inspector-agrees.mjs:31` | every row clicked straight from the table, the panel docked at 1700 | two passes: sliding over (Esc between rows; that the drawer opened and closed is checked) and docked (`prio27uiDock='1'`, picked straight from the table, as before) | at 1700 the open drawer's scrim takes the click meant for the next row |
+| `editors-reachable.mjs:128` | `wantDocked = w > 1400` | every check in two passes: docked, `w > 1400` beside the rows with no scrim and a drawer at 1400 and below (the old rules word for word); sliding over, a drawer at every width; and the setting must take | the panel slides over by default; docked is View's choice |
+| `keyboard-reach.mjs:116,134,145` (D, D2) | one pass, re-clicking the row with the drawer open | two passes; sliding over, Esc before the row is picked again; the panel's placement checked | the scrim, as above |
+| `keyboard-reach.mjs:72` (A) | "the Message button is reached with Tab from the search box" (`tabTo('#q', …)`) | "… from the control before it in the context bar" (`#b_pmo`, found on the page) | the search box moved to the toolbar, after the message in the tab order |
+| `keyboard-reach.mjs:189` (F) | Tab `#tab_review` → `#tab_fund` | Tab `#uiNav_req` → `#uiNav_fund` in the sidebar; the board's pressed button **and** the sidebar's current section must follow. Added: Review → Rank on the task bar's own pair | the mode switch is the sidebar's; the task bar keeps Review / Rank |
+| `keyboard-reach.mjs:311,314` (L) | Review, Tab from `#q` | Funding, Tab from `#b_share`; twice, sliding over and docked | the strip shows only in Funding and Brief, and the search box moved below it |
+| `toolbar-fits.mjs:39` | one line above 1100px, nothing past the edge | the same, **and** every control in the context bar, task bar, posture strip and the page's heading and toolbar inside the window, not cut by an ancestor that clips, and the element under its own centre | Brad: show that all controls remain usable at 1152 |
+
+**1152, said plainly.** The one-line rule is kept exactly as it was, and **it still fails at 1152** (review and fund): beside the open sidebar the context bar has 920px, under the board's own 1100px wrap point, and it wraps to two lines (77px). On the same lines the new check finds all 22 (review) and 18 (fund) controls on screen, whole and clickable; and at every other width. A negative control (the context bar forced onto one clipped line, in a scratch copy) passes the one-line rule and fails the new check by name: `#b_share` at 1152, and `#saveBtn`, `#helpBtn`, `#b_share` at 1024. Screenshots: `part2/t-1152-{review,funding}-context-bar-wraps-every-control-usable.png`.
+
+### `npm run verify:grid`, on base, chunk 2 and the final commit
+
+Each in a scratch copy of the commit (`git archive`, `node_modules` linked), BOARD unset: the npm chain as a whole (it stops at the first tool that fails), then every one of its 14 tools on its own. Base's and chunk 2's tools are base's (unchanged until part 2); the final commit's are this part's.
+
+| Tool | Base `4a6f7c7` | Chunk 2 `f95fee2` | Final `2ce11b6` | Final against base |
+|---|---|---|---|---|
+| `npm run verify:grid` | 1 (stops at layout-fits, 274 s) | 1 (stops at row-controls) | 1 (stops at row-controls) | see the rows below |
+| chrome | 0 | 0 | 0 | same |
+| row-controls | 0 | 1: 3 controls not recorded | 1: the same 3 | **differs**: chunk 1's RECORD panel History and tabs (`mRun(showLog)`, `mRun(toggleJrnl)`, `uiDTab('…')` ×3); not in part 2's scope |
+| inspector-agrees | 0 | 1: the scrim takes row B's click | 0 (both passes) | same |
+| toolbar-fits | 0 | 1: 1152 wraps | 1: 1152 wraps; every control usable | **differs**: the one-line rule at 1152, above |
+| editors-reachable | 0 | 1: "drawer, not beside the rows" | 0 (both passes) | same |
+| colour-check | 0 | 0 | 0 | same |
+| menu-paths | 0 | 0 | 0 | same |
+| panels-render | 0 | 1: "uiImpPanel opens: display:none" | 0 | same |
+| fydp-frames | 0 | 0 | 0 | same |
+| hostile-render | 0 | 0 | 0 | same |
+| layout-fits | 1: J × 6 (this container) | 1: D × 4 | 1: D × 4 | **differs**: base fails J (the known container difference, U28), the UI passes J and fails D (the first row starts at 323px, 453px at 1024: chunk 1's heading and cards, m7, Brad's call on the look) |
+| keyboard-reach | 0 | 1: 10 checks | 0 (91 checks) | same |
+| dropdowns-visible | 0 | 1: 100 problems | 0 | same |
+| dialogs-keyboard | 0 | 1: "uiImpPanel: did not open" | 0 (and 16 of 16 Import focus checks) | same |
+
+So the final commit differs from base in three tools: row-controls and layout-fits D, both from chunk 1 and outside the five items Brad approved, and toolbar-fits' one-line rule at 1152, kept and failing. The gate does not pass.
+
+### Every check and its result (at `2ce11b6`, board `5e9e5a5e…`)
+
+Every command went through `run.sh`: the AUDIT_IMPORT lock checked first (never present), `setsid -w timeout -k 10 600` (300 or 180 for the small ones), the PIDs recorded, BOARD unset unless named. Logs, PIDs and every run are in the scratchpad's `uichunk3/p2/`.
+
+| Run | Start (ET) | Exit | Wall (s) | Result |
+|---|---|---|---|---|
+| `audit-ui` | 17:54:50 | 0 | 56.3 | ALL CHECKS PASSED |
+| `audit-ui`, counted | 17:55:46 | 0 | 56.9 | 604 checks (510 + 44 + 50), 0 failed |
+| `audit-ui`, counted, on the board at `670c467` | 17:56:43 | 1 | 55.0 | 604 checks, 8 failed: all S2's |
+| `audit-ui`, counted, on `f95fee2` | 17:57:38 | 1 | 55.0 | 604 checks, 278 failed (254 in M1's sections, as at `5a298b7`; 8 in S2's; 16 in S3's, whose literal messages are M1's) |
+| `mcount` (text only; python, not through run.sh) | 17:58:33–17:58:41 | 0 | — | 1,340 entries, 1,340 once; on `670c467` 1,335 once, the five `lastedit` entries missing; on `f95fee2` 1,309 once, 31 `v200-ui3-*` missing (the four `dry-*` of S3 match chunk 2's `uiTakeDry`); on base 1,305 once, the 35 `v200-ui3-*` missing |
+| `boot-same` | 17:58:41 | 0 | 6.8 | same, in all four cases |
+| `audit-other` | 17:58:48 | 0 | 22.9 | ALL CHECKS PASSED |
+| `audit` | 17:59:11 | 0 | 7.0 | ALL CHECKS PASSED |
+| `audit-recon` | 17:59:18 | 0 | 46.5 | ALL CHECKS PASSED |
+| `check` | 18:00:05 | 1 | 3.1 | the same 10 `jsa()` values as before (chunk 1's) |
+| the 35 `v200-ui3-*` mutants, each built as text and run through the counted audit-ui | 18:00:08–18:33:38 | 1 each | 49.3–79.7 each | **all 35 caught** by real checks; no block threw (the table is in the scratchpad's README) |
+| `sweep3.mjs posture` / on `f95fee2` | 17:55:20 / 17:56:42 | 0 / 1 | 82.6 / 81.9 | 0 widths with a problem / 111 |
+| `sweep3.mjs reports` / on `f95fee2` | 17:58:04 / 18:03:09 | 0 / 1 | 305.3 / 301.1 | 0 problems / 612 |
+| `shoot-chunk3-p2.mjs` | 17:53:12 | 0 | 75.7 | 37 PNGs, no page errors |
+| verify:grid, three lanes (base, chunk 2, final) | 17:40:36–17:53:02 | as in the table above | | |
+
+### Preservation, after every commit
+
+The chunk 1 reviewer's `rv-smoke.mjs` and the chunk 2 reviewer's `probe.mjs`, `m1.mjs` and `openwrites.mjs` were run after each of the eight commits (`pres.sh`):
+
+- **Saved payload byte-identical to base** on the same seed and clock (`savedPayloadSame: true`), `fails: []`, SRC0 the same as base's apart from the static UI blocks, every time.
+- **Storage at opening unchanged**: base and every commit write `remove prio27bands_om`, `set prio27destdb`, in that order (`IDENTICAL WRITE LISTS: true`). No `prio27ui*` key is written at opening; the UI's keys are written only by the person's clicks (the screenshots' `shots.json` records them: `prio27uiRail=1` after ‹, `prio27uiDock=1` after Docked).
+- `probe.mjs`: 129 PASS and 1 FAIL (S2) at `2916f0a`; **130 PASS, 0 FAIL** from `088acf8` on.
+- `m1.mjs`: refused before anything loads, every time.
+
+### Existing functions and checks touched
+
+- **Base functions:** `pmoTake` — one comment line above it (Brad's S3 note); its body is byte-identical to base. `fitMenus` — its body unchanged; the UI wraps it (`fitMenus=(function(own){ … })(fitMenus)`), as the board wraps `render()`, and the wrapper does nothing while `html.ui-on` is not set. No money, import, save or persistence function changed.
+- **The UI's own:** `uiLastEdit` (S2); `uiImpOpen(from)`, `uiGo`'s `imp` line and `#uiImpBtn`'s `onclick` (S4); one CSS rule (S1). New: `uiMenuFit` (S5).
+- **Existing checks:** `audit-ui.mjs` and `mutate.mjs`: additions only (two new marked sections; nine entries at the end of the `v200-ui3` group). The verify:grid tools: the changes in the S4 table, none deleted or loosened.
+
+### Screenshots (`ui-concept/preview-chunk3/part2/`, the actual board at `2ce11b6`, board `5e9e5a5e…`)
+
+Taken by `ui-concept/preview-chunk3/shoot-chunk3-p2.mjs` (committed) with chunk 2's synthetic seed; every setting made by clicks. What each measured is in the scratchpad's `uichunk3/p2/shots/shots.json` (the repo keeps `*.json` out). No page errors.
+
+| Files | What they show |
+|---|---|
+| `m-{1000,1050,1440,760}-sidebar-{open,collapsed}-drawer-{closed,open}.png` (16) | the width matrix: the drawer over the table; 0 rows over, 0 money inputs clipped, no sideways scroll in any |
+| `d-1440-docked-sidebar-{open,collapsed}.png` | docked at 1440, a row picked |
+| `f-1440-funding-posture-strip-*.png`, `b-1440-brief-posture-strip-*.png` (6) | S1: the strip wrapped, both controls on screen and clickable in each |
+| `r-{760,1000}-*-reports-*-unfolded.png` (8) | S5: the menu right of the sidebar (left edge 72px at 760; 240px at 1000 with the sidebar open), every item clickable |
+| `i-1440-import-box-open.png`, `i-1440-import-box-pmo-import.png`, `i-1440-import-box-closed-keyboard-back-on-import.png` | S4: the Import box; after Esc the keyboard is on Import (`keyboardOn: uiImpBtn`) |
+| `t-1152-{review,funding}-context-bar-wraps-every-control-usable.png` | S4: the context bar on two lines at 1152; 22 and 20 controls at the top, all clickable |
+
+### Not done, and open
+
+- **`npm run verify:grid` does not pass at the final commit.** Three tools fail: row-controls (chunk 1's five RECORD-panel controls are not in `tools/row-controls.json`; the tool's own remedy is `--record`, which changes what the gate asserts and is not one of the five items, so it is Brad's call); layout-fits D (chunk 1's heading and cards, m7, Brad's call on the look; J passes, against base's container failure); toolbar-fits' one-line rule at 1152 (kept, and failing, as above).
+- **No mutation entry for S1, S5 or the S4 product fix.** They are layout and focus, which the jsdom suites cannot see; they are held by `sweep3.mjs`, `dropdowns-visible.mjs` and `dialogs-keyboard.mjs` in Chromium.
+- **`npm run check` fails as before**: the same 10 `jsa()` values from chunk 1; part 2 adds none (`onclick="uiImpOpen(this)"` passes no value).
+- **The chunk 2 review's minors m1–m7 are unchanged**, and so are part 1's open items.
+- **Not run:** `audit-import.mjs` and `audit-board.mjs` (the lead's), `mutate.mjs` itself (read as text only), the final-tree queue, the presweep and the full gate.
