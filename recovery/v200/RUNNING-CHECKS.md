@@ -64,3 +64,19 @@ ET. It had started nothing: `final-d1ee751/` holds only `driver.out`.
 - **Still queued:** `v200-r5-restore-gen`, `v200-r5-restore-basedirty`, `unsaved-flag-never-set`, `impmixed-file-unguarded`.
 
 **Alongside it.** Only bounded U1 probes ran, one at a time, from 7:22 to 7:29 PM ET; each took under 12 s. No full suite ran.
+
+## Update at 8:16 PM ET: a third restart, and its likely cause
+
+**What happened.** The container booted again at 00:12:29 UTC (8:12 PM ET; `/proc/stat` btime). The rerun of
+`v200-r5-restore-gen` started at 7:45:15 PM ET and left no end line and no TIMED OUT line. Its 900 s cap would have fired
+by 8:00:35 PM ET if its processes had kept running, so they had stopped before then. It is INCOMPLETE a second time; its
+log is kept as `INCOMPLETE-container-restart-3-…`.
+
+**Likely cause (inferred, not confirmed).** All three restarts (about 7:15, 7:44 and 8:12 PM ET) followed a stretch in which
+this session was idle between turns. The drivers were detached processes (`setsid nohup`) that the session does not track.
+An idle session's container is reclaimed, and the processes with it. The disk survives each time.
+
+**What changed.** The driver was restarted at 8:15 PM ET as process group 278: run.sh 285, `timeout` 301 (process group
+301), node 303. It runs the same four ids. This time the session also runs a tracked background wait, which ends when
+`summary.txt` gets its DONE line or when the driver is gone. That should keep the container alive until the runs finish.
+If it does not, the next restart shows it.
