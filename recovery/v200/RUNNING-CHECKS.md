@@ -451,6 +451,7 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   time later than the clock); U1/U14 fix round 2 (U14 test gaps: switching a year off, and "only"), 10:30-11:10 AM ET; triage
   probes U17, U19 (and its checker), U20 and U24, all REPRODUCED on 63bd8b0 in the scope given in each README (rec/L4/u17, u19,
   u20, u24). The failed agents are being re-run from their workflows' run ids (finished agents are not re-run).
-- Resumed at 3:04-3:05 PM ET: the three workflows from their run ids (only the failed agents re-run; the M1 fix-round retry is
+- Resumed at 3:03-3:04 PM ET (this line first said "3:04-3:05 PM ET" in a commit made at 3:04:26 PM ET, a time later than the
+  clock; corrected) : the three workflows from their run ids (only the failed agents re-run; the M1 fix-round retry is
   told what its stopped run had already committed and left uncommitted, and not to redo or amend it), and the runner re-review
   of 60c984c as a fresh agent (rec/L5/review-runner3b).
