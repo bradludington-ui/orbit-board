@@ -1025,6 +1025,55 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (M1) — after a put-back that cannot finish, the saved file and the board reopened hold what was reported';
+  const __bm = bootMark();
+  try {
+    // The fix round's cases (a)-(d) checked each message against the board on screen. The M1 test spec asks more of a
+    // failed put-back: exactly the reported partial state, in what is saved and in what reopens. The same four faults
+    // (each injected, as there), and then: the saved payload's destination list and plan, the review reopened, and the
+    // board reopened from its saved file in this browser.
+    const fault = {
+      list: X => X.ev(`uiGraphPut=function(){ throw new Error('the list would not take its entries back (test)'); }; 1`),
+      plan: X => X.ev(`MS.uiFault='set while the batch ran (test)'; 1`),
+      save: X => X.ev('Object.preventExtensions(_lsRefused); 1'),
+      review: X => X.ev(`Object.defineProperty(PMOSUBS, 'push', {configurable:true, writable:true,
+        value:function(){ throw new Error('the review would not take its submittals back (test)'); }}); 1`),
+    };
+    for (const [where, before, f, atAsk, left, dest, planHas, samePayload, reviewSame] of [
+      ['(a) the destination list cannot be put back (fault injected) · AV taken, then Cancel on no year', null, 'list', false,
+        ['the destination list on this board', 'the plan on screen'], SEEDED.concat(['Depot Zulu']), 'Depot Zulu', false, true],
+      ['(b) the plan changed during the batch (fault injected) · AV taken, then Cancel on no year', null, 'plan', true,
+        ['the plan on screen'], SEEDED, 'set while the batch ran (test)', false, true],
+      ['(c) the save state cannot be put back (fault injected) · storage refused the list before; AV taken, then Cancel on no year',
+        `window.__fail=function(k){ return k==='prio27destdb'; }; persistDest(); window.__fail=null; 1`, 'save', true,
+        ['whether the board reads as saved'], SEEDED, null, true, true],
+      ['(d) the review cannot be put back (fault injected) · AV taken, then Cancel on no year', null, 'review', true,
+        ['the submittal review (the submittals it holds, its ticks, whether it is open)'], SEEDED, null, true, false]]) {
+      const { X, A, H0 } = before ? await startWith(before) : await start();
+      missAsks(X);
+      if (!atAsk) fault[f](X);
+      const b = await batch(X, [F.AV, F.NOFY], { onAsk: atAsk ? () => fault[f](X) : null });
+      if (f === 'review') X.ev('delete PMOSUBS.push; 1');
+      chk(name, where, 'the state reported: not put back whole, and these named', J([b.r.back, b.r.same, b.r.left]), J([f === 'plan', false, left]));
+      const Z = look(X), P = JSON.parse(Z.payload);
+      chk(name, where, 'the saved payload’s destination list is the one on screen', J([P.destDb.ents.map(e => e.n), Z.destNames]), J([dest, dest]));
+      chk(name, where, planHas ? 'the saved payload carries what the message said is not as before' : 'the saved payload is byte for byte as before the batch',
+        planHas ? Z.payload.includes(planHas) : Z.payload === A.payload, true);
+      if (planHas) chk(name, where, 'and so it is not the payload from before the batch', Z.payload === A.payload, samePayload);
+      chk(name, where, reviewSame ? 'reopening the review shows exactly what it showed before' : 'reopening the review shows it without TSS, as the message said',
+        reviewSame ? reviewHtml(X) === H0 : J([reviewHtml(X) === H0, Z.offices]), reviewSame ? true : J([false, []]));
+      chk(name, where, 'the board reopened from its saved file in this browser reads the destination list reported, without errors', J(reopen(X)),
+        J({ dest, errors: [] }));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.00 UI chunk 3 (M1, fix round 2) ====
 
 {
