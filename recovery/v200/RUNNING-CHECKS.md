@@ -260,3 +260,14 @@ workflow was launched at 6:08:07 AM ET.)
 - **npm run check is now step 0 of `final-tree-v3.sh`**, mandatory: if it does not pass at the pinned tree, the queue
   stops before any suite or sensitivity run, and its failures are resolved first. Today: `a8891e1` passes (7:13 AM ET,
   2.6 s), and so does the U13 draft board `a88a1e5b` (2.4 s). Every safety commit is checked before it is made.
+
+## Update at 7:17 AM ET: UI-C1's acceptance clarified (Brad, 7:16 AM ET)
+
+- **My error, 7:14 AM ET:** I told Brad the saved file would "stay byte-identical to the base board". UI-C1 changes the
+  program embedded in every saved board, so the whole saved HTML cannot be byte-identical; only its data payload can.
+- **Acceptance now:** the data payload byte-identical and preference behaviour equivalent; the program part of a saved
+  file differing only by the ten approved `jsa()` routings; every differing timestamp or metadata value listed with
+  before/after values; a reopened saved file whose corrected controls work. Sent to the UI-C1 builder at 7:17 AM ET.
+- **After the cherry-pick** onto `claude/v200-ui`, all of it is repeated on the exact resulting commit, including any
+  conflict resolution, and the independent review reads that commit's diff. The holds stay until the reviews and the
+  pinned-tree matrix are complete.
