@@ -744,6 +744,37 @@ result for it was run fresh against these commits.
     the carried-FY25 control.
   - **Not closed by this change alone:** a saved FY26 that rests only on a counted row becomes all years when the carryover
     rule is switched off, and a plan held outside the window is in no year. U14, next, closes both.
+- **U14 — ALL YEARS holds every plan the board holds; a saved year selection is kept and said** (Brad, 12 Oct, 6:00 AM ET:
+  "For U14, I choose ALL YEARS to include genuine stored plans and execution by effective year within the selected
+  appropriations. Never create or copy a budget merely because a year becomes available. Explicit saved selections must
+  never silently switch to ALL YEARS; retain an unavailable selection with a clear notice."). A plan the board held for a year
+  outside its plan window was in no year and no total: on an FY27 window, the board's own FY26 plan of $300,000,000 was left
+  out of ALL YEARS ($640,000,000 of $940,000,000 on the synthetic fixture), while the board's own 🗓 menu listed FY26; and a
+  saved FY26 selection silently became ALL YEARS once FY26 stopped being offered. The year buttons now also offer every year
+  the board holds a plan for. Nothing is made: the board's years are read as stored, and reading, saving, reopening and
+  moving the base year change none of them; a year Reset to blank is still offered and reads $0. A saved year the board
+  cannot answer for now (no plan held, no row filed or counted in it, outside the window) stays in the saved selection, is
+  not counted, and is named with what is counted instead: in the scope (the panel, the chart and its image, the export's
+  Scope line), in a notice on the panel, and in the export's first NOTE. While it is kept, switching a year on or off keeps
+  it and the years counted beside it stay lit; ALL YEARS, or a year's "only", chooses again, as the notice says. The ALL
+  YEARS label names its years as they run ("FY25, FY27–FY31 · all years"), never with a dash across a year in no total.
+  Asking whether a requirement is marked UPL no longer writes an empty mark list into the year being read.
+  - **What users may see:** ALL YEARS rises where the board holds a plan outside its window, and that year gets a "· plan"
+    button; a saved selection whose year is no longer available shows the notice where it used to show every year, and $0
+    if that was its only year.
+  - **Test:** audit-recon "v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and
+    said" (63 checks): seven ALL YEARS cells (the carryover rule off and on, with and without the plan and a carried row, and
+    a control window from FY26); the saved selections through a base-year move, the rule switched off, Reset to blank, save
+    and reopen; a year switched on and off, a year's "only" and ALL YEARS beside a saved year not available, and the year
+    buttons lit beside it; and two such years, said in the plural. 44 checks fail on the board before U1 and 40 on the U1
+    board.
+  - **Mutations:** `v200-u14-stored-unoffered`, `-saved-falls-back`, `-export-notice-dropped`, `-label-dash-gap`,
+    `-read-makes-year`, `-toggle-drops-saved`, `-toggle-collapses`, `-panel-notice-dropped`, `-read-writes-marks`,
+    `-chips-unlit-beside-unavailable`, `-toggle-off-drops-saved`, `-only-keeps-saved`, `-allyears-keeps-saved` and
+    `-notice-plural-it`; each caught by the focused block (full-suite sensitivity runs in the final-tree queue).
+  - **Not covered:** partner and FMS type-ins for a year not offered (not counted and not said; this predates U14); a
+    locked-cycle view; whether a long label fits the 1,280-pixel chart image; and Brad's open questions on this commit (the
+    `rlgIsUpl` line's place, those type-ins, and what "genuine stored plans" takes in).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -770,9 +801,11 @@ result for it was run fresh against these commits.
     now's words; Live view's "Loaded" time; three other adoption paths that do not wait for a save (unverified); a save
     that starts and ends during a refresh's read; status lines left false after an autosave; older refusals that say
     nothing was loaded or replaced while the same Connect loads execution data.
-  - **U14:** a plan the board holds for a year outside its plan window, with no row counted in that year, is in no total,
-    and the ALL YEARS label's year range still names that year. Measured with the carryover rule off and on; not changed
-    by U1; the scope is mapped and it needs a decision.
+  - **U14: built as its own commit after U1** (decided by Brad, 12 Oct, 6:00 AM ET): ALL YEARS holds every plan the board
+    holds, and nothing is made to offer a year; a saved year selection the board cannot answer for is kept, not counted,
+    and said on the panel and in the export; the label names only years in the total (above). Three questions stay with
+    Brad: whether the `rlgIsUpl` line belongs in this commit, partner and FMS type-ins in a year no longer offered, and
+    what "genuine stored plans" takes in (a roll-forward outside the window; a blank year left by a Cancel).
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 

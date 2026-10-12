@@ -4816,6 +4816,313 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U1) ====
+// ==== v2.00 (U14): ALL YEARS holds every plan the board holds; a saved year selection is kept, never swapped for ALL YEARS ====
+// Brad, 12 Oct, 6:00 AM ET: "For U14, I choose ALL YEARS to include genuine stored plans and execution by effective year within
+// the selected appropriations. Never create or copy a budget merely because a year becomes available. Explicit saved selections
+// must never silently switch to ALL YEARS; retain an unavailable selection with a clear notice."
+// The board is on O&M, one service, F1 asking $1,000M; the year worked is FY27, pot $500M. Its own FY26 plan, $300M, is made the
+// way a person makes one: base year 2026 (Set base year), switchYear(2026) answered Cancel (a blank year), F1 restored, the pot
+// set, back to FY27, and the base year moved back to 2027 where the cell says so. Workbook: O&M FY25 'USAF O&M Discretionary'
+// $40M, always; by cell, Initial Spares FY25 'USAF Spares Initial Mandatory PSM' $100M, counted in FY26 only with the carryover
+// rule on. Every expected figure is the fixture's own arithmetic; the panel, the export and the calculation are read apart.
+// THE MONEY, window FY27-FY31, FY26 outside it: the plan held, FY26 is offered and its $300M counted -- 40 + 300 + 500 = $840M,
+// and 40 + 100 + 300 + 500 = $940M with the carried row (rule off or on). No plan held, FY26 is offered only where a row is
+// counted in it (U1). Each year alone adds up to ALL YEARS. NOTHING IS MADE: MS.years is byte-identical across every read --
+// the calculation, the panel, the export -- the reads never ask window.confirm, and 🗑 Reset FY26 to blank and the base-year
+// move make no year. A year Reset to blank is still a year the board holds: offered, $0.
+// THE LABEL: "FY25, FY27–FY31 · all years" where FY26 is not offered -- never a dash across it -- and "the rest executed" only
+// of years with execution counted in them.
+// THE SAVED SELECTION: a saved FY26 stays FY26 ($300M) when the base year moves or the rule is switched off while the plan is held.
+// Where FY26 is then not available at all (no plan held, no row filed or counted in it, outside the window), the saved FY26 is
+// KEPT in the saved selection, byte for byte through reads, save and reopen; it is not counted, and it is said -- in the label
+// (the panel, the chart, the export's Scope line), the panel's notice and the export's NOTE -- with what is counted instead.
+// While a saved year is kept so, a toggle starts from the saved selection and never drops it -- a year switched on (S5b, S5c) or
+// off (S5c, S5d) -- the years counted beside it stay lit, and only ALL YEARS (S5b) or a year's "only" (S5c) chooses again, as the
+// notice says. Two such years are said in the plural, "keeps them" (S5d). (With no such year, every offered year switched on is
+// ALL YEARS, as before.)
+// CONTROL: the window from FY26, where nothing is outside it.
+// FAILS ON 0c6ff00 and 63bd8b0 (U13) alike, and on the U1 commit, wherever the behaviour changed: the FY26 plan was in no year
+// ($540M or $640M), the label's dash ran across FY26, a saved FY26 (or FY24 + FY26) became ALL YEARS with nothing said, a saved
+// FY25 + FY26 lost FY26 and $300M with nothing said, a toggle on or off dropped a saved FY26, and the first read of a year wrote
+// an empty mark list into it -- so every cell's nothing-made check fails on all three, the CONTROL cell's too, and S5d's.
+// Passing on all three: each cell's fixture, the no-plan cells' money and FY26 (not their label), the CONTROL cell's money,
+// label and FY26, Reset's one question (S4e), the checks that the base-year move, Reset and the S5a sequence make no year, and
+// a year's "only" beside the saved FY26 (S5c: it chose again before U14 too; the notice now promises it). On the U1 commit
+// also: the plan held with a carried row and the rule on (FY26 offered by the row), and S5a's rule back on.
+await (async () => {
+  const name = 'v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify, M = 1000000;
+    const row = (fy, title, budget, amt, office) => { const r = Array(32).fill(''); r[0] = fy; r[1] = fy + '-03'; r[2] = 'U14' + fy; r[3] = title;
+      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = office; return r; };
+    const WB = carried => { const a = { om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row(2025, 'Ordinary Support', 'USAF O&M Discretionary', 40 * M, 'Program (TSS)')] } } };
+      if (carried) a.sp = { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row(2025, 'Carried Spares', 'USAF Spares Initial Mandatory PSM', 100 * M, 'Program (ATL)')] } };
+      return a; };
+    // window.confirm answering `ans`, every question counted and kept
+    const counted = (w, ans) => { w.__cc = 0; w.__ccMsgs = []; w.confirm = m => { w.__cc++; w.__ccMsgs.push(String(m)); return ans; }; };
+    const setBase = (X, y) => { X.w.prompt = () => String(y); X.ev(`setBaseYear(); 'ok'`); X.w.prompt = () => null; };
+    // { base: 2027|2026, rule: true|false, plan: true|false, carried: true|false }
+    const build = c => {
+      const X = boot();
+      seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * M])], disc: [500 * M], mand: [0], order: ['F1'] });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        S.bm={disc:[${500 * M}], mand:[0], adds:[]}; MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S};
+        applyState(S); MS.years[2027]=S; EXDB.all=${J(WB(c.carried))}; EXDB.ts=1;
+        var C=flowCfg(); delete C.pseudo; C.other={}; C.fys=null; C.aps=null; save(); 'ok'`);
+      counted(X.w, false);                                  // "FY26 has no data yet": Cancel, a BLANK year
+      if (c.plan || c.base === 2026) setBase(X, 2026);
+      if (c.plan) {
+        X.ev(`switchYear(2026); 'ok'`);
+        if (JSON.parse(X.ev('JSON.stringify(S.removed)')).indexOf('F1') >= 0) X.ev(`restoreReq('F1'); 'ok'`);
+        X.ev(`bmSetBase('disc', 0, '${300 * M}'); switchYear(2027); 'ok'`);
+        if (c.base === 2027) setBase(X, 2027);
+      }
+      if (c.rule) X.ev(`flowSetPseudo('on', true); 'ok'`);
+      const asked = X.w.__cc;
+      counted(X.w, true);                                   // from here on every question is answered OK -- a roll-forward copy -- and counted
+      return { X, asked, wb: J(WB(c.carried)) };
+    };
+    const ms = X => X.ev('JSON.stringify(MS.years)');
+    const fys = X => X.ev('JSON.stringify(flowCfg().fys)');
+    const now = X => JSON.parse(X.ev(`(function(){ var F=flowCalc(); return JSON.stringify({stored:flowCfg().fys, offered:flowYears(), sel:flowSelYears(),
+      t:[F.tot, F.execV, F.planV], label:F.label}); })()`));
+    const panel = X => { X.ev(`flowOpen=true; flowSel=''; flowBody(); 'ok'`);
+      const b = X.w.document.getElementById('flowBody'), btn = [...b.querySelectorAll('button')], n = b.querySelector('.flowunavail'), svg = b.querySelector('#flowSvg');
+      const tf = /total funding \$([\d,]+\.\d\d)M/.exec(b.textContent);
+      return { total: tf ? tf[1] : '', allOn: btn.filter(x => x.getAttribute('onclick') === 'flowAllYears()').map(x => x.classList.contains('on'))[0],
+        chips: btn.filter(x => /^flowToggleYear\(\d+\)$/.test(x.getAttribute('onclick') || '')).map(x => x.textContent + (x.classList.contains('on') ? ' [on]' : '')),
+        notice: n ? n.textContent : '', chart: svg ? svg.getAttribute('aria-label') : '', drawn: svg ? svg.textContent : '' }; };
+    const cell = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+    // the exported workbook read back from its bytes; window.confirm is left as it is, so the count covers the export too
+    const book = async X => { const wb = JSON.parse(await X.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+        window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+        try{ exportFlow(); }catch(e){ window.Blob=_B; return JSON.stringify({__err:'threw '+String((e&&e.message)||e)}); }
+        window.Blob=_B; if(!cap) return JSON.stringify({__err:'no file'});
+        var ab=cap.buffer.slice(cap.byteOffset,cap.byteOffset+cap.byteLength); return JSON.stringify(await xlsxRead(ab)); })()`));
+      const ff = wb['Funds Flow'] || [], all = lab => ff.filter(r => w6Lbl(r) === lab).map(r => num(cell(r[1]))).filter(v => v !== null);
+      return { err: wb.__err || 'ok', scope: w6Lbl(ff[1] || []), tot: all('TOTAL FUNDING'), notes: ff.map(w6Lbl).filter(t => /^NOTE: /.test(t)) }; };
+    const click = (X, onclick) => { X.ev(`flowOpen=true; flowBody(); 'ok'`);
+      const b = [...X.w.document.querySelectorAll('#flowBody button')].find(x => x.getAttribute('onclick') === onclick);
+      if (!b) return false; b.click(); return true; };
+    const reopen = X => { X.ev(`save(); 'ok'`); const R = boot({ html: X.ev('buildSavedHtml()') }); counted(R.w, true); return R; };
+    const O27 = [2025, 2027, 2028, 2029, 2030, 2031], O27W = [2025, 2026, 2027, 2028, 2029, 2030, 2031], O26 = [2025, 2026, 2027, 2028, 2029, 2030];
+    const PL = 'PLANNED (board allocation, O&M)';
+    const N26 = 'The saved year selection includes FY26, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY27–FY31). It stays in the saved selection';
+    const X26 = 'NOTE: The saved year selection includes FY2026, which this board cannot answer for now: it holds no plan for that year, no imported row is filed or counted in it, and it is outside the plan window (FY2027–FY2031). It stays in the saved selection';
+    // ── ALL YEARS, cell by cell: [where, the cell, offered, [total, executed, planned], FY26 alone, the label] ──
+    const CELLS = [
+      ['the plan held, rule off', { base: 2027, rule: false, plan: true, carried: false }, O27W, [840, 40, 800], [300, 0, 300],
+        'FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed'],
+      ['no plan, rule off', { base: 2027, rule: false, plan: false, carried: false }, O27, [540, 40, 500], null,
+        'FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed'],
+      ['the plan held, a carried row, rule off', { base: 2027, rule: false, plan: true, carried: true }, O27W, [940, 140, 800], [300, 0, 300],
+        'FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed'],
+      ['the plan held, rule on', { base: 2027, rule: true, plan: true, carried: false }, O27W, [840, 40, 800], [300, 0, 300],
+        'FY25–FY31 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30, FY31 planned, the rest executed'],
+      ['the plan held, a carried row, rule on', { base: 2027, rule: true, plan: true, carried: true }, O27W, [940, 140, 800], [400, 100, 300],
+        'FY25–FY31 · all years · all appropriations · FY26: O&M planned, INITIAL SPARES executed, FULL FUND, OPN not in this total · FY27, FY28, FY29, FY30, FY31 planned'],
+      ['no plan, a carried row, rule off', { base: 2027, rule: false, plan: false, carried: true }, O27, [640, 140, 500], null,
+        'FY25, FY27–FY31 · all years · all appropriations · FY27, FY28, FY29, FY30, FY31 planned, the rest executed'],
+      ['CONTROL — the window from FY26, the plan held', { base: 2026, rule: false, plan: true, carried: false }, O26, [840, 40, 800], [300, 0, 300],
+        'FY25–FY30 · all years · all appropriations · FY26, FY27, FY28, FY29, FY30 planned, the rest executed'],
+    ];
+    for (const [where, c, off, t, t26, label] of CELLS) {
+      const { X, asked, wb } = build(c);
+      const held = J(c.plan ? [2026, 2027] : [2027]), ms0 = ms(X);
+      w5Chk(name, where + ' · fixture', `CONTROL — base FY${c.base % 100}, the rule ${c.rule ? 'on' : 'off'}; MS.years holds ${held}${c.plan ? ' (FY26 pot $300M, F1 on it; one question, answered Cancel)' : ''}; FY27 pot $500M; ALL YEARS selected`,
+        X.ev(`JSON.stringify([MS.base, MS.cur, Object.keys(MS.years).map(Number), MS.years[2026]? MS.years[2026].discSvc : null, MS.years[2026]? MS.years[2026].order : null, MS.years[2027].discSvc, flowPseudo().on, flowCfg().fys])`) + '|' + asked,
+        J([c.base, 2027, JSON.parse(held), c.plan ? [300 * M] : null, c.plan ? ['F1'] : null, [500 * M], c.rule, null]) + '|' + (c.plan ? 1 : 0));
+      const A = now(X), P = panel(X), B = await book(X);
+      const each = JSON.parse(X.ev(`JSON.stringify(flowYears().map(function(y){ return flowCalc(y).tot; }))`));
+      const t26r = JSON.parse(X.ev(`(function(){ var F=flowCalc(2026); return JSON.stringify([F.tot, F.execV, F.planV]); })()`));
+      w5Chk(name, where + ' · ALL YEARS', `offered ${J(off.map(y => y % 100))}; ALL YEARS = $${t[0]}M ($${t[1]}M executed, $${t[2]}M planned), the panel $${t[0]}.00M and the export ${t[0] * M} twice; each year alone adds up to it`,
+        J([A.offered, A.sel, A.t, P.total, P.allOn, B.err, B.tot, each.reduce((s, v) => s + v, 0)]),
+        J([off, off, t.map(v => v * M), t[0].toFixed(2), true, 'ok', [t[0] * M, t[0] * M], t[0] * M]));
+      w5Chk(name, where + ' · ALL YEARS · the label', 'the scope names only the years in the total, in runs; the export\'s Scope line and the chart say the same',
+        J([A.label, B.scope, P.chart]), J([label, 'Scope: ' + label, 'funds flow, ' + label]));
+      w5Chk(name, where + ' · FY26', t26 ? `FY26 is offered, marked plan, and holds $${t26[0]}M` : 'FY26 is not offered (no plan held, no row counted in it, outside the window), and holds nothing',
+        J([P.chips.filter(x => /^FY26/.test(x)), t26r]), J([t26 ? ['FY26 · plan'] : [], (t26 || [0, 0, 0]).map(v => v * M)]));
+      w5Chk(name, where + ' · nothing made', 'MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported',
+        J([ms(X) === ms0, X.w.__cc, X.ev('JSON.stringify(EXDB.all)') === wb, X.errors.length]), J([true, 0, true, 0]));
+    }
+    // ── SAVED SELECTIONS ──
+    // S3a: the U14 state itself -- FY26 can now be chosen, and its $300M is what it holds
+    {
+      const { X } = build({ base: 2027, rule: false, plan: true, carried: true });
+      const ok = click(X, 'flowOneYear(2026)'), b = now(X), R = reopen(X), r = now(R), P = panel(R);
+      w5Chk(name, 'S3a · FY26 chosen, the plan held outside the window', 'its "only" button: saved [2026], $300M, all planned; the same reopened, the panel $300.00M',
+        J([ok, b.stored, b.sel, b.t, r.stored, r.sel, r.t, r.label, P.total]),
+        J([true, [2026], [2026], [300 * M, 0, 300 * M], [2026], [2026], [300 * M, 0, 300 * M], 'FY26 · all appropriations · ' + PL, '300.00']));
+    }
+    // S4a: FY26 chosen with the rule on ($400M), then the rule switched off: the plan is held, so FY26 stays FY26 ($300M)
+    {
+      const { X } = build({ base: 2027, rule: true, plan: true, carried: true });
+      const ok = click(X, 'flowOneYear(2026)'), b0 = now(X), okOff = click(X, 'flowSetPseudo("on",false)'), b1 = now(X);
+      const R = reopen(X), r = now(R), P = panel(R), B = await book(R), okOn = click(R, 'flowSetPseudo("on",true)'), r2 = now(R);
+      w5Chk(name, 'S4a · saved FY26, the rule switched off', 'FY26 chosen: $400M; the rule off: still FY26 (never ALL YEARS), $300M planned; reopened the same, ALL YEARS not lit, the export 300000000 twice under the same scope; the rule back on: $400M',
+        J([ok, b0.t[0], okOff, b1.offered, b1.stored, b1.sel, b1.t, r.stored, r.sel, r.t[0], P.allOn, P.chips.filter(x => / \[on\]$/.test(x)), B.tot, B.scope, okOn, r2.sel, r2.t[0]]),
+        J([true, 400 * M, true, O27W, [2026], [2026], [300 * M, 0, 300 * M], [2026], [2026], 300 * M, false, ['FY26 · plan [on]'], [300 * M, 300 * M], 'Scope: FY26 · all appropriations · ' + PL, true, [2026], 400 * M]));
+    }
+    // S4b: FY26 chosen on the FY26 window ($300M), then Set base year 2027: still FY26; a toggle of FY27 adds to it
+    {
+      const { X } = build({ base: 2026, rule: false, plan: true, carried: true });
+      const ok = click(X, 'flowOneYear(2026)'), b0 = now(X), ms0 = ms(X);
+      setBase(X, 2027);
+      const b1 = now(X), ms1 = ms(X), R = reopen(X), msR = ms(R), r = now(R), B = await book(R), okT = click(R, 'flowToggleYear(2027)'), r2 = now(R);
+      w5Chk(name, 'S4b · saved FY26, the base year moved to 2027', 'FY26 chosen: $300M; the base moved: still FY26, $300M (never ALL YEARS); reopened the same and the export 300000000 twice; FY27 toggled on: [2026, 2027], $800M',
+        J([ok, b0.t[0], b1.stored, b1.sel, b1.t[0], r.stored, r.sel, r.t[0], B.tot, okT, r2.stored, r2.t[0]]),
+        J([true, 300 * M, [2026], [2026], 300 * M, [2026], [2026], 300 * M, [300 * M, 300 * M], true, [2026, 2027], 800 * M]));
+      w5Chk(name, 'S4b · nothing made', 'the base-year move made, copied and changed no year: MS.years byte-identical before and after it, holding FY26 and FY27 only; the save and the reopen carry it byte for byte, and the reopened copy\'s reads and toggle leave it so; nothing asked',
+        J([ms1 === ms0, Object.keys(JSON.parse(ms1)).map(Number), msR === ms1, ms(R) === msR, X.w.__cc, R.w.__cc]), J([true, [2026, 2027], true, true, 0, 0]));
+    }
+    // S4c: FY25 + FY26 chosen on the FY26 window ($440M), then the base moved: both kept, $440M
+    {
+      const { X } = build({ base: 2026, rule: false, plan: true, carried: true });
+      const ok = click(X, 'flowOneYear(2025)') && click(X, 'flowToggleYear(2026)'), b0 = now(X);
+      setBase(X, 2027);
+      const b1 = now(X), R = reopen(X), r = now(R);
+      w5Chk(name, 'S4c · saved FY25 + FY26, the base year moved to 2027', 'chosen: 140 + 300 = $440M; the base moved: still FY25 + FY26, $440M (never narrowed); the same reopened',
+        J([ok, b0.stored, b0.t[0], b1.stored, b1.sel, b1.t[0], r.stored, r.sel, r.t[0]]),
+        J([true, [2025, 2026], 440 * M, [2025, 2026], [2025, 2026], 440 * M, [2025, 2026], [2025, 2026], 440 * M]));
+    }
+    // S4e: the plan Reset to blank on the FY27 window: FY26 is still a year the board holds -- offered, $0 -- and nothing is made
+    {
+      const { X } = build({ base: 2027, rule: false, plan: true, carried: true });
+      const a0 = now(X);
+      X.ev(`switchYear(2026); 'ok'`); const askSwitch = X.w.__cc; X.ev(`resetYear(); 'ok'`); const askReset = X.w.__cc, msg = X.w.__ccMsgs[0] || ''; X.ev(`switchYear(2027); 'ok'`);
+      counted(X.w, true);
+      const ms0 = ms(X), a1 = now(X), P = panel(X), B = await book(X), t26 = JSON.parse(X.ev(`flowCalc(2026).tot`));
+      w5Chk(name, 'S4e · the plan Reset to blank', 'CONTROL — switching to FY26 asked nothing; Reset asked once ("Reset FY26 to BLANK?"); FY26 is blank -- pot $0, no requirement -- and still held',
+        J([askSwitch, askReset, /^Reset FY26 to BLANK\?/.test(msg), JSON.parse(X.ev('JSON.stringify([Object.keys(MS.years).map(Number), MS.years[2026].discSvc, MS.years[2026].order])'))]),
+        J([0, 1, true, [[2026, 2027], [0], []]]));
+      w5Chk(name, 'S4e · the plan Reset to blank', 'ALL YEARS $940M before; after, FY26 is still offered (a year the board holds) and reads $0: 140 + 0 + 500 = $640M, the panel and the export the same',
+        J([a0.t[0], a1.offered, a1.t, P.chips.filter(x => /^FY26/.test(x)), t26, P.total, B.tot]),
+        J([940 * M, O27W, [640 * M, 140 * M, 500 * M], ['FY26 · plan'], 0, '640.00', [640 * M, 640 * M]]));
+      w5Chk(name, 'S4e · nothing made', 'after the reset, MS.years is byte-identical across the reads; nothing asked', J([ms(X) === ms0, X.w.__cc]), J([true, 0]));
+    }
+    // X1: the year worked is FY26, outside the FY27 window: it is offered, and ALL YEARS holds it
+    {
+      const { X } = build({ base: 2027, rule: false, plan: true, carried: true });
+      X.ev(`switchYear(2026); 'ok'`);
+      const a = now(X);
+      w5Chk(name, 'X1 · working in FY26, the window FY27-FY31', 'switching asked nothing; FY26, the year on screen, is offered; ALL YEARS 140 + 300 + 500 = $940M',
+        J([X.w.__cc, JSON.parse(X.ev('MS.cur')), a.offered, a.t]), J([0, 2026, O27W, [940 * M, 140 * M, 800 * M]]));
+    }
+    // S5a: FY26 chosen where only a carried row puts it on offer ($100M), then the rule off: FY26 is not available at all
+    {
+      const { X } = build({ base: 2027, rule: true, plan: false, carried: true });
+      const ok = click(X, 'flowOneYear(2026)'), b0 = now(X), okOff = click(X, 'flowSetPseudo("on",false)');
+      const s0 = fys(X), ms0 = ms(X), b1 = now(X), P = panel(X), B = await book(X), s1 = fys(X), ms1 = ms(X);
+      const R = reopen(X), r = now(R), RP = panel(R), RB = await book(R), s2 = fys(R);
+      const L0 = 'no year counted · all appropriations · saved FY26 not available, not counted';
+      w5Chk(name, 'S5a · saved FY26, then not available', 'FY26 chosen: $100M executed; the rule off: FY26 is offered no more, the saved [2026] is KEPT and nothing is counted -- never ALL YEARS',
+        J([ok, b0.sel, b0.t, okOff, b1.offered, b1.stored, b1.sel, b1.t, b1.label]), J([true, [2026], [100 * M, 100 * M, 0], true, O27, [2026], [], [0, 0, 0], L0]));
+      w5Chk(name, 'S5a · saved FY26, then not available · the panel', 'the notice names FY26, why, and that nothing is counted; ALL YEARS is not lit, no year is on; total funding $0.00M; the chart (and so its image) prints the same scope',
+        J([P.notice, P.allOn, P.chips.filter(x => / \[on\]$/.test(x)), P.total, P.chart, P.drawn.indexOf(L0.toUpperCase()) >= 0]),
+        J([N26 + ', and nothing is counted. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.', false, [], '0.00', 'funds flow, ' + L0, true]));
+      w5Chk(name, 'S5a · saved FY26, then not available · the export', 'the Scope line says it, the first NOTE says it in the panel\'s words, TOTAL FUNDING 0 twice',
+        J([B.err, B.scope, B.notes[0], B.tot]), J(['ok', 'Scope: ' + L0, X26 + ', and nothing is counted.', [0, 0]]));
+      w5Chk(name, 'S5a · saved FY26, then not available · reopened', 'the saved [2026] byte-identical through the reads, the save and the reopen; the reopened copy says the same on the panel and in the export',
+        J([s0, s1, s2, r.stored, r.sel, r.t, r.label, RP.notice === P.notice, RP.allOn, RB.scope, RB.notes[0], RB.tot]),
+        J(['[2026]', '[2026]', '[2026]', [2026], [], [0, 0, 0], L0, true, false, 'Scope: ' + L0, X26 + ', and nothing is counted.', [0, 0]]));
+      const okOn = click(R, 'flowSetPseudo("on",true)'), r2 = now(R);
+      w5Chk(name, 'S5a · saved FY26, then not available · the rule back on', 'FY26 is offered again and the saved [2026] counts again: $100M', J([okOn, r2.sel, r2.t[0]]), J([true, [2026], 100 * M]));
+      w5Chk(name, 'S5a · nothing made', 'MS.years byte-identical across the reads; the board holds FY27 only; nothing asked', J([ms1 === ms0, Object.keys(JSON.parse(ms1)).map(Number), X.w.__cc, R.w.__cc]), J([true, [2027], 0, 0]));
+    }
+    // S5b: FY26 chosen on the FY26 window with no FY26 plan ($0), then the base moved: not available; FY27 toggled on keeps FY26
+    {
+      const { X } = build({ base: 2026, rule: false, plan: false, carried: true });
+      const ok = click(X, 'flowOneYear(2026)'), b0 = now(X);
+      setBase(X, 2027);
+      const b1 = now(X), okT = click(X, 'flowToggleYear(2027)'), b2 = now(X), P = panel(X), B = await book(X);
+      const R = reopen(X), r = now(R), okAll = click(R, 'flowAllYears()'), r2 = now(R);
+      const L2 = 'FY27 · all appropriations · ' + PL + ' · saved FY26 not available, not counted';
+      w5Chk(name, 'S5b · saved FY26, the base year moved, no plan held', 'FY26 chosen: $0; the base moved: FY26 kept and not counted, nothing counted (never ALL YEARS $640M)',
+        J([ok, b0.sel, b0.t[0], b1.offered, b1.stored, b1.sel, b1.t[0]]), J([true, [2026], 0, O27, [2026], [], 0]));
+      w5Chk(name, 'S5b · FY27 toggled on', 'the toggle starts from the saved selection: [2026, 2027] saved, FY27 counted ($500M planned), FY26 still named, in the panel and the export',
+        J([okT, b2.stored, b2.sel, b2.t, b2.label, P.notice, P.allOn, P.chips.filter(x => / \[on\]$/.test(x)), B.scope, B.notes[0], B.tot]),
+        J([true, [2026, 2027], [2027], [500 * M, 0, 500 * M], L2, N26 + ' and is not counted: this total counts FY27 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.', false, ['FY27 · plan [on]'],
+          'Scope: ' + L2, X26 + ' and is not counted: this total counts FY2027 only.', [500 * M, 500 * M]]));
+      w5Chk(name, 'S5b · reopened, then ALL YEARS clicked', 'reopened: [2026, 2027] saved, $500M; ALL YEARS only on its own click: nothing saved, every offered year, 140 + 500 = $640M',
+        J([r.stored, r.sel, r.t[0], okAll, r2.stored, r2.sel, r2.t]), J([[2026, 2027], [2027], 500 * M, true, null, O27, [640 * M, 140 * M, 500 * M]]));
+    }
+    // S5c: FY25 + FY26 chosen on the FY26 window with no FY26 plan, then the base moved: FY25 counted, FY26 kept and said
+    {
+      const { X } = build({ base: 2026, rule: false, plan: false, carried: true });
+      const ok = click(X, 'flowOneYear(2025)') && click(X, 'flowToggleYear(2026)'), b0 = now(X);
+      setBase(X, 2027);
+      const b1 = now(X), P = panel(X), okOff = click(X, 'flowToggleYear(2025)'), b2 = now(X), okT = click(X, 'flowToggleYear(2027)'), b3 = now(X), R = reopen(X), r = now(R);
+      const L1 = 'FY25 · all appropriations · saved FY26 not available, not counted';
+      w5Chk(name, 'S5c · saved FY25 + FY26, the base year moved, no plan held', 'chosen: 140 + 0 = $140M; the base moved: [2025, 2026] kept, FY25 counted, FY26 said -- never narrowed in silence',
+        J([ok, b0.stored, b0.t[0], b1.stored, b1.sel, b1.t[0], b1.label, P.notice, P.allOn, P.chips.filter(x => / \[on\]$/.test(x))]),
+        J([true, [2025, 2026], 140 * M, [2025, 2026], [2025], 140 * M, L1, N26 + ' and is not counted: this total counts FY25 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.', false, ['FY25 [on]']]));
+      w5Chk(name, 'S5c · toggles', 'FY25 toggled off is refused as the last year counted (the saved selection unchanged); FY27 toggled on: [2025, 2026, 2027], 140 + 500 = $640M, FY26 still said; the same reopened',
+        J([okOff, b2.stored, b2.sel, okT, b3.stored, b3.sel, b3.t[0], b3.label, r.stored, r.sel, r.t[0]]),
+        J([true, [2025, 2026], [2025], true, [2025, 2026, 2027], [2025, 2027], 640 * M, 'FY25, FY27 · all appropriations · FY27 planned, the rest executed · saved FY26 not available, not counted',
+          [2025, 2026, 2027], [2025, 2027], 640 * M]));
+      // every offered year switched on, one by one, beside the saved FY26: never collapsed to ALL YEARS, never called all years
+      const ok4 = ['flowToggleYear(2028)', 'flowToggleYear(2029)', 'flowToggleYear(2030)'].every(k => click(R, k)), r4 = now(R);
+      const ok5 = click(R, 'flowToggleYear(2031)'), r5 = now(R), P5 = panel(R);
+      w5Chk(name, 'S5c · every offered year switched on beside the saved FY26', 'six years saved with FY26 among them is not ALL YEARS: kept as chosen; then all six offered years on: still the saved list, ALL YEARS not lit and not said',
+        J([ok4, r4.stored, r4.sel, ok5, r5.stored, r5.sel, r5.t[0], r5.label, P5.allOn]),
+        J([true, [2025, 2026, 2027, 2028, 2029, 2030], [2025, 2027, 2028, 2029, 2030], true, [2025, 2026, 2027, 2028, 2029, 2030, 2031], O27, 640 * M,
+          'FY25, FY27, FY28, FY29, FY30, FY31 \u00b7 all appropriations \u00b7 FY27, FY28, FY29, FY30, FY31 planned, the rest executed \u00b7 saved FY26 not available, not counted', false]));
+      w5Chk(name, 'S5c · every offered year switched on beside the saved FY26 · the year buttons', 'each of the six years counted is lit, though the saved FY26 is not among them; the notice still names FY26 and what is counted',
+        J([P5.chips.filter(x => / \[on\]$/.test(x)), P5.notice]),
+        J([['FY25 [on]', 'FY27 · plan [on]', 'FY28 · plan [on]', 'FY29 · plan [on]', 'FY30 · plan [on]', 'FY31 · plan [on]'],
+          N26 + ' and is not counted: this total counts FY25, FY27, FY28, FY29, FY30, FY31 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.']));
+      // a year switched OFF while another stays counted keeps the saved FY26 too, as the notice says: never narrowed in silence
+      const okOff6 = click(R, 'flowToggleYear(2031)'), r6 = now(R), P6 = panel(R);
+      w5Chk(name, 'S5c · a year switched off beside the saved FY26', 'FY31 switched off, five years still counted: FY26 stays in the saved selection, $640M; the label, the lit years and the notice still name FY26 and what is counted',
+        J([okOff6, r6.stored, r6.sel, r6.t[0], r6.label, P6.allOn, P6.chips.filter(x => / \[on\]$/.test(x)), P6.notice]),
+        J([true, [2025, 2026, 2027, 2028, 2029, 2030], [2025, 2027, 2028, 2029, 2030], 640 * M,
+          'FY25, FY27, FY28, FY29, FY30 \u00b7 all appropriations \u00b7 FY27, FY28, FY29, FY30 planned, the rest executed \u00b7 saved FY26 not available, not counted', false,
+          ['FY25 [on]', 'FY27 · plan [on]', 'FY28 · plan [on]', 'FY29 · plan [on]', 'FY30 · plan [on]'],
+          N26 + ' and is not counted: this total counts FY25, FY27, FY28, FY29, FY30 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps it.']));
+      // a year's "only" chooses again, as the notice says: the saved FY26 goes, and the notice with it
+      const okOne = click(R, 'flowOneYear(2027)'), r7 = now(R), P7 = panel(R);
+      w5Chk(name, 'S5c · a year\'s only beside the saved FY26', 'FY27\'s only chooses again: [2027] saved, $500M planned, no saved year left that is not available, no notice; the label FY27 alone, only FY27 lit',
+        J([okOne, r7.stored, r7.sel, r7.t, r7.label, P7.notice, P7.chips.filter(x => / \[on\]$/.test(x))]),
+        J([true, [2027], [2027], [500 * M, 0, 500 * M], 'FY27 · all appropriations · ' + PL, '', ['FY27 · plan [on]']]));
+    }
+    // S5d: TWO saved years the board cannot answer for -- FY24 + FY26, chosen on the FY24 window, then the base moved to 2027:
+    // both kept, neither counted, and said in the plural ("They stay ... keeps them"); years switched on, then one off, keep both
+    {
+      const { X } = build({ base: 2027, rule: false, plan: false, carried: false });
+      const ms0 = ms(X);
+      setBase(X, 2024);
+      const ok = click(X, 'flowOneYear(2024)') && click(X, 'flowToggleYear(2026)'), b0 = now(X);
+      setBase(X, 2027);
+      const b1 = now(X), P1 = panel(X), B1 = await book(X);
+      const okOn = click(X, 'flowToggleYear(2027)') && click(X, 'flowToggleYear(2025)'), okOff = click(X, 'flowToggleYear(2027)');
+      const b2 = now(X), P2 = panel(X), B2 = await book(X);
+      const L3 = 'no year counted · all appropriations · saved FY24, FY26 not available, not counted';
+      const L4 = 'FY25 · all appropriations · saved FY24, FY26 not available, not counted';
+      const N2 = 'The saved year selection includes FY24, FY26, which this board cannot answer for now: it holds no plan for those years, no imported row is filed or counted in them, and they are outside the plan window (FY27–FY31). They stay in the saved selection';
+      const X2 = 'NOTE: The saved year selection includes FY2024, FY2026, which this board cannot answer for now: it holds no plan for those years, no imported row is filed or counted in them, and they are outside the plan window (FY2027–FY2031). They stay in the saved selection';
+      w5Chk(name, 'S5d · saved FY24 + FY26, the base year moved, no plan held', 'chosen on the FY24 window: [2024, 2026], $0; the base moved: both kept, neither counted, nothing counted (never ALL YEARS $540M)',
+        J([ok, b0.stored, b0.offered, b0.sel, b0.t[0], b1.offered, b1.stored, b1.sel, b1.t, b1.label]),
+        J([true, [2024, 2026], [2024, 2025, 2026, 2027, 2028], [2024, 2026], 0, O27, [2024, 2026], [], [0, 0, 0], L3]));
+      w5Chk(name, 'S5d · two saved years not available · the panel and the export', 'the notice names both, in the plural, and says switching a year on or off keeps them; no year lit, ALL YEARS not lit, $0.00M; the export\'s Scope line and first NOTE say the same, TOTAL FUNDING 0 twice',
+        J([P1.notice, P1.allOn, P1.chips.filter(x => / \[on\]$/.test(x)), P1.total, B1.err, B1.scope, B1.notes[0], B1.tot]),
+        J([N2 + ', and nothing is counted. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps them.', false, [], '0.00', 'ok', 'Scope: ' + L3, X2 + ', and nothing is counted.', [0, 0]]));
+      w5Chk(name, 'S5d · years switched on, then one off, beside the two saved years', 'FY27 and FY25 on, then FY27 off with FY25 still counted: FY24 and FY26 both kept and named, FY25 counted ($40M executed), on the panel and in the export',
+        J([okOn, okOff, b2.stored, b2.sel, b2.t, b2.label, P2.notice, P2.chips.filter(x => / \[on\]$/.test(x)), B2.scope, B2.notes[0], B2.tot]),
+        J([true, true, [2024, 2025, 2026], [2025], [40 * M, 40 * M, 0], L4,
+          N2 + ' and are not counted: this total counts FY25 only. Click ALL YEARS, or a year’s only, to choose again; switching a year on or off keeps them.', ['FY25 [on]'],
+          'Scope: ' + L4, X2 + ' and are not counted: this total counts FY2025 only.', [40 * M, 40 * M]]));
+      w5Chk(name, 'S5d · nothing made', 'MS.years byte-identical from the start through both base-year moves, the clicks and the reads, holding FY27 only; nothing asked; no error',
+        J([ms(X) === ms0, Object.keys(JSON.parse(ms(X))).map(Number), X.w.__cc, X.errors.length]), J([true, [2027], 0, 0]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.00 (U14) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

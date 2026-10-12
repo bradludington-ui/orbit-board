@@ -3851,8 +3851,10 @@ function rlgUplMap(){ if(!S.upl) S.upl={}; return S.upl; }
 // one too, silently. New marks carry the year; the old title-only key is still READ, so nothing
 // already set is lost.
 function rlgUplKey(fy, key){ return (fy==null||fy==='')? key : ('x'+fy+'|'+String(key).replace(/^x\|/,'')); }
+// v2.00 (U14): ASKING WRITES NOTHING. It made the year's empty mark list (rlgUplMap) when it had none, and the funds flow asks
+// it of every planned year it reads -- through aceWithYear, of that year's own stored plan -- so reading a year changed it.
 function rlgIsUpl(key, fy){
-  const m=rlgUplMap();
+  const m=S.upl||{};
   if(fy!=null && fy!=='' && m[rlgUplKey(fy,key)]) return true;
   return !!m[key];
 }
@@ -15336,10 +15338,36 @@ function flowClass(title, event, R){
 // Sustainment portfolio go", and a single year only ever holds one slice of the procurement
 // appropriations.
 const FLOW_APPNS=APPN_SLUGS;
+// v2.00 (U14, Brad, 12 Oct: "Explicit saved selections must never silently switch to ALL YEARS; retain an unavailable selection
+// with a clear notice"): A SAVED SELECTION COUNTS THE YEARS IT NAMES THAT THE BOARD CAN ANSWER FOR NOW, AND ONLY THOSE -- even
+// when that is none. A saved year the board cannot answer for stays in the saved selection, untouched, and is said
+// (flowUnavailYears); it is never counted and never swapped for every year. A saved FY26 used to read as ALL YEARS, with
+// nothing said, once FY26 stopped being offered (the base year moved; the carryover rule switched off).
 function flowSelYears(){
-  const all=flowYears(), C=flowCfg();
-  const sel=Array.isArray(C.fys)? C.fys.map(Number).filter(y=>all.indexOf(y)>=0) : null;
-  return (sel&&sel.length)? sel.sort() : all.slice();
+  const all=flowYears(), sel=flowSavedYears();
+  return sel? sel.filter(y=>all.indexOf(y)>=0) : all.slice();
+}
+// v2.00 (U14): the saved year selection as it is stored -- each year once, in order -- or null when none is saved (ALL YEARS).
+// Read, never written: only a person's click (flowToggleYear, flowOneYear, flowAllYears) changes it.
+function flowSavedYears(){
+  const C=flowCfg();
+  if(!Array.isArray(C.fys)) return null;
+  const s=C.fys.map(Number).filter((y,i,a)=>Number.isInteger(y) && a.indexOf(y)===i);
+  return s.length? s.sort() : null;
+}
+// v2.00 (U14): the saved years the board cannot answer for now: no plan held for them, no imported row filed or counted in
+// them, outside the plan window. The panel and the export name them, and what is counted instead.
+function flowUnavailYears(){
+  const all=flowYears(), sel=flowSavedYears();
+  return sel? sel.filter(y=>all.indexOf(y)<0) : [];
+}
+function flowUnavailText(F, fy){
+  const L=a=>a.map(fy).join(', '), n=F.unavail.length, w=flowPlanYears();
+  return 'The saved year selection includes '+L(F.unavail)+', which this board cannot answer for now: it holds no plan for '
+    +(n===1?'that year':'those years')+', no imported row is filed or counted in '+(n===1?'it':'them')
+    +', and '+(n===1?'it is':'they are')+' outside the plan window ('+fy(w[0])+'\u2013'+fy(w[w.length-1])+'). '
+    +(n===1?'It stays':'They stay')+' in the saved selection'
+    +(F.fys.length? ' and '+(n===1?'is':'are')+' not counted: this total counts '+L(F.fys)+' only.' : ', and nothing is counted.');
 }
 function flowSelAppns(){
   const C=flowCfg();
@@ -15348,11 +15376,13 @@ function flowSelAppns(){
 }
 // A toggle can never empty the selection: an empty chart is not a view, it is a dead end. The
 // last one standing stays on.
+// v2.00 (U14): a toggle starts from the SAVED selection, so a saved year the board cannot answer for now stays in it whatever
+// else is switched; the last year it can answer for stays on. Every offered year on, and no other, is ALL YEARS, as before.
 function flowToggleYear(y){
-  const all=flowYears(), cur=flowSelYears();
+  const all=flowYears(), cur=flowSavedYears()||all.slice();
   let next = cur.indexOf(y)>=0 ? cur.filter(x=>x!==y) : cur.concat([y]);
-  if(!next.length) next=[y];
-  flowCfg().fys = (next.length===all.length)? null : next.sort();
+  if(!next.some(x=>all.indexOf(x)>=0)) next.push(y);
+  flowCfg().fys = (next.length===all.length && next.every(x=>all.indexOf(x)>=0))? null : next.sort();
   flowSel=''; save(); render();
 }
 function flowToggleAppn(a){
@@ -15365,10 +15395,16 @@ function flowToggleAppn(a){
 function flowAllYears(){ flowCfg().fys=null; flowSel=''; save(); render(); }
 function flowAllAppns(){ flowCfg().aps=null; flowSel=''; save(); render(); }
 function flowOneYear(y){ flowCfg().fys=[y]; flowSel=''; save(); render(); }
-function flowScopeLabel(ys, aps){
-  const allY=flowYears();
-  const yl = ys.length===1? 'FY'+(ys[0]%100)
-    : (ys.length===allY.length? 'FY'+(ys[0]%100)+'\u2013FY'+(ys[ys.length-1]%100)+' \u00b7 all years'
+// v2.00 (U14): ALL YEARS names its years as they run -- "FY25, FY27–FY31" -- so a dash never spans a year that is in no total;
+// it read "FY25–FY31" over a FY26 nothing counted in. A saved selection with a year the board cannot answer for is never
+// called all years (`un`: those years; flowCalc says them after the label). No year counted reads "no year counted".
+function flowScopeLabel(ys, aps, un){
+  const allY=flowYears(), FY=y=>'FY'+(y%100);
+  const runs=a=>a.reduce((o,y)=>{ const r=o[o.length-1]; if(r && y===r[1]+1) r[1]=y; else o.push([y,y]); return o; }, [])
+    .map(r=>r[0]===r[1]? FY(r[0]) : FY(r[0])+'\u2013'+FY(r[1])).join(', ');
+  const yl = !ys.length? 'no year counted'
+    : ys.length===1? 'FY'+(ys[0]%100)
+    : ((ys.length===allY.length && !(un||[]).length)? runs(ys)+' \u00b7 all years'
        : ys.map(y=>'FY'+(y%100)).join(', '));
   const al = aps.length===FLOW_APPNS.length? 'all appropriations'
     : aps.map(a=>APPN_LBL[a]).join(' + ');
@@ -15462,8 +15498,17 @@ function flowYears(){
   flowExecYears(null, true).forEach(f=>y[f]=1);   // v2.00 (R1): the workbook's years, as before -- a saved year stays offered
   flowExecYears(null).forEach(f=>y[f]=1);         // v2.00 (U1): and every year a row is COUNTED in, so ALL YEARS holds every dollar
   flowPlanYears().forEach(f=>y[f]=1);
+  flowStoredYears().forEach(f=>y[f]=1);           // v2.00 (U14): and every year this board holds a plan for -- read, never made
   return Object.keys(y).map(Number).sort((a,b)=>a-b);
 }
+// v2.00 (U14, Brad, 12 Oct: "ALL YEARS to include genuine stored plans and execution by effective year within the selected
+// appropriations. Never create or copy a budget merely because a year becomes available"): THE YEARS THIS BOARD HOLDS A PLAN
+// FOR, beside the window -- not instead of it, so the years nobody has typed into yet are still offered. MS.years is read as
+// it is stored and never written: a year is offered because the board holds it, and nothing is made for a year to be offered.
+// A plan outside the window (the base year moved past it, or the year worked in is outside it) was in no year and no total:
+// $300M held for FY26 on an FY27 window. A year Reset to blank is still a year the board holds: it is offered and reads its
+// plan as stored, $0, so a saved selection of it stays as it was and a blank year is not mistaken for one never planned.
+function flowStoredYears(){ return Object.keys(MS.years||{}).map(Number).filter(y=>Number.isInteger(y) && y>1990 && y<2100 && !!MS.years[y]); }
 // 'exec' when that appropriation has rows imported for the year, 'plan' otherwise -- this board's own appropriation when
 // none is named. (Called with a non-string second argument, as Array.map does, it is this board's own.)
 function flowYearKind(fy, sl){ const s=(typeof sl==='string')? sl : flowPlanSlug(); return flowExecYears(s).indexOf(+fy)>=0? 'exec' : 'plan'; }
@@ -15540,9 +15585,10 @@ function flowCalc(arg){
   // built once per calc, not per row: 155 requirements against ~1900 plan events
   const RIX=(AX==='buys')? null : flowReqIndex();
   const YS = (arg==null)? flowSelYears() : [Number(arg)];
+  const UN = (arg==null)? flowUnavailYears() : [];      // v2.00 (U14): saved years the board cannot answer for now
   const AS = (arg==null)? flowSelAppns() : FLOW_APPNS.slice();
-  const F={fy:YS[YS.length-1], fys:YS, aps:AS, multi:YS.length>1,
-           label:flowScopeLabel(YS,AS), tot:0, appn:APPN_SLUGS.reduce(function(o,s){ o[s]=0; return o; },{}), dual:0, rows:0,
+  const F={fy:YS[YS.length-1], fys:YS, aps:AS, multi:YS.length>1, unavail:UN,
+           label:flowScopeLabel(YS,AS,UN), tot:0, appn:APPN_SLUGS.reduce(function(o,s){ o[s]=0; return o; },{}), dual:0, rows:0,
            // Executed money and planned money are both in the total, and which is which is a fact
            // the chart has to be able to STATE - so it is counted here rather than inferred later
            // from the year list, which would go wrong the moment a year carries a partial import.
@@ -15625,6 +15671,9 @@ function flowCalc(arg){
   // the chart already states its scope; money pulled in from another year is a scope fact, not a
   // caveat, so it belongs in that same sentence
   if(F.pseudo.n) F.label+=' \u00b7 + '+F.pseudo.token+' FY'+(F.pseudo.from%100);
+  // v2.00 (U14): a saved year the board cannot answer for is said in the scope itself -- the panel, the chart, the image, the
+  // export's Scope line and its file name all print this label -- kept in the selection, and not counted
+  if(UN.length) F.label+=' \u00b7 saved '+UN.map(y=>'FY'+(y%100)).join(', ')+' not available, not counted';
   return F;
 }
 // v1.99 (item 92): what partner and FMS money is, said the same way on the panel and in the export
@@ -16431,12 +16480,13 @@ function flowHtml(){
   // of Full Fund, Initial Spares and OPN — the whole portfolio is every year together.
   let h='<div style="margin-bottom:6px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">'
     +'<span style="font-size:9px;color:var(--dim);font-weight:800;letter-spacing:.8px;width:74px">FISCAL YEAR</span>'
-    +chip(selY.length===yrs.length,'ALL YEARS','flowAllYears()','Every year this board can answer for \u2014 executed and planned together')
+    // v2.00 (U14): ALL YEARS is lit only for ALL YEARS: a saved selection holding a year the board cannot answer for is not it
+    +chip(selY.length===yrs.length && !F.unavail.length,'ALL YEARS','flowAllYears()','Every year this board can answer for \u2014 executed and planned together')
     // A planned year is marked ON THE CHIP. Both kinds are selectable together and the total adds
     // them up, so which is which has to be visible at the point of choosing, not only afterwards.
     +yrs.map(function(f){
         const pl=flowYearKind(f)==='plan';
-        return chip(selY.indexOf(f)>=0 && selY.length<yrs.length,'FY'+(f%100)+(pl?' \u00b7 plan':''),
+        return chip(selY.indexOf(f)>=0 && (selY.length<yrs.length || F.unavail.length>0),'FY'+(f%100)+(pl?' \u00b7 plan':''),
             'flowToggleYear('+f+')',
             // v2.00 (R1): a planned year with rows STORED under it has every one COUNTED in a later year (OBBBA). It said "has no
             // O&M execution imported" of an FY25 whose O&M rows were imported and are all counted in FY26.
@@ -16499,6 +16549,12 @@ function flowHtml(){
        +'The CCaR import reads one tab per appropriation \u2014 '
        +FLOW_APPNS.map(a=>esc(APPN_LBL[a])+' from <b>\u201c'+esc(SRC_TABS[a])+'\u201d</b>').join(', ')
        +' \u2014 and skips any it cannot find under exactly that name. Re-run \u{1F4E5} Import CCaR QPE and check the tab names in your workbook.</div>' : '')
+    // v2.00 (U14): A SAVED YEAR THE BOARD CANNOT ANSWER FOR NOW is said, with what is counted instead -- the export's NOTE in the
+    // same words. It is kept in the saved selection until the person chooses again: ALL YEARS, or a year's "only". A year
+    // switched on or off keeps it (it has no button of its own), and the notice says so.
+    +(F.unavail.length? '<div class="flowunavail" style="border:1px solid var(--amber);border-radius:8px;padding:8px 11px;margin-bottom:9px;font-size:10px">'
+       +'<b style="color:var(--amber)">'+esc(flowUnavailText(F, y=>'FY'+(y%100)))+'</b> '
+       +'Click <b>ALL YEARS</b>, or a year\u2019s <b>only</b>, to choose again; switching a year on or off keeps '+(F.unavail.length===1?'it':'them')+'.</div>' : '')
     +'<div style="font-size:9.5px;color:var(--dim);margin-bottom:6px">Loaded: '
     +FLOW_APPNS.map(a=>(LOAD[a].has
         ? '<b style="color:var(--ink)">'+esc(APPN_LBL[a])+'</b> '+LOAD[a].n+' events'
@@ -16700,6 +16756,8 @@ function exportFlow(){
     +'. Executed is the imported CCaR QPE; planned is '+(APPN_LBL[F.planSlug]||'this board')+'\u2019s own allocation.'],[]);
   if(F.multi) sum.splice(3,0,['NOTE: separate appropriation years added together \u2014 a portfolio total, '
     +'not one year of funding. Fiscal years included: '+F.fys.map(y=>'FY'+y).join(', ')+'.'],[]);
+  // v2.00 (U14): a saved year the board cannot answer for now, in the panel's words, first under the Scope line
+  if(F.unavail.length) sum.splice(3,0,['NOTE: '+flowUnavailText(F, y=>'FY'+y)],[]);
   // v1.99 (item 92): only the appropriations in scope -- one switched off is not a $0 line
   F.aps.forEach(sl=>sum.push([APPN_LBL[sl],{v:F.appn[sl],s:M},pct(F.appn[sl])]));
   sum.push([{v:'US SERVICE FUNDING',s:4},{v:F.tot,s:MB},'100.0%']);
