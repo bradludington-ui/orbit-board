@@ -61,40 +61,84 @@ For the 12 mutation ids in the sequence (`reuse/mutation-equivalence.txt`; read 
   - `flowIsMixed` is called only in `flowHtml` and `exportFlow`; `flowStoredIn` only in `flowHtml`; `flowHasMoney` only
     from those two.
 
-## 5. Dynamic dependency scope (PENDING — runs alone after the sequence's DONE)
+## 5. Dynamic dependency scope: SUPPORTING EVIDENCE ONLY (Brad, 8:32 PM ET: "zero baseline calls are supporting evidence only")
 
-Static reading cannot rule out a path through `render()`, a saved file or an event. So the full audit-import is run once
-on an **instrumented** copy of the 4a6f7c7 board (`board-4a6f7c7-cov.html`, blob `b1e1a51a…`).
+**What was run.** The full audit-import, once, on an **instrumented** copy of the 4a6f7c7 board (`reuse/board-4a6f7c7-cov.html`,
+blob `b1e1a51a…`).
+- **Where and how:** alone, in the git clone of `d1ee751` (audit-import `fc3117a0`), at 900 s + 20 s.
+- **Instrumentation:** each function below opens with a `__COVHIT__` console line, which `reuse/cov-hook.mjs` counts in Node.
+- **Positive control:** each of the nine names records a hit when called (`reuse/cov-control.json`).
 
-- **The instrumentation:** each function below opens with `try{console.log('__COVHIT__ <name>');}catch(e){}`.
-- **The counter:** a preload (`cov-hook.mjs`) counts those lines in Node through jsdom's VirtualConsole. It changes nothing
-  else.
-- **The run:** in the git clone of `d1ee751` (audit-import 4a6f7c7's `fc3117a0`), alone, at 900 s + 20 s.
-- **Functions instrumented:**
-  - **The changed ones:** `flowIsMixed`, `flowHasMoney`, `flowStoredIn`, `flowHtml` and `exportFlow`.
-  - **The functions the pending proposals would change**, to scope their reuse in advance: `flowYears` (U1),
-    `keptPutBack` (U2) and `driveStorePull` (U13).
-  - **A reference:** `flowCalc`.
-- **Positive control** (`reuse/cov-control.log`, `reuse/cov-control.json`): a board that calls each function once records every one of
-  the nine names (flowYears 13, flowCalc 4, flowHasMoney 8, flowIsMixed 4, flowStoredIn 21, flowHtml 2, exportFlow 1,
-  keptPutBack 1, driveStorePull 1). The counter does see calls.
-- **Reuse is justified only if:**
-  1. the instrumented run passes exactly as the uninstrumented one, with ALL CHECKS PASSED;
-  2. it records **zero** calls to `flowIsMixed`, `flowHasMoney`, `flowStoredIn` and `flowHtml`.
-- **If either fails,** the results at af892cb are **not** reused for 4a6f7c7, and the 12 runs are repeated at the final tree.
+**Result** (`reuse/audit-import-cov-4a6f7c7.log`, `reuse/audit-import-cov-hits.json`, 8:49–8:57 PM ET): exit 0, 512.7 s,
+**ALL CHECKS PASSED**.
+
+| Function | Calls during the whole suite |
+|---|---|
+| `flowIsMixed`, `flowHasMoney`, `flowStoredIn`, `flowHtml`, `exportFlow` (the changed ones) | **0** |
+| `flowCalc`, `flowYears` (reference; U1's target) | **0** |
+| `keptPutBack` (U2's target) | **2** |
+| `driveStorePull` (U13's target) | **54** |
+
+Zero calls show that the R1-follow-up code never ran under this suite. They do not, on their own, prove that the R3–R5
+verdicts carry over.
 
 ## 6. The label change (§2) and its effect
+The R4b case label is used only as text. The focused reruns below show the R4b checks reaching the same verdict under the
+new name.
 
-Each mutant's verdict at af892cb comes from the R3, R4 and R5 blocks (`summary.txt`, "scenarios"). The renamed R4b case is
-in a different block from those that caught the mutants, but its checks still run on every mutant. So its verdict is part
-of every run's "FAILING CHECK(S)" count. The label is used only as text, so the same verdict follows on 4a6f7c7, under the
-new name. This rests on reading the code; no run tests it.
+## 7. Focused reruns, labelled separately from the full-suite catches (8:59–9:12 PM ET)
 
-## Conclusion (provisional)
+**The harness.** It copies verbatim from each commit's own suite:
+- the imports, the failure list, `keepBoards` and `SEEN`/`chk`;
+- the four v2.00 blocks (R3, R3 message, R4/R4b, R5);
+- the scenario-ran guard;
+- by closure, every top-level helper those blocks reference (`focused/mkfocused-import.py`).
 
-With §1–§4, and §5 if it reports zero calls and a pass, the af892cb results would stand for 4a6f7c7 as **justified reuse**.
-The stated scope would be: the R3, R4 and R5 mutations of `_driveStorePushRun`, `_saveInPlaceFileRun`, `save` and
-`driveRestore`, under a suite whose only change is one label.
+| | Harness blob |
+|---|---|
+| 4a6f7c7 | `94c59963…` |
+| af892cb | `ab4d2c14…` |
 
-The reuse **does not extend to a tree where U2 or U13 lands.** Those change `keptPutBack` and `driveStorePull`, and §5's
-counts will show whether audit-import reaches them.
+The two harnesses differ only by the R4b label. Each ran on its commit's unmodified board and on its 12 mutants, one run at a
+time with a 600 s cap. The mutants rebuilt here are byte-identical to the full-suite mutants.
+
+**An earlier harness was missing helpers**, so its blocks threw (`focused/invalid-harness-v1/`). It is **invalid**, kept and
+not counted.
+
+| Mutation | **Full suite** at af892cb (catching scenarios) | **Focused** at af892cb | **Focused** at 4a6f7c7 |
+|---|---|---|---|
+| BASE (unmutated) | ALL CHECKS PASSED | ALL CHECKS PASSED | ALL CHECKS PASSED |
+| v200-r3-cycblock-gone / -falls-through | 4 failing (R3) | 4 (R3) | 4 (R3) |
+| v200-r3-cycblock-says-saved | 2 (R3) | 2 | 2 |
+| v200-r3-landed-view-unsaid / -prefix | 2 (R3 message) | 2 | 2 |
+| v200-r4-no-recheck / -said-not-held | 3 (R4) | 3 | 3 |
+| v200-r4-held-quietly | 1 (R4) | 1 | 1 |
+| v200-r5-restore-gen | 4 (R5) | 4 | 4 |
+| v200-r5-restore-basedirty | 1 (R5) | 1 | 1 |
+| impmixed-file-unguarded | 5 (**R4b**, the block whose label changed) | 5 | 5 |
+| unsaved-flag-never-set | 36, from **older blocks**: v1.89 saving never silently overwrites; v1.95 Save acknowledges (file and folder); v1.95 kept work never replaced; v1.95 and v1.96 Put this back; v1.96 NR05; v1.97 item 79 | **not covered**: passes (its catching blocks are outside the harness) | **not covered**: passes |
+
+**Reading it:**
+- For 11 of the 12, the focused verdict, the count and the catching scenarios are identical at both commits, and equal to
+  the full-suite catch.
+- For `impmixed-file-unguarded`, the focused rerun at 4a6f7c7, under the renamed R4b block, catches it with the same 5
+  checks.
+- For `unsaved-flag-never-set`, no focused rerun was made. Its catching blocks (v1.89–v1.97 save-path blocks) are
+  byte-identical in both suites, since only the R4b label differs. The function it mutates (`save()`) is unchanged, and
+  §3–§5 hold for it. Its reuse therefore rests on §1–§5 alone. If that is not accepted, it is the one run to repeat in full.
+
+## Conclusion (under the tightened rule)
+
+The af892cb **full-suite** results are reused for 4a6f7c7 as **justified reuse** for the 12 mutations. The scope is the
+R3–R5 protections in `_driveStorePushRun`, `_saveInPlaceFileRun`, `save` and `driveRestore`. The grounds are:
+1. exact identities (§1);
+2. complete diffs: a board change confined to funds-flow code, and a suite change of one label (§2);
+3. identical mutation transformations (§3);
+4. static dependency scope (§4);
+5. dynamic call counts, as supporting evidence (§5);
+6. focused reruns of the affected scenarios at both commits, labelled separately (§7).
+
+**Limits:**
+- `unsaved-flag-never-set` has no focused rerun (§7).
+- **This reuse ends where U2 or U13 lands.** audit-import calls `keptPutBack` and `driveStorePull` (§5), so a change to either
+  needs fresh full-suite and sensitivity runs at its commit.
