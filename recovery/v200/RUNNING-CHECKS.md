@@ -111,3 +111,16 @@ paused until then.
   idle. At 10:28 PM ET it was running its own screenshots, `tools/layout-fits.mjs` and `audit.mjs`. Each alone run
   will carry `rec/bin/overlap-watch.sh`, which records, and never kills, any node or Chromium process started outside
   the run's clone while it runs.
+
+## Update at 10:41 PM ET: U2 commit 2 committed; the alone runs started
+
+- **U2 (2 of 2)** is `a8891e1` (10:38 PM ET): board `1375b72b`, audit-import `ed9a3437`, mutate `9f9168fa`; 1307
+  mutations, each matching once. Focused: block 2 41/41 on it; fails on base (37), commit 1 (34) and the refusal mutant (34).
+- **Driver** `rec/bin/alone-u2.sh`, started 10:41 PM ET as process group 6867 (tracked background task). Order: commit 1
+  (clone `wt-u2c1` at `4e90af4`) BASELINE then `v200-u2-putback-gen`; commit 2 (clone `wt-u2c2` at `a8891e1`) BASELINE,
+  `v200-u2-putback-while-saving`, `v200-u2-putback-gen`.
+- **How "alone" is kept.** Before each run the lock is cleared and the driver waits for 30 s in a row with no node or
+  Chromium process outside the run's clone, so the UI workflow's own suites can use the gaps. Then it sets the lock and
+  runs, with `overlap-watch.sh` recording (never killing) anything seen alongside. An attempt with anything seen is kept
+  as `<id>-OVERLAPPED-<n>.log` and repeated, up to three attempts. Each finished attempt is backed up at once
+  (`evidence/L2-u2/sens-import-u2c1-alone/`, `…/sens-import-u2c2/`).
