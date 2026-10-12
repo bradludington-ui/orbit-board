@@ -85,7 +85,7 @@ sed -n 1p "$L" | grep -aq '^# cmd: ' && sed -n 6p "$L" | grep -aq '^# cap: ' || 
 [ "$GS" = - ] || sed -n 3p "$L" | grep -aqx "# git: $GS" || r "the header names commit '$(sed -n 3p "$L" | cut -c8-)', not $GS"
 ! grep -aqE '[0-9]+ FAILING CHECK' "$L" || r "a failing-check line"
 if [ "$V" = --exit-only ]; then echo "ACCEPT-EXIT-ONLY $(basename "$L") (exit 0; no verdict line is checked)"; exit 0; fi
-BODY=$(sed -n "7,$((N-2))p" "$L" | grep -av '^[[:space:]]*$')
+BODY=$(sed -n "7,$((N-2))p" "$L" | tr -d '\000' | grep -av '^[[:space:]]*$')
 printf '%s\n' "$BODY" | tail -n 1 | grep -aqxE -- "$V" || r "the last line the suite printed is not the completion verdict /$V/"
 [ -z "$V2" ] || printf '%s\n' "$BODY" | tail -n 2 | head -n 1 | grep -aqxE -- "$V2" || r "the line before the verdict is not /$V2/"
 echo "ACCEPT $(basename "$L")"

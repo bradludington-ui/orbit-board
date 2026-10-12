@@ -129,9 +129,10 @@ X=$T/A15; RR=$T/A15-repo; git clone -q --shared --no-checkout "$REPO" "$RR" 2>/d
 NB=$(echo 'echo "ACCEPT $(basename "$1")"; exit 0' | git -C "$RR" hash-object -w --stdin); export GIT_INDEX_FILE=$T/A15.index
 git -C "$RR" read-tree "$RUNNER_SHA" && git -C "$RR" update-index --cacheinfo "100755,$NB,recovery/v200/bin/gate.sh" && NT=$(git -C "$RR" write-tree); unset GIT_INDEX_FILE
 NC=$(git -C "$RR" -c user.name=t -c user.email=t@t commit-tree "$NT" -m "always-ACCEPT gate") && git -C "$RR" replace "$RUNNER_SHA" "$NC"
-mkdir -p "$X/runner" && git -C "$RR" archive "$RUNNER_SHA" recovery/v200/bin | tar -x -C "$X/runner"; frz "$X"; ALL+=("$X")
-live=$(GIT_DIR=$RR/.git git rev-parse "$RUNNER_SHA:recovery/v200/bin/gate.sh"); want=$(pg rev-parse "$RUNNER_SHA:recovery/v200/bin/gate.sh")
-out=$(q "$X" GIT_DIR=$RR/.git); rc=$?
+# this script's own preamble exports GIT_NO_REPLACE_OBJECTS=1; the attack is built and shown live with it cleared
+mkdir -p "$X/runner" && env -u GIT_NO_REPLACE_OBJECTS git -C "$RR" archive "$RUNNER_SHA" recovery/v200/bin | tar -x -C "$X/runner"; frz "$X"; ALL+=("$X")
+live=$(env -u GIT_NO_REPLACE_OBJECTS GIT_DIR=$RR/.git git rev-parse "$RUNNER_SHA:recovery/v200/bin/gate.sh"); want=$(pg rev-parse "$RUNNER_SHA:recovery/v200/bin/gate.sh")
+out=$(q "$X" -u GIT_NO_REPLACE_OBJECTS GIT_DIR=$RR/.git); rc=$?
 row "A15 replace ref via GIT_DIR (R4)" "trick live; exit 2; snapshot refused" "$([ "$live" != "$want" ] && [ -n "$live" ] && echo 'trick live' || echo 'trick not live'); exit $rc; $(has "$out" 'is not exactly recovery' 'snapshot refused')"
 # fake suites for A16-A17 and G
 F=$T/fake; mkdir -p "$F"; cd "$F" || exit 2

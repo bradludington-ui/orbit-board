@@ -343,7 +343,10 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   G2 banner + timeout (exit 124), G3 banner + interrupted runner (no end line), G4 failing-check line + exit 0, G5 exit 0
   without the verdict: all REFUSED; G6 CONTROL banner + exit 0 ACCEPTED. Evidence: `evidence/runner-40f7979/selftest/`.
 
-## Update at 10:54 AM ET: runner correction 2 (the independent review of 40f7979 did not approve it)
+## Update at 10:52 AM ET: runner correction 2 (the independent review of 40f7979 did not approve it)
+
+- **Correction (10:55 AM ET):** this heading first said "10:54 AM ET", a time later than the clock: commit `80b2d0b` was
+  made at 10:52:54 AM ET. Corrected here.
 
 - **Review of `40f7979`** (10:09–10:29 AM ET; `evidence/runner-40f7979/review/VERDICT.md`): **not approved**. Req 1 and 4
   met; Req 2 and 3 not met, narrowly. Two must-fixes: **M1** `python3 -c` without `-I` in sens-import.sh (imports `re` and
@@ -374,3 +377,11 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   the fixed environment npm run check, legacy-fsrc, boot-same and standards ran with exit 0, and the new gate ACCEPTED each on
   its exact verdict (the controls -- a wrong verdict, a wrong line order, another commit -- were REFUSED). audit-recon,
   audit-other and verify:grid were still running at this commit; their result is recorded with the self-test.
+
+- **Self-test at `80b2d0b`** (frozen snapshot, 10:53 AM ET): 35/36. The one failure, A15, was the TEST's own fault: the
+  self-test runs under the preamble, which exports `GIT_NO_REPLACE_OBJECTS=1`, so its own setup of the replace-ref attack
+  never took effect ("trick not live") and the archive it froze was the genuine one, which the queue rightly accepted
+  (stopping at the missing clone). Fixed in the next commit (the attack is built and shown live with that variable cleared,
+  and the queue is launched with it cleared too), with one tidy-up in gate.sh (a NUL byte is dropped before the last-line
+  check instead of drawing a bash warning; G11's outcome was already ACCEPT). The self-test is re-run at that commit.
+- **Smoke, continued:** audit-recon exit 0 (98.4 s), ACCEPTED on `ALL CHECKS PASSED` as its last line.

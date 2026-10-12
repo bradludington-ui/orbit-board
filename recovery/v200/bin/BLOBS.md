@@ -9,7 +9,7 @@
 
 ## The final-tree queue (v5) and what it runs
 d78bb3301e44b7a9a18e528d40033ffc824f04ce  final-tree-v5.sh
-8e74fc50568915bbca90b8d9a186234ab2d1868b  gate.sh
+8dbf1d622f21801d9064d3bb84789a0d352cf544  gate.sh
 f540388631da9decae9dcb3318d60ec85a9ced27  run.sh
 a800c817ae49089c598b219f927a4c593294153a  alone-run.sh
 bffa326eaed13f3d9c28f13589826931e18eb645  sens-import.sh
@@ -20,7 +20,7 @@ f69a68e8f83254609d0024f4e087c494aae6be45  backup-run.sh
 140b7b6a9c7d9d9b75f7bfdf6a0fe82d1912c8eb  mkmut.py
 8e46e669ab4292a9dfd6243e14fb4e0463eef66e  mcread.py
 852f06ec5a61a1c1393bae794f1c10362aa36cf9  mcount.py
-5c05bb31dc9095a7729d7500b0ed6f94ea4e305f  runner-selftest.sh
+a2a52bf4033328746abda425c3fdfcd9fd54f3c9  runner-selftest.sh
 
 ## Superseded, held, or used by earlier runs (not run by v5)
 8d42c95384d487764d794a3290cae95ebb6d6733  final-tree-v4.sh  (runner correction 1, 40f7979: NOT APPROVED by its review -- M1, M2; superseded by v5)
