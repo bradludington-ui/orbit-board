@@ -299,3 +299,5 @@ workflow was launched at 6:08:07 AM ET.)
 - **Evidence:** `evidence/L3-u13/` (build, both reviews, the commit check). U27 opened from the fix round.
 - Still to come for U13: the full audit-import alone and its full-suite sensitivity, in the final-tree queue; U17
   re-measured on `63bd8b0` in the post-commit triage.
+- **Correction:** commit `b954eed` says "U27 opened", but its ledger edit failed (a script matched two "U17" rows) and the
+  ledger was not changed in it. The U13 status, the U17 note and U27 are added in the next commit.
