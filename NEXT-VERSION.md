@@ -704,8 +704,9 @@ result for it was run fresh against these commits.
   - **U1:** a carried-row omission from the ALL YEARS total. Reproduced; it predates R1. A one-line correction was built on
     a disposable copy and measured: $540,000,000 → $660,000,000 on the fixture, and a saved FY25-only selection stays FY25
     after reopening. Not committed; it waits for Brad, as does one edge (a plan the board still holds for the carry year).
-  - **U2:** keptPutBack loses data in R5's race. The change count (U2 1 of 2) and the refusal while a save is under way
+  - **U2: complete** (accepted by Brad, 12 Oct): the change count (U2 1 of 2) and the refusal while a save is under way
     (2 of 2) are both above. audit-import passes at both commits, and each new mutation is caught, in runs made alone.
+    Its separate reopening and adoption findings stay open in the ledger (U15–U20).
   - **U3:** a Save queued behind a running save under the hold.
   - **U4:** the folder save's window for the hold.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
