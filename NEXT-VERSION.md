@@ -672,6 +672,17 @@ result for it was run fresh against these commits.
     -- not on screen, not kept aside, not in the folder, not in its history. R5 covers ↶ Put this back only, so this
     is left for Brad's decision. It is not covered by a check.
 
+- **U2 — work put back during a save stays unsaved** (Brad, 11 Oct: "Proceed with U2's counter repair and busy-save refusal as
+  separate commits"). This is the counter repair. ↶ Put back of the work kept aside now counts as a change (`_saveGen`),
+  as an edit does. A folder or file save still writing when the work was put back used to find the count unmoved and mark
+  the board saved, while the folder or file held what that save wrote. The next Live refresh then replaced the work put
+  back, and a reopen lost it. Now that save leaves the work unsaved and says so, a refresh and a reopen keep it, and the
+  next Save writes it.
+  - Not closed by this change alone: the landing save still records its own copy as the checkpoint. So the next Save, or
+    the autosave, writes the work put back over that copy without asking. The copy written over stays in the kept slot,
+    and in the folder's history for a folder. The busy-save refusal, a separate commit, closes this.
+  - Test: audit-import "v2.00 (U2) — work put back during a save stays unsaved": folder and file races, a live
+    refresh, reopens, and a direct count check. Mutation `v200-u2-putback-gen`.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1:** a carried-row omission from the ALL YEARS total. Reproduced; it predates R1. A one-line correction was built on
