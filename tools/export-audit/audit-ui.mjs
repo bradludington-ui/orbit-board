@@ -776,6 +776,10 @@ const whileRead = (X, code) => X.ev(`(function(){ var own=uiFileText, n=0; uiFil
 // a single submittal through ⬅ Load a submittal file (importState), its read started now and not waited for: it lands
 // while a batch started next is reading its own files
 const loadStarted = (X, f) => { X.w.__one = [new X.w.File([f[1]], f[0], { type: 'application/json' })]; X.ev(`importState({files:window.__one, value:''}); 1`); };
+// the destination list kept in this browser, as look() read it: its names and stamp, or that it is not there or cannot be
+// read -- never a throw, so a case whose stored list has gone still runs the rest of its checks
+const stored = ls => { try { const o = JSON.parse(ls.prio27destdb); return { names: o.ents.map(e => e.n), ts: o.ts }; }
+  catch (e) { return { names: 'absent or unreadable', ts: null }; } };
 
 await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
   const name = 'v2.00 UI (M1) — a batch refused before it takes anything says only what is true of it';
@@ -804,7 +808,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         chk(name, where, 'storage writes: Depot Mid’s alone -- the batch wrote nothing', J(b.writes), J(['set prio27destdb']));
         const Z = look(X);
         chk(name, where, 'Depot Mid kept on screen (stamped when it was stored, still the plan’s own list), in the copy kept in this browser and in the saved payload; no Depot Zulu',
-          J([Z.destNames, Z.destTs, Z.flowShared, JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n), /Depot Mid/.test(Z.payload), /Depot Zulu/.test(Z.payload)]),
+          J([Z.destNames, Z.destTs, Z.flowShared, stored(Z.ls).names, /Depot Mid/.test(Z.payload), /Depot Zulu/.test(Z.payload)]),
           J([SEEDED.concat(['Depot Mid']), 1790000000000, true, SEEDED.concat(['Depot Mid']), true, false]));
         chk(name, where, 'the review exactly as before: TSS alone, its tick, open', J([Z.review === A.post.review, Z.offices, Z.ticks, Z.open]),
           J([true, ['TSS'], ['0|S03|asks'], true]));
@@ -841,7 +845,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         const Z = look(X);
         chk(name, where, 'ATL is held after TSS, nothing ticked (as a single load leaves it), the review open', J([Z.offices, Z.ticks, Z.open]), J([['TSS', 'ATL'], [], true]));
         chk(name, where, 'Depot Mid on screen, in the copy kept in this browser and in the saved payload; no Depot Zulu',
-          J([Z.destNames, JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n), /Depot Mid/.test(Z.payload), /Depot Zulu/.test(Z.payload)]),
+          J([Z.destNames, stored(Z.ls).names, /Depot Mid/.test(Z.payload), /Depot Zulu/.test(Z.payload)]),
           J([SEEDED.concat(['Depot Mid']), SEEDED.concat(['Depot Mid']), true, false]));
         chk(name, where, 'the board reopened in this browser reads Depot Mid with the seeded eight, without errors', J(reopen(X)),
           J({ dest: SEEDED.concat(['Depot Mid']), errors: [] }));
@@ -898,7 +902,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       chk(name, where, 'storage writes: AV’s list, the other write, then the put-back, refused', J(b.writes), J(['set prio27destdb', 'set prio27destdb', 'set prio27destdb']));
       const Z = look(X);
       chk(name, where, 'true: the copy kept in this browser holds the other write -- the seeded eight and Depot Other, no Depot Zulu',
-        J([JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n), JSON.parse(Z.ls.prio27destdb).ts]), J([SEEDED.concat(['Depot Other']), 1790000000001]));
+        J([stored(Z.ls).names, stored(Z.ls).ts]), J([SEEDED.concat(['Depot Other']), 1790000000001]));
       chk(name, where, 'true: the board on screen is put back: the review, the list, the plan and the payload',
         J([Z.review === A.post.review, Z.dest === A.post.dest, Z.plan === A.post.plan, Z.payload === A.payload]), J([true, true, true, true]));
       chk(name, where, 'reopening the review shows exactly what it showed before', reviewHtml(X) === H0, true);
@@ -925,7 +929,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
         + 'Checked just now and exactly as before: the submittal review, whether the board reads as saved.']));
       const Z = look(X);
       chk(name, where, 'true: the list on screen and the stored list are the same -- the seeded eight and Depot Zulu, as the batch left them',
-        J([Z.destNames, JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n), Z.ls.prio27destdb === Z.dest]), J([SEEDED.concat(['Depot Zulu']), SEEDED.concat(['Depot Zulu']), true]));
+        J([Z.destNames, stored(Z.ls).names, Z.ls.prio27destdb === Z.dest]), J([SEEDED.concat(['Depot Zulu']), SEEDED.concat(['Depot Zulu']), true]));
       chk(name, where, 'no page errors', J(X.errors), J([]));
     }
   } catch (e) {
@@ -962,7 +966,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
       chk(name, where, 'the header says Unsaved changes, and the board counts itself unsaved: Depot Mid is in no saved file', J([Z.head, Z.unsaved]), J(['Unsaved changes', true]));
       chk(name, where, 'the save state is exactly the one taken once the files were read', J(Z.save) === X.ev('window.__saveAfterReads'), true);
       chk(name, where, 'Depot Mid kept on screen and in the copy kept in this browser; Depot Zulu in neither',
-        J([Z.dest, JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n)]), J([SEEDED.concat(['Depot Mid']), SEEDED.concat(['Depot Mid'])]));
+        J([Z.dest, stored(Z.ls).names]), J([SEEDED.concat(['Depot Mid']), SEEDED.concat(['Depot Mid'])]));
       chk(name, where, 'the review exactly as before: TSS held', J([Z.review === A.review, JSON.parse(Z.review).subs.map(p => p.pmo)]), J([true, ['TSS']]));
       chk(name, where, 'the board reopened in this browser reads Depot Mid with the seeded eight, without errors', J(reopen(X)),
         J({ dest: SEEDED.concat(['Depot Mid']), errors: [] }));
