@@ -137,3 +137,20 @@ paused until then.
 - **Restart:** `rec/bin/alone-u2b.sh` (a copy of the first driver with only the id list and attempt numbering changed),
   started 11:47 PM ET as process group 29586: commit 1 `v200-u2-putback-gen` (attempts from 4), then commit 2 BASELINE,
   `v200-u2-putback-while-saving`, `v200-u2-putback-gen`.
+
+## Update at 12:27 AM ET: U2's full runs, all alone, are complete
+
+Driver `alone-u2b.sh` (process group 29586) ended 12:26:45 AM ET, exit 0, lock cleared. The watcher
+saw nothing alongside any of these runs (no OVERLAP line between each run's start and end lines).
+
+| commit | run | started (ET) | exit | s | result | backup |
+|---|---|---|---|---|---|---|
+| `4e90af4` (1) | BASELINE | 10:41:35 PM | 0 | 483.1 | ALL CHECKS PASSED | `ad0dd2f` |
+| `4e90af4` (1) | `v200-u2-putback-gen` attempt 4 | 11:48:03 PM | 1 | 554.0 | **caught**: 9 failing, 7 scenarios, all in the U2 counter block | `5258617` |
+| `a8891e1` (2) | BASELINE | 11:57:55 PM | 0 | 550.7 | ALL CHECKS PASSED | `3329d0e` |
+| `a8891e1` (2) | `v200-u2-putback-while-saving` | 12:07:44 AM | 1 | 548.2 | **caught**: 34 failing, all 8 scenarios of the refusal block | `09fe6c9` |
+| `a8891e1` (2) | `v200-u2-putback-gen` | 12:17:30 AM | 1 | 549.0 | **caught**: 1 failing, (d) "K put back with no save running" (the count read from `_saveGen`: got [0,0], want [0,1]) | `4216d13` |
+
+At commit 2 the counter is caught by (d) alone, as block 1 was written to be: with the refusal in place a put-back during a
+save is refused, so block 1's race scenarios accept either outcome, and (d) keeps the count itself tested. Overlapped
+attempts (10:17 PM BASELINE; `v200-u2-putback-gen` attempts 1–3) are kept and do not count.
