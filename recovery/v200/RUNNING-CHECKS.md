@@ -214,3 +214,24 @@ workflow was launched at 6:08:07 AM ET.)
 - **Timing sample** (6 of the 135, on the read-only base copy, 6:47–6:52 AM ET, 313 s; sample only, not evidence):
   5 caught by audit-inject in 6–16 s each; `v200-door-dest-open` passed all seven cheaper suites (about 260 s) and needs
   audit-import (`rec/L3/chain-sample/`).
+
+## Update at 7:01 AM ET: Brad's 6:59 AM instructions; the exact manifest; a count corrected
+
+- **Brad, 6:59 AM ET:** finish the approved builders and reviews; the 135 pre-reset mutations and the full gate stay
+  held; re-measure U17 after U13, reproduce U19 on the committed head, run a bounded U20 lock-wait probe with controls,
+  and propose corrections separately; the pinned baseline and the new/affected-protection evidence matrix come first;
+  earlier catches are reused only with established source identity and applicable scope; mutation testing stops for a
+  suite whose unmutated baseline fails.
+- **A count I gave was wrong.** At 6:53 AM ET I told Brad audit-import had "16 known mutations" and "about 19 runs".
+  The groups I listed total 14: R3 5, R4 3, R5 2, U2 2, R4b's `impmixed-file-unguarded` and `unsaved-flag-never-set`
+  (an older mutation R5 re-anchored). With U13's three (the builder made three, not two) it is 17 mutants plus the
+  baseline: 18 alone runs.
+- **The exact manifest** (`rec/bin/mkmanifest.py`, mutate.mjs read as text) at `a8891e1`:
+  `manifests/mutation-manifest-a8891e1.tsv`: 170 ids, every one applying once; 35 reimplementation (audit-import 14,
+  audit-recon 18, audit-board 3) and 135 pre-reset, held. The queue's manifest is regenerated from the pinned clone and
+  must match it.
+- **The queue** is now `rec/bin/final-tree-v3.sh` (v2 kept as `final-tree-v2.superseded-0701.sh`): baseline first,
+  then sensitivity for "new", "affected", "reimpl"; gated on each suite's baseline; the 135 and the informational lane held.
+- **U13 builder finished at 6:51 AM ET** (`rec/L3/u13`); its review is running. Its new findings are U21–U24 in the ledger.
+- **The UI builder amended its own M1 commit**: `eb4dbfb` (bundled at `216773a`) became `aac8574` (6 lines in the board
+  and audit-ui); bundled and restore-verified at `8236737`.
