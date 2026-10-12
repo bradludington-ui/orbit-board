@@ -1326,12 +1326,12 @@ html.ui-on #uiFly.open{display:block;position:fixed;z-index:56;left:calc(var(--u
 /* the context bar: the logo moved to the sidebar; Cycle and the Editable chip join Appropriation, year and PMO */
 html.ui-on .hdr .brand{display:none}
 html.ui-on .hdr{background:var(--panel)}
-html.ui-on .hdr .ctx .tlbl{display:inline}
 .uiCyc,.uiChip{display:none}
 html.ui-on .uiCyc{display:inline-flex;align-items:center;gap:6px}
 html.ui-on .uiChip{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:4px 10px;font-weight:700;font-size:11.5px;white-space:nowrap}
 html.ui-on .uiChip.ed{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
 html.ui-on .uiChip.ro{background:color-mix(in srgb,var(--mut) 16%,transparent);color:var(--mut)}
+html.ui-on .uiChip.pen{background:color-mix(in srgb,var(--amber) 16%,transparent);color:var(--ink)}
 html.ui-on #saveState{border-radius:7px;padding:4px 10px;background:color-mix(in srgb,var(--amber) 14%,transparent);font-weight:700}
 html.ui-on #saveState:empty{display:none}
 /* the task bar: the five tabs are the sidebar's now; Requirements keeps its Review / Rank switch */
@@ -1340,8 +1340,9 @@ html.ui-on[data-mode="review"] .tbar #tab_review,html.ui-on[data-mode="review"] 
 html.ui-on[data-mode="rank"] .tbar #tab_review,html.ui-on[data-mode="rank"] .tbar #tab_rank{display:inline-flex}
 html.ui-on:not([data-mode="review"]):not([data-mode="rank"]) .tbar .tabs,
 html.ui-on:not([data-mode="review"]):not([data-mode="rank"]) .tbar .tabs + .csep{display:none}
-/* the funding posture strip is the Funding section's; the KPI cards carry its four headline figures elsewhere */
-html.ui-on:not([data-mode="fund"]) #posture{display:none}
+/* the funding posture strip shows in Funding and, enlarged as the board has always shown it, in Brief; the KPI cards
+   carry its four headline figures in the other sections */
+html.ui-on:not([data-mode="fund"]):not([data-mode="brief"]) #posture{display:none}
 /* the page heading, the KPI cards and the toolbar */
 html.ui-on #uiPage{display:block;padding:10px 18px 2px}
 #uiPage .uiHd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:2px 0 10px}
@@ -1375,29 +1376,87 @@ html.ui-on .uiPop.open{display:block;position:absolute;top:calc(100% + 4px);left
 .uiPop button.o[aria-pressed="true"]::before{content:"✓";color:var(--green);font-weight:800}
 .uiPop button.o[aria-pressed="false"]::before{content:"";width:9px}
 .uiPop .note{font-size:11px;color:var(--dim);padding:5px 8px 3px;line-height:1.4}
-/* with the sidebar open beside a docked RECORD panel (1400px and up, today's behaviour), the columns are sized to
-   the room left; the rail and the narrower windows keep today's widths */
-@media (min-width:1400px) and (max-width:1760px){
-  html.ui-on:not(.ui-rail){--rowcols:50px 46px minmax(140px,1fr) 128px 100px 96px 100px 26px 26px}
-  html.ui-on:not(.ui-rail)[data-mode="rank"]{--rowcols:96px 50px minmax(120px,1fr) 120px 100px 92px 92px 26px 26px}
-  html.ui-on:not(.ui-rail)[data-mode="fund"]{--rowcols:46px 40px minmax(120px,1fr) 96px 90px 90px 90px 100px 26px 26px}
-  html.ui-on:not(.ui-rail) .gridsplit{grid-template-columns:minmax(0,1fr) clamp(360px,26vw,600px)}
-}
-@media (max-width:1760px){
-  html.ui-on:not(.ui-rail)[data-mode="brief"]{--rowcols:40px 56px minmax(180px,1fr) 150px 110px 100px 100px 100px 110px}
-}
+/* chunk 2 -- THE RECORD PANEL SLIDES OVER BY DEFAULT, AT EVERY WIDTH. It is the board's own drawer: the same element,
+   drawerOpen / drawerClose / drawerSync, the scrim, Esc and Close -- the rules below are the board's own drawer rules
+   (max-width:1400px), applied at every width. "Docked beside the table" (html.ui-dock, a per-browser choice made in
+   View) is the board's own layout: docked above 1400px at the board's own width, clamp(420px,30vw,600px), a drawer below. */
+html.ui-on:not(.ui-dock) .gridsplit{grid-template-columns:minmax(0,1fr)}
+html.ui-on:not(.ui-dock) .inspector{position:fixed;top:0;right:0;bottom:0;left:auto;width:min(460px,92vw);max-height:none;height:100%;z-index:60;
+  border-radius:0;border-width:0 0 0 1px;box-shadow:-14px 0 34px rgba(0,0,0,.34);transform:translateX(102%);transition:transform .18s ease-out;will-change:transform}
+html.ui-on:not(.ui-dock) .inspector.open{transform:translateX(0)}
+html.ui-on:not(.ui-dock) .inspector .drawerbar{display:flex}
+html.ui-on:not(.ui-dock) .drawerscrim.on{display:block}
+@media (prefers-reduced-motion:reduce){ html.ui-on .inspector{transition:none} }
+/* THE ROW IS SIZED FOR THE ROOM IT HAS. The board's own column lists are chosen by the window's width, which assumed
+   the row had the whole window (or the window less the docked panel). The sidebar takes 232px (64 as the rail), so
+   uiRailApply() works out the room the row really has -- the window, less the sidebar, less the docked panel -- and
+   sets html.ui-e1400 / ui-e1100 / ui-e940 / ui-e760 / ui-e640 for it. Each class applies the board's OWN list for a
+   window of that width (copied from its media rules above), so the row gets the columns the board already gives a
+   window that size. WHERE THE BOARD'S OWN LIST CUTS A NINE-DIGIT FIGURE it is replaced, not copied: a nine-digit figure
+   needs 88px at the row's money size and 102px at Brief's (measured), and the board's 761-940px lists give Rank 80px,
+   Fund 80px and Brief 92px, and its 1100px Brief list 100px (layout-fits J fails on exactly those, in the board itself).
+   Those lists below hold the figure whole; in Fund and Brief at that room the money is set a size smaller so that every
+   cell still fits the row. Brief at 1101-1400 is new too: the board's nine-track Brief list is 1,282px wide and
+   overflowed there in the board itself; this one draws the same nine cells in less. */
+html.ui-on.ui-e1400[data-mode="review"],html.ui-on.ui-e1400[data-mode="compare"]{--rowcols:58px 50px minmax(180px,1fr) 164px 104px 100px 112px 26px 26px}
+html.ui-on.ui-e1400[data-mode="brief"]{--rowcols:40px 56px minmax(150px,1fr) 130px 108px 106px 106px 106px 124px}
+html.ui-on.ui-e1100[data-mode="review"],html.ui-on.ui-e1100[data-mode="compare"]{--rowcols:44px 50px minmax(150px,1fr) 132px 100px 104px 26px 26px}
+html.ui-on.ui-e1100[data-mode="rank"]{--rowcols:110px 76px minmax(140px,1fr) 132px 100px 96px 26px 26px}
+html.ui-on.ui-e1100[data-mode="fund"]{--rowcols:54px 50px minmax(140px,1fr) 100px 90px 90px 90px 104px 26px 26px}
+html.ui-on.ui-e1100[data-mode="brief"]{--rowcols:40px 56px minmax(150px,1fr) 130px 108px 106px 106px 106px}
+html.ui-on.ui-e1100 .row .cum,html.ui-on.ui-e1100 .gridhead .cum{display:none}
+html.ui-on.ui-e940 .gridhead,html.ui-on.ui-e940 .row{gap:6px}
+html.ui-on.ui-e940[data-mode="rank"]{--rowcols:104px 56px minmax(100px,1fr) 104px 92px 88px 26px 26px}
+html.ui-on.ui-e940[data-mode="fund"]{--rowcols:46px 40px minmax(84px,1fr) 84px 84px 84px 84px 88px 26px 26px}
+html.ui-on.ui-e940[data-mode="brief"]{--rowcols:36px 40px minmax(110px,1fr) 90px 94px 94px 94px 94px}
+html.ui-on.ui-e940[data-mode="fund"] #list .row .num,html.ui-on.ui-e940[data-mode="fund"] #list .row .amt{font-size:11.5px}
+html.ui-on.ui-e940[data-mode="brief"] #list .row .num,html.ui-on.ui-e940[data-mode="brief"] #list .row .amt{font-size:13px}
+html.ui-on.ui-e760[data-mode]{--rowcols:40px minmax(0,1fr) 96px 26px 26px}
+html.ui-on.ui-e760[data-mode="brief"]{--rowcols:40px minmax(0,1fr) 110px}
+html.ui-on.ui-e760 .pmoc,html.ui-on.ui-e760 .bandc,html.ui-on.ui-e760 .lanec,html.ui-on.ui-e760 .row .amt,html.ui-on.ui-e760 .row .acts.alloc,html.ui-on.ui-e760 .gridhead .hide760{display:none!important}
+html.ui-on.ui-e640[data-mode]:not([data-mode="brief"]){--rowcols:40px minmax(0,1fr) 26px 26px}
+html.ui-on.ui-e640 .row{gap:6px;padding:6px 10px}
+html.ui-on.ui-e640 .row .num{grid-column:2;grid-row:2;text-align:left}
+html.ui-on.ui-e640 .row .mcc{grid-column:3;grid-row:1}
+html.ui-on.ui-e640 .row .morec{grid-column:4;grid-row:1}
+html.ui-on.ui-e640 .gridhead{display:none}
 @media (max-width:1100px){ #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
-@media (max-width:900px){ html.ui-on:not(.ui-rail){--uiSideW:64px} html.ui-on #uiSide .uiBt,html.ui-on #uiSide .uiNi .t,html.ui-on #uiSide .uiGrp,html.ui-on #uiSide .uiFoot .t{display:none} }
+html.ui-on.ui-e940 #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* 900px AND NARROWER: the sidebar sits as the 64px rail whatever was chosen for wide windows (html.ui-narrow, set by
+   uiRailApply; nothing is written for it). Opening it lays it OVER the page (html.ui-peek), the way the record drawer
+   does, so the table keeps its room; a click outside it, Esc or a choice closes it. */
+html.ui-on.ui-narrow body{padding-left:64px}
+html.ui-on.ui-narrow.ui-peek #uiSide{box-shadow:14px 0 40px rgba(0,0,0,.35)}
+/* Add requirement is Review's, as the board's own task bar and its folded Review tools menu offer it (#toolAdd sits in
+   #t_review); a PMO copy's File menu leaves out the programme offices, and so does the Import box */
+html.ui-on:not([data-mode="review"]) #uiAddBtn{display:none}
+html.ui-on.ui-sandbox #uiImpC_pmo{display:none}
+html.ui-on.ui-sandbox .uiImpCh{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* the KPI cards when they could not be drawn: no figure is shown rather than an old one */
+#uiKpis .k.na .v{color:var(--dim);font-size:15px}
+/* the Cycle control: the working plan or a locked cycle to view, read only */
+html.ui-on .uiCyc.uiMenu{position:relative}
+html.ui-on .uiCyc .uiPop.open{min-width:300px}
+.uiPop .uiPopHint{font-size:11px;color:var(--dim);padding:2px 8px 6px;line-height:1.4}
+.uiPop button.o small{display:block;font-weight:400;color:var(--dim);font-size:11px}
+html.ui-on #uiCycPop button.o{flex-wrap:wrap;row-gap:1px}
+html.ui-on #uiCycPop button.o small{flex:1 0 100%;padding-left:17px}
+/* the posture strip wraps rather than scrolls where the room is a narrow window's (the board's own rule at 1100px and
+   narrower), and in Brief -- the presentation view -- wherever the sidebar leaves it less than a wide window */
+html.ui-on.ui-e1100 .posture,html.ui-on.ui-e1400[data-mode="brief"] .posture{flex-wrap:wrap;overflow:visible}
+.uiPop button.o:disabled{opacity:.55;cursor:default}
 /* Density: compact (the board's own density setting, set from the toolbar) tightens the new chrome too */
 html.ui-on[data-density="compact"] #uiKpis .k{padding:8px 12px}
 html.ui-on[data-density="compact"] #uiKpis .k .v{font-size:18px}
 html.ui-on[data-density="compact"] #uiPage .uiHd h2{font-size:20px}
 /* the RECORD panel's Overview / Funding / History tabs. They take the reader to that part of the record and never
    hide any of it: a field another control sends the keyboard to (a row chip, Go to it) is always there to reach. */
-.uiDTabs,.uiDHist{display:none}
+.uiDTabs,.uiDHist,.uiDOv{display:none}
 html.ui-on #inspector .uiDTabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:8px 0 10px;position:sticky;top:0;z-index:2;background:var(--panelA,var(--panel))}
 html.ui-on #inspector .uiDTabs button{border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;padding:7px 12px;font-family:inherit;font-weight:700;font-size:12.5px;color:var(--mut);cursor:pointer}
 html.ui-on #inspector .uiDTabs button[aria-pressed="true"]{color:var(--green);border-bottom-color:var(--green)}
+html.ui-on #inspector .uiDOv{display:block;font-size:11.5px;color:var(--ink);margin:-4px 0 10px;line-height:1.5}
+html.ui-on #inspector .uiDOv .d{color:var(--mut)}
 html.ui-on #inspector .uiDHist{display:block;margin-top:14px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
 html.ui-on #inspector .uiDHist .h{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);margin-bottom:6px}
 html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
@@ -1568,10 +1627,10 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   <div class="uiTools" id="uiTools" role="group" aria-label="Table tools">
     <span id="uiToolsMoved" style="display:contents"></span>
     <div class="uiMenu"><button type="button" class="btn" id="uiColsBtn" aria-expanded="false" onclick="uiPop('uiColsPop',this)" title="Show or hide table columns"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M6 2.5v11M10 2.5v11"/></svg>Columns</button><div class="uiPop" id="uiColsPop"></div></div>
-    <div class="uiMenu"><button type="button" class="btn" id="uiDensBtn" aria-expanded="false" onclick="uiPop('uiDensPop',this)" title="Comfortable or compact rows"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5h12M2 8h12M2 12.5h12"/></svg>Density</button><div class="uiPop" id="uiDensPop"></div></div>
+    <div class="uiMenu"><button type="button" class="btn" id="uiDensBtn" aria-expanded="false" onclick="uiPop('uiDensPop',this)" title="Row density, and how the RECORD panel opens: sliding over the table or docked beside it"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5h12M2 8h12M2 12.5h12"/></svg>View</button><div class="uiPop" id="uiDensPop"></div></div>
     <span class="sp"></span>
     <button type="button" class="btn" id="uiImpBtn" onclick="uiImpOpen()" title="Bring a board, an appropriation or PMO submittals in"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg>Import</button>
-    <button type="button" class="btn pri" id="uiAddBtn" onclick="toggleAdd()" title="Add a requirement to the year on screen — the same as Add requirement in Review"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
+    <button type="button" class="btn pri" id="uiAddBtn" onclick="uiAddReq()" title="Add a requirement to the year on screen — the same as Add requirement in Review"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
   </div>
 </div>
 <div id="driveBar"></div>
@@ -22435,7 +22494,8 @@ function scoreboard(){
           +' title="The scorecards, the discretionary fit and the funding panels">Funding detail <span class="car" aria-hidden="true">'+(fundDetailOpen?'▴':'▾')+'</span></button></div>';
       // v2.00 UI (chunk 1): the KPI cards print these same figures -- handed over, never worked out again
       window.UI_KPI={ask:ask, dUsed:dUsed, mUsed:mUsed, u2Amt:u2Amt, dBA:dBA, mBA:mBA, uN:uN, n:S.order.length};
-      if(typeof uiKpis==='function') uiKpis();
+      // chunk 2: GUARDED -- the cards can never stop render(); if they fail they say so rather than keep old figures
+      try{ if(typeof uiKpis==='function') uiKpis(); }catch(e){ try{ uiKpisNa(e); }catch(x){} }
     } }
 }
 // One line saying what the nominated requirement is eating, and what nobody is eating.
@@ -30844,6 +30904,8 @@ function setCur(id){
 // One editor, two presentations. Everything below only decides whether the panel is sliding over
 // the grid or sitting beside it; nothing here knows anything about a requirement.
 function drawerNarrow(){
+  // v2.00 UI (chunk 2): the RECORD panel slides over at every width unless the person chose "Docked beside the table"
+  try{ if(typeof uiSlides==='function' && uiSlides()) return true; }catch(e){}
   try{ return window.matchMedia('(max-width:1400px)').matches; }catch(e){ return false; }
 }
 function drawerOpen(){
@@ -31800,7 +31862,7 @@ loadShared(sharedArrived);
 //   Its own preferences (the sidebar as a rail, the hidden columns) are READ at opening and WRITTEN only when the
 //   person changes them, under keys prefixed prio27ui. Opening the board writes nothing.
 // ==============================================================================================================
-var UI2={on:false, rail:false, cols:{}, imp:'full', pmoHow:'one', fly:'', t:0};
+var UI2={on:false, rail:false, dock:false, peek:false, cols:{}, imp:'full', pmoHow:'one', fly:'', t:0, kpiErr:''};
 var UI_SEC={review:'req', rank:'req', fund:'fund', compare:'cyc', brief:'brief'};
 var UI_TTL={req:'Requirements', fund:'Funding', cyc:'Cycles & compare', brief:'Brief'};
 var UI_NAV=['req','fund','fydp','exec','cyc','brief','imp','hist','setup'];
@@ -31808,14 +31870,51 @@ var UI_NAV=['req','fund','fydp','exec','cyc','brief','imp','hist','setup'];
 var UI_COLS=[['pmo','PMO'],['band','Decision band'],['cum','Cumulative'],['lane','Lane']];
 var UI_COLIX={ review:{pmo:1,band:3,cum:5,lane:6,n:9}, rank:{pmo:1,band:3,cum:5,lane:6,n:9}, compare:{pmo:1,band:3,cum:5,lane:6,n:9},
                fund:{pmo:1,n:10}, brief:{pmo:1,band:3,cum:8,n:9} };
+var UI_BATCH=null;   // what the last "All submissions at once" did: {files, ok, why} -- read by nothing in the board
 function uiPrefRead(){
   try{ UI2.rail = localStorage.getItem('prio27uiRail')==='1'; }catch(e){}
+  try{ UI2.dock = localStorage.getItem('prio27uiDock')==='1'; }catch(e){}
   try{ const c=JSON.parse(localStorage.getItem('prio27uiCols')||'{}'); UI2.cols=(c && typeof c==='object' && !Array.isArray(c))? c : {}; }catch(e){ UI2.cols={}; }
 }
-// written only from a person's own click
-function uiPrefWrite(k, v, what){
-  try{ if(typeof lsSet==='function') lsSet(k, v, what); else localStorage.setItem(k, v); }catch(e){}
+// Written only from a person's own click. A browser-only preference: never the board file, never lsSet (whose refusal
+// message speaks of the file), so a browser that refuses it simply does not remember it.
+function uiPrefWrite(k, v){
+  try{ localStorage.setItem(k, v); }catch(e){}
 }
+function uiSandbox(){ try{ return (typeof SANDBOX!=='undefined' && !!SANDBOX); }catch(e){ return false; } }
+// ── the RECORD panel: sliding over the table (the default) or docked beside it (a choice kept in this browser) ───
+function uiSlides(){ return !!(UI2 && UI2.on && !UI2.dock); }
+function uiDockSet(dock){
+  dock=!!dock; if(UI2.dock===dock) return;
+  UI2.dock=dock;
+  uiPrefWrite('prio27uiDock', dock? '1' : '0');
+  try{ drawerClose(); }catch(e){}
+  uiRailApply(); uiCols();
+  try{ fitTop(); syncSticky(); }catch(e){}
+}
+// ── the room the row has, and the sidebar at 900px and narrower ──────────────────────────────────────────────
+function uiNarrow(){ const w=window.innerWidth||0; return w>0 && w<=900; }
+function uiRoom(){
+  const w=window.innerWidth||(document.documentElement && document.documentElement.clientWidth)||0;
+  if(!w) return 0;
+  const side=(uiNarrow() || UI2.rail)? 64 : 232;
+  // docked above 1400px the board's own panel takes clamp(420px,30vw,600px) and the 10px gap (Brief draws no panel)
+  const dockW=(UI2.dock && w>1400 && uiMode!=='brief')? Math.min(600, Math.max(420, w*0.30))+10 : 0;
+  return w-side-dockW;
+}
+function uiRailApply(){
+  if(!UI2 || !UI2.on) return;
+  const h=document.documentElement, n=uiNarrow();
+  if(!n) UI2.peek=false;
+  h.classList.toggle('ui-narrow', n);
+  h.classList.toggle('ui-peek', n && UI2.peek);
+  h.classList.toggle('ui-rail', n? !UI2.peek : !!UI2.rail);
+  h.classList.toggle('ui-dock', !!UI2.dock);
+  h.classList.toggle('ui-sandbox', uiSandbox());
+  const r=uiRoom();
+  [1400,1100,940,760,640].forEach(function(b){ h.classList.toggle('ui-e'+b, r>0 && r<=b); });
+}
+function uiPeekClose(){ if(UI2.peek){ UI2.peek=false; uiRailApply(); uiSync(); } }
 function uiBoot(){
   if(UI2.on) return;
   const h=document.documentElement, side=document.getElementById('uiSide'), pg=document.getElementById('uiPage');
@@ -31828,34 +31927,49 @@ function uiBoot(){
   // the context bar: Cycle beside Appropriation, the Editable chip beside the file's save state
   const ctx=document.querySelector('.hdr .ctx');
   if(ctx && !document.getElementById('uiCycBtn')){
-    const c=document.createElement('span'); c.className='uiCyc';
-    c.innerHTML='<span class="tlbl">Cycle</span><button type="button" class="btn" id="uiCycBtn" onclick="uiSetMode(\'compare\')" '
-      +'title="The working plan, or the locked PPBE cycle on screen — Cycles &amp; compare holds the cycle tools">Working plan</button>';
+    const c=document.createElement('span'); c.className='uiCyc uiMenu';
+    c.innerHTML='<span class="tlbl">Cycle</span><button type="button" class="btn" id="uiCycBtn" aria-expanded="false" aria-haspopup="true" onclick="uiPop(\'uiCycPop\',this)" '
+      +'title="The plan on screen: the working plan, or a locked PPBE cycle viewed read only">Working plan</button><div class="uiPop" id="uiCycPop"></div>';
     ctx.insertBefore(c, ctx.firstChild);
   }
   const ss=document.getElementById('saveState');
   if(ss && ss.parentNode && !document.getElementById('uiEdChip')){
     const e=document.createElement('span'); e.className='uiChip ed'; e.id='uiEdChip'; ss.parentNode.insertBefore(e, ss); }
   if(!document.getElementById('uiColsCss')){ const st=document.createElement('style'); st.id='uiColsCss'; document.head.appendChild(st); }
-  h.classList.add('ui-on'); h.classList.toggle('ui-rail', !!UI2.rail);
+  h.classList.add('ui-on');
   UI2.on=true;
+  uiRailApply();
   try{ const b=document.getElementById('uiFootT'); if(b) b.textContent='ORBIT '+(typeof BUILD!=='undefined'? BUILD : ''); }catch(e){}
-  uiKpis();
+  try{ uiKpis(); }catch(e){ try{ uiKpisNa(e); }catch(x){} }
   try{ const ins=document.getElementById('inspector'); if(ins && typeof MutationObserver!=='undefined') new MutationObserver(uiDrawerTabs).observe(ins, {childList:true}); }catch(e){}
-  uiDrawerTabs();
+  try{ uiDrawerTabs(); }catch(e){}
   document.addEventListener('click', uiDocClick);
   document.addEventListener('keydown', uiKey);
-  window.addEventListener('resize', function(){ clearTimeout(UI2.t); UI2.t=setTimeout(uiCols, 120); });
+  window.addEventListener('resize', function(){
+    uiRailApply(); uiCols();
+    clearTimeout(UI2.t); UI2.t=setTimeout(function(){ uiCols(); try{ fitTop(); syncSticky(); }catch(e){} }, 120); });
   try{ fitTop(); syncSticky(); }catch(e){}
+}
+// who holds the pen for this file when it is not this browser ('' when it is, or when no writer is recorded). Read
+// only: the browser's writer key is read here and never made -- writerKey() would write one, so writerIsMe() is asked
+// only when the key is already there.
+function uiPenOther(){
+  try{
+    if(typeof WRITER==='undefined' || !WRITER || !WRITER.fp) return '';
+    let k=''; try{ k=localStorage.getItem('prio27writerKey')||''; }catch(e){}
+    if(/^[0-9a-f]{32}$/.test(k) && writerIsMe(WRITER)) return '';
+    return String(WRITER.by||'someone else');
+  }catch(e){ return ''; }
 }
 function uiPmoLabel(){ const b=document.getElementById('b_pmo'); return b? b.textContent.replace(/\s*▾\s*$/,'').trim() : ''; }
 function uiCycLabel(){
-  try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) return blLbl(CYCVIEW)+' (locked)'; }catch(e){}
+  try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) return blLblTxt(CYCVIEW)+' (locked, read only)'; }catch(e){}
   return 'Working plan';
 }
 // the active section, the heading, the cycle and the Editable chip -- read from the board's own state
 function uiSync(){
   if(!UI2 || !UI2.on) return;
+  uiRailApply();
   const sec=UI_SEC[uiMode]||'req';
   UI_NAV.forEach(function(k){ const b=document.getElementById('uiNav_'+k); if(!b) return;
     b.classList.toggle('on', k===sec); if(k===sec) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
@@ -31868,41 +31982,59 @@ function uiSync(){
   if(ec){ let ro='';
     try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) ro='🔒 Read only — locked cycle'; }catch(e){}
     if(!ro && uiMode==='brief') ro='Presentation view';
-    let sb=false; try{ sb=(typeof SANDBOX!=='undefined' && !!SANDBOX); }catch(e){}
-    ec.className='uiChip '+(ro? 'ro' : 'ed');
-    ec.textContent= ro || ('✎ Editable'+(sb? ' · PMO copy' : '')); }
+    const sb=uiSandbox(), pen=(ro || sb)? '' : uiPenOther();
+    ec.className='uiChip '+(ro? 'ro' : (pen? 'pen' : 'ed'));
+    ec.textContent= ro || (sb? '✎ Editable · PMO copy — no Save' : (pen? '✎ Editable · '+pen+' holds the pen' : '✎ Editable'));
+    ec.title= ro? '' : (sb? 'Changes here are yours to send back with ✉ Submit input; a PMO copy is never saved over the board.'
+      : (pen? 'You can change the board here, but only '+pen+', who holds the pen for this file, saves it in place. Save says what you can do.' : '')); }
   const cl=document.getElementById('uiCollapse');
-  if(cl){ cl.innerHTML=UI2.rail? '&#8250;' : '&#8249;';
-    const l=UI2.rail? 'Expand the sidebar' : 'Collapse the sidebar to icons'; cl.setAttribute('aria-label', l); cl.title=l; }
+  if(cl){ const n=uiNarrow(), r=n? !UI2.peek : UI2.rail;
+    cl.innerHTML=r? '&#8250;' : '&#8249;';
+    const l=n? (UI2.peek? 'Close the sidebar' : 'Open the sidebar over the page') : (UI2.rail? 'Expand the sidebar' : 'Collapse the sidebar to icons');
+    cl.setAttribute('aria-label', l); cl.title=l; }
 }
 // THE FOUR KPI CARDS. scoreboard() hands over the figures it has just printed in the posture strip (UI_KPI);
-// nothing here adds, rounds or re-derives a figure beyond fM()'s own whole dollars.
+// nothing here adds, rounds or re-derives a figure beyond fM()'s own whole dollars. A card that cannot be drawn
+// makes all four say "unavailable" (uiKpisNa) -- never the figures from an earlier render.
+var UI_KIC={
+  ask:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2" width="11" height="12" rx="1.2"/><path d="M5 5.5h6M5 8h6M5 10.5h4"/></svg>',
+  disc:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5V8l4 3.5"/></svg>',
+  mand:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 6.5 8 3l6 3.5M3 6.5v6M6.3 6.5v6M9.7 6.5v6M13 6.5v6M2 13.5h12"/></svg>',
+  ufr:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M3 8h10M3 11.5h10"/></svg>' };
+function uiKpiCard(cls, lbl, v, x, i){
+  if(typeof v!=='number' || !isFinite(v)) throw new Error('the '+lbl+' figure is not a number');
+  return '<div class="k '+cls+'"><div style="min-width:0"><div class="l">'+lbl+'</div>'
+    +'<div class="v" data-v="'+Math.round(v)+'" title="'+fM(v)+'">'+fM(v)+'</div><div class="x">'+x+'</div></div>'
+    +'<span class="i" aria-hidden="true">'+i+'</span></div>';
+}
+function uiKpisNa(e){
+  UI2.kpiErr=String((e && e.message) || e || 'error');
+  const el=document.getElementById('uiKpis'); if(!el) return;
+  el.innerHTML=[['ask','Total Ask'],['disc','Discretionary'],['mand','Mandatory'],['ufr','Total UFR']].map(function(c){
+    return '<div class="k na '+c[0]+'" data-na="1"><div style="min-width:0"><div class="l">'+c[1]+'</div><div class="v">unavailable</div>'
+      +'<div class="x">the card could not be drawn — '+(c[0]==='ask'? 'the table' : 'Funding')+' has the figure</div></div></div>'; }).join('');
+}
 function uiKpis(){
   if(!UI2 || !UI2.on) return;
-  uiSync();
+  try{ uiSync(); }catch(e){}
   const el=document.getElementById('uiKpis');
   if(el){
-    const K=window.UI_KPI;
-    if(!K || typeof SVC==='undefined' || !SVC.length){ el.innerHTML=''; }
-    else {
-      const ic={
-        ask:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2" width="11" height="12" rx="1.2"/><path d="M5 5.5h6M5 8h6M5 10.5h4"/></svg>',
-        disc:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5V8l4 3.5"/></svg>',
-        mand:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 6.5 8 3l6 3.5M3 6.5v6M6.3 6.5v6M9.7 6.5v6M13 6.5v6M2 13.5h12"/></svg>',
-        ufr:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M3 8h10M3 11.5h10"/></svg>' };
-      const card=function(cls, lbl, v, x, i){
-        return '<div class="k '+cls+'"><div style="min-width:0"><div class="l">'+lbl+'</div>'
-          +'<div class="v" data-v="'+Math.round(v)+'" title="'+fM(v)+'">'+fM(v)+'</div><div class="x">'+x+'</div></div>'
-          +'<span class="i" aria-hidden="true">'+i+'</span></div>'; };
-      el.innerHTML=
-          card('ask', 'Total Ask', K.ask, K.n+' requirement'+(K.n===1?'':'s'), ic.ask)
-        + card('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA', ic.disc)
-        + card('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA', ic.mand)
-        + card('ufr'+(K.u2Amt>0.5? ' short' : ''), 'Total UFR', K.u2Amt,
-               K.u2Amt>0.5? (K.uN+' requirement'+(K.uN===1?'':'s')+' short') : 'nothing unfunded', ic.ufr);
-    }
+    try{
+      const K=window.UI_KPI;
+      if(!K || typeof SVC==='undefined' || !SVC.length){ el.innerHTML=''; }
+      else {
+        const html=
+            uiKpiCard('ask', 'Total Ask', K.ask, K.n+' requirement'+(K.n===1?'':'s'), UI_KIC.ask)
+          + uiKpiCard('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA', UI_KIC.disc)
+          + uiKpiCard('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA', UI_KIC.mand)
+          + uiKpiCard('ufr'+(K.u2Amt>0.5? ' short' : ''), 'Total UFR', K.u2Amt,
+                 K.u2Amt>0.5? (K.uN+' requirement'+(K.uN===1?'':'s')+' short') : 'nothing unfunded', UI_KIC.ufr);
+        el.innerHTML=html;
+      }
+      UI2.kpiErr='';
+    }catch(e){ uiKpisNa(e); }
   }
-  uiCols();
+  try{ uiCols(); }catch(e){}
 }
 // ── Columns: hide a column by taking its track out of the row template and its cell out of every row ──────────
 function uiTracks(s){
@@ -31922,7 +32054,7 @@ function uiCols(){
   const hide=map? UI_COLS.map(function(c){ return c[0]; }).filter(function(k){ return UI2.cols[k] && map[k]!==undefined; }) : [];
   if(hide.length){
     let tr=[]; try{ tr=uiTracks(getComputedStyle(h).getPropertyValue('--rowcols').trim()); }catch(e){}
-    // only where the row is the full set of cells: a narrow window draws fewer, and is left as it is
+    // only where the row is the full set of cells: a narrower row draws fewer, and is left as it is
     if(tr.length===map.n){
       const ix=hide.map(function(k){ return map[k]; });
       h.style.setProperty('--rowcols', tr.filter(function(t,i){ return ix.indexOf(i)<0; }).join(' '));
@@ -31933,13 +32065,25 @@ function uiCols(){
 }
 function uiColSet(k, hide){
   if(hide) UI2.cols[k]=true; else delete UI2.cols[k];
-  uiPrefWrite('prio27uiCols', JSON.stringify(UI2.cols), 'Your table columns');
+  uiPrefWrite('prio27uiCols', JSON.stringify(UI2.cols));
   uiCols();
 }
-// ── the toolbar's two small menus ────────────────────────────────────────────────────────────────────────────
+// ── the toolbar's small menus, and the Cycle menu in the context bar ───────────────────────────────────────────
 function uiPopsClose(){
-  ['uiColsPop','uiDensPop'].forEach(function(id){ const p=document.getElementById(id); if(p) p.classList.remove('open'); });
-  ['uiColsBtn','uiDensBtn'].forEach(function(id){ const b=document.getElementById(id); if(b) b.setAttribute('aria-expanded','false'); });
+  ['uiColsPop','uiDensPop','uiCycPop'].forEach(function(id){ const p=document.getElementById(id); if(p) p.classList.remove('open'); });
+  ['uiColsBtn','uiDensBtn','uiCycBtn'].forEach(function(id){ const b=document.getElementById(id); if(b) b.setAttribute('aria-expanded','false'); });
+}
+// THE CYCLE CONTROL offers exactly what the board supports: the working plan, and each locked PPBE cycle that holds a
+// plan, to VIEW read only -- cycView() / cycLeave(), the same calls as 👁 View and ↩ Leave the locked view in Compare.
+// A locked cycle is a read-only record of the plan; there is no separate plan per cycle to switch to or edit.
+function uiCycKeys(){ try{ return blList().filter(function(k){ return cycHeld(k).length; }); }catch(e){ return []; } }
+function uiCycGo(k){
+  uiPopsClose();
+  const cur=(typeof CYCVIEW!=='undefined' && CYCVIEW) || '';
+  if(!k){ if(cur) cycLeave(); return; }
+  if(cur===k) return;
+  if(uiCycKeys().indexOf(k)<0) return;     // only a locked cycle the board can show
+  cycView(k);
 }
 function uiPopFill(id){
   const p=document.getElementById(id); if(!p) return;
@@ -31949,12 +32093,29 @@ function uiPopFill(id){
     p.innerHTML='<div class="uiFh">Columns</div>'
       + cs.map(function(c){ return '<label><input type="checkbox" '+(UI2.cols[c[0]]? '' : 'checked')
         +' onchange="uiColSet(\''+c[0]+'\', !this.checked)"> '+c[1]+'</label>'; }).join('')
-      + '<div class="note">#, Requirement, the money, ★ and ⋯ always show. Kept in this browser; the board file does not change.</div>';
+      + '<div class="note">#, Requirement, the money, ★ and ⋯ always show. Applies where the row has room for every column. '
+      + 'Kept in this browser; the board file does not change.</div>';
+  } else if(id==='uiCycPop'){
+    const cur=(typeof CYCVIEW!=='undefined' && CYCVIEW) || '', keys=uiCycKeys();
+    p.innerHTML='<div class="uiFh">Plan on screen</div>'
+      + '<button type="button" class="o" aria-pressed="'+(cur? 'false' : 'true')+'" onclick="uiCycGo(\'\')">Working plan<small>the plan you change and save</small></button>'
+      + '<div class="uiFh" style="margin-top:6px">View a locked cycle (read only)</div>'
+      + (keys.length? keys.map(function(k){
+          return '<button type="button" class="o" aria-pressed="'+(cur===k? 'true' : 'false')+'" onclick="uiCycGo('+jsa(k)+')">'+blLbl(k)+' — locked'
+            +'<small>the plan as it stood when locked · read only: nothing changed while viewing it is kept</small></button>'; }).join('')
+        : '<div class="uiPopHint">No locked cycle holds a plan to view yet. Cycles are locked in Cycles &amp; compare.</div>')
+      + '<div class="uiPopHint">The board has one working plan. A locked cycle is a read-only record of it, not a separate plan to edit.</div>'
+      + '<button type="button" class="o" aria-pressed="false" onclick="uiPopsClose();uiSetMode(\'compare\')">Cycles &amp; compare…<small>lock a cycle, compare cycles</small></button>';
   } else {
     p.innerHTML='<div class="uiFh">Density</div>'
       + [['comfortable','Comfortable'],['compact','Compact']].map(function(d){
           return '<button type="button" class="o" aria-pressed="'+(uiDensity===d[0]?'true':'false')+'" onclick="uiPopsClose();uiSetDensity(\''+d[0]+'\')">'+d[1]+'</button>'; }).join('')
-      + (uiMode==='brief'? '<div class="note">Brief always reads at the presentation size.</div>' : '');
+      + (uiMode==='brief'? '<div class="note">Brief always reads at the presentation size.</div>' : '')
+      + '<div class="uiFh" style="margin-top:6px">Record panel</div>'
+      + [[false,'Slides over the table (default)'],[true,'Docked beside the table']].map(function(d){
+          return '<button type="button" class="o" aria-pressed="'+(UI2.dock===d[0]?'true':'false')+'" onclick="uiPopsClose();uiDockSet('+d[0]+')">'+d[1]+'</button>'; }).join('')
+      + '<div class="note">Slides over: picking a row opens its record over the table, which keeps its full width. Docked: the record '
+      + 'sits beside the table on windows wider than 1400px. Kept in this browser; the board file does not change.</div>';
   }
 }
 function uiPop(id, btn){
@@ -31965,9 +32126,10 @@ function uiPop(id, btn){
 }
 // ── the sidebar ──────────────────────────────────────────────────────────────────────────────────────────────
 function uiRailToggle(){
+  if(uiNarrow()){ UI2.peek=!UI2.peek; uiRailApply(); uiFlyClose(); uiSync(); return; }   // over the page; nothing written
   UI2.rail=!UI2.rail;
-  document.documentElement.classList.toggle('ui-rail', UI2.rail);
-  uiPrefWrite('prio27uiRail', UI2.rail? '1' : '0', 'Your sidebar');
+  uiPrefWrite('prio27uiRail', UI2.rail? '1' : '0');
+  uiRailApply();
   uiFlyClose(); uiSync(); uiCols();
   try{ fitTop(); syncSticky(); }catch(e){}
 }
@@ -31975,7 +32137,7 @@ function uiMenuSoon(m){ setTimeout(function(){ if(openMenu!==m) toggleMenu(m); }
 function uiGo(k, btn){
   uiPopsClose();
   if(k==='fydp' || k==='exec' || k==='hist'){ if(UI2.fly===k) uiFlyClose(); else uiFlyOpen(k, btn); return; }
-  uiFlyClose();
+  uiFlyClose(); uiPeekClose();
   if(k==='req'){ if(uiMode!=='review' && uiMode!=='rank') uiSetMode('review'); return; }
   if(k==='fund'){ if(uiMode!=='fund') uiSetMode('fund'); return; }
   if(k==='cyc'){ if(uiMode!=='compare') uiSetMode('compare'); return; }
@@ -32040,14 +32202,42 @@ function uiDocClick(e){
   const t=e.target; if(!t || !t.closest) return;
   if(!t.closest('.uiMenu')) uiPopsClose();
   if(UI2.fly && !t.closest('#uiFly') && !t.closest('#uiSide')) uiFlyClose();
+  if(UI2.peek && !t.closest('#uiSide') && !t.closest('#uiFly')) uiPeekClose();
 }
 function uiKey(e){
   if(e.key!=='Escape') return;
   if(UI2.fly){ const k=UI2.fly; uiFlyClose(); const b=document.getElementById('uiNav_'+k); try{ if(b) b.focus(); }catch(x){} }
+  else if(UI2.peek) uiPeekClose();
   uiPopsClose();
 }
 // ── THE RECORD PANEL'S TABS: drawn onto each RECORD panel the board draws (inspectorBody is not changed) ─────────
 var UI_DTAB='overview';
+// GENUINE METADATA ONLY. The newest change-journal line for THIS requirement in the year on screen, or null when the
+// journal cannot say: nothing recorded for it, a requirement added on this board (its fields are journalled by place
+// in the list, not by its id), a locked cycle on screen, or a board-wide line after it (a load, the service list, a
+// whole year, removed requirements, changes past the per-save limit or not recorded) that may have changed it
+// without naming it. Read only: MS.jrnl is the board's own journal. Ranking moves are not journalled at all.
+function uiLastEdit(id){
+  try{
+    if(!id || (typeof CYCVIEW!=='undefined' && CYCVIEW)) return null;
+    const it=itemById(id); if(!it || it.custom) return null;
+    const J=(typeof MS!=='undefined' && MS && Array.isArray(MS.jrnl))? MS.jrnl : [];
+    const wide={'(load)':1, '(more)':1, '(unrecorded)':1, '(services)':1, removed:1};
+    for(let i=J.length-1;i>=0;i--){
+      const e=J[i]; if(!e || !Array.isArray(e.p)) return null;
+      if(+e.fy!==+MS.cur) continue;
+      if(!e.p.length || wide[e.p[0]]) return null;
+      if(e.p.length>1 && String(e.p[1])===String(id)) return e;
+    }
+    return null;
+  }catch(e){ return null; }
+}
+function uiLastEditHtml(id){
+  const e=uiLastEdit(id); if(!e) return '';
+  let what=''; try{ what=JRNL_NAMES[e.p[0]]||String(e.p[0]); }catch(x){ what=String(e.p[0]); }
+  return '<b>Last recorded edit</b> '+esc(fmtTs(e.t))+' · '+esc(String(e.by||'unknown'))+' · '+esc(what)
+    +' <span class="d">(change journal; ranking moves are not journalled)</span>';
+}
 function uiDrawerTabs(){
   if(!UI2 || !UI2.on) return;
   const ins=document.getElementById('inspector'); if(!ins) return;
@@ -32057,10 +32247,17 @@ function uiDrawerTabs(){
     return '<button type="button" data-k="'+t[0]+'" aria-pressed="'+(UI_DTAB===t[0]? 'true' : 'false')+'" onclick="uiDTab(\''+t[0]+'\')">'+t[1]+'</button>'; }).join('');
   const meta=bd.querySelector('.insp-meta');
   if(meta && meta.parentNode===bd) bd.insertBefore(strip, meta.nextSibling); else bd.insertBefore(strip, bd.firstChild);
+  const id=(typeof curRow!=='undefined' && curRow)? String(curRow) : '';
+  const last=uiLastEditHtml(id);
+  const ov=document.createElement('div'); ov.className='uiDOv';
+  ov.innerHTML='<div><b>Lifecycle</b> <span class="d">pending — the board has no lifecycle field for a requirement yet</span></div>'
+    +(last? '<div>'+last+'</div>' : '');
+  strip.parentNode.insertBefore(ov, strip.nextSibling);
   const hist=document.createElement('div'); hist.className='uiDHist';
-  hist.innerHTML='<div class="h">History</div><p>What changed on this board \u2014 from what, to what, by whom \u2014 is kept in the change journal; '
-    +'every save is in the save history.</p><button type="button" class="qb" onclick="mRun(toggleJrnl)">\ud83d\udd53 Change journal\u2026</button> '
-    +'<button type="button" class="qb" onclick="mRun(showLog)">\ud83d\udd58 Save history</button>';
+  hist.innerHTML='<div class="h">History</div>'+(last? '<p>'+last+'</p>' : '')
+    +'<p>What changed on this board — from what, to what, by whom — is kept in the change journal; '
+    +'every save is in the save history.</p><button type="button" class="qb" onclick="mRun(toggleJrnl)">🕓 Change journal…</button> '
+    +'<button type="button" class="qb" onclick="mRun(showLog)">🕘 Save history</button>';
   bd.appendChild(hist);
 }
 function uiDTab(k){
@@ -32074,14 +32271,27 @@ function uiDTab(k){
   else to=bd.querySelector('.uiDHist');
   try{ if(to) to.scrollIntoView({block:'start', behavior:'auto'}); }catch(e){}
 }
+// ── ADD REQUIREMENT: offered where the board offers it -- Review (#toolAdd in the Review tools, and the folded
+// Review tools menu). The button is hidden elsewhere, and this handler refuses outside Review as well.
+function uiAddReq(){
+  if(uiMode!=='review'){
+    try{ setStat('ℹ Add requirement is in <b>Requirements › Review</b>, as in the Review tools.'); }catch(e){}
+    return false;
+  }
+  toggleAdd();
+  return true;
+}
 // ── THE IMPORT BOX ───────────────────────────────────────────────────────────────────────────────────────────
 function uiImpOpen(){
-  uiFlyClose(); uiPopsClose();
+  uiFlyClose(); uiPopsClose(); uiPeekClose();
+  if(UI2.imp==='pmo' && uiSandbox()) UI2.imp='full';
   uiImpDraw();
   const p=document.getElementById('uiImpPanel'); if(p) p.classList.add('open');
 }
 function uiImpClose(){ const p=document.getElementById('uiImpPanel'); if(p) p.classList.remove('open'); }
-function uiImpPick(k){ UI2.imp=k; uiImpDraw(); }
+// PMO Import is not offered in a PMO copy -- File ▾ leaves the Program offices group out there -- so neither the card
+// nor the choice is taken in one
+function uiImpPick(k){ if(k==='pmo' && uiSandbox()) return; UI2.imp=k; uiImpDraw(); }
 function uiImpDraw(){
   ['full','one','pmo'].forEach(function(k){ const b=document.getElementById('uiImpC_'+k); if(b) b.setAttribute('aria-pressed', UI2.imp===k? 'true' : 'false'); });
   const s=document.getElementById('uiImpSub'); if(!s) return;
@@ -32095,11 +32305,13 @@ function uiImpDraw(){
     +'<label class="uiOpt"><input type="radio" name="uiPmoHow" value="one" '+(UI2.pmoHow!=='all'? 'checked' : '')+' onchange="UI2.pmoHow=\'one\'">'
     +'<span><b>One submission</b><small>one office’s file — the same as ⬅ Load a submittal file… in the review</small></span></label>'
     +'<label class="uiOpt"><input type="radio" name="uiPmoHow" value="all" '+(UI2.pmoHow==='all'? 'checked' : '')+' onchange="UI2.pmoHow=\'all\'">'
-    +'<span><b>All submissions at once</b><small>pick every office’s file together. Each is loaded into the same review in turn, '
-    +'exactly as if you had loaded them one by one — nothing is merged, and nothing is applied until you apply it.</small></span></label>';
+    +'<span><b>All submissions at once</b><small>one file per office, picked together. Every file is read and checked first; if any one '
+    +'cannot be taken, none of them is, and the review stays as it was. Then each is loaded in the order picked, exactly as if you had '
+    +'loaded them one by one — nothing is merged, and nothing is applied until you apply it.</small></span></label>';
 }
 function uiImpGo(){
   const k=UI2.imp;
+  if(k==='pmo' && uiSandbox()){ try{ setStat('ℹ PMO Import is not offered in a PMO copy.'); }catch(e){} return; }
   uiImpClose();
   if(k==='full'){ document.getElementById('fullFile').click(); return; }
   if(k==='one'){ document.getElementById('stateFile').click(); return; }
@@ -32108,12 +32320,95 @@ function uiImpGo(){
   if(UI2.pmoHow==='all') document.getElementById('uiSubMulti').click();
   else document.getElementById('stateFile').click();
 }
-// ALL SUBMISSIONS AT ONCE: each picked file goes, in the order picked, through importState -- the one loader
-// ⬅ Load a submittal file uses for one file. Nothing new reads, merges or applies anything.
-function uiSubMany(inp){
+// ALL SUBMISSIONS AT ONCE -- ALL OR NOTHING, IN THE ORDER PICKED. Nothing new reads, merges or applies anything:
+//  1. every file is read and put through the board's own door (inTooBig, inboundCheck) and recognised the way
+//     importState recognises a submittal ({spmtPkg, dir:'submit'});
+//  2. one submittal per office: two from the same office in one batch are refused -- which one is meant is the
+//     person's to say (one by one, the later would silently replace the earlier);
+//  3. a dry run of the board's own loader, pmoTake, on a copy of each, against the review as it stands, with its
+//     messages and its destination-list fold held back: a file it would not take stops the batch;
+//  4. only then is each handed to pmoTake in the order picked -- exactly what ⬅ Load a submittal file does with one
+//     file. If the person answers Cancel to a question pmoTake asks, what this batch put in the review is taken out
+//     again, so the review is exactly as it was before the batch.
+// Refused at any step, nothing has been loaded: the review (PMOSUBS, PMOPICK) is as it was, and the board is untouched.
+function uiFileText(f){
+  return new Promise(function(res, rej){
+    try{ const r=new FileReader(); r.onload=function(){ res(String(r.result)); };
+      r.onerror=function(){ rej(r.error || new Error('it could not be read')); }; r.readAsText(f); }
+    catch(e){ rej(e); } });
+}
+function uiTakeDry(pkg, name){
+  const keep={subs:PMOSUBS, pick:PMOPICK, alert:window.alert, confirm:window.confirm, setStat:window.setStat,
+              sor:window.subOpenReview, dest:window.destPkgIn};
+  const msgs=[]; let ok=false;
+  try{
+    PMOSUBS=PMOSUBS.slice(); PMOPICK=Object.assign({}, PMOPICK);
+    window.alert=function(m){ msgs.push(String(m)); };
+    window.confirm=function(m){ msgs.push(String(m)); return true; };
+    window.setStat=function(){}; window.subOpenReview=function(){}; window.destPkgIn=function(){};
+    const mark=PMOSUBS.slice();
+    pmoTake(pkg, name);
+    ok=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; });
+  }catch(e){ msgs.push(String((e && e.message) || e)); ok=false; }
+  finally{
+    window.alert=keep.alert; window.confirm=keep.confirm; window.setStat=keep.setStat;
+    window.subOpenReview=keep.sor; window.destPkgIn=keep.dest;
+    PMOSUBS=keep.subs; PMOPICK=keep.pick;
+  }
+  return {ok:ok, msg:msgs[0]||''};
+}
+async function uiSubMany(inp){
   const fs=[].slice.call((inp && inp.files) || []);
   try{ inp.value=''; }catch(e){}
-  fs.forEach(function(f){ importState({files:[f], value:''}); });
+  const out={files:fs.map(function(f){ return f.name; }), ok:false, why:'', taken:0};
+  UI_BATCH=out;
+  if(!fs.length) return out;
+  const was={subs:PMOSUBS.slice(), pick:Object.assign({}, PMOPICK)};
+  const refuse=function(why){
+    out.why=why;
+    alert('⚠ None of the '+fs.length+' submittal files was loaded: '+why+'\n\nThe submittal review is exactly as it was before'
+      +(was.subs.length? ' ('+was.subs.length+' held)' : '')+', and nothing on the board was changed.');
+    try{ setStat('⚠ Nothing loaded — '+esc(why)); }catch(e){}
+    try{ subBody(); }catch(e){}
+    return out;
+  };
+  if(uiSandbox()) return refuse('PMO Import is not offered in a PMO copy');
+  const P=[];
+  for(let i=0;i<fs.length;i++){
+    const f=fs[i];
+    const big=inTooBig(f); if(big) return refuse('“'+f.name+'” was refused: '+big);
+    let txt; try{ txt=await uiFileText(f); }catch(e){ return refuse('“'+f.name+'” could not be read'); }
+    const bad=inboundCheck(txt); if(bad) return refuse('“'+f.name+'” was refused: '+bad);
+    let J=null; if(!/^\s*</.test(txt)){ try{ J=JSON.parse(txt); }catch(e){ J=null; } }
+    if(!(J && J.spmtPkg && J.dir==='submit')) return refuse('“'+f.name+'” is not a programme office’s submittal');
+    P.push({name:f.name, txt:txt, pkg:J});
+  }
+  const seen={};
+  for(let i=0;i<P.length;i++){ const o=subFrom(P[i].pkg);
+    if(Object.prototype.hasOwnProperty.call(seen, o))
+      return refuse('“'+P[seen[o]].name+'” and “'+P[i].name+'” are both from '+o+'. A batch takes one submittal per office — load the one you mean');
+    seen[o]=i; }
+  // the review may have changed while the files were read; the batch is measured against it as it is now
+  was.subs=PMOSUBS.slice(); was.pick=Object.assign({}, PMOPICK);
+  for(let i=0;i<P.length;i++){
+    const r=uiTakeDry(JSON.parse(P[i].txt), P[i].name);
+    if(!r.ok) return refuse('“'+P[i].name+'” would not be taken'+(r.msg? ' — '+r.msg.split('\n')[0] : ''));
+  }
+  for(let i=0;i<P.length;i++){
+    const mark=PMOSUBS.slice(); let landed=false;
+    try{ pmoTake(JSON.parse(P[i].txt), P[i].name); landed=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; }); }catch(e){ landed=false; }
+    if(!landed){
+      PMOSUBS=was.subs; PMOPICK=was.pick;
+      return refuse('“'+P[i].name+'” was not taken, so the '+i+' before it '+(i===1? 'was' : 'were')+' taken back out of the review');
+    }
+    out.taken++;
+  }
+  out.ok=true;
+  try{ setStat('✉ '+P.length+' submittal'+(P.length===1?'':'s')+' loaded together, in the order picked: <b>'
+    +esc(P.map(function(p){ return subFrom(p.pkg); }).join(', '))+'</b>. <b>Nothing has been applied.</b> '
+    +PMOSUBS.length+' held for review.'); }catch(e){}
+  try{ subOpenReview(); }catch(e){}
+  return out;
 }
 uiBoot();
 </script>
