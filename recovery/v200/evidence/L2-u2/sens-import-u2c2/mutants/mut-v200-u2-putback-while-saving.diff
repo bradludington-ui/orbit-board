@@ -1,0 +1,2 @@
+6952d6951
+<   if(_saveBusy){ setStat('⏳ <b>Not put back</b>: a save was under way. Nothing was changed: the kept work is still kept, and what is on screen is unchanged. Put it back once the save has finished (\u21b6 work kept aside, in the top bar).'); render(); return; }
