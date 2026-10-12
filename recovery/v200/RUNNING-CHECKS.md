@@ -438,3 +438,15 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
 - **11:35 AM ET:** self-test at `60c984c` (frozen snapshot; 11:34:42-11:35:30 AM ET, exit 0): **41/41 PASS**, no git hints. Evidence
   `evidence/runner-60c984c/selftest/` (with the G18 replays of the 13 real suite endings). **The runner to review and use
   is `60c984c621846fb3fd1eec002dda97815399f82b`.** Independent re-review started.
+
+## Update at 3:03 PM ET: second usage-limit stop and container restart
+
+- From about 11:40 AM ET agents failed with "session limit, resets 7pm (UTC)": UI fix:M1#2 (mid-way: it had committed
+  58803c9..5a298b7 on claude/v200-ui and left an uncommitted CHUNK3.md edit) and verify:M1#3; safety verify:U1-U14#2; triage
+  check:U17, check:U20, check:U24; the third runner re-review (of 60c984c). The container restarted at 3:01:38 PM ET. Nothing
+  committed was lost; scratch, both UI worktrees and the bundles are intact. The UI bundle at 5a298b7 was backed up and
+  restore-verified at 3:02 PM ET (7effa5e).
+- Finished before the stop: U13 review #2 on the committed head, **no must-fix** (one should-fix: a builder README heading names a
+  time later than the clock); U1/U14 fix round 2 (U14 test gaps: switching a year off, and "only"), 10:30-11:10 AM ET; triage
+  probes U17, U19 (and its checker), U20 and U24, all REPRODUCED on 63bd8b0 in the scope given in each README (rec/L4/u17, u19,
+  u20, u24). The failed agents are being re-run from their workflows' run ids (finished agents are not re-run).
