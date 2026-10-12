@@ -1,0 +1,62 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/mut/v200-u2-putback-while-saving--on-c2.html","BOARD_set":true,"board":"e766fc38a3f49c1efb9318268bb638a3fc6c7c23","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/c2/tools/export-audit/focused-u2-block2.mjs","harnessBlob":"b87c616b81c1e1576d7fcfd29e3113ece4579b80","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f720ce184998cf31cad50d288f78c2f7bac19bd6","started":"10/11/2026, 9:56:09 PM ET"}
+
+================================================================================================
+25 FAILING CHECK(S)
+
+--- v2.00 (U2) — put back waits for a save to finish | (a) the folder: put back while S1’s save writes; the save goes in
+    during the save: refused; what is on screen and the kept work are byte for byte as they were; nothing asked; the board says so
+        got [true,true,false,false,1,"K",false]   want [true,true,true,true,0,"S1",true]
+    once it lands: S1 on screen and in the folder, saved; the kept work byte for byte as it was
+        got [true,"K","S1",true,true,true,false]   want [true,"S1","S1",false,false,false,true]
+    put back again: one question; K on screen, unsaved; nothing kept in its place (S1 is saved)
+        got [1,"S1",true,true,true,"K"]   want [1,"K",true,true,true,null]
+    then the refresh: K stays on screen, unsaved, and the folder copy is not written over
+        got ["S1","S1",true,true,true]   want ["K","S1",true,true,true]
+--- v2.00 (U2) — put back waits for a save to finish | (b) the folder: put back while S1’s save writes; the save fails
+    during the save: refused; what is on screen and the kept work are byte for byte as they were; nothing asked; the board says so
+        got [true,true,false,false,1,"K",false]   want [true,true,true,true,0,"S1",true]
+    once it fails: S1 on screen and unsaved, N still in the folder, the board says not saved; the kept work byte for byte as it was
+        got [false,"K","N",true,true,true,true,false]   want [false,"S1","N",true,true,true,true,true]
+    put back again: one question; K on screen, unsaved; S1 kept aside in its place
+        got [1,"S1",true,true,true,"K"]   want [1,"K",true,true,true,"S1"]
+    then the refresh: K stays on screen, unsaved, and the folder copy is not written over
+        got ["S1","S1",false,false,false]   want ["K","N",true,true,true]
+    then reopened and refreshed: on screen and kept aside; K and S1 each still in a copy
+        got ["S1","K",true,true]   want ["K","S1",true,true]
+--- v2.00 (U2) — put back waits for a save to finish | (c) the folder: put back while S1’s save reads the folder; the save is refused
+    during the save: refused; what is on screen and the kept work are byte for byte as they were; nothing asked; the board says so
+        got [true,true,false,false,1,"K",false]   want [true,true,true,true,0,"S1",true]
+    once it is refused: S1 on screen and unsaved, N2 in the folder, nothing written; the kept work byte for byte as it was
+        got [false,"K","N2",true,true,true,true,false]   want [false,"S1","N2",true,true,true,true,true]
+    put back again: one question; K on screen, unsaved; S1 kept aside in its place
+        got [1,"S1",true,true,true,"K"]   want [1,"K",true,true,true,"S1"]
+    then the refresh: K stays on screen, unsaved, and the folder copy is not written over
+        got ["S1","N2",true,true,true]   want ["K","N2",true,true,true]
+    then reopened and refreshed: on screen and kept aside; K and S1 each still in a copy
+        got ["S1","K",true,true]   want ["K","S1",true,true]
+--- v2.00 (U2) — put back waits for a save to finish | (d) the board file: put back while S1’s save writes; the save goes in
+    during the save: refused; what is on screen and the kept work are byte for byte as they were; nothing asked; the board says so
+        got [true,true,false,false,1,"K",false]   want [true,true,true,true,0,"S1",true]
+    once it lands: S1 on screen and in the file, saved; the kept work byte for byte as it was
+        got ["K","S1",true,true,true,false]   want ["S1","S1",false,false,false,true]
+    put back again: one question; K on screen, unsaved; nothing kept in its place (S1 is saved)
+        got [1,"S1",true,true,true,"K"]   want [1,"K",true,true,true,null]
+--- v2.00 (U2) — put back waits for a save to finish | (e) the board file: put back while S1’s save writes; the save fails
+    during the save: refused; what is on screen and the kept work are byte for byte as they were; nothing asked; the board says so
+        got [true,true,false,false,1,"K",false]   want [true,true,true,true,0,"S1",true]
+    once it fails: S1 on screen and unsaved, N still in the file, the header says not on the shared file yet; the kept work byte for byte as it was
+        got ["K","N",true,true,true,true,false]   want ["S1","N",true,true,true,true,true]
+    put back again: one question; K on screen, unsaved; S1 kept aside in its place
+        got [1,"S1",true,true,true,"K"]   want [1,"K",true,true,true,"S1"]
+    then reopened: on screen and kept aside; K and S1 each still in a copy
+        got ["S1","K",true,true]   want ["K","S1",true,true]
+--- v2.00 (U2) — put back waits for a save to finish | (f) the board file: put back while S1’s save writes; the save is canceled
+    during the save: refused; what is on screen and the kept work are byte for byte as they were; nothing asked; the board says so
+        got [true,true,false,false,1,"K",false]   want [true,true,true,true,0,"S1",true]
+    once it is canceled: S1 on screen and unsaved, N still in the file, the board says nothing was written; the kept work byte for byte as it was
+        got ["K","N",true,true,true,true,false]   want ["S1","N",true,true,true,true,true]
+    put back again: one question; K on screen, unsaved; S1 kept aside in its place
+        got [1,"S1",true,true,true,"K"]   want [1,"K",true,true,true,"S1"]
+    then reopened: on screen and kept aside; K and S1 each still in a copy
+        got ["S1","K",true,true]   want ["K","S1",true,true]
+# exit 1 at 10/11/2026, 9:56:37 PM ET

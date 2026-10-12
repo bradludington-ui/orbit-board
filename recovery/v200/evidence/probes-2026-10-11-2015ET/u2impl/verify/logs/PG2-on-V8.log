@@ -1,0 +1,9 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/verify/mut/V8-refusal-hides-kept-entry.html","BOARD_set":true,"board":"ad125928e147dda86ef2c3ee70a17d5b21535f0d","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/verify/c2v/tools/export-audit/probe-u2-g.mjs","harnessBlob":"e17c8596e24cdedb316909ccc5bf79ae753fcc36","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f720ce184998cf31cad50d288f78c2f7bac19bd6","started":"10/11/2026, 10:10:49 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U2) — put back waits for a save to finish | (g) PROBE the folder: put back while the autosave writes; the write throws
+    after the refusal, the header still offers the kept work (↶ work kept aside), so the retry can be reached
+        got false   want true
+# exit 1 at 10/11/2026, 10:11:13 PM ET

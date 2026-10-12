@@ -1,0 +1,9 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/verify/c2v/prioritization-board-grid.html","BOARD_set":false,"board":"8a0d23b6d1b3d6438c6ffef71788ac53261b4782","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/verify/c2v/tools/export-audit/probe-u2-h.mjs","harnessBlob":"d66fc8bf18843f2b00064ba71cbecb92f4a7dea9","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f720ce184998cf31cad50d288f78c2f7bac19bd6","started":"10/11/2026, 10:13:54 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U2) — put back waits for a save to finish | (h) PROBE the folder: put back while the autosave writes; the autosave goes in
+    once the autosave has landed, the status line no longer says a save is under way (observed text recorded)
+        got [true,"⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and w"]   want [false,"(any text not saying a save is under way)"]
+# exit 1 at 10/11/2026, 10:14:16 PM ET

@@ -1,0 +1,9 @@
+base:
+{"entries": 1305, "once": 1305, "missing": [], "multiple": [], "unparsed": []}
+c1:
+{"entries": 1306, "once": 1306, "missing": [], "multiple": [], "unparsed": [], "detail": {"unsaved-flag-never-set": 1, "putback-drops-screen": 1, "v200-r5-restore-gen": 1, "v200-r5-restore-basedirty": 1, "v200-u2-putback-gen": 1}}
+c2:
+{"entries": 1307, "once": 1307, "missing": [], "multiple": [], "unparsed": [], "detail": {"unsaved-flag-never-set": 1, "putback-drops-screen": 1, "v200-u2-putback-gen": 1, "v200-u2-putback-while-saving": 1}}
+c2 mutate on c1 board (refusal entry should be missing):
+{"entries": 1307, "once": 1306, "missing": ["v200-u2-putback-while-saving"], "multiple": [], "unparsed": [], "detail": {"v200-u2-putback-while-saving": 0}}
+repo mcount blob: 852f06ec5a61a1c1393bae794f1c10362aa36cf9

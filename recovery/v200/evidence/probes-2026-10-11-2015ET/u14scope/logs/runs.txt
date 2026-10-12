@@ -1,0 +1,6 @@
+before-1 exit=0 wall_s=48.315754785 start_et=2026-10-11T21:38:48-0400 
+after-1 exit=0 wall_s=51.801774438 start_et=2026-10-11T21:39:40-0400 
+before-2 exit=0 wall_s=50.738727827 start_et=2026-10-11T21:41:28-0400 
+after-2 exit=0 wall_s=52.975994427 start_et=2026-10-11T21:42:23-0400 
+xsens-before-as-after exit=0 wall_s=55.350518419 start_et=2026-10-11T21:43:20-0400 
+xsens-after-as-before exit=0 wall_s=57.305380895 start_et=2026-10-11T21:44:19-0400 

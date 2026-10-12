@@ -1,0 +1,6 @@
+RECORDED | before|R1-natural-rollforward-then-base27 | switchYear(2027) confirms (answered OK = roll forward) | expected undefined | actual [1,["FY27 has no data yet.\n\nOK — ROLL FORWARD: start FY27 from a copy of FY26 (priorities, BA, "]]
+RECORDED | before|R1-natural-rollforward-then-base27 | FY27 discSvc right after the roll forward | expected undefined | actual [300000000]
+RECORDED | before|R2-FY26-selected-then-base27 | switchYear(2027) confirms (answered OK = roll forward) | expected undefined | actual [1,["FY27 has no data yet.\n\nOK — ROLL FORWARD: start FY27 from a copy of FY26 (priorities, BA, "]]
+RECORDED | before|R2-FY26-selected-then-base27 | FY27 discSvc right after the roll forward | expected undefined | actual [300000000]
+RECORDED | before|R2-FY26-selected-then-base27 | FY26-only export Scope | expected undefined | actual ["Scope: FY26 · all appropriations · PLANNED (board allocation, O&M)"]
+{"label":"before","boardBlob":"4d273c0680132caafc4cbc8ca09c1533735c86de","probeBlob":"8f1b7975cc4998d44893bf99d9226b8593751843","passed":14,"failed":0}

@@ -1,0 +1,13 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -6945,6 +6945,10 @@
+ function keptPutBack(){
+   const k=keptCopy();
+   if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
++  // v2.00 (U2): NOT WHILE A SAVE IS UNDER WAY. A save that lands records the copy it wrote as the one the work on screen
++  // came from, over the checkpoint the kept work brings back, so the next Save would write over that copy without asking.
++  // Nothing is changed: the kept work stays kept and what is on screen stays as it is, to be put back once the save is done.
++  if(_saveBusy){ setStat('⏳ A save is under way — put the kept work back once it finishes. Nothing was changed: the kept work is still kept, and what is on screen is unchanged.'); render(); return; }
+   // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT IN ITS PLACE (v1.95, item 50): putting work back
+   // never throws away the work it replaces. The slot it frees takes what is on screen.
+   const nowUnsaved=!!(DIRTY || baseGet().dirty);

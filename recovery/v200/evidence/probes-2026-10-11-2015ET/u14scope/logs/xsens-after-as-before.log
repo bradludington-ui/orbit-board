@@ -1,0 +1,19 @@
+FAILED | after|M|2027|on|P|c | offer | offered years (flowYears) | expected [2025,2027,2028,2029,2030,2031] | actual [2025,2026,2027,2028,2029,2030,2031]
+FAILED | after|M|2027|on|P|c | all | ALL YEARS selected and [total, executed, planned] | expected [[2025,2027,2028,2029,2030,2031],540000000,40000000,500000000] | actual [[2025,2026,2027,2028,2029,2030,2031],940000000,140000000,800000000]
+FAILED | after|M|2027|on|P|c | all | every dollar on the board 940M minus ALL YEARS = money in no offered year | expected 400000000 | actual 0
+FAILED | after|M|2027|on|P|c | all | sum of the offered years one by one = ALL YEARS (nothing double counted) | expected 540000000 | actual 940000000
+FAILED | after|M|2027|on|P|c | panel | panel total funding $M = ALL YEARS | expected "540.00" | actual "940.00"
+FAILED | after|M|2027|on|P|c | chip26 | FY26 chip present iff offered; text, tooltip | expected null | actual ["FY26 · plan","FY2026 has no O&M execution imported, so O&M is answered from this board’s own allocation; other appropriations’ execution for it is read from their import"]
+FAILED | after|M|2027|on|P|c | export | export TOTAL FUNDING (twice) = ALL YEARS | expected [540000000,540000000] | actual [940000000,940000000]
+FAILED | after|M|2027|on|P|c | sel26 | FY26 not offered: no FY26 chip and no FY26 "only" button to click | expected [null,false] | actual [{"fy":2026,"text":"FY26 · plan","on":false,"title":"FY2026 has no O&M execution imported, so O&M is answered from this board’s own allocation; other appropriations’ execution for it is read from their import"},true]
+FAILED | after|M|2027|on|p|c | offer | offered years (flowYears) | expected [2025,2027,2028,2029,2030,2031] | actual [2025,2026,2027,2028,2029,2030,2031]
+FAILED | after|M|2027|on|p|c | all | ALL YEARS selected and [total, executed, planned] | expected [[2025,2027,2028,2029,2030,2031],540000000,40000000,500000000] | actual [[2025,2026,2027,2028,2029,2030,2031],640000000,140000000,500000000]
+FAILED | after|M|2027|on|p|c | all | every dollar on the board 640M minus ALL YEARS = money in no offered year | expected 100000000 | actual 0
+FAILED | after|M|2027|on|p|c | all | sum of the offered years one by one = ALL YEARS (nothing double counted) | expected 540000000 | actual 640000000
+FAILED | after|M|2027|on|p|c | panel | panel total funding $M = ALL YEARS | expected "540.00" | actual "640.00"
+FAILED | after|M|2027|on|p|c | chip26 | FY26 chip present iff offered; text, tooltip | expected null | actual ["FY26 · plan","FY2026 has no O&M execution imported, so O&M is answered from this board’s own allocation; other appropriations’ execution for it is read from their import"]
+FAILED | after|M|2027|on|p|c | export | export TOTAL FUNDING (twice) = ALL YEARS | expected [540000000,540000000] | actual [640000000,640000000]
+FAILED | after|M|2027|on|p|c | sel26 | FY26 not offered: no FY26 chip and no FY26 "only" button to click | expected [null,false] | actual [{"fy":2026,"text":"FY26 · plan","on":false,"title":"FY2026 has no O&M execution imported, so O&M is answered from this board’s own allocation; other appropriations’ execution for it is read from their import"},true]
+FAILED | after|S|S3b-FY26-ruleON-base27 | S3b | before board: FY26 not offered, nothing to click | expected false | actual true
+FAILED | after|S|S4a-FY26-then-rule-OFF | S4a | before board: FY26 not offered with the rule on at base 2027, so it cannot be selected | expected false | actual true
+{"board":"after","expectAs":"before","boardBlob":"b4c55e38aca79f1310d82f84ca7933321b536b64","probeBlob":"4a03d09db8a4765b5d4b00247ae5ab09426d1c4a","passed":379,"failed":18,"recorded":64,"ms":56181}

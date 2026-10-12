@@ -80,3 +80,19 @@ An idle session's container is reclaimed, and the processes with it. The disk su
 301), node 303. It runs the same four ids. This time the session also runs a tracked background wait, which ends when
 `summary.txt` gets its DONE line or when the driver is gone. That should keep the container alive until the runs finish.
 If it does not, the next restart shows it.
+
+## Update at 10:26 PM ET: the commit-1 BASELINE did not run alone
+
+**What runs.** The U2 commit-1 run started at 10:17:48 PM ET in the clone `rec/L2/wt-u2c1` (HEAD `4e90af4`, board
+`c08c6d2c`, audit-import `e63768bf`), output `rec/L2/sens-import-u2c1/`. The lock `AUDIT_IMPORT_RUNNING` was set. Driver:
+the `sens-import.sh` shell 30196, run.sh 30201, `timeout --kill-after=20 900` 30221 (process group 30221), node 30224.
+Queued after it: `v200-u2-putback-gen`. `PAUSE` was set at 10:18 PM ET, so the driver waits after BASELINE.
+
+**The overlap.** At about 10:19 PM ET the UI chunk-2 workflow started two bounded Playwright sweeps in
+`/home/user/orbit-ui` (process groups 30554 and 30555, `uichunk2/sweep2.mjs` and `sweep9.mjs`, 600 s caps). My
+instructions to that workflow applied the lock to suite runs only, not to Playwright. That gap is mine. Those processes
+belong to the workflow, are recorded in `uichunk2/pids.txt`, and were not killed.
+
+**How it counts.** This BASELINE is labelled OVERLAPPED and is not the alone run Brad's rule requires. It is allowed to
+finish and is kept. BASELINE and `v200-u2-putback-gen` are run again, alone, once the UI workflow is idle. The driver stays
+paused until then.

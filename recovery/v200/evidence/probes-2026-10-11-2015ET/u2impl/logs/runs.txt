@@ -1,0 +1,16 @@
+B1-on-c1 exit=0 wall_s=12.932123739 
+B1-on-c1 exit=0 wall_s=13.541453195 
+B1-on-base exit=1 wall_s=13.763703782 
+B1-on-c2 exit=0 wall_s=13.124478642 
+B2-on-c2 exit=1 wall_s=20.590303850 
+B2-on-c2 exit=0 wall_s=21.027431323 
+B2-on-c1 exit=1 wall_s=21.984347221 
+B2-on-base exit=1 wall_s=21.157706218 
+M1c1-B1 exit=1 wall_s=14.968281853 
+M1c2-B1 exit=1 wall_s=17.122958807 
+M1c2-B2 exit=0 wall_s=26.633244147 
+M2c2-B2 exit=1 wall_s=23.816726411 
+M2c2-B1 exit=0 wall_s=14.475859212 
+BOTH-on-c2 exit=0 wall_s=32.375347683 
+B1-on-c1-repeat exit=0 wall_s=12.682588960 
+BOTH-on-c2-repeat exit=0 wall_s=31.829118207 

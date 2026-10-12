@@ -1,0 +1,18 @@
+# Not copied (reproducible): node_modules symlinks, tools/ trees, and board copies. Each board copy's path and blob:
+./base/prioritization-board-grid.html 4d273c0680132caafc4cbc8ca09c1533735c86de
+./c1/prioritization-board-grid.html c08c6d2c9a31c5933c8939651c0adbad3c093c22
+./c2/prioritization-board-grid.html 1375b72b6707faa57c50d528e01ce9611f194998
+./mut/v200-u2-putback-gen--on-c1.html 0d587506d7f6797c3e4bdb42c983af5012859693
+./mut/v200-u2-putback-gen--on-c2.html e2edf3651b97e5065d0779d265b8e2f4926d5373
+./mut/v200-u2-putback-while-saving--on-c2.html 70efc448520a3dd0cf2c0691ba3c6f2a47306c10
+./verify/c2v/prioritization-board-grid.html 8a0d23b6d1b3d6438c6ffef71788ac53261b4782
+./verify/mut/V1-folder-ckpt-not-restored.html 692b5621579947e7fc73d3dc778cc7212aecaf60
+./verify/mut/V2-file-ckpt-not-restored.html b1b15d4821fe2f8c7cd442ef825d8b6f35dbfa32
+./verify/mut/V3-refusal-touches-kept.html 6bf23aa700c998c3f6e6c7de76e3db06ed5fe77c
+./verify/mut/V4-refusal-touches-screen.html d85d62f7659cb9e9de235232ae16990ebecfbb94
+./verify/mut/V5-refusal-after-confirm.html 41b8b88dcb0e9bd2d640a9365f8c19c6813a56bb
+./verify/mut/V6-refusal-silent.html c1643626ecbf8ddbdd5b2bf9f16575a0a80b4fd4
+./verify/mut/V7-busy-leaks-on-throw.html 9df6242e99ae6cf8e8733bfabf5571eec2f4c142
+./verify/mut/V8-refusal-hides-kept-entry.html ad125928e147dda86ef2c3ee70a17d5b21535f0d
+./verify/tmp/apply-c1only/prioritization-board-grid.html c08c6d2c9a31c5933c8939651c0adbad3c093c22
+./verify/tmp/apply1/prioritization-board-grid.html 8a0d23b6d1b3d6438c6ffef71788ac53261b4782

@@ -1,0 +1,14 @@
+B1-on-base           board 4d273c06 BOARD_set=false started 10/11/2026, 9:22:10 PM ET  checks 16 failing  9 by part {'(a) ': 3, '(b) ': 2, '(c) ': 3, '(d) ': 1}
+B1-on-c1             board c08c6d2c BOARD_set=false started 10/11/2026, 9:21:49 PM ET  checks 16 failing  0 by part {}
+B1-on-c2             board 8a0d23b6 BOARD_set=false started 10/11/2026, 9:22:32 PM ET  checks 16 failing  0 by part {}
+B2-on-base           board 4d273c06 BOARD_set=false started 10/11/2026, 9:24:36 PM ET  checks 29 failing 27 by part {'(a) ': 5, '(b) ': 5, '(c) ': 5, '(d) ': 4, '(e) ': 4, '(f) ': 4}
+B2-on-c1             board c08c6d2c BOARD_set=false started 10/11/2026, 9:24:07 PM ET  checks 29 failing 25 by part {'(a) ': 4, '(b) ': 5, '(c) ': 5, '(d) ': 3, '(e) ': 4, '(f) ': 4}
+B2-on-c2             board 8a0d23b6 BOARD_set=false started 10/11/2026, 9:23:41 PM ET  checks 29 failing  0 by part {}
+M1c1-B1              board 0d587506 BOARD_set=true  started 10/11/2026, 9:25:04 PM ET  checks 16 failing  9 by part {'(a) ': 3, '(b) ': 2, '(c) ': 3, '(d) ': 1}
+M1c2-B1              board 01349332 BOARD_set=true  started 10/11/2026, 9:25:23 PM ET  checks 16 failing  1 by part {'(d) ': 1}
+M1c2-B2              board 01349332 BOARD_set=true  started 10/11/2026, 9:25:41 PM ET  checks 29 failing  0 by part {}
+M2c2-B2              board e766fc38 BOARD_set=true  started 10/11/2026, 9:26:13 PM ET  checks 29 failing 25 by part {'(a) ': 4, '(b) ': 5, '(c) ': 5, '(d) ': 3, '(e) ': 4, '(f) ': 4}
+M2c2-B1              board e766fc38 BOARD_set=true  started 10/11/2026, 9:26:36 PM ET  checks 16 failing  0 by part {}
+BOTH-on-c2           board 8a0d23b6 BOARD_set=false started 10/11/2026, 9:27:13 PM ET  checks 45 failing  0 by part {}
+B1-on-c1-repeat      board c08c6d2c BOARD_set=false started 10/11/2026, 9:28:52 PM ET  checks 16 failing  0 by part {}
+BOTH-on-c2-repeat    board 8a0d23b6 BOARD_set=false started 10/11/2026, 9:29:05 PM ET  checks 45 failing  0 by part {}
