@@ -537,3 +537,5 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   did not record is repeated (UNWATCHED), never counted as alone; SF5 the launch refuses unless the local branch holds
   origin's tip (and refuses if /.git exists); SF6 a failed stop backup is recorded and printed. Not done: backup-run's
   post-commit check still reads HEAD (benign; next push carries it), stray empty dirs, `# cmd:` unchecked.
+- **4:25 PM ET:** self-test at `e42cfb6` (frozen snapshot; 4:24:37-4:25:15 PM ET, exit 0): **42/42 PASS**, including A22 (orbit-board's HEAD,
+  origin's tip and the evidence tree unchanged by the whole run; also confirmed by hand). Evidence `evidence/runner-e42cfb6/selftest/`.
