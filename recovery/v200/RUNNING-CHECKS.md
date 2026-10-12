@@ -200,3 +200,17 @@ workflow was launched at 6:08:07 AM ET.)
   audit-ui for theirs, which includes M1's cancellation and rollback mutations), `verify:grid` and `standards`,
   applicability, and an informational lane (check, math-defects, money-coverage, trace-matrix, money-map,
   roundtrip-fuzz). `validate-math` is not run: it executes mutate.mjs.
+
+## Update at 6:53 AM ET: the 135 pre-reset v2.00 mutations join the queue; a timing sample
+
+- **Inventory (text only):** mutate.mjs holds 1307 entries; 168 are `v200-*`: R1 18, R2 3, R3 5, R4 3, R5 2, U2 2, and
+  **135 pre-reset v2.00 hardening mutations** (escapes, key lookups, doors). All 135 apply once at `a8891e1`. Their
+  earlier results were lost with the reset, so they are not reinstated: the final-tree queue now runs them.
+- **How:** `rec/bin/sens-chain.sh`, a first-catch chain that asks what the repo's sweep asks ("does any check fail?")
+  without running mutate.mjs: each mutant is made as text, then audit-inject, audit-hostile, audit-other, audit,
+  audit-ppt, audit-recon and audit-board run one at a time with `MUT_FIRST_FAIL=1` until one fails. A mutation none of
+  them catches gets audit-import ALONE (`alone-run.sh`, `FIRSTFAIL=1`). The reimplementation set (R1–R5, U2, U13, U1,
+  U14, UI chunk 3) keeps full runs that record every failing check.
+- **Timing sample** (6 of the 135, on the read-only base copy, 6:47–6:52 AM ET, 313 s; sample only, not evidence):
+  5 caught by audit-inject in 6–16 s each; `v200-door-dest-open` passed all seven cheaper suites (about 260 s) and needs
+  audit-import (`rec/L3/chain-sample/`).
