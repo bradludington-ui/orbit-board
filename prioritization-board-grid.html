@@ -32481,15 +32481,18 @@ async function uiSubMany(inp){
   let was=uiBatchSnap();
   // v2.00 (UI M1): said only as checked at that moment (uiBatchDiff). `bad` is what the put-back could not put back,
   // with the browser's reason; `took` is how many files the real run had taken before it stopped.
+  // v2.00 (UI M1, fix round 2): `wrote` is what the real run left in the stored destination list, when it wrote there.
+  // Only a real run that stopped part-way has put anything back, so only then is the batch said to have stopped part-way.
   const refuse=function(why, opt){
     opt=opt||{};
     out.why=why;
     try{ subBody(); }catch(e){}
-    const diff=uiBatchDiff(was), bad=opt.bad||{};
+    const diff=uiBatchDiff(was), bad=opt.bad||{}, ran=opt.took!==undefined;
     out.same=!diff.length; out.left=diff.map(function(x){ return x.what; });
     const off=function(k){ return diff.some(function(x){ return x.k===k; }); };
-    let head=(off('review')? '⚠ The batch stopped part-way, and the submittal review could not be put back as it was: '
-                           : '⚠ None of the '+fs.length+' submittal files was loaded: ')+why;
+    const partway=ran && off('review');
+    let head=(partway? '⚠ The batch stopped part-way, and the submittal review could not be put back as it was: '
+                     : '⚠ None of the '+fs.length+' submittal files was loaded: ')+why;
     if(opt.took && !off('review')) head+=', so the '+opt.took+' taken before it '+(opt.took===1? 'was' : 'were')+' taken back out of the review';
     let tail;
     if(!diff.length) tail='The submittal review is exactly as it was before'+(was.subsAt.length? ' ('+was.subsAt.length+' held)' : '')
@@ -32498,10 +32501,16 @@ async function uiSubMany(inp){
       const why1=function(x){
         let s=x.what;
         if(x.k!=='ls' && Object.prototype.hasOwnProperty.call(bad, x.k)) s+=' — it could not be put back ('+bad[x.k]+')';
+        // v2.00 (UI M1, fix round 2): what the stored list means, each half said only when it is checked true: that it holds
+        // what the batch wrote there (the real run wrote there, and storage still holds exactly that -- not someone else's
+        // write), and that opening the board again in this browser would read it, not the different list on screen
         if(x.k==='ls:'+DEST_KEY){
-          let t=null; try{ t=+(JSON.parse(localStorage.getItem(DEST_KEY))||{}).ts; }catch(e){ t=null; }
-          if(t!==null && isFinite(t) && t>=(+DESTDB.ts||0)) s+='. It holds what the batch wrote there, and opening the board again in this '
-            +'browser would read it instead of the destination list on screen';
+          let t=null, held=null; try{ held=localStorage.getItem(DEST_KEY); t=+(JSON.parse(held)||{}).ts; }catch(e){ t=null; }
+          const mine=!!opt.wrote && held===opt.wrote;
+          const reads=t!==null && isFinite(t) && t>=(+DESTDB.ts||0) && held!==uiJson(DESTDB);
+          if(mine) s+='. It holds what the batch wrote there'+(reads? ', and opening the board again in this '
+            +'browser would read it instead of the destination list on screen' : '');
+          else if(reads) s+='. Opening the board again in this browser would read it instead of the destination list on screen';
         }
         return s;
       };
@@ -32515,25 +32524,29 @@ async function uiSubMany(inp){
     }
     // what the board holds comes straight after the headline: a browser shows a long message's first lines and scrolls the rest
     alert(head+'\n\n'+tail+(opt.more? '\n\n'+opt.more : ''));
-    try{ setStat((off('review')? '⚠ The batch stopped part-way — ' : '⚠ Nothing loaded — ')+esc(opt.stat || why)
+    try{ setStat((partway? '⚠ The batch stopped part-way — ' : '⚠ Nothing loaded — ')+esc(opt.stat || why)
       +(diff.length? '. <b>Not as before the batch: '+esc(out.left.join('; '))+'.</b>' : '')); }catch(e){}
     return out;
   };
   if(uiSandbox()) return refuse('PMO Import is not offered in a PMO copy');
+  // v2.00 (UI M1, fix round 2): a refusal while the files are read, or for two from one office, comes before the batch has
+  // taken anything -- but after it has waited, and the board may have changed meanwhile (a single load landing, a tick
+  // taken off). That change is not the batch's, so such a refusal is measured against the board as it is when it is said.
+  const early=function(why){ was=uiBatchSnap(); return refuse(why); };
   const P=[];
   for(let i=0;i<fs.length;i++){
     const f=fs[i];
-    const big=inTooBig(f); if(big) return refuse('“'+f.name+'” was refused: '+big);
-    let txt; try{ txt=await uiFileText(f); }catch(e){ return refuse('“'+f.name+'” could not be read'); }
-    const bad=inboundCheck(txt); if(bad) return refuse('“'+f.name+'” was refused: '+bad);
+    const big=inTooBig(f); if(big) return early('“'+f.name+'” was refused: '+big);
+    let txt; try{ txt=await uiFileText(f); }catch(e){ return early('“'+f.name+'” could not be read'); }
+    const bad=inboundCheck(txt); if(bad) return early('“'+f.name+'” was refused: '+bad);
     let J=null; if(!/^\s*</.test(txt)){ try{ J=JSON.parse(txt); }catch(e){ J=null; } }
-    if(!(J && J.spmtPkg && J.dir==='submit')) return refuse('“'+f.name+'” is not a programme office’s submittal');
+    if(!(J && J.spmtPkg && J.dir==='submit')) return early('“'+f.name+'” is not a programme office’s submittal');
     P.push({name:f.name, txt:txt, pkg:J});
   }
   const seen={};
   for(let i=0;i<P.length;i++){ const o=subFrom(P[i].pkg);
     if(Object.prototype.hasOwnProperty.call(seen, o))
-      return refuse('“'+P[seen[o]].name+'” and “'+P[i].name+'” are both from '+o+'. A batch takes one submittal per office — load the one you mean');
+      return early('“'+P[seen[o]].name+'” and “'+P[i].name+'” are both from '+o+'. A batch takes one submittal per office — load the one you mean');
     seen[o]=i; }
   // the review may have changed while the files were read; the batch is measured against it as it is now -- and from
   // here to the end nothing waits, so nothing else can change the board while the batch runs
@@ -32560,9 +32573,13 @@ async function uiSubMany(inp){
     catch(e){ landed=false; err=String((e && e.message) || e); }
     if(!landed){
       // v2.00 (UI M1): everything the batch changed goes back -- this file's own part-way changes included
+      // v2.00 (UI M1, fix round 2): but first, what the stored destination list holds, when that is the batch's own write:
+      // not what it held once the files were read, and exactly the list the batch left on the board (persistDest's text)
+      let wrote=null; try{ wrote=localStorage.getItem(DEST_KEY); }catch(e){ wrote=null; }
+      if(!was.ls || wrote===null || wrote===was.ls[DEST_KEY] || wrote!==uiJson(DESTDB)) wrote=null;
       const bad=uiBatchPut(was);
       out.back=!Object.keys(bad).length;
-      return refuse('“'+P[i].name+'” was not taken'+(err? ' (an error: '+err+')' : ''), {bad:bad, took:i});
+      return refuse('“'+P[i].name+'” was not taken'+(err? ' (an error: '+err+')' : ''), {bad:bad, took:i, wrote:wrote});
     }
     out.taken++;
   }

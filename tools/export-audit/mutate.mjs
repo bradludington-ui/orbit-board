@@ -4314,6 +4314,20 @@ const MUTATIONS = [
   { id: "v200-ui3-putback-dest-key-only", area: "uiBatchPut", what: "the put-back gives back the destination list's key alone: any other key of browser storage the batch changed or removed keeps what the batch left",
     find: "      Object.keys(was.ls).forEach(function(k){ if(now[k]!==was.ls[k]) step('ls:'+k,",
     repl: "      Object.keys(was.ls).forEach(function(k){ if(k===DEST_KEY && now[k]!==was.ls[k]) step('ls:'+k," },
+  // v2.00 UI chunk 3 (M1, fix round 2): a batch refused before it takes anything says only what is true of it, and the
+  // stored list is said to hold the batch's write only when it does. Each is caught by audit-ui.mjs.
+  { id: "v200-ui3-early-measured-before-reads", area: "uiSubMany", what: "a batch refused while its files are read is measured against the board as it was before the reads: a single load landing meanwhile is reported as the batch stopping part-way, failing to put the review back and writing the stored destination list",
+    find: "  const early=function(why){ was=uiBatchSnap(); return refuse(why); };",
+    repl: "  const early=function(why){ return refuse(why); };" },
+  { id: "v200-ui3-partway-before-run", area: "uiSubMany (refuse)", what: "a refusal before the real run says the batch stopped part-way and could not put the review back, when nothing was taken or put back",
+    find: "    const partway=ran && off('review');",
+    repl: "    const partway=off('review');" },
+  { id: "v200-ui3-wrote-anyones", area: "uiSubMany", what: "whatever the stored destination list holds when the batch stops is taken for the batch's own write: another hand's write is reported as 'what the batch wrote there'",
+    find: "      if(!was.ls || wrote===null || wrote===was.ls[DEST_KEY] || wrote!==uiJson(DESTDB)) wrote=null;\n",
+    repl: "" },
+  { id: "v200-ui3-reads-same-list", area: "uiSubMany (refuse)", what: "the message says reopening would read the stored list 'instead of the destination list on screen' when the two are the same",
+    find: "          const reads=t!==null && isFinite(t) && t>=(+DESTDB.ts||0) && held!==uiJson(DESTDB);",
+    repl: "          const reads=t!==null && isFinite(t) && t>=(+DESTDB.ts||0);" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

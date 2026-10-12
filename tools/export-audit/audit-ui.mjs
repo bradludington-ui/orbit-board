@@ -756,6 +756,186 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ==== end v2.00 UI chunk 3 (M1, fix round) ====
 
+// ==== v2.00 UI chunk 3 (M1, fix round 2): what the M1 verifier's second round found ====
+// A batch refused while its files were still being read -- two files from one office, a malformed one -- was measured
+// against the board as it was BEFORE the reads. When the board changed in that time (a single load landing, a tick taken
+// off), the message said the batch had stopped part-way, could not put the review back and had written the stored
+// destination list: none of it true, for a batch that had taken nothing. Now such a refusal is measured against the board
+// as it is when it is said; only a real run that stopped part-way is said to have; and the stored list is said to hold
+// what the batch wrote only when it holds the batch's own write. Expected values are written out by hand, as above.
+// ATL's submittal, loaded on its own while a batch is reading its files: a single load landing in that moment, by the
+// product's own path (⬅ Load a submittal file). Its list adds "Depot Mid".
+const H = {
+  ATL: ['ATL.json', sub({ pmo: 'ATL', by: 'PMO ATL', dest: [{ k: 'dMid', n: 'Depot Mid', kind: 'gov', t: '' }],
+    items: { S02: { asks: [6200000, 2000000, 1000000], cons: 'ATL says', dest: { to: 'dMid', end: '' } } },
+    base: { S02: { asks: [6000000, 2000000, 1000000] } } })],
+};
+// as the fix round's own `during`: something done to the board once the second file has been read, before the batch goes on
+const whileRead = (X, code) => X.ev(`(function(){ var own=uiFileText, n=0; uiFileText=function(f){ return own(f).then(function(t){
+  if(++n===2){ ${code} } return t; }); }; return 1; })()`);
+// a single submittal through ⬅ Load a submittal file (importState), its read started now and not waited for: it lands
+// while a batch started next is reading its own files
+const loadStarted = (X, f) => { X.w.__one = [new X.w.File([f[1]], f[0], { type: 'application/json' })]; X.ev(`importState({files:window.__one, value:''}); 1`); };
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (M1) — a batch refused before it takes anything says only what is true of it';
+  const __bm = bootMark();
+  try {
+    // Each refusal reached while the board changes under it: Depot Mid folded in by the board's own destPkgIn, the review's
+    // tick taken off, and ATL loaded on its own landing. The batch has taken nothing, so the message and the status line
+    // are the plain ones -- never that it stopped part-way, put the review back or wrote the stored list -- and the change
+    // made meanwhile stays: on screen, in the copy kept in this browser, in the saved payload and on reopening.
+    for (const [list, said, stat] of [
+      [[F.AV, F.AVcopy],
+        '⚠ None of the 2 submittal files was loaded: “AV.json” and “AV-copy.json” are both from AV. A batch takes one submittal per office — load the one you mean',
+        '⚠ Nothing loaded — “AV.json” and “AV-copy.json” are both from AV. A batch takes one submittal per office — load the one you mean'],
+      [[F.AV, F.BROKEN],
+        '⚠ None of the 2 submittal files was loaded: “broken.json” is not a programme office’s submittal',
+        '⚠ Nothing loaded — “broken.json” is not a programme office’s submittal']]) {
+      const files2 = list.map(f => f[0]).join(' + ');
+      {
+        const where = 'Depot Mid folded in while the files are read · ' + files2;
+        const { X, A } = await start();
+        whileRead(X, `destPkgIn({dest:[{k:'dMid', n:'Depot Mid', kind:'gov', t:''}]});`);
+        const b = await batch(X, list);
+        chk(name, where, 'refused, nothing taken, nothing put back, and checked as said', J(b.r), J({ ok: false, taken: 0, asks: [], back: null, same: true, left: [] }));
+        chk(name, where, 'nothing asked; the message is the plain one', J([b.asked, b.said]), J([[], [said + '\n\n' + SAME]]));
+        chk(name, where, 'the status line is the plain one', b.stat, stat);
+        chk(name, where, 'storage writes: Depot Mid’s alone -- the batch wrote nothing', J(b.writes), J(['set prio27destdb']));
+        const Z = look(X);
+        chk(name, where, 'Depot Mid kept on screen (stamped when it was stored, still the plan’s own list), in the copy kept in this browser and in the saved payload; no Depot Zulu',
+          J([Z.destNames, Z.destTs, Z.flowShared, JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n), /Depot Mid/.test(Z.payload), /Depot Zulu/.test(Z.payload)]),
+          J([SEEDED.concat(['Depot Mid']), 1790000000000, true, SEEDED.concat(['Depot Mid']), true, false]));
+        chk(name, where, 'the review exactly as before: TSS alone, its tick, open', J([Z.review === A.post.review, Z.offices, Z.ticks, Z.open]),
+          J([true, ['TSS'], ['0|S03|asks'], true]));
+        chk(name, where, 'the same objects as before', ids(X), J([true, true, true, true, true, true, true, true, true, true, true]));
+        chk(name, where, 'the board reopened in this browser reads Depot Mid with the seeded eight, without errors', J(reopen(X)),
+          J({ dest: SEEDED.concat(['Depot Mid']), errors: [] }));
+        chk(name, where, 'no page errors', J(X.errors), J([]));
+      }
+      {
+        const where = 'the review’s tick taken off while the files are read · ' + files2;
+        const { X, A } = await start();
+        whileRead(X, `subPick(0, 'S03', 'asks', false);`);
+        const b = await batch(X, list);
+        chk(name, where, 'refused, nothing taken, nothing put back, and checked as said', J(b.r), J({ ok: false, taken: 0, asks: [], back: null, same: true, left: [] }));
+        chk(name, where, 'nothing asked; the message is the plain one', J([b.asked, b.said]), J([[], [said + '\n\n' + SAME]]));
+        chk(name, where, 'the status line is the plain one', b.stat, stat);
+        chk(name, where, 'no storage write of any kind', J(b.writes), J([]));
+        const Z = look(X);
+        chk(name, where, 'the tick stays off, as the person left it; TSS still held, the review open', J([Z.offices, Z.ticks, Z.open]), J([['TSS'], [], true]));
+        chk(name, where, 'the destination list, the plan, the saved payload and every storage key exactly as before',
+          J([Z.dest === A.post.dest, Z.destNames, Z.plan === A.post.plan, Z.payload === A.payload, J(Z.ls) === J(A.post.ls)]), J([true, SEEDED, true, true, true]));
+        chk(name, where, 'no page errors', J(X.errors), J([]));
+      }
+      {
+        const where = 'ATL loaded on its own (⬅ Load a submittal file), landing while the files are read · ' + files2;
+        const { X } = await start();
+        loadStarted(X, H.ATL);
+        const b = await batch(X, list);
+        chk(name, where, 'refused, nothing taken, nothing put back, and checked as said', J(b.r), J({ ok: false, taken: 0, asks: [], back: null, same: true, left: [] }));
+        chk(name, where, 'nothing asked; the one message is the batch’s, the plain one, counting ATL among those held', J([b.asked, b.said]),
+          J([[], [said + '\n\nThe submittal review is exactly as it was before (2 held), and nothing on the board was changed.']]));
+        chk(name, where, 'the status line is the plain one', b.stat, stat);
+        chk(name, where, 'storage writes: ATL’s list alone -- the batch wrote nothing', J(b.writes), J(['set prio27destdb']));
+        const Z = look(X);
+        chk(name, where, 'ATL is held after TSS, nothing ticked (as a single load leaves it), the review open', J([Z.offices, Z.ticks, Z.open]), J([['TSS', 'ATL'], [], true]));
+        chk(name, where, 'Depot Mid on screen, in the copy kept in this browser and in the saved payload; no Depot Zulu',
+          J([Z.destNames, JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n), /Depot Mid/.test(Z.payload), /Depot Zulu/.test(Z.payload)]),
+          J([SEEDED.concat(['Depot Mid']), SEEDED.concat(['Depot Mid']), true, false]));
+        chk(name, where, 'the board reopened in this browser reads Depot Mid with the seeded eight, without errors', J(reopen(X)),
+          J({ dest: SEEDED.concat(['Depot Mid']), errors: [] }));
+        chk(name, where, 'no page errors', J(X.errors), J([]));
+      }
+    }
+    // ONLY A REAL RUN THAT STOPPED PART-WAY is said to have. Here the dry run changes the review (fault injected: it takes
+    // the tick off) and a file that would ask then refuses the batch, before anything is taken. The check names the review;
+    // the headline still says nothing was loaded, and nothing claims a put-back that never happened.
+    {
+      const where = 'the dry run takes the review’s tick off (fault injected) · AV, then no year';
+      const { X, A } = await start();
+      X.ev(`(function(){ var own=uiTakeDry; uiTakeDry=function(p, n){ var r=own(p, n); subPick(0, 'S03', 'asks', false); return r; }; return 1; })()`);
+      const b = await batch(X, [F.AV, F.NOFY]);
+      chk(name, where, 'refused before anything is taken; the review named as not as before', J(b.r), J({ ok: false, taken: 0,
+        asks: [{ file: 'PSM-no-year.json', q: 'That submittal does not say which fiscal year it was written for.' }], back: null, same: false,
+        left: ['the submittal review (the submittals it holds, its ticks, whether it is open)'] }));
+      chk(name, where, 'the message: nothing loaded, the review named, the rest as before, then the file and its question', J(b.said), J([
+        '⚠ None of the 2 submittal files was loaded: “PSM-no-year.json” would ask a question before it could be loaded, and a batch loads only files that need no answer\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, this is not as before the batch:\n'
+        + '  • the submittal review (the submittals it holds, its ticks, whether it is open).\n\n'
+        + 'Checked just now and exactly as before: the destination list on this board, the plan on screen, whether the board reads as saved, browser storage.'
+        + '\n\n  • “PSM-no-year.json” — That submittal does not say which fiscal year it was written for.'
+        + '\n\nLoad it on its own (PMO Import › One submission), where its question is asked about that file alone; then load the rest.']));
+      chk(name, where, 'the status line says nothing loaded, and names the review', b.stat,
+        '⚠ Nothing loaded — “PSM-no-year.json” would ask a question first — load it on its own (One submission). Not as before the batch: the submittal review (the submittals it holds, its ticks, whether it is open).');
+      chk(name, where, 'never that the batch stopped part-way, or that anything was put back', /stopped part-way|put back/.test(b.said.join('\n') + '\n' + b.stat), false);
+      chk(name, where, 'no storage write of any kind', J(b.writes), J([]));
+      const Z = look(X);
+      chk(name, where, 'true: the tick is off and TSS still held; the list, the plan, the payload and storage are as before',
+        J([Z.offices, Z.ticks, Z.dest === A.post.dest, Z.plan === A.post.plan, Z.payload === A.payload, J(Z.ls) === J(A.post.ls)]), J([['TSS'], [], true, true, true, true]));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+    // "IT HOLDS WHAT THE BATCH WROTE THERE" only of the batch's own write. While the question is up, another hand writes the
+    // stored destination list (fault injected: the eight seeded and a "Depot Other", stamped later than anything here),
+    // and storage then refuses the put-back. What is still true is said: the stored list was not put back, and opening the
+    // board again in this browser would read it.
+    {
+      const where = 'another write to the stored list while the question is up, then the put-back refused (fault injected) · AV taken, then Cancel on no year';
+      const { X, A, H0 } = await start();
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY], { onAsk: () => X.ev(`localStorage.setItem('prio27destdb', JSON.stringify({ts:1790000000001,
+        ents:flowDefEnts().concat([{k:'dOther', n:'Depot Other', kind:'gov', t:''}]), lmap:{}, lsig:{}, conflicts:[], gone:[]}));
+        window.__fail=function(k){ return k==='prio27destdb'; }; 1`) });
+      X.ev('window.__fail=null; 1');
+      chk(name, where, 'not put back whole, and not said to be', J(b.r),
+        J({ ok: false, taken: 1, asks: [], back: false, same: false, left: ['the destination list kept in this browser'] }));
+      chk(name, where, 'the message names the stored list and the reason, says what reopening would read, and never that the batch wrote it', J(b.said), J([HEAD_NOFY + '\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, this is not as before the batch:\n'
+        + '  • the destination list kept in this browser — it could not be put back (QuotaExceededError). Opening the board again in this browser would read it '
+        + 'instead of the destination list on screen.\n\n'
+        + 'Checked just now and exactly as before: the submittal review, the destination list on this board, the plan on screen, whether the board reads as saved.']));
+      chk(name, where, 'the status line', b.stat, '⚠ Nothing loaded — “PSM-no-year.json” was not taken. Not as before the batch: the destination list kept in this browser.');
+      chk(name, where, 'storage writes: AV’s list, the other write, then the put-back, refused', J(b.writes), J(['set prio27destdb', 'set prio27destdb', 'set prio27destdb']));
+      const Z = look(X);
+      chk(name, where, 'true: the copy kept in this browser holds the other write -- the seeded eight and Depot Other, no Depot Zulu',
+        J([JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n), JSON.parse(Z.ls.prio27destdb).ts]), J([SEEDED.concat(['Depot Other']), 1790000000001]));
+      chk(name, where, 'true: the board on screen is put back: the review, the list, the plan and the payload',
+        J([Z.review === A.post.review, Z.dest === A.post.dest, Z.plan === A.post.plan, Z.payload === A.payload]), J([true, true, true, true]));
+      chk(name, where, 'reopening the review shows exactly what it showed before', reviewHtml(X) === H0, true);
+      chk(name, where, 'true: reopened in this browser, the board reads the stored list -- as the message said it would', J(reopen(X)),
+        J({ dest: SEEDED.concat(['Depot Other']), errors: [] }));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+    // AND NOT "INSTEAD OF THE LIST ON SCREEN" when they are the same. The board's own list cannot be put back (fault
+    // injected: uiGraphPut throws) and neither can the stored one (storage refuses): both hold what the batch made them.
+    {
+      const where = 'neither the list on screen nor the stored list can be put back (fault injected) · AV taken, then Cancel on no year';
+      const { X } = await start();
+      missAsks(X);
+      X.ev(`uiGraphPut=function(){ throw new Error('the list would not take its entries back (test)'); }; 1`);
+      X.ev(`(function(){ var n=0; window.__fail=function(k){ return k==='prio27destdb' && ++n>1; }; return 1; })()`);
+      const b = await batch(X, [F.AV, F.NOFY]);
+      X.ev('window.__fail=null; 1');
+      chk(name, where, 'not put back whole, and not said to be', J(b.r), J({ ok: false, taken: 1, asks: [], back: false, same: false,
+        left: ['the destination list on this board', 'the plan on screen', 'the destination list kept in this browser'] }));
+      chk(name, where, 'the message: the stored list holds what the batch wrote -- and nothing about reading it instead of the list on screen', J(b.said), J([HEAD_NOFY + '\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, these are not as before the batch:\n'
+        + '  • the destination list on this board — it could not be put back (Error)\n  • the plan on screen\n'
+        + '  • the destination list kept in this browser — it could not be put back (QuotaExceededError). It holds what the batch wrote there.\n\n'
+        + 'Checked just now and exactly as before: the submittal review, whether the board reads as saved.']));
+      const Z = look(X);
+      chk(name, where, 'true: the list on screen and the stored list are the same -- the seeded eight and Depot Zulu, as the batch left them',
+        J([Z.destNames, JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n), Z.ls.prio27destdb === Z.dest]), J([SEEDED.concat(['Depot Zulu']), SEEDED.concat(['Depot Zulu']), true]));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 UI chunk 3 (M1, fix round 2) ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
