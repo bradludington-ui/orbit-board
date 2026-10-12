@@ -566,3 +566,6 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   looks for late runs three times after its wait (SF-B); alone-run ends its own recorded runs before it releases the lock, and
   only once its outdir is known (SF-E); A22 now fails only on a commit the self-test could have made (a "final tree" backup or
   anything under evidence/x), not on other sessions' pushes (SF-C).
+- **5:06 PM ET:** self-test at `2bfb590` (frozen snapshot; 5:05:29-5:06:08 PM ET, exit 0): **42/42 PASS** (A22: 0 queue commits, 0 under
+  evidence/x, origin read, evidence status same). Evidence `evidence/runner-2bfb590/selftest/`. The reviewer that approved 2d is
+  asked to check the 2e delta.
