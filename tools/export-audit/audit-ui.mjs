@@ -466,6 +466,296 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ==== end v2.00 UI chunk 3 (M1) ====
 
+// ==== v2.00 UI chunk 3 (M1, fix round): what the M1 verifier found these tests could not see ====
+// The verifier's mutants that passed every check above: the put-back going back to the board as it was BEFORE the files
+// were read (v12), the destination list put back shallowly (v01), and the check made blind to the destination list, the
+// plan, the save state, the review or the storage keys the batch added (v02-v05, v07) -- each passed because no case
+// here reached it with a difference. And "every key of browser storage" was proved for prio27destdb alone (v13). Each
+// case below reaches one of them; expected values are written out by hand, as above.
+// A PMO copy whose list names Lockheed Martin -- the board's own seeded destination -- under a key of its own, as a
+// government site with a place of its own: destJoin then changes the board's entry IN PLACE (its match terms gain the
+// copy's, and the different kind is recorded as a conflict). Every fixture above only adds destinations.
+const G = {
+  LM: ['MxS-lm.json', sub({ pmo: 'MxS', by: 'PMO MxS', dest: [{ k: 'dLMx', n: 'Lockheed Martin', kind: 'gov', t: 'Fort Worth' },
+    { k: 'dZulu', n: 'Depot Zulu', kind: 'gov', t: '' }],
+    items: { S05: { asks: [9500000, 2000000, 1000000], cons: 'MxS says', dest: { to: 'dLMx', end: 'dZulu' } } },
+    base: { S05: { asks: [9000000, 2000000, 1000000] } } })],
+};
+const LM_SEEDED = { k: 'lm', n: 'Lockheed Martin', kind: 'prime', t: 'LM, LOCKHEED' };
+// the headline of every case below that cancels on PSM-no-year.json after AV was taken
+const HEAD_NOFY = '⚠ None of the 2 submittal files was loaded: “PSM-no-year.json” was not taken, so the 1 taken before it was taken back out of the review';
+// as start(), with something done to the board before it is looked at
+const startWith = async code => { const X = await ready(); X.ev(code); const A = look(X); const H0 = reviewHtml(X); return { X, A, H0 }; };
+// the board as it is, without buildSavedHtml (whose save() would itself move the save state): for the board opened from its
+// saved file, as the saved-board case above reads it
+const stNow = X => JSON.parse(X.ev(`JSON.stringify({save:[_sideGen, _sideSaved, _dlOnly, DIRTY, _saveGen, JSON.stringify(_lsRefused)], unsaved:unsavedNow(),
+  head:(document.getElementById('saveState')||{}).textContent, ls:(function(){ var o={}; Object.keys(localStorage).sort().forEach(function(k){ o[k]=localStorage.getItem(k); }); return o; })(),
+  dest:DESTDB.ents.map(function(e){ return e.n; }), destTxt:JSON.stringify(DESTDB), review:JSON.stringify({subs:PMOSUBS, pick:PMOPICK, open:subOpen}),
+  plan:JSON.stringify(MS)})`));
+// a board opened from its own saved file (nothing unsaved, storage holding no destination list), the review holding TSS,
+// storage watched as in ready() -- and removeItem refusable too (window.__failRm)
+const readySaved = async () => {
+  const S0 = open(), X = boot({ html: S0.ev('buildSavedHtml()') });
+  X.ev('Date.now=function(){ return 1790000000000; }; 1');
+  X.w.confirm = () => true; X.w.alert = () => {};
+  await loadOne(X, F.TSS);
+  X.ev(`(function(){ window.__w=[]; window.__fail=null; window.__failRm=null; var P=Object.getPrototypeOf(localStorage), set=P.setItem, rm=P.removeItem;
+    P.setItem=function(k,v){ window.__w.push('set '+k); if(window.__fail && window.__fail(k)){ var e=new Error('storage refused (test)'); e.name='QuotaExceededError'; throw e; } return set.call(this,k,v); };
+    P.removeItem=function(k){ window.__w.push('remove '+k); if(window.__failRm && window.__failRm(k)){ var e=new Error('storage refused (test)'); e.name='SecurityError'; throw e; } return rm.call(this,k); };
+    return 1; })()`);
+  return { S0, X };
+};
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (M1) — what changes while the files are read is kept when the batch is put back';
+  const __bm = bootMark();
+  try {
+    // The batch waits only while its files are read, and the board can change in that time: a live-refresh tick, a single
+    // load landing, the person's own click. The put-back goes back to the board as it was once the files were read, so a
+    // change made meanwhile is not erased under "nothing on the board was changed" (the verifier's v12, with no second
+    // snapshot, took Depot Mid off the board and out of storage). The change is made by wrapping uiFileText: once the
+    // second file has been read, before the batch goes on.
+    const during = (X, code) => X.ev(`(function(){ var own=uiFileText, n=0; uiFileText=function(f){ return own(f).then(function(t){
+      if(++n===2){ ${code} } return t; }); }; return 1; })()`);
+    {
+      const where = 'a destination added while the files are read · AV taken, then Cancel on no year';
+      const { X, A } = await start();
+      // the board's own destPkgIn, as a single submittal's load landing in that moment folds its list in and stores it
+      during(X, `destPkgIn({dest:[{k:'dMid', n:'Depot Mid', kind:'gov', t:''}]});`);
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY]);
+      chk(name, where, 'not loaded; AV had been taken; put back and checked', J(b.r), J({ ok: false, taken: 1, asks: [], back: true, same: true, left: [] }));
+      chk(name, where, 'the message is the plain one: the batch changed nothing', J(b.said), J([HEAD_NOFY + '\n\n' + SAME]));
+      chk(name, where, 'storage writes: Depot Mid’s, then AV’s, then the put-back', J(b.writes), J(['set prio27destdb', 'set prio27destdb', 'set prio27destdb']));
+      const Z = look(X);
+      chk(name, where, 'Depot Mid is kept on screen, stamped when it was stored, still the plan’s own list; Depot Zulu is not there',
+        J([Z.destNames, Z.destTs, Z.flowShared]), J([SEEDED.concat(['Depot Mid']), 1790000000000, true]));
+      const kept = JSON.parse(Z.ls.prio27destdb);
+      chk(name, where, 'and in the copy kept in this browser', J([kept.ents.map(e => e.n), kept.ts]), J([SEEDED.concat(['Depot Mid']), 1790000000000]));
+      chk(name, where, 'and in the saved payload, which has no Depot Zulu', J([/Depot Mid/.test(Z.payload), /Depot Zulu/.test(Z.payload)]), J([true, false]));
+      chk(name, where, 'the review exactly as before: TSS alone, its tick, open', J([Z.review === A.post.review, Z.offices, Z.ticks, Z.open]),
+        J([true, ['TSS'], ['0|S03|asks'], true]));
+      chk(name, where, 'the same objects as before', ids(X), J([true, true, true, true, true, true, true, true, true, true, true]));
+      chk(name, where, 'the board reopened in this browser reads Depot Mid with the seeded eight, without errors', J(reopen(X)),
+        J({ dest: SEEDED.concat(['Depot Mid']), errors: [] }));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+    {
+      const where = 'the review’s tick taken off while the files are read · AV taken, then Cancel on no year';
+      const { X, A } = await start();
+      during(X, `subPick(0, 'S03', 'asks', false);`);
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY]);
+      chk(name, where, 'not loaded; AV had been taken; put back and checked', J(b.r), J({ ok: false, taken: 1, asks: [], back: true, same: true, left: [] }));
+      chk(name, where, 'the message is the plain one', J(b.said), J([HEAD_NOFY + '\n\n' + SAME]));
+      chk(name, where, 'storage writes: AV’s list, then the put-back', J(b.writes), J(['set prio27destdb', 'set prio27destdb']));
+      const Z = look(X);
+      chk(name, where, 'the tick stays off, as the person left it; TSS still held, the review open', J([Z.offices, Z.ticks, Z.open]), J([['TSS'], [], true]));
+      chk(name, where, 'the destination list, the plan, the saved payload and every storage key exactly as before',
+        J([Z.dest === A.post.dest, Z.destNames, Z.plan === A.post.plan, Z.payload === A.payload, J(Z.ls) === J(A.post.ls)]), J([true, SEEDED, true, true, true]));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (M1) — a destination the load changed in place is put back as it was';
+  const __bm = bootMark();
+  try {
+    // CONTROL: the file, loaded on its own, does change the board's Lockheed Martin in place
+    {
+      const where = 'MxS-lm.json loaded on its own (CONTROL)';
+      const { X } = await start();
+      await loadOne(X, G.LM);
+      chk(name, where, 'Lockheed Martin gains Fort Worth, the kind conflict is recorded, Depot Zulu is added; nothing asked',
+        X.ev(`JSON.stringify([destHas('lm'), DESTDB.conflicts, DESTDB.ents.map(function(e){ return e.n; }), PMOSUBS.map(function(p){ return p.pmo; })])`),
+        J([{ k: 'lm', n: 'Lockheed Martin', kind: 'prime', t: 'LM, LOCKHEED, Fort Worth' }, [{ k: 'lm', from: 'om', kind: 'gov' }], SEEDED.concat(['Depot Zulu']), ['TSS', 'MxS']]));
+    }
+    // Cancel on the next file, and an error while it is the file being taken: each time the entry, the conflicts, the whole
+    // list and the plan go back to exactly what they were
+    for (const [where, list, said, writes, sor] of [
+      ['MxS (naming Lockheed Martin) taken, then Cancel on no year', [G.LM, F.NOFY], HEAD_NOFY, ['set prio27destdb', 'set prio27destdb'], false],
+      ['AV taken, then an error while MxS (naming Lockheed Martin) is taken', [F.AV, G.LM],
+        '⚠ None of the 2 submittal files was loaded: “MxS-lm.json” was not taken (an error: the review could not be drawn (test)), so the 1 taken before it was taken back out of the review',
+        ['set prio27destdb', 'set prio27destdb', 'set prio27destdb'], true]]) {
+      const { X, A, H0 } = await start();
+      if (sor) X.ev(`(function(){ var own=subOpenReview, n=0; subOpenReview=function(){ if(++n===2) throw new Error('the review could not be drawn (test)'); return own.apply(this, arguments); };
+        window.__sorOwn=own; return 1; })()`);
+      else missAsks(X);
+      const b = await batch(X, list);
+      if (sor) X.ev('subOpenReview=window.__sorOwn; 1');
+      chk(name, where, 'not loaded; one taken first; put back and checked', J(b.r), J({ ok: false, taken: 1, asks: [], back: true, same: true, left: [] }));
+      chk(name, where, 'the message', J(b.said), J([said + '\n\n' + SAME]));
+      chk(name, where, 'storage writes: each list folded in, then one put-back', J(b.writes), J(writes));
+      chk(name, where, 'Lockheed Martin exactly as seeded, and no conflict recorded',
+        X.ev(`JSON.stringify([destHas('lm'), DESTDB.conflicts])`), J([LM_SEEDED, []]));
+      asBefore(name, where, X, A, H0);
+      // after asBefore, whose own look() is the one save its measures allow for
+      chk(name, where, 'Fort Worth is in neither the saved payload nor the copy kept in this browser',
+        (() => { const Z = look(X); return J([/Fort Worth/.test(Z.payload), /Fort Worth/.test(Z.ls.prio27destdb)]); })(), J([false, false]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (M1) — the check names each part that is not as before';
+  const __bm = bootMark();
+  try {
+    // Each case makes one part of the put-back fail (or something it does not cover change), so the check meets a real
+    // difference there; every other part is put back. The message must name that part -- with the browser's reason when a
+    // step failed -- and list every other part as checked and as before. Each fault is injected, and says "(test)".
+    // (a) THE DESTINATION LIST cannot be put back in memory (uiGraphPut throws). The plan names it too: MS.flow.ents is the list.
+    {
+      const where = 'the destination list cannot be put back (fault injected) · AV taken, then Cancel on no year';
+      const { X, A } = await start();
+      missAsks(X);
+      X.ev(`uiGraphPut=function(){ throw new Error('the list would not take its entries back (test)'); }; 1`);
+      const b = await batch(X, [F.AV, F.NOFY]);
+      chk(name, where, 'not put back whole, and not said to be', J(b.r),
+        J({ ok: false, taken: 1, asks: [], back: false, same: false, left: ['the destination list on this board', 'the plan on screen'] }));
+      chk(name, where, 'the message names the list, with the reason, and the plan; and what is as before', J(b.said), J([HEAD_NOFY + '\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, these are not as before the batch:\n'
+        + '  • the destination list on this board — it could not be put back (Error)\n  • the plan on screen.\n\n'
+        + 'Checked just now and exactly as before: the submittal review, whether the board reads as saved, browser storage.']));
+      chk(name, where, 'the status line says it too', b.stat,
+        '⚠ Nothing loaded — “PSM-no-year.json” was not taken. Not as before the batch: the destination list on this board; the plan on screen.');
+      const Z = look(X);
+      chk(name, where, 'true: the list on screen still holds Depot Zulu; the review, storage and the save state are as before',
+        J([Z.destNames, Z.review === A.post.review, J(Z.ls) === J(A.post.ls), J(Z.save) === J(A.post.save)]), J([SEEDED.concat(['Depot Zulu']), true, true, true]));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+    // (b) THE PLAN alone: something the put-back does not cover changes MS while the batch runs (set from the question)
+    {
+      const where = 'the plan changed during the batch (fault injected) · AV taken, then Cancel on no year';
+      const { X, A } = await start();
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY], { onAsk: () => X.ev(`MS.uiFault='set while the batch ran (test)'; 1`) });
+      chk(name, where, 'put back, but not everything is as before, and it is said', J(b.r),
+        J({ ok: false, taken: 1, asks: [], back: true, same: false, left: ['the plan on screen'] }));
+      chk(name, where, 'the message names the plan, and what is as before', J(b.said), J([HEAD_NOFY + '\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, this is not as before the batch:\n  • the plan on screen.\n\n'
+        + 'Checked just now and exactly as before: the submittal review, the destination list on this board, whether the board reads as saved, browser storage.']));
+      const Z = look(X);
+      chk(name, where, 'true: the plan holds the change; the review, the list, storage and the save state are as before',
+        J([X.ev('MS.uiFault'), Z.review === A.post.review, Z.dest === A.post.dest, J(Z.ls) === J(A.post.ls), J(Z.save) === J(A.post.save)]),
+        J(['set while the batch ran (test)', true, true, true, true]));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+    // (c) THE SAVE STATE cannot be put back. Before the batch storage refused the destination list once, so the board
+    // counts it unsaved (_lsRefused); AV's load is stored, which takes that count away; the put-back must give it back,
+    // and the record is made unable to take it (fault injected: Object.preventExtensions, set from the question).
+    {
+      const where = 'the save state cannot be put back (fault injected) · storage refused the list before; AV taken, then Cancel on no year';
+      const { X, A } = await startWith(`window.__fail=function(k){ return k==='prio27destdb'; }; persistDest(); window.__fail=null; 1`);
+      chk(name, where, 'CONTROL — before: the list storage refused is counted unsaved', X.ev('JSON.stringify(Object.keys(_lsRefused))'), J(['prio27destdb']));
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY], { onAsk: () => X.ev('Object.preventExtensions(_lsRefused); 1') });
+      chk(name, where, 'not put back whole, and not said to be', J(b.r),
+        J({ ok: false, taken: 1, asks: [], back: false, same: false, left: ['whether the board reads as saved'] }));
+      chk(name, where, 'the message names the save state, with the reason, and what is as before', J(b.said), J([HEAD_NOFY + '\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, this is not as before the batch:\n  • whether the board reads as saved — it could not be put back (TypeError).\n\n'
+        + 'Checked just now and exactly as before: the submittal review, the destination list on this board, the plan on screen, browser storage.']));
+      chk(name, where, 'storage writes: AV’s list, then the put-back', J(b.writes), J(['set prio27destdb', 'set prio27destdb']));
+      const R = X.ev('JSON.stringify(Object.keys(_lsRefused))'), Z = look(X);
+      chk(name, where, 'true: the refused list is no longer counted unsaved; the review, the list, the plan and storage are as before',
+        J([R, Z.review === A.post.review, Z.dest === A.post.dest, Z.plan === A.post.plan, J(Z.ls) === J(A.post.ls)]), J([J([]), true, true, true, true]));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+    // (d) THE REVIEW cannot be put back: its array refuses to take its submittals back (fault injected, set from the question)
+    {
+      const where = 'the review cannot be put back (fault injected) · AV taken, then Cancel on no year';
+      const { X, A } = await start();
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY], { onAsk: () => X.ev(`Object.defineProperty(PMOSUBS, 'push', {configurable:true, writable:true,
+        value:function(){ throw new Error('the review would not take its submittals back (test)'); }}); 1`) });
+      X.ev('delete PMOSUBS.push; 1');
+      chk(name, where, 'not put back whole, and not said to be', J(b.r), J({ ok: false, taken: 1, asks: [], back: false, same: false,
+        left: ['the submittal review (the submittals it holds, its ticks, whether it is open)'] }));
+      chk(name, where, 'the headline says the review could not be put back; the message names it, with the reason, and what is as before', J(b.said), J([
+        '⚠ The batch stopped part-way, and the submittal review could not be put back as it was: “PSM-no-year.json” was not taken\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, this is not as before the batch:\n'
+        + '  • the submittal review (the submittals it holds, its ticks, whether it is open) — it could not be put back (Error).\n\n'
+        + 'Checked just now and exactly as before: the destination list on this board, the plan on screen, whether the board reads as saved, browser storage.']));
+      chk(name, where, 'the status line says it too', b.stat,
+        '⚠ The batch stopped part-way — “PSM-no-year.json” was not taken. Not as before the batch: the submittal review (the submittals it holds, its ticks, whether it is open).');
+      const Z = look(X);
+      chk(name, where, 'true: the review lost TSS and its tick; the list, the plan, storage and the save state are as before',
+        J([Z.offices, Z.ticks, Z.dest === A.post.dest, Z.plan === A.post.plan, J(Z.ls) === J(A.post.ls), J(Z.save) === J(A.post.save)]), J([[], [], true, true, true, true]));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+    // (e) A STORAGE KEY THE BATCH ADDED cannot be removed. The board opened from its saved file holds no destination list
+    // in storage; AV's load adds one; removing it again is refused (fault injected).
+    {
+      const where = 'a key the batch added cannot be removed (fault injected) · a board opened from its saved file; AV taken, then Cancel on no year';
+      const { S0, X } = await readySaved();
+      const A = stNow(X);
+      chk(name, where, 'CONTROL — before: reads saved, storage holding the plan’s base only', J([A.unsaved, /^Saved /.test(A.head), Object.keys(A.ls)]),
+        J([false, true, ['prio27om.base']]));
+      missAsks(X);
+      X.ev(`window.__failRm=function(k){ return k==='prio27destdb'; }; 1`);
+      const b = await batch(X, [F.AV, F.NOFY]);
+      X.ev('window.__failRm=null; 1');
+      chk(name, where, 'not put back whole, and not said to be', J(b.r),
+        J({ ok: false, taken: 1, asks: [], back: false, same: false, left: ['the destination list kept in this browser'] }));
+      chk(name, where, 'the message names the copy kept in this browser, the reason and what it means; and what is as before', J(b.said), J([HEAD_NOFY + '\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, this is not as before the batch:\n'
+        + '  • the destination list kept in this browser — it could not be put back (SecurityError). It holds what the batch wrote there, and '
+        + 'opening the board again in this browser would read it instead of the destination list on screen.\n\n'
+        + 'Checked just now and exactly as before: the submittal review, the destination list on this board, the plan on screen, whether the board reads as saved.']));
+      chk(name, where, 'storage writes: AV’s list, then its removal, refused', J(b.writes), J(['set prio27destdb', 'remove prio27destdb']));
+      const Z = stNow(X);
+      chk(name, where, 'true: on screen the review, the list, the plan, the save state and the header are as before',
+        J([Z.review === A.review, Z.destTxt === A.destTxt, Z.plan === A.plan, J(Z.save) === J(A.save), Z.head === A.head]), J([true, true, true, true, true]));
+      chk(name, where, 'true: storage holds the key it did not hold, with the seeded eight and Depot Zulu',
+        J([Object.keys(Z.ls), JSON.parse(Z.ls.prio27destdb).ents.map(e => e.n)]), J([['prio27destdb', 'prio27om.base'], SEEDED.concat(['Depot Zulu'])]));
+      chk(name, where, 'reopened in this browser, the board reads that list -- as the message said it would', J(reopen(X)),
+        J({ dest: SEEDED.concat(['Depot Zulu']), errors: [] }));
+      chk(name, where, 'no page errors', J([S0.errors, X.errors]), J([[], []]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (M1) — the put-back gives back every storage key the batch changed, and writes no other';
+  const __bm = bootMark();
+  try {
+    // pmoTake writes one key today, prio27destdb. The put-back is not written for that key: every key that differs is
+    // given back, one the batch added is removed, one it removed is written again, and one it left alone is not written.
+    // While the question is up (fault injected), prio27om is changed, prio27test added and prio27om.base removed.
+    {
+      const where = 'three other keys changed, added and removed during the batch (fault injected) · AV taken, then Cancel on no year';
+      const { X, A, H0 } = await start();
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY], { onAsk: () => X.ev(`localStorage.setItem('prio27om', 'changed while the batch ran (test)');
+        localStorage.setItem('prio27test', 'added while the batch ran (test)'); localStorage.removeItem('prio27om.base'); 1`) });
+      chk(name, where, 'not loaded; put back and checked', J(b.r), J({ ok: false, taken: 1, asks: [], back: true, same: true, left: [] }));
+      chk(name, where, 'the message is the plain one', J(b.said), J([HEAD_NOFY + '\n\n' + SAME]));
+      chk(name, where, 'storage writes during the batch: AV’s list, then the three made while the question was up', J(b.writes.slice(0, 4)),
+        J(['set prio27destdb', 'set prio27om', 'set prio27test', 'remove prio27om.base']));
+      chk(name, where, 'the put-back’s writes: the added key removed, the three that differ written back -- and nothing else', J(b.writes.slice(4).sort()),
+        J(['remove prio27test', 'set prio27destdb', 'set prio27om', 'set prio27om.base']));
+      asBefore(name, where, X, A, H0);
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 UI chunk 3 (M1, fix round) ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
