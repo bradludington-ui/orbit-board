@@ -1,0 +1,35 @@
+# label: cmp-before-vs-after
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/cmp.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/out/before /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/out/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/out/cmp-before-vs-after.json
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/ui-c1-wt
+# HEAD: 822918e board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26 worktree-board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26
+# BOARD=<unset>
+# start: 2026-10-12 07:25:34 EDT
+# cap: 300s
+{
+ "fails": [],
+ "distinctHandlerPairs": 12,
+ "onAttrDiffEntries": {
+  "A": 228,
+  "R": 231
+ },
+ "saved": {
+  "bytes": [
+   3836566,
+   3836571
+  ],
+  "payloadIdentical": true,
+  "readerIdentical": true,
+  "hunks": 5,
+  "sourceChangedLines": [
+   32097,
+   32114,
+   32154,
+   32155,
+   32249
+  ],
+  "identicalWithChangesPutBack": true
+ }
+}
+
+# end: 2026-10-12 07:25:35 EDT
+# exit: 0  wall_s: 0.3

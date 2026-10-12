@@ -1,0 +1,11 @@
+# label: rule-list-after-wip
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/rule-list.mjs prioritization-board-grid.html
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/ui-c1-wt
+# HEAD: c41a7c2 board ba8d020431afc0ead32cc6ee6fa66d6b301ce583 worktree-board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26
+# BOARD=<unset>
+# start: 2026-10-12 07:24:30 EDT
+# cap: 120s
+hits: 0
+
+# end: 2026-10-12 07:24:30 EDT
+# exit: 0  wall_s: 0.3

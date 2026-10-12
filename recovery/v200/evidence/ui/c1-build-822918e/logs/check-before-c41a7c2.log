@@ -1,0 +1,68 @@
+# label: check-before@c41a7c2
+# cmd: node tools/check.mjs prioritization-board-grid.html
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/ui-c1-wt
+# HEAD: c41a7c2 board ba8d020431afc0ead32cc6ee6fa66d6b301ce583 worktree-board ba8d020431afc0ead32cc6ee6fa66d6b301ce583
+# BOARD=<unset>
+# start: 2026-10-12 07:15:55 EDT
+# cap: 600s
+
+checking prioritization-board-grid.html
+32579 lines, 3.64 MB
+
+syntax
+  ok    main script parses (30290 lines)
+
+appropriations
+  ok    APPN_SLUGS = [om, ff, sp, opn]
+  ok    APPN_LBL covers all 4
+  ok    APPN_NAME covers all 4
+  ok    _SLUGMAP covers all 4
+  ok    SRC_TABS covers all 4
+  ok    APPNS covers all 4 (keyed by label)
+  ok    _AP covers all 4 (keyed by label)
+  ok    _AP slugs round-trip to their labels
+
+save path
+  ok    exactly one literal pubState tag
+  ok    buildSavedHtml’s regex matches it
+  ok    SRC0 captured at boot
+
+no data committed
+  ok    pubState is null
+  ok    APPNS is empty
+
+offline
+  ok    no external hosts (2 namespace URIs only)
+  ok    no linked scripts or stylesheets
+
+inline handlers
+  ok    all 338 inline handler names resolve
+
+handler values
+  FAIL  10 value(s) reach inline handler code without jsa(): line 32097 (a value written straight after a quote the handler opened); line 32114 (a value written straight after a quote the handler opened); line 32154 (a value written straight after a quote the handler opened); line 32155 (a value written straight after a quote the handler opened); line 32249 (a value written straight after a quote the handler opened); line 32097 (a value written straight before a quote the handler closes); line 32114 (a value written straight before a quote the handler closes); line 32154 (a value written straight before a quote the handler closes)
+
+keyboard reach (markup)
+  ok    every element with a click handler is a native control or a labelled SVG role="button" group (backdrops excepted)
+
+boxes
+  ok    all 45 boxes are direct children of <body> with an id, a .modal, a name and a close control
+
+award order
+  ok    the award-order rule's own test: 21 unsafe forms refused (the review's three bypasses among them), 12 valid forms passed
+  ok    every sort of awards uses awdCmp (7 of 131 sorts are of awards)
+
+powerpoint template
+  ok    TPL_PARTS parses as 71 base64 parts and holds no code
+  ok    the template line matches its recorded fingerprint
+
+BUILD  v2.00 (11 Oct 2026)
+
+tracked by git
+  ok    prioritization-board-grid.html
+  ok    tools/row-controls.json
+
+1 check(s) failed
+
+
+# end: 2026-10-12 07:15:58 EDT
+# exit: 1  wall_s: 3.2

@@ -1,0 +1,22 @@
+# label: audit-recon@822918e
+# cmd: node tools/export-audit/audit-recon.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/ui-c1-wt
+# HEAD: 822918e board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26 worktree-board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26
+# BOARD=<unset>
+# start: 2026-10-12 07:29:02 EDT
+# cap: 600s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-12 07:29:53 EDT
+# exit: 0  wall_s: 51.5

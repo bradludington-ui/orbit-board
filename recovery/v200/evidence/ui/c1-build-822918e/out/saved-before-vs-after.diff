@@ -1,0 +1,18 @@
+32095c32095
+<         +' onchange="uiColSet(\''+c[0]+'\', !this.checked)"> '+c[1]+'</label>'; }).join('')
+---
+>         +' onchange="uiColSet('+jsa(c[0])+', !this.checked)"> '+c[1]+'</label>'; }).join('')
+32112c32112
+<           return '<button type="button" class="o" aria-pressed="'+(uiDensity===d[0]?'true':'false')+'" onclick="uiPopsClose();uiSetDensity(\''+d[0]+'\')">'+d[1]+'</button>'; }).join('')
+---
+>           return '<button type="button" class="o" aria-pressed="'+(uiDensity===d[0]?'true':'false')+'" onclick="uiPopsClose();uiSetDensity('+jsa(d[0])+')">'+d[1]+'</button>'; }).join('')
+32152,32153c32152,32153
+<   const file=function(lbl, sub, id){ return '<button type="button" onclick="uiFlyClose();mRun(function(){ document.getElementById(\''+id+'\').click(); })">'+lbl+'<small>'+sub+'</small></button>'; };
+<   const menu=function(lbl, sub, m){ return '<button type="button" onclick="uiFlyClose();uiMenuSoon(\''+m+'\')">'+lbl+'<small>'+sub+'</small></button>'; };
+---
+>   const file=function(lbl, sub, id){ return '<button type="button" onclick="uiFlyClose();mRun(function(){ document.getElementById('+jsa(id)+').click(); })">'+lbl+'<small>'+sub+'</small></button>'; };
+>   const menu=function(lbl, sub, m){ return '<button type="button" onclick="uiFlyClose();uiMenuSoon('+jsa(m)+')">'+lbl+'<small>'+sub+'</small></button>'; };
+32247c32247
+<     return '<button type="button" data-k="'+t[0]+'" aria-pressed="'+(UI_DTAB===t[0]? 'true' : 'false')+'" onclick="uiDTab(\''+t[0]+'\')">'+t[1]+'</button>'; }).join('');
+---
+>     return '<button type="button" data-k="'+t[0]+'" aria-pressed="'+(UI_DTAB===t[0]? 'true' : 'false')+'" onclick="uiDTab('+jsa(t[0])+')">'+t[1]+'</button>'; }).join('');
