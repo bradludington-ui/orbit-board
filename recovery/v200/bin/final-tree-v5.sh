@@ -25,6 +25,12 @@
 # (SF1, SF5); a refusal in this script's own shell goes through stop() too (SF2); long steps run in the background and are
 # waited for, so a signal is handled at once; the queue exits 6 if any backup failed (SF4); origin is read at its fixed URL
 # (SF6, in the preamble).
+# Runner correction 2d (after the review of cccb714): stop() backs up ONLY once the queue has started (the pinned clone and
+# manifest accepted), so a stop at the clone check -- the self-test's A6 and A21 -- never writes to orbit-board (MF1; 2c's
+# self-test pushed two records commits to evidence/x, removed); a failed npm run check stops through stop() and is backed up
+# (MF2); alone-run's failed backups count toward exit 6 (SF1); a stop ends runs that registered just after it began (SF2);
+# check, verify:grid, standards and every backup are waited for in the background, so a signal is handled at once (SF3);
+# a failed stop backup is recorded (SF6); the local branch must hold origin's tip at launch (SF5, in the preamble).
 # BOOTSTRAP (the only commands run outside the snapshot; the summary records this script's own invocation):
 #   O=<new outdir>; mkdir "$O" "$O/runner" && git -C /home/user/orbit-board archive <runner-sha> recovery/v200/bin \
 #     | tar -x -C "$O/runner" && chattr -R +i "$O/runner" && \
@@ -87,12 +93,15 @@ snapcheck(){ local want got p
 # backedup : RUNNER_SHA is on origin's claude/v200-fixes-wip as it is NOW; a failed read refuses (review S2). Origin is read
 # at its FIXED URL from outside any repository, with no config at all, so no repo-local insteadOf or remote URL can redirect it
 # (runner correction 2c, review of 60c984c, SF6). It never fetches: if the tip is not in the local repository it refuses and
-# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Prints the tip.
+# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Runner correction
+# 2d (review of cccb714, SF5): the local branch must already hold origin's tip, or every backup push would be refused. Prints the tip.
 backedup(){ local tip
+  [ ! -e /.git ] || refuse "/.git exists, so the fixed-URL read would not be outside every repository"
   tip=$(GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git -C / ls-remote "$ORIGIN" refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}')
   [[ "$tip" =~ ^[0-9a-f]{40}$ ]] || refuse "could not read origin's claude/v200-fixes-wip at $ORIGIN (ls-remote failed), so the runner commit's backup cannot be checked"
-  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: fetch it (git -C $REPO fetch origin claude/v200-fixes-wip) and launch again"
+  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: bring its claude/v200-fixes-wip up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   pg merge-base --is-ancestor "$RUNNER_SHA" "$tip" 2>/dev/null || refuse "$RUNNER_SHA is not on origin's claude/v200-fixes-wip (now $tip): not a backed-up commit"
+  pg merge-base --is-ancestor "$tip" refs/heads/claude/v200-fixes-wip 2>/dev/null || refuse "$REPO's claude/v200-fixes-wip does not hold origin's tip $tip, so every backup push would be refused: bring it up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   echo "$tip"; }
 # ---- runner preamble v5 end ----
 RUNNER_SHA=${1:-}; C=${2:-}; O=${3:-}; D=${4:-}; PIN=${5:-}; MAN=${6:-}
@@ -108,14 +117,19 @@ vh "$0"
 O=$OD; export RUNNER_PIDS="$O/pids.txt" RUNNER_REFUSALS="$O/REFUSALS.txt"
 mkdir -p "$O/import" "$O/suites" "$O/sens"
 et() { TZ=America/New_York date '+%I:%M:%S %p ET'; }
-LANES=; FG=; CURBK=; BKF=
+LANES=; FG=; CURBK=; BKF=; STARTED=
 endruns() { local p t l; [ -f "$RUNNER_PIDS" ] || return 0   # end every recorded run that has no exit record yet, by its recorded group
   while read -r p t l; do [ -n "$l" ] && [ ! -f "$l.exit" ] && kill -TERM -- "-$p" 2>/dev/null; done < "$RUNNER_PIDS"; }
-stop() { trap '' TERM INT HUP; echo "STOPPED $(et): $1" | tee -a "$O/summary.txt"; touch "$O/STOP"
-  kill $LANES $FG 2>/dev/null; endruns; sleep 2
+stop() { local e x n p; trap '' TERM INT HUP; echo "STOPPED $(et): $1" | tee -a "$O/summary.txt"; touch "$O/STOP"
+  kill $LANES $FG 2>/dev/null; endruns
+  for n in 1 2 3 4 5 6 7 8 9 10; do sleep 1; endruns; x=0; for p in $LANES $FG; do kill -0 "$p" 2>/dev/null && x=1; done; [ $x = 0 ] && break; done
+  endruns; sleep 1   # a run that registered just after the stop began is ended too
   cp "$O/summary.txt" "$O/suites/summary-all.txt" 2>/dev/null; [ -f "$RUNNER_REFUSALS" ] && cp "$RUNNER_REFUSALS" "$O/suites/REFUSALS.txt"
-  if ( vh "$B/backup-run.sh" ) > /dev/null 2>&1; then for e in "$O/suites::$D/suites" "$O/import::$D/import" ${CURBK:+"$CURBK"}; do   # best effort
-    [ -d "${e%%::*}" ] && "$B/backup-run.sh" "${e%%::*}" "${e#*::}" "final tree STOPPED" > /dev/null 2>&1; done; fi
+  if [ -z "$STARTED" ]; then echo "(stopped before the queue started: nothing backed up, orbit-board untouched)" >> "$O/summary.txt"
+  elif ( vh "$B/backup-run.sh" ) > /dev/null 2>&1; then for e in "$O/suites::$D/suites" "$O/import::$D/import" ${CURBK:+"$CURBK"}; do   # best effort
+    [ -d "${e%%::*}" ] || continue; "$B/backup-run.sh" "${e%%::*}" "${e#*::}" "final tree STOPPED" > /dev/null 2>&1; x=$?
+    [ $x = 0 ] || echo "stop backup FAILED (backup-run.sh exit $x) $(et): ${e%%::*}" | tee -a "$O/summary.txt" >&2; done
+  else echo "stop backup NOT RUN: backup-run.sh was refused" | tee -a "$O/summary.txt" >&2; fi
   exit "${2:-2}"; }
 trap 'stop "the queue received a signal" 3' TERM INT HUP
 chk() { [ ! -s "$RUNNER_REFUSALS" ] || stop "a helper was refused: $(tail -1 "$RUNNER_REFUSALS")"; }
@@ -133,20 +147,20 @@ if [ -f "$AFF" ]; then python3 -I "$B/mkmanifest.py" "$C/tools/export-audit/muta
 else python3 -I "$B/mkmanifest.py" "$C/tools/export-audit/mutate.mjs" "$C/prioritization-board-grid.html" > "$O/manifest.check.tsv"; fi || stop "mkmanifest.py failed"
 cmp -s "$MAN" "$O/manifest.check.tsv" || refuse "$MAN is not the manifest of this clone (see $O/manifest.check.tsv)"
 cp "$MAN" "$O/suites/manifest.tsv"
-echo "start $(et) pinned tree $H ($(git -C "$C" rev-parse HEAD^{tree}))" >> "$O/summary.txt"
+echo "start $(et) pinned tree $H ($(git -C "$C" rev-parse HEAD^{tree}))" >> "$O/summary.txt"; STARTED=1
 git -C "$C" ls-tree -r HEAD prioritization-board-grid.html tools package.json > "$O/blobs.txt"; cp "$O/blobs.txt" "$O/suites/blobs.txt"
 gate() { vh "$B/gate.sh"; "$B/gate.sh" "$@"; }
 vd() { vh "$B/verdicts.tsv"; awk -F'\t' -v s="$1" -v k="$2" '$1==s{print $k; n++} END{exit n!=1}' "$B/verdicts.tsv" || refuse "verdicts.tsv has no single row for $1"; }
 gv() { local a b; a=$(vd "$2" 2) || exit 2; b=$(vd "$2" 3) || exit 2; gate "$1" "$H" "$a" ${b:+"$b"}; }   # gv <log> <suite>: the gate on that suite's own verdict
 runs() { local lg=$1 cap=$2; shift 2; vh "$B/run.sh"; (cd "$C" && "$B/run.sh" "$lg" "$cap" "$@" > /dev/null) || refuse "run.sh did not record $(basename "$lg")"; }
-bk() { local x; vh "$B/backup-run.sh"; "$B/backup-run.sh" "$@"; x=$?; chk; [ $x = 0 ] || { BKF=1; echo "backup FAILED (backup-run.sh exit $x) $(et): $3; the logs stay in $1" >> "$O/summary.txt"; }; }
+bk() { local x; vh "$B/backup-run.sh"; fgw "$B/backup-run.sh" "$@"; x=$?; chk; [ $x = 0 ] || { BKF=1; echo "backup FAILED (backup-run.sh exit $x) $(et): $3; the logs stay in $1" >> "$O/summary.txt"; }; }
 # 0. npm run check, first and mandatory
-runs "$O/suites/check.log" 600 X=1 -- npm run check --silent
+fgw runs "$O/suites/check.log" 600 X=1 -- npm run check --silent; chk
 G=$(gv "$O/suites/check.log" check); chk; echo "check | $G" >> "$O/suites/summary.txt"
-if [ "${G%% *}" != ACCEPT ]; then echo "STOPPED $(et): npm run check did not pass at the pinned tree ($G); nothing else runs until its failures are resolved" >> "$O/summary.txt"
-  bk "$O/suites" "$D/suites" "final tree: npm run check failed, queue stopped"; exit 5; fi
+[ "${G%% *}" = ACCEPT ] || stop "npm run check did not pass at the pinned tree ($G); nothing else runs until its failures are resolved" 5
 # 1. baseline
 vh "$B/alone-run.sh"; fgw "$B/alone-run.sh" "$C" "$O/import" "$D/import" "final tree audit-import baseline" BASELINE; AX=$?; chk
+[ $AX = 6 ] && { BKF=1; AX=0; }   # completed, but one of alone-run's backups failed
 [ $AX = 0 ] || stop "the audit-import baseline did not complete alone (alone-run exit $AX: 3 = a refused helper or run, 4 = three overlapped attempts, 5 = never quiet within an hour)" 4
 GI=$(gv "$O/import/BASELINE.log" audit-import); chk; echo "baseline audit-import: $GI" >> "$O/summary.txt"
 v() { local g; g=$(gv "$O/suites/$1.log" "$1"); g=${g:-REFUSED (see REFUSALS.txt)}; echo "$1 | $(grep -a -E '^# exit' "$O/suites/$1.log") | $g" >> "$O/suites/summary.txt"; }
@@ -155,9 +169,9 @@ L1=(audit-board audit-hostile audit-ppt legacy-fsrc boot-same); L2=(audit-recon 
 LANES=$!
 ( for s in "${L2[@]}"; do { [ -s "$RUNNER_REFUSALS" ] || [ -e "$O/STOP" ]; } && break; runs "$O/suites/$s.log" 600 X=1 -- node tools/export-audit/$s.mjs; v "$s"; done ) &
 LANES="$LANES $!"; wait; LANES=; chk
-runs "$O/suites/verify-grid.log" 600 X=1 -- npm run verify:grid --silent
+fgw runs "$O/suites/verify-grid.log" 600 X=1 -- npm run verify:grid --silent; chk
 G=$(gv "$O/suites/verify-grid.log" verify-grid); chk; echo "verify:grid | $G" >> "$O/suites/summary.txt"
-runs "$O/suites/standards.log" 600 X=1 -- npm run standards --silent
+fgw runs "$O/suites/standards.log" 600 X=1 -- npm run standards --silent; chk
 G=$(gv "$O/suites/standards.log" standards); chk; echo "standards | $G" >> "$O/suites/summary.txt"
 vh "$B/mcount.py" "$B/mcread.py"; python3 -I "$B/mcount.py" "$C/tools/export-audit/mutate.mjs" "$C/prioritization-board-grid.html" > "$O/suites/applicability.json.txt" || stop "mcount.py failed"
 sed 's/^/baseline: /' "$O/suites/summary.txt" >> "$O/summary.txt"; bk "$O/suites" "$D/suites" "final tree baseline"
@@ -170,7 +184,7 @@ for cat in new affected reimpl; do
     if ! passed $s; then for id in $IDS; do echo "$cat | $s | $id | INCOMPLETE: $s's unmutated baseline was not accepted by gate.sh at this tree; not run" >> "$O/summary.txt"; done; continue; fi
     echo "sensitivity $cat $s ($(echo $IDS | wc -w)) start $(et)" >> "$O/summary.txt"
     if [ $s = audit-import ]; then
-      CURBK="$O/sens/$cat-import::$D/sens-$cat-import"; vh "$B/alone-run.sh"; fgw "$B/alone-run.sh" "$C" "$O/sens/$cat-import" "$D/sens-$cat-import" "final tree $cat audit-import sensitivity" $IDS; AX=$?; chk
+      CURBK="$O/sens/$cat-import::$D/sens-$cat-import"; vh "$B/alone-run.sh"; fgw "$B/alone-run.sh" "$C" "$O/sens/$cat-import" "$D/sens-$cat-import" "final tree $cat audit-import sensitivity" $IDS; AX=$?; chk; [ $AX = 6 ] && { BKF=1; AX=0; }
       [ $AX = 0 ] || echo "$cat audit-import sensitivity stopped (alone-run exit $AX: 3 = a refused helper or run, 4 = three overlapped attempts, 5 = never quiet within an hour) $(et)" >> "$O/summary.txt"
     else
       CURBK="$O/sens/$cat-${s#audit-}::$D/sens-$cat-${s#audit-}"; vh "$B/sens.sh"; fgw "$B/sens.sh" "$C" "$O/sens/$cat-${s#audit-}" "$s.mjs" $IDS > /dev/null; SX=$?; chk; [ $SX = 0 ] || stop "sens.sh exited $SX ($cat $s)"

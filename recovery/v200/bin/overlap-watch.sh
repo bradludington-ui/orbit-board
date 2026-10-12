@@ -6,6 +6,8 @@
 # kind was seen alongside the run (sampled every 3 s, so a process shorter than that can be missed).
 # Runner correction 2: the shared preamble (its caller checks this file immediately before starting it). Runner correction 2c:
 # if the run never starts (<outdir>/RUNNING never appears within 120 s) it records that and ends (review of 60c984c, SF3).
+# Runner correction 2d: time while <outdir>/PAUSE exists does not count toward the 120 s (review of cccb714, SF4); and an
+# attempt the watcher did not record is never counted as alone (alone-run).
 # ---- runner preamble v5 begin: byte-identical in every runner shell script (runner-selftest case A18 checks it) ----
 # Runner correction 2 (after the independent review of 40f7979, S1): a FIXED environment, whatever this was launched with.
 # bash -p ignores BASH_ENV, ENV, SHELLOPTS, BASHOPTS and inherited functions. The first pass re-executes this script under
@@ -60,16 +62,19 @@ snapcheck(){ local want got p
 # backedup : RUNNER_SHA is on origin's claude/v200-fixes-wip as it is NOW; a failed read refuses (review S2). Origin is read
 # at its FIXED URL from outside any repository, with no config at all, so no repo-local insteadOf or remote URL can redirect it
 # (runner correction 2c, review of 60c984c, SF6). It never fetches: if the tip is not in the local repository it refuses and
-# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Prints the tip.
+# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Runner correction
+# 2d (review of cccb714, SF5): the local branch must already hold origin's tip, or every backup push would be refused. Prints the tip.
 backedup(){ local tip
+  [ ! -e /.git ] || refuse "/.git exists, so the fixed-URL read would not be outside every repository"
   tip=$(GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git -C / ls-remote "$ORIGIN" refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}')
   [[ "$tip" =~ ^[0-9a-f]{40}$ ]] || refuse "could not read origin's claude/v200-fixes-wip at $ORIGIN (ls-remote failed), so the runner commit's backup cannot be checked"
-  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: fetch it (git -C $REPO fetch origin claude/v200-fixes-wip) and launch again"
+  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: bring its claude/v200-fixes-wip up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   pg merge-base --is-ancestor "$RUNNER_SHA" "$tip" 2>/dev/null || refuse "$RUNNER_SHA is not on origin's claude/v200-fixes-wip (now $tip): not a backed-up commit"
+  pg merge-base --is-ancestor "$tip" refs/heads/claude/v200-fixes-wip 2>/dev/null || refuse "$REPO's claude/v200-fixes-wip does not hold origin's tip $tip, so every backup push would be refused: bring it up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   echo "$tip"; }
 # ---- runner preamble v5 end ----
 O=$1; C=$(readlink -f "$2"); N=$3; declare -A seen
-t0=$SECONDS; while [ ! -e "$O/RUNNING" ]; do sleep 1; [ $((SECONDS-t0)) -lt 120 ] || { echo "$N watch: the run never started; watcher ended $(TZ=America/New_York date '+%I:%M:%S %p ET')" >> "$O/OVERLAP.txt"; exit 0; }; done
+t=0; while [ ! -e "$O/RUNNING" ]; do sleep 1; [ -e "$O/PAUSE" ] || t=$((t+1)); [ $t -lt 120 ] || { echo "$N watch: the run never started; watcher ended $(TZ=America/New_York date '+%I:%M:%S %p ET')" >> "$O/OVERLAP.txt"; exit 0; }; done
 echo "$N watch start $(TZ=America/New_York date '+%I:%M:%S %p ET')" >> "$O/OVERLAP.txt"
 while [ -e "$O/RUNNING" ]; do
   for p in $(pgrep -x node; pgrep -f '^/opt/pw-browsers'; pgrep -x chrome; pgrep -x chromium) ; do

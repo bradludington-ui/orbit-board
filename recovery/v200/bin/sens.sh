@@ -57,12 +57,15 @@ snapcheck(){ local want got p
 # backedup : RUNNER_SHA is on origin's claude/v200-fixes-wip as it is NOW; a failed read refuses (review S2). Origin is read
 # at its FIXED URL from outside any repository, with no config at all, so no repo-local insteadOf or remote URL can redirect it
 # (runner correction 2c, review of 60c984c, SF6). It never fetches: if the tip is not in the local repository it refuses and
-# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Prints the tip.
+# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Runner correction
+# 2d (review of cccb714, SF5): the local branch must already hold origin's tip, or every backup push would be refused. Prints the tip.
 backedup(){ local tip
+  [ ! -e /.git ] || refuse "/.git exists, so the fixed-URL read would not be outside every repository"
   tip=$(GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git -C / ls-remote "$ORIGIN" refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}')
   [[ "$tip" =~ ^[0-9a-f]{40}$ ]] || refuse "could not read origin's claude/v200-fixes-wip at $ORIGIN (ls-remote failed), so the runner commit's backup cannot be checked"
-  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: fetch it (git -C $REPO fetch origin claude/v200-fixes-wip) and launch again"
+  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: bring its claude/v200-fixes-wip up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   pg merge-base --is-ancestor "$RUNNER_SHA" "$tip" 2>/dev/null || refuse "$RUNNER_SHA is not on origin's claude/v200-fixes-wip (now $tip): not a backed-up commit"
+  pg merge-base --is-ancestor "$tip" refs/heads/claude/v200-fixes-wip 2>/dev/null || refuse "$REPO's claude/v200-fixes-wip does not hold origin's tip $tip, so every backup push would be refused: bring it up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   echo "$tip"; }
 # ---- runner preamble v5 end ----
 C=$1; O=$2; SUITE=$3; shift 3; B=$(cd "$(dirname "$0")" && pwd -P); mkdir -p "$O"

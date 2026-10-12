@@ -8,20 +8,20 @@
 # line, on the suite's row of verdicts.tsv (runner correction 2b). runner-selftest.sh holds the bounded refusal checks.
 
 ## The final-tree queue (v5) and what it runs
-0b991e936815554b1c2a69582c3cca69bcdfbb38  final-tree-v5.sh
-5d6bfd08b69ea68663aa481fdf59e3fc2d1f066d  gate.sh
-d7013e44ea4e0d697184b5737c194ee671e88a65  run.sh
-3b7d4d8f898aa2a4c0e62d5d0c30181cd110d029  alone-run.sh
-861034e787eb73c87639bd871c63b55966eccfed  sens-import.sh
-5f3e527826d4df6f2419d44ec14fcc914e190dbd  sens.sh
-1cb2e6e0d3c33e8298d94c3dc8eb4c79407ae427  backup-run.sh
-454b9cf8d6ced0e2715074c017186f44e4039d42  overlap-watch.sh
+e115f9e54e50a797603fafa7e87be768c5484b27  final-tree-v5.sh
+c98b3a9fcffba2dd4f54383bd0f9d581c00cc10b  gate.sh
+4c4ec54d7f37745f63a12b536d13d10fe6816e70  run.sh
+0cafa79caccb301b4285d7dc23204c408de2bf9d  alone-run.sh
+aa321f21915d03e0fad4541e1a734863de454802  sens-import.sh
+dfbbda99e8e2a287c73e62c0ae0adbe7c5f73721  sens.sh
+364c2894619834b2366af1a8c223f00cdcf54ab7  backup-run.sh
+cec36842f48ca3204c1096d992912110291a9b50  overlap-watch.sh
 1fcbca06819a40388c4e8b34aa2758e1f750c071  mkmanifest.py
 140b7b6a9c7d9d9b75f7bfdf6a0fe82d1912c8eb  mkmut.py
 8e46e669ab4292a9dfd6243e14fb4e0463eef66e  mcread.py
 852f06ec5a61a1c1393bae794f1c10362aa36cf9  mcount.py
 08df6da148e627cfb2ed07f0b8aef3602a7b381d  verdicts.tsv
-8c78d540605dcc42f2d8a1ce87577844248085ce  runner-selftest.sh
+0a3ccf4131bed52cbc755e0233d3073bf768456d  runner-selftest.sh
 
 ## Superseded, held, or used by earlier runs (not run by v5)
 8d42c95384d487764d794a3290cae95ebb6d6733  final-tree-v4.sh  (runner correction 1, 40f7979: NOT APPROVED by its review -- M1, M2; superseded by v5)

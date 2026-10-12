@@ -12,7 +12,8 @@
 #     A16 BASH_ENV turning a refusal into ACCEPT (E13); A17 exported functions faking git and python3 to run an altered mkmut
 #     (E14); A18 the preamble is byte-identical in every runner script; A19 a script run through another shell; A20 a preset
 #     RUNNER_ENV_CLEAN marker with a dirty environment (review 2 S1); A21 FIRSTFAIL and RUNNER_LOCK from the launch shell are
-#     cleared and said by the queue (review 2 S3).
+#     cleared and said by the queue (review 2 S3); A22 the whole self-test left orbit-board's HEAD and origin's tip unchanged
+#     and wrote nothing under recovery/v200/evidence (review of cccb714, MF1: 2c's self-test had pushed two commits).
 #  G. THE GATE, on logs written by run.sh itself from fake suites. G1 banner then exit 1; G2 banner then timeout; G3 banner then
 #     run.sh interrupted; G4 failing-check line with exit 0; G5 exit 0 without the verdict; G6 CONTROL, banner and exit 0;
 #     G7 the suite prints its own end and exit lines and run.sh is interrupted (E1b); G8 a leftover of the suite's own group
@@ -81,12 +82,15 @@ snapcheck(){ local want got p
 # backedup : RUNNER_SHA is on origin's claude/v200-fixes-wip as it is NOW; a failed read refuses (review S2). Origin is read
 # at its FIXED URL from outside any repository, with no config at all, so no repo-local insteadOf or remote URL can redirect it
 # (runner correction 2c, review of 60c984c, SF6). It never fetches: if the tip is not in the local repository it refuses and
-# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Prints the tip.
+# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Runner correction
+# 2d (review of cccb714, SF5): the local branch must already hold origin's tip, or every backup push would be refused. Prints the tip.
 backedup(){ local tip
+  [ ! -e /.git ] || refuse "/.git exists, so the fixed-URL read would not be outside every repository"
   tip=$(GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git -C / ls-remote "$ORIGIN" refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}')
   [[ "$tip" =~ ^[0-9a-f]{40}$ ]] || refuse "could not read origin's claude/v200-fixes-wip at $ORIGIN (ls-remote failed), so the runner commit's backup cannot be checked"
-  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: fetch it (git -C $REPO fetch origin claude/v200-fixes-wip) and launch again"
+  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: bring its claude/v200-fixes-wip up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   pg merge-base --is-ancestor "$RUNNER_SHA" "$tip" 2>/dev/null || refuse "$RUNNER_SHA is not on origin's claude/v200-fixes-wip (now $tip): not a backed-up commit"
+  pg merge-base --is-ancestor "$tip" refs/heads/claude/v200-fixes-wip 2>/dev/null || refuse "$REPO's claude/v200-fixes-wip does not hold origin's tip $tip, so every backup push would be refused: bring it up to date (git -C $REPO pull --ff-only origin claude/v200-fixes-wip) and launch again"
   echo "$tip"; }
 # ---- runner preamble v5 end ----
 RUNNER_SHA=${1:-}; T0=${2:-}
@@ -95,6 +99,7 @@ B=$(cd "$(dirname "$0")" && pwd -P); SNAPROOT=$(cd "$B/../../.." && pwd -P); SNA
 TD=$(cd "$T0" 2>/dev/null && pwd -P) || refuse "no outdir '$T0'"; [ "$SNAPROOT" = "$TD/runner" ] || refuse "not run from <outdir>/runner"
 NF=$(snapcheck) || { echo "$NF"; exit 2; }; vh "$0"
 et() { TZ=America/New_York date '+%I:%M:%S %p ET'; }
+H0=$(pg rev-parse HEAD); O0=$(GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git -C / ls-remote "$ORIGIN" refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}'); S0=$(git -C "$REPO" status --porcelain -- recovery/v200/evidence | wc -l)
 T=$TD/cases; mkdir -p "$T"; R=$TD/results.tsv; : > "$R"; fails=0; export RUNNER_PIDS="$TD/pids.txt"; echo "$$ $(date -u +%FT%TZ) runner-selftest itself" >> "$RUNNER_PIDS"
 echo "selftest of $RUNNER_SHA from snapshot $SNAPROOT ($NF files, verified) start $(et); pid $$; invocation: $0 $*" > "$TD/HEADER.txt"
 row() { local ok=FAIL; [ "$2" = "$3" ] && ok=PASS; [ $ok = PASS ] || fails=$((fails+1)); printf '%s\t%s\t%s\t%s\n' "$1" "$2" "$3" "$ok" | tee -a "$R"; }
@@ -243,6 +248,8 @@ for e in "check:$EV/runner-0c189f0/smoke-592d629/logs/check.log" "audit-import:$
 done
 row "G18 every queue suite's real passing output, on verdicts.tsv" "13 ACCEPT" "$g18n ${g18:+not:$g18}${g18:-ACCEPT}"
 row "G18b audit-inject's real output on the old one-line verdict (review 2 M1)" REFUSE "$("$GB/gate.sh" "$RP/audit-inject.log" - 'ALL CHECKS PASSED' | awk '{print $1}')"
+H1=$(pg rev-parse HEAD); O1=$(GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git -C / ls-remote "$ORIGIN" refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}'); S1=$(git -C "$REPO" status --porcelain -- recovery/v200/evidence | wc -l)
+row "A22 orbit-board and origin untouched by the whole self-test (review of cccb714, MF1)" "HEAD same; origin same; evidence status same" "HEAD $([ "$H0" = "$H1" ] && echo same || echo "MOVED $H0 -> $H1"); origin $([ -n "$O0" ] && [ "$O0" = "$O1" ] && echo same || echo "MOVED '$O0' -> '$O1'"); evidence status $([ "$S0" = "$S1" ] && echo same || echo "CHANGED $S0 -> $S1")"
 for d in "${ALL[@]}"; do chattr -R -i "$d/runner" 2>/dev/null; done
 echo "selftest done $(et): $fails failing case(s) of $(awk -F'\t' '$4=="PASS"||$4=="FAIL"' "$R" | wc -l)" | tee -a "$R"
 [ $fails = 0 ]

@@ -513,3 +513,27 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   U29 adoptShared on a clean board is falsely clean with no save (file mode: data loss); U30 the older "taken as the base"
   path overwrites unasked with no second tab; U31 importBoards never marks this browser's record dirty. Ledger updated. No
   proposal applied.
+
+## Update at 4:24 PM ET: runner correction 2d (the review of cccb714 did not approve it; 2c's self-test pushed two records commits)
+
+- **Review of `cccb714`** (`evidence/runner-cccb714/review-VERDICT.md`): **not approved**, two must-fixes; all four requirements MET;
+  the gate, run.sh and verdicts.tsv unchanged and right (all 13 endings, audit-ui at claude/v200-ui 90ccabf); no false ACCEPT,
+  no refusal that fails to stop the queue, no false refusal of a good baseline; its self-test 41/41 (run in a private mount
+  namespace over a scratch clone). **MF1, my fault: 2c's self-test wrote to orbit-board and origin.** Cases A6 and A21 stop at
+  the clone check, and 2c's stop() backs up from there, into the fixed repository with the self-test's destination `x`: my
+  41/41 run at 3:37 PM ET committed and pushed **`3b8bc73` (3:37:35 PM ET) and `ff0c335` (3:38:06 PM ET)**, "final tree STOPPED",
+  records only, three files under `recovery/v200/evidence/x/suites/` (no product file; the allowed branch). History is not
+  rewritten; this commit removes that directory. **MF2:** a failed npm run check (exit 5) never backed up summary-all.txt.
+  Should-fixes: SF1 alone-run's failed backups not counted (DONE, exit 0, the baseline log never pushed); SF2 a run that
+  registers just after a stop began escapes it; SF3 a signal waits for check, verify:grid, standards or a backup to finish;
+  SF4 the watcher's 120 s give-up let an unwatched audit-import count as alone while PAUSE was held; SF5 following the
+  "fetch it" advice gave a run whose every push was refused; SF6 a failed stop backup left no trace; SF7 minor items.
+- **Runner correction 2d** (this commit; records only): MF1 stop() backs up only once the queue has started (clone and
+  manifest accepted), and the self-test's new A22 asserts orbit-board's HEAD, origin's tip and the evidence tree are
+  unchanged by the whole self-test; MF2 a failed check stops through stop() (backed up); SF1 alone-run exits 6 when a backup
+  failed and the queue counts it; SF2 stop() repeats the end-runs pass until the lanes and the foreground step are gone, and
+  alone-run runs sens-import in the background and ends it with itself; SF3 check, verify:grid, standards and every backup
+  are waited for in the background; SF4 PAUSE time does not count toward the watcher's give-up, and an attempt the watcher
+  did not record is repeated (UNWATCHED), never counted as alone; SF5 the launch refuses unless the local branch holds
+  origin's tip (and refuses if /.git exists); SF6 a failed stop backup is recorded and printed. Not done: backup-run's
+  post-commit check still reads HEAD (benign; next push carries it), stray empty dirs, `# cmd:` unchecked.
