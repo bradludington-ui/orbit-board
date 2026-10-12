@@ -4332,6 +4332,14 @@ const MUTATIONS = [
   { id: "v200-ui3-snapshot-keeps-old-save", area: "uiSubMany", what: "the snapshot taken after the files are read keeps the save state from before them: a board that read Saved, given a destination while the files were read, reads Saved again after a part-way failure, though that destination is in no saved file",
     find: "  // here to the end nothing waits, so nothing else can change the board while the batch runs\n  was=uiBatchSnap();",
     repl: "  // here to the end nothing waits, so nothing else can change the board while the batch runs\n  was=Object.assign(uiBatchSnap(), {save:was.save});" },
+  // v2.00 UI chunk 3 (M1, fix round 2): the verifier's w11 and w10, the check's storage comparison made blind to keys other
+  // than the destination list's. Each is caught by audit-ui.mjs.
+  { id: "v200-ui3-check-ls-dest-only", area: "uiBatchDiff", what: "the check compares the destination list's storage key alone: another key whose write-back storage refused is called 'exactly as before'",
+    find: "ks.forEach(function(k){ if(now[k]!==was.ls[k]) L.push",
+    repl: "ks.forEach(function(k){ if(k===DEST_KEY && now[k]!==was.ls[k]) L.push" },
+  { id: "v200-ui3-check-added-dest-only", area: "uiBatchDiff", what: "the check notices an added storage key only when it is the destination list's: another key added during the batch, whose removal storage refused, goes unsaid",
+    find: "Object.keys(now).filter(function(k){ return !Object.prototype.hasOwnProperty.call(was.ls, k); })",
+    repl: "Object.keys(now).filter(function(k){ return k===DEST_KEY && !Object.prototype.hasOwnProperty.call(was.ls, k); })" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

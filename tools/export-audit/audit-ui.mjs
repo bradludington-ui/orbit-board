@@ -974,6 +974,57 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   bootRelease(__bm, keepBoards());
   await settleBoards();
 })();
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (M1) — the check names any storage key that is not as before, not only the destination list’s';
+  const __bm = bootMark();
+  try {
+    // The fix round proved every key PUT BACK; the check's own comparison only ever met a difference in prio27destdb, so a
+    // check that compared that key alone (the verifier's w11), or noticed an added key only when it was that one (w10),
+    // passed every case. Here another key differs when the check is made, and its put-back is refused (fault injected,
+    // set from the question): prio27om changed and its write-back refused; prio27test added and its removal refused.
+    // removeItem made refusable on top of ready()'s own hook, which still logs every call
+    const rmRefusable = X => X.ev(`(function(){ window.__failRm=null; var P=Object.getPrototypeOf(localStorage), rm=P.removeItem;
+      P.removeItem=function(k){ if(window.__failRm && window.__failRm(k)){ window.__w.push('remove '+k); var e=new Error('storage refused (test)'); e.name='SecurityError'; throw e; }
+        return rm.call(this,k); }; return 1; })()`);
+    for (const [where, onAsk, key, reason, during, back, kept, keys] of [
+      ['prio27om changed while the question is up, its write-back refused (fault injected) · AV taken, then Cancel on no year',
+        `localStorage.setItem('prio27om', 'changed while the batch ran (test)'); window.__fail=function(k){ return k==='prio27om'; }; 1`,
+        'prio27om', 'QuotaExceededError', ['set prio27destdb', 'set prio27om'], ['set prio27destdb', 'set prio27om'],
+        { prio27om: 'changed while the batch ran (test)' }, ['prio27destdb', 'prio27om', 'prio27om.base']],
+      ['prio27test added while the question is up, its removal refused (fault injected) · AV taken, then Cancel on no year',
+        `localStorage.setItem('prio27test', 'added while the batch ran (test)'); window.__failRm=function(k){ return k==='prio27test'; }; 1`,
+        'prio27test', 'SecurityError', ['set prio27destdb', 'set prio27test'], ['remove prio27test', 'set prio27destdb'],
+        { prio27test: 'added while the batch ran (test)' }, ['prio27destdb', 'prio27om', 'prio27om.base', 'prio27test']]]) {
+      const { X, A } = await start();
+      rmRefusable(X);
+      missAsks(X);
+      const b = await batch(X, [F.AV, F.NOFY], { onAsk: () => X.ev(onAsk) });
+      X.ev('window.__fail=null; window.__failRm=null; 1');
+      chk(name, where, 'not put back whole, and not said to be: the key named', J(b.r),
+        J({ ok: false, taken: 1, asks: [], back: false, same: false, left: ['browser storage “' + key + '”'] }));
+      chk(name, where, 'the message names the key and the browser’s reason; and what is as before', J(b.said), J([HEAD_NOFY + '\n\n'
+        + '⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, this is not as before the batch:\n'
+        + '  • browser storage “' + key + '” — it could not be put back (' + reason + ').\n\n'
+        + 'Checked just now and exactly as before: the submittal review, the destination list on this board, the plan on screen, whether the board reads as saved.']));
+      chk(name, where, 'never that nothing was changed, nor that browser storage is as before', /nothing on the board was changed|browser storage\./.test(b.said.join('\n')), false);
+      chk(name, where, 'the status line names the key', b.stat, '⚠ Nothing loaded — “PSM-no-year.json” was not taken. Not as before the batch: browser storage “' + key + '”.');
+      chk(name, where, 'storage writes during the batch: AV’s list, then the test’s own', J(b.writes.slice(0, 2)), J(during));
+      chk(name, where, 'the put-back’s writes: the destination list given back, and the refused one', J(b.writes.slice(2).sort()), J(back));
+      const Z = look(X);
+      chk(name, where, 'true: storage holds what the message says it does, and every other key exactly as before',
+        J(Object.keys(Z.ls).map(k => [k, Object.prototype.hasOwnProperty.call(kept, k) ? Z.ls[k] === kept[k] : Z.ls[k] === A.post.ls[k]])),
+        J(keys.map(k => [k, true])));
+      chk(name, where, 'true: the review, the destination list, the plan, the payload and the save state are as before',
+        J([Z.review === A.post.review, Z.dest === A.post.dest, Z.plan === A.post.plan, Z.payload === A.payload, J(Z.save) === J(A.post.save)]), J([true, true, true, true, true]));
+      chk(name, where, 'no page errors', J(X.errors), J([]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
 // ==== end v2.00 UI chunk 3 (M1, fix round 2) ====
 
 {
