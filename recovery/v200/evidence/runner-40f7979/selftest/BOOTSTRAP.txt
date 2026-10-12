@@ -1,0 +1,1 @@
+bootstrap 10:08:33 AM ET: git archive 40f7979aa2db1464218b9ec5785f8a1511c15916 recovery/v200/bin | tar -x; chattr -R +i

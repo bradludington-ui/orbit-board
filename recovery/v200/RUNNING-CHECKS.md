@@ -320,3 +320,25 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
 - **Scripts used by earlier runs:** `sens-import.sh` was backed up on 11 Oct (blob `1396e6f5`) and used unchanged by the U2
   alone runs; the only later change is the `FIRSTFAIL` option (default off; 6:53 AM ET today), now `4874e058`. The U2
   drivers and helpers were last modified before those runs began (last-modified: alone-u2.sh 10:40 PM ET; alone-u2b.sh 11:37 PM ET; overlap-watch.sh 10:39 PM ET; backup-run.sh 10:39 PM ET; ) and are backed up unchanged.
+
+## Update at 10:09 AM ET: the runner correction (Brad's request after the 9:25 AM ET checkpoint)
+
+- **Restart and usage limit.** The session hit its usage limit (agents failing from about 9:12 AM ET: U1/U14 review #2, M1
+  review #2, all four triage probes); the container then restarted at 10:01:34 AM ET. Nothing committed was lost. The three
+  workflows were resumed at about 10:03 AM ET from their run ids (finished agents cached; only the failed ones re-run; the
+  UI script now refuses to start S1–S5 unless M1's review completes with no must-fix). U17's and U19's partial probe
+  directories are kept as `rec/L4/*-aborted-at-usage-limit`.
+- **Runner correction = `40f7979aa2db1464218b9ec5785f8a1511c15916`** (records only; no product file). final-tree-v4.sh runs
+  only from a task-local snapshot of recovery/v200/bin at a full backup SHA on origin/claude/v200-fixes-wip, checked file for
+  file and blob for blob and immutable (chattr +i; the read-only bit alone does not stop root) before anything runs; every
+  helper, mkmanifest included, is re-checked against that commit immediately before it runs; alone-run, sens-import and sens
+  take their helpers from their own snapshot directory; run.sh writes PIDs outside the snapshot (RUNNER_PIDS); a baseline
+  authorizes sensitivity only through gate.sh (exit 0, the suite's own completion verdict, an end line, no timeout, no
+  failing-check line). Found and fixed while writing the self-test: v3's clone check passed a MISSING clone (two empty
+  rev-parse results compared equal).
+- **Self-test** (runner-selftest.sh, from a frozen snapshot of `40f7979`, 10:08 AM ET, exit 0): **13/13**. A1 queue with
+  mkmanifest.py altered refused, outdir not created; A2 alone-run with sens-import.sh altered refused before the lock; A3
+  sens.sh with mkmut.py altered refused, no mutant; A4 a helper outside the snapshot refused; A5 a short SHA refused; A6
+  CONTROL unaltered snapshot verified, stopped only at the missing clone; A7 an unfrozen snapshot refused; G1 banner + exit 1,
+  G2 banner + timeout (exit 124), G3 banner + interrupted runner (no end line), G4 failing-check line + exit 0, G5 exit 0
+  without the verdict: all REFUSED; G6 CONTROL banner + exit 0 ACCEPTED. Evidence: `evidence/runner-40f7979/selftest/`.
