@@ -1446,6 +1446,12 @@ html.ui-on #uiCycPop button.o small{flex:1 0 100%;padding-left:17px}
 /* the posture strip wraps rather than scrolls where the room is a narrow window's (the board's own rule at 1100px and
    narrower), and in Brief -- the presentation view -- wherever the sidebar leaves it less than a wide window */
 html.ui-on.ui-e1100 .posture,html.ui-on.ui-e1400[data-mode="brief"] .posture{flex-wrap:wrap;overflow:visible}
+/* v2.00 (UI S1): AND IN FUNDING AND BRIEF AT EVERY WIDTH. The room classes above left Funding at a room of 1101-1400
+   scrolling (1440 among the windows, the sidebar open), and Brief's enlarged strip wider than a room of 1400: Needs
+   attention's last entries and Funding detail sat past the right edge, hidden inside the strip's scroller. The strip
+   now wraps wherever its items do not fit on one line, so every one of them is on screen; where they fit, it is one
+   line as before. */
+html.ui-on .posture{flex-wrap:wrap;overflow:visible}
 .uiPop button.o:disabled{opacity:.55;cursor:default}
 /* Density: compact (the board's own density setting, set from the toolbar) tightens the new chrome too */
 html.ui-on[data-density="compact"] #uiKpis .k{padding:8px 12px}
