@@ -4340,6 +4340,23 @@ const MUTATIONS = [
   { id: "v200-ui3-check-added-dest-only", area: "uiBatchDiff", what: "the check notices an added storage key only when it is the destination list's: another key added during the batch, whose removal storage refused, goes unsaid",
     find: "Object.keys(now).filter(function(k){ return !Object.prototype.hasOwnProperty.call(was.ls, k); })",
     repl: "Object.keys(now).filter(function(k){ return k===DEST_KEY && !Object.prototype.hasOwnProperty.call(was.ls, k); })" },
+  // v2.00 UI chunk 3 (S2, Brad 12 Oct): "consider board-wide journal events before filtering by year; suppress a misleading
+  // 'Last recorded edit.'" Each is caught by audit-ui.mjs.
+  { id: "v200-ui3-lastedit-year-first", area: "uiLastEdit", what: "the journal is filtered by the year on screen before a board-wide line is looked for (chunk 2's S2): a service-list change made while FY28 was on screen leaves FY27's record naming a note as the last edit over figures the change moved",
+    find: "      if(wide(k)) return null;\n      if(+e.fy!==+MS.cur) continue;",
+    repl: "      if(+e.fy!==+MS.cur) continue;\n      if(wide(k)) return null;" },
+  { id: "v200-ui3-lastedit-services-only", area: "uiLastEdit", what: "only the service list is taken as board-wide: a copy put back, changes past the per-save limit and a save that could not be recorded, each under another year, leave the record naming an edit they may have overtaken",
+    find: "const wide=function(k){ return /^\\(/.test(k) && k!=='(writer)'; };",
+    repl: "const wide=function(k){ return k==='(services)'; };" },
+  { id: "v200-ui3-lastedit-writer-wide", area: "uiLastEdit", what: "the pen changing hands is taken as board-wide: a change of writer, which changes no field and no figure, takes the last-edit line away",
+    find: "const wide=function(k){ return /^\\(/.test(k) && k!=='(writer)'; };",
+    repl: "const wide=function(k){ return /^\\(/.test(k); };" },
+  { id: "v200-ui3-lastedit-removed-wide", area: "uiLastEdit", what: "a requirement removed in another year is taken as board-wide: FY28's removal takes FY27's last-edit line away",
+    find: "      if(wide(k)) return null;",
+    repl: "      if(wide(k) || k==='removed') return null;" },
+  { id: "v200-ui3-lastedit-no-year-filter", area: "uiLastEdit", what: "the year filter is dropped: FY28's note on a requirement is shown in FY27 as that requirement's last edit there",
+    find: "      if(+e.fy!==+MS.cur) continue;\n      if(!e.p.length || k==='removed') return null;",
+    repl: "      if(!e.p.length || k==='removed') return null;" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

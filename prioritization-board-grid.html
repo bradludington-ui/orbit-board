@@ -32225,16 +32225,26 @@ var UI_DTAB='overview';
 // in the list, not by its id), a locked cycle on screen, or a board-wide line after it (a load, the service list, a
 // whole year, removed requirements, changes past the per-save limit or not recorded) that may have changed it
 // without naming it. Read only: MS.jrnl is the board's own journal. Ranking moves are not journalled at all.
+// v2.00 (UI S2): A BOARD-WIDE LINE IS READ BEFORE THE YEAR FILTER. A board-wide line is recorded under the year on screen
+// when it happened, but it can change this requirement in every year: the year filter came first, so a service-list change
+// made while FY28 was on screen left FY27's record saying "Last recorded edit … note" over figures the change had moved
+// (chunk 2 review, S2). The board-wide kinds the journal writes, all in brackets: '(load)' (a copy put back from the
+// folder's history), '(services)' (the service list: every year's figures move with their service), '(more)' and
+// '(unrecorded)' (a save's changes past the per-save limit, or a save that could not be recorded -- in any year). Any other
+// kind in brackets is taken as board-wide too, except '(writer)': the pen changing hands changes no field and no figure.
+// A whole year (an empty path) and removed requirements are that year's own, and are read after the filter, as before.
 function uiLastEdit(id){
   try{
     if(!id || (typeof CYCVIEW!=='undefined' && CYCVIEW)) return null;
     const it=itemById(id); if(!it || it.custom) return null;
     const J=(typeof MS!=='undefined' && MS && Array.isArray(MS.jrnl))? MS.jrnl : [];
-    const wide={'(load)':1, '(more)':1, '(unrecorded)':1, '(services)':1, removed:1};
+    const wide=function(k){ return /^\(/.test(k) && k!=='(writer)'; };
     for(let i=J.length-1;i>=0;i--){
       const e=J[i]; if(!e || !Array.isArray(e.p)) return null;
+      const k=e.p.length? String(e.p[0]) : '';
+      if(wide(k)) return null;
       if(+e.fy!==+MS.cur) continue;
-      if(!e.p.length || wide[e.p[0]]) return null;
+      if(!e.p.length || k==='removed') return null;
       if(e.p.length>1 && String(e.p[1])===String(id)) return e;
     }
     return null;

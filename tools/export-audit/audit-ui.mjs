@@ -1080,6 +1080,105 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ==== end v2.00 UI chunk 3 (M1, fix round 2) ====
 
+// ==== v2.00 UI chunk 3 (S2): a board-wide journal line recorded under another year suppresses "Last recorded edit" ====
+// The chunk 2 review's S2: the RECORD panel's "Last recorded edit" looked for a board-wide journal line only among the lines
+// of the year on screen, so a service-list change made while FY28 was on screen left FY27's record naming a note as the
+// last edit over figures the change had moved. Brad, 12 Oct: "consider board-wide journal events before filtering by year;
+// suppress a misleading 'Last recorded edit.'" Each case is the board's own calls: a note on S03 in FY27 (setNote), FY28
+// opened (switchYear, rolled forward), something done there, FY27 opened again -- then what the record says about S03.
+// Expected values are written out by hand; the board is only asked what IS.
+const S2_NOTE = { t: 1790000600000, by: 'unknown', fy: 2027, p: ['notes', 'S03'], a: null, b: 'probe note' };
+const S2_TAIL = ' · unknown · note (change journal; ranking moves are not journalled)';
+// the board, S03 noted in FY27, FY28 opened; `code` run there; FY27 opened again. What the record says about S03 then.
+const s2Run = async (code, { back = true } = {}) => {
+  const X = open();
+  X.w.confirm = () => true; X.w.alert = () => {};
+  X.ev(`Date.now=function(){ return 1790000600000; }; setNote('S03','probe note'); render(); 1`);
+  X.ev(`Date.now=function(){ return 1790000700000; }; switchYear(2028); render(); 1`);
+  const r = { fy28: X.ev('MS.cur'), ran: X.ev(`Date.now=function(){ return 1790000900000; }; (function(){ ${code} })()`) };
+  if (back) X.ev(`Date.now=function(){ return 1790001000000; }; switchYear(2027); render(); 1`);
+  r.cur = X.ev('MS.cur');
+  r.tail = JSON.parse(X.ev(`JSON.stringify(MS.jrnl.slice(-3).map(function(e){ return [e.fy, e.p.length? e.p[0] : null]; }))`));
+  r.last = JSON.parse(X.ev(`JSON.stringify(uiLastEdit('S03'))`));
+  X.ev(`setCur('S03'); 1`); await wait(40);
+  r.panel = JSON.parse(X.ev(`JSON.stringify([].slice.call(document.querySelectorAll('#inspector .uiDOv, #inspector .uiDHist')).map(function(e){ return e.textContent; }))`));
+  r.X = X;
+  return r;
+};
+const s2Says = r => r.panel.map(t => t.includes('Last recorded edit ') && t.includes(S2_TAIL) ? 'the note' : (t.includes('Last recorded edit') ? 'another line' : 'no line'));
+
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (S2) — a board-wide journal line recorded under another year suppresses the last-edit line';
+  const __bm = bootMark();
+  try {
+    // CONTROL: before anything else happens, FY27's record names the note, in its Overview and in its History
+    {
+      const where = 'CONTROL: the note on S03, FY28 opened and nothing done there';
+      const r = await s2Run('return 1;');
+      chk(name, where, 'FY28 was opened, and FY27 is on screen again', J([r.fy28, r.cur]), J([2028, 2027]));
+      chk(name, where, 'the last edit is the note, exactly', J(r.last), J(S2_NOTE));
+      chk(name, where, 'the record says so in its Overview and its History', J(s2Says(r)), J(['the note', 'the note']));
+      chk(name, where, 'no page errors', J(r.X.errors), J([]));
+    }
+    // THE BOARD-WIDE KINDS, each recorded while FY28 was on screen: the record no longer names the note
+    for (const [where, code, ran, line] of [
+      ['the service list changed (svcSaveList) while FY28 was on screen', `return svcSaveList(['USAF','ANG']);`, true, '(services)'],
+      ['a copy put back from the folder (the load line the restore records, jrnlSync) while FY28 was on screen',
+        `jrnlSync('restored the copy from probe'); return true;`, true, '(load)'],
+      ['201 changes in one save while FY28 was on screen (the test writes 201 notes at once; the board’s own save records 200 and a (more) line)',
+        `for(var i=0;i<201;i++) S.notes['Z'+i]='n'+i; save(); return MS.jrnl[MS.jrnl.length-1].b;`,
+        '1 more change in this save, past the first 200 — not recorded one by one, and not undoable from here', '(more)'],
+      ['a save that could not be recorded while FY28 was on screen (fault injected: the journal’s walk throws once)',
+        `var own=jrnlWalk; jrnlWalk=function(){ throw new Error('walk refused (test)'); }; try{ setNote('S05','FY28 note'); } finally { jrnlWalk=own; } return MS.jrnl[MS.jrnl.length-1].b;`,
+        'the changes in this save could not all be recorded (walk refused (test))', '(unrecorded)']]) {
+      const r = await s2Run(code);
+      chk(name, where, 'CONTROL — what the board’s own call returned', J(r.ran), J(ran));
+      chk(name, where, 'CONTROL — the line is recorded under FY28, and FY27 is on screen again', J([r.tail.filter(t => t[1] === line), r.cur]), J([[[2028, line]], 2027]));
+      chk(name, where, 'FY27: no last edit is named for S03', J(r.last), J(null));
+      chk(name, where, 'the record says nothing of a last edit, in its Overview or its History', J(s2Says(r)), J(['no line', 'no line']));
+      chk(name, where, 'no page errors', J(r.X.errors), J([]));
+    }
+    // the service-list change moved FY27's figures, which is why the note cannot stand as the last edit
+    {
+      const where = 'the service list changed while FY28 was on screen: FY27’s figures moved with it';
+      const r = await s2Run(`return svcSaveList(['USAF','ANG']);`);
+      chk(name, where, 'S03’s requirement value in FY27 lost AFRC', r.X.ev(`JSON.stringify((S.asks||{})['S03'] || BASE_ASK['S03'])`), J([7000000, 2000000]));
+    }
+    // the same kind recorded under FY27 itself: suppressed, as before
+    {
+      const where = 'the service list changed while FY27 was on screen';
+      const r = await s2Run(`switchYear(2027); return svcSaveList(['USAF','ANG']);`);
+      chk(name, where, 'CONTROL — the line is recorded under FY27', J(r.tail.filter(t => t[1] === '(services)')), J([[2027, '(services)']]));
+      chk(name, where, 'no last edit is named for S03', J([r.last, s2Says(r)]), J([null, ['no line', 'no line']]));
+    }
+    // WHAT IS NOT BOARD-WIDE leaves FY27's line standing: the pen changing hands, a note on S03 in FY28, a requirement
+    // removed in FY28, FY28 itself created -- each of them FY28's own, or no change to any field
+    for (const [where, code, line] of [
+      ['the pen changed hands while FY28 was on screen (writerJournal)', `writerJournal(null); return true;`, '(writer)'],
+      ['a note on S03 in FY28', `setNote('S03','FY28 note'); return true;`, 'notes'],
+      ['S05 removed in FY28 (removeReq)', `removeReq('S05'); return true;`, 'removed']]) {
+      const r = await s2Run(code);
+      chk(name, where, 'CONTROL — the last line is FY28’s own, and FY27 is on screen again', J([r.tail.slice(-1), r.cur]), J([[[2028, line]], 2027]));
+      chk(name, where, 'CONTROL — FY28 was created by a whole-year line of its own', r.X.ev(`MS.jrnl.some(function(e){ return e.fy===2028 && e.p.length===0; })`), true);
+      chk(name, where, 'FY27: the last edit is still the note, exactly', J(r.last), J(S2_NOTE));
+      chk(name, where, 'the record says so in its Overview and its History', J(s2Says(r)), J(['the note', 'the note']));
+      chk(name, where, 'no page errors', J(r.X.errors), J([]));
+    }
+    // and in FY28 itself, the FY28 note is S03's last edit there
+    {
+      const where = 'a note on S03 in FY28, read in FY28';
+      const r = await s2Run(`setNote('S03','FY28 note'); return true;`, { back: false });
+      chk(name, where, 'FY28: the last edit is FY28’s note', J(r.last), J({ t: 1790000900000, by: 'unknown', fy: 2028, p: ['notes', 'S03'], a: 'probe note', b: 'FY28 note' }));
+      chk(name, where, 'no page errors', J(r.X.errors), J([]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 UI chunk 3 (S2) ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
