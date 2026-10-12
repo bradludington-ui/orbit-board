@@ -10,28 +10,30 @@
 # script (exit 3) instead of passing silently (review S5); backup-run.sh is checked immediately before each call, and a
 # failed push is recorded; RUNNER_LOCK may name a scratch lock (the self-test's; the queue never sets it, review S8); the lock
 # is cleared on any exit once this script has set it. Runner correction 2b (review of 0c189f0, S10): the wait for 30 quiet
-# seconds is bounded at one hour per attempt and recorded; past that it stops with exit 5.
+# seconds is bounded at one hour per attempt and recorded; past that it stops with exit 5. Runner correction 2c (review of
+# 60c984c): it never removes a lock it did not set -- it waits while someone else's lock exists (SF8); sens-import.sh is checked
+# before the watcher starts, and the watcher is ended on any exit (SF3); a signal ends it through the same clean-up.
 # ---- runner preamble v5 begin: byte-identical in every runner shell script (runner-selftest case A18 checks it) ----
 # Runner correction 2 (after the independent review of 40f7979, S1): a FIXED environment, whatever this was launched with.
 # bash -p ignores BASH_ENV, ENV, SHELLOPTS, BASHOPTS and inherited functions. The first pass re-executes this script under
 # env -i (same PID), keeping only the runner's own variables and the network proxy; every other value is set here. The
 # second pass then REFUSES if anything else is in its environment, so presetting the marker cannot skip the clean-up
 # (runner correction 2b, after the review of 0c189f0, S1).
-[[ $- == *p* ]] || { echo "REFUSED: $(basename "$0") must run as its own program (#!/bin/bash -p), not through another shell"; exit 2; }
+[[ $- == *p* ]] || { echo "REFUSED: $(basename "$0") must run as its own program (#!/bin/bash -p), not through another shell"; [ -n "${RUNNER_REFUSALS:-}" ] && echo "$(date -u +%FT%TZ) $(basename "$0"): not run as its own program" >> "$RUNNER_REFUSALS"; exit 2; }
 if [ "${RUNNER_ENV_CLEAN:-}" != "$$" ]; then
   _k=(); for _v in RUNNER_SHA SNAP SNAPROOT RUNNER_PIDS RUNNER_REFUSALS RUNNER_LOCK FIRSTFAIL; do [[ -v $_v ]] && _k+=("$_v=${!_v}"); done
   _p=${RUNNER_NET_PROXY:-${HTTPS_PROXY:-${https_proxy:-}}}; _n=${RUNNER_NET_NOPROXY:-${NO_PROXY:-${no_proxy:-}}}
   exec /usr/bin/env -i RUNNER_ENV_CLEAN=$$ RUNNER_NET_PROXY="$_p" RUNNER_NET_NOPROXY="$_n" "${_k[@]}" /bin/bash -p "$0" "$@"
 fi
 _x=$(/usr/bin/env -0 | /usr/bin/tr '\0\n' '\n ' | /usr/bin/sed -n 's/=.*//p' | /usr/bin/grep -v -x -E 'RUNNER_ENV_CLEAN|RUNNER_NET_PROXY|RUNNER_NET_NOPROXY|RUNNER_SHA|SNAP|SNAPROOT|RUNNER_PIDS|RUNNER_REFUSALS|RUNNER_LOCK|FIRSTFAIL|PWD|OLDPWD|SHLVL|_' | /usr/bin/tr '\n' ' ')
-[ -z "$_x" ] || { echo "REFUSED: $(basename "$0") was started with an environment it did not clean (unexpected: $_x)"; exit 2; }
+[ -z "$_x" ] || { echo "REFUSED: $(basename "$0") was started with an environment it did not clean (unexpected: $_x)"; [ -n "${RUNNER_REFUSALS:-}" ] && echo "$(date -u +%FT%TZ) $(basename "$0"): an environment it did not clean ($_x)" >> "$RUNNER_REFUSALS"; exit 2; }
 export PATH=/opt/node22/bin:/usr/local/bin:/usr/bin:/bin HOME=/root LANG=C.UTF-8 GIT_TERMINAL_PROMPT=0 GIT_NO_REPLACE_OBJECTS=1 \
   HTTPS_PROXY="$RUNNER_NET_PROXY" https_proxy="$RUNNER_NET_PROXY" NO_PROXY="$RUNNER_NET_NOPROXY" no_proxy="$RUNNER_NET_NOPROXY" \
   GIT_SSL_CAINFO=/root/.ccr/ca-bundle.crt NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt NODE_OPTIONS=--max-old-space-size=8192 \
   NODE_PATH=/usr/local/lib/node_modules_global PLAYWRIGHT_BROWSERS_PATH=/opt/pw-browsers PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
   NPM_CONFIG_UPDATE_NOTIFIER=false PYTHONDONTWRITEBYTECODE=1
 umask 022; set +m; unset _k _v _p _n _x
-REPO=/home/user/orbit-board
+REPO=/home/user/orbit-board; ORIGIN=https://github.com/bradludington-ui/orbit-board
 # A refusal prints REFUSED and, when the queue set RUNNER_REFUSALS, records it there too, so a refusal inside $( ) or in a
 # background lane (which ends only that subshell) still stops the queue at its next check (review S5).
 refuse(){ echo "REFUSED: $1"; [ -n "${RUNNER_REFUSALS:-}" ] && echo "$(date -u +%FT%TZ) $(basename "$0"): $1" >> "$RUNNER_REFUSALS"; exit 2; }
@@ -62,31 +64,35 @@ snapcheck(){ local want got p
   frozen "$SNAPROOT" || refuse "$SNAPROOT in the snapshot is not immutable (chattr +i)"
   while IFS= read -r -d '' p; do frozen "$p" || refuse "$p in the snapshot is not immutable (chattr +i)"; done < <(find "$SNAPROOT" -mindepth 1 -print0)
   echo "$want" | grep -c '^f '; }
-# backedup : RUNNER_SHA is on origin's claude/v200-fixes-wip as it is NOW; a failed read or fetch refuses (review S2). Prints the tip.
+# backedup : RUNNER_SHA is on origin's claude/v200-fixes-wip as it is NOW; a failed read refuses (review S2). Origin is read
+# at its FIXED URL from outside any repository, with no config at all, so no repo-local insteadOf or remote URL can redirect it
+# (runner correction 2c, review of 60c984c, SF6). It never fetches: if the tip is not in the local repository it refuses and
+# says to fetch. Ancestry is then read from the local objects (content-addressed; no replace refs, no grafts). Prints the tip.
 backedup(){ local tip
-  tip=$(pg ls-remote origin refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}')
-  [[ "$tip" =~ ^[0-9a-f]{40}$ ]] || refuse "could not read origin's claude/v200-fixes-wip (ls-remote failed), so the runner commit's backup cannot be checked"
-  pg cat-file -e "$tip^{commit}" 2>/dev/null || pg fetch -q origin refs/heads/claude/v200-fixes-wip 2>/dev/null || refuse "could not fetch origin's claude/v200-fixes-wip ($tip)"
+  tip=$(GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_GLOBAL=/dev/null git -C / ls-remote "$ORIGIN" refs/heads/claude/v200-fixes-wip 2>/dev/null | awk '{print $1}')
+  [[ "$tip" =~ ^[0-9a-f]{40}$ ]] || refuse "could not read origin's claude/v200-fixes-wip at $ORIGIN (ls-remote failed), so the runner commit's backup cannot be checked"
+  pg cat-file -e "$tip^{commit}" 2>/dev/null || refuse "origin's claude/v200-fixes-wip is at $tip, which $REPO does not have yet: fetch it (git -C $REPO fetch origin claude/v200-fixes-wip) and launch again"
   pg merge-base --is-ancestor "$RUNNER_SHA" "$tip" 2>/dev/null || refuse "$RUNNER_SHA is not on origin's claude/v200-fixes-wip (now $tip): not a backed-up commit"
   echo "$tip"; }
 # ---- runner preamble v5 end ----
 B=$(cd "$(dirname "$0")" && pwd -P); SP=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad
-LOCK=${RUNNER_LOCK:-$SP/AUDIT_IMPORT_RUNNING}; HAVE_LOCK=0; trap '[ $HAVE_LOCK = 1 ] && rm -f "$LOCK"' EXIT
+LOCK=${RUNNER_LOCK:-$SP/AUDIT_IMPORT_RUNNING}; HAVE_LOCK=0; W=
+trap '[ $HAVE_LOCK = 1 ] && rm -f "$LOCK"; [ -n "$W" ] && kill $W 2>/dev/null' EXIT; trap 'exit 143' TERM INT HUP
 vh "$0" "$B/overlap-watch.sh" "$B/sens-import.sh" "$B/backup-run.sh"   # before anything else, the lock included
 C=$1; O=$2; D=$3; LBL=$4; shift 4; mkdir -p "$O"
 et() { TZ=America/New_York date '+%I:%M:%S %p ET'; }
 foreign() { local CC=$(readlink -f "$C") p cwd; for p in $(pgrep -x node; pgrep -f '^/opt/pw-browsers'; pgrep -x chrome; pgrep -x chromium); do
     cwd=$(readlink -f /proc/$p/cwd 2>/dev/null) || continue; [ "$cwd" = "$CC" ] && continue; case "$cwd" in "$CC"/*) continue;; esac; echo $p; done; }
-quiet() { local n=0 t0=$SECONDS; while [ $n -lt 30 ]; do if [ -n "$(foreign)" ]; then n=0; else n=$((n+1)); fi; sleep 1
-    [ $((SECONDS-t0)) -lt 3600 ] || { echo "never 30 quiet seconds within an hour (from $(et)); stopped" | tee -a "$O/summary.txt"; exit 5; }; done; }
+quiet() { local n=0 t0=$SECONDS e0; e0=$(et); while [ $n -lt 30 ]; do if [ -n "$(foreign)" ] || [ -e "$LOCK" ]; then n=0; else n=$((n+1)); fi; sleep 1
+    [ $((SECONDS-t0)) -lt 3600 ] || { echo "never 30 quiet seconds (no foreign node/Chromium, no lock set by another run) within an hour of $e0; stopped $(et)" | tee -a "$O/summary.txt"; exit 5; }; done; }
 bk() { local x; vh "$B/backup-run.sh"; "$B/backup-run.sh" "$O" "$D" "$LBL"; x=$?; [ $x = 2 ] && refuse "backup-run.sh refused (see above)"
   [ $x = 0 ] || echo "  ^ backup FAILED (backup-run.sh exit $x) at $(et); the logs stay in $O and go up with the next backup" >> "$O/summary.txt"; }
 for id in "$@"; do
   ok=0
   for a in 1 2 3; do
-    rm -f "$LOCK"; HAVE_LOCK=0; echo "$id attempt $a: waiting for 30 quiet seconds from $(et)"; quiet; touch "$LOCK"; HAVE_LOCK=1; echo "$id attempt $a: lock set, start $(et)"
-    vh "$B/overlap-watch.sh"; "$B/overlap-watch.sh" "$O" "$C" "$id#$a" & W=$!
-    vh "$B/sens-import.sh"; "$B/sens-import.sh" "$C" "$O" "$id"; SX=$?; sleep 4; kill $W 2>/dev/null; wait $W 2>/dev/null   # the watcher is this script's own child
+    [ $HAVE_LOCK = 1 ] && { rm -f "$LOCK"; HAVE_LOCK=0; }; echo "$id attempt $a: waiting for 30 quiet seconds from $(et)"; quiet; touch "$LOCK"; HAVE_LOCK=1; echo "$id attempt $a: lock set, start $(et)"
+    vh "$B/overlap-watch.sh" "$B/sens-import.sh"; "$B/overlap-watch.sh" "$O" "$C" "$id#$a" & W=$!
+    vh "$B/sens-import.sh"; "$B/sens-import.sh" "$C" "$O" "$id"; SX=$?; sleep 4; kill $W 2>/dev/null; wait $W 2>/dev/null; W=   # the watcher is this script's own child
     [ $SX = 0 ] || { echo "$id: sens-import.sh exited $SX (a refused helper or run); stopped $(et)" | tee -a "$O/summary.txt"; exit 3; }
     if grep -q "^$id#$a OVERLAP" "$O/OVERLAP.txt" 2>/dev/null; then
       for x in "" .exit; do [ -f "$O/$id.log$x" ] && mv "$O/$id.log$x" "$O/$id-OVERLAPPED-$a.log$x"; done

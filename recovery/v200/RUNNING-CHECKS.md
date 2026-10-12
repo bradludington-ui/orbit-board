@@ -455,3 +455,30 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   clock; corrected) : the three workflows from their run ids (only the failed agents re-run; the M1 fix-round retry is
   told what its stopped run had already committed and left uncommitted, and not to redo or amend it), and the runner re-review
   of 60c984c as a fresh agent (rec/L5/review-runner3b).
+
+## Update at 3:37 PM ET: runner correction 2c (the review of 60c984c did not approve it)
+
+- **Review of `60c984c`** (the retry, after the stopped attempt; `evidence/runner-60c984c/review-VERDICT.md`): **not approved**,
+  one must-fix; all four requirements MET; all 13 gated suites match their real endings (audit-ui read at claude/v200-ui
+  5a298b7); no false refusal of a good baseline found; no refusal that fails to stop the queue; its self-test re-run 41/41.
+  **MF1:** the queue's own summary (`summary-all.txt`: the provenance line, the baseline decision, INCOMPLETE, DONE and every
+  STOPPED line) never reached the backup -- backup-run copied only summary.txt, OVERLAP.txt and REFUSALS.txt (dates back to
+  v4). Should-fixes: SF1 a signal stop left both lanes running every remaining suite; SF2 a refusal in the queue's own shell
+  skipped stop(); SF3 a refusal could leave overlap-watch polling forever; SF4 the queue exited 0 when its backups failed;
+  SF5 stop() backed up only the suites directory; SF6 a repo-local `insteadOf` (a write to orbit-board's config) could make an
+  unpushed commit pass the backup check; SF7 backup-run's post-commit check read HEAD, not its own commit; SF8 alone-run
+  removed the shared lock whoever set it; SF9 mutant `.json` files were never committed (orbit-board ignores `*.json`); SF10
+  small items (preamble refusals not recorded; an empty verdict shown when a gate refusal happens in a lane; quiet()'s message
+  time; self-test gaps).
+- **Runner correction 2c** (this commit; records only): MF1 backup-run copies the queue's records (summary-all.txt,
+  runner-blobs.txt, blobs.txt, manifest.tsv, applicability.json.txt); SF1/SF5 stop() ends both lanes and the foreground step,
+  ends every recorded run with no exit record (by its recorded group), writes STOPPED, and backs up suites, import and the
+  sensitivity stage in progress, and long steps are waited for in the background so a signal is handled at once; SF2 a
+  refusal in the queue's shell goes through stop(); SF3 alone-run checks sens-import before starting the watcher and ends the
+  watcher on any exit, and the watcher gives up after 120 s if the run never starts; SF4 exit 6 if any backup failed; SF6
+  origin read at its fixed URL from outside any repository with no config, and never fetched by the runner (if the tip is
+  not local it refuses and says to fetch); SF7 the check reads the commit backup-run made and its parent; SF8 alone-run never
+  removes a lock it did not set and waits while another's exists; SF9 mutant JSON stored as `.json.txt` (the ignore rule is
+  deliberate: a stray board-state file must stay unstageable); SF10 preamble refusals recorded, a lane's refused verdict
+  says so, quiet()'s start time. The self-test still does not run the queue past the clone check (so not its stop, signal or
+  backup paths); the review's end-to-end harness does.
