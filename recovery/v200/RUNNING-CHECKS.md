@@ -482,3 +482,5 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   deliberate: a stray board-state file must stay unstageable); SF10 preamble refusals recorded, a lane's refused verdict
   says so, quiet()'s start time. The self-test still does not run the queue past the clone check (so not its stop, signal or
   backup paths); the review's end-to-end harness does.
+- **3:38 PM ET:** self-test at `cccb714` (frozen snapshot; 3:37:29-3:38:13 PM ET, exit 0): **41/41 PASS**. Evidence
+  `evidence/runner-cccb714/selftest/`. Independent re-review of `cccb714` started.
