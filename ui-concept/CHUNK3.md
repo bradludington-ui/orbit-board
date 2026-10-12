@@ -8,6 +8,7 @@ Chunk 3 is done in parts, each a separate fix with its own tests and its own rev
 |---|---|---|---|
 | 1 | M1: "All submissions at once" is all or nothing | `aac8574` | `ba8d020431afc0ead32cc6ee6fa66d6b301ce583` |
 | 1, fix round | M1's tests, after its independent review: the cases the review found no test could see | `fc01792` (tests only) | unchanged: `ba8d0204…` |
+| 1, fix round 2 | M1 after its second review: a batch refused before it takes anything says only what is true of it; then tests for the save state taken after the reads, the other storage keys, and the saved file and reopening after a failed put-back | `58803c9` (board and its tests), then `e439683`, `b418340`, `775903f`, `5a298b7` (tests only) | `2d1d855edda98f9179d7254ef0d4c5ff7f46b26f` |
 
 **Integration stays pending** until each part has been reviewed.
 
@@ -17,7 +18,9 @@ Chunk 3 is done in parts, each a separate fix with its own tests and its own rev
 
 Every check, screenshot and result below was taken at `aac8574` (board `ba8d0204…`), except those in the fix round section at the end, taken at `fc01792` (the same board). The board file is still an empty template: "Synthetic", "SYN-" and "Depot Zulu" occur 0 times in it. Synthetic data is made at run time only.
 
-Against base the board diff is still **insertions only**: 993 lines added, 0 removed. Against chunk 2 (`f95fee2`): 181 added, 20 removed, all inside chunk 2's own UI code.
+*(Fix round 2 changes the board, to `2d1d855e…` at `58803c9`, inside `uiSubMany` only; its checks are in its own section at the end. No message quoted below changes: audit-ui's literal checks of every one of them pass at the new board.)*
+
+Against base the board diff is still **insertions only**: 993 lines added, 0 removed. Against chunk 2 (`f95fee2`): 181 added, 20 removed, all inside chunk 2's own UI code. *(At fix round 2: 1,010 added and 0 removed against base; 203 added and 25 removed against chunk 2, still all inside chunk 2's and chunk 3's own UI code.)*
 
 ### What was wrong (the chunk 2 review, M1)
 
@@ -64,7 +67,7 @@ Before any refusal message, the batch compares what it can change with what it h
 
 "…and nothing on the board was changed" is said **only when all of them match**. Otherwise the message says *"⚠ NOT EVERYTHING IS AS IT WAS"*, names each part that is not as before (with the browser's reason when the put-back was refused), and lists the parts that are. The status line says the same.
 
-If the destination list kept in this browser could not be put back, the message also says what that means: it holds what the batch wrote there, and opening the board again in this browser would read it instead of the list on screen. The test proves both halves of that sentence.
+If the destination list kept in this browser could not be put back, the message also says what that means: it holds what the batch wrote there, and opening the board again in this browser would read it instead of the list on screen. The test proves both halves of that sentence. *(Fix round 2: each half is now said only when it is checked true at that moment. "It holds what the batch wrote there" needs the real run to have written that list and storage to hold exactly that write still; "would read it instead of the destination list on screen" needs the stored list to be the newer and to differ from the one on screen.)*
 
 The status line keeps chunk 2's words for the refusals chunk 3 did not change: same office twice, malformed, not a submittal, would not be taken, PMO copy. Those messages are byte-identical to chunk 2's, and audit-ui's literal checks of them pass on `f95fee2` too.
 
@@ -237,7 +240,7 @@ Taken by `shoot-chunk3-m1.mjs` in a real, headed Chromium under Xvfb, with chunk
 
 - **`npm run check` fails at this commit, and at chunk 1 and chunk 2; base passes.** The failure is the inline-handler rule: *"10 value(s) reach inline handler code without jsa()"*. The ten are in chunk 1's UI code: `uiColSet('…')`, `uiSetDensity('…')`, the flyout's `getElementById('…')` and `uiMenuSoon('…')`, and `uiDTab('…')`. Every value is a constant of the program's own (a column key, a density name, an element id), so none is a person's data. The rule still fails, and neither chunk review reported it. It is not part of M1, and it was not changed here.
 - **S1–S5, m1–m7 and U13** are later parts. **S3 is not done here.** *(Corrected in the fix round: this line first said S3's suite check was "covered in substance", which overstated it.)* What the M1 tests do cover: every refused batch is checked for storage (every key, no writes), `MS` and `DESTDB` unchanged, so a dry run that writes storage, writes into `MS` or folds the list for real is caught (the M1 reviewer's mutants v14, v16 and v17: 48, 91 and 80 failing checks at `fc01792`). What they do not: every refused-batch case starts from a board that already reads *Unsaved changes*, so a dry run that marks the board unsaved (v15) is caught only incidentally, by the saved-board cases' CONTROL lines (4 failing checks at `fc01792`). S3's part should start a refused case from a board that reads *Saved*, and add the one-line note at `pmoTake`.
-- **An edge, by design.** A batch refused *while its files are still being read* is checked against the board as it was when the batch began. If the shared folder's live refresh changed the board in those milliseconds, the message names what changed. At that stage the batch itself has changed nothing.
+- **An edge, fixed in fix round 2.** A batch refused *while its files are still being read* is now measured against the board as it is when the refusal is said, so a change made meanwhile is not reported as the batch's. *(Corrected in fix round 2. This line first said: "An edge, by design. A batch refused while its files are still being read is checked against the board as it was when the batch began. If the shared folder's live refresh changed the board in those milliseconds, the message names what changed. At that stage the batch itself has changed nothing." That was wrong. The message did not only name what changed: it said the batch had stopped part-way, could not put the review back and had written the stored destination list. The M1 verifier reproduced it through the product alone: a single load landing while the batch read its files.)*
 - **Other lists in memory are not compared.** The execution data, cost estimates, reprogramming log and BAE list are not compared in memory: `pmoTake` has no path to them, and any change to them that is kept reaches browser storage, which is compared key by key.
 - **The alert box scrolls.** Chromium shows about nine lines of an alert and scrolls the rest. In every new message the state line comes first, and the full texts are quoted above, kept in `shots.json` and asserted in audit-ui's literals.
 - **For S4 (found by the M1 reviewer; not M1's).** The chunk 2 review's §5b table leaves out two `verify:grid` failures that are already there on chunk 2's board: row-controls ("3 controls not recorded": `mRun(showLog)`, `mRun(toggleJrnl)`, and `uiDTab('…')` three times) and panels-render ("uiImpPanel opens: display:none"). The reviewer ran all 14 tools on the M1 board and on chunk 2's: the same exit code and the same output for every tool, timings masked. M1 changes nothing in the browser gate. S4's part must account for both.
@@ -328,4 +331,92 @@ The eleven are, in order: asks-loaded, dry-asks-unheard, no-putback, putback-no-
 
 The 29 mutant runs ran from 08:12:00 to 08:27:49 on files byte-identical to the commit's. The board is unchanged (`ba8d0204…`), so the screenshots and `shots.json` stand as taken. Not run, as before: `audit-import.mjs`, `audit-board.mjs`, `mutate.mjs` itself, `verify:grid`, the final-tree queue, the presweep and the full gate.
 
-**Still open from the review (minor, not changed):** a refusal made while the files are still being read is measured against the board as it was when the batch began (disclosed above, not reproduced); a put-back step that fails with an ordinary exception gives its reason as "(Error)"; the storage-refused message explains but gives no remedy; One submission's own Cancel on the no-office question leaves that file's list folded in (base behaviour).
+**Still open from the review (minor, not changed):** ~~a refusal made while the files are still being read is measured against the board as it was when the batch began (disclosed above, not reproduced);~~ *(corrected in fix round 2: the M1 verifier reproduced it, and it is fixed; see "Fix round 2")* a put-back step that fails with an ordinary exception gives its reason as "(Error)"; the storage-refused message explains but gives no remedy; One submission's own Cancel on the no-office question leaves that file's list folded in (base behaviour).
+
+---
+
+### Fix round 2, after M1's second independent review (`58803c9` board; `e439683`, `b418340`, `775903f`, `5a298b7` tests only)
+
+The second review's verdict was again *sound, with issues*: every number of the fix round reproduced, and its tests bite. It found two things that must be fixed, and three that should.
+
+**1. A batch refused before it takes anything said false things about itself (board).** The batch waits only while its files are read. A refusal in that window (a file too big, unreadable, refused at the door or not a submittal; two files from one office) was measured against the board as it was *before* the reads. When something else changed the board meanwhile, the message blamed the batch: *"⚠ The batch stopped part-way, and the submittal review could not be put back as it was"*, and *"It holds what the batch wrote there, and opening the board again in this browser would read it instead of the destination list on screen"*. None of that was true: nothing had been loaded, put back or written by the batch, and storage equalled the screen. The verifier reproduced it through the product alone: ⬅ Load a submittal file started, then All submissions at once started before that file's read landed. The chunk 2 reviewer's own probe shows the same thing in passing: at `4c1890c`, its refused malformed batch reports `same:false, left:["whether the board reads as saved"]`, because the save state moved during the reads, after the controls it had just driven; at `58803c9` it reports `same:true, left:[]`.
+
+**What changed in the board** (`uiSubMany` only; no base function, and nothing in money, import, save or persistence):
+
+- A refusal while the files are read, or for two files from one office, now takes the snapshot again and is measured against the board **as it is when it is said**. The batch has taken nothing at that point, and a change made meanwhile is not its own.
+- *"The batch stopped part-way, and the submittal review could not be put back"* (and the status line's *"The batch stopped part-way"*) is said **only after the real run has begun**. A refusal before it, however the review compares, says *"None of the N submittal files was loaded"*.
+- The sentence about the stored destination list is said in two halves, **each only when it is checked true**:
+  - *"It holds what the batch wrote there"*: the real run wrote that list (read just before the put-back: it differs from what storage held once the files were read, and it is exactly the list the batch left on the board, as `persistDest` writes it), and storage still holds exactly that write;
+  - *"opening the board again in this browser would read it instead of the destination list on screen"*: the stored list is the newer, and it differs from the one on screen. When only this half is true (someone else's write), the message says *"Opening the board again in this browser would read it instead of the destination list on screen."* on its own.
+
+Every message quoted earlier in this file is unchanged: audit-ui's literal checks of all of them pass at the new board.
+
+The messages the new cases assert, for example a single load (ATL) landing while the batch reads AV.json and AV-copy.json:
+
+```
+⚠ None of the 2 submittal files was loaded: “AV.json” and “AV-copy.json” are both from AV. A batch takes one submittal per office — load the one you mean
+
+The submittal review is exactly as it was before (2 held), and nothing on the board was changed.
+```
+
+Another hand writes the stored list while the question is up, and storage refuses the put-back (fault injected):
+
+```
+⚠ None of the 2 submittal files was loaded: “PSM-no-year.json” was not taken, so the 1 taken before it was taken back out of the review
+
+⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, this is not as before the batch:
+  • the destination list kept in this browser — it could not be put back (QuotaExceededError). Opening the board again in this browser would read it instead of the destination list on screen.
+
+Checked just now and exactly as before: the submittal review, the destination list on this board, the plan on screen, whether the board reads as saved.
+```
+
+**2. The save state taken after the reads was not tested.** Every case that changed the board during the reads started from a board already reading *Unsaved changes*, so the verifier's w06 (the post-read snapshot keeping the save state from before the reads) passed. On a board opened from its saved file, w06 leaves the header reading *Saved* over a destination that is in no saved file. Now tested; the board was already right.
+
+**Should-fix, done:** the check's storage comparison for keys other than the destination list's (the verifier's C4 and C5, its w11 and w10); and the saved payload and reopening after each failed put-back (a)–(d), which the M1 test spec asks of every failed-rollback case. **CHUNK3.md corrected:** the "edge, by design" line and the "Still open" line above, each marked in place.
+
+**Tests** (`audit-ui.mjs`, a new marked section after the fix round's; nothing above it changed, no fixture or expected value edited; every expected value written out by hand):
+
+| Scenario | Cases | What it proves |
+|---|---|---|
+| A batch refused before it takes anything says only what is true of it (`58803c9`) | for two files from one office, and for a malformed second file: Depot Mid folded in by the board's own `destPkgIn` once the second file is read; the review's tick taken off then; **ATL loaded by ⬅ Load a submittal file**, landing while the files are read (the product's own path, nothing wrapped). Then: the dry run takes the tick off (fault injected) and a file that would ask refuses the batch; another hand writes the stored list while the question is up and storage refuses the put-back; neither the list on screen nor the stored list can be put back | the message and the status line literally: the plain ones, never "stopped part-way", "put back" or "what the batch wrote" where untrue; the batch writes nothing; the change made meanwhile is kept on screen, in storage, in the saved payload and on reopening. The two halves of the stored-list sentence each said only when true, and the board reopened reads what the message says it would |
+| The save state put back is the one taken after the files were read (`e439683`) | a board opened from its saved file; Depot Mid folded in while the files are read; then Cancel part-way | the header reads *Unsaved changes* and `unsavedNow()` is true; the save state is the one taken once the files were read; Depot Mid kept, also on reopening |
+| The check names any storage key that is not as before, not only the destination list's (`b418340`) | `prio27om` changed and its write-back refused; `prio27test` added and its removal refused (fault injected) | the key named, with the browser's reason, literally; never "browser storage" among what is as before; storage holds what the message says |
+| After a put-back that cannot finish, the saved file and the board reopened hold what was reported (`775903f`) | the fix round's (a)–(d) again: the list, the plan, the save state, the review cannot be put back | the saved payload's destination list is the one on screen; the payload carries what the message said is not as before, or is byte for byte as before; the review reopened; the board reopened from its saved file reads the list reported |
+
+**510 checks, all passing** (387 before; 68, 11, 18 and 26 added). `5a298b7` changes no check: run against the mutants, two of them took the stored list away and the Saved-board case then threw on reading it, so its last checks never ran; the new section now reads the stored list through one helper that never throws. Against the board at `4c1890c`, 23 fail, all in the first new scenario's nine cases (the false messages, reproduced). Against chunk 2's board, 254 fail.
+
+**Mutations.** Seven entries are appended to the `v200-ui3` group at the end of `MUTATIONS`, under three "fix round 2" comments; the group stays one block at the end, as the UI track's rule says (the second review withdrew its request to move it). All 1,331 entries match the board exactly once (text count). On the board at `4c1890c`, the four new entries written against `58803c9`'s own code match nothing and the other 1,327 match once (the three others mutate code that `58803c9` did not change); on `f95fee2` and on base, the 26 `v200-ui3-*` match nothing and the other 1,305 match once.
+
+| Mutation | What it breaks | audit-ui at the fix-round-2 tests (510 checks) |
+|---|---|---|
+| `v200-ui3-early-measured-before-reads` | a refusal while the files are read measured against the board before the reads (the defect) | caught: 18 |
+| `v200-ui3-partway-before-run` | "stopped part-way" said before the real run | caught: 3 |
+| `v200-ui3-wrote-anyones` | whatever the stored list holds taken for the batch's own write | caught: 1 |
+| `v200-ui3-reads-same-list` | "instead of the destination list on screen" when the two are the same | caught: 1 |
+| `v200-ui3-snapshot-keeps-old-save` (the verifier's w06) | the post-read snapshot keeps the save state from before the reads | caught: 2 |
+| `v200-ui3-check-ls-dest-only` (w11) | the check compares the destination list's key alone | caught: 8 |
+| `v200-ui3-check-added-dest-only` (w10) | the check notices an added key only when it is the destination list's | caught: 4 |
+
+All 26 `v200-ui3-*` were built as text and run through audit-ui at the new board, and all 26 are caught by real checks. *(At `775903f`'s tests, `v200-ui3-snapshot-before-reads` was caught by 8 checks and one block throwing; at `5a298b7`'s, by 10 checks and none.)* So are the first review's other ten mutants, and 14 of the second review's 19; none of the 55 runs had a block throw. The five that still pass every check change no message: w12 and w14 (the put-back skips `DIRTY` or `_saveGen`) are S3's saved-board case; w02 (properties added to an existing object are kept), w16 (the check ignores whether the review is open) and w18 (only `prio27*` keys are put back) are the second review's minors.
+
+**Runs at `5a298b7`** (board `2d1d855e…`, every test as committed; 12 Oct, 15:08–15:49 ET; each through `run.sh`: the AUDIT_IMPORT lock checked first, never present; `setsid -w timeout -k 10`; PIDs recorded; BOARD unset unless named; the blobs of what the runs read recorded with them). They supersede the round's earlier runs, which an interruption cut short. The full list, with every mutant run, is in the scratchpad's `uichunk3/m1/README.md`.
+
+| Run | Result |
+|---|---|
+| `audit-ui` | ALL CHECKS PASSED; counted, 510 checks, 0 failed |
+| `audit-ui`, counted, on the board at `4c1890c` / on `f95fee2` | 23 failed (all in the first new scenario) / 254 failed |
+| `mcount` (text only) | 1,331 of 1,331 once; on `4c1890c` 1,327 once and the four entries written against `58803c9`'s code missing; on `f95fee2` and on base 1,305 once and the 26 `v200-ui3-*` missing |
+| `boot-same`, `audit-other`, `audit`, `audit-recon` | all pass; output identical to the fix round's at `fc01792` |
+| `check` | fails on the same 10 jsa() values as before (pre-existing since chunk 1); only the line counts differ |
+| `rv-smoke`, `rv2/probe.mjs`, `rv2/m1.mjs`, `openwrites` (after every commit) | `fails: []`; 129 PASS and 1 FAIL (S2); refused before anything loads; identical write lists at opening. The probe's one changed line is its refused malformed batch, now `same:true` (see above) |
+| the M1 verifier's own probes (`probe-land`, `probe-edge`, `probe-land2`, `probe-r2`) on the new board | 18/18, 16/16, 6/6 pass; `probe-r2` 15 pass and 1 fail: its C3, which expects a refusal after Depot Mid landed *not* to say "nothing on the board was changed". See "Still open" |
+| the 55 mutants (the 26 `v200-ui3-*`, the first review's other ten, the second review's 19), each built as text and run through the counted audit-ui | as in the table and paragraph above |
+| `verify:grid`, all 14 tools, one by one (in a scratch clone at `5a298b7`) | the same exit code for every tool as in the M1 verifier's run at `4c1890c`: 0 for chrome, colour-check, menu-paths, fydp-frames and hostile-render; 1 for the other nine, which fail as they did on chunk 2's board (see the S4 note above). Output identical to the verifier's line for line, timings and paths masked |
+| the screenshots' own script (`shoot-chunk3-m1.mjs`), run again on the new board into the scratchpad | every dialog's text and every before-and-after state it records are identical to `shots.json` at `aac8574`, in all four cases; no page errors |
+
+**Still open, said plainly:**
+
+- **"Nothing on the board was changed" is measured from once the files were read**, in both paths: a refusal while they are read (now) and a part-way failure (since the fix round). A change made by something else in that time is kept, and is not named; the message's "(N held)" counts it. The second review accepted that for the part-way path (its `probe-land2` and its minor on "(2 held)"), and asked for the same measure here ("measure it against the board as it is at that moment"); its earlier probe C3 asks the opposite. If Brad wants such a change named ("the batch changed nothing; while its files were read, …"), the wording `SAME` changes, and it is asserted word for word in many existing checks, so it is his call, not made here.
+- **A double full stop in one status line nobody reaches:** a dry-run refusal whose reason ends in a full stop, *and* a difference found by the check, would read "(S01).. Not as before the batch". A difference after a dry-run refusal needs the dry run to change the board, which it does not; not changed.
+- The first and second reviews' other minors are unchanged: "(Error)" as a reason; no remedy in the storage-refused message; the alert box scrolls; One submission's own Cancel (base behaviour); no `FIRST_BY_PREFIX` route for `v200-ui3-`; `npm run check`'s jsa() rule (chunk 1's).
+- **Not run here:** `audit-import.mjs` and `audit-board.mjs` (the lead's), `mutate.mjs` itself (read only as text), the final-tree queue, the presweep and the full gate. The committed screenshots were not retaken: the messages and states in them are unchanged at the new board (the last row above).
