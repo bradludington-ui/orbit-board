@@ -310,3 +310,13 @@ reproduced on the committed head (board-file save, then Put back and Save's HOLD
 probe (a shared, FIFO, exclusive in-process Web Lock mock for two tabs; controls); U24's three paths each tried during a
 held folder save and a held file save, with controls, or shown unreachable by code. Each probe is read-only, has its own
 adversarial checker, and puts any correction in a separate PROPOSAL.md, never applied.
+
+## Update at 9:06 AM ET: the queue's provenance gap closed
+
+- **Gap:** the final-tree queue and several helpers existed only in scratch (`rec/bin`), so their source had no backed-up
+  identity. Fixed: `2be68a1` copies every run script to `recovery/v200/bin/` with `BLOBS.md`; `7149736` makes the queue
+  refuse to start unless each script it runs equals that backed-up copy, and record their blobs in `suites/scripts.txt`.
+- **The queue now:** `recovery/v200/bin/final-tree-v3.sh`, blob `a879738c` (at `7149736`); helpers as in `BLOBS.md`.
+- **Scripts used by earlier runs:** `sens-import.sh` was backed up on 11 Oct (blob `1396e6f5`) and used unchanged by the U2
+  alone runs; the only later change is the `FIRSTFAIL` option (default off; 6:53 AM ET today), now `4874e058`. The U2
+  drivers and helpers were last modified before those runs began (last-modified: alone-u2.sh 10:40 PM ET; alone-u2b.sh 11:37 PM ET; overlap-watch.sh 10:39 PM ET; backup-run.sh 10:39 PM ET; ) and are backed up unchanged.
