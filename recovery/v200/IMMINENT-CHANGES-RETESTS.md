@@ -70,3 +70,35 @@ These are the ingredients only; the matrix itself waits for the final tree.
 | R1/R2 sensitivity at the final commit | pending; in the held queue |
 | U1 draft checks (this evening) | done; not integrated |
 | Open findings | U1–U13 in `UNRESOLVED-LEDGER.md` |
+
+## Revised at 8:24 PM ET (Brad, 8:14 PM ET: "identify imminent product changes … give their retest scope and revised timing")
+
+**What changed since 7:38 PM.**
+- **Container reclaimed while idle.** The container was reclaimed three times while the session sat idle, at about 7:15,
+  7:44 and 8:12 PM ET. Each time it killed the audit-import run in progress, about 9 minutes lost per restart. Long runs
+  now go with a wait the session tracks.
+- **Reuse needs dynamic scope.** Reuse must be justified by exact identities and dependency scope, measured
+  (`sensitivity-af892cb/REUSE-JUSTIFICATION.md`). Each suite whose results are carried to a later tree needs one
+  instrumented full run that counts calls into the changed functions. That is about 9 min for audit-import, 1–3 min for
+  the others.
+- **New probes are running** (draft level, on disposable copies): the U13 reproduction, the U1 $300 / $100 / $400
+  demonstration, and the two U2 variants. Each is adversarially verified.
+
+**Imminent product changes**, in the order Brad's questions point:
+
+| Change | Likely shape | Retest scope at its commit | Time |
+|---|---|---|---|
+| **U1** (flowYears + test + 2 mutations; the demonstration Brad asked for treats a genuine own FY26 plan as read ($300) and a removed one as leaving no clone; that reading of E3 is to be confirmed by Brad, not assumed approved) | 1 board line | Focused fail-before/pass-after. Full audit-recon. The new U1 mutations plus all 18 `v200-r1-*` in audit-recon. carry-probe, verify-probe and the $300/$100 demonstration at the commit. Applicability | ≈ 35 min |
+| **U2-a** (counter) and/or **U2-b** (busy refusal), as separate commits | 1 line each | Focused, per variant. Full audit-import, alone. Each new mutation in audit-import. The races probe | ≈ 30 min per variant |
+| **U13** (only if the reproduction holds and Brad approves a fix) | 1 line | As U2 | ≈ 30 min |
+| U3, U5, U8, U9, U10 | not drafted | per the table above | each ≈ 30–40 min once drafted |
+
+**Then the final tree, once.**
+- **The queue itself:** about 45 min. That is audit-import alone about 9; the other nine suites in two lanes about 5; 18
+  R1 mutations in audit-recon about 18; 3 R2 mutations in audit-board about 8; verify:grid and standards about 5.
+- **audit-import sensitivity for R3–R5:** about 1 h 50 min (12 runs), if any save-path change (U2, U13, U3, U5) landed.
+  The af892cb results cannot be reused for functions those changes touch.
+- **Instrumented scope runs** for any other reuse claimed: about 15 min.
+- **Revised total:** with U1 + U2 (both variants) + U13 landing, about 1.5 h of commits and focused evidence, plus
+  45 min + 1 h 50 min + 15 min on the final tree. **About 4.5 hours of active session.** With U1 alone: about 1 h 40 min.
+- **The presweep and full gate stay paused** until the evidence matrix has gone to Brad.
