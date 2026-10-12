@@ -20,6 +20,8 @@ Every check, screenshot and result below was taken at `aac8574` (board `ba8d0204
 
 *(Fix round 2 changes the board, to `2d1d855e…` at `58803c9`, inside `uiSubMany` only; its checks are in its own section at the end. No message quoted below changes: audit-ui's literal checks of every one of them pass at the new board.)*
 
+*(The screenshots in `preview-chunk3/` were retaken at `90ccabf` (board `2d1d855e…`) after the M1 review's third round asked for them at the exact board commit; see "Screenshots retaken at the final board" at the end. Every dialog text and before-and-after state is unchanged.)*
+
 Against base the board diff is still **insertions only**: 993 lines added, 0 removed. Against chunk 2 (`f95fee2`): 181 added, 20 removed, all inside chunk 2's own UI code. *(At fix round 2: 1,010 added and 0 removed against base; 203 added and 25 removed against chunk 2, still all inside chunk 2's and chunk 3's own UI code.)*
 
 ### What was wrong (the chunk 2 review, M1)
@@ -420,3 +422,19 @@ All 26 `v200-ui3-*` were built as text and run through audit-ui at the new board
 - **A double full stop in one status line nobody reaches:** a dry-run refusal whose reason ends in a full stop, *and* a difference found by the check, would read "(S01).. Not as before the batch". A difference after a dry-run refusal needs the dry run to change the board, which it does not; not changed.
 - The first and second reviews' other minors are unchanged: "(Error)" as a reason; no remedy in the storage-refused message; the alert box scrolls; One submission's own Cancel (base behaviour); no `FIRST_BY_PREFIX` route for `v200-ui3-`; `npm run check`'s jsa() rule (chunk 1's).
 - **Not run here:** `audit-import.mjs` and `audit-board.mjs` (the lead's), `mutate.mjs` itself (read only as text), the final-tree queue, the presweep and the full gate. The committed screenshots were not retaken: the messages and states in them are unchanged at the new board (the last row above).
+
+## Screenshots retaken at the final board (12 Oct 2026, lead)
+
+The M1 review's third round (verdict "sound, with issues") had one must-fix, about evidence, not the product: the committed
+screenshots were taken at `aac8574` (board `ba8d0204…`), while fix round 2 changed the board to `2d1d855e…`, so Brad's "actual-
+program screenshots of the M1 messages at the exact board commit" was not met at the final board.
+
+- **Retaken** with the committed `shoot-chunk3-m1.mjs`, unchanged, on the board of `90ccabf` (`git show`, blob
+  `2d1d855edda98f9179d7254ef0d4c5ff7f46b26f`), in headed Chromium under Xvfb: start 4:40:21 PM ET, exit 0, about 21 s,
+  `{"errors":[]}`, all four cases, 19 PNGs and `shots.json`. They replace the files in `preview-chunk3/`.
+- **Compared with the set taken at `aac8574`, and with the reviewer's own retake at the same board:** `shots.json` is identical to
+  both once the board path and clock times are masked (every dialog's exact text and every before-and-after state). 13 of the 19
+  PNGs are byte-identical to both. The other 6 (the alert and confirm photographs) differ only in the window title strip at the
+  top, which shows the board file's name: 0 differing pixels below y = 90 in each (ImageMagick `compare`).
+- No message quoted in this file changes.
+
