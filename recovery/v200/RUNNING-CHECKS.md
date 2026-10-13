@@ -771,3 +771,23 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   - npm run check passes;
   - the touched suites pass in full.
   Commits stay local until every check passes; then they are pushed.
+
+## Update at 11:57 AM ET: machine overload; relaunched with a per-agent process cap
+
+- **10:43 AM ET:** load about 35 on 4 CPUs. U28's round-2 review (Chromium-heavy, no product change) was paused.
+- **11:43 AM ET:** load about 44, with about 70 test processes. Several reviewers were running wide parallel lanes, and at
+  that load a full suite cannot finish inside the 600 s cap. At 11:44 AM ET the lead stopped the four fix runs and waited
+  for their bounded processes to end. One reviewer's chain of wrapper scripts kept starting new runs. The lead ended
+  only its two recorded process groups (17796 and 19557, both listed in that reviewer's own `pids.txt`), with TERM at
+  11:56:48 AM ET, and noted it in that `pids.txt`.
+- **About 11:58 AM ET:** the four groups were relaunched from recorded state. Every agent is now told to run at most two
+  test processes at a time. Interrupted reviewers and fixers reuse finished runs from their folders. Runs: saveA
+  `wf_b5e73cec-5e2`, saveB `wf_db4b1829-a41`, mathA `wf_5b40c662-ed2`, codex `wf_92077d4c-3db`. U28 stays paused.
+- **Results since 10:27 AM ET:**
+  - U19's round-2 money review: 1 must-fix.
+  - Adoption's first money review: 3 must-fix.
+  - U9's second fix round: done.
+  - U34's round-2 test review: clean (its money review had 2 must-fix, so a fix round follows).
+  - U36's round-2 money review: 1 must-fix.
+  - U32/U33's second fix round was running.
+- Nothing is committed yet; no track has two clean reviews.
