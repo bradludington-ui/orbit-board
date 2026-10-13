@@ -1013,3 +1013,16 @@ happens on the base too. A fix track (u44) was opened at 3:44 PM ET to give dest
   - The budget only sustains about 7–8 agents for a whole window, so the restart runs at that level, blockers first.
 - **Backup:** the irreplaceable text records (track READMEs, drafts, diffs, recorded state, reviewer verdicts, restart
   tooling) are in `scratch-backup/rec-text-20261013-1649.tar.gz`, with a manifest. There are no board files.
+
+## 13 Oct, 5:10 PM ET: U20/U30 clean in round 2; committed locally, pushed after its check
+
+- **U20/U30 is clean in both reviews of round 2:** money at about 2:40 PM ET and tests at 5:07 PM ET, with no must-fix.
+- **Two local commits** on the branch `pending/v200-fixes`, built from the track's final copies with their exact blobs
+  and their drafted NEXT-VERSION entries and line edits:
+  - U20, board `83b87782`;
+  - U30, board `84cf2bf4`.
+- They stay local until the lead's commit check passes; it runs right after the usage reset. Then they go onto this
+  branch with the ledger text and their final commit ids. A restore-verified bundle is on the scratch disk.
+- **U19:** its round-3 money review is clean (4:50 PM ET); its tests review is running.
+- **U9:** its fix round 3, which carries U43, finished at 4:56 PM ET. Its group was stopped at that clean point; the
+  round-4 reviews start after the reset.
