@@ -1046,3 +1046,16 @@ happens on the base too. A fix track (u44) was opened at 3:44 PM ET to give dest
     so U10's next fix round takes it, as a release blocker with U10.
 - **U34's tests reviewer** found a test gap: four plausible wrong fixes pass all 39 checks. It was rated a should-fix
   and is recorded as a follow-up.
+
+## 13 Oct, 5:28 PM ET: every group stopped at a clean point before the usage limit; nothing running
+
+- **U32/U33:** fix round 3 finished at 5:25 PM ET. Its round-4 reviews were seconds old and were stopped; they start
+  after the reset.
+- **U19:** its round-3 money review was clean, but its tests review found one must-fix (5:27 PM ET). Its fix round 3 was
+  seconds old and was stopped; it starts after the reset.
+- **Nothing is running.** No test process is left, and load is near zero. Every stopped track resumes from its own
+  recorded state and reuses every finished run.
+- **Waiting locally** for the commit check after the reset (about 7:31 PM ET), on `pending/v200-fixes`, not pushed:
+  U20, U30, U34 and U36. Then they are pushed with their ledger text.
+- **The text-records backup is refreshed:** `scratch-backup/rec-text-20261013-1728.tar.gz`, 490 files, with no board
+  files. It replaces the 4:49 PM ET archive, which stays in history at `6060ee7`.
