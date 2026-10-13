@@ -986,3 +986,30 @@ happens on the base too. A fix track (u44) was opened at 3:44 PM ET to give dest
   - U37 and U40 are built: U37's round-1 reviews are queued; U40's money review has 1 must-fix and its tests review is
     running.
   - Builders running: U41/U42 and U44.
+
+## 13 Oct, 4:49 PM ET: prepared for the usage limit (Brad: "Prepare accordingly so we don't have to rerun anything")
+
+- **Brad, about 4:45 PM ET:** usage at 78%, with 2 h 46 min to the reset (about 7:31 PM ET).
+- **Burn rate:** about 0.58% a minute with about 13 agents. The remaining 22% would have lasted about 40 minutes and cut
+  every agent off mid-step. So the lead stops work at clean points.
+- **Stopped at about 4:46 PM ET.** Their agents were early or long-running, and all their work stays on disk. No leftover
+  processes, checked by command line and by working directory.
+  - U10's round-3 reviews.
+  - adopt's round-2 tests review and hold's fix round 1.
+  - U44's builder.
+  - U41/U42's builder and U40's round-1 tests review.
+  - U28 was already paused at 4:42 PM ET.
+- **Still running, because they can finish:**
+  - U20/U30 round-2 tests review and U19 round-3 money review.
+  - U32/U33 fix round 3.
+  - U9 fix round 3, with U43.
+  - U34 and U36 round-3 tests reviews.
+  - A watcher wakes the lead on each of their events, and each group is stopped as soon as its current agents finish,
+    so nothing is mid-step when the limit hits.
+- **After the reset:**
+  - State for every stopped group is precomputed; the restart plan is in the lead's notes (RESTART-AFTER-RESET.md).
+  - The resume notes the agents read now name this stop, so each resumes from its own files and reuses every run that
+    has an exit record.
+  - The budget only sustains about 7–8 agents for a whole window, so the restart runs at that level, blockers first.
+- **Backup:** the irreplaceable text records (track READMEs, drafts, diffs, recorded state, reviewer verdicts, restart
+  tooling) are in `scratch-backup/rec-text-20261013-1649.tar.gz`, with a manifest. There are no board files.
