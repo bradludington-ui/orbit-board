@@ -1,0 +1,34 @@
+{
+  "prioritization-board-grid.html": {
+    "base_blob": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+    "proposed_blob": "2419366b6af4417a64ebc294479721e29ed1706b",
+    "base_sha256": "5cb9db21510d96c70a1ed37b1743019039ff053c23bd5bb3cfa104ff6b0e532e",
+    "proposed_sha256": "170f1393318219f7f7ba6a82acd25c14718abd837bfbb18af51a34d81564e32b"
+  },
+  "tools/export-audit/audit-import.mjs": {
+    "base_blob": "4aba2506a7ea3bd367fb74436172b188bb4fc887",
+    "proposed_blob": "f68e4a54b5471fd67e82071213b99045b1f8242d",
+    "base_sha256": "cb1807a41985129e460e9419236cdedc5c8455a4d1227e8c0c98ec993ae2a5b0",
+    "proposed_sha256": "1c6c00582811bf2da33aa83a1f7cbad0eba068ab167b21d405f90b4355dacd78"
+  },
+  "tools/export-audit/mutate.mjs": {
+    "base_blob": "cbc6defc6803851e847844848fc9b186daeeb268",
+    "proposed_blob": "5a4d934ad4327dc69f11d351185d8632de80c6ae",
+    "base_sha256": "f8bc7510438c82ec752e66014c4d323d40d1c1ea863072809b2e7563d5a8cb22",
+    "proposed_sha256": "f8ea8cc272bbc2cc24d7a13c8f14ec0ac5332783890157bc1c5c2ea2c94d0283"
+  },
+  "empty_template_payload_identical": true,
+  "runtime": {
+    "node": "v24.19.0",
+    "jsdom": "27.0.0",
+    "encoding_adapter": "base/runtime-encoding-shim.mjs",
+    "test_switches": {
+      "NODE_OPTIONS": null,
+      "BOOT_PARSE": null,
+      "MUT_FIRST_FAIL": null,
+      "SUITE_CHECKS": null,
+      "LANG": "C.UTF-8",
+      "TZ": null
+    }
+  }
+}

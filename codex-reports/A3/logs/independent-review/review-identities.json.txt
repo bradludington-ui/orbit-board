@@ -1,0 +1,28 @@
+{
+  "base/prioritization-board-grid.html": {
+    "git_blob": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+    "sha256": "5cb9db21510d96c70a1ed37b1743019039ff053c23bd5bb3cfa104ff6b0e532e"
+  },
+  "base/tools/export-audit/boot.mjs": {
+    "git_blob": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+    "sha256": "6ee4a0401ca607256dc1811b67e7b802adef7339aa2931af3ee3d06c6f8b08e3"
+  },
+  "base/runtime-encoding-shim.mjs": {
+    "git_blob": "6e2ce2e6beda9e7526527530500f254d877d0320",
+    "sha256": "e689710a2895d6843a66207d18ec886688b16f3c166b6ddada296e40a51c7981"
+  },
+  "fix2/prioritization-board-grid.html": {
+    "git_blob": "6e29aa8c10c168027da67d1970034cd931b89e09",
+    "sha256": "54116663bd590b65fb2b4980a68d90afc6100a87946e59e8a25c504102e2a9c9"
+  },
+  "fix2/tools/export-audit/boot.mjs": {
+    "git_blob": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+    "sha256": "6ee4a0401ca607256dc1811b67e7b802adef7339aa2931af3ee3d06c6f8b08e3"
+  },
+  "fix2/runtime-encoding-shim.mjs": {
+    "git_blob": "6e2ce2e6beda9e7526527530500f254d877d0320",
+    "sha256": "e689710a2895d6843a66207d18ec886688b16f3c166b6ddada296e40a51c7981"
+  },
+  "inspection_complete_ET": "2026-10-13T12:29:33.618332-04:00",
+  "base": "7ee498a46507972f803cd48ce9f27d5d668acb63"
+}

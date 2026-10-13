@@ -1,0 +1,1 @@
+{"id": "v200-u37-literal-unchecked", "matches": 1, "find": "    const token=/_x[0-9A-Fa-f]{4}_/.exec(text);", "repl": "    const token=null;"}

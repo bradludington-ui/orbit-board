@@ -1,0 +1,1 @@
+{"id": "v200-u37-sheet-unchecked", "matches": 1, "find": "    if(badText(sh.name,label+' name')) return true;\n", "repl": ""}

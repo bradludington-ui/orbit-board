@@ -1,0 +1,13 @@
+[
+  "v200-u37-refusal-gone",
+  "v200-u37-invalid-char-unchecked",
+  "v200-u37-literal-unchecked",
+  "v200-u37-sheet-unchecked",
+  "v200-u37-format-unchecked",
+  "v200-u37-cell-unchecked",
+  "v200-u37-whitespace-raw",
+  "v200-u37-exportexcel-null-unchecked",
+  "v200-u37-exportcsv-null-unchecked",
+  "v200-u37-exportsrc-null-unchecked",
+  "v200-u37-exportflow-null-unchecked"
+]

@@ -1,0 +1,104 @@
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+40 FAILING CHECK(S)
+
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | opened
+    unknown raw code is kept exactly, alongside all five valid codes and blank
+        got {"R2":"EN","R3":"LA","R4":"OT","R5":"FL","R6":"AT","R7":""}   want {"R1":"at","R2":"EN","R3":"LA","R4":"OT","R5":"FL","R6":"AT","R7":""}
+    unknown at is not uppercased or replaced by the otherwise-derived LA
+        got LA   want 
+    the exact raw code is listed with its requirement, with no invented normalization
+        got []   want [["R1","SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected."]]
+    Pre-flight lists the same raw value
+        got []   want [[["R1","SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected."]]]
+    the visible correction list names at and never claims it was dropped
+        got false   want true
+    SI screen shows no-code money, never an invisible or derived unknown bucket
+        got ["4.8%"]   want ["63.0%"]
+    all valid SI codes including LA keep only their assigned literal dollars in actual XLSX
+        got [["LA  Airframe",200],["EN  Engine",100],["LA  Airframe",950],["EN  Engine",340],["OT  Other Government Costs",60],["FL  Fuel",70],["AT  Audit",80]]   want [["EN  Engine",100],["LA  Airframe",50],["EN  Engine",340],["OT  Other Government Costs",60],["FL  Fuel",70],["AT  Audit",80]]
+    unrecognized code money is in no-code, not the derived LA bucket, on actual XLSX
+        got [90]   want [290,900]
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | saved and reopened
+    unknown raw code is kept exactly, alongside all five valid codes and blank
+        got {"R2":"EN","R3":"LA","R4":"OT","R5":"FL","R6":"AT","R7":""}   want {"R1":"at","R2":"EN","R3":"LA","R4":"OT","R5":"FL","R6":"AT","R7":""}
+    unknown at is not uppercased or replaced by the otherwise-derived LA
+        got LA   want 
+    the exact raw code is listed with its requirement, with no invented normalization
+        got []   want [["R1","SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected."]]
+    Pre-flight lists the same raw value
+        got []   want [[["R1","SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected."]]]
+    the visible correction list names at and never claims it was dropped
+        got false   want true
+    SI screen shows no-code money, never an invisible or derived unknown bucket
+        got ["4.8%"]   want ["63.0%"]
+    all valid SI codes including LA keep only their assigned literal dollars in actual XLSX
+        got [["LA  Airframe",200],["EN  Engine",100],["LA  Airframe",950],["EN  Engine",340],["OT  Other Government Costs",60],["FL  Fuel",70],["AT  Audit",80]]   want [["EN  Engine",100],["LA  Airframe",50],["EN  Engine",340],["OT  Other Government Costs",60],["FL  Fuel",70],["AT  Audit",80]]
+    unrecognized code money is in no-code, not the derived LA bucket, on actual XLSX
+        got [90]   want [290,900]
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | non-Navy
+    raw file SI stays correctable despite no Navy/Marine ask
+        got false   want true
+    the real field presents the retained unsupported raw code
+        got NO FIELD   want at
+    raw file SI stays correctable despite no Navy/Marine ask
+        got false   want true
+    the real field presents the retained unsupported raw code
+        got NO FIELD   want at
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | non-Navy clearing
+    the real clear action was reachable, and its cleared SI remains clear after reopen
+        got [false,[false,0]]   want [true,[false,0]]
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | non-Navy repair
+    a person can select AT, which saves and reopens exactly, clearing the notice
+        got [null,0]   want ["AT",0]
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | raw "LA "
+    raw file code stays byte-for-byte
+        got undefined   want "LA "
+    raw unsupported code has its own repair item
+        got 0   want 1
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | raw "la"
+    raw file code stays byte-for-byte
+        got undefined   want "la"
+    raw unsupported code has its own repair item
+        got 0   want 1
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | raw "ZZ"
+    raw file code stays byte-for-byte
+        got undefined   want "ZZ"
+    raw unsupported code has its own repair item
+        got 0   want 1
+--- v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed | raw "__proto__"
+    raw file code stays byte-for-byte
+        got undefined   want "__proto__"
+    raw unsupported code has its own repair item
+        got 0   want 1
+--- v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges | working
+    a cut before the emoji drops its whole character, never writes U+FFFD
+        got false   want true
+    no replacement character occurs in the actual workbook part
+        got true   want false
+    leading and trailing apostrophes are removed
+        got false   want true
+    an apostrophe exposed at the first cut is removed
+        got false   want true
+    the repeat cut also never leaves half an emoji
+        got false   want true
+--- v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges | saved and reopened
+    a cut before the emoji drops its whole character, never writes U+FFFD
+        got false   want true
+    no replacement character occurs in the actual workbook part
+        got true   want false
+    leading and trailing apostrophes are removed
+        got false   want true
+    an apostrophe exposed at the first cut is removed
+        got false   want true
+    the repeat cut also never leaves half an emoji
+        got false   want true

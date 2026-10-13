@@ -1,0 +1,10 @@
+{
+  "source_audit_recon_git_blob": "755647cc1340cd2d9ed2b8a78b58f29df4b98b34",
+  "focused_blocks_sha256": "acb4cb0a7556d02c9bf2502a7a3659765e77d556284a907fcdd2bccd9b08b7a7",
+  "focused_blocks_exact_source_text": true,
+  "source_block_bytes": 40477,
+  "dependencies": "exactly copied imports/chk/item/num/w5Chk/w5Dol/w6Book/w6 heading helpers; final source scenario-ran guard and summary retained",
+  "environment_adapter": "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+  "new_expectations_changed": false,
+  "source_blocks_changed": false
+}

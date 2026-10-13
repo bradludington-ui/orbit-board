@@ -1,0 +1,28 @@
+--- a/tools/export-audit/mutate.mjs
++++ b/tools/export-audit/mutate.mjs
+@@ -4285,6 +4285,25 @@
+   { id: "v200-u14-notice-plural-it", area: "flowHtml", what: "the panel's notice says \"keeps it\" however many saved years the board cannot answer for: FY24 and FY26 \"stay in the saved selection\", and switching a year \"keeps it\"",
+     find: "switching a year on or off keeps '+(F.unavail.length===1?'it':'them')+'.</div>'",
+     repl: "switching a year on or off keeps it.</div>'" },
++  // v2.00 (U41/U42, Codex proposal): preserve unsupported SI text and safe funds-flow tab names.
++  { id: "v200-u41-raw-si-lost", area: "applyState", what: "an unsupported SI code from a saved file disappears on opening",
++    find: "  // v2.00 (U41): a file's unknown SI code is kept exactly as saved and listed for correction.\n  // Never trim, uppercase, discard it or replace it with a derived classification on opening.",
++    repl: "  Object.keys(S.si).forEach(function(id){ if(!siKnown(S.si[id])) delete S.si[id]; });" },
++  { id: "v200-u41-si-unlisted", area: "siIssues", what: "a file’s unsupported SI code has no correction notice",
++    find: "    if(!siKnown(v)) out.push({id:id, label:",
++    repl: "    if(false && !siKnown(v)) out.push({id:id, label:" },
++  { id: "v200-u41-si-derived", area: "siOf", what: "an unsupported saved SI code is falsely replaced by a derived code",
++    find: "return v!==undefined? (siKnown(v)? v : '') : siDefault(it);",
++    repl: "return v!==undefined? (siKnown(v)? v : siDefault(it)) : siDefault(it);" },
++  { id: "v200-u42-tab-half", area: "exportFlow", what: "a tab-name truncation can leave half a Unicode character",
++    find: "    const cut=(t,n)=>edge(t.slice(0,n).replace(/[\\uD800-\\uDBFF]$/,''));",
++    repl: "    const cut=(t,n)=>edge(t.slice(0,n));" },
++  { id: "v200-u42-tab-apostrophe", area: "exportFlow", what: "a sheet-name edge keeps a forbidden apostrophe",
++    find: "    const edge=t=>t.replace(/^[\\s']+|[\\s']+$/g,'');",
++    repl: "    const edge=t=>t.trim();" },
++  { id: "v200-u41-si-uncorrectable", area: "siEligible", what: "an imported unsupported SI code cannot be corrected without Navy or Marine funding",
++    find: "  if(Object.prototype.hasOwnProperty.call(S.si||{}, it.id) && !siKnown(S.si[it.id])) return true;\n",
++    repl: "" },
+   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",

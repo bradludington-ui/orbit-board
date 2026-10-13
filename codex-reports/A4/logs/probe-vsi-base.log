@@ -1,0 +1,10 @@
+BOARD /workspace/orbit-codex-batches-20261013-1205ET/base/prioritization-board-grid.html
+slug / siApplies                                           got ["om",true]
+the file carries                                           got {"R1":"at","R2":"EN"}   want {"R1":"at","R2":"EN"}  OK
+opened: errors                                             got []
+opened: S.si                                               got {"R2":"EN"}   want {"R1":"at","R2":"EN"}  DIFFERS
+opened: siOf R1, R2                                        got ["","EN"]
+opened: status line                                        got 📦 Opened with the saved board state — last saved by unknown 10/13/2026, 4:17:43 PM. Make changes and 💾 Save to pass it on.
+opened: Needs attention kinds                              got ["oblig"]
+saved there, reopened: S.si                                got {"R2":"EN"}   want {"R1":"at","R2":"EN"}  DIFFERS
+done

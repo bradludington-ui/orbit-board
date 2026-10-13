@@ -1,0 +1,20 @@
+U37 CHECKS 54
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x0001_x0002_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x0001\\u0002\"]",
+      "want": "[0,true,\"_x0001_x0002_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x005F_x0001_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x005F\\u0001\"]",
+      "want": "[0,true,\"_x005F_x0001_\"]"
+    }
+  ]
+}
+2 FAILING CHECK(S)

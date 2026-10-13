@@ -1,0 +1,90 @@
+U37 CHECKS 54
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x000B_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"\\u000b\"]",
+      "want": "[0,true,\"_x000B_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x0041_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"A\"]",
+      "want": "[0,true,\"_x0041_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x005F_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_\"]",
+      "want": "[0,true,\"_x005F_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x00ab_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"«\"]",
+      "want": "[0,true,\"_x00ab_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x0001_x0002_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"\\u0001x0002_\"]",
+      "want": "[0,true,\"_x0001_x0002_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x005F_x0001_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x0001_\"]",
+      "want": "[0,true,\"_x005F_x0001_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "workbook tab",
+      "what": "sheet name uses same codec, is XML and reads back exactly",
+      "got": "[0,false,[\"Ctl\\u000bA\"],\"missing tab\"]",
+      "want": "[0,true,[\"Ctl\\u000b_x0041_\"],[\"exact\"]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "number format",
+      "what": "custom format uses same codec and produces valid XML",
+      "got": "[0,false]",
+      "want": "[0,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportExcel",
+      "what": "real emitted workbook is XML; the exact typed text returns through board reader; no state changes",
+      "got": "[0,false,true]",
+      "want": "[0,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportCSV",
+      "what": "real emitted workbook is XML; the exact typed text returns through board reader; no state changes",
+      "got": "[0,false,true]",
+      "want": "[0,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportSrc",
+      "what": "real emitted workbook is XML; the exact typed text returns through board reader; no state changes",
+      "got": "[0,false,true]",
+      "want": "[0,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportFlow",
+      "what": "actual destination workbook: every part parses and the exact name returns, including its literal escape spelling",
+      "got": "[0,false,false]",
+      "want": "[0,true,true]"
+    }
+  ]
+}
+12 FAILING CHECK(S)

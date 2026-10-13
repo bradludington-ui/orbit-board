@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    "--import",
+    "../runtime-encoding-shim.mjs",
+    "shared-boundary-check.mjs"
+  ],
+  "cwd": "A2",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:23:53.793674-04:00",
+  "finished_ET": "2026-10-13T12:23:54.612061-04:00",
+  "duration_seconds": 0.819,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 51508,
+  "log": "A2/shared-boundary-before.log",
+  "completion": "failed"
+}

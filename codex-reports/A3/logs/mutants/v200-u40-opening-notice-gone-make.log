@@ -1,0 +1,1 @@
+{"id": "v200-u40-opening-notice-gone", "matches": 1, "find": "if(destNotice()){\n  const de=document.getElementById('shareStat');", "repl": "if(false){\n  const de=document.getElementById('shareStat');"}

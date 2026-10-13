@@ -1,0 +1,1 @@
+{"id": "v200-u40-cached-map-collapse", "matches": 1, "find": "if(hit && Object.prototype.hasOwnProperty.call(claimed, hit.k) && claimed[hit.k]!==String(e.k)){ hit=null; first=true; }", "repl": "if(false){ hit=null; first=true; }"}

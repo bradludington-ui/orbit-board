@@ -1,0 +1,1 @@
+{"id": "v200-u40-typed-duplicate-open", "matches": 1, "find": "if(field==='n' && destNamed(v) && L.some(function(x){ return x!==e && destName(x.n)===destName(v); }))", "repl": "if(false)"}

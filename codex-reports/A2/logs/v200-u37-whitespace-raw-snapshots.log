@@ -1,0 +1,27 @@
+U37 CHECKS 53
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "whitespace a&#9;b",
+      "what": "writer uses character references: native XML cell/name/format and board read exact",
+      "got": "[0,false,[\"a\\tb\",\"a b\",\"a b\"],\"a\\tb\"]",
+      "want": "[0,true,[\"a\\tb\",\"a\\tb\",\"a\\tb\"],\"a\\tb\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "whitespace a&#10;b",
+      "what": "writer uses character references: native XML cell/name/format and board read exact",
+      "got": "[0,false,[\"a\\nb\",\"a b\",\"a b\"],\"a\\nb\"]",
+      "want": "[0,true,[\"a\\nb\",\"a\\nb\",\"a\\nb\"],\"a\\nb\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "whitespace a&#13;b",
+      "what": "writer uses character references: native XML cell/name/format and board read exact",
+      "got": "[0,false,[\"a\\nb\",\"a b\",\"a b\"],\"a\\rb\"]",
+      "want": "[0,true,[\"a\\rb\",\"a\\rb\",\"a\\rb\"],\"a\\rb\"]"
+    }
+  ]
+}
+3 FAILING CHECK(S)

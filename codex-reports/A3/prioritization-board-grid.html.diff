@@ -1,0 +1,116 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -2370,7 +2370,7 @@
+   return d;
+ })();
+ // var, not let: flowEnts() can be asked for before the lines that would declare these have run
+-var _destReady=false, _destOthers=false, _destBusy=false, _destOpening=false;
++var _destReady=false, _destOthers=false, _destBusy=false, _destOpening=false, _destMerges=[];
+ // WHAT A FULL IMPORT BROUGHT (v1.86). The import reloads the board to open what it wrote, so the
+ // report it owes is kept across the reload and said on the first render after it.
+ var _impRep=(function(){ try{ const r=localStorage.getItem('prio27impRep'); if(r) localStorage.removeItem('prio27impRep'); return r; }catch(e){ return null; } })(), _impSaid=false;
+@@ -14893,6 +14893,9 @@
+ }
+ // Match terms are combined; a different KIND is kept as the board has it and named for the owner.
+ function destJoin(hit, e, from){
++  // v2.00 (U40): every name-based re-pointing is disclosed in this session, never silently.
++  if(hit.k!==String(e.k) && !_destMerges.some(function(m){ return m.k===String(e.k) && m.to===hit.k && m.from===from; }))
++    _destMerges.push({k:String(e.k), n:String(e.n||''), to:hit.k, name:String(hit.n||''), from:from});
+   const toks=flowToks(hit.t);
+   flowToks(e.t).forEach(function(t){ if(!toks.some(function(x){ return x.toUpperCase()===t.toUpperCase(); })) toks.push(t); });
+   hit.t=toks.join(', ');
+@@ -14913,6 +14916,7 @@
+ // only while something still points at it.
+ function destFold(list, from, v186, refs){
+   const al=Object.create(null);
++  const claimed=Object.create(null);   // v2.00 (U40): even an old cached map cannot consume two source identities
+   let fresh=false;
+   // v1.99 (item 95): `fresh` says a key had to change; `touched` says anything the destination list holds changed -- a
+   // destination added under its own key, a joined name, a map entry or the list's signature -- so it is stored and
+@@ -14933,9 +14937,15 @@
+       hit=destHas(lm[e.k]);
+       if(!hit && !used) return;          // read before, and deleted here since
+     }
++    if(hit && Object.prototype.hasOwnProperty.call(claimed, hit.k) && claimed[hit.k]!==String(e.k)){ hit=null; first=true; }
+     if(hit){ if(v186 && hit.k!==e.k){ destJoin(hit, e, from); touched=true; } }
+     else {
+       hit=destByName(e.n);
++      // v2.00 (U40): keys beside one list keep distinct destinations. A duplicate name, an ambiguous
++      // local name, or a different key in this same v1.86 list is not permission to move a requirement.
++      if(hit && (list.some(function(x){ return x && x.k!==e.k && destNamed(x.n) && destName(x.n)===destName(e.n); })
++        || DESTDB.ents.filter(function(x){ return destName(x.n)===destName(e.n); }).length>1
++        || (v186 && list.some(function(x){ return x && x.k===hit.k && x.k!==e.k; })))) hit=null;
+       if(hit){ if(first){ destJoin(hit, e, from); touched=true; } }
+       else {
+         if(!used && !destNamed(e.n)) return;       // an unnamed placeholder nobody uses is not carried
+@@ -14946,6 +14956,7 @@
+         DESTDB.ents.push(hit);
+       }
+     }
++    claimed[hit.k]=String(e.k);
+     if(lm && lm[e.k]!==hit.k){ lm[e.k]=hit.k; touched=true; if(hit.k!==e.k) fresh=true; }
+     if(hit.k!==e.k) al[e.k]=hit.k;
+   });
+@@ -15112,8 +15123,14 @@
+ }
+ function flowEntUseElse(k, M){ return ((M||flowEntUseMap())[k])||{}; }
+ function flowEntUseElseTxt(U){ return Object.keys(U).map(function(w){ return w+' ('+U[w]+')'; }).join(', '); }
+-function flowSetEnt(i, field, v){
++function flowSetEnt(i, field, v, el){
+   const L=flowEnts(), e=L[i]; if(!e) return;
++  // v2.00 (U40): refuse the whole typed name before changing or saving anything.
++  if(field==='n' && destNamed(v) && L.some(function(x){ return x!==e && destName(x.n)===destName(v); })){
++    codeRefusedIn(el, 'Destination name not changed', 'Not saved: another destination has that name (ignoring case and extra spaces). '
++      +'Stored name: '+String(e.n||'')+'. Give this destination a different name; both destinations and their requirements are unchanged');
++    return;
++  }
+   if(field==='kind'){ e.kind=(v==='prime'?'prime':(v==='gov'?'gov':'other'));
+     DESTDB.conflicts=DESTDB.conflicts.filter(function(c){ return c.k!==e.k; }); }
+   else e[field]=String(v==null?'':v);
+@@ -15705,6 +15722,15 @@
+ // The registry, editable. Match terms are optional: they let the chart recognise a destination in
+ // the source file's own text, which is how a plan event with no requirement behind it can still be
+ // placed. A destination with no terms is only ever reached by logging it on a requirement.
++function destNotice(){
++  const L=DESTDB.ents||[], D=L.filter(function(e,i){ return destNamed(e.n) && L.some(function(x,j){ return i!==j && destName(x.n)===destName(e.n); }); });
++  let h=D.length? '⚠ <b>Destinations with matching names were kept separate.</b> '
++    +D.map(function(e){ return esc(e.n)+' ['+esc(e.k)+']'; }).join(' · ')
++    +'. Requirements still point at their own keys. Rename these destinations to make the distinction clear.' : '';
++  if(_destMerges.length) h+=(h? ' ' : '')+'<b>Destination names matched:</b> '+_destMerges.map(function(m){
++    return esc(m.n)+' ['+esc(m.k)+'] → '+esc(m.name)+' ['+esc(m.to)+'] ('+esc(m.from||'an imported list')+')'; }).join(' · ')+'.';
++  return h;
++}
+ function flowEntEditor(){
+   const L=flowEnts();
+   const cf=(DESTDB.conflicts||[]).filter(function(c){ return flowEnt(c.k); });
+@@ -15729,7 +15755,7 @@
+     const i=L.indexOf(e), used=flowEntUse(e.k), U=flowEntUseElse(e.k, UM), uT=flowEntUseElseTxt(U);
+     h+='<tr><td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%'
+       +(destNamed(e.n)? '"' : ';outline:2px solid var(--amber)" data-destnew="1"')+' '
+-      +'value="'+esc(e.n)+'" onchange="flowSetEnt('+i+',&quot;n&quot;,this.value)"></td>'
++      +'value="'+esc(e.n)+'" onchange="flowSetEnt('+i+',&quot;n&quot;,this.value,this)"></td>'
+       +'<td style="text-align:left"><select class="btn" style="font-size:9.5px;padding:3px 6px" '
+       +'onchange="flowSetEnt('+i+',&quot;kind&quot;,this.value)">'
+       +[['prime','Contractor'],['gov','Government activity'],['other','Other']]
+@@ -15742,6 +15768,7 @@
+       +'<td><button class="qb" style="color:var(--red)" onclick="flowDelEnt('+i+')" title="remove">✕</button></td></tr>';
+   });
+   h+='</table>'
++    +(destNotice()? '<div style="font-size:9.5px;color:var(--amber);margin-top:6px">'+destNotice()+'</div>' : '')
+     +(cf.length? '<div style="font-size:9.5px;color:var(--amber);margin-top:6px">\u26a0 Named with a different kind on another appropriation: '
+       +cf.map(function(c){ const e=flowEnt(c.k); return esc(e.n)+' ('+esc(c.from==='import'? 'an imported file' : appnName(c.from))+' had '
+         +esc({prime:'Contractor', gov:'Government activity', other:'Other'}[c.kind]||c.kind)+')'; }).join(' \u00b7 ')
+@@ -31583,6 +31610,12 @@
+       +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
+       +'. Your work is kept in this browser, against this copy. <b>\u2709 Submit input</b> sends your office\u2019s changes to the portfolio team.'
+     : '📦 Opened with the saved board state — last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>':'')+' '+fmtTs(PUB.ts)+'. Make changes and 💾 Save to pass it on.'); _statQuiet=false; }
++// v2.00 (U40): opening discloses preserved duplicates and each name-based merge without hiding an
++// import/storage safety warning. The Funds Flow editor also keeps this notice available after later messages.
++if(destNotice()){
++  const de=document.getElementById('shareStat');
++  _statQuiet=false; setStat((de? de.innerHTML+' ' : '')+destNotice());
++}
+ function loadShared(cb){
+   // file:// (shared drive / synced folder): fetch is blocked, but XHR works when
+   // the board is opened via the provided launcher (--allow-file-access-from-files)

@@ -1,0 +1,20 @@
+U37 CHECKS 53
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cold exportFlow",
+      "what": "existing lazy pseudo/subs defaults are disclosed; no ZIP/Blob/file, all entered state unchanged",
+      "got": "[0,1,0,true,[\"pseudo\",\"subs\"],true]",
+      "want": "[0,0,0,true,[\"pseudo\",\"subs\"],true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "exportFlow",
+      "what": "operated destination export refuses safely before ZIP/Blob/download, field named, data unchanged",
+      "got": "[0,1,0,true,true]",
+      "want": "[0,0,0,true,true]"
+    }
+  ]
+}
+2 FAILING CHECK(S)

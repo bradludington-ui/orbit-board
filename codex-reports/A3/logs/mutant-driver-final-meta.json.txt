@@ -1,0 +1,16 @@
+{
+  "command": [
+    "python3",
+    "run-mutants.py"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A3",
+  "cap_seconds": 300.0,
+  "started_ET": "2026-10-13T12:26:54.596677-04:00",
+  "finished_ET": "2026-10-13T12:27:22.386025-04:00",
+  "duration_seconds": 27.79,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 52055,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A3/mutant-driver-final.log",
+  "completion": "passed"
+}

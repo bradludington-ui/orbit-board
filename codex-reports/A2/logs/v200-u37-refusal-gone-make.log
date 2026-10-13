@@ -1,0 +1,1 @@
+{"id": "v200-u37-refusal-gone", "matches": 1, "find": "  if(_xlsxRefused(sheets, extra)) return null;\n", "repl": ""}

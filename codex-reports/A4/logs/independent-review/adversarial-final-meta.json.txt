@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    "--import",
+    "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+    "adversarial-final.mjs"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4-review",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:45:35.246197-04:00",
+  "finished_ET": "2026-10-13T12:45:40.383333-04:00",
+  "duration_seconds": 5.137,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 54409,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4-review/adversarial-final.log",
+  "completion": "failed"
+}

@@ -1,0 +1,15 @@
+import {boot,seed,bootMark,bootRelease,settleBoards} from './fix/tools/export-audit/boot.mjs';
+const mark=bootMark();
+const failures=[],checks=[]; const J=JSON.stringify;
+const check=(name,got,want)=>{checks.push({name,got,want});if(J(got)!==J(want))failures.push({name,got,want});};
+const X=boot();
+seed(X.ev,{services:['USAF','ANG','AFRC'],items:[{id:'R1',grp:'AV',team:'AV',sect:'',custom:false,title:'Stored SI without Navy funding',event:'Ev',ccar:'C',fy26:[0,0,0],ask:[900,200,0],alloc:null}],disc:[5000,5000,5000],mand:[0,0,0],order:['R1']});
+X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); S.si={R1:'at'}; MS.years[MS.cur]=S; 'ok'`);
+const R=boot({html:X.ev('buildSavedHtml()')});
+check('raw SI retained',R.ev('S.si.R1'),'at');
+check('listed for correction',R.ev('siIssues().length'),1);
+check('stored unsupported SI keeps field editable even with no Navy-money ask',R.ev("siEligible(itemById('R1'))"),true);
+R.ev("goRow('R1'); render(); 'ok'");
+check('correction field exists',R.ev("document.getElementById('inspector').textContent.includes('Navy SI code')"),true);
+console.log(J({checks,failures}));
+bootRelease(mark,[]); await settleBoards(); process.exit(failures.length?1:0);

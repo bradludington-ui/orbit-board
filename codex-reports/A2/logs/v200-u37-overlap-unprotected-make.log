@@ -1,0 +1,1 @@
+{"id": "v200-u37-overlap-unprotected", "matches": 1, "find": "  const t=String(s).replace(/_(?=x[0-9A-Fa-f]{4}_)/g,'_x005F_');", "repl": "  const t=String(s).replace(/_x[0-9A-Fa-f]{4}_/g,function(m){return '_x005F_'+m.slice(1);});"}

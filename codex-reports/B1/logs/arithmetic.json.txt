@@ -1,0 +1,2409 @@
+{
+  "A": {
+    "rows": {
+      "USAF": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "ANG": [
+        2,
+        3,
+        4,
+        0
+      ],
+      "AFRC": [
+        166666667,
+        333333333,
+        499999999,
+        0
+      ],
+      "STOVL": [
+        624982,
+        100624982,
+        148750036,
+        0
+      ],
+      "USMC-C": [
+        1,
+        1,
+        0,
+        1
+      ],
+      "USN": [
+        1,
+        0,
+        1,
+        1
+      ],
+      "CV": [
+        0,
+        0,
+        0,
+        5
+      ]
+    },
+    "totals": [
+      167291654,
+      433958320,
+      648750041,
+      7
+    ],
+    "source": {
+      "0010": 167291654,
+      "0002": 433958320,
+      "0008": 648750041,
+      "0001": 2,
+      "no CLIN": 5
+    }
+  },
+  "B": {
+    "services": {
+      "USAF": {
+        "ask": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "disc": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "mand": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "unfunded": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "short": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "ANG": {
+        "ask": [
+          1,
+          2,
+          2,
+          0
+        ],
+        "disc": [
+          1,
+          2,
+          2,
+          0
+        ],
+        "mand": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "unfunded": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "short": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "AFRC": {
+        "ask": [
+          2,
+          3,
+          4,
+          0
+        ],
+        "disc": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "mand": [
+          1,
+          1,
+          1,
+          0
+        ],
+        "unfunded": [
+          0,
+          1,
+          2,
+          0
+        ],
+        "short": [
+          1,
+          2,
+          3,
+          0
+        ]
+      },
+      "STOVL": {
+        "ask": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "disc": [
+          0,
+          0,
+          0,
+          7
+        ],
+        "mand": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "unfunded": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "short": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "USMC-C": {
+        "ask": [
+          17,
+          33,
+          50,
+          0
+        ],
+        "disc": [
+          17,
+          33,
+          50,
+          0
+        ],
+        "mand": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "unfunded": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "short": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    "totals": {
+      "ask": [
+        21,
+        39,
+        57,
+        7
+      ],
+      "disc": [
+        20,
+        37,
+        54,
+        7
+      ],
+      "mand": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "unfunded": [
+        0,
+        1,
+        2,
+        0
+      ],
+      "short": [
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    "funded": [
+      21,
+      38,
+      55,
+      7
+    ],
+    "source": {
+      "0008": 21,
+      "0002": 38,
+      "0010": 55,
+      "no CLIN": 7
+    }
+  },
+  "C": [
+    "7/4",
+    "7/2",
+    "21/4"
+  ],
+  "D": {
+    "services": {
+      "USAF": {
+        "ask": [
+          1,
+          1,
+          1
+        ],
+        "disc": [
+          1,
+          1,
+          1
+        ],
+        "mand": [
+          0,
+          0,
+          0
+        ],
+        "unfunded": [
+          0,
+          0,
+          0
+        ],
+        "short": [
+          0,
+          0,
+          0
+        ]
+      },
+      "ANG": {
+        "ask": [
+          2,
+          3,
+          4
+        ],
+        "disc": [
+          2,
+          3,
+          4
+        ],
+        "mand": [
+          0,
+          0,
+          0
+        ],
+        "unfunded": [
+          0,
+          0,
+          0
+        ],
+        "short": [
+          0,
+          0,
+          0
+        ]
+      },
+      "AFRC": {
+        "ask": [
+          1,
+          1,
+          1
+        ],
+        "disc": [
+          0,
+          0,
+          0
+        ],
+        "mand": [
+          1,
+          1,
+          1
+        ],
+        "unfunded": [
+          0,
+          0,
+          0
+        ],
+        "short": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "totals": {
+      "ask": [
+        4,
+        5,
+        6
+      ],
+      "disc": [
+        3,
+        4,
+        5
+      ],
+      "mand": [
+        1,
+        1,
+        1
+      ],
+      "unfunded": [
+        0,
+        0,
+        0
+      ],
+      "short": [
+        1,
+        1,
+        1
+      ]
+    },
+    "planA": [
+      3,
+      4,
+      5
+    ],
+    "planB": [
+      4,
+      5,
+      6
+    ],
+    "source": {
+      "0010": 4,
+      "0002": 5,
+      "0008": 6
+    }
+  },
+  "E": {
+    "offices": [
+      1,
+      1,
+      1
+    ],
+    "source": {
+      "0002": 1,
+      "0010": 1,
+      "0008": 1
+    }
+  },
+  "F": {
+    "services": {
+      "USAF": {
+        "ask": [
+          2,
+          3,
+          4
+        ],
+        "disc": [
+          1,
+          1,
+          1
+        ],
+        "mand": [
+          1,
+          1,
+          1
+        ],
+        "unfunded": [
+          0,
+          1,
+          2
+        ],
+        "short": [
+          1,
+          2,
+          3
+        ]
+      },
+      "ANG": {
+        "ask": [
+          1,
+          1,
+          1
+        ],
+        "disc": [
+          0,
+          0,
+          0
+        ],
+        "mand": [
+          0,
+          0,
+          0
+        ],
+        "unfunded": [
+          1,
+          1,
+          1
+        ],
+        "short": [
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "totals": {
+      "ask": [
+        3,
+        4,
+        5
+      ],
+      "disc": [
+        1,
+        1,
+        1
+      ],
+      "mand": [
+        1,
+        1,
+        1
+      ],
+      "unfunded": [
+        1,
+        2,
+        3
+      ],
+      "short": [
+        2,
+        3,
+        4
+      ]
+    }
+  },
+  "G": [
+    440918277,
+    287699462,
+    50535682
+  ],
+  "quotient_remainder_steps": [
+    {
+      "label": "A USAF",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1,
+        0
+      ],
+      "remainders": [
+        3,
+        0,
+        3,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "label": "A ANG",
+      "total": 9,
+      "weights": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        1,
+        3,
+        4,
+        0
+      ],
+      "remainders": [
+        3,
+        0,
+        3,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        2,
+        3,
+        4,
+        0
+      ]
+    },
+    {
+      "label": "A AFRC",
+      "total": 999999999,
+      "weights": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        166666666,
+        333333333,
+        499999999,
+        0
+      ],
+      "remainders": [
+        3,
+        0,
+        3,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        166666667,
+        333333333,
+        499999999,
+        0
+      ]
+    },
+    {
+      "label": "A STOVL",
+      "total": 250000000,
+      "weights": [
+        1499958,
+        241499956,
+        357000087,
+        0
+      ],
+      "denominator": 600000001,
+      "floors": [
+        624982,
+        100624981,
+        148750036,
+        0
+      ],
+      "remainders": [
+        299375018,
+        299375019,
+        1249964,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        1
+      ],
+      "result": [
+        624982,
+        100624982,
+        148750036,
+        0
+      ]
+    },
+    {
+      "label": "A USMC-C",
+      "total": 3,
+      "weights": [
+        1,
+        1,
+        1,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "remainders": [
+        3,
+        3,
+        3,
+        3
+      ],
+      "leftover": 2,
+      "recipient_indices": [
+        0,
+        1
+      ],
+      "result": [
+        1,
+        1,
+        0,
+        1
+      ]
+    },
+    {
+      "label": "A USN",
+      "total": 3,
+      "weights": [
+        1,
+        0,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        0,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "A CV",
+      "total": 5,
+      "weights": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "denominator": 1,
+      "floors": [
+        0,
+        0,
+        0,
+        5
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0,
+        5
+      ]
+    },
+    {
+      "label": "B USAF ask",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1,
+        0
+      ],
+      "remainders": [
+        3,
+        0,
+        3,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "label": "B USAF disc",
+      "total": 3,
+      "weights": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "denominator": 3,
+      "floors": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "label": "B USAF mand",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "denominator": 4,
+      "floors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B ANG ask",
+      "total": 5,
+      "weights": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        2,
+        0
+      ],
+      "remainders": [
+        5,
+        4,
+        3,
+        0
+      ],
+      "leftover": 2,
+      "recipient_indices": [
+        0,
+        1
+      ],
+      "result": [
+        1,
+        2,
+        2,
+        0
+      ]
+    },
+    {
+      "label": "B ANG disc",
+      "total": 5,
+      "weights": [
+        1,
+        2,
+        2,
+        0
+      ],
+      "denominator": 5,
+      "floors": [
+        1,
+        2,
+        2,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        1,
+        2,
+        2,
+        0
+      ]
+    },
+    {
+      "label": "B ANG mand",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "denominator": 4,
+      "floors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B AFRC ask",
+      "total": 9,
+      "weights": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        1,
+        3,
+        4,
+        0
+      ],
+      "remainders": [
+        3,
+        0,
+        3,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        2,
+        3,
+        4,
+        0
+      ]
+    },
+    {
+      "label": "B AFRC disc",
+      "total": 3,
+      "weights": [
+        2,
+        3,
+        4,
+        0
+      ],
+      "denominator": 9,
+      "floors": [
+        0,
+        1,
+        1,
+        0
+      ],
+      "remainders": [
+        6,
+        0,
+        3,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "label": "B AFRC mand",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1,
+        0
+      ],
+      "remainders": [
+        3,
+        0,
+        3,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1,
+        0
+      ]
+    },
+    {
+      "label": "B STOVL ask",
+      "total": 7,
+      "weights": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "denominator": 1,
+      "floors": [
+        0,
+        0,
+        0,
+        7
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0,
+        7
+      ]
+    },
+    {
+      "label": "B STOVL disc",
+      "total": 7,
+      "weights": [
+        0,
+        0,
+        0,
+        7
+      ],
+      "denominator": 7,
+      "floors": [
+        0,
+        0,
+        0,
+        7
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0,
+        7
+      ]
+    },
+    {
+      "label": "B STOVL mand",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "denominator": 4,
+      "floors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B USMC-C ask",
+      "total": 100,
+      "weights": [
+        1,
+        2,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        16,
+        33,
+        50,
+        0
+      ],
+      "remainders": [
+        4,
+        2,
+        0,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        17,
+        33,
+        50,
+        0
+      ]
+    },
+    {
+      "label": "B USMC-C disc",
+      "total": 100,
+      "weights": [
+        17,
+        33,
+        50,
+        0
+      ],
+      "denominator": 100,
+      "floors": [
+        17,
+        33,
+        50,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        17,
+        33,
+        50,
+        0
+      ]
+    },
+    {
+      "label": "B USMC-C mand",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "denominator": 4,
+      "floors": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source USAF disc",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source USAF mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source ANG disc",
+      "total": 5,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        2
+      ],
+      "remainders": [
+        5,
+        4,
+        3
+      ],
+      "leftover": 2,
+      "recipient_indices": [
+        0,
+        1
+      ],
+      "result": [
+        1,
+        2,
+        2
+      ]
+    },
+    {
+      "label": "B source ANG mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source AFRC disc",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source AFRC mand",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source USMC-C disc",
+      "total": 100,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        16,
+        33,
+        50
+      ],
+      "remainders": [
+        4,
+        2,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        17,
+        33,
+        50
+      ]
+    },
+    {
+      "label": "B source USMC-C mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source USAF disc",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source USAF mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source ANG disc",
+      "total": 5,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        2
+      ],
+      "remainders": [
+        5,
+        4,
+        3
+      ],
+      "leftover": 2,
+      "recipient_indices": [
+        0,
+        1
+      ],
+      "result": [
+        1,
+        2,
+        2
+      ]
+    },
+    {
+      "label": "B source ANG mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source AFRC disc",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source AFRC mand",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source USMC-C disc",
+      "total": 100,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        16,
+        33,
+        50
+      ],
+      "remainders": [
+        4,
+        2,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        17,
+        33,
+        50
+      ]
+    },
+    {
+      "label": "B source USMC-C mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source USAF disc",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source USAF mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source ANG disc",
+      "total": 5,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        2
+      ],
+      "remainders": [
+        5,
+        4,
+        3
+      ],
+      "leftover": 2,
+      "recipient_indices": [
+        0,
+        1
+      ],
+      "result": [
+        1,
+        2,
+        2
+      ]
+    },
+    {
+      "label": "B source ANG mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "B source AFRC disc",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source AFRC mand",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "B source USMC-C disc",
+      "total": 100,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        16,
+        33,
+        50
+      ],
+      "remainders": [
+        4,
+        2,
+        0
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        17,
+        33,
+        50
+      ]
+    },
+    {
+      "label": "B source USMC-C mand",
+      "total": 0,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "D USAF ask",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "D USAF disc",
+      "total": 3,
+      "weights": [
+        1,
+        1,
+        1
+      ],
+      "denominator": 3,
+      "floors": [
+        1,
+        1,
+        1
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "D USAF mand",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1
+      ],
+      "denominator": 3,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "D ANG ask",
+      "total": 9,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        1,
+        3,
+        4
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "label": "D ANG disc",
+      "total": 9,
+      "weights": [
+        2,
+        3,
+        4
+      ],
+      "denominator": 9,
+      "floors": [
+        2,
+        3,
+        4
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "label": "D ANG mand",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1
+      ],
+      "denominator": 3,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "D AFRC ask",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "D AFRC disc",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1
+      ],
+      "denominator": 3,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "D AFRC mand",
+      "total": 3,
+      "weights": [
+        1,
+        1,
+        1
+      ],
+      "denominator": 3,
+      "floors": [
+        1,
+        1,
+        1
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "E grouped offices",
+      "total": 3,
+      "weights": [
+        2,
+        1,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        1,
+        0,
+        1
+      ],
+      "remainders": [
+        0,
+        3,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        1
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "E source CLINs",
+      "total": 3,
+      "weights": [
+        1,
+        1,
+        1,
+        3,
+        0
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "remainders": [
+        3,
+        3,
+        3,
+        3,
+        0
+      ],
+      "leftover": 2,
+      "recipient_indices": [
+        0,
+        1
+      ],
+      "result": [
+        1,
+        1,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "label": "F USAF ask",
+      "total": 9,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        1,
+        3,
+        4
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "label": "F USAF disc",
+      "total": 3,
+      "weights": [
+        2,
+        3,
+        4
+      ],
+      "denominator": 9,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        6,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "F USAF mand",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "F ANG ask",
+      "total": 3,
+      "weights": [
+        1,
+        2,
+        3
+      ],
+      "denominator": 6,
+      "floors": [
+        0,
+        1,
+        1
+      ],
+      "remainders": [
+        3,
+        0,
+        3
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        0
+      ],
+      "result": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "label": "F ANG disc",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1
+      ],
+      "denominator": 3,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "F ANG mand",
+      "total": 0,
+      "weights": [
+        1,
+        1,
+        1
+      ],
+      "denominator": 3,
+      "floors": [
+        0,
+        0,
+        0
+      ],
+      "remainders": [
+        0,
+        0,
+        0
+      ],
+      "leftover": 0,
+      "recipient_indices": [],
+      "result": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "label": "G budget exact half",
+      "total": 779153421,
+      "weights": [
+        881836554,
+        575398923,
+        101071365
+      ],
+      "denominator": 1558306842,
+      "floors": [
+        440918277,
+        287699461,
+        50535682
+      ],
+      "remainders": [
+        0,
+        779153421,
+        779153421
+      ],
+      "leftover": 1,
+      "recipient_indices": [
+        1
+      ],
+      "result": [
+        440918277,
+        287699462,
+        50535682
+      ]
+    }
+  ]
+}

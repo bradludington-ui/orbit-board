@@ -1,0 +1,18 @@
+{
+  "command": [
+    "git",
+    "apply",
+    "--check",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A1/ledger.diff"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/delivery/checks/A1",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:52:01.601659-04:00",
+  "finished_ET": "2026-10-13T12:52:01.608750-04:00",
+  "duration_seconds": 0.007,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 55037,
+  "log": "delivery/A1-patch-check.log",
+  "completion": "passed"
+}

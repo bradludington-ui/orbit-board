@@ -1,0 +1,5 @@
+U9 draft snapshot 20261013-1202 (ET). Base: orbit-board 7ee498a46507972f803cd48ce9f27d5d668acb63 (product d66dd60).
+base prioritization-board-grid.html fce8a391bd8a248d5185e199d22190c1687eaea0  draft 46e522a8370f05971c8ef0558c3c666b0953b0ac
+base tools/export-audit/audit-recon.mjs 529e36f7c20e635b2722ea53b6a4f44b4ed328af  draft 755647cc1340cd2d9ed2b8a78b58f29df4b98b34
+base tools/export-audit/mutate.mjs.txt cbc6defc6803851e847844848fc9b186daeeb268  draft 8fd34e940548e009efb812021792d8667c91fc54
+Draft = rec/L6/u9/c1 after fix round 2; its round-3 review is pending, so it may change. Apply to a checkout of 7ee498a with: git apply board.diff audit-recon.diff mutate.TEXT.diff (paths are repo-relative; checked with git apply --check). mutate.TEXT.diff changes tools/export-audit/mutate.mjs, which is read as TEXT only: never import or run it.

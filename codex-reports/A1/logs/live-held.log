@@ -1,0 +1,14 @@
+{"name":"held RCN without refresh control","status":"passed","failures":0}
+{"name":"committed RCN with successful refresh control","status":"passed","failures":0}
+{"failed":"live refresh preserves focused entered text until the person commits or discards","actual":"11111","expected":"88888"}
+{"failed":"live refresh preserves pending flag for entered text","actual":false,"expected":true}
+{"name":"uncommitted rcn with successful peer refresh","status":"failed","failures":2}
+{"failed":"live refresh preserves focused entered text until the person commits or discards","actual":"AAAAA","expected":"QQQQQ"}
+{"failed":"live refresh preserves pending flag for entered text","actual":false,"expected":true}
+{"name":"uncommitted eeic with successful peer refresh","status":"failed","failures":2}
+{"failed":"live refresh preserves focused entered text until the person commits or discards","actual":"ORIGINAL TITLE","expected":"HELD NEW TITLE"}
+{"failed":"live refresh preserves pending flag for entered text","actual":false,"expected":true}
+{"name":"uncommitted t with successful peer refresh","status":"failed","failures":2}
+{"failed":"live refresh preserves focused entered text until the person commits or discards","actual":"11111","expected":"88888"}
+{"failed":"live refresh preserves pending flag for entered text","actual":false,"expected":true}
+{"name":"uncommitted RCN with failed peer refresh","status":"failed","failures":2}

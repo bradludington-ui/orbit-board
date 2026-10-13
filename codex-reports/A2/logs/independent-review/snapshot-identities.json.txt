@@ -1,0 +1,14 @@
+{
+  "fix": {
+    "prioritization-board-grid.html": "c6ff61f71ca65b76924ed4dd81e3128eee6ef179dd9c8b225e0e177cfe1e95ff",
+    "tools/export-audit/audit-recon.mjs": "3ab8df0ea0f98de86e90fd223d08ddbe7af766494cd81b172bd028fce91001c9",
+    "tools/export-audit/mutate.mjs": "708dc6bd58b3ddf65af8632c722eb66e8965829106244ebc22325e1ba7aa7372",
+    "tools/export-audit/boot.mjs": "6ee4a0401ca607256dc1811b67e7b802adef7339aa2931af3ee3d06c6f8b08e3"
+  },
+  "base": {
+    "prioritization-board-grid.html": "5cb9db21510d96c70a1ed37b1743019039ff053c23bd5bb3cfa104ff6b0e532e",
+    "tools/export-audit/audit-recon.mjs": "8498a9a56b594d730bc7a9c6e3540a8ff06520855f25aebd31b6d74705f14dd1",
+    "tools/export-audit/mutate.mjs": "f8bc7510438c82ec752e66014c4d323d40d1c1ea863072809b2e7563d5a8cb22",
+    "tools/export-audit/boot.mjs": "6ee4a0401ca607256dc1811b67e7b802adef7339aa2931af3ee3d06c6f8b08e3"
+  }
+}

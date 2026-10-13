@@ -1,0 +1,1 @@
+{"id": "v200-u37-controls-raw", "matches": 1, "find": "  return _xesc(t.replace(/[\\u0000-\\u001F\\uFFFE\\uFFFF\\uD800-\\uDFFF]/g,function(c,i,v){", "repl": "  return _xesc(t.replace(/[\\uFFFE\\uFFFF\\uD800-\\uDFFF]/g,function(c,i,v){"}

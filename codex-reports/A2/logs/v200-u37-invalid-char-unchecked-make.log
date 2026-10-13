@@ -1,0 +1,1 @@
+{"id": "v200-u37-invalid-char-unchecked", "matches": 1, "find": "    const text=String(value), bad=/[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\uFFFE\\uFFFF]|[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|(?<![\\uD800-\\uDBFF])[\\uDC00-\\uDFFF]/.exec(text);", "repl": "    const text=String(value), bad=null;"}

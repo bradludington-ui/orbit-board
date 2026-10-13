@@ -1,0 +1,422 @@
+[
+  {
+    "id": "v200-u40-typed-duplicate-open",
+    "checks": 116,
+    "failed": 12,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "typing ALPHA DEPOT",
+        "what": "duplicate name is refused"
+      },
+      {
+        "where": "typing ALPHA DEPOT",
+        "what": "requirements, counters and flags are untouched"
+      },
+      {
+        "where": "typing ALPHA DEPOT",
+        "what": "no storage writes"
+      },
+      {
+        "where": "typing ALPHA DEPOT",
+        "what": "refusal is explained"
+      },
+      {
+        "where": "typing   alpha   depot  ",
+        "what": "duplicate name is refused"
+      },
+      {
+        "where": "typing   alpha   depot  ",
+        "what": "requirements, counters and flags are untouched"
+      },
+      {
+        "where": "typing   alpha   depot  ",
+        "what": "no storage writes"
+      },
+      {
+        "where": "typing   alpha   depot  ",
+        "what": "refusal is explained"
+      },
+      {
+        "where": "actual name control",
+        "what": "the refused draft is visibly identified as invalid"
+      },
+      {
+        "where": "actual name control",
+        "what": "the control names the stored value without claiming the draft was saved"
+      },
+      {
+        "where": "actual name control",
+        "what": "the generated handler leaves the stored name unchanged"
+      },
+      {
+        "where": "actual name control",
+        "what": "refusal keeps focus where the person is correcting the draft"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-incoming-duplicate-merged",
+    "checks": 116,
+    "failed": 37,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "newer Alpha Depot",
+        "what": "opening names the preserved duplicates"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "both names survive"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "current year keeps both destination identities"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "another saved year keeps both identities"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "locked cycle keeps both identities"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "current year keeps second-hop identities"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "another year keeps second-hop identities"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "locked cycle keeps second-hop identities"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "R1 owns its literal $900"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "R2 owns its literal $300"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "actual XLSX has separate destination sheets"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "actual XLSX R1 belongs only to Alpha Depot"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "actual XLSX R2 belongs only to ALPHA DEPOT"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "both names survive"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "current year keeps both destination identities"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "another saved year keeps both identities"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "locked cycle keeps both identities"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "current year keeps second-hop identities"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "another year keeps second-hop identities"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "locked cycle keeps second-hop identities"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "R1 owns its literal $900"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "R2 owns its literal $300"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "actual XLSX has separate destination sheets"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "actual XLSX R1 belongs only to Alpha Depot"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "actual XLSX R2 belongs only to ALPHA DEPOT"
+      },
+      {
+        "where": "cached legacy",
+        "what": "cached legacy identities are distinct"
+      },
+      {
+        "where": "cached legacy",
+        "what": "the second entry keeps its own spelling"
+      },
+      {
+        "where": "cached legacy",
+        "what": "cached legacy R1 owns $900"
+      },
+      {
+        "where": "cached legacy",
+        "what": "cached legacy R2 owns $300"
+      },
+      {
+        "where": "cached legacy",
+        "what": "the preserved matching names are disclosed"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "cached legacy identities are distinct"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "the second entry keeps its own spelling"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "cached legacy R1 owns $900"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "cached legacy R2 owns $300"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "the preserved matching names are disclosed"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-ambiguous-local-first",
+    "checks": 116,
+    "failed": 2,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "ambiguous local name",
+        "what": "a first name match is not selected from an ambiguous local list"
+      },
+      {
+        "where": "ambiguous local name",
+        "what": "the incoming distinct destination is kept"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-same-list-key-consumed",
+    "checks": 116,
+    "failed": 2,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "same list key",
+        "what": "a different incoming key cannot claim its neighbor by name"
+      },
+      {
+        "where": "same list key",
+        "what": "both incoming identities remain"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-preserved-duplicates-unsaid",
+    "checks": 116,
+    "failed": 9,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "fresh file",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "newer Bravo Yard",
+        "what": "opening names the preserved duplicates"
+      },
+      {
+        "where": "newer Bravo Yard",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "saved after Bravo Yard",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "opening names the preserved duplicates"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "cached legacy",
+        "what": "the preserved matching names are disclosed"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "the preserved matching names are disclosed"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-name-merge-unsaid",
+    "checks": 116,
+    "failed": 1,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "legacy merge notice",
+        "what": "the actual merge names both keys and both names"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-editor-notice-gone",
+    "checks": 116,
+    "failed": 8,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "fresh file",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "newer Bravo Yard",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "saved after Bravo Yard",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "saved after Alpha Depot",
+        "what": "preserved duplicate names are disclosed"
+      },
+      {
+        "where": "cached legacy",
+        "what": "the preserved matching names are disclosed"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "the preserved matching names are disclosed"
+      },
+      {
+        "where": "legacy merge notice",
+        "what": "the actual merge names both keys and both names"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-opening-notice-gone",
+    "checks": 116,
+    "failed": 2,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "newer Bravo Yard",
+        "what": "opening names the preserved duplicates"
+      },
+      {
+        "where": "newer Alpha Depot",
+        "what": "opening names the preserved duplicates"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-cached-map-collapse",
+    "checks": 116,
+    "failed": 10,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "cached legacy",
+        "what": "cached legacy identities are distinct"
+      },
+      {
+        "where": "cached legacy",
+        "what": "the second entry keeps its own spelling"
+      },
+      {
+        "where": "cached legacy",
+        "what": "cached legacy R1 owns $900"
+      },
+      {
+        "where": "cached legacy",
+        "what": "cached legacy R2 owns $300"
+      },
+      {
+        "where": "cached legacy",
+        "what": "the preserved matching names are disclosed"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "cached legacy identities are distinct"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "the second entry keeps its own spelling"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "cached legacy R1 owns $900"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "cached legacy R2 owns $300"
+      },
+      {
+        "where": "cached legacy saved/reopened",
+        "what": "the preserved matching names are disclosed"
+      }
+    ]
+  },
+  {
+    "id": "v200-u40-refusal-field-unmarked",
+    "checks": 116,
+    "failed": 2,
+    "harness_failures": [],
+    "failing_checks": [
+      {
+        "where": "actual name control",
+        "what": "the refused draft is visibly identified as invalid"
+      },
+      {
+        "where": "actual name control",
+        "what": "the control names the stored value without claiming the draft was saved"
+      }
+    ]
+  }
+]

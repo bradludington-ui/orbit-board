@@ -1,0 +1,15 @@
+{
+  "Node": "v24.19.0",
+  "jsdom": "27.0.0",
+  "adapter": "runtime-encoding-shim.mjs",
+  "adapter_sha256": "e689710a2895d6843a66207d18ec886688b16f3c166b6ddada296e40a51c7981",
+  "selected_switches": {
+    "NODE_OPTIONS": null,
+    "BOARD": null,
+    "MUT_FIRST_FAIL": null,
+    "BOOT_PARSE": null,
+    "LANG": "C.UTF-8",
+    "TZ": null
+  },
+  "note": "Per-run BOARD is recorded by the command/pinning; base and mutant runs explicitly override it. No package was installed."
+}

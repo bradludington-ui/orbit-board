@@ -1,0 +1,1 @@
+{"id": "v200-u37-exportcsv-null-unchecked", "matches": 1, "find": "const bytes=buildXlsx(sheets, extra);\n  if(!bytes) return;", "repl": "const bytes=buildXlsx(sheets, extra);\n  /* refused result not checked */"}

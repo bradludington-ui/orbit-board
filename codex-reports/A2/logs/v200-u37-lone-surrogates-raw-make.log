@@ -1,0 +1,1 @@
+{"id": "v200-u37-lone-surrogates-raw", "matches": 1, "find": "    const n=c.charCodeAt(0), before=v.charCodeAt(i-1), after=v.charCodeAt(i+1);", "repl": "    const n=c.charCodeAt(0), before=v.charCodeAt(i-1), after=v.charCodeAt(i+1); if(n>=0xD800 && n<=0xDFFF) return c;"}

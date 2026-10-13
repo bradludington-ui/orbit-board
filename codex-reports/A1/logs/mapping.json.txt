@@ -1,0 +1,37 @@
+{
+  "finding": "U35 pending registry input lost on background refresh",
+  "variants": 4,
+  "mapping": [
+    {
+      "row": "U36",
+      "status": "new; ordinary short ASCII title is lost before commit; no length cut"
+    },
+    {
+      "row": "U37",
+      "status": "new; no workbook or illegal XML character is involved"
+    },
+    {
+      "row": "U38",
+      "status": "new; no file normalization, long imported code or charset mismatch is involved"
+    },
+    {
+      "row": "U39",
+      "status": "new; one ordinary K1 registry entry, no duplicate labels"
+    },
+    {
+      "row": "U40",
+      "status": "new; no destination-name fold or imported newer list is involved"
+    },
+    {
+      "row": "U41",
+      "status": "new; no SI code is involved"
+    },
+    {
+      "row": "U42",
+      "status": "new; no sheet name, apostrophe or Unicode cut is involved"
+    }
+  ],
+  "same_as_any_U36_U42": false,
+  "reuse_U35_id": true,
+  "new_duplicate_ID_needed": false
+}

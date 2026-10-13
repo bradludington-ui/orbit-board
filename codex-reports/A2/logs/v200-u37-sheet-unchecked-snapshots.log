@@ -1,0 +1,13 @@
+U37 CHECKS 53
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "sheet name",
+      "what": "metadata refused before ZIP; precise field named; state unchanged",
+      "got": "[1,5001,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    }
+  ]
+}
+1 FAILING CHECK(S)

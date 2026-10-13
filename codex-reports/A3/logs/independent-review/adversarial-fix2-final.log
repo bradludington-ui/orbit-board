@@ -1,0 +1,151 @@
+CACHED-DUPLICATE-MAP {"map":{"x1":"A","x2":"dmv6w9wuwou3g"},"keys":{"R1":{"to":"A","end":""},"R2":{"to":"dmv6w9wuwou3g","end":""}},"ents":[{"k":"A","n":"Alpha Depot","kind":"other","t":""},{"k":"dmv6w9wuwou3g","n":"ALPHA DEPOT","kind":"other","t":""},{"k":"lm","n":"Lockheed Martin","kind":"prime","t":"LM, LOCKHEED"},{"k":"pw","n":"Pratt & Whitney","kind":"prime","t":"PW, P&W, PRATT"},{"k":"pax","n":"NAWCAD Patuxent River","kind":"gov","t":"PAX, PATUXENT"},{"k":"chlk","n":"NAWCWD China Lake","kind":"gov","t":"CHLK, CHINA LAKE"},{"k":"chpt","n":"FRC East, Cherry Point","kind":"gov","t":"CHERRY, FRCE"},{"k":"lke","n":"NAWCAD Lakehurst","kind":"gov","t":"LKE, LAKEHURST"},{"k":"dla","n":"Defense Logistics Agency","kind":"gov","t":"DLA"},{"k":"okc","n":"OC-ALC Oklahoma City","kind":"gov","t":"OKC, OKLAHOMA"}],"notice":"⚠ <b>Destinations with matching names were kept separate.</b> Alpha Depot [A] · ALPHA DEPOT [dmv6w9wuwou3g]. Requirements still point at their own keys. Rename these destinations to make the distinction clear.","money":{"fy":2027,"fys":[2027],"aps":["om"],"multi":false,"unavail":[],"label":"FY27 · O&M · PLANNED (board allocation, O&M)","tot":1200,"appn":{"om":1200,"ff":0,"sp":0,"opn":0},"dual":0,"rows":2,"execV":0,"planV":1200,"planSlug":"om","execYs":[],"planYs":[2027],"mixYs":[],"prime":{"LM":{"v":0,"rows":[],"name":"Lockheed Martin"},"PW":{"v":0,"rows":[],"name":"Pratt & Whitney"}},"primeTot":0,"ext":{"v":1200,"by":{"A":{"v":900,"rows":[{"ap":"om","ttl":"Req R1","ev":"Ev R1","pmo":"AV","pmoFull":"AV","cat":"","obcat":"","svc":"USAF","v":900,"ob":false,"plan":true,"fy":2027,"upl":false}],"name":"Alpha Depot"},"dmv6w9wuwou3g":{"v":300,"rows":[{"ap":"om","ttl":"Req R2","ev":"Ev R2","pmo":"AV","pmoFull":"AV","cat":"","obcat":"","svc":"USAF","v":300,"ob":false,"plan":true,"fy":2027,"upl":false}],"name":"ALPHA DEPOT"},"lm":{"v":0,"rows":[],"name":"Lockheed Martin"},"pw":{"v":0,"rows":[],"name":"Pratt & Whitney"},"pax":{"v":0,"rows":[],"name":"NAWCAD Patuxent River"},"chlk":{"v":0,"rows":[],"name":"NAWCWD China Lake"},"chpt":{"v":0,"rows":[],"name":"FRC East, Cherry Point"},"lke":{"v":0,"rows":[],"name":"NAWCAD Lakehurst"},"dla":{"v":0,"rows":[],"name":"Defense Logistics Agency"},"okc":{"v":0,"rows":[],"name":"OC-ALC Oklahoma City"},"destsplit":{"v":0,"rows":[],"name":"Split between destinations — resolve"},"unassigned":{"v":0,"rows":[],"name":"Not yet assigned"}},"keys":["A","dmv6w9wuwou3g","lm","pw","pax","chlk","chpt","lke","dla","okc","destsplit","unassigned"]},"upl":{"v":0,"rows":[]},"uplTo":"LM","uplIn":0,"cats":[{"k":"A","n":"Alpha Depot","kind":"other","cat":"","ttl":""},{"k":"dmv6w9wuwou3g","n":"ALPHA DEPOT","kind":"other","cat":"","ttl":""},{"k":"lm","n":"Lockheed Martin","kind":"prime","cat":"","ttl":""},{"k":"pw","n":"Pratt & Whitney","kind":"prime","cat":"","ttl":""},{"k":"pax","n":"NAWCAD Patuxent River","kind":"gov","cat":"","ttl":""},{"k":"chlk","n":"NAWCWD China Lake","kind":"gov","cat":"","ttl":""},{"k":"chpt","n":"FRC East, Cherry Point","kind":"gov","cat":"","ttl":""},{"k":"lke","n":"NAWCAD Lakehurst","kind":"gov","cat":"","ttl":""},{"k":"dla","n":"Defense Logistics Agency","kind":"gov","cat":"","ttl":""},{"k":"okc","n":"OC-ALC Oklahoma City","kind":"gov","cat":"","ttl":""},{"k":"destsplit","n":"Split between destinations — resolve","cat":"","ttl":""},{"k":"unassigned","n":"Not yet assigned","cat":"","ttl":""}],"pseudo":{"on":false,"token":"OBBBA","match":"OBBBA, Mandatory","from":2025,"to":2026,"v":0,"n":0},"ip":0,"fms":0,"us":1200,"grand":1200}}
+cached file opening {"to1":"A","to2":"dmv6w9x3ky058","names":["Alpha Depot","ALPHA DEPOT"],"total":1200,"by":{"A":{"v":900,"rows":[{"ap":"om","ttl":"Req R1","ev":"Ev R1","pmo":"AV","pmoFull":"AV","cat":"","obcat":"","svc":"USAF","v":900,"ob":false,"plan":true,"fy":2027,"upl":false}],"name":"Alpha Depot"},"dmv6w9x3ky058":{"v":300,"rows":[{"ap":"om","ttl":"Req R2","ev":"Ev R2","pmo":"AV","pmoFull":"AV","cat":"","obcat":"","svc":"USAF","v":300,"ob":false,"plan":true,"fy":2027,"upl":false}],"name":"ALPHA DEPOT"},"destsplit":{"v":0,"rows":[],"name":"Split between destinations — resolve"},"unassigned":{"v":0,"rows":[],"name":"Not yet assigned"}},"status":"📦 Opened with the saved board state — last saved by unknown 10/13/2026, 4:27:49 PM. Make changes and 💾 Save to pass it on. ⚠ Destinations with matching names were kept separate. Alpha Depot [A] · ALPHA DEPOT [dmv6w9x3ky058]. Requirements still point at their own keys. Rename these destinations to make the distinction clear."}
+saved cached file reopened {"to1":"A","to2":"dmv6w9x3ky058","names":["Alpha Depot","ALPHA DEPOT"],"total":1200,"by":{"A":{"v":900,"rows":[{"ap":"om","ttl":"Req R1","ev":"Ev R1","pmo":"AV","pmoFull":"AV","cat":"","obcat":"","svc":"USAF","v":900,"ob":false,"plan":true,"fy":2027,"upl":false}],"name":"Alpha Depot"},"dmv6w9x3ky058":{"v":300,"rows":[{"ap":"om","ttl":"Req R2","ev":"Ev R2","pmo":"AV","pmoFull":"AV","cat":"","obcat":"","svc":"USAF","v":300,"ob":false,"plan":true,"fy":2027,"upl":false}],"name":"ALPHA DEPOT"},"destsplit":{"v":0,"rows":[],"name":"Split between destinations — resolve"},"unassigned":{"v":0,"rows":[],"name":"Not yet assigned"}},"status":"📦 Opened with the saved board state — last saved by unknown 10/13/2026, 4:27:50 PM. Make changes and 💾 Save to pass it on. ⚠ Destinations with matching names were kept separate. Alpha Depot [A] · ALPHA DEPOT [dmv6w9x3ky058]. Requirements still point at their own keys. Rename these destinations to make the distinction clear."}
+POST-EXPORT-STATUS ⬇ Exported: funds flow FY27–FY31 · all years · all appropriations · PLANNED (board allocation, O&M) — summary, prime detail, OGC detail.
+ACTUAL-TYPED-CONTROL {"input":"ALPHA DEPOT","stored":"Bravo Yard","status":"⚠ Destination name not changed. Another destination has that name (ignoring case and extra spaces). Give this destination a different name; both destinations and their requirements are unchanged."}
+LATE-MERGE-STATUS Before incoming
+{
+  "checks": 17,
+  "failed": 0,
+  "rows": [
+    {
+      "where": "cached duplicate",
+      "what": "distinct incoming requirements keep separate destinations",
+      "got": false,
+      "want": false,
+      "ok": true
+    },
+    {
+      "where": "cached duplicate",
+      "what": "both entry records survive",
+      "got": 2,
+      "want": 2,
+      "ok": true
+    },
+    {
+      "where": "cached duplicate",
+      "what": "preserved duplicates disclosed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "where": "cached file opening",
+      "what": "literal $1200 total stays",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "where": "cached file opening",
+      "what": "R2 retains destination distinct from R1",
+      "got": false,
+      "want": false,
+      "ok": true
+    },
+    {
+      "where": "cached file opening",
+      "what": "two named destinations survive",
+      "got": 2,
+      "want": 2,
+      "ok": true
+    },
+    {
+      "where": "saved cached file reopened",
+      "what": "literal $1200 total stays",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "where": "saved cached file reopened",
+      "what": "R2 retains destination distinct from R1",
+      "got": false,
+      "want": false,
+      "ok": true
+    },
+    {
+      "where": "saved cached file reopened",
+      "what": "two named destinations survive",
+      "got": 2,
+      "want": 2,
+      "ok": true
+    },
+    {
+      "where": "same-name cross-copy control",
+      "what": "stable maps on repeated fold",
+      "got": [
+        {
+          "B": "A"
+        },
+        {
+          "B": "A"
+        }
+      ],
+      "want": [
+        {
+          "B": "A"
+        },
+        {
+          "B": "A"
+        }
+      ],
+      "ok": true
+    },
+    {
+      "where": "same-name cross-copy control",
+      "what": "one entry retained",
+      "got": 1,
+      "want": 1,
+      "ok": true
+    },
+    {
+      "where": "uncached legacy duplicate",
+      "what": "two records retained",
+      "got": 2,
+      "want": 2,
+      "ok": true
+    },
+    {
+      "where": "uncached legacy duplicate",
+      "what": "keys mapped separately",
+      "got": false,
+      "want": false,
+      "ok": true
+    },
+    {
+      "where": "uncached legacy duplicate",
+      "what": "repeat mapping stable",
+      "got": {
+        "x1": "dmv6w9xj5p986",
+        "x2": "dmv6w9xj6g7vj"
+      },
+      "want": {
+        "x1": "dmv6w9xj5p986",
+        "x2": "dmv6w9xj6g7vj"
+      },
+      "ok": true
+    },
+    {
+      "where": "duplicate disclosure",
+      "what": "opening status includes duplicate warning",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "where": "duplicate disclosure",
+      "what": "editor retains notice after export",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "where": "late merge",
+      "what": "editor makes remap disclosure available",
+      "got": true,
+      "want": true,
+      "ok": true
+    }
+  ]
+}

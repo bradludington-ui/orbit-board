@@ -1,0 +1,363 @@
+U37 CHECKS 54
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0000",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0000\",900,200]]",
+      "want": "[0,true,[\"\\u0000\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0001",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0001\",900,200]]",
+      "want": "[0,true,[\"\\u0001\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0002",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0002\",900,200]]",
+      "want": "[0,true,[\"\\u0002\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0003",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0003\",900,200]]",
+      "want": "[0,true,[\"\\u0003\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0004",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0004\",900,200]]",
+      "want": "[0,true,[\"\\u0004\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0005",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0005\",900,200]]",
+      "want": "[0,true,[\"\\u0005\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0006",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0006\",900,200]]",
+      "want": "[0,true,[\"\\u0006\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0007",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0007\",900,200]]",
+      "want": "[0,true,[\"\\u0007\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0008",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\b\",900,200]]",
+      "want": "[0,true,[\"\\b\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+000B",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u000b\",900,200]]",
+      "want": "[0,true,[\"\\u000b\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+000C",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\f\",900,200]]",
+      "want": "[0,true,[\"\\f\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+000E",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u000e\",900,200]]",
+      "want": "[0,true,[\"\\u000e\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+000F",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u000f\",900,200]]",
+      "want": "[0,true,[\"\\u000f\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0010",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0010\",900,200]]",
+      "want": "[0,true,[\"\\u0010\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0011",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0011\",900,200]]",
+      "want": "[0,true,[\"\\u0011\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0012",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0012\",900,200]]",
+      "want": "[0,true,[\"\\u0012\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0013",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0013\",900,200]]",
+      "want": "[0,true,[\"\\u0013\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0014",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0014\",900,200]]",
+      "want": "[0,true,[\"\\u0014\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0015",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0015\",900,200]]",
+      "want": "[0,true,[\"\\u0015\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0016",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0016\",900,200]]",
+      "want": "[0,true,[\"\\u0016\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0017",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0017\",900,200]]",
+      "want": "[0,true,[\"\\u0017\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0018",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0018\",900,200]]",
+      "want": "[0,true,[\"\\u0018\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+0019",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u0019\",900,200]]",
+      "want": "[0,true,[\"\\u0019\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+001A",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u001a\",900,200]]",
+      "want": "[0,true,[\"\\u001a\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+001B",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u001b\",900,200]]",
+      "want": "[0,true,[\"\\u001b\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+001C",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u001c\",900,200]]",
+      "want": "[0,true,[\"\\u001c\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+001D",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u001d\",900,200]]",
+      "want": "[0,true,[\"\\u001d\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+001E",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u001e\",900,200]]",
+      "want": "[0,true,[\"\\u001e\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+001F",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"\\u001f\",900,200]]",
+      "want": "[0,true,[\"\\u001f\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+FFFE",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"￾\",900,200]]",
+      "want": "[0,true,[\"￾\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+FFFF",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[1,false,[\"￿\",900,200]]",
+      "want": "[0,true,[\"￿\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+D800",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[0,false,[\"�\",900,200]]",
+      "want": "[0,true,[\"\\ud800\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+DBFF",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[0,false,[\"�\",900,200]]",
+      "want": "[0,true,[\"\\udbff\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+DC00",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[0,false,[\"�\",900,200]]",
+      "want": "[0,true,[\"\\udc00\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+DFFF",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[0,false,[\"�\",900,200]]",
+      "want": "[0,true,[\"\\udfff\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x000B_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x000B_\"]",
+      "want": "[0,true,\"_x000B_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x0041_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x0041_\"]",
+      "want": "[0,true,\"_x0041_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x005F_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x005F_\"]",
+      "want": "[0,true,\"_x005F_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x00ab_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x00ab_\"]",
+      "want": "[0,true,\"_x00ab_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x0001_x0002_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x0001_x0002_\"]",
+      "want": "[0,true,\"_x0001_x0002_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "literal _x005F_x0001_",
+      "what": "OOXML escape spelling is protected and decoded once, never interpreted as its character",
+      "got": "[0,false,\"_x005F_x0001_\"]",
+      "want": "[0,true,\"_x005F_x0001_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "legal whitespace a_x0009_b",
+      "what": "control is encoded, survives exact reader roundtrip, all parts parse",
+      "got": "[0,false,\"a\\tb\"]",
+      "want": "[0,true,\"a\\tb\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "legal whitespace a_x000A_b",
+      "what": "control is encoded, survives exact reader roundtrip, all parts parse",
+      "got": "[0,false,\"a\\nb\"]",
+      "want": "[0,true,\"a\\nb\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "legal whitespace a_x000D_b",
+      "what": "control is encoded, survives exact reader roundtrip, all parts parse",
+      "got": "[0,false,\"a\\rb\"]",
+      "want": "[0,true,\"a\\rb\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "workbook tab",
+      "what": "sheet name uses same codec, is XML and reads back exactly",
+      "got": "[1,false,[\"Ctl\\u000b_x0041_\"],[\"exact\"]]",
+      "want": "[0,true,[\"Ctl\\u000b_x0041_\"],[\"exact\"]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "number format",
+      "what": "custom format uses same codec and produces valid XML",
+      "got": "[1,false]",
+      "want": "[0,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "shared string reader",
+      "what": "external OOXML character and protected literal decode once, every part parses",
+      "got": "[0,\"bad_x0001__x005F_x0041_\"]",
+      "want": "[0,\"bad\\u0001_x0041_\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportExcel",
+      "what": "real emitted workbook is XML; the exact typed text returns through board reader; no state changes",
+      "got": "[5,true,true]",
+      "want": "[0,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportCSV",
+      "what": "real emitted workbook is XML; the exact typed text returns through board reader; no state changes",
+      "got": "[2,true,true]",
+      "want": "[0,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportSrc",
+      "what": "real emitted workbook is XML; the exact typed text returns through board reader; no state changes",
+      "got": "[1,true,true]",
+      "want": "[0,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportFlow",
+      "what": "actual destination workbook: every part parses and the exact name returns, including its literal escape spelling",
+      "got": "[4,true,true]",
+      "want": "[0,true,true]"
+    }
+  ]
+}
+51 FAILING CHECK(S)

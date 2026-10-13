@@ -1,0 +1,20 @@
+{
+  "batch": "A1",
+  "base": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+  "input_head": "bbe728556dc394c50d84ad9a09facc5fa163e42b",
+  "started_ET": "2026-10-13T12:08:23-04:00",
+  "steps": [
+    "exact prior U35 and U36-U42 mapping inspected"
+  ],
+  "pending": [
+    "U35 implementation not requested in A1; exact brief returned for lead"
+  ],
+  "finished_ET": "2026-10-13T12:19:02.468255-04:00",
+  "complete": true,
+  "results": {
+    "pass": 46,
+    "fail": 8,
+    "incomplete": 0
+  },
+  "report": "REPORT.md"
+}

@@ -1,0 +1,1 @@
+{"id": "v200-u37-cell-unchecked", "matches": 1, "find": "        if(v!==null && v!==undefined && typeof v!=='number' && badText(v,label+' cell '+_colL(ci)+(ri+1))) return true;\n", "repl": ""}

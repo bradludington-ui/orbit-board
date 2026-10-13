@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    "/workspace/orbit-codex-batches-20261013-1205ET/inputs/regtext/probe/verifier/vsi.mjs",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A4/fix",
+    "/workspace/orbit-codex-batches-20261013-1205ET/base/prioritization-board-grid.html"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4/fix",
+  "cap_seconds": 120.0,
+  "started_ET": "2026-10-13T12:17:42.254958-04:00",
+  "finished_ET": "2026-10-13T12:17:44.138262-04:00",
+  "duration_seconds": 1.883,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 50443,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/probe-vsi-base.log",
+  "completion": "passed"
+}

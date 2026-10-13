@@ -1,0 +1,34 @@
+U37 CHECKS 54
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+D800",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[0,false,[\"�\",900,200]]",
+      "want": "[0,true,[\"\\ud800\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+DBFF",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[0,false,[\"�\",900,200]]",
+      "want": "[0,true,[\"\\udbff\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+DC00",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[0,false,[\"�\",900,200]]",
+      "want": "[0,true,[\"\\udc00\",900,200]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "cell U+DFFF",
+      "what": "every part parses, encoded unit is present, exact reader text and literal $900/$200",
+      "got": "[0,false,[\"�\",900,200]]",
+      "want": "[0,true,[\"\\udfff\",900,200]]"
+    }
+  ]
+}
+4 FAILING CHECK(S)

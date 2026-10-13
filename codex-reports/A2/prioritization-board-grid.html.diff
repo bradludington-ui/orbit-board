@@ -1,0 +1,195 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -4180,6 +4180,7 @@
+   out.push([{v:'TOTAL', s:4},'','','','','',{v:tot, s:NB},'','','','']);
+   const wb=buildXlsx([{name:'Funding plan',
+                        cols:[10,16,11,8,46,40,15,11,34,10,30], rows:out}]);
++  if(!wb) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([wb],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName('ORBIT Funding Plan \u2014 '+(rlgLabel||'new requirement').replace(/[^A-Za-z0-9 ]+/g,' ').trim()
+@@ -7702,6 +7703,7 @@
+     +'review, not the result. DECISION / NOTES is left blank on purpose: it is yours to fill in and '
+     +'keep as the record of what was accepted and why.'}]);
+   const blob=buildXlsx([sheet]);
++  if(!blob) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName('ORBIT SUBMITTAL REVIEW - '
+@@ -11666,6 +11668,7 @@
+   note[7]='Report here when you need to have cash-in-hand';
+   out.push(note);
+   const bytes=buildXlsx([{name:'O&M,N', cols:CR_COLW.slice(), freeze:6, rows:out}], SRC_XTRA);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName('FY'+fy+' CRA APN OMN Oct-Mar - '+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -13457,6 +13460,7 @@
+   // 4. THE FILE
+   const when=new Date(), org=+String(f.org).trim();
+   const bytes=buildXlsx(idsSheets(P, f, when), IDS_XTRA);
++  if(!bytes) return;
+   // 5. THE ONE SETTING KEPT -- the ORG -- and only now, once the file exists
+   if(!MS.ids) MS.ids={};
+   if(MS.ids.org!==org){ MS.ids.org=org; save(); }
+@@ -16826,6 +16830,7 @@
+     rows:detail((F.ext.by[c.k]||{rows:[]}).rows)}));
+   if(F.upl.rows.length) sheets.push({name:tabName('Unfunded (UPL)','UPL'), cols:CD, rows:detail(F.upl.rows)});
+   const bytes=buildXlsx(sheets);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName('ORBIT Funds Flow - '+F.label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()
+@@ -17151,6 +17156,7 @@
+     label=APPN_LBL[exA]+' FY'+(exFy%100)+(exSvc!=='ALL'?' '+exSvc:'');
+   }
+   const bytes=buildXlsx(sheets);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName('ORBIT Active Year Execution - '+label+' '+dstr+'.xlsx');
+@@ -17335,6 +17341,7 @@
+       +(blank.length===1?'':'s')+' without a Budget.'); return; }
+   }
+   const bytes=buildXlsx(sheets, SRC_XTRA);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName('Spend Plan Source - '+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -18605,6 +18612,7 @@
+     sheet('PLAN A \u2014 Discretionary only','a',R.aBud,R.aT,R.A.__cut,'DISCRETIONARY ONLY'),
+     sheet('PLAN B \u2014 Disc + Mandatory','b',R.bBud,R.bT,R.B.__cut,'DISCRETIONARY + MANDATORY'),
+     cmp]);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 Two Spend Plans '+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -19382,6 +19390,7 @@
+     const P=fydpPmoSheets(D, A, sheets.map(function(s){ return s.name; }));
+     P.sheets.forEach(function(s){ sheets.push(s); });
+     const bytes=buildXlsx(sheets);
++    if(!bytes) return;
+     const a=document.createElement('a');
+     a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+     a.download=expName('ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLblTxt(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -19903,6 +19912,7 @@
+     sheets.push({name:'By PMO', cols:[14,12].concat(D.years.map(()=>[14,14,14,14,14,14,14,14,14,14,14,14]).flat()), freeze:4, rows:rows});
+   }
+   const bytes=buildXlsx(sheets);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName('ORBIT Cycle Comparison — '+la+' vs '+lb+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -21642,6 +21652,7 @@
+     sheet.rows.push([{v:'⚠ '+toChk.length+' entr'+(toChk.length===1?'y':'ies')+' to check (the Check column says why): '+part.join('; ')+'.',s:B}]);
+   }
+   const bytes=buildXlsx([sheet]);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName(FYL()+' ATR-BTR Log '+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -21806,6 +21817,7 @@
+   D.by.rows.forEach(r=>sheet.rows.push(line(r.label,r.b)));
+   sheet.rows.push(line('TOTAL',totOf(D.by.rows.map(r=>r.b)),true));
+   const blob=buildXlsx([sheet]);
++  if(!blob) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName(FYL()+' Spend Plan Forecast - '+String(vl).replace(/[^A-Za-z0-9 _-]/g,'')+'.xlsx');
+@@ -24757,7 +24769,7 @@
+   let nfmt=167, numfmts='';
+   const fmtOf=extra.map(e=>{
+     if(!e.fmt) return 0;
+-    numfmts+='<numFmt numFmtId="'+nfmt+'" formatCode="'+_xesc(e.fmt)+'"/>';
++    numfmts+='<numFmt numFmtId="'+nfmt+'" formatCode="'+_xlXml(e.fmt)+'"/>';
+     return nfmt++;
+   });
+   const xfs=extra.map((e,i)=>{
+@@ -24789,7 +24801,37 @@
+ // THE BUILT-IN STYLES WITH NO NUMBER FORMAT OF THEIR OWN (General), as _stylesXml entries -- what a two-decimal
+ // twin of each is built from (buildXlsx, v1.95)
+ const XF_GENERAL={0:{fill:false, font:0}, 1:{fill:false, font:1}, 2:{fill:'1B2A4A', font:2}, 6:{fill:'D9DDE5', font:1}, 7:{fill:false, font:4}};
++// A workbook is refused before any bytes exist, never cleaned or repaired. A literal _xHHHH_ is ambiguous
++// in SpreadsheetML too: Office interprets it as a character while this board's legacy reader preserves it.
++// Keeping the existing reader avoids changing text in workbooks ORBIT already exported.
++function _xlXml(s){ return _xesc(s).replace(/\t/g,'&#9;').replace(/\n/g,'&#10;').replace(/\r/g,'&#13;'); }
++function _xlsxRefused(sheets, extra){
++  const badText=(value,where)=>{
++    const text=String(value), bad=/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.exec(text);
++    const token=/_x[0-9A-Fa-f]{4}_/.exec(text);
++    if(!bad && !token) return false;
++    const why=bad? 'character U+'+bad[0].charCodeAt(0).toString(16).toUpperCase().padStart(4,'0')+' cannot be stored in XML 1.0'
++      : 'literal '+token[0]+' would be read as an OOXML escape by a spreadsheet';
++    alert('Excel workbook not exported: '+where+' holds a '+why+'. No workbook was created. Original text is kept. Edit that text and try again.');
++    setStat('⛔ Excel workbook not exported: '+esc(where)+' — '+esc(why)+'. No workbook was created; original text is kept.');
++    return true;
++  };
++  for(let i=0;i<sheets.length;i++){
++    const sh=sheets[i], label='sheet '+(i+1)+' ('+JSON.stringify(String(sh.name))+')';
++    if(badText(sh.name,label+' name')) return true;
++    for(let ri=0;ri<(sh.rows||[]).length;ri++){
++      const row=sh.rows[ri]||[];
++      for(let ci=0;ci<row.length;ci++){
++        const c=row[ci], v=c && typeof c==='object'? c.v : c;
++        if(v!==null && v!==undefined && typeof v!=='number' && badText(v,label+' cell '+_colL(ci)+(ri+1))) return true;
++      }
++    }
++  }
++  for(let i=0;i<(extra||[]).length;i++) if(extra[i].fmt && badText(extra[i].fmt,'number format '+(i+1))) return true;
++  return false;
++}
+ function buildXlsx(sheets, extra){
++  if(_xlsxRefused(sheets, extra)) return null;
+   const files=[];
+   // A NUMBER GOES IN AS IT IS (v1.95, item 60, F1). Every non-integer was written rounded to two decimals, so a
+   // sheet in $M or $K held the rounding, not the figure: the Two-Plan Forecast wrote $85,069 as 0.09 ($M), the
+@@ -24819,7 +24861,7 @@
+     '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>')]);
+   files.push(['xl/workbook.xml',_utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+     '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+
+-    sheets.map((s,i)=>'<sheet name="'+_xesc(s.name.slice(0,31))+'" sheetId="'+(i+1)+'" r:id="rId'+(i+2)+'"/>').join('')+
++    sheets.map((s,i)=>'<sheet name="'+_xlXml(s.name.slice(0,31))+'" sheetId="'+(i+1)+'" r:id="rId'+(i+2)+'"/>').join('')+
+     '</sheets></workbook>')]);
+   files.push(['xl/_rels/workbook.xml.rels',_utf8('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+     '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+@@ -24864,7 +24906,7 @@
+           const x=Number.isInteger(v)? v : +v.toPrecision(15);
+           return '<c r="'+ref+'" s="'+((Number.isInteger(x) || !isFinite(x))? st : xfTwo(st))+'"><v>'+x+'</v></c>';
+         }
+-        return '<c r="'+ref+'" s="'+st+'" t="inlineStr"><is><t xml:space="preserve">'+_xesc(v)+'</t></is></c>';
++        return '<c r="'+ref+'" s="'+st+'" t="inlineStr"><is><t xml:space="preserve">'+_xlXml(v)+'</t></is></c>';
+       }).join('');
+       return '<row r="'+(ri+1)+'">'+cells+'</row>';
+     }).join('');
+@@ -29177,6 +29219,7 @@
+   });
+ 
+   const bytes=buildXlsx(sheets, extra);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName((_AP.exp+' ')+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -29576,6 +29619,7 @@
+   }
+ 
+   const bytes=buildXlsx(sheets);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 ACE Tie-Out '+k+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -30660,6 +30704,7 @@
+     }
+   });
+   const bytes=buildXlsx(sheets, XTRA);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName(scenFile(document.title.replace(/FY\d\d/,FYL())+' — Breakouts')+' '+new Date().toISOString().slice(0,10)+'.xlsx');
+@@ -31512,6 +31557,7 @@
+   });
+ 
+   const bytes=buildXlsx([s1,s2,s3]);
++  if(!bytes) return;
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+   a.download=expName('ORBIT Chart of Accounts '+FY+' '+new Date().toISOString().slice(0,10)+'.xlsx');

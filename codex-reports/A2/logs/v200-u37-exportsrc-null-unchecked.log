@@ -1,0 +1,13 @@
+U37 CHECKS 53
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "exportSrc",
+      "what": "operated export refuses before ZIP/Blob/download, names sheet/cell, leaves all model state unchanged",
+      "got": "[0,1,0,true,true,true]",
+      "want": "[0,0,0,true,true,true]"
+    }
+  ]
+}
+1 FAILING CHECK(S)

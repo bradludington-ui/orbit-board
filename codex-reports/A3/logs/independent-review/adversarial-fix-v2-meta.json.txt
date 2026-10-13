@@ -1,0 +1,17 @@
+{
+  "command": [
+    "node",
+    "adversarial.mjs",
+    "fix"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A3-review",
+  "cap_seconds": 120.0,
+  "started_ET": "2026-10-13T12:25:58.453045-04:00",
+  "finished_ET": "2026-10-13T12:26:02.738354-04:00",
+  "duration_seconds": 4.286,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 51875,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A3-review/adversarial-fix-v2.log",
+  "completion": "failed"
+}

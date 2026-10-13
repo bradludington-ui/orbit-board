@@ -1,0 +1,1 @@
+{"id": "v200-u41-raw-si-lost", "matches": 1, "find": "  // v2.00 (U41): a file's unknown SI code is kept exactly as saved and listed for correction.\n  // Never trim, uppercase, discard it or replace it with a derived classification on opening.", "repl": "  Object.keys(S.si).forEach(function(id){ if(!siKnown(S.si[id])) delete S.si[id]; });"}

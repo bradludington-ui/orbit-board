@@ -1,0 +1,21 @@
+diff --git a/tools/export-audit/mutate.mjs b/tools/export-audit/mutate.mjs
+--- a/tools/export-audit/mutate.mjs
++++ b/tools/export-audit/mutate.mjs
+@@ -4285,6 +4285,17 @@
+   { id: "v200-u14-notice-plural-it", area: "flowHtml", what: "the panel's notice says \"keeps it\" however many saved years the board cannot answer for: FY24 and FY26 \"stay in the saved selection\", and switching a year \"keeps it\"",
+     find: "switching a year on or off keeps '+(F.unavail.length===1?'it':'them')+'.</div>'",
+     repl: "switching a year on or off keeps it.</div>'" },
++  // v2.00 (U40): typed uniqueness, distinct incoming keys, and every name-based merge disclosed.
++  { id: "v200-u40-typed-duplicate-open", area: "flowSetEnt", what: "a typed matching destination name is stored instead of refused", find: "if(field==='n' && destNamed(v) && L.some(function(x){ return x!==e && destName(x.n)===destName(v); }))", repl: "if(false)" },
++  { id: "v200-u40-incoming-duplicate-merged", area: "destFold", what: "two matching names beside distinct incoming keys are merged into a local destination", find: "list.some(function(x){ return x && x.k!==e.k && destNamed(x.n) && destName(x.n)===destName(e.n); })", repl: "false" },
++  { id: "v200-u40-ambiguous-local-first", area: "destFold", what: "the first of several matching local names is silently selected", find: "DESTDB.ents.filter(function(x){ return destName(x.n)===destName(e.n); }).length>1", repl: "false" },
++  { id: "v200-u40-same-list-key-consumed", area: "destFold", what: "an incoming name consumes a different key from its same list", find: "(v186 && list.some(function(x){ return x && x.k===hit.k && x.k!==e.k; }))", repl: "false" },
++  { id: "v200-u40-preserved-duplicates-unsaid", area: "destNotice", what: "preserved duplicate names are not disclosed", find: "let h=D.length? '⚠ <b>Destinations with matching names were kept separate.</b> '", repl: "let h=false? '⚠ <b>Destinations with matching names were kept separate.</b> '" },
++  { id: "v200-u40-name-merge-unsaid", area: "destJoin", what: "a name-based key remap is not recorded for disclosure", find: "if(hit.k!==String(e.k) && !_destMerges.some(function(m){ return m.k===String(e.k) && m.to===hit.k && m.from===from; }))", repl: "if(false)" },
++  { id: "v200-u40-editor-notice-gone", area: "flowEntEditor", what: "the destination editor omits the duplicate and merge notice", find: "+(destNotice()? '<div style=\"font-size:9.5px;color:var(--amber);margin-top:6px\">'+destNotice()+'</div>' : '')", repl: "+''" },
++  { id: "v200-u40-opening-notice-gone", area: "opening", what: "an opening does not disclose destinations kept separate", find: "if(destNotice()){\n  const de=document.getElementById('shareStat');", repl: "if(false){\n  const de=document.getElementById('shareStat');" },
++  { id: "v200-u40-cached-map-collapse", area: "destFold", what: "an old cached map sends two source destination identities to one key", find: "if(hit && Object.prototype.hasOwnProperty.call(claimed, hit.k) && claimed[hit.k]!==String(e.k)){ hit=null; first=true; }", repl: "if(false){ hit=null; first=true; }" },
++  { id: "v200-u40-refusal-field-unmarked", area: "flowSetEnt", what: "the refused typed name is shown without its invalid marker and stored-name explanation", find: "codeRefusedIn(el, 'Destination name not changed',", repl: "codeRefusedIn(null, 'Destination name not changed'," },
+   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",

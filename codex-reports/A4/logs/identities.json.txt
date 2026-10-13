@@ -1,0 +1,327 @@
+{
+  "math-defects.json": {
+    "base": "5200f66b193e7d92f87f1df1782e9a6771d9a304",
+    "fixed": "5200f66b193e7d92f87f1df1782e9a6771d9a304",
+    "changed": false
+  },
+  "WORK-ASSIGNMENTS.md": {
+    "base": "72a2e2539b7772dc65236e49b5e2362492fafd7e",
+    "fixed": "72a2e2539b7772dc65236e49b5e2362492fafd7e",
+    "changed": false
+  },
+  "package.json": {
+    "base": "7cf8186faa9b2dc26fbc3a95fd2b6296e867b384",
+    "fixed": "7cf8186faa9b2dc26fbc3a95fd2b6296e867b384",
+    "changed": false
+  },
+  "BACKLOG.md": {
+    "base": "c33e73b964bebcedf27b34d05e9723f02f191f2f",
+    "fixed": "c33e73b964bebcedf27b34d05e9723f02f191f2f",
+    "changed": false
+  },
+  ".gitignore": {
+    "base": "ce15b8b20f48128f0298a916840e20f0c28649b0",
+    "fixed": "ce15b8b20f48128f0298a916840e20f0c28649b0",
+    "changed": false
+  },
+  "README.md": {
+    "base": "c09115d6bb0464091a88a64022b9f15da45a6fd7",
+    "fixed": "c09115d6bb0464091a88a64022b9f15da45a6fd7",
+    "changed": false
+  },
+  "CLAUDE.md": {
+    "base": "3e0e80c2ac544bd61a3393cec8e607a2b539a55f",
+    "fixed": "3e0e80c2ac544bd61a3393cec8e607a2b539a55f",
+    "changed": false
+  },
+  "AGENTS.md": {
+    "base": "624511927636aee56a314eb7e11bab934fa11319",
+    "fixed": "624511927636aee56a314eb7e11bab934fa11319",
+    "changed": false
+  },
+  "NEXT-VERSION.md": {
+    "base": "65265c133696fb431b1faba1f001b7df67503d3d",
+    "fixed": "65265c133696fb431b1faba1f001b7df67503d3d",
+    "changed": false
+  },
+  "prioritization-board-grid.html": {
+    "base": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+    "fixed": "5053534a287c100341af8e4fd2a5752ba04def0f",
+    "changed": true
+  },
+  "tools/row-controls.mjs": {
+    "base": "d2bb1938cc6ea1eb10b39cf2b8edd7645a5f8d24",
+    "fixed": "d2bb1938cc6ea1eb10b39cf2b8edd7645a5f8d24",
+    "changed": false
+  },
+  "tools/ia-census.mjs": {
+    "base": "e2940362ccc9179d05aea9f2bd9775c7e11ad1ea",
+    "fixed": "e2940362ccc9179d05aea9f2bd9775c7e11ad1ea",
+    "changed": false
+  },
+  "tools/dropdowns-visible.mjs": {
+    "base": "948ec2646e00603f6b545bdef2a498cfb727422e",
+    "fixed": "948ec2646e00603f6b545bdef2a498cfb727422e",
+    "changed": false
+  },
+  "tools/roundtrip-fuzz.mjs": {
+    "base": "0d9461140c48c358ca677a392ceeedc29eb954cc",
+    "fixed": "0d9461140c48c358ca677a392ceeedc29eb954cc",
+    "changed": false
+  },
+  "tools/money-coverage.mjs": {
+    "base": "237b157b7b6e22ab8483d7d44035f6b41e7d5c9c",
+    "fixed": "237b157b7b6e22ab8483d7d44035f6b41e7d5c9c",
+    "changed": false
+  },
+  "tools/money-map.mjs": {
+    "base": "3cc96091cc1a9a524477e0005ead856830fb9f1b",
+    "fixed": "3cc96091cc1a9a524477e0005ead856830fb9f1b",
+    "changed": false
+  },
+  "tools/money-map.md": {
+    "base": "18cb93aafc9723b92cc89d417b41b221eaf5b8e8",
+    "fixed": "18cb93aafc9723b92cc89d417b41b221eaf5b8e8",
+    "changed": false
+  },
+  "tools/tpl-parts.sha256": {
+    "base": "a654efb37454a87fb1b24d4b37c59926f4fe7c5c",
+    "fixed": "a654efb37454a87fb1b24d4b37c59926f4fe7c5c",
+    "changed": false
+  },
+  "tools/ia-shots.mjs": {
+    "base": "b0584dcec6797ad3a7ddb6d9005eb2f788031878",
+    "fixed": "b0584dcec6797ad3a7ddb6d9005eb2f788031878",
+    "changed": false
+  },
+  "tools/trace-lib.mjs": {
+    "base": "cd03d59dc76680caa55cfcd8c940133e686a8576",
+    "fixed": "cd03d59dc76680caa55cfcd8c940133e686a8576",
+    "changed": false
+  },
+  "tools/a11y-baseline.json": {
+    "base": "7045beaa7ebb21c868c10f01800ded63dd829b71",
+    "fixed": "7045beaa7ebb21c868c10f01800ded63dd829b71",
+    "changed": false
+  },
+  "tools/inspector-agrees.mjs": {
+    "base": "48cc10029ef581da204df54165ff5717f38c4290",
+    "fixed": "48cc10029ef581da204df54165ff5717f38c4290",
+    "changed": false
+  },
+  "tools/panels-render.mjs": {
+    "base": "af79b25fee85b626d53a74ab0c040dcc23b29465",
+    "fixed": "af79b25fee85b626d53a74ab0c040dcc23b29465",
+    "changed": false
+  },
+  "tools/font-standin.mjs": {
+    "base": "fd27b0f12b9dc1805eabe4bf75ed535049154af0",
+    "fixed": "fd27b0f12b9dc1805eabe4bf75ed535049154af0",
+    "changed": false
+  },
+  "tools/menu-paths.mjs": {
+    "base": "04db18a1fcb5834e2f255b30e8aa12cfa4223070",
+    "fixed": "04db18a1fcb5834e2f255b30e8aa12cfa4223070",
+    "changed": false
+  },
+  "tools/fydp-frames.mjs": {
+    "base": "a39c422b80e99597f03da4f8274aca8c5b198674",
+    "fixed": "a39c422b80e99597f03da4f8274aca8c5b198674",
+    "changed": false
+  },
+  "tools/money-map.json": {
+    "base": "73e1c770fb3239476f172619115c1f05c2ca674f",
+    "fixed": "73e1c770fb3239476f172619115c1f05c2ca674f",
+    "changed": false
+  },
+  "tools/row-controls.json": {
+    "base": "e5386aea2bd9823a97d49731523bb13add60de5f",
+    "fixed": "e5386aea2bd9823a97d49731523bb13add60de5f",
+    "changed": false
+  },
+  "tools/hostile-render.mjs": {
+    "base": "555d844358680f17575870409f72cf77b8d50258",
+    "fixed": "555d844358680f17575870409f72cf77b8d50258",
+    "changed": false
+  },
+  "tools/validate-math.mjs": {
+    "base": "ad674b6e9b87c2ac69ebe6d708c83f594b1361c6",
+    "fixed": "ad674b6e9b87c2ac69ebe6d708c83f594b1361c6",
+    "changed": false
+  },
+  "tools/colour-check.mjs": {
+    "base": "bf232c085d59b3419f3b7ea8199dd80fcca69b05",
+    "fixed": "bf232c085d59b3419f3b7ea8199dd80fcca69b05",
+    "changed": false
+  },
+  "tools/trace-matrix.mjs": {
+    "base": "3bf5e4124939d6caa5c7e71b2bb1f5322adfe435",
+    "fixed": "3bf5e4124939d6caa5c7e71b2bb1f5322adfe435",
+    "changed": false
+  },
+  "tools/standards-check.mjs": {
+    "base": "0ace8f03127740c5c7627ff742367b5c4039acad",
+    "fixed": "0ace8f03127740c5c7627ff742367b5c4039acad",
+    "changed": false
+  },
+  "tools/ia-fixture.mjs": {
+    "base": "064f1edc667f928dba9990b792b9f7be15d341d6",
+    "fixed": "064f1edc667f928dba9990b792b9f7be15d341d6",
+    "changed": false
+  },
+  "tools/editors-reachable.mjs": {
+    "base": "883237fd707a723054796d039175c97bc2472827",
+    "fixed": "883237fd707a723054796d039175c97bc2472827",
+    "changed": false
+  },
+  "tools/export-delta.mjs": {
+    "base": "2a626d890d4d9a8c98bc7d8ac096d9a5d59ac6b4",
+    "fixed": "2a626d890d4d9a8c98bc7d8ac096d9a5d59ac6b4",
+    "changed": false
+  },
+  "tools/dialogs-keyboard.mjs": {
+    "base": "0536e7d35cbe5e9c65d9740904e7d1dbb76cc48e",
+    "fixed": "0536e7d35cbe5e9c65d9740904e7d1dbb76cc48e",
+    "changed": false
+  },
+  "tools/toolbar-fits.mjs": {
+    "base": "509b718613420bde9810861b5f380a54b14f1a91",
+    "fixed": "509b718613420bde9810861b5f380a54b14f1a91",
+    "changed": false
+  },
+  "tools/verify-file.mjs": {
+    "base": "4bcecba94bb62862ab24089268cd97635243a9f1",
+    "fixed": "4bcecba94bb62862ab24089268cd97635243a9f1",
+    "changed": false
+  },
+  "tools/check.mjs": {
+    "base": "b8e0ee7a82d87b9945f212b0e5eaab91188abe49",
+    "fixed": "b8e0ee7a82d87b9945f212b0e5eaab91188abe49",
+    "changed": false
+  },
+  "tools/layout-fits.mjs": {
+    "base": "abfe1386796e7bb2ded81d332f48763477f254db",
+    "fixed": "abfe1386796e7bb2ded81d332f48763477f254db",
+    "changed": false
+  },
+  "tools/keyboard-reach.mjs": {
+    "base": "03568124daf413df0ccd9079fd95adbdf798387b",
+    "fixed": "03568124daf413df0ccd9079fd95adbdf798387b",
+    "changed": false
+  },
+  "tools/trace-stated.json": {
+    "base": "bceddf28f94f64e5dc98084169232f3e5bfbaf01",
+    "fixed": "bceddf28f94f64e5dc98084169232f3e5bfbaf01",
+    "changed": false
+  },
+  "tools/chrome.mjs": {
+    "base": "d0fbdb8a6b7a5d6588743957a4c92d21ad556843",
+    "fixed": "d0fbdb8a6b7a5d6588743957a4c92d21ad556843",
+    "changed": false
+  },
+  "tools/math-defects.mjs": {
+    "base": "af2c7c675d69421fca99b70965395a0244e283fc",
+    "fixed": "af2c7c675d69421fca99b70965395a0244e283fc",
+    "changed": false
+  },
+  "tools/vendor/validate_palette.mjs": {
+    "base": "3f6defd7cdd38965620f2fc68c4d9b28ad8b3cef",
+    "fixed": "3f6defd7cdd38965620f2fc68c4d9b28ad8b3cef",
+    "changed": false
+  },
+  "tools/export-audit/audit-hostile.mjs": {
+    "base": "d8cbc873d592924802aaea48ced1eb44ac3c7eeb",
+    "fixed": "d8cbc873d592924802aaea48ced1eb44ac3c7eeb",
+    "changed": false
+  },
+  "tools/export-audit/audit-ppt.mjs": {
+    "base": "415c470abd4da972228fd1db44701e4871a440a0",
+    "fixed": "415c470abd4da972228fd1db44701e4871a440a0",
+    "changed": false
+  },
+  "tools/export-audit/audit-board.mjs": {
+    "base": "a7c575e5f98452be88f8d0d7f352fd805350e3d7",
+    "fixed": "a7c575e5f98452be88f8d0d7f352fd805350e3d7",
+    "changed": false
+  },
+  "tools/export-audit/shoot.mjs": {
+    "base": "2017d8e566a5644723cf4f84f881df7247cf6825",
+    "fixed": "2017d8e566a5644723cf4f84f881df7247cf6825",
+    "changed": false
+  },
+  "tools/export-audit/boot-same.mjs": {
+    "base": "0c890eb5ce02d57cea7b2dedb84e008ac86361ec",
+    "fixed": "0c890eb5ce02d57cea7b2dedb84e008ac86361ec",
+    "changed": false
+  },
+  "tools/export-audit/hostile.mjs": {
+    "base": "aaf6ad78b3e1b41680204769f91aea46879cf89f",
+    "fixed": "aaf6ad78b3e1b41680204769f91aea46879cf89f",
+    "changed": false
+  },
+  "tools/export-audit/legacy-fsrc.mjs": {
+    "base": "507399207af903e668a603af895b46e24acaab0c",
+    "fixed": "507399207af903e668a603af895b46e24acaab0c",
+    "changed": false
+  },
+  "tools/export-audit/mutate.mjs": {
+    "base": "cbc6defc6803851e847844848fc9b186daeeb268",
+    "fixed": "d677e43673f821bc1f8ae8b6a4e5fe106ca52aa8",
+    "changed": true
+  },
+  "tools/export-audit/audit-import.mjs": {
+    "base": "4aba2506a7ea3bd367fb74436172b188bb4fc887",
+    "fixed": "4aba2506a7ea3bd367fb74436172b188bb4fc887",
+    "changed": false
+  },
+  "tools/export-audit/audit-other.mjs": {
+    "base": "d89396b0cbf7c4b2ea2110acc0a663a23de62760",
+    "fixed": "d89396b0cbf7c4b2ea2110acc0a663a23de62760",
+    "changed": false
+  },
+  "tools/export-audit/audit.mjs": {
+    "base": "cc5af0beb2dee8222d8d95c380713250654ceff1",
+    "fixed": "cc5af0beb2dee8222d8d95c380713250654ceff1",
+    "changed": false
+  },
+  "tools/export-audit/audit-inject.mjs": {
+    "base": "8ab05a681fdab03b37197dddef93439df0ba377b",
+    "fixed": "8ab05a681fdab03b37197dddef93439df0ba377b",
+    "changed": false
+  },
+  "tools/export-audit/audit-recon.mjs": {
+    "base": "529e36f7c20e635b2722ea53b6a4f44b4ed328af",
+    "fixed": "2a5dff7fc642cfe9c09b2bac4c4808e36cd48819",
+    "changed": true
+  },
+  "tools/export-audit/boot.mjs": {
+    "base": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+    "fixed": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+    "changed": false
+  },
+  ".agents/monitoring/environment-acceptance-reviewer.md": {
+    "base": "d6f21caf2a40d42fd8a00e785c018deab5a327bc",
+    "fixed": "d6f21caf2a40d42fd8a00e785c018deab5a327bc",
+    "changed": false
+  },
+  ".agents/monitoring/README.md": {
+    "base": "5567da8a5ed337bb2e0ea4fc9e5d0885bda41bca",
+    "fixed": "5567da8a5ed337bb2e0ea4fc9e5d0885bda41bca",
+    "changed": false
+  },
+  ".agents/monitoring/regression-monitor.md": {
+    "base": "ebc0e54f915474e0e1ec06643fa516e4c5150024",
+    "fixed": "ebc0e54f915474e0e1ec06643fa516e4c5150024",
+    "changed": false
+  },
+  ".agents/monitoring/data-preservation-reviewer.md": {
+    "base": "c699ddb5bf74fc41a818527dd928b0532d89044d",
+    "fixed": "c699ddb5bf74fc41a818527dd928b0532d89044d",
+    "changed": false
+  },
+  ".agents/monitoring/money-reviewer.md": {
+    "base": "416edcd88cef6a87854b1cec07880d408d05663b",
+    "fixed": "416edcd88cef6a87854b1cec07880d408d05663b",
+    "changed": false
+  }
+}

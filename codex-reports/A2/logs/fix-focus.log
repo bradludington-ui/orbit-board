@@ -1,0 +1,13 @@
+U37 CHECKS 53
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportSrc",
+      "what": "real emitted workbook is XML; the exact typed text returns through board reader; no state changes",
+      "got": "[0,false,true]",
+      "want": "[0,true,true]"
+    }
+  ]
+}
+1 FAILING CHECK(S)

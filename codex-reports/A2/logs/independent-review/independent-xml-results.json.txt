@@ -1,0 +1,213 @@
+{
+  "packages": 15,
+  "xml_parts": 90,
+  "errors": [
+    {
+      "label": "literal plus control",
+      "name": "xl/styles.xml",
+      "error": "not well-formed (invalid token): line 3, column 212"
+    },
+    {
+      "label": "literal plus control",
+      "name": "xl/worksheets/sheet1.xml",
+      "error": "not well-formed (invalid token): line 1, column 219"
+    },
+    {
+      "label": "embedded NUL and CR",
+      "name": "xl/styles.xml",
+      "error": "not well-formed (invalid token): line 3, column 206"
+    },
+    {
+      "label": "embedded NUL and CR",
+      "name": "xl/worksheets/sheet1.xml",
+      "error": "not well-formed (invalid token): line 1, column 213"
+    },
+    {
+      "label": "all forbidden concatenated",
+      "name": "xl/worksheets/sheet1.xml",
+      "error": "not well-formed (invalid token): line 1, column 212"
+    }
+  ],
+  "rows": [
+    {
+      "label": "empty",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "spaces",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "mixed whitespace",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "supplementary extremes",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "valid and lone surrogates",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "adjacent literal",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "shared underscore literal",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "literal plus control",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "entity looking",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "embedded NUL and CR",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "allowed C1 and PUA",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "literal lowercase hex",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "replacement",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "numeric label",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    },
+    {
+      "label": "all forbidden concatenated",
+      "parts": [
+        "[Content_Types].xml",
+        "_rels/.rels",
+        "xl/workbook.xml",
+        "xl/_rels/workbook.xml.rels",
+        "xl/styles.xml",
+        "xl/worksheets/sheet1.xml"
+      ],
+      "xml_count": 6
+    }
+  ]
+}

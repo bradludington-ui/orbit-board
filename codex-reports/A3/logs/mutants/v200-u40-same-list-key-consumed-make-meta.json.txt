@@ -1,0 +1,21 @@
+{
+  "command": [
+    "python3",
+    "-I",
+    "/workspace/orbit-codex-batches-20261013-1205ET/helpers/mkmut.py",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A3/fix/tools/export-audit/mutate.mjs",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A3/fix/prioritization-board-grid.html",
+    "v200-u40-same-list-key-consumed",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A3/mutants/v200-u40-same-list-key-consumed.html"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A3",
+  "cap_seconds": 30.0,
+  "started_ET": "2026-10-13T12:31:51.084674-04:00",
+  "finished_ET": "2026-10-13T12:31:51.250531-04:00",
+  "duration_seconds": 0.166,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 53084,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A3/mutants/v200-u40-same-list-key-consumed-make.log",
+  "completion": "passed"
+}

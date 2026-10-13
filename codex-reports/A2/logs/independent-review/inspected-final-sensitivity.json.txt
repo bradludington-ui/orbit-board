@@ -1,0 +1,112 @@
+[
+  {
+    "id": "v200-u37-cell-unchecked",
+    "exit": 1,
+    "duration": 6.848,
+    "timed_out": false,
+    "failing_checks": 46,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-cell-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-exportcsv-null-unchecked",
+    "exit": 1,
+    "duration": 7.567,
+    "timed_out": false,
+    "failing_checks": 1,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-exportcsv-null-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-exportexcel-null-unchecked",
+    "exit": 1,
+    "duration": 7.963,
+    "timed_out": false,
+    "failing_checks": 1,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-exportexcel-null-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-exportflow-null-unchecked",
+    "exit": 1,
+    "duration": 6.037,
+    "timed_out": false,
+    "failing_checks": 2,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-exportflow-null-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-exportsrc-null-unchecked",
+    "exit": 1,
+    "duration": 7.1,
+    "timed_out": false,
+    "failing_checks": 1,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-exportsrc-null-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-format-unchecked",
+    "exit": 1,
+    "duration": 4.611,
+    "timed_out": false,
+    "failing_checks": 1,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-format-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-invalid-char-unchecked",
+    "exit": 1,
+    "duration": 3.61,
+    "timed_out": false,
+    "failing_checks": 42,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-invalid-char-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-literal-unchecked",
+    "exit": 1,
+    "duration": 5.708,
+    "timed_out": false,
+    "failing_checks": 6,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-literal-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-refusal-gone",
+    "exit": 1,
+    "duration": 3.416,
+    "timed_out": false,
+    "failing_checks": 48,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-refusal-gone-snapshots.log"
+  },
+  {
+    "id": "v200-u37-sheet-unchecked",
+    "exit": 1,
+    "duration": 4.961,
+    "timed_out": false,
+    "failing_checks": 1,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-sheet-unchecked-snapshots.log"
+  },
+  {
+    "id": "v200-u37-whitespace-raw",
+    "exit": 1,
+    "duration": 5.659,
+    "timed_out": false,
+    "failing_checks": 3,
+    "has_harness_exception": false,
+    "has_scenario_not_run": false,
+    "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-whitespace-raw-snapshots.log"
+  }
+]

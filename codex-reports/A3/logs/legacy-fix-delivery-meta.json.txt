@@ -1,0 +1,20 @@
+{
+  "command": [
+    "env",
+    "BOARD=/workspace/orbit-codex-batches-20261013-1205ET/A3/fix/prioritization-board-grid.html",
+    "node",
+    "--import",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A3/base/runtime-encoding-shim.mjs",
+    "legacy-destinations.mjs"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A3",
+  "cap_seconds": 180.0,
+  "started_ET": "2026-10-13T12:32:11.498221-04:00",
+  "finished_ET": "2026-10-13T12:32:23.790177-04:00",
+  "duration_seconds": 12.292,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 53208,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A3/legacy-fix-delivery.log",
+  "completion": "passed"
+}

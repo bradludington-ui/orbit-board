@@ -1,0 +1,21 @@
+{
+  "command": [
+    "python3",
+    "-I",
+    "helpers/mkmut.py",
+    "A2/fix/tools/export-audit/mutate.mjs",
+    "A2/fix/prioritization-board-grid.html",
+    "v200-u37-exportsrc-null-unchecked",
+    "A2/v200-u37-exportsrc-null-unchecked.html"
+  ],
+  "cwd": ".",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:43:15.401543-04:00",
+  "finished_ET": "2026-10-13T12:43:15.515960-04:00",
+  "duration_seconds": 0.115,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 53933,
+  "log": "A2/v200-u37-exportsrc-null-unchecked-make.log",
+  "completion": "passed"
+}

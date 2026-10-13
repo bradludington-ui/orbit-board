@@ -1,0 +1,356 @@
+U37 CHECKS 52
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0000",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0001",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0002",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0003",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0004",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0005",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0006",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0007",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0008",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+000B",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+000C",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+000E",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+000F",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0010",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0011",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0012",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0013",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0014",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0015",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0016",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0017",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0018",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+0019",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+001A",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+001B",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+001C",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+001D",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+001E",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+001F",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5056,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+FFFE",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5058,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+FFFF",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5058,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+D800",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5058,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+DBFF",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5058,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+DC00",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5058,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "cell U+DFFF",
+      "what": "no ZIP built; no bytes; named cell C1 and offending unit; raw state unchanged",
+      "got": "[1,5058,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x000B_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5002,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x0041_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5002,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x005F_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5002,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x00ab_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5002,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x0001_x0002_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5008,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x005F_x0001_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5008,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "sheet name",
+      "what": "metadata refused before ZIP; precise field named; state unchanged",
+      "got": "[1,5001,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "format",
+      "what": "metadata refused before ZIP; precise field named; state unchanged",
+      "got": "[1,5060,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "whitespace a&#9;b",
+      "what": "writer uses character references: native XML cell/name/format and board read exact",
+      "got": "[0,false,[\"a\\tb\",\"a b\",\"a b\"],\"a\\tb\"]",
+      "want": "[0,true,[\"a\\tb\",\"a\\tb\",\"a\\tb\"],\"a\\tb\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "whitespace a&#10;b",
+      "what": "writer uses character references: native XML cell/name/format and board read exact",
+      "got": "[0,false,[\"a\\nb\",\"a b\",\"a b\"],\"a\\nb\"]",
+      "want": "[0,true,[\"a\\nb\",\"a\\nb\",\"a\\nb\"],\"a\\nb\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "whitespace a&#13;b",
+      "what": "writer uses character references: native XML cell/name/format and board read exact",
+      "got": "[0,false,[\"a\\nb\",\"a b\",\"a b\"],\"a\\rb\"]",
+      "want": "[0,true,[\"a\\rb\",\"a\\rb\",\"a\\rb\"],\"a\\rb\"]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "exportExcel",
+      "what": "operated export refuses before ZIP/Blob/download, names sheet/cell, leaves all model state unchanged",
+      "got": "[1,1,95540,false,false,true]",
+      "want": "[0,0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "exportCSV",
+      "what": "operated export refuses before ZIP/Blob/download, names sheet/cell, leaves all model state unchanged",
+      "got": "[1,1,25909,false,false,true]",
+      "want": "[0,0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "exportSrc",
+      "what": "operated export refuses before ZIP/Blob/download, names sheet/cell, leaves all model state unchanged",
+      "got": "[1,1,26441,false,false,true]",
+      "want": "[0,0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "exportFlow",
+      "what": "operated destination export refuses safely before ZIP/Blob/download, field named, data unchanged",
+      "got": "[1,1,42012,false,false]",
+      "want": "[0,0,0,true,true]"
+    }
+  ]
+}
+50 FAILING CHECK(S)

@@ -1,0 +1,19 @@
+{
+  "command": [
+    "python3",
+    "-I",
+    "/workspace/orbit-codex-batches-20261013-1205ET/helpers/mcount.py",
+    "tools/export-audit/mutate.mjs",
+    "prioritization-board-grid.html"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A3/fix",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:28:21.726067-04:00",
+  "finished_ET": "2026-10-13T12:28:24.042675-04:00",
+  "duration_seconds": 2.317,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 52507,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A3/mcount-accepted.log",
+  "completion": "passed"
+}

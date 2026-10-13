@@ -1,0 +1,20 @@
+U37 CHECKS 54
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "workbook tab",
+      "what": "sheet name uses same codec, is XML and reads back exactly",
+      "got": "[1,false,[\"Ctl\\u000bA\"],\"missing tab\"]",
+      "want": "[0,true,[\"Ctl\\u000b_x0041_\"],[\"exact\"]]"
+    },
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "exportFlow",
+      "what": "actual destination workbook: every part parses and the exact name returns, including its literal escape spelling",
+      "got": "[1,false,true]",
+      "want": "[0,true,true]"
+    }
+  ]
+}
+2 FAILING CHECK(S)

@@ -1,0 +1,12 @@
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "harness",
+      "what": "block threw: Cannot read properties of undefined (reading '0')",
+      "got": "threw",
+      "want": "ran"
+    }
+  ]
+}
+1 FAILING CHECK(S)

@@ -1,0 +1,20 @@
+{
+  "command": [
+    "env",
+    "BOARD=/workspace/orbit-codex-batches-20261013-1205ET/A2/v200-u37-controls-raw.html",
+    "node",
+    "--import",
+    "../../runtime-encoding-shim.mjs",
+    "tools/export-audit/focus-u37.mjs"
+  ],
+  "cwd": "A2/fix",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:17:31.419801-04:00",
+  "finished_ET": "2026-10-13T12:17:33.953540-04:00",
+  "duration_seconds": 2.534,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 50343,
+  "log": "A2/v200-u37-controls-raw.log",
+  "completion": "failed"
+}

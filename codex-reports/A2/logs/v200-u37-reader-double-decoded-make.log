@@ -1,0 +1,1 @@
+{"id": "v200-u37-reader-double-decoded", "matches": 1, "find": "    .replace(/_x([0-9A-Fa-f]{4})_/g,function(_,h){ return String.fromCharCode(parseInt(h,16)); });", "repl": "    .replace(/_x([0-9A-Fa-f]{4})_/g,function(_,h){ return String.fromCharCode(parseInt(h,16)); })\n    .replace(/_x([0-9A-Fa-f]{4})_/g,function(_,h){ return String.fromCharCode(parseInt(h,16)); });"}

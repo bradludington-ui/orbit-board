@@ -1,0 +1,1 @@
+{"id": "v200-u37-whitespace-raw", "matches": 1, "find": "function _xlXml(s){ return _xesc(s).replace(/\\t/g,'&#9;').replace(/\\n/g,'&#10;').replace(/\\r/g,'&#13;'); }", "repl": "function _xlXml(s){ return _xesc(s); }"}

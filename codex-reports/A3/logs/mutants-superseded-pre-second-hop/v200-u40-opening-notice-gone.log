@@ -1,0 +1,767 @@
+{
+  "checks": 93,
+  "passed": 91,
+  "failed": 2,
+  "failures": [
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "opening names the preserved duplicates",
+      "got": false,
+      "want": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "opening names the preserved duplicates",
+      "got": false,
+      "want": true
+    }
+  ],
+  "all": [
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing ALPHA DEPOT",
+      "what": "duplicate name is refused",
+      "got": "Bravo Yard",
+      "want": "Bravo Yard",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing ALPHA DEPOT",
+      "what": "requirements, counters and flags are untouched",
+      "got": "{\"ents\":[{\"k\":\"U40-A\",\"n\":\"Alpha Depot\",\"kind\":\"other\",\"t\":\"\"},{\"k\":\"U40-B\",\"n\":\"Bravo Yard\",\"kind\":\"other\",\"t\":\"\"},{\"k\":\"lm\",\"n\":\"Lockheed Martin\",\"kind\":\"prime\",\"t\":\"LM, LOCKHEED\"},{\"k\":\"pw\",\"n\":\"Pratt & Whitney\",\"kind\":\"prime\",\"t\":\"PW, P&W, PRATT\"},{\"k\":\"pax\",\"n\":\"NAWCAD Patuxent River\",\"kind\":\"gov\",\"t\":\"PAX, PATUXENT\"},{\"k\":\"chlk\",\"n\":\"NAWCWD China Lake\",\"kind\":\"gov\",\"t\":\"CHLK, CHINA LAKE\"},{\"k\":\"chpt\",\"n\":\"FRC East, Cherry Point\",\"kind\":\"gov\",\"t\":\"CHERRY, FRCE\"},{\"k\":\"lke\",\"n\":\"NAWCAD Lakehurst\",\"kind\":\"gov\",\"t\":\"LKE, LAKEHURST\"},{\"k\":\"dla\",\"n\":\"Defense Logistics Agency\",\"kind\":\"gov\",\"t\":\"DLA\"},{\"k\":\"okc\",\"n\":\"OC-ALC Oklahoma City\",\"kind\":\"gov\",\"t\":\"OKC, OKLAHOMA\"}],\"dest\":{\"R1\":{\"to\":\"U40-A\",\"end\":\"\"},\"R2\":{\"to\":\"U40-B\",\"end\":\"\"}},\"gen\":2,\"side\":3,\"dirty\":true,\"base\":true}",
+      "want": "{\"ents\":[{\"k\":\"U40-A\",\"n\":\"Alpha Depot\",\"kind\":\"other\",\"t\":\"\"},{\"k\":\"U40-B\",\"n\":\"Bravo Yard\",\"kind\":\"other\",\"t\":\"\"},{\"k\":\"lm\",\"n\":\"Lockheed Martin\",\"kind\":\"prime\",\"t\":\"LM, LOCKHEED\"},{\"k\":\"pw\",\"n\":\"Pratt & Whitney\",\"kind\":\"prime\",\"t\":\"PW, P&W, PRATT\"},{\"k\":\"pax\",\"n\":\"NAWCAD Patuxent River\",\"kind\":\"gov\",\"t\":\"PAX, PATUXENT\"},{\"k\":\"chlk\",\"n\":\"NAWCWD China Lake\",\"kind\":\"gov\",\"t\":\"CHLK, CHINA LAKE\"},{\"k\":\"chpt\",\"n\":\"FRC East, Cherry Point\",\"kind\":\"gov\",\"t\":\"CHERRY, FRCE\"},{\"k\":\"lke\",\"n\":\"NAWCAD Lakehurst\",\"kind\":\"gov\",\"t\":\"LKE, LAKEHURST\"},{\"k\":\"dla\",\"n\":\"Defense Logistics Agency\",\"kind\":\"gov\",\"t\":\"DLA\"},{\"k\":\"okc\",\"n\":\"OC-ALC Oklahoma City\",\"kind\":\"gov\",\"t\":\"OKC, OKLAHOMA\"}],\"dest\":{\"R1\":{\"to\":\"U40-A\",\"end\":\"\"},\"R2\":{\"to\":\"U40-B\",\"end\":\"\"}},\"gen\":2,\"side\":3,\"dirty\":true,\"base\":true}",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing ALPHA DEPOT",
+      "what": "no storage writes",
+      "got": "{\"prio27destdb\":\"{\\\"ts\\\":1791908837117,\\\"ents\\\":[{\\\"k\\\":\\\"U40-A\\\",\\\"n\\\":\\\"Alpha Depot\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"U40-B\\\",\\\"n\\\":\\\"Bravo Yard\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"lm\\\",\\\"n\\\":\\\"Lockheed Martin\\\",\\\"kind\\\":\\\"prime\\\",\\\"t\\\":\\\"LM, LOCKHEED\\\"},{\\\"k\\\":\\\"pw\\\",\\\"n\\\":\\\"Pratt & Whitney\\\",\\\"kind\\\":\\\"prime\\\",\\\"t\\\":\\\"PW, P&W, PRATT\\\"},{\\\"k\\\":\\\"pax\\\",\\\"n\\\":\\\"NAWCAD Patuxent River\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"PAX, PATUXENT\\\"},{\\\"k\\\":\\\"chlk\\\",\\\"n\\\":\\\"NAWCWD China Lake\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"CHLK, CHINA LAKE\\\"},{\\\"k\\\":\\\"chpt\\\",\\\"n\\\":\\\"FRC East, Cherry Point\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"CHERRY, FRCE\\\"},{\\\"k\\\":\\\"lke\\\",\\\"n\\\":\\\"NAWCAD Lakehurst\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"LKE, LAKEHURST\\\"},{\\\"k\\\":\\\"dla\\\",\\\"n\\\":\\\"Defense Logistics Agency\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"DLA\\\"},{\\\"k\\\":\\\"okc\\\",\\\"n\\\":\\\"OC-ALC Oklahoma City\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"OKC, OKLAHOMA\\\"}],\\\"lmap\\\":{\\\"c2b89283.8\\\":{\\\"lm\\\":\\\"lm\\\",\\\"pw\\\":\\\"pw\\\",\\\"pax\\\":\\\"pax\\\",\\\"chlk\\\":\\\"chlk\\\",\\\"chpt\\\":\\\"chpt\\\",\\\"lke\\\":\\\"lke\\\",\\\"dla\\\":\\\"dla\\\",\\\"okc\\\":\\\"okc\\\"}},\\\"lsig\\\":{\\\"om\\\":\\\"c2b89283.8\\\"},\\\"conflicts\\\":[],\\\"gone\\\":[]}\",\"prio27om.base\":\"{\\\"dirty\\\":true}\",\"prio27om\":\"{\\\"base\\\":2027,\\\"cur\\\":2027,\\\"ts\\\":1791908837117,\\\"years\\\":{\\\"2027\\\":{\\\"order\\\":[\\\"R1\\\",\\\"R2\\\"],\\\"alloc\\\":{},\\\"mc\\\":{},\\\"fsrc\\\":{},\\\"custom\\\":[],\\\"removed\\\":[],\\\"discSvc\\\":[5000,5000,5000],\\\"mandSvc\\\":[0,0,0],\\\"notes\\\":{},\\\"desc\\\":{},\\\"cons\\\":{},\\\"minInc\\\":{},\\\"titles\\\":{},\\\"ccar\\\":{},\\\"pid\\\":{},\\\"costElem\\\":{},\\\"grp\\\":{},\\\"si\\\":{},\\\"dest\\\":{\\\"R1\\\":{\\\"to\\\":\\\"U40-A\\\",\\\"end\\\":\\\"\\\"},\\\"R2\\\":{\\\"to\\\":\\\"U40-B\\\",\\\"end\\\":\\\"\\\"}},\\\"wbs\\\":{},\\\"band\\\":{},\\\"tier\\\":{},\\\"awards\\\":{},\\\"asks\\\":{},\\\"crHalf\\\":{},\\\"ptype\\\":{},\\\"budgetAsg\\\":{},\\\"rcn\\\":{},\\\"rcnSvc\\\":{},\\\"clinRcnSvc\\\":{},\\\"reprog\\\":[],\\\"recNames\\\":{},\\\"absorb\\\":\\\"\\\",\\\"absorbFloor\\\":0,\\\"bm\\\":{\\\"disc\\\":[5000,5000,5000],\\\"mand\\\":[0,0,0],\\\"adds\\\":[]},\\\"ptypeSeeded\\\":true,\\\"awdSeeded\\\":true,\\\"pmoOrder\\\":{\\\"ATL\\\":[],\\\"PSM\\\":[],\\\"PP\\\":[],\\\"AV\\\":[\\\"R1\\\",\\\"R2\\\"],\\\"MxS\\\":[],\\\"CDS\\\":[],\\\"TSS\\\":[],\\\"BOP\\\":[]}}},\\\"ppbe\\\":{},\\\"cycle\\\":\\\"\\\",\\\"cycleRef\\\":\\\"\\\",\\\"pmos\\\":[\\\"ATL\\\",\\\"PSM\\\",\\\"PP\\\",\\\"AV\\\",\\\"MxS\\\",\\\"CDS\\\",\\\"TSS\\\",\\\"BOP\\\"],\\\"flow\\\":{\\\"rules\\\":{\\\"lm\\\":\\\"LM\\\",\\\"pw\\\":\\\"PW, P&W, PRATT\\\",\\\"where\\\":\\\"both\\\"},\\\"other\\\":{},\\\"cats\\\":[{\\\"k\\\":\\\"work\\\",\\\"n\\\":\\\"Workforce & Travel\\\",\\\"cat\\\":\\\"Manpower, Civ Pay, Reservists, Travel, Workforce\\\",\\\"ttl\\\":\\\"\\\"},{\\\"k\\\":\\\"depot\\\",\\\"n\\\":\\\"Depot, Repair & Materiel\\\",\\\"cat\\\":\\\"DLA, BTL, Depot\\\",\\\"ttl\\\":\\\"Depot, Repair, Overhaul, Reset, DLA, Materiel, Spares\\\"},{\\\"k\\\":\\\"soft\\\",\\\"n\\\":\\\"Software, IT & Cyber\\\",\\\"cat\\\":\\\"CIO POA, Cyber, Unclass IT, Class IT, Software\\\",\\\"ttl\\\":\\\"Software, ALIS, ODIN, C2D2, JSE, IT, Cyber, Data\\\"},{\\\"k\\\":\\\"eng\\\",\\\"n\\\":\\\"Engineering, Projects & Studies\\\",\\\"cat\\\":\\\"\\\",\\\"ttl\\\":\\\"Engineering, Eng, SEI, Technical, Projects, Studies, Analysis, Development\\\"},{\\\"k\\\":\\\"ops\\\",\\\"n\\\":\\\"Program Operations & Support\\\",\\\"cat\\\":\\\"\\\",\\\"ttl\\\":\\\"\\\"}],\\\"ents\\\":[{\\\"k\\\":\\\"U40-A\\\",\\\"n\\\":\\\"Alpha Depot\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"U40-B\\\",\\\"n\\\":\\\"Bravo Yard\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"}],\\\"dv\\\":1},\\\"links\\\":{\\\"slides\\\":{\\\"name\\\":\\\"\\\",\\\"label\\\":\\\"JPO Slide Printer\\\"}},\\\"bands\\\":[{\\\"id\\\":\\\"netavail\\\",\\\"n\\\":\\\"Net Funding Available\\\",\\\"d\\\":\\\"funding already in hand for this appropriation\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#5aa87a\\\"},{\\\"id\\\":\\\"pdm\\\",\\\"n\\\":\\\"PDM-Directed Funding\\\",\\\"d\\\":\\\"directed by Program Decision Memorandum\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#ff6b81\\\"},{\\\"id\\\":\\\"ktlo\\\",\\\"n\\\":\\\"Keep the Lights On\\\",\\\"d\\\":\\\"the floor that keeps the enterprise running\\\",\\\"rule\\\":\\\"min\\\",\\\"crit\\\":true,\\\"consReq\\\":true,\\\"std\\\":true,\\\"c\\\":\\\"#d6a24a\\\"},{\\\"id\\\":\\\"liab\\\",\\\"n\\\":\\\"Incurred Financial Liabilities\\\",\\\"d\\\":\\\"already owed — work performed, obligations incurred\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#2f9e8f\\\"},{\\\"id\\\":\\\"safety\\\",\\\"n\\\":\\\"Safety-Critical & Must Fix\\\",\\\"d\\\":\\\"safety of flight, safety of use, must-fix\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":true,\\\"std\\\":true,\\\"c\\\":\\\"#e0703a\\\"},{\\\"id\\\":\\\"rdns\\\",\\\"n\\\":\\\"Readiness degradation\\\",\\\"d\\\":\\\"measurable decline, not stoppage\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#4f8fd6\\\"},{\\\"id\\\":\\\"health\\\",\\\"n\\\":\\\"Program health\\\",\\\"d\\\":\\\"obsolescence, cost avoidance\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#7a6fd0\\\"},{\\\"id\\\":\\\"defer\\\",\\\"n\\\":\\\"Deferrable\\\",\\\"d\\\":\\\"slips a year at acceptable risk\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#8892a4\\\"}],\\\"stdVer\\\":2,\\\"coaDef\\\":{\\\"groups\\\":[]},\\\"rcn\\\":[],\\\"snaps\\\":{},\\\"jrnl\\\":[{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",0],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",1],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",2],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",0],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",1],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",2],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837117,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"dest\\\",\\\"R1\\\"],\\\"a\\\":null,\\\"b\\\":{\\\"to\\\":\\\"U40-A\\\",\\\"end\\\":\\\"\\\"}},{\\\"t\\\":1791908837117,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"dest\\\",\\\"R2\\\"],\\\"a\\\":null,\\\"b\\\":{\\\"to\\\":\\\"U40-B\\\",\\\"end\\\":\\\"\\\"}}],\\\"by\\\":\\\"unknown\\\",\\\"dataPack\\\":{\\\"services\\\":[\\\"USAF\\\",\\\"ANG\\\",\\\"AFRC\\\"],\\\"budget\\\":[0,0,0],\\\"items\\\":[{\\\"id\\\":\\\"R1\\\",\\\"grp\\\":\\\"AV\\\",\\\"team\\\":\\\"AV\\\",\\\"sect\\\":\\\"\\\",\\\"custom\\\":false,\\\"title\\\":\\\"Req R1\\\",\\\"event\\\":\\\"Ev R1\\\",\\\"ccar\\\":\\\"CCR1\\\",\\\"fy26\\\":[0,0,0],\\\"ask\\\":[900,0,0],\\\"alloc\\\":null},{\\\"id\\\":\\\"R2\\\",\\\"grp\\\":\\\"AV\\\",\\\"team\\\":\\\"AV\\\",\\\"sect\\\":\\\"\\\",\\\"custom\\\":false,\\\"title\\\":\\\"Req R2\\\",\\\"event\\\":\\\"Ev R2\\\",\\\"ccar\\\":\\\"CCR2\\\",\\\"fy26\\\":[0,0,0],\\\"ask\\\":[300,0,0],\\\"alloc\\\":null}]},\\\"log\\\":[{\\\"by\\\":\\\"unknown\\\",\\\"ts\\\":1791908837117}]}\"}",
+      "want": "{\"prio27destdb\":\"{\\\"ts\\\":1791908837117,\\\"ents\\\":[{\\\"k\\\":\\\"U40-A\\\",\\\"n\\\":\\\"Alpha Depot\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"U40-B\\\",\\\"n\\\":\\\"Bravo Yard\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"lm\\\",\\\"n\\\":\\\"Lockheed Martin\\\",\\\"kind\\\":\\\"prime\\\",\\\"t\\\":\\\"LM, LOCKHEED\\\"},{\\\"k\\\":\\\"pw\\\",\\\"n\\\":\\\"Pratt & Whitney\\\",\\\"kind\\\":\\\"prime\\\",\\\"t\\\":\\\"PW, P&W, PRATT\\\"},{\\\"k\\\":\\\"pax\\\",\\\"n\\\":\\\"NAWCAD Patuxent River\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"PAX, PATUXENT\\\"},{\\\"k\\\":\\\"chlk\\\",\\\"n\\\":\\\"NAWCWD China Lake\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"CHLK, CHINA LAKE\\\"},{\\\"k\\\":\\\"chpt\\\",\\\"n\\\":\\\"FRC East, Cherry Point\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"CHERRY, FRCE\\\"},{\\\"k\\\":\\\"lke\\\",\\\"n\\\":\\\"NAWCAD Lakehurst\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"LKE, LAKEHURST\\\"},{\\\"k\\\":\\\"dla\\\",\\\"n\\\":\\\"Defense Logistics Agency\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"DLA\\\"},{\\\"k\\\":\\\"okc\\\",\\\"n\\\":\\\"OC-ALC Oklahoma City\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"OKC, OKLAHOMA\\\"}],\\\"lmap\\\":{\\\"c2b89283.8\\\":{\\\"lm\\\":\\\"lm\\\",\\\"pw\\\":\\\"pw\\\",\\\"pax\\\":\\\"pax\\\",\\\"chlk\\\":\\\"chlk\\\",\\\"chpt\\\":\\\"chpt\\\",\\\"lke\\\":\\\"lke\\\",\\\"dla\\\":\\\"dla\\\",\\\"okc\\\":\\\"okc\\\"}},\\\"lsig\\\":{\\\"om\\\":\\\"c2b89283.8\\\"},\\\"conflicts\\\":[],\\\"gone\\\":[]}\",\"prio27om.base\":\"{\\\"dirty\\\":true}\",\"prio27om\":\"{\\\"base\\\":2027,\\\"cur\\\":2027,\\\"ts\\\":1791908837117,\\\"years\\\":{\\\"2027\\\":{\\\"order\\\":[\\\"R1\\\",\\\"R2\\\"],\\\"alloc\\\":{},\\\"mc\\\":{},\\\"fsrc\\\":{},\\\"custom\\\":[],\\\"removed\\\":[],\\\"discSvc\\\":[5000,5000,5000],\\\"mandSvc\\\":[0,0,0],\\\"notes\\\":{},\\\"desc\\\":{},\\\"cons\\\":{},\\\"minInc\\\":{},\\\"titles\\\":{},\\\"ccar\\\":{},\\\"pid\\\":{},\\\"costElem\\\":{},\\\"grp\\\":{},\\\"si\\\":{},\\\"dest\\\":{\\\"R1\\\":{\\\"to\\\":\\\"U40-A\\\",\\\"end\\\":\\\"\\\"},\\\"R2\\\":{\\\"to\\\":\\\"U40-B\\\",\\\"end\\\":\\\"\\\"}},\\\"wbs\\\":{},\\\"band\\\":{},\\\"tier\\\":{},\\\"awards\\\":{},\\\"asks\\\":{},\\\"crHalf\\\":{},\\\"ptype\\\":{},\\\"budgetAsg\\\":{},\\\"rcn\\\":{},\\\"rcnSvc\\\":{},\\\"clinRcnSvc\\\":{},\\\"reprog\\\":[],\\\"recNames\\\":{},\\\"absorb\\\":\\\"\\\",\\\"absorbFloor\\\":0,\\\"bm\\\":{\\\"disc\\\":[5000,5000,5000],\\\"mand\\\":[0,0,0],\\\"adds\\\":[]},\\\"ptypeSeeded\\\":true,\\\"awdSeeded\\\":true,\\\"pmoOrder\\\":{\\\"ATL\\\":[],\\\"PSM\\\":[],\\\"PP\\\":[],\\\"AV\\\":[\\\"R1\\\",\\\"R2\\\"],\\\"MxS\\\":[],\\\"CDS\\\":[],\\\"TSS\\\":[],\\\"BOP\\\":[]}}},\\\"ppbe\\\":{},\\\"cycle\\\":\\\"\\\",\\\"cycleRef\\\":\\\"\\\",\\\"pmos\\\":[\\\"ATL\\\",\\\"PSM\\\",\\\"PP\\\",\\\"AV\\\",\\\"MxS\\\",\\\"CDS\\\",\\\"TSS\\\",\\\"BOP\\\"],\\\"flow\\\":{\\\"rules\\\":{\\\"lm\\\":\\\"LM\\\",\\\"pw\\\":\\\"PW, P&W, PRATT\\\",\\\"where\\\":\\\"both\\\"},\\\"other\\\":{},\\\"cats\\\":[{\\\"k\\\":\\\"work\\\",\\\"n\\\":\\\"Workforce & Travel\\\",\\\"cat\\\":\\\"Manpower, Civ Pay, Reservists, Travel, Workforce\\\",\\\"ttl\\\":\\\"\\\"},{\\\"k\\\":\\\"depot\\\",\\\"n\\\":\\\"Depot, Repair & Materiel\\\",\\\"cat\\\":\\\"DLA, BTL, Depot\\\",\\\"ttl\\\":\\\"Depot, Repair, Overhaul, Reset, DLA, Materiel, Spares\\\"},{\\\"k\\\":\\\"soft\\\",\\\"n\\\":\\\"Software, IT & Cyber\\\",\\\"cat\\\":\\\"CIO POA, Cyber, Unclass IT, Class IT, Software\\\",\\\"ttl\\\":\\\"Software, ALIS, ODIN, C2D2, JSE, IT, Cyber, Data\\\"},{\\\"k\\\":\\\"eng\\\",\\\"n\\\":\\\"Engineering, Projects & Studies\\\",\\\"cat\\\":\\\"\\\",\\\"ttl\\\":\\\"Engineering, Eng, SEI, Technical, Projects, Studies, Analysis, Development\\\"},{\\\"k\\\":\\\"ops\\\",\\\"n\\\":\\\"Program Operations & Support\\\",\\\"cat\\\":\\\"\\\",\\\"ttl\\\":\\\"\\\"}],\\\"ents\\\":[{\\\"k\\\":\\\"U40-A\\\",\\\"n\\\":\\\"Alpha Depot\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"U40-B\\\",\\\"n\\\":\\\"Bravo Yard\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"}],\\\"dv\\\":1},\\\"links\\\":{\\\"slides\\\":{\\\"name\\\":\\\"\\\",\\\"label\\\":\\\"JPO Slide Printer\\\"}},\\\"bands\\\":[{\\\"id\\\":\\\"netavail\\\",\\\"n\\\":\\\"Net Funding Available\\\",\\\"d\\\":\\\"funding already in hand for this appropriation\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#5aa87a\\\"},{\\\"id\\\":\\\"pdm\\\",\\\"n\\\":\\\"PDM-Directed Funding\\\",\\\"d\\\":\\\"directed by Program Decision Memorandum\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#ff6b81\\\"},{\\\"id\\\":\\\"ktlo\\\",\\\"n\\\":\\\"Keep the Lights On\\\",\\\"d\\\":\\\"the floor that keeps the enterprise running\\\",\\\"rule\\\":\\\"min\\\",\\\"crit\\\":true,\\\"consReq\\\":true,\\\"std\\\":true,\\\"c\\\":\\\"#d6a24a\\\"},{\\\"id\\\":\\\"liab\\\",\\\"n\\\":\\\"Incurred Financial Liabilities\\\",\\\"d\\\":\\\"already owed — work performed, obligations incurred\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#2f9e8f\\\"},{\\\"id\\\":\\\"safety\\\",\\\"n\\\":\\\"Safety-Critical & Must Fix\\\",\\\"d\\\":\\\"safety of flight, safety of use, must-fix\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":true,\\\"std\\\":true,\\\"c\\\":\\\"#e0703a\\\"},{\\\"id\\\":\\\"rdns\\\",\\\"n\\\":\\\"Readiness degradation\\\",\\\"d\\\":\\\"measurable decline, not stoppage\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#4f8fd6\\\"},{\\\"id\\\":\\\"health\\\",\\\"n\\\":\\\"Program health\\\",\\\"d\\\":\\\"obsolescence, cost avoidance\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#7a6fd0\\\"},{\\\"id\\\":\\\"defer\\\",\\\"n\\\":\\\"Deferrable\\\",\\\"d\\\":\\\"slips a year at acceptable risk\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#8892a4\\\"}],\\\"stdVer\\\":2,\\\"coaDef\\\":{\\\"groups\\\":[]},\\\"rcn\\\":[],\\\"snaps\\\":{},\\\"jrnl\\\":[{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",0],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",1],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",2],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",0],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",1],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",2],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837117,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"dest\\\",\\\"R1\\\"],\\\"a\\\":null,\\\"b\\\":{\\\"to\\\":\\\"U40-A\\\",\\\"end\\\":\\\"\\\"}},{\\\"t\\\":1791908837117,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"dest\\\",\\\"R2\\\"],\\\"a\\\":null,\\\"b\\\":{\\\"to\\\":\\\"U40-B\\\",\\\"end\\\":\\\"\\\"}}],\\\"by\\\":\\\"unknown\\\",\\\"dataPack\\\":{\\\"services\\\":[\\\"USAF\\\",\\\"ANG\\\",\\\"AFRC\\\"],\\\"budget\\\":[0,0,0],\\\"items\\\":[{\\\"id\\\":\\\"R1\\\",\\\"grp\\\":\\\"AV\\\",\\\"team\\\":\\\"AV\\\",\\\"sect\\\":\\\"\\\",\\\"custom\\\":false,\\\"title\\\":\\\"Req R1\\\",\\\"event\\\":\\\"Ev R1\\\",\\\"ccar\\\":\\\"CCR1\\\",\\\"fy26\\\":[0,0,0],\\\"ask\\\":[900,0,0],\\\"alloc\\\":null},{\\\"id\\\":\\\"R2\\\",\\\"grp\\\":\\\"AV\\\",\\\"team\\\":\\\"AV\\\",\\\"sect\\\":\\\"\\\",\\\"custom\\\":false,\\\"title\\\":\\\"Req R2\\\",\\\"event\\\":\\\"Ev R2\\\",\\\"ccar\\\":\\\"CCR2\\\",\\\"fy26\\\":[0,0,0],\\\"ask\\\":[300,0,0],\\\"alloc\\\":null}]},\\\"log\\\":[{\\\"by\\\":\\\"unknown\\\",\\\"ts\\\":1791908837117}]}\"}",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing ALPHA DEPOT",
+      "what": "refusal is explained",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing   alpha   depot  ",
+      "what": "duplicate name is refused",
+      "got": "Bravo Yard",
+      "want": "Bravo Yard",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing   alpha   depot  ",
+      "what": "requirements, counters and flags are untouched",
+      "got": "{\"ents\":[{\"k\":\"U40-A\",\"n\":\"Alpha Depot\",\"kind\":\"other\",\"t\":\"\"},{\"k\":\"U40-B\",\"n\":\"Bravo Yard\",\"kind\":\"other\",\"t\":\"\"},{\"k\":\"lm\",\"n\":\"Lockheed Martin\",\"kind\":\"prime\",\"t\":\"LM, LOCKHEED\"},{\"k\":\"pw\",\"n\":\"Pratt & Whitney\",\"kind\":\"prime\",\"t\":\"PW, P&W, PRATT\"},{\"k\":\"pax\",\"n\":\"NAWCAD Patuxent River\",\"kind\":\"gov\",\"t\":\"PAX, PATUXENT\"},{\"k\":\"chlk\",\"n\":\"NAWCWD China Lake\",\"kind\":\"gov\",\"t\":\"CHLK, CHINA LAKE\"},{\"k\":\"chpt\",\"n\":\"FRC East, Cherry Point\",\"kind\":\"gov\",\"t\":\"CHERRY, FRCE\"},{\"k\":\"lke\",\"n\":\"NAWCAD Lakehurst\",\"kind\":\"gov\",\"t\":\"LKE, LAKEHURST\"},{\"k\":\"dla\",\"n\":\"Defense Logistics Agency\",\"kind\":\"gov\",\"t\":\"DLA\"},{\"k\":\"okc\",\"n\":\"OC-ALC Oklahoma City\",\"kind\":\"gov\",\"t\":\"OKC, OKLAHOMA\"}],\"dest\":{\"R1\":{\"to\":\"U40-A\",\"end\":\"\"},\"R2\":{\"to\":\"U40-B\",\"end\":\"\"}},\"gen\":2,\"side\":3,\"dirty\":true,\"base\":true}",
+      "want": "{\"ents\":[{\"k\":\"U40-A\",\"n\":\"Alpha Depot\",\"kind\":\"other\",\"t\":\"\"},{\"k\":\"U40-B\",\"n\":\"Bravo Yard\",\"kind\":\"other\",\"t\":\"\"},{\"k\":\"lm\",\"n\":\"Lockheed Martin\",\"kind\":\"prime\",\"t\":\"LM, LOCKHEED\"},{\"k\":\"pw\",\"n\":\"Pratt & Whitney\",\"kind\":\"prime\",\"t\":\"PW, P&W, PRATT\"},{\"k\":\"pax\",\"n\":\"NAWCAD Patuxent River\",\"kind\":\"gov\",\"t\":\"PAX, PATUXENT\"},{\"k\":\"chlk\",\"n\":\"NAWCWD China Lake\",\"kind\":\"gov\",\"t\":\"CHLK, CHINA LAKE\"},{\"k\":\"chpt\",\"n\":\"FRC East, Cherry Point\",\"kind\":\"gov\",\"t\":\"CHERRY, FRCE\"},{\"k\":\"lke\",\"n\":\"NAWCAD Lakehurst\",\"kind\":\"gov\",\"t\":\"LKE, LAKEHURST\"},{\"k\":\"dla\",\"n\":\"Defense Logistics Agency\",\"kind\":\"gov\",\"t\":\"DLA\"},{\"k\":\"okc\",\"n\":\"OC-ALC Oklahoma City\",\"kind\":\"gov\",\"t\":\"OKC, OKLAHOMA\"}],\"dest\":{\"R1\":{\"to\":\"U40-A\",\"end\":\"\"},\"R2\":{\"to\":\"U40-B\",\"end\":\"\"}},\"gen\":2,\"side\":3,\"dirty\":true,\"base\":true}",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing   alpha   depot  ",
+      "what": "no storage writes",
+      "got": "{\"prio27destdb\":\"{\\\"ts\\\":1791908837117,\\\"ents\\\":[{\\\"k\\\":\\\"U40-A\\\",\\\"n\\\":\\\"Alpha Depot\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"U40-B\\\",\\\"n\\\":\\\"Bravo Yard\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"lm\\\",\\\"n\\\":\\\"Lockheed Martin\\\",\\\"kind\\\":\\\"prime\\\",\\\"t\\\":\\\"LM, LOCKHEED\\\"},{\\\"k\\\":\\\"pw\\\",\\\"n\\\":\\\"Pratt & Whitney\\\",\\\"kind\\\":\\\"prime\\\",\\\"t\\\":\\\"PW, P&W, PRATT\\\"},{\\\"k\\\":\\\"pax\\\",\\\"n\\\":\\\"NAWCAD Patuxent River\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"PAX, PATUXENT\\\"},{\\\"k\\\":\\\"chlk\\\",\\\"n\\\":\\\"NAWCWD China Lake\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"CHLK, CHINA LAKE\\\"},{\\\"k\\\":\\\"chpt\\\",\\\"n\\\":\\\"FRC East, Cherry Point\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"CHERRY, FRCE\\\"},{\\\"k\\\":\\\"lke\\\",\\\"n\\\":\\\"NAWCAD Lakehurst\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"LKE, LAKEHURST\\\"},{\\\"k\\\":\\\"dla\\\",\\\"n\\\":\\\"Defense Logistics Agency\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"DLA\\\"},{\\\"k\\\":\\\"okc\\\",\\\"n\\\":\\\"OC-ALC Oklahoma City\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"OKC, OKLAHOMA\\\"}],\\\"lmap\\\":{\\\"c2b89283.8\\\":{\\\"lm\\\":\\\"lm\\\",\\\"pw\\\":\\\"pw\\\",\\\"pax\\\":\\\"pax\\\",\\\"chlk\\\":\\\"chlk\\\",\\\"chpt\\\":\\\"chpt\\\",\\\"lke\\\":\\\"lke\\\",\\\"dla\\\":\\\"dla\\\",\\\"okc\\\":\\\"okc\\\"}},\\\"lsig\\\":{\\\"om\\\":\\\"c2b89283.8\\\"},\\\"conflicts\\\":[],\\\"gone\\\":[]}\",\"prio27om.base\":\"{\\\"dirty\\\":true}\",\"prio27om\":\"{\\\"base\\\":2027,\\\"cur\\\":2027,\\\"ts\\\":1791908837117,\\\"years\\\":{\\\"2027\\\":{\\\"order\\\":[\\\"R1\\\",\\\"R2\\\"],\\\"alloc\\\":{},\\\"mc\\\":{},\\\"fsrc\\\":{},\\\"custom\\\":[],\\\"removed\\\":[],\\\"discSvc\\\":[5000,5000,5000],\\\"mandSvc\\\":[0,0,0],\\\"notes\\\":{},\\\"desc\\\":{},\\\"cons\\\":{},\\\"minInc\\\":{},\\\"titles\\\":{},\\\"ccar\\\":{},\\\"pid\\\":{},\\\"costElem\\\":{},\\\"grp\\\":{},\\\"si\\\":{},\\\"dest\\\":{\\\"R1\\\":{\\\"to\\\":\\\"U40-A\\\",\\\"end\\\":\\\"\\\"},\\\"R2\\\":{\\\"to\\\":\\\"U40-B\\\",\\\"end\\\":\\\"\\\"}},\\\"wbs\\\":{},\\\"band\\\":{},\\\"tier\\\":{},\\\"awards\\\":{},\\\"asks\\\":{},\\\"crHalf\\\":{},\\\"ptype\\\":{},\\\"budgetAsg\\\":{},\\\"rcn\\\":{},\\\"rcnSvc\\\":{},\\\"clinRcnSvc\\\":{},\\\"reprog\\\":[],\\\"recNames\\\":{},\\\"absorb\\\":\\\"\\\",\\\"absorbFloor\\\":0,\\\"bm\\\":{\\\"disc\\\":[5000,5000,5000],\\\"mand\\\":[0,0,0],\\\"adds\\\":[]},\\\"ptypeSeeded\\\":true,\\\"awdSeeded\\\":true,\\\"pmoOrder\\\":{\\\"ATL\\\":[],\\\"PSM\\\":[],\\\"PP\\\":[],\\\"AV\\\":[\\\"R1\\\",\\\"R2\\\"],\\\"MxS\\\":[],\\\"CDS\\\":[],\\\"TSS\\\":[],\\\"BOP\\\":[]}}},\\\"ppbe\\\":{},\\\"cycle\\\":\\\"\\\",\\\"cycleRef\\\":\\\"\\\",\\\"pmos\\\":[\\\"ATL\\\",\\\"PSM\\\",\\\"PP\\\",\\\"AV\\\",\\\"MxS\\\",\\\"CDS\\\",\\\"TSS\\\",\\\"BOP\\\"],\\\"flow\\\":{\\\"rules\\\":{\\\"lm\\\":\\\"LM\\\",\\\"pw\\\":\\\"PW, P&W, PRATT\\\",\\\"where\\\":\\\"both\\\"},\\\"other\\\":{},\\\"cats\\\":[{\\\"k\\\":\\\"work\\\",\\\"n\\\":\\\"Workforce & Travel\\\",\\\"cat\\\":\\\"Manpower, Civ Pay, Reservists, Travel, Workforce\\\",\\\"ttl\\\":\\\"\\\"},{\\\"k\\\":\\\"depot\\\",\\\"n\\\":\\\"Depot, Repair & Materiel\\\",\\\"cat\\\":\\\"DLA, BTL, Depot\\\",\\\"ttl\\\":\\\"Depot, Repair, Overhaul, Reset, DLA, Materiel, Spares\\\"},{\\\"k\\\":\\\"soft\\\",\\\"n\\\":\\\"Software, IT & Cyber\\\",\\\"cat\\\":\\\"CIO POA, Cyber, Unclass IT, Class IT, Software\\\",\\\"ttl\\\":\\\"Software, ALIS, ODIN, C2D2, JSE, IT, Cyber, Data\\\"},{\\\"k\\\":\\\"eng\\\",\\\"n\\\":\\\"Engineering, Projects & Studies\\\",\\\"cat\\\":\\\"\\\",\\\"ttl\\\":\\\"Engineering, Eng, SEI, Technical, Projects, Studies, Analysis, Development\\\"},{\\\"k\\\":\\\"ops\\\",\\\"n\\\":\\\"Program Operations & Support\\\",\\\"cat\\\":\\\"\\\",\\\"ttl\\\":\\\"\\\"}],\\\"ents\\\":[{\\\"k\\\":\\\"U40-A\\\",\\\"n\\\":\\\"Alpha Depot\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"U40-B\\\",\\\"n\\\":\\\"Bravo Yard\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"}],\\\"dv\\\":1},\\\"links\\\":{\\\"slides\\\":{\\\"name\\\":\\\"\\\",\\\"label\\\":\\\"JPO Slide Printer\\\"}},\\\"bands\\\":[{\\\"id\\\":\\\"netavail\\\",\\\"n\\\":\\\"Net Funding Available\\\",\\\"d\\\":\\\"funding already in hand for this appropriation\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#5aa87a\\\"},{\\\"id\\\":\\\"pdm\\\",\\\"n\\\":\\\"PDM-Directed Funding\\\",\\\"d\\\":\\\"directed by Program Decision Memorandum\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#ff6b81\\\"},{\\\"id\\\":\\\"ktlo\\\",\\\"n\\\":\\\"Keep the Lights On\\\",\\\"d\\\":\\\"the floor that keeps the enterprise running\\\",\\\"rule\\\":\\\"min\\\",\\\"crit\\\":true,\\\"consReq\\\":true,\\\"std\\\":true,\\\"c\\\":\\\"#d6a24a\\\"},{\\\"id\\\":\\\"liab\\\",\\\"n\\\":\\\"Incurred Financial Liabilities\\\",\\\"d\\\":\\\"already owed — work performed, obligations incurred\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#2f9e8f\\\"},{\\\"id\\\":\\\"safety\\\",\\\"n\\\":\\\"Safety-Critical & Must Fix\\\",\\\"d\\\":\\\"safety of flight, safety of use, must-fix\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":true,\\\"std\\\":true,\\\"c\\\":\\\"#e0703a\\\"},{\\\"id\\\":\\\"rdns\\\",\\\"n\\\":\\\"Readiness degradation\\\",\\\"d\\\":\\\"measurable decline, not stoppage\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#4f8fd6\\\"},{\\\"id\\\":\\\"health\\\",\\\"n\\\":\\\"Program health\\\",\\\"d\\\":\\\"obsolescence, cost avoidance\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#7a6fd0\\\"},{\\\"id\\\":\\\"defer\\\",\\\"n\\\":\\\"Deferrable\\\",\\\"d\\\":\\\"slips a year at acceptable risk\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#8892a4\\\"}],\\\"stdVer\\\":2,\\\"coaDef\\\":{\\\"groups\\\":[]},\\\"rcn\\\":[],\\\"snaps\\\":{},\\\"jrnl\\\":[{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",0],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",1],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",2],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",0],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",1],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",2],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837117,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"dest\\\",\\\"R1\\\"],\\\"a\\\":null,\\\"b\\\":{\\\"to\\\":\\\"U40-A\\\",\\\"end\\\":\\\"\\\"}},{\\\"t\\\":1791908837117,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"dest\\\",\\\"R2\\\"],\\\"a\\\":null,\\\"b\\\":{\\\"to\\\":\\\"U40-B\\\",\\\"end\\\":\\\"\\\"}}],\\\"by\\\":\\\"unknown\\\",\\\"dataPack\\\":{\\\"services\\\":[\\\"USAF\\\",\\\"ANG\\\",\\\"AFRC\\\"],\\\"budget\\\":[0,0,0],\\\"items\\\":[{\\\"id\\\":\\\"R1\\\",\\\"grp\\\":\\\"AV\\\",\\\"team\\\":\\\"AV\\\",\\\"sect\\\":\\\"\\\",\\\"custom\\\":false,\\\"title\\\":\\\"Req R1\\\",\\\"event\\\":\\\"Ev R1\\\",\\\"ccar\\\":\\\"CCR1\\\",\\\"fy26\\\":[0,0,0],\\\"ask\\\":[900,0,0],\\\"alloc\\\":null},{\\\"id\\\":\\\"R2\\\",\\\"grp\\\":\\\"AV\\\",\\\"team\\\":\\\"AV\\\",\\\"sect\\\":\\\"\\\",\\\"custom\\\":false,\\\"title\\\":\\\"Req R2\\\",\\\"event\\\":\\\"Ev R2\\\",\\\"ccar\\\":\\\"CCR2\\\",\\\"fy26\\\":[0,0,0],\\\"ask\\\":[300,0,0],\\\"alloc\\\":null}]},\\\"log\\\":[{\\\"by\\\":\\\"unknown\\\",\\\"ts\\\":1791908837117}]}\"}",
+      "want": "{\"prio27destdb\":\"{\\\"ts\\\":1791908837117,\\\"ents\\\":[{\\\"k\\\":\\\"U40-A\\\",\\\"n\\\":\\\"Alpha Depot\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"U40-B\\\",\\\"n\\\":\\\"Bravo Yard\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"lm\\\",\\\"n\\\":\\\"Lockheed Martin\\\",\\\"kind\\\":\\\"prime\\\",\\\"t\\\":\\\"LM, LOCKHEED\\\"},{\\\"k\\\":\\\"pw\\\",\\\"n\\\":\\\"Pratt & Whitney\\\",\\\"kind\\\":\\\"prime\\\",\\\"t\\\":\\\"PW, P&W, PRATT\\\"},{\\\"k\\\":\\\"pax\\\",\\\"n\\\":\\\"NAWCAD Patuxent River\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"PAX, PATUXENT\\\"},{\\\"k\\\":\\\"chlk\\\",\\\"n\\\":\\\"NAWCWD China Lake\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"CHLK, CHINA LAKE\\\"},{\\\"k\\\":\\\"chpt\\\",\\\"n\\\":\\\"FRC East, Cherry Point\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"CHERRY, FRCE\\\"},{\\\"k\\\":\\\"lke\\\",\\\"n\\\":\\\"NAWCAD Lakehurst\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"LKE, LAKEHURST\\\"},{\\\"k\\\":\\\"dla\\\",\\\"n\\\":\\\"Defense Logistics Agency\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"DLA\\\"},{\\\"k\\\":\\\"okc\\\",\\\"n\\\":\\\"OC-ALC Oklahoma City\\\",\\\"kind\\\":\\\"gov\\\",\\\"t\\\":\\\"OKC, OKLAHOMA\\\"}],\\\"lmap\\\":{\\\"c2b89283.8\\\":{\\\"lm\\\":\\\"lm\\\",\\\"pw\\\":\\\"pw\\\",\\\"pax\\\":\\\"pax\\\",\\\"chlk\\\":\\\"chlk\\\",\\\"chpt\\\":\\\"chpt\\\",\\\"lke\\\":\\\"lke\\\",\\\"dla\\\":\\\"dla\\\",\\\"okc\\\":\\\"okc\\\"}},\\\"lsig\\\":{\\\"om\\\":\\\"c2b89283.8\\\"},\\\"conflicts\\\":[],\\\"gone\\\":[]}\",\"prio27om.base\":\"{\\\"dirty\\\":true}\",\"prio27om\":\"{\\\"base\\\":2027,\\\"cur\\\":2027,\\\"ts\\\":1791908837117,\\\"years\\\":{\\\"2027\\\":{\\\"order\\\":[\\\"R1\\\",\\\"R2\\\"],\\\"alloc\\\":{},\\\"mc\\\":{},\\\"fsrc\\\":{},\\\"custom\\\":[],\\\"removed\\\":[],\\\"discSvc\\\":[5000,5000,5000],\\\"mandSvc\\\":[0,0,0],\\\"notes\\\":{},\\\"desc\\\":{},\\\"cons\\\":{},\\\"minInc\\\":{},\\\"titles\\\":{},\\\"ccar\\\":{},\\\"pid\\\":{},\\\"costElem\\\":{},\\\"grp\\\":{},\\\"si\\\":{},\\\"dest\\\":{\\\"R1\\\":{\\\"to\\\":\\\"U40-A\\\",\\\"end\\\":\\\"\\\"},\\\"R2\\\":{\\\"to\\\":\\\"U40-B\\\",\\\"end\\\":\\\"\\\"}},\\\"wbs\\\":{},\\\"band\\\":{},\\\"tier\\\":{},\\\"awards\\\":{},\\\"asks\\\":{},\\\"crHalf\\\":{},\\\"ptype\\\":{},\\\"budgetAsg\\\":{},\\\"rcn\\\":{},\\\"rcnSvc\\\":{},\\\"clinRcnSvc\\\":{},\\\"reprog\\\":[],\\\"recNames\\\":{},\\\"absorb\\\":\\\"\\\",\\\"absorbFloor\\\":0,\\\"bm\\\":{\\\"disc\\\":[5000,5000,5000],\\\"mand\\\":[0,0,0],\\\"adds\\\":[]},\\\"ptypeSeeded\\\":true,\\\"awdSeeded\\\":true,\\\"pmoOrder\\\":{\\\"ATL\\\":[],\\\"PSM\\\":[],\\\"PP\\\":[],\\\"AV\\\":[\\\"R1\\\",\\\"R2\\\"],\\\"MxS\\\":[],\\\"CDS\\\":[],\\\"TSS\\\":[],\\\"BOP\\\":[]}}},\\\"ppbe\\\":{},\\\"cycle\\\":\\\"\\\",\\\"cycleRef\\\":\\\"\\\",\\\"pmos\\\":[\\\"ATL\\\",\\\"PSM\\\",\\\"PP\\\",\\\"AV\\\",\\\"MxS\\\",\\\"CDS\\\",\\\"TSS\\\",\\\"BOP\\\"],\\\"flow\\\":{\\\"rules\\\":{\\\"lm\\\":\\\"LM\\\",\\\"pw\\\":\\\"PW, P&W, PRATT\\\",\\\"where\\\":\\\"both\\\"},\\\"other\\\":{},\\\"cats\\\":[{\\\"k\\\":\\\"work\\\",\\\"n\\\":\\\"Workforce & Travel\\\",\\\"cat\\\":\\\"Manpower, Civ Pay, Reservists, Travel, Workforce\\\",\\\"ttl\\\":\\\"\\\"},{\\\"k\\\":\\\"depot\\\",\\\"n\\\":\\\"Depot, Repair & Materiel\\\",\\\"cat\\\":\\\"DLA, BTL, Depot\\\",\\\"ttl\\\":\\\"Depot, Repair, Overhaul, Reset, DLA, Materiel, Spares\\\"},{\\\"k\\\":\\\"soft\\\",\\\"n\\\":\\\"Software, IT & Cyber\\\",\\\"cat\\\":\\\"CIO POA, Cyber, Unclass IT, Class IT, Software\\\",\\\"ttl\\\":\\\"Software, ALIS, ODIN, C2D2, JSE, IT, Cyber, Data\\\"},{\\\"k\\\":\\\"eng\\\",\\\"n\\\":\\\"Engineering, Projects & Studies\\\",\\\"cat\\\":\\\"\\\",\\\"ttl\\\":\\\"Engineering, Eng, SEI, Technical, Projects, Studies, Analysis, Development\\\"},{\\\"k\\\":\\\"ops\\\",\\\"n\\\":\\\"Program Operations & Support\\\",\\\"cat\\\":\\\"\\\",\\\"ttl\\\":\\\"\\\"}],\\\"ents\\\":[{\\\"k\\\":\\\"U40-A\\\",\\\"n\\\":\\\"Alpha Depot\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"},{\\\"k\\\":\\\"U40-B\\\",\\\"n\\\":\\\"Bravo Yard\\\",\\\"kind\\\":\\\"other\\\",\\\"t\\\":\\\"\\\"}],\\\"dv\\\":1},\\\"links\\\":{\\\"slides\\\":{\\\"name\\\":\\\"\\\",\\\"label\\\":\\\"JPO Slide Printer\\\"}},\\\"bands\\\":[{\\\"id\\\":\\\"netavail\\\",\\\"n\\\":\\\"Net Funding Available\\\",\\\"d\\\":\\\"funding already in hand for this appropriation\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#5aa87a\\\"},{\\\"id\\\":\\\"pdm\\\",\\\"n\\\":\\\"PDM-Directed Funding\\\",\\\"d\\\":\\\"directed by Program Decision Memorandum\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#ff6b81\\\"},{\\\"id\\\":\\\"ktlo\\\",\\\"n\\\":\\\"Keep the Lights On\\\",\\\"d\\\":\\\"the floor that keeps the enterprise running\\\",\\\"rule\\\":\\\"min\\\",\\\"crit\\\":true,\\\"consReq\\\":true,\\\"std\\\":true,\\\"c\\\":\\\"#d6a24a\\\"},{\\\"id\\\":\\\"liab\\\",\\\"n\\\":\\\"Incurred Financial Liabilities\\\",\\\"d\\\":\\\"already owed — work performed, obligations incurred\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":false,\\\"std\\\":true,\\\"c\\\":\\\"#2f9e8f\\\"},{\\\"id\\\":\\\"safety\\\",\\\"n\\\":\\\"Safety-Critical & Must Fix\\\",\\\"d\\\":\\\"safety of flight, safety of use, must-fix\\\",\\\"rule\\\":\\\"full\\\",\\\"crit\\\":true,\\\"consReq\\\":true,\\\"std\\\":true,\\\"c\\\":\\\"#e0703a\\\"},{\\\"id\\\":\\\"rdns\\\",\\\"n\\\":\\\"Readiness degradation\\\",\\\"d\\\":\\\"measurable decline, not stoppage\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#4f8fd6\\\"},{\\\"id\\\":\\\"health\\\",\\\"n\\\":\\\"Program health\\\",\\\"d\\\":\\\"obsolescence, cost avoidance\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#7a6fd0\\\"},{\\\"id\\\":\\\"defer\\\",\\\"n\\\":\\\"Deferrable\\\",\\\"d\\\":\\\"slips a year at acceptable risk\\\",\\\"rule\\\":\\\"skip\\\",\\\"crit\\\":false,\\\"consReq\\\":false,\\\"c\\\":\\\"#8892a4\\\"}],\\\"stdVer\\\":2,\\\"coaDef\\\":{\\\"groups\\\":[]},\\\"rcn\\\":[],\\\"snaps\\\":{},\\\"jrnl\\\":[{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",0],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",1],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"disc\\\",2],\\\"a\\\":null,\\\"b\\\":5000},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",0],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",1],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837112,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"bm\\\",\\\"mand\\\",2],\\\"a\\\":null,\\\"b\\\":0},{\\\"t\\\":1791908837117,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"dest\\\",\\\"R1\\\"],\\\"a\\\":null,\\\"b\\\":{\\\"to\\\":\\\"U40-A\\\",\\\"end\\\":\\\"\\\"}},{\\\"t\\\":1791908837117,\\\"by\\\":\\\"unknown\\\",\\\"fy\\\":2027,\\\"p\\\":[\\\"dest\\\",\\\"R2\\\"],\\\"a\\\":null,\\\"b\\\":{\\\"to\\\":\\\"U40-B\\\",\\\"end\\\":\\\"\\\"}}],\\\"by\\\":\\\"unknown\\\",\\\"dataPack\\\":{\\\"services\\\":[\\\"USAF\\\",\\\"ANG\\\",\\\"AFRC\\\"],\\\"budget\\\":[0,0,0],\\\"items\\\":[{\\\"id\\\":\\\"R1\\\",\\\"grp\\\":\\\"AV\\\",\\\"team\\\":\\\"AV\\\",\\\"sect\\\":\\\"\\\",\\\"custom\\\":false,\\\"title\\\":\\\"Req R1\\\",\\\"event\\\":\\\"Ev R1\\\",\\\"ccar\\\":\\\"CCR1\\\",\\\"fy26\\\":[0,0,0],\\\"ask\\\":[900,0,0],\\\"alloc\\\":null},{\\\"id\\\":\\\"R2\\\",\\\"grp\\\":\\\"AV\\\",\\\"team\\\":\\\"AV\\\",\\\"sect\\\":\\\"\\\",\\\"custom\\\":false,\\\"title\\\":\\\"Req R2\\\",\\\"event\\\":\\\"Ev R2\\\",\\\"ccar\\\":\\\"CCR2\\\",\\\"fy26\\\":[0,0,0],\\\"ask\\\":[300,0,0],\\\"alloc\\\":null}]},\\\"log\\\":[{\\\"by\\\":\\\"unknown\\\",\\\"ts\\\":1791908837117}]}\"}",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing   alpha   depot  ",
+      "what": "refusal is explained",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing controls",
+      "what": "an entry may retain its own normalized name",
+      "got": " ALPHA   DEPOT ",
+      "want": " ALPHA   DEPOT ",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing controls",
+      "what": "Kind and Match terms still save",
+      "got": "gov|BRAVO",
+      "want": "gov|BRAVO",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "typing controls",
+      "what": "an unnamed placeholder may still be added",
+      "got": "New destination",
+      "want": "New destination",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "both names survive",
+      "got": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "want": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "current year keeps both destination identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "another saved year keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "locked cycle keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "preserved duplicate names are disclosed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "R1 owns its literal $900",
+      "got": 900,
+      "want": 900,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "R2 owns its literal $300",
+      "got": 300,
+      "want": 300,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "literal $1200 total is unchanged",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "actual XLSX has separate destination sheets",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "actual XLSX R1 belongs only to Alpha Depot",
+      "got": "[900]",
+      "want": "[900]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "actual XLSX R2 belongs only to ALPHA DEPOT",
+      "got": "[300]",
+      "want": "[300]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "fresh file",
+      "what": "actual XLSX never puts R2 under the first destination",
+      "got": 0,
+      "want": 0,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "opening names the preserved duplicates",
+      "got": false,
+      "want": true,
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "both names survive",
+      "got": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "want": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "current year keeps both destination identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "another saved year keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "locked cycle keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "preserved duplicate names are disclosed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "R1 owns its literal $900",
+      "got": 900,
+      "want": 900,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "R2 owns its literal $300",
+      "got": 300,
+      "want": 300,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "literal $1200 total is unchanged",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "actual XLSX has separate destination sheets",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "actual XLSX R1 belongs only to Alpha Depot",
+      "got": "[900]",
+      "want": "[900]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "actual XLSX R2 belongs only to ALPHA DEPOT",
+      "got": "[300]",
+      "want": "[300]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Bravo Yard",
+      "what": "actual XLSX never puts R2 under the first destination",
+      "got": 0,
+      "want": 0,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "both names survive",
+      "got": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "want": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "current year keeps both destination identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "another saved year keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "locked cycle keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "preserved duplicate names are disclosed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "R1 owns its literal $900",
+      "got": 900,
+      "want": 900,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "R2 owns its literal $300",
+      "got": 300,
+      "want": 300,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "literal $1200 total is unchanged",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "actual XLSX has separate destination sheets",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "actual XLSX R1 belongs only to Alpha Depot",
+      "got": "[900]",
+      "want": "[900]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "actual XLSX R2 belongs only to ALPHA DEPOT",
+      "got": "[300]",
+      "want": "[300]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Bravo Yard",
+      "what": "actual XLSX never puts R2 under the first destination",
+      "got": 0,
+      "want": 0,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "opening names the preserved duplicates",
+      "got": false,
+      "want": true,
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "both names survive",
+      "got": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "want": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "current year keeps both destination identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "another saved year keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "locked cycle keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "preserved duplicate names are disclosed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "R1 owns its literal $900",
+      "got": 900,
+      "want": 900,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "R2 owns its literal $300",
+      "got": 300,
+      "want": 300,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "literal $1200 total is unchanged",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "actual XLSX has separate destination sheets",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "actual XLSX R1 belongs only to Alpha Depot",
+      "got": "[900]",
+      "want": "[900]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "actual XLSX R2 belongs only to ALPHA DEPOT",
+      "got": "[300]",
+      "want": "[300]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "newer Alpha Depot",
+      "what": "actual XLSX never puts R2 under the first destination",
+      "got": 0,
+      "want": 0,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "both names survive",
+      "got": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "want": "[\"Alpha Depot\",\"ALPHA DEPOT\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "current year keeps both destination identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "another saved year keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "locked cycle keeps both identities",
+      "got": "U40-A|U40-B",
+      "want": "U40-A|U40-B",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "preserved duplicate names are disclosed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "R1 owns its literal $900",
+      "got": 900,
+      "want": 900,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "R2 owns its literal $300",
+      "got": 300,
+      "want": 300,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "literal $1200 total is unchanged",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "actual XLSX has separate destination sheets",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "actual XLSX R1 belongs only to Alpha Depot",
+      "got": "[900]",
+      "want": "[900]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "actual XLSX R2 belongs only to ALPHA DEPOT",
+      "got": "[300]",
+      "want": "[300]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "saved after Alpha Depot",
+      "what": "actual XLSX never puts R2 under the first destination",
+      "got": 0,
+      "want": 0,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "same list key",
+      "what": "a different incoming key cannot claim its neighbor by name",
+      "got": "{}",
+      "want": "{}",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "same list key",
+      "what": "both incoming identities remain",
+      "got": "[\"U40-A\",\"U40-B\"]",
+      "want": "[\"U40-A\",\"U40-B\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "ambiguous local name",
+      "what": "a first name match is not selected from an ambiguous local list",
+      "got": "{}",
+      "want": "{}",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "ambiguous local name",
+      "what": "the incoming distinct destination is kept",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy",
+      "what": "cached legacy identities are distinct",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy",
+      "what": "the second entry keeps its own spelling",
+      "got": "ALPHA DEPOT",
+      "want": "ALPHA DEPOT",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy",
+      "what": "cached legacy R1 owns $900",
+      "got": 900,
+      "want": 900,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy",
+      "what": "cached legacy R2 owns $300",
+      "got": 300,
+      "want": 300,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy",
+      "what": "cached legacy total is $1200",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy",
+      "what": "the preserved matching names are disclosed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy saved/reopened",
+      "what": "cached legacy identities are distinct",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy saved/reopened",
+      "what": "the second entry keeps its own spelling",
+      "got": "ALPHA DEPOT",
+      "want": "ALPHA DEPOT",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy saved/reopened",
+      "what": "cached legacy R1 owns $900",
+      "got": 900,
+      "want": 900,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy saved/reopened",
+      "what": "cached legacy R2 owns $300",
+      "got": 300,
+      "want": 300,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy saved/reopened",
+      "what": "cached legacy total is $1200",
+      "got": 1200,
+      "want": 1200,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "cached legacy saved/reopened",
+      "what": "the preserved matching names are disclosed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "legacy control",
+      "what": "an unambiguous name still maps consistently",
+      "got": "[{\"x1\":\"U40-A\"},{\"x1\":\"U40-A\"}]",
+      "want": "[{\"x1\":\"U40-A\"},{\"x1\":\"U40-A\"}]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "legacy control",
+      "what": "only one destination remains",
+      "got": 1,
+      "want": 1,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "legacy control",
+      "what": "terms from both entries are retained",
+      "got": "OLD, NEW",
+      "want": "OLD, NEW",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U40) — matching destination names never silently move a requirement",
+      "where": "legacy merge notice",
+      "what": "the actual merge names both keys and both names",
+      "got": true,
+      "want": true,
+      "ok": true
+    }
+  ]
+}

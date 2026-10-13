@@ -1,0 +1,48 @@
+U37 CHECKS 53
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x000B_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5002,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x0041_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5002,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x005F_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5002,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x00ab_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5002,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x0001_x0002_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5008,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    },
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "literal _x005F_x0001_",
+      "what": "literal OOXML escape is refused and named, with text still in state and no bytes",
+      "got": "[1,5008,false,false,true]",
+      "want": "[0,0,true,true,true]"
+    }
+  ]
+}
+6 FAILING CHECK(S)

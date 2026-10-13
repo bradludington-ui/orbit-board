@@ -1,0 +1,20 @@
+{
+  "command": [
+    "env",
+    "BOARD=/workspace/orbit-codex-batches-20261013-1205ET/A2-review/base/prioritization-board-grid.html",
+    "node",
+    "--import",
+    "../runtime-encoding-shim.mjs",
+    "probe.mjs"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A2-review",
+  "cap_seconds": 120.0,
+  "started_ET": "2026-10-13T12:22:11.262425-04:00",
+  "finished_ET": "2026-10-13T12:22:12.287147-04:00",
+  "duration_seconds": 1.025,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 51255,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2-review/probe-base.log",
+  "completion": "failed"
+}

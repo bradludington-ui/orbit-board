@@ -1,0 +1,20 @@
+{
+  "prioritization-board-grid.html": {
+    "base_blob": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+    "proposal_blob": "aa8f441f6b8d1d91ff213a57a025fdf608969801",
+    "base_sha256": "5cb9db21510d96c70a1ed37b1743019039ff053c23bd5bb3cfa104ff6b0e532e",
+    "proposal_sha256": "a359beb132490ca6c5701be74df86065f1579f236299567c385e7fd9e96a43d2"
+  },
+  "tools/export-audit/audit-recon.mjs": {
+    "base_blob": "529e36f7c20e635b2722ea53b6a4f44b4ed328af",
+    "proposal_blob": "7be8b6e5aa19000b547ed2aa4ab76e5f471e3300",
+    "base_sha256": "8498a9a56b594d730bc7a9c6e3540a8ff06520855f25aebd31b6d74705f14dd1",
+    "proposal_sha256": "2eb5770b4acad555184e6cdc8e67dbd22e0bb30f662799605749e4af07556e79"
+  },
+  "tools/export-audit/mutate.mjs": {
+    "base_blob": "cbc6defc6803851e847844848fc9b186daeeb268",
+    "proposal_blob": "db7a7a28b98cfd758bdd7008a3369cdeb691b92d",
+    "base_sha256": "f8bc7510438c82ec752e66014c4d323d40d1c1ea863072809b2e7563d5a8cb22",
+    "proposal_sha256": "189d2776963283946ad7990b76d6e18cbb38ce58927ac38b398912536b559f86"
+  }
+}

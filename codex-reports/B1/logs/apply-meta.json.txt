@@ -1,0 +1,19 @@
+{
+  "command": [
+    "git",
+    "apply",
+    "../../inputs/u9-snapshot-20261013-1202/board.diff",
+    "../../inputs/u9-snapshot-20261013-1202/audit-recon.diff",
+    "../../inputs/u9-snapshot-20261013-1202/mutate.TEXT.diff"
+  ],
+  "cwd": "B1/draft",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:15:27.869733-04:00",
+  "finished_ET": "2026-10-13T12:15:27.902087-04:00",
+  "duration_seconds": 0.033,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 49904,
+  "log": "B1/apply.log",
+  "completion": "passed"
+}

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    "--import",
+    "../../runtime-encoding-shim.mjs",
+    "tools/export-audit/focus-u37.mjs"
+  ],
+  "cwd": "A2/fix",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:30:46.545788-04:00",
+  "finished_ET": "2026-10-13T12:30:47.819886-04:00",
+  "duration_seconds": 1.274,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 52841,
+  "log": "A2/refusal-debug.log",
+  "completion": "failed"
+}

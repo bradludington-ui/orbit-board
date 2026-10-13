@@ -1,0 +1,19 @@
+{
+  "checks": 4,
+  "failures": [
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "harness",
+      "what": "the block threw: preflight(...).filter is not a function",
+      "got": "threw",
+      "want": "ran"
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "harness",
+      "what": "the block threw: zipRead is not defined",
+      "got": "threw",
+      "want": "ran"
+    }
+  ]
+}

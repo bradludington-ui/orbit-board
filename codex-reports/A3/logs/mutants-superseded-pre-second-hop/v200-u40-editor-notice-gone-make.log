@@ -1,0 +1,1 @@
+{"id": "v200-u40-editor-notice-gone", "matches": 1, "find": "+(destNotice()? '<div style=\"font-size:9.5px;color:var(--amber);margin-top:6px\">'+destNotice()+'</div>' : '')", "repl": "+''"}

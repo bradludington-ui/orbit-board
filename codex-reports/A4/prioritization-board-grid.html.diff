@@ -1,0 +1,155 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -2846,7 +2846,7 @@
+ function attLists(T){
+   T=T||tiers();
+   const MR=masterRanks();
+-  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[]};
++  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[], si:[]};
+   (S.order||[]).forEach(function(id){
+     const it=itemById(id); if(!it) return;
+     const p=T[id]||{dT:0, mT:0, d:[], m:[]}, funded=(p.dT||0)+(p.mT||0);
+@@ -2873,12 +2873,15 @@
+     let r=out.code.find(function(x){ return x.id===c.id; });
+     if(!r){ r={id:c.id, rank:MR[c.id], funded:0, n:[]}; out.code.push(r); }
+     r.n.push(c.label); });
++  siIssues().forEach(function(c){ if(itemById(c.id)) out.si.push({id:c.id, rank:MR[c.id], funded:0, n:[c.label]}); });
+   // the funded ones first -- their dollars are UNSCHEDULED in every spend plan -- then by rank
+   out.awfix.sort(function(a,b){ return ((b.how==='repair')-(a.how==='repair')) || ((a.rank||9e9)-(b.rank||9e9)); });
+   out.oblig.sort(function(a,b){ return ((b.funded>0.5)-(a.funded>0.5)) || ((a.rank||9e9)-(b.rank||9e9)); });
+   return out;
+ }
+ const ATT_KIND={
++  si:{t:'SI CODES TO REPAIR', go:'Go to it',
++    why:'These SI codes arrived in a file and are kept exactly as saved. They are not one of LA, EN, OT, FL or AT. Their money is shown under no SI code, never a guessed or derived code, until corrected in the requirement’s Navy SI code field.'},
+   imp:{t:'⚠ IMPACT STATEMENTS MISSING', go:'Write it',
+     why:'Each is in a band that needs the consequence in the requester’s words; without it the unfunded requirement cannot be written. <b>Go to it</b> selects the requirement and opens its Impact statement.'},
+   ccar:{t:'○ WITHOUT A CCaR RECORD', go:'Go to it',
+@@ -2908,7 +2911,7 @@
+   if(!L.length){ el.innerHTML=h+'<div style="padding:10px;color:var(--green);font-weight:700">✓ Nothing left on this list.</div>'; return; }
+   const money=attOpen==='oblig'? '<th>Funded · UNSCHEDULED</th>' : (attOpen==='awshort'? '<th>Discretionary undated</th><th>Mandatory undated</th>'
+     : (attOpen==='awfix'? '<th style="text-align:left">What was done, and the split used</th>'
+-    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<th style="text-align:left">As saved</th>' : '<th>Funded</th>')));
++    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<th style="text-align:left">As saved</th>' : '<th>Funded</th>')));
+   h+='<table class="fctab atttab" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th>'
+     +'<th style="text-align:left">PMO</th>'+money+'<th></th></tr>';
+   let t1=0, t2=0;
+@@ -2916,14 +2919,14 @@
+     const cells=attOpen==='awshort'? '<td>'+fM(r.ud)+'</td><td style="color:var(--purp)">'+fM(r.um)+'</td>'
+       : (attOpen==='awfix'? '<td class="awfixwhat" style="text-align:left;white-space:normal"><b>'+(r.how==='repair'? 'NEEDS REPAIR' : (r.how==='split'? 'Inferred split' : 'Converted'))+'</b> \u2014 '
+           +esc((Array.isArray(r.n)? r.n : []).join(' \u00b7 '))+'</td>'
+-      : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
++      : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
+       : '<td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'));
+     t1+=attOpen==='awshort'? r.ud : r.funded; t2+=attOpen==='awshort'? r.um : 0;
+     h+='<tr><td>'+(r.rank||'—')+'</td><td class="t" style="text-align:left">'+esc(dispTitle(it))+'</td>'
+       +'<td style="text-align:left">'+esc(it.grp||'')+'</td>'+cells
+       +'<td><button class="qb attgo" onclick="attGo('+jsa(attOpen)+','+jsa(r.id)+')">'+K.go+'</button></td></tr>'; });
+   h+='<tr class="tot"><td></td><td style="text-align:left">'+L.length+' requirement'+(L.length===1?'':'s')+'</td><td></td>'
+-    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<td></td>' : '<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
++    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td></td>' : '<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
+   el.innerHTML=h;
+ }
+ // GO TO IT: the list closes, the requirement is selected, and the RECORD panel is at the field to fill
+@@ -2933,7 +2936,7 @@
+   goRow(id);
+   if(k==='imp'){ openFld(id, 'cons'); return; }
+   if(k==='ccar'){ editCcar(id); return; }
+-  if(k==='neg' || k==='code') return;
++  if(k==='neg' || k==='code' || k==='si') return;
+   if(k==='buy'){ buysOpen=true; render(); try{ const w=document.getElementById('buysWrap'); if(w && w.scrollIntoView) w.scrollIntoView({block:'start'}); }catch(e){} return; }
+   try{ const ins=document.getElementById('inspector'), blk=ins && ins.querySelector('.awdblk');
+     if(blk){ if(blk.scrollIntoView) blk.scrollIntoView({block:'center'});
+@@ -5782,10 +5785,8 @@
+   // office would put a requirement in a list nothing reads.
+   if(!S.dest||typeof S.dest!=='object'||Array.isArray(S.dest)) S.dest={};
+   if(!S.si||typeof S.si!=='object'||Array.isArray(S.si)) S.si={};
+-  Object.keys(S.si).forEach(function(rid){
+-    const v=S.si[rid];
+-    if(v!=='' && ['LA','EN','OT','FL','AT'].indexOf(v)<0) delete S.si[rid];
+-  });
++  // v2.00 (U41): a file's unknown SI code is kept exactly as saved and listed for correction.
++  // Never trim, uppercase, discard it or replace it with a derived classification on opening.
+   if(!S.grp||typeof S.grp!=='object'||Array.isArray(S.grp)) S.grp={};
+   // BEFORE the line below, always. That line deletes any assignment naming a PMO the list does not
+   // carry, so a list not yet refreshed from state discards every move to an added office.
+@@ -9475,6 +9476,14 @@
+ // Every stored code longer than its limit, however it arrived: [{id (a requirement, or '' for a board-level list), kind,
+ // label}]. Read straight from the stored maps -- the accessors that create an empty entry on a read are not called (a prime's
+ // CLINs through clinListRO).
++// v2.00 (U41): unsupported SI text stays raw; only recognized codes are used as classifications.
++function siKnown(v){ return ['', 'LA', 'EN', 'OT', 'FL', 'AT'].indexOf(v)>=0; }
++function siIssues(){
++  const out=[];
++  Object.keys(S.si||{}).forEach(function(id){ const v=S.si[id];
++    if(!siKnown(v)) out.push({id:id, label:'SI '+inShow(v)+' is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.'}); });
++  return out;
++}
+ function codeIssues(){
+   const out=[], over=function(v, kind){ const t=String(v==null? '' : v); return t.length>codeMax(kind); };
+   const lab=function(kind, v, where){ const t=String(v); return codeName(kind)+(where? ' ('+where+')' : '')+' '+inShow(t)+' — '+t.length+' characters, at most '+codeMax(kind); };
+@@ -11131,7 +11140,7 @@
+   });
+   return {m:m, unsch:unsch};
+ }
+-function siOf(it){ if(!it || !siApplies()) return ''; const v=(S.si||{})[it.id]; return v!==undefined? v : siDefault(it); }
++function siOf(it){ if(!it || !siApplies()) return ''; const v=(S.si||{})[it.id]; return v!==undefined? (siKnown(v)? v : '') : siDefault(it); }
+ function siIsDerived(it){ return it? ((S.si||{})[it.id]===undefined) : false; }
+ // siApplies() gates the BOARD (O&M only). THIS gates the REQUIREMENT, exactly as rcnEligible
+ // does for the Air Force codes: measured, 73 of 155 O&M requirements hold no Navy or Marine
+@@ -11142,6 +11151,8 @@
+ function siEligible(it){
+   if(!it || !siApplies()) return false;
+   if(siOf(it)) return true;
++  // A file's unsupported code must stay correctable even without Navy/Marine money.
++  if(Object.prototype.hasOwnProperty.call(S.si||{}, it.id) && !siKnown(S.si[it.id])) return true;
+   const idx=CR_SVCS.map(function(sv){ return SVC.indexOf(sv); })
+                    .filter(function(i){ return i>=0; });
+   return idx.some(function(i){ return (it.ask && it.ask[i]>0.005); });
+@@ -13637,6 +13648,11 @@
+       +'(a cut code can be another record), and the exports print them as they are, so CCaR may not match them. Correct each '
+       +'where it is set.',
+       ci.map(function(c){ return {id:c.id, label:c.id? pfName(c.id) : 'Board list', sub:c.label}; })); }
++
++  { const si=siIssues();
++    add('fix','si','SI codes to repair',
++      'Kept exactly as saved. Their money is shown under no SI code until a recognized code is chosen.',
++      si.map(function(c){ return {id:c.id, label:pfName(c.id), sub:c.label}; })); }
+ 
+   // ---- WORTH KNOWING ---------------------------------------------------------
+   {
+@@ -16812,9 +16828,14 @@
+   // a tab per category: "what is in that box" is answerable from the file, without the tool open
+   const used={};
+   const tabName=(nm,fallback)=>{
+-    let t=String(nm||fallback).replace(/[\\\/?*\[\]:]/g,' ').slice(0,28).trim()||fallback;
++    // v2.00 (U42): keep the existing UTF-16 length bound without leaving half a character,
++    // and Excel forbids an apostrophe at either edge (including one exposed by a cut).
++    const edge=t=>t.replace(/^[\s']+|[\s']+$/g,'');
++    const cut=(t,n)=>edge(t.slice(0,n).replace(/[\uD800-\uDBFF]$/,''));
++    const clean=t=>edge(String(t).replace(/[\\\/?*\[\]:]/g,' '));
++    let t=cut(clean(nm||fallback),28)||cut(clean(fallback),28)||'Sheet';
+     let i=2; const base=t;
+-    while(used[t.toLowerCase()]) t=(base.slice(0,26)+' '+(i++));
++    while(used[t.toLowerCase()]){ const suffix=' '+(i++); t=cut(base,Math.min(26,31-suffix.length))+suffix; }
+     used[t.toLowerCase()]=1; return t;
+   };
+   const sheets=[
+@@ -22276,7 +22297,8 @@
+             : pl(A.awfix.length,'award repaired on opening','awards repaired on opening')) : '')
+         +(A.neg.length? ae('neg', '\u2796', pl(A.neg.length,'negative allocation to repair','negative allocations to repair')) : '')
+         +(A.buy.length? ae('buy', '\u2708', pl(A.buy.length,'buy line to repair','buy lines to repair')) : '')
+-        +(A.code.length? ae('code', '\u2702', pl(A.code.length,'requirement with a code over its limit','requirements with a code over its limit')) : '');
++        +(A.code.length? ae('code', '\u2702', pl(A.code.length,'requirement with a code over its limit','requirements with a code over its limit')) : '')
++        +(A.si.length? ae('si', '\u26a0', pl(A.si.length,'SI code to repair','SI codes to repair')) : '');
+       pe.innerHTML = !SVC.length? '' :
+         '<div class="pp"><div class="pplanes">'
+           +'<span class="k">Discretionary</span><span class="n" data-v="'+Math.round(dBA)+'">'+fM(dBA)+' BA</span><span class="l" data-v="'+Math.round(dLeft)+'">'+fM(dLeft)+' left</span>'
+@@ -23827,6 +23849,7 @@
+   if(siEligible(it)) acct.push(recF('Navy SI code', siOf(it),
+     recSel('setSi('+jsa(id)+',this.value)', 'Special Interest code for the 1A9A cash return',
+       '<option value=""'+(siOf(it)?'':' selected')+'>— none —</option>'
++      +((S.si||{})[id]!==undefined && !siKnown(S.si[id])? '<option value="'+esc(S.si[id])+'" selected>'+esc(S.si[id])+' — unrecognized, kept as saved</option>' : '')
+       +SI_CODES.map(function(c){ return '<option value="'+c[0]+'"'+(siOf(it)===c[0]?' selected':'')+'>'
+         +c[0]+' — '+c[1]+(siDefault(it)===c[0]?' (derived)':'')+'</option>'; }).join(''))));
+   // v1.91 (item 35): the BAE budget left Requirement edit for the RECORD panel -- one editor for the field.

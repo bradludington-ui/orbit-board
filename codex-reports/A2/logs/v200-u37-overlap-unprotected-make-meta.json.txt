@@ -1,0 +1,21 @@
+{
+  "command": [
+    "python3",
+    "-I",
+    "helpers/mkmut.py",
+    "A2/fix/tools/export-audit/mutate.mjs",
+    "A2/fix/prioritization-board-grid.html",
+    "v200-u37-overlap-unprotected",
+    "A2/v200-u37-overlap-unprotected.html"
+  ],
+  "cwd": ".",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:17:27.987145-04:00",
+  "finished_ET": "2026-10-13T12:17:28.102375-04:00",
+  "duration_seconds": 0.115,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 50311,
+  "log": "A2/v200-u37-overlap-unprotected-make.log",
+  "completion": "passed"
+}

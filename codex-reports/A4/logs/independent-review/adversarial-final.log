@@ -1,0 +1,1 @@
+{"checks":[{"name":"raw SI retained","got":"at","want":"at"},{"name":"listed for correction","got":1,"want":1},{"name":"stored unsupported SI keeps field editable even with no Navy-money ask","got":true,"want":true},{"name":"correction field exists","got":false,"want":true}],"failures":[{"name":"correction field exists","got":false,"want":true}]}

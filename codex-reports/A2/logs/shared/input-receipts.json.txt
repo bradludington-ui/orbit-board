@@ -1,0 +1,182 @@
+[
+  {
+    "path": "recovery/v200/codex-handoff/README.md",
+    "sha": "edd2ffd74fa05da37443c55c7069bdc660853460",
+    "expected": "edd2ffd74fa05da37443c55c7069bdc660853460",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/LEDGER-draft-U36-U42.md",
+    "sha": "8934cc9bea85eb4b1a1f31dc0828ad09878b8a00",
+    "expected": "8934cc9bea85eb4b1a1f31dc0828ad09878b8a00",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/MATRIX-limits.md",
+    "sha": "7d1f928114a47a101ae340eba66e74e8e20d323b",
+    "expected": "7d1f928114a47a101ae340eba66e74e8e20d323b",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vdest-base.log",
+    "sha": "e7a4348de704b6d2ab505f1adc082b91eeb5adb2",
+    "expected": "e7a4348de704b6d2ab505f1adc082b91eeb5adb2",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vdest-c1.log",
+    "sha": "b802aa618b5e8f2e749af2212cb942da2a74876b",
+    "expected": "b802aa618b5e8f2e749af2212cb942da2a74876b",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vflow-base.log",
+    "sha": "02650e68136fcd843ac9d4cbc7aaf9c67ca7d1ff",
+    "expected": "02650e68136fcd843ac9d4cbc7aaf9c67ca7d1ff",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vflow-c1.log",
+    "sha": "f0849a1758ed38ed690210bee0c02b434ab71e19",
+    "expected": "f0849a1758ed38ed690210bee0c02b434ab71e19",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vpaste-chromium.log",
+    "sha": "37b47001cce8e65bc8017af6d9d0efffd4c046c2",
+    "expected": "37b47001cce8e65bc8017af6d9d0efffd4c046c2",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vprobe-base.log",
+    "sha": "72c8311b0c1ed5af0d3b505ef82e79fea45e0d0f",
+    "expected": "72c8311b0c1ed5af0d3b505ef82e79fea45e0d0f",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vprobe-c1.log",
+    "sha": "196e09160fd510d431bc54698f4e4be047c9a397",
+    "expected": "196e09160fd510d431bc54698f4e4be047c9a397",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vsi-base.log",
+    "sha": "e47b3191ca23aeb8f8f92f17bbe858d4522d7464",
+    "expected": "e47b3191ca23aeb8f8f92f17bbe858d4522d7464",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/FR-vsi-c1.log",
+    "sha": "d299b007420b96465afefb982a1647eb16ecd908",
+    "expected": "d299b007420b96465afefb982a1647eb16ecd908",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/probe-base-ctl.log",
+    "sha": "75aef6a58a73354c4db1652fc2e00f48fff9361b",
+    "expected": "75aef6a58a73354c4db1652fc2e00f48fff9361b",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/probe-base-file.log",
+    "sha": "925b03320b20804a6d63f95d58e5ecb676322d4d",
+    "expected": "925b03320b20804a6d63f95d58e5ecb676322d4d",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/probe-base-more.log",
+    "sha": "d5bb880b13c3dfab696f9baec11e20a1162ecbe1",
+    "expected": "d5bb880b13c3dfab696f9baec11e20a1162ecbe1",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/probe-base-sweep.log",
+    "sha": "c2e4e1945c1b467df7735c1179d55102491911b1",
+    "expected": "c2e4e1945c1b467df7735c1179d55102491911b1",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/logs/probe-base-type.log",
+    "sha": "2e6147631095a8431a6c6a3637bf38c0cf031cdc",
+    "expected": "2e6147631095a8431a6c6a3637bf38c0cf031cdc",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/probe/regtext.mjs",
+    "sha": "9c701174fd7cff3888aefad309165f933a05ce4d",
+    "expected": "9c701174fd7cff3888aefad309165f933a05ce4d",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/probe/verifier/vdest.mjs",
+    "sha": "77db7642d8637e75f8813e034994df5898c4efaf",
+    "expected": "77db7642d8637e75f8813e034994df5898c4efaf",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/probe/verifier/vflow.mjs",
+    "sha": "cee432ab9057b10d39c0a630d1920f0ca63f58fb",
+    "expected": "cee432ab9057b10d39c0a630d1920f0ca63f58fb",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/probe/verifier/vpaste.mjs",
+    "sha": "bd5cba79c73e205fbbb6092702d33d934697da8c",
+    "expected": "bd5cba79c73e205fbbb6092702d33d934697da8c",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/probe/verifier/vprobe.mjs",
+    "sha": "8395b14cd707be1f4e9ea97d165f6cf7c1d435e1",
+    "expected": "8395b14cd707be1f4e9ea97d165f6cf7c1d435e1",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/regtext/probe/verifier/vsi.mjs",
+    "sha": "84a7f571c0f674dacb1b1707dfb76e19e16d1635",
+    "expected": "84a7f571c0f674dacb1b1707dfb76e19e16d1635",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/u9-snapshot-20261013-1202/NEXT-VERSION-U9.md",
+    "sha": "c5b48d46a4828c31ddf28314e00a5a41579dd0a6",
+    "expected": "c5b48d46a4828c31ddf28314e00a5a41579dd0a6",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/u9-snapshot-20261013-1202/SNAPSHOT.txt",
+    "sha": "6dcd907a0b5a7d776e50ba052abbd5f251790a9f",
+    "expected": "6dcd907a0b5a7d776e50ba052abbd5f251790a9f",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/u9-snapshot-20261013-1202/audit-recon.diff",
+    "sha": "c3295d828c7004e9a3a60623abcde3461048a060",
+    "expected": "c3295d828c7004e9a3a60623abcde3461048a060",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/u9-snapshot-20261013-1202/board.diff",
+    "sha": "d4bdffb8e5b7cc6cd300fa2e1a56f9c1c4fa9871",
+    "expected": "d4bdffb8e5b7cc6cd300fa2e1a56f9c1c4fa9871",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/codex-handoff/inputs/u9-snapshot-20261013-1202/mutate.TEXT.diff",
+    "sha": "628490f997b93ccf1c3a286c57c6abb541b1c619",
+    "expected": "628490f997b93ccf1c3a286c57c6abb541b1c619",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/bin/mcount.py",
+    "sha": "852f06ec5a61a1c1393bae794f1c10362aa36cf9",
+    "expected": "852f06ec5a61a1c1393bae794f1c10362aa36cf9",
+    "match": true
+  },
+  {
+    "path": "recovery/v200/bin/mkmut.py",
+    "sha": "140b7b6a9c7d9d9b75f7bfdf6a0fe82d1912c8eb",
+    "expected": "140b7b6a9c7d9d9b75f7bfdf6a0fe82d1912c8eb",
+    "match": true
+  }
+]

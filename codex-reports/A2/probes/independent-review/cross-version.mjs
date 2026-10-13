@@ -1,0 +1,12 @@
+import { boot, bootMark, bootRelease, settleBoards } from './fix/tools/export-audit/boot.mjs';
+import fs from 'node:fs';
+const mark=bootMark(), J=JSON.stringify;
+const old=boot({html:fs.readFileSync('./base/prioritization-board-grid.html','utf8')});
+const current=boot({html:fs.readFileSync('./fix/prioritization-board-grid.html','utf8')});
+const bytes=JSON.parse(old.ev("JSON.stringify(Array.from(buildXlsx([{name:'Legacy',rows:[['_x0041_',900,200]]}])))"));
+const read=async x=>JSON.parse(await x.w.eval(`(async function(){var u=new Uint8Array(${J(bytes)});return JSON.stringify(await xlsxRead(u.buffer));})()`));
+const prior=await read(old), after=await read(current);
+const result={originalLiteral:'_x0041_',oldWriterOldReader:prior.Legacy[0],oldWriterNewReader:after.Legacy[0],xmlExpectedOOXMLDecodedLiteral:'A',errors:[...old.errors,...current.errors]};
+fs.writeFileSync('legacy-compatibility-results.json',J(result));console.log(J(result));
+bootRelease(mark,[]);await settleBoards();
+process.exitCode=result.errors.length?1:0;

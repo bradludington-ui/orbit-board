@@ -1,0 +1,229 @@
+{
+  "base": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+  "base_board": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+  "input_head": "bbe728556dc394c50d84ad9a09facc5fa163e42b",
+  "finished_ET": "2026-10-13T12:48:16.549235-04:00",
+  "new_checks": 63,
+  "defect_checks": 40,
+  "controls": 23,
+  "base_defect_failures": 40,
+  "base_control_failures": 0,
+  "fixed_failures": 0,
+  "old_suite_bytes_preserved": true,
+  "owned_process_groups_still_alive": [],
+  "primary_meta": {
+    "focused-base-final-r2": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:45:13.431432-04:00",
+      "finished_ET": "2026-10-13T12:45:23.283407-04:00",
+      "duration_seconds": 9.852,
+      "exit": 1,
+      "timed_out": false,
+      "owned_process_group": 54289,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused-base-final-r2.log",
+      "completion": "failed"
+    },
+    "focused-fix-final-r2": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:44:33.724044-04:00",
+      "finished_ET": "2026-10-13T12:44:38.948166-04:00",
+      "duration_seconds": 5.224,
+      "exit": 0,
+      "timed_out": false,
+      "owned_process_group": 54184,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused-fix-final-r2.log",
+      "completion": "passed"
+    },
+    "full-recon-base-r2": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "tools/export-audit/audit-recon.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4/fix",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:45:29.823317-04:00",
+      "finished_ET": "2026-10-13T12:47:46.935923-04:00",
+      "duration_seconds": 137.113,
+      "exit": 1,
+      "timed_out": false,
+      "owned_process_group": 54352,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/full-recon-base-r2.log",
+      "completion": "failed"
+    },
+    "full-recon-fix-r2": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "tools/export-audit/audit-recon.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4/fix",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:45:21.543899-04:00",
+      "finished_ET": "2026-10-13T12:47:40.692135-04:00",
+      "duration_seconds": 139.148,
+      "exit": 0,
+      "timed_out": false,
+      "owned_process_group": 54304,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/full-recon-fix-r2.log",
+      "completion": "passed"
+    },
+    "mcount-fixed-r2": {
+      "command": [
+        "python3",
+        "-I",
+        "/workspace/orbit-codex-batches-20261013-1205ET/helpers/mcount.py",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/fix/tools/export-audit/mutate.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/fix/prioritization-board-grid.html"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 60.0,
+      "started_ET": "2026-10-13T12:44:51.667768-04:00",
+      "finished_ET": "2026-10-13T12:44:53.510673-04:00",
+      "duration_seconds": 1.843,
+      "exit": 0,
+      "timed_out": false,
+      "owned_process_group": 54240,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/mcount-fixed-r2.log",
+      "completion": "passed"
+    },
+    "v200-u41-raw-si-lost": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:45:50.394827-04:00",
+      "finished_ET": "2026-10-13T12:46:11.737406-04:00",
+      "duration_seconds": 21.343,
+      "exit": 1,
+      "timed_out": false,
+      "owned_process_group": 54475,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/v200-u41-raw-si-lost.log",
+      "completion": "failed"
+    },
+    "v200-u41-si-unlisted": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:46:12.216538-04:00",
+      "finished_ET": "2026-10-13T12:46:36.395809-04:00",
+      "duration_seconds": 24.179,
+      "exit": 1,
+      "timed_out": false,
+      "owned_process_group": 54560,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/v200-u41-si-unlisted.log",
+      "completion": "failed"
+    },
+    "v200-u41-si-derived": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:46:37.026361-04:00",
+      "finished_ET": "2026-10-13T12:46:55.786287-04:00",
+      "duration_seconds": 18.76,
+      "exit": 1,
+      "timed_out": false,
+      "owned_process_group": 54659,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/v200-u41-si-derived.log",
+      "completion": "failed"
+    },
+    "v200-u42-tab-half": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:46:56.225244-04:00",
+      "finished_ET": "2026-10-13T12:47:10.488895-04:00",
+      "duration_seconds": 14.264,
+      "exit": 1,
+      "timed_out": false,
+      "owned_process_group": 54709,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/v200-u42-tab-half.log",
+      "completion": "failed"
+    },
+    "v200-u42-tab-apostrophe": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:47:10.892262-04:00",
+      "finished_ET": "2026-10-13T12:47:23.591741-04:00",
+      "duration_seconds": 12.7,
+      "exit": 1,
+      "timed_out": false,
+      "owned_process_group": 54719,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/v200-u42-tab-apostrophe.log",
+      "completion": "failed"
+    },
+    "v200-u41-si-uncorrectable": {
+      "command": [
+        "node",
+        "--import",
+        "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+        "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+      ],
+      "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+      "cap_seconds": 180.0,
+      "started_ET": "2026-10-13T12:47:23.901068-04:00",
+      "finished_ET": "2026-10-13T12:47:35.839389-04:00",
+      "duration_seconds": 11.938,
+      "exit": 1,
+      "timed_out": false,
+      "owned_process_group": 54746,
+      "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/v200-u41-si-uncorrectable.log",
+      "completion": "failed"
+    }
+  },
+  "primary_log_sha256": {
+    "focused-base-final-r2": "d854f6c3bb2cbf41dad9c3787c344e52bec557d190c0d3b9e6a9ecdd7207e3bd",
+    "focused-fix-final-r2": "aa37a4b36d9b89390402f387268a5c912f81f0980d783dc41808127de74c5f3c",
+    "full-recon-base-r2": "f27dd6dbec7993ddc2297408a84c23309549be313e471726d410c13e4217b694",
+    "full-recon-fix-r2": "dc3f4e1988a848fdff4015cf6cac793f7548fbf822608dab3e4a240645489e14",
+    "mcount-fixed-r2": "19fad06d98c91a0e270221171e580235a8816d519101bb2921ef8f8e02e88f6f",
+    "v200-u41-raw-si-lost": "9f63e311b737efd9d0302f3d2a60127bed4c31e2ecdf2b408c57d4dfa7a70d73",
+    "v200-u41-si-unlisted": "1a136c9ec50ff71518eb3750a3a7274d86eea0cf25bf30e8afcd6d0ee6f58f8f",
+    "v200-u41-si-derived": "bffeba3f638921bfd1dff83a38cc3aa32c4d82626295682b6a72a66061ae3d59",
+    "v200-u42-tab-half": "0fbc2784a2e2c9b0e900210772145c579c8ccd240f718e1b19af5296b98c4ee3",
+    "v200-u42-tab-apostrophe": "a4dd85c26264cda52108bbe5b69cbfaf2207c5b688fc2d98c199ce2b3052cd8e",
+    "v200-u41-si-uncorrectable": "7c04bf7d962dc0bbddaab5c17f11a9ba787a582284c1aad0b40a14c5f5ccdb96"
+  },
+  "superseded": "First52-check proposal and its five sensitivity runs are historical only after independent correction-reachability fix."
+}

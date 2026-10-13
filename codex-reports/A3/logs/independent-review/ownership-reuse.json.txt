@@ -1,0 +1,32 @@
+[
+  {
+    "scope": "function destFold(",
+    "identical": true,
+    "prior_sha256": "3925c79b7786c31324871bd864a0eabe48b4fc6d4f126febd0193bfdec830b7e",
+    "final_sha256": "3925c79b7786c31324871bd864a0eabe48b4fc6d4f126febd0193bfdec830b7e"
+  },
+  {
+    "scope": "function destRemap(",
+    "identical": true,
+    "prior_sha256": "91ad787f2922dfef26ed6df658d22eb08266226dff1a7eea08dcdc463c91a00d",
+    "final_sha256": "91ad787f2922dfef26ed6df658d22eb08266226dff1a7eea08dcdc463c91a00d"
+  },
+  {
+    "scope": "function destMigrate(",
+    "identical": true,
+    "prior_sha256": "b69d006b14fa3683ea1c7ebf49565f57f94fee87a185323514e8c969bf54e878",
+    "final_sha256": "b69d006b14fa3683ea1c7ebf49565f57f94fee87a185323514e8c969bf54e878"
+  },
+  {
+    "scope": "function destJoin(",
+    "identical": true,
+    "prior_sha256": "c3438d2eadbf88b3eb3fb92df48172d8588bc5c7e5d47c7a758d4869b1c82a78",
+    "final_sha256": "c3438d2eadbf88b3eb3fb92df48172d8588bc5c7e5d47c7a758d4869b1c82a78"
+  },
+  {
+    "scope": "function destNotice(",
+    "identical": true,
+    "prior_sha256": "70e90a8ddab313ee9264b1a6491eae6d85111f51cf98019d0cac73ea7484a867",
+    "final_sha256": "70e90a8ddab313ee9264b1a6491eae6d85111f51cf98019d0cac73ea7484a867"
+  }
+]

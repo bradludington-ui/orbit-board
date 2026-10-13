@@ -1,0 +1,13 @@
+U37 CHECKS 54
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): every workbook part is XML and text round-trips exactly",
+      "where": "number format",
+      "what": "custom format uses same codec and produces valid XML",
+      "got": "[1,false]",
+      "want": "[0,true]"
+    }
+  ]
+}
+1 FAILING CHECK(S)

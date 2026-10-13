@@ -1,0 +1,57 @@
+{
+  "packages": 10,
+  "xml_parts": 60,
+  "errors": [],
+  "rows": [
+    {
+      "label": "spaces",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "mixed whitespace",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "supplementary extremes",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "entity looking",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "C1 and PUA",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "ordinary non escapes",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "money",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "TAB",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "LF",
+      "xml_parts": 6,
+      "exact": true
+    },
+    {
+      "label": "CR",
+      "xml_parts": 6,
+      "exact": true
+    }
+  ]
+}

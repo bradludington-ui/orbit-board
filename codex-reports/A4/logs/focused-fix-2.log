@@ -1,0 +1,431 @@
+{
+  "checks": 46,
+  "checksDetail": [
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "unknown raw code is kept exactly, alongside all five valid codes and blank",
+      "got": "{\"R1\":\"at\",\"R2\":\"EN\",\"R3\":\"LA\",\"R4\":\"OT\",\"R5\":\"FL\",\"R6\":\"AT\",\"R7\":\"\"}",
+      "want": "{\"R1\":\"at\",\"R2\":\"EN\",\"R3\":\"LA\",\"R4\":\"OT\",\"R5\":\"FL\",\"R6\":\"AT\",\"R7\":\"\"}",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "CONTROL — normal LA/EN/OT/FL/AT, blank, and derived Propulsion are unchanged",
+      "got": "[\"EN\",\"LA\",\"OT\",\"FL\",\"AT\",\"\",\"EN\"]",
+      "want": "[\"EN\",\"LA\",\"OT\",\"FL\",\"AT\",\"\",\"EN\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "unknown at is not uppercased or replaced by the otherwise-derived LA",
+      "got": "",
+      "want": "",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "the exact raw code is listed with its requirement, with no invented normalization",
+      "got": "[[\"R1\",\"SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.\"]]",
+      "want": "[[\"R1\",\"SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.\"]]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "Pre-flight lists the same raw value",
+      "got": "[[[\"R1\",\"SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.\"]]]",
+      "want": "[[[\"R1\",\"SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.\"]]]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "the visible correction list names at and never claims it was dropped",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "CONTROL — service, requirement, office and amount ownership stay exact",
+      "got": "[[\"R1\",\"AV\",[900,200],[0,0]],[\"R2\",\"AV\",[300,100],[0,0]]]",
+      "want": "[[\"R1\",\"AV\",[900,200],[0,0]],[\"R2\",\"AV\",[300,100],[0,0]]]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "CONTROL — actual XLSX reconciles 1,600 Navy + 390 Marines = 1,990 dollars",
+      "got": "[]",
+      "want": "[[\"NAVY TOTAL\",1600],[\"USMC TOTAL\",390],[\"ALL SERVICES — TOTAL BY MONTH\",1990]]",
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "unrecognized code money is in no-code, not the derived LA bucket, on actual XLSX",
+      "got": "[]",
+      "want": "[900,290]",
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "unknown raw code is kept exactly, alongside all five valid codes and blank",
+      "got": "{\"R1\":\"at\",\"R2\":\"EN\",\"R3\":\"LA\",\"R4\":\"OT\",\"R5\":\"FL\",\"R6\":\"AT\",\"R7\":\"\"}",
+      "want": "{\"R1\":\"at\",\"R2\":\"EN\",\"R3\":\"LA\",\"R4\":\"OT\",\"R5\":\"FL\",\"R6\":\"AT\",\"R7\":\"\"}",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "CONTROL — normal LA/EN/OT/FL/AT, blank, and derived Propulsion are unchanged",
+      "got": "[\"EN\",\"LA\",\"OT\",\"FL\",\"AT\",\"\",\"EN\"]",
+      "want": "[\"EN\",\"LA\",\"OT\",\"FL\",\"AT\",\"\",\"EN\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "unknown at is not uppercased or replaced by the otherwise-derived LA",
+      "got": "",
+      "want": "",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "the exact raw code is listed with its requirement, with no invented normalization",
+      "got": "[[\"R1\",\"SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.\"]]",
+      "want": "[[\"R1\",\"SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.\"]]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "Pre-flight lists the same raw value",
+      "got": "[[[\"R1\",\"SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.\"]]]",
+      "want": "[[[\"R1\",\"SI “at” is not one of LA, EN, OT, FL or AT. Kept as saved; its money is shown under no SI code until corrected.\"]]]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "the visible correction list names at and never claims it was dropped",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "CONTROL — service, requirement, office and amount ownership stay exact",
+      "got": "[[\"R1\",\"AV\",[900,200],[0,0]],[\"R2\",\"AV\",[300,100],[0,0]]]",
+      "want": "[[\"R1\",\"AV\",[900,200],[0,0]],[\"R2\",\"AV\",[300,100],[0,0]]]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "CONTROL — actual XLSX reconciles 1,600 Navy + 390 Marines = 1,990 dollars",
+      "got": "[]",
+      "want": "[[\"NAVY TOTAL\",1600],[\"USMC TOTAL\",390],[\"ALL SERVICES — TOTAL BY MONTH\",1990]]",
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "unrecognized code money is in no-code, not the derived LA bucket, on actual XLSX",
+      "got": "[]",
+      "want": "[900,290]",
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "raw \"LA \"",
+      "what": "raw file code stays byte-for-byte",
+      "got": "\"LA \"",
+      "want": "\"LA \"",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "raw \"LA \"",
+      "what": "raw unsupported code has its own repair item",
+      "got": 1,
+      "want": 1,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "raw \"la\"",
+      "what": "raw file code stays byte-for-byte",
+      "got": "\"la\"",
+      "want": "\"la\"",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "raw \"la\"",
+      "what": "raw unsupported code has its own repair item",
+      "got": 1,
+      "want": 1,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "raw \"ZZ\"",
+      "what": "raw file code stays byte-for-byte",
+      "got": "\"ZZ\"",
+      "want": "\"ZZ\"",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "raw \"ZZ\"",
+      "what": "raw unsupported code has its own repair item",
+      "got": 1,
+      "want": 1,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "raw \"__proto__\"",
+      "what": "raw file code stays byte-for-byte",
+      "got": "\"__proto__\"",
+      "want": "\"__proto__\"",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "raw \"__proto__\"",
+      "what": "raw unsupported code has its own repair item",
+      "got": 1,
+      "want": 1,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "a cut before the emoji drops its whole character, never writes U+FFFD",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "no replacement character occurs in the actual workbook part",
+      "got": false,
+      "want": false,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "leading and trailing apostrophes are removed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "an apostrophe exposed at the first cut is removed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "the repeat cut also never leaves half an emoji",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "CONTROL — an emoji that fits and an interior apostrophe stay exactly",
+      "got": "[\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A\",\"O'Brien\"]",
+      "want": "[\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A\",\"O'Brien\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "CONTROL — names are unique, no longer than 31 UTF-16 units and XML parses",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "CONTROL — actual funds-flow workbook total stays 900 + 200 = 1,100",
+      "got": "[null,1100,1100]",
+      "want": "[1100]",
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "CONTROL — destination detail still owns those literal service amounts",
+      "got": "[]",
+      "want": "[[\"O&M\",\"AV\",\"USAF\",900],[\"O&M\",\"AV\",\"ANG\",200]]",
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "CONTROL — full destination names in saved data are never cut",
+      "got": "[\"DDDDDDDDDDDDDDDDDDDDDDDDDDD😀tail\",\"'Quoted depot'\",\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A-one\",\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A-two\",\"FFFFFFFFFFFFFFFFFFFFFFFFFFF'tail\",\"O'Brien\",\"Plain depot\"]",
+      "want": "[\"DDDDDDDDDDDDDDDDDDDDDDDDDDD😀tail\",\"'Quoted depot'\",\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A-one\",\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A-two\",\"FFFFFFFFFFFFFFFFFFFFFFFFFFF'tail\",\"O'Brien\",\"Plain depot\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "a cut before the emoji drops its whole character, never writes U+FFFD",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "no replacement character occurs in the actual workbook part",
+      "got": false,
+      "want": false,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "leading and trailing apostrophes are removed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "an apostrophe exposed at the first cut is removed",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "the repeat cut also never leaves half an emoji",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "CONTROL — an emoji that fits and an interior apostrophe stay exactly",
+      "got": "[\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A\",\"O'Brien\"]",
+      "want": "[\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A\",\"O'Brien\"]",
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "CONTROL — names are unique, no longer than 31 UTF-16 units and XML parses",
+      "got": true,
+      "want": true,
+      "ok": true
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "CONTROL — actual funds-flow workbook total stays 900 + 200 = 1,100",
+      "got": "[null,1100,1100]",
+      "want": "[1100]",
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "CONTROL — destination detail still owns those literal service amounts",
+      "got": "[]",
+      "want": "[[\"O&M\",\"AV\",\"USAF\",900],[\"O&M\",\"AV\",\"ANG\",200]]",
+      "ok": false
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "CONTROL — full destination names in saved data are never cut",
+      "got": "[\"DDDDDDDDDDDDDDDDDDDDDDDDDDD😀tail\",\"'Quoted depot'\",\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A-one\",\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A-two\",\"FFFFFFFFFFFFFFFFFFFFFFFFFFF'tail\",\"O'Brien\",\"Plain depot\"]",
+      "want": "[\"DDDDDDDDDDDDDDDDDDDDDDDDDDD😀tail\",\"'Quoted depot'\",\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A-one\",\"EEEEEEEEEEEEEEEEEEEEEEEEE😀A-two\",\"FFFFFFFFFFFFFFFFFFFFFFFFFFF'tail\",\"O'Brien\",\"Plain depot\"]",
+      "ok": true
+    }
+  ],
+  "failures": [
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "CONTROL — actual XLSX reconciles 1,600 Navy + 390 Marines = 1,990 dollars",
+      "got": "[]",
+      "want": "[[\"NAVY TOTAL\",1600],[\"USMC TOTAL\",390],[\"ALL SERVICES — TOTAL BY MONTH\",1990]]"
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "opened",
+      "what": "unrecognized code money is in no-code, not the derived LA bucket, on actual XLSX",
+      "got": "[]",
+      "want": "[900,290]"
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "CONTROL — actual XLSX reconciles 1,600 Navy + 390 Marines = 1,990 dollars",
+      "got": "[]",
+      "want": "[[\"NAVY TOTAL\",1600],[\"USMC TOTAL\",390],[\"ALL SERVICES — TOTAL BY MONTH\",1990]]"
+    },
+    {
+      "scenario": "v2.00 (U41): an unknown SI code in a file is kept, listed and never guessed",
+      "where": "saved and reopened",
+      "what": "unrecognized code money is in no-code, not the derived LA bucket, on actual XLSX",
+      "got": "[]",
+      "want": "[900,290]"
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "CONTROL — actual funds-flow workbook total stays 900 + 200 = 1,100",
+      "got": "[null,1100,1100]",
+      "want": "[1100]"
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "working",
+      "what": "CONTROL — destination detail still owns those literal service amounts",
+      "got": "[]",
+      "want": "[[\"O&M\",\"AV\",\"USAF\",900],[\"O&M\",\"AV\",\"ANG\",200]]"
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "CONTROL — actual funds-flow workbook total stays 900 + 200 = 1,100",
+      "got": "[null,1100,1100]",
+      "want": "[1100]"
+    },
+    {
+      "scenario": "v2.00 (U42): funds-flow tab names keep whole characters and safe apostrophe edges",
+      "where": "saved and reopened",
+      "what": "CONTROL — destination detail still owns those literal service amounts",
+      "got": "[]",
+      "want": "[[\"O&M\",\"AV\",\"USAF\",900],[\"O&M\",\"AV\",\"ANG\",200]]"
+    }
+  ]
+}

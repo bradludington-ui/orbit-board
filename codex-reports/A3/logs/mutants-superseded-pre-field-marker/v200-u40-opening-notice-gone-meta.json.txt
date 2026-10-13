@@ -1,0 +1,20 @@
+{
+  "command": [
+    "env",
+    "BOARD=/workspace/orbit-codex-batches-20261013-1205ET/A3/mutants/v200-u40-opening-notice-gone.html",
+    "node",
+    "--import",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A3/base/runtime-encoding-shim.mjs",
+    "focused.mjs"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A3",
+  "cap_seconds": 180.0,
+  "started_ET": "2026-10-13T12:28:18.782819-04:00",
+  "finished_ET": "2026-10-13T12:28:22.636387-04:00",
+  "duration_seconds": 3.854,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 52477,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A3/mutants/v200-u40-opening-notice-gone.log",
+  "completion": "failed"
+}

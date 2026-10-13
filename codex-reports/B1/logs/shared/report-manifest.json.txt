@@ -1,0 +1,52 @@
+{
+  "base": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+  "input_head": "bbe728556dc394c50d84ad9a09facc5fa163e42b",
+  "prepared_ET": "2026-10-13T12:54:12.178357-04:00",
+  "reports": [
+    {
+      "batch": "A1",
+      "path": "/workspace/orbit-codex-batches-20261013-1205ET/A1/REPORT.md",
+      "bytes": 7922,
+      "sha256": "73304102b14ab8999f912869a4e2338a1db567b5bb1f63ec3863fb84d1a0e6e6",
+      "header": "BATCH A1  |  base 7ee498a46507972f803cd48ce9f27d5d668acb63  |  started 13 Oct 2026 12:08:23 PM ET / finished 13 Oct 2026 12:19:02 PM ET"
+    },
+    {
+      "batch": "A2",
+      "path": "/workspace/orbit-codex-batches-20261013-1205ET/A2/REPORT.md",
+      "bytes": 35920,
+      "sha256": "7d858423efe408297f62d1417cecbdaf06d08dc6ed83d149ae3e66e7c889c7b1",
+      "header": "BATCH A2  |  base 7ee498a46507972f803cd48ce9f27d5d668acb63  |  started / finished first recorded clock 12:10:48 PM ET / 12:49:35 PM ET, 13 Oct 2026"
+    },
+    {
+      "batch": "A3",
+      "path": "/workspace/orbit-codex-batches-20261013-1205ET/A3/REPORT.md",
+      "bytes": 35450,
+      "sha256": "9e74708c03f4058ad5eedbf7446c4ad2557cc3a443c18262537e6e736feb337d",
+      "header": "BATCH A3  |  base 7ee498a46507972f803cd48ce9f27d5d668acb63  |  started 2026-10-13T12:15:13.619341-04:00 / finished 2026-10-13T12:45:49.510920-04:00 ET"
+    },
+    {
+      "batch": "A4",
+      "path": "/workspace/orbit-codex-batches-20261013-1205ET/A4/REPORT.md",
+      "bytes": 45946,
+      "sha256": "18d03e17d0deb42fe27483dd9b1ef42d82266227fc134f573011454f89732458",
+      "header": "BATCH A4  |  base 7ee498a46507972f803cd48ce9f27d5d668acb63  |  started 2026-10-13T12:16:43.837304-04:00 / finished 2026-10-13T12:51:07.506892-04:00 ET"
+    },
+    {
+      "batch": "B1",
+      "path": "/workspace/orbit-codex-batches-20261013-1205ET/B1/REPORT.md",
+      "bytes": 79769,
+      "sha256": "5608aa7c2af947543c5c4997fb551880074df75f73b7e3022c9c01bd66c281fb",
+      "header": "BATCH B1 | base 7ee498a46507972f803cd48ce9f27d5d668acb63 (snapshot u9-snapshot-20261013-1202, inputs bbe728556dc394c50d84ad9a09facc5fa163e42b) | started 13 Oct 2026 12:15:27 PM ET / finished 12:21:30 PM ET"
+    }
+  ],
+  "held": [
+    "B2",
+    "C1",
+    "C2",
+    "D1"
+  ],
+  "all_branch_writes": false,
+  "mutate_JS_run_import": false,
+  "playwright_install": false,
+  "populated_board_in_delivery": false
+}

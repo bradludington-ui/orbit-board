@@ -1,0 +1,28 @@
+// A workbook is refused before any bytes exist, never cleaned or repaired. A literal _xHHHH_ is ambiguous
+// in SpreadsheetML too: Office interprets it as a character while this board's legacy reader preserves it.
+// Keeping the existing reader avoids changing text in workbooks ORBIT already exported.
+function _xlsxRefused(sheets, extra){
+  const badText=(value,where)=>{
+    const text=String(value), bad=/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/.exec(text);
+    const token=/_x[0-9A-Fa-f]{4}_/.exec(text);
+    if(!bad && !token) return false;
+    const why=bad? 'character U+'+bad[0].charCodeAt(0).toString(16).toUpperCase().padStart(4,'0')+' cannot be stored in XML 1.0'
+      : 'literal '+token[0]+' would be read as an OOXML escape by a spreadsheet';
+    alert('Excel workbook not exported: '+where+' holds a '+why+'. Nothing was changed. Edit that text and try again.');
+    setStat('⛔ Excel workbook not exported: '+esc(where)+' — '+esc(why)+'. Nothing was changed.');
+    return true;
+  };
+  for(let i=0;i<sheets.length;i++){
+    const sh=sheets[i], label='sheet '+(i+1)+' ('+JSON.stringify(String(sh.name))+')';
+    if(badText(sh.name,label+' name')) return true;
+    for(let ri=0;ri<(sh.rows||[]).length;ri++){
+      const row=sh.rows[ri]||[];
+      for(let ci=0;ci<row.length;ci++){
+        const c=row[ci], v=c && typeof c==='object'? c.v : c;
+        if(v!==null && v!==undefined && typeof v!=='number' && badText(v,label+' cell '+_colL(ci)+(ri+1))) return true;
+      }
+    }
+  }
+  for(let i=0;i<(extra||[]).length;i++) if(extra[i].fmt && badText(extra[i].fmt,'number format '+(i+1))) return true;
+  return false;
+}

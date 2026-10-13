@@ -1,0 +1,109 @@
+{
+  "blobs": {
+    "prioritization-board-grid.html": "aa8f441f6b8d1d91ff213a57a025fdf608969801",
+    "tools/export-audit/audit-recon.mjs": "7be8b6e5aa19000b547ed2aa4ab76e5f471e3300",
+    "tools/export-audit/mutate.mjs": "db7a7a28b98cfd758bdd7008a3369cdeb691b92d",
+    "tools/export-audit/boot.mjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594"
+  },
+  "all16_guards": [
+    {
+      "function": "exportRlgPlan",
+      "line": 4181,
+      "var": "wb",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "pmoReport",
+      "line": 7705,
+      "var": "blob",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "crExport",
+      "line": 11670,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportIdsReq",
+      "line": 13462,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportFlow",
+      "line": 16832,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportExView",
+      "line": 17158,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportSrc",
+      "line": 17343,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportPlans",
+      "line": 18611,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportFydpPlan",
+      "line": 19392,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportCycCompare",
+      "line": 19914,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportReprog",
+      "line": 21654,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportFcView",
+      "line": 21819,
+      "var": "blob",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportCSV",
+      "line": 29221,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportAceTieout",
+      "line": 29621,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportExcel",
+      "line": 30706,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    },
+    {
+      "function": "exportCoa",
+      "line": 31559,
+      "var": "bytes",
+      "immediate_refusal_guard": true
+    }
+  ],
+  "guard_count": 16,
+  "reader_function_byte_identical": true,
+  "generic_xml_escaper_byte_identical": true
+}

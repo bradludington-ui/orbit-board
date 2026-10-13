@@ -1,0 +1,36 @@
+FLOW DELTA [
+  [
+    'flow',
+    {
+      rules: [Object],
+      other: {},
+      cats: [Array],
+      ents: [Array],
+      dv: 1,
+      axis: 'dest'
+    },
+    {
+      rules: [Object],
+      other: {},
+      cats: [Array],
+      ents: [Array],
+      dv: 1,
+      axis: 'dest',
+      pseudo: [Object],
+      subs: [Object]
+    }
+  ]
+] []
+U37 CHECKS 52
+{
+  "failures": [
+    {
+      "scenario": "v2.00 (U37): XML-unsafe workbooks are refused without losing text",
+      "where": "exportFlow",
+      "what": "operated destination export refuses safely before ZIP/Blob/download, field named, data unchanged",
+      "got": "[0,0,0,true,false]",
+      "want": "[0,0,0,true,true]"
+    }
+  ]
+}
+1 FAILING CHECK(S)

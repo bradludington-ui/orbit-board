@@ -1,0 +1,8 @@
+BOARD /workspace/orbit-codex-batches-20261013-1205ET/A3/base/prioritization-board-grid.html
+X: as typed                                                  got {"ents":[["Alpha Depot",1],["ALPHA DEPOT",1]],"R1":"Alpha Depot","R2":"ALPHA DEPOT","sameKey":false}   want {"ents":[["Alpha Depot",1],["ALPHA DEPOT",1]],"R1":"Alpha Depot","R2":"ALPHA DEPOT","sameKey":false}  OK
+(a) opened in a fresh browser                                got {"ents":[["Alpha Depot",1],["ALPHA DEPOT",1]],"R1":"Alpha Depot","R2":"ALPHA DEPOT","sameKey":false}   want {"ents":[["Alpha Depot",1],["ALPHA DEPOT",1]],"R1":"Alpha Depot","R2":"ALPHA DEPOT","sameKey":false}  OK
+Y list newer than X file list                                got true   want true  OK
+(b) opened where the browser list is newer                   got {"ents":[["Alpha Depot",2]],"R1":"Alpha Depot","R2":"Alpha Depot","sameKey":true}   want {"ents":[["Alpha Depot",1],["ALPHA DEPOT",1]],"R1":"Alpha Depot","R2":"ALPHA DEPOT","sameKey":false}  DIFFERS
+(b) status / report on opening                               got 📦 Opened with the saved board state — last saved by unknown 10/13/2026, 4:15:14 PM. Make changes and 💾 Save to pass it on.
+(b) then saved there and reopened fresh                      got {"ents":[["Alpha Depot",2]],"R1":"Alpha Depot","R2":"Alpha Depot","sameKey":true}   want {"ents":[["Alpha Depot",1],["ALPHA DEPOT",1]],"R1":"Alpha Depot","R2":"ALPHA DEPOT","sameKey":false}  DIFFERS
+done

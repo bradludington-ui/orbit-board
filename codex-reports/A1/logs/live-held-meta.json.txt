@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    "--import",
+    "./runtime-encoding-shim.mjs",
+    "live-held-text.mjs"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A1",
+  "cap_seconds": 120.0,
+  "started_ET": "2026-10-13T12:16:02.256980-04:00",
+  "finished_ET": "2026-10-13T12:16:05.756159-04:00",
+  "duration_seconds": 3.499,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 50009,
+  "log": "A1/live-held.log",
+  "completion": "failed"
+}

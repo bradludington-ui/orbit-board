@@ -1,0 +1,17 @@
+{
+  "command": [
+    "node",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A3/vdest.mjs",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A3/base"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A3/base",
+  "cap_seconds": 120.0,
+  "started_ET": "2026-10-13T12:15:13.649413-04:00",
+  "finished_ET": "2026-10-13T12:15:17.040471-04:00",
+  "duration_seconds": 3.391,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 49818,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A3/repro-base.log",
+  "completion": "passed"
+}

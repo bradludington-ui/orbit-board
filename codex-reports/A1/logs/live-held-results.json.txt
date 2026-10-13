@@ -1,0 +1,706 @@
+{
+  "provenance": {
+    "startedET": "10/13/2026, 12:16:02 PM ET",
+    "completedET": "10/13/2026, 12:16:05 PM ET",
+    "testedSHA": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+    "boardBlob": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+    "bootBlob": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+    "scriptSHA256": "2a4c36ad80f528b4f7cb543f379815b306e114505798c4ad63f28d0a35dd635f",
+    "node": "v24.19.0",
+    "jsdom": "27.0.0",
+    "scope": "fresh whole-board jsdom real liveTick/livePoll/liveNet with held synthetic JSON bridge reply; original focused DOM input/input guard; no real network or native browser"
+  },
+  "results": [
+    {
+      "name": "held RCN without refresh control",
+      "checks": [
+        {
+          "label": "actual DOM input reaches typed value before delayed reply",
+          "actual": "88888",
+          "expected": "88888",
+          "ok": true
+        },
+        {
+          "label": "input guard records uncommitted text",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves focused entered text until the person commits or discards",
+          "actual": "88888",
+          "expected": "88888",
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves pending flag for entered text",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves focus in the same registry field",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "background refresh asks no discard question",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        },
+        {
+          "label": "peer refresh does not change the registry model",
+          "actual": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "expected": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "ok": true
+        },
+        {
+          "label": "pending text never reports stored before commit",
+          "actual": "11111",
+          "expected": "11111",
+          "ok": true
+        },
+        {
+          "label": "no original application script errors",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        }
+      ],
+      "actual": {
+        "before": {
+          "value": "88888",
+          "pending": true,
+          "connected": true
+        },
+        "after": {
+          "value": "88888",
+          "pending": true,
+          "active": true,
+          "originalStillConnected": true
+        },
+        "calls": [],
+        "reply": "ok",
+        "registryBefore": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "ORIGINAL TITLE",
+            "svc": [
+              "USAF",
+              "ANG"
+            ]
+          }
+        ],
+        "peerCount": 0,
+        "status": "🧩 SHELL TEMPLATE v2.00 (11 Oct 2026) — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it."
+      },
+      "status": "passed"
+    },
+    {
+      "name": "committed RCN with successful refresh control",
+      "checks": [
+        {
+          "label": "actual DOM input reaches typed value before delayed reply",
+          "actual": "88888",
+          "expected": "88888",
+          "ok": true
+        },
+        {
+          "label": "input guard records uncommitted text",
+          "actual": false,
+          "expected": false,
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves focused entered text until the person commits or discards",
+          "actual": "88888",
+          "expected": "88888",
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves pending flag for entered text",
+          "actual": false,
+          "expected": false,
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves focus in the same registry field",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "background refresh asks no discard question",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        },
+        {
+          "label": "peer refresh does not change the registry model",
+          "actual": [
+            {
+              "k": "K1",
+              "rcn": "88888",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "expected": [
+            {
+              "k": "K1",
+              "rcn": "88888",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "ok": true
+        },
+        {
+          "label": "pending text never reports stored before commit",
+          "actual": "88888",
+          "expected": "88888",
+          "ok": true
+        },
+        {
+          "label": "no original application script errors",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        }
+      ],
+      "actual": {
+        "before": {
+          "value": "88888",
+          "pending": false,
+          "connected": true
+        },
+        "after": {
+          "value": "88888",
+          "pending": false,
+          "active": true,
+          "originalStillConnected": false
+        },
+        "calls": [
+          {
+            "url": "https://example.invalid/synthetic/state?fy=2027",
+            "method": "GET"
+          }
+        ],
+        "reply": "ok",
+        "registryBefore": [
+          {
+            "k": "K1",
+            "rcn": "88888",
+            "eeic": "AAAAA",
+            "t": "ORIGINAL TITLE",
+            "svc": [
+              "USAF",
+              "ANG"
+            ]
+          }
+        ],
+        "peerCount": 1,
+        "status": "🧩 SHELL TEMPLATE v2.00 (11 Oct 2026) — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it."
+      },
+      "status": "passed"
+    },
+    {
+      "name": "uncommitted rcn with successful peer refresh",
+      "checks": [
+        {
+          "label": "actual DOM input reaches typed value before delayed reply",
+          "actual": "88888",
+          "expected": "88888",
+          "ok": true
+        },
+        {
+          "label": "input guard records uncommitted text",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves focused entered text until the person commits or discards",
+          "actual": "11111",
+          "expected": "88888",
+          "ok": false
+        },
+        {
+          "label": "live refresh preserves pending flag for entered text",
+          "actual": false,
+          "expected": true,
+          "ok": false
+        },
+        {
+          "label": "live refresh preserves focus in the same registry field",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "background refresh asks no discard question",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        },
+        {
+          "label": "peer refresh does not change the registry model",
+          "actual": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "expected": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "ok": true
+        },
+        {
+          "label": "pending text never reports stored before commit",
+          "actual": "11111",
+          "expected": "11111",
+          "ok": true
+        },
+        {
+          "label": "no original application script errors",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        }
+      ],
+      "actual": {
+        "before": {
+          "value": "88888",
+          "pending": true,
+          "connected": true
+        },
+        "after": {
+          "value": "11111",
+          "pending": false,
+          "active": true,
+          "originalStillConnected": false
+        },
+        "calls": [
+          {
+            "url": "https://example.invalid/synthetic/state?fy=2027",
+            "method": "GET"
+          }
+        ],
+        "reply": "ok",
+        "registryBefore": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "ORIGINAL TITLE",
+            "svc": [
+              "USAF",
+              "ANG"
+            ]
+          }
+        ],
+        "peerCount": 1,
+        "status": "🧩 SHELL TEMPLATE v2.00 (11 Oct 2026) — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it."
+      },
+      "status": "failed"
+    },
+    {
+      "name": "uncommitted eeic with successful peer refresh",
+      "checks": [
+        {
+          "label": "actual DOM input reaches typed value before delayed reply",
+          "actual": "QQQQQ",
+          "expected": "QQQQQ",
+          "ok": true
+        },
+        {
+          "label": "input guard records uncommitted text",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves focused entered text until the person commits or discards",
+          "actual": "AAAAA",
+          "expected": "QQQQQ",
+          "ok": false
+        },
+        {
+          "label": "live refresh preserves pending flag for entered text",
+          "actual": false,
+          "expected": true,
+          "ok": false
+        },
+        {
+          "label": "live refresh preserves focus in the same registry field",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "background refresh asks no discard question",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        },
+        {
+          "label": "peer refresh does not change the registry model",
+          "actual": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "expected": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "ok": true
+        },
+        {
+          "label": "pending text never reports stored before commit",
+          "actual": "AAAAA",
+          "expected": "AAAAA",
+          "ok": true
+        },
+        {
+          "label": "no original application script errors",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        }
+      ],
+      "actual": {
+        "before": {
+          "value": "QQQQQ",
+          "pending": true,
+          "connected": true
+        },
+        "after": {
+          "value": "AAAAA",
+          "pending": false,
+          "active": true,
+          "originalStillConnected": false
+        },
+        "calls": [
+          {
+            "url": "https://example.invalid/synthetic/state?fy=2027",
+            "method": "GET"
+          }
+        ],
+        "reply": "ok",
+        "registryBefore": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "ORIGINAL TITLE",
+            "svc": [
+              "USAF",
+              "ANG"
+            ]
+          }
+        ],
+        "peerCount": 1,
+        "status": "🧩 SHELL TEMPLATE v2.00 (11 Oct 2026) — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it."
+      },
+      "status": "failed"
+    },
+    {
+      "name": "uncommitted t with successful peer refresh",
+      "checks": [
+        {
+          "label": "actual DOM input reaches typed value before delayed reply",
+          "actual": "HELD NEW TITLE",
+          "expected": "HELD NEW TITLE",
+          "ok": true
+        },
+        {
+          "label": "input guard records uncommitted text",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves focused entered text until the person commits or discards",
+          "actual": "ORIGINAL TITLE",
+          "expected": "HELD NEW TITLE",
+          "ok": false
+        },
+        {
+          "label": "live refresh preserves pending flag for entered text",
+          "actual": false,
+          "expected": true,
+          "ok": false
+        },
+        {
+          "label": "live refresh preserves focus in the same registry field",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "background refresh asks no discard question",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        },
+        {
+          "label": "peer refresh does not change the registry model",
+          "actual": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "expected": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "ok": true
+        },
+        {
+          "label": "pending text never reports stored before commit",
+          "actual": "ORIGINAL TITLE",
+          "expected": "ORIGINAL TITLE",
+          "ok": true
+        },
+        {
+          "label": "no original application script errors",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        }
+      ],
+      "actual": {
+        "before": {
+          "value": "HELD NEW TITLE",
+          "pending": true,
+          "connected": true
+        },
+        "after": {
+          "value": "ORIGINAL TITLE",
+          "pending": false,
+          "active": true,
+          "originalStillConnected": false
+        },
+        "calls": [
+          {
+            "url": "https://example.invalid/synthetic/state?fy=2027",
+            "method": "GET"
+          }
+        ],
+        "reply": "ok",
+        "registryBefore": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "ORIGINAL TITLE",
+            "svc": [
+              "USAF",
+              "ANG"
+            ]
+          }
+        ],
+        "peerCount": 1,
+        "status": "🧩 SHELL TEMPLATE v2.00 (11 Oct 2026) — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it."
+      },
+      "status": "failed"
+    },
+    {
+      "name": "uncommitted RCN with failed peer refresh",
+      "checks": [
+        {
+          "label": "actual DOM input reaches typed value before delayed reply",
+          "actual": "88888",
+          "expected": "88888",
+          "ok": true
+        },
+        {
+          "label": "input guard records uncommitted text",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "live refresh preserves focused entered text until the person commits or discards",
+          "actual": "11111",
+          "expected": "88888",
+          "ok": false
+        },
+        {
+          "label": "live refresh preserves pending flag for entered text",
+          "actual": false,
+          "expected": true,
+          "ok": false
+        },
+        {
+          "label": "live refresh preserves focus in the same registry field",
+          "actual": true,
+          "expected": true,
+          "ok": true
+        },
+        {
+          "label": "background refresh asks no discard question",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        },
+        {
+          "label": "peer refresh does not change the registry model",
+          "actual": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "expected": [
+            {
+              "k": "K1",
+              "rcn": "11111",
+              "eeic": "AAAAA",
+              "t": "ORIGINAL TITLE",
+              "svc": [
+                "USAF",
+                "ANG"
+              ]
+            }
+          ],
+          "ok": true
+        },
+        {
+          "label": "pending text never reports stored before commit",
+          "actual": "11111",
+          "expected": "11111",
+          "ok": true
+        },
+        {
+          "label": "no original application script errors",
+          "actual": [],
+          "expected": [],
+          "ok": true
+        }
+      ],
+      "actual": {
+        "before": {
+          "value": "88888",
+          "pending": true,
+          "connected": true
+        },
+        "after": {
+          "value": "11111",
+          "pending": false,
+          "active": true,
+          "originalStillConnected": false
+        },
+        "calls": [
+          {
+            "url": "https://example.invalid/synthetic/state?fy=2027",
+            "method": "GET"
+          }
+        ],
+        "reply": "failed",
+        "registryBefore": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "ORIGINAL TITLE",
+            "svc": [
+              "USAF",
+              "ANG"
+            ]
+          }
+        ],
+        "peerCount": 0,
+        "status": "🧩 SHELL TEMPLATE v2.00 (11 Oct 2026) — no data inside (safe for any machine). On your work computer: 📁 File → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it."
+      },
+      "status": "failed"
+    }
+  ]
+}

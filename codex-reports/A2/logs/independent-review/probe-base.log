@@ -1,0 +1,1 @@
+{"checks":15,"failures":[{"label":"valid and lone surrogates","want":["\ud800😀\udc00􏿿\ud800𐀀\udc00",900,200,1100],"got":["�😀�􏿿�𐀀�",900,200,1100],"ok":false}],"errors":[]}

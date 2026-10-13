@@ -1,0 +1,1 @@
+{"id": "v200-u37-exportsrc-null-unchecked", "matches": 1, "find": "const bytes=buildXlsx(sheets, SRC_XTRA);\n  if(!bytes) return;", "repl": "const bytes=buildXlsx(sheets, SRC_XTRA);\n  /* refused result not checked */"}

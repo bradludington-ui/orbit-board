@@ -1,0 +1,16 @@
+{
+  "command": [
+    "python3",
+    "A2/create-mutations.py"
+  ],
+  "cwd": ".",
+  "cap_seconds": 60.0,
+  "started_ET": "2026-10-13T12:16:49.004675-04:00",
+  "finished_ET": "2026-10-13T12:16:49.119347-04:00",
+  "duration_seconds": 0.115,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 50103,
+  "log": "A2/mutation-creation.log",
+  "completion": "passed"
+}

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    "--import",
+    "../runtime-encoding-shim.mjs",
+    "refusal-probe.mjs"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A2-review",
+  "cap_seconds": 120.0,
+  "started_ET": "2026-10-13T12:32:54.515952-04:00",
+  "finished_ET": "2026-10-13T12:32:55.633967-04:00",
+  "duration_seconds": 1.118,
+  "exit": 0,
+  "timed_out": false,
+  "owned_process_group": 53280,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A2-review/refusal-probe.log",
+  "completion": "passed"
+}

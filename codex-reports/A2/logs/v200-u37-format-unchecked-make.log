@@ -1,0 +1,1 @@
+{"id": "v200-u37-format-unchecked", "matches": 1, "find": "  for(let i=0;i<(extra||[]).length;i++) if(extra[i].fmt && badText(extra[i].fmt,'number format '+(i+1))) return true;\n", "repl": ""}

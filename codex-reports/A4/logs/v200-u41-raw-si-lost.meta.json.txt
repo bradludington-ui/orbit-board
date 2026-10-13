@@ -1,0 +1,18 @@
+{
+  "command": [
+    "node",
+    "--import",
+    "/workspace/orbit-codex-batches-20261013-1205ET/runtime-encoding-shim.mjs",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A4/focused.mjs"
+  ],
+  "cwd": "/workspace/orbit-codex-batches-20261013-1205ET/A4",
+  "cap_seconds": 180.0,
+  "started_ET": "2026-10-13T12:45:50.394827-04:00",
+  "finished_ET": "2026-10-13T12:46:11.737406-04:00",
+  "duration_seconds": 21.343,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 54475,
+  "log": "/workspace/orbit-codex-batches-20261013-1205ET/A4/v200-u41-raw-si-lost.log",
+  "completion": "failed"
+}
