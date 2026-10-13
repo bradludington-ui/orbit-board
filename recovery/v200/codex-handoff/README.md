@@ -98,6 +98,37 @@ any time. Each batch stands alone and ends in one report. Brad pastes the report
   setting; a locked cycle's registry list under U32/U33).
 - **D1:** an independent full-suite and mutation-lane run on the pinned combined tree, after integration.
 
+## Second round (13 Oct, 1:22 PM ET): B2 and C2 are ready to send on Brad's go
+
+Your A1–A4 and B1 reports were read here, and the A2–A4 patches now seed three fix tracks (U37, U40, U41/U42). Thank you.
+One gap was found in A2: the slide-deck writer goes through the same `_xesc` and is unchanged. Our U37 track covers it,
+so A2 needs no further work from you.
+
+**B2 (medium): your two cycle-export cases, against our U32/U33 draft.**
+- Input: `inputs/cycreg-snapshot-20261013-1322/`. Its `SNAPSHOT.txt` gives the base, the three diffs, the blobs, and the
+  draft in short.
+- Re-run your duplicate-`K1` case and your `__none__` case on the snapshot. Read the actual XLSX after import and after
+  reopening. Check USAF $900 / ANG $200 against ordinary-key controls, with your own hand-written literals.
+- Look for any route that still doubles money, refuses an ordinary list, or says something untrue. The snapshot is under
+  its round-3 review, so name the snapshot you used.
+
+**C2 (small): four short decision memos for Brad.** Each memo gives about one page: the question, the options, what each
+option does to money and to the person's work, and a recommendation with its reason. No code is needed. Sources: rows U9,
+U19, U28, U32 and U33 in `UNRESOLVED-LEDGER.md`, and "For Brad to decide" in `STATUS-2026-10-13.md`.
+1. **U9, the two lanes.** Apart from the exact-split case, an office's figures and the Spend Plan Source's CLIN lines
+   still differ. This happens with two CLINs on one office, part funding, a CLIN added on the board, or incremental
+   awards. Which figure is an office's money?
+2. **U19, the reopen header.** After a put-back and a reopen before saving, the top bar says "Saved …" while the record
+   says unsaved. What should it say?
+3. **U28, the font setting.** Should the final validation's verify:grid run with this container's font substitution
+   ('Segoe UI' mapped to Inter, 14.6% wider) bypassed, so that it measures what users see? The tools are never weakened.
+4. **U32/U33, a locked cycle's registry list.** The draft refuses a repeated or reserved key in a file handed over. It
+   keeps a person's own board as it is, and says what its lists hold. A locked cycle's list cannot be corrected, though.
+   Should there be a way to correct it, and what would it cost the lock's guarantee?
+
+**C1 and D1 still wait.** C1 needs the final NEXT-VERSION entries, and D1 needs the pinned combined tree. The lead
+publishes both when they exist.
+
 ## Report format (one per batch)
 
 ```
