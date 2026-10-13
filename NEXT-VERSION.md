@@ -977,6 +977,117 @@ result for it was run fresh against these commits.
       history is not in the repository.
     - Not covered either: a locked-cycle view; Chromium (jsdom only); whether the longer label fits the 1,280-pixel chart
       image.
+- **U36: an RCN / EEIC title over 80 characters is refused, never cut** (from the registry-text review, first filed as U35
+  while Codex's registry-text findings had not reached the lead; Brad, 12 Oct, about 6:05 PM ET: "record the malformed
+  saved-year selection and pending registry-text findings explicitly. If deferred, name their limits in the matrix and
+  release notes."). Registry text was checked on `d66dd60`: typed (rcnSet, flowSetEnt), in a file opened, saved and reopened,
+  and through Import a full board; and where it goes out: the screen, the workbooks read from their bytes (exportExcel,
+  exportSrc, exportFlow), the slide deck read from its bytes (exportPPT), and the saved file. The routes not followed are
+  listed under "Not covered". One defect was clear enough to fix. A title typed into the RCN / EEIC list (Setup › Codes and
+  structure › RCN / EEIC) longer than 80 characters was cut to its first 80, and nothing said so. The cut counted the two
+  halves an emoji is stored as, so 79 letters and an emoji were kept as 79 letters and half the emoji; RCN-EEIC by Month then
+  printed a replacement mark (�), and the saved file kept the half. Any edit of a title that arrived in a file longer than 80
+  cut the file's title the same way, and the next save kept it cut. The title now follows item 91's rule for codes. It is
+  refused, and the list keeps what it had. The field keeps what was typed, marked, and the status line says: "⚠ RCN / EEIC
+  title not changed. The title “…” is 81 characters; it can be at most 80. Nothing was changed." Nothing is saved on a
+  refusal. Once a value is then kept in the list (the title corrected in its field, or an RCN or EEIC typed in any row), that
+  refusal leaves the status line, so the line never says "not changed" of a title that has just changed; any other message
+  on the line stays. The limit is counted by Unicode code point: an emoji stored as two halves counts once, but a joined
+  emoji (a family, a skin tone), a flag, or a letter written with a separate accent mark counts as several, so the number in
+  the status line can be larger than the characters a reader sees.
+  - **What users may see:**
+    - A title over 80 characters is refused where it used to be shortened. A title of up to 80 characters that includes an
+      emoji is kept whole.
+    - A title that arrived in a file longer than 80 is kept whole and saved whole (U38), but it can be edited only once it is
+      shortened to 80. Before, any edit cut it to 80 without a word.
+    - A refused title stays in its field only until the panel is next drawn (Add a combination, a service box, another
+      row's code): the field then shows the kept title again. The refusal stays on the status line until a value is kept in
+      the list or the board says something else. A service box or Add a combination does not clear it: the line then still
+      describes the refused title ("… Nothing was changed"), although the list itself has since changed. Item 91's own
+      code refusals are not cleared this way, as before this change: after an RCN or EEIC is refused and then corrected in
+      its field, the corrected code is kept while the line still reads "RCN not changed … Nothing was changed" until the
+      board's next message.
+  - **Test:** audit-recon "v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut" (24 checks). Refused,
+    each with the status line's exact words: 81 letters, 200 letters, 80 letters plus an emoji, 81 letters typed with spaces
+    before them (counted and quoted as kept, trimmed), 41 letters each written with a separate accent mark (82 code points),
+    and 100 other letters typed over a file's 100-letter title (the field shows all 100 first; the file's title is kept,
+    and kept through a save and a reopen). Also checked: the workbook after those refusals; a refusal saves nothing (the
+    board is not marked changed, and its save stamp does not move); 79 letters plus an emoji, kept whole in the list, in
+    the workbook, and through save and reopen; the panel's own title field, marked; and a title refused in the panel's
+    field and then corrected there: kept, drawn again unmarked, and the refusal gone from the status line. Ten controls: 80
+    letters; 80 letters with spaces around them; a padded title, kept trimmed; a title of markup with a leading =, kept and
+    printed in the workbook as that exact text; a title within the limit typed in the panel, saved (the board marked
+    changed, its save stamp moved) and drawn again, the field having no maxlength; a cleared title, kept empty; two spaces
+    inside a title, kept; a message other than the title's refusal, left on the line when a title is kept; and an RCN typed
+    as "=1+1" and an EEIC typed as "@a1", kept and printed in the Spend Plan Source as text cells of exactly that text, with
+    no formula in any part of the file. 14 checks fail on the board before this change (`d66dd60`); the 10 controls pass
+    on both. Every one of audit-recon's 306 existing checks gives the same verdict and the same observed value before and
+    after.
+  - **Mutations:** `v200-regtext-title-no-limit`, `-title-cut`, `-title-halves`, `-refused-but-kept`, `-field-unmarked`,
+    `-count-untrimmed`, `-preview-untrimmed`, `-refused-but-saved`, `-kept-unsaved`, `-kept-not-drawn`, `-field-maxlength`,
+    `-count-glyphs`, `-count-normalized`, `-empty-refused`, `-spaces-collapsed`, `-file-title-shown-cut`,
+    `-long-title-retyped`, `-refusal-left-standing`, `-clears-any-message` and `-formula-cells`. The focused block catches
+    each one. Full-suite sensitivity runs in the final-tree queue.
+  - **Not covered** (the registry-text limits, each with its row in `recovery/v200/UNRESOLVED-LEDGER.md`):
+    - **U37 (P1, a release blocker; fix track u37 under way on 13 Oct; this paragraph stands only if that fix does not
+      land).** A workbook or a slide deck can hold a character that XML 1.0 forbids (U+0000–U+0008, U+000B, U+000C,
+      U+000E–U+001F). The one writer both exports use (`_xesc`) escapes only `& < > "`, so such a character goes into the
+      part raw, and that part is not well-formed XML. This is any text, not only registry text. Measured: an RCN / EEIC
+      title (in RCN-EEIC by Month), a requirement title (in four workbook sheets), a destination name, which puts it into
+      `xl/workbook.xml` itself as a funds-flow sheet name, and a Plan Event typed through the board's own prompt, which
+      the slide deck writes raw into a slide part (`ppt/slides/slide5.xml`). A real browser (Chromium 141) keeps U+000B,
+      U+0001, U+0007 and U+001F when they are pasted into a text field, and rcnSet stores them in a title (U+000B) and in
+      an RCN (U+0001). The board's own reader reads such a workbook back. Whether Excel or PowerPoint refuses or repairs
+      such a file was not checked. A fix has to cover both writers: escaping in `_xesc` covers both; refusing the export
+      and naming the cell, as the IDS export does (`IDS_BADCH`), has to be added to the slide deck as well.
+    - **U38 (P3 for the board; P2 proposed for the Spend Plan Source).** A file can carry RCN / EEIC text that typing would
+      refuse or change, and the board keeps it as it arrived:
+      - an EEIC in lower case, or padded with spaces;
+      - an EEIC of ten "ß" (20 characters once upper-cased), which is not listed as over its limit;
+      - an RCN padded with spaces;
+      - a title of any length up to the import's 200,000 characters, printed whole. The refusal's words "it can be at
+        most 80" are true for typing only: such a title is kept and not flagged.
+      A 20-character EEIC is listed under Pre-flight's "Codes longer than their limit", as item 91 intends. By code,
+      Needs attention does not list it, because it skips board-level lists. Nothing inside the board compares RCN or EEIC
+      text, so no figure on the board moves. The Spend Plan Source, the file that goes to CCaR, prints such codes as they
+      are stored: a file's RCN " 44444 " and EEIC " ddddd " go out padded and in lower case, and nothing flags them
+      (Pre-flight lists nothing). Pre-flight's own reason for flagging an over-long code, "the exports print them as they
+      are, so CCaR may not match them", applies to them too. Candidate: list such codes beside "Codes longer than their
+      limit".
+    - **U39 (P3).** Two RCN / EEIC entries with the same text print identical rows in RCN-EEIC by Month. The money is
+      right, but a reader cannot tell the rows apart.
+    - **U40 (P1, a release blocker; fix track u40 under way on 13 Oct; this paragraph stands only if that fix does not
+      land).** Typing lets two destinations take names the board's own rule calls the same ("Alpha Depot" and "ALPHA
+      DEPOT": case and spaces are ignored). A requirement can then lose its destination: when that file is opened in a
+      browser whose own destination list is newer (the ordinary case of a second person opening it), the two merge into
+      the first. "ALPHA DEPOT" is gone, the requirement that pointed at it now points at "Alpha Depot", and its money counts
+      there in the funds flow. Nothing is said, and a save there keeps the merge. Opened in a fresh browser, the same file
+      keeps both. This breaks v1.86's can't-fails ("no requirement … loses or changes its destination"; "each merge is
+      listed"). Typed destination names are also not trimmed and have no length limit.
+    - **U41 (P2; fix track u41u42 under way on 13 Oct, joining v2.00 only if its reviews are clean in time).** An SI code
+      the file carried that is not exactly one of the five (for example "at" or "LA ") is dropped when the year is opened,
+      without a word, and the next save loses it. The requirement falls back to its derived code, and in the SI matrix its
+      money moves to that code's row (on the test fixture, "— no code set —"). A PMO copy carrying such a code has it left
+      out and named (`pmoNorm`); a year's own file does not. ORBIT's own picker never writes such a code.
+    - **U42 (P2; the same fix track as U41).** In the funds-flow workbook on the destination axis, each destination's sheet
+      name is cut to 28 UTF-16 units, and the cut can split an emoji: a name of 27 letters and an emoji becomes a sheet
+      named with 27 letters and a replacement mark (�). A name beginning with an apostrophe becomes a sheet name beginning
+      with one, which Microsoft's naming rules for sheets do not allow (Excel itself was not run). The slide deck cuts
+      requirement titles the same way (not registry text): its Mission Critical and Unfunded tables keep the first 56
+      UTF-16 units, so a Plan Event of 55 letters and an emoji prints as 55 letters and a replacement mark. By code, the
+      workbook writer also cuts every sheet name at 31 UTF-16 units, which the funds-flow names never reach.
+    - **U35 (P2, deferred past v2.00 by the lead, 13 Oct, 1:19 PM ET; Codex's A1 finding, not measured by this track).**
+      During a Live refresh, typing not yet committed in the RCN / EEIC dialog is replaced by the stored value without a
+      question. Nothing already committed is lost.
+    - **The refusal's own preview** (`inShow`, shared with item 91) cuts at 60 UTF-16 units, so a title whose 60th unit
+      is the first half of an emoji is quoted ending in half of it (status line and tooltip only; nothing stored).
+    - **Routes not followed:** importing a cycle file, a PMO copy or submittal, a package, or a service file; BAE budget
+      names beyond the hostile sweep that already plants one; Chromium's hostile render with registry text planted (the
+      jsdom sweep found every planted registry value drawn as text); a PDF; Excel, PowerPoint or LibreOffice opening any of
+      these files, or a cell longer than 32,767 characters. No CSV carries registry text (by code; both CSVs go through
+      `csvCell`), and no slide carries registry text (by code). Workbook cells are text, never formulas: no workbook part
+      made here held an `<f>` element, including a Spend Plan Source whose RCN cell begins "=" and whose EEIC cell begins
+      "@".
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -1027,6 +1138,28 @@ result for it was run fresh against these commits.
     reads a malformed value as all appropriations with nothing said and counts money from appropriations the file does
     not name (U45), and saved prime-match text or category names holding U+FFFF, which still make the funds-flow
     export a workbook that is not well-formed (U46, the same writer gap as U37).
+  - **The registry-text review** (first filed as U35 while Codex's text had not reached the lead). Checked on `d66dd60`:
+    typed, in a file opened, saved and reopened, and through Import a full board; and on the screen, in the workbooks and
+    the slide deck read from their bytes, and in the saved file. Not followed: a cycle file, a PMO copy or submittal, a
+    package, a service file, a PDF, and Excel or PowerPoint themselves. **U36 is fixed above:** a typed RCN / EEIC title over
+    80 characters is refused, not cut. The rest stay open, with their limits stated above under U36's "Not covered":
+    - **U37 (P1, a release blocker; its own fix track).** A character that XML 1.0 forbids makes a workbook part or a slide
+      part malformed, for any text (registry text, a requirement title, a Plan Event on a slide, a destination name, which
+      reaches `xl/workbook.xml`). A real browser's paste lets such a character in.
+    - **U40 (P1, a release blocker, data loss; its own fix track).** Two destinations typed with names that differ only in
+      case or spaces merge into one when the file is opened in a browser whose destination list is newer: a requirement
+      changes its destination, its money moves in the funds flow, and nothing is said.
+    - **U41 (P2 proposed; a fix track joins v2.00 only if its reviews are clean in time).** An SI code the file carried that
+      is not exactly one of the five is dropped on opening without a word, and lost on the next save; its money moves to the
+      derived code's row in the SI matrix.
+    - **U42 (P2; the same fix track).** A funds-flow sheet name cut to 28 UTF-16 units can end in half an emoji (a
+      replacement mark in `xl/workbook.xml`); a leading apostrophe is kept in a sheet name. The slide deck's 56-unit cut of
+      a requirement title can split an emoji the same way.
+    - **U38 (P2 proposed for the Spend Plan Source, P3 on the board).** A file keeps RCN / EEIC text that typing would refuse
+      or change, and the Spend Plan Source prints it as stored (padded, lower case) with nothing flagging it.
+    - **U39 (P3).** Two entries with the same text print identical rows.
+    - **U35 (P2, deferred by the lead; Codex's A1).** During a Live refresh, typing not yet committed in the RCN / EEIC
+      dialog is replaced by the stored value without a question.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 

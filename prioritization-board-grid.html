@@ -5118,7 +5118,7 @@ function rcnBody(){
       +'<td style="text-align:left;min-width:360px"><input class="btn" '
       +'style="font-size:9.5px;padding:3px 6px;width:100%;min-width:340px" '
       +'value="'+esc(e.t||'')+'" placeholder="what this line funds" '
-      +'onchange="rcnSet('+i+',&quot;t&quot;,this.value)"></td>'
+      +'onchange="rcnSet('+i+',&quot;t&quot;,this.value,this)"></td>'
       +RCN_SVCS.map(function(sv){
           return '<td><input type="checkbox"'+(svc.indexOf(sv)>=0?' checked':'')
             +' onchange="rcnToggleSvc('+i+','+jsa(sv)+')" title="'+esc(sv)+' can use this combo"></td>'; }).join('')
@@ -10885,8 +10885,17 @@ function rcnSet(i,field,val,el){
     if(r.why){ codeRefusedIn(el, (field==='rcn'? 'RCN' : 'EEIC')+' not changed', r.why); return; } }
   if(field==='rcn')  e.rcn=String(val||'').trim();
   else if(field==='eeic') e.eeic=String(val||'').trim().toUpperCase();
-  else if(field==='t') e.t=String(val||'').trim().slice(0,80);
+  else if(field==='t'){ const t=String(val||'').trim(), n=Array.from(t).length;
+    // v2.00 (U36): a title over 80 characters is refused, never cut. It was cut to its first 80 without a word, and the
+    // cut could split a character in two: 79 letters and an emoji were kept as 79 letters and half of the emoji. Counted by
+    // Unicode code point, so an emoji stored as two halves counts once; a joined emoji, a flag or a letter with a separate
+    // accent mark is several code points, and counts as several.
+    if(n>80){ codeRefusedIn(el, 'RCN / EEIC title not changed', 'The title '+inShow(t)+' is '+n+' characters; it can be at most 80. Nothing was changed'); return; }
+    e.t=t; }
   save(); render();
+  // v2.00 (U36): a title refusal still on the line once a value is kept here would say "not changed" of a title just
+  // changed, so it goes. Only that refusal, and only if nothing has been said since: anything save() said stands.
+  const st=document.getElementById('shareStat'); if(st && /^⚠ RCN \/ EEIC title not changed\./.test(st.textContent)) setStat('');
 }
 function rcnToggleSvc(i,sv){
   const e=rcnReg()[i]; if(!e) return;
