@@ -721,3 +721,22 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   menus cut to 90px pass dropdowns-visible. The other: a gap the verifier names in its VERDICT.md.
 - Evidence: `evidence/ui/s1-s5-review/` (r1 and r2 VERDICT.md and README.md, run and mutant tables).
 - The UI branch stays local and unpushed. Its tip `dd15956` is backed up as bundle commit `321ac94`, restore verified.
+
+## Update at 9:13 AM ET: fourth usage-limit stop; restarted from recorded state
+
+- **Between 4:13 and 6:01 AM ET:**
+  - Fix rounds finished for U9, U32/U33 (cycreg), U34 (yearsel) and U36 (regtext).
+  - U9's round-2 money review is clean, with no must-fix.
+  - U19's first reviews: money **unsound, 2 must-fix**; tests 1 must-fix.
+  - U10's test review: unsound, 3 must-fix. U28's test review: 1 must-fix.
+  - The UI S1–S5 re-review was sound; it was recorded at 5:08 AM ET.
+- **About 6:01 AM ET:** usage limit again ("resets 1:10pm (UTC)", i.e. 9:10 AM ET). The check-ins at 6:42, 7:43 and
+  8:43 AM ET were delivered when the session came back. **9:11 AM ET:** the container restarted, and the work on disk was intact.
+- **9:13 AM ET:** the three fix groups were restarted with the new state-driven script (`rec/L7/fixes-state.js`).
+  - `rec/L7/wfstate.py` rebuilt each track's finished chain from the journals. A review counts only if it started after
+    the draft it reviews was recorded, and a fix only after both reviews it answers.
+  - Every finished build, review and fix is read from files under `rec/L6/<track>/wfstate/`. Only missing steps run.
+  - First steps started: the hold build and U19's fix round (save, `wf_99519359-797`); U10's and U28's fix rounds (math,
+    `wf_534cd8b6-9c3`); cycreg's round-2 reviews (codex, `wf_f45a7fab-957`).
+  - Interrupted reviewers and fixers are told to reuse their folders' finished runs.
+- No draft has two clean reviews yet, so nothing is committed.
