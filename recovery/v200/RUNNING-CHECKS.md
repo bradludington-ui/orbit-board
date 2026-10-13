@@ -921,3 +921,5 @@ per round.
   four decision memos (U9 two lanes, U19 reopen header, U28 font setting, a locked cycle's registry list). Both briefs
   are in `codex-handoff/README.md` at `520a9cf`. Brad relays them to Codex; the reports come back on a branch of their own,
   as in the first round, and are read and checked here before anything is used.
+- **Brad: "Sent to Codex, keep pressing."** The round-2 handoff (B2 and C2, pointing at `3e38ac8`) is with Codex. The
+  reports are expected on `codex/v200-reports-round2-20261013`.
