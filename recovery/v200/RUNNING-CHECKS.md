@@ -973,3 +973,16 @@ happens on the base too. A fix track (u44) was opened at 3:44 PM ET to give dest
 - Adopt fix round 1 is done; its round-2 reviews are running.
 - U18's fix round is running.
 - REGTEXT's fix round 2 is done; YEARSEL's round-3 reviews are running.
+
+## 13 Oct, 4:43 PM ET: U28 paused for memory; clean money reviews for U34 and U36
+
+- **U28 paused** during its round-3 reviews. The agents' memory group was at 12.0 of 13.7 GB, load was 40, and an OOM kill
+  hit a test run at 4:32 PM ET. U28 changes no product money. It also waits for Brad's answer on the font setting (Codex's
+  C2 memo, question 3). No leftover processes. It resumes from recorded state.
+- **Round-3 money reviews clean:** U34 (YEARSEL) and U36 (REGTEXT). Both tests reviews are running; a track whose tests
+  review is also clean is committed next. U20/U30's round-2 money review is clean too, with its tests review running.
+- **U9's fix round 3** carries U43 (the PMO panel and the CR view by PMO) as a commit of its own.
+- **Also:**
+  - U37 and U40 are built: U37's round-1 reviews are queued; U40's money review has 1 must-fix and its tests review is
+    running.
+  - Builders running: U41/U42 and U44.
