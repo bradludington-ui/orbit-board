@@ -15359,11 +15359,35 @@ function flowSelYears(){
 }
 // v2.00 (U14): the saved year selection as it is stored -- each year once, in order -- or null when none is saved (ALL YEARS).
 // Read, never written: only a person's click (flowToggleYear, flowOneYear, flowAllYears) changes it.
+// v2.00 (U34): A SAVED SELECTION THIS BOARD DID NOT WRITE IS NEVER READ AS ALL YEARS. None saved (null, or no key) is ALL YEARS,
+// and nothing else is. A year is a whole number, as the board writes it; anything else -- a string ("2026"), an object, a bare
+// number, 2026.5, null, an empty list -- is read as no year, kept as saved, and said (flowUnreadSaved). It read as ALL YEARS,
+// or as a year it is not ("2027" as FY27, true as FY1), with nothing said.
+function flowYearOk(y){ return typeof y==='number' && Number.isInteger(y); }
 function flowSavedYears(){
   const C=flowCfg();
-  if(!Array.isArray(C.fys)) return null;
-  const s=C.fys.map(Number).filter((y,i,a)=>Number.isInteger(y) && a.indexOf(y)===i);
-  return s.length? s.sort() : null;
+  if(C.fys==null) return null;
+  const s=(Array.isArray(C.fys)? C.fys : []).filter((y,i,a)=>flowYearOk(y) && a.indexOf(y)===i);
+  return s.sort();
+}
+// v2.00 (U34): what of the saved year selection this board cannot read as years, or null when it reads all of it: the whole
+// value (not a list, or an empty one), or the entries that are not whole numbers. `what` quotes the file -- at most three
+// entries, each cut at 40 characters -- for the panel's notice (escaped there) and the export's NOTE. Each is cut between
+// characters, never inside one, and U+FFFE / U+FFFF are quoted as the file's own escape ("\uffff"): XML 1.0 forbids both, so
+// the export's sheet holding one would not be a well-formed workbook. Only the first 82 units are read, so the cost stays small.
+function flowUnreadSaved(){
+  const v=flowCfg().fys, q=x=>{ const t=Array.from(String(JSON.stringify(x)).slice(0,82).replace(/[\uFFFE\uFFFF]/g, c=>'\\u'+c.charCodeAt(0).toString(16)));
+    return t.length>40? t.slice(0,40).join('')+'\u2026' : t.join(''); };
+  if(v==null) return null;
+  if(!Array.isArray(v) || !v.length) return {whole:true, n:1, what:q(v)};
+  const bad=v.filter(y=>!flowYearOk(y));
+  return bad.length? {whole:false, n:bad.length, what:bad.slice(0,3).map(q).join(', ')+(bad.length>3? ' and '+(bad.length-3)+' more' : '')} : null;
+}
+function flowUnreadText(F, fy){
+  const U=F.unread, L=a=>a.map(fy).join(', '), one=U.n===1;
+  if(U.whole) return 'The saved year selection is '+U.what+', not a list of years this board can read. It is kept as saved, and nothing is counted.';
+  return 'The saved year selection holds '+U.what+', which this board cannot read as '+(one?'a year':'years')+'. '+(one?'It is':'They are')
+    +' kept as saved'+(F.fys.length? ' and not counted: this total counts '+L(F.fys)+' only.' : ', and nothing is counted.');
 }
 // v2.00 (U14): the saved years the board cannot answer for now: no plan held for them, no imported row filed or counted in
 // them, outside the plan window. The panel and the export name them, and what is counted instead.
@@ -15408,13 +15432,15 @@ function flowOneYear(y){ flowCfg().fys=[y]; flowSel=''; save(); render(); }
 // v2.00 (U14): ALL YEARS names its years as they run -- "FY25, FY27–FY31" -- so a dash never spans a year that is in no total;
 // it read "FY25–FY31" over a FY26 nothing counted in. A saved selection with a year the board cannot answer for is never
 // called all years (`un`: those years; flowCalc says them after the label). No year counted reads "no year counted".
-function flowScopeLabel(ys, aps, un){
+// v2.00 (U34): nor is one holding what the board cannot read as years (`ur`: flowUnreadSaved), even when the years it can read
+// are every year offered; it read "· all years" beside "this total counts FY25, FY27, ... only".
+function flowScopeLabel(ys, aps, un, ur){
   const allY=flowYears(), FY=y=>'FY'+(y%100);
   const runs=a=>a.reduce((o,y)=>{ const r=o[o.length-1]; if(r && y===r[1]+1) r[1]=y; else o.push([y,y]); return o; }, [])
     .map(r=>r[0]===r[1]? FY(r[0]) : FY(r[0])+'\u2013'+FY(r[1])).join(', ');
   const yl = !ys.length? 'no year counted'
     : ys.length===1? 'FY'+(ys[0]%100)
-    : ((ys.length===allY.length && !(un||[]).length)? runs(ys)+' \u00b7 all years'
+    : ((ys.length===allY.length && !(un||[]).length && !ur)? runs(ys)+' \u00b7 all years'
        : ys.map(y=>'FY'+(y%100)).join(', '));
   const al = aps.length===FLOW_APPNS.length? 'all appropriations'
     : aps.map(a=>APPN_LBL[a]).join(' + ');
@@ -15596,9 +15622,10 @@ function flowCalc(arg){
   const RIX=(AX==='buys')? null : flowReqIndex();
   const YS = (arg==null)? flowSelYears() : [Number(arg)];
   const UN = (arg==null)? flowUnavailYears() : [];      // v2.00 (U14): saved years the board cannot answer for now
+  const UR = (arg==null)? flowUnreadSaved() : null;     // v2.00 (U34): what of the saved selection cannot be read as years
   const AS = (arg==null)? flowSelAppns() : FLOW_APPNS.slice();
-  const F={fy:YS[YS.length-1], fys:YS, aps:AS, multi:YS.length>1, unavail:UN,
-           label:flowScopeLabel(YS,AS,UN), tot:0, appn:APPN_SLUGS.reduce(function(o,s){ o[s]=0; return o; },{}), dual:0, rows:0,
+  const F={fy:YS[YS.length-1], fys:YS, aps:AS, multi:YS.length>1, unavail:UN, unread:UR,
+           label:flowScopeLabel(YS,AS,UN,UR), tot:0, appn:APPN_SLUGS.reduce(function(o,s){ o[s]=0; return o; },{}), dual:0, rows:0,
            // Executed money and planned money are both in the total, and which is which is a fact
            // the chart has to be able to STATE - so it is counted here rather than inferred later
            // from the year list, which would go wrong the moment a year carries a partial import.
@@ -15684,6 +15711,8 @@ function flowCalc(arg){
   // v2.00 (U14): a saved year the board cannot answer for is said in the scope itself -- the panel, the chart, the image, the
   // export's Scope line and its file name all print this label -- kept in the selection, and not counted
   if(UN.length) F.label+=' \u00b7 saved '+UN.map(y=>'FY'+(y%100)).join(', ')+' not available, not counted';
+  // v2.00 (U34): and a saved selection, or part of one, that cannot be read as years
+  if(UR) F.label+=' \u00b7 '+(UR.whole? 'saved year selection not a list of years' : UR.n+' saved '+(UR.n===1?'entry not a year':'entries not years'))+', not counted';
   return F;
 }
 // v1.99 (item 92): what partner and FMS money is, said the same way on the panel and in the export
@@ -16491,12 +16520,13 @@ function flowHtml(){
   let h='<div style="margin-bottom:6px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">'
     +'<span style="font-size:9px;color:var(--dim);font-weight:800;letter-spacing:.8px;width:74px">FISCAL YEAR</span>'
     // v2.00 (U14): ALL YEARS is lit only for ALL YEARS: a saved selection holding a year the board cannot answer for is not it
-    +chip(selY.length===yrs.length && !F.unavail.length,'ALL YEARS','flowAllYears()','Every year this board can answer for \u2014 executed and planned together')
+    // v2.00 (U34): nor is one holding what the board cannot read as years; the years it counts are lit instead
+    +chip(selY.length===yrs.length && !F.unavail.length && !F.unread,'ALL YEARS','flowAllYears()','Every year this board can answer for \u2014 executed and planned together')
     // A planned year is marked ON THE CHIP. Both kinds are selectable together and the total adds
     // them up, so which is which has to be visible at the point of choosing, not only afterwards.
     +yrs.map(function(f){
         const pl=flowYearKind(f)==='plan';
-        return chip(selY.indexOf(f)>=0 && (selY.length<yrs.length || F.unavail.length>0),'FY'+(f%100)+(pl?' \u00b7 plan':''),
+        return chip(selY.indexOf(f)>=0 && ((selY.length<yrs.length || F.unavail.length>0) || !!F.unread),'FY'+(f%100)+(pl?' \u00b7 plan':''),
             'flowToggleYear('+f+')',
             // v2.00 (R1): a planned year with rows STORED under it has every one COUNTED in a later year (OBBBA). It said "has no
             // O&M execution imported" of an FY25 whose O&M rows were imported and are all counted in FY26.
@@ -16565,6 +16595,11 @@ function flowHtml(){
     +(F.unavail.length? '<div class="flowunavail" style="border:1px solid var(--amber);border-radius:8px;padding:8px 11px;margin-bottom:9px;font-size:10px">'
        +'<b style="color:var(--amber)">'+esc(flowUnavailText(F, y=>'FY'+(y%100)))+'</b> '
        +'Click <b>ALL YEARS</b>, or a year\u2019s <b>only</b>, to choose again; switching a year on or off keeps '+(F.unavail.length===1?'it':'them')+'.</div>' : '')
+    // v2.00 (U34): A SAVED SELECTION THE BOARD CANNOT READ AS YEARS is said, quoted as saved, with what is counted instead. Any
+    // click on the year buttons chooses again and replaces what cannot be read (a toggle starts from the years it could read).
+    +(F.unread? '<div class="flowunread" style="border:1px solid var(--amber);border-radius:8px;padding:8px 11px;margin-bottom:9px;font-size:10px">'
+       +'<b style="color:var(--amber)">'+esc(flowUnreadText(F, y=>'FY'+(y%100)))+'</b> '
+       +'Click <b>ALL YEARS</b>, a year\u2019s <b>only</b>, or a year to switch it on or off, to choose again; any of these replaces what cannot be read.</div>' : '')
     +'<div style="font-size:9.5px;color:var(--dim);margin-bottom:6px">Loaded: '
     +FLOW_APPNS.map(a=>(LOAD[a].has
         ? '<b style="color:var(--ink)">'+esc(APPN_LBL[a])+'</b> '+LOAD[a].n+' events'
@@ -16766,6 +16801,8 @@ function exportFlow(){
     +'. Executed is the imported CCaR QPE; planned is '+(APPN_LBL[F.planSlug]||'this board')+'\u2019s own allocation.'],[]);
   if(F.multi) sum.splice(3,0,['NOTE: separate appropriation years added together \u2014 a portfolio total, '
     +'not one year of funding. Fiscal years included: '+F.fys.map(y=>'FY'+y).join(', ')+'.'],[]);
+  // v2.00 (U34): a saved selection the board cannot read as years, in the panel's words, under U14's NOTE
+  if(F.unread) sum.splice(3,0,['NOTE: '+flowUnreadText(F, y=>'FY'+y)],[]);
   // v2.00 (U14): a saved year the board cannot answer for now, in the panel's words, first under the Scope line
   if(F.unavail.length) sum.splice(3,0,['NOTE: '+flowUnavailText(F, y=>'FY'+y)],[]);
   // v1.99 (item 92): only the appropriations in scope -- one switched off is not a $0 line
