@@ -546,7 +546,7 @@ Screenshots at 1440: `part2/f-1440-funding-posture-strip-{sidebar-open,rail,dock
 | `f95fee2` (chunk 2) and `cb86178` (before S5) | 612 each (sidebar open: 366 at 17 widths; rail: 246 at 10), Filter at 1000 included |
 | `2ce11b6` (final) | **0**; no menu scrolls sideways. Five years & PPBE at 760: 72–676px; at 1000 with the sidebar open: 240–844px |
 
-`tools/dropdowns-visible.mjs` (unchanged) **passes**: 408 drop-downs at 8 window sizes, in both fonts. Screenshots: `part2/r-{760,1000}-{sidebar-open,rail}-reports-{five-years-ppbe,ccar-accounting}-unfolded.png`.
+`tools/dropdowns-visible.mjs` (unchanged) **passes**: 408 drop-downs at 8 window sizes, in both fonts (at `2ce11b6`; the fix round below adds a docked pass). Screenshots: `part2/r-{760,1000}-{sidebar-open,rail}-reports-{five-years-ppbe,ccar-accounting}-unfolded.png`.
 
 ### S4. The browser tools, and the Import box's opener
 
@@ -566,6 +566,8 @@ Screenshots at 1440: `part2/f-1440-funding-posture-strip-{sidebar-open,rail,dock
 | `keyboard-reach.mjs:311,314` (L) | Review, Tab from `#q` | Funding, Tab from `#b_share`; twice, sliding over and docked | the strip shows only in Funding and Brief, and the search box moved below it |
 | `toolbar-fits.mjs:39` | one line above 1100px, nothing past the edge | the same, **and** every control in the context bar, task bar, posture strip and the page's heading and toolbar inside the window, not cut by an ancestor that clips, and the element under its own centre | Brad: show that all controls remain usable at 1152 |
 
+**Corrected in the fix round:** this table left docked coverage out of layout-fits (C, D, E, F and I), dropdowns-visible and dialogs-keyboard, which on base ran beside the docked panel above 1400px; after S4 they ran with the panel sliding over only. The fix round below adds those passes.
+
 **1152, said plainly.** The one-line rule is kept exactly as it was, and **it still fails at 1152** (review and fund): beside the open sidebar the context bar has 920px, under the board's own 1100px wrap point, and it wraps to two lines (77px). On the same lines the new check finds all 22 (review) and 18 (fund) controls on screen, whole and clickable; and at every other width. A negative control (the context bar forced onto one clipped line, in a scratch copy) passes the one-line rule and fails the new check by name: `#b_share` at 1152, and `#saveBtn`, `#helpBtn`, `#b_share` at 1024. Screenshots: `part2/t-1152-{review,funding}-context-bar-wraps-every-control-usable.png`.
 
 ### `npm run verify:grid`, on base, chunk 2 and the final commit
@@ -576,7 +578,7 @@ Each in a scratch copy of the commit (`git archive`, `node_modules` linked), BOA
 |---|---|---|---|---|
 | `npm run verify:grid` | 1 (stops at layout-fits, 274 s) | 1 (stops at row-controls) | 1 (stops at row-controls) | see the rows below |
 | chrome | 0 | 0 | 0 | same |
-| row-controls | 0 | 1: 3 controls not recorded | 1: the same 3 | **differs**: chunk 1's RECORD panel History and tabs (`mRun(showLog)`, `mRun(toggleJrnl)`, `uiDTab('…')` ×3); not in part 2's scope |
+| row-controls | 0 | 1: 3 entries not recorded, 5 controls (corrected in the fix round: this said "3 controls") | 1: the same 3 entries | **differs**: chunk 1's RECORD panel History and tabs (`mRun(showLog)`, `mRun(toggleJrnl)`, `uiDTab('…')` ×3); not in part 2's scope |
 | inspector-agrees | 0 | 1: the scrim takes row B's click | 0 (both passes) | same |
 | toolbar-fits | 0 | 1: 1152 wraps | 1: 1152 wraps; every control usable | **differs**: the one-line rule at 1152, above |
 | editors-reachable | 0 | 1: "drawer, not beside the rows" | 0 (both passes) | same |
@@ -601,7 +603,7 @@ Every command went through `run.sh`: the AUDIT_IMPORT lock checked first (never 
 | `audit-ui` | 17:54:50 | 0 | 56.3 | ALL CHECKS PASSED |
 | `audit-ui`, counted | 17:55:46 | 0 | 56.9 | 604 checks (510 + 44 + 50), 0 failed |
 | `audit-ui`, counted, on the board at `670c467` | 17:56:43 | 1 | 55.0 | 604 checks, 8 failed: all S2's |
-| `audit-ui`, counted, on `f95fee2` | 17:57:38 | 1 | 55.0 | 604 checks, 278 failed (254 in M1's sections, as at `5a298b7`; 8 in S2's; 16 in S3's, whose literal messages are M1's) |
+| `audit-ui`, counted, on `f95fee2` | 17:57:38 | 1 | 55.0 | 604 checks, 278 failed (254 in M1's sections, as at `5a298b7`; 8 in S2's; 16 in S3's: the two would-ask cases, 8 checks each, all but page errors, because chunk 2 loaded the first file, asked about the second, and left the Cancel's effects in storage, MS, DESTDB, the review and the save state: M1's defect itself. Corrected in the fix round: this said the 16 were M1's literal messages) |
 | `mcount` (text only; python, not through run.sh) | 17:58:33–17:58:41 | 0 | — | 1,340 entries, 1,340 once; on `670c467` 1,335 once, the five `lastedit` entries missing; on `f95fee2` 1,309 once, 31 `v200-ui3-*` missing (the four `dry-*` of S3 match chunk 2's `uiTakeDry`); on base 1,305 once, the 35 `v200-ui3-*` missing |
 | `boot-same` | 17:58:41 | 0 | 6.8 | same, in all four cases |
 | `audit-other` | 17:58:48 | 0 | 22.9 | ALL CHECKS PASSED |
@@ -649,3 +651,101 @@ Taken by `ui-concept/preview-chunk3/shoot-chunk3-p2.mjs` (committed) with chunk 
 - **`npm run check` fails as before**: the same 10 `jsa()` values from chunk 1; part 2 adds none (`onclick="uiImpOpen(this)"` passes no value).
 - **The chunk 2 review's minors m1–m7 are unchanged**, and so are part 1's open items.
 - **Not run:** `audit-import.mjs` and `audit-board.mjs` (the lead's), `mutate.mjs` itself (read as text only), the final-tree queue, the presweep and the full gate.
+
+### Fix round, after S1–S5's independent review (tools and tests only; the board unchanged)
+
+The review's verdict: sound, with issues. One must-fix, in the tools: docked coverage was not kept. Three should-fixes and seven minors. **The board is the same file at every commit of this round** (`5e9e5a5e…`); every change is in the browser tools, `audit-ui.mjs`, `mutate.mjs` and this file. Times are Eastern.
+
+| Commit | Time | Item | What |
+|---|---|---|---|
+| `e950efe` | 19:57:11 | must-fix | layout-fits C, E and I: a pass sliding over and a pass docked, each checking where the panel is |
+| `e7b7cbb` | 20:00:42 | must-fix | dropdowns-visible: every menu again, docked, at the four sizes above 1400px, in both fonts |
+| `fe8ffa0` | 20:00:49 | should-fix 3 | keyboard-reach D2 and L check where the panel is in each pass, as D does |
+| `7950a4f` | 20:02:19 | minor | keyboard-reach A starts its Tab from the context bar's first control, named |
+| `147ef2a` | 20:02:28 | should-fix 2, minors | toolbar-fits checks each control whole; its summary names each cause; its header says where the posture strip is checked |
+| `f2fa0ff` | 20:06:30 | should-fix 1 | audit-ui: the same-year half of S2's rules (12 checks; the commit message says 13, which is wrong); two mutations |
+| `9519595` | 20:25:35 | must-fix, completed | layout-fits D and F docked as well |
+| `8783a2d` | 20:29:40 | must-fix, completed | dialogs-keyboard: every box again with the panel docked |
+| this commit | | minors | this section; three statements above corrected in place, each marked |
+
+**Docked coverage (the must-fix).** Brad, S4: "update tools for … the slide-over default, retaining docked coverage"; at 6:00 AM, "while retaining checks for optional docking". On base the RECORD panel stood docked beside the rows at every width above 1400px, so every check made there was made beside it. After S4 only inspector-agrees, editors-reachable and keyboard-reach D, D2 and L had a docked pass; layout-fits, dropdowns-visible and dialogs-keyboard ran with the panel sliding over (closed, or open over the table), and nothing checked the narrowest grid the board has: docked beside the sidebar, 248–955px at 1401 and 248–982px at 1440. Part 2's S4 table did not list these three, and the builder's record said docked passes were added wherever a check depended on the panel being docked: for these three that was not so.
+
+Each check below now runs twice: sliding over (the default) and docked, set as View › Record panel › Docked beside the table sets it (`prio27uiDock = '1'` in this browser). Each pass checks where the panel is, so a docked pass that ran with the panel sliding over fails by name. Nothing in the sliding-over pass changed.
+
+| Tool | Checked docked now | Docked, at the final commit |
+|---|---|---|
+| layout-fits C (row controls inside the grid, 3 modes × 11 widths 1024–1920) | beside the grid at 1401–1920, a drawer at 1366 and below | passes; the grid at its narrowest 248–955px (1401) |
+| layout-fits D (the first requirement on screen as the board opens) | 1920, 1440, 1366, 1024 | fails, as it does sliding over (chunk 1's heading and cards, m7, Brad's call on the look); docked at 1440 the first row is at 420px, against 323px sliding over |
+| layout-fits E (Brief: no control on a row, no RECORD panel) | 1440 | passes |
+| layout-fits F (Fund's columns are the RECORD panel's) | 1440 | passes, 19 rows |
+| layout-fits I (every lane-short figure whole) | 1920 and 1440 beside the grid, 1024 a drawer; 3 densities | passes, 837 notes, the nine-digit figure whole 18 times |
+| dropdowns-visible (every toolbar menu and group, the row ⋯ menus) | 1536 and 1920, at 730 and 960, in both fonts | passes: 608 drop-downs in all (408 as before, 200 docked) |
+| dialogs-keyboard (every box takes, keeps and gives back the keyboard) | 1600 | passes: 44 boxes and 16 of 16 Import returns in each pass |
+
+Left single-pass, and why: layout-fits A, B and G read figures, menu calls and data, not where anything is drawn; H reads two rows' styles; J's widths (761–1023) have the panel as a drawer docked or not. row-controls reads which controls the row and the panel hold, not where they are (the panel's content is the same docked; it fails on chunk 1's entries either way). colour-check reads the theme's colours; menu-paths, panels-render, hostile-render and fydp-frames open no RECORD panel; toolbar-fits measures the bars above the table.
+
+**Each docked pass catches what only it can.** Mutants of the final board, built as text in the scratchpad (each find matching once; none committed), run through the final tools:
+
+| Mutant | Sliding-over pass | Docked pass |
+|---|---|---|
+| the docked setting ignored (the verifier's `vDock-ignored`, the same text) | passes | fails by name: layout-fits C ×3, D, E, F and I ("the docked setting did not take"); dropdowns-visible at its 4 sizes in both fonts ("not docked beside the list"); keyboard-reach D2 and L ("position: fixed"; D times out, as before); dialogs-keyboard ("docked: the RECORD panel is not docked beside the table") |
+| above 1400px, docked, the rows 1200px wide (wider than the docked grid) | passes | fails: layout-fits C in all three modes (38, 38 and 57 controls past the grid at 1920) |
+| docked, the RECORD panel's lane-short notes cut to 30px | passes | fails: layout-fits I ("lane short $980,000" 48>30 at 1920) |
+| docked, the lower half of a row's open ⋯ menu cut off (as the list's own edge cut v1.92's row menus) | passes | fails: dropdowns-visible, 96 problems, every one docked: the menu's last items covered by the rows under them, first and last row, whole list and short, 4 sizes, both fonts |
+| docked, the RECORD panel drawn above the toolbar's menus (z-index 600) | ran through (what it found is not printed: the tool stopped later) | the tool stops: Reports' FYDP group heading cannot be clicked, the docked panel takes the click (exit 1, a crash rather than a named problem) |
+
+Three more docked row-menu mutants change nothing on the screen, and dropdowns-visible rightly passes them: a row's open menu shifted 420px or a whole window to the right, or opened rightwards from its button. `fitMenus()` places every row menu itself (fixed, its left worked out from the button, and measured after placing, which takes in any shift on the menu itself): a probe at 1920 and 1536 docked finds each where it is on the final board (1044–1307px and 775–1039px), all 5 items on top. That is why the first attempt's 420px mutant passed; it was not a gap in the tool.
+
+**S2, the same-year half (should-fix 1).** A new marked section in `audit-ui.mjs`, after S3's. S03's note in FY27, then in FY27, the year on screen: S05 removed (`removeReq`, the board's own call), and FY27's record names no last edit; and a whole-year line for FY27 at the end of the journal, with the board saved and reopened from that file in the same browser, and the reopened board's record names none either. No call on this board writes a whole-year line after a line in its own year: a year's plan comes into the file once, when the year is created, and none takes a year out. A journal carried in a saved file can hold one, so the test puts it there as such a file carries it (the shape `jrnlCapture` writes when a year's plan changes in one piece, read by `jrnlLabel` as "the FY27 plan — replaced"). A control first (the note stands when nothing else happens), and literal journal tails. 12 checks, passing on every board here: the same-year rules are chunk 1's, which S2 rewrote, and these hold them.
+
+| Mutation | What it breaks | Caught |
+|---|---|---|
+| `v200-ui3-lastedit-removed-ignored` | a removal in the year on screen is not read as a line that may have changed S03 (the verifier's `vS2-removed-ignored`, byte for byte) | 2 checks: no last edit named; the record says none |
+| `v200-ui3-lastedit-whole-year-ignored` | a whole-year line in the year on screen is not read so (the verifier's `vS2-empty-path-ignored`, byte for byte) | 2 checks: the same, in the board reopened |
+
+**toolbar-fits (should-fix 2).** "Whole" now means the whole control: its left edge right of the sidebar's right edge (as `sweep3.mjs` judges the posture strip), and the control (or its own label, which passes a click on to it) under a point just inside each of its four sides, besides its centre. The context bar slid 60px under the sidebar (the verifier's `vTF-hdr-under-sidebar`, the same text) now fails at 14 of 20 width-and-mode pairs: `#uiCycBtn: under the sidebar (201 < 232), its left edge covered by #uiCollapse` from 1366 to 960, and at 900 and 820 under the rail (33 < 64). At 1440 and wider (the other 6 pairs) the tool finds the shifted button clear of the sidebar and whole. The final board: every control whole and clickable at every width; 1152 still fails the one-line rule, kept. The summary names each cause on its own (before, a width failing only for an unusable control read "wrap or overflow"), and the header says the posture strip is empty and not shown on the template this tool opens: `sweep3.mjs posture` checks it, on a populated board, outside the gate.
+
+**keyboard-reach (should-fix 3 and a minor).** D2 and L check where the panel is once it is open, as D does: with the docked setting ignored they now fail on their own (`position: fixed`), not only through D. A starts its Tab from `#uiCycBtn`, written out, not from the control found just before the Message button (which made it one Tab by construction): 4 Tabs, across the appropriation, the fiscal year and the PMO menu.
+
+**Old → new, for every changed assertion** (`7a71245` line numbers):
+
+| Where | Old | New | Why |
+|---|---|---|---|
+| `layout-fits.mjs:163–182` (C) | one pass, the panel sliding over | two passes, sliding over and docked; plus "the RECORD panel was … " per mode and pass | docked coverage |
+| `layout-fits.mjs:184–192` (D), `:194–204` (E), `:206–225` (F), `:264–292` (I) | one pass | two passes; plus where the panel was (E: whether the setting was on) | the same |
+| `dropdowns-visible.mjs:55–106` | 8 sizes × 2 fonts | the same, then 4 sizes above 1400px × 2 fonts docked, the panel checked docked | the same |
+| `dialogs-keyboard.mjs:23–211` | one pass | two passes; the panel's place checked first in each | the same |
+| `keyboard-reach.mjs:157–179` (D2), `:337–369` (L) | the docked pass did not check the panel's place | it does | should-fix 3 |
+| `keyboard-reach.mjs:75–83` (A) | from the control before the Message button, found on the page (`#b_pmo`, 1 Tab); base: from `#q` | from `#uiCycBtn`, written out (4 Tabs) | the start was derived from the answer |
+| `toolbar-fits.mjs:40–53` | inside the window, not clipped, the control under its centre | the same, and clear of the sidebar, and itself or its label under a point inside each side | should-fix 2 |
+| `toolbar-fits.mjs:72` | "N width(s) wrap or overflow" | "N width(s) failed: X wrap, overflow or miss a control; Y with a control not usable" | the summary blamed the wrong cause |
+
+No assertion was deleted or loosened; every expected value is as it was. Labels: each check that now runs twice ends its label in "(sliding over)" or "(docked)", and a problem found docked by dropdowns-visible or dialogs-keyboard starts "docked:"; A's label now names its start ("from the context bar’s first control", was "from the control before it in the context bar"); the closing line of layout-fits, dropdowns-visible and dialogs-keyboard says both passes ran.
+
+**Corrected in place above** (each marked "corrected in the fix round"): row-controls' failure is 3 entries for 5 controls, not 3 controls; S3's 16 failures on `f95fee2` are the two would-ask cases on every check but page errors, not M1's literal messages; and the S4 table's docked coverage.
+
+**Every check and its result, this round.** Each run through the scratchpad's `uichunk3/p2/fix1/bin/run.sh`: the AUDIT_IMPORT lock checked first (never present), `setsid -w timeout -k 10 600` (300 or 120 for the small ones; 2400–3600 for the lanes that hold several runs), the PIDs recorded, BOARD unset unless named. The jsdom checks ran in a scratch copy of `f2fa0ff`, whose board, `audit-ui.mjs` and `mutate.mjs` are the final commit's; verify:grid in a copy of `8783a2d`, whose tools and board are the final commit's (both copies compared file by file with their commits). The round was stopped once by a usage limit, at 20:47, and resumed at 23:13 after the machine restarted: the two runs it cut off were run again, and the mutant loop was finished then. The machine was shared with other work through this round (load average 12–29), so wall times are long. fydp-frames (unchanged since base) failed once under that load, at 20:10:32 in `f2fa0ff`'s copy: "the board reopens as O&M with its own plan" and what follows, which reads as the board not yet reopened when the tool looked (it waits a fixed 700ms after a reload). With the same tool and board it passed at 20:32:57 in `8783a2d`'s copy, below, and 3 times of 3 again at 23:19 (load average about 12).
+
+| Run | Start | Exit | Wall (s) | Result |
+|---|---|---|---|---|
+| `npm run verify:grid` | 20:29:54 | 1 | 8.3 | stops at row-controls, as before |
+| chrome, inspector-agrees, editors-reachable, colour-check, menu-paths, panels-render, fydp-frames, hostile-render, keyboard-reach | 20:30:02–20:37:42 | 0 each | | pass; keyboard-reach 95 checks (91 before, and D2's and L's placement in each pass) |
+| row-controls | 20:30:03 | 1 | 6.8 | the same 3 entries, chunk 1's (5 controls) |
+| toolbar-fits | 20:30:23 | 1 | 30.0 | 1152 wraps (the one-line rule, kept); every control at every width whole and clickable |
+| layout-fits | 20:33:50 | 1 | 231.8 | 72 checks pass; D fails ×4 in each pass (m7); C, E, F and I pass in both passes |
+| dropdowns-visible | 20:38:36 | 0 | 176.4 | 608 drop-downs, both fonts, sliding over and docked |
+| dialogs-keyboard | 20:41:33 | 0 | 170.6 | 44 boxes and 16 of 16 Import returns, in each pass |
+| `audit-ui` | 20:07:40 | 0 | 189.6 | ALL CHECKS PASSED |
+| `audit-ui`, counted | 20:10:50 | 0 | 192.7 | 616 checks (510 + 56 + 50), 0 failed |
+| `audit-ui`, counted, on the board at `670c467` | 20:14:03 | 1 | 220.2 | 8 failed, all in S2's first section, as before; the fix-round section passes there |
+| `audit-ui`, counted, on `f95fee2` | 20:17:43 | 1 | 276.8 | 278 failed, as before (254 M1, 8 S2, 16 S3); the fix-round section passes there |
+| `mcount` (text only, through run.sh) | 20:22:20–20:22:32 | 0 | | 1,342 entries, 1,342 once on the final board; 1,335 on `670c467` (the 7 `lastedit` missing), 1,309 on `f95fee2` (33 `v200-ui3-*` missing; the four `dry-*` of S3 match chunk 2's `uiTakeDry`), 1,305 on base (the 37 `v200-ui3-*` missing); none twice, none unparsed |
+| `boot-same` | 20:22:38 | 0 | 22.9 | same, in all four cases |
+| `audit-other`, `audit`, `audit-recon` | 20:23:01, 20:23:58, 20:24:16 | 0 each | | ALL CHECKS PASSED |
+| the 37 `v200-ui3-*` mutants through the counted audit-ui | 20:26:54–20:44:58; after the stop 23:18:57–00:02:38 | 1 each | 68–367 each | 37 of 37 caught, 616 checks run each, no block threw. Each of the 35 older ones fails as many checks as at `2ce11b6`, but for `lastedit-no-year-filter`: 9, against 7, because the new section's control fails too (with no year filter, FY28's whole-year line suppresses the note). The two new ones fail 2 each, the two of their own case |
+| `check`, in a copy of `f2fa0ff` | 20:26:46 | 1 | 7.0 | the same 10 `jsa()` values, and the two git checks (a `git archive` copy is not a repository) |
+| `check`, in the repository (`8783a2d`'s board and tools) | 23:23:48 | 1 | 7.8 | the same 10 `jsa()` values as at `2ce11b6`, none added; the two git checks pass |
+
+**Preservation, after every commit of this round** (`fix1/bin/pres.sh`: the chunk 1 reviewer's `rv-smoke.mjs`, the chunk 2 reviewer's `probe.mjs`, `m1.mjs` and `openwrites.mjs`, on the board extracted from each commit): at `e950efe`, `e7b7cbb`, `fe8ffa0`, `7950a4f`, `147ef2a`, `f2fa0ff`, `9519595` and `8783a2d`, `fails: []`, `savedPayloadSame: true`, 130 PASS and 0 FAIL, the batch refused before anything loads, and `IDENTICAL WRITE LISTS: true`. Once (`e7b7cbb`), `m1.mjs` read its batch's result before the batch had finished (it waits a fixed 400ms, and the machine was loaded); run again, it was refused before anything loads. This commit changes this file only; preservation and the whole of verify:grid were run again at it, after it was made, and are in the builder's record (`uichunk3/p2/README.md`, "Fix round").
+
+**Not done, and open** (as part 2's list above, plus): the verify:grid gate still fails, on the same three tools (row-controls, layout-fits D, toolbar-fits at 1152), now with D's failure shown docked too. The mutants of this round's browser checks are scratch only; the jsdom mutation sweep cannot see layout, so they have no `mutate.mjs` entry.
