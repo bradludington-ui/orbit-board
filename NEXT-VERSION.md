@@ -723,7 +723,9 @@ result for it was run fresh against these commits.
     control passes on both.
   - **Mutations:** `v200-u13-pull-while-saving`, `v200-u13-base-while-saving`, `v200-u13-pull-unchecked`,
     `v200-u13-said-nothing-loaded`, `v200-u13-clash-while-saving`; each caught by the focused block (full-suite sensitivity
-    runs in the final-tree queue).
+    runs in the final-tree queue). Since U30 (below), this block's case (3c) stops at U30's rule before U13's
+    base-record guard, so `v200-u13-base-while-saving` and `v200-u13-clash-while-saving` are caught by the U20 and U30
+    blocks' cases that put the folder's copy itself on screen (U20 (4), U30 (5b)).
   - **Not covered:** a copy another writer saves during the save is still written over and kept nowhere in the folder (U18);
     a save waiting for another tab's Web Lock was not counted (U20, below, counts it); the other adoption paths in the
     ledger (U24).
@@ -820,6 +822,65 @@ result for it was run fresh against these commits.
     change the six checks of a waiting save fail. (The script's own check that the page makes no other request fails on both
     boards, because the board asks for its shared state file; that is the script's assumption, not the board.) A refresh that
     records the folder's copy as the base with no second tab is U30, next.
+- **U30 — a refresh takes the folder's copy as the one the work came from only when it is what is on screen** (the lead's
+  decision, as for U20). It applies with nothing recorded for the folder: an opening that found no copy there and a
+  colleague's or another machine's save after it, a reopen with unsaved work, a board saved to its own file, a board file
+  handed over, another year never loaded here, or a browser that never kept a record. A refresh that found the folder's
+  copy not newer than the screen took it as the one the work on screen came from, "as it always was" (v1.89), whatever was
+  on screen. The next 💾 Save then wrote the work on screen over that copy without asking. So did the Live timer's
+  autosave, one tick after it had said "Nothing was written" and offered the choice. With a history copy kept less than
+  ten minutes before, the copy written over was kept only as a recent copy, and one more Save removed it. No second tab
+  was needed; U20 was its two-tab form. Now the refresh records the folder's copy only when it is what is on screen: the
+  same stamp, as every change stamps the board anew. Otherwise it records nothing and says nothing, and Save asks: Load
+  theirs (your work kept aside), or Save yours over theirs (theirs kept in the folder's history as a spaced copy, whatever
+  the spacing). With nothing recorded, nothing the board says on that route claims an order it cannot know: Save's
+  question no longer says theirs was saved "after the copy you are working from"; ↶ Put back, after Load theirs, no longer
+  says Alice saved the folder's copy "after it"; and Load theirs refused for work already kept no longer calls the
+  folder's copy "a newer copy".
+  - **What users may see:** with nothing recorded and other work on screen, 💾 Save and every autosave tick say
+    "⛔ Alice saved O&M FY27 to the shared folder 2 minutes ago, and this browser has no record of which copy in the folder,
+    if any, the work on screen came from. Nothing was written. Load theirs … · Save yours over theirs …" until one is
+    chosen. After Load theirs, ↶ Put back says "… 💾 Save will ask before it writes over the shared folder, which Alice
+    saved; this browser has no record of which copy there, if any, this work came from." With other work already kept,
+    Load theirs says "⚠ Alice saved a copy to the shared folder (…), but this browser already keeps earlier work aside …
+    so their copy was not loaded and nothing was lost." Until now the board wrote over the folder's copy without asking.
+    A board showing exactly the folder's copy is recorded as before and saves with no question. With a copy recorded, all
+    three lines are unchanged, and so are the words for work kept aside from a board file.
+  - **Test:** audit-import "v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen" (89
+    checks). The rule is the stamp, so it is run through every way a refresh comes with nothing recorded:
+    - the Live timer alone in one tab, with and without a history copy kept minutes before: tick 1, tick 2 and 💾 Save
+      each ask and write nothing, and the words are checked; then Save yours over theirs, one more Save and a reopen, with
+      the folder's copy kept as a spaced history copy throughout;
+    - ↻ Refresh now, then Save; and Save, then a refresh, then Save;
+    - a second tab whose Save waits while the Live timer ticks twice (U20's case, with the first tick's own refresh after
+      the wait);
+    - a reopen with unsaved work, whose opening's own connect is not quiet, with and without the history copy; and a board
+      saved to its own file, then ↻ Refresh now (the tests review's cases; both then Save yours over theirs, one more Save
+      and a reopen);
+    - a board file handed over, newer than the folder's copy: Save, Load theirs and ↶ Put back, with the put-back line
+      checked word for word; and the same with other work already kept, with the refusal checked word for word;
+    - another year: FY28 saved by another machine and never loaded here, ↻ Refresh now on FY28, then Save;
+    - controls: the screen exactly the folder's copy, recorded and saved with no question (and during a save, U13's rule
+      holds); the first save of a new board into an empty folder; an ordinary refresh with nothing unsaved; and, with a
+      copy recorded, the question's words, the put-back line and the kept-work refusal as they always were; and work kept
+      aside from a board file, put back with its old words.
+    Checks labelled a GUARD pass on the board before the change too, by design (the first Save's question, the stand-in,
+    and Save yours over theirs with no history copy). 46 checks fail on the board before U20, and 44 on the U20 board; each
+    is neither a control nor a guard. Every control and guard passes on all three.
+  - **Mutations:** `v200-u30-base-whatever-on-screen`, `v200-u30-base-only-other-copy`, `v200-u30-unrecorded-said-after`,
+    `v200-u30-recorded-said-unknown`, `v200-u30-unsaved-this-session-only`, `v200-u30-quiet-refresh-only`,
+    `v200-u30-unsaved-only`, `v200-u30-putback-said-after`, `v200-u30-putback-said-unknown`, `v200-u30-putback-file-unknown`,
+    `v200-u30-occupied-said-newer`, `v200-u30-occupied-said-unknown`; each caught by the focused block. U13's case (3c) has
+    other work on screen, which this rule now stops before U13's guard is reached; on this board U13's
+    `v200-u13-base-while-saving` and `v200-u13-clash-while-saving` are caught by the U20 and U30 blocks' same-copy cases.
+  - **Not covered:** a different folder copy stamped to the same millisecond as the screen (clock skew) is recorded, as
+    before. A folder copy with no stamp at all is written over with no question, as before (every copy this board writes
+    is stamped). The ⛔ line repeats at every autosave tick until Load theirs or Save yours over theirs is chosen. A
+    non-quiet Connect in this case says nothing about the folder's copy, as before. With a copy recorded and the folder's
+    copy not later than it (a copy put on screen from elsewhere: U29, in the ADOPT track), the words "after the copy you
+    are working from", "saved after it" and "a newer copy" are still said, unchanged. This commit was not run in real
+    Chromium: what it changes (the refresh's rule and three status lines) does not depend on the browser's locks, and was
+    run in jsdom with the folder stand-in.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -854,6 +915,10 @@ result for it was run fresh against these commits.
   - **U20: built as its own commit** (the lead's decision under Brad's word of 12 Oct, about 5:30 PM ET, to keep pressing):
     a save, or Load theirs, waiting for another tab's Web Lock is counted as under way from the moment it is asked for,
     until it ends (above). U2's refusal and U13's two guards now see it.
+  - **U30: built as its own commit after U20** (the same decision): a refresh records the folder's copy as the one the
+    work came from only when it is what is on screen; otherwise Save asks, and with nothing recorded nothing on that route
+    says theirs came after, or is newer (above). In this case no copy is written over unasked, and none is left only as a
+    recent history copy. U29 (another copy put on screen, then Save; the ADOPT track) is a separate finding.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 

@@ -6937,11 +6937,12 @@ function keepAside(store, meta, base){
   }catch(e){ return false; }
 }
 // The newer copy was not loaded, because earlier work is already kept aside (v1.95, item 50).
-function keptOccupiedMsg(by, ts, from){
+// v2.00 (U30): `unknown` -- nothing recorded for the folder, so there is no telling that their copy is the newer one.
+function keptOccupiedMsg(by, ts, from, unknown){
   const k=keptCopy(), m=(k&&k.meta)||_keptMeta||{};
-  return '⚠ <b>'+esc(by||'someone')+'</b> saved a newer copy to '+esc(from)+(ts? ' ('+esc(fmtTs(ts))+')' : '')
+  return '⚠ <b>'+esc(by||'someone')+'</b> saved '+(unknown? 'a copy' : 'a newer copy')+' to '+esc(from)+(ts? ' ('+esc(fmtTs(ts))+')' : '')
     +', but this browser already keeps earlier work aside'+(m.t? ' (kept '+esc(fmtTs(m.t))+')' : '')
-    +' and holds new work besides. Kept work is never replaced, so the newer copy was <b>not loaded</b> and nothing was lost. '
+    +' and holds new work besides. Kept work is never replaced, so '+(unknown? 'their' : 'the newer')+' copy was <b>not loaded</b> and nothing was lost. '
     +'Deal with the kept work first: <button type="button" class="nb lnk" onclick="keptPutBack()">put it back</button> · '
     +'<button type="button" class="nb lnk" onclick="keptSaveFile()">save it as a file</button> · '
     +'<button type="button" class="nb lnk" onclick="keptDiscard()">discard it</button>.';
@@ -6992,8 +6993,10 @@ function keptPutBack(){
   // count unmoved and marked the board saved, while the folder or file holds what that save wrote. Now that save finds the
   // count moved, leaves the work put back unsaved and says so, and the next Save writes it.
   persist(); _saveGen++; DIRTY=true; render();
+  // v2.00 (U30): with nothing recorded for the folder there is no telling that their copy came after the work put back.
+  const after=(k.meta.why!=='folder') || !!driveBaseOf(mySlug());
   setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. 💾 Save will ask before it writes over '
-    +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+' saved after it.'
+    +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+(after? ' saved after it.' : ' saved; this browser has no record of which copy there, if any, this work came from.')
     +(swapped? ' What was on screen is <b>kept aside</b> in its place: <button type="button" class="nb lnk" onclick="keptPutBack()">put that back</button>.' : ''));
 }
 // SAVE THE KEPT WORK AS A FILE (v1.95, item 50): a board file holding it, to open or hand on. Saving it
@@ -26773,6 +26776,13 @@ async function driveStorePull(quiet){
     // v1.89) there is no telling, and the folder's copy is taken as the base, as it always was.
     // v2.00 (U13): BUT NOT WHILE A SAVE IS UNDER WAY. A save still to read the folder would find this copy recorded as the one
     // the work came from, and write over it without asking; a save past its read records the copy it writes, once it lands.
+    // v2.00 (U30): AND ONLY WHEN THAT COPY IS WHAT IS ON SCREEN -- the same stamp, as every change stamps the board anew.
+    // Taken as the base while the screen held other work, it let the next Save, or the Live timer's autosave one tick after
+    // it had said "Nothing was written" and offered the choice, write that work over it without asking; with a history copy
+    // kept less than ten minutes before, the copy written over was kept only as a recent copy, and one more Save removed it.
+    // Now nothing is recorded and nothing is said, and Save asks: Load theirs, or Save yours over theirs, which keeps theirs
+    // in the folder's history whatever the spacing.
+    if(!base && theirs!==ours) return false;
     if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }
     else if(theirs!==base){ driveClashSay(j, false); render(); }
     return false;
@@ -26961,10 +26971,15 @@ async function _driveStorePushRun(quiet, fyAsked){
 // load theirs, with this browser's work kept aside; or save this one over theirs, with theirs kept in
 // the folder's history. The refusal this replaces said "Reload to take their copy" -- and a reload then
 // took the folder's newer time as the one the work came from, and the next Save wrote over them.
+// v2.00 (U30): WITH NOTHING RECORDED THERE IS NO TELLING which copy in the folder the work on screen came from, if any, so
+// it is not said that theirs came after it. Save asks for that reason alone (the push, above); and since a refresh records
+// the folder's copy only when it is what is on screen, this is said on every Save and autosave until one is chosen.
 function driveClashSay(j, refused){
   const ap=mySlug(), theirs=+((j&&j.store&&j.store.ts)||(j&&j.ts)||0);
   setStat('\u26d4 <b>'+esc((j&&j.by)||'someone')+'</b> saved '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)
-    +' to the shared folder '+esc(liveAge(theirs))+', after the copy you are working from. '
+    +' to the shared folder '+esc(liveAge(theirs))
+    +(driveBaseOf(ap)? ', after the copy you are working from. '
+      : ', and this browser has no record of which copy in the folder, if any, the work on screen came from. ')
     +(refused? '<b>Nothing was written.</b> ' : 'What is on screen does not have their changes. ')
     +'<button type="button" class="nb lnk" onclick="driveResolve(\'theirs\')">Load theirs</button> '
     +'(your work is kept aside, and one click puts it back) \u00b7 '
@@ -27002,6 +27017,8 @@ async function _driveResolveRun(which){
   let kept=false;
   if(which==='theirs'){
     kept=keepAside(MS, {why:'folder', by:by, ts:theirs}, baseGet());
+    // v2.00 (U30): with nothing recorded for the folder there is no telling that theirs is the newer copy.
+    if(kept==='occupied' && !driveBaseOf(ap)){ setStat(keptOccupiedMsg(by, theirs, 'the shared folder', true)); render(); return false; }
     if(kept==='occupied'){ setStat(keptOccupiedMsg(by, theirs, 'the shared folder')); render(); return false; }
     if(kept!==true){
       setStat('\u26a0 There is no room in this browser to keep your work aside, so their copy was <b>not loaded</b>. '
