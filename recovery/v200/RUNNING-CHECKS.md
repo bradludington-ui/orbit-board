@@ -913,3 +913,11 @@ per round.
 - The latest verdicts: U10 round 2 tests review, unsound; hold round 1, U18 round 1 and regtext round 2 tests, sound with
   issues.
 - U28 stays paused for load.
+
+## 13 Oct, about 1:26 PM ET: Brad's go on Codex B2 and C2
+
+- **Brad, about 1:25 PM ET:** "Go on B2 and C2, keep pressing."
+- B2 tests Codex's two cycle-export cases against the U32/U33 snapshot `inputs/cycreg-snapshot-20261013-1322/`. C2 is
+  four decision memos (U9 two lanes, U19 reopen header, U28 font setting, a locked cycle's registry list). Both briefs
+  are in `codex-handoff/README.md` at `520a9cf`. Brad relays them to Codex; the reports come back on a branch of their own,
+  as in the first round, and are read and checked here before anything is used.
