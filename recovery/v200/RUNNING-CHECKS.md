@@ -923,3 +923,16 @@ per round.
   as in the first round, and are read and checked here before anything is used.
 - **Brad: "Sent to Codex, keep pressing."** The round-2 handoff (B2 and C2, pointing at `3e38ac8`) is with Codex. The
   reports are expected on `codex/v200-reports-round2-20261013`.
+
+## 13 Oct, 2:45 PM ET: a usage limit stopped some agents at 2:29 PM ET; restarted from recorded state
+
+- At 2:29 PM ET (the limit reset at 2:30 PM ET) these agents failed: U9's round-3 tests review, both YEARSEL round-3
+  reviews, REGTEXT's fix round 2, and the three new builders (U37, U40, U41/U42). Their work on disk is kept.
+- Unaffected and still running: U19 fix round 2, U20/U30 round-2 tests review, adopt fix round 1, hold's round-1 tests
+  review, U10 fix round 2, U32/U33's round-3 tests review, U28 fix round 2, and the integration dry run.
+- No leftover processes: every live PID in the stopped agents' pids.txt files belongs to another agent after PID reuse.
+  Nothing was ended.
+- Relaunched from recorded state at 2:44 PM ET: the three builders, U9, and YEARSEL with REGTEXT.
+- The restart script now stops a track cleanly when a reviewer or fixer returns nothing, instead of moving on to the next
+  round. This takes effect for later launches.
+- New verdicts this hour: U20/U30 round-2 money review **clean**; U28 round 2 had one must-fix in each review.
