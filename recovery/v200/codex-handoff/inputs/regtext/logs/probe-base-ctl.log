@@ -1,0 +1,14 @@
+# label: probe-base-ctl
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/regtext.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/../base ctl
+# start: 2026-10-12 20:18:05 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/base/prioritization-board-grid.html
+
+=== 3. controls: is the workbook problem the registry's alone?
+requirement title with U+000B, exportExcel   {"nparts":16,"badParts":[["xl/worksheets/sheet2.xml","f0","badb","fffd0","meth0"],["xl/worksheets/sheet4.xml","f0","badb/b","fffd0","meth0"],["xl/worksheets/sheet7.xml","f0","badb","fffd0","meth0"],["xl/worksheets/sheet11.xml","f0","badb/b","fffd0","meth0"]],"readErr":"","cells":[["Decision Bands",17,7,"Title\u000bwith VT"],["CR Cash Needs",4,0,"    #1 Title\u000bwith VT [CCR1]"],["CR Cash Needs",7,0,"    #1 Title\u000bwith VT [CCR1]"],["Funded - Discretionary",3,4,"Title\u000bwith VT"],["PMO AV",4,4,"Title\u000bwith VT"],["PMO AV",13,4,"Title\u000bwith VT"]]}
+ordinary list, exportExcel (control)         {"nparts":16,"badParts":[],"readErr":"","cells":[["RCN-EEIC by Month",4,0,"11111 / AAAAA  plain"],["RCN-EEIC by Month",10,0,"11111 / AAAAA  plain"],["RCN-EEIC by Month",25,0,"11111 / AAAAA  plain   (1 requirement)"],["RCN-EEIC by Month",33,0,"11111 / AAAAA  plain   (1 requirement)"]]}
+ordinary list, exportSrc (control)           {"nparts":9,"badParts":[],"readErr":"","cells":[["O&M Raw Data",1,26,"AAAAA"],["O&M Raw Data",1,27,"11111"],["O&M Raw Data",2,26,"AAAAA"],["O&M Raw Data",2,27,"11111"]]}
+destination names typed                      {"a":"  Alpha  Depot ","b":"ALPHA DEPOT","same":true,"long":5000}
+
+# end: 2026-10-12 20:18:15 EDT  exit: 0  wall_s: 9.9

@@ -1,0 +1,16 @@
+# label: probe-base-sweep
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/regtext.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/../base sweep
+# start: 2026-10-12 20:18:27 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/base/prioritization-board-grid.html
+
+=== 4. the hostile sweep, with hostile text in the RCN / EEIC list (rcn, eeic, t) and in a PPBE line's codes
+the list as opened                           [["K1","regrcn","regt"]]
+sweep reach                                  {"ids":7,"panels":43,"menus":9}
+planted registry tags seen as text           ["regrcn","regeeic","regt"]
+handlers carrying a planted call             []
+rcnBody: img elements / regt as value        {"img":0,"inputs":["regrcn'\"","regeeic'","regt'\"><"]}
+workbook bytes (exportExcel)                 {"nparts":18,"badParts":[],"readErr":"","cells":[]}
+
+# end: 2026-10-12 20:20:38 EDT  exit: 0  wall_s: 131.2

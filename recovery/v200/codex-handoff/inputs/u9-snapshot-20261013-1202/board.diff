@@ -1,0 +1,49 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index fce8a39..46e522a 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -11434,6 +11434,12 @@ function pmoSharesOf(it){
+       if(row) gap.forEach((v,i)=>{ if(v) row[1][i]=1; });
+       else out.push([own, gap]);
+     }
++    // v2.00 (U9): AND THE WEIGHTS THEMSELVES, third: each office's own CLIN asks on a service the CLINs cover, and on one
++    // they do not, its fraction (1 for the requirement's own office, 0 for the rest). apportion() splits by these; the
++    // fractions only scale an amount that is not whole dollars. Split by the fractions, a tie went to the wrong office:
++    // 1/6, 2/6 and 3/6 in floating point are not exactly 1 : 2 : 3, so $3 at 1 : 2 : 3 was $0/$1/$2 on the panel, the
++    // forecast and the PMO Matrix, where the exact rule -- and the CLIN source workbook -- gives $1/$1/$1.
++    out.forEach(r=>r.push(r[1].map((f,i)=>(tot[i]>0 && bag[r[0]])? bag[r[0]][i] : f)));
+     return out.length? out : [[grpOf(it),null]];
+   }
+   return [[grpOf(it),null]];
+@@ -11463,16 +11469,19 @@ function pmoSplit(w, parts, tgt){
+ function pmoPartsOf(it, p){
+   const sh=pmoSharesOf(it), one=(sh.length===1 && !sh[0][1]);
+   const P=sh.map(function(x){ return {g:x[0], frac:x[1], ask:[], d:[], m:[], u:[], mcs:[], land:null}; });
+-  const wOf=i=> sh.map(function(x){ return x[1]? (+x[1][i]||0) : 1; });
++  // v2.00 (U9): wOf is what apportion() splits by -- the offices' own CLIN asks (pmoSharesOf's third entry), exact --
++  // and fOf the fraction an amount that is not whole dollars is scaled by
++  const wOf=i=> sh.map(function(x){ return x[2]? (+x[2][i]||0) : x[1]? (+x[1][i]||0) : 1; });
++  const fOf=i=> sh.map(function(x){ return x[1]? (+x[1][i]||0) : 1; });
+   const lane=(i, k)=> (p && +p[k][i]) || 0;
+   const whole=[];
+   SVC.forEach(function(s, i){
+-    const a=+((it.ask||[])[i])||0, d=lane(i,'d'), m=lane(i,'m'), w=wOf(i);
++    const a=+((it.ask||[])[i])||0, d=lane(i,'d'), m=lane(i,'m'), w=wOf(i), fr=fOf(i);
+     whole[i]=!one && [a,d,m].every(Number.isInteger) && a>=d+m;
+     if(whole[i]){
+       const X=pmoSplit(w, [d, m, a-d-m]);
+       P.forEach(function(o,k){ o.d[i]=X[0][k]; o.m[i]=X[1][k]; o.u[i]=X[2][k]; o.ask[i]=X[0][k]+X[1][k]+X[2][k]; o.mcs[i]=X[1][k]+X[2][k]; });
+-    } else P.forEach(function(o,k){ const f=one? 1 : w[k];
++    } else P.forEach(function(o,k){ const f=one? 1 : fr[k];
+       o.d[i]=d*f; o.m[i]=m*f; o.u[i]=Math.max(0, a-d-m)*f; o.ask[i]=a*f; o.mcs[i]=Math.max(0, a-d)*f; });
+   });
+   const memo={};
+@@ -11484,7 +11493,7 @@ function pmoPartsOf(it, p){
+     const L=landSvc(aw, i, d, m, literal), q=L.at.length;
+     const dc=L.at.map(function(x){ return x.dv; }).concat([L.ud]), mc=L.at.map(function(x){ return x.mv; }).concat([L.um]);
+     if(!whole[i] || !dc.concat(mc).every(Number.isInteger))
+-      return (memo[key]=w.map(function(f){ return landSvc(aw, i, d, m, literal, f); }));
++      return (memo[key]=fOf(i).map(function(f){ return landSvc(aw, i, d, m, literal, f); }));
+     const D=pmoSplit(w, dc, P.map(function(o){ return o.d[i]; })), M=pmoSplit(w, mc, P.map(function(o){ return o.m[i]; }));
+     return (memo[key]=P.map(function(o,k){ return {
+       at:L.at.map(function(x,j){ return {d:x.d, day:x.day, j:x.j, dv:D[j][k], mv:M[j][k]}; }).filter(function(x){ return x.dv>0 || x.mv>0; }),

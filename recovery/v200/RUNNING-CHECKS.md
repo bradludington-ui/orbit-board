@@ -791,3 +791,34 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   - U36's round-2 money review: 1 must-fix.
   - U32/U33's second fix round was running.
 - Nothing is committed yet; no track has two clean reviews.
+
+## Update at 12:04 PM ET: rows U36–U42; U37 and U40 made release blockers; Codex handoff
+
+- **Brad, about 12:00 PM ET:** "Is there anything we can push to Codex to help with the workload? If so, provide a
+  handoff. It needs to be incremental workload that we can realign in small batches."
+- **New ledger rows U36–U42.** They come from the registry-text track (regtext) and its round-1 money verifier, both
+  measured on the base 7ee498a.
+  - U36: a typed title is cut at 80 characters. A fix is in review.
+  - **U37 (P1):** the XLSX writer lets XML-forbidden control characters into a workbook part, reachable by an ordinary
+    paste.
+  - U38: P3.
+  - U39: P3.
+  - **U40 (data loss):** two destinations equal by the board's own name rule can merge, and a requirement loses its
+    destination.
+  - U41: P2, an unknown SI code is dropped on opening.
+  - U42: P2, a funds-flow sheet name can split an emoji or begin with an apostrophe.
+- **Lead's decision:** U37 and U40 are release blockers. Exports must be exactly right, and data loss is a can't-fail.
+  No track was fixing them.
+- **Codex handoff:** `recovery/v200/codex-handoff/README.md`. Codex works read-only and returns one report per batch;
+  Brad relays it. Adopted patches still go through the two independent reviews here, the lead's commit check and their
+  own commit. Batches:
+  - **A1:** U35, Codex's own registry-text text, mapped to U36–U42.
+  - **A2:** U37, reproduction and a proposed patch.
+  - **A3:** U40, reproduction and a proposed patch.
+  - **A4:** U41 and U42.
+  - **B1:** an independent hand-check of U9's money literals, from a draft snapshot that applies cleanly to 7ee498a
+    (checked with git apply --check).
+  - Later, on Brad's go: B2 (U32/U33 on the cycle-export draft), C1 (wording), C2 (decision memos), D1 (an independent
+    run on the pinned tree).
+- **Inputs published:** the regtext probes, logs and drafted rows; the U9 draft as diffs with blob ids. They were scanned
+  for credentials, and none was found. No product file changed.

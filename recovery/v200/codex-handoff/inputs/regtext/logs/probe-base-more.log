@@ -1,0 +1,15 @@
+# label: probe-base-more
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/regtext.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/../base more
+# start: 2026-10-12 20:21:30 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/base/prioritization-board-grid.html
+
+=== 5. more
+same text, two keys: RCN-EEIC by Month rows  [["RCN-EEIC by Month",4,0,"11111 / AAAAA  same"],["RCN-EEIC by Month",5,0,"11111 / AAAAA  same"],["RCN-EEIC by Month",10,0,"11111 / AAAAA  same"],["RCN-EEIC by Month",25,0,"11111 / AAAAA  same   (1 requirement)"],["RCN-EEIC by Month",27,0,"11111 / AAAAA  same   (1 requirement)"],["RCN-EEIC by Month",33,0,"11111 / AAAAA  same   (1 requirement)"]]
+same text, two keys: the sheet rows with money [["FY27 O&M Prioritization Board (Consolida",null,null],["",null,null],["USAF",null,null],["","DEC 26","TOTAL"],["11111 / AAAAA  same",900,900],["11111 / AAAAA  same",300,300],["USAF TOTAL",1200,1200],["",null,null],["ANG",null,null],["","DEC 26","TOTAL"],["11111 / AAAAA  same",200,200],["ANG TOTAL",200,200]]
+markup + formula title with money            {"nparts":16,"badParts":[],"readErr":"","cells":[["RCN-EEIC by Month",4,0,"11111 / AAAAA  <b>&amp; =1+1"],["RCN-EEIC by Month",10,0,"11111 / AAAAA  <b>&amp; =1+1"],["RCN-EEIC by Month",25,0,"11111 / AAAAA  <b>&amp; =1+1   (1 requirement)"],["RCN-EEIC by Month",33,0,"11111 / AAAAA  <b>&amp; =1+1   (1 requirement)"]]}
+SI codes in the file                         {}
+SI codes once the file is opened             {"si":{},"R1":"","R2":"","door":""}
+
+# end: 2026-10-12 20:21:41 EDT  exit: 0  wall_s: 11.5

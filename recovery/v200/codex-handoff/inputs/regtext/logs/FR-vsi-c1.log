@@ -1,0 +1,17 @@
+# label: FR-vsi-c1
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/verifier/vsi.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/c1
+# start: 2026-10-13 05:37:26 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/c1/prioritization-board-grid.html
+slug / siApplies                                           got ["om",true]
+the file carries                                           got {"R1":"at","R2":"EN"}   want {"R1":"at","R2":"EN"}  OK
+opened: errors                                             got []
+opened: S.si                                               got {"R2":"EN"}   want {"R1":"at","R2":"EN"}  DIFFERS
+opened: siOf R1, R2                                        got ["","EN"]
+opened: status line                                        got 📦 Opened with the saved board state — last saved by unknown 10/13/2026, 9:37:28 AM. Make changes and 💾 Save to pass it on.
+opened: Needs attention kinds                              got ["oblig"]
+saved there, reopened: S.si                                got {"R2":"EN"}   want {"R1":"at","R2":"EN"}  DIFFERS
+done
+
+# end: 2026-10-13 05:37:29 EDT  exit: 0  wall_s: 3.2
