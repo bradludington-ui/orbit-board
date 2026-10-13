@@ -936,3 +936,40 @@ per round.
 - The restart script now stops a track cleanly when a reviewer or fixer returns nothing, instead of moving on to the next
   round. This takes effect for later launches.
 - New verdicts this hour: U20/U30 round-2 money review **clean**; U28 round 2 had one must-fix in each review.
+
+## 13 Oct, 3:46 PM ET: integration dry run results; new row U44 (a release blocker); memory relief
+
+**Dry run** (every track's current draft applied together on a scratch clone, 1:27–2:45 PM ET; rec/L9/dryrun):
+- 10 of 13 tracks apply together. The other three each apply cleanly alone, and each overlaps one other track:
+  - adopt × u20u30 and u18 × u20u30: the save-clash message, `driveClashSay`.
+  - u40 × u10: `flowSetEnt`.
+- On the combined tree nothing failed:
+  - npm run check, audit-other, audit, boot-same, audit-ppt, audit-hostile, audit-inject and legacy-fsrc all pass.
+  - All seven focused audit-import harnesses pass.
+  - audit-recon hit the 600 s cap under load, but its blocks passed in split harnesses.
+  - mcount: 1,487 entries, each matching once.
+- The base passed the same runs.
+
+**Cross-track reviews, two of four finished:**
+- Save paths:
+  - U4's hold check must stay after U18's re-read.
+  - U30's and U29's rules in the clash message must be nested, keeping both.
+  - Three mutation entries need new anchors once combined.
+- Registry and import door:
+  - Integrate the U40 builder's own copy, not Codex's patch: Codex's changed handler text breaks U10's test.
+  - U10's locked-view check stays first.
+  - U10 must ship with U32/U33 and U34.
+- The rules are recorded for the commit steps.
+- The exports and locked-view reviews were stopped at 3:44 PM ET to free memory: the agents' memory group was at 10.9 of
+  13.7 GB, and OOM kills hit test runs at 3:40–3:41 PM ET. They will re-run on the newer U37, U40, U10 and U44 drafts.
+
+**New row U44 (P1, a release blocker):** a destination list that repeats a key, or holds the not-assigned category's key,
+prints money twice in the Funds Flow workbook. Alpha Depot comes out $1,100 twice where the money is $1,100 once. It
+happens on the base too. A fix track (u44) was opened at 3:44 PM ET to give destination lists the U32/U33 rule.
+
+**Verdicts since 2:45 PM ET:**
+- U32/U33 round-3 tests review: 1 must-fix, so fix round 3 is running and its commit waits.
+- Hold round-1 tests review: clean (money: 1 must-fix).
+- Adopt fix round 1 is done; its round-2 reviews are running.
+- U18's fix round is running.
+- REGTEXT's fix round 2 is done; YEARSEL's round-3 reviews are running.
