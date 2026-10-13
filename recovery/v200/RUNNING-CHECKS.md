@@ -740,3 +740,34 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
     `wf_534cd8b6-9c3`); cycreg's round-2 reviews (codex, `wf_f45a7fab-957`).
   - Interrupted reviewers and fixers are told to reuse their folders' finished runs.
 - No draft has two clean reviews yet, so nothing is committed.
+
+## Update at 10:29 AM ET: Brad moved to Max; more parallel work
+
+- **Brad, about 10:15 AM ET:** "I updated to Max, so usage limits are increased." The 3-hour waits for a usage reset should
+  stop. The cloud machine's 4 CPUs now set the pace, so the lead runs about eight agents at once.
+- **Split for parallelism.** The save group was stopped at 10:27 AM ET, right after U19's fix round finished. It became
+  two runs: saveA (U19, U20/U30, `wf_5500090d-4a1`) and saveB (adoption, U18, hold, `wf_7d88dfb5-7c0`). The math group
+  was stopped at 10:28 AM ET and restarted as mathA (U9, U10, `wf_c08338b2-f2f`). U28's round-2 review (mathU28) waits
+  for spare CPU; U28 needs no product change. The codex group runs as before (`wf_f45a7fab-957`). Every restart read the
+  finished work from files.
+  - The two reviewers stopped in the save group (U20/U30 tests, adoption money) had started within a minute or two of
+    the stop.
+  - The two U28 reviewers stopped in the math group had started 1–2 minutes earlier.
+  - No recorded process from the stopped agents was left running.
+- **Review results since 9:13 AM ET:**
+  - U19's fix round is done; its round-2 money review is running.
+  - U20/U30's first money review: 1 must-fix.
+  - U9's round-2 test review: 1 must-fix, so a second fix round is running.
+  - U10's fix round is done; its round-2 reviews are running.
+  - U32/U33's round-2 reviews: 1 must-fix from each lens.
+  - U34's round-2 money review: 2 must-fix.
+  - U36's round-2 reviews are running.
+- **Commit tooling prepared:** `rec/L7/apply2.py` builds a track's draft chain (one or more cumulative copies) and applies
+  it onto the current tip in the scratch clone, resolving add/add test insertions only. `rec/L8/commit-check.js` is the
+  lead's commit check, one checker per committed fix, on the committed content:
+  - the focused block fails before and passes after;
+  - each added mutation is caught;
+  - mcount gives every entry exactly once;
+  - npm run check passes;
+  - the touched suites pass in full.
+  Commits stay local until every check passes; then they are pushed.
