@@ -822,3 +822,16 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
     run on the pinned tree).
 - **Inputs published:** the regtext probes, logs and drafted rows; the U9 draft as diffs with blob ids. They were scanned
   for credentials, and none was found. No product file changed.
+
+## Update at 12:14 PM ET: handoff sent to Codex; UI-C1 cherry-picked onto the UI branch
+
+- **Brad, about 12:13 PM ET:** "Sent to Codex, keep pressing." Codex has batches A1–A4 and B1; B2, C1, C2 and D1 wait for
+  Brad's go.
+- **UI-C1 cherry-picked** (`git cherry-pick -x 822918e`) onto claude/v200-ui at `dd15956` at 12:13 PM ET, giving
+  `7df816c` (board `fb3ccbbd`).
+  - There was no conflict, and the changed lines are identical to `822918e`'s (10 lines in the board only).
+  - The UI branch stays local; bundle commit `feb3a51`, restore verified.
+  - An independent checker (`wf_1d59746c-45f`) is repeating every one of Brad's UI-C1 acceptance items on `7df816c`
+    against `dd15956`.
+  - The items are repeated again on the integrated tree, as Brad asked.
+- The four fix runs are working. Load is about 27, down from 44.
