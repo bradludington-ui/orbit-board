@@ -20,6 +20,13 @@ import { buildPopulated } from './ia-fixture.mjs';
 const BOARD = process.env.BOARD || resolve(new URL('..', import.meta.url).pathname, 'prioritization-board-grid.html');
 const LIVE = buildPopulated(BOARD);
 const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
+// v2.00 (UI S4, fix round): TWICE -- the RECORD panel sliding over the table (the board's default) and docked beside it,
+// set as View › Record panel › Docked beside the table sets it (prio27uiDock = '1' in this browser). At 1600 docked is the
+// panel beside the rows, where the panel's own boxes were opened from before the UI; every check below is made in each
+// pass, and each pass first checks where the panel is. A problem found docked is marked so.
+const bad = [], skipped = [];
+for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
+const n0 = bad.length;
 const ctx = await b.newContext({ viewport: { width: 1600, height: 1000 } });
 const p = await ctx.newPage();
 let confirmAnswer = false; const asked = [];
@@ -27,10 +34,14 @@ p.on('dialog', d => { const t = d.type(); if (t === 'prompt') return d.accept('P
   if (t === 'confirm') { asked.push(d.message()); return confirmAnswer ? d.accept() : d.dismiss(); } return d.accept(); });
 const errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 140)));
 await p.addInitScript(() => { try { localStorage.setItem('spmtTheme', 'harbor'); localStorage.setItem('prio27who', 'Probe'); } catch (e) {} });
+if (docked) await p.addInitScript(() => { try { localStorage.setItem('prio27uiDock', '1'); } catch (e) {} });
 await p.goto('file://' + LIVE); await p.waitForFunction(() => typeof render === 'function'); await p.waitForTimeout(600);
 // a selected requirement, so the RECORD panel's own boxes have their buttons
 await p.evaluate(() => { const r = gridRows()[0]; if (r) setCur(r.dataset.id || r.id.replace(/^row-/, '')); });
 await p.waitForTimeout(200);
+const place = await p.evaluate(() => ({ pos: getComputedStyle(document.getElementById('inspector')).position, dock: document.documentElement.classList.contains('ui-dock') }));
+if (docked ? (place.pos === 'fixed' || !place.dock) : (place.pos !== 'fixed' || place.dock))
+  bad.push(`the RECORD panel is not ${docked ? 'docked beside the table' : 'a drawer over the table'} (position ${place.pos}, docked setting ${place.dock ? 'on' : 'off'})`);
 
 // how each box is opened: the code its backdrop runs to close it names the switch, and an opener runs the same
 const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .modal-bg[id]')].map(bg => {
@@ -43,7 +54,7 @@ const BOXES = await p.evaluate(() => [...document.querySelectorAll('body > .moda
     pat = ({ wbsOpen: 'toggleWbs(', matOpen: 'toggleMat(', rollOpen: 'toggleRoll(', recOpen: 'toggleRec(', ndOpen: 'ndOpen=true' })[v] || null; }
   return { id: bg.id, pat };
 }));
-const bad = [], skipped = [], viaFn = [];
+const viaFn = [];
 let opened = 0, typed = 0, impBack = 0;
 const st = () => p.evaluate(() => { const a = document.activeElement;
   const bg = a && a.closest ? a.closest('body > .modal-bg') : null;
@@ -202,10 +213,13 @@ const back = await st();
 if (two.in !== 'jrnlPanel') bad.push(`stacked: the keyboard did not go into the box opened on top (it is on ${two.in || two.id})`);
 if (back.in !== 'pfPanel' || !(await isOpen('pfPanel'))) bad.push(`stacked: Esc on the top box did not hand the keyboard back to the one below (it is on ${back.in || back.id})`);
 await p.keyboard.press('Escape'); await p.waitForTimeout(200);
-await b.close();
-console.log(`\nboxes: ${opened} opened (${opened - viaFn.length} from their own menu or button by keyboard, ${viaFn.length} by their switch: ${viaFn.join(', ') || 'none'}), ${typed} with a text field typed in`);
+await ctx.close();
+console.log(`\n${pass} -- boxes: ${opened} opened (${opened - viaFn.length} from their own menu or button by keyboard, ${viaFn.length} by their switch: ${viaFn.join(', ') || 'none'}), ${typed} with a text field typed in`);
 if (impBack) console.log(`the Import box handed the keyboard back to its opener ${impBack} time(s) of 16 (two openers, by key and by a click that takes no focus, each way of closing it)`);
-skipped.forEach(x => console.log('  — skipped: ' + x));
 if (errs.length) bad.push('page errors: ' + errs.slice(0, 3).join(' | '));
+if (docked) for (let i = n0; i < bad.length; i++) bad[i] = 'docked: ' + bad[i];
+}
+await b.close();
+[...new Set(skipped)].forEach(x => console.log('  — skipped: ' + x));
 if (bad.length) { console.log(`${bad.length} PROBLEM(S)`); bad.slice(0, 80).forEach(x => console.log('  ✗ ' + x)); process.exit(1); }
-console.log('every box takes the keyboard, keeps it, gives it back, and asks before typing is lost');
+console.log('every box takes the keyboard, keeps it, gives it back, and asks before typing is lost -- with the RECORD panel sliding over and docked');
