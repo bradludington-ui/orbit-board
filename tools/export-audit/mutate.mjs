@@ -4372,6 +4372,14 @@ const MUTATIONS = [
   { id: "v200-ui3-dry-folds-dest", area: "uiTakeDry", what: "the dry run no longer holds destPkgIn back: a refused batch folds its files' destination lists into the board and writes them to browser storage",
     find: "window.setStat=function(){}; window.subOpenReview=function(){}; window.destPkgIn=function(){};",
     repl: "window.setStat=function(){}; window.subOpenReview=function(){};" },
+  // v2.00 UI chunk 3 (S2, fix round): the same-year half of the rules S2 rewrote, which no check could see (the S2
+  // verifier's vS2-removed-ignored and vS2-empty-path-ignored). Each is caught by audit-ui.mjs.
+  { id: "v200-ui3-lastedit-removed-ignored", area: "uiLastEdit", what: "a requirement removed in the year on screen is not read as a line that may have changed this one: S05 removed in FY27 after S03's note leaves FY27's record naming the note as S03's last edit",
+    find: "      if(!e.p.length || k==='removed') return null;",
+    repl: "      if(!e.p.length) return null;" },
+  { id: "v200-ui3-lastedit-whole-year-ignored", area: "uiLastEdit", what: "a whole year in the year on screen is not read as a line that may have changed this one: FY27's plan replaced in one piece after S03's note leaves FY27's record naming the note as S03's last edit",
+    find: "      if(!e.p.length || k==='removed') return null;",
+    repl: "      if(k==='removed') return null;" },
 ];
 
 const only = process.argv.slice(2).filter(a => !a.startsWith('-'));

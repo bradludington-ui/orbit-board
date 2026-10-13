@@ -1231,6 +1231,65 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
 })();
 // ==== end v2.00 UI chunk 3 (S3) ====
 
+// ==== v2.00 UI chunk 3 (S2, fix round): the same-year half of the rules S2 rewrote ====
+// The S2 verifier: S2 rewrote the line that reads a whole year (an empty path) and a removed requirement as lines that may
+// have changed this requirement without naming it, and kept both tied to their own year; only the other-year half was
+// tested above. With either dropped from that line (the verifier's vS2-removed-ignored and vS2-empty-path-ignored), every
+// check passed, and a requirement removed in the year on screen after S03's note left "Last recorded edit … note"
+// standing. These are that half: each line recorded in FY27, the year on screen, after the note.
+//   - S05 removed in FY27 (removeReq), the board's own call.
+//   - A whole-year line for FY27. No call on this board writes one after a line in its own year: a year's plan comes into
+//     the file once, when the year is created (FY28's own whole-year line above), and none takes a year out. A journal
+//     carried in a saved file can hold one, so it is put at the end of the board's journal as such a file carries it (the
+//     shape jrnlCapture writes when a year's plan changes in one piece), the board saved, and the board reopened from that
+//     saved file in the same browser: what the record says there is read.
+// Expected values are written out by hand; the board is only asked what IS.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const name = 'v2.00 UI (S2) — a whole year or a removed requirement in the year on screen, after the note, suppresses the last-edit line';
+  const __bm = bootMark();
+  try {
+    // CONTROL: the same note, FY28 opened and FY27 again, nothing else -- the record names the note (as in the S2 block)
+    {
+      const where = 'CONTROL: the note on S03, FY28 opened and FY27 again, nothing done in either';
+      const r = await s2Run(`switchYear(2027); return true;`);
+      chk(name, where, 'FY27 is on screen, and the last edit is the note, exactly', J([r.cur, r.last]), J([2027, S2_NOTE]));
+      chk(name, where, 'the record says so in its Overview and its History', J(s2Says(r)), J(['the note', 'the note']));
+      chk(name, where, 'no page errors', J(r.X.errors), J([]));
+    }
+    // S05 removed in FY27, the year on screen, after S03's note
+    {
+      const where = 'S05 removed in FY27 (removeReq), the year on screen, after the note on S03';
+      const r = await s2Run(`switchYear(2027); removeReq('S05'); return S.removed.indexOf('S05')>=0;`);
+      chk(name, where, 'CONTROL — S05 is on FY27’s removed list, and the last line is FY27’s removal of it', J([r.ran, r.tail.slice(-1), r.cur]), J([true, [[2027, 'removed']], 2027]));
+      chk(name, where, 'CONTROL — the removal line is S05’s, not S03’s', r.X.ev(`JSON.stringify([MS.jrnl[MS.jrnl.length-1].p, MS.jrnl[MS.jrnl.length-1].b])`), J([['removed', 0], 'S05']));
+      chk(name, where, 'FY27: no last edit is named for S03', J(r.last), J(null));
+      chk(name, where, 'the record says nothing of a last edit, in its Overview or its History', J(s2Says(r)), J(['no line', 'no line']));
+      chk(name, where, 'no page errors', J(r.X.errors), J([]));
+    }
+    // a whole-year line for FY27 at the end of the journal, carried through the saved file into the board reopened from it
+    {
+      const where = 'a whole-year line for FY27 after the note, in the journal of a saved file, the board reopened from it';
+      const r = await s2Run(`switchYear(2027); return true;`);
+      r.X.ev(`MS.jrnl.push({t:1790000950000, by:'K Jones', fy:2027, p:[], a:{_b:4100}, b:{_b:4200}}); save(); 1`);
+      const R = boot({ html: r.X.ev('buildSavedHtml()'), ls: look(r.X).ls });
+      const got = JSON.parse(R.ev(`JSON.stringify({ cur: MS.cur, tail: MS.jrnl.slice(-3).map(function(e){ return [e.fy, e.p.length? e.p[0] : null, e.by]; }),
+        label: jrnlLabel(MS.jrnl[MS.jrnl.length-1]), last: uiLastEdit('S03') })`));
+      chk(name, where, 'CONTROL — reopened on FY27; last in its journal the note, FY28 created, and the whole-year line, read as the FY27 plan replaced',
+        J([got.cur, got.tail, got.label]), J([2027, [[2027, 'notes', 'unknown'], [2028, null, 'unknown'], [2027, null, 'K Jones']], 'the FY27 plan — replaced']));
+      chk(name, where, 'FY27: no last edit is named for S03', J(got.last), J(null));
+      R.ev(`setCur('S03'); 1`); await wait(40);
+      const panel = JSON.parse(R.ev(`JSON.stringify([].slice.call(document.querySelectorAll('#inspector .uiDOv, #inspector .uiDHist')).map(function(e){ return e.textContent; }))`));
+      chk(name, where, 'the record says nothing of a last edit, in its Overview or its History', J(s2Says({ panel })), J(['no line', 'no line']));
+      chk(name, where, 'no page errors, in the board or the board reopened', J([r.X.errors, R.errors]), J([[], []]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 UI chunk 3 (S2, fix round) ====
+
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
   const named = [...src.matchAll(/^  const name = '([^']+)'/gm)].map(m => m[1]);   // a scenario's own line, never this one
