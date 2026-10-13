@@ -862,3 +862,54 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   of it is used. An adopted patch goes through the two independent reviews, the lead's commit check and its own commit.
 - **U35** is now known: typed RCN / EEIC / title input that is still pending is lost when the Live view refreshes. Its
   severity is set once the report is read.
+
+## 13 Oct, 1:19 PM ET: Codex's reports read; three fix tracks opened from them; UI-C1 checked on 7df816c
+
+**Codex's reports are in hand.** Branch `codex/v200-reports-20261013`, commit `f7d1aea980bd2a0d75396a1bceac33c6d13aca9d`,
+parent `7ee498a`. It adds only `codex-reports/{A1,A2,A3,A4,B1}` (709 files). Checks made here before anything was used:
+- No board, workbook or zip file is in it, so no populated board.
+- No script imports or runs `mutate.mjs`, and a scan for credentials found none.
+- The three patches (A2, A3, A4) each apply cleanly to `7ee498a`. Each gives the blob ids Codex stated: A2 board
+  `aa8f441f`, audit-recon `7be8b6e5`, mutate text `db7a7a28`; A3 board `2419366b`, audit-import `f68e4a54`, mutate text
+  `5a4d934a`; A4 board `5053534a`.
+- mcount (text only) on each patched copy: 1,339, 1,338 and 1,334 entries, each matching exactly once.
+- Codex's test counts have **not** been re-run here yet. Each fix track below re-runs them as its first step.
+
+**Decisions (lead):**
+- **U35 (A1): P2, deferred past v2.00.** Typing not yet committed in the RCN/EEIC dialog is replaced by the stored value
+  during a Live refresh, without a question. Nothing committed is lost, and the field visibly shows the old text. The
+  ledger row now holds Codex's exact reproduction. The limit goes into the matrix and NEXT-VERSION.md's "Not covered".
+- **U37 (A2): fix track `u37`, a release blocker.** It starts from Codex's refusal patch, chosen because a literal
+  `_xHHHH_` is ambiguous and the board's own reader keeps it as written. **Gap found here:** A2 leaves `_xesc` and the
+  slide-deck writer unchanged. The regtext money review (round 2) showed U+000B written raw into a slide part on the base.
+  The track must close the deck too, and every other writer it finds.
+- **U40 (A3): fix track `u40`, a release blocker.** It starts from Codex's patch and must show how the patch combines with
+  U10's destination refusals, which change the functions next to `flowSetEnt`.
+- **U41 and U42 (A4): fix track `u41u42`, not a blocker.** It was opened because the patch is ready. It joins v2.00 only
+  if both its reviews are clean by the time U37's and U40's are. Otherwise it is deferred and its limits are stated.
+  (The builder's brief calls U41 a blocker; this note supersedes that wording, and the script is corrected for restarts.)
+- **B1:** corroborates U9's expected figures for the 12:02 PM snapshot. It is recorded on the U9 row. It does not cover
+  later fix rounds or the two-lane question.
+
+The three tracks run as group `codexB` (workflow `wf_ce8b2b90-1a7`), each with a builder and two independent reviews
+per round.
+
+**UI-C1 checked on the cherry-picked commit `7df816c` (before integration): PASS.**
+- Its patch-id equals `822918e`'s. Applying `822918e`'s own diff to `dd15956` gives the same board, `fb3ccbbd`.
+- `npm run check` fails at `dd15956` on the same 10 handler values and passes at `7df816c`.
+- In Chromium, 24 clicks on the board and on its reopened saved file gave identical results at both commits.
+- The saved payload is byte-identical: 8,707 bytes, sha256 `408a4f57…`.
+- audit-ui ran 616 checks at both commits, with identical counts per scenario.
+- mcount: 1,342 entries, each matching once.
+- All 14 verify:grid tools gave identical output at both commits.
+- The checks ran from 12:18 to 1:11 PM ET. Record: `uichunk3/c1-check-7df816c/` (README.md, VERDICT.md).
+- One environment event: the memory limit's OOM killer stopped the Chromium renderer in 3 of 6 dialogs-keyboard runs, at
+  both commits. Every run that finished matched.
+- These checks are repeated on the integrated tree.
+
+**Fix tracks, status at 1:19 PM ET:**
+- U19, U20/U30, adopt, U18, hold, U9, U10, CYCREG, YEARSEL and REGTEXT are in review or fix rounds. No track has two
+  clean reviews yet.
+- The latest verdicts: U10 round 2 tests review, unsound; hold round 1, U18 round 1 and regtext round 2 tests, sound with
+  issues.
+- U28 stays paused for load.
