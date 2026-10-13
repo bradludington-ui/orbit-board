@@ -25,11 +25,12 @@
 //      v1.90 pushed Fund's allocation box off the row at 761-884px and Rank's star at 761-804, cut Brief's
 //      last money column, and scrolled sideways at 761-808; nothing looked below 1024.
 //
-//   v2.00 (UI S4, fix round): C, E AND I TWICE -- the RECORD panel sliding over the table (the board's default now) and
-//   docked beside it (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser). Docked above
+//   v2.00 (UI S4, fix round): C, D, E, F AND I TWICE -- the RECORD panel sliding over the table (the board's default now)
+//   and docked beside it (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser). Docked above
 //   1400px is the layout these checks were written against (v1.89 clipped the row menus there), and beside the sidebar it
 //   is the narrowest grid the board has (248-982px at 1440). Each pass also checks where the panel is, so a docked pass
-//   that ran with the panel sliding over says so and fails.
+//   that ran with the panel sliding over says so and fails. A, B and G read figures, calls and data, not where anything is
+//   drawn; H reads two rows' styles; J's widths (761-1023) have the panel as a drawer, docked or not: each runs once.
 //
 //   node tools/layout-fits.mjs [--board FILE]
 import { chromium } from 'playwright-core';
@@ -213,13 +214,21 @@ for (const mode of ['review', 'rank', 'fund']) {
 }
 
 // ── D. THE FIRST REQUIREMENT IS ON THE SCREEN WHEN THE BOARD OPENS ────────────────────────────────────
+// v2.00 (UI S4, fix round): twice, sliding over and docked -- docked above 1400px the rows have the narrower room beside the panel
+for (const [pass, docked] of PASSES) {
+const misplaced = [];
 for (const [w, h] of [[1920, 1080], [1440, 1000], [1366, 768], [1024, 768]]) {
-  const { p, ctx } = await open(w, h);
+  const { p, ctx } = await open(w, h, undefined, undefined, docked);
   const r = await p.evaluate(() => { const rows = [...document.querySelectorAll('#list .row')];
     const b = rows[0].getBoundingClientRect();
     return { top: Math.round(b.top), bottom: Math.round(b.bottom), inView: rows.filter(x => { const c = x.getBoundingClientRect(); return c.top >= 0 && c.bottom <= innerHeight; }).length }; });
-  chk(`D · ${w}×${h}: the first requirement is on screen as it opens`, r.bottom <= h && r.top < 320, `top ${r.top}px · ${r.inView} rows in view`);
+  chk(`D · ${w}×${h}: the first requirement is on screen as it opens (${pass})`, r.bottom <= h && r.top < 320, `top ${r.top}px · ${r.inView} rows in view`);
+  const why = placed(await p.evaluate(where), w, docked);
+  if (why) misplaced.push(`${w}px: ${why}`);
   await ctx.close();
+}
+chk(`D · the RECORD panel was ${docked ? 'docked beside the grid at 1920 and 1440, a drawer at 1366 and 1024' : 'a drawer at every size'} (${pass})`,
+  misplaced.length === 0, misplaced.slice(0, 3).join('; '));
 }
 
 // ── E. BRIEF IS READ-ONLY ─────────────────────────────────────────────────────────────────────────────
@@ -237,8 +246,9 @@ for (const [pass, docked] of PASSES) {
 }
 
 // ── F. FUND'S COLUMNS ARE THE RECORD PANEL'S FIGURES ──────────────────────────────────────────────────
-{
-  const { p, ctx } = await open(1440, 1000, 'fund');
+// v2.00 (UI S4, fix round): twice, sliding over and docked, and where the panel the figures were read from was
+for (const [pass, docked] of PASSES) {
+  const { p, ctx } = await open(1440, 1000, 'fund', undefined, docked);
   const r = await p.evaluate(() => {
     const out = [];
     const fv = lbl => { const f = [...document.querySelectorAll('#inspector .insp-f')].find(x => (x.querySelector('.fl') || {}).textContent === lbl);
@@ -253,7 +263,9 @@ for (const [pass, docked] of PASSES) {
     });
     return { n: document.querySelectorAll('#list .row').length, out };
   });
-  chk(`F · every row's Discretionary, Mandatory and Unfunded are the RECORD panel's (${r.n} rows)`, r.out.length === 0, r.out.slice(0, 2).join('; '));
+  chk(`F · every row's Discretionary, Mandatory and Unfunded are the RECORD panel's (${r.n} rows) (${pass})`, r.out.length === 0, r.out.slice(0, 2).join('; '));
+  const why = placed(await p.evaluate(where), 1440, docked);
+  chk(`F · the RECORD panel was ${docked ? 'docked beside the grid' : 'a drawer'} at 1440 (${pass})`, !why, why);
   await ctx.close();
 }
 
