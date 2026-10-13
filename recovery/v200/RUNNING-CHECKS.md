@@ -704,3 +704,20 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   group interleave. So two finished round-1 money reviews (U10, U34) are running again as fresh reviews. That costs time
   but no correctness. The lead is preparing a resume that feeds finished results in explicitly.
 - No draft has a clean review yet, so nothing has been committed.
+
+## Update at 5:09 AM ET: UI S1–S5 review-clean
+
+- The S1–S5 re-review (round 2, written 5:07 AM ET) is **sound: no must-fix, no should-fix**, with 5 minors. It
+  covered the nine fix-round commits `7a71245`..`dd15956`, and the board blob is `5e9e5a5e` at every one.
+  Re-checks:
+  - audit-ui: 616 checks pass at `dd15956`, 8 fail on `670c467`, 278 fail on `f95fee2`.
+  - All 37 v200-ui3 mutants were caught; the verifier's own S2 and browser mutants were caught.
+  - mcount: 1,342 entries, each found once (text only).
+  - verify:grid: each tool's output is identical to the builder's run, with times masked. The six U28 container
+    failures are unchanged.
+  - boot-same, audit-other, audit and audit-recon pass. `check` fails only on the known UI-C1 jsa() values.
+  - Preservation: 130 PASS / 0 FAIL, and IDENTICAL WRITE LISTS.
+- **Minors, left as they are:** counts in records and commit messages, and two test gaps from before S1–S5 for Brad. One:
+  menus cut to 90px pass dropdowns-visible. The other: a gap the verifier names in its VERDICT.md.
+- Evidence: `evidence/ui/s1-s5-review/` (r1 and r2 VERDICT.md and README.md, run and mutant tables).
+- The UI branch stays local and unpushed. Its tip `dd15956` is backed up as bundle commit `321ac94`, restore verified.
