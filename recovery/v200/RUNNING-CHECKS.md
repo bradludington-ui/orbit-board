@@ -835,3 +835,30 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
     against `dd15956`.
   - The items are repeated again on the integrated tree, as Brad asked.
 - The four fix runs are working. Load is about 27, down from 44.
+
+## Update at 12:58 PM ET: Codex's summary of batches A1–A4 and B1 (reports not yet in hand)
+
+- **Brad relayed Codex's summary** (pasted text; the report links did not come through, and no report is in the
+  repository). Codex's own times are Eastern, 13 Oct; base `7ee498a`. Codex says every branch stayed read-only and that
+  no populated board is included. Codex's figures as given:
+  - **A1 (12:08–12:19 PM):** reproduced U35, the loss of pending RCN, EEIC and title input during a Live refresh. It is
+    distinct from U36–U42. Exact row and reproduction proposed; no implementation. 46 checks pass and 8 protection checks
+    fail; 1,328 targets match once.
+  - **A2 (12:10–12:49 PM), U37:** confirmed invalid XML text in XLSX exports. Proposal: refuse an unsafe export and name
+    the location, with guards at all 16 callers, chosen to keep the legacy reader's behaviour. Base: 51 failures. Fix:
+    53/53 pass. 11 proposed mutants caught; 1,339 targets match once; four affected full audits pass. Limits: 12 other
+    unsafe export routes were checked by source inspection only, and native Office is untested.
+  - **A3 (12:15–12:45 PM), U40:** reproduced the destination collapse and the reassignment of R2's $300, including
+    cached-map paths. Proposal: refuse typed duplicates, keep distinct imported entries, and disclose refused or
+    ambiguous names. Base: 82 failures, 34 controls pass. Fix: 116/116 pass, 40 inherited controls pass. 10 mutants
+    caught; 1,338 targets once. Limits: no full import suite, native run or combined-tree run.
+  - **A4 (12:16–12:51 PM), U41 and U42:** reproduced both. Proposal: keep, list and allow correction of an unsupported SI
+    value; never split a surrogate pair, and no apostrophe at either edge of a sheet name. Base: 40 failures, 23 controls
+    pass. Fix: 63/63 pass; full recon passes. 6 mutants caught; 1,334 targets once.
+  - **B1 (12:15–12:21 PM), U9:** every expected money figure in the U9 draft derives independently, so no correction is
+    needed. Base: all 51 defect checks fail and all 38 controls pass. Draft: 89/89 pass. 1,349 targets once. It does not
+    settle the two-lane policy question.
+- **Not yet verified here:** these are Codex's statements. The lead will read the reports, diffs and evidence before any
+  of it is used. An adopted patch goes through the two independent reviews, the lead's commit check and its own commit.
+- **U35** is now known: typed RCN / EEIC / title input that is still pending is lost when the Live view refreshes. Its
+  severity is set once the report is read.
