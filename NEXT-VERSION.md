@@ -698,7 +698,8 @@ result for it was run fresh against these commits.
     are refused, or throw (an autosave); board-file saves that go in, fail, or are canceled; and an autosave that lands
     after the refusal. Each scenario then checks the retry and a reopen, and for the folder the refresh as well.
     Mutation `v200-u2-putback-while-saving`.
-  - **Not covered:** a save waiting for another tab's Web Lock is not counted as under way until it starts.
+  - **Not covered:** a save waiting for another tab's Web Lock was not counted as under way until it started; U20
+    (below) counts it from the moment it is asked for.
 - **U13 — a refresh during a save loads nothing** (Brad, 12 Oct, 6:00 AM ET: "implement U13's refusal to adopt another copy
   while saving, as a separate commit. Re-check immediately before adoption after any waits."). The folder's refresh (the Live
   timer, the bar's Connect, the opening's own connect) used to load a newer folder copy while a save was still writing. The
@@ -724,7 +725,8 @@ result for it was run fresh against these commits.
     `v200-u13-said-nothing-loaded`, `v200-u13-clash-while-saving`; each caught by the focused block (full-suite sensitivity
     runs in the final-tree queue).
   - **Not covered:** a copy another writer saves during the save is still written over and kept nowhere in the folder (U18);
-    a save waiting for another tab's Web Lock is not counted (U20); the other adoption paths in the ledger (U24).
+    a save waiting for another tab's Web Lock was not counted (U20, below, counts it); the other adoption paths in the
+    ledger (U24).
 - **U1 — a carried row is counted in an offered year and in ALL YEARS** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own
   commit, followed by U14 separately. Preserve the independent arithmetic and saved-selection controls."). A row the carryover
   rule counts in a year that is neither a workbook year nor in the plan window was counted in no year: FY25 OBBBA rows counted
@@ -775,6 +777,49 @@ result for it was run fresh against these commits.
   - **Not covered:** partner and FMS type-ins for a year not offered (not counted and not said; this predates U14); a
     locked-cycle view; whether a long label fits the 1,280-pixel chart image; and Brad's open questions on this commit (the
     `rlgIsUpl` line's place, those type-ins, and what "genuine stored plans" takes in).
+- **U20 — a save waiting for another tab's save is under way** (the lead's decision under Brad's word of 12 Oct, about
+  5:30 PM ET: "Don't wait for me. Let's keep pressing throughout to get this next version published."). A save waits for
+  the 'orbit-save' Web Lock, so that one save runs at a time across this browser's tabs. It was counted as under way only
+  once it held the lock. While it waited for another tab's save, ↶ Put back (U2) and the folder's refresh (U13) took it for
+  no save at all: Put back went ahead under it, a refresh loaded a newer copy under it, and a refresh with nothing recorded
+  for the folder took the folder's copy as the one the work came from. The waiting save then wrote over that copy without
+  asking. With a history copy kept less than ten minutes before, the copy written over was kept only as a recent copy, and
+  one more Save removed it: it was in no copy the board could reach. Now a save is counted from the moment it is asked for,
+  waiting included, until it has finished, however it ends: saved, refused, failed, thrown, or its lock request refused.
+  Load theirs, which waits in the same queue, is counted the same way.
+  - **What users may see:** while a Save or Load theirs waits for another tab's save, ↶ Put back is refused in U2's words
+    ("⏳ Not put back: a save was under way …"). A Connect that finds a newer copy in the folder says it was not loaded, in
+    U13's words; one that finds a copy no newer than the screen says nothing and records nothing, as during a save. A second
+    Save asked meanwhile says "⏳ A save is already under way — this one runs as soon as it finishes." Once the save has
+    finished, both work as before.
+  - **Test:** audit-import "v2.00 (U20) — the Web Locks stand-in behaves as the API does" (19 checks). This is the U20
+    probe's lock mock, ported as the suite helper `webLocks()`, with its own tests: first come first served across tabs, a
+    rejection and a throw letting go, let go before request() settles, independent names, ifAvailable, shared and
+    exclusive, query and a closing tab, what it does not model refused, and 300 seeded requests. Then audit-import
+    "v2.00 (U20) — a save waiting for another tab’s save is under way" (65 checks): two tabs of one browser share one lock
+    manager, and the second tab's 💾 Save waits for the first tab's held save. It covers ↶ Put back, a refresh of a newer
+    copy, and Live view's ↻ Refresh now with nothing recorded, with and without a history copy kept minutes before; after
+    the refresh it checks Save yours over theirs and one more Save. It also covers the screen exactly the folder's copy,
+    and Load theirs as the operation that waits. Controls: a second Save waiting behind this tab's own save; the waiting
+    save counted by the harness itself (the uncounted wait alone was the cause). Checks labelled a GUARD pass on the board
+    before the change too, by design: the stand-in's sanity at the end of each case, how a save ends when the autosave
+    throws, when the lock request is refused and when asking for it throws, and Save yours over theirs without a history
+    copy; each holds what a wrong form of the change would break. 23 checks fail on the board before the change, and every
+    one of them is neither a control nor a guard; every control and guard passes on both.
+  - **Mutations:** `v200-u20-wait-uncounted`, `v200-u20-failed-stays-counted`; each caught by the focused block (full-suite
+    sensitivity runs in the final-tree queue).
+  - **Not covered:** the first waiting Save gives no sign that it waits (the U20 probe's O1). Not run as the operation that
+    waits: ✍ Take the pen and Save yours over theirs. Save yours over theirs asks its question inside the queue, so a tab
+    with that dialog open holds the lock: saves, ↶ Put back and adoption in this browser's other ORBIT tabs wait or are
+    refused meanwhile, in words that do not say the save is in another tab (no copy is lost). When what waits is Load
+    theirs, U2's refusal still says "a save was under way". Real Chromium: the round-1 money review ran this change in real
+    Chromium with Chromium's own Web Locks (board `c42be8e7`, whose `saveSerial` is this commit's): two and three tabs, a
+    waiting save counted, ↶ Put back refused while it waits, a second Save counted as two, a waiting save that throws, a tab
+    closed while it holds the lock, and the board opened from file://; all of that passed. It was run again on the final
+    board of the fix round (`84cf2bf4`), with the same result: every behavioural check passed, and on the board before the
+    change the six checks of a waiting save fail. (The script's own check that the page makes no other request fails on both
+    boards, because the board asks for its shared state file; that is the script's assumption, not the board.) A refresh that
+    records the folder's copy as the base with no second tab is U30, next.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -783,7 +828,7 @@ result for it was run fresh against these commits.
     Spares} = $400M). The independent arithmetic and the saved-selection controls are committed checks.
   - **U2: complete** (accepted by Brad, 12 Oct): the change count (U2 1 of 2) and the refusal while a save is under way
     (2 of 2) are both above. audit-import passes at both commits, and each new mutation is caught, in runs made alone.
-    Its separate reopening and adoption findings stay open in the ledger (U15–U20).
+    Its separate reopening and adoption findings stay open in the ledger (U15–U19); U20 is built (below).
   - **U3:** a Save queued behind a running save under the hold.
   - **U4:** the folder save's window for the hold.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
@@ -796,16 +841,19 @@ result for it was run fresh against these commits.
   - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`, and again here on the current
     tree (`4a6f7c7`) with bounded synthetic probes.
   - **U13: built as its own commit** (selected by Brad, 12 Oct, 6:00 AM ET): a refresh during a save loads nothing,
-    checked after its last wait (above). Its separate reopening and adoption findings stay open in the ledger (U16–U18,
-    U20), with those found while building and reviewing it (U21–U27): a false clash in a save's last window; ↻ Refresh
-    now's words; Live view's "Loaded" time; three other adoption paths that do not wait for a save (unverified); a save
-    that starts and ends during a refresh's read; status lines left false after an autosave; older refusals that say
-    nothing was loaded or replaced while the same Connect loads execution data.
+    checked after its last wait (above). Its separate reopening and adoption findings stay open in the ledger (U16–U18;
+    U20 is built, below), with those found while building and reviewing it (U21–U27): a false clash in a save's last
+    window; ↻ Refresh now's words; Live view's "Loaded" time; three other adoption paths that do not wait for a save
+    (unverified); a save that starts and ends during a refresh's read; status lines left false after an autosave; older
+    refusals that say nothing was loaded or replaced while the same Connect loads execution data.
   - **U14: built as its own commit after U1** (decided by Brad, 12 Oct, 6:00 AM ET): ALL YEARS holds every plan the board
     holds, and nothing is made to offer a year; a saved year selection the board cannot answer for is kept, not counted,
     and said on the panel and in the export; the label names only years in the total (above). Three questions stay with
     Brad: whether the `rlgIsUpl` line belongs in this commit, partner and FMS type-ins in a year no longer offered, and
     what "genuine stored plans" takes in (a roll-forward outside the window; a blank year left by a Cancel).
+  - **U20: built as its own commit** (the lead's decision under Brad's word of 12 Oct, about 5:30 PM ET, to keep pressing):
+    a save, or Load theirs, waiting for another tab's Web Lock is counted as under way from the moment it is asked for,
+    until it ends (above). U2's refusal and U13's two guards now see it.
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 
