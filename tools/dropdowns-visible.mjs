@@ -16,6 +16,13 @@
 // Segoe-like stand-in, 6% wider and as tall as Segoe UI (font-standin.mjs), and checks the same menus again; it
 // first proves the stand-in is the font being drawn, or fails.
 //
+// v2.00 (UI S4, fix round): AND DOCKED. The RECORD panel slides over the table by default now, closed until a row is
+// picked; docked beside the table (View › Record panel › Docked beside the table, prio27uiDock = '1' in this browser) it
+// stands beside the rows above 1400px -- the layout these menus were first measured in, a narrower list with the panel
+// at its right, where a row's ⋯ menu opens. So both fonts are checked a second time docked, at the sizes above 1400px
+// (1536 and 1920, both heights), every toolbar menu and every row menu as above, and the panel is checked to be docked
+// beside the list there. At 1400 and narrower docked is a drawer, as the first pass already has it.
+//
 //   node tools/dropdowns-visible.mjs
 import { chromium } from 'playwright-core';
 import { resolve, join, dirname } from 'node:path';
@@ -52,13 +59,24 @@ const judge = p => p.evaluate(() => {
   return { items: items.length, problems: out };
 });
 
+for (const [pass, docked] of [['', false], ['docked: ', true]])
 for (const [font, FILE] of FONTS) for (const [W, h] of SIZES) {
-  const w = font + W;
+  if (docked && W <= 1400) continue;   // docked is a drawer there, which the first pass has
+  const w = pass + font + W;
   const ctx = await b.newContext({ viewport: { width: W, height: h } });
   const p = await ctx.newPage(); p.on('dialog', d => d.accept('Probe'));
   await p.addInitScript(() => { try { localStorage.setItem('spmtTheme', 'harbor'); localStorage.setItem('prio27who', 'Probe'); } catch (e) {} });
+  if (docked) await p.addInitScript(() => { try { localStorage.setItem('prio27uiDock', '1'); } catch (e) {} });
   await p.goto('file://' + FILE); await p.waitForFunction(() => typeof render === 'function'); await p.waitForTimeout(500);
   if (font) { const why = await standinProblem(p); if (why) { bad.push(`${w}×${h}: ${why}`); await ctx.close(); continue; } }
+  // docked: the panel stands beside the list (in the page, to the list's right), with the setting on
+  if (docked) {
+    const at = await p.evaluate(() => { const i = document.getElementById('inspector'), cs = getComputedStyle(i), r = i.getBoundingClientRect(),
+      g = document.querySelector('.gridwrap').getBoundingClientRect();
+      return { dock: document.documentElement.classList.contains('ui-dock'), fixed: cs.position === 'fixed', shown: cs.display !== 'none' && r.width > 0,
+        beside: r.left >= g.right - 1, panel: Math.round(r.left) + '-' + Math.round(r.right), list: Math.round(g.left) + '-' + Math.round(g.right) }; });
+    if (!(at.dock && !at.fixed && at.shown && at.beside)) bad.push(`${w}×${h}: the RECORD panel is not docked beside the list (${JSON.stringify(at)})`);
+  }
   // THE TOOLBAR MENUS, each from its own button
   const keys = await p.evaluate(() => [...document.querySelectorAll('.menu[id^="m_"]')].map(m => m.id.slice(2))
     .filter(k => { const bt = document.getElementById('b_' + k); if (!bt) return false; const c = bt.getBoundingClientRect(); return c.width > 0 && c.height > 0; }));
@@ -105,6 +123,7 @@ for (const [font, FILE] of FONTS) for (const [W, h] of SIZES) {
   await ctx.close();
 }
 await b.close();
-console.log(`\ndrop-downs: ${looked} opened across ${SIZES.length} window sizes, in this machine's font and in a Segoe-like stand-in +${STANDIN_SCALE - 100}%`);
+console.log(`\ndrop-downs: ${looked} opened across ${SIZES.length} window sizes, in this machine's font and in a Segoe-like stand-in +${STANDIN_SCALE - 100}%`
+  + `, the RECORD panel sliding over, and again docked beside the list at the ${SIZES.filter(([W]) => W > 1400).length} of them above 1400px`);
 if (bad.length) { console.log(`${bad.length} PROBLEM(S)`); bad.slice(0, 60).forEach(x => console.log('  ✗ ' + x)); process.exit(1); }
 console.log('every item of every drop-down is in the window and on top');
