@@ -73,14 +73,13 @@ console.log('\n' + FILE.split('/').pop());
     const cut = await p.evaluate(() => { const s = document.getElementById('shareStat'); return s.scrollWidth > s.clientWidth + 1; });
     chk('A · a long warning is cut off on its one line', cut);
     // v2.00 (UI S4): the search box moved to the page's toolbar, below the context bar and after the message in the order
-    // Tab takes. The Tab starts from the control before the message in the context bar, as it did when that was the search
-    // box's neighbour: the PMO menu now.
-    const from = await p.evaluate(() => { const t = [...document.querySelectorAll('.hdr button, .hdr input, .hdr select, .hdr [tabindex]')]
-      .filter(e => e.tabIndex >= 0 && !e.disabled && e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden');
-      const i = t.indexOf(document.getElementById('statBtn')), e = i > 0 ? t[i - 1] : null;
-      if (!e) return null; if (!e.id) e.setAttribute('data-kb-from', '1'); return e.id ? '#' + e.id : '[data-kb-from="1"]'; });
-    const steps = from ? await tabTo(p, from, '#statBtn') : -1;
-    chk('A · the Message button is reached with Tab from the control before it in the context bar', steps > 0, (steps > 0 ? `${steps} Tab(s)` : 'never reached') + ' from ' + from);
+    // Tab takes. v2.00 (UI S4, fix round): the Tab starts from the context bar's first control, the cycle button, named
+    // here -- not found on the page as the control just before the message, which made the check pass by construction
+    // (one Tab) -- so it crosses the appropriation, the fiscal year and the PMO menu on its way, as it crossed Filter from
+    // the search box before.
+    const from = '#uiCycBtn';
+    const steps = await tabTo(p, from, '#statBtn');
+    chk('A · the Message button is reached with Tab from the context bar’s first control', steps > 0, (steps > 0 ? `${steps} Tab(s)` : 'never reached') + ' from ' + from);
     const st = () => p.evaluate(() => { const w = document.getElementById('statWrap'), s = document.getElementById('shareStat'), bt = document.getElementById('statBtn');
       return { big: w.classList.contains('big'), line: w.classList.contains('fresh'), exp: bt.getAttribute('aria-expanded'), label: bt.textContent,
         whole: s.scrollWidth <= s.clientWidth + 1 && s.getBoundingClientRect().height > 20, focus: document.activeElement && document.activeElement.id }; });
