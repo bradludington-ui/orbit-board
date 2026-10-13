@@ -636,3 +636,47 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
   - Board files (`*.html`, 16) and symlinks (8) are left out and listed with their sha256 in `EXCLUDED.txt`.
   - Working copies of 63bd8b0 and a8891e1, which are byte-identical by git blob id, are replaced by `TREE.txt`.
   - `MANIFEST.sha256` covers the 2,253 stored files and was checked with `sha256sum -c`.
+
+## Update at 11:14 PM ET: overnight, second usage-limit stop, all workflows resumed
+
+- **Brad, about 8:40 PM ET:** "I'm about to go to sleep I need you to ensure that you continue to keep going after my
+  tokens and usage reset throughout the night." The lead set an hourly check-in (routine `trig_01PhhHK97YTPeEsCZr3X2fvw`,
+  at 42 minutes past each hour). It fires into this session and restarts any workflow a usage limit stopped, with
+  `resumeFromRunId`. It is to be turned off when the work reaches the publish question.
+- **Drafts finished before the stop** (builders; not yet reviewed, nothing committed):
+  - U9: the exact PMO split.
+  - U10: a refused locked-cycle edit changes no code.
+  - U19: put back after a board-file save keeps what it replaces.
+  - U20 and U30: two commits.
+  - U32 and U33 (cycreg): **reproduced** through the product's own import, with the XLSX read from its bytes. Both of
+    Codex's shapes exported USAF $1,800 / ANG $400 / all services $2,200 against the hand-worked $900 / $200 /
+    $1,100. Ordinary-key controls gave $900 / $200 / $1,100.
+  - U34 (yearsel): reproduced. Malformed selections are read as ALL YEARS or as a year the file does not name, with
+    nothing said.
+  - Registry text (regtext): a new finding, **U36**. A typed RCN / EEIC title over 80 characters is cut to 80 without a
+    word, and the cut can split an emoji. A fix is drafted. Codex's own registry-text items (U35) have still not reached
+    the lead.
+  - U28: **root cause found, container-only.** `/etc/fonts/conf.d/56-prefer-inter.conf` in this container (dated 3 Oct,
+    installed by no package) maps 'Segoe UI' to Inter. Chromium then draws the money cells in Inter Bold, which is 14.6%
+    wider than Arial's widths, and that accounts for exactly the six failures. No user's browser draws Inter for
+    'Segoe UI'. No board change is proposed.
+- **The one review that returned before the stop:** U9, data-loss/money lens: "sound, with issues". Its one must-fix is
+  text only: the drafts leave out a fully funded case that shows the U9 symptom on the mandatory lane. The UI S1–S5 review
+  (round 1, "sound, with issues", S4's docked coverage) led to a fix round. Before the stop, that round made eight local
+  commits on claude/v200-ui, `e950efe`..`8783a2d`, between 7:57 and 8:29 PM ET.
+- **Stopped at about 8:47 PM ET.** Every running builder and reviewer hit the session usage limit ("resets 3:10am
+  (UTC)", i.e. 11:10 PM ET). Each workflow then ran through its remaining review rounds with failed reviewers and ended.
+  Nothing was lost on disk. The 9:42 and 10:42 PM ET check-ins were delivered when the session came back.
+- **11:11 PM ET:** the container restarted; the scratch work and both repositories were intact. At 11:13 PM ET all four
+  workflows were resumed under their own run ids (save `wf_12f3bad9-2bc`, math `wf_041e5055-bb1`, codex
+  `wf_66312e0c-108`, UI `wf_d5c82278-87a`), and finished agents replayed from cache. Resume notes were added only for
+  agents that had not finished: the adoption, U18 and hold builders, and the UI fix round, which is told to keep its eight
+  commits and not redo them.
+- **UI backup:** claude/v200-ui at `8783a2d`, bundle commit `a5e8fba`, restore verified.
+- **Dry run of the commit sequence** (scratch clone `rec/L7/merge`, `rec/L7/apply.sh`): U9, U10, U19, cycreg and
+  yearsel applied in turn onto `60336a0`. The board merged cleanly every time. The only conflicts were add/add test
+  insertions at the same anchor (resolved as ours + theirs; every base side was empty). mcount gave 1,365 / 1,365 once on
+  the combined board (text only). This is not a commit check; each fix is checked when it is committed.
+- **Time correction (the lead's own error).** The hourly routine's stored prompt, written at 8:42 PM ET, gave Brad's
+  message as "about 8:45 PM ET", which was later than the clock. The message arrived between 8:39 and 8:42 PM ET. The
+  prompt was corrected to "about 8:40 PM ET" at 11:15 PM ET. No repository record carried the wrong time.
