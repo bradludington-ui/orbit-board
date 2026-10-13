@@ -163,6 +163,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const id = await p.evaluate(() => { const i = gridRows()[2].id.replace(/^row-/, ''); delete S.fsrc[i]; render(); return i; });
     {
       await p.click('#row-' + id + ' .t1'); await p.waitForTimeout(250);
+      // v2.00 (UI S4, fix round): where the panel is, as D checks it -- the docked pass stands on its own
+      const pos = await p.evaluate(() => getComputedStyle(document.getElementById('inspector')).position);
+      chk(`D2 · the panel was ${docked ? 'docked beside the table' : 'a drawer over the table'} (${pass})`, docked ? pos !== 'fixed' : pos === 'fixed', 'position: ' + pos);
       const sel = '#inspector [onclick^="setFsrc("]';
       const tag = await p.evaluate(s => { const e = document.querySelector(s); return e ? e.tagName : 'missing'; }, sel);
       await p.evaluate(() => document.getElementById('inspector').setAttribute('tabindex', '-1'));
@@ -356,6 +359,9 @@ for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
     const at = await p.evaluate(() => ({ open: attOpen, cur: curRow, fix: !!((S.awards || {})[curRow] || {}).fix }));
     chk(`L · Go to it is reached and, with Enter, closes the list and selects the requirement whose award was repaired (${pass})`,
       go >= 0 && at.open === null && at.fix, `${go >= 0 ? go + ' Tab(s)' : 'never reached'} · ${JSON.stringify(at)}`);
+    // v2.00 (UI S4, fix round): where the panel holding the award block is, as D checks it -- the docked pass stands on its own
+    const pos = await p.evaluate(() => getComputedStyle(document.getElementById('inspector')).position);
+    chk(`L · the panel was ${docked ? 'docked beside the table' : 'a drawer over the table'} (${pass})`, docked ? pos !== 'fixed' : pos === 'fixed', 'position: ' + pos);
     const before = await p.evaluate(() => attLists().awfix.length);
     const ok = await tabTo(p, '#inspector button, #inspector input', 'button[onclick^="awdFixOk"]', 80);
     if (ok >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
