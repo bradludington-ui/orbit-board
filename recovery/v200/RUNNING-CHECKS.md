@@ -680,3 +680,27 @@ adversarial checker, and puts any correction in a separate PROPOSAL.md, never ap
 - **Time correction (the lead's own error).** The hourly routine's stored prompt, written at 8:42 PM ET, gave Brad's
   message as "about 8:45 PM ET", which was later than the clock. The message arrived between 8:39 and 8:42 PM ET. The
   prompt was corrected to "about 8:40 PM ET" at 11:15 PM ET. No repository record carried the wrong time.
+
+## Update at 4:14 AM ET: third usage-limit stop overnight; resumed
+
+- **Between 11:13 PM and 12:50 AM ET:** round-1 reviews returned, by lens (data loss and money / test adequacy):
+  - U9: 1 must-fix / 1 must-fix.
+  - U10: 2 must-fix from the money lens.
+  - U28: 1 must-fix from the money lens.
+  - U32/U33 (cycreg): **unsound** on both lenses, 3 and 2 must-fix. A number key `1` beside the text key `"1"` still
+    passes the import and doubles the export, and two changed money paths have no failing check on the base.
+  - U34 (yearsel): 1 must-fix / clean.
+  - U36 (regtext): 2 must-fix from the money lens.
+  - Built: the adoption track (U24, U29, U31: three commits) at 12:01 AM ET and U18 at 12:28 AM ET.
+  - UI: the S1–S5 fix round finished at 12:22 AM ET, ending at `dd15956` (bundle `321ac94`, restore verified). Its
+    re-review was under way.
+- **About 12:49–12:53 AM ET:** every running agent hit the usage limit ("resets 8:10am (UTC)", i.e. 4:10 AM ET). The fix
+  rounds then in progress (U9, U10, cycreg, yearsel, regtext, U28), the hold builder and several reviewers stopped. The
+  check-ins at 1:43, 2:42 and 3:42 AM ET were delivered when the session came back.
+- **4:11 AM ET:** the container restarted, and the work on disk was intact. At 4:13 AM ET all four workflows were resumed.
+  Resume notes were added only for agents that had not finished: fix rounds (continue a stopped round from the track's
+  folder) and the hold builder.
+- **Cache note:** a resume replays finished agents only along the longest unchanged sequence of calls, and the tracks in a
+  group interleave. So two finished round-1 money reviews (U10, U34) are running again as fresh reviews. That costs time
+  but no correctness. The lead is preparing a resume that feeds finished results in explicitly.
+- No draft has a clean review yet, so nothing has been committed.
