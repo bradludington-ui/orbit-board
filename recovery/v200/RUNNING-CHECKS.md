@@ -1026,3 +1026,23 @@ happens on the base too. A fix track (u44) was opened at 3:44 PM ET to give dest
 - **U19:** its round-3 money review is clean (4:50 PM ET); its tests review is running.
 - **U9:** its fix round 3, which carries U43, finished at 4:56 PM ET. Its group was stopped at that clean point; the
   round-4 reviews start after the reset.
+
+## 13 Oct, 5:17 PM ET: U34 and U36 clean; four fixes committed locally; ledger U45–U49
+
+- **U34 (YEARSEL) and U36 (REGTEXT) are clean in round 3:** both reviews of each returned no must-fix, at 5:14 and
+  5:15 PM ET. Their group finished on its own.
+- **Committed locally** on the branch `pending/v200-fixes`, in this order:
+  - U20 and U30.
+  - U34, one commit. Its build and both fix rounds go together, as its builder recommended.
+  - U36.
+- Each commit's code was checked against the track's own change: identical board patch, identical suite and mutation
+  lines. On the combined board, mcount gives 1,395 entries, each matching once.
+- They stay local until the lead's commit check passes after the usage reset. A restore-verified bundle is on the
+  scratch disk.
+- **New ledger rows:**
+  - U45–U48: found while building U34.
+  - U49: found by U34's round-3 money reviewer. Under a locked-cycle view, a refused funds-flow edit is still counted in
+    the export labelled as the lock: $3,000,000 that neither the lock nor the plan holds. It falls within U10's finding,
+    so U10's next fix round takes it, as a release blocker with U10.
+- **U34's tests reviewer** found a test gap: four plausible wrong fixes pass all 39 checks. It was rated a should-fix
+  and is recorded as a follow-up.
