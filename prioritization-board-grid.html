@@ -2846,7 +2846,7 @@ function allocNegOf(id){
 function attLists(T){
   T=T||tiers();
   const MR=masterRanks();
-  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[]};
+  const out={imp:[], ccar:[], oblig:[], awshort:[], awfix:[], neg:[], buy:[], code:[], si:[]};
   (S.order||[]).forEach(function(id){
     const it=itemById(id); if(!it) return;
     const p=T[id]||{dT:0, mT:0, d:[], m:[]}, funded=(p.dT||0)+(p.mT||0);
@@ -2873,6 +2873,8 @@ function attLists(T){
     let r=out.code.find(function(x){ return x.id===c.id; });
     if(!r){ r={id:c.id, rank:MR[c.id], funded:0, n:[]}; out.code.push(r); }
     r.n.push(c.label); });
+  // v2.00 (U41): an SI code a file carried that is not one of the five -- kept as saved, its money on no recognized code
+  siIssues().forEach(function(c){ out.si.push({id:c.id, rank:MR[c.id], funded:0, n:[c.label]}); });
   // the funded ones first -- their dollars are UNSCHEDULED in every spend plan -- then by rank
   out.awfix.sort(function(a,b){ return ((b.how==='repair')-(a.how==='repair')) || ((a.rank||9e9)-(b.rank||9e9)); });
   out.oblig.sort(function(a,b){ return ((b.funded>0.5)-(a.funded>0.5)) || ((a.rank||9e9)-(b.rank||9e9)); });
@@ -2893,6 +2895,8 @@ const ATT_KIND={
     why:'A quantity is a whole number from 0, a unit cost is whole dollars, and the two make a figure the board holds exactly. These came in a saved file as they are. Each is kept exactly as it was saved, and that service\u2019s buy counts as <b>$0</b> in every figure until it is typed again: <b>Go to it</b> opens the Aircraft &amp; Engine buy table.'},
   code:{t:'✂ CODES LONGER THAN THEIR LIMIT', go:'Go to it',
     why:'A CCaR record is at most 12 characters, a PID 20, a CLIN number 20, a CLIN description 140 and a WBS 40. These arrived longer, in a file or from another board, and are kept whole \u2014 never cut, because a cut code can be another record. CCaR may not match them: correct each where it is set. <b>Go to it</b> selects the requirement.'},
+  si:{t:'🏷 SI CODES TO REPAIR', go:'Go to it',
+    why:'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved \u2014 never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every export prints its SI code blank. <b>Go to it</b> opens the requirement\u2019s RECORD panel, where its Navy SI code shows the code as saved.'},
   awshort:{t:'◔ AWARDS SHORT OF THEIR FUNDING', go:'Go to it',
     why:'The awards do not yet cover the funded amount, discretionary + mandatory, so the rest is UNSCHEDULED in every spend plan. Discretionary fills the awards forward from the first and mandatory backward from the last, so what is short is usually mandatory. <b>Go to it</b> opens the award block, where <b>↵ put on last</b> covers it.'}
 };
@@ -2908,7 +2912,7 @@ function attBody(){
   if(!L.length){ el.innerHTML=h+'<div style="padding:10px;color:var(--green);font-weight:700">✓ Nothing left on this list.</div>'; return; }
   const money=attOpen==='oblig'? '<th>Funded · UNSCHEDULED</th>' : (attOpen==='awshort'? '<th>Discretionary undated</th><th>Mandatory undated</th>'
     : (attOpen==='awfix'? '<th style="text-align:left">What was done, and the split used</th>'
-    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<th style="text-align:left">As saved</th>' : '<th>Funded</th>')));
+    : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<th style="text-align:left">As saved</th>' : '<th>Funded</th>')));
   h+='<table class="fctab atttab" style="width:100%"><tr><th style="text-align:left">#</th><th style="text-align:left">Requirement</th>'
     +'<th style="text-align:left">PMO</th>'+money+'<th></th></tr>';
   let t1=0, t2=0;
@@ -2916,14 +2920,14 @@ function attBody(){
     const cells=attOpen==='awshort'? '<td>'+fM(r.ud)+'</td><td style="color:var(--purp)">'+fM(r.um)+'</td>'
       : (attOpen==='awfix'? '<td class="awfixwhat" style="text-align:left;white-space:normal"><b>'+(r.how==='repair'? 'NEEDS REPAIR' : (r.how==='split'? 'Inferred split' : 'Converted'))+'</b> \u2014 '
           +esc((Array.isArray(r.n)? r.n : []).join(' \u00b7 '))+'</td>'
-      : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
+      : ((attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td class="att'+attOpen+'" style="text-align:left;white-space:normal">'+esc(r.n.join(' \u00b7 '))+'</td>'
       : '<td>'+(r.funded>0.5? fM(r.funded) : '—')+'</td>'));
     t1+=attOpen==='awshort'? r.ud : r.funded; t2+=attOpen==='awshort'? r.um : 0;
     h+='<tr><td>'+(r.rank||'—')+'</td><td class="t" style="text-align:left">'+esc(dispTitle(it))+'</td>'
       +'<td style="text-align:left">'+esc(it.grp||'')+'</td>'+cells
       +'<td><button class="qb attgo" onclick="attGo('+jsa(attOpen)+','+jsa(r.id)+')">'+K.go+'</button></td></tr>'; });
   h+='<tr class="tot"><td></td><td style="text-align:left">'+L.length+' requirement'+(L.length===1?'':'s')+'</td><td></td>'
-    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code')? '<td></td>' : '<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
+    +(attOpen==='awshort'? '<td>'+fM(t1)+'</td><td>'+fM(t2)+'</td>' : ((attOpen==='awfix' || attOpen==='neg' || attOpen==='buy' || attOpen==='code' || attOpen==='si')? '<td></td>' : '<td>'+(t1>0.5? fM(t1) : '—')+'</td>'))+'<td></td></tr></table>';
   el.innerHTML=h;
 }
 // GO TO IT: the list closes, the requirement is selected, and the RECORD panel is at the field to fill
@@ -2934,6 +2938,8 @@ function attGo(k, id){
   if(k==='imp'){ openFld(id, 'cons'); return; }
   if(k==='ccar'){ editCcar(id); return; }
   if(k==='neg' || k==='code') return;
+  // v2.00 (U41): the RECORD panel, at the Navy SI code that shows the code as saved
+  if(k==='si'){ recOpen=id; render(); try{ const f=document.querySelector('#recBody select[onchange^="setSi("]'); if(f && f.focus) f.focus(); }catch(e){} return; }
   if(k==='buy'){ buysOpen=true; render(); try{ const w=document.getElementById('buysWrap'); if(w && w.scrollIntoView) w.scrollIntoView({block:'start'}); }catch(e){} return; }
   try{ const ins=document.getElementById('inspector'), blk=ins && ins.querySelector('.awdblk');
     if(blk){ if(blk.scrollIntoView) blk.scrollIntoView({block:'center'});
@@ -5782,10 +5788,10 @@ function applyState(st){
   // office would put a requirement in a list nothing reads.
   if(!S.dest||typeof S.dest!=='object'||Array.isArray(S.dest)) S.dest={};
   if(!S.si||typeof S.si!=='object'||Array.isArray(S.si)) S.si={};
-  Object.keys(S.si).forEach(function(rid){
-    const v=S.si[rid];
-    if(v!=='' && ['LA','EN','OT','FL','AT'].indexOf(v)<0) delete S.si[rid];
-  });
+  // v2.00 (U41): an SI code the file carried that is not one of the five is KEPT as it arrived -- never trimmed, put in
+  // capitals, dropped or swapped for the code the board would derive -- and named in Needs attention and Pre-flight
+  // (siIssues) until a person chooses one. Deleted here, it was gone on the next save, and its money sat under the derived
+  // code (an LM prime's under LA) with nothing said.
   if(!S.grp||typeof S.grp!=='object'||Array.isArray(S.grp)) S.grp={};
   // BEFORE the line below, always. That line deletes any assignment naming a PMO the list does not
   // carry, so a list not yet refreshed from state discards every move to an added office.
@@ -11150,8 +11156,23 @@ function monSpreadOf(id, p, f){
   });
   return {m:m, unsch:unsch};
 }
-function siOf(it){ if(!it || !siApplies()) return ''; const v=(S.si||{})[it.id]; return v!==undefined? v : siDefault(it); }
+// v2.00 (U41): a stored code that is not one of the five is NO code to every sum and export -- never the derived one, never a
+// guess at what was meant. It stays stored as it arrived (siRawOf) and is listed (siIssues) until a person chooses one.
+function siOf(it){ if(!it || !siApplies()) return ''; const v=(S.si||{})[it.id]; return v!==undefined? (siKnown(v)? v : '') : siDefault(it); }
 function siIsDerived(it){ return it? ((S.si||{})[it.id]===undefined) : false; }
+// one of the five, or '' (none, chosen by hand)
+function siKnown(v){ return v==='' || SI_CODES.some(function(c){ return c[0]===v; }); }
+// the stored value when it is anything else, else undefined
+function siRawOf(id){ const v=(S.si||{})[id]; return (v===undefined || siKnown(v))? undefined : v; }
+function siRawShow(v){ return inShow(typeof v==='string'? v : JSON.stringify(v)); }
+// every requirement on the board holding one, on O&M only (nothing reads an SI code anywhere else): [{id, label}]
+function siIssues(){
+  if(!siApplies()) return [];
+  const out=[];
+  (DATA.items||[]).forEach(function(it){ if(!it) return; const v=siRawOf(it.id);
+    if(v!==undefined) out.push({id:it.id, label:'SI '+siRawShow(v)+' is not one of LA, EN, OT, FL or AT'}); });
+  return out;
+}
 // siApplies() gates the BOARD (O&M only). THIS gates the REQUIREMENT, exactly as rcnEligible
 // does for the Air Force codes: measured, 73 of 155 O&M requirements hold no Navy or Marine
 // money at all, and CR_SVCS is the scope of both the 1A9A return and the export's SI column.
@@ -11161,6 +11182,7 @@ function siIsDerived(it){ return it? ((S.si||{})[it.id]===undefined) : false; }
 function siEligible(it){
   if(!it || !siApplies()) return false;
   if(siOf(it)) return true;
+  if(siRawOf(it.id)!==undefined) return true;     // v2.00 (U41): a code from a file the board does not recognize is chosen again here
   const idx=CR_SVCS.map(function(sv){ return SVC.indexOf(sv); })
                    .filter(function(i){ return i>=0; });
   return idx.some(function(i){ return (it.ask && it.ask[i]>0.005); });
@@ -11182,7 +11204,9 @@ function setSi(id, code){
   const now=siOf(itm);
   setStat(now? '\ud83c\udff7 '+esc(dispTitle(itm))+' \u2192 SI <b>'+esc(now)+'</b> '+esc(SI_LBL(now))
       +(siIsDerived(itm)? ' \u2014 derived, so it follows the PMO and prime rules.' : ' \u2014 set by hand.')
-    : '\ud83c\udff7 '+esc(dispTitle(itm))+' has no SI code. The CR cash export leaves the cell blank.');
+    // v2.00 (U41): a code from a file the board does not recognize is still there when a locked view refused the choice
+    : '\ud83c\udff7 '+esc(dispTitle(itm))+(siRawOf(id)!==undefined? ' keeps SI '+esc(siRawShow(siRawOf(id)))+' as saved, not one of '
+      +'LA, EN, OT, FL or AT.' : ' has no SI code.')+' The CR cash export leaves the cell blank.');
 }
 function togglePtype(id){
   const cur=ptypeOf(id);
@@ -11689,11 +11713,15 @@ function crExport(){
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('FY'+fy+' CRA APN OMN Oct-Mar - '+new Date().toISOString().slice(0,10)+'.xlsx');
   a.click();
-  const noSi=rows.filter(function(e){ const it=itemById(e.id); return it && !siOf(it); }).length;
+  // v2.00 (U41): a code from a file the board does not recognize is a blank cell too, and is counted apart from no SI code
+  const rawSi=rows.filter(function(e){ return itemById(e.id) && siRawOf(e.id)!==undefined; }).length;
+  const noSi=rows.filter(function(e){ const it=itemById(e.id); return it && !siOf(it); }).length-rawSi;
   setStat('⬇ CR cash return — '+rows.length+' requirement'+(rows.length===1?'':'s')+', '
     +crScope(' + ')+' combined, twelve 15-day windows Oct–Mar.'
     +(noSi? ' <b style="color:var(--amber)">'+noSi+' with no SI code</b> — those cells are blank; '
-       +'set them from each row’s ⋯ menu.' : ' Every row carries an SI code.'));
+       +'set them from each row’s ⋯ menu.' : (rawSi? '' : ' Every row carries an SI code.'))
+    +(rawSi? ' <b style="color:var(--amber)">'+rawSi+' with an SI code from a file that is not one of LA, EN, OT, FL or AT</b> '
+       +'(kept as saved, listed in Needs attention) — '+(rawSi===1? 'its cell is' : 'their cells are')+' blank'+(noSi? ' too' : '')+'.' : ''));
 }
 // NOTHING SWITCHES A HALF BY HAND (v1.94, item 45). crToggle() flipped a requirement's whole month between the
 // halves; Brad: "There should be no clicking to switch." To move cash, change the award's date.
@@ -13656,6 +13684,14 @@ function preflight(){
       +'(a cut code can be another record), and the exports print them as they are, so CCaR may not match them. Correct each '
       +'where it is set.',
       ci.map(function(c){ return {id:c.id, label:c.id? pfName(c.id) : 'Board list', sub:c.label}; })); }
+  // v2.00 (U41): an SI code a file carried that is not one of the five, kept as saved -- its money is on no recognized code
+  { let si=[]; try{ si=siIssues(); }catch(e){ si=[]; }
+    add('fix','si','SI codes the board does not recognize',
+      'An SI code is one of LA, EN, OT, FL or AT. These arrived in a file as something else and are kept exactly as saved, '
+      +'never trimmed, put in capitals or replaced by the code the board would derive. Until one is chosen, each one\u2019s money is '
+      +'counted under no recognized SI code in the Special Interest overview and the workbook\u2019s SI Codes by Month tab, and every '
+      +'export prints its SI code blank. Choose each in the requirement\u2019s Navy SI code.',
+      si.map(function(c){ return {id:c.id, label:pfName(c.id), sub:c.label}; })); }
 
   // ---- WORTH KNOWING ---------------------------------------------------------
   {
@@ -22332,7 +22368,8 @@ function scoreboard(){
             : pl(A.awfix.length,'award repaired on opening','awards repaired on opening')) : '')
         +(A.neg.length? ae('neg', '\u2796', pl(A.neg.length,'negative allocation to repair','negative allocations to repair')) : '')
         +(A.buy.length? ae('buy', '\u2708', pl(A.buy.length,'buy line to repair','buy lines to repair')) : '')
-        +(A.code.length? ae('code', '\u2702', pl(A.code.length,'requirement with a code over its limit','requirements with a code over its limit')) : '');
+        +(A.code.length? ae('code', '\u2702', pl(A.code.length,'requirement with a code over its limit','requirements with a code over its limit')) : '')
+        +(A.si.length? ae('si', '🏷', pl(A.si.length,'SI code to repair','SI codes to repair')) : '');
       pe.innerHTML = !SVC.length? '' :
         '<div class="pp"><div class="pplanes">'
           +'<span class="k">Discretionary</span><span class="n" data-v="'+Math.round(dBA)+'">'+fM(dBA)+' BA</span><span class="l" data-v="'+Math.round(dLeft)+'">'+fM(dLeft)+' left</span>'
@@ -23880,9 +23917,11 @@ function recFields(id, it){
         chosen? '' : 'following the requirement'));
     });
   }
+  const siRaw=siRawOf(id);     // v2.00 (U41): shown as it was saved, and selected, until a code is chosen
   if(siEligible(it)) acct.push(recF('Navy SI code', siOf(it),
     recSel('setSi('+jsa(id)+',this.value)', 'Special Interest code for the 1A9A cash return',
-      '<option value=""'+(siOf(it)?'':' selected')+'>— none —</option>'
+      '<option value=""'+((siOf(it) || siRaw!==undefined)?'':' selected')+'>— none —</option>'
+      +(siRaw!==undefined? '<option value="'+esc(String(siRaw))+'" selected>'+esc(siRawShow(siRaw))+' — not one of the five, kept as saved</option>' : '')
       +SI_CODES.map(function(c){ return '<option value="'+c[0]+'"'+(siOf(it)===c[0]?' selected':'')+'>'
         +c[0]+' — '+c[1]+(siDefault(it)===c[0]?' (derived)':'')+'</option>'; }).join(''))));
   // v1.91 (item 35): the BAE budget left Requirement edit for the RECORD panel -- one editor for the field.
@@ -24045,7 +24084,8 @@ function matBulk(){
               get:function(it){ return ptypeOf(it.id); },
               set:function(id,v){ if(!S.ptype) S.ptype={}; S.ptype[id]=v; }};
   if(siApplies()) out['Navy SI code']={opts:SI_CODES.map(function(c){ return [c[0], c[0]+' \u2014 '+c[1]]; }),
-              get:function(it){ return siOf(it); },
+              // v2.00 (U41): a code kept from a file is an answer a bulk write overwrites, and the question counts it so
+              get:function(it){ const r=siRawOf(it.id); return r!==undefined? String(r) : siOf(it); },
               set:function(id,v){ setSi(id,v); }};
   if(rcnApplies()) out['RCN / EEIC']={opts:rcnReg().map(function(e){ return [e.k, rcnLabel(e.k)||'(blank)']; }),
               get:function(it){ return rcnAsgOf(it.id); },
@@ -24616,7 +24656,7 @@ function siMatrix(){
   const CRI=CR_SVCS.map(c=>SVC.indexOf(c)).filter(i=>i>=0);
   const NOCODE='— no code set —';
   const rows={}, mk=()=>CRI.map(_=>0);
-  let nSet=0, nDerived=0, uncoded=0, inScope=0;
+  let nSet=0, nDerived=0, uncoded=0, inScope=0, rawTot=0, nRaw=0;
   S.order.forEach(id=>{
     const it=itemById(id); if(!it) return;
     const pt=T[id]; if(!pt) return;
@@ -24626,6 +24666,7 @@ function siMatrix(){
     inScope+=tot;
     const code=siOf(it)||'';
     if(code){ if(siIsDerived(it)) nDerived++; else nSet++; } else uncoded+=tot;
+    if(!code && siRawOf(id)!==undefined){ rawTot+=tot; nRaw++; }   // v2.00 (U41): of that, under a code the board does not recognize
     const k=code||NOCODE;
     if(!rows[k]) rows[k]=mk();
     vec.forEach((v,j)=>rows[k][j]+=v);
@@ -24649,7 +24690,7 @@ function siMatrix(){
     h+=line('<b>'+c[0]+'</b> <span style="color:var(--dim);font-weight:400">'+esc(c[1])+'</span>',
             rows[c[0]]||mk());
   });
-  if(rows[NOCODE]) h+=line('<span style="color:var(--amber)">'+NOCODE+'</span>', rows[NOCODE]);
+  if(rows[NOCODE]) h+=line('<span style="color:var(--amber)">'+(siIssues().length? '— no recognized code —' : NOCODE)+'</span>', rows[NOCODE]);
   h+='<tr class="tot"><td style="text-align:left">TOTAL</td>'
     +colT.map(v=>'<td>'+fM(v)+'</td>').join('')
     +'<td style="border-left:1px solid var(--gold)">'+fM(grand)+'</td><td></td></tr></table></div>';
@@ -24658,8 +24699,13 @@ function siMatrix(){
     +esc(crScope(', '))+' only — USAF, ANG and AFRC do not use Special Interest codes, so their '
     +'money is out of scope here rather than uncoded, and is not in these totals. Same scope as the '
     +'1A9A CR cash return.'
-    +(uncoded>0.005? ' <b style="color:var(--amber)">'+fM(uncoded)+'</b> carries no code yet — set '
+    +(uncoded>0.005 && rawTot<=0.005? ' <b style="color:var(--amber)">'+fM(uncoded)+'</b> carries no code yet — set '
       +'one from a requirement’s ⋯ menu.':'')
+    // v2.00 (U41): money under a code from a file the board does not recognize is in that row, and said to be
+    +(rawTot>0.005? ' <b style="color:var(--amber)">'+fM(uncoded)+'</b> carries no recognized code: '+fM(rawTot)+' of it is on '
+      +nRaw+' requirement'+(nRaw===1?'':'s')+' whose SI code from a file is not one of LA, EN, OT, FL or AT (kept as saved, '
+      +'listed in Needs attention)'+(uncoded-rawTot>0.005? ' and '+fM(uncoded-rawTot)+' carries no code yet' : '')
+      +' — set one from a requirement’s ⋯ menu.' : '')
     +(nDerived? ' '+nDerived+' of '+(nDerived+nSet)+' coded requirements take a <b>derived</b> code '
       +'(an LM prime reads as Airframe, Propulsion as Engine); those re-derive if the requirement '
       +'changes, and choosing the derived answer stores nothing.':'')
@@ -30486,7 +30532,8 @@ function exportExcel(){
         function(k){ const c=SI_CODES.filter(function(x){ return x[0]===k; })[0];
                      return k+(c? '  '+c[1] : ''); },
         function(it){ return siOf(it); },
-        '\u2014 no SI code set \u2014', crSvcName)
+        // v2.00 (U41): with a code from a file the board does not recognize, that money is in this row, and the row says so
+        siIssues().length? '\u2014 no recognized SI code \u2014' : '\u2014 no SI code set \u2014', crSvcName)
     : null;
 
   const sheets=[fs, bandSheet(), fcSheet, crSheet, gmx];
