@@ -1,0 +1,13 @@
+{
+  "command": [
+    "timeout",
+    "30",
+    "python3",
+    "-I",
+    "/workspace/orbit-round2-20261013-1331ET/B2-review/probes/inspect-xlsx-independent.py"
+  ],
+  "startUTC": "2026-10-13T23:48:23.752351+00:00",
+  "finishUTC": "2026-10-13T23:48:23.901513+00:00",
+  "exit": 0,
+  "seconds": 0.14916619996074587
+}

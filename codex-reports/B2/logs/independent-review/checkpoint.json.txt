@@ -1,0 +1,29 @@
+{
+  "role": "B2 independent review resume",
+  "completionUTC": "2026-10-13T23:49:38.550940+00:00",
+  "completionET": "7:49:38 PM ET, 13 Oct 2026",
+  "base": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+  "snapshot": "cycreg-snapshot-20261013-1322",
+  "boardBlob": "59cff8f34a04d656604c352909966b27998f7384",
+  "coverage": {
+    "observed": "base and snapshot inspected",
+    "money": "completed only literal B2/adversarial grouping cases",
+    "preservation": "completed exercised payload retention; broader routes outside scope",
+    "interaction": "completed scoped review with open wording finding",
+    "runtime": "35/35 snapshot; base17/35 pass,18 fail; diagnostics separately recorded",
+    "artifactInspection": "snapshot56/56; base32pass24fail"
+  },
+  "unresolved": [
+    {
+      "priority": "P2",
+      "finding": "full-own import first-entry statement contradicts locked cycle non-text-key filter",
+      "next": "narrow statement and rerun on changed snapshot"
+    }
+  ],
+  "pending": [
+    "native Excel/browser acceptance",
+    "combined-tree coverage",
+    "C1/D1 held"
+  ],
+  "externalWrites": false
+}

@@ -1,0 +1,286 @@
+{
+  "provenance": {
+    "base": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+    "snapshot": "cycreg-snapshot-20261013-1322",
+    "label": "base",
+    "startedUTC": "2026-10-13T17:37:28.136Z",
+    "finishedUTC": "2026-10-13T17:37:30.829Z",
+    "boardBlob": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+    "bootBlob": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+    "node": "v24.19.0",
+    "jsdom": "27.0.0",
+    "probeSHA256": "0cc90f82de7071f4419480cde8810ce478d62a063a9160c7216c15bccebb76b8"
+  },
+  "summary": {
+    "checks": 10,
+    "passed": 5,
+    "failed": 0,
+    "incomplete": 5,
+    "controls": 5,
+    "controlFailures": 0
+  },
+  "checks": [
+    {
+      "case": "duplicate-K1",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "harness",
+      "ok": false,
+      "kind": "incomplete",
+      "error": "TypeError: Cannot read properties of undefined (reading 'items')\n    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338\n    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)\n    at async node:internal/modules/esm/loader:643:26\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)"
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "harness",
+      "ok": false,
+      "kind": "incomplete",
+      "error": "TypeError: Cannot read properties of undefined (reading 'items')\n    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338"
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "harness",
+      "ok": false,
+      "kind": "incomplete",
+      "error": "TypeError: Cannot read properties of undefined (reading 'items')\n    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338"
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "harness",
+      "ok": false,
+      "kind": "incomplete",
+      "error": "TypeError: Cannot read properties of undefined (reading 'items')\n    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338"
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "harness",
+      "ok": false,
+      "kind": "incomplete",
+      "error": "TypeError: Cannot read properties of undefined (reading 'items')\n    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338"
+    }
+  ],
+  "workbooks": []
+}

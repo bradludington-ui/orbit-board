@@ -1,0 +1,22 @@
+{
+  "command": [
+    "env",
+    "BOARD=/workspace/orbit-round2-20261013-1331ET/B2/base/prioritization-board-grid.html",
+    "NODE_OPTIONS=--max-old-space-size=4096",
+    "node",
+    "--import",
+    "/workspace/orbit-codex-batches-20261013-1205ET/A1/runtime-encoding-shim.mjs",
+    "probes/cycle-export-independent.mjs",
+    "base"
+  ],
+  "cwd": "/workspace/orbit-round2-20261013-1331ET/B2",
+  "cap_seconds": 180.0,
+  "started_ET": "2026-10-13T13:37:27.783096-04:00",
+  "finished_ET": "2026-10-13T13:37:30.939545-04:00",
+  "duration_seconds": 3.157,
+  "exit": 1,
+  "timed_out": false,
+  "owned_process_group": 59766,
+  "log": "logs/independent-base.log",
+  "completion": "failed"
+}

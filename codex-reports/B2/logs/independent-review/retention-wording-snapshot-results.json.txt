@@ -1,0 +1,85 @@
+{
+  "startedUTC": "2026-10-13T23:46:11.217Z",
+  "finishedUTC": "2026-10-13T23:46:12.867Z",
+  "boardBlob": "59cff8f34a04d656604c352909966b27998f7384",
+  "results": [
+    {
+      "numeric": false,
+      "cancelReturns": false,
+      "acceptReturns": true,
+      "questions": [
+        "Import everything from “old-own-board.html” (saved by v2.0)?\n\nThis REPLACES what this board holds with what the file holds:\n\n  • O&M — 1 year, 1 locked cycle\n  • The BAE list — 0 rows\n  • Execution data — 0 appropriations\n  • Cost estimates — 0\n  • The reprogramming log — 0 entries\n  • The destination list — 8\n\nIt is built for opening a new version and carrying on where the old one left off. Proceed?"
+      ],
+      "actual": {
+        "pointer": "K1",
+        "viewRegistry": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "",
+            "svc": [
+              "USAF",
+              "ANG",
+              "AFRC"
+            ]
+          }
+        ],
+        "resolved": {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        "label": "11111 / AAAAA",
+        "retained": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "",
+            "svc": [
+              "USAF",
+              "ANG",
+              "AFRC"
+            ]
+          }
+        ]
+      },
+      "claim": false
+    },
+    {
+      "numeric": true,
+      "cancelReturns": false,
+      "acceptReturns": true,
+      "questions": [
+        "Import everything from “old-own-board.html” (saved by v2.0)?\n\nThis REPLACES what this board holds with what the file holds:\n\n  • O&M — 1 year, 1 locked cycle\n  • The BAE list — 0 rows\n  • Execution data — 0 appropriations\n  • Cost estimates — 0\n  • The reprogramming log — 0 entries\n  • The destination list — 8\n  • RCN / EEIC lists as the file holds them, which a file handed over is refused for: O&M PB27’s list holds a key that is not text (rcn[0].k is the number 1). Each requirement reads the first entry with its key, as the ORBIT that saved the file did, and the RCN-EEIC sheet counts each key once and money on no combination only as not assigned\n\nIt is built for opening a new version and carrying on where the old one left off. Proceed?"
+      ],
+      "actual": {
+        "pointer": 1,
+        "viewRegistry": [],
+        "resolved": null,
+        "label": "",
+        "retained": [
+          {
+            "k": 1,
+            "rcn": "99999",
+            "eeic": "ZZZZZ",
+            "t": "",
+            "svc": [
+              "USAF",
+              "ANG",
+              "AFRC"
+            ]
+          }
+        ]
+      },
+      "claim": true
+    }
+  ]
+}

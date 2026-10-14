@@ -1,0 +1,57 @@
+{"groups": {"base": {"workbooks": 28, "passed_checks": 1040, "failed_checks": 192, "defective_workbooks": 12}, "snapshot": {"workbooks": 28, "passed_checks": 1232, "failed_checks": 0, "defective_workbooks": 0}}, "workbooks": 56, "output": "/workspace/orbit-round2-20261013-1331ET/B2/logs/xlsx-independent-results.json"}
+base-duplicate-K1-direct-open.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-duplicate-K1-direct-saved-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-duplicate-K1-full-imported-browser-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-duplicate-K1-full-imported-saved-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-ordinary-K1-direct-open.xlsx | 44 passed | 0 failed | 
+base-ordinary-K1-direct-saved-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-K1-full-imported-browser-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-K1-full-imported-saved-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-K1-one-imported.xlsx | 44 passed | 0 failed | 
+base-ordinary-K1-one-saved-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-K1-several-imported.xlsx | 44 passed | 0 failed | 
+base-ordinary-K1-several-saved-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-no-assignment-direct-open.xlsx | 44 passed | 0 failed | 
+base-ordinary-no-assignment-direct-saved-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-no-assignment-full-imported-browser-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-no-assignment-full-imported-saved-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-no-assignment-one-imported.xlsx | 44 passed | 0 failed | 
+base-ordinary-no-assignment-one-saved-reopened.xlsx | 44 passed | 0 failed | 
+base-ordinary-no-assignment-several-imported.xlsx | 44 passed | 0 failed | 
+base-ordinary-no-assignment-several-saved-reopened.xlsx | 44 passed | 0 failed | 
+base-single-__none__-assigned-direct-open.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-single-__none__-assigned-direct-saved-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-single-__none__-assigned-full-imported-browser-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-single-__none__-assigned-full-imported-saved-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-single-__none__-unassigned-direct-open.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-single-__none__-unassigned-direct-saved-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-single-__none__-unassigned-full-imported-browser-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+base-single-__none__-unassigned-full-imported-saved-reopened.xlsx | 28 passed | 16 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total
+snapshot-duplicate-K1-direct-open.xlsx | 44 passed | 0 failed | 
+snapshot-duplicate-K1-direct-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-duplicate-K1-full-imported-browser-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-duplicate-K1-full-imported-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-K1-direct-open.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-K1-direct-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-K1-full-imported-browser-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-K1-full-imported-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-K1-one-imported.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-K1-one-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-K1-several-imported.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-K1-several-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-no-assignment-direct-open.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-no-assignment-direct-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-no-assignment-full-imported-browser-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-no-assignment-full-imported-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-no-assignment-one-imported.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-no-assignment-one-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-no-assignment-several-imported.xlsx | 44 passed | 0 failed | 
+snapshot-ordinary-no-assignment-several-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-single-__none__-assigned-direct-open.xlsx | 44 passed | 0 failed | 
+snapshot-single-__none__-assigned-direct-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-single-__none__-assigned-full-imported-browser-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-single-__none__-assigned-full-imported-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-single-__none__-unassigned-direct-open.xlsx | 44 passed | 0 failed | 
+snapshot-single-__none__-unassigned-direct-saved-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-single-__none__-unassigned-full-imported-browser-reopened.xlsx | 44 passed | 0 failed | 
+snapshot-single-__none__-unassigned-full-imported-saved-reopened.xlsx | 44 passed | 0 failed | 

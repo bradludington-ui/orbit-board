@@ -1,0 +1,16 @@
+{
+  "command": [
+    "BOARD=/workspace/orbit-round2-20261013-1331ET/B2/base/prioritization-board-grid.html",
+    "timeout",
+    "-k",
+    "10",
+    "180",
+    "node",
+    "/workspace/orbit-round2-20261013-1331ET/B2-review/probes/adversarial-registry.mjs"
+  ],
+  "startedUTC": "2026-10-13T23:46:54.164199+00:00",
+  "finishedUTC": "2026-10-13T23:46:59.555823+00:00",
+  "exit": 1,
+  "seconds": 5.391627395991236,
+  "timeout": false
+}

@@ -1,0 +1,3327 @@
+{
+  "startedUTC": "2026-10-13T23:46:54.522Z",
+  "finishedUTC": "2026-10-13T23:46:59.523Z",
+  "board": "/workspace/orbit-round2-20261013-1331ET/B2/base/prioritization-board-grid.html",
+  "boardBlob": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+  "node": "v24.19.0",
+  "summary": {
+    "checks": 35,
+    "pass": 17,
+    "fail": 18,
+    "incomplete": 0
+  },
+  "checks": [
+    {
+      "case": "different-label-same-key",
+      "route": "live",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          2700,
+          0,
+          2700
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          600,
+          0,
+          600
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          3300,
+          0,
+          3300
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "different-label-same-key",
+      "route": "live",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          2700,
+          2700
+        ],
+        [
+          600,
+          600
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "different-label-same-key",
+      "route": "saved-file-reopen",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          2700,
+          0,
+          2700
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          600,
+          0,
+          600
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          3300,
+          0,
+          3300
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "different-label-same-key",
+      "route": "saved-file-reopen",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          2700,
+          2700
+        ],
+        [
+          600,
+          600
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "different-label-same-key",
+      "route": "saved-file-reopen",
+      "name": "registry retained in saved payload",
+      "got": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "33333",
+          "eeic": "CCCCC",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "want": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "33333",
+          "eeic": "CCCCC",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "case": "reserved-assigned",
+      "route": "live",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "reserved-assigned",
+      "route": "live",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "reserved-assigned",
+      "route": "saved-file-reopen",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "reserved-assigned",
+      "route": "saved-file-reopen",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "reserved-assigned",
+      "route": "saved-file-reopen",
+      "name": "registry retained in saved payload",
+      "got": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "want": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "case": "reserved-unassigned",
+      "route": "live",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "reserved-unassigned",
+      "route": "live",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "reserved-unassigned",
+      "route": "saved-file-reopen",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "reserved-unassigned",
+      "route": "saved-file-reopen",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "reserved-unassigned",
+      "route": "saved-file-reopen",
+      "name": "registry retained in saved payload",
+      "got": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "want": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "case": "private-name-collision-control",
+      "route": "live",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "private-name-collision-control",
+      "route": "live",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "private-name-collision-control",
+      "route": "saved-file-reopen",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "private-name-collision-control",
+      "route": "saved-file-reopen",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "private-name-collision-control",
+      "route": "saved-file-reopen",
+      "name": "registry retained in saved payload",
+      "got": [
+        {
+          "k": "e0",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "e1",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "want": [
+        {
+          "k": "e0",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "e1",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "case": "numeric-and-text-working",
+      "route": "live",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "numeric-and-text-working",
+      "route": "live",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "numeric-and-text-working",
+      "route": "saved-file-reopen",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "numeric-and-text-working",
+      "route": "saved-file-reopen",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "numeric-and-text-working",
+      "route": "saved-file-reopen",
+      "name": "registry retained in saved payload",
+      "got": [
+        {
+          "k": 1,
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "1",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "want": [
+        {
+          "k": 1,
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "1",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "case": "numeric-and-text-locked-legacy-filter",
+      "route": "live",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "numeric-and-text-locked-legacy-filter",
+      "route": "live",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "numeric-and-text-locked-legacy-filter",
+      "route": "saved-file-reopen",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": false
+    },
+    {
+      "case": "numeric-and-text-locked-legacy-filter",
+      "route": "saved-file-reopen",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "numeric-and-text-locked-legacy-filter",
+      "route": "saved-file-reopen",
+      "name": "registry retained in saved payload",
+      "got": [
+        {
+          "k": 1,
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "1",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "want": [
+        {
+          "k": 1,
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "1",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "ok": true
+    },
+    {
+      "case": "ordinary-service-ownership-control",
+      "route": "live",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "ordinary-service-ownership-control",
+      "route": "live",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "ordinary-service-ownership-control",
+      "route": "saved-file-reopen",
+      "name": "actual workbook service, combination, December and totals",
+      "got": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "want": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "ordinary-service-ownership-control",
+      "route": "saved-file-reopen",
+      "name": "both summary and requirement-breakout service totals",
+      "got": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "want": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "ok": true
+    },
+    {
+      "case": "ordinary-service-ownership-control",
+      "route": "saved-file-reopen",
+      "name": "registry retained in saved payload",
+      "got": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "want": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "ok": true
+    }
+  ],
+  "books": [
+    {
+      "case": "different-label-same-key",
+      "route": "live",
+      "sha256": "64f7090d5a3ab91c40f91e34cf5cf4c0e76573c1c4b581784ca289ed40f8a4fa",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          2700,
+          0,
+          2700
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          600,
+          0,
+          600
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          3300,
+          0,
+          3300
+        ]
+      ],
+      "totals": [
+        [
+          2700,
+          2700
+        ],
+        [
+          600,
+          600
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "different-label-same-key",
+      "route": "saved-file-reopen",
+      "sha256": "64f7090d5a3ab91c40f91e34cf5cf4c0e76573c1c4b581784ca289ed40f8a4fa",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          2700,
+          0,
+          2700
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          600,
+          0,
+          600
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          3300,
+          0,
+          3300
+        ]
+      ],
+      "totals": [
+        [
+          2700,
+          2700
+        ],
+        [
+          600,
+          600
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "reserved-assigned",
+      "route": "live",
+      "sha256": "1f7b1bab508fa7f573f595e11b4e1dff3dd60a6d8ea8858c9575a69ab7166e4d",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "totals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "reserved-assigned",
+      "route": "saved-file-reopen",
+      "sha256": "1f7b1bab508fa7f573f595e11b4e1dff3dd60a6d8ea8858c9575a69ab7166e4d",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "totals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "reserved-unassigned",
+      "route": "live",
+      "sha256": "1f7b1bab508fa7f573f595e11b4e1dff3dd60a6d8ea8858c9575a69ab7166e4d",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "totals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "reserved-unassigned",
+      "route": "saved-file-reopen",
+      "sha256": "1f7b1bab508fa7f573f595e11b4e1dff3dd60a6d8ea8858c9575a69ab7166e4d",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "totals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "private-name-collision-control",
+      "route": "live",
+      "sha256": "5c17c6b2e61c8b4cc223d29aaf44a859b061590b123f7c489e99f87314edb8f9",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "private-name-collision-control",
+      "route": "saved-file-reopen",
+      "sha256": "5c17c6b2e61c8b4cc223d29aaf44a859b061590b123f7c489e99f87314edb8f9",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "numeric-and-text-working",
+      "route": "live",
+      "sha256": "08038a8f4bcf9d88c5b7628e4b4797f7704e70f4bfcecf50b10bb2d4142d0457",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "totals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "numeric-and-text-working",
+      "route": "saved-file-reopen",
+      "sha256": "08038a8f4bcf9d88c5b7628e4b4797f7704e70f4bfcecf50b10bb2d4142d0457",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "totals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "numeric-and-text-locked-legacy-filter",
+      "route": "live",
+      "sha256": "b2e99bdfac1505226ee6d365d8a76352f21d06dacd8303831d69e7d930345a4d",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "numeric-and-text-locked-legacy-filter",
+      "route": "saved-file-reopen",
+      "sha256": "b2e99bdfac1505226ee6d365d8a76352f21d06dacd8303831d69e7d930345a4d",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-service-ownership-control",
+      "route": "live",
+      "sha256": "5c17c6b2e61c8b4cc223d29aaf44a859b061590b123f7c489e99f87314edb8f9",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-service-ownership-control",
+      "route": "saved-file-reopen",
+      "sha256": "5c17c6b2e61c8b4cc223d29aaf44a859b061590b123f7c489e99f87314edb8f9",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    }
+  ]
+}

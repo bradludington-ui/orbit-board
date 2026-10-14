@@ -1,0 +1,30 @@
+{
+  "checks": [
+    {
+      "file": "audit-recon.mjs.diff",
+      "expected": "59137448f07116817ae95d0ab67aa19c63a046474a38ec336fd2ae1acf6ce902",
+      "actual": "59137448f07116817ae95d0ab67aa19c63a046474a38ec336fd2ae1acf6ce902",
+      "ok": true
+    },
+    {
+      "file": "mutate.mjs.diff",
+      "expected": "230a3f74e847d394de66e19c59d8b0d8b747041e0f2f7ef909a4d56e5bc7f5fe",
+      "actual": "230a3f74e847d394de66e19c59d8b0d8b747041e0f2f7ef909a4d56e5bc7f5fe",
+      "ok": true
+    },
+    {
+      "file": "prioritization-board-grid.html.diff",
+      "expected": "5517eaf1e5d03d99f9b68915280963e5d0c22864d9b1952363af206f915c5102",
+      "actual": "5517eaf1e5d03d99f9b68915280963e5d0c22864d9b1952363af206f915c5102",
+      "ok": true
+    },
+    {
+      "file": "SNAPSHOT.txt",
+      "expected": "def7651da369d703ac60dbc952074d283a50d3d74e81d848fe0e4fc99bea33dd",
+      "actual": "def7651da369d703ac60dbc952074d283a50d3d74e81d848fe0e4fc99bea33dd",
+      "ok": true
+    }
+  ],
+  "passed": 4,
+  "failed": 0
+}

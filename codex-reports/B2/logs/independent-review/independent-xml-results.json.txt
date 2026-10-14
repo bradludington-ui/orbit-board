@@ -1,0 +1,7022 @@
+{
+  "startUTC": "2026-10-13T23:48:23.778989+00:00",
+  "finishUTC": "2026-10-13T23:48:23.887830+00:00",
+  "seconds": 0.10884526802692562,
+  "parser": "Python stdlib zipfile and XML ElementTree; no board reader or arithmetic helper",
+  "summary": {
+    "base": {
+      "files": 28,
+      "checks": 56,
+      "pass": 32,
+      "fail": 24
+    },
+    "snapshot": {
+      "files": 28,
+      "checks": 56,
+      "pass": 56,
+      "fail": 0
+    }
+  },
+  "records": [
+    {
+      "file": "base-duplicate-K1-direct-open.xlsx",
+      "sha256": "533e15e45b6794cf75fa468e319fbdef9ab1f62621d9c40f10992716315b481b",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-duplicate-K1-direct-saved-reopened.xlsx",
+      "sha256": "533e15e45b6794cf75fa468e319fbdef9ab1f62621d9c40f10992716315b481b",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-duplicate-K1-full-imported-browser-reopened.xlsx",
+      "sha256": "533e15e45b6794cf75fa468e319fbdef9ab1f62621d9c40f10992716315b481b",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-duplicate-K1-full-imported-saved-reopened.xlsx",
+      "sha256": "533e15e45b6794cf75fa468e319fbdef9ab1f62621d9c40f10992716315b481b",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-ordinary-K1-direct-open.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-K1-direct-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-K1-full-imported-browser-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-K1-full-imported-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-K1-one-imported.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-K1-one-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-K1-several-imported.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-K1-several-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-no-assignment-direct-open.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-no-assignment-direct-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-no-assignment-full-imported-browser-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-no-assignment-full-imported-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-no-assignment-one-imported.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-no-assignment-one-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-no-assignment-several-imported.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-ordinary-no-assignment-several-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "base-single-__none__-assigned-direct-open.xlsx",
+      "sha256": "d47b5ef212b6bc83703f86ca22f0c39283a9c4305da942f60dcdce775b999fec",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-single-__none__-assigned-direct-saved-reopened.xlsx",
+      "sha256": "d47b5ef212b6bc83703f86ca22f0c39283a9c4305da942f60dcdce775b999fec",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-single-__none__-assigned-full-imported-browser-reopened.xlsx",
+      "sha256": "d47b5ef212b6bc83703f86ca22f0c39283a9c4305da942f60dcdce775b999fec",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-single-__none__-assigned-full-imported-saved-reopened.xlsx",
+      "sha256": "d47b5ef212b6bc83703f86ca22f0c39283a9c4305da942f60dcdce775b999fec",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-single-__none__-unassigned-direct-open.xlsx",
+      "sha256": "d47b5ef212b6bc83703f86ca22f0c39283a9c4305da942f60dcdce775b999fec",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-single-__none__-unassigned-direct-saved-reopened.xlsx",
+      "sha256": "d47b5ef212b6bc83703f86ca22f0c39283a9c4305da942f60dcdce775b999fec",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-single-__none__-unassigned-full-imported-browser-reopened.xlsx",
+      "sha256": "d47b5ef212b6bc83703f86ca22f0c39283a9c4305da942f60dcdce775b999fec",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "base-single-__none__-unassigned-full-imported-saved-reopened.xlsx",
+      "sha256": "d47b5ef212b6bc83703f86ca22f0c39283a9c4305da942f60dcdce775b999fec",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          1800,
+          0,
+          1800
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          400,
+          0,
+          400
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          2200,
+          0,
+          2200
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": false,
+      "bothTotals": [
+        [
+          1800,
+          1800
+        ],
+        [
+          400,
+          400
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": false
+    },
+    {
+      "file": "snapshot-duplicate-K1-direct-open.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-duplicate-K1-direct-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-duplicate-K1-full-imported-browser-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-duplicate-K1-full-imported-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-K1-direct-open.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-K1-direct-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-K1-full-imported-browser-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-K1-full-imported-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-K1-one-imported.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-K1-one-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-K1-several-imported.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-K1-several-saved-reopened.xlsx",
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "topRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-no-assignment-direct-open.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-no-assignment-direct-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-no-assignment-full-imported-browser-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-no-assignment-full-imported-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-no-assignment-one-imported.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-no-assignment-one-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-no-assignment-several-imported.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-ordinary-no-assignment-several-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-single-__none__-assigned-direct-open.xlsx",
+      "sha256": "bd9f494c55db66cef3679cecafad1b03a01c785f053652c75d1926e779a584b1",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-single-__none__-assigned-direct-saved-reopened.xlsx",
+      "sha256": "bd9f494c55db66cef3679cecafad1b03a01c785f053652c75d1926e779a584b1",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-single-__none__-assigned-full-imported-browser-reopened.xlsx",
+      "sha256": "bd9f494c55db66cef3679cecafad1b03a01c785f053652c75d1926e779a584b1",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-single-__none__-assigned-full-imported-saved-reopened.xlsx",
+      "sha256": "bd9f494c55db66cef3679cecafad1b03a01c785f053652c75d1926e779a584b1",
+      "topRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-single-__none__-unassigned-direct-open.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-single-__none__-unassigned-direct-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-single-__none__-unassigned-full-imported-browser-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    },
+    {
+      "file": "snapshot-single-__none__-unassigned-full-imported-saved-reopened.xlsx",
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "topRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "wantedTopRows": [
+        [
+          "USAF",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "\u2014 no RCN/EEIC assigned \u2014",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES \u2014 TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "topOk": true,
+      "bothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "wantedBothTotals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "bothOk": true
+    }
+  ]
+}

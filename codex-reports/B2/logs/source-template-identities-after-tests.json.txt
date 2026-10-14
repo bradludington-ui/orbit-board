@@ -1,0 +1,12 @@
+[
+  {
+    "label": "base",
+    "board_blob": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+    "sha256": "5cb9db21510d96c70a1ed37b1743019039ff053c23bd5bb3cfa104ff6b0e532e"
+  },
+  {
+    "label": "snapshot",
+    "board_blob": "59cff8f34a04d656604c352909966b27998f7384",
+    "sha256": "c162ec8dd12e4edb865cae71d97fcdd513d74725c349e8548b4c1ccc28ac57f7"
+  }
+]

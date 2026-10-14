@@ -1,0 +1,14 @@
+TypeError: Cannot read properties of undefined (reading 'items')
+    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338
+    at ModuleJob.run (node:internal/modules/esm/module_job:439:25)
+    at async node:internal/modules/esm/loader:643:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+TypeError: Cannot read properties of undefined (reading 'items')
+    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338
+TypeError: Cannot read properties of undefined (reading 'items')
+    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338
+TypeError: Cannot read properties of undefined (reading 'items')
+    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338
+TypeError: Cannot read properties of undefined (reading 'items')
+    at file:///workspace/orbit-round2-20261013-1331ET/B2/probes/cycle-export-independent.mjs:25:338
+{"label":"snapshot","summary":{"checks":10,"passed":5,"failed":0,"incomplete":5,"controls":5,"controlFailures":0}}

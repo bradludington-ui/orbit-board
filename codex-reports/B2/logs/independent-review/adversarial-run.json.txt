@@ -1,0 +1,15 @@
+{
+  "command": [
+    "timeout",
+    "-k",
+    "10",
+    "180",
+    "node",
+    "/workspace/orbit-round2-20261013-1331ET/B2-review/probes/adversarial-registry.mjs"
+  ],
+  "startedUTC": "2026-10-13T23:45:12.017901+00:00",
+  "finishedUTC": "2026-10-13T23:45:17.310814+00:00",
+  "exit": 0,
+  "seconds": 5.29291771305725,
+  "timeout": false
+}

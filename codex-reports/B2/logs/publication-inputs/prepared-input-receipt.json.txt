@@ -1,0 +1,12 @@
+{
+  "input_commit": "3e38ac8323fa984fe0612fd00475f07c0495219c",
+  "base": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+  "base_board": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+  "README_blob": "c2429dd177f6da5462605677a398ea7324b102f8",
+  "snapshot": "cycreg-snapshot-20261013-1322",
+  "manifest_check": "snapshot-manifest-check.json",
+  "snapshot_blobs": "B2/snapshot-identities.json",
+  "prepared_ET": "2026-10-13T13:34:16.930719-04:00",
+  "all_patches_no_fuzz": true,
+  "no_mutation_module_execution": true
+}

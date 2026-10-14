@@ -1,0 +1,112 @@
+[
+  {
+    "path": "checkpoint.json",
+    "sha256": "25da3c5ddda5d003552480f7c5a39413f8406507b9bf18809eb4436094fa5a12",
+    "bytes": 1116
+  },
+  {
+    "path": "logs/adversarial-base-results.json",
+    "sha256": "1bdde8356b900072458b99de59de8fc56eab43d8cc28d1ad98bcd166c6088b0b",
+    "bytes": 54664
+  },
+  {
+    "path": "logs/adversarial-base-run.json",
+    "sha256": "47aaaac878d2642e91230a15ac61fdd4a748ed37c46c0e81632c7493164797f1",
+    "bytes": 431
+  },
+  {
+    "path": "logs/adversarial-base.log",
+    "sha256": "9118a11f14b1794a07dcd48601547ca88df3722ed719585d3dc8b4c3c34a87d4",
+    "bytes": 8340
+  },
+  {
+    "path": "logs/adversarial-run.json",
+    "sha256": "59c33aa01f03531aee632e1da65c46e36f00d4c96e1865405a9bb8f292fcbf9e",
+    "bytes": 338
+  },
+  {
+    "path": "logs/adversarial-snapshot-repeat-run.json",
+    "sha256": "6ba260ef491bdb62024cab99edc9003e0fafcd48376b58f110455ad92a00e39e",
+    "bytes": 429
+  },
+  {
+    "path": "logs/adversarial-snapshot-repeat.log",
+    "sha256": "fce82a90307ea1a379aef4b36b60b25085a506b28d3ef72f8478de27faf7df49",
+    "bytes": 48
+  },
+  {
+    "path": "logs/adversarial-snapshot-results.json",
+    "sha256": "2f18739bd4ca93eaa572fc50223e7a38d8c1548eaf14e12b06b5ca17ca9262ae",
+    "bytes": 50225
+  },
+  {
+    "path": "logs/adversarial.log",
+    "sha256": "fce82a90307ea1a379aef4b36b60b25085a506b28d3ef72f8478de27faf7df49",
+    "bytes": 48
+  },
+  {
+    "path": "logs/independent-xml-results.json",
+    "sha256": "fe9e7a2380dc852f26da0f0f37f772510734586cb2bf6a2978295811b06459ee",
+    "bytes": 113672
+  },
+  {
+    "path": "logs/independent-xml-run.json",
+    "sha256": "46ced9c4a79f80e114c01caa340b0a6bdcd77b568c1df7788a373f77b73b2b42",
+    "bytes": 312
+  },
+  {
+    "path": "logs/independent-xml.log",
+    "sha256": "f09df5cda9d7c8c7659cbed0a60fd15a54afc177255dccc01b8f24acfc600c9a",
+    "bytes": 126
+  },
+  {
+    "path": "logs/retention-wording-base-results.json",
+    "sha256": "392bd1139d9e62f7b70d085887299683a5542f5e12298fa0dcf52bce321bb637",
+    "bytes": 2564
+  },
+  {
+    "path": "logs/retention-wording-base-run.json",
+    "sha256": "869ac17c5418c71227333efed6959a0ddad8542b1df50b39af5f63a3f04a5f9b",
+    "bytes": 403
+  },
+  {
+    "path": "logs/retention-wording-base.log",
+    "sha256": "e9907053424549427edff7c997d93bbac02634e3d78c628f5603281017dc879f",
+    "bytes": 534
+  },
+  {
+    "path": "logs/retention-wording-run.json",
+    "sha256": "d49f107d98a6998d51ac4b9e77005a7aa91193b0c760c7216bf65f51c885b989",
+    "bytes": 311
+  },
+  {
+    "path": "logs/retention-wording-snapshot-results.json",
+    "sha256": "d9b8389f59fd1187ff8d2550b9cb1b9bf28328add14f9a0e030dff3df332aaa8",
+    "bytes": 2911
+  },
+  {
+    "path": "logs/retention-wording.log",
+    "sha256": "8276af1f93b3ce39920384ff61408bd86ff192d924a5719137e52225070606d2",
+    "bytes": 533
+  },
+  {
+    "path": "probes/adversarial-registry.mjs",
+    "sha256": "fb3e383e18194d87b2cfeccbf390e32f31f09c436e9111ffc10c25675730963f",
+    "bytes": 4989
+  },
+  {
+    "path": "probes/inspect-xlsx-independent.py",
+    "sha256": "fb7f9822cf7cb24e74935e301ac3254e0bed5da0346c79b8e93287d44d1b99b1",
+    "bytes": 3399
+  },
+  {
+    "path": "probes/retention-wording.mjs",
+    "sha256": "2db2956650e8fe782c8c8b5d712ab2816428686c13ff4e6cddd0112a76829deb",
+    "bytes": 2359
+  },
+  {
+    "path": "report.md",
+    "sha256": "8cea904c377a441e58eee42867d25021ea8cb36ce918e4ac0ff27a20f1dece6a",
+    "bytes": 7733
+  }
+]

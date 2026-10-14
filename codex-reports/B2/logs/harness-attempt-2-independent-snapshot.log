@@ -1,0 +1,6 @@
+{"case":"duplicate-K1","name":"no unexpected application errors","actual":["Not implemented: navigation to another Document"],"expected":[],"kind":"control","ok":false}
+{"case":"single-__none__-assigned","name":"no unexpected application errors","actual":["Not implemented: navigation to another Document"],"expected":[],"kind":"control","ok":false}
+{"case":"single-__none__-unassigned","name":"no unexpected application errors","actual":["Not implemented: navigation to another Document"],"expected":[],"kind":"control","ok":false}
+{"case":"ordinary-K1","name":"no unexpected application errors","actual":["Not implemented: navigation to another Document"],"expected":[],"kind":"control","ok":false}
+{"case":"ordinary-no-assignment","name":"no unexpected application errors","actual":["Not implemented: navigation to another Document"],"expected":[],"kind":"control","ok":false}
+{"label":"snapshot","summary":{"checks":203,"passed":198,"failed":5,"incomplete":0,"controls":131,"controlFailures":5}}

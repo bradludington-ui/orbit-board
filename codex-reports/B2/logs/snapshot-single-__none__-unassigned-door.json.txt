@@ -1,0 +1,3 @@
+{
+  "door": "the RCN / EEIC list at the saved state.cycDb.byAp.om.cycles.PB|2027.rcn holds the key “__none__” (rcn[0]); a key beginning with two underscores is one the board keeps for its own bookkeeping"
+}

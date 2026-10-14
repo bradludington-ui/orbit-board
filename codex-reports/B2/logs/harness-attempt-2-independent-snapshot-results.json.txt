@@ -1,0 +1,8490 @@
+{
+  "provenance": {
+    "base": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+    "snapshot": "cycreg-snapshot-20261013-1322",
+    "label": "snapshot",
+    "startedUTC": "2026-10-13T17:38:02.125Z",
+    "finishedUTC": "2026-10-13T17:38:22.416Z",
+    "boardBlob": "59cff8f34a04d656604c352909966b27998f7384",
+    "bootBlob": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+    "node": "v24.19.0",
+    "jsdom": "27.0.0",
+    "probeSHA256": "1d88a239889182528a73f923b62833ae8bb996a9822c4847991eef8ad79d3171"
+  },
+  "summary": {
+    "checks": 203,
+    "passed": 198,
+    "failed": 5,
+    "incomplete": 0,
+    "controls": 131,
+    "controlFailures": 5
+  },
+  "checks": [
+    {
+      "case": "duplicate-K1",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "fixture literal service asks",
+      "actual": [
+        900,
+        200,
+        0
+      ],
+      "expected": [
+        900,
+        200,
+        0
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "handed-over door refuses bad / accepts ordinary",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "door names frozen list and offending key",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "door does not falsely claim no earlier board could save the list",
+      "actual": false,
+      "expected": false,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "one actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "one handed-over refusal / ordinary acceptance",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "one refusal preserves every browser key",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913083183,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913083183,\"dirty\":false}"
+      },
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "one refusal names cycle list/key and acknowledges historical input",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "several actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "several handed-over refusal / ordinary acceptance",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "several refusal preserves every browser key",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913083183,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913083183,\"dirty\":false}"
+      },
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "several refusal names cycle list/key and acknowledges historical input",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "cancel own-board full import leaves every stored key unchanged",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913083183,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913083183,\"dirty\":false}"
+      },
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "cancel own-board full import returns false",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "own-board confirmation before cancellation names odd list/key",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "own-board actual full import accepts",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "own-board actual full import raises no refusal alert",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "own-board full import explains retained list before replacement",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "import+browser reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "browser reopen notice describes odd list/key and safe counting",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "full-imported-browser-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "full-imported-browser-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "full-imported-browser-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "saved-file reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "full-imported-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "full-imported-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "full-imported-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "direct-open opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "direct-open actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "direct-open actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "direct-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "direct-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "direct-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "no unexpected application errors",
+      "actual": [
+        "Not implemented: navigation to another Document"
+      ],
+      "expected": [],
+      "kind": "control",
+      "ok": false
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "duplicate-K1",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "fixture literal service asks",
+      "actual": [
+        900,
+        200,
+        0
+      ],
+      "expected": [
+        900,
+        200,
+        0
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "handed-over door refuses bad / accepts ordinary",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "door names frozen list and offending key",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "door does not falsely claim no earlier board could save the list",
+      "actual": false,
+      "expected": false,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "one actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "one handed-over refusal / ordinary acceptance",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "one refusal preserves every browser key",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913087187,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913087187,\"dirty\":false}"
+      },
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "one refusal names cycle list/key and acknowledges historical input",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "several actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "several handed-over refusal / ordinary acceptance",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "several refusal preserves every browser key",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913087187,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913087187,\"dirty\":false}"
+      },
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "several refusal names cycle list/key and acknowledges historical input",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "cancel own-board full import leaves every stored key unchanged",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913087187,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913087187,\"dirty\":false}"
+      },
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "cancel own-board full import returns false",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "own-board confirmation before cancellation names odd list/key",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "own-board actual full import accepts",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "own-board actual full import raises no refusal alert",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "own-board full import explains retained list before replacement",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "import+browser reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "browser reopen notice describes odd list/key and safe counting",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "full-imported-browser-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "full-imported-browser-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "full-imported-browser-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "saved-file reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "full-imported-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "full-imported-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "full-imported-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "direct-open opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "direct-open actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "direct-open actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "direct-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "direct-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "direct-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "no unexpected application errors",
+      "actual": [
+        "Not implemented: navigation to another Document"
+      ],
+      "expected": [],
+      "kind": "control",
+      "ok": false
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-assigned",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "fixture literal service asks",
+      "actual": [
+        900,
+        200,
+        0
+      ],
+      "expected": [
+        900,
+        200,
+        0
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "handed-over door refuses bad / accepts ordinary",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "door names frozen list and offending key",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "door does not falsely claim no earlier board could save the list",
+      "actual": false,
+      "expected": false,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "one actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "one handed-over refusal / ordinary acceptance",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "one refusal preserves every browser key",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913090618,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913090618,\"dirty\":false}"
+      },
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "one refusal names cycle list/key and acknowledges historical input",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "several actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "several handed-over refusal / ordinary acceptance",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "several refusal preserves every browser key",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913090618,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913090618,\"dirty\":false}"
+      },
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "several refusal names cycle list/key and acknowledges historical input",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "cancel own-board full import leaves every stored key unchanged",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913090618,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913090618,\"dirty\":false}"
+      },
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "cancel own-board full import returns false",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "own-board confirmation before cancellation names odd list/key",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "own-board actual full import accepts",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "own-board actual full import raises no refusal alert",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "own-board full import explains retained list before replacement",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "import+browser reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "browser reopen notice describes odd list/key and safe counting",
+      "actual": true,
+      "expected": true,
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "full-imported-browser-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "full-imported-browser-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "full-imported-browser-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "saved-file reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "__none__",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "full-imported-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "full-imported-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "full-imported-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "direct-open opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "direct-open actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "direct-open actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "direct-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "direct-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "direct-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "protection",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "no unexpected application errors",
+      "actual": [
+        "Not implemented: navigation to another Document"
+      ],
+      "expected": [],
+      "kind": "control",
+      "ok": false
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "fixture literal service asks",
+      "actual": [
+        900,
+        200,
+        0
+      ],
+      "expected": [
+        900,
+        200,
+        0
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "handed-over door refuses bad / accepts ordinary",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "one actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "one handed-over refusal / ordinary acceptance",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "one-imported opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "one-imported actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "one-imported actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "one-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "one-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "one-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "several actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "several handed-over refusal / ordinary acceptance",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "several-imported opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "several-imported actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "several-imported actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "several-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "several-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "several-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "cancel own-board full import leaves every stored key unchanged",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913093943,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913093943,\"dirty\":false}"
+      },
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "cancel own-board full import returns false",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "own-board actual full import accepts",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "own-board actual full import raises no refusal alert",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "import+browser reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "ordinary browser reopen has no false odd-list notice",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "full-imported-browser-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "full-imported-browser-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "full-imported-browser-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "saved-file reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "full-imported-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "full-imported-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "full-imported-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "direct-open opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "direct-open actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "direct-open actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "direct-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "direct-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "direct-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "no unexpected application errors",
+      "actual": [
+        "Not implemented: navigation to another Document"
+      ],
+      "expected": [],
+      "kind": "control",
+      "ok": false
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-K1",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "fixture locked registry exact",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "fixture literal service asks",
+      "actual": [
+        900,
+        200,
+        0
+      ],
+      "expected": [
+        900,
+        200,
+        0
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "handed-over door refuses bad / accepts ordinary",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "one actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "one handed-over refusal / ordinary acceptance",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "one-imported opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "one-imported actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "one-imported actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "one-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "one-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "one-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "several actual import completes without harness throw",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "several handed-over refusal / ordinary acceptance",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "several-imported opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "several-imported actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "several-imported actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "several-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "several-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "several-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "cancel own-board full import leaves every stored key unchanged",
+      "actual": {
+        "prio27om.base": "{\"file\":1791913098817,\"dirty\":false}"
+      },
+      "expected": {
+        "prio27om.base": "{\"file\":1791913098817,\"dirty\":false}"
+      },
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "cancel own-board full import returns false",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "own-board actual full import accepts",
+      "actual": true,
+      "expected": true,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "own-board actual full import raises no refusal alert",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "import+browser reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "ordinary browser reopen has no false odd-list notice",
+      "actual": false,
+      "expected": false,
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "full-imported-browser-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "full-imported-browser-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "full-imported-browser-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "saved-file reopen retains locked registry verbatim",
+      "actual": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "expected": [
+        {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        {
+          "k": "K2",
+          "rcn": "22222",
+          "eeic": "BBBBB",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        }
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "full-imported-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "full-imported-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "full-imported-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "direct-open opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "direct-open actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "direct-open actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "direct-saved-reopened opens locked PB27",
+      "actual": "PB|2027",
+      "expected": "PB|2027",
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "direct-saved-reopened actual XLSX service/month/combination rows",
+      "actual": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "expected": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "direct-saved-reopened actual XLSX summary and requirement breakout totals",
+      "actual": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expected": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "no unexpected application errors",
+      "actual": [
+        "Not implemented: navigation to another Document"
+      ],
+      "expected": [],
+      "kind": "control",
+      "ok": false
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "name": "no unexpected application errors",
+      "actual": [],
+      "expected": [],
+      "kind": "control",
+      "ok": true
+    }
+  ],
+  "workbooks": [
+    {
+      "case": "duplicate-K1",
+      "route": "full-imported-browser-reopened",
+      "file": "snapshot-duplicate-K1-full-imported-browser-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "duplicate-K1",
+      "route": "full-imported-saved-reopened",
+      "file": "snapshot-duplicate-K1-full-imported-saved-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "duplicate-K1",
+      "route": "direct-open",
+      "file": "snapshot-duplicate-K1-direct-open.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "duplicate-K1",
+      "route": "direct-saved-reopened",
+      "file": "snapshot-duplicate-K1-direct-saved-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "single-__none__-assigned",
+      "route": "full-imported-browser-reopened",
+      "file": "snapshot-single-__none__-assigned-full-imported-browser-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "bd9f494c55db66cef3679cecafad1b03a01c785f053652c75d1926e779a584b1",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "single-__none__-assigned",
+      "route": "full-imported-saved-reopened",
+      "file": "snapshot-single-__none__-assigned-full-imported-saved-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "bd9f494c55db66cef3679cecafad1b03a01c785f053652c75d1926e779a584b1",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "single-__none__-assigned",
+      "route": "direct-open",
+      "file": "snapshot-single-__none__-assigned-direct-open.xlsx",
+      "bytes": 95710,
+      "sha256": "bd9f494c55db66cef3679cecafad1b03a01c785f053652c75d1926e779a584b1",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "single-__none__-assigned",
+      "route": "direct-saved-reopened",
+      "file": "snapshot-single-__none__-assigned-direct-saved-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "bd9f494c55db66cef3679cecafad1b03a01c785f053652c75d1926e779a584b1",
+      "rows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "22222 / BBBBB",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "22222 / BBBBB",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "route": "full-imported-browser-reopened",
+      "file": "snapshot-single-__none__-unassigned-full-imported-browser-reopened.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "route": "full-imported-saved-reopened",
+      "file": "snapshot-single-__none__-unassigned-full-imported-saved-reopened.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "route": "direct-open",
+      "file": "snapshot-single-__none__-unassigned-direct-open.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "single-__none__-unassigned",
+      "route": "direct-saved-reopened",
+      "file": "snapshot-single-__none__-unassigned-direct-saved-reopened.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-K1",
+      "route": "one-imported",
+      "file": "snapshot-ordinary-K1-one-imported.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-K1",
+      "route": "one-saved-reopened",
+      "file": "snapshot-ordinary-K1-one-saved-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-K1",
+      "route": "several-imported",
+      "file": "snapshot-ordinary-K1-several-imported.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-K1",
+      "route": "several-saved-reopened",
+      "file": "snapshot-ordinary-K1-several-saved-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-K1",
+      "route": "full-imported-browser-reopened",
+      "file": "snapshot-ordinary-K1-full-imported-browser-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-K1",
+      "route": "full-imported-saved-reopened",
+      "file": "snapshot-ordinary-K1-full-imported-saved-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-K1",
+      "route": "direct-open",
+      "file": "snapshot-ordinary-K1-direct-open.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-K1",
+      "route": "direct-saved-reopened",
+      "file": "snapshot-ordinary-K1-direct-saved-reopened.xlsx",
+      "bytes": 95710,
+      "sha256": "b9f0f4928c1d35a97f8db382eccb7a0ed053c04b2b29f10484c204dd98bb46b8",
+      "rows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "11111 / AAAAA",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "11111 / AAAAA",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "route": "one-imported",
+      "file": "snapshot-ordinary-no-assignment-one-imported.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "route": "one-saved-reopened",
+      "file": "snapshot-ordinary-no-assignment-one-saved-reopened.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "route": "several-imported",
+      "file": "snapshot-ordinary-no-assignment-several-imported.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "route": "several-saved-reopened",
+      "file": "snapshot-ordinary-no-assignment-several-saved-reopened.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "route": "full-imported-browser-reopened",
+      "file": "snapshot-ordinary-no-assignment-full-imported-browser-reopened.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "route": "full-imported-saved-reopened",
+      "file": "snapshot-ordinary-no-assignment-full-imported-saved-reopened.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "route": "direct-open",
+      "file": "snapshot-ordinary-no-assignment-direct-open.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    },
+    {
+      "case": "ordinary-no-assignment",
+      "route": "direct-saved-reopened",
+      "file": "snapshot-ordinary-no-assignment-direct-saved-reopened.xlsx",
+      "bytes": 95806,
+      "sha256": "af55ca426bc7abc5e415935160e86af620bdc6d2e97469693a678ca383cc7447",
+      "rows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ],
+      "totals": [
+        [
+          900,
+          900
+        ],
+        [
+          200,
+          200
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "expectedRows": [
+        [
+          "USAF",
+          "— no RCN/EEIC assigned —",
+          900,
+          0,
+          900
+        ],
+        [
+          "USAF",
+          "USAF TOTAL",
+          900,
+          0,
+          900
+        ],
+        [
+          "ANG",
+          "— no RCN/EEIC assigned —",
+          200,
+          0,
+          200
+        ],
+        [
+          "ANG",
+          "ANG TOTAL",
+          200,
+          0,
+          200
+        ],
+        [
+          "AFRC",
+          "AFRC TOTAL",
+          0,
+          0,
+          0
+        ],
+        [
+          "ALL",
+          "ALL SERVICES — TOTAL BY MONTH",
+          1100,
+          0,
+          1100
+        ]
+      ]
+    }
+  ]
+}

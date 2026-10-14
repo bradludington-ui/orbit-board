@@ -1,0 +1,15 @@
+{
+  "command": [
+    "BOARD=/workspace/orbit-round2-20261013-1331ET/B2/base/prioritization-board-grid.html",
+    "timeout",
+    "-k",
+    "10",
+    "90",
+    "node",
+    "/workspace/orbit-round2-20261013-1331ET/B2-review/probes/retention-wording.mjs"
+  ],
+  "startUTC": "2026-10-13T23:47:33.345779+00:00",
+  "finishUTC": "2026-10-13T23:47:35.471057+00:00",
+  "exit": 0,
+  "seconds": 2.125283275032416
+}

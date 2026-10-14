@@ -1,0 +1,57 @@
+{"groups": {"base": {"workbooks": 28, "passed_checks": 1012, "failed_checks": 220, "defective_workbooks": 28}, "snapshot": {"workbooks": 28, "passed_checks": 1204, "failed_checks": 28, "defective_workbooks": 28}}, "workbooks": 56, "output": "/workspace/orbit-round2-20261013-1331ET/B2/logs/xlsx-independent-results.json"}
+base-duplicate-K1-direct-open.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-duplicate-K1-direct-saved-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-duplicate-K1-full-imported-browser-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-duplicate-K1-full-imported-saved-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-ordinary-K1-direct-open.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-K1-direct-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-K1-full-imported-browser-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-K1-full-imported-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-K1-one-imported.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-K1-one-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-K1-several-imported.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-K1-several-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-no-assignment-direct-open.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-no-assignment-direct-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-no-assignment-full-imported-browser-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-no-assignment-full-imported-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-no-assignment-one-imported.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-no-assignment-one-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-no-assignment-several-imported.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-ordinary-no-assignment-several-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+base-single-__none__-assigned-direct-open.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-single-__none__-assigned-direct-saved-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-single-__none__-assigned-full-imported-browser-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-single-__none__-assigned-full-imported-saved-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-single-__none__-unassigned-direct-open.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-single-__none__-unassigned-direct-saved-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-single-__none__-unassigned-full-imported-browser-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+base-single-__none__-unassigned-full-imported-saved-reopened.xlsx | 27 passed | 17 failed | USAF total 1; USAF December 1; USAF total 2; USAF December 2; ANG total 1; ANG December 1; ANG total 2; ANG December 2; all-services total; all-services December; USAF combination count; USAF combination label; USAF combination total; ANG combination count; ANG combination label; ANG combination total; AFRC combination rows
+snapshot-duplicate-K1-direct-open.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-duplicate-K1-direct-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-duplicate-K1-full-imported-browser-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-duplicate-K1-full-imported-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-K1-direct-open.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-K1-direct-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-K1-full-imported-browser-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-K1-full-imported-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-K1-one-imported.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-K1-one-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-K1-several-imported.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-K1-several-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-no-assignment-direct-open.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-no-assignment-direct-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-no-assignment-full-imported-browser-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-no-assignment-full-imported-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-no-assignment-one-imported.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-no-assignment-one-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-no-assignment-several-imported.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-ordinary-no-assignment-several-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-single-__none__-assigned-direct-open.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-single-__none__-assigned-direct-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-single-__none__-assigned-full-imported-browser-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-single-__none__-assigned-full-imported-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-single-__none__-unassigned-direct-open.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-single-__none__-unassigned-direct-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-single-__none__-unassigned-full-imported-browser-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows
+snapshot-single-__none__-unassigned-full-imported-saved-reopened.xlsx | 43 passed | 1 failed | AFRC combination rows

@@ -1,0 +1,35 @@
+{
+  "input_commit": "3e38ac8323fa984fe0612fd00475f07c0495219c",
+  "base_commit": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+  "started_ET": "2026-10-13T13:35:39.248571-04:00",
+  "finished_ET": "2026-10-13T13:35:39.256786-04:00",
+  "duration_seconds": 0.008218,
+  "exit_status": 0,
+  "checks": "four file identity receipts; source inspection only; no application/runtime checks",
+  "files": [
+    {
+      "path": "inputs/recovery/v200/codex-handoff/README.md",
+      "bytes": 11119,
+      "git_blob_sha1": "c2429dd177f6da5462605677a398ea7324b102f8",
+      "sha256": "6979bcc19be4b83b52d44cda4bf5521f0d965c6f8f6d082e98f429537f5a6d2c"
+    },
+    {
+      "path": "inputs/recovery/v200/UNRESOLVED-LEDGER.md",
+      "bytes": 57265,
+      "git_blob_sha1": "456ccd2bc12e1376492e901bf399f3e1f144d1c0",
+      "sha256": "732b932819599054aa6d9f0cac962dd46add3851077833a9e5af40a6f929304a"
+    },
+    {
+      "path": "inputs/recovery/v200/STATUS-2026-10-13.md",
+      "bytes": 8425,
+      "git_blob_sha1": "78f88fc487e8a71636c7afa1dd319f9b3c198379",
+      "sha256": "47085a43d10fd5cfa98b1a1e01eca78f64237036641a9697a5d35194a9198c80"
+    },
+    {
+      "path": "base/prioritization-board-grid.html",
+      "bytes": 3757129,
+      "git_blob_sha1": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+      "sha256": "5cb9db21510d96c70a1ed37b1743019039ff053c23bd5bb3cfa104ff6b0e532e"
+    }
+  ]
+}

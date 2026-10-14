@@ -1,0 +1,85 @@
+{
+  "startedUTC": "2026-10-13T23:47:33.671Z",
+  "finishedUTC": "2026-10-13T23:47:35.449Z",
+  "boardBlob": "fce8a391bd8a248d5185e199d22190c1687eaea0",
+  "results": [
+    {
+      "numeric": false,
+      "cancelReturns": false,
+      "acceptReturns": true,
+      "questions": [
+        "Import everything from “old-own-board.html” (saved by v2.0)?\n\nThis REPLACES what this board holds with what the file holds:\n\n  • O&M — 1 year, 1 locked cycle\n  • The BAE list — 0 rows\n  • Execution data — 0 appropriations\n  • Cost estimates — 0\n  • The reprogramming log — 0 entries\n  • The destination list — 8\n\nIt is built for opening a new version and carrying on where the old one left off. Proceed?"
+      ],
+      "actual": {
+        "pointer": "K1",
+        "viewRegistry": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "",
+            "svc": [
+              "USAF",
+              "ANG",
+              "AFRC"
+            ]
+          }
+        ],
+        "resolved": {
+          "k": "K1",
+          "rcn": "11111",
+          "eeic": "AAAAA",
+          "t": "",
+          "svc": [
+            "USAF",
+            "ANG",
+            "AFRC"
+          ]
+        },
+        "label": "11111 / AAAAA",
+        "retained": [
+          {
+            "k": "K1",
+            "rcn": "11111",
+            "eeic": "AAAAA",
+            "t": "",
+            "svc": [
+              "USAF",
+              "ANG",
+              "AFRC"
+            ]
+          }
+        ]
+      },
+      "claim": false
+    },
+    {
+      "numeric": true,
+      "cancelReturns": false,
+      "acceptReturns": true,
+      "questions": [
+        "Import everything from “old-own-board.html” (saved by v2.0)?\n\nThis REPLACES what this board holds with what the file holds:\n\n  • O&M — 1 year, 1 locked cycle\n  • The BAE list — 0 rows\n  • Execution data — 0 appropriations\n  • Cost estimates — 0\n  • The reprogramming log — 0 entries\n  • The destination list — 8\n\nIt is built for opening a new version and carrying on where the old one left off. Proceed?"
+      ],
+      "actual": {
+        "pointer": 1,
+        "viewRegistry": [],
+        "resolved": null,
+        "label": "",
+        "retained": [
+          {
+            "k": 1,
+            "rcn": "99999",
+            "eeic": "ZZZZZ",
+            "t": "",
+            "svc": [
+              "USAF",
+              "ANG",
+              "AFRC"
+            ]
+          }
+        ]
+      },
+      "claim": false
+    }
+  ]
+}

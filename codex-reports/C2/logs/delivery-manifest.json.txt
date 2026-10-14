@@ -1,0 +1,74 @@
+{
+  "batch": "C2",
+  "finished_ET": "2026-10-13T19:45:54.306929-04:00",
+  "input_pin": "3e38ac8323fa984fe0612fd00475f07c0495219c",
+  "base": "7ee498a46507972f803cd48ce9f27d5d668acb63",
+  "runtime_tests": 0,
+  "files": [
+    {
+      "path": "U19-reopen-header.md",
+      "bytes": 4127,
+      "sha256": "0ae970ec5a5478d7dcaafa6ee7279750054eb66e16791ab77a576d392f7858f0"
+    },
+    {
+      "path": "U28-font-validation.md",
+      "bytes": 4454,
+      "sha256": "79dfda6fb9d494f9ff74e3a1f378d1fb6d282a6533f193e92b6cfe83fc8adc74"
+    },
+    {
+      "path": "U32-U33-locked-registry.md",
+      "bytes": 4528,
+      "sha256": "6e0be2d855a6b8aad38bf62d4218c7cc66b1ce79dbd9a5c12f5762030028e9d1"
+    },
+    {
+      "path": "U9-office-money.md",
+      "bytes": 5241,
+      "sha256": "32bf1711526c75aa8852b4b1a05179d6a224dedbbacd298c9566577acf17a79d"
+    },
+    {
+      "path": "logs/final-source-receipts.json.txt",
+      "bytes": 1918,
+      "sha256": "94124a24e68e3f09adc675aa544713398210c3e48d22f7cbf1d5ab7d54cf442a"
+    },
+    {
+      "path": "logs/source-inputs/README.md",
+      "bytes": 11119,
+      "sha256": "6979bcc19be4b83b52d44cda4bf5521f0d965c6f8f6d082e98f429537f5a6d2c"
+    },
+    {
+      "path": "logs/source-inputs/STATUS-2026-10-13.md",
+      "bytes": 8425,
+      "sha256": "47085a43d10fd5cfa98b1a1e01eca78f64237036641a9697a5d35194a9198c80"
+    },
+    {
+      "path": "logs/source-inputs/UNRESOLVED-LEDGER.md",
+      "bytes": 57265,
+      "sha256": "732b932819599054aa6d9f0cac962dd46add3851077833a9e5af40a6f929304a"
+    },
+    {
+      "path": "logs/source-receipts.json.txt",
+      "bytes": 1372,
+      "sha256": "6654ebb47128547e4793ddb257dfd2f8556b63af60e45b9e5807d5c52289353b"
+    },
+    {
+      "path": "logs/verify_source_identities.py",
+      "bytes": 1805,
+      "sha256": "9bd73a2766be958c29bced14f3e107db6047ed1e86a1c9fe6ea8fe8fa6bf995b"
+    },
+    {
+      "path": "report.md",
+      "bytes": 5363,
+      "sha256": "a29206f8caa87a7aba4c44bec3bd90dd672a5dcafd93f9b950c19560f8b20751"
+    },
+    {
+      "path": "review/author-response.md",
+      "bytes": 1585,
+      "sha256": "0c5d623967759e4a7053f44c31abe89b47d17d56c84aaa3e8d7c7b454d835180"
+    },
+    {
+      "path": "review/independent-policy-review.md",
+      "bytes": 6581,
+      "sha256": "cc0c414cc94129c25a9ea08bedc41a7780732ecfc9ca7aa63058cfefd562db0d"
+    }
+  ]
+}

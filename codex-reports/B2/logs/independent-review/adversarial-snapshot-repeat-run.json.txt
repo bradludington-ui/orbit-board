@@ -1,0 +1,16 @@
+{
+  "command": [
+    "timeout",
+    "-k",
+    "10",
+    "180",
+    "node",
+    "/workspace/orbit-round2-20261013-1331ET/B2-review/probes/adversarial-registry.mjs"
+  ],
+  "startedUTC": "2026-10-13T23:47:10.743629+00:00",
+  "finishedUTC": "2026-10-13T23:47:15.781266+00:00",
+  "exit": 0,
+  "seconds": 5.037641962058842,
+  "timeout": false,
+  "reason": "Repeat to retain complete snapshot JSON after base run reused output name."
+}
