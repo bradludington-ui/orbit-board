@@ -1064,13 +1064,10 @@ result for it was run fresh against these commits.
       there in the funds flow. Nothing is said, and a save there keeps the merge. Opened in a fresh browser, the same file
       keeps both. This breaks v1.86's can't-fails ("no requirement … loses or changes its destination"; "each merge is
       listed"). Typed destination names are also not trimmed and have no length limit.
-    - **U42 (P2; the same fix track as U41).** In the funds-flow workbook on the destination axis, each destination's sheet
-      name is cut to 28 UTF-16 units, and the cut can split an emoji: a name of 27 letters and an emoji becomes a sheet
-      named with 27 letters and a replacement mark (�). A name beginning with an apostrophe becomes a sheet name beginning
-      with one, which Microsoft's naming rules for sheets do not allow (Excel itself was not run). The slide deck cuts
-      requirement titles the same way (not registry text): its Mission Critical and Unfunded tables keep the first 56
-      UTF-16 units, so a Plan Event of 55 letters and an emoji prints as 55 letters and a replacement mark. By code, the
-      workbook writer also cuts every sheet name at 31 UTF-16 units, which the funds-flow names never reach.
+    - **U42 (fixed in its own commit, above):** the funds-flow sheet names. Still open: the slide deck cuts requirement
+      titles the same way (not registry text): its Mission Critical and Unfunded tables keep the first 56 UTF-16 units, so a
+      Plan Event of 55 letters and an emoji prints as 55 letters and a replacement mark. By code, the workbook writer also
+      cuts every sheet name at 31 UTF-16 units, which the funds-flow names never reach.
     - **U35 (P2, deferred past v2.00 by the lead, 13 Oct, 1:19 PM ET; Codex's A1 finding, not measured by this track).**
       During a Live refresh, typing not yet committed in the RCN / EEIC dialog is replaced by the stored value without a
       question. Nothing already committed is lost.
@@ -1124,6 +1121,35 @@ result for it was run fresh against these commits.
     offers the nearest of the five as a choice: a person picks. Initial Spares and OPN take Full Fund's path by code (only
     Full Fund was run). The label cuts a code longer than 60 characters for display (`inShow`), as it does for other codes.
     jsdom only; no browser, Excel or LibreOffice was run.
+- **U42 — a funds-flow sheet name never ends in half a character or begins or ends with an apostrophe** (lead, 13 Oct,
+  1:19 PM ET: the same fix track as U41). On the destination axis each destination gets a sheet named after it, cut to 28
+  UTF-16 units (26 when it numbers a repeat). A cut through an emoji left its first half at the end, and the workbook wrote
+  that as U+FFFD: a destination named with 27 letters and an emoji became a sheet named with 27 letters and a replacement
+  mark. A name beginning or ending with an apostrophe, or one the cut left ending with one, became a sheet name a
+  spreadsheet may not have. Now a cut that would end on the first half of a two-part character leaves that half out (in the
+  first cut and in a repeat's), and an apostrophe or space at either end of a sheet name goes. The lengths are as before,
+  every other name is exactly what it was, and an apostrophe inside a name (O'Brien) stays. Only the sheet name changes: the
+  destination's name in the board and in the workbook's cells is never cut.
+  - **What users may see:** a destination sheet named "Quoted depot" for 'Quoted depot', and one character shorter where an
+    emoji fell on the cut ("EEEE… 2" where it was "EEEE…� 2").
+  - **Test:** audit-recon "v2.00 (U42) — a funds-flow sheet name never ends in half a character or begins or ends with an
+    apostrophe" (18 checks): seven destinations added by hand (27 D's and an emoji; 'Quoted depot'; two names whose 28-unit
+    cuts match, the first keeping its emoji whole and the repeat's 26-unit cut ending on the first half; 27 F's then an
+    apostrophe; O'Brien; Plain depot), the sheet names read from `xl/workbook.xml` in the workbook's bytes, on the working
+    board and after a save and reopen. No U+FFFD in the part, no name beginning or ending with an apostrophe, every name 31
+    units or fewer and unique, the part parses; the money (TOTAL FUNDING $1,100,000, R1's two service rows on its
+    destination's sheet) and the seven names in the board's data unchanged. 8 checks fail on the board before the change;
+    the 10 controls pass on both.
+  - **Mutations:** `v200-u42-half-first`, `-half-repeat`, `-wrong-half`, `-edge-apostrophe` and `-interior-apostrophe`.
+    The focused block catches each one.
+  - **Not covered:** whole grapheme clusters (an emoji joined from several, a letter with a combining mark, a flag) can still
+    be split between their code points. That is well-formed text, not U+FFFD. A name that itself holds half a character (a
+    lone surrogate a file can carry; no cut involved) is still written as U+FFFD, and U37's refusal does not take it (see
+    README, probe P5). Other sheet names cut at 31 units are unchanged: the workbook writer's own cut (`buildXlsx`), the
+    five-year export's PMO tabs (`fydpPmoSheets`), the board workbook's PMO tabs (`exportCSV`) and the Priority drill's
+    "PMO " sheets, all named after a PMO; no funds-flow name reaches 31. The slide deck's 56-unit cut of a requirement
+    title can still split an emoji (found by the registry-text track; not a sheet name). A sheet named "History", which
+    Excel reserves, is not prevented. Excel itself was not run.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -1187,9 +1213,9 @@ result for it was run fresh against these commits.
       changes its destination, its money moves in the funds flow, and nothing is said.
     - **U41: fixed above** (its own commit): the code is kept as saved, listed in Needs attention and Pre-flight, its money
       counted under no recognized code, never the derived one, and chosen again in the Navy SI code field.
-    - **U42 (P2; the same fix track).** A funds-flow sheet name cut to 28 UTF-16 units can end in half an emoji (a
-      replacement mark in `xl/workbook.xml`); a leading apostrophe is kept in a sheet name. The slide deck's 56-unit cut of
-      a requirement title can split an emoji the same way.
+    - **U42: the sheet name fixed above** (its own commit): a funds-flow sheet name no longer ends in half an emoji or
+      begins or ends with an apostrophe. Still open: the slide deck's 56-unit cut of a requirement title can split an emoji
+      the same way (a replacement mark in the slide).
     - **U38 (P2 proposed for the Spend Plan Source, P3 on the board).** A file keeps RCN / EEIC text that typing would refuse
       or change, and the Spend Plan Source prints it as stored (padded, lower case) with nothing flagging it.
     - **U39 (P3).** Two entries with the same text print identical rows.
