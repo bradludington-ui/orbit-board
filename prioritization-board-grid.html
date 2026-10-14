@@ -26992,6 +26992,10 @@ async function _driveStorePushRun(quiet, fyAsked){
   // v2.00 (R3): A LOCKED CYCLE PUT ON SCREEN WHILE THE FOLDER WAS BEING READ is not the board. The bytes below would be the
   // locked plan, written over the working plan's copy with that copy kept as history, and "Saved" said. Nothing is written.
   if(cycBlock('Writing to the shared folder')) return false;
+  // v2.00 (U4): THE MIXED-IMPORT HOLD, CHECKED AGAIN AFTER THE READ. It was checked once, before the folder was read: a full
+  // import that stopped part-way during the read set the hold, and this save then wrote over the folder's copy and said
+  // "Saved". It is checked again after the last wait before the write, below.
+  if(impMixedBlock('Writing to the shared folder', quiet)) return false;   // v2.00 (U4): after the read
   // The year moved while the folder was being read: what is on screen is another year's board now.
   if(MS.cur!==fy){
     setStat('⚠ Not saved: the board moved to FY'+(MS.cur%100)+' while the shared folder’s copy of FY'+(fy%100)
@@ -27016,6 +27020,7 @@ async function _driveStorePushRun(quiet, fyAsked){
       +'Press ↻ Reconnect to load the folder’s copy, or import a board first.');
     render(); return false;
   }
+  const ts0=MS.ts, by0=MS.by;      // v2.00 (U4): put back if the hold stops this save after its history copy (below)
   MS.ts=Date.now(); MS.by=whoAmI();
   // THE BYTES, AND WHICH SAVE THEY ARE (v1.95, item 47): built once, here, before the write's first wait.
   const body=JSON.stringify(livePayload(fwriter)), wroteTs=MS.ts, gen=_saveGen;
@@ -27041,6 +27046,14 @@ async function _driveStorePushRun(quiet, fyAsked){
           +'folder can be written to, then \ud83d\udcbe Save again.');
         render(); return false;
       }
+    }
+    // v2.00 (U4): AND AFTER THE LAST WAIT BEFORE THE WRITE, the history copy above. An import that stopped part-way while it
+    // was being kept sets the hold: nothing is written over the folder's copy, and the copy kept in the history (the folder's
+    // copy as read) stays. The pen line, and the board's stamp the header shows as saved, go back to what they were.
+    if(impMixedOn()){
+      if(penLine) writerJournalUndo(penLine);
+      if(MS.ts===wroteTs){ MS.ts=ts0; MS.by=by0; }
+      impMixedBlock('Writing to the shared folder', quiet); render(); return false;
     }
     await driveWrite(dir, driveName(fy, ap), body);
   }catch(e){ if(penLine) writerJournalUndo(penLine); throw e; }
@@ -27105,6 +27118,11 @@ async function _driveResolveRun(which){
   try{ dir=await driveDir(true); j=await driveStoreRead(dir, ap); }
   catch(e){ setStat('\u26a0 The shared folder\u2019s copy of '+esc(lbl)+' could not be read \u2014 <b>'+esc((e&&e.message)||String(e))
     +'</b>. Nothing was changed.'); render(); return false; }
+  // v2.00 (U4): THE HOLD, CHECKED AGAIN AFTER THE READ, as the folder save does. An import that stopped part-way during the
+  // read set the hold, and Save yours over theirs still asked, kept their copy and recorded it as the one being replaced:
+  // its own save was refused, but once saving was allowed again the autosave wrote over their copy without asking. Load
+  // theirs loaded it. Nothing is asked, kept or recorded now.
+  if(impMixedBlock('Choosing between the copies')) return false;   // v2.00 (U4): after the read
   if(!j){ driveBaseSet(ap, 0); return await _driveStorePushRun(false); }     // gone: nothing left to choose between
   const theirs=+((j.store&&j.store.ts)||j.ts||0), by=j.by||'someone';
   if(which==='mine'){
@@ -27113,6 +27131,7 @@ async function _driveResolveRun(which){
     if(await snapKeep(dir, MS.cur, ap, JSON.stringify(j), true)!=='kept'){
       setStat('\u26d4 Their copy could not be kept in the shared folder\u2019s history, so <b>nothing was written</b>. '
         +'Try again, or use \u2b07 Save a copy.'); render(); return false; }
+    if(impMixedBlock('Choosing between the copies')) return false;   // v2.00 (U4): and after keeping theirs, before it is decided
     driveBaseSet(ap, theirs);          // decided: theirs is the copy being replaced, and it is in the history
     return await _driveStorePushRun(false);
   }

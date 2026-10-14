@@ -1231,6 +1231,68 @@ result for it was run fresh against these commits.
     - a hold that comes while Take the pen reads or asks meets this check in its Save, after the question was answered
       (by the code; not run).
     ⬇ Save a copy is never refused, by design.
+- **U4 — the folder save checks the mixed-import hold after its read and before its write** (the lead's decision on 12 Oct,
+  under Brad's "Don't wait for me. Let's keep pressing throughout to get this next version published.", about 5:30 PM ET).
+  `_driveStorePushRun` checked the hold once, at its start, before it read the folder's copy. A full import that stopped
+  part-way during that read, and could not be put back, set the hold, and the save went on: it built its bytes then, wrote
+  them over the folder's copy, marked the board saved, and said "✅ Saved O&M FY27 to the shared folder", with the hold on
+  (the quiet autosave wrote the same way, said nothing and reported a save). The same import stopping while the save kept
+  the folder's copy in the history (the last wait before the write) let the save write too, over the import's own
+  message, and a Take the pen held there took the pen. Save yours over theirs and Load theirs (`_driveResolveRun`) read
+  the folder's copy as well and checked the hold only before that read: an import that stopped part-way during the read,
+  or while their copy was being kept in the history, let Save yours over theirs ask, keep their copy and record it as the
+  copy being replaced; its own save was then refused, but once saving was allowed again the autosave wrote over their copy
+  without asking (their copy stayed only in the history). Load theirs loaded their copy over the board. Now the folder save
+  checks the hold again after its read and again after its history copy, just before it writes; Save yours over theirs
+  and Load theirs check it again after their read, and Save yours over theirs again after keeping theirs, before it
+  records the choice. Held, nothing is written over the folder's copy; a history copy already kept stays; a pen line the
+  save wrote is taken back, and the board's stamp, which the header shows as when it was saved and by whom, goes back to
+  what it was unless something was typed meanwhile; their copy is not recorded as decided, so the next save offers the
+  choice again. The board says writing to the shared folder, or choosing between the copies, is refused, and why; a quiet
+  autosave says nothing, as at its start.
+  - **What users may see:** in that race, instead of "✅ Saved": "⛔ Writing to the shared folder is refused. A full import
+    stopped part-way in this browser and could not be put back …", or "⛔ Choosing between the copies is refused. …", with
+    the hold's buttons. The work stays unsaved; the folder keeps its copy; once saving is allowed again, 💾 Save writes it,
+    or, after a colleague's newer copy, offers "Load theirs / Save yours over theirs" again. If the import stopped during a
+    history copy, the folder's history holds one more copy (of the folder's own copy, or of theirs) until a later save
+    thins it.
+  - **Test:** audit-import "v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write"
+    (43 checks): 💾 Save held at its read of the folder's copy, and at the close of its history copy, with the import
+    stopping part-way there: nothing written over the folder's copy (it keeps its bytes), nothing kept in the history when
+    held at the read and the folder's copy as read kept once when held at the history copy, refused and not "Saved", the
+    note unsaved and the stamp as it was; Take the pen from Alice held at its history copy: nothing written, Alice still
+    holds the pen, no journal line saying Brad took it, the stamp as it was; a note typed while the history copy is kept
+    keeps its own stamp; the quiet autosave held at either wait writes nothing, reports no save and leaves the import's
+    message as it was; the header's saved time (its tooltip) stays what it was before the save (the stamp set to 5 Jan
+    2026 first). Save yours over theirs held at its read (nothing asked, kept, written or recorded) and at the close of the
+    copy of theirs it keeps (asked before the hold; theirs stays in the history; nothing written or recorded), and Load
+    theirs held at its read (nothing loaded or recorded: Brad's note on screen, not Bob's): each says choosing between the
+    copies is refused, and once saving is allowed again the autosave writes nothing, Bob's note stays in the folder's copy
+    and the choice is offered again. Controls: the same holds with nothing happening there write once and say Saved (Save
+    yours over theirs: asked once, theirs in the history, yours written); once saving is allowed again, 💾 Save writes the
+    note. 24 checks fail on the board before the change (`fce8a391`) and on the U3 board: each held save writes
+    the folder's copy and says "✅ Saved" with the hold on (the autosave writes, reports a save and says nothing); Take the
+    pen leaves Brad the writer and a journal line saying he took it; the header shows the time of the save; Save yours over
+    theirs asks, keeps their copy and records it, and the autosave then writes over Bob's copy (`["true",0,1,"",false]`);
+    Load theirs loads Bob's copy. Every control passes on all three; three checks marked "kept behaviour" pass on all three
+    by design.
+  - **Mutations:** `v200-u4-read-unchecked`, `-hist-unchecked`, `-stamp-moved`, `-pen-line-kept`, `-hist-says-nothing`,
+    and from the fix round `-read-loud`, `-hist-loud`, `-hist-says-saved`, `-stamp-over-edit`, `-header-stale`,
+    `-resolve-read-unchecked` and `-resolve-kept-unchecked`; each caught by the focused block (failing 2, 9, 3, 1, 3, 1,
+    1, 1, 1, 1, 4 and 3 checks, in that order; `-read-unchecked` now also fails the autosave-at-the-read case, which
+    counts history copies).
+  - **Not covered:**
+    - the write itself (an import stopping while the folder's copy is being written: the bytes were built before the
+      import, so they carry no mix, but the save lands and says "Saved", and, the import having written to storage
+      meanwhile, "A change made while it was saving is not in the folder yet — it is saved next time", though the next
+      save is refused while the hold stands and the change is the import's own; the line replaces the import's message
+      and its rescue buttons, which come back with the next refused save); the board file's own write after R4's check,
+      likewise ("💾 Save again to write it");
+    - after Save yours over theirs has recorded the choice (before the hold), a hold that comes during the save it then
+      runs stops that save (above), and the choice stands: once saving is allowed again, the next save writes over their
+      copy as chosen (theirs is in the folder's history; by reading the code, not run).
+    If U18 (the re-read just before the write) is committed too, this check belongs after U18's re-read, which is then
+    the last wait before the write.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -1244,7 +1306,9 @@ result for it was run fresh against these commits.
     ⬆ Publish now, Save yours over theirs, Load theirs or the autosave asked for under the mixed-import hold is refused at
     once, also behind a save under way, and allowing saving again does not bring it back (above). Not covered: a save
     asked for before the hold and still waiting when saving is allowed again runs and writes, as the question warns.
-  - **U4:** the folder save's window for the hold.
+  - **U4: built as its own commit after U3** (the same decision): the folder save checks the hold again after its read
+    and after its history copy, just before its write, and Save yours over theirs / Load theirs after their read and
+    after keeping theirs (above). Not covered: the write itself, and the board file's own write after R4's check.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
   - **U7:** R2's checked and stored expressions are written twice.
   - **U8:** R1's Help and wording remainders.
