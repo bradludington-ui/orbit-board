@@ -8317,6 +8317,11 @@ function sandboxBlock(what){
 }
 async function saveInPlace(){
   if(sandboxBlock('Saving to the shared file')||cycBlock('Saving to the shared file')) return;
+  // v2.00 (U3): THE MIXED-IMPORT HOLD REFUSES A SAVE WHEN IT IS ASKED FOR, never queued. Asked for behind a save under way, it
+  // waited its turn and was checked only then: if saving was allowed again meanwhile, it ran and wrote what the hold had held
+  // back. Brad's R4b contract, 11 Oct: "a Save requested while the mixed-import hold is already active must refuse
+  // immediately, before file access. Clearing the hold later must not resume that refused request."
+  if(impMixedBlock(driveStoreOn()? 'Writing to the shared folder' : 'Saving to the board file')) return;
   // THE YEAR THIS SAVE WAS ASKED FOR (v1.95, item 47): a save that waits behind another keeps it, and
   // never moves to another year's copy because the board moved on while it waited.
   const fy=MS.cur;
@@ -8333,6 +8338,7 @@ async function saveInPlace(){
 }
 function saveInPlaceFile(){
   if(sandboxBlock('Saving to a file')||cycBlock('Saving to a file')) return;    // refused at once, never queued
+  if(impMixedBlock('Saving to the board file')) return;                         // v2.00 (U3): and under the mixed-import hold
   return saveSerial(_saveInPlaceFileRun);
 }
 async function _saveInPlaceFileRun(){
@@ -26953,6 +26959,7 @@ async function driveStorePull(quiet){
 // `fy`: the year it was asked for, captured now, before it waits.
 function driveStorePush(quiet, fy){
   if(sandboxBlock('Writing to the shared folder')||cycBlock('Writing to the shared folder')) return;   // at once, never queued
+  if(impMixedBlock('Writing to the shared folder', quiet)) return false;                             // v2.00 (U3): so is the hold
   const f=fy||MS.cur;
   return saveSerial(function(){ return _driveStorePushRun(quiet, f); });
 }
@@ -27087,6 +27094,7 @@ function driveClashSay(j, refused){
 // 'mine': keep their copy in the folder's history -- forced, whatever the spacing -- then save over it.
 function driveResolve(which){   // queued (v1.95); refused at once in a PMO copy or a locked view
   if(sandboxBlock('Writing to the shared folder')||cycBlock('Loading a board')) return false;
+  if(impMixedBlock('Choosing between the copies')) return false;     // v2.00 (U3): and under the mixed-import hold
   return saveSerial(function(){ return _driveResolveRun(which); });
 }
 async function _driveResolveRun(which){
@@ -27137,6 +27145,7 @@ async function _driveResolveRun(which){
 // Then it saves, recording you as the writer; the previous writer's next Save is refused.
 async function takePen(){
   if(sandboxBlock('Taking the pen')||cycBlock('Taking the pen')) return;
+  if(impMixedBlock('Taking the pen')) return;   // v2.00 (U3): it saves; under the hold, refused before anything is read or asked
   const folder=driveStoreOn(), ap=mySlug(), fy=MS.cur;
   let cur=null, what='this board file';
   try{

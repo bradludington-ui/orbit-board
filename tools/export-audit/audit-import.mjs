@@ -7062,6 +7062,195 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.00 R4 ====
+// ==== v2.00 (U3): a Save asked for during the mixed-import hold is refused at once, never queued ====
+// v2.00 (U3): R4b's contract (Brad, 11 Oct): "a Save requested while the mixed-import hold is already active must refuse
+// immediately, before file access. Clearing the hold later must not resume that refused request." With another save under
+// way, such a Save was queued instead ("⏳ A save is already under way — this one runs as soon as it finishes") and checked
+// only when its turn came. If saving was allowed again first, it ran and wrote: for the board file, the mix -- the imported
+// Full Fund plan -- over the one whole copy of the board as it was. Here save A is held at the close of its write, the import
+// stops part-way and cannot be put back, request B is asked for, saving is allowed again ("allow saving again…", answered
+// yes), and A is let go. B is each way a save is asked for: the board file's Save, 💾 Save and Take the pen on the board
+// file; 💾 Save, ⬆ Publish now, Save yours over theirs and Load theirs working out of the shared folder; and the quiet
+// autosave, which is over at once and says nothing. With nothing else saving, Take the pen is refused before it reads the
+// board file or the folder's copy, or asks. The controls: asked for again once saving is allowed, it writes; with no hold,
+// B waits its turn and writes after A; and a Save asked for BEFORE the hold, still waiting its turn when the hold comes, is
+// refused when its turn comes while the hold still stands, before the file or the folder's copy is read (kept behaviour).
+// If saving is allowed again before its turn, that Save runs and writes, as the question that allows it warns ("The next
+// save writes the board on screen, and that mix ... over the board file"); that case is not checked here.
+// FAILS ON 7ee498a (board fce8a391): B waits its turn and writes after A -- perm 2 · read 2 · open 2 · writes 2, the board
+// file holding the imported Full Fund plan; in the folder, a second write and a second history copy, and Load theirs reads
+// the folder's copy again; the autosave says it waits its turn, over the import's message, then writes the folder's copy;
+// Take the pen with nothing else saving reads the board file or the folder's copy and asks first.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U3) — a Save asked for during the mixed-import hold is refused at once, never queued';
+  try {
+    const { NEW, OLD } = w2Fx();
+    const { J, wire, KEY, status, qs, disk, folder, connect, gate, until, tick, pause } = W1H;
+    const turns = async n => { for (let i = 0; i < n; i++) await tick(); };
+    const QUEUED = /A save is already under way/;
+    // Which generation of the Full Fund plan a board file holds, read from its text.
+    const fileFF = html => { const m = String(html).match(/id="pubState">([\s\S]*?)<\/script>/);
+      const s = JSON.stringify(((JSON.parse(m[1]).appns || {}).ff || {}).years || {});
+      return /NEW/.test(s) && /OLD/.test(s) ? 'BOTH' : /NEW/.test(s) ? 'NEW' : /OLD/.test(s) ? 'OLD' : 'none'; };
+    // THE BOARD FILE: save A held at the close of its write; every permission request, read and open counted.
+    const inFile = async () => {
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const f = disk(T.w, OLD.html);
+      T.w.__disk.requestPermission = async () => { f.hits.perm = (f.hits.perm || 0) + 1; return 'granted'; };
+      const touched = () => `perm ${f.hits.perm || 0} · read ${f.hits.read || 0} · open ${f.hits.open || 0} · writes ${f.writes}`;
+      const g = gate(); f.hold.close = g;
+      const pA = T.ev('saveInPlaceFile()');
+      const held = await until(() => (f.hits.close || 0) >= 1);
+      return { T, f, touched, g, pA, held };
+    };
+    // THE SHARED FOLDER: the board's first copy saved, a note typed, save A held at the close of its write of the copy;
+    // every read of the folder's copy counted.
+    const inFolder = async () => {
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const fold = folder(); connect(T.ev, T.w, fold);
+      const NM = 'spmt-' + T.ev('MS.cur') + '-om.json', gh = fold.dir.getFileHandle; let reads = 0;
+      fold.dir.getFileHandle = async (n, o) => { if (n === NM && !(o && o.create)) reads++; return gh(n, o); };
+      await T.ev('saveInPlace()');
+      T.ev(`setNote('A','EDIT-1'); 'ok'`); await pause(5);
+      const g = gate(); fold.hold.main = g;
+      const pA = T.ev('saveInPlace()');
+      const held = await until(() => (fold.hits.main || 0) >= 2);
+      return { T, fold, reads: () => reads, g, pA, held };
+    };
+    const stop = (T) => { const r = w2Import(T, NEW.html, 'stuck', 8); wire(T.ev, 'brad', KEY.brad);   // w2Import answers yes to everything; this records the questions again
+      return J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]); };
+    const ask = async (T, how) => { const o = { decided: false, q0: qs(T.ev).length }; o.p = Promise.resolve(T.ev(how)).then(() => { o.decided = true; }); await turns(60); return o; };
+    for (const [how, words, label] of [['saveInPlaceFile()', 'Saving to the board file', 'the board file’s Save'],
+                                        ['saveInPlace()', 'Saving to the board file', '💾 Save'],
+                                        ['takePen()', 'Taking the pen', 'Take the pen']]) {
+      const at = label + ' on the board file, with a save under way';
+      const { T, f, touched, g, pA, held } = await inFile();
+      chk(name, at, 'save A is held at the close of its write (a control)', J([held, touched()]), J([true, 'perm 1 · read 1 · open 1 · writes 0']));
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      const b = await ask(T, how);
+      chk(name, at, 'refused at once: the request is over, nothing more is touched or asked, and it is not queued',
+        J([b.decided, touched(), qs(T.ev).length - b.q0, QUEUED.test(status(T.ev))]), J([true, 'perm 1 · read 1 · open 1 · writes 0', 0, false]));
+      chk(name, at, 'the board says ' + words.toLowerCase() + ' is refused, and that nothing writes over the board file',
+        new RegExp(words + ' is refused').test(status(T.ev)) && /nothing writes over it/.test(status(T.ev)), true);
+      T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);
+      chk(name, at, 'saving is allowed again (a control)', T.ev('String(impMixedOn())'), 'false');
+      g.open(); await pA; await until(() => b.decided); await turns(60);
+      chk(name, at, 'allowing saving again does not bring it back: A alone wrote, and the board file holds no imported plan',
+        J([touched(), fileFF(f.content)]), J(['perm 1 · read 1 · open 1 · writes 1', 'OLD']));
+      const w0 = f.writes; await T.ev('saveInPlaceFile()');
+      chk(name, at, 'CONTROL — asked for again now saving is allowed, Save writes', J([f.writes - w0, /Saved in place/.test(status(T.ev))]), J([1, true]));
+    }
+    for (const [how, words, label] of [['saveInPlace()', 'Writing to the shared folder', '💾 Save'],
+                                        ['driveStorePush(false)', 'Writing to the shared folder', '⬆ Publish now'],
+                                        [`driveResolve('mine')`, 'Choosing between the copies', 'Save yours over theirs'],
+                                        [`driveResolve('theirs')`, 'Choosing between the copies', 'Load theirs']]) {
+      const at = label + ' working out of the shared folder, with a save under way';
+      const { T, fold, reads, g, pA, held } = await inFolder();
+      const r0 = reads(), h0 = fold.hist().length;
+      chk(name, at, 'save A is held at the close of its write (a control)', held, true);
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      const b = await ask(T, how);
+      chk(name, at, 'refused at once: the request is over, the folder’s copy is not read again, nothing is asked, and it is not queued',
+        J([b.decided, reads() - r0, qs(T.ev).length - b.q0, QUEUED.test(status(T.ev))]), J([true, 0, 0, false]));
+      chk(name, at, 'the board says ' + words.toLowerCase() + ' is refused', new RegExp(words + ' is refused').test(status(T.ev)), true);
+      T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);
+      g.open(); await pA; await until(() => b.decided); await turns(60);
+      chk(name, at, 'allowing saving again does not bring it back: A alone wrote the folder’s copy, nothing more was read, nothing more kept in its history',
+        J([fold.hits.main || 0, reads() - r0, fold.hist().length - h0]), J([2, 0, 0]));
+      const m0 = fold.hits.main || 0; await T.ev('saveInPlace()');
+      chk(name, at, 'CONTROL — asked for again now saving is allowed, 💾 Save writes', J([(fold.hits.main || 0) - m0, /✅ Saved O&M FY27 to the shared folder/.test(status(T.ev))]), J([1, true]));
+    }
+    // THE QUIET AUTOSAVE, asked for under the hold behind a 💾 Save of the folder under way: over at once and quiet. Not
+    // queued, it reports no save, and the import's own message, with its buttons, stays on the message line.
+    {
+      const at = 'the autosave working out of the shared folder, with a save under way';
+      const { T, fold, g, pA, held } = await inFolder();
+      chk(name, at, 'save A is held at the close of its write, the import stopped part-way, could not be put back, and the hold is on (a control)',
+        J([held, stop(T)]), J([true, J([false, true, 'true'])]));
+      const s1 = status(T.ev), h0 = fold.hist().length;
+      const o = { decided: false }; o.p = Promise.resolve(T.ev('driveStorePush(true)')).then(v => { o.decided = true; o.v = v; });
+      await turns(60);
+      chk(name, at, 'refused at once and quietly: over, not queued, it reports no save, and the message line is the import’s own, unchanged',
+        J([o.decided, o.v, QUEUED.test(status(T.ev)), status(T.ev) === s1]), J([true, false, false, true]));
+      T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);
+      g.open(); await pA; await until(() => o.decided); await turns(60);
+      chk(name, at, 'allowing saving again does not bring it back: A alone wrote the folder’s copy, nothing more kept in its history',
+        J([fold.hits.main || 0, fold.hist().length - h0]), J([2, 0]));
+    }
+    // TAKE THE PEN WITH NOTHING ELSE SAVING, under the hold: refused before it reads the board file, or the folder's copy,
+    // and before it asks.
+    {
+      const at = 'Take the pen on the board file, with nothing else saving';
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80);
+      wire(T.ev, 'brad', KEY.brad);
+      const f = disk(T.w, OLD.html);
+      T.w.__disk.requestPermission = async () => { f.hits.perm = (f.hits.perm || 0) + 1; return 'granted'; };
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      const q0 = qs(T.ev).length;
+      await T.ev('takePen()'); await turns(30);
+      chk(name, at, 'nothing is read, opened or written, and nothing is asked',
+        J([`perm ${f.hits.perm || 0} · read ${f.hits.read || 0} · open ${f.hits.open || 0} · writes ${f.writes}`, qs(T.ev).length - q0]), J(['perm 0 · read 0 · open 0 · writes 0', 0]));
+      chk(name, at, 'the board says taking the pen is refused', /Taking the pen is refused/.test(status(T.ev)), true);
+    }
+    {
+      const at = 'Take the pen from Alice working out of the shared folder, with nothing else saving';
+      const fold = folder();
+      const A = boot({ html: OLD.html, ls: OLD.ls }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+      A.ev(`setNote('A','ALICE-1'); 'ok'`); await pause(5); await A.ev('saveInPlace()');
+      const T = boot({ html: OLD.html, ls: OLD.ls }); await pause(80); wire(T.ev, 'brad', KEY.brad); connect(T.ev, T.w, fold);
+      await T.ev('driveStorePull(false)');
+      const fy = +T.ev('MS.cur'), NM = 'spmt-' + fy + '-om.json', gh = fold.dir.getFileHandle; let reads = 0;
+      fold.dir.getFileHandle = async (n, o) => { if (n === NM && !(o && o.create)) reads++; return gh(n, o); };
+      chk(name, at, 'Brad’s board loaded Alice’s copy, the import stopped part-way, could not be put back, and the hold is on (a control)',
+        J([T.ev(`String(S.notes.A||'')`), stop(T)]), J(['ALICE-1', J([false, true, 'true'])]));
+      const q0 = qs(T.ev).length, m0 = fold.hits.main || 0;
+      await T.ev('takePen()'); await turns(30);
+      chk(name, at, 'the folder’s copy is not read or written, and nothing is asked', J([reads, (fold.hits.main || 0) - m0, qs(T.ev).length - q0]), J([0, 0, 0]));
+      chk(name, at, 'the board says taking the pen is refused', /Taking the pen is refused/.test(status(T.ev)), true);
+    }
+    // CONTROL -- NO HOLD: B waits its turn behind A, as it always has, and writes after it.
+    {
+      const at = 'CONTROL — no hold: the board file’s Save, with a save under way';
+      const { T, f, touched, g, pA } = await inFile();
+      const b = await ask(T, 'saveInPlaceFile()');
+      chk(name, at, 'B waits its turn, and the board says so', J([b.decided, QUEUED.test(status(T.ev)), touched()]), J([false, true, 'perm 1 · read 1 · open 1 · writes 0']));
+      g.open(); await pA; await until(() => b.decided);
+      chk(name, at, 'then B writes, after A', J([touched(), fileFF(f.content)]), J(['perm 2 · read 2 · open 2 · writes 2', 'OLD']));
+    }
+    // A SAVE ASKED FOR BEFORE THE HOLD, still waiting its turn when the hold comes: refused when its turn comes while the
+    // hold still stands, before the file or the folder's copy is read (the check at the start of its turn; R4's after the
+    // read is the one behind it). Kept behaviour: these pass before the change too.
+    {
+      const at = 'the board file’s Save asked for before the hold, waiting its turn';
+      const { T, f, touched, g, pA } = await inFile();
+      const b = await ask(T, 'saveInPlaceFile()');
+      chk(name, at, 'B waits its turn (a control)', J([b.decided, QUEUED.test(status(T.ev))]), J([false, true]));
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      g.open(); await pA; await until(() => b.decided);
+      chk(name, at, 'refused when its turn comes, before the file is touched: A alone asked, read, opened and wrote (kept behaviour)',
+        J([touched(), /Saving to the board file is refused/.test(status(T.ev))]), J(['perm 1 · read 1 · open 1 · writes 1', true]));
+    }
+    {
+      const at = '💾 Save working out of the shared folder, asked for before the hold, waiting its turn';
+      const { T, fold, reads, g, pA } = await inFolder();
+      const r0 = reads();
+      const b = await ask(T, 'saveInPlace()');
+      chk(name, at, 'B waits its turn (a control)', J([b.decided, QUEUED.test(status(T.ev))]), J([false, true]));
+      chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)', stop(T), J([false, true, 'true']));
+      g.open(); await pA; await until(() => b.decided);
+      chk(name, at, 'refused when its turn comes, before the folder’s copy is read: A alone wrote it (kept behaviour)',
+        J([fold.hits.main || 0, reads() - r0, /Writing to the shared folder is refused/.test(status(T.ev))]), J([2, 0, true]));
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U3) ====
 // ==== v2.00 (R5): a restore during a save stays unsaved ====
 // ↶ Put this back marked the board unsaved but did not count as a change. A folder save still writing when the copy was
 // put back found nothing changed while it wrote and marked the board saved: the earlier copy on screen, the save's copy in

@@ -629,6 +629,9 @@ result for it was run fresh against these commits.
     at once, as it does for a locked view. The adversarial review found that the 💾 Save button and Take the pen go
     through `saveInPlace()`, which queues the same way, so a refusal at once would be needed there as well.
   - Not examined: the folder save (`_driveStorePushRun`) also checks the hold only before its folder read.
+  - Both are built since, as U3 and U4 (below). After U3, removing the check at the start of the board file's save
+    (`impmixed-file-unguarded`) is caught by the U3 block's "asked for before the hold" case, no longer by R4b's
+    before-file-access check, which a Save asked for under the hold no longer reaches (U3's entry says why).
 
 - **R5 — a restore during a save stays unsaved** (the same review; fix approved by Brad on 11 Oct).
   - **What was wrong.** ↶ Put this back (`driveRestore`) set the board unsaved (`DIRTY`), but it did not count as a
@@ -1150,6 +1153,84 @@ result for it was run fresh against these commits.
     "PMO " sheets, all named after a PMO; no funds-flow name reaches 31. The slide deck's 56-unit cut of a requirement
     title can still split an emoji (found by the registry-text track; not a sheet name). A sheet named "History", which
     Excel reserves, is not prevented. Excel itself was not run.
+- **U3 — a Save asked for during the mixed-import hold is refused at once, never queued** (the lead's decision on 12 Oct,
+  under Brad's "Don't wait for me. Let's keep pressing throughout to get this next version published.", about 5:30 PM ET;
+  Brad's R4b contract, 11 Oct: "a Save requested while the mixed-import hold is already active must refuse immediately,
+  before file access. Clearing the hold later must not resume that refused request."). A Save asked for while the hold was
+  on and another save was running was queued, not refused: the board said "⏳ A save is already under way — this one runs
+  as soon as it finishes", and the hold was checked only when its turn came. If saving was allowed again first ("allow
+  saving again…", answered yes), it ran and wrote: on the board file, the imported Full Fund plan, from the mix, over the
+  one whole copy of the board as it was; in the shared folder, another write and another history copy. The same held for
+  every way a save is asked for: 💾 Save, Take the pen (which also read the file or the folder's copy and asked first, even
+  with nothing else saving), ⬆ Publish now, Save yours over theirs, Load theirs and the quiet autosave. Now each of them
+  checks the hold when it is asked for, before it waits its turn, before anything is read or asked, and refuses at once in
+  the words of its own path; allowing saving again later does not bring it back. The checks at the start of each save's
+  turn, and R4's after the read, stay: a save asked for before the hold, still waiting when the hold comes, is refused
+  when its turn comes if the hold still stands then, before the file or the folder's copy is read. If saving is allowed
+  again before its turn, it runs at once and writes, as the question that allows it warns ("The next save writes the board
+  on screen, and that mix for the other appropriations, over the board file").
+  - **What users may see:** with the hold on, 💾 Save, ⬆ Publish now, Save yours over theirs, Load theirs and Take the
+    pen are refused at once, also while another save is running: "⛔ Saving to the board file is refused." (the board
+    file), "⛔ Writing to the shared folder is refused." (working out of the shared folder), "⛔ Choosing between the copies
+    is refused." (Save yours over theirs, Load theirs), "⛔ Taking the pen is refused.", each followed by the hold's own
+    explanation and its buttons. They no longer say "⏳ A save is already under way — this one runs as soon as it
+    finishes". Once saving is allowed again, the Save is pressed again. Take the pen no longer reads the board file or the
+    folder's copy, or asks whether to take the pen, while the hold is on. The quiet autosave is refused at once and says
+    nothing: the import's own message, with its buttons, stays on the message line. Before, behind a save under way, it
+    said "⏳ A save is already under way — this one runs as soon as it finishes" over that message, and when its turn came
+    it was refused without a word, or, if saving had been allowed again meanwhile, it wrote the folder's copy. With no hold,
+    nothing changes: a Save asked for during another waits its turn and writes after it.
+  - **Test:** audit-import "v2.00 (U3) — a Save asked for during the mixed-import hold is refused at once, never queued"
+    (62 checks). Save A is held at the close of its write; the import stops part-way and cannot be put back; B is asked
+    for; saving is allowed again; A is let go. B is the board file's Save (`saveInPlaceFile()`), 💾 Save and Take the pen
+    on the board file, and 💾 Save, ⬆ Publish now, Save yours over theirs and Load theirs working out of the shared folder.
+    Each B is over at once, touches, reads and asks nothing more, is not queued, says it is refused, and is not brought
+    back: A alone wrote, and the board file holds no imported plan (`perm 1 · read 1 · open 1 · writes 1`, Full Fund
+    `OLD`). The quiet autosave asked for the same way is over at once, reports no save, leaves the import's message as it
+    was, and is not brought back (the folder's copy written twice in all, by the first save and A, and no more history
+    copies). Take the pen with nothing else saving, on the board file and from Alice in the shared folder: nothing read,
+    opened or written, nothing asked, "Taking the pen is refused". Controls: asked for again once saving is allowed, Save
+    writes; with no hold, B waits its turn and writes after A (`perm 2 · read 2 · open 2 · writes 2`); a Save asked for
+    before the hold is refused when its turn comes while the hold still stands, before the file or the folder's copy is
+    read (kept behaviour: it passes before the change too). 27 checks fail on the board before the change
+    (`fce8a391`): three for each B (it waits its turn, says nothing of the hold, and once saving is allowed it writes: on
+    the board file `writes 2` and Full Fund `NEW`, Take the pen having read the file again and asked first; in the folder,
+    one more write and one more history copy, two for Save yours over theirs, and Load theirs reads the folder's copy
+    again), two for the autosave (it says it waits its turn, over the import's message, and then writes: `[3, 1]`) and two
+    for each idle Take the pen (it reads the board file or the folder's copy and asks). Every control passes on both.
+  - **Mutations:** `v200-u3-save-queued`, `-save-file-words`, `-file-queued`, `-publish-queued`, `-resolve-queued`,
+    `-pen-reads-first`, and from the fix round `-autosave-queued`, `-autosave-loud`, `-pen-idle-reads` and
+    `-theirs-queued`; each caught by the focused block, from the U3 board and from the U4 board alike (failing 6, 1, 3, 5,
+    6, 7, 2, 1, 4 and 3 checks, in that order).
+  - **Which check now catches two older mutations.** Nothing in an existing check or fixture changes, and every existing
+    check of the audit-import blocks on these paths passes on this board with the same values (focused runs). But a Save
+    asked for under the hold is now refused before its turn, so the checks at the start of the turn are reached only by a
+    save asked for before the hold: `impmixed-file-unguarded` is no longer caught by R4b's before-file-access checks (R4b
+    still passes; R4b's entry gets one added line, below), and `impmixed-folder-unguarded` no longer by the v1.95 and
+    v1.99 hold blocks' folder checks (both still pass). Each is caught by one check of this block's "asked for before the
+    hold" cases (a permission request and a read of the board file, or a read of the folder's copy, where none is
+    expected). The other ten existing hold mutations are caught on the final board (U4's) as follows:
+    `impmixed-not-marked` by the v1.95 hold block ("after an import that cannot be put back, nothing writes over the board
+    file until asked"), R4, R4b, this block and U4's; `impmixed-not-kept`, `-clear-unasked` and `-boot-silent` by that
+    v1.95 hold block (`-not-kept` also by the lifting block); `impmixed-never-lifted` and `-lift-partial` only by the v1.95
+    lifting block ("an import that lands whole lifts the hold a stopped one set"); `v200-r4-no-recheck`, `-held-quietly`
+    and `-said-not-held` by R4; `saves-not-serial` by this block's no-hold and before-the-hold cases (five checks), and in
+    the file-save blocks by the same five checks of the v1.95 "Save acknowledges exactly what it wrote" blocks, on the
+    board before the change and on the build's U4 board (`x11`, `x10`; not re-run on this board). Measured with the v1.95
+    hold, the lifting, the v1.99 batch hold, R4/R4b, U3 and U4 blocks (`fx-f2-*`, 13 Oct, 8:18–8:47 PM ET).
+  - **Not covered:**
+    - a save asked for before the hold and still waiting when saving is allowed again: it runs at once and writes the
+      mix, without Save being pressed again (as the question that allows saving warns, but it does not say that a save is
+      waiting);
+    - a save already running when the hold comes. Its bytes were built before the import, so they carry no mix, but it
+      lands and says "Saved" over the import's message (and, if the import wrote to storage meanwhile, "A change made while
+      it was saving is not in the folder yet — it is saved next time" or "💾 Save again to write it", though the next save
+      is refused while the hold stands and the change is the import's own); the import's rescue buttons come back only
+      with the next refused save. The folder save's window before its write is U4, next; the board file's own write
+      (after R4's check) and the folder's write itself are not checked again;
+    - a hold that comes while Take the pen reads or asks meets this check in its Save, after the question was answered
+      (by the code; not run).
+    ⬇ Save a copy is never refused, by design.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -1159,7 +1240,10 @@ result for it was run fresh against these commits.
   - **U2: complete** (accepted by Brad, 12 Oct): the change count (U2 1 of 2) and the refusal while a save is under way
     (2 of 2) are both above. audit-import passes at both commits, and each new mutation is caught, in runs made alone.
     Its separate reopening and adoption findings stay open in the ledger (U15–U19); U20 is built (below).
-  - **U3:** a Save queued behind a running save under the hold.
+  - **U3: built as its own commit** (the lead's decision under Brad's "keep pressing", 12 Oct): a Save, Take the pen,
+    ⬆ Publish now, Save yours over theirs, Load theirs or the autosave asked for under the mixed-import hold is refused at
+    once, also behind a save under way, and allowing saving again does not bring it back (above). Not covered: a save
+    asked for before the hold and still waiting when saving is allowed again runs and writes, as the question warns.
   - **U4:** the folder save's window for the hold.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
   - **U7:** R2's checked and stored expressions are written twice.
