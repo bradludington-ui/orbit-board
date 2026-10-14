@@ -129,6 +129,24 @@ U19, U28, U32 and U33 in `UNRESOLVED-LEDGER.md`, and "For Brad to decide" in `ST
 **C1 and D1 still wait.** C1 needs the final NEXT-VERSION entries, and D1 needs the pinned combined tree. The lead
 publishes both when they exist.
 
+## Round 2 received (13 Oct, 8:20 PM ET; read by the lead by 8:27 PM ET)
+
+Branch `codex/v200-reports-round2-20261013`, commit `07b4129`, parent `7ee498a`. It adds files under `codex-reports/B2/`
+and `codex-reports/C2/` only (156 files); no product file, suite or catalog is touched (checked with `git diff
+--name-only`).
+
+- **B2:** on the snapshot `cycreg-snapshot-20261013-1322` (board `59cff8f3`), 208/208 runtime checks and 1,232/1,232
+  independent XLSX checks; duplicate `K1` and `__none__` export USAF $900 / ANG $200 / $1,100 after import and reopening;
+  ordinary controls pass. Recorded in ledger rows U32 and U33. Its one new finding, a full-board import notice that is
+  false for a locked cycle's entry whose key is not text, is ledger **U50 (P2)**. The lead read the track's later copy
+  (fr3, `60bd0c3c`): the sentence is still there with a qualifier after it, and its main clause is still false. U50 is
+  carried into the cycreg fix round with Brad's words, together with a re-run of Codex's B2 cases on the copy that round
+  finishes with (B2 covered the 13:22 snapshot, not fr3). Codex's report and probes are copied, as untrusted reference,
+  to the cycreg track's folder.
+- **C2:** four decision memos (U9, U19, U28, U32/U33), summarised under "For Brad to decide" in `STATUS-2026-10-13.md`.
+  They are recommendations; Brad decides.
+- **C1 and D1** stay held: C1 needs the final NEXT-VERSION entries and D1 the pinned combined tree.
+
 ## Report format (one per batch)
 
 ```
