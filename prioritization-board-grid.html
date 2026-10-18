@@ -27166,12 +27166,14 @@ function driveClashSay(j, refused){
 // keeping (offered only when there is no room to keep, after the person has saved a copy themselves).
 // 'mine': keep their copy in the folder's history -- forced, whatever the spacing -- then save over it.
 function driveResolve(which){   // queued (v1.95); refused at once in a PMO copy or a locked view
-  if(sandboxBlock('Writing to the shared folder')||cycBlock('Loading a board')) return false;
+  // v2.00 (U10): "Save yours over theirs" is refused in a save's words here too -- a Connect in a view draws its button.
+  if(sandboxBlock('Writing to the shared folder')||cycBlock(which==='mine'? 'Writing to the shared folder' : 'Loading a board')) return false;
   if(impMixedBlock('Choosing between the copies')) return false;     // v2.00 (U3): and under the mixed-import hold
   return saveSerial(function(){ return _driveResolveRun(which); });
 }
 async function _driveResolveRun(which){
-  if(sandboxBlock('Writing to the shared folder')||cycBlock('Loading a board')) return false;
+  // v2.00 (U10): and here -- a press that waited for another save, with a view put on screen meanwhile, is refused in its own words.
+  if(sandboxBlock('Writing to the shared folder')||cycBlock(which==='mine'? 'Writing to the shared folder' : 'Loading a board')) return false;
   if(impMixedBlock('Choosing between the copies')) return false;
   const ap=mySlug(), lbl=(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100);
   let dir, j;

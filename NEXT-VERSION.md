@@ -1656,6 +1656,37 @@ result for it was run fresh against these commits.
     `v200-u10-journal-gate-after-question` (U10 7's gate after its question: 1) and `-journal-putback-sync-only` (no gate; the
     journal's record merely not re-taken in a view: 1).
   - **Not covered:** the funds flow's presentation settings (U10 9 of 12).
+- **U10 (11 of 12) — "Save yours over theirs" is refused in a save's words at every gate, and Load theirs without keeping
+  yours, raced by a view, is typed** (the same release blocker; the round-5 money review's SF1 and the round-5 test review's
+  m1, 14 Oct). U10 8 of 12 named the door pressed at the gate after the shared folder is read. The two gates before it still
+  said "🔒 Loading a board is off while PB27 is on screen …" for Save yours over theirs, and both are reachable. A Connect to
+  the shared folder pressed while a locked cycle is on screen, when the folder's copy is no newer than what is on screen but
+  is not the copy the work came from, draws the clash -- Load theirs and Save yours over theirs -- in the view; Save yours
+  over theirs pressed there met `driveResolve`'s own gate (the round-5 money review, probe P15, 14 Oct 1:26 AM ET, the same
+  on `7ee498a`). And Save yours over theirs pressed on the working plan while a save is under way waits for it; with a view
+  put on screen meanwhile it met `_driveResolveRun`'s first gate. Nothing was asked or written either way; the words named
+  the wrong door. Now both gates name a save's door for Save yours over theirs, as U10 8's does.
+  - **What users may see:** with a locked cycle on screen, Save yours over theirs pressed from a clash a Connect drew, or run
+    after waiting for another save, says "🔒 Writing to the shared folder is off while PB27 is on screen …", asks nothing and
+    writes nothing. Load theirs, and everything on the working plan: nothing changes.
+  - **Test:** five checks added to U10 6's block (now 11). The round-5 money review's: Colleague C saves 5 ms after this
+    browser's copy, MY THIRD A is typed, PB27 is put on screen and the folder's Connect is pressed -- CONTROL: the clash is
+    drawn in the view with both choices; Save yours over theirs pressed there is refused as a save, asks nothing, leaves the
+    folder's copy and its file count as they were, and MY THIRD A still unsaved. Load theirs without keeping yours pressed on
+    the working plan, PB27 put on screen while the folder is read: refused as Load theirs is ("Loading a board is off"),
+    nothing asked, loaded or written. Save yours over theirs pressed on the working plan while a save is under way --
+    CONTROL: it waits ("⏳ A save is already under way — this one runs as soon as it finishes.") -- with PB27 put on screen
+    before it runs: refused as a save, nothing asked or written. Every word is typed. On `7ee498a` the 3 non-control checks fail
+    (the two Save yours over theirs in Load theirs' words; Load theirs without keeping yours asks "Load …’s copy of O&M FY27
+    and replace what is on screen?" first) and the 2 controls pass; at U10 10 of 12 the two Save yours over theirs checks fail
+    on their words alone; at U10 11 of 12 all 5 pass.
+  - **Mutations:** `v200-u10-resolve-entry-mine-words` (the round-5 money review's: `driveResolve`'s gate in Load theirs'
+    words: 1 check fails), `-resolve-queued-mine-words` (the first gate in Load theirs' words: 1) and
+    `-resolve-gate-theirs-words` (the gate after the folder read keyed on 'theirs', so Load theirs without keeping yours is
+    refused in a save's words: 1). U10 6's and 8's `-resolve-race`, `-resolve-gate-theirs-only` and `-resolve-mine-words` stay
+    caught (6, 1 and 1 checks).
+  - **Not covered:** the clash itself is still drawn in a view by a Connect, and its words ("What is on screen does not have
+    their changes") speak of the working plan while the cycle is on screen (not changed; both its choices are refused there).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

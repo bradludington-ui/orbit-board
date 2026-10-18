@@ -4834,6 +4834,18 @@ const MUTATIONS = [
   { id: "v200-u10-reapply-keeps-upl-place", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's place for the Unfunded Priority List: \"Hold outside the flow\" chosen in PB27's view says the change was not kept, and the Funds Flow export labelled [PB27 LOCKED] reads TOTAL FUNDING $40,000,000 and Lockheed Martin $0 for $43,000,000 and $3,000,000",
     find: "  MS=cycCopy(c); MS.cur=y;",
     repl: "  const U0=MS.flow? MS.flow.uplTo : null; MS=cycCopy(c); MS.cur=y; if(U0) flowCfg().uplTo=U0;" },
+  // v2.00 (U10, the money review of round 5): Save yours over theirs drawn by a Connect in a view is refused in a save's words.
+  { id: "v200-u10-resolve-entry-mine-words", area: "driveResolve", what: "Save yours over theirs, pressed in PB27's view where a Connect drew the clash, is refused in Load theirs' words: \"🔒 Loading a board is off while PB27 is on screen\" for a save",
+    find: "cycBlock(which==='mine'? 'Writing to the shared folder' : 'Loading a board')) return false;\n  if(impMixedBlock('Choosing between the copies')) return false;     // v2.00 (U3)",
+    repl: "cycBlock('Loading a board')) return false;\n  if(impMixedBlock('Choosing between the copies')) return false;     // v2.00 (U3)" },
+  // v2.00 (U10, fix round 5 of 14 Oct): the same at _driveResolveRun's first gate, met by a press that waited for another save; and
+  // Load theirs without keeping yours, raced by a view, refused in Load theirs' words (the test review of round 5, m1).
+  { id: "v200-u10-resolve-queued-mine-words", area: "_driveResolveRun", what: "Save yours over theirs, pressed while a save is under way and run after PB27 is put on screen, is refused in Load theirs' words: \"🔒 Loading a board is off while PB27 is on screen\" for a save",
+    find: "cycBlock(which==='mine'? 'Writing to the shared folder' : 'Loading a board')) return false;\n  if(impMixedBlock('Choosing between the copies')) return false;\n  const ap=mySlug()",
+    repl: "cycBlock('Loading a board')) return false;\n  if(impMixedBlock('Choosing between the copies')) return false;\n  const ap=mySlug()" },
+  { id: "v200-u10-resolve-gate-theirs-words", area: "_driveResolveRun", what: "the gate after the folder read names Load theirs' door for 'theirs' alone: Load theirs without keeping yours, raced by a view, is refused in a save's words, \"🔒 Writing to the shared folder is off\"",
+    find: "  if(CYCVIEW){ cycRefuse(which==='mine'? 'Writing to the shared folder' : 'Loading a board'); render(); return false; }\n",
+    repl: "  if(CYCVIEW){ cycRefuse(which==='theirs'? 'Loading a board' : 'Writing to the shared folder'); render(); return false; }\n" },
   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",

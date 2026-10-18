@@ -6849,6 +6849,62 @@ await (async () => {
     w5Chk(name, 'Save yours over theirs on the working plan · PB27 put on screen while the folder is read · the view left, Save yours over theirs again', 'CONTROL — asked once; Colleague C’s copy is kept in the folder’s history and this browser’s work (MY SECOND A) is written over it',
       J([r4, JSON.parse(ev('JSON.stringify(window.__asked)')).length, inHist > 0, ((now.years[String(now.cur)] || {}).desc || {}).A || '', ev('!!baseGet().dirty')]),
       J([true, 1, true, 'MY SECOND A', false]));
+    // ---- v2.00 (U10, Save yours over theirs drawn by a Connect in the view): the U10 money review, round 5, probe P15. Colleague C
+    // saves 5 ms after the copy this browser wrote (COLLEAGUE DESC R3), this browser then types MY THIRD A, PB27 is put on screen
+    // and the shared folder's Connect is pressed: the folder's copy is no newer than what is on screen but is not the copy the work
+    // came from, so the clash is drawn, with both choices, in the view. Save yours over theirs pressed there is refused as a save
+    // is ("Writing to the shared folder is off"), nothing asked or written, the work still unsaved. FAILS ON 7ee498a and on U10 1-10
+    // of 12: the same press is refused in Load theirs' words ("Loading a board is off"), by driveResolve's own gate. CONTROL: the
+    // Connect draws the clash, with both choices, while PB27 is on screen.
+    await new Promise(r => setTimeout(r, 20));    // the board's own deferred timers (the opening's folder connect) run first, on its own copy
+    const j3 = JSON.parse(files[fn]); j3.store.ts = (+j3.store.ts || 0) + 5; j3.ts = j3.store.ts;
+    j3.store.years[String(j3.store.cur)].desc = Object.assign({}, j3.store.years[String(j3.store.cur)].desc || {}, { R: 'COLLEAGUE DESC R3' });
+    files[fn] = J(j3);
+    const f3 = files[fn], n3 = Object.keys(files).length;
+    ev(`setDesc('A','MY THIRD A'); cycView(${J(key)}); _liveCfg=Object.assign(liveCfg(), {folder:'shared'}); 'ok'`);
+    spy(ev);
+    await X.ev(`driveConnectNow()`);
+    w5Chk(name, 'PB27 viewed · the shared folder’s Connect pressed', 'CONTROL — the clash is drawn in the view, with Load theirs and Save yours over theirs',
+      J([ev('CYCVIEW'), ev(`JSON.stringify([].slice.call(document.querySelectorAll('#shareStat button')).map(function(b){ return b.getAttribute('onclick')||''; }))`)]),
+      J(['PB|2027', J(["driveResolve('theirs')", "driveResolve('mine')"])]));
+    const p5 = ev(`(function(){ var b=[].slice.call(document.querySelectorAll('#shareStat button')).filter(function(x){ return (x.getAttribute('onclick')||'')==="driveResolve('mine')"; })[0]; if(!b) return 'no button'; b.click(); return 'pressed'; })()`);
+    await new Promise(r => setTimeout(r, 30));
+    w5Chk(name, 'PB27 viewed · the shared folder’s Connect pressed · Save yours over theirs pressed in the view', 'refused as a save is; nothing asked, nothing written to the folder or its history, and the work is still this browser’s unsaved work',
+      J([p5, ev('CYCVIEW'), said(ev), ev('JSON.stringify(window.__asked)'), files[fn] === f3, Object.keys(files).length === n3, own(ev), ev('!!baseGet().dirty')]),
+      J(['pressed', 'PB|2027', OFF('Writing to the shared folder'), '[]', true, true, [['11111'], 'MY THIRD A', 'COLLEAGUE DESC R'], true]));
+    ev(`cycLeave(); 'ok'`);
+    // ---- v2.00 (U10, Load theirs without keeping yours): the same race for the third choice (the U10 test review, round 5, m1).
+    // "Load theirs without keeping yours" (offered when there is no room to keep this browser's work aside) is pressed on the working
+    // plan, and PB27 is put on screen while the folder's copy is read. By hand: refused as Load theirs is ("Loading a board is off"),
+    // before its question -- nothing asked, nothing loaded or written, the work still unsaved. FAILS ON 7ee498a and on U10 1-5 of 12:
+    // its question ("Load …’s copy of O&M FY27 and replace what is on screen?") is asked before the load is refused.
+    const f4 = files[fn], n4 = Object.keys(files).length;
+    spy(ev);
+    X.w.__onRead = () => X.w.eval(`cycView(${J(key)})`);           // PB27 put on screen while the folder's copy is read
+    const r6 = await X.ev(`driveResolve('theirs!')`);
+    w5Chk(name, 'Load theirs without keeping yours on the working plan · PB27 put on screen while the folder is read', 'refused as Load theirs is, before its question; nothing is loaded or written, and the work is still this browser’s unsaved work',
+      J([r6, ev('CYCVIEW'), said(ev), ev('JSON.stringify(window.__asked)'), files[fn] === f4, Object.keys(files).length === n4, own(ev), ev('!!baseGet().dirty')]),
+      J([false, 'PB|2027', OFF('Loading a board'), '[]', true, true, [['11111'], 'MY THIRD A', 'COLLEAGUE DESC R'], true]));
+    ev(`cycLeave(); 'ok'`);
+    // ---- v2.00 (U10, Save yours over theirs queued behind a save): the U10 money review, round 5, SF1, at the last of the three
+    // gates. Save yours over theirs is pressed on the working plan while a save is under way, so it waits; PB27 is put on screen
+    // before that save finishes. By hand: refused as a save is ("Writing to the shared folder is off"), before its question --
+    // nothing asked, nothing written to the folder or its history, the work still unsaved. FAILS ON 7ee498a and on U10 1-10 of 12:
+    // refused in Load theirs' words ("Loading a board is off"). CONTROL: the press waited for that save.
+    const f5 = files[fn], n5 = Object.keys(files).length;
+    spy(ev);
+    ev(`window.__hold=saveSerial(function(){ return new Promise(function(r){ window.__rel=r; }); }); 'ok'`);    // a save under way
+    await new Promise(r => setTimeout(r, 0));
+    ev(`window.__q=driveResolve('mine'); 'ok'`);
+    const s7 = said(ev);
+    ev(`cycView(${J(key)}); window.__rel(true); 'ok'`);              // PB27 put on screen, then that save finishes
+    const r7 = await X.w.__q;
+    w5Chk(name, 'Save yours over theirs pressed on the working plan while a save is under way', 'CONTROL — it waits for that save, and says so',
+      J(s7), J('⏳ A save is already under way — this one runs as soon as it finishes.'));
+    w5Chk(name, 'Save yours over theirs pressed on the working plan while a save is under way · PB27 put on screen before it runs', 'refused as a save is, before its question; nothing is written to the folder or its history, and the work is still this browser’s unsaved work',
+      J([r7, ev('CYCVIEW'), said(ev), ev('JSON.stringify(window.__asked)'), files[fn] === f5, Object.keys(files).length === n5, own(ev), ev('!!baseGet().dirty')]),
+      J([false, 'PB|2027', OFF('Writing to the shared folder'), '[]', true, true, [['11111'], 'MY THIRD A', 'COLLEAGUE DESC R'], true]));
+    ev(`cycLeave(); 'ok'`);
     w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(boards.reduce((n, B) => n + B.errors.length, 0)), J(0));
   } catch (e) {
     failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
