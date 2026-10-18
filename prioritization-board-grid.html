@@ -14265,6 +14265,9 @@ function aceStamp(set){
 async function importBud(inp){
   const f=inp.files&&inp.files[0];
   if(!f) return;
+  // v2.00 (U10): REFUSED BEFORE THE FILE IS READ while a locked cycle is on screen. The budget list is every appropriation's and
+  // no part of the view's copy, so a list imported in a view was stored, and reached every export, while the board said "Not kept".
+  if(cycBlock('Importing a BAE budget list')){ inp.value=''; return; }
   try{
     setStat('💰 Reading '+esc(f.name)+'…');
     const sheets=await xlsxRead(await f.arrayBuffer());
@@ -14508,6 +14511,9 @@ function divBody(){
 async function importCcarRecs(inp){
   const f=inp.files&&inp.files[0];
   if(!f) return;
+  // v2.00 (U10): refused before the file is read while a locked cycle is on screen. The refusal dropped the index anyway, and the
+  // line then counted titles found and said "Save to bake this into the file".
+  if(cycBlock('Importing CCaR records')){ inp.value=''; return; }
   try{
     setStat('📇 Reading '+esc(f.name)+'…');
     const sheets=await xlsxRead(await f.arrayBuffer());
@@ -14568,6 +14574,10 @@ async function importCcarRecs(inp){
 async function importAce(inp){
   const f=inp.files&&inp.files[0];
   if(!f) return;
+  // v2.00 (U10): refused before the file is read while a locked cycle is on screen. The estimates are every appropriation's and no
+  // part of the view's copy: one imported in a view was stored -- an approved one replaced -- and every tie-out changed, while the
+  // board said "Not kept".
+  if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }
   try{
     setStat('\ud83d\udcc8 Reading '+esc(f.name)+'\u2026');
     const sheets=await xlsxRead(await f.arrayBuffer());
@@ -15174,6 +15184,10 @@ function flowEntUseMap(){
 function flowEntUseElse(k, M){ return ((M||flowEntUseMap())[k])||{}; }
 function flowEntUseElseTxt(U){ return Object.keys(U).map(function(w){ return w+' ('+U[w]+')'; }).join(', '); }
 function flowSetEnt(i, field, v){
+  // v2.00 (U10): THE DESTINATION LIST IS EVERY APPROPRIATION'S, and no part of a locked view's copy. Each change to it is refused
+  // up front while one is on screen: it was kept while the board said it was not, and a destination removed in a view left the
+  // working plan's requirements pointing at nothing.
+  if(cycBlock('Changing a destination')){ render(); return; }
   const L=flowEnts(), e=L[i]; if(!e) return;
   if(field==='kind'){ e.kind=(v==='prime'?'prime':(v==='gov'?'gov':'other'));
     DESTDB.conflicts=DESTDB.conflicts.filter(function(c){ return c.k!==e.k; }); }
@@ -15181,6 +15195,7 @@ function flowSetEnt(i, field, v){
   persistDest(); save(); render();
 }
 function flowAddEnt(){
+  if(cycBlock('Adding a destination')){ render(); return; }   // v2.00 (U10): as flowSetEnt
   const L=flowEnts();
   L.push({k:destNewKey(), n:'New destination', kind:'other', t:''});
   persistDest(); save(); render();
@@ -15189,6 +15204,7 @@ function flowAddEnt(){
     +'want the chart to recognise it in the source file as well.');
 }
 function flowDelEnt(i){
+  if(cycBlock('Removing a destination')){ render(); return; }   // v2.00 (U10): as flowSetEnt
   const L=flowEnts(), e=L[i]; if(!e) return;
   const used=flowEntUse(e.k), elsewhere=flowEntUseElse(e.k);
   if(Object.keys(elsewhere).length){
@@ -15224,6 +15240,7 @@ function flowDelEnt(i){
        +'<b>not yet assigned</b>.' : '.'));
 }
 function flowResetEnts(){
+  if(cycBlock('Resetting the destination list')){ render(); return; }   // v2.00 (U10): as flowSetEnt
   const keep={}; flowDefEnts().forEach(function(e){ keep[e.k]=1; });
   const UM=flowEntUseMap();
   const busy=flowEnts().filter(function(e){ return !keep[e.k]; })
