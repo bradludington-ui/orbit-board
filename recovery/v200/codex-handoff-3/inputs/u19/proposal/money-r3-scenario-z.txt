@@ -1,0 +1,13 @@
+  // (z) A PUT-BACK THE LOAD ITSELF REFUSES, WITH SAVED WORK ON SCREEN. S1 saved; the work kept aside was built for another
+  // service list, so the load refuses it. What is on screen was first written into the kept slot (it is saved only in the
+  // board file, so it is kept); the kept work is written back byte for byte, and S1 stays on screen and in the file, saved.
+  // A CONTROL on the board before: it never touched the kept slot for saved work. It guards the write-back U19's keep needs.
+  { const sc = '(z) the board file: S1 saved; the kept work built for another service list; ↶ Put back refused by the load';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'), i=s.indexOf('\\n'), st=JSON.parse(s.slice(i+1));
+      st.dataPack.services=st.dataPack.services.concat(['XTRA']); localStorage.setItem(_AP.key+'.kept', s.slice(0,i)+'\\n'+JSON.stringify(st)); return 'ok'; })()`);
+    const k0 = keptRaw(A.ev), q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back, refused by the load: one question; the kept work byte for byte as it was; S1 on screen and in the file, saved (a CONTROL)',
+      J([r, q.length, keptRaw(A.ev) === k0, kept(A.ev), scr(A.ev), fileNote(f.content, 'A'), ...unsaved(A.ev)]),
+      J(['clicked', 1, true, [K, 'file'], S1, S1, false, false, false])); }

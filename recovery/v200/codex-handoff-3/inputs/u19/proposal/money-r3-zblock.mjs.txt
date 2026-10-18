@@ -1,0 +1,139 @@
+// ==== PROPOSAL r3 (U19 z): the block's own helpers, then the proposed scenario (z) only ====
+// With S1 saved into the board file, ↶ Put back of the work kept aside (K) kept nothing in S1's place: S1 was "still in the
+// saved file". The next 💾 Save asked HOLD ON, and answered OK it wrote K over S1 -- and then S1 was in no copy this board
+// could reach: not on screen, not kept aside, not in browser storage, not in a byte of the file, after the Save and after a
+// reopen (only in Teams version history, outside the board). The shared folder keeps the copy a save replaces in its history;
+// a board file keeps none. Now what is on screen is kept aside in the kept work's place whether or not it is saved, as unsaved
+// work always was, unless 💾 Save writes to the shared folder and what is on screen is the folder's own copy; and the question
+// and the board's words say so. Each route below is driven through the page's own buttons and menus: the board file put back
+// once S1's save has landed, put back while it writes (refused, U2) and again once it has landed, through 📁 File and the
+// note editor, with no file handle remembered (the picker), between two writers who each hold their own key (✍ Take the pen,
+// both ways), with 📡 Live view working out of a folder at the put-back and switched back to the file before the Save, and on
+// a reopened page with no file handle in memory. Then: K and S1 put back in turn before any Save, a reopen before any Save,
+// no room to keep what is on screen, the HOLD ON answered Cancel while work is kept aside (its advice names ⬅ Import, not a
+// reopen, which would not load the file's copy), the words for each kind of kept copy, and the controls -- the HOLD ON
+// answered Cancel, S1 never saved, the shared folder, and ordinary editing -- as they were. Fix round 2: the shared folder
+// holding an older copy of this browser's at the put-back; the question's words when what is on screen is the folder's own
+// copy; Cancel's advice with work kept by an opening; the question on a freshly opened page and after a change; a colleague's
+// copy on screen; and a locked cycle on screen, where ↶ Put back is refused at once.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'PROPOSAL r3 (U19 z)';
+  try {
+  const { J, wire, KEY, status, qs, baseFile, disk, folder, connect, gate, until, flags, pause, lsOf, fileNote, fileWriter } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // Requirement A's note says which copy is which: K, Alice's work kept aside by the opening; N, the newer copy that displaced
+  // it; S1, the work typed afterwards and saved into the file before K is put back.
+  const K = 'U19-K-KEPTWORK', N = 'U19-N-NEWER', S1 = 'U19-S1-SAVED';
+  const scr = ev => ev('String(S.notes.A)');
+  const keptRaw = ev => ev(`localStorage.getItem(_AP.key+'.kept')`);
+  // The work kept aside: [its note A, why it was kept], or null when nothing is kept.
+  const kept = ev => { const s = keptRaw(ev); if (s == null) return null;
+    try { const m = JSON.parse(s.slice(0, s.indexOf('\n'))), st = JSON.parse(s.slice(s.indexOf('\n') + 1));
+      return [String(((st.years || {})[st.cur] || { notes: {} }).notes.A || ''), m.why]; } catch (e) { return ['(unreadable)', null]; } };
+  const unsaved = ev => { const fl = flags(ev); return [fl.DIRTY, ev('_baseDirty'), !!fl.base.dirty]; };
+  // WHERE A COPY IS among the places this board offers it -- on screen, this browser's record of the board (its storage key),
+  // kept aside, the board file -- and, wider, whether its text is in any byte of browser storage or of the file.
+  const where = (ev, f, m) => { const ls = lsOf(ev); let main = '';
+    try { const o = JSON.parse(ls[ev('_AP.key')]); main = String(((o.years || {})[o.cur] || { notes: {} }).notes.A || ''); } catch (e) {}
+    const k = kept(ev);
+    return [scr(ev) === m && 'screen', main === m && 'storage', !!k && k[0] === m && 'kept', fileNote(f.content, 'A') === m && 'file'].filter(Boolean); };
+  const anywhere = (ev, f, m) => Object.values(lsOf(ev)).some(v => String(v).includes(m)) || f.content.includes(m);
+  // The page's own controls: 💾 Save in the toolbar (its promise is the save queue's), the top bar's "↶ work kept aside", and
+  // the 📁 File menu (mRun runs its item after a turn of the loop; then the save queue is waited for).
+  const clickSave = ev => ev(`(function(){ var b=document.getElementById('saveBtn'); if(!b) return null; b.click(); return _saveChain; })()`);
+  const clickPutBack = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); if(!b) return 'no button'; b.click(); return 'clicked'; })()`);
+  const fileMenu = async (ev, call) => { const r = ev(`(function(){ var b=document.getElementById('b_share'); if(!b) return 'no File button'; b.click();
+      var it=[].slice.call(document.querySelectorAll('#dd_share button')).filter(function(x){ return (x.getAttribute('onclick')||'')===${J(call)}; });
+      if(it.length!==1) return 'items: '+it.length; it[0].click(); return 'clicked'; })()`);
+    await pause(15); await ev('_saveChain'); await pause(20); return r; };
+  // The 📄 Description & note editor: open it for requirement A, type the note, press its ✔ Save.
+  const typeNote = (ev, text) => ev(`(function(){ toggleDesc('A'); var t=document.getElementById('fld-note'); if(!t) return 'no editor';
+    t.value=${J(text)}; var bs=[].slice.call(document.querySelectorAll('#fldBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='fldSave()'; });
+    if(bs.length!==1) return 'save buttons: '+bs.length; bs[0].click(); return 'typed'; })()`);
+  // The status line's "✍ Take the pen…" -- the refusal's own button --, answered OK; then the save it makes is waited for.
+  const takePenBtn = async (ev, f) => { const w0 = f.writes;
+    const r = ev(`(function(){ var bs=[].slice.call(document.querySelectorAll('#shareStat button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='takePen()'; });
+      if(bs.length!==1) return 'buttons: '+bs.length; bs[0].click(); return 'clicked'; })()`);
+    await until(() => f.writes > w0); await ev('_saveChain'); await pause(20); return r; };
+  const keptTitle = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); return b? b.title : null; })()`);
+  const menuText = ev => ev(`(document.getElementById('dd_share')||{}).textContent||''`);
+  // WORDS, as the board says them. The question when what is on screen is saved in the board file; the HOLD ON, unchanged;
+  // the top bar's and 📁 File's words for a copy kept at a put-back; the status after putting such a copy back.
+  const PUTQ = 'What is on screen now is still in the saved file it came from, and 💾 Save will ask before writing over that. It is also kept aside in its place, so it is not lost if Save does.';
+  const holdOn = q => /^⚠ HOLD ON — Alice saved this file at .+\. That is not the save the copy you are working from came from, so their changes are not on your screen\.\n\nSaving now will OVERWRITE their changes with yours\.\n\nOK — overwrite anyway \(their version stays in Teams version history\)\./.test(q);
+  const SWAPTITLE = /^What was on screen when other work was put back, kept aside .+\. Put it back\.$/;
+  const SWAPMENU = 'what was on screen when other work was put back';
+  const SWAPSAID = '💾 Save will ask before it writes over a copy saved after the one this work came from.';
+  // The question's sentence when what is on screen is unsaved by this browser's record: work no saved copy has; or a copy kept
+  // at a put-back, saved when it was kept, put back and not changed since. The HOLD ON's Cancel line, and the status after
+  // Cancel, while work is kept aside: ⬅ Import only, no reopen.
+  const UNSAVEDQ = 'What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.';
+  const PUTAGAINQ = 'What is on screen now was put back and has not been saved since, so it is kept aside in its place — nothing is lost.';
+  const CANCEL_IMPORT = 'Cancel — don’t save (then use ⬅ Import on the current file to pick up their changes first).';
+  const CANCELLED_IMPORT = 'Save canceled — Alice’s changes are untouched. ⬅ Import this file to load their version, then redo your edits.';
+  // The question's sentence when what is on screen is the shared folder's own copy: the folder is named, whatever kind of copy
+  // is kept, and nothing is kept in its place.
+  const FOLDQ = 'What is on screen now is still in the shared folder it came from, and 💾 Save will ask before writing over that.';
+  // 📡 Live view's own switch, reached through 📁 File → 📡 Live view…: "● Working out of this folder" pressed (it turns to
+  // "○ Just watching", and 💾 Save writes the board file again); then the panel's ✕ Close.
+  const liveSwitchOff = async ev => { const o = await fileMenu(ev, 'mRun(toggleLive)');
+    const r = ev(`(function(){ var bs=[].slice.call(document.querySelectorAll('#liveBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='liveSet("store",false)'; });
+      if(bs.length!==1) return 'switches: '+bs.length; bs[0].click(); var x=document.querySelector('#livePanel h3 button.x'); if(!x) return 'no close'; x.click(); return 'clicked'; })()`);
+    await pause(5); return [o, r]; };
+  // THE BOARD FILE. Alice types K, unsaved. Her other browser saves N into the file. She reopens the file: the opening keeps K
+  // aside and opens N. `picker`: no file handle is remembered, so the first Save opens the picker (it hands back the same file).
+  const inFile = async picker => {
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F1);
+    A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    if (picker) A.ev(`FH=null; globalThis.__picks=0; window.showSaveFilePicker=async function(){ globalThis.__picks++; return globalThis.__disk; }; 'ok'`);
+    return { A, f };
+  };
+  const reopen = async (A, f) => { const B = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Alice', KEY.alice);
+    return { B, fB: disk(B.w, f.content) }; };
+  // S1 typed and saved into the file through 💾 Save: nothing asked; S1 in the file, saved; K still kept aside.
+  const savedS1 = async (A, f, sc) => {
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    chk(name, sc, 'S1 on screen, unsaved; K kept aside by the opening; N in the file (a CONTROL)',
+      J([scr(A.ev), ...unsaved(A.ev), kept(A.ev), fileNote(f.content, 'A')]), J([S1, true, true, true, [K, 'file'], N]));
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, 'S1’s save lands: nothing asked; S1 in the file, saved; K still kept aside (a CONTROL)',
+      J([qs(A.ev).length - q0, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([0, S1, false, false, false, [K, 'file']]));
+  };
+  // ↶ Put back of K with S1 saved -- the top bar's button, or `via` -- : one question, saying S1 is kept aside too; K on screen,
+  // unsaved; S1 kept in its place.
+  const putBackK = async (A, sc, via) => {
+    const q0 = qs(A.ev).length; const r = via ? await via() : clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question, saying S1 is still in the saved file, Save will ask, and S1 is also kept aside in its place',
+      J([q.length, q.length === 1 && q[0].endsWith(PUTQ)]), J([1, true]));
+    chk(name, sc, '↶ Put back: K on screen, unsaved; S1 kept aside in its place; the board says so',
+      J([scr(A.ev), ...unsaved(A.ev), kept(A.ev), / What was on screen is kept aside in its place: put that back\.$/.test(status(A.ev))]),
+      J([K, true, true, true, [S1, 'swap'], true]));
+    return r;
+  };
+  // 💾 Save after the put-back, HOLD ON answered OK: one HOLD ON, in its own words; K written into the file, saved.
+  const saveK = (A, f, sc, q) => chk(name, sc, '💾 Save: one HOLD ON, its words unchanged; OK writes K into the file, saved (a CONTROL)',
+    J([q.length, q.length === 1 && holdOn(q[0]), fileNote(f.content, 'A'), scr(A.ev), ...unsaved(A.ev)]), J([1, true, K, K, false, false, false]));
+  // (z) A PUT-BACK THE LOAD ITSELF REFUSES, WITH SAVED WORK ON SCREEN. S1 saved; the work kept aside was built for another
+  // service list, so the load refuses it. What is on screen was first written into the kept slot (it is saved only in the
+  // board file, so it is kept); the kept work is written back byte for byte, and S1 stays on screen and in the file, saved.
+  // A CONTROL on the board before: it never touched the kept slot for saved work. It guards the write-back U19's keep needs.
+  { const sc = '(z) the board file: S1 saved; the kept work built for another service list; ↶ Put back refused by the load';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'), i=s.indexOf('\\n'), st=JSON.parse(s.slice(i+1));
+      st.dataPack.services=st.dataPack.services.concat(['XTRA']); localStorage.setItem(_AP.key+'.kept', s.slice(0,i)+'\\n'+JSON.stringify(st)); return 'ok'; })()`);
+    const k0 = keptRaw(A.ev), q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back, refused by the load: one question; the kept work byte for byte as it was; S1 on screen and in the file, saved (a CONTROL)',
+      J([r, q.length, keptRaw(A.ev) === k0, kept(A.ev), scr(A.ev), fileNote(f.content, 'A'), ...unsaved(A.ev)]),
+      J(['clicked', 1, true, [K, 'file'], S1, S1, false, false, false])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end PROPOSAL r3 (U19 z) ====

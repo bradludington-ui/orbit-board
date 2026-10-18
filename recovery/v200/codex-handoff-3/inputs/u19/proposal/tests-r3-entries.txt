@@ -1,0 +1,11 @@
+  // v2.00 (U19, verify r3): the question's place words for a copy kept at a put-back when 💾 Save goes to a folder that does not
+  // hold what is on screen; the write-back after a load the put-back itself refuses.
+  { id: "v200-u19-putback-words-store-on", area: "keptPutBack", what: "↶ Put back's question names the shared folder for a copy kept at a put-back whenever 💾 Save goes to a folder: with what is on screen saved only in the board file, it says it is “still in the shared folder it came from”",
+    find: "  const scrWhere=(k.meta.why==='swap' && +MS.ts && driveBaseOf(mySlug())===(+MS.ts||0))? 'the shared folder' : keptWhere(k.meta);",
+    repl: "  const scrWhere=(k.meta.why==='swap' && driveStoreOn())? 'the shared folder' : keptWhere(k.meta);" },
+  { id: "v200-u19-putback-words-base-any", area: "keptPutBack", what: "↶ Put back's question names the shared folder for a copy kept at a put-back once the folder holds ANY copy of this browser's: with what is on screen saved only in the board file and the folder holding an older copy, it says it is “still in the shared folder it came from”",
+    find: "  const scrWhere=(k.meta.why==='swap' && +MS.ts && driveBaseOf(mySlug())===(+MS.ts||0))? 'the shared folder' : keptWhere(k.meta);",
+    repl: "  const scrWhere=(k.meta.why==='swap' && +MS.ts && driveBaseOf(mySlug()))? 'the shared folder' : keptWhere(k.meta);" },
+  { id: "v200-u19-putback-restore-unsaved-only", area: "keptPutBack", what: "a put-back the load itself refuses writes the kept work back only when what was on screen was unsaved, as the keep itself used to be: with saved work on screen (U19 keeps it too), the slot is left holding it and the kept work is in no copy this board can reach",
+    find: "    if(swapped){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify(k.meta)+'\\n'+k.raw); }catch(e){} }",
+    repl: "    if(swapped && nowUnsaved){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify(k.meta)+'\\n'+k.raw); }catch(e){} }" },

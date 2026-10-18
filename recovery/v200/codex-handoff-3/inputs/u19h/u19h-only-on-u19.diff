@@ -1,0 +1,370 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 7a6e29cb9908a055c5f8a5b1bfc6f99b938e79d0..dbfd5f85d465189f768be45532c9f93794489b95 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -6474,6 +6474,16 @@
+     LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+   } else if(LASTKNOWN && PUB_FILE_TS!==LASTKNOWN) _bootMoved=PUB_FILE_TS;   // saved by someone since
+ }
++// v2.00 (U19H, Brad 13 Oct): WORK PUT BACK AND NOT WRITTEN SINCE, as the header reads it (putBackUnsaved). ↶ Put back counts the
++// work it puts back as a change (U2), and this browser's record says it is unsaved; reopened before any Save, the header read
++// "Saved <time>" -- the time that work was last changed, which no file had. {ms: the board on screen, rec: the saves this
++// browser's record named then}: set by ↶ Put back, and here, on opening this browser's own copy unsaved by its record and last
++// changed before the put-back that kept aside what was on screen then (the kept copy's time). Words only: nothing is written.
++let _putBackOn=null;
++try{ if(_bootOwn && _baseDirty && _keptMeta && _keptMeta.why==='swap' && +MS.ts && +MS.ts<+_keptMeta.t) _putBackOn={ms:MS, rec:putBackRec()}; }catch(e){}
++// v2.00 (U19H): the last save the board file is known to hold -- as it was opened, or a save of it that landed here. The header
++// shows it apart while the work on screen is unsaved.
++let _fileSaveTs=PUB_FILE_TS;
+ 
+ let DIRTY=false;
+ // ---- ONE SAVE AT A TIME, ACKNOWLEDGING WHAT IT WROTE (v1.95, item 47) ----------------------------
+@@ -7007,6 +7017,7 @@
+   _baseDirty=true; baseSet({file:LASTKNOWN, folder:b.folder||{}, dirty:true});
+   if(!swapped){ try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){} }
+   _keptMeta=swapped;
++  _putBackOn={ms:MS, rec:putBackRec()};   // v2.00 (U19H): the work put back, for the header (putBackUnsaved)
+   // v2.00 (U2): THE WORK PUT BACK IS A CHANGE, counted as an edit is. A save still writing when it was put back found the
+   // count unmoved and marked the board saved, while the folder or file holds what that save wrote. Now that save finds the
+   // count moved, leaves the work put back unsaved and says so, and the next Save writes it.
+@@ -8427,6 +8438,7 @@
+     await w.close();
+     _takePen=null;
+     LASTKNOWN=wrote;
++    _fileSaveTs=wrote;              // v2.00 (U19H): the board file holds this save now (the header's "Last file save")
+     const clean=(_saveGen===gen);   // nothing changed while it was writing
+     if(clean){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); _dlOnly=false; DIRTY=false; }
+     else baseSet({file:LASTKNOWN});
+@@ -25922,7 +25934,37 @@
+     return 'This browser holds changes to '+names.join(', ')+' that the file does not have: \ud83d\udcbe Save writes them into the file. ';
+   }catch(e){ return ''; }
+ }
+-function unsavedNow(){ return !!DIRTY || sideUnsaved(); }
++// v2.00 (U19H, Brad 13 Oct): THE HEADER READS THIS BROWSER'S RECORD TOO. DIRTY is this session's alone: reopened before any
++// Save -- after ↶ Put back, or after any change -- the header read "Saved <time>" while this browser's record (_baseDirty) said
++// the work on screen was unsaved, as the next opening and the next Save treat it. The record counts now. It is read, never
++// written: it is not made clean to match, and nothing is saved. A PMO copy's words are as they were.
++function unsavedNow(){ return !!DIRTY || sideUnsaved() || (!!_baseDirty && !(typeof SANDBOX!=='undefined' && SANDBOX)); }
++// v2.00 (U19H): the saves this browser's record names as the ones the work on screen came from -- the board file's, and each
++// shared-folder copy's. A save that lands names the copy it wrote, so the record moves.
++function putBackRec(){ const b=baseGet(); return JSON.stringify([+b.file||0, b.folder||{}]); }
++// v2.00 (U19H): the work put back is on screen and not written since: the same board (a load puts another one on screen) and the
++// record naming the saves it named then. A saved copy put back and not changed is that save (its time is its identity): it is
++// not called "not written".
++function putBackUnsaved(){
++  try{
++    if(!_putBackOn || _putBackOn.ms!==MS || _putBackOn.rec!==putBackRec()) return false;
++    const b=baseGet(), t=+MS.ts||0, f=+((b.folder||{})[driveBaseKey(mySlug())])||0;
++    return !(t && (t===(+b.file||0) || t===f));
++  }catch(e){ return false; }
++}
++// v2.00 (U19H): where 💾 Save writes now
++function putBackDest(){ try{ if(driveStoreOn()) return 'the shared folder'; }catch(e){} return 'the board file'; }
++// v2.00 (U19H): THE TOOLTIP WHILE UNSAVED. It began "Saved <time>", the board's own time, which every change sets: the work put
++// back read "Saved" at the time it was last changed, though no file had it. Now it says what is unsaved; that it is kept in
++// this browser only while browser storage takes it, and that storage refused a change when it did; and, labelled apart, the
++// last save the board file is known to hold (_fileSaveTs).
++function unsavedSay(pb, dest){
++  const refused=!!_persistFail || Object.keys(_lsRefused).length>0;
++  return (pb? 'Work put back from what this browser kept aside, not written to '+dest+' since it was put back. ' : '')
++    +(refused? 'Browser storage refused a change: until \ud83d\udcbe Save writes it, it is on this page only. '
++             : 'The unsaved work is kept in this browser. ')
++    +'Last file save: '+(_fileSaveTs? shortTs(_fileSaveTs) : 'none yet')+'. ';
++}
+ function saveStateShow(){
+   const ss=document.getElementById('saveState'), sb=document.getElementById('saveBtn');
+   const un=unsavedNow();
+@@ -25931,13 +25973,16 @@
+   // press a button that could only say no. On a copy the work is already kept in this browser;
+   // the button beside it sends it back.
+   const _sb=(typeof SANDBOX!=='undefined' && SANDBOX);
++  // v2.00 (U19H): work put back and not written since is named, with the place 💾 Save writes to now
++  const _pb=!_sb && un && !_dlOnly && putBackUnsaved(), _dest=putBackDest();
+   if(ss) ss.innerHTML = _sb ? (un ? '<b>kept in this browser</b>' : 'PMO copy · your work is kept in this browser')
+-        : un ? (_dlOnly? '<b>downloaded — not on the shared file yet</b>' : '<b>Unsaved changes</b>')
++        : un ? (_dlOnly? '<b>downloaded — not on the shared file yet</b>' : _pb? '<b>Unsaved restored work — not written to '+_dest+'</b>' : '<b>Unsaved changes</b>')
+         : (MS.ts ? '<b>Saved</b> '+esc(shortTime(MS.ts)) : 'not saved to a file yet');
+   // v1.90: the time is on the bar; the day, who saved it and the latest message are in the tooltip
+   if(ss){ ss.classList.toggle('dirty', un);
+     const _st=document.getElementById('shareStat');
+-    ss.title=(MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+sideBootSay()+(_st? _st.textContent : ''); }
++    // v2.00 (U19H): unsaved, it does not call the board's own time a save (unsavedSay)
++    ss.title=((un && !_sb)? unsavedSay(_pb, _dest) : (MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : ''))+sideBootSay()+(_st? _st.textContent : ''); }
+   // v1.89: while work is kept aside, the header says so -- an opening message can be replaced by the next.
+   // v1.91 (item 29): a button -- it was a link with no address, which a keyboard never reaches.
+   if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <button type="button" class="keptbtn" onclick="keptPutBack()" '
+diff --git a/tools/export-audit/audit-import.mjs b/tools/export-audit/audit-import.mjs
+index 424cd9ae2b9ecc59247722501bd68a6c1d0781ca..120d9f148d7c11dd37e84832440908d4a2c43e0a 100644
+--- a/tools/export-audit/audit-import.mjs
++++ b/tools/export-audit/audit-import.mjs
+@@ -8339,6 +8339,218 @@
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U19) ====
++// ==== v2.00 (U19H): after ↶ Put back and a reopen, the header says the restored work is unsaved ====
++// After ↶ Put back (K, the work kept aside, put back over S1, saved into the board file), a reopen before any Save showed
++// "Saved <time>" in the top bar -- the time K was last changed, which no file had -- while this browser's record said the work
++// on screen was unsaved, the file held S1, and the next Save treated K as unsaved. DIRTY is this session's alone, and the
++// header read nothing else. Brad, 13 Oct: the header's main status says the restored work is unsaved and shows the last file
++// save separately; nothing is saved for it and the record is never made clean to match. Now the header reads the record's flag
++// too, says "Unsaved restored work — not written to the board file" (or "the shared folder", where 💾 Save writes now), and
++// its tooltip gives "Last file save: <time>" apart, says the work is kept in this browser only while browser storage takes it,
++// and that storage refused a change when it did. Every time here is a literal clock set on the page (2030), so each save's
++// time is its own: K typed, N (the replacement) saved, S1 (the old file copy) saved, the put-back, the next Save, a change.
++// Covered: the board file, reopened, then 💾 Save; failed saves (Cancel, a read-only file, a write that fails and downloads);
++// browser storage refusing the board at the put-back; a save landing with a change made while it wrote; a clean opening with
++// nothing restored and ordinary editing reopened (CONTROLS and the record's flag); the shared folder; a saved copy put back in
++// its turn; and restored work changed before the reopen.
++await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
++  const __bm = bootMark();
++  const name = 'v2.00 (U19H) — after ↶ Put back and a reopen, the header says the restored work is unsaved';
++  try {
++  const { J, wire, KEY, status, qs, baseFile, disk, folder, connect, gate, until, flags, pause, lsOf, fileNote, fileTs, pubOf } = W1H;
++  // The clocks, literal (2030, after any real run of this suite): the board file F as handed over; F0 in the shared folder; K
++  // typed; N saved; S1 saved; ↶ Put back (and a second one an hour later); the next Save; a change after it.
++  const T_F = 1893499200000, T_F0 = 1893542400000, T_K = 1893585600000, T_N = 1893672000000, T_S1 = 1893758400000,
++    T_PB = 1893844800000, T_PB2 = 1893848400000, T_SV = 1893931200000, T_E = 1894017600000;
++  // Requirement A's note says which copy is which: K, the restored copy (Alice's work kept aside by the opening, then put back);
++  // N, the replacement that displaced it; S1, the old file copy -- typed afterwards and saved into the file before K is put back.
++  const K = 'U19H-RESTORED-K', N = 'U19H-REPLACEMENT-N', S1 = 'U19H-OLDFILE-S1';
++  // F: the shared board file, every appropriation's save stamped T_F.
++  const atTime = (html, t) => { const p = pubOf(html); Object.values(p.appns).forEach(s => { if (s) s.ts = t; });
++    return html.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J(p).replace(/</g, '\\u003c') + b); };
++  const F = atTime(baseFile('Alice', KEY.alice), T_F);
++  const clock = (ev, t) => ev(`Date.now=function(){ return ${t}; }; 'ok'`);
++  // A time as the top bar prints one that is not today (the test's own copy of the format: short month, day, hour:minute).
++  const fmt = t => { const dt = new Date(t); return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' '
++    + dt.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
++  const scr = ev => ev('String(S.notes.A)');
++  const head = ev => ev(`(document.getElementById('saveState')||{}).textContent||''`);
++  const tip = ev => ev(`(document.getElementById('saveState')||{}).title||''`);
++  const tipHead = (ev, want) => tip(ev).slice(0, want.length);
++  const btnDirty = ev => ev(`/(^| )dirty( |$)/.test((document.getElementById('saveBtn')||{}).className||'')`);
++  const rec = ev => !!flags(ev).base.dirty;          // this browser's record: is the work on screen unsaved?
++  // The top bar drawn again from what the board holds now. A status message replaces the tooltip until the next redraw (v1.90:
++  // "the save state's tooltip always carries it"), so after an action that ends in a message the tooltip is read once redrawn.
++  const show = ev => ev('syncBtns(); 0');
++  const keptRaw = ev => ev(`localStorage.getItem(_AP.key+'.kept')`);
++  const kept = ev => { const s = keptRaw(ev); if (s == null) return null;
++    try { const m = JSON.parse(s.slice(0, s.indexOf('\n'))), st = JSON.parse(s.slice(s.indexOf('\n') + 1));
++      return [String(((st.years || {})[st.cur] || { notes: {} }).notes.A || ''), m.why]; } catch (e) { return ['(unreadable)', null]; } };
++  const clickSave = ev => ev(`(function(){ var b=document.getElementById('saveBtn'); if(!b) return null; b.click(); return _saveChain; })()`);
++  const clickPutBack = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); if(!b) return 'no button'; b.click(); return 'clicked'; })()`);
++  // WORDS, as the board says them.
++  const HDR_FILE = 'Unsaved restored work — not written to the board file · ↶ work kept aside';
++  const HDR_FOLD = 'Unsaved restored work — not written to the shared folder · ↶ work kept aside';
++  const PB_FILE = 'Work put back from what this browser kept aside, not written to the board file since it was put back. ';
++  const PB_FOLD = 'Work put back from what this browser kept aside, not written to the shared folder since it was put back. ';
++  const KEPT = 'The unsaved work is kept in this browser. ';
++  const REFUSED = 'Browser storage refused a change: until 💾 Save writes it, it is on this page only. ';
++  const last = t => 'Last file save: ' + fmt(t) + '. ';
++  // THE BOARD FILE. Alice types K (T_K), unsaved. Her other browser saves N into the file (T_N). She reopens the file: the
++  // opening keeps K aside and opens N. She types S1 and saves it into the file (T_S1).
++  const inFile = async () => {
++    const A0 = boot({ html: F }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
++    clock(A0.ev, T_K); A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
++    const A2 = boot({ html: F }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F);
++    clock(A2.ev, T_N); A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
++    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
++    clock(A.ev, T_S1); A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5); await clickSave(A.ev); await pause(20);
++    return { A, f };
++  };
++  const putBack = (A, t) => { clock(A.ev, t); return clickPutBack(A.ev); };
++  const reopen = async (A, f) => { const B = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Alice', KEY.alice);
++    return { B, fB: disk(B.w, f.content) }; };
++  const W_FILE = PB_FILE + KEPT + last(T_S1);
++  // (a) THE BOARD FILE: K put back once S1's save has landed; reopened before any Save; then 💾 Save, HOLD ON answered OK.
++  { const sc = '(a) the board file: ↶ Put back of K over S1; reopened before any Save; 💾 Save, HOLD ON answered OK; reopened';
++    const { A, f } = await inFile();
++    chk(name, sc, 'S1 saved into the board file at T_S1; K kept aside by the opening; the header says Saved, at S1’s save (a CONTROL)',
++      J([fileNote(f.content, 'A'), fileTs(f.content) === T_S1, kept(A.ev), rec(A.ev), head(A.ev)]), J([S1, true, [K, 'file'], false, 'Saved ' + fmt(T_S1) + ' · ↶ work kept aside']));
++    const pb = putBack(A, T_PB);
++    chk(name, sc, '↶ Put back: K on screen, unsaved by the record; S1 kept aside in its place; the board file still S1 (a CONTROL)',
++      J([pb, scr(A.ev), rec(A.ev), kept(A.ev), fileNote(f.content, 'A')]), J(['clicked', K, true, [S1, 'swap'], S1]));
++    show(A.ev);
++    chk(name, sc, '↶ Put back: the header says the restored work is unsaved and not in the board file; its tooltip gives the last file save apart -- S1’s',
++      J([head(A.ev), tipHead(A.ev, W_FILE)]), J([HDR_FILE, W_FILE]));
++    const { B, fB } = await reopen(A, f);
++    chk(name, sc, 'reopened before any Save: K on screen; the record still says unsaved; the file’s bytes still S1 at T_S1, nothing written; S1 kept aside (a CONTROL)',
++      J([scr(B.ev), rec(B.ev), fileNote(fB.content, 'A'), fileTs(fB.content) === T_S1, fB.writes, kept(B.ev)]), J([K, true, S1, true, 0, [S1, 'swap']]));
++    chk(name, sc, 'reopened: the header says the restored work is unsaved, not written to the board file -- not “Saved” at K’s time; 💾 Save is marked',
++      J([head(B.ev), btnDirty(B.ev)]), J([HDR_FILE, true]));
++    chk(name, sc, 'reopened: the tooltip says what is unsaved, that it is kept in this browser, and the last file save apart: S1’s, not K’s time',
++      tipHead(B.ev, W_FILE), W_FILE);
++    clock(B.ev, T_SV); const q0 = qs(B.ev).length; await clickSave(B.ev); await pause(20); const q = qs(B.ev).slice(q0); show(B.ev);
++    chk(name, sc, '💾 Save, HOLD ON answered OK: K written into the file at T_SV; the record clean; the header says Saved at that save, and so does the tooltip (a CONTROL)',
++      J([q.length, fileNote(fB.content, 'A'), fileTs(fB.content) === T_SV, rec(B.ev), head(B.ev), tipHead(B.ev, 'Saved ' + fmt(T_SV) + ' by Alice. ')]),
++      J([1, K, true, false, 'Saved ' + fmt(T_SV) + ' · ↶ work kept aside', 'Saved ' + fmt(T_SV) + ' by Alice. ']));
++    const { B: C } = await reopen(B, fB);
++    chk(name, sc, 'reopened again: K on screen, Saved at T_SV; the record clean (a CONTROL)', J([scr(C.ev), head(C.ev), rec(C.ev)]),
++      J([K, 'Saved ' + fmt(T_SV) + ' · ↶ work kept aside', false])); }
++  // (b) SAVES THAT FAIL after the reopen: the HOLD ON answered Cancel; a board file that is read-only for this person; a write
++  // that fails, so a copy is downloaded instead. None of them claims the work is saved.
++  { const sc = '(b) the board file: K put back; reopened; 💾 Save answered Cancel, refused read-only, failed and downloaded';
++    const { A, f } = await inFile(); putBack(A, T_PB);
++    const { B, fB } = await reopen(A, f);
++    clock(B.ev, T_SV); B.ev('globalThis.__yes=false; 0'); await clickSave(B.ev); await pause(20); B.ev('globalThis.__yes=true; 0'); show(B.ev);
++    chk(name, sc, 'HOLD ON answered Cancel: nothing written, S1 in the file; the record unsaved; the header still says the restored work is unsaved; the last file save S1’s',
++      J([fB.writes, fileNote(fB.content, 'A'), rec(B.ev), head(B.ev), tipHead(B.ev, W_FILE)]), J([0, S1, true, HDR_FILE, W_FILE]));
++    fB.failOpen = Object.assign(new Error('denied'), { name: 'NotAllowedError' });
++    await clickSave(B.ev); await pause(20); show(B.ev);
++    chk(name, sc, 'a board file read-only for this person: not saved, and said; nothing written; the record unsaved; the header still says the restored work is unsaved',
++      J([/Not saved — this board file is read-only for you/.test(status(B.ev)), fB.writes, fileNote(fB.content, 'A'), rec(B.ev), head(B.ev), tipHead(B.ev, W_FILE)]),
++      J([true, 0, S1, true, HDR_FILE, W_FILE]));
++    fB.failOpen = new Error('U19H disk gone');
++    await clickSave(B.ev); await pause(20); show(B.ev);
++    chk(name, sc, 'a write that fails: a copy downloaded instead; the header says downloaded, not on the shared file -- not Saved; the record unsaved; the file S1',
++      J([B.ev('globalThis.__dl') > 0, head(B.ev), tipHead(B.ev, KEPT + last(T_S1)), rec(B.ev), fB.writes, fileNote(fB.content, 'A')]),
++      J([true, 'downloaded — not on the shared file yet · ↶ work kept aside', KEPT + last(T_S1), true, 0, S1])); }
++  // (c) BROWSER STORAGE REFUSES THE BOARD at the put-back: the work put back is on this page only, and the tooltip says so --
++  // never that it is kept in this browser -- until storage takes it again.
++  { const sc = '(c) the board file: browser storage refusing the board at ↶ Put back; then taking it again';
++    const { A, f } = await inFile();
++    A.ev(`(function(){ var o=Storage.prototype.setItem; globalThis.__setItem=o; Storage.prototype.setItem=function(k,v){ if(String(k)===_AP.key) throw new DOMException('full', 'QuotaExceededError'); return o.apply(this, arguments); }; return 'ok'; })()`);
++    putBack(A, T_PB); show(A.ev);
++    chk(name, sc, '↶ Put back with storage refusing the board: K on screen, unsaved; the header says the restored work is unsaved; the tooltip says storage refused it, not that it is kept',
++      J([scr(A.ev), rec(A.ev), head(A.ev), tipHead(A.ev, PB_FILE + REFUSED + last(T_S1)), /kept in this browser/.test(tip(A.ev))]),
++      J([K, true, HDR_FILE, PB_FILE + REFUSED + last(T_S1), false]));
++    A.ev(`Storage.prototype.setItem=globalThis.__setItem; 'ok'`);
++    clock(A.ev, T_E); A.ev(`setNote('B','U19H-AFTER-REFUSAL'); 'ok'`); await pause(5); show(A.ev);
++    chk(name, sc, 'storage takes the next change: the tooltip says the work is kept in this browser; the header still says the restored work is unsaved; the file S1',
++      J([scr(A.ev), head(A.ev), tipHead(A.ev, W_FILE), fileNote(f.content, 'A')]), J([K, HDR_FILE, W_FILE, S1])); }
++  // (d) A SAVE LANDS WITH A CHANGE MADE WHILE IT WROTE: while it writes, the header still says the restored work is unsaved;
++  // once it lands, the file holds K and the header says the change is unsaved -- not Saved, and not the restored work.
++  { const sc = '(d) the board file: K put back; reopened; 💾 Save lands with a change made while it wrote';
++    const { A, f } = await inFile(); putBack(A, T_PB);
++    const { B, fB } = await reopen(A, f);
++    clock(B.ev, T_SV); const n0 = fB.hits.write || 0; fB.hold.write = gate(); const g = fB.hold.write;
++    const p = clickSave(B.ev); const reached = await until(() => (fB.hits.write || 0) > n0); show(B.ev);
++    chk(name, sc, 'while 💾 Save writes: the header still says the restored work is unsaved, not Saved; the file still S1; the record unsaved',
++      J([reached, head(B.ev), fileNote(fB.content, 'A'), rec(B.ev)]), J([true, HDR_FILE, S1, true]));
++    clock(B.ev, T_E); B.ev(`setNote('B','U19H-LATE'); 'ok'`); g.open(); await p; await pause(20); show(B.ev);
++    chk(name, sc, 'it lands: K in the file at T_SV, the change not; the header says Unsaved changes -- not Saved, nor the restored work, which the file holds; the record unsaved (a CONTROL: as before)',
++      J([fileNote(fB.content, 'A'), fileTs(fB.content) === T_SV, fileNote(fB.content, 'B'), head(B.ev), rec(B.ev)]),
++      J([K, true, '', 'Unsaved changes · ↶ work kept aside', true]));
++    chk(name, sc, 'and the tooltip’s last file save is that save’s', tipHead(B.ev, KEPT + last(T_SV)), KEPT + last(T_SV)); }
++  // (e) CONTROL: A CLEAN OPENING WITH NOTHING RESTORED says Saved, as before.
++  { const sc = '(e) CONTROL: the board file opened, a change saved, reopened with nothing restored or kept';
++    const A = boot({ html: F }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, F);
++    chk(name, sc, 'opened in a browser that holds no copy: Saved, at the file’s save; the record clean; 💾 Save not marked (a CONTROL)',
++      J([head(A.ev), rec(A.ev), btnDirty(A.ev)]), J(['Saved ' + fmt(T_F), false, false]));
++    clock(A.ev, T_SV); A.ev(`setNote('A','U19H-CLEAN'); 'ok'`); await pause(5); await clickSave(A.ev); await pause(20);
++    const { B, fB } = await reopen(A, f);
++    chk(name, sc, 'saved, then reopened: Saved at that save; the tooltip as before; the record clean; 💾 Save not marked (a CONTROL)',
++      J([fileNote(fB.content, 'A'), head(B.ev), tipHead(B.ev, 'Saved ' + fmt(T_SV) + ' by Alice. '), rec(B.ev), btnDirty(B.ev)]),
++      J(['U19H-CLEAN', 'Saved ' + fmt(T_SV), 'Saved ' + fmt(T_SV) + ' by Alice. ', false, false])); }
++  // (f) ORDINARY EDITING, reopened before any Save: the record's flag alone makes the header say unsaved.
++  { const sc = '(f) the board file: a change, then reopened before any Save (no put-back)';
++    const A = boot({ html: F }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, F);
++    clock(A.ev, T_E); A.ev(`setNote('A','U19H-EDIT'); 'ok'`); await pause(5);
++    const { B, fB } = await reopen(A, f);
++    chk(name, sc, 'reopened: the change on screen; the record unsaved; the file as it was, nothing written (a CONTROL)',
++      J([scr(B.ev), rec(B.ev), fileNote(fB.content, 'A'), fB.writes]), J(['U19H-EDIT', true, '', 0]));
++    chk(name, sc, 'reopened: the header says Unsaved changes -- not “Saved” at the change’s time, and not restored work; the tooltip gives the last file save apart',
++      J([head(B.ev), tipHead(B.ev, KEPT + last(T_F)), btnDirty(B.ev)]), J(['Unsaved changes', KEPT + last(T_F), true])); }
++  // (g) THE SHARED FOLDER. Alice saves F0 there and types K; her other browser saves N; her Save is refused and she loads theirs
++  // (K kept aside); she types S1, unsaved, and puts K back (S1 kept in its place). Reopened, working out of the folder again.
++  { const sc = '(g) the shared folder: K put back over S1 (unsaved); reopened before any Save; 💾 Save refused; Save yours over theirs';
++    const fold = folder(); const A = boot({ html: F }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
++    clock(A.ev, T_F0); A.ev(`setNote('A','U19H-F0'); 'ok'`); await pause(5); await A.ev('driveStorePush(false)'); await pause(5);
++    clock(A.ev, T_K); A.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
++    const A2 = boot({ html: F }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); connect(A2.ev, A2.w, fold);
++    await A2.ev('driveStorePull(false)'); await pause(5);
++    clock(A2.ev, T_N); A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
++    await A.ev('saveInPlace()'); await A.ev(`driveResolve('theirs')`); await pause(5);
++    clock(A.ev, T_S1); A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
++    putBack(A, T_PB); show(A.ev);
++    const W_FOLD = PB_FOLD + KEPT + last(T_F);
++    chk(name, sc, '↶ Put back: K on screen, unsaved; S1 kept in its place; the folder holds N; the header says the restored work is not written to the shared folder',
++      J([scr(A.ev), rec(A.ev), kept(A.ev), fold.note(2027, 'A'), head(A.ev), tipHead(A.ev, W_FOLD)]), J([K, true, [S1, 'swap'], N, HDR_FOLD, W_FOLD]));
++    const B = boot({ html: F, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Alice', KEY.alice); connect(B.ev, B.w, fold); show(B.ev);
++    chk(name, sc, 'reopened, working out of the folder: K on screen; the record unsaved; the folder still N; the header says the restored work is not written to the shared folder',
++      J([scr(B.ev), rec(B.ev), fold.note(2027, 'A'), kept(B.ev), head(B.ev), tipHead(B.ev, W_FOLD)]), J([K, true, N, [S1, 'swap'], HDR_FOLD, W_FOLD]));
++    clock(B.ev, T_SV); await clickSave(B.ev); await pause(20); show(B.ev);
++    chk(name, sc, '💾 Save: refused (N was saved after the copy K came from), nothing written; the header still says the restored work is unsaved',
++      J([/Nothing was written/.test(status(B.ev)), fold.note(2027, 'A'), rec(B.ev), head(B.ev)]), J([true, N, true, HDR_FOLD]));
++    const q2 = qs(B.ev).length; await B.ev(`driveResolve('mine')`); await pause(20);
++    chk(name, sc, '"Save yours over theirs": one question; K in the folder; the record clean; the header says Saved at that save (a CONTROL)',
++      J([qs(B.ev).length - q2, fold.note(2027, 'A'), rec(B.ev), head(B.ev)]), J([1, K, false, 'Saved ' + fmt(T_SV) + ' · ↶ work kept aside'])); }
++  // (h) A SAVED COPY PUT BACK IN ITS TURN: S1, the board file's own save, put back unchanged is that save -- the header does not
++  // say it is not written to the board file; reopened, the opening finds the file's own save on screen.
++  { const sc = '(h) the board file: K put back, then S1 put back in its turn (the file’s own save); reopened';
++    const { A, f } = await inFile(); putBack(A, T_PB); putBack(A, T_PB2); show(A.ev);
++    chk(name, sc, 'S1 put back in its turn: S1 on screen; K kept aside in its place; the file holds S1 (a CONTROL)',
++      J([scr(A.ev), kept(A.ev), fileNote(f.content, 'A')]), J([S1, [K, 'swap'], S1]));
++    chk(name, sc, 'the header does not say S1 is not written to the board file, which holds it: Unsaved changes, as before; the tooltip’s last file save S1’s',
++      J([head(A.ev), tipHead(A.ev, KEPT + last(T_S1))]), J(['Unsaved changes · ↶ work kept aside', KEPT + last(T_S1)]));
++    const { B } = await reopen(A, f);
++    chk(name, sc, 'reopened: the file’s own save on screen, Saved at it; the record clean (the opening’s own rule) (a CONTROL)',
++      J([scr(B.ev), head(B.ev), rec(B.ev)]), J([S1, 'Saved ' + fmt(T_S1) + ' · ↶ work kept aside', false])); }
++  // (i) THE RESTORED WORK CHANGED before the reopen: still unsaved, but the opening no longer calls it the work put back.
++  { const sc = '(i) the board file: K put back, then changed; reopened before any Save';
++    const { A, f } = await inFile(); putBack(A, T_PB);
++    clock(A.ev, T_E); A.ev(`setNote('B','U19H-K-CHANGED'); 'ok'`); await pause(5);
++    chk(name, sc, 'a change after the put-back: the header still says the restored work is unsaved', J([scr(A.ev), head(A.ev)]), J([K, HDR_FILE]));
++    const { B, fB } = await reopen(A, f);
++    chk(name, sc, 'reopened: Unsaved changes -- not Saved; the record unsaved; the file S1; the last file save S1’s',
++      J([scr(B.ev), head(B.ev), rec(B.ev), fileNote(fB.content, 'A'), tipHead(B.ev, KEPT + last(T_S1))]),
++      J([K, 'Unsaved changes · ↶ work kept aside', true, S1, KEPT + last(T_S1)])); }
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, keepBoards());
++  await settleBoards();
++})();
++// ==== end v2.00 (U19H) ====
+ 
+ await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+   const __bm = bootMark();
+diff --git a/tools/export-audit/mutate.mjs b/tools/export-audit/mutate.mjs
+index 07b5396407f840b467517b80bba821dfef78e85d..c91510c84ebf8139fceb31a818b2dceb461e3d0d 100644
+--- a/tools/export-audit/mutate.mjs
++++ b/tools/export-audit/mutate.mjs
+@@ -4359,6 +4359,47 @@
+   { id: "v200-u19-putback-locked-asks", area: "keptPutBack", what: "↶ Put back runs while a locked cycle is on screen: it asks its question about the locked view and keeps the view aside in the kept work's place until the load is refused",
+     find: "  if(cycBlock('Loading a board')) return;\n",
+     repl: "" },
++  // v2.00 (U19H, Brad 13 Oct): after ↶ Put back and a reopen, the header says the restored work is unsaved; the last file
++  // save is shown apart.
++  { id: "v200-u19h-dirty-only", area: "unsavedNow", what: "the header reads DIRTY (this session's alone) and the side lists only, as before: reopened before any Save -- after ↶ Put back, or after any change -- it says “Saved <time>” while this browser's record says the work on screen is unsaved",
++    find: "function unsavedNow(){ return !!DIRTY || sideUnsaved() || (!!_baseDirty && !(typeof SANDBOX!=='undefined' && SANDBOX)); }",
++    repl: "function unsavedNow(){ return !!DIRTY || sideUnsaved(); }" },
++  { id: "v200-u19h-time-as-status", area: "saveStateShow", what: "work put back and not written since is shown as “Saved <time>” -- the board's own time, when that work was last changed -- as the header's main status",
++    find: "_pb? '<b>Unsaved restored work — not written to '+_dest+'</b>'",
++    repl: "_pb? '<b>Saved</b> '+esc(shortTime(MS.ts))" },
++  { id: "v200-u19h-clean-on-reopen", area: "opening", what: "the opening makes this browser's record clean to match the header: reopened after ↶ Put back, the work put back is recorded saved though the board file holds the copy it replaced, and the header says Saved",
++    find: "let _baseDirty=!!_bootBase.dirty;    // mirrors baseGet().dirty, so save() writes it only when it changes",
++    repl: "let _baseDirty=false; try{ baseSet({dirty:false}); }catch(e){}    // mirrors baseGet().dirty, so save() writes it only when it changes" },
++  { id: "v200-u19h-saved-after-failed", area: "_saveInPlaceFileRun", what: "a save refused because the board file is read-only for this person marks the board saved: nothing was written, and the header says Saved",
++    find: "    if(e&&(e.name==='NotAllowedError'||e.name==='NoModificationAllowedError'||e.name==='SecurityError')){\n",
++    repl: "    if(e&&(e.name==='NotAllowedError'||e.name==='NoModificationAllowedError'||e.name==='SecurityError')){\n      _baseDirty=false; baseSet({dirty:false}); DIRTY=false; syncBtns();\n" },
++  { id: "v200-u19h-boot-not-restored", area: "opening", what: "the opening does not recognise the work put back: reopened before any Save, the header says only “Unsaved changes”, not that the restored work is not written to the board file",
++    find: "try{ if(_bootOwn && _baseDirty && _keptMeta && _keptMeta.why==='swap'",
++    repl: "try{ if(false && _bootOwn && _baseDirty && _keptMeta && _keptMeta.why==='swap'" },
++  { id: "v200-u19h-kept-despite-refusal", area: "unsavedSay", what: "the tooltip says the unsaved work is kept in this browser while browser storage refuses it: the work put back is on this page only",
++    find: "  const refused=!!_persistFail || Object.keys(_lsRefused).length>0;",
++    repl: "  const refused=false;" },
++  { id: "v200-u19h-last-save-ms-ts", area: "unsavedSay", what: "the tooltip's “Last file save” gives the board's own time -- when the work put back was last changed -- not the last save the board file holds",
++    find: "+'Last file save: '+(_fileSaveTs? shortTs(_fileSaveTs) : 'none yet')+'. ';",
++    repl: "+'Last file save: '+(MS.ts? shortTs(MS.ts) : 'none yet')+'. ';" },
++  { id: "v200-u19h-file-save-ts-stale", area: "_saveInPlaceFileRun", what: "a board-file save that lands here is not counted: “Last file save” keeps the time the file had when it was opened",
++    find: "    _fileSaveTs=wrote;              // v2.00 (U19H): the board file holds this save now (the header's \"Last file save\")\n",
++    repl: "" },
++  { id: "v200-u19h-saved-copy-not-written", area: "putBackUnsaved", what: "a saved copy put back in its turn and not changed -- the board file's own save -- is said to be not written to the board file",
++    find: "    return !(t && (t===(+b.file||0) || t===f));",
++    repl: "    return true;" },
++  { id: "v200-u19h-dest-file-only", area: "putBackDest", what: "working out of the shared folder, the header says the restored work is not written to the board file -- not the shared folder, where 💾 Save writes",
++    find: "function putBackDest(){ try{ if(driveStoreOn()) return 'the shared folder'; }catch(e){} return 'the board file'; }",
++    repl: "function putBackDest(){ return 'the board file'; }" },
++  { id: "v200-u19h-landing-keeps-words", area: "putBackUnsaved", what: "a save that lands with a change made while it wrote leaves the header saying the restored work is not written to the board file, though the file now holds it",
++    find: "    if(!_putBackOn || _putBackOn.ms!==MS || _putBackOn.rec!==putBackRec()) return false;",
++    repl: "    if(!_putBackOn || _putBackOn.ms!==MS) return false;" },
++  { id: "v200-u19h-tooltip-saved", area: "saveStateShow", what: "unsaved, the tooltip still begins “Saved <time> by …” from the board's own time, and gives no last file save apart",
++    find: "    ss.title=((un && !_sb)? unsavedSay(_pb, _dest) : (MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : ''))+sideBootSay()+(_st? _st.textContent : ''); }",
++    repl: "    ss.title=(MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+sideBootSay()+(_st? _st.textContent : ''); }" },
++  { id: "v200-u19h-putback-unmarked", area: "keptPutBack", what: "↶ Put back does not mark the work it puts back: until a reopen the header says only “Unsaved changes”",
++    find: "  _putBackOn={ms:MS, rec:putBackRec()};   // v2.00 (U19H): the work put back, for the header (putBackUnsaved)\n",
++    repl: "" },
+   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",
