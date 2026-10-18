@@ -1865,8 +1865,9 @@ result for it was run fresh against these commits.
     rescue choices in the quiet autosave; once storage takes it again, the work on screen is written over the plan the
     import left in browser storage while the import's line still names that plan. No copy is lost: the landed copy
     keeps its bytes, the copy the save read stays in the history and the imported file stays offered (the round-5 money
-    review; ledger U60). And nothing checks the refusal's every-stop lines when the folder's copy is gone or
-    unreadable: three wrong forms that keep one of them to the clash alone pass the block (the round-5 tests review).
+    review; ledger U60). And three of the refusal's every-stop lines are checked only when another copy landed:
+    browser storage kept again ((8b)), a locked view's copy put back ((11a)-(11c)) and the hold said ((14)); three wrong
+    forms that keep one of them to the clash alone pass the block (the round-5 tests review).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
