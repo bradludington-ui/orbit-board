@@ -6579,6 +6579,12 @@ await (async () => {
       w5Chk(name, 'PB27 viewed · the shared state file loaded (adoptShared)', 'refused, and the status line says so; nothing is kept aside, and the work is still this browser’s unsaved work',
         J([said(ev), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([OFF('Loading the shared state file'), 'none', [['11111'], 'WORK DESC A', ''], true]));
       ev(`cycLeave(); 'ok'`);
+      // v2.00 (U10, fix round 3): the same file answering at opening (sharedArrived), with PB27 put on screen before it arrived. Both
+      // reach sharedKeepMine, where the gate is; one on adoptShared alone kept the cycle aside here as this browser's work.
+      ev(`cycView(${J(key)}); 'ok'`); spy(ev); ev(`sharedArrived(SHARED); 'ok'`);
+      w5Chk(name, 'PB27 viewed · the shared state file answers at opening (sharedArrived)', 'refused, and the status line says so; nothing is kept aside, and the work is still this browser’s unsaved work',
+        J([said(ev), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([OFF('Loading the shared state file'), 'none', [['11111'], 'WORK DESC A', ''], true]));
+      ev(`cycLeave(); 'ok'`);
     }
     {
       // CONTROL, on a board of its own: on the working plan the shared state file is loaded, the work kept aside first
@@ -6595,7 +6601,7 @@ await (async () => {
       const files = {};
       const dir = { kind: 'directory', name: 'shared', queryPermission: async () => 'granted', requestPermission: async () => 'granted',
         getFileHandle: async (n, o) => { if (!(n in files)) { if (o && o.create) files[n] = ''; else { const e = new Error('not found'); e.name = 'NotFoundError'; throw e; } }
-          return { kind: 'file', name: n, getFile: async () => { const c = files[n]; return { text: async () => c }; },
+          return { kind: 'file', name: n, getFile: async () => { const h = X.w.__duringRead; X.w.__duringRead = null; if (h) h(); const c = files[n]; return { text: async () => c }; },
             createWritable: async () => { let buf = ''; return { write: async x => { buf += String(x); }, close: async () => { files[n] = buf; } }; } }; },
         getDirectoryHandle: async () => dir, removeEntry: async n => { delete files[n]; },
         values: async function* () { for (const n of Object.keys(files)) yield { kind: 'file', name: n, getFile: async () => ({ text: async () => files[n] }) }; } };
@@ -6607,10 +6613,19 @@ await (async () => {
       j.store.years[String(j.store.cur)].desc = Object.assign({}, j.store.years[String(j.store.cur)].desc || {}, { R: 'COLLEAGUE DESC R' });
       files[fn] = J(j);
       ev(`setDesc('A','MY UNSAVED A'); DIRTY=false; 'ok'`);        // typed, kept in browser storage only; then a new session
+      // v2.00 (U10, the round-3 test review): a Live refresh started on the working plan, PB27 put on screen while the folder's copy
+      // is read. The gate is checked after the last wait, so this is refused as well; one checked before the waits let it through.
+      X.w.__duringRead = () => ev(`cycView(${J(key)}); 'ok'`);
+      const p0 = await X.ev('driveStorePull(true)');
+      w5Chk(name, 'a Live refresh started on the working plan, PB27 put on screen while the folder’s copy is read', 'nothing loaded, nothing kept aside, and the work is still this browser’s unsaved work',
+        J([p0, ev('CYCVIEW'), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([false, key, 'none', [['11111'], 'MY UNSAVED A', ''], true]));
+      ev(`cycLeave(); 'ok'`);
       ev(`cycView(${J(key)}); 'ok'`); spy(ev);
-      const p1 = await X.ev('driveStorePull(true)');
+      const s1a = said(ev), p1 = await X.ev('driveStorePull(true)'), s1b = said(ev);
       w5Chk(name, 'PB27 viewed · a Live refresh finds Colleague C’s newer copy in the shared folder', 'nothing loaded, nothing kept aside, and the work is still this browser’s unsaved work',
         J([pushed, p1, keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([true, false, 'none', [['11111'], 'MY UNSAVED A', ''], true]));
+      // v2.00 (U10, the round-3 test review): the Live timer's quiet refresh changed nothing, and says nothing
+      w5Chk(name, 'PB27 viewed · a Live refresh (quiet) finds Colleague C’s newer copy', 'the status line is as it was: nothing was changed, so nothing is said', J(s1b === s1a), J(true));
       const p2 = await X.ev('driveStorePull(false)');
       w5Chk(name, 'PB27 viewed · 📡 Connect (a refresh that speaks)', 'refused, and the status line says so', J([p2, said(ev)]), J([false, OFF('Loading from the shared folder')]));
       ev(`cycLeave(); 'ok'`);
@@ -6726,6 +6741,96 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U10, the funds flow's money) ====
+// ==== v2.00 (U10, Load theirs): a view put on screen while Load theirs reads the shared folder keeps nothing aside ====
+// The U10 money review, round 3 (probe P9, 13 Oct): Load theirs (the choice the board offers when a colleague saved a newer copy
+// and this browser holds unsaved work) was refused up front in a view, but not once the folder had been read. Started on the
+// working plan with PB27 put on screen while the folder was read, it kept the locked cycle aside as this browser's work and then
+// said "Loading a board is off … the change was not kept"; back on the working plan, Load theirs was refused because work was
+// already kept aside, and "put it back" made PB27's plan the working plan ("Put back the work kept aside"), with the real work
+// swapped into the kept slot. The same door the shared folder's refresh closes in the U10 doors block ("the files, packages,
+// ladder and shared copies"), section 7: the board, its helpers and the fake shared folder are that section's own, with one
+// hook: reading the folder's copy puts PB27 on screen.
+// By hand: nothing is kept aside, and the work typed (MY UNSAVED A) is still this browser's unsaved work; after leaving the
+// view, Load theirs keeps MY UNSAVED A aside first and loads Colleague C's copy (COLLEAGUE DESC R).
+// FAILS ON 7ee498a (board fce8a391) and on U10 1-4: the cycle is kept aside (A's description blank, as PB27 holds it), and
+// Load theirs after leaving the view is refused ("this browser already keeps earlier work aside"). CONTROLS: the folder copy
+// written by this board's own save; no jsdom errors.
+await (async () => {
+  const name = 'v2.00 (U10) — a view put on screen while Load theirs reads the shared folder keeps nothing aside';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  const boards = [];
+  try {
+    const J = JSON.stringify;
+    // one board, booted twice so it holds requirement data of its own (not the empty template), PB27 locked, then WORK DESC A
+    const mk = () => {
+      const X0 = boot(); boards.push(X0);
+      seed(X0.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('A', 'AV', [900, 200, 0]), it('R', 'AV', [503, 127, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['A', 'R'] });
+      X0.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:'', svc:['USAF','ANG','AFRC']}]; S.rcnAsg={A:'K1'};
+        S.wbs={A:[{w:'1.1', v:[]}]}; S.aceMap={A:{w:['1.1'], ok:true}};
+        ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}], locked:true, by:'Approver', ts:1, file:'2027 ACE approved.xlsx'}};
+        ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=900; aceYr='all'; persistAce(); applyState(S); save(); 'ok'`);
+      const ls = JSON.parse(X0.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+      const X = boot({ ls }); boards.push(X);
+      const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
+      ev(`globalThis.__wb=function(sheets, name){ var b=buildXlsx(sheets); return {name:name, arrayBuffer: async function(){ __reads++; return b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength); }}; };
+        globalThis.__reads=0;
+        globalThis.__aceRows=function(){ var rows=[[],[],[],[],[]]; rows[4][ACE_COL.y0]=2027; var r=[]; r[ACE_COL.appn]='O&M'; r[ACE_COL.svc]='USAF';
+          r[ACE_COL.managed]='Y'; r[ACE_COL.pmo]='AIR VEHICLE'; r[ACE_COL.y0]=4.321; r[ACE_COL.ce]='CE1'; rows.push(r);
+          rows.forEach(function(x){ for(var i=0;i<x.length;i++) if(x[i]===undefined) x[i]=''; }); return rows; };
+        // what a download hands out: the text of every Blob made while the code runs
+        globalThis.__handed=function(code){ var got=[], _B=window.Blob;
+          window.Blob=function(p,o){ try{ (p||[]).forEach(function(x){ if(typeof x==='string' && x.indexOf('spmtPkg')>=0) got.push(x); }); }catch(e){} return new _B(p,o); };
+          try{ (0,eval)(code); }catch(e){ got.push('threw '+String((e&&e.message)||e)); } window.Blob=_B; return JSON.stringify(got); };
+        'ok'`);
+      const key = ev(`window.confirm=function(){ return true; }; MS.base=MS.cur; MS.years[MS.cur]=S; save(); blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
+      ev(`setDesc('A','WORK DESC A'); 'ok'`);
+      return { X, ev, key };
+    };
+    const said = ev => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+    const spy = ev => ev(`window.__asked=[]; window.confirm=function(m){ window.__asked.push(String(m).split('\\n')[0].slice(0,70)); return true; };
+      window.alert=function(m){ window.__asked.push('alert: '+String(m).split('\\n')[0].slice(0,70)); }; 'ok'`);
+    // this appropriation's own copy in browser storage: its RCN codes and its descriptions
+    const own = ev => JSON.parse(ev(`(function(){ var s=JSON.parse(localStorage.getItem(_AP.key)||'null'); if(!s) return 'null';
+      var y=(s.years||{})[String(s.cur)]||{}; return JSON.stringify([(s.rcn||[]).map(function(e){ return e.rcn; }), (y.desc||{}).A||'', (y.desc||{}).R||'']); })()`));
+    const keptAside = ev => ev(`(function(){ var k=localStorage.getItem(_AP.key+'.kept'); if(!k) return 'none'; var i=k.indexOf('\\n'), m=JSON.parse(k.slice(0,i)), s=JSON.parse(k.slice(i+1));
+      var y=(s.years||{})[String(s.cur)]||{}; return JSON.stringify([m.why, (y.desc||{}).A||'']); })()`);
+    const OFF = what => '🔒 ' + what + ' is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.';
+    const { X, ev, key } = mk();
+    const files = {};
+    const dir = { kind: 'directory', name: 'shared', queryPermission: async () => 'granted', requestPermission: async () => 'granted',
+      getFileHandle: async (n, o) => { if (!(n in files)) { if (o && o.create) files[n] = ''; else { const e = new Error('not found'); e.name = 'NotFoundError'; throw e; } }
+        return { kind: 'file', name: n, getFile: async () => { const c = files[n]; if (X.w.__onRead && /^spmt-2027-om\.json$/.test(n)) { const f = X.w.__onRead; X.w.__onRead = null; f(); } return { text: async () => c }; },
+          createWritable: async () => { let buf = ''; return { write: async x => { buf += String(x); }, close: async () => { files[n] = buf; } }; } }; },
+      getDirectoryHandle: async () => dir, removeEntry: async n => { delete files[n]; },
+      values: async function* () { for (const n of Object.keys(files)) yield { kind: 'file', name: n, getFile: async () => ({ text: async () => files[n] }) }; } };
+    X.w.__fold = dir;
+    ev(`_liveCfg=Object.assign(liveCfg(), {store:true, mode:'drive', on:false}); _driveDir=globalThis.__fold; 'ok'`);
+    const pushed = await X.ev('driveStorePush(false)');
+    const fn = Object.keys(files).find(n => /^spmt-2027-om\.json$/.test(n));
+    w5Chk(name, 'fixture', 'CONTROL — this board saved its copy to the shared folder', J([pushed, !!fn]), J([true, true]));
+    const j = JSON.parse(files[fn]); j.store.ts = (+j.store.ts || 0) + 60000; j.ts = j.store.ts; j.by = 'Colleague C'; j.store.by = 'Colleague C';
+    j.store.years[String(j.store.cur)].desc = Object.assign({}, j.store.years[String(j.store.cur)].desc || {}, { R: 'COLLEAGUE DESC R' });
+    files[fn] = J(j);
+    ev(`setDesc('A','MY UNSAVED A'); DIRTY=false; 'ok'`);        // typed, kept in browser storage only; then a new session
+    spy(ev);
+    X.w.__onRead = () => X.w.eval(`cycView(${J(key)})`);           // PB27 put on screen while the folder's copy is read
+    const r1 = await X.ev(`driveResolve('theirs')`);
+    w5Chk(name, 'Load theirs on the working plan · PB27 put on screen while the folder is read', 'refused, and the status line says so; nothing is kept aside, and the work is still this browser’s unsaved work',
+      J([r1, ev('CYCVIEW'), said(ev), keptAside(ev), own(ev), ev('!!baseGet().dirty')]), J([false, key, OFF('Loading a board'), 'none', [['11111'], 'MY UNSAVED A', ''], true]));
+    ev(`cycLeave(); 'ok'`);
+    const r2 = await X.ev(`driveResolve('theirs')`);
+    w5Chk(name, 'Load theirs on the working plan · PB27 put on screen while the folder is read · the view left, Load theirs again', 'the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is loaded (COLLEAGUE DESC R)',
+      J([r2, keptAside(ev), own(ev)]), J([true, J(['folder', 'MY UNSAVED A']), [['11111'], 'WORK DESC A', 'COLLEAGUE DESC R']]));
+    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(boards.reduce((n, B) => n + B.errors.length, 0)), J(0));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.00 (U10, Load theirs) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

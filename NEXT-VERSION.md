@@ -1501,6 +1501,36 @@ result for it was run fresh against these commits.
   - **Not covered:** a locked cycle keeps no funds-flow money of its own: partner and FMS money typed on the working plan
     after the lock is counted in the cycle's view and its "[PB27 LOCKED]" export (ledger row U53). The funds flow's
     appropriation buttons, pseudo year, prime rules and categories: commit 9.
+- **U10 (6 of 12) — Load theirs is refused once the shared folder is read, when a locked view was put on screen meanwhile**
+  (the same release blocker; found by its round-3 money review, 13 Oct, probe P9). Load theirs is what the board offers when a
+  colleague saved a newer copy to the shared folder while this browser holds unsaved work. In a view it was refused before the
+  folder was read, but not after. Started on the working plan, with PB27 put on screen while the folder was read, it kept the
+  locked cycle aside as this browser's work and then said "🔒 Loading a board is off while PB27 is on screen … the change was
+  not kept". Back on the working plan, Load theirs was refused ("this browser already keeps earlier work aside … the newer
+  copy was not loaded"), and "put it back" made PB27's plan the working plan ("↶ Put back the work kept aside"), with the
+  real work swapped into the kept slot. The same on `7ee498a` and on U10 1-4. Now Load theirs is refused again once the
+  folder is read, before anything is kept aside or recorded, as the shared folder's refresh is (U10 4 of 12).
+  - **What users may see:** a Load theirs still reading the shared folder when a locked cycle is put on screen stops with
+    "🔒 Loading a board is off while PB27 is on screen …" and keeps nothing aside; after leaving the view, Load theirs works as
+    before. On the working plan nothing changes.
+  - **Test:** audit-recon "v2.00 (U10) — a view put on screen while Load theirs reads the shared folder keeps nothing aside"
+    (4 checks; the round-3 money review's block, adopted with one comment corrected), on U10 4's board and fake shared folder
+    with one hook: reading the folder's copy puts PB27 on screen. Read: the status line, what is kept aside (nothing), and this
+    browser's copy (MY UNSAVED A, still unsaved); then, after leaving the view, Load theirs keeps MY UNSAVED A aside first and
+    loads Colleague C's copy (COLLEAGUE DESC R). Controls: the folder copy written by the board's own save; no jsdom errors.
+    On `7ee498a` and on U10 4 of 12 the 2 non-control checks fail (the cycle kept aside; Load theirs refused after leaving) and
+    the 2 controls pass. And three checks in U10 4's block for its shared-folder gates, which no check read: a Live refresh
+    started on the working plan with PB27 put on screen while the folder's copy is read (nothing loaded or kept aside, the
+    work still this browser's unsaved work), a quiet refresh with PB27 on screen (the status line as it was), and the shared
+    state file answering at opening (sharedArrived) with PB27 on screen (refused, nothing kept aside). The first two are the
+    round-3 test review's, adopted unchanged; the third is this round's. On `7ee498a` all three fail; at U10 4 of 12 they pass.
+  - **Mutations:** `v200-u10-resolve-race` (the new gate taken out: 2 checks fail), `-folder-pull-view-at-start` (the
+    refresh reads the view once, when it starts, as a gate checked before the folder is read would: 3 fail),
+    `-folder-pull-quiet-speaks` (a quiet refresh says the refusal: 1 fail) and `-shared-gate-in-adopt` (the gate on the
+    button's handler instead of `sharedKeepMine`: 1 fail). The last three pass every check before this commit.
+  - **Not covered:** "Save yours over theirs" racing a view is refused by the same gate before its question (before, it
+    recorded the colleague's copy as the base and then met the push's refusal), but in Load theirs' words: commit 8 names the
+    door pressed and types the race (two checks in this block).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
