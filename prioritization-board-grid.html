@@ -23990,7 +23990,8 @@ function recFields(id, it){
   if(siEligible(it)) acct.push(recF('Navy SI code', siOf(it),
     recSel('setSi('+jsa(id)+',this.value)', 'Special Interest code for the 1A9A cash return',
       '<option value=""'+((siOf(it) || siRaw!==undefined)?'':' selected')+'>— none —</option>'
-      +(siRaw!==undefined? '<option value="'+esc(String(siRaw))+'" selected>'+esc(siRawShow(siRaw))+' — not one of the five, kept as saved</option>' : '')
+      // v2.00 (U57): its value is the text as saved, or the JSON of anything else -- String() threw on {"toString":null}
+      +(siRaw!==undefined? '<option value="'+esc(typeof siRaw==='string'? siRaw : siRawShow(siRaw))+'" selected>'+esc(siRawShow(siRaw))+' — not one of the five, kept as saved</option>' : '')
       +SI_CODES.map(function(c){ return '<option value="'+c[0]+'"'+(siOf(it)===c[0]?' selected':'')+'>'
         +c[0]+' — '+c[1]+(siDefault(it)===c[0]?' (derived)':'')+'</option>'; }).join(''))));
   // v1.91 (item 35): the BAE budget left Requirement edit for the RECORD panel -- one editor for the field.
@@ -24154,7 +24155,8 @@ function matBulk(){
               set:function(id,v){ if(!S.ptype) S.ptype={}; S.ptype[id]=v; }};
   if(siApplies()) out['Navy SI code']={opts:SI_CODES.map(function(c){ return [c[0], c[0]+' \u2014 '+c[1]]; }),
               // v2.00 (U41): a code kept from a file is an answer a bulk write overwrites, and the question counts it so
-              get:function(it){ const r=siRawOf(it.id); return r!==undefined? String(r) : siOf(it); },
+              // v2.00 (U56): read as saved, or as its JSON if it is not text -- String() read [] as no answer and ["AT"] as AT
+              get:function(it){ const r=siRawOf(it.id); return r!==undefined? (typeof r==='string'? r : siRawShow(r)) : siOf(it); },
               set:function(id,v){ setSi(id,v); }};
   if(rcnApplies()) out['RCN / EEIC']={opts:rcnReg().map(function(e){ return [e.k, rcnLabel(e.k)||'(blank)']; }),
               get:function(it){ return rcnAsgOf(it.id); },

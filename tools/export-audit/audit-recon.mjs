@@ -5759,6 +5759,85 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U41) ====
+// ==== v2.00 (U56/U57): a saved SI value that is not text is an answer a bulk write overwrites, and its field opens ====
+// Codex's batch C5 (18 Oct), for its C1b findings C3-1 and C3-2. U41 keeps a saved SI value that is not one of the five as
+// saved. The bulk write's question (matBulk's getter) and the Navy SI code field's "kept as saved" choice (recFields) put
+// it through String(): a saved [] or [null] read as no answer yet and ["AT"] as already AT, and {"toString":null}, which
+// is valid JSON, could not be turned into text at all, so the question and Go to it threw.
+// THE FILE: O&M, services USAF / STOVL / USMC-C / USN, every ask funded, every award in November.
+//   A, an LM prime, holds the value: [101, 0, 203, 307]   B si '' (none, by hand) [0, 0, 409, 503]   C si 'EN' [0, 0, 0, 601]
+// OVERWRITTEN: for [], ["AT"] and [null], AT on all three asks [n, blank, same, differ] = [3, 1, 0, 2], and the line after
+//   the approved write says 2 were overwritten. The file keeps the value exactly and A reads no code; after the write, saved
+//   and reopened, all three are AT and every service keeps its dollars.
+// {"toString":null}: the question runs ([3, 1, 0, 2]); Go to it opens A's field, showing “{"toString":null}” kept as
+//   saved; the value survives a save and reopen, A reads no code and its $611 stays funded.
+// CONTROLS also: A 'AT' with C 'other' asks [3, 1, 1, 1]; a plain unrecognized string shows as “other” kept as saved.
+// FAILS ON 96877da and 254f29c (U41 as committed, before and after U10): [3, 2, 0, 1] for [] and [null], [3, 1, 1, 1] for
+// ["AT"], "1 had a different answer" after each write, and both reads of {"toString":null} throw. The 9 controls pass there.
+await (async () => {
+  const name = 'v2.00 (U56/U57) — a saved SI value that is not text counts as an answer a bulk write overwrites, and Go to it opens its field';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  const keepBoards = () => [];
+  try {
+    const J = JSON.stringify;
+    const make = raw => {
+      const X = boot();
+      seed(X.ev, { services: ['USAF', 'STOVL', 'USMC-C', 'USN'], items: [
+        it('A', 'AV', [101, 0, 203, 307]), it('B', 'AV', [0, 0, 409, 503]), it('C', 'AV', [0, 0, 0, 601])],
+        disc: [10000, 10000, 10000, 10000], mand: [0, 0, 0, 0], order: ['A', 'B', 'C'] });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        S.order.forEach(function(id){ S.awards[id]={mode:'single',d:FYMON[1][0],day:5}; });
+        flowCfg().rules.lm='Req A'; S.ptype={A:'PRIME'}; applyState(S); save();
+        S.si={A:${J(raw)},B:'',C:'EN'}; MS.years[MS.cur]=S; 'ok'`);
+      const R = boot({ html: X.ev('buildSavedHtml()') });
+      R.ev(`matBulkF='Navy SI code'; matBulkV='AT'; matPmo='ALL'; matMissing=''; 'ok'`);
+      return R;
+    };
+    const preview = R => { try { return R.ev(`JSON.stringify((function(){ var p=matBulkPreview(); return [p.n,p.blank,p.same,p.differ]; })())`); }
+      catch (e) { return 'threw: ' + e.message; } };
+    const field = R => { try { R.ev(`attGo('si','A'); 'ok'`);
+        const f = R.w.document.querySelector('#recBody select[onchange^="setSi("]');
+        return J([R.ev('recOpen'), f ? f.options[f.selectedIndex].textContent : 'NO FIELD']);
+      } catch (e) { return 'threw: ' + e.message; } };
+    for (const [where, raw, stored] of [['empty list', [], '{"A":[],"B":"","C":"EN"}'],
+      ['code inside a list', ['AT'], '{"A":["AT"],"B":"","C":"EN"}'],
+      ['null inside a list', [null], '{"A":[null],"B":"","C":"EN"}']]) {
+      const R = make(raw);
+      w5Chk(name, where, 'AT preview: three rows, one blank, none already AT, two answers overwritten', preview(R), '[3,1,0,2]');
+      w5Chk(name, where, 'CONTROL — file keeps the exact raw answer and no code is guessed',
+        J([R.ev('JSON.stringify(S.si)'), R.ev("siOf(itemById('A'))")]), J([stored, '']));
+      R.w.confirm = () => true;
+      R.ev(`matApplyBulk(); 'ok'`);
+      w5Chk(name, where, 'completion counts both overwritten answers', R.w.document.getElementById('shareStat').textContent,
+        '✓ Navy SI code set to AT on 3 requirements — 2 had a different answer and were overwritten.');
+      const Q = boot({ html: R.ev('buildSavedHtml()') });
+      w5Chk(name, where, 'CONTROL — explicit bulk choice survives save/reopen and every service keeps its dollars',
+        Q.ev(`JSON.stringify([S.si,(function(){ var t=tiers(); return [t.A.d,t.B.d,t.C.d,t.A.m,t.B.m,t.C.m]; })()])`),
+        J([{A:'AT',B:'AT',C:'AT'}, [[101,0,203,307],[0,0,409,503],[0,0,0,601],[0,0,0,0],[0,0,0,0],[0,0,0,0]]]));
+    }
+    const O = make({toString:null});
+    w5Chk(name, 'object with non-callable toString', 'preview runs and counts the object as an answer to overwrite', preview(O), '[3,1,0,2]');
+    w5Chk(name, 'object with non-callable toString', 'Go to it opens A and the field shows its JSON as kept as saved', field(O),
+      J(['A', '“{"toString":null}” — not one of the five, kept as saved']));
+    // Closing the panel also lets the unfixed board build its saved file, so retention is an independent control.
+    O.ev(`recOpen=null; 'ok'`);
+    const OQ = boot({ html: O.ev('buildSavedHtml()') });
+    w5Chk(name, 'object with non-callable toString', 'CONTROL — object survives save/reopen, its code stays blank and $611 stays funded',
+      OQ.ev(`JSON.stringify([S.si,siOf(itemById('A')),tiers().A.dT])`), J([{A:{toString:null},B:'',C:'EN'},'',611]));
+    const C = make('AT');
+    C.ev(`S.si.C='other'; 'ok'`);
+    w5Chk(name, 'valid, blank and plain unrecognized string', 'CONTROL — valid AT is same, explicit blank is blank, plain string differs', preview(C), '[3,1,1,1]');
+    C.ev(`S.si.A='other'; 'ok'`);
+    w5Chk(name, 'plain unrecognized string', 'CONTROL — raw text is displayed as kept as saved', field(C),
+      J(['A', '“other” — not one of the five, kept as saved']));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U56/U57) ====
 // ==== v2.00 (U42): a funds-flow sheet name never ends in half a character or begins or ends with an apostrophe ====
 // On the destination axis each destination gets a sheet named by exportFlow's tabName, cut to 28 UTF-16 units (26 when it
 // numbers a repeat). A cut through an emoji left its first half at the end, which the workbook wrote as U+FFFD; a name

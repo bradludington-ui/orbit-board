@@ -1712,6 +1712,54 @@ result for it was run fresh against these commits.
     after its question: 1) and `-kept-gate-silent` (refused without a word: 1).
   - **Not covered:** "save it as a file" and "discard it", offered beside "put it back" when kept work blocks a newer copy,
     act on the kept work in browser storage and are not refused in a view (discarding asks first; not changed).
+- **U56 and U57 — a saved SI value that is not text is an answer a bulk write overwrites, and Go to it opens its field**
+  (Codex's batch C1b, findings C3-1 and C3-2, as Brad pasted it on 18 Oct at about 6:29 AM ET; the fix is Codex's batch
+  C5, pasted at about 7:00 AM ET, adopted on the committed U41 and U10. Not a release blocker: it joins v2.00 only if
+  both reviews are clean by 8 PM ET on 18 Oct, Brad's cut). U41 keeps an SI code a file carried that is not one of the
+  five exactly as it was saved. Two of the places that read it then put that value through String(), which reads a saved
+  list as its contents. The bulk write's question (Requirements matrix, Set Navy SI code) counted a saved [] or [null]
+  as "no answer yet" and ["AT"] as "already say exactly this". On the test fixture, AT on three requirements was asked
+  as 2 / 0 / 1 for [] (1 / 1 / 1 for ["AT"]) where it is 1 no answer, 0 already AT and 2 overwritten, and the line after
+  the write said "1 had a different answer and were overwritten" where 2 were. A saved {"toString":null}, which is valid
+  JSON, could not be turned into text at all ("Cannot convert object to primitive value"): the question threw, so no
+  bulk write of the Navy SI code could be made; Go to it (Needs attention, SI codes to repair) threw and opened no
+  field; and selecting that requirement's row and opening the Requirements matrix threw too, drawing nothing (probe
+  P2b). The field's "kept as saved" choice also took its value from String(): "AT" for ["AT"], the AT choice's own
+  value, and "" for [], the value of "— none —". Now neither place puts the saved value through String(): text is read
+  as it is, anything else by its JSON as Needs attention and Pre-flight already show it (“[]”, “["AT"]”,
+  “{"toString":null}”). Such a value is counted as an answer the write overwrites, the line after the write counts it,
+  and Go to it opens the Navy SI code field with it selected as "“{"toString":null}” — not one of the five, kept as
+  saved". Choosing that choice again writes nothing, as for text. No dollar moves: what the write stores is unchanged,
+  the overview, the SI Codes by Month tab and the CR cash return read the same before the write as on the board before
+  the change, and after an approved write the money is under AT (USMC CV $612, USN $1,411, $2,023 in all); before it,
+  A's $510 stays under no recognized code, as U41 has it.
+  - **What users may see:** only with a file ORBIT did not write holding a list or an object as an SI code: the bulk
+    write's question and its line afterwards count that requirement among those overwritten; with an object, the
+    question, Go to it, the requirement's row and the Requirements matrix work where they threw.
+  - **Test:** audit-recon "v2.00 (U56/U57) — a saved SI value that is not text counts as an answer a bulk write
+    overwrites, and Go to it opens its field" (17 checks; Codex's block, after U41's). The fixture: O&M, USAF / STOVL /
+    USMC-C / USN; A, an LM prime, holding the value [101, 0, 203, 307]; B none by hand [0, 0, 409, 503]; C EN
+    [0, 0, 0, 601]; every ask funded. For [], ["AT"] and [null]: the question [3, 1, 0, 2] and the line after the write (2
+    overwritten), with two controls each (the file keeps the value exactly and A reads no code; after the write, saved and
+    reopened, all three AT and every service's dollars as asked). For {"toString":null}: the question, and Go to it showing
+    “{"toString":null}” kept as saved, with a control (the value and A's $611 after a save and reopen). Controls also: a
+    valid AT beside a plain unrecognized "other" ([3, 1, 1, 1]), and "other" shown kept as saved. 8 checks fail on
+    `254f29c` (U41 and U10 as committed) and on `96877da`, with the same values; the 9 controls pass on both. The U41
+    block passes 42/42 before and after.
+  - **Mutations:** `v200-u56-bulk-raw-string` (the bulk question back to String(): 7 checks fail) and
+    `v200-u57-record-raw-string` (the field's choice back to String(): 1). U41's `v200-u41-field-shows-none` and
+    `-bulk-blank` now find the changed lines and make the same change as before; the U41 block still catches each (3 and 2 checks),
+    and so does the new block (2 and 8). The other 18 `v200-u41-*` mutants are still caught.
+  - **Not covered:** the kept choice's value for a value that is not text is its label, which is cut at 60 characters
+    (`inShow`), as U41 cuts the label; nothing reads it but `setSi`, which writes only the five. No check reads that value
+    for a list (probe P1 saw "AT" and "" before the change, the label after). The question's own words in its confirm box
+    are built from the same counts and are not read by the test. Row selection and the Requirements matrix with an object
+    were seen in a probe, not a suite check. jsdom only; no browser was run.
+    The money review (round 1) found three places outside these two that still read such a value as text: after a
+    list holding an object is repaired, the change journal cannot be drawn (its Put back is out of reach until the entry
+    leaves the newest 300; nothing is lost); the journal's "Was" cell reads a saved list by its contents ("AT" for
+    ["AT"], blank for []); and the PMO submittal review, in its panel and in its exported review workbook, shows "AT"
+    for a saved ["AT"] and "" for [null] in "On the board now", and throws for an object. Ledger U58 and U59.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -1792,7 +1840,9 @@ result for it was run fresh against these commits.
       case or spaces merge into one when the file is opened in a browser whose destination list is newer: a requirement
       changes its destination, its money moves in the funds flow, and nothing is said.
     - **U41: fixed above** (its own commit): the code is kept as saved, listed in Needs attention and Pre-flight, its money
-      counted under no recognized code, never the derived one, and chosen again in the Navy SI code field.
+      counted under no recognized code, never the derived one, and chosen again in the Navy SI code field. **U56 and U57
+      (Codex's C1b) are fixed above** in one commit (Codex's C5): a saved value that is not text, such as [] or
+      {"toString":null}, is counted in a bulk write's question as an answer it overwrites, and Go to it opens its field.
     - **U42: the sheet name fixed above** (its own commit): a funds-flow sheet name no longer ends in half an emoji or
       begins or ends with an apostrophe. Still open: the slide deck's 56-unit cut of a requirement title can split an emoji
       the same way (a replacement mark in the slide).
