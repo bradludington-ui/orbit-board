@@ -20230,7 +20230,7 @@ function cycChgBody(){
 // and MS.years every other year goes through -- there is no second renderer, and no reader has
 // to know it is looking at a lock. Nothing edited on the copy can reach the working plan, because
 // the working plan is not on the page; and nothing edited can LOOK kept, because every write
-// funnels through save() or persist(), which refuse and put the pristine year back. The file
+// funnels through save() or persist(), which refuse and put the pristine copy back. The file
 // builder, a load, a lock and the live push refuse as well: a copy of the past must never leave
 // this machine dressed as the board.
 // CYCVIEW, _cycStash and _cycRefusedAt are declared beside MS, because save(), persist(),
@@ -20248,14 +20248,8 @@ function cycView(key){
   MS.years[MS.cur]=S;
   _cycStash={MS:MS, S:S, dirty:DIRTY, title:document.title};
   CYCVIEW=key;
-  const V=JSON.parse(JSON.stringify(_cycStash.MS));     // a throwaway copy: MS-level edits die with it
-  V.years=JSON.parse(JSON.stringify(c.years));
-  if(c.base) V.base=wholeOr(c.base, V.base);
-  // v1.99 (item 88): the RCN / EEIC list it was locked with, when it kept one. A cycle locked before v1.99 kept none:
-  // its pointers are read against today's list, and the view, the cycle's line and the RCN-EEIC tab say so.
   const kept=cycRcnOf(c);
-  if(kept) V.rcn=kept;
-  MS=V;
+  MS=cycCopy(c);                                        // v2.00 (U10): made in one place, and made again by a refusal
   const y= MS.years[_cycStash.MS.cur]? +_cycStash.MS.cur : held[0];
   MS.cur=y; FYMON=fyMonths(y); applyState(MS.years[y]); MS.years[y]=S;
   document.title=_cycStash.title+' — '+blLblTxt(key)+' LOCKED VIEW';
@@ -20266,6 +20260,18 @@ function cycView(key){
     +'. Read only: nothing changed here is kept, and nothing can be saved, loaded, locked or sent '
     +'as the board until you <button class="qb" onclick="cycLeave()">↩ leave the view</button>.'
     +(kept? '' : ' <span style="color:var(--amber)">⚠ '+esc(CYC_RCN_TODAY)+'</span>'));
+}
+// v2.00 (U10): THE VIEW'S COPY, MADE IN ONE PLACE. cycView puts it on screen and a refused write puts it back
+// (cycReapply): the working plan set aside, with the cycle's years, its base year and the RCN / EEIC list it kept.
+function cycCopy(c){
+  const V=JSON.parse(JSON.stringify(_cycStash.MS));     // a throwaway copy: MS-level edits die with it
+  V.years=JSON.parse(JSON.stringify(c.years));
+  if(c.base) V.base=wholeOr(c.base, V.base);
+  // v1.99 (item 88): the RCN / EEIC list it was locked with, when it kept one. A cycle locked before v1.99 kept none:
+  // its pointers are read against today's list, and the view, the cycle's line and the RCN-EEIC tab say so.
+  const kept=cycRcnOf(c);
+  if(kept) V.rcn=kept;
+  return V;
 }
 // The RCN / EEIC list a cycle was locked with (v1.99, item 88): a copy of its entries, or null when it kept none --
 // locked before v1.99, or a list that is not a list. An entry that is not one is left out, as rcnReg's readers would.
@@ -20291,10 +20297,16 @@ function cycSyncTags(){
   const tag=document.getElementById('fyTag'); if(tag) tag.textContent=FYL();
   const fh=document.getElementById('fcTitle'); if(fh) fh.textContent='📅 '+FYL()+' PROJECTED SPEND PLAN FORECAST — OCT '+(MS.cur-1)+' – SEP '+MS.cur;
 }
-// The pristine year, put back. A refused write must not leave its edit on screen looking kept.
+// The pristine copy, put back. A refused write must not leave its edit on screen looking kept.
+// v2.00 (U10): THE WHOLE COPY, NOT THE YEAR ALONE. A write the view refuses can first change what the board holds beside
+// the year on screen -- the RCN / EEIC list, the PMO list, another year's pointers -- and only the year was put back: 77777
+// typed into PB27's RCN field said "the change was not kept", and RCN-EEIC by Month then filed PB27's dollars under 77777.
+// The copy is made again, exactly as cycView made it, and stays on the year on screen.
 function cycReapply(){
   const c=blGet(CYCVIEW); if(!c || !c.years || !c.years[MS.cur]) return;
-  applyState(JSON.parse(JSON.stringify(c.years[MS.cur]))); MS.years[MS.cur]=S;
+  const y=+MS.cur;
+  MS=cycCopy(c); MS.cur=y;
+  applyState(MS.years[y]); MS.years[y]=S;
 }
 function cycRefuse(what){
   cycReapply();
