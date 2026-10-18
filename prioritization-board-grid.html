@@ -2140,7 +2140,9 @@ function writerJournal(was){
   try{ jrnlAdd(e); }catch(x){}
   return e;
 }
-function writerJournalUndo(e){ try{ const j=MS.jrnl||[]; const i=j.lastIndexOf(e); if(i>=0) j.splice(i,1); }catch(x){} }
+// v2.00 (U18): `ms`, when given, is the store the line was added to: the working plan, which a locked view put on screen since
+// has set aside (MS is then the view's throwaway copy).
+function writerJournalUndo(e, ms){ try{ const j=(ms||MS).jrnl||[]; const i=j.lastIndexOf(e); if(i>=0) j.splice(i,1); }catch(x){} }
 // ── PMO COPY (sandbox) ────────────────────────────────────────────────────────────
 // A copy published for a programme office. Everything on screen still WORKS -- drag the order,
 // retype a value, watch the cutline move -- and persist() still writes to that reader's own browser
@@ -27087,6 +27089,9 @@ async function _driveStorePushRun(quiet, fyAsked){
     render(); return false;
   }
   const ts0=MS.ts, by0=MS.by;      // v2.00 (U4): put back if the hold stops this save after its history copy (below)
+  // v2.00 (U18): the working plan and its stamp, put back if this save stops just before its write (below). Held by reference:
+  // a locked view put on screen meanwhile sets the working plan aside, and MS is then the view's throwaway copy.
+  const was={ms:MS, ts:MS.ts, by:MS.by};
   MS.ts=Date.now(); MS.by=whoAmI();
   // THE BYTES, AND WHICH SAVE THEY ARE (v1.95, item 47): built once, here, before the write's first wait.
   const body=JSON.stringify(livePayload(fwriter)), wroteTs=MS.ts, gen=_saveGen;
@@ -27113,9 +27118,52 @@ async function _driveStorePushRun(quiet, fyAsked){
         render(); return false;
       }
     }
-    // v2.00 (U4): AND AFTER THE LAST WAIT BEFORE THE WRITE, the history copy above. An import that stopped part-way while it
-    // was being kept sets the hold: nothing is written over the folder's copy, and the copy kept in the history (the folder's
-    // copy as read) stays. The pen line, and the board's stamp the header shows as saved, go back to what they were.
+    // v2.00 (U18): A COPY THAT LANDED WHILE THIS SAVE WAS UNDER WAY IS NEVER WRITTEN OVER. The folder's copy was read once,
+    // at the top, and every wait since -- keeping it in the history above all -- is time for another writer's save to land:
+    // Bob took the pen and saved while Brad's save was keeping the history, and Brad's save then wrote over Bob's copy, which
+    // was then in no copy in the folder. So the folder's copy is read again here, after the last wait and just before the
+    // write. Unless it is still, byte for byte, the copy read at the top (or there is still none), nothing is written in its
+    // place: a copy that landed meanwhile is the clash, said with who saved it and when and the same two choices (said
+    // with who and when but without the choices if the board has moved to another year meanwhile); a copy gone or
+    // unreadable now is said as such. Both copies stay -- theirs is the folder's copy, the work on screen is left as it is,
+    // not saved -- and the copy read at the top, if there was one, stays in the history. The pen line goes, and the board's
+    // own stamp, which the header shows as when it was saved and by whom, goes back to what it was unless something was
+    // typed meanwhile: both on the working plan, and on a locked view's copy of it if one is on screen now. This is every
+    // folder save, the Live autosave's too. Not covered: the write itself. A file share has no atomic compare-and-write, so
+    // a copy landing while this write is being made is still written over.
+    let now=null, why=''; const nowRaw={};
+    try{ now=await driveStoreRead(dir, ap, fy, nowRaw); }catch(e){ why=(e&&e.message)||String(e); }
+    if(why || (cur? (!now || nowRaw.txt!==curRaw.txt) : !!now)){
+      if(penLine) writerJournalUndo(penLine, was.ms);
+      if(was.ms.ts===wroteTs){ was.ms.ts=was.ts; was.ms.by=was.by; }
+      // v2.00 (U18): a locked view put on screen meanwhile is a copy of the working plan as this save had stamped it, pen line
+      // and all, and what the view shows -- its header, its journal -- is read from that copy: the stamp goes back on it too,
+      // and the pen line goes from it.
+      if(MS!==was.ms){ if(MS.ts===wroteTs){ MS.ts=was.ts; MS.by=was.by; }
+        if(penLine){ const j=MS.jrnl||[], k=JSON.stringify(penLine); for(let i=j.length-1;i>=0;i--) if(JSON.stringify(j[i])===k){ j.splice(i,1); break; } } }
+      // v2.00 (U18): a change typed meanwhile kept the working plan in browser storage as this save had stamped it, pen line and
+      // all, and a reopen reads it from there: it is kept again as put back. Not under a locked view, where persist() refuses:
+      // the next change keeps it there.
+      if(MS===was.ms) persist();
+      // v2.00 (U18): with the mixed-import hold set meanwhile, the hold is said, as U4's check below says it: under the hold the
+      // clash's two choices are refused, and the stopped import's message line offers the two copies to save before anything
+      // else (the quiet autosave leaves that line as it is). Their copy is the clash at the first save once saving is allowed.
+      if(impMixedBlock('Writing to the shared folder', quiet)){ render(); return false; }
+      if(now && MS.cur===fy) driveClashSay(now, 'late');
+      else setStat('\u26d4 <b>Not saved.</b> The shared folder\u2019s copy of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' '
+        +(why? 'could not be read'+(cur? ' again' : '')+' just before it was to be written over \u2014 <b>'+esc(why)+'</b>'
+          : now? 'changed while this save was under way \u2014 <b>'+esc(now.by||'someone')+'</b> saved it '
+            +esc(liveAge(+((now.store&&now.store.ts)||now.ts||0)))
+          : 'is no longer there')
+        +'. <b>Nothing was written in its place</b>: a save never writes over a copy it has not read. '
+        +(MS.cur===fy? 'Your work is still here \u2014 \ud83d\udcbe Save again to read the folder afresh.'
+          : 'Your FY'+(fy%100)+' work is still here \u2014 go back to FY'+(fy%100)+' and \ud83d\udcbe Save to read the folder afresh.'));
+      render(); return false;
+    }
+    // v2.00 (U4): AND AFTER THE LAST WAIT BEFORE THE WRITE, the read of the folder's copy above (U18), which comes after its
+    // history copy. An import that stopped part-way while the copy was being kept, or read again, sets the hold: nothing is
+    // written over the folder's copy, and the copy kept in the history (the folder's copy as read) stays. The pen line, and
+    // the board's stamp the header shows as saved, go back to what they were.
     if(impMixedOn()){
       if(penLine) writerJournalUndo(penLine);
       if(MS.ts===wroteTs){ MS.ts=ts0; MS.by=by0; }
@@ -27156,13 +27204,17 @@ async function _driveStorePushRun(quiet, fyAsked){
 // v2.00 (U30): WITH NOTHING RECORDED THERE IS NO TELLING which copy in the folder the work on screen came from, if any, so
 // it is not said that theirs came after it. Save asks for that reason alone (the push, above); and since a refresh records
 // the folder's copy only when it is what is on screen, this is said on every Save and autosave until one is chosen.
+// v2.00 (U18): `refused` 'late' -- their copy landed while a save was under way and was found just before its write. That
+// save stopped there, after keeping the copy it had read, if any, in the folder's history: it is not said that nothing was
+// written.
 function driveClashSay(j, refused){
   const ap=mySlug(), theirs=+((j&&j.store&&j.store.ts)||(j&&j.ts)||0);
   setStat('\u26d4 <b>'+esc((j&&j.by)||'someone')+'</b> saved '+esc(APPN_LBL[ap]||ap)+' FY'+(MS.cur%100)
     +' to the shared folder '+esc(liveAge(theirs))
     +(driveBaseOf(ap)? ', after the copy you are working from. '
       : ', and this browser has no record of which copy in the folder, if any, the work on screen came from. ')
-    +(refused? '<b>Nothing was written.</b> ' : 'What is on screen does not have their changes. ')
+    +(refused==='late'? 'Their copy landed while your save was under way, and <b>your save stopped before writing over it</b>. '
+      : refused? '<b>Nothing was written.</b> ' : 'What is on screen does not have their changes. ')
     +'<button type="button" class="nb lnk" onclick="driveResolve(\'theirs\')">Load theirs</button> '
     +'(your work is kept aside, and one click puts it back) \u00b7 '
     +'<button type="button" class="nb lnk" onclick="driveResolve(\'mine\')">Save yours over theirs</button> '
