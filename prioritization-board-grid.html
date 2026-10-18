@@ -6664,6 +6664,10 @@ function jrnlBySvcPlace(e){
   return false;
 }
 function jrnlUndo(i){
+  // v2.00 (U10): NOT IN A LOCKED VIEW. Put back re-takes the journal's shadow below from the copy on screen -- the locked
+  // cycle's years -- and only then meets the view's refusal, which puts the copy back and not the shadow: the next save on
+  // the working plan wrote every difference between the cycle and the plan into the journal as a change made then, by whoever saved.
+  if(cycBlock('Putting a change back')) return;
   const e=(MS.jrnl||[])[i];
   if(!jrnlUndoable(e)){ setStat('⚠ That entry cannot be put back automatically — it is a load, a line saying what could not be recorded, a figure recorded by its service’s place before the service list changed, or the value is too large to have been recorded in full.'); return; }
   if(!confirm('Put '+diagPlain(jrnlLabel(e))+' back to what it was before '+(e.by||'?')+' changed it?\n\nThis is recorded in the journal too.')) return;
