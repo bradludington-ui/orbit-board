@@ -2204,6 +2204,134 @@ result for it was run fresh against these commits.
     walks the fixed SI code list and was never affected. The PPBE view's "+ add an RCN / EEIC line" still takes its key from
     the time and the list's length, as Add RCN / EEIC did; PPBE totals count each key once, so no total doubles (read, not
     run).
+- **U19 — ↶ Put back after a board-file save keeps what it replaces** (Brad, 12 Oct, about 5:30 PM ET: "Don't wait for me.
+  Let's keep pressing throughout to get this next version published."; the lead's decision to fix the release blockers).
+  With work saved into the board file (S1), ↶ Put back of the work kept aside (K) kept nothing in S1's place, because S1 was
+  "still in the saved file it came from, and 💾 Save will ask before writing over that". Save did ask (its HOLD ON), but
+  answered OK it wrote K over S1, and then S1 was in no copy this board could reach: not on screen, not kept aside, not in
+  browser storage, not in a byte of the file, after the Save and after a reopen. It was left only in Teams version history,
+  outside the board, where the file has one. The shared folder keeps the copy a save replaces in its history; a board file
+  keeps none. Now ↶ Put back keeps what is on screen aside in the kept work's place, with the checkpoint it came from,
+  whether or not it is saved, as unsaved work always was. The one exception is when 💾 Save writes to the shared folder at
+  the put-back and what is on screen is the folder's own copy (the one last loaded from or written to the folder): that copy
+  is in the folder, and a Save there keeps the copy it replaces in the folder's history. The choice is made at the put-back,
+  so switching 📡 Live view from "● Working out of this folder" back to "○ Just watching" before the Save cannot leave work
+  saved only in the board file unkept, also when the folder holds an older copy of the same browser's work. Whoever saved
+  what is on screen, it is kept: the person's own save or a colleague's. Putting the kept copy back later restores it, and
+  Save asks again before writing over the file. The question adds "It is also kept aside in its place, so it is not lost if
+  Save does." When what is on screen is the shared folder's own copy and the work kept aside was kept at a put-back, the
+  question now says it is "still in the shared folder it came from", also once 📡 Live view is switched back to the file;
+  it said "the saved file", which never held that copy. A copy kept this way that was saved, then put back and not changed
+  since, is not said to have "changes no saved copy has": the question says "What is on screen now was put back and has not
+  been saved since, so it is kept aside in its place — nothing is lost." Changed after that, or on a freshly opened page, it
+  is said to have changes no saved copy has, as before. With no room in browser storage to keep what is on screen, nothing
+  is put back and nothing changes, as for unsaved work. With a locked cycle on screen, ↶ Put back stays refused before
+  anything is asked or kept, by U10's gate (U10 12 of 12, above), so the view is never kept aside in the kept work's place,
+  though saved work now is. The words for a copy kept at a put-back no longer call it work no saved copy had or say a saved
+  copy replaced it: the top bar's ↶ work kept aside says "What was on screen when other work was put back, kept aside …",
+  📁 File says "kept … · what was on screen when other work was put back", and putting such a copy back says "💾 Save will
+  ask before it writes over a copy saved after the one this work came from." For the other kinds of kept work the status
+  keeps U30's words ("… which <name> saved after it.", or, with nothing recorded for the folder, "… saved; this browser has
+  no record of which copy there, if any, this work came from."). While work is kept aside, a reopen does not load the
+  file's copy over unsaved work on screen, so the HOLD ON's Cancel line then reads "Cancel — don't save (then use ⬅ Import
+  on the current file to pick up their changes first)." and the status after Cancel "… ⬅ Import this file to load their
+  version, then redo your edits.", without "or reopen it" and "Reopen or", which were not true there: on the board before
+  this change the old advice was already untrue after a put-back of unsaved work and after an opening that kept work aside
+  (both now checked). With nothing kept aside, both read as before (also checked).
+  - **What users may see:** after ↶ Put back, the top bar keeps offering ↶ work kept aside (what was on screen) until it is
+    put back, saved as a file or discarded. In the shared folder too, when what was on screen was not the folder's own copy.
+    While it is kept, a newer copy that would need work kept aside is not loaded, and the board says so, as it already did
+    for unsaved work. The next 💾 Save then asks HOLD ON before writing over that newer copy in the file; answered OK, that
+    copy is left only in Teams version history, as with any HOLD ON answered OK. This includes reopening the file before any
+    Save after the put-back: K stays on screen, unsaved, and the file's copy (S1, the very copy kept aside) is not loaded
+    ("… the newer copy was not loaded and nothing was lost"); before, S1 opened and K was kept. It also includes a newer
+    copy saved into the file AFTER the put-back, from another browser or by a colleague (N2), with or without a Save since
+    the put-back: the reopen does not load N2 over new work while the copy the put-back replaced is kept, and the next
+    Save's HOLD ON, answered OK, writes the new work over N2, which is then only in Teams version history. On the board
+    before this change, with a Save after the put-back, that reopen loaded N2 and kept the new work, and S1 was the copy
+    lost; with no Save after it, the reopen loaded N2 and kept the work put back. The board keeps one copy aside: U19 spends
+    it on the copy a put-back replaces. On a reopen the top bar says "Saved <time> · ↶ work kept
+    aside" while the work on screen is unsaved by this browser's record. That is the board's existing opening behaviour
+    (U15 in the ledger), now reached on this route too. After a saved copy is put back, the top bar says "Unsaved changes"
+    though the file holds it: a put-back counts as a change (v2.00, U2). A put-back in a browser whose storage is full is
+    now refused, with "nothing was changed", where it used to go ahead when what was on screen was saved.
+  - **Test:** audit-import "v2.00 (U19) — put back after a board-file save keeps what it replaces" (161 checks, with the round-6 tests review's CONTROL (ae): ↶ Put back answered Cancel with
+    saved work on screen keeps the work kept aside and offers it after a reopen), after the
+    U18 block and before U20's. It drives the routes through the page's own buttons and menus: put back once S1's save has
+    landed; put back while it writes (refused, U2) and again once it has landed; through 📁 File and the note editor; with
+    no file handle remembered (the picker); between two writers, each with their own key (✍ Take the pen, both ways); with
+    📡 Live view working out of a folder at the put-back and switched back to the file before the Save, with the folder
+    empty and with the folder holding an older copy of the same browser's work; on a reopened page with no file handle in
+    memory; and with a colleague's copy on screen (Bob's, written through ✍ Take the pen). Each route then runs 💾 Save with
+    the HOLD ON answered OK and a reopen. It also covers K and S1 put back in turn before any Save; a saved copy put back
+    and then changed; a reopen before any Save; no room in browser storage; the HOLD ON answered Cancel while work is kept
+    aside (S1 saved, S1 never saved, and work kept by the opening); the question's words when what is on screen is the
+    shared folder's own copy, in the folder, from the board file, and with 💾 Save back on the board file after K was written
+    to the folder; when the folder holds an older copy and what is on screen is saved only in the board file; and the words
+    for each kind of kept copy in the shared folder. The controls are the HOLD ON answered Cancel, S1 never saved, the
+    shared folder, 📡 Live view left on at the Save, a freshly opened page's put-back question, a locked cycle on screen
+    (U10's refusal holds with saved work on screen), a put-back the load itself refuses with saved work on screen (the kept
+    work built for another service list: the kept work is still kept, byte for byte, after the refusal and after a reopen,
+    and the top bar and 📁 File still describe it), the HOLD ON answered Cancel with nothing kept aside (its Cancel line
+    and the status after it still name a reopen, and a reopen then loads the file's copy and keeps the work on screen
+    aside), and ordinary editing. 75 checks fail on the board before the change (`a4881ec`'s, `058df67e`), none of them a
+    control; all 82 control checks pass on both.
+  - **Existing expectations changed (3 checks and 1 comment, in tools/export-audit/audit-import.mjs; line numbers before →
+    after):**
+    - L3512 → L3512–3514, v1.89 "the file is newer", "one click puts it back": the kept slot was empty after the put-back
+      (`String(localStorage.getItem(_AP.key+'.kept')===null)` → `'true'`); it now holds the colleague's copy and not Brad's
+      (`/COLLEAGUE NOTE/.test(s) && !/BRAD NOTE/.test(s)` → `'true'`). Why: the colleague's save was in no other copy this
+      board could reach once Save's HOLD ON was answered OK.
+    - L7725 → L7727, "v2.00 (U2) — put back waits for a save to finish", the `retry` helper's comment: what is kept is now
+      also work saved only in a board file. Comment only.
+    - L7795–7796 → L7799–7800, the same block, case (d) (the board file): "put back again" kept nothing (`null`) and now
+      keeps S1 (`'S1'`). Why: S1 was saved only in the board file.
+    - L7797 → L7801, case (d): the reopen after the Save showed S1 with K kept (`['S1', 'K']`) and now shows K with S1 kept
+      (`['K', 'S1']`). Why: the file is newer than the copy K came from, K is unsaved and S1 is kept, so the file's copy is
+      not loaded over K.
+    Each was run both ways: the old text fails on the new board, and the new text fails on the board before. The other U2
+    case that runs this route ("work put back during a save stays unsaved", case (c), L7626–7643) observes nothing new.
+  - **Existing mutation entry changed (1, in tools/export-audit/mutate.mjs):** `v200-u10-kept-gate-after-question`
+    (L4853–4855 → L4854–4856, with one comment line above it at L4853). Its find and its repl both carried the put-back's lines
+    between U10's gate and the end of its question as they were before U19 (`const nowUnsaved=…` and the old `confirm(…)`),
+    so on this board the find matched nothing. Now they carry U19's lines there (the `keepScreen`, `asPut` and `scrWhere`
+    lines with their comments, and the question's new words); the mutation is the same: the gate moved after the question.
+    The `what` text is unchanged. It is caught by U10's audit-recon check, as before (that block run on its own), and by
+    this block's (y).
+  - **Mutations (30):** `v200-u19-keep-saved-before-question` (the round-6 tests review), `v200-u19-putback-keeps-nothing-saved`, `-putback-promise-unkept`, `-putback-question-unsaid`,
+    `-swap-status-names-saver`, `-swap-title-unsaved`, `-swap-menu-replaced`, `-putback-store-at-putback`,
+    `-putback-folder-keeps-nothing`, `-putback-needs-handle`, `-putback-again-unsaved-said`, `-putback-again-any`,
+    `-swap-saved-forgotten`, `-cancel-says-reopen`, `-swap-status-by-kept`, `-swap-title-any-kind`, `-swap-menu-any-kind`,
+    `-putback-folder-base-any`, `-putback-words-swap-file`, `-cancel-swap-only`, `-putsavedgen-zero`,
+    `-asput-ignores-edits`, `-putback-keeps-own-only`, `-putback-refused-no-restore`, `-putback-restore-unsaved-only`,
+    `-putback-words-store-on`, `-putback-words-base-any`, `-putback-words-needs-store`, `-putback-refused-words-swap` and
+    `-cancel-never-reopen`; each caught by the block's checks on this board (`ae564d6c`, run focused, scenario by scenario);
+    full-suite sensitivity runs in the final-tree queue.
+    U10's `v200-u10-kept-putback-in-view`, `-kept-gate-after-question` and `-kept-gate-silent` are also caught by (y).
+  - **Not covered:** the file's own Change journal after K's Save keeps no trace of S1; S1 and its journal are in the kept
+    copy. The HOLD ON still calls the person's own save "their changes" (the triage's O1), and after a take-the-pen route
+    the put-back status still names the writer the kept work came from ("which Bob saved after it"). Reopened before any Save
+    after a put-back, the "newer copy was not loaded" message calls S1 both "a newer copy" and the "earlier work" kept aside.
+    For work kept by an opening or by Load theirs, the question still names the place by the kind of the kept copy: "still
+    in the saved file it came from" when what is on screen was then saved only to the shared folder, and "still in the
+    shared folder" when it was saved only to the board file. On the classic route, where this browser's own copy is the
+    newer one and nothing is kept aside, the HOLD ON's Cancel line still names a reopen, which does not load the file's copy
+    there. The Cancel line's ⬅ Import replaces the work on screen after its own "CONFLICT … will DISCARD" question, while the
+    slot holds the other copy. All of these are wording points for Brad, not changed here. A newer copy from another browser
+    or a colleague, arriving in the file after a put-back with or without a Save since, is lost on the HOLD ON's OK (above).
+    The restore after a load refused because a kept copy lists the same services in another order and its "Import it?" is
+    answered Cancel is not driven by a check (the same restore line as the service-list refusal, which is). A load that
+    throws part-way, rather than refusing (a kept copy of a shape the board never writes, such as a year's state set to
+    null), leaves what was on screen in the kept slot and the kept work in no copy; before this change, saved work on screen
+    was not kept, so the slot still held the kept work (the money review's probe T; no route found that writes such a copy).
+    A HOLD ON answered OK over another writer's file copy, not after a put-back, still leaves that copy only in Teams version
+    history. The shared folder's own "Put this back" (📡 Live view → 🕓 Show what the folder kept) is not changed: put back
+    over work saved only in the board file, it keeps nothing in that work's place, and the next 💾 Save to the board file
+    writes over that work without asking (this browser's record still names that work's own file save), whether 📡 Live
+    view was watching at the put-back or was switched back after it. Its question says "What is in the folder now is kept
+    as well, so this can be undone." and its status "press 💾 Save to write it back to the folder for everyone", though
+    💾 Save then writes the board file. The same on the board before U19; a new ledger row (U64). A second tab of the same browser
+    driving these routes and a real browser (Chromium) were not run; U20's own block passes on this board.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -2212,7 +2340,7 @@ result for it was run fresh against these commits.
     Spares} = $400M). The independent arithmetic and the saved-selection controls are committed checks.
   - **U2: complete** (accepted by Brad, 12 Oct): the change count (U2 1 of 2) and the refusal while a save is under way
     (2 of 2) are both above. audit-import passes at both commits, and each new mutation is caught, in runs made alone.
-    Its separate reopening and adoption findings stay open in the ledger (U15–U17, U19); U18 and U20 are built (below; U18
+    Its separate reopening and adoption findings stay open in the ledger (U15–U17); U18, U19 and U20 are built (below; U18
     except a copy landing during the write itself).
   - **U3: built as its own commit** (the lead's decision under Brad's "keep pressing", 12 Oct): a Save, Take the pen,
     ⬆ Publish now, Save yours over theirs, Load theirs or the autosave asked for under the mixed-import hold is refused at
@@ -2273,6 +2401,26 @@ result for it was run fresh against these commits.
     export or show its RCN / EEIC panel, as before, and nothing puts it right, as its file's refusal says by naming no way,
     alone or among several files; one whose working plan's list holds 0, false or "" (taken whole from a file) cannot send
     its package, PMO copy or state file, as ✕ on that row does nothing, and their refusal names no way.
+  - **U19: built as its own commit after U18** (the lead's decision under Brad's "Don't wait for me", 12 Oct, about 5:30 PM ET):
+    ↶ Put back keeps what is on screen aside in the kept work's place, saved or not and whoever saved it, unless 💾 Save
+    writes to the shared folder at the put-back and what is on screen is the folder's own copy. So 💾 Save's HOLD ON answered
+    OK no longer leaves the work that was on screen at the put-back in no copy this board can reach, whichever way 📡 Live
+    view's switch is set by the Save (above). While work is kept aside, the HOLD ON's Cancel advice names ⬅ Import, not a
+    reopen. Open, for the lead or Brad to accept knowingly: the board keeps one copy aside, and every ↶ Put back in the
+    board file now fills it with the copy it replaced. While that copy is kept, a newer copy saved into the file afterwards
+    -- from another browser or by a colleague, with or without a Save since the put-back -- is not loaded over new work on a
+    reopen (the board says so), and the next 💾 Save's HOLD ON answered OK leaves that newer copy only in Teams version
+    history. On the board before, the route with a Save after the put-back lost the copy the put-back replaced instead; with
+    no Save after it, the board before loaded the newer copy and kept the new work (measured: verify-money-r2 W4,
+    verify-money-r3 Y2). Open, and not U19's: the shared folder's own "Put this back" (🕓 Show what the folder kept) over
+    work saved only in the board file keeps nothing, and the next 💾 Save to the file writes over that work without asking
+    (ledger U64); and the same for a Live view refresh that loads a folder copy over such work (ledger U63). Open, as
+    wording points for Brad: the HOLD ON's "their changes" for the person's own save (O1); the put-back status naming the
+    earlier writer after a take-the-pen route; the "newer copy was not loaded" message naming S1 twice on a reopen before
+    any Save; the put-back question naming the place by the kind of the kept copy for work kept by an opening or by Load
+    theirs; the HOLD ON's Cancel line still naming a reopen on the classic route, where this browser's own copy is the newer
+    one; and the top bar's "Unsaved changes" after a saved copy is put back. The top bar's "Saved" on a reopen while the work
+    on screen is unsaved by the record is the board's existing opening behaviour (U15).
   - **U20: built as its own commit** (the lead's decision under Brad's word of 12 Oct, about 5:30 PM ET, to keep pressing):
     a save, or Load theirs, waiting for another tab's Web Lock is counted as under way from the moment it is asked for,
     until it ends (above). U2's refusal and U13's two guards now see it.

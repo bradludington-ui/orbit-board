@@ -3509,7 +3509,9 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, at, 'the header says so for as long as it is kept', /work kept aside/.test(header(R.ev)), true);
     chk(name, at, 'and 📁 File offers to put it back', /Put back work kept aside/.test(R.ev(`document.getElementById('dd_share')? document.getElementById('dd_share').textContent : ''`)), true);
     R.ev(`globalThis.__yes=true; keptPutBack(); 'ok'`);
-    chk(name, at, 'one click puts it back', note(R.ev, 'A') + '|' + note(R.ev, 'B') + '|' + R.ev(`String(localStorage.getItem(_AP.key+'.kept')===null)`), 'BRAD NOTE||true');
+    // v2.00 (U19): what was on screen -- the colleague's save, in no copy this board can reach but the file -- is kept aside in its place
+    chk(name, at, 'one click puts it back, and what was on screen (the colleague’s copy, saved only in the file) is kept aside in its place',
+      note(R.ev, 'A') + '|' + note(R.ev, 'B') + '|' + R.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept')||''; return String(/COLLEAGUE NOTE/.test(s) && !/BRAD NOTE/.test(s)); })()`), 'BRAD NOTE||true');
     const f = disk(R.w, F2);
     const q = await saveNow(R.ev, false);
     chk(name, at, 'and Save, put back, asks before writing over the colleague’s file', q.length === 1 && /HOLD ON/.test(q[0]) && f.writes === 0, true);
@@ -7722,7 +7724,7 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   const REFUSED = [true, true, true, true, 0, 'S1', true];
   const RQ = 'during the save: refused; what is on screen and the kept work are byte for byte as they were; nothing asked; the board says so';
   // ↶ Put back once the save has finished: one question, K on screen and unsaved, and what was on screen kept in its place if
-  // no saved copy has it (`was`: null when S1 is saved).
+  // no saved copy has it, or if it is saved only in a board file (v2.00, U19) (`was`: null when S1 is saved in the folder).
   const retry = A => { const q0 = qs(A.ev).length; A.ev('keptPutBack()'); return [qs(A.ev).length - q0, scr(A.ev), ...unsaved(A.ev), keptNote(A.ev)]; };
   const inFold = fold => n => [hist(fold).includes(n), fold.note(2027, 'A') === n];
   // THE FOLDER, after the retry: the refresh runs (live view on, as working out of the folder has it): K stays on screen and
@@ -7792,9 +7794,11 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     chk(name, sc, RQ, J(r.v), J(REFUSED));
     chk(name, sc, 'once it lands: S1 on screen and in the file, saved; the kept work byte for byte as it was',
       J([scr(A.ev), fileNote(f.content, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === r.kr]), J(['S1', 'S1', false, false, false, true]));
-    chk(name, sc, 'put back again: one question; K on screen, unsaved; nothing kept in its place (S1 is saved)',
-      J(retry(A)), J([1, 'K', true, true, true, null]));
-    await afterFile(A, f, sc, ['S1', 'K']); }
+    // v2.00 (U19): a board file keeps no earlier copy, so S1 -- saved only in the file -- is kept aside in K's place as well.
+    // Reopened, the file (S1) is newer than the copy K came from, K is unsaved and S1 is kept: K stays on screen, S1 kept.
+    chk(name, sc, 'put back again: one question; K on screen, unsaved; S1 kept aside in its place (saved only in the board file: v2.00, U19)',
+      J(retry(A)), J([1, 'K', true, true, true, 'S1']));
+    await afterFile(A, f, sc, ['K', 'S1']); }
   // (e) THE BOARD FILE, THE SAVE FAILS: the write cannot be finished.
   { const sc = '(e) the board file: put back while S1’s save writes; the save fails';
     const { A, f } = await inFile();
@@ -8772,6 +8776,649 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.00 (U18) ====
+// ==== v2.00 (U19): ↶ Put back after a board-file save keeps what it replaces ====
+// With S1 saved into the board file, ↶ Put back of the work kept aside (K) kept nothing in S1's place: S1 was "still in the
+// saved file". The next 💾 Save asked HOLD ON, and answered OK it wrote K over S1 -- and then S1 was in no copy this board
+// could reach: not on screen, not kept aside, not in browser storage, not in a byte of the file, after the Save and after a
+// reopen (only in Teams version history, outside the board). The shared folder keeps the copy a save replaces in its history;
+// a board file keeps none. Now what is on screen is kept aside in the kept work's place whether or not it is saved, as unsaved
+// work always was, unless 💾 Save writes to the shared folder and what is on screen is the folder's own copy; and the question
+// and the board's words say so. Each route below is driven through the page's own buttons and menus: the board file put back
+// once S1's save has landed, put back while it writes (refused, U2) and again once it has landed, through 📁 File and the
+// note editor, with no file handle remembered (the picker), between two writers who each hold their own key (✍ Take the pen,
+// both ways), with 📡 Live view working out of a folder at the put-back and switched back to the file before the Save, and on
+// a reopened page with no file handle in memory. Then: K and S1 put back in turn before any Save, a reopen before any Save,
+// no room to keep what is on screen, the HOLD ON answered Cancel while work is kept aside (its advice names ⬅ Import, not a
+// reopen, which would not load the file's copy), the words for each kind of kept copy, and the controls -- the HOLD ON
+// answered Cancel, S1 never saved, the shared folder, and ordinary editing -- as they were. Fix round 2: the shared folder
+// holding an older copy of this browser's at the put-back; the question's words when what is on screen is the folder's own
+// copy; Cancel's advice with work kept by an opening; the question on a freshly opened page and after a change; a colleague's
+// copy on screen; and a locked cycle on screen, where ↶ Put back is refused at once. Fix round 3: a put-back the load itself
+// refuses with saved work on screen, where the kept work is written back; and the question's place words when the shared
+// folder holds an older copy at the put-back and what is on screen is saved only in the board file. Fix round 4: ↶ Put back
+// under a locked cycle is refused by U10's own gate now, so (y) is a CONTROL; the question's place words when what is on
+// screen is the folder's own copy and 💾 Save is back on the board file; and the words for the kept work after a put-back the
+// load refuses. Fix round 5: Cancel's advice with nothing kept aside, which still names a reopen.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U19) — put back after a board-file save keeps what it replaces';
+  try {
+  const { J, wire, KEY, status, qs, baseFile, disk, folder, connect, gate, until, flags, pause, lsOf, fileNote, fileWriter } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // Requirement A's note says which copy is which: K, Alice's work kept aside by the opening; N, the newer copy that displaced
+  // it; S1, the work typed afterwards and saved into the file before K is put back.
+  const K = 'U19-K-KEPTWORK', N = 'U19-N-NEWER', S1 = 'U19-S1-SAVED';
+  const scr = ev => ev('String(S.notes.A)');
+  const keptRaw = ev => ev(`localStorage.getItem(_AP.key+'.kept')`);
+  // The work kept aside: [its note A, why it was kept], or null when nothing is kept.
+  const kept = ev => { const s = keptRaw(ev); if (s == null) return null;
+    try { const m = JSON.parse(s.slice(0, s.indexOf('\n'))), st = JSON.parse(s.slice(s.indexOf('\n') + 1));
+      return [String(((st.years || {})[st.cur] || { notes: {} }).notes.A || ''), m.why]; } catch (e) { return ['(unreadable)', null]; } };
+  const unsaved = ev => { const fl = flags(ev); return [fl.DIRTY, ev('_baseDirty'), !!fl.base.dirty]; };
+  // WHERE A COPY IS among the places this board offers it -- on screen, this browser's record of the board (its storage key),
+  // kept aside, the board file -- and, wider, whether its text is in any byte of browser storage or of the file.
+  const where = (ev, f, m) => { const ls = lsOf(ev); let main = '';
+    try { const o = JSON.parse(ls[ev('_AP.key')]); main = String(((o.years || {})[o.cur] || { notes: {} }).notes.A || ''); } catch (e) {}
+    const k = kept(ev);
+    return [scr(ev) === m && 'screen', main === m && 'storage', !!k && k[0] === m && 'kept', fileNote(f.content, 'A') === m && 'file'].filter(Boolean); };
+  const anywhere = (ev, f, m) => Object.values(lsOf(ev)).some(v => String(v).includes(m)) || f.content.includes(m);
+  // The page's own controls: 💾 Save in the toolbar (its promise is the save queue's), the top bar's "↶ work kept aside", and
+  // the 📁 File menu (mRun runs its item after a turn of the loop; then the save queue is waited for).
+  const clickSave = ev => ev(`(function(){ var b=document.getElementById('saveBtn'); if(!b) return null; b.click(); return _saveChain; })()`);
+  const clickPutBack = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); if(!b) return 'no button'; b.click(); return 'clicked'; })()`);
+  const fileMenu = async (ev, call) => { const r = ev(`(function(){ var b=document.getElementById('b_share'); if(!b) return 'no File button'; b.click();
+      var it=[].slice.call(document.querySelectorAll('#dd_share button')).filter(function(x){ return (x.getAttribute('onclick')||'')===${J(call)}; });
+      if(it.length!==1) return 'items: '+it.length; it[0].click(); return 'clicked'; })()`);
+    await pause(15); await ev('_saveChain'); await pause(20); return r; };
+  // The 📄 Description & note editor: open it for requirement A, type the note, press its ✔ Save.
+  const typeNote = (ev, text) => ev(`(function(){ toggleDesc('A'); var t=document.getElementById('fld-note'); if(!t) return 'no editor';
+    t.value=${J(text)}; var bs=[].slice.call(document.querySelectorAll('#fldBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='fldSave()'; });
+    if(bs.length!==1) return 'save buttons: '+bs.length; bs[0].click(); return 'typed'; })()`);
+  // The status line's "✍ Take the pen…" -- the refusal's own button --, answered OK; then the save it makes is waited for.
+  const takePenBtn = async (ev, f) => { const w0 = f.writes;
+    const r = ev(`(function(){ var bs=[].slice.call(document.querySelectorAll('#shareStat button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='takePen()'; });
+      if(bs.length!==1) return 'buttons: '+bs.length; bs[0].click(); return 'clicked'; })()`);
+    await until(() => f.writes > w0); await ev('_saveChain'); await pause(20); return r; };
+  const keptTitle = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); return b? b.title : null; })()`);
+  const menuText = ev => ev(`(document.getElementById('dd_share')||{}).textContent||''`);
+  // WORDS, as the board says them. The question when what is on screen is saved in the board file; the HOLD ON, unchanged;
+  // the top bar's and 📁 File's words for a copy kept at a put-back; the status after putting such a copy back.
+  const PUTQ = 'What is on screen now is still in the saved file it came from, and 💾 Save will ask before writing over that. It is also kept aside in its place, so it is not lost if Save does.';
+  const holdOn = q => /^⚠ HOLD ON — Alice saved this file at .+\. That is not the save the copy you are working from came from, so their changes are not on your screen\.\n\nSaving now will OVERWRITE their changes with yours\.\n\nOK — overwrite anyway \(their version stays in Teams version history\)\./.test(q);
+  const SWAPTITLE = /^What was on screen when other work was put back, kept aside .+\. Put it back\.$/;
+  const SWAPMENU = 'what was on screen when other work was put back';
+  const SWAPSAID = '💾 Save will ask before it writes over a copy saved after the one this work came from.';
+  // The question's sentence when what is on screen is unsaved by this browser's record: work no saved copy has; or a copy kept
+  // at a put-back, saved when it was kept, put back and not changed since. The HOLD ON's Cancel line, and the status after
+  // Cancel, while work is kept aside: ⬅ Import only, no reopen.
+  const UNSAVEDQ = 'What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.';
+  const PUTAGAINQ = 'What is on screen now was put back and has not been saved since, so it is kept aside in its place — nothing is lost.';
+  const CANCEL_IMPORT = 'Cancel — don’t save (then use ⬅ Import on the current file to pick up their changes first).';
+  const CANCELLED_IMPORT = 'Save canceled — Alice’s changes are untouched. ⬅ Import this file to load their version, then redo your edits.';
+  // The question's sentence when what is on screen is the shared folder's own copy: the folder is named, whatever kind of copy
+  // is kept, and nothing is kept in its place.
+  const FOLDQ = 'What is on screen now is still in the shared folder it came from, and 💾 Save will ask before writing over that.';
+  // 📡 Live view's own switch, reached through 📁 File → 📡 Live view…: "● Working out of this folder" pressed (it turns to
+  // "○ Just watching", and 💾 Save writes the board file again); then the panel's ✕ Close.
+  const liveSwitchOff = async ev => { const o = await fileMenu(ev, 'mRun(toggleLive)');
+    const r = ev(`(function(){ var bs=[].slice.call(document.querySelectorAll('#liveBody button')).filter(function(b){ return (b.getAttribute('onclick')||'')==='liveSet("store",false)'; });
+      if(bs.length!==1) return 'switches: '+bs.length; bs[0].click(); var x=document.querySelector('#livePanel h3 button.x'); if(!x) return 'no close'; x.click(); return 'clicked'; })()`);
+    await pause(5); return [o, r]; };
+  // THE BOARD FILE. Alice types K, unsaved. Her other browser saves N into the file. She reopens the file: the opening keeps K
+  // aside and opens N. `picker`: no file handle is remembered, so the first Save opens the picker (it hands back the same file).
+  const inFile = async picker => {
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F1);
+    A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    if (picker) A.ev(`FH=null; globalThis.__picks=0; window.showSaveFilePicker=async function(){ globalThis.__picks++; return globalThis.__disk; }; 'ok'`);
+    return { A, f };
+  };
+  const reopen = async (A, f) => { const B = boot({ html: f.content, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Alice', KEY.alice);
+    return { B, fB: disk(B.w, f.content) }; };
+  // S1 typed and saved into the file through 💾 Save: nothing asked; S1 in the file, saved; K still kept aside.
+  const savedS1 = async (A, f, sc) => {
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    chk(name, sc, 'S1 on screen, unsaved; K kept aside by the opening; N in the file (a CONTROL)',
+      J([scr(A.ev), ...unsaved(A.ev), kept(A.ev), fileNote(f.content, 'A')]), J([S1, true, true, true, [K, 'file'], N]));
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, 'S1’s save lands: nothing asked; S1 in the file, saved; K still kept aside (a CONTROL)',
+      J([qs(A.ev).length - q0, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([0, S1, false, false, false, [K, 'file']]));
+  };
+  // ↶ Put back of K with S1 saved -- the top bar's button, or `via` -- : one question, saying S1 is kept aside too; K on screen,
+  // unsaved; S1 kept in its place.
+  const putBackK = async (A, sc, via) => {
+    const q0 = qs(A.ev).length; const r = via ? await via() : clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question, saying S1 is still in the saved file, Save will ask, and S1 is also kept aside in its place',
+      J([q.length, q.length === 1 && q[0].endsWith(PUTQ)]), J([1, true]));
+    chk(name, sc, '↶ Put back: K on screen, unsaved; S1 kept aside in its place; the board says so',
+      J([scr(A.ev), ...unsaved(A.ev), kept(A.ev), / What was on screen is kept aside in its place: put that back\.$/.test(status(A.ev))]),
+      J([K, true, true, true, [S1, 'swap'], true]));
+    return r;
+  };
+  // 💾 Save after the put-back, HOLD ON answered OK: one HOLD ON, in its own words; K written into the file, saved.
+  const saveK = (A, f, sc, q) => chk(name, sc, '💾 Save: one HOLD ON, its words unchanged; OK writes K into the file, saved (a CONTROL)',
+    J([q.length, q.length === 1 && holdOn(q[0]), fileNote(f.content, 'A'), scr(A.ev), ...unsaved(A.ev)]), J([1, true, K, K, false, false, false]));
+  // (a) THE BOARD FILE, PUT BACK ONCE S1's SAVE HAS LANDED; then 💾 Save, OK. Reopened, S1 is put back and saved in its turn.
+  { const sc = '(a) the board file: ↶ Put back once S1’s save has landed; 💾 Save, HOLD ON answered OK; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    chk(name, sc, 'the top bar offers K, as work no saved copy had (a CONTROL)', /^Work this browser held that no saved copy had, kept aside .+\. Put it back\.$/.test(keptTitle(A.ev) || ''), true);
+    await putBackK(A, sc);
+    chk(name, sc, 'and names the saved file and who saved it after K, as before: K was kept by the opening (a CONTROL)',
+      status(A.ev).includes('💾 Save will ask before it writes over the saved file, which Alice saved after it.'), true);
+    chk(name, sc, '↶ Put back: the top bar offers S1, as what was on screen when other work was put back; 📁 File says the same',
+      J([SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU), menuText(A.ev).includes('from before the saved file replaced it')]), J([true, true, false]));
+    let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, offered in the top bar, and its text is in this browser’s storage',
+      J([where(A.ev, f, S1), anywhere(A.ev, f, S1), kept(A.ev), SWAPTITLE.test(keptTitle(A.ev) || '')]), J([['kept'], true, [S1, 'swap'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside, offered in the top bar',
+      J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), kept(B.ev), where(B.ev, fB, S1), SWAPTITLE.test(keptTitle(B.ev) || '')]),
+      J([K, K, false, false, false, [S1, 'swap'], ['kept'], true]));
+    q0 = qs(B.ev).length; clickPutBack(B.ev); const q = qs(B.ev).slice(q0);
+    chk(name, sc, 'reopened, S1 put back: one question (K is in the saved file, and is kept aside too); S1 on screen, unsaved; K kept in its place',
+      J([q.length, q.length === 1 && q[0].endsWith(PUTQ), scr(B.ev), ...unsaved(B.ev), kept(B.ev)]), J([1, true, S1, true, true, true, [K, 'swap']]));
+    chk(name, sc, 'and the board says Save asks before writing over a copy saved after S1’s -- not who saved the file after it',
+      J([status(B.ev).includes(SWAPSAID), / saved after it\./.test(status(B.ev))]), J([true, false]));
+    q0 = qs(B.ev).length; await clickSave(B.ev); await pause(20); const q2 = qs(B.ev).slice(q0);
+    chk(name, sc, 'then 💾 Save: one HOLD ON (the file holds K, saved after S1’s copy); OK writes S1, saved; K still kept aside',
+      J([q2.length, q2.length === 1 && holdOn(q2[0]), fileNote(fB.content, 'A'), ...unsaved(B.ev), kept(B.ev)]), J([1, true, S1, false, false, false, [K, 'swap']])); }
+  // (b) THE BOARD FILE, PUT BACK WHILE S1's SAVE WRITES: refused (v2.00, U2); once the save has landed, put back; 💾 Save, OK.
+  { const sc = '(b) the board file: ↶ Put back pressed while S1’s save writes, and again once it has landed; 💾 Save, OK; reopened';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const n0 = f.hits.write || 0; f.hold.write = gate(); const g = f.hold.write;
+    const p = clickSave(A.ev); const reached = await until(() => (f.hits.write || 0) > n0);
+    const k0 = keptRaw(A.ev), q0 = qs(A.ev).length; const r = clickPutBack(A.ev);
+    chk(name, sc, 'during the save: ↶ Put back refused, nothing asked, K kept byte for byte, S1 on screen, and said (a CONTROL)',
+      J([reached, r, qs(A.ev).length - q0, keptRaw(A.ev) === k0, scr(A.ev), /Not put back/.test(status(A.ev))]), J([true, 'clicked', 0, true, S1, true]));
+    g.open(); await p; await pause(20);
+    chk(name, sc, 'the save lands: S1 in the file, saved; K still kept aside (a CONTROL)',
+      J([fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([S1, false, false, false, [K, 'file']]));
+    await putBackK(A, sc);
+    let q1 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q1));
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, and its text is in this browser’s storage', J([where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J([['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, S1)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (c) THROUGH 📁 FILE AND THE NOTE EDITOR: S1 typed in 📄 Description & note, 📁 File → 💾 Save, → ↶ Put back, → 💾 Save.
+  { const sc = '(c) the board file through 📁 File and the note editor; HOLD ON answered OK; reopened';
+    const { A, f } = await inFile();
+    const typed = typeNote(A.ev, S1); await pause(5);
+    const s1 = await fileMenu(A.ev, 'mRun(saveInPlace)');
+    chk(name, sc, 'S1 typed in the editor and saved through 📁 File: nothing asked; S1 in the file, saved; K still kept aside (a CONTROL)',
+      J([typed, s1, qs(A.ev).length, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J(['typed', 'clicked', 0, S1, false, false, false, [K, 'file']]));
+    const pb = await putBackK(A, sc, () => fileMenu(A.ev, 'mRun(keptPutBack)'));
+    chk(name, sc, '📁 File → ↶ Put back: 📁 File then says what the work kept aside is', J([pb, menuText(A.ev).includes(SWAPMENU)]), J(['clicked', true]));
+    const q0 = qs(A.ev).length; const s2 = await fileMenu(A.ev, 'mRun(saveInPlace)'); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 📁 File → 💾 Save: S1 is kept aside', J([s2, where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J(['clicked', ['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen, saved; S1 kept aside', J([scr(B.ev), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, false, false, false, ['kept']])); }
+  // (d) NO FILE HANDLE REMEMBERED: the first 💾 Save opens the picker (which hands back the same file); the second reuses it.
+  // S1's own save is that first Save, so the handle is in memory by the put-back; (o) puts back with none in memory.
+  { const sc = '(d) the board file with no file handle remembered: the first 💾 Save opens the picker; HOLD ON answered OK; reopened';
+    const { A, f } = await inFile(true);
+    await savedS1(A, f, sc);
+    chk(name, sc, 'S1’s save opened the picker once (a CONTROL)', A.ev('globalThis.__picks'), 1);
+    await putBackK(A, sc);
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save (the picker not opened again): S1 is kept aside', J([A.ev('globalThis.__picks'), where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J([1, ['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen, saved; S1 kept aside', J([scr(B.ev), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, false, false, false, ['kept']])); }
+  // (e) TWO WRITERS, EACH WITH HIS OWN KEY: the board file has one writer, so the newer copy N reaches the file only when Bob
+  // takes the pen, and S1 only when Alice takes it back -- each through the refusal's own "✍ Take the pen…". Then ↶ Put
+  // back, 💾 Save with its HOLD ON answered OK, and a reopen, as in (a).
+  { const sc = '(e) the board file between two writers: N and S1 each written through ✍ Take the pen; ↶ Put back; 💾 Save, HOLD ON answered OK; reopened';
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); const fb = disk(Bb.w, F1);
+    Bb.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5);
+    await clickSave(Bb.ev); await pause(20); const bobRefused = [fb.writes, /Not saved\. Alice holds the pen/.test(status(Bb.ev))];
+    const bt = await takePenBtn(Bb.ev, fb);
+    chk(name, sc, 'Bob: 💾 Save refused (Alice holds the pen); ✍ Take the pen… writes N, writer Bob (a CONTROL)',
+      J([...bobRefused, bt, fileNote(fb.content, 'A'), fileWriter(fb.content)]), J([0, true, 'clicked', N, 'Bob']));
+    const A = boot({ html: fb.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, fb.content);
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    await clickSave(A.ev); await pause(20); const aliceRefused = [f.writes, /Not saved\. Bob holds the pen/.test(status(A.ev)), kept(A.ev)];
+    const at = await takePenBtn(A.ev, f);
+    chk(name, sc, 'Alice reopens (K kept aside, N opened) and types S1: 💾 Save refused (Bob holds the pen); ✍ Take the pen… writes S1, saved, writer Alice; K still kept aside (a CONTROL)',
+      J([...aliceRefused, at, fileNote(f.content, 'A'), fileWriter(f.content), ...unsaved(A.ev), kept(A.ev)]),
+      J([0, true, [K, 'file'], 'clicked', S1, 'Alice', false, false, false, [K, 'file']]));
+    await putBackK(A, sc);
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, and its text is in this browser’s storage', J([where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J([['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved, writer Alice; S1 kept aside',
+      J([scr(B.ev), fileNote(fB.content, 'A'), fileWriter(fB.content), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, K, 'Alice', false, false, false, ['kept']])); }
+  // (f) S1 PUT BACK AGAIN BEFORE ANY SAVE: the file still holds S1's own save, so Save asks nothing -- and the board does not
+  // say it will. K, unsaved, is kept in S1's place. Then K and S1 once more, and ↶ Put back answered Cancel: S1 on screen is the
+  // file's own copy, put back and not changed since, so the question does not say it has changes no saved copy has.
+  { const sc = '(f) the board file: K put back, then S1, then K and S1 again before any Save; then 💾 Save';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, 'S1 put back: one question (K has changes no saved copy has, so it is kept aside); S1 on screen, unsaved; K kept in its place',
+      J([r, q.length, q.length === 1 && q[0].endsWith('What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.'), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]),
+      J(['clicked', 1, true, S1, true, true, true, [K, 'swap']]));
+    chk(name, sc, 'the board says Save asks before writing over a copy saved after S1’s -- not that somebody saved the file after it',
+      J([status(A.ev).includes(SWAPSAID), / saved after it\./.test(status(A.ev))]), J([true, false]));
+    const q3 = qs(A.ev).length; const r3 = clickPutBack(A.ev); const qa = qs(A.ev).slice(q3);
+    chk(name, sc, 'K put back again: one question -- S1, the file’s own copy, was put back and has not been saved since (not “changes no saved copy has”); K on screen; S1 kept in its place',
+      J([r3, qa.length, qa.length === 1 && qa[0].endsWith(PUTAGAINQ), fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J(['clicked', 1, true, S1, K, [S1, 'swap']]));
+    const q4 = qs(A.ev).length; clickPutBack(A.ev); const qb = qs(A.ev).slice(q4);
+    chk(name, sc, 'S1 put back again: one question -- K, never saved, has changes no saved copy has; S1 on screen; K kept in its place',
+      J([qb.length, qb.length === 1 && qb[0].endsWith(UNSAVEDQ), scr(A.ev), kept(A.ev)]), J([1, true, S1, [K, 'swap']]));
+    const q5 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); const r5 = clickPutBack(A.ev); A.ev('globalThis.__yes=true; 0'); const qc = qs(A.ev).slice(q5);
+    chk(name, sc, '↶ Put back once more, answered Cancel: one question -- S1 was put back and has not been saved since; nothing changed',
+      J([r5, qc.length, qc.length === 1 && qc[0].endsWith(PUTAGAINQ), scr(A.ev), kept(A.ev)]), J(['clicked', 1, true, S1, [K, 'swap']]));
+    const q1 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, 'then 💾 Save asks nothing (nobody saved after S1’s copy) and writes S1, saved; K still kept aside',
+      J([qs(A.ev).length - q1, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([0, S1, false, false, false, [K, 'swap']])); }
+  // (g) REOPENED BEFORE ANY SAVE, after K was put back: the file is newer than the copy K came from and this browser holds K
+  // unsaved, with S1 already kept aside -- kept work is never replaced, so the file's copy (S1) is not loaded over K.
+  { const sc = '(g) the board file: K put back, then the board reopened before any Save';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K stays on screen, unsaved by the record; S1 kept aside and in the file; the board says the file’s copy was not loaded and nothing was lost',
+      J([scr(B.ev), !!flags(B.ev).base.dirty, kept(B.ev), fileNote(fB.content, 'A'), /the newer copy was not loaded and nothing was lost/.test(status(B.ev))]),
+      J([K, true, [S1, 'swap'], S1, true]));
+    chk(name, sc, 'K and S1 are each still in a copy here or in the file (a CONTROL)', J([K, S1].map(m => where(B.ev, fB, m).length > 0)), J([true, true])); }
+  // (h) NO ROOM TO KEEP WHAT IS ON SCREEN: browser storage refuses the kept copy, so nothing is put back and nothing changes.
+  { const sc = '(h) the board file: no room in browser storage to keep S1 aside';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const k0 = keptRaw(A.ev), m0 = A.ev('JSON.stringify(MS)');
+    A.ev(`(function(){ var o=Storage.prototype.setItem; globalThis.__setItem=o; Storage.prototype.setItem=function(k,v){ if(/\\.kept$/.test(String(k))) throw new DOMException('full', 'QuotaExceededError'); return o.apply(this, arguments); }; return 'ok'; })()`);
+    const q0 = qs(A.ev).length; clickPutBack(A.ev);
+    A.ev(`Storage.prototype.setItem=globalThis.__setItem; 'ok'`);
+    chk(name, sc, '↶ Put back: asked once, then refused -- nothing changed: S1 on screen and in the file, saved; K kept byte for byte; said',
+      J([qs(A.ev).length - q0, scr(A.ev), A.ev('JSON.stringify(MS)') === m0, fileNote(f.content, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === k0,
+        /There is no room to keep what is on screen while the kept work is put back, so nothing was changed/.test(status(A.ev))]),
+      J([1, S1, true, S1, false, false, false, true, true])); }
+  // (i) CONTROL: THE HOLD ON ANSWERED CANCEL. Nothing is written; S1 stays in the file.
+  { const sc = '(i) CONTROL: the board file, the HOLD ON answered Cancel';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    clickPutBack(A.ev);
+    const w0 = f.writes, q0 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); await clickSave(A.ev); await pause(20); A.ev('globalThis.__yes=true; 0');
+    const q = qs(A.ev).slice(q0);
+    chk(name, sc, '💾 Save: one HOLD ON; Cancel writes nothing: S1 in the file, K on screen, unsaved; said',
+      J([q.length, q.length === 1 && holdOn(q[0]), f.writes - w0, fileNote(f.content, 'A'), scr(A.ev), ...unsaved(A.ev), /^Save canceled/.test(status(A.ev))]),
+      J([1, true, 0, S1, K, true, true, true, true]));
+    chk(name, sc, 'S1 is in the file; K and S1 are each still in a copy here or in the file', J([where(A.ev, f, S1).includes('file'), [K, S1].map(m => where(A.ev, f, m).length > 0)]), J([true, [true, true]])); }
+  // (j) CONTROL: S1 NEVER SAVED. What is on screen has changes no saved copy has, and is kept aside in its place, as always.
+  { const sc = '(j) CONTROL: the board file, S1 never saved; ↶ Put back; 💾 Save, OK; reopened';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const q0 = qs(A.ev).length; clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question (changes no saved copy has, kept aside in its place); K on screen, unsaved; S1 kept',
+      J([q.length, q.length === 1 && q[0].endsWith('What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.'), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]),
+      J([1, true, K, true, true, true, [S1, 'swap']]));
+    const q1 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const q2 = qs(A.ev).slice(q1);
+    chk(name, sc, '💾 Save: one HOLD ON (N’s save); OK writes K, saved; S1 still kept aside',
+      J([q2.length, q2.length === 1 && holdOn(q2[0]), fileNote(f.content, 'A'), ...unsaved(A.ev), where(A.ev, f, S1)]), J([1, true, K, false, false, false, ['kept']]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen, saved; S1 kept aside', J([scr(B.ev), ...unsaved(B.ev), where(B.ev, fB, S1)]), J([K, false, false, false, ['kept']])); }
+  // (k) CONTROL: THE SHARED FOLDER, which keeps the copy a save replaces in its history. Alice saves F0 and types K; her other
+  // browser saves N; her Save is refused and she loads theirs (K kept aside); she types S1 and saves it. ↶ Put back keeps
+  // nothing in S1's place, as before; 💾 Save is refused with the choice; "Save yours over theirs" keeps S1 in the history.
+  { const sc = '(k) CONTROL: the shared folder: ↶ Put back once S1’s save has landed; 💾 Save; Save yours over theirs';
+    const fold = folder(); const A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','U19-F0'); 'ok'`); await pause(5); await A.ev('driveStorePush(false)'); await pause(5);
+    A.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); connect(A2.ev, A2.w, fold);
+    await A2.ev('driveStorePull(false)'); await pause(5);
+    A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
+    await A.ev('saveInPlace()'); await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5); await clickSave(A.ev); await pause(20);
+    const hist = () => Object.values((fold.root.dirs.history || { files: {} }).files).map(t => { try { return JSON.parse(t).store.years['2027'].notes.A; } catch (e) { return '?'; } });
+    chk(name, sc, 'S1 saved to the folder, saved; K kept aside (why folder) (a CONTROL)', J([fold.note(2027, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([S1, false, false, false, [K, 'folder']]));
+    const q0 = qs(A.ev).length; clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question (S1 is still in the shared folder, Save will ask) and no more; K on screen, unsaved; nothing kept in its place',
+      J([q.length, q.length === 1 && q[0].endsWith('What is on screen now is still in the shared folder it came from, and 💾 Save will ask before writing over that.'), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]),
+      J([1, true, K, true, true, true, null]));
+    const q1 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save: refused with the choice, nothing asked, S1 still the folder’s copy', J([/Nothing was written/.test(status(A.ev)) && /Save yours over theirs/.test(status(A.ev)), qs(A.ev).length - q1, fold.note(2027, 'A')]), J([true, 0, S1]));
+    const q2 = qs(A.ev).length; await A.ev(`driveResolve('mine')`); await pause(20);
+    chk(name, sc, '"Save yours over theirs": one question; K written, saved; S1 kept in the folder’s history',
+      J([qs(A.ev).length - q2, fold.note(2027, 'A'), ...unsaved(A.ev), hist().includes(S1)]), J([1, K, false, false, false, true])); }
+  // (l) CONTROL: ORDINARY EDITING. S1 saved; more than a minute later (this window's clock moved on 61 s: the journal joins one
+  // person's edits to one field inside a minute) Alice types over it herself and saves: nothing is asked, and the Change journal
+  // the file carries keeps what the note was.
+  { const sc = '(l) CONTROL: the board file, S1 saved, then retyped a minute later and saved (no put-back)';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var real=Date.now; Date.now=function(){ return real.call(Date)+61000; }; return 'ok'; })()`);
+    A.ev(`setNote('A',${J(K + ' RETYPED')}); 'ok'`); await pause(5);
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save asks nothing; the retyped note in the file, saved; the journal holds S1 → the retyped note; K still kept aside',
+      J([qs(A.ev).length - q0, fileNote(f.content, 'A'), ...unsaved(A.ev), A.ev(`(MS.jrnl||[]).some(function(e){ return e.a===${J(S1)} && e.b===${J(K + ' RETYPED')}; })`), kept(A.ev)]),
+      J([0, K + ' RETYPED', false, false, false, true, [K, 'file']])); }
+  // (m) 📡 LIVE VIEW'S SWITCH MOVES 💾 SAVE BETWEEN THE PUT-BACK AND THE SAVE. S1 saved into the board file; Alice works out of
+  // a shared folder that does not hold S1, puts K back, switches back to ○ Just watching and presses 💾 Save, which writes the
+  // board file: HOLD ON, OK. What was on screen at the put-back is not the folder's copy, so it was kept.
+  { const sc = '(m) the board file: 📡 Live view working out of a folder at the put-back, switched back before 💾 Save; HOLD ON answered OK; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const fold = folder(); connect(A.ev, A.w, fold);
+    await putBackK(A, sc);
+    const sw = await liveSwitchOff(A.ev);
+    chk(name, sc, '📡 Live view’s “● Working out of this folder” pressed: 💾 Save writes the board file again; nothing is in the folder (a CONTROL)',
+      J([...sw, A.ev('driveStoreOn()'), fold.raw(2027) == null]), J(['clicked', 'clicked', false, true]));
+    const q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, and its text is in this browser’s storage', J([where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J([['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, S1)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (n) CONTROL: THE SAME, WITH THE SWITCH LEFT ON. 💾 Save writes K to the folder; the board file keeps S1.
+  { const sc = '(n) CONTROL: the board file, 📡 Live view left working out of the folder; ↶ Put back; 💾 Save';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const fold = folder(); connect(A.ev, A.w, fold);
+    clickPutBack(A.ev); await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save writes K to the folder; the board file keeps S1', J([fold.note(2027, 'A'), fileNote(f.content, 'A'), scr(A.ev)]), J([K, S1, K])); }
+  // (o) A REOPENED PAGE WITH NO FILE HANDLE IN MEMORY, as every page is until its first Save: S1 saved; reopened; ↶ Put back;
+  // 💾 Save through the picker (which hands back the same file), HOLD ON answered OK; reopened again.
+  { const sc = '(o) the board file: S1 saved; reopened with no file handle in memory; ↶ Put back; 💾 Save through the picker, HOLD ON answered OK; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const { B, fB } = await reopen(A, f);
+    B.ev(`FH=null; globalThis.__picks=0; window.showSaveFilePicker=async function(){ globalThis.__picks++; return globalThis.__disk; }; 'ok'`);
+    chk(name, sc, 'reopened: S1 on screen and in the file, saved; K kept aside by the opening; no file handle in memory (a CONTROL)',
+      J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), kept(B.ev), B.ev('FH===null')]), J([S1, S1, false, false, false, [K, 'file'], true]));
+    await putBackK(B, sc);
+    const q0 = qs(B.ev).length; await clickSave(B.ev); await pause(20); saveK(B, fB, sc, qs(B.ev).slice(q0));
+    chk(name, sc, 'after 💾 Save (the picker opened once): S1 is kept aside, and its text is in this browser’s storage',
+      J([B.ev('globalThis.__picks'), where(B.ev, fB, S1), anywhere(B.ev, fB, S1)]), J([1, ['kept'], true]));
+    const { B: C, fB: fC } = await reopen(B, fB);
+    chk(name, sc, 'reopened again: K on screen and in the file, saved; S1 kept aside', J([scr(C.ev), fileNote(fC.content, 'A'), ...unsaved(C.ev), where(C.ev, fC, S1)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (p) THE HOLD ON ANSWERED CANCEL WHILE WORK IS KEPT ASIDE. A reopen does not load the file's copy over unsaved work while
+  // work is kept aside (kept work is never replaced), so the HOLD ON's Cancel line and the status after it name ⬅ Import only.
+  const cancelSave = async A => { const q0 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); await clickSave(A.ev); await pause(20); A.ev('globalThis.__yes=true; 0');
+    const q = qs(A.ev).slice(q0), said = status(A.ev);
+    return [q.length, q.length === 1 && holdOn(q[0]) && q[0].endsWith(CANCEL_IMPORT), said.includes(CANCELLED_IMPORT), /reopen/i.test(q.join('\n') + said)]; };
+  { const sc = '(p) the board file: S1 saved; ↶ Put back; 💾 Save, HOLD ON answered Cancel; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    clickPutBack(A.ev);
+    const c = await cancelSave(A);
+    chk(name, sc, '💾 Save, Cancel: one HOLD ON, whose Cancel line names ⬅ Import only, no reopen; the board says the same; nothing written; S1 kept',
+      J([...c, fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J([1, true, true, false, S1, K, [S1, 'swap']]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: the file’s copy (S1) is not loaded over K while S1 is kept aside, and the board says so',
+      J([scr(B.ev), kept(B.ev), fileNote(fB.content, 'A'), /the newer copy was not loaded and nothing was lost/.test(status(B.ev))]), J([K, [S1, 'swap'], S1, true])); }
+  // (q) THE SAME WITH S1 NEVER SAVED: what is on screen has been kept aside at a put-back since v1.95, and the HOLD ON's Cancel
+  // line named a reopen there too, which does not load N, the file's copy, while S1 is kept.
+  { const sc = '(q) the board file: S1 never saved; ↶ Put back; 💾 Save, HOLD ON answered Cancel; reopened';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    clickPutBack(A.ev);
+    const c = await cancelSave(A);
+    chk(name, sc, '💾 Save, Cancel: one HOLD ON (N’s save), whose Cancel line names ⬅ Import only, no reopen; the board says the same; nothing written',
+      J([...c, fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J([1, true, true, false, N, K, [S1, 'swap']]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: N, the file’s copy, is not loaded over K while S1 is kept; K, S1 and N each still in a copy here or in the file (a CONTROL)',
+      J([scr(B.ev), kept(B.ev), fileNote(fB.content, 'A'), [K, S1, N].map(m => where(B.ev, fB, m).length > 0)]), J([K, [S1, 'swap'], N, [true, true, true]])); }
+  // (r) THE WORDS FOR EACH KIND OF KEPT COPY, in the shared folder. K kept by Load theirs keeps its own words. S1, unsaved, kept
+  // at a put-back is offered as what was on screen when other work was put back. K saved over the folder's copy ("Save yours
+  // over theirs"), S1 put back: K is the folder's own copy, so nothing is kept in its place, and the board states the rule
+  // Save follows, not who saved after it.
+  { const sc = '(r) the shared folder: K kept by Load theirs; S1, unsaved, kept at a put-back; K saved over theirs; S1 put back';
+    const fold = folder(); const A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','U19-F0'); 'ok'`); await pause(5); await A.ev('driveStorePush(false)'); await pause(5);
+    A.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F1 }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); connect(A2.ev, A2.w, fold);
+    await A2.ev('driveStorePull(false)'); await pause(5);
+    A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('driveStorePush(false)'); await pause(5);
+    await A.ev('saveInPlace()'); await A.ev(`driveResolve('theirs')`); await pause(5);
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    chk(name, sc, 'K kept aside by Load theirs: the top bar and 📁 File say what it is, as before (a CONTROL)',
+      J([kept(A.ev), /^Work this browser held that no saved copy had, kept aside .+\. Put it back\.$/.test(keptTitle(A.ev) || ''), menuText(A.ev).includes('from before the shared folder replaced it')]),
+      J([[K, 'folder'], true, true]));
+    clickPutBack(A.ev);
+    chk(name, sc, 'S1, unsaved, put aside: K on screen; the top bar and 📁 File offer S1 as what was on screen when other work was put back',
+      J([scr(A.ev), kept(A.ev), SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU)]), J([K, [S1, 'swap'], true, true]));
+    await clickSave(A.ev); await pause(20); const q2 = qs(A.ev).length; await A.ev(`driveResolve('mine')`); await pause(20);
+    chk(name, sc, 'K saved over the folder’s copy: one question; K in the folder, saved; S1 still kept (a CONTROL)',
+      J([qs(A.ev).length - q2, fold.note(2027, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([1, K, false, false, false, [S1, 'swap']]));
+    const q3 = qs(A.ev).length; clickPutBack(A.ev); const qr = qs(A.ev).slice(q3);
+    chk(name, sc, 'S1 put back: one question; nothing kept in its place (K is the folder’s own copy); the board states the rule Save follows, not who saved after it',
+      J([qr.length, scr(A.ev), kept(A.ev), status(A.ev).includes(SWAPSAID), / saved after it\./.test(status(A.ev))]), J([1, S1, null, true, false]));
+    chk(name, sc, 'and the question says K is still in the shared folder it came from -- not the saved file, which K was never written to',
+      qr.length === 1 && qr[0].endsWith(FOLDQ), true); }
+  // (s) THE SHARED FOLDER HOLDS AN OLDER COPY OF THIS BROWSER'S, NOT WHAT IS ON SCREEN. S0 saved to the folder; 📡 Live view
+  // switched back to the file; S1 typed and saved into the board file only; working out of the folder again; ↶ Put back;
+  // switched back; 💾 Save, HOLD ON answered OK; reopened. What is on screen at the put-back is not the folder's copy (S0 is).
+  { const sc = '(s) the board file: the folder holds S0, an older copy; S1 saved only in the file; ↶ Put back with the folder on; switched back; 💾 Save, OK; reopened';
+    const S0 = 'U19-S0-FOLDER';
+    const { A, f } = await inFile();
+    const fold = folder(); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A',${J(S0)}); 'ok'`); await pause(5); let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qa = qs(A.ev).length - q0;
+    const sw1 = await liveSwitchOff(A.ev);
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5); q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qb = qs(A.ev).length - q0;
+    chk(name, sc, 'S0 saved to the folder; switched back; S1 saved into the board file only; nothing asked; saved; K kept aside by the opening (a CONTROL)',
+      J([qa, ...sw1, qb, fold.note(2027, 'A'), fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]),
+      J([0, 'clicked', 'clicked', 0, S0, S1, false, false, false, [K, 'file']]));
+    connect(A.ev, A.w, fold);
+    await putBackK(A, sc);
+    const sw2 = await liveSwitchOff(A.ev);
+    q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
+    chk(name, sc, 'switched back before 💾 Save; after it: S1 is kept aside, and its text is in this browser’s storage',
+      J([...sw2, where(A.ev, f, S1), anywhere(A.ev, f, S1)]), J(['clicked', 'clicked', ['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, S1)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (t) THE QUESTION'S WORDS WHEN WHAT IS ON SCREEN IS THE SHARED FOLDER'S OWN COPY, from the board file: S1 saved; K put back
+  // (S1 kept); a shared folder connected, and 💾 Save writes K there while the board file still holds S1; ↶ Put back S1. K is
+  // the folder's own copy, so nothing is kept in its place, and the question names the shared folder, not the saved file, which
+  // K was never written to. 💾 Save then asks before it writes S1 over K, and K stays in the folder's history.
+  { const sc = '(t) the board file: S1 saved; K put back; 💾 Save writes K to a shared folder; ↶ Put back S1; 💾 Save, Save yours over theirs';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const fold = folder(); connect(A.ev, A.w, fold);
+    let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save with the folder on: nothing asked; K in the folder, saved; the board file still holds S1; S1 still kept aside',
+      J([qs(A.ev).length - q0, fold.note(2027, 'A'), fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev)]), J([0, K, S1, false, false, false, [S1, 'swap']]));
+    q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back S1: one question, saying K is still in the shared folder it came from (not the saved file); S1 on screen, unsaved; nothing kept in its place',
+      J([r, q.length, q.length === 1 && q[0].endsWith(FOLDQ), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]), J(['clicked', 1, true, S1, true, true, true, null]));
+    q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20);
+    chk(name, sc, '💾 Save asks before writing S1 over K: refused with the choice, nothing asked, K still the folder’s copy',
+      J([/Nothing was written/.test(status(A.ev)) && /Save yours over theirs/.test(status(A.ev)), qs(A.ev).length - q0, fold.note(2027, 'A')]), J([true, 0, K]));
+    const hist = () => Object.values((fold.root.dirs.history || { files: {} }).files).map(t => { try { return JSON.parse(t).store.years['2027'].notes.A; } catch (e) { return '?'; } });
+    q0 = qs(A.ev).length; await A.ev(`driveResolve('mine')`); await pause(20);
+    chk(name, sc, '"Save yours over theirs": one question; S1 written to the folder, saved; K kept in the folder’s history',
+      J([qs(A.ev).length - q0, fold.note(2027, 'A'), ...unsaved(A.ev), hist().includes(K)]), J([1, S1, false, false, false, true])); }
+  // (u) THE HOLD ON ANSWERED CANCEL WHILE WORK KEPT BY THE OPENING IS KEPT. S1 typed, unsaved; Alice's other browser saves N2
+  // into the file; 💾 Save asks HOLD ON; Cancel. A reopen does not load N2 over S1 while K is kept, so the advice names ⬅ Import.
+  { const sc = '(u) the board file: K kept by the opening; S1 unsaved; another save (N2) lands; 💾 Save, HOLD ON answered Cancel; reopened';
+    const N2 = 'U19-N2-OTHER';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const A3 = boot({ html: f.content }); await pause(80); wire(A3.ev, 'Alice', KEY.alice); const f3 = disk(A3.w, f.content);
+    A3.ev(`setNote('A',${J(N2)}); 'ok'`); await pause(5); await A3.ev('saveInPlaceFile()'); await pause(5);
+    f.content = f3.content;   // the other browser's save lands in the same file
+    const c = await cancelSave(A);
+    chk(name, sc, '💾 Save, Cancel: one HOLD ON, whose Cancel line names ⬅ Import only, no reopen; the board says the same; nothing written; K kept',
+      J([...c, fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J([1, true, true, false, N2, S1, [K, 'file']]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: N2 is not loaded over S1 while K is kept, and the board says so (a CONTROL: the advice above is true)',
+      J([scr(B.ev), kept(B.ev), fileNote(fB.content, 'A'), /the newer copy was not loaded and nothing was lost/.test(status(B.ev))]), J([S1, [K, 'file'], N2, true])); }
+  // (v) CONTROL: A FRESHLY OPENED PAGE, NOTHING PUT BACK ON IT. S1 typed, unsaved, after N's save, so this browser's copy is the
+  // newer one; reopened, it shows S1 with K kept. ↶ Put back at once: S1 was never put back, and has changes no saved copy has.
+  { const sc = '(v) CONTROL: reopened on this browser’s newer unsaved copy (S1), K kept; ↶ Put back before any change on the page';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const { B } = await reopen(A, f);
+    chk(name, sc, 'reopened: S1 on screen, unsaved by the record; K kept aside (a CONTROL)', J([scr(B.ev), !!flags(B.ev).base.dirty, kept(B.ev)]), J([S1, true, [K, 'file']]));
+    const q0 = qs(B.ev).length; const r = clickPutBack(B.ev); const q = qs(B.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question saying S1 has changes no saved copy has (not that it was put back); K on screen; S1 kept (a CONTROL)',
+      J([r, q.length, q.length === 1 && q[0].endsWith(UNSAVEDQ), scr(B.ev), kept(B.ev)]), J(['clicked', 1, true, K, [S1, 'swap']])); }
+  // (w) A SAVED COPY PUT BACK, THEN CHANGED: S1 saved; K put back (S1 kept); S1 put back (K kept); S1 edited; ↶ Put back K:
+  // what is on screen now has changes no saved copy has.
+  { const sc = '(w) the board file: S1 saved; K put back; S1 put back; S1 edited; K put back again';
+    const S1E = S1 + ' EDITED';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    clickPutBack(A.ev); clickPutBack(A.ev);
+    chk(name, sc, 'K put back, then S1: S1 on screen and in the file; K kept aside', J([fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]), J([S1, S1, [K, 'swap']]));
+    A.ev(`setNote('A',${J(S1E)}); 'ok'`); await pause(5);
+    const q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back after the edit: one question saying what is on screen has changes no saved copy has; K on screen; the edited S1 kept',
+      J([r, q.length, q.length === 1 && q[0].endsWith(UNSAVEDQ), scr(A.ev), kept(A.ev)]), J(['clicked', 1, true, K, [S1E, 'swap']])); }
+  // (x) A COLLEAGUE'S COPY ON SCREEN. Bob takes the pen and writes N into the board file; Alice reopens it (K kept aside by the
+  // opening, Bob's N on screen, saved only in the file) and puts K back; her 💾 Save is refused (Bob holds the pen), and its
+  // ✍ Take the pen… writes K once the HOLD ON is answered OK; reopened. N is kept aside in K's place, whoever saved it.
+  { const sc = '(x) the board file: Bob’s copy (N) on screen; ↶ Put back; 💾 Save refused, ✍ Take the pen…, HOLD ON answered OK; reopened';
+    const A0 = boot({ html: F1 }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const Bb = boot({ html: F1 }); await pause(80); wire(Bb.ev, 'Bob', KEY.bob); const fb = disk(Bb.w, F1);
+    Bb.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5);
+    await clickSave(Bb.ev); await pause(20); const bt = await takePenBtn(Bb.ev, fb);
+    const A = boot({ html: fb.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, fb.content);
+    chk(name, sc, 'Bob’s N in the file, writer Bob; Alice reopens it: N on screen, saved; K kept aside by the opening (a CONTROL)',
+      J([bt, fileNote(f.content, 'A'), fileWriter(f.content), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]), J(['clicked', N, 'Bob', N, false, false, false, [K, 'file']]));
+    const q0 = qs(A.ev).length; clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back: one question, saying N is also kept aside in its place; K on screen, unsaved; Bob’s N kept aside',
+      J([q.length, q.length === 1 && q[0].endsWith(PUTQ), scr(A.ev), ...unsaved(A.ev), kept(A.ev)]), J([1, true, K, true, true, true, [N, 'swap']]));
+    await clickSave(A.ev); await pause(20); const refused = [f.writes, /Not saved\. Bob holds the pen/.test(status(A.ev))];
+    const q1 = qs(A.ev).length; const at = await takePenBtn(A.ev, f); const q2 = qs(A.ev).slice(q1);
+    chk(name, sc, '💾 Save refused (Bob holds the pen); ✍ Take the pen…: its question, then a HOLD ON naming Bob, OK; K written, writer Alice, saved (a CONTROL)',
+      J([...refused, at, q2.length, /^Take the pen for this board file from Bob/.test(q2[0] || ''), /^⚠ HOLD ON — Bob saved this file at /.test(q2[1] || ''), fileNote(f.content, 'A'), fileWriter(f.content), ...unsaved(A.ev)]),
+      J([0, true, 'clicked', 2, true, true, K, 'Alice', false, false, false]));
+    chk(name, sc, 'after the save: Bob’s N is kept aside, and its text is in this browser’s storage', J([where(A.ev, f, N), anywhere(A.ev, f, N)]), J([['kept'], true]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K on screen and in the file, saved; Bob’s N kept aside', J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), where(B.ev, fB, N)]),
+      J([K, K, false, false, false, ['kept']])); }
+  // (y) CONTROL: A LOCKED CYCLE ON SCREEN AT THE PUT-BACK, S1 saved. ↶ Put back is refused there at once, by U10's gate: nothing
+  // is asked (what is on screen is the locked view, not the work), and the kept work is not touched -- the view is never kept
+  // aside in its place, though saved work now is. Once the view is left, the work is on screen as it was.
+  { const sc = '(y) CONTROL: the board file: a cycle locked; S1 saved; the locked cycle on screen; ↶ Put back; the view left';
+    const { A, f } = await inFile();
+    A.ev(`setNote('A','U19-LOCKED'); blCyc='PB'; blYr=2027; cycLock(); 'ok'`); await pause(5);
+    await savedS1(A, f, sc);
+    const k0 = keptRaw(A.ev);
+    A.ev(`cycView('PB|2027'); 'ok'`); await pause(5);
+    const q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0), said = status(A.ev), kv = keptRaw(A.ev);
+    chk(name, sc, '↶ Put back with the locked cycle on screen: refused at once -- nothing asked; the kept work not touched; said',
+      J([A.ev('String(CYCVIEW)'), r, q.length, kv === k0, /U19-LOCKED/.test(kv || ''), /Putting back the work kept aside is off while PB27 is on screen/.test(said)]), J(['PB|2027', 'clicked', 0, true, false, true]));
+    A.ev(`cycLeave(); 'ok'`); await pause(5);
+    chk(name, sc, 'the view left: S1 on screen and in the file, saved; K kept aside byte for byte (a CONTROL)',
+      J([A.ev('String(CYCVIEW)'), scr(A.ev), fileNote(f.content, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === k0]), J(['', S1, S1, false, false, false, true])); }
+  // (z) CONTROL: A PUT-BACK THE LOAD ITSELF REFUSES, S1 SAVED ON SCREEN. The kept work was built for another service list, so
+  // the load is refused after what is on screen was kept in its place, and the kept work is written back. Afterwards and after a
+  // reopen, K is still somewhere this board can reach (kept aside), byte for byte.
+  { const sc = '(z) CONTROL: the board file: S1 saved; the kept work built for another service list; ↶ Put back refused by the load; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'), i=s.indexOf('\\n'), st=JSON.parse(s.slice(i+1));
+      st.dataPack.services=st.dataPack.services.concat(['XTRA']); localStorage.setItem(_AP.key+'.kept', s.slice(0,i)+'\\n'+JSON.stringify(st)); return 'ok'; })()`);
+    const k0 = keptRaw(A.ev); const r = clickPutBack(A.ev);
+    chk(name, sc, 'refused by the load: K still kept aside byte for byte; K’s text in this browser’s storage; S1 on screen and in the file',
+      J([r, keptRaw(A.ev) === k0, kept(A.ev), anywhere(A.ev, f, K), scr(A.ev), fileNote(f.content, 'A')]), J(['clicked', true, [K, 'file'], true, S1, S1]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K still kept aside; its text in this browser’s storage', J([kept(B.ev), anywhere(B.ev, fB, K)]), J([[K, 'file'], true])); }
+  // (aa) THE QUESTION'S PLACE WORDS WHEN THE FOLDER HOLDS AN OLDER COPY AT THE PUT-BACK. S0 saved to the folder; switched back;
+  // S1 saved into the board file only; K put back (S1 kept); S1 put back (K kept; S1's checkpoint, which knows the folder's
+  // S0, comes back with it); 💾 Save writes S1 to the file, nothing asked. Working out of the folder again (it holds S0),
+  // ↶ Put back K: S1 is still in the saved file, not in the shared folder, and it is also kept aside in K's place.
+  { const sc = '(aa) the board file: the folder holds S0; switched back; S1 saved; K put back; S1 put back; 💾 Save; working out of the folder again; ↶ Put back K';
+    const S0 = 'U19-S0-FOLDER';
+    const { A, f } = await inFile();
+    const fold = folder(); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A',${J(S0)}); 'ok'`); await pause(5); let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qa = qs(A.ev).length - q0;
+    const sw1 = await liveSwitchOff(A.ev);
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const r1 = clickPutBack(A.ev);
+    q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qb = qs(A.ev).length - q0;
+    chk(name, sc, 'S1 put back over K (K kept), then 💾 Save to the board file: nothing asked; S1 in the file, saved; the folder holds S0; the folder copy this browser knows is not what is on screen',
+      J([qa, ...sw1, r1, qb, fileNote(f.content, 'A'), ...unsaved(A.ev), kept(A.ev), fold.note(2027, 'A'), A.ev('driveBaseOf(mySlug())>0 && driveBaseOf(mySlug())!==(+MS.ts||0)')]),
+      J([0, 'clicked', 'clicked', 'clicked', 0, S1, false, false, false, [K, 'swap'], S0, true]));
+    connect(A.ev, A.w, fold);
+    q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back K working out of the folder that holds S0: one question, saying S1 is still in the saved file and is also kept aside; K on screen; S1 kept in its place',
+      J([r, A.ev('driveStoreOn()'), q.length, q.length === 1 && q[0].endsWith(PUTQ), scr(A.ev), kept(A.ev)]),
+      J(['clicked', true, 1, true, K, [S1, 'swap']])); }
+  // (ab) THE QUESTION'S PLACE WORDS WHEN WHAT IS ON SCREEN IS THE FOLDER'S OWN COPY AND 💾 SAVE IS BACK ON THE BOARD FILE.
+  // S1 saved; K put back (S1 kept); a shared folder connected, and 💾 Save writes K there while the board file still holds S1;
+  // 📡 Live view switched back to "○ Just watching"; ↶ Put back S1. K is the folder's own copy, never written to the board file,
+  // so the question names the shared folder; Save now writes the board file, so K is also kept aside in S1's place.
+  { const sc = '(ab) the board file: S1 saved; K put back; 💾 Save writes K to a shared folder; switched back to the file; ↶ Put back S1';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    await putBackK(A, sc);
+    const fold = folder(); connect(A.ev, A.w, fold);
+    let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); const qa = qs(A.ev).length - q0;
+    const sw = await liveSwitchOff(A.ev);
+    chk(name, sc, 'K written to the folder, nothing asked; switched back to the file; the board file holds S1; S1 kept',
+      J([qa, fold.note(2027, 'A'), ...sw, A.ev('driveStoreOn()'), fileNote(f.content, 'A'), kept(A.ev)]), J([0, K, 'clicked', 'clicked', false, S1, [S1, 'swap']]));
+    q0 = qs(A.ev).length; const r = clickPutBack(A.ev); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back S1: one question naming the shared folder (K was never written to the board file), and saying K is also kept aside; S1 on screen; K kept',
+      J([r, q.length, q.length === 1 && q[0].endsWith(FOLDQ + ' It is also kept aside in its place, so it is not lost if Save does.'), scr(A.ev), kept(A.ev)]),
+      J(['clicked', 1, true, S1, [K, 'swap']])); }
+  // (ac) CONTROL: THE WORDS AFTER A PUT-BACK THE LOAD REFUSES: S1 saved; the kept work built for another service list; ↶ Put back
+  // refused by the load. The slot holds K again, so the top bar and 📁 File still describe K (work kept by the opening).
+  { const sc = '(ac) CONTROL: the board file: S1 saved; the kept work built for another service list; ↶ Put back refused; the words after';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'), i=s.indexOf('\\n'), st=JSON.parse(s.slice(i+1));
+      st.dataPack.services=st.dataPack.services.concat(['XTRA']); localStorage.setItem(_AP.key+'.kept', s.slice(0,i)+'\\n'+JSON.stringify(st)); return 'ok'; })()`);
+    const r = clickPutBack(A.ev);
+    const o = await fileMenu(A.ev, 'mRun(keptPutBack)');
+    chk(name, sc, 'refused (twice, the second through 📁 File): K still kept; the top bar and 📁 File describe K, not a copy kept at a put-back',
+      J([r, o, kept(A.ev), /^Work this browser held that no saved copy had, kept aside .+\. Put it back\.$/.test(keptTitle(A.ev) || ''), SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU), menuText(A.ev).includes('from before the saved file replaced it')]),
+      J(['clicked', 'clicked', [K, 'file'], true, false, false, true])); }
+  // (ad) CONTROL: THE HOLD ON'S CANCEL ADVICE WITH NOTHING KEPT ASIDE. K, kept by the opening, is discarded (📁 File →
+  // ✕ Discard work kept aside); S1 typed, unsaved; another save (N2) lands in the file; 💾 Save, HOLD ON answered Cancel. With
+  // nothing kept, a reopen does load the file's copy (keeping S1 aside in its place), so the advice still names a reopen, as
+  // before U19.
+  { const sc = '(ad) CONTROL: the board file: nothing kept aside; S1 unsaved; another save (N2) lands; 💾 Save, HOLD ON answered Cancel; reopened';
+    const N2 = 'U19-N2-OTHER';
+    const CANCEL_REOPEN = 'Cancel — don’t save (then use ⬅ Import on the current file, or reopen it, to pick up their changes first).';
+    const CANCELLED_REOPEN = 'Save canceled — Alice’s changes are untouched. Reopen or ⬅ Import this file to load their version, then redo your edits.';
+    const { A, f } = await inFile();
+    const d = await fileMenu(A.ev, 'mRun(keptDiscard)');
+    A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    const A3 = boot({ html: f.content }); await pause(80); wire(A3.ev, 'Alice', KEY.alice); const f3 = disk(A3.w, f.content);
+    A3.ev(`setNote('A',${J(N2)}); 'ok'`); await pause(5); await A3.ev('saveInPlaceFile()'); await pause(5);
+    f.content = f3.content;   // the other browser's save lands in the same file
+    const q0 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); await clickSave(A.ev); await pause(20); A.ev('globalThis.__yes=true; 0');
+    const q = qs(A.ev).slice(q0);
+    chk(name, sc, '💾 Save, Cancel with nothing kept aside: one HOLD ON, whose Cancel line still names a reopen; the board says the same; nothing written; nothing kept',
+      J([d, q.length, q.length === 1 && holdOn(q[0]) && q[0].endsWith(CANCEL_REOPEN), status(A.ev).includes(CANCELLED_REOPEN), fileNote(f.content, 'A'), scr(A.ev), kept(A.ev)]),
+      J(['clicked', 1, true, true, N2, S1, null]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: N2, the file’s copy, is loaded and S1 is kept aside in its place (the advice above is true)',
+      J([scr(B.ev), kept(B.ev), fileNote(fB.content, 'A')]), J([N2, [S1, 'file'], N2])); }
+  // (ae) CONTROL: ↶ PUT BACK ANSWERED CANCEL WITH SAVED WORK ON SCREEN (the case U19 now keeps). S1 is saved into the file; ↶ Put
+  // back, its question answered Cancel: nothing is put back and nothing is kept in K's place -- the slot still holds K, byte for
+  // byte -- and a reopen still offers K.
+  { const sc = '(ae) CONTROL: the board file: S1 saved; ↶ Put back, its question answered Cancel; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    const k0 = keptRaw(A.ev), m0 = A.ev('JSON.stringify(MS)');
+    const q0 = qs(A.ev).length; A.ev('globalThis.__yes=false; 0'); const r = clickPutBack(A.ev); A.ev('globalThis.__yes=true; 0'); const q = qs(A.ev).slice(q0);
+    chk(name, sc, '↶ Put back, Cancel: one question; nothing changed: S1 on screen and in the file, saved; K kept aside byte for byte',
+      J([r, q.length, scr(A.ev), A.ev('JSON.stringify(MS)') === m0, fileNote(f.content, 'A'), ...unsaved(A.ev), keptRaw(A.ev) === k0, kept(A.ev)]),
+      J(['clicked', 1, S1, true, S1, false, false, false, true, [K, 'file']]));
+    const { B } = await reopen(A, f);
+    chk(name, sc, 'reopened: S1 on screen, saved; K still kept aside',
+      J([scr(B.ev), ...unsaved(B.ev), kept(B.ev)]), J([S1, false, false, false, [K, 'file']])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U19) ====
 // ==== v2.00 (U20): a save waiting for another tab's save is under way ====
 // A save waits for the 'orbit-save' Web Lock, so that one save runs at a time across this browser's tabs. It was counted as
 // under way (_saveBusy) only once it held the lock: while it waited for another tab's save it was no save at all to ↶ Put
