@@ -6967,6 +6967,10 @@ function keptCopy(){
 }
 function keptWhere(m){ return (m&&m.why)==='folder'? 'the shared folder' : 'the saved file'; }
 function keptPutBack(){
+  // v2.00 (U10): NOT IN A LOCKED VIEW. Putting kept work back replaces the working plan, which a view does not hold: in a view it
+  // asked to keep "what is on screen" -- the locked cycle -- aside in its place, wrote the cycle into the kept slot over the kept
+  // work, met the view's refusal and only then wrote the kept work back. Refused up front now: nothing asked, the slot untouched.
+  if(cycBlock('Putting back the work kept aside')) return;
   const k=keptCopy();
   if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
   // v2.00 (U2): NOT WHILE A SAVE IS UNDER WAY. A save that lands records the copy it wrote as the one the work on screen

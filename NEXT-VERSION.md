@@ -1687,6 +1687,31 @@ result for it was run fresh against these commits.
     caught (6, 1 and 1 checks).
   - **Not covered:** the clash itself is still drawn in a view by a Connect, and its words ("What is on screen does not have
     their changes") speak of the working plan while the cycle is on screen (not changed; both its choices are refused there).
+- **U10 (12 of 12) — "↶ work kept aside" is refused in a locked view before anything is asked or kept** (the same release
+  blocker; the round-5 money review's SF3, 14 Oct, probe P14). The top bar offers "↶ work kept aside" while a locked cycle is
+  on screen. Pressed there, it asked "Put back the work this browser kept aside on …? … What is on screen now has changes no
+  saved copy has, so it is kept aside in its place — nothing is lost", though what is on screen is the locked cycle; wrote
+  the cycle into the kept slot over the kept work; met the view's refusal ("🔒 Loading a board is off …"); and wrote the kept
+  work back. The end state was right and nothing was lost, but the question's answer was thrown away, and the kept work
+  survived only while that last write to browser storage succeeded (the review simulated it refused: the kept work was gone
+  and the slot held the locked cycle, which "put it back" would make the working plan; it does not claim that refusal is
+  reachable). The same on `7ee498a`. Now it is refused up front, as ↶ Put back in the change journal is (U10 7 of 12).
+  - **What users may see:** with a locked cycle on screen, "↶ work kept aside" says "🔒 Putting back the work kept aside is
+    off while PB27 is on screen … the change was not kept", asks nothing and leaves the kept work where it is; on the working
+    plan it works as before.
+  - **Test:** audit-recon "v2.00 (U10) — “↶ work kept aside” pressed in a locked view is refused before anything is asked or
+    kept" (6 checks), on an O&M board of two requirements: PB27 locked; work kept aside (KEPT NOTE on F1, kept when Colleague
+    C's copy displaced it); the working plan's own unsaved work (MINE NOTE on F2). The top bar's button is pressed in PB27's
+    view (answered OK). Read: the status line (typed), the questions asked (none), every write to the kept slot (none), the
+    kept slot and this appropriation's browser storage byte for byte, the cycle still on screen. Controls: the fixture; the
+    button drawn in the view; the view left (MINE NOTE on the working plan, unsaved; KEPT NOTE still kept); on the working
+    plan the same button asks once, puts KEPT NOTE back on screen and in browser storage and keeps MINE NOTE aside in its
+    place; no jsdom errors. On `7ee498a` and at U10 11 of 12 the non-control check fails (the question asked, the slot written
+    twice, "Loading a board is off") and the 5 controls pass; at U10 12 of 12 all 6 pass.
+  - **Mutations:** `v200-u10-kept-putback-in-view` (the gate taken out: 1 check fails), `-kept-gate-after-question` (the gate
+    after its question: 1) and `-kept-gate-silent` (refused without a word: 1).
+  - **Not covered:** "save it as a file" and "discard it", offered beside "put it back" when kept work blocks a newer copy,
+    act on the kept work in browser storage and are not refused in a view (discarding asks first; not changed).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -1708,8 +1733,21 @@ result for it was run fresh against these commits.
   - **U8:** R1's Help and wording remainders.
   - **U9 (P2): PMO split disagreement.** At $3 split 1:2:3, the PMO parts, the forecast and the PMO Matrix export give
     $0/$1/$2 where exact largest-remainder arithmetic and the CLIN source workbook give $1/$1/$1.
-  - **U10 (P2): a refused edit changes a locked-cycle export's codes.** A refused RCN edit in a locked view still
-    exports under the edited code.
+  - **U10 (P2): built as twelve commits** (a release blocker, fixed on Brad's word of 12 Oct, "keep pressing"): a refusal in
+    a locked view makes the view's copy again, whole (U10 1 of 12; with it ledger U49, the funds flow's partner and FMS money
+    and its year buttons, read by 5 of 12, its appropriation buttons, pseudo year, prime rules and categories, read by 9 of 12,
+    and where its unfunded priority list goes, read by 10 of 12); the imports and the destination list, which every
+    appropriation shares, are refused in a view before anything is kept (2 of 12); so are the Spend Plan's choices (3 of 12),
+    and Import one appropriation, the ladder copy, the package doors, the shared state file and the shared folder's refresh,
+    with Import one appropriation and the three workbook imports refused again once their file is read (4 of 12; Import full
+    board is refused before its file is read only); Load theirs and
+    Save yours over theirs once the shared folder is read, each in its own words (6 and 8 of 12), and Save yours over theirs
+    in a save's words at its other two gates (11 of 12); and the change journal's ↶ Put back, which re-took the journal's
+    record from the cycle before its save was refused, and "↶ work kept aside", which asked a question about the cycle and
+    wrote it into the kept slot before it was refused, are refused up front (7 and 12 of 12). Neighbouring cases stay open in
+    the ledger: edits a view allows and keeps (U51), a locked cycle's offices (U52), its funds-flow money (U53), the
+    "Not kept" mark that a slow redraw can outlast (U54), and the funds-flow export's words about the unfunded list
+    (U55, not U10's).
   - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`, and again here on the current
     tree (`4a6f7c7`) with bounded synthetic probes.
   - **U13: built as its own commit** (selected by Brad, 12 Oct, 6:00 AM ET): a refresh during a save loads nothing,

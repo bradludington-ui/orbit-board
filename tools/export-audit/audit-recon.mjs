@@ -7225,6 +7225,88 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U10, the unfunded list's place) ====
+// ==== v2.00 (U10, the work kept aside): “↶ work kept aside” pressed in a locked view is refused before anything is asked or kept ====
+// The U10 money review, round 5 (probe P14, 14 Oct): the top bar offers "↶ work kept aside" while a locked cycle is on screen.
+// Pressed there, it asked "Put back the work this browser kept aside …? … What is on screen now has changes no saved copy has, so
+// it is kept aside in its place — nothing is lost", though what is on screen is the locked cycle; wrote the cycle into the kept
+// slot over the kept work; met the view's refusal ("Loading a board is off"); and only then wrote the kept work back. Nothing was
+// lost while that last write succeeded, but the answer to its question was thrown away -- and had browser storage refused that
+// write, the kept work was gone and the slot held the locked cycle, which "put it back" would make the working plan.
+// Work is kept aside (KEPT NOTE on F1, kept when Colleague C's copy displaced it) and the working plan holds unsaved work of its
+// own (MINE NOTE on F2); PB27 is locked earlier and viewed, and the top bar's "↶ work kept aside" is pressed (answered OK). By
+// hand: refused before its question -- nothing asked, the kept slot never written, browser storage byte for byte as it was.
+// FAILS ON 7ee498a (board fce8a391) and on U10 1-11 of 12: the question is asked and the slot is written twice (the cycle, then
+// the kept work back). CONTROLS: the fixture; the button drawn in the view; the view left (MINE NOTE on the working plan,
+// unsaved; KEPT NOTE still kept); on the working plan the same button puts KEPT NOTE back, asked once, and keeps MINE NOTE aside
+// in its place. Every expected value is typed here.
+await (async () => {
+  const name = 'v2.00 (U10) — “↶ work kept aside” pressed in a locked view is refused before anything is asked or kept';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify, M = 1000000;
+    const X = boot();
+    seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * M]), it('F2', 'PSM', [200 * M])], disc: [500 * M], mand: [0], order: ['F1', 'F2'] });
+    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
+    ev(`window.confirm=function(){ return true; };
+      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S}; applyState(S); MS.years[2027]=S;
+      localStorage.setItem('prio27who','Me M'); save(); 'ok'`);
+    const key = ev(`blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
+    // the work kept aside: the board as it stood, with KEPT NOTE on F1, kept when Colleague C's copy displaced it
+    const kp = ev(`(function(){ var k=JSON.parse(JSON.stringify(MS)); k.years[2027].notes={F1:'KEPT NOTE'};
+      return String(keepAside(k, {why:'folder', by:'Colleague C', ts:Date.now()}, baseGet())); })()`);
+    // then unsaved work on the working plan
+    ev(`S.notes.F2='MINE NOTE'; save(); DIRTY=true; render(); 'ok'`);
+    // the kept slot: [why it was kept, the FY27 notes it holds]; the notes on screen; this appropriation's own copy's FY27 notes
+    const slot = () => JSON.parse(ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'); if(!s) return '"none"'; var i=s.indexOf('\\n'), m=JSON.parse(s.slice(0,i)), st=JSON.parse(s.slice(i+1));
+      return JSON.stringify([m.why, ((st.years||{})['2027']||{}).notes||null]); })()`));
+    const screen = () => JSON.parse(ev('JSON.stringify(S.notes||null)'));
+    const stored = () => JSON.parse(ev(`JSON.stringify((((JSON.parse(localStorage.getItem(_AP.key)||'null')||{}).years||{})['2027']||{}).notes||null)`));
+    // the kept slot and this appropriation's own copy, byte for byte
+    const raw = () => ev(`String(localStorage.getItem(_AP.key+'.kept'))+'\\n----\\n'+String(localStorage.getItem(_AP.key))`);
+    const said = () => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+    // the top bar's button, pressed as a person would; every question asked (its first words) and every write to the kept slot
+    const press = () => ev(`(function(){ var b=document.querySelector('#saveState button.keptbtn'); if(!b) return 'no button'; b.click(); return 'pressed'; })()`);
+    const spy = () => ev(`window.__asked=[]; window.confirm=function(m){ window.__asked.push(String(m).split('\\n')[0].slice(0,44)); return true; };
+      window.__slotW=[]; if(!window.__setI){ window.__setI=Storage.prototype.setItem; window.__remI=Storage.prototype.removeItem;
+        Storage.prototype.setItem=function(k,v){ if(/\\.kept$/.test(String(k))) window.__slotW.push('set'); return window.__setI.apply(this, arguments); };
+        Storage.prototype.removeItem=function(k){ if(/\\.kept$/.test(String(k))) window.__slotW.push('remove'); return window.__remI.apply(this, arguments); }; } 'ok'`);
+    w5Chk(name, 'fixture', 'CONTROL — PB27 is locked; KEPT NOTE is kept aside; the working plan holds MINE NOTE, unsaved',
+      J([key, kp, slot(), screen(), stored(), ev('String(DIRTY)')]),
+      J(['PB|2027', 'true', ['folder', { F1: 'KEPT NOTE' }], { F2: 'MINE NOTE' }, { F2: 'MINE NOTE' }, 'true']));
+    const ls0 = raw();
+    // ---- CONTROL: PB27 viewed -- the top bar still offers the button
+    ev(`cycView(${J(key)}); 'ok'`);
+    w5Chk(name, 'PB27 viewed', 'CONTROL — the cycle is on screen (no notes), and the top bar offers “↶ work kept aside”',
+      J([ev('CYCVIEW'), screen(), ev(`document.querySelectorAll('#saveState button.keptbtn').length`)]), J(['PB|2027', {}, 1]));
+    // ---- PB27 viewed: "↶ work kept aside" pressed, answered OK -- refused up front
+    spy();
+    const pv = press(), sv = said();
+    w5Chk(name, 'PB27 viewed · “↶ work kept aside” pressed, answered OK', 'refused before its question, in its own words: nothing asked, the kept slot never written, browser storage as it was, the cycle still on screen',
+      J([pv, sv, ev('JSON.stringify(window.__asked)'), ev('JSON.stringify(window.__slotW)'), raw() === ls0, ev('CYCVIEW'), screen()]),
+      J(['pressed', '🔒 Putting back the work kept aside is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.',
+        '[]', '[]', true, 'PB|2027', {}]));
+    // ---- CONTROL: the view left -- the working plan as it was, and the kept work still kept
+    ev(`cycLeave(); 'ok'`);
+    w5Chk(name, 'refused · the view left', 'CONTROL — the working plan holds MINE NOTE, unsaved, and KEPT NOTE is still kept aside',
+      J([ev('CYCVIEW'), screen(), stored(), ev('String(DIRTY)'), slot()]),
+      J(['', { F2: 'MINE NOTE' }, { F2: 'MINE NOTE' }, 'true', ['folder', { F1: 'KEPT NOTE' }]]));
+    // ---- CONTROL: on the working plan the same button is allowed: KEPT NOTE comes back, and MINE NOTE is kept aside in its place
+    spy();
+    const pw = press();
+    w5Chk(name, 'the working plan · “↶ work kept aside” pressed, answered OK (allowed)', 'CONTROL — asked once; KEPT NOTE is put back on screen and in browser storage, and MINE NOTE is kept aside in its place',
+      J([pw, ev('JSON.stringify(window.__asked)'), screen(), stored(), slot()]),
+      J(['pressed', J(['Put back the work this browser kept aside on']), { F1: 'KEPT NOTE' }, { F1: 'KEPT NOTE' }, ['swap', { F2: 'MINE NOTE' }]]));
+    ev(`if(window.__setI){ Storage.prototype.setItem=window.__setI; Storage.prototype.removeItem=window.__remI; } 'ok'`);
+    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(X.errors.length), J(0));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.00 (U10, the work kept aside) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');
