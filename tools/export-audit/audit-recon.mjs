@@ -5774,6 +5774,10 @@ await (async () => {
 // CONTROLS also: A 'AT' with C 'other' asks [3, 1, 1, 1]; a plain unrecognized string shows as “other” kept as saved.
 // FAILS ON 96877da and 254f29c (U41 as committed, before and after U10): [3, 2, 0, 1] for [] and [null], [3, 1, 1, 1] for
 // ["AT"], "1 had a different answer" after each write, and both reads of {"toString":null} throw. The 9 controls pass there.
+// TWO CONTROLS added after the reviews of U56/U57 (round 1; track u41c). They pass on eef8874 and pin it: a saved bare null
+//   is an answer the write overwrites ([3, 1, 0, 2]; a getter reading null, 0 or false as no answer passed every check above),
+//   and the kept choice chosen again writes nothing over [] or ["AT"] (on 254f29c its value was "" and "AT", which setSi
+//   wrote over the saved list).
 await (async () => {
   const name = 'v2.00 (U56/U57) — a saved SI value that is not text counts as an answer a bulk write overwrites, and Go to it opens its field';
   const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
@@ -5825,6 +5829,16 @@ await (async () => {
     const OQ = boot({ html: O.ev('buildSavedHtml()') });
     w5Chk(name, 'object with non-callable toString', 'CONTROL — object survives save/reopen, its code stays blank and $611 stays funded',
       OQ.ev(`JSON.stringify([S.si,siOf(itemById('A')),tiers().A.dT])`), J([{A:{toString:null},B:'',C:'EN'},'',611]));
+    // a saved null was read as text before (String(null) is "null") and must stay an answer to overwrite
+    const Nl = make(null);
+    w5Chk(name, 'null alone', 'CONTROL — a saved null is an answer a bulk write overwrites, as before', preview(Nl), '[3,1,0,2]');
+    // the kept choice, chosen again as drawn, is refused by setSi: the saved list stays exactly as it was
+    const again = R => { try { R.ev(`attGo('si','A'); 'ok'`);
+        const f = R.w.document.querySelector('#recBody select[onchange^="setSi("]'); if (!f) return 'NO FIELD';
+        f.dispatchEvent(new R.w.Event('change', { bubbles: true })); return R.ev('JSON.stringify(S.si)');
+      } catch (e) { return 'threw: ' + e.message; } };
+    w5Chk(name, 'the kept choice chosen again', 'CONTROL — choosing “[]” or “["AT"]” again in A’s field writes nothing over the saved list',
+      J([again(make([])), again(make(['AT']))]), J(['{"A":[],"B":"","C":"EN"}', '{"A":["AT"],"B":"","C":"EN"}']));
     const C = make('AT');
     C.ev(`S.si.C='other'; 'ok'`);
     w5Chk(name, 'valid, blank and plain unrecognized string', 'CONTROL — valid AT is same, explicit blank is blank, plain string differs', preview(C), '[3,1,1,1]');
@@ -5838,6 +5852,189 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U56/U57) ====
+// ==== v2.00 (U58/U59): the change journal and the submittal review show a saved SI value that is not text as saved ====
+// The money review of U56/U57 (round 1, 18 Oct): two more places read a saved SI value U41 keeps as text. The change
+// journal's Was and Became cells (jrnlShow) joined a list's items: ["AT"] read AT, [] and [null] nothing, a saved 7 the
+// money "$7"; and [{"toString":null}] could not be drawn, so once Go to it or a bulk write repaired it the journal threw
+// on opening and on every redraw while open, and its Put back was out of reach. The PMO submittal review's "On the board
+// now" (pmoFmtVal's String(), in the panel and in the exported review workbook) read ["AT"] as AT and [null] as nothing,
+// and {"toString":null} made the panel and the workbook throw, so no held submittal could be reviewed or exported.
+// THE FILE: U56/U57's (A, an LM prime, holding the value [101, 0, 203, 307]; B none by hand [0, 0, 409, 503]; C EN
+//   [0, 0, 0, 601]; every ask funded), with the journal its save wrote ("not set" to the value, for each).
+// THE JOURNAL, read as drawn (What | Was | Became, newest first). ["AT"], AT chosen in A's field: Was “["AT"]”, Became AT;
+//   ↶ Put back on that line brings ["AT"] back exactly, and its own line reads Was AT, Became “["AT"]”. [] after the bulk
+//   write of AT: Was “[]”. A saved 7: Was “7”, never $7; true: “true”, never yes; {"toString":null} in the same quotes; a
+//   list holding markup as text. [{"toString":null}], AT chosen in the field: the journal opens and reads
+//   Was “[{"toString":null}]”, a redraw with it open works, its ↶ Put back brings the list back exactly, and the bulk write
+//   after that is read the same way. An object with its own "_b" key is the value, not the journal's size mark (which the
+//   journal only ever writes as a number over 300): {"_b":{"toString":null}} reads by its JSON and the journal opens and
+//   redraws (the size mark's esc() threw on it), and {"_b":5} reads “{"_b":5}”, never "5 characters".
+// THE REVIEW: a held submittal from AV proposes EN for A. "On the board now" reads “["AT"]”, “[null]”, “7” and
+//   “{"toString":null}”, beside "EN — Engine", in the panel and in the review workbook read from its bytes; a list whose
+//   JSON is longer than Needs attention's 60-character label reads whole, as the review prints text (a cut there splits
+//   the emoji at character 60 into a replacement mark in the workbook), and so does one longer than 120.
+// CONTROLS: text reads as before -- 'other' in the journal and the review, a recognized 'LA' in the review (LA — Airframe),
+//   C's EN in the journal after the bulk write; a list longer than the 300 characters the journal keeps reads as its size,
+//   324 characters, with no Put back, as for every field; the review applies nothing (S.si and every service's dollars).
+// FAILS ON eef8874 (U56/U57 as committed): Was AT, blank, $7, yes, the object without quotes, the markup list's contents,
+//   "5 characters"; the journal throws for [{"toString":null}] and {"_b":{"toString":null}} and offers no Put back; the
+//   review reads AT, blank, 7 and the long lists' contents, and throws for the object. The 7 controls pass there.
+await (async () => {
+  const name = 'v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  const keepBoards = () => [];
+  try {
+    const J = JSON.stringify;
+    const cell = c => (c && typeof c === 'object' && 'v' in c) ? c.v : c;
+    const make = raw => {
+      const X = boot();
+      seed(X.ev, { services: ['USAF', 'STOVL', 'USMC-C', 'USN'], items: [
+        it('A', 'AV', [101, 0, 203, 307]), it('B', 'AV', [0, 0, 409, 503]), it('C', 'AV', [0, 0, 0, 601])],
+        disc: [10000, 10000, 10000, 10000], mand: [0, 0, 0, 0], order: ['A', 'B', 'C'] });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+        S.order.forEach(function(id){ S.awards[id]={mode:'single',d:FYMON[1][0],day:5}; });
+        flowCfg().rules.lm='Req A'; S.ptype={A:'PRIME'}; applyState(S); save();
+        S.si={A:${J(raw)},B:'',C:'EN'}; MS.years[MS.cur]=S; 'ok'`);
+      const R = boot({ html: X.ev('buildSavedHtml()') });
+      R.w.confirm = () => true;
+      return R;
+    };
+    const tryEv = (R, s) => { try { return R.ev(s); } catch (e) { return 'threw: ' + e.message; } };
+    // AT chosen in A's field as Go to it draws it, the record panel closed after
+    const choose = R => tryEv(R, `(function(){ attGo('si','A'); var f=document.querySelector('#recBody select[onchange^="setSi("]');
+      if(!f) return 'NO FIELD'; f.value='AT'; f.dispatchEvent(new Event('change', {bubbles:true})); recOpen=null; return 'chosen'; })()`);
+    const bulk = R => tryEv(R, `jrnlOpen=false; matBulkF='Navy SI code'; matBulkV='AT'; matPmo='ALL'; matMissing=''; matApplyBulk(); 'written'`);
+    // the change journal opened as a person opens it; one requirement's lines as drawn: What | Was | Became, newest first
+    const journal = (R, id) => tryEv(R, `(function(){ jrnlOpen=false; toggleJrnl();
+      return JSON.stringify(Array.from(document.querySelectorAll('#jrnlBody tr')).filter(function(t){ return t.cells.length>4 && t.cells[2].textContent==='sustainment indicator — Ev ${id}'; })
+        .map(function(t){ return Array.from(t.cells).slice(2,5).map(function(c){ return c.textContent; }); })); })()`);
+    // ↶ Put back pressed on A's newest line as drawn (its question answered OK)
+    const putBack = R => tryEv(R, `(function(){ var t=Array.from(document.querySelectorAll('#jrnlBody tr')).filter(function(t){ return t.cells.length>4 && t.cells[2].textContent==='sustainment indicator — Ev A'; })[0];
+      var b=t? t.querySelector('button') : null; if(!b) return 'NO PUT BACK'; b.click(); return JSON.stringify(S.si); })()`);
+    // a submittal from AV proposing EN for A, held for review; the panel's row for it: Field | On the board now | Proposed
+    const review = R => tryEv(R, `(function(){ PMOSUBS=[{pmo:'AV', by:'suite', ts:1760000000000, items:{A:{si:'EN'}}, baseSeen:{}, forFy:MS.cur, added:[]}]; PMOPICK={};
+      subOpenReview(); return JSON.stringify(Array.from(document.querySelectorAll('#subBody tr')).filter(function(t){ return t.cells.length===6 && /Navy SI code/.test(t.cells[3].textContent); })
+        .map(function(t){ return Array.from(t.cells).slice(3).map(function(c){ return c.textContent; }); })); })()`);
+    // the review workbook (Export change report) read back from its bytes: the same row's cells, and the status line it left
+    const workbook = async R => { const x = JSON.parse(await R.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+        window.alert=function(){}; window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+        try{ pmoReport(); }catch(e){ window.Blob=_B; return JSON.stringify({err:'threw: '+String((e&&e.message)||e)}); }
+        window.Blob=_B; if(!cap) return JSON.stringify({err:'no file'});
+        return JSON.stringify({book:await xlsxRead(cap.buffer.slice(cap.byteOffset,cap.byteOffset+cap.byteLength)), stat:document.getElementById('shareStat').textContent}); })()`));
+      if (x.err) return x.err;
+      return J([((x.book || {})['Proposed changes'] || []).filter(r => r && cell(r[5]) === 'Navy SI code').map(r => r.slice(5, 8).map(cell)), x.stat]); };
+    const sent = '📄 Change report exported — 1 proposed change. Nothing has been applied.';
+    // ["AT"]: the review first (it applies nothing), then AT chosen in the field, the journal, and ↶ Put back
+    const L = make(['AT']);
+    w5Chk(name, 'code inside a list', 'the review panel: On the board now reads “["AT"]” as saved, never AT', review(L),
+      J([['Navy SI code', '“["AT"]”', 'EN — Engine']]));
+    w5Chk(name, 'code inside a list', 'the review workbook, from its bytes: On the board now “["AT"]”', await workbook(L),
+      J([[['Navy SI code', '“["AT"]”', 'EN — Engine']], sent]));
+    L.ev(`subClose(); 'ok'`);
+    choose(L);
+    w5Chk(name, 'code inside a list', 'AT chosen in the field: the journal reads Was “["AT"]”, Became AT; the file’s own line Became “["AT"]”', journal(L, 'A'),
+      J([['sustainment indicator — Ev A', '“["AT"]”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“["AT"]”']]));
+    w5Chk(name, 'code inside a list', 'CONTROL — ↶ Put back on that line brings ["AT"] back exactly', putBack(L), J({ A: ['AT'], B: '', C: 'EN' }));
+    w5Chk(name, 'code inside a list', 'the Put back’s own line reads Was AT, Became “["AT"]”', journal(L, 'A'),
+      J([['sustainment indicator — Ev A', 'AT', '“["AT"]”'], ['sustainment indicator — Ev A', '“["AT"]”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“["AT"]”']]));
+    // []: the bulk write of AT on all three
+    const E = make([]);
+    bulk(E);
+    w5Chk(name, 'empty list', 'after the bulk write the journal reads Was “[]”, never blank', journal(E, 'A'),
+      J([['sustainment indicator — Ev A', '“[]”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“[]”']]));
+    w5Chk(name, 'empty list', 'CONTROL — C’s recognized code reads as before: Was EN, Became AT', journal(E, 'C'),
+      J([['sustainment indicator — Ev C', 'EN', 'AT'], ['sustainment indicator — Ev C', 'not set', 'EN']]));
+    // [null]: the review
+    const N = make([null]);
+    w5Chk(name, 'null inside a list', 'the review panel: On the board now reads “[null]”, never blank', review(N),
+      J([['Navy SI code', '“[null]”', 'EN — Engine']]));
+    w5Chk(name, 'null inside a list', 'the review workbook, from its bytes: On the board now “[null]”', await workbook(N),
+      J([[['Navy SI code', '“[null]”', 'EN — Engine']], sent]));
+    // a list longer than the 60-character label, an emoji where the label cuts: the review prints it whole
+    N.ev(`subClose(); S.si.A=[${J('x'.repeat(57) + '😀')}]; 'ok'`);
+    w5Chk(name, 'a long list', 'the review workbook prints the whole list, its emoji intact, never cut', await workbook(N),
+      J([[['Navy SI code', '“["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx😀"]”', 'EN — Engine']], sent]));
+    // a list whose JSON is 129 characters: the panel and the workbook print all of it
+    N.ev(`S.si.A=${J(['a sustainment indicator typed in by hand', 'another one, and a third, all kept as saved', 'so the list runs past 120 characters'])}; 'ok'`);
+    w5Chk(name, 'a list longer than 120 characters', 'the review panel and workbook print all of it', J([review(N), await workbook(N)]),
+      J([J([['Navy SI code', '“["a sustainment indicator typed in by hand","another one, and a third, all kept as saved","so the list runs past 120 characters"]”', 'EN — Engine']]),
+        J([[['Navy SI code', '“["a sustainment indicator typed in by hand","another one, and a third, all kept as saved","so the list runs past 120 characters"]”', 'EN — Engine']], sent])]));
+    // 7: the review, then AT chosen in the field
+    const S7 = make(7);
+    w5Chk(name, 'a number', 'the review panel: On the board now reads “7”, as Needs attention lists it', review(S7),
+      J([['Navy SI code', '“7”', 'EN — Engine']]));
+    S7.ev(`subClose(); 'ok'`);
+    choose(S7);
+    w5Chk(name, 'a number', 'the journal reads a saved 7 as “7”, never the money $7', journal(S7, 'A'),
+      J([['sustainment indicator — Ev A', '“7”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“7”']]));
+    // [{"toString":null}]: AT chosen in the field, the journal, a redraw, ↶ Put back, then the bulk write
+    const O = make([{ toString: null }]);
+    choose(O);
+    w5Chk(name, 'object inside a list', 'AT chosen in the field: the journal opens and reads Was “[{"toString":null}]”, Became AT', journal(O, 'A'),
+      J([['sustainment indicator — Ev A', '“[{"toString":null}]”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“[{"toString":null}]”']]));
+    w5Chk(name, 'object inside a list', 'a redraw with the journal open draws every panel', tryEv(O, `render(); 'drawn'`), 'drawn');
+    w5Chk(name, 'object inside a list', '↶ Put back on that line brings [{"toString":null}] back exactly', putBack(O), J({ A: [{ toString: null }], B: '', C: 'EN' }));
+    bulk(O);
+    w5Chk(name, 'object inside a list', 'the bulk write after it: the journal opens and its newest line reads Was “[{"toString":null}]”, Became AT',
+      (r => { try { return J(JSON.parse(r)[0]); } catch (e) { return r; } })(journal(O, 'A')),
+      J(['sustainment indicator — Ev A', '“[{"toString":null}]”', 'AT']));
+    // {"_b":{"toString":null}} and {"_b":5}: an object of its own with a "_b" key is the value, not the journal's size mark
+    const K = make({ _b: { toString: null } });
+    choose(K);
+    w5Chk(name, 'object with its own _b key', 'AT chosen in the field: the journal opens and reads Was “{"_b":{"toString":null}}”, Became AT, and a redraw with it open draws',
+      J([journal(K, 'A'), tryEv(K, `render(); 'drawn'`)]),
+      J([J([['sustainment indicator — Ev A', '“{"_b":{"toString":null}}”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“{"_b":{"toString":null}}”']]), 'drawn']));
+    const K5 = make({ _b: 5 });
+    choose(K5);
+    w5Chk(name, 'object with its own _b key', 'a saved {"_b":5}: the journal reads Was “{"_b":5}”, never 5 characters', journal(K5, 'A'),
+      J([['sustainment indicator — Ev A', '“{"_b":5}”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“{"_b":5}”']]));
+    // a list whose JSON is longer than the 300 characters the journal keeps: the journal's size mark, as for every field
+    const Lg = make(['x'.repeat(320)]);
+    choose(Lg);
+    w5Chk(name, 'a list longer than the journal keeps', 'CONTROL — Was reads 324 characters, the journal’s size mark, never a value, and no Put back is offered',
+      J([journal(Lg, 'A'), putBack(Lg)]),
+      J([J([['sustainment indicator — Ev A', '324 characters', 'AT'], ['sustainment indicator — Ev A', 'not set', '324 characters']]), 'NO PUT BACK']));
+    // a list holding markup, and true: AT chosen in the field
+    const Mk = make(['<b>x</b>']);
+    choose(Mk);
+    w5Chk(name, 'a list holding markup', 'the journal reads Was “["<b>x</b>"]” as text', journal(Mk, 'A'),
+      J([['sustainment indicator — Ev A', '“["<b>x</b>"]”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“["<b>x</b>"]”']]));
+    const Tr = make(true);
+    choose(Tr);
+    w5Chk(name, 'true', 'the journal reads a saved true as “true”, never yes', journal(Tr, 'A'),
+      J([['sustainment indicator — Ev A', '“true”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“true”']]));
+    // {"toString":null}: the review, then AT chosen in the field and the journal
+    const B = make({ toString: null });
+    w5Chk(name, 'object', 'the review panel draws, and On the board now reads “{"toString":null}”', review(B),
+      J([['Navy SI code', '“{"toString":null}”', 'EN — Engine']]));
+    w5Chk(name, 'object', 'the review workbook builds: On the board now “{"toString":null}”, and the line after says so', await workbook(B),
+      J([[['Navy SI code', '“{"toString":null}”', 'EN — Engine']], sent]));
+    tryEv(B, `subOpen=false; 'ok'`);
+    w5Chk(name, 'object', 'CONTROL — the review applies nothing: the value as saved and every service’s dollars as before',
+      tryEv(B, `JSON.stringify([S.si,(function(){ var t=tiers(); return [t.A.d,t.B.d,t.C.d]; })()])`),
+      J([{ A: { toString: null }, B: '', C: 'EN' }, [[101, 0, 203, 307], [0, 0, 409, 503], [0, 0, 0, 601]]]));
+    choose(B);
+    w5Chk(name, 'object', 'AT chosen in the field: the journal reads Was “{"toString":null}”, Became AT', journal(B, 'A'),
+      J([['sustainment indicator — Ev A', '“{"toString":null}”', 'AT'], ['sustainment indicator — Ev A', 'not set', '“{"toString":null}”']]));
+    // text, unchanged: 'other' in the review and the journal; a recognized 'LA' in the review, with its label
+    const T = make('other');
+    w5Chk(name, 'plain unrecognized string', 'CONTROL — the review panel and workbook read other, as before', J([review(T), await workbook(T)]),
+      J([J([['Navy SI code', 'other', 'EN — Engine']]), J([[['Navy SI code', 'other', 'EN — Engine']], sent])]));
+    T.ev(`subClose(); 'ok'`);
+    choose(T);
+    w5Chk(name, 'plain unrecognized string', 'CONTROL — the journal reads Was other, Became AT, as before', journal(T, 'A'),
+      J([['sustainment indicator — Ev A', 'other', 'AT'], ['sustainment indicator — Ev A', 'not set', 'other']]));
+    const Ls = make('LA');
+    w5Chk(name, 'recognized code', 'CONTROL — the review panel and workbook read LA — Airframe, as before', J([review(Ls), await workbook(Ls)]),
+      J([J([['Navy SI code', 'LA — Airframe', 'EN — Engine']]), J([[['Navy SI code', 'LA — Airframe', 'EN — Engine']], sent])]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U58/U59) ====
 // ==== v2.00 (U42): a funds-flow sheet name never ends in half a character or begins or ends with an apostrophe ====
 // On the destination axis each destination gets a sheet named by exportFlow's tabName, cut to 28 UTF-16 units (26 when it
 // numbers a repeat). A cut through an emoji left its first half at the end, which the workbook wrote as U+FFFD; a name

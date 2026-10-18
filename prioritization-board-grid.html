@@ -6713,8 +6713,11 @@ function jrnlLabel(e){
   const rest=e.p.slice(2).filter(x=>typeof x!=='object');
   return esc(c)+who+(rest.length? ' <span style="color:var(--dim)">('+esc(rest.join(' › '))+')</span>' : '');
 }
-function jrnlShow(v){
+function jrnlShow(v, p){
   if(v===null||v===undefined) return '<span style="color:var(--dim)">not set</span>';
+  // v2.00 (U58): an SI code that is not text reads as saved, by its JSON -- .join() read ["AT"] as AT and threw on [{"toString":null}].
+  // Before the size mark, which jrnlVal only ever writes as a number over JRNL_BIG: a saved {"_b":{"toString":null}} is the value
+  if(p && p[0]==='si' && p.length>1 && typeof v!=='string' && !(v && typeof v._b==='number' && v._b>JRNL_BIG)) return esc(siRawShow(v));
   if(v&&v._b) return '<span style="color:var(--dim)">'+esc(v._b)+' characters</span>';
   if(typeof v==='number') return esc(fM? fM(v) : String(v));
   if(typeof v==='boolean') return v? 'yes':'no';
@@ -6769,8 +6772,8 @@ function jrnlBody(){
         +'<td style="white-space:nowrap;color:var(--mut)">'+esc(shortTs(e.t))+'</td>'
         +'<td style="white-space:nowrap">'+esc(e.by||'?')+'</td>'
         +'<td>'+jrnlLabel(e)+(e.fy&&e.fy!==MS.cur? ' <span style="color:var(--dim)">FY'+(e.fy%100)+'</span>':'')+'</td>'
-        +'<td style="color:var(--mut)">'+jrnlShow(e.a)+'</td>'
-        +'<td>'+jrnlShow(e.b)+'</td>'
+        +'<td style="color:var(--mut)">'+jrnlShow(e.a, e.p)+'</td>'
+        +'<td>'+jrnlShow(e.b, e.p)+'</td>'
         +'<td style="text-align:right">'+(jrnlUndoable(e)
             ? '<button class="btn" style="font-size:10px;padding:2px 7px" onclick="jrnlUndo('+x.i+')">↶ Put back</button>' : '')
         +'</td></tr>';
@@ -7639,7 +7642,10 @@ function pmoFmtVal(k, v){
   if(k==='__rank' && Array.isArray(v)) return v.map(function(id,i){
     const it=itemById(id); return (i+1)+'. '+(it? (recName(it)||dispTitle(it)) : id); }).join(' · ');
   if(k==='band'){ const b=(BANDS_LIST()||[]).filter(function(x){ return x.id===v; })[0]; return b? b.n : String(v); }
-  if(k==='si') return String(v)+(SI_LBL(v)? ' \u2014 '+SI_LBL(v) : '');
+  // v2.00 (U59): text as saved, anything else by its whole JSON, not cut here (a cut can split a character; the review panel shows
+  // the first 300, as for every field) -- String() read ["AT"] as AT, [null] as nothing, and threw on {"toString":null}, so the
+  // review and its workbook could not be built
+  if(k==='si') return (typeof v==='string'? v : '“'+JSON.stringify(v)+'”')+(SI_LBL(v)? ' \u2014 '+SI_LBL(v) : '');
   if(k==='mipr') return MIPR_LBL[v]||String(v);
   if(k==='ptype') return v==='PRIME'? 'Prime contract' : String(v);
   if(k==='minInc') return fM(+v||0);
