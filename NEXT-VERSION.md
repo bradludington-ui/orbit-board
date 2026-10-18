@@ -1560,6 +1560,35 @@ result for it was run fresh against these commits.
   - **Not covered:** the journal's record's other writers -- the service list (`svcSaveList`), a wholesale load
     (`applyStore`) and putting back an earlier copy from the shared folder (`driveRestore`) -- are refused in a view before they
     reach it (read, not typed).
+- **U10 (8 of 12) — "Save yours over theirs", raced by a locked view, is refused in a save's words, and the race is
+  tested** (the same release blocker; the round-4 money review's SF1 and the round-4 test review's m2, 13 Oct). Save yours over
+  theirs pressed on the working plan, with PB27 put on screen while the shared folder's copy was read, was refused by U10 6's
+  gate before its question and before anything was written -- but in Load theirs' words, "🔒 Loading a board is off while PB27
+  is on screen …", though the person had pressed Save. And no check typed that race: a gate standing before Load theirs only
+  passed every check. On `7ee498a` the same race asked "Save your copy of O&M FY27 over the one Colleague C saved …?", wrote
+  Colleague C's copy into the folder's history and recorded it as the copy being replaced, and only then met the save's own
+  refusal (the round-4 money review, measured on U10 5, whose Save yours over theirs is `7ee498a`'s: the next Save after
+  leaving then wrote over Colleague C's copy without asking again; Colleague C's copy stayed in the history). Now the gate names the door that was pressed: "🔒 Writing to the shared folder is
+  off while PB27 is on screen …" for Save yours over theirs, as a save racing a view already says (v1.97 W3), and "Loading a
+  board" for Load theirs, as before.
+  - **What users may see:** Save yours over theirs still reading the shared folder when a locked cycle is put on screen stops
+    with "🔒 Writing to the shared folder is off while PB27 is on screen …", asks nothing and writes nothing; after leaving the
+    view it asks its question again and saves over theirs, keeping theirs in the folder's history. Load theirs, and everything
+    on the working plan: nothing changes.
+  - **Test:** two checks added to U10 6's block "v2.00 (U10) — a view put on screen while Load theirs reads the shared folder
+    keeps nothing aside" (now 6): Colleague C saves again (COLLEAGUE DESC R2) and MY SECOND A is typed; Save yours over theirs
+    is pressed on the working plan and PB27 is put on screen while the folder's copy is read. Read: the status line (typed),
+    the questions asked (none), the folder's copy (still Colleague C's), the folder's files (none added), this browser's copy
+    (MY SECOND A) and its unsaved flag. Control: after leaving the view the same choice asks once, keeps Colleague C's copy in
+    the folder's history and writes MY SECOND A to the folder. On `7ee498a` the race check fails (asked; the history written)
+    and the control passes; on U10 6 and 7 of 12 the race check fails on its words alone; at U10 8 of 12 both pass.
+  - **Mutations:** `v200-u10-resolve-gate-theirs-only` (the gate before Load theirs only: 1 check fails) and
+    `-resolve-mine-words` (Load theirs' words for a save: 1). U10 6's `v200-u10-resolve-race` has its find moved to the new
+    line (the gate taken out: 3 checks fail now, the race check among them).
+  - **Not covered:** the two earlier gates, `driveResolve`'s own and `_driveResolveRun`'s first, still name Load theirs' door
+    for both choices (unchanged from `7ee498a`; nothing is written). Both are reachable: the first by a direct press, from the
+    clash a Connect draws while a view is on screen (the round-5 money review, probe P15), the second by a press that waited
+    behind another save. U10 11 of 12 names the door pressed at both.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
