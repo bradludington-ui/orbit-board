@@ -1399,6 +1399,81 @@ result for it was run fresh against these commits.
     `-sp-svc-in-view`, `-sp-prior-in-view`, `-sp-drill-in-view`, `-sp-no-redraw`, `-reapply-keeps-ppbe` and
     `-dest-kind-in-view`; each caught by the focused blocks (full-suite sensitivity in the final-tree queue).
   - **Not covered:** a destination's match terms (as commit 2).
+- **U10 (4 of 12) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is
+  kept** (the same release blocker, from its round-2 reviews of 13 Oct and the builder's second door scan). Each of these
+  doors wrote something that is no part of a locked view's copy -- this appropriation's browser storage, another
+  appropriation's board, a list every appropriation shares, the copy kept aside, the shared folder's record -- or handed a
+  file out, and only then met the view's refusal, so the board said "Not kept" and kept it. With PB27 on screen:
+  - a manager's returned package taken through File › Import one appropriation asked its conflict question of the view's
+    copy, wrote the package into this appropriation's browser storage, and said "🔒 Not kept … 📥 Merged O&M package #1 …
+    Your local changes were discarded, as confirmed." Reopened, the board carried the package: RCN-EEIC by Month and the
+    Spend Plan Source printed 77777 for K1 (11111 in none), and the work typed after the last save was in no copy;
+  - a state file carrying cost estimates beside its years kept them (the ACE tie-out read $4,321,000 for $900), and a
+    PMO submittal added its destination to the list every appropriation shares;
+  - ⇉ Copy to the other appropriations replaced Full Fund's own band ladder, kept nowhere, so its banded requirements
+    became unbanded;
+  - a package issued, the baselines pushed, a manager's return saved, or an appropriation sent back from the
+    consolidated handed out the locked cycle as the board's package (the return under the issue's own number and
+    signature, though "Not kept" was said);
+  - loading the shared state file kept the locked cycle aside as this browser's work ("put it back" would make it the
+    working plan);
+  - a Live refresh that found a colleague's newer copy in the shared folder kept the locked cycle aside in place of this
+    browser's unsaved work, and recorded the folder's copy as the one the work came from, saved: the first refresh after
+    leaving the view then loaded the colleague's copy over that work, which was kept nowhere;
+  - and a cost estimate, BAE list or CCaR file whose import started on the working plan, with the view put on screen while
+    the file was read, was kept as the other imports were before commit 2 (the approved estimate replaced: $4,321,000
+    for $900).
+  Now Import one appropriation is refused while a locked cycle is on screen before the file is read, and again once it is
+  read, as Import several boards is (Import full board is refused before its file is read; see Not covered); the three
+  workbook imports are refused again once their file is read; the ladder copy, the four package doors and loading the
+  shared state file are refused up front; and a refresh from the shared folder loads none of this appropriation's plan
+  and keeps nothing aside while a locked cycle is on screen (a Connect that finds a newer copy says so; the Live timer
+  says nothing), and the first refresh
+  after leaving the view decides afresh. A folder copy no newer than what is on screen is answered as before, view or not:
+  when it is not the copy the work came from, the clash between the two is drawn, and both its choices are refused in a
+  view (U10 6, 8 and 11 of 12); with no copy recorded, it is recorded as that copy (by reading; as off a view).
+  Each refusal says so ("🔒 Importing a file is off
+  while PB27 is on screen … the change was not kept").
+  - **What users may see:** with a locked cycle on screen, File › Import one appropriation, ⇉ Copy to the other
+    appropriations, ⬆ Issue, Push baselines, the return and send-back packages, and "load the shared one" are refused with
+    that line; leave the view to use them. A colleague's newer copy in the shared folder is loaded by the first refresh
+    after leaving the view (with this browser's unsaved work kept aside first, as on the working plan). On the working plan
+    nothing changes.
+  - **Test:** audit-recon "v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view
+    before anything is kept" (28 checks), on boards of two AV requirements (A on RCN 11111 / EEIC AAAAA, confirmed on WBS
+    1.1; an approved 2027ACE of $900), PB27 locked and then A described on the working plan: the returned package (K1 →
+    77777) taken in the view, then on the working plan with the view put on screen while it is read -- the status line,
+    the questions, browser storage, RCN-EEIC by Month and the Spend Plan Source after leaving, and the board reopened over
+    its saved file; a state file carrying a 2028 estimate -- the estimates in the board and in browser storage, and the
+    ACE tie-out; each workbook import with the view on screen (the file is read 0 times) and started on the working plan
+    with the view put on screen during the read -- the lists and the ACE tie-out; the ladder copy -- Full Fund's stored
+    ladder and the ladder held for it; the four package doors -- the files handed out and the package record; the shared
+    state file and a Live refresh from a fake shared folder -- what is kept aside, browser storage and the unsaved-work
+    flag, then leaving the view and the next refresh. Every figure is typed in the block. Controls: on the working plan
+    the return merges (asked first) and every export carries 77777; the state file is taken with its estimate; each
+    package door hands out the working plan; the ladder copies; the shared state file loads with the work kept aside
+    first; no jsdom errors. On `7ee498a` the 22 non-control checks fail and the 6 controls pass; on U10 3 of 12, 19 fail
+    (the three workbook imports refused before their file is read already pass there). Three checks commit 6 adds to
+    this block read what it does not: a Live refresh started on the working plan with the view put on screen while the
+    folder's copy is read, the quiet refresh's silence, and the shared state file's answer at opening (sharedArrived).
+  - **Mutations:** `v200-u10-state-import-in-view`, `-state-import-race`, `-ace-import-race`, `-bud-import-race`,
+    `-ccar-import-race`, `-ladder-copy-in-view`, `-pkg-issue-in-view`, `-pkg-push-in-view`, `-pkg-sendback-in-view`,
+    `-pkg-return-in-view`, `-shared-load-in-view`, `-folder-pull-in-view` and `-folder-connect-quiet`; each caught by the
+    focused blocks (full-suite sensitivity in the final-tree queue). Commit 2's three import entries stay caught (the
+    block reads that their file is never read in a view).
+  - **Not covered:** the PMO submittal and the consolidated file's take through Import one appropriation (the same
+    gate; not typed in the block); the Live refresh's pulls of the folder's execution data and reprogramming log while a
+    view is on screen (other people's saved lists, not an edit; read, not measured -- ledger row U51). A full board import
+    started on the working plan with a view put on screen during its read lands as on the working plan, after its own
+    questions, which still name the working plan's changes (measured; not a refused edit, not changed). Load theirs
+    started on the working plan with a view put on screen while the folder is read (commit 6).
+    A Connect pressed while a locked cycle is on screen still takes the shared folder's cost estimates, execution data and
+    reprogramming log, after the line "🔒 Loading from the shared folder is off while PB27 is on screen … the change was
+    not kept": a colleague's 2028ACE taken that way moves the ACE tie-out exported from PB27's view (Spend Plan cost data
+    on Board requirements) from 2027ACE's $900 to $4,321 for Req A, and it is still there after leaving the view (the U10
+    money review, round 6, probe P1b, 14 Oct; the same pull on `7ee498a`, where the line read "🔒 Not kept — … ⬇ Loaded O&M
+    FY27 from the shared folder"). The check named "📡 Connect" in this block calls the folder read alone
+    (`driveStorePull(false)`), not the Connect (`driveConnectNow`). Ledger U51.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

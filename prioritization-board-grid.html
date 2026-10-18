@@ -8468,6 +8468,9 @@ function publishJson(){
 // v1.96 (item 69, review NR05): before the shared state file replaces the board, work no saved copy has is kept aside --
 // the rule the shared folder's copy has followed since v1.89. Other work already kept, or no room: nothing is loaded.
 function sharedKeepMine(st){
+  // v2.00 (U10): NOT WITH A LOCKED CYCLE ON SCREEN. The copy on screen is the cycle's: it was kept aside as this browser's work,
+  // and then the load was refused -- a kept copy that is nobody's work, and that "put it back" would make the working plan.
+  if(cycBlock('Loading the shared state file')) return false;
   const own=ownUnsaved(MS, st, baseGet());
   const ka=own? keepAside(MS, {why:'sidecar', by:(st&&st.by)||'', ts:+((st&&st.ts)||0)}, baseGet()) : true;
   if(ka==='occupied'){ setStat(keptOccupiedMsg(st&&st.by, +((st&&st.ts)||0), 'the shared state file')); render(); return false; }
@@ -8744,6 +8747,8 @@ function pkgPut(ap, st){
 
 // ---------------------------------------------------------------- issue (consolidated -> manager)
 function pkgIssue(ap, quiet){
+  // v2.00 (U10): NOT FROM A LOCKED VIEW. It handed out the cycle on screen as the board's package, and recorded nothing.
+  if(cycBlock('Issuing a package')) return;
   const pack=pkgPackOf(ap);
   let st=pkgStoreOf(ap), fresh=false;
   if(!st && pack){
@@ -8803,6 +8808,7 @@ function pkgIssue(ap, quiet){
 // Hand every appropriation this board holds to its manager at once. The per-appropriation issue
 // is unchanged and still the way to re-issue a single one later; this is the one-time seeding.
 function pkgPushAll(){
+  if(cycBlock('Pushing baselines to the managers')) return;   // v2.00 (U10): as pkgIssue
   const all=APPN_SLUGS;
   const have=all.filter(function(ap){ return !!pkgPackOf(ap); });
   const none=all.filter(function(ap){ return !pkgPackOf(ap); });
@@ -8856,6 +8862,7 @@ function pkgPushAll(){
 // so it carries no signature: the receiving board reads its own journal to say what it changed in
 // the meantime (pkgMineSince), and the ledger number the file carried keeps a newer issue in charge.
 function pkgSendBack(ap){
+  if(cycBlock('Sending a package back')) return;   // v2.00 (U10): as pkgIssue -- it sent the cycle on screen back as the board
   const nm=PKG_NAMES[ap]||ap;
   const st=pkgStoreOf(ap);
   if(!st){ setStat('\u26a0 No '+nm+' on this board to send back.'); return; }
@@ -8876,6 +8883,7 @@ function pkgReturnable(){
   return (p&&p.ap===mySlug())? p : null;
 }
 function pkgReturn(){
+  if(cycBlock('Saving a return package')) return;   // v2.00 (U10): as pkgIssue -- it returned the cycle on screen as the work
   const src=pkgReturnable();
   const body=pkgStrip(MS);
   const ap=mySlug();
@@ -10121,9 +10129,15 @@ function exportOneAppn(){
 function importState(inp){
   const f=inp.files&&inp.files[0];
   if(!f) return;
+  // v2.00 (U10): REFUSED BEFORE THE FILE IS READ while a locked cycle is on screen, as Import full board already is -- and again
+  // once it is read, in case one was put on screen meanwhile. A package, a submittal or a state file taken here wrote browser
+  // storage or a list every appropriation shares first, and only then met the view's refusal: the board said "Not kept", and
+  // reopened on what it had refused.
+  if(CYCVIEW){ cycRefuse('Importing a file'); inp.value=''; return; }
   const big=inTooBig(f); if(big){ inRefuse(f.name, big); inp.value=''; return; }
   const r=new FileReader();
   r.onload=()=>{
+    if(CYCVIEW){ cycRefuse('Importing a file'); inp.value=''; return; }
     // THE DOOR (v1.88): a board, a consolidated file, a package, a submittal and a state file all come
     // in here, and all of them are checked whole before any route below reads a field of one.
     const bad=inboundCheck(r.result); if(bad){ inRefuse(f.name, bad); inp.value=''; return; }
@@ -14275,6 +14289,7 @@ async function importBud(inp){
   try{
     setStat('💰 Reading '+esc(f.name)+'…');
     const sheets=await xlsxRead(await f.arrayBuffer());
+    if(cycBlock('Importing a BAE budget list')){ inp.value=''; return; }   // v2.00 (U10): and again once it is read -- a view put on screen meanwhile
     const rows=sheets[Object.keys(sheets)[0]]||[];
     if(!rows.length) throw new Error('no rows in that workbook');
     const hdr=(rows[0]||[]).map(function(x){ return String(x||'').trim(); });
@@ -14521,6 +14536,7 @@ async function importCcarRecs(inp){
   try{
     setStat('📇 Reading '+esc(f.name)+'…');
     const sheets=await xlsxRead(await f.arrayBuffer());
+    if(cycBlock('Importing CCaR records')){ inp.value=''; return; }   // v2.00 (U10): as importBud
     const rows=sheets[Object.keys(sheets)[0]]||[];
     const hdr=(rows[0]||[]).map(function(x){ return String(x||'').trim(); });
     const iC=hdr.indexOf('CCaR No'), iT=hdr.indexOf('Title'), iO=hdr.indexOf('OPR'), iP=hdr.indexOf('PMO');
@@ -14585,6 +14601,7 @@ async function importAce(inp){
   try{
     setStat('\ud83d\udcc8 Reading '+esc(f.name)+'\u2026');
     const sheets=await xlsxRead(await f.arrayBuffer());
+    if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }   // v2.00 (U10): as importBud
     const first=Object.keys(sheets)[0];
     if(!first) throw new Error('no sheets in that workbook');
     const label=(f.name.match(/(20\d\d)\s*ACE/i)||[null,''])[1];
@@ -17799,6 +17816,7 @@ function bandPeers(){
   });
 }
 function bandCopyAll(){
+  if(cycBlock('Copying the band ladder')) return;   // v2.00 (U10): it wrote the other appropriations' boards, then said "Not kept"
   const peers=bandPeers();
   if(!peers.length){ setStat('\u26a0 No other appropriation is available in this file to copy to.'); return; }
   const now=peers.filter(p=>p.seen), later=peers.filter(p=>!p.seen);
@@ -26959,6 +26977,11 @@ async function driveStorePull(quiet){
       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
     render(); return false;
   }
+  // v2.00 (U10): NOT INTO A LOCKED VIEW -- checked after the last wait, before anything is changed. The copy on screen is the
+  // cycle's: it was kept aside in place of the work this browser holds, the load was refused, and the folder's copy was still
+  // recorded as the one the work came from, saved -- so the first refresh after leaving the view replaced that work, kept nowhere.
+  // Nothing is changed; the first refresh after leaving the view decides afresh. A quiet refresh (the Live timer) says nothing.
+  if(CYCVIEW){ if(!quiet) cycRefuse('Loading from the shared folder'); render(); return false; }
   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
   const own=ownUnsaved(MS, j.store, baseGet());
