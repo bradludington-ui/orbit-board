@@ -10014,13 +10014,13 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
     await putBackK(A, sc);
     chk(name, sc, 'and names the saved file and who saved it after K, as before: K was kept by the opening (a CONTROL)',
       status(A.ev).includes('💾 Save will ask before it writes over the saved file, which Alice saved after it.'), true);
-    chk(name, sc, '↶ Put back: the top bar offers S1, as what was on screen when other work was put back; History & recovery says the same',
+    chk(name, sc, '↶ Put back: the save state at the foot of the left menu offers S1, as what was on screen when other work was put back; History & recovery says the same',
       J([SWAPTITLE.test(keptTitle(A.ev) || ''), menuText(A.ev).includes(SWAPMENU), menuText(A.ev).includes('from before the saved file replaced it')]), J([true, true, false]));
     let q0 = qs(A.ev).length; await clickSave(A.ev); await pause(20); saveK(A, f, sc, qs(A.ev).slice(q0));
-    chk(name, sc, 'after 💾 Save: S1 is kept aside, offered in the top bar, and its text is in this browser’s storage',
+    chk(name, sc, 'after 💾 Save: S1 is kept aside, offered at the foot of the left menu, and its text is in this browser’s storage',
       J([where(A.ev, f, S1), anywhere(A.ev, f, S1), kept(A.ev), SWAPTITLE.test(keptTitle(A.ev) || '')]), J([['kept'], true, [S1, 'swap'], true]));
     const { B, fB } = await reopen(A, f);
-    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside, offered in the top bar',
+    chk(name, sc, 'reopened: K on screen and in the file, saved; S1 kept aside, offered at the foot of the left menu',
       J([scr(B.ev), fileNote(fB.content, 'A'), ...unsaved(B.ev), kept(B.ev), where(B.ev, fB, S1), SWAPTITLE.test(keptTitle(B.ev) || '')]),
       J([K, K, false, false, false, [S1, 'swap'], ['kept'], true]));
     q0 = qs(B.ev).length; clickPutBack(B.ev); const q = qs(B.ev).slice(q0);
