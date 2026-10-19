@@ -15,6 +15,8 @@
 //      stays: Appropriation, Fiscal year, the PMO filter, search, Filter, the message line and Help.
 //   D. A PMO COPY: the Save spot is ✉ Submit input (pmoSubmit), reached once; Program offices is not shown and holds
 //      nothing; Save and Save a copy are still there under ▾, saying they are off.
+//   F. (Brad, 19 Oct) NO REPEAT ON THE TASK BAR: Bands, Executive decision, PowerPoint deck and Exec synopsis are on no task-bar
+//      control in any mode, nor in its folded Tools menu -- the left menu (A) is their one home.
 //   E. FOLDED TO ICONS AND FROM THE KEYBOARD ALONE: ‹ folds the menu to 64px; every entry is still there, in order, named
 //      for a screen reader and reached with Tab; Enter opens a flyout with the keyboard in it, Tab reaches its items, Esc
 //      closes it with the keyboard back on its entry; Enter opens a box the same way; Enter on an item runs it and its
@@ -289,6 +291,23 @@ process.on('exit', () => { try { rmSync(dir, { recursive: true, force: true }); 
     chk('E · folded, 💾 Save is an icon, and unsaved work shows as a dot on it', J(d) === J({ clean: false, dirty: true, icon: true, text: true }), J(d));
     chk('E · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
   } catch (e) { chk('E · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
+  await ctx.close();
+}
+
+// ── F. the task bar repeats no left-menu item, in any mode, nor in its folded Tools menu ────────────────────────────────
+{
+  const { p, ctx, errs } = await open(FILE);
+  try {
+    const got = await p.evaluate(() => { const out = {};
+      ['review', 'rank', 'fund', 'compare', 'brief'].forEach(m => { uiMode = m; uiApply(); syncBtns(); render();
+        out[m] = [...document.querySelectorAll('.tbar [onclick]')].map(e => e.getAttribute('onclick')); });
+      uiMode = 'review'; uiApply(); render(); return out; });
+    const REPEATS = ['exportPPT', 'execSynopsis', 'toggleEd', 'toggleBands'];
+    const hits = []; Object.entries(got).forEach(([m, hs]) => hs.forEach(h => { const k = callOf(h); if (REPEATS.includes(k)) hits.push(m + ': ' + h); }));
+    chk('F · Bands, Executive decision, PowerPoint deck and Exec synopsis are on no task-bar control in any mode, nor in its folded Tools menu',
+      J(hits) === J([]) && Object.keys(got).length === 5 && got.brief.some(h => callOf(h) === 'briefFull'), J(hits));
+    chk('F · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+  } catch (e) { chk('F · the section ran on this board', false, String(e.message || e).split('\n')[0].slice(0, 160)); }
   await ctx.close();
 }
 

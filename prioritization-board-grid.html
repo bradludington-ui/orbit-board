@@ -1669,8 +1669,8 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
     <button class="btn" onclick="toggleBm()" title="Budget authority and funding sources">Budget management</button>
     <button class="btn" onclick="convertAllToSplit()" title="Give every requirement an explicit Disc/Mand split — asks first">Convert all to Split…</button>
     <div class="menu" id="m_basis"><button class="btn" id="b_basis" onclick="toggleMenu('basis')">Spend plan basis: Disc + Mand ▾</button><div class="mdd" id="dd_basis"></div></div>
-    <button class="btn" onclick="toggleBands()" title="The decision-band ladder for this appropriation">Bands</button>
-    <button class="btn" onclick="toggleEd()" title="What discretionary buys · the stoppage gap">Executive decision</button>
+    <!-- v2.00 (menu, Brad 19 Oct): Bands and Executive decision left the Fund tools; each has its one home on the left menu,
+         Setup › Codes and structure › ⚖ Bands… and Reports & exports › Briefing › ⚖ Executive Decision… -->
     <span id="pmoActs"></span>
   </div>
   <div class="modetools" id="t_compare" role="group" aria-label="Compare tools">
@@ -1682,8 +1682,8 @@ html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
   </div>
   <div class="modetools" id="t_brief" role="group" aria-label="Brief tools">
     <button class="btn" onclick="briefFull()" title="Fill the screen with the board — Esc to leave">Present full screen</button>
-    <button class="btn" onclick="exportPPT()" title="SFCB template slides">PowerPoint deck</button>
-    <button class="btn" onclick="execSynopsis()" title="The one-page picture (CSV)">Exec synopsis</button>
+    <!-- v2.00 (menu, Brad 19 Oct): PowerPoint deck and Exec synopsis left the Brief tools; each has its one home on the left
+         menu, Reports & exports › Briefing -->
     <span class="rochip">Presentation view — requirements can’t be edited here</span>
   </div>
   <div class="menu" id="m_modetools"><button class="btn" id="b_modetools" onclick="toggleMenu('modetools')">Tools ▾</button><div class="mdd" id="dd_modetools"></div></div>
@@ -27579,8 +27579,10 @@ function syncBtns(){
       : blList().filter(function(k){ return cycHeld(k).length; }).map(function(k){
           return '<button class="btn" onclick="cycView('+jsa(k)+')" title="read only">👁 View '+blLbl(k)+'</button>'; }).join(''); }
   // Below 1100px the mode's tools fold into one menu -- the same functions, listed.
-  { const T={ review:I.add+I.mat, rank:I.hard+I.po+sep+I.ro, fund:I.bm+I.split+sep+lbl('Spend plan basis')+I.scenD+I.scenDM+sep+I.bands+I.ed,
-              compare:I.chg+I.cmp+I.snap+I.bl+(I.views? sep+I.views : ''), brief:I.full+I.ppt+I.syn };
+  // v2.00 (menu, Brad 19 Oct): the folded tools hold what the task bar holds -- Bands, Executive decision, PowerPoint deck and
+  // Exec synopsis are the left menu's alone now (Setup, Reports & exports)
+  { const T={ review:I.add+I.mat, rank:I.hard+I.po+sep+I.ro, fund:I.bm+I.split+sep+lbl('Spend plan basis')+I.scenD+I.scenDM,
+              compare:I.chg+I.cmp+I.snap+I.bl+(I.views? sep+I.views : ''), brief:I.full };
     const nm={review:'Review',rank:'Rank',fund:'Fund',compare:'Compare',brief:'Brief'}[uiMode]||'Mode';
     document.getElementById('dd_modetools').innerHTML=lbl(nm+' tools')+(T[uiMode]||'');
     const bt=document.getElementById('b_modetools'); if(bt) bt.textContent=nm+' tools ▾'; }
@@ -33116,7 +33118,7 @@ if(_bootRestoreErr){
     +(Object.keys(O).length>1?'those requirements are':'that requirement is')+' being treated as '
     +'<b>'+esc(BAND_FALLBACK().n||'unbanded')+'</b> \u2014 which may be far below where the room put '
     +(Object.keys(O).length>1?'them':'it')+'. The original value is kept, not overwritten: re-band '
-    +(Object.keys(O).length>1?'them':'it')+' on the row, or add the band back under \u2696 Bands.');
+    +(Object.keys(O).length>1?'them':'it')+' on the row, or add the band back under Setup \u203a Codes and structure \u203a \u2696 Bands.');
 } else if(typeof IS_SHELL!=='undefined' && IS_SHELL){
   setStat('🧩 <b>SHELL TEMPLATE '+BUILD+'</b> — no data inside (safe for any machine). On your work computer: Imports & exports → ⬅ Import a full board… and pick your saved board file — everything (requirements, budgets, all years, PPBE, logs) loads from it.');
 } else if(pubActive()){ _statQuiet=true; setStat((typeof SANDBOX!=='undefined' && SANDBOX)

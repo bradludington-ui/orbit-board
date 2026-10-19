@@ -60,7 +60,8 @@ await page.evaluate(({ svcList, itemList }) => {
   render();
 }, { svcList: SVC, itemList: ITEMS });
 
-if (flag('tools')) { await page.evaluate(() => toggleMenu('setup')); }   // v1.90: Tools became Setup
+// v1.90: Tools became Setup; v2.00 (menu): Setup is the left menu's flyout
+if (flag('tools')) { await page.evaluate(() => { if (typeof uiFlyOpen === 'function') uiFlyOpen('setup', document.getElementById('uiNav_setup')); else toggleMenu('setup'); }); }
 await page.waitForTimeout(400);
 await page.screenshot({ path: out, fullPage: flag('full') });
 console.log(`${out}   ${errs.length ? 'page errors: ' + errs.slice(0, 2).join(' | ') : 'no page errors'}`);

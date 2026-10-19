@@ -3300,6 +3300,11 @@ result for it was run fresh against these commits.
   - **Mutations:** seven entries re-pointed, each against the same behaviour (`menu-wbs-not-in-data`, `menu-find-kept`,
     `menu-copy-offices`, `restore-keep-refusal-ignored`, `v200-u10-shared-gate-in-adopt`, `v200-cycreg-advice-unwarned`,
     `v200-cycreg-help-refusal-unsaid`); mcount: 2,015 entries, each once.
+  - **Brad's answers (19 Oct, 12:25 PM ET):** views keep one home each, as built. The task bar's repeats go: Fund's Bands
+    and Executive decision, Brief's PowerPoint deck and Exec synopsis, and the same four in the folded Tools ▾; each keeps
+    only its left-menu home (no other task-bar button repeated a menu item). `tools/left-menu.mjs` F holds it (fails on
+    the board before). AGENTS.md's long-menu rule names the left menu's folded groups and sections, and a new rule holds
+    one home for each action; CLAUDE.md has "Where every action lives", the map the version sections are read through.
   - **The two carried limits:** toolbar-fits at 1152 px now PASSES in review and fund (the context bar is one line, 44 px:
     Save and File left it). layout-fits D still fails the same eight checks; at 1024×768 the first row is at 420 px, not
     453 px.

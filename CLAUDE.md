@@ -77,6 +77,36 @@ The board's globals are `const`/`let` declarations living in the global LEXICAL 
 properties of `window`. Reach them by bare identifier inside `page.evaluate`, and never let the
 payload shadow their names.
 
+### Where every action lives: the left menu (v2.00, menu)
+
+Brad, 19 Oct 2026: *"Move every top-right menu into the left menu, and remove every duplicate, so each action has
+exactly one home."* The top right holds only the message line and Help; 💾 Save, Reports & exports ▾, Data ▾, Setup ▾
+and 📁 File ▾ are gone, and so are the task bar's Bands, Executive decision, PowerPoint deck and Exec synopsis. The
+left menu, top to bottom:
+
+- **Views:** Requirements, Funding, **FYDP ▸** (five-year spend plan, Spruills, PPBE Budget Positions, Funds Flow),
+  **Execution ▸** (Active Year Execution, Reprogramming Actions, Spend Plan Forecast, CR Cash Needs, QPE coverage,
+  ORBIT vs CCaR), Cycles & compare, Brief. A view lives there and nowhere else.
+- **Reports & exports** — a box (`#uiRepPanel`, list `dd_reports`): Pre-flight check, Find, and the six groups as
+  labelled sections (`sec()`), each item one click; a section whose views moved says where they are.
+- **Board:** **Imports & exports** (box `#uiImpPanel`, list `dd_boards`: a whole board or one appropriation, in or
+  out, and packages); **Data** (box `#uiDataPanel`, `dd_data`: a card per source, with when it was last loaded);
+  **Program offices ▸** (`dd_offices`: Publish PMO copy, Review submittals, load one or all submittals; hidden in a PMO
+  copy); **Audit ▸** (`dd_audit`: change journal, save history, take the pen, my editor name); **History & recovery ▸**
+  (earlier copies, and work kept aside from `dd_kept`); **Setup ▸** (`dd_setup`: Who and where, Codes and structure,
+  Appearance as folded groups, then Live view and Save diagnostics).
+- **Foot:** 💾 Save (`#saveBtn`, `saveInPlace()`; Ctrl+S too), its ▾ (`dd_save`: Save a copy), the save state
+  (`#saveState`) and who holds the pen. In a PMO copy the button is ✉ Submit input.
+
+`syncBtns()` writes every list, by the same `mi()`/`grp()` items and calls the menus had; a flyout (`#uiFly`) borrows
+its list from `#uiHold` while open. A menu path in a message or the guide names the left-menu entry ("Audit › ✎ My
+editor name…", "Setup › Who and where › 🏷 Services…", "Reports & exports › Briefing › 📽 PowerPoint deck"), and `npm
+run menus` checks each. `npm run leftmenu` holds the whole map: every call the old menus made, reached from the left
+menu exactly once (the named exceptions: Save by Ctrl+S too; Live view from Setup and from Earlier copies; work kept
+aside from History & recovery and the save state's notice), nothing at the top right, nothing repeated on the task bar,
+a PMO copy, and the menu folded and from the keyboard. **The version sections below name the menus as they were** (📁
+File, Reports & exports ▾, Setup ▾, Data ▾); read them through this map.
+
 ## The funding model — get this right before touching any export
 
 **There are exactly two funding lanes: discretionary and mandatory.** `tiers()` is the only

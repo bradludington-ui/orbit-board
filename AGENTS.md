@@ -128,8 +128,17 @@ build every open item, run the full math check once, bump `BUILD` once, push onc
   `NotFoundError` means absent; anything else stops the share. Keep the folder's copy in its history before replacing it.
 - Cut what a repaired award keeps as its original: `awdOrigKeep` keeps it whole, in pieces the import door takes.
 - Give a long menu (more than about ten items) anything but folded groups built with `grp()` in `syncBtns`, one open
-  at a time; or name a menu path to a folded item without its group -- `npm run menus` fails it. A list of choices
-  (the offices) never folds.
+  at a time (Setup on the left menu, Filter), or, in a left-menu box, labelled sections (`sec()` and `card()` in
+  `syncBtns`: Reports & exports, Data); or name a menu path to a folded or sectioned item without its group -- `npm run
+  menus` fails it. A list of choices (the offices) never folds.
+- Give an action a second home (v2.00, menu; Brad, 19 Oct: "each action has exactly one home"). Every action the old
+  top-right menus (💾 Save, Reports & exports ▾, Data ▾, Setup ▾, 📁 File ▾) held is in one place on the LEFT MENU:
+  Reports & exports, Imports & exports, Data, Program offices, Audit, History & recovery, Setup, and 💾 Save pinned at its
+  foot (with Ctrl+S, and Save a copy under its ▾). A view lives in its section's flyout (FYDP ▸, Execution ▸) only. The
+  named exceptions are Save (button and Ctrl+S), Live view (Setup › Live view and History & recovery › Earlier copies) and
+  work kept aside (History & recovery and the save state's notice). Do not add a task-bar or toolbar button that repeats
+  a left-menu item, or a menu at the top right. `npm run leftmenu` fails either; where each old item went is in
+  NEXT-VERSION.md's v2.00 menu entry and CLAUDE.md's "Where every action lives".
 - Read a typed amount with anything but `parseAmt` (and `amtNo` in the editor), or a $M field with anything but
   `amtReadM`: the whole entry reads as an amount or it is refused, and the figure it had stays. Text that cannot be read
   never becomes zero, and nothing over `IN_MAX_AMT` goes in.
