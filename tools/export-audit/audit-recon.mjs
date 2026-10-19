@@ -11471,6 +11471,74 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U44) ====
+// ==== v2.00 (U44): a “what the money buys” category list that repeats a key prints that category’s row once ====
+// Found by the U44 money review, 13 Oct (rec/L6/u44/verify-money-r1, S1): the same double print as a destination list's, on the
+// funds flow's other axis. A board file whose categories held "ops" twice passed the door; Import one appropriation took it, and
+// the Funds Flow workbook printed Program Operations & Support 1,400 twice beside an OGC total of 1,400.
+// THE MONEY, BY HAND: O&M, services USAF / ANG / AFRC. R1, titled "Charlie Support", asks USAF 900, ANG 200; R2 asks USAF 300; pots
+// of 5,000 fund all of it; the flow groups by what the money buys, FY27 planned; neither title names a prime, so all 1,400 is
+// other government cost. The ladder, in order, first match wins: Software (key soft, the title word Alpha), Engineering (eng,
+// Bravo), "Software again" (soft AGAIN, Charlie), Program Operations & Support (ops, the remainder). R1 matches the third rung,
+// whose key is soft: Software's money, 1,100, printed once under the first category with that key; R2 matches nothing and is the
+// remainder, 300. OGC total 1,400 and the rows add up to it; one Software tab, none for "Software again"; the workbook's ladder
+// lists all four rungs as they were applied. (No key here has a breakout of its own: Workforce's would split its row.)
+// THE ROUTES: (m) the user's own board as it holds the list: the workbook from its bytes and the panel's boxes; (c) its saved file
+// opened. CONTROL: the default ladder (five distinct keys), the same money.
+// FAILS ON 7ee498a (U14, board fce8a391): the rows print "Software again" 1,100 twice -- the last category with the key named the
+// money -- beside an OGC total of 1,400, with two "Software again" tabs; the panel the same. Passing there and here: the fixture,
+// the ladder as printed, and the CONTROL.
+await (async () => {
+  const name = 'v2.00 (U44) — a “what the money buys” category list that repeats a key prints that category’s row once';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const CATS = [{ k: 'soft', n: 'Software', cat: '', ttl: 'Alpha' }, { k: 'eng', n: 'Engineering', cat: '', ttl: 'Bravo' },
+      { k: 'soft', n: 'Software again', cat: '', ttl: 'Charlie' }, { k: 'ops', n: 'Program Operations & Support', cat: '', ttl: '' }];
+    const make = cats => {
+      const X = boot();
+      const items = [Object.assign(it('R1', 'AV', [900, 200, 0]), { title: 'Charlie Support' }), it('R2', 'AV', [300, 0, 0])];
+      seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items, disc: [5000, 5000, 5000], mand: [0, 0, 0], order: items.map(i => i.id) });
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); flowEnts();
+        ${cats ? `flowCfg().cats=${J(cats)};` : ''} save(); flowSetAxis('buys'); 'ok'`);
+      return { X, file: X.ev('buildSavedHtml()') };
+    };
+    // the workbook from its bytes: the OGC rows that hold money, the OGC total, the sum of every OGC row, the tabs named by `tabs`,
+    // and the ladder as printed ("HOW EACH OGC CATEGORY WAS DECIDED": each rung's category)
+    const book = async (X, tabs) => {
+      const bk = JSON.parse(await w6Book(X.w, 'exportFlow'));
+      if (bk.__err) return J({ err: bk.__err });
+      const ff = bk['Funds Flow'] || [], a = ff.findIndex(r => / — BY WHAT THE MONEY BUYS$/.test(w6Lbl(r))), z = ff.findIndex((r, i) => i > a && w6Lbl(r) === 'OGC total');
+      const cats = ff.slice(a + 2, z).map(r => [w6Lbl(r), num(r[1])]), h = ff.findIndex(r => w6Lbl(r) === 'HOW EACH OGC CATEGORY WAS DECIDED');
+      const lad = []; for (let i = h + 3; i < ff.length && ff[i] && w6Lbl(ff[i]) !== '' && /^\d+$/.test(w6Lbl(ff[i])); i++) lad.push(String(ff[i][1]));
+      return J({ rows: cats.filter(r => r[1] !== 0), ogc: num((ff[z] || [])[1]), sum: cats.reduce((s, r) => s + (r[1] || 0), 0),
+        tabs: tabs.map(t => Object.keys(bk).filter(k => k === t).length), ladder: lad });
+    };
+    const panel = X => X.ev(`(function(){ var F=flowCalc(), V=flowView(F); return JSON.stringify(V.EXT.filter(function(e){ return e.v; }).map(function(e){ return [e.n, e.v]; })); })()`);
+    const mk = bootMark();
+    const { X, file } = make(CATS);
+    w5Chk(name, 'fixture', 'CONTROL — R1 funded in full, discretionary; the flow on what the money buys, its ladder as given',
+      X.ev(`JSON.stringify([tiers().R1.d, flowAxis(), flowCfg().cats.map(function(c){ return c.k; })])`), J([[900, 200, 0], 'buys', ['soft', 'eng', 'soft', 'ops']]));
+    const WANT = J({ rows: [['Software', 1100], ['Program Operations & Support', 300]], ogc: 1400, sum: 1400, tabs: [1, 0],
+      ladder: ['Software', 'Engineering', 'Software again', 'Program Operations & Support'] });
+    w5Chk(name, '(m) the Funds Flow workbook, read from its bytes', 'by hand: Software 1,100 once (R1, placed by the third rung, whose key is soft), Program Operations & Support 300, every other row 0; OGC total 1,400 and the rows add up to it; one Software tab and none for “Software again”; the ladder printed as applied, four rungs',
+      await book(X, ['Software', 'Software again']), WANT);
+    w5Chk(name, '(m) the panel', 'the chart’s boxes: Software 1,100 and Program Operations & Support 300, once each',
+      panel(X), J([['Software', 1100], ['Program Operations & Support', 300]]));
+    const O = boot({ html: file }); O.ev(`flowSetAxis('buys'); 'ok'`);
+    w5Chk(name, '(c) its saved file opened · the Funds Flow workbook', 'the same', await book(O, ['Software', 'Software again']), WANT);
+    const { X: C } = make(null);
+    w5Chk(name, 'CONTROL · the default ladder, five distinct keys', 'R1 (“Charlie Support”) and R2 match no rung’s words and are the remainder: Program Operations & Support 1,400; OGC total 1,400',
+      await book(C, ['Program Operations & Support']), J({ rows: [['Program Operations & Support', 1400]], ogc: 1400, sum: 1400, tabs: [1],
+        ladder: ['Workforce & Travel', 'Depot, Repair & Materiel', 'Software, IT & Cyber', 'Engineering, Projects & Studies', 'Program Operations & Support'] }));
+    bootRelease(mk, []); await settleBoards();
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.00 (U44) — buys ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

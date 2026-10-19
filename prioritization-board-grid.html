@@ -16259,11 +16259,16 @@ function flowCalc(arg){
            planYs:YS.filter(y=>flowYearMix(y,AS).plan.length>0),
            mixYs:YS.filter(y=>{ const m=flowYearMix(y,AS); return m.exec.length>0 && m.plan.length>0; }),
            prime:{LM:{v:0,rows:[],name:'Lockheed Martin'}, PW:{v:0,rows:[],name:'Pratt & Whitney'}},
-           primeTot:0, ext:{v:0, by:{}, keys:CATS.map(c=>c.k)},
+           // v2.00 (U44): EACH CATEGORY KEY IS ONE ROW, under the first category with it. A "what the money buys" list holding
+           // "ops" twice printed Program Operations & Support twice, its money in both, beside an OGC total that counted it once.
+           // Money is still placed by the whole ladder, in order (flowCatOf), so nothing moves; the rows, the panel and the tabs
+           // read the key once.
+           primeTot:0, ext:{v:0, by:{}, keys:CATS.map(c=>c.k).filter((k,i,a)=>a.indexOf(k)===i)},
            upl:{v:0, rows:[]}, uplTo:flowUplTo(), uplIn:0, cats:CATS};
   // every category exists whether or not it drew money this year, so the chart keeps its shape
   // month to month and a category falling to zero is itself visible
   CATS.forEach(c=>{
+    if(Object.prototype.hasOwnProperty.call(F.ext.by, c.k)) return;   // v2.00 (U44): the first category with the key names it
     F.ext.by[c.k]={v:0, rows:[], name:c.n};
     const SL=flowSubOf(c.k);
     if(SL){ F.ext.by[c.k].sub={keys:SL.map(x=>x.k), by:{}};
@@ -17516,7 +17521,8 @@ function exportFlow(){
     {name:tabName('Prime Detail','Prime'), cols:CD, rows:detail(F.prime.LM.rows.concat(F.prime.PW.rows))},
     {name:tabName('OGC Detail','OGC'), cols:CD, rows:detail(extAll)}
   ];
-  F.cats.forEach(c=>sheets.push({name:tabName(c.n,c.to||c.k), cols:CD,   // v2.00 (U44): an unnamed destination's tab, by its key
+  // v2.00 (U44): an unnamed destination's tab, by its key; and each category key one tab, as it is one row
+  F.cats.filter((c,i)=>F.cats.findIndex(x=>x.k===c.k)===i).forEach(c=>sheets.push({name:tabName(c.n,c.to||c.k), cols:CD,
     rows:detail((F.ext.by[c.k]||{rows:[]}).rows)}));
   if(F.upl.rows.length) sheets.push({name:tabName('Unfunded (UPL)','UPL'), cols:CD, rows:detail(F.upl.rows)});
   const bytes=buildXlsx(sheets);

@@ -5999,6 +5999,16 @@ const MUTATIONS = [
   { id: "v200-u44-own-gone-placed", area: "destFold", what: "a board not yet put right reads a key of its own for a repeat whose key is marked removed (7ee498a's ✕): the consolidated board, whose user removed Bravo Yard on 7ee498a, reads the manager's \"ddar1\" as its Charlie Yard, and R2, on Bravo Yard there, comes across on Charlie Yard, the workbook Charlie Yard 300 (fix round 6; QT1p)",
     find: "((n && DESTDB.gone.indexOf(x.k)<0) || (!n && destMovable(x.k)))? destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone, held)) : null]; });",
     repl: "((n) || (!n && destMovable(x.k)))? destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone, held)) : null]; });" },
+  // v2.00 (U44, the money review 13 Oct, S1): a "what the money buys" category list that repeated a key printed that category's row twice; each key is one row, under its first category, and the ladder still places the money.
+  { id: "v200-u44-buys-rows-every-key", area: "flowCalc", what: "every category of the ladder is a row: a list holding soft twice prints Software 1,100 twice beside an OGC total of 1,400",
+    find: "keys:CATS.map(c=>c.k).filter((k,i,a)=>a.indexOf(k)===i)},",
+    repl: "keys:CATS.map(c=>c.k)}," },
+  { id: "v200-u44-buys-last-name", area: "flowCalc", what: "the LAST category with a key names its row: R1's 1,100 prints under \"Software again\"",
+    find: "    if(Object.prototype.hasOwnProperty.call(F.ext.by, c.k)) return;   // v2.00 (U44): the first category with the key names it\n",
+    repl: "" },
+  { id: "v200-u44-buys-tabs-every-cat", area: "exportFlow", what: "every category of the ladder gets a tab: \"Software again\" gets one, holding Software's lines a second time",
+    find: "  F.cats.filter((c,i)=>F.cats.findIndex(x=>x.k===c.k)===i).forEach(c=>sheets.push(",
+    repl: "  F.cats.forEach(c=>sheets.push(" },
   // v2.00 (U44, verify-tests r7, 19 Oct): a repeat's place at the edges fix round 6's checks did not reach -- a second removal,
   // a ✕ answered No, a board not put right that removed a repeat and loads a package
   { id: "v200-u44-del-place-naive", area: "flowDelEnt", what: "✕ on a repeat keeps it removed under its place on the list as it stands, not the place every board counts: a second removal (Charlie Yard after Bravo Yard) is kept under Bravo Yard's place again, the manager's Delta Yard takes Charlie Yard's key, and R2, on Delta Yard there, comes across on Charlie Yard, the workbook Charlie Yard 300 (verify-tests r7; QT6)",

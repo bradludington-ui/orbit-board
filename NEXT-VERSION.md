@@ -2935,6 +2935,23 @@ result for it was run fresh against these commits.
     moves). Put it right asks in ⬅ Import a full board's own words ("Import everything from “this board as it stands” …").
     Locked-view refusals of destination edits are U10's; how U40's notice words two entries that share one key is U40's
     (the GUARD).
+- **U44, the "what the money buys" categories — a category list that repeats a key prints that category's row once**
+  (found by the U44 money review, 13 Oct). A board file whose categories held a key twice ("ops") passed the door, ⬅ Import
+  one appropriation took it, and the Funds Flow workbook printed Program Operations & Support $1,400 twice beside an OGC total
+  of $1,400. Now each key is one row -- the OGC rows, the panel's boxes and drill-down, and the tabs -- under the FIRST
+  category with that key; money is still placed by the whole ladder, in order, so no requirement moves, and the workbook's
+  ladder lists every rung as applied.
+  - **What users may see:** a board whose categories repeat a key prints that row once, its OGC rows adding up to the OGC
+    total, with one tab; nothing else changes.
+  - **Test:** audit-recon "v2.00 (U44) — a “what the money buys” category list that repeats a key prints that category’s row
+    once" (5 checks; 3 fail on 7ee498a): a ladder Software (Alpha), Engineering (Bravo), "Software again" (soft again,
+    Charlie), Program Operations & Support; R1 "Charlie Support" 1,100 printed once under Software, R2 300 the remainder; the
+    workbook from its bytes, the panel, the saved file opened; CONTROL the default ladder.
+  - **Mutations:** `v200-u44-buys-rows-every-key`, `-buys-last-name`, `-buys-tabs-every-cat` (3); each caught.
+  - **Not covered:** the door does not refuse a category list that repeats a key (it prints right now). The matching-rules
+    panel's share column shows such a category's share on each of its rungs (on screen only, as on 7ee498a; the workbook
+    prints the row once). The workbook's "HOW EACH OGC CATEGORY WAS DECIDED" lists a repeated rung by its own name
+    ("Software again"), though no row has that name: its money is in the first rung's row (Software).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -3083,6 +3100,18 @@ result for it was run fresh against these commits.
     - **U39 (P3).** Two entries with the same text print identical rows.
     - **U35 (P2, deferred by the lead; Codex's A1).** During a Live refresh, typing not yet committed in the RCN / EEIC
       dialog is replaced by the stored value without a question.
+  - **U44: built as two commits** (a release blocker by the lead's decision, 13 Oct; found by the lead's integration dry
+    run): a destination list that repeats a key, or holds "unassigned" / "destsplit", a key that is not text or an entry
+    that is not one, is refused at the door in a file handed over; the user's own board taken whole is put right as it comes
+    across, each such key, and each repeat (by its place, counting the repeats removed), taking the same key of its own on every
+    board, a board not yet put right reading that
+    key as its own entry, and a copy it did not carry following each key it moved (a destination removed here, by ✕ or by a list reset, stays removed); a board that carries such a list in any copy says so on
+    every opening and in 📍 Destinations, hands out no PMO copy or package (a return included), and offers Put it right; a
+    team's copy holding a key that is not text is refused; the funds flow and its
+    workbook count each key once, under the entry the board reads, never under their own rows; a "what the money buys"
+    category list that repeats a key prints its row once (above). Open: such a board is put right only when the user presses
+    Put it right; a PMO copy an ORBIT before this one published from such a board says nothing of it, and its office's
+    submittal cannot be taken (the office redoes its changes in a new copy) unless the lead decides to read it.
   - **UI chunks 1–3 and UI-C1: in this version** (Brad, 18 Oct): the new layout, presentation only (above). Carried as
     named limits by Brad's decision (18 Oct): toolbar-fits' one-line rule fails at a 1152 px window beside the open
     sidebar (every control on screen, whole and clickable), and layout-fits D fails at four sizes, sliding over and
