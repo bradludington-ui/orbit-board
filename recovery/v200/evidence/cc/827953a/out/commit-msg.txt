@@ -1,0 +1,18 @@
+v2.00 (U10 10 of 12): where the funds flow puts the unfunded priority list, refused in a locked view, moves no money in any total or export; and Put back's refusal is typed in its own words
+
+A test only; the board is unchanged. The round-5 test review's proposal, byte for byte. Where the Unfunded Priority
+List goes -- counted as a Lockheed Martin line or held outside the flow -- is a funds-flow setting that moves money;
+U10 1 puts it back after a refusal, but no check read it: a refusal that kept it passed all 144 checks of U10 1-9
+while the export labelled "[PB27 LOCKED]" read TOTAL FUNDING $40,000,000 and Lockheed Martin $0 for $43,000,000 and
+$3,000,000. And U10 7's check read Put back's refusal only as "Not kept", without recording its question; the added
+check types its words and that nothing is asked. U10 10 of 12 (the round-5 test review's MF1 and SF1).
+
+Audit-recon +103 -0, mutate +11 -0, and its NEXT-VERSION.md entry.
+
+audit-recon: a new "v2.00 (U10)" block, 6 checks, and one check added to U10 7's block; the 2 non-control checks
+fail on 7ee498a (the 5 controls pass); all 7 pass at U10 9. 3 mutations. Not covered: the funds flow's presentation
+settings (U10 9).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MqCBDiYHPZfnyapxhXKxBm
+

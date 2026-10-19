@@ -1,0 +1,1 @@
+{"id": "v200-u4-stamp-over-edit", "matches": 1, "find": "      if(MS.ts===wroteTs){ MS.ts=ts0; MS.by=by0; }\n", "repl": "      MS.ts=ts0; MS.by=by0;\n"}

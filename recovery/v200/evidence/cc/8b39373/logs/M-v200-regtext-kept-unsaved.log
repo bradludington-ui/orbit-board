@@ -1,0 +1,19 @@
+# label: M-v200-regtext-kept-unsaved
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/out/M-v200-regtext-kept-unsaved.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/harness/h-u36.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/mut/v200-regtext-kept-unsaved.html
+# start: 2026-10-13 19:44:36 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/mut/v200-regtext-kept-unsaved.html","BOARD_set":true,"board":"b6407c4196c2fd86f04c32e46719fa3cb0a5aeb3","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/harness/h-u36.mjs","harnessBlob":"727b63debe73ac14e7545926046771e93481078c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 7:44:38 PM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | a refused title corrected in its field
+    81 letters refused there, then "good title" typed in the same field: kept, drawn again unmarked, and the refusal is gone from the status line
+        got ["⚠ RCN / EEIC title not changed. The title “AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…” is 81 characters; it can be at most 80. Nothing was changed.","good title","good title","true","⚠ RCN / EEIC title not changed. The title “AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…” is 81 characters; it can be at most 80. Nothing was changed."]   want ["⚠ RCN / EEIC title not changed. The title “AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA…” is 81 characters; it can be at most 80. Nothing was changed.","good title","good title",null,""]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | a title within the limit, typed in the panel
+    CONTROL — kept, saved (the board marked changed, its save stamp moved) and drawn again; the field has no maxlength
+        got ["kept title",false,false,true,"kept title",false]   want ["kept title",true,true,false,"kept title",false]
+# exit 1 at 10/13/2026, 7:44:50 PM ET
+
+# end: 2026-10-13 19:44:50 EDT  exit: 1  wall_s: 13.8

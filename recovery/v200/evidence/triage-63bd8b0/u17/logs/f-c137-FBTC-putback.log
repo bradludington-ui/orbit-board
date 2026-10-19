@@ -1,0 +1,26 @@
+PASS [fixture] fixture.v1: brad's first 💾 Save wrote BRAD-1/$700 into the board file, recorded clean against it ([file, writes, DIRTY, record dirty, record file time = the file's])
+     expected ["BRAD-1",1,false,false,true]
+     observed ["BRAD-1",1,false,false,true]
+PASS [fixture] fixture.typed: brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])
+     expected ["BRAD-2",true,true]
+     observed ["BRAD-2",true,true]
+PASS [predict] FBTC.adopt: the other copy is put on screen with no save under way ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])
+     expected ["F1",0,true,null,true]
+     observed ["F1",0,true,null,true]
+PASS [contract] FBTC.K1: CONTRACT once settled [screen, recorded clean, the file version the record names]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["F1",false,"F1"]]
+     observed ["F1",true,"F1"]
+PASS [predict] FBTC.U17state: U17 STATE (file analogue) once settled: recorded clean while the screen differs from the file version the record names ["F1",true,"F1"]
+     expected false
+     observed false
+PASS [predict] FBTC.V4putback: ↶ put it back, then 💾 Save ["kept before","the question's claim","screen before","file before","put back says","kept after","screen after put back","file after Save","Save says","Save asked"]
+     expected [null,"none","F1","BRAD-1","nothing kept",null,"F1","F1","saved-file",1]
+     observed [null,"none","F1","BRAD-1","nothing kept",null,"F1","F1","saved-file",1]
+PASS [contract] FBTC.U17.V4: U17 (file analogue, V4putback): from a falsely clean record, ↶ Put back's question says the screen copy is still in the saved file it came from (the file holds other content) and the screen copy is then kept in no copy of the board ([record falsely clean before, the claim false, the screen copy kept nowhere in the board])
+     expected {"not":[true,true,true]}
+     observed [false,false,false]
+u17state {"tuple":["F1",true,"F1"],"falselyClean":false}
+nextFrom {"K":["F1",true,"F1"],"falselyClean":false,"file":"BRAD-1","versions":["F1@10/12/2026, 11:00:49 ET","BRAD-1@10/12/2026, 11:00:50 ET"]}
+v4parts {"falselyClean":false,"claim":"none","falseClaim":false,"notKept":false,"screenCopyIn":{"file":true,"screen":true,"storage":true,"keptSlot":false,"earlierFileVersionsOnly":["10/12/2026, 11:00:49 ET"]},"saveAfterPutBackAsked":1,"saveAfterPutBackSays":"saved-file"}
+ids {"board":"1375b72b6707faa57c50d528e01ce9611f194998","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"6b65ff659b6f2f374b29b2707cf1ce049a5eecf2","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/c137/prioritization-board-grid.html"}
+SUMMARY FBTC putback board=pre: 7 pass, 0 fail | fixture 2/2 | predict 3/3 | contract 2/2 | harness 0/0

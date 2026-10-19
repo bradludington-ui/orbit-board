@@ -1,0 +1,8 @@
+# Not copied (reproducible): node_modules symlinks, tools/ trees, and board copies. Each board copy's path and blob:
+./boards/after/prioritization-board-grid.html b4c55e38aca79f1310d82f84ca7933321b536b64
+./boards/before/prioritization-board-grid.html 4d273c0680132caafc4cbc8ca09c1533735c86de
+./verify/mut/m1-fy26-offered/prioritization-board-grid.html 3f9338205ff9eb0ece14b98cab8158cc69f4ede1
+./verify/mut/m2-fallback-first/prioritization-board-grid.html 0fdc161c6e0115092d4493e3ce72cada7d02c6d1
+./verify/mut/m3-keep-2026/prioritization-board-grid.html e4b97bac37a1275d82fd1a374226d28dc8139d27
+./verify/mut/m4-no-fy26-plan/prioritization-board-grid.html 33911935a7d68c0cb66fa4a88d79e4847e653d8c
+./verify/mut/m5-reopen-drops-fys/prioritization-board-grid.html adc500460daeb6fdcb3db1bd66fb9ff6fba94747

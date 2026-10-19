@@ -1,0 +1,11 @@
+file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20/u20probe.mjs:54
+if (!SCEN.includes(scenario)) throw new Error('unknown scenario ' + scenario);
+                                    ^
+
+Error: unknown scenario BR-C2ah
+    at file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20/u20probe.mjs:54:37
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.0

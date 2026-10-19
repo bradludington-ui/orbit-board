@@ -1,0 +1,3 @@
+-  if(CYCVIEW){ cycRefuse('Loading a board'); render(); return false; }
++  // v2.00 (U10): "Save yours over theirs" is a save, and is refused as one -- in a save's words, not Load theirs'.
++  if(CYCVIEW){ cycRefuse(which==='mine'? 'Writing to the shared folder' : 'Loading a board'); render(); return false; }

@@ -1,0 +1,52 @@
+# label: M-v200-u18-stamp-moved
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/M-v200-u18-stamp-moved.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-stamp-moved.html
+# start: 2026-10-18 15:30:18 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-stamp-moved.html","BOARD_set":true,"board":"4e10f0126345d1be5bbc5c536443b7bbd5b741fb","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 3:30:20 PM ET"}
+
+================================================================================================
+13 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (1) Bob takes the pen and saves while Brad’s save is held
+    the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+        got [false,"Unsaved changes"]   want [true,"Unsaved changes"]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held
+    Brad’s board is as it was: BRAD-1, $700, on screen and in browser storage, saved, recorded against v1, stamped with v1’s time and his name, and its header unchanged
+        got ["BRAD-1",700,"BRAD-1",700,true,true,false,"Brad",true]   want ["BRAD-1",700,"BRAD-1",700,true,true,true,"Brad",true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (3) Bob saves during the held save; Brad chooses Load theirs
+    the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+        got [false,"Unsaved changes"]   want [true,"Unsaved changes"]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy removed while that save is held
+    Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+        got [["Bob"],false,"Brad"]   want [["Bob"],true,"Bob"]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unreadable while that save is held
+    Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+        got [["Bob"],false,"Brad"]   want [["Bob"],true,"Bob"]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (8) Brad takes the pen; Bob saves while that save is held
+    Brad’s journal holds no line saying he took the pen -- its one pen line is still Bob’s; BRAD-3 on screen, unsaved; BRAD-2 still kept aside; the board’s stamp as it was
+        got [["Bob"],"BRAD-3",730,true,["BRAD-2",720],false]   want [["Bob"],"BRAD-3",730,true,["BRAD-2",720],true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (9) Bob takes the pen while Brad’s Live autosave is held
+    Brad’s work stays on screen, in browser storage and unsaved, recorded against v1; the board’s stamp as it was; the refresh after it says Bob saved, and nothing says it saved
+        got ["BRAD-2",720,"BRAD-2",720,true,true,false,true,false]   want ["BRAD-2",720,"BRAD-2",720,true,true,true,true,false]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (10) nothing typed: Brad takes the pen over Bob’s copy; Bob saves while that save is held
+    nothing is written over BOB-3; Brad’s board is still stamped with Bob’s copy’s time and Bob’s name, its header unchanged, its tooltip still by Bob
+        got ["BOB-3",640,"Bob","Bob",false,"Brad",true,false,true]   want ["BOB-3",640,"Bob","Bob",true,"Bob",true,true,false]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes the pen
+    once the view is left, the working plan is still saved, stamped with v1’s time and Brad’s name; its header and its tooltip say what they said before the save
+        got [true,false,"Brad",false,false,true]   want [true,true,"Brad",true,true,true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves
+    once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved
+        got [["Bob"],false,"BRAD-3",730,true]   want [["Bob"],true,"BRAD-3",730,true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held
+    Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered
+        got ["BRAD-2",720,true,true,false,["driveResolve('theirs')","driveResolve('mine')"]]   want ["BRAD-2",720,true,true,true,["driveResolve('theirs')","driveResolve('mine')"]]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (14) 💾 Save held at the close of its history copy; a full import stops part-way there, and Bob’s copy lands there
+    nothing is written over Bob’s copy: it keeps its bytes; no save is reported or said; the note typed stays unsaved, and the board’s stamp is what it was
+        got [0,true,false,false,"true",false]   want [0,true,false,false,"true",true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (14) the Live autosave held at the close of its history copy; a full import stops part-way there, and Bob’s copy lands there
+    nothing is written over Bob’s copy: it keeps its bytes; no save is reported or said; the note typed stays unsaved, and the board’s stamp is what it was
+        got [0,true,false,false,"true",false]   want [0,true,false,false,"true",true]
+# exit 1 at 10/18/2026, 3:33:25 PM ET
+
+# end: 2026-10-18 15:33:27 EDT  exit: 1  wall_s: 188.7

@@ -1,0 +1,36 @@
+// v2.00 (R2): AN EEIC IS CHECKED IN THE FORM IT IS STORED. rcnSet keeps an EEIC trimmed and upper-cased, but item 91's
+// limit read it as typed, and upper-casing can lengthen it: ß becomes SS, ﬃ becomes FFI. Ten ß passed as 10 characters
+// and were kept as 20 -- a code over its limit, written by the board itself. Now the form that is kept is the form checked:
+// refused, the list keeps what it had, the field keeps what was typed, marked, and the status says the EEIC was not
+// changed. Each case types into a field of its own, the list holding AAAAA; the expected values are literals.
+// FAILS ON 1c94537 except the CONTROLs.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = _w1Mark();
+  const name = 'v2.00 (R2) — an EEIC is checked in the form it is stored';
+  try {
+  const J = JSON.stringify;
+  const { ev } = boot();
+  seed(ev, { services: ['USAF', 'ANG'], items: [it('X', 'AV', [500, 700])], disc: [10000, 10000], mand: [0, 0], order: ['X'] });
+  // [the EEIC kept, the field marked, the field's text, the status says EEIC not changed]
+  const typed = t => w1json(ev, `JSON.stringify((function(){ MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA'}]; setStat(''); const el=document.createElement('input');
+      el.value=${J(t)}; rcnSet(0,'eeic',el.value,el);
+      return [MS.rcn[0].eeic, el.getAttribute('aria-invalid'), el.value, /EEIC not changed/.test(document.getElementById('shareStat').textContent)]; })())`);
+  const SZ = 'ß', FFI = 'ﬃ';
+  chk(name, 'EEIC typed as ß×10', 'upper-cased it is 20 characters: refused, the list keeps AAAAA, the field keeps what was typed, marked, the status says EEIC not changed',
+    J(typed(SZ.repeat(10))), J(['AAAAA', 'true', SZ.repeat(10), true]));
+  chk(name, 'EEIC typed as ﬃ×4', 'upper-cased it is 12 characters: refused, the list keeps AAAAA, the field keeps what was typed, marked, the status says EEIC not changed',
+    J(typed(FFI.repeat(4))), J(['AAAAA', 'true', FFI.repeat(4), true]));
+  chk(name, 'EEIC typed as ABCDEFGHIJK', 'CONTROL — 11 characters as typed: refused, the list keeps AAAAA, the field is marked',
+    J(typed('ABCDEFGHIJK')), J(['AAAAA', 'true', 'ABCDEFGHIJK', true]));
+  chk(name, 'EEIC typed as " ab12c "', 'CONTROL — kept trimmed and upper-cased as AB12C, the field not marked',
+    J(typed(' ab12c ')), J(['AB12C', null, ' ab12c ', false]));
+  chk(name, 'EEIC typed as ABCDEFGHIJ', 'CONTROL — 10 characters: kept as ABCDEFGHIJ, the field not marked',
+    J(typed('ABCDEFGHIJ')), J(['ABCDEFGHIJ', null, 'ABCDEFGHIJ', false]));
+  chk(name, 'EEIC typed as ß×5', 'CONTROL — upper-cased it is exactly 10 characters: kept as SSSSSSSSSS, the field not marked',
+    J(typed(SZ.repeat(5))), J(['SSSSSSSSSS', null, SZ.repeat(5), false]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  _w1Release(__bm, []);
+  await _w1Settle();
+})();

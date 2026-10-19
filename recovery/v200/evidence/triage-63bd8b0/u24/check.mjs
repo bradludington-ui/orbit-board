@@ -1,0 +1,212 @@
+// check.mjs -- the EXPECTED values, written by hand, against the OBSERVED values in out/<pass>-<scenario>.json.
+//   usage: node check.mjs <pass>          (reads out/<pass>-*.json, writes out/checks-<pass>.json, prints a table)
+// Nothing here runs a board. Observed values come only from the probe's JSON; expected values are literals.
+// KINDS:
+//   RUN       the run finished with no error, on board 98eed7e8
+//   FIX       the scenario's preconditions, including HOW A PERSON REACHES THE PATH (the button or link in the status line,
+//             the File-menu item, the page's own request for the shared state file)
+//   HOLD      the save is held where the scenario says (busy, nothing recorded yet, what it asked)
+//   PRED      the observed tuples, predicted by reading the code of 98eed7e8 (a failure = my reading was wrong, not a defect)
+//   CONTRACT  U13's end-state contract: K1 (the end state), K2 (a quiet refresh, folder), K3 (a reopen from the end state)
+//             never FALSELY CLEAN = recorded clean while the screen differs from the copy the record names as base; REACH:
+//             each leaf content in some copy this board holds (screen, storage, kept slot, folder copy or history, the board
+//             file) or fetches at every opening (the shared state file). A CONTRACT failure on a W scenario is a
+//             reproduction; on a control it means the control is NOT healthy.
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+const pass = process.argv[2];
+const dir = new URL('./out/', import.meta.url).pathname;
+const J = JSON.stringify;
+const rows = [];
+const chk = (sc, kind, what, got, want) => { const ok = J(got) === J(want); rows.push({ sc, kind, what, got, want, ok }); return ok; };
+const HOUR = 3600000;
+const words = s => /^Shared state loaded \(published/.test(s) ? 'shared-loaded'
+  : /^🔗 Shared state loaded automatically/.test(s) ? 'shared-auto'
+  : /arrived after you started working, so nothing was replaced/.test(s) ? 'shared-refused'
+  : /Your local changes are newer than the shared state/.test(s) ? 'shared-newer-local'
+  : /^📦 Opened the saved file’s version/.test(s) ? 'file-version'
+  : /^⬅ Imported:/.test(s) ? 'imported'
+  : /^💾 Saved in place by/.test(s) ? 'saved-file' : /^✅ Saved/.test(s) ? 'saved-folder' : 'other: ' + String(s).slice(0, 60);
+const tgt = o => o.head !== undefined ? (o.head && o.head.whose) : (o.file && o.file.whose);
+const ACT = (o, a) => [o.screen.whose, o.busy, a.genMoved, o.DIRTY, !!(o.base && o.base.dirty), o.kept ? o.kept.whose : null, words(o.status)];
+const END = o => [o.screen.whose, o.recordedClean, o.baseCopy.whose, tgt(o), o.falselyClean];
+const RO = o => [o.screen.whose, o.recordedClean, o.baseCopy.whose, o.falselyClean];
+const RF = o => [o.screen.whose, o.recordedClean, o.falselyClean];
+const INBOARD = p => !p.startsWith('outside') && p !== 'importSource';
+
+// ---- EXPECTED (hand-written; see README "Expected values" for the code reading behind each) ----
+// act: [screen, _saveBusy, _saveGen moved, DIRTY, record dirty, kept slot, what the status line says]
+// end: [screen, recorded clean, the record's base copy, the save target's content, FALSELY CLEAN]
+// reopen: [screen, recorded clean, base copy, FALSELY CLEAN]      refresh (folder): [screen, recorded clean, FALSELY CLEAN]
+// hold: [_saveBusy, the target's content, DIRTY, questions asked so far]
+const E = {
+  'SHc-fold-W':  { hold: [1, 'BRAD-1', true, 0], act: ['SHARED', 1, false, true, true, 'BRAD-2', 'shared-loaded'], end: ['SHARED', true, 'BRAD-2', 'BRAD-2', true],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['BRAD-2', true, false] },
+  'SHc-fold-C1': { act: ['SHARED', 0, false, true, true, 'BRAD-2', 'shared-loaded'], end: ['SHARED', false, 'BRAD-1', 'BRAD-1', false],
+                   reopen: ['SHARED', false, 'BRAD-1', false], refresh: ['SHARED', false, false] },
+  'SHc-fold-C2': { end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false], reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['BRAD-2', true, false] },
+  'SHc-file-W':  { hold: [1, 'BRAD-1', true, 0], act: ['SHARED', 1, false, true, true, 'BRAD-2', 'shared-loaded'], end: ['SHARED', true, 'BRAD-2', 'BRAD-2', true],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  'SHc-file-C1': { act: ['SHARED', 0, false, true, true, 'BRAD-2', 'shared-loaded'], end: ['SHARED', false, 'BRAD-1', 'BRAD-1', false],
+                   reopen: ['SHARED', false, 'BRAD-1', false] },
+  'SHc-file-C2': { end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false], reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  // path A from a CLEAN record (nothing unsaved; added at 11:36 AM ET after reading rec/L4/u17's observation 2): by code the
+  // sidecar's loads never mark the record, so the NO-SAVE controls are falsely clean too -- not attributable to a save
+  'SHc-fold-Wclean':  { hold: [1, 'BRAD-1', false, 0], act: ['SHARED', 1, false, false, false, null, 'shared-loaded'], end: ['SHARED', true, 'BRAD-1', 'BRAD-1', true],
+                   reopen: ['BRAD-1', true, 'BRAD-1', false], refresh: ['BRAD-1', true, false] },
+  'SHc-fold-C1clean': { act: ['SHARED', 0, false, false, false, null, 'shared-loaded'], end: ['SHARED', true, 'BRAD-1', 'BRAD-1', true],
+                   reopen: ['BRAD-1', true, 'BRAD-1', false], refresh: ['BRAD-1', true, false] },
+  'SHc-file-C1clean': { act: ['SHARED', 0, false, false, false, null, 'shared-loaded'], end: ['SHARED', true, 'BRAD-1', 'BRAD-1', true],
+                   reopen: ['BRAD-1', true, 'BRAD-1', false] },
+  'SHa-fold-Wclean':  { hold: [1, 'BRAD-1', false, 0], act: ['SHARED', 1, false, false, false, null, 'shared-auto'], end: ['SHARED', true, 'BRAD-1', 'BRAD-1', true],
+                   reopen: ['SHARED', true, 'BRAD-1', true], refresh: ['SHARED', true, true] },
+  'SHa-fold-C1clean': { act: ['SHARED', 0, false, false, false, null, 'shared-auto'], end: ['SHARED', true, 'BRAD-1', 'BRAD-1', true],
+                   reopen: ['SHARED', true, 'BRAD-1', true], refresh: ['SHARED', true, true] },
+  'SHa-file-C1clean': { act: ['SHARED', 0, false, false, false, null, 'shared-auto'], end: ['SHARED', true, 'BRAD-1', 'BRAD-1', true],
+                   reopen: ['SHARED', true, 'BRAD-1', true] },
+  'SHa-fold-W':  { hold: [1, 'BRAD-1', false, 0], act: ['SHARED', 1, false, false, true, 'BRAD-2', 'shared-auto'], end: ['SHARED', true, 'BRAD-2', 'BRAD-2', true],
+                   reopen: ['SHARED', true, 'BRAD-2', true], refresh: ['SHARED', true, true] },
+  'SHa-fold-Wnow': { hold: [1, 'BRAD-1', false, 0], act: ['BRAD-2', 1, false, false, true, null, 'shared-newer-local'], end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['BRAD-2', true, false] },
+  'SHa-fold-C1': { act: ['SHARED', 0, false, false, true, 'BRAD-2', 'shared-auto'], end: ['SHARED', false, 'BRAD-1', 'BRAD-1', false],
+                   reopen: ['SHARED', false, 'BRAD-1', false], refresh: ['SHARED', false, false] },
+  'SHa-fold-C2': { end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false], reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['BRAD-2', true, false] },
+  'SHa-file-W':  { hold: [1, 'BRAD-1', true, 0], act: ['BRAD-2', 1, false, true, true, null, 'shared-refused'], end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  'SHa-file-Wread': { hold: [1, 'BRAD-1', false, 0], act: ['SHARED', 1, false, false, true, 'BRAD-2', 'shared-auto'], end: ['SHARED', true, 'SHARED', 'SHARED', false],
+                   reopen: ['SHARED', true, 'SHARED', false] },
+  'SHa-file-C1': { act: ['SHARED', 0, false, false, true, 'BRAD-2', 'shared-auto'], end: ['SHARED', false, 'BRAD-1', 'BRAD-1', false],
+                   reopen: ['SHARED', false, 'BRAD-1', false] },
+  'SHa-file-C2': { end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false], reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  'BT-file-W':   { hold: [1, 'CAROL-F', true, 1], act: ['CAROL-F', 1, false, false, false, 'KEPT-0', 'file-version'], end: ['CAROL-F', true, 'BRAD-2', 'BRAD-2', true],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  'BT-file-C1':  { act: ['CAROL-F', 0, false, false, false, 'KEPT-0', 'file-version'], end: ['CAROL-F', true, 'CAROL-F', 'CAROL-F', false],
+                   reopen: ['CAROL-F', true, 'CAROL-F', false] },
+  'BT-file-C2':  { saved: 1, end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false], reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  // C3: corrected after the dev pass (11:25 AM ET): the save's own "Saved" line replaces the status line, so the button is gone
+  'BT-file-C3':  { saved: 1, how: 'BUTTONS:0', act: ['BRAD-2', 0, false, false, false, 'KEPT-0', 'saved-file'], end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  'BT-fold-W':   { hold: [1, 'BRAD-1', false, 0], act: ['CAROL-F', 1, false, false, false, 'KEPT-0', 'file-version'], end: ['CAROL-F', true, 'BRAD-2', 'BRAD-2', true],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['BRAD-2', true, false] },
+  // C1 in folder mode: by code, bootTakeFile records the FILE's copy and leaves the folder record clean against BRAD-1: falsely clean with no save
+  'BT-fold-C1':  { act: ['CAROL-F', 0, false, false, false, 'KEPT-0', 'file-version'], end: ['CAROL-F', true, 'BRAD-1', 'BRAD-1', true],
+                   reopen: ['CAROL-F', true, 'BRAD-1', true], refresh: ['CAROL-F', true, true] },
+  'BT-fold-C2':  { saved: 0, end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false], reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['BRAD-2', true, false] },
+  'BT-fold-C3':  { saved: 0, how: 'BUTTONS:0', act: ['BRAD-2', 0, false, false, false, 'KEPT-0', 'saved-folder'], end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['BRAD-2', true, false] },
+  'IB-fold-W':   { hold: [1, 'BRAD-1', true, 0], act: ['IMPORT', 1, true, true, true, null, 'imported'], end: ['IMPORT', false, 'BRAD-2', 'BRAD-2', false],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['IMPORT', false, false] },
+  'IB-fold-C1':  { act: ['IMPORT', 0, true, true, true, null, 'imported'], end: ['IMPORT', false, 'BRAD-1', 'BRAD-1', false],
+                   reopen: ['IMPORT', false, 'BRAD-1', false], refresh: ['IMPORT', false, false] },
+  'IB-fold-C2':  { saved: 0, end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false], reopen: ['BRAD-2', true, 'BRAD-2', false], refresh: ['BRAD-2', true, false] },
+  'IB-fold-Wclean': { hold: [1, 'BRAD-1', false, 0], act: ['IMPORT', 1, true, true, false, null, 'imported'], end: ['IMPORT', false, 'BRAD-1', 'BRAD-1', false],
+                   reopen: ['BRAD-1', true, 'BRAD-1', false], refresh: ['IMPORT', false, false] },
+  'IB-fold-C1clean': { act: ['IMPORT', 0, true, true, false, null, 'imported'], end: ['IMPORT', false, 'BRAD-1', 'BRAD-1', false],
+                   reopen: ['IMPORT', true, 'BRAD-1', true], refresh: ['IMPORT', false, false] },
+  'IB-file-W':   { hold: [1, 'BRAD-1', true, 0], act: ['IMPORT', 1, true, true, true, null, 'imported'], end: ['IMPORT', false, 'BRAD-2', 'BRAD-2', false],
+                   reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  'IB-file-C1':  { act: ['IMPORT', 0, true, true, true, null, 'imported'], end: ['IMPORT', false, 'BRAD-1', 'BRAD-1', false], reopen: ['IMPORT', false, 'BRAD-1', false] },
+  'IB-file-C2':  { saved: 0, end: ['BRAD-2', true, 'BRAD-2', 'BRAD-2', false], reopen: ['BRAD-2', true, 'BRAD-2', false] },
+  'IB-file-Wclean': { hold: [1, 'BRAD-1', true, 0], act: ['IMPORT', 1, true, true, true, null, 'imported'], end: ['IMPORT', false, 'BRAD-1', 'BRAD-1', false],
+                   reopen: ['BRAD-1', true, 'BRAD-1', false] },
+  'IB-file-C1clean': { act: ['IMPORT', 0, true, true, false, null, 'imported'], end: ['IMPORT', false, 'BRAD-1', 'BRAD-1', false], reopen: ['IMPORT', true, 'BRAD-1', true] },
+};
+// THE LEAVES each must stay reachable (CONTRACT REACH). Left out, and said: BT's CAROL-F where the person answered the HOLD ON
+// question "OK — overwrite anyway (their version stays in Teams version history)" (W, C2, C3: the file copy is written over by
+// consent; in W it is also put back on screen by the person); BT C1's BRAD-2, where the person answered "This browser’s own
+// work is NOT kept" with OK; IB C1's BRAD-2, replaced by the import after the person answered OK to "Each file … REPLACES that
+// appropriation’s current data here" (nothing is kept aside by an import; that is its design); IB C2's IMPORT, never imported.
+// (Leaves set at 11:31 AM ET after the dev pass, which had listed IMPORT for C2 and BRAD-2 for IB C1.)
+const LEAVES = sc => {
+  const [p, m, k] = sc.split('-');
+  if (p === 'SHc' || p === 'SHa') return [/clean$/.test(k) ? 'BRAD-1' : 'BRAD-2', 'SHARED'];
+  if (p === 'IB') return k === 'C2' ? ['BRAD-2'] : k === 'C1' ? ['IMPORT'] : [/clean$/.test(k) ? 'BRAD-1' : 'BRAD-2', 'IMPORT'];
+  if (k === 'C1') return ['CAROL-F', 'KEPT-0'];
+  return m === 'fold' ? ['BRAD-2', 'KEPT-0', 'CAROL-F'] : ['BRAD-2', 'KEPT-0'];
+};
+const SC = Object.keys(E);
+const summary = {};
+for (const sc of SC) {
+  const p = dir + pass + '-' + sc + '.json';
+  if (!existsSync(p)) { chk(sc, 'RUN', 'output present', false, true); continue; }
+  const O = JSON.parse(readFileSync(p, 'utf8')); const R = O.steps; const [path, mode, kind] = sc.split('-'); const X = E[sc];
+  chk(sc, 'RUN', 'finished, no error, board 98eed7e8', [O.errors.length, O.incomplete || null, O.IDS.board.slice(0, 8)], [0, null, '98eed7e8']);
+  if (O.errors.length || O.incomplete) continue;
+  const S0 = R.setup;
+  // ---- FIX ----
+  if (path === 'SHc') {
+    chk(sc, 'FIX', 'the page asked for the shared state file once, at opening (fetch prio-state-om.json, no-store)', R.bootX.fetchCalls, [{ url: 'prio-state-om.json', cache: 'no-store' }]);
+    chk(sc, 'FIX', "brad's first 💾 Save landed: [screen, recorded clean, base copy]", [R.afterSave1.screen.whose, R.afterSave1.recordedClean, R.afterSave1.baseCopy.whose], ['BRAD-1', true, 'BRAD-1']);
+    if (/clean$/.test(kind)) chk(sc, 'FIX', "REACH: the state file (published before BRAD-1 was saved) arrived; 'load the shared one (yours is kept aside first)' offered in the status line [screen, DIRTY, record dirty, buttons, words]",
+      [S0.screen.whose, S0.DIRTY, !!S0.base.dirty, S0.statusBtns, words(S0.status)], ['BRAD-1', false, false, ['adoptShared()'], 'shared-newer-local']);
+    else chk(sc, 'FIX', "REACH: the state file arrived after BRAD-2 was typed; nothing replaced; 'load the shared one' offered in the status line [screen, DIRTY, record dirty, buttons, words]",
+      [S0.screen.whose, S0.DIRTY, !!S0.base.dirty, S0.statusBtns, words(S0.status)], ['BRAD-2', true, true, ['adoptShared()'], 'shared-refused']);
+  }
+  if (path === 'SHa') {
+    const cl = /clean$/.test(kind);
+    chk(sc, 'FIX', cl ? 'session 1 closed clean at BRAD-1 [screen, DIRTY, record dirty]' : 'session 1 closed with BRAD-2 unsaved [screen, DIRTY, record dirty]',
+      [R.session1.screen.whose, R.session1.DIRTY, !!R.session1.base.dirty], cl ? ['BRAD-1', false, false] : ['BRAD-2', true, true]);
+    chk(sc, 'FIX', 'reopened: ' + (cl ? 'BRAD-1, the record clean' : 'BRAD-2 on screen, DIRTY false, the record dirty') + ', nothing kept, the state file not answered yet [.., SHARED]',
+      [S0.screen.whose, S0.DIRTY, !!S0.base.dirty, S0.kept, S0.shared], cl ? ['BRAD-1', false, false, null, null] : ['BRAD-2', false, true, null, null]);
+    chk(sc, 'FIX', 'the page asked for the shared state file once, at opening', R.bootX.fetchCalls, [{ url: 'prio-state-om.json', cache: 'no-store' }]);
+    const d = S0.sharedTsMinusNow;
+    chk(sc, 'FIX', kind === 'Wnow' ? 'PREREQUISITE (Wnow): the state file is stamped at or before real time' : 'PREREQUISITE: the state file is stamped about an hour ahead (Carol’s clock): 59:50 to 60:00 min',
+      kind === 'Wnow' ? d <= 0 : (d > HOUR - 10000 && d <= HOUR), true);
+  }
+  if (path === 'BT') {
+    chk(sc, 'FIX', "Carol's copies reach the board file as her downloads, copied over it: [CAROL-F content, its writer, by]", [R.carolF.whose, R.carolF.writer, R.carolF.by], ['CAROL-F', 'Brad', 'Carol']);
+    chk(sc, 'FIX', 'opening 2: the file newer -> KEPT-0 kept aside (from the file), CAROL-1 opened [screen, kept, why]', [R.open2.screen.whose, R.open2.kept && R.open2.kept.whose, R.open2.kept && R.open2.kept.why], ['CAROL-1', 'KEPT-0', 'file']);
+    chk(sc, 'FIX', "REACH: opening 3 -- the file newer again, BRAD-2 unsaved, KEPT-0 kept: the file is NOT opened, 'open the file’s version' offered in the status line [screen, DIRTY, record dirty, kept, bootHeld.occupied, offered]",
+      [S0.screen.whose, S0.DIRTY, !!S0.base.dirty, S0.kept && S0.kept.whose, !!(S0.bootHeld && S0.bootHeld.occupied), S0.statusBtns.includes('bootTakeFile()')], ['BRAD-2', false, true, 'KEPT-0', true, true]);
+    chk(sc, 'FIX', 'the save target before the save [content]', [tgt(S0)], [mode === 'fold' ? 'BRAD-1' : 'CAROL-F']);
+    if (mode === 'fold') chk(sc, 'FIX', "the opening's own connect ran (granted) and said nothing over the offer", [R.opening.v, S0.driveLive], [true, true]);
+  }
+  if (path === 'IB') {
+    const clean = /clean$/.test(kind);
+    chk(sc, 'FIX', 'start [screen, DIRTY, record dirty, base copy]', [S0.screen.whose, S0.DIRTY, !!S0.base.dirty, S0.baseCopy.whose], clean ? ['BRAD-1', false, false, 'BRAD-1'] : ['BRAD-2', true, true, 'BRAD-1']);
+    chk(sc, 'FIX', "the file to import: Carol's board file [content, writer]", [R.impFile.whose, R.impFile.writer], ['IMPORT', 'Brad']);
+  }
+  // ---- HOLD ----
+  if (X.hold) {
+    const H = R.atHold;
+    chk(sc, 'HOLD', 'the 💾 Save is held ' + (kind === 'Wread' ? 'at its read of the file' : 'at the close of its main write') + ' [reached, busy, target content, DIRTY, questions asked]',
+      [R.heldReached, H.busy, tgt(H), H.DIRTY, H.asked.length], [true, ...X.hold.slice(0, 2), X.hold[2], X.hold[3]]);
+    if (sc === 'BT-file-W') chk(sc, 'HOLD', 'the question asked was HOLD ON (answered OK)', /^⚠ HOLD ON — Carol saved this file/.test(H.asked[0] || ''), true);
+  }
+  if (X.saved !== undefined) {
+    chk(sc, 'FIX', 'the 💾 Save alone landed [questions asked]', [R.saved.asked.length], [X.saved]);
+  }
+  // ---- PRED: the action ----
+  if (X.act) {
+    if (path === 'IB') {
+      chk(sc, 'FIX', "REACH: 📁 File > Boards and appropriations > '⇊ Import several boards at once…' (the menu open, the group shown), and the batch finished",
+        [/^⇊ Import several boards at once…/.test(R.act.how.menuItem || ''), / \| menu open: share \| group shown: true$/.test(R.act.how.menuItem || ''), R.act.how.finished], [true, true, true]);
+      chk(sc, 'FIX', 'the batch asked once (Import 1 board file(s)…), answered OK', [R.act.asked.length, /^Import 1 board file\(s\) into this consolidated board\?/.test(R.act.asked[0] || '')], [1, true]);
+    }
+    if (path === 'BT') chk(sc, X.how ? 'PRED' : 'FIX', X.how ? "after the save landed, the status line no longer offers 'open the file’s version'" : "the person clicked 'open the file’s version' and answered OK to its question",
+      X.how ? R.act.how : [R.act.how, R.act.asked.length, /^Open the saved file’s version and replace what is on screen\?/.test(R.act.asked[0] || '')], X.how ? X.how : ['clicked', 1, true]);
+    if (path === 'SHc') chk(sc, 'FIX', "the person clicked 'load the shared one' (no question asked)", [R.act.how, R.act.asked.length], ['clicked', 0]);
+    if (path === 'SHa') chk(sc, 'FIX', 'the answer to the page’s request arrived', R.act.how.arrived, true);
+    chk(sc, 'PRED', 'the action ' + (X.hold ? 'during the held save' : 'with no save under way') + ' [screen, busy, _saveGen moved, DIRTY, record dirty, kept, words]', ACT(R.afterAct, R.act), X.act);
+  }
+  // ---- PRED + CONTRACT: the end state, the reopen, the refresh ----
+  chk(sc, 'PRED', 'the end state [screen, recorded clean, base copy, target content, falsely clean]', END(R.end), X.end);
+  chk(sc, 'PRED', 'reopened from the end state [screen, recorded clean, base copy, falsely clean]', RO(R.reopen.opened), X.reopen);
+  if (X.refresh) chk(sc, 'PRED', 'a quiet refresh from the end state [screen, recorded clean, falsely clean]', RF(R.afterRefresh), X.refresh);
+  chk(sc, 'CONTRACT', 'K1: the end state is not falsely clean', R.end.falselyClean, false);
+  if (R.afterRefresh) chk(sc, 'CONTRACT', 'K2: after a quiet refresh, not falsely clean', R.afterRefresh.falselyClean, false);
+  chk(sc, 'CONTRACT', 'K3: reopened, not falsely clean', R.reopen.opened.falselyClean, false);
+  for (const [lbl, o] of [['end', R.end], ['reopened', R.reopen.opened], ['reopened + one edit', R.reopen.afterEdit]]) {
+    const L = LEAVES(sc);
+    chk(sc, 'CONTRACT', 'REACH (' + lbl + '): ' + L.join(', ') + ' each in a copy the board holds or fetches', L.map(m => (o.reach[m] || []).filter(INBOARD).length > 0), L.map(() => true));
+  }
+  summary[sc] = { K1: R.end.falselyClean, K2: R.afterRefresh ? R.afterRefresh.falselyClean : null, K3: R.reopen.opened.falselyClean,
+    reachEnd: R.end.reach, reachReopenEdit: R.reopen.afterEdit.reach, endStatus: R.end.status.slice(0, 140), probe: O.IDS.probe.slice(0, 8), wall: O.wall_s };
+}
+const bad = rows.filter(r => !r.ok);
+writeFileSync(dir + 'checks-' + pass + '.json', J({ pass, rows, summary }, null, 1));
+for (const sc of SC) {
+  const rs = rows.filter(r => r.sc === sc); const f = rs.filter(r => !r.ok);
+  console.log(sc.padEnd(16), String(rs.length).padStart(3), 'checks', String(f.length).padStart(2), 'fail', f.map(r => r.kind + ':' + r.what.slice(0, 50)).join(' | '));
+}
+console.log('TOTAL', rows.length, 'checks,', bad.length, 'fail; by kind:', J(rows.reduce((a, r) => { const k = r.kind + (r.ok ? '' : ' FAIL'); a[k] = (a[k] || 0) + 1; return a; }, {})));
+for (const r of bad) console.log('FAIL', r.sc, r.kind, r.what, '\n   got ', J(r.got), '\n   want', J(r.want));

@@ -1,0 +1,1 @@
+{"id": "v200-u10-sp-svc-in-view", "matches": 1, "find": "function setSpSvc(v){ if(spRefused()) return; ", "repl": "function setSpSvc(v){ "}

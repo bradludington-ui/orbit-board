@@ -1,0 +1,170 @@
+diff --git a/NEXT-VERSION.md b/NEXT-VERSION.md
+index b328d77..23e37ad 100644
+--- a/NEXT-VERSION.md
++++ b/NEXT-VERSION.md
+@@ -729,7 +729,8 @@ result for it was run fresh against these commits.
+     runs in the final-tree queue). Since U30 (below), this block's case (3c) stops at U30's rule before U13's
+     base-record guard, so `v200-u13-base-while-saving` and `v200-u13-clash-while-saving` are caught by the U20 and U30
+     blocks' cases that put the folder's copy itself on screen (U20 (4), U30 (5b)).
+-  - **Not covered:** a copy another writer saves during the save is still written over and kept nowhere in the folder (U18);
++  - **Not covered:** a copy another writer saves during the save was still written over and kept nowhere in the folder (U18, built below: now
++  only one that lands during the write itself);
+     a save waiting for another tab's Web Lock was not counted (U20, below, counts it); the other adoption paths in the
+     ledger (U24).
+ - **U1 — a carried row is counted in an offered year and in ALL YEARS** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own
+@@ -1291,8 +1292,8 @@ result for it was run fresh against these commits.
+     - after Save yours over theirs has recorded the choice (before the hold), a hold that comes during the save it then
+       runs stops that save (above), and the choice stands: once saving is allowed again, the next save writes over their
+       copy as chosen (theirs is in the folder's history; by reading the code, not run).
+-    If U18 (the re-read just before the write) is committed too, this check belongs after U18's re-read, which is then
+-    the last wait before the write.
++    With U18 (below), this check comes after U18's second read of the folder's copy, which is the last wait before the
++    write.
+ - **U10 (1 of 12) — a refusal in a locked cycle's view puts back the whole view, not the year alone** (a release blocker
+   the lead chose to fix on Brad's word of 12 Oct, about 5:30 PM ET: "Don't wait for me. Let's keep pressing throughout to
+   get this next version published."). With a locked cycle on screen, a write the view refuses put back the year on screen
+@@ -1760,6 +1761,112 @@ result for it was run fresh against these commits.
+     leaves the newest 300; nothing is lost); the journal's "Was" cell reads a saved list by its contents ("AT" for
+     ["AT"], blank for []); and the PMO submittal review, in its panel and in its exported review workbook, shows "AT"
+     for a saved ["AT"] and "" for [null] in "On the board now", and throws for an object. Ledger U58 and U59.
++- **U18 — a copy saved while a folder save is under way is never written over** (the lead's decision on 12 Oct, under
++  Brad's "Don't wait for me. Let's keep pressing throughout to get this next version published.", about 5:30 PM ET). The
++  folder save read the folder's copy once, at its start, and then wrote over whatever was there by the time it wrote. Bob
++  took the pen and saved while Brad's 💾 Save was keeping the copy it had read in the folder's history; Brad's save then
++  wrote his work over Bob's copy and thinned the history, so Bob's copy was in no copy in the folder, and Brad's board
++  said "✅ Saved". The Live autosave, which is the same folder save run by the Live timer, did the same and said "✓ Saved
++  to the shared folder automatically". U13 kept Brad's own record consistent but not Bob's copy. Now every folder save
++  reads the folder's copy again after its history copy, just before it writes. Unless that copy is still, byte for byte,
++  the one it read (or there is still none), nothing is written in its place. Bob's copy stays the folder's copy, Brad's
++  work stays on screen, not saved, and the copy the save read stays in the folder's history. A copy that landed meanwhile
++  is the clash, said with who saved it and when, with the same two choices. A copy gone or unreadable is said as such. If
++  the board was moved to another year meanwhile, it is said with who saved it and when, and with no choice: the advice is
++  to go back to the year the save was for and save there. The stopped save takes back its pen line and puts the board's
++  stamp back (unless something was typed meanwhile, which keeps its own), whichever of these stopped it, so the header
++  still says when it was last saved and by whom, not when the stopped save began. Both are put back on the working plan
++  and, when a locked view was put on screen during the save, on the view's copy of it too, so the view's header and
++  journal say the same while it is on screen. The working plan is kept in browser storage again as put back, so a board
++  reopened from it shows no pen line the stopped save took back, and a later save does not carry one to the folder. This
++  read is now the folder save's last wait, so U4's check of the mixed-import hold comes after it (U4's own words, above,
++  now name it). If an import stopped part-way meanwhile and set the mixed-import hold, the hold is said instead, in U4's
++  words: under the hold the clash's two choices are refused, and the import's line offers its two copies to save first;
++  the quiet autosave leaves that line as it is. Their copy is the clash at the first save once saving is allowed again.
++  - **What users may see:** in that race, instead of "✅ Saved": "⛔ Bob saved O&M FY27 to the shared folder just now,
++    after the copy you are working from. Their copy landed while your save was under way, and your save stopped before
++    writing over it. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is
++    kept in the folder’s history)." (With nothing recorded of which copy the work came from, the opening is U30's: "…
++    just now, and this browser has no record of which copy in the folder, if any, the work on screen came from.") The Live
++    autosave says the same; the refresh that follows it in the same tick then puts its own line over it, as it already did
++    when Bob's copy was there before the autosave read the folder: "⚠ Bob saved O&M to the shared folder just now, and you
++    have unsaved changes. Nothing was replaced. Save yours, or reload to take theirs." If the folder's copy is gone or
++    cannot be read just before the write: "⛔ Not saved. The shared folder’s copy of O&M FY27 is no longer there" (or "could
++    not be read again just before it was to be written over — <the reason>"; "could not be read just before …" when the
++    folder held no copy at the save's first read) ". Nothing was written in its place: a save never writes over a copy it
++    has not read. Your work is still here — 💾 Save again to read the folder afresh." If the board was moved to another
++    year meanwhile: "… changed while this save was under way — Bob saved it just now. Nothing was written in its place: a
++    save never writes over a copy it has not read. Your FY27 work is still here — go back to FY27 and 💾 Save to read the
++    folder afresh.", with no choices. A full import that stops part-way during this second read, or before it while
++    another writer's copy lands, stops the save at the hold, with U4's words ("⛔ Writing to the shared folder is refused.
++    A full import stopped part-way …", the two copies to save offered); the Live autosave leaves the import's own line as
++    it is when browser storage takes the stopped save's own write (ledger U60). Every folder save now
++    reads the folder's copy twice.
++  - **Test:** audit-import "v2.00 (U18) — a copy saved while a folder save is under way is never written over"
++    (112 checks): Bob takes the pen and saves while Brad's save is held at its last wait, with Brad's work unsaved and with
++    nothing unsaved (U13's second-writer case, held before the write instead of in it): refused, Bob's copy the folder's
++    copy, Brad's work and the board's stamp as they were, the clash said word for word with both choices; the retry, Save
++    yours over theirs (refused while Bob holds the pen, with Bob's copy kept in the history) then Take the pen (Brad's work
++    lands; v1 and Bob's copy both in the history); Load theirs; the folder's copy removed, unreadable, or saved by Bob while
++    the board moved to FY28 (with Brad's and Bob's clocks moved on seven minutes, so the words name when Bob's copy was
++    saved, not when the copy the save read was); a take-the-pen save over Bob's copy with nothing typed, stopped because
++    the folder's copy is removed or cannot be read, takes its pen line back and puts the stamp back too; the folder's first
++    copy landing at the save's read just before its write, and the same unreadable; a take-the-pen save stopped there
++    takes its pen line back, also from browser storage and from the board reopened from it when a change was typed while
++    it was held; a change typed while the save is held keeps the stamp it gave the board; the Live autosave held the same
++    way, with what it says itself read before the refresh after it; a take-the-pen save over Bob's copy with nothing typed,
++    whose stamp still names Bob, in the header's tooltip too; a locked view put on screen during the held save, with
++    nothing unsaved, with a take-the-pen save, and with a take-the-pen save over Bob's copy (while the view is on screen,
++    its header, tooltip, stamp, journal and what Brad is told, and that it still names Bob as the one who saved Bob's
++    copy; once it is left, the working plan's); a copy rewritten during the save with the same stamp and other bytes; on
++    this board with U4, a save held at this second read while a full import stops part-way there, refused at U4's hold
++    (nothing written, not "Saved", the note unsaved, the stamp as it was); a full import stopping part-way while the save
++    keeps its history copy, with Bob's copy landing there too, for 💾 Save and the Live autosave: nothing written over
++    Bob's copy, the hold said with its two copies offered, the autosave leaving the import's line as it is (it passes on
++    the board before the change, where U4's check refuses: a guard that U18 keeps U4's words); and four controls (no
++    second writer: the save lands as before; Bob saves before Brad's save reads the folder: the existing clash, word for
++    word; the same for the Live autosave; the same hold at the second read with no import: the save lands and says Saved).
++    63 checks fail on the board before the change (eef8874, `3f4607b9`; the same 63 on 75d4d2f, `d6316db1`): every check
++    not marked a control except the hold-and-landed-copy guard's four, which pass there, and the three controls that hold
++    the save at its second read ((7a)'s, (7b)'s and the hold's), which that board cannot reach (it makes no second read);
++    every other control passes there. Two of the guard's checks (the hold said, and the autosave's line left as it is)
++    fail on this change without its hold line (75d4d2f with fix round 3's U18 lines, `722e0665`), and nothing else does;
++    all four fail on 7ee498a (`fce8a391`, neither U4 nor U18), where the save writes over Bob's copy.
++  - **Mutations:** `v200-u18-recheck-gone`, `-first-copy-unchecked`, `-gone-written-in-place`, `-unreadable-written`,
++    `-said-nothing-written`, `-pen-line-kept`, `-stamp-moved`, `-other-year-choices`, `-autosave-unchecked`,
++    `-stamp-name-moved`, `-stamp-on-view`, `-pen-line-on-view`, `-other-year-unnamed`, `-stamp-compare`,
++    `-view-says-saved`, `-view-pen-line`, `-autosave-silent`, `-other-year-when-of-read`, `-read-again-first-copy`,
++    `-other-year-advice`, `-storage-pen-line`, `-view-silent`, `-view-stamp-name`, `-stamp-over-typed`,
++    `-hold-before-reread`, `-late-for-every-clash`, `-hold-unsaid`, `-pen-line-only-on-clash` and
++    `-stamp-only-on-clash`. Each is caught by the focused block. Full-suite sensitivity runs in the final-tree queue.
++  - **Not covered:** a copy that lands while the write itself is being made (between its start and its close) is still
++    written over: a file share has no atomic compare-and-write. U13's second-writer case holds Brad's save exactly there,
++    and still sees Bob's copy written over. The window is now the write alone, no longer the history keeping before it. A
++    save waiting for another tab's Web Lock (U20) is not changed by this. Under a locked view put on screen during the
++    save, browser storage is not written again (persist() refuses there): a change typed before the view was put on screen
++    keeps the stopped save's pen line in browser storage, and in a board reopened from it, until the next change after the
++    view is left (run: the round-4 money review's probe Q4). Under a locked view the clash's two buttons refuse until the
++    view is left, as for any clash said there; in a locked view of a cycle that does not hold the save's year, the view is
++    on another year, so the stop is said in the other-year words ("go back to FY27 and 💾 Save") while the view is on
++    screen -- true, but leaving the view comes first (read in code, not run). Under the mixed-import hold, a copy that
++    landed is not named until saving is allowed again, when the first save reads it and says the clash. A copy rewritten
++    outside the board with its old stamp is refused like a landed copy and named as it names itself ("Brad saved … after
++    the copy you are working from"). With the journal at its 600-line limit, the pen line's arrival dropped the oldest
++    line, and taking the pen line back does not restore it (it is in the copy the work came from unless 600 lines or more
++    were added since; read in code, not run). Three refusals outside this change keep the same shapes as before: the
++    history-failure refusal (v1.97, item 79) still leaves the stamp moved; a write that throws leaves its stamp moved and,
++    under a locked view, takes its pen line out of neither copy -- the view holds a copy of the line, not the line itself,
++    so the view and the working plan both keep it (run: the round-3 money review's probe P2); and U4's own hold check,
++    just after this read, takes a take-the-pen save's pen line back in memory only (browser storage keeps it when a change
++    was typed during the save) and, under a locked view, acts on the view's copy (read in code, not run): their own
++    findings.
++    Under the mixed-import hold, the stopped save writes browser storage before the hold stops it, which the board did
++    not do before (U4): while storage still refuses, its warning takes the place of the import's line and its two
++    rescue choices in the quiet autosave; once storage takes it again, the work on screen is written over the plan the
++    import left in browser storage while the import's line still names that plan. No copy is lost: the landed copy
++    keeps its bytes, the copy the save read stays in the history and the imported file stays offered (the round-5 money
++    review; ledger U60). And nothing checks the refusal's every-stop lines when the folder's copy is gone or
++    unreadable: three wrong forms that keep one of them to the clash alone pass the block (the round-5 tests review).
+ - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
+   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
+   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
+@@ -1768,7 +1875,8 @@ result for it was run fresh against these commits.
+     Spares} = $400M). The independent arithmetic and the saved-selection controls are committed checks.
+   - **U2: complete** (accepted by Brad, 12 Oct): the change count (U2 1 of 2) and the refusal while a save is under way
+     (2 of 2) are both above. audit-import passes at both commits, and each new mutation is caught, in runs made alone.
+-    Its separate reopening and adoption findings stay open in the ledger (U15–U19); U20 is built (below).
++    Its separate reopening and adoption findings stay open in the ledger (U15–U17, U19); U18 and U20 are built (below; U18
++    except a copy landing during the write itself).
+   - **U3: built as its own commit** (the lead's decision under Brad's "keep pressing", 12 Oct): a Save, Take the pen,
+     ⬆ Publish now, Save yours over theirs, Load theirs or the autosave asked for under the mixed-import hold is refused at
+     once, also behind a save under way, and allowing saving again does not bring it back (above). Not covered: a save
+@@ -1776,6 +1884,10 @@ result for it was run fresh against these commits.
+   - **U4: built as its own commit after U3** (the same decision): the folder save checks the hold again after its read
+     and after its history copy, just before its write, and Save yours over theirs / Load theirs after their read and
+     after keeping theirs (above). Not covered: the write itself, and the board file's own write after R4's check.
++  - **U18: built as its own commit after U56 and U57** (the lead's decision under Brad's word of 12 Oct, about 5:30 PM ET, to keep
++    pressing): a copy another writer saves while a folder save is under way is no longer written over -- the save reads
++    the folder's copy again just before it writes and stops on any difference, and U4's hold is checked after that read
++    (and said, when it and a landed copy come together) -- except one that lands during the write itself (above).
+   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
+   - **U7:** R2's checked and stored expressions are written twice.
+   - **U8:** R1's Help and wording remainders.
+@@ -1799,8 +1911,8 @@ result for it was run fresh against these commits.
+   - Both U9 and U10 were reproduced in the review of `main` `f9b4413` and on `e635775`, and again here on the current
+     tree (`4a6f7c7`) with bounded synthetic probes.
+   - **U13: built as its own commit** (selected by Brad, 12 Oct, 6:00 AM ET): a refresh during a save loads nothing,
+-    checked after its last wait (above). Its separate reopening and adoption findings stay open in the ledger (U16–U18;
+-    U20 is built, below), with those found while building and reviewing it (U21–U27): a false clash in a save's last
++    checked after its last wait (above). Its separate reopening and adoption findings stay open in the ledger (U16, U17;
++    U18 and U20 are built, below; U18 except a copy landing during the write itself), with those found while building and reviewing it (U21–U27): a false clash in a save's last
+     window; ↻ Refresh now's words; Live view's "Loaded" time; three other adoption paths that do not wait for a save
+     (unverified); a save that starts and ends during a refresh's read; status lines left false after an autosave; older
+     refusals that say nothing was loaded or replaced while the same Connect loads execution data.

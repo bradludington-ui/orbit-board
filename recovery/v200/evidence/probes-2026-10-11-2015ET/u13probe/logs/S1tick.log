@@ -1,0 +1,45 @@
+PASS [fixture] fixture.v1: the folder's first copy is brad's content, written by Brad (writer Brad)
+     expected ["brad","Brad","Brad"]
+     observed ["brad","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: screen brad, DIRTY false, _baseDirty false, record dirty false, base = v1 ts
+     expected ["brad",false,false,false,true,true]
+     observed ["brad",false,false,false,true,true]
+PASS [fixture] fixture.bobBase: bob loaded brad's copy: screen brad, his base = v1 ts
+     expected [true,"brad",true]
+     observed [true,"brad",true]
+PASS [fixture] S1.held: brad's save reached its write and is held there; brad still clean, nothing unsaved; the folder still holds v1
+     expected [true,false,false,1,true]
+     observed [true,false,false,1,true]
+PASS [fixture] S1.bob.bobCopy: bob's newer copy is the folder's current copy: bob's content, by Bob, writer Bob, bob clean
+     expected ["bob","Bob","Bob",false,false]
+     observed ["bob","Bob","Bob",false,false]
+PASS [fixture] S1.bobNewer: bob's copy is newer than the copy brad's save is building (ts read from the folder bytes vs brad's MS.ts)
+     expected true
+     observed true
+PASS [mechanism] S1.adopt: observed mechanism: the refresh, run while the save is held (_saveBusy 1), adopts bob's copy, base = bob's ts, and does not move _saveGen
+     expected [1,"bob",true,true,null]
+     observed [1,"bob",true,true,null]
+FAIL [contract] S1.K1: CONTRACT: if the board is recorded clean, the copy its base names holds the content on screen ([clean, screen content, base copy's content, base copy is bob's])
+     expected [true,"bob","bob",true]
+     observed [true,"bob","brad",false]
+FAIL [contract] S1.K1-literal: CONTRACT (literal values): screen BOB-2/$650 recorded clean against a copy holding BRAD-1/$700 must not happen ([screen note, screen $, recorded clean, base-copy note, base-copy $])
+     expected ["BOB-2",650,true,"BOB-2",650]
+     observed ["BOB-2",650,true,"BRAD-1",700]
+PASS [record] S1.store: browser storage holds what is on screen (persist ran): stored content = screen content
+     expected "bob"
+     observed "bob"
+PASS [record] S1.head: the folder's current copy after the save lands is the bytes brad's save built: brad's content BRAD-1/$700, by Brad, writer Brad
+     expected ["BRAD-1",700,"Brad","Brad"]
+     observed ["BRAD-1",700,"Brad","Brad"]
+FAIL [contract] S1.K2: CONTRACT after a later refresh: the screen matches the folder copy it is recorded clean against, or the board is unclean, or it says the copies differ ([screen, head, clean, said])
+     expected "held"
+     observed "screen BOB-2/$650, head BRAD-1/$700, clean, nothing said"
+FAIL [contract] S1.K3: CONTRACT after the reopen: the screen matches the folder copy it is recorded clean against, or the board is unclean, or it says the copies differ
+     expected "held"
+     observed "screen BOB-2/$650, head BRAD-1/$700, clean, nothing said"
+FAIL [related] S1.bobKeptInFolder: RELATED (not U13's contract -- the documented concurrent-writer race): bob's copy BOB-2/$650 is in the folder, head or history
+     expected true
+     observed false
+whereNow {"bob":{"bradScreen":true,"bradStorage":true,"bradKeptSlot":false,"folderHead":false,"folderHistory":[],"bobScreen":true,"bobStorage":true},"brad":{"bradScreen":false,"bradStorage":false,"bradKeptSlot":false,"folderHead":true,"folderHistory":["spmt-2027-om-20261012-002721.json"],"bobScreen":false,"bobStorage":false}}
+ids {"board":"4d273c0680132caafc4cbc8ca09c1533735c86de","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"a957682e9279509904cd9d14079cd7f81da1c9e1","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u13probe/board/prioritization-board-grid.html"}
+S1tick: 9 pass, 5 fail

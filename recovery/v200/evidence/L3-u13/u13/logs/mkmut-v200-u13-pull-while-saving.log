@@ -1,0 +1,1 @@
+{"id": "v200-u13-pull-while-saving", "matches": 1, "find": "  if(_saveBusy){\n    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder", "repl": "  if(false){\n    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder"}

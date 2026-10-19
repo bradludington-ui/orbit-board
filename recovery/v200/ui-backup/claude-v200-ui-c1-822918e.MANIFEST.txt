@@ -1,0 +1,22 @@
+# claude/v200-ui-c1 backup, made 07:34:25 AM ET (12 Oct 2026)
+tip: 822918ec4a2113f534fab3ac9dc78c9ae64c8979
+tree: 05e03d21ee556e723fdfa9bfd270b59cfaa09aa8
+prerequisite (in claude/v200-fixes-wip's history): 4a6f7c73ebf9018f6b1b14087cb5ec560a9bbb20
+board blob at tip: 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26
+bundle: claude-v200-ui-c1-822918e.bundle  sha256 dfa960ec13a921702c078ee968c7e133b1fb3f15a536275800abfdb40c47350c  bytes 13496522
+restore check: clone of claude/v200-fixes-wip from https://github.com/bradludington-ui/orbit-board, git bundle verify OK, fetched tip = 822918ec4a2113f534fab3ac9dc78c9ae64c8979, tree = 05e03d21ee556e723fdfa9bfd270b59cfaa09aa8, commit list identical (12 commits)
+restore with: git clone -b claude/v200-fixes-wip <repo> r && cd r && git fetch recovery/v200/ui-backup/claude-v200-ui-c1-822918e.bundle claude/v200-ui-c1:claude/v200-ui-c1
+
+commits (4a6f7c7..claude/v200-ui-c1):
+822918e v2.00 UI-C1: the five chunk 1 handler arguments go through jsa(), so npm run check passes again
+c41a7c2 v2.00 UI chunk 3 (M1): screenshots of the M1 messages in the actual board at aac8574, the script that took them, and CHUNK3.md part 1 (no board change)
+aac8574 v2.00 UI chunk 3 (M1): "All submissions at once" is all or nothing when a file would ask, and is put back whole if the load fails
+eba613f v2.00 UI chunk 2: adversarial review (CHUNK2-REVIEW.md)
+e70636b v2.00 UI chunk 2: screenshots of the actual board at f95fee2, the check scripts with their outputs, and CHUNK2.md (no board change)
+f95fee2 v2.00 UI chunk 2: on a phone the context bar's group wraps rather than push the page sideways
+5ea7d15 v2.00 UI chunk 2: slide-over record by default (docking optional), rows sized to their room, guarded KPI cards, Brief posture strip, permissions, all-or-nothing PMO batch, genuine metadata, Cycle control
+acc8489 v2.00 UI chunk 1: adversarial review (CHUNK1-REVIEW.md)
+6bfa965 v2.00 UI chunk 1: screenshots of the actual board (synthetic data at runtime) and CHUNK1.md
+c85d0e3 v2.00 UI chunk 1: RECORD panel Overview / Funding / History tabs; control sizing fixes
+89384e6 v2.00 UI chunk 1: navy sidebar, context bar, KPI cards, toolbar (Columns, Density), Import box
+ba0def2 UI concept: mockups only, in the style of Brad's concept images (no product change)

@@ -1,0 +1,3 @@
+v200-u10-resolve-gate-theirs-only mutant=4a4668d1c6a57cd11e632788fde6dd11dd5fd14c matches=1 diffstat=2
+v200-u10-resolve-mine-words mutant=14bae62841e49c7d9ee2b9e342023ab37e655e39 matches=1 diffstat=2
+v200-u10-resolve-race mutant=f4ce8b58ab2993bfa20a02019c4edc73538e5b35 matches=1 diffstat=1

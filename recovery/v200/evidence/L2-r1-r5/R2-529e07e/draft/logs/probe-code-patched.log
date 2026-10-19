@@ -1,0 +1,7 @@
+{"name":"ASCII over-limit typed EEIC refused; old code unchanged","actual":"ABCDE","expected":"ABCDE","kind":"control","status":"passed"}
+{"name":"ASCII refusal preserves typed field text","actual":"ABCDEFGHIJK","expected":"ABCDEFGHIJK","kind":"control","status":"passed"}
+{"name":"permitted trimmed code normalized to uppercase","actual":"ABCDE","expected":"ABCDE","kind":"control","status":"passed"}
+{"name":"R2 normalized over-limit Unicode expansion refused; previous code retained","actual":"ABCDE","expected":"ABCDE","kind":"defect","status":"passed"}
+{"name":"R2 accepted EEIC may not exceed10after uppercase normalization","actual":true,"expected":true,"kind":"defect","status":"passed"}
+{"name":"whole-board boot has no jsdom script errors","actual":[],"expected":[],"kind":"control","status":"passed"}
+{"passed":6,"failed":0}

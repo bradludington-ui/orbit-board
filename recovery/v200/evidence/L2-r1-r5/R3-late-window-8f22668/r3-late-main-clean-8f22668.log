@@ -1,0 +1,113 @@
+# cmd: X=1 node r3-late-window.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R5-8f22668/run/copy main clean
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/xcheck
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-11T21:48:27Z / 17:48:27 EDT
+# cap: 600s  grace: 10s
+{
+ "firstSave": {
+  "ret": true,
+  "folder": "WORKING",
+  "state": {
+   "view": "",
+   "note": "WORKING",
+   "DIRTY": false,
+   "baseDirty": false,
+   "record": false,
+   "gen": 4
+  }
+ },
+ "beforeHeldSave": {
+  "view": "",
+  "note": "WORKING",
+  "DIRTY": false,
+  "baseDirty": false,
+  "record": false,
+  "gen": 4
+ },
+ "atHold": {
+  "heldAt": "spmt-2027-om.json",
+  "folderBeforeClose": "WORKING",
+  "state": {
+   "view": "",
+   "note": "WORKING",
+   "DIRTY": false,
+   "baseDirty": false,
+   "record": false,
+   "gen": 4
+  }
+ },
+ "inView": {
+  "state": {
+   "view": "PB|2027",
+   "note": "LOCKED",
+   "DIRTY": false,
+   "baseDirty": false,
+   "record": false,
+   "gen": 4
+  },
+  "status": "👁 Viewing PB27 (locked) — the plan as it stood 10/11/2026, 9:48:29 PM by Synthetic reviewer, holding FY27. Read only: nothing changed here is kept, and nothing can be saved, loaded, locked or sent as the board until you ↩ leave the view."
+ },
+ "heldSaveReturned": true,
+ "afterSaveLanded": {
+  "writesInOrder": [
+   "history/spmt-2027-om-20261011-214829.json",
+   "spmt-2027-om.json",
+   "spmt-2027-om.lock.json"
+  ],
+  "folder": "WORKING",
+  "history": 1,
+  "state": {
+   "view": "PB|2027",
+   "note": "LOCKED",
+   "DIRTY": false,
+   "baseDirty": false,
+   "record": false,
+   "gen": 4
+  },
+  "status": "🔒 Not kept — PB27 is a locked view. ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh."
+ },
+ "afterLeave": {
+  "state": {
+   "view": "",
+   "note": "WORKING",
+   "DIRTY": false,
+   "baseDirty": false,
+   "record": false,
+   "gen": 4
+  },
+  "status": "↩ Back on the working plan — PB27.",
+  "folder": "WORKING"
+ },
+ "afterLaterEdit": {
+  "state": {
+   "view": "",
+   "note": "AFTER",
+   "DIRTY": true,
+   "baseDirty": true,
+   "record": true,
+   "gen": 5
+  },
+  "folder": "WORKING"
+ },
+ "nextSave": {
+  "ret": true,
+  "folder": "AFTER",
+  "history": 2,
+  "state": {
+   "view": "",
+   "note": "AFTER",
+   "DIRTY": false,
+   "baseDirty": false,
+   "record": false,
+   "gen": 5
+  },
+  "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh."
+ },
+ "errors": [],
+ "hold": "main",
+ "variant": "clean"
+}
+
+# end: 2026-10-11T21:48:31Z / 17:48:31 EDT
+# exit: 0  duration_s: 3.9

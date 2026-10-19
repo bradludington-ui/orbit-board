@@ -1,0 +1,124 @@
+diff --git a/tools/export-audit/audit-recon.mjs b/tools/export-audit/audit-recon.mjs
+index 7998a23..f288dfa 100644
+--- a/tools/export-audit/audit-recon.mjs
++++ b/tools/export-audit/audit-recon.mjs
+@@ -6901,9 +6901,15 @@ await (async () => {
+       J([key, jr(), ask()]), J(['PB|2027', C2, '1200000000']));
+     // ---- PB27 viewed; Me M presses ↶ Put back on Colleague C's note (answered OK) -- refused
+     ev(`localStorage.setItem('prio27who','Me M'); cycView(${J(key)}); 'ok'`);
++    ev(`window.__asked=[]; window.confirm=function(m){ window.__asked.push(String(m).split('\\n')[0].slice(0,70)); return true; }; 'ok'`);
+     const pf = putBack('Colleague C', 'notes.F1'), pk = notKept();
++    const ps = ev(`(document.getElementById('shareStat')||{}).textContent||''`), pa = ev('JSON.stringify(window.__asked)');
+     w5Chk(name, 'PB27 viewed · ↶ Put back on Colleague C’s note on F1, answered OK', 'refused and said so; the view holds the cycle’s F1 ($1,000,000,000, no note) and the journal is as it was',
+       J([pf, pk, ev('CYCVIEW'), ev(`String(itemById('F1').ask[0])`), ev(`String((S.notes||{}).F1||'')`), jr()]), J(['fired', true, 'PB|2027', '1000000000', '', C2]));
++    // v2.00 (U10, the test review of round 5): refused up front -- before its question, in its own words. A put-back that asked first,
++    // or ran on to its own save and said "↶ Put back: … recorded in the journal" under the view's mark, passed every check above.
++    w5Chk(name, 'PB27 viewed · ↶ Put back on Colleague C’s note on F1', 'refused before its question, in its own words: nothing is asked, and nothing says the put-back was recorded',
++      J([ps, pa]), J(['🔒 Putting a change back is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.', '[]']));
+     shut(); ev(`cycLeave(); 'ok'`);
+     // ---- back on the working plan, Me M writes a note on F2: the save records that one change, and nothing of the cycle's
+     const n0 = jr().length;
+@@ -7066,6 +7072,103 @@ await (async () => {
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U10, the funds flow's settings) ====
++// ==== v2.00 (U10, the unfunded list's place): "hold the unfunded list outside the flow" refused in a locked view moves no money in any total or export ====
++// The U10 test review, round 5: the funds flow keeps where the Unfunded Priority List goes (MS.flow.uplTo) beside its other settings,
++// and the view's whole copy, made again after a refusal, puts it back -- but no check read it: a refusal that kept it passed every
++// check, while the Funds Flow export labelled "[PB27 LOCKED]" counted by it. It moves money: counted as Lockheed Martin, a UPL row
++// is in the total; held outside the flow, no total contains it. One O&M requirement, F1 (PSM, $1,000,000,000 asked; $500,000,000
++// discretionary in FY27); FY25 imported: Ordinary Support (O&M Discretionary, $40,000,000) and Unfunded Ask (O&M Discretionary,
++// $3,000,000, on the Unfunded Priority List); the funds flow's saved selection FY25; the unfunded list counted as Lockheed Martin
++// (the default). PB27 is locked and viewed, and "Hold outside the flow" is chosen with the panel's own radio (the matching rules
++// drawn open): refused. Read: the status line, the calculation (total, Lockheed Martin, the unfunded list, the part of the total it
++// makes, where it goes, total funding, the years counted, the setting as stored), the radio that is checked, and the Funds Flow
++// export from its bytes (its name, Scope line, TOTAL FUNDING, Lockheed Martin, the unfunded requirements line, the UPL NOTE).
++// FAILS ON 7ee498a (board fce8a391): the status line says the change was not kept, yet the view holds the list outside the flow and
++// the export labelled "[PB27 LOCKED]" reads TOTAL FUNDING $40,000,000 and Lockheed Martin $0 for $43,000,000 and $3,000,000.
++// CONTROLS: the working plan; PB27 viewed, nothing changed; the view left; on the working plan the same radio is allowed and moves
++// $3,000,000 out of the total. Every figure is typed here.
++await (async () => {
++  const name = 'v2.00 (U10) — holding the unfunded list outside the flow, refused in a locked view, moves no money in any total or export';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify, M = 1000000;
++    const row = (id, fy, title, budget, amt, upl) => { const r = Array(32).fill(''); r[0] = fy; r[1] = fy + '-03'; r[2] = id; r[3] = title;
++      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[17] = upl ? 'UPL' : ''; r[18] = 'Program (TSS)'; return r; };
++    const WB = { om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row('U10U1', 2025, 'Ordinary Support', 'USAF O&M Discretionary', 40 * M, false),
++      row('U10U2', 2025, 'Unfunded Ask', 'USAF O&M Discretionary', 3 * M, true)] } } };
++    const X = boot();
++    seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * M])], disc: [500 * M], mand: [0], order: ['F1'] });
++    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
++      S.bm={disc:[${500 * M}], mand:[0], adds:[]}; MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S};
++      applyState(S); MS.years[2027]=S; EXDB.all=${J(WB)}; EXDB.ts=1;
++      var C=flowCfg(); C.other={}; C.fys=[2025]; C.aps=null; save(); 'ok'`);
++    const key = ev(`window.confirm=function(){ return true; }; blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    const said = () => ev(`(document.getElementById('shareStat')||{}).textContent||''`);
++    // the calculation: [total, Lockheed Martin, the unfunded list, the part of the total it makes, where it goes, total funding], the
++    // years counted, and the setting as stored (null: never set, which counts it as Lockheed Martin)
++    const calc = () => JSON.parse(ev(`(function(){ var F=flowCalc(); return JSON.stringify([[F.tot, F.prime.LM.v, F.upl.v, F.uplIn, F.uplTo, F.grand],
++      flowSelYears(), flowCfg().uplTo||null]); })()`));
++    // the radio the panel draws checked, the matching rules open
++    const radio = () => ev(`(function(){ flowOpen=true; flowRuleOpen=true; flowBody(); var i=document.querySelector('#flowBody input[name="uplto"]:checked');
++      return i? i.getAttribute('onchange') : 'none checked'; })()`);
++    const choose = v => ev(`(function(){ flowOpen=true; flowRuleOpen=true; flowBody(); var i=[].slice.call(document.querySelectorAll('#flowBody input')).filter(function(e){
++      return (e.getAttribute('onchange')||'')===${J("flowSetUplTo('aside')")}; })[0]; if(!i) return 'no control';
++      i.checked=true; i.dispatchEvent(new Event('change', {bubbles:true})); return 'fired'; })()`);
++    // the Funds Flow export, read from its bytes: its name (the date taken out), its Scope line, and on the Funds Flow sheet TOTAL
++    // FUNDING, Lockheed Martin, the unfunded requirements line and the NOTE saying how much of the total is unfunded
++    const book = async () => { const r = JSON.parse(await X.w.eval(`(async function(){ var cap=null, _B=window.Blob, dl='';
++        var _ck=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ dl=this.download; };
++        window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
++        try{ exportFlow(); }catch(e){ window.Blob=_B; HTMLAnchorElement.prototype.click=_ck; return JSON.stringify({__err:'threw '+String((e&&e.message)||e)}); }
++        window.Blob=_B; HTMLAnchorElement.prototype.click=_ck; if(!cap) return JSON.stringify({__err:'no file'});
++        return JSON.stringify({dl:dl, wb:await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength))}); })()`));
++      if (r.__err) return [r.__err];
++      const ff = (r.wb['Funds Flow'] || []).map(x => (x || []).map(c => (c && typeof c === 'object' && 'v' in c) ? c.v : c));
++      const all = lab => ff.filter(x => w6Lbl(x) === lab).map(x => num(x[1])).filter(v => v !== null);
++      return ['ok', String(r.dl).replace(/ 20\d\d-\d\d-\d\d/, ''), String((ff[1] || [])[0] ?? ''), all('TOTAL FUNDING'), all('Lockheed Martin'),
++        all('Unfunded requirements'), ff.filter(x => /^NOTE: the total below includes/.test(w6Lbl(x))).map(w6Lbl)]; };
++    const cyc0 = ev('JSON.stringify(CYCDB)'), ls0 = ev('localStorage.getItem(_AP.key)');
++    // BY HAND. FY25 counts its two imported rows: $40,000,000 (an OGC, Program Operations & Support) and the $3,000,000 UPL row,
++    // counted as a Lockheed Martin line: total $43,000,000, Lockheed Martin $3,000,000, of which the whole is unfunded.
++    const NAME = 'ORBIT Funds Flow - FY25 all appropriations', SCOPE = 'Scope: FY25 · all appropriations';
++    const NOTE = 'NOTE: the total below includes 3000000 of UNFUNDED requirements (Unfunded Priority List, 0% allocated), counted under Lockheed Martin.';
++    const CALC = [[43000000, 3000000, 3000000, 3000000, 'LM', 43000000], [2025], null];
++    const LM = "flowSetUplTo('LM')";
++    const BOOK = n => ['ok', n, SCOPE, [43000000, 43000000], [3000000], [3000000], [NOTE]];
++    w5Chk(name, 'fixture', 'CONTROL — the working plan counts FY25’s $43,000,000, the $3,000,000 unfunded row as Lockheed Martin',
++      J([calc(), radio(), await book()]), J([CALC, LM, BOOK(NAME + '.xlsx')]));
++    // ---- CONTROL: PB27 viewed, nothing changed
++    ev(`cycView(${J(key)}); 'ok'`);
++    w5Chk(name, 'PB27 viewed, nothing changed', 'CONTROL — the calculation, the panel and the export count the same $43,000,000, the unfunded row as Lockheed Martin',
++      J([ev('CYCVIEW'), calc(), radio(), await book()]), J(['PB|2027', CALC, LM, BOOK(NAME + ' [PB27 LOCKED].xlsx')]));
++    // ---- PB27 viewed: "Hold outside the flow" chosen -- refused; the status line is read at once
++    const fired = choose('aside'), s = said();
++    w5Chk(name, 'PB27 viewed · “Hold outside the flow” chosen for the Unfunded Priority List', 'refused and said so; the calculation, the panel and the export labelled [PB27 LOCKED] count $43,000,000 with the unfunded row as Lockheed Martin',
++      J([fired, s, calc(), radio(), await book()]),
++      J(['fired', '🔒 Saving is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.',
++        CALC, LM, BOOK(NAME + ' [PB27 LOCKED].xlsx')]));
++    // ---- CONTROL: the view left -- the working plan holds the setting as it was, and nothing durable moved
++    ev(`cycLeave(); 'ok'`);
++    w5Chk(name, 'refused · the view left', 'CONTROL — the working plan counts the same $43,000,000; the cycle store and browser storage are byte for byte as they were',
++      J([ev('CYCVIEW'), calc(), radio(), await book(), ev('JSON.stringify(CYCDB)') === cyc0, ev('localStorage.getItem(_AP.key)') === ls0]),
++      J(['', CALC, LM, BOOK(NAME + '.xlsx'), true, true]));
++    // ---- CONTROL: on the working plan the same radio is allowed, and moves the $3,000,000 out of every total. BY HAND: total and total
++    // funding $40,000,000; Lockheed Martin $0; the unfunded list still measured ($3,000,000) and in no total; no NOTE.
++    const w1 = choose('aside');
++    w5Chk(name, 'the working plan · “Hold outside the flow” chosen (allowed)', 'CONTROL — the $3,000,000 unfunded row leaves the total and Lockheed Martin, and the export says so',
++      J([w1, calc(), radio(), await book()]),
++      J(['fired', [[40000000, 0, 3000000, 0, 'aside', 40000000], [2025], 'aside'], "flowSetUplTo('aside')",
++        ['ok', NAME + '.xlsx', SCOPE, [40000000, 40000000], [0], [3000000], []]]));
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(X.errors.length), J(0));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10, the unfunded list's place) ====
+ 
+ {
+   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

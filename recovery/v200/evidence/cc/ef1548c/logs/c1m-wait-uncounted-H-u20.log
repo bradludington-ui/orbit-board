@@ -1,0 +1,68 @@
+# label: c1m-wait-uncounted-H-u20
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/out/c1m-wait-uncounted-H-u20.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/h/after/tools/export-audit/H-u20.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/mut/v200-u20-wait-uncounted.html
+# start: 2026-10-13 19:26:19 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/mut/v200-u20-wait-uncounted.html","BOARD_set":true,"board":"dc6fd5d63b43579eefc4550ae0a8795a6866f131","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef1548c/h/after/tools/export-audit/H-u20.mjs","harnessBlob":"baae1c86a484c4a698dcacdd5dedcee3bc3d114d","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/13/2026, 7:26:20 PM ET"}
+
+================================================================================================
+23 FAILING CHECK(S)
+
+--- v2.00 (U20) — a save waiting for another tab’s save is under way | (1) ↶ Put back while the Save waits for another tab’s save
+    B counts its waiting Save as under way (_saveBusy 1)
+        got 0   want 1
+    ↶ Put back while the Save waits is refused and says so -- [what is on screen and the kept work byte for byte as they were, questions, on screen, said]
+        got [false,1,"K",false]   want [true,0,"S1",true]
+    once tab A’s save lands, B’s Save runs: S1 on screen and the folder’s copy, saved; K still kept aside; nothing under way
+        got ["K","N",[true,true,true],"S1",0]   want ["S1","S1",[false,false,false],"K",0]
+    ↶ Put back now: one question; K on screen, unsaved; nothing kept in its place (S1 is saved)
+        got [1,"S1",[true,true,true],"K"]   want [1,"K",[true,true,true],null]
+--- v2.00 (U20) — a save waiting for another tab’s save is under way | (2) a refresh while the Save waits for another tab’s save
+    B counts its waiting Save as under way (_saveBusy 1)
+        got 0   want 1
+    the refresh while the Save waits loads nothing -- [returned, nothing changed byte for byte, said word for word]
+        first differs at char 1 of 183/298
+          got  …[true,false,"⬇ Loaded O&M FY27 from the shared folder — saved by Alice just now. This brows…
+          want …[false,true,"⏳ The shared folder’s copy of O&M FY27 was not loaded: a save or Load theirs w…
+    then B’s Save runs and asks: nothing written, N2 still the folder’s copy; WORKING on screen, unsaved; the choice offered; nothing under way
+        got ["N2","N2",false,false,0]   want ["N2","WORKING",true,true,0]
+    the next refresh is an ordinary one: N2 loaded, recorded against the folder’s copy; WORKING kept aside
+        got [false,"N2",true,"WORKING"]   want [true,"N2",true,"WORKING"]
+--- v2.00 (U20) — a save waiting for another tab’s save is under way | (3) nothing recorded; ↻ Refresh now while the Save waits for another tab’s save
+    B counts its waiting Save as under way (_saveBusy 1)
+        got 0   want 1
+    Live view’s ↻ Refresh now while the Save waits records nothing: F0 is not taken as the copy B-EDIT came from
+        got 1791933990564   want 0
+    then B’s Save asks: nothing written, F0 still the folder’s copy; B-EDIT on screen, unsaved; the choice offered; nothing under way
+        got [1,"B-EDIT","B-EDIT",false,false,0]   want [0,"F0","B-EDIT",true,true,0]
+--- v2.00 (U20) — a save waiting for another tab’s save is under way | (3h) nothing recorded; ↻ Refresh now while the Save waits for another tab’s save; a history copy kept minutes before
+    B counts its waiting Save as under way (_saveBusy 1)
+        got 0   want 1
+    Live view’s ↻ Refresh now while the Save waits records nothing: F0 is not taken as the copy B-EDIT came from
+        got 1791933992814   want 0
+    then B’s Save asks: nothing written, F0 still the folder’s copy; B-EDIT on screen, unsaved; the choice offered; nothing under way
+        got [1,"B-EDIT","B-EDIT",false,false,0]   want [0,"F0","B-EDIT",true,true,0]
+    “Save yours over theirs”, asked and answered OK: B-EDIT the folder’s copy, saved; F0 kept in the folder’s history as a spaced copy
+        got [1,"B-EDIT",[false,false,false],false]   want [1,"B-EDIT",[false,false,false],true]
+    one more 💾 Save writes B-EDIT2 with no question; F0 still in the folder’s history as a spaced copy, and F00
+        got ["B-EDIT2",0,false,true]   want ["B-EDIT2",0,true,true]
+--- v2.00 (U20) — a save waiting for another tab’s save is under way | (4) the screen exactly the folder’s copy, nothing recorded; a refresh while the Save waits
+    B counts its waiting Save as under way (_saveBusy 1)
+        got 0   want 1
+    a refresh while the Save waits records nothing and says nothing -- [returned, nothing changed byte for byte, the status line as it was]
+        got [false,false,true]   want [false,true,true]
+    then B’s Save, finding nothing recorded, asks: nothing written, F0 still the folder’s copy, the choice offered
+        got [1,"F0",false]   want [0,"F0",true]
+--- v2.00 (U20) — a save waiting for another tab’s save is under way | (6d) two Saves asked while another tab’s save holds the lock
+    both waiting Saves are counted (_saveBusy 2), and the second is told it runs once the first has finished
+        got [0,false]   want [2,"⏳ A save is already under way — this one runs as soon as it finishes."]
+--- v2.00 (U20) — a save waiting for another tab’s save is under way | (7) Load theirs while another tab’s save holds the lock
+    B counts its waiting Load theirs as under way (_saveBusy 1)
+        got 0   want 1
+    ↶ Put back while Load theirs waits is refused and says so -- [what is on screen and the kept work byte for byte as they were, questions, on screen, said]
+        got [false,1,"OTHER-KEPT",false]   want [true,0,"B-EDIT",true]
+    once tab A’s save lands, Load theirs runs: N on screen, recorded against the folder’s copy; B-EDIT kept aside; nothing under way
+        got ["N",true,"OTHER-KEPT",0,"N"]   want ["N",true,"B-EDIT",0,"N"]
+# exit 1 at 10/13/2026, 7:26:49 PM ET
+
+# end: 2026-10-13 19:26:50 EDT  exit: 1  wall_s: 30.3

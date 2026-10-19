@@ -1,0 +1,36 @@
+APPLICABILITY -- counted by reading the board files as text (Python str.count on the exact find string).
+Applicability is not a catch: the catches are recorded in evidence.md.
+patched board: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/draft/R1/wt/prioritization-board-grid.html  blob 5d811eea8ccabca5f2deaa623c8583552ed0c777
+base board   : /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/draft/R1/base-board.html  blob 42e8111810b11c0500adb2fd029194c0ccbd9780 (9b27e80)
+
+NEW MUTATIONS (out/mutations.json)
+id                             patched   line  base  mutant blob
+v200-r1-raw-year-exec                1  15426     0  3e89fafc1c1236d131280eacc8dcb6ca90cb4d98  (mutant file = patched with find->repl once: True)
+v200-r1-saved-year-widens            1  15442     0  9135e6baf42d66df8ceb252e0719860d83cb1ce8  (mutant file = patched with find->repl once: True)
+v200-r1-mixed-disclosure-b           1  15464     0  820aa36bb2dc1e1dbc36524980c970e08148c093  (mutant file = patched with find->repl once: True)
+v200-r1-export-note                  1  16656     0  0028040dc3ed7953e2a0fd74b498be93fc77af0c  (mutant file = patched with find->repl once: True)
+v200-r1-help-claim                   1  16576     0  d7d44996748b5711abbc969bd73d96c293615b17  (mutant file = patched with find->repl once: True)
+v200-r1-scan-stops-early             1  15429     0  682b5d3f98ceefcd1957fb5a32cdc92d0bb397e6  (mutant file = patched with find->repl once: True)
+v200-r1-mix-words-one-kind           1  15459     0  bd7dd9b5ceebc9b76481ae9edb583c1a07aa358c  (mutant file = patched with find->repl once: True)
+
+EXISTING ENTRIES IN tools/export-audit/mutate.mjs (read as text only; never imported or executed)
+find: keys parsed: 1274 (distinct ids: 1274)
+  plain string literals (with + concatenation), decoded by a JS-string unescaper: 1267
+    count == 1 on the patched board: 1267; != 1: []
+    count == 1 on the base board   : 1267; count changed base -> patched: []
+  not plain literals (7), resolved separately as text (String.raw raw text; three top-level string constants):
+    scen-marker-sheet        mutate.mjs line  354  base x1  patched x1
+    save-no-lt-escape        mutate.mjs line  634  base x1  patched x1
+    drew-line-silent         mutate.mjs line  786  base x1  patched x1
+    drew-echoes-directed     mutate.mjs line  789  base x1  patched x1
+    directed-total-silent    mutate.mjs line  792  base x1  patched x1
+    why-always-lane          mutate.mjs line  804  base x1  patched x1
+    why-always-alloc         mutate.mjs line  807  base x1  patched x1
+
+Entries whose count is no longer exactly 1 on the patched board: NONE. No re-anchor is needed.
+Closest existing neighbours (they target code this fix touches or relies on), still x1. The first three were also built
+from the patched board and run through audit-recon.mjs: each is still caught by its own original scenario (evidence.md).
+    v199-exec-any-appn           patched x1  find "return flowExecYears(s).indexOf(+fy)>=0? 'exec' : 'plan'; }"
+    v197w6-flow-no-carry         patched x1  find 'return (PS && PS.on && rawFy===PS.from && flowIsPseudo(r,PS))? PS.to : rawFy;'
+    v197w6-flow-raw-year         patched x1  find 'if(YS.indexOf(eff)<0) return;'
+    v199-flow-export-lastyear    patched x1  find '  const F=flowCalc(), H=2, TI=7, SEC=6, M=12, MB=13;'

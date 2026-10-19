@@ -1,0 +1,506 @@
+{
+ "scenario": "FBTC",
+ "next": "save",
+ "board": "u13",
+ "ids": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "6b65ff659b6f2f374b29b2707cf1ce049a5eecf2",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/b63/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 15:16:09 ET",
+ "steps": [
+  {
+   "step": "start",
+   "v1": {
+    "ts": 1791832576023,
+    "whose": "BRAD-1",
+    "note": "BRAD-1",
+    "alloc": 700
+   },
+   "brad": {
+    "screen": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791832576023,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 15:16:16 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832576023,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 3,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791832576023,
+     "whose": "BRAD-1"
+    },
+    "kept": null,
+    "label": "brad after his first 💾 Save into the file",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 7:16:16 PM",
+    "header": "Saved 7:16 PM",
+    "at": "10/12/2026, 15:16:16 ET"
+   },
+   "fileWrites": 1
+  },
+  {
+   "step": "adoption",
+   "how": "bootTakeFile(): asked [\"Open the saved file’s version and replace what is on screen?\\n\\nThis browser’s own work is NOT kept — only in a copy you s\"]",
+   "brad": {
+    "screen": {
+     "note": "",
+     "ts": 1791832572658,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:16:12 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832572658,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 5,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791832572658,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "after the adoption",
+    "baseFolder": 0,
+    "status": "📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 7:16:12 PM.",
+    "header": "Saved 7:16 PM",
+    "at": "10/12/2026, 15:16:17 ET"
+   }
+  },
+  {
+   "step": "landed",
+   "brad": {
+    "screen": {
+     "note": "",
+     "ts": 1791832572658,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:16:12 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832572658,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 5,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791832572658,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "brad after the adoption",
+    "baseFolder": 0,
+    "status": "📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 7:16:12 PM.",
+    "header": "Saved 7:16 PM",
+    "at": "10/12/2026, 15:16:17 ET"
+   },
+   "file": {
+    "ts": 1791832576023,
+    "whose": "BRAD-1",
+    "note": "BRAD-1",
+    "alloc": 700
+   },
+   "fileWrites": 1,
+   "versions": [
+    {
+     "ts": 1791832572658,
+     "whose": "F1",
+     "note": "",
+     "tsET": "10/12/2026, 15:16:12 ET"
+    },
+    {
+     "ts": 1791832576023,
+     "whose": "BRAD-1",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "tsET": "10/12/2026, 15:16:16 ET"
+    }
+   ]
+  },
+  {
+   "step": "V3next",
+   "asked": [
+    "⚠ HOLD ON — Brad saved this file at 10/12/2026, 7:16:16 PM. That is not the save the copy you are working from came from, so their changes are not on your screen.\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\nCancel — don’"
+   ],
+   "before": {
+    "screen": {
+     "note": "",
+     "ts": 1791832572658,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:16:12 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832572658,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 5,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791832572658,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "brad after the adoption",
+    "baseFolder": 0,
+    "status": "📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 7:16:12 PM.",
+    "header": "Saved 7:16 PM",
+    "at": "10/12/2026, 15:16:17 ET"
+   },
+   "after": {
+    "screen": {
+     "note": "",
+     "ts": 1791832577424,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:16:17 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832577424,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791832577424,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "after Brad's next 💾 Save",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 7:16:17 PM",
+    "header": "Saved 7:16 PM",
+    "at": "10/12/2026, 15:16:17 ET"
+   },
+   "versions": [
+    {
+     "ts": 1791832572658,
+     "whose": "F1",
+     "note": "",
+     "tsET": "10/12/2026, 15:16:12 ET"
+    },
+    {
+     "ts": 1791832576023,
+     "whose": "BRAD-1",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "tsET": "10/12/2026, 15:16:16 ET"
+    },
+    {
+     "ts": 1791832577424,
+     "whose": "F1",
+     "note": "",
+     "tsET": "10/12/2026, 15:16:17 ET"
+    }
+   ],
+   "where": {
+    "X": {
+     "file": true,
+     "screen": true,
+     "storage": true,
+     "keptSlot": false,
+     "earlierFileVersionsOnly": [
+      "10/12/2026, 15:16:12 ET"
+     ]
+    },
+    "Y": {
+     "file": false,
+     "screen": false,
+     "storage": false,
+     "keptSlot": false,
+     "earlierFileVersionsOnly": []
+    }
+   }
+  }
+ ],
+ "contract": "the board must never be recorded clean (saved) while what is on screen differs from the copy its record names as base; each content must remain in some reachable copy; and from such a record (U17) 💾 Save must not write the screen copy over a different head without asking, nor ↶ Put back claim the screen copy is still in the folder when it is not and then keep nothing aside",
+ "cfg": {
+  "fam": "file",
+  "mode": "take",
+  "held": false
+ },
+ "expected": {
+  "adopt": [
+   "F1",
+   0,
+   true,
+   null,
+   true
+  ],
+  "u17": false,
+  "v3": [
+   1,
+   "F1",
+   "BRAD-1",
+   "F1",
+   "saved-file",
+   true,
+   true
+  ],
+  "v4": [
+   null,
+   "none",
+   "F1",
+   "BRAD-1",
+   "nothing kept",
+   null,
+   "F1",
+   "F1",
+   "saved-file",
+   1
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "F1",
+   true,
+   "F1"
+  ],
+  "falselyClean": false
+ },
+ "nextFrom": {
+  "K": [
+   "F1",
+   true,
+   "F1"
+  ],
+  "falselyClean": false,
+  "file": "BRAD-1",
+  "versions": [
+   "F1@10/12/2026, 15:16:12 ET",
+   "BRAD-1@10/12/2026, 15:16:16 ET"
+  ]
+ },
+ "v3parts": {
+  "falselyClean": false,
+  "wroteOver": false,
+  "overwritten": "BRAD-1",
+  "overwrittenNowIn": {
+   "file": false,
+   "screen": false,
+   "storage": false,
+   "keptSlot": false,
+   "earlierFileVersionsOnly": [
+    "10/12/2026, 15:16:16 ET"
+   ]
+  }
+ },
+ "endedET": "10/12/2026, 15:16:17 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "brad's first 💾 Save wrote BRAD-1/$700 into the board file, recorded clean against it ([file, writes, DIRTY, record dirty, record file time = the file's])",
+   "expected": [
+    "BRAD-1",
+    1,
+    false,
+    false,
+    true
+   ],
+   "observed": [
+    "BRAD-1",
+    1,
+    false,
+    false,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.typed",
+   "kind": "fixture",
+   "what": "brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])",
+   "expected": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBTC.adopt",
+   "kind": "predict",
+   "what": "the other copy is put on screen with no save under way ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])",
+   "expected": [
+    "F1",
+    0,
+    true,
+    null,
+    true
+   ],
+   "observed": [
+    "F1",
+    0,
+    true,
+    null,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBTC.K1",
+   "kind": "contract",
+   "what": "CONTRACT once settled [screen, recorded clean, the file version the record names]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "F1",
+     false,
+     "F1"
+    ]
+   ],
+   "observed": [
+    "F1",
+    true,
+    "F1"
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBTC.U17state",
+   "kind": "predict",
+   "what": "U17 STATE (file analogue) once settled: recorded clean while the screen differs from the file version the record names [\"F1\",true,\"F1\"]",
+   "expected": false,
+   "observed": false,
+   "pass": true
+  },
+  {
+   "id": "FBTC.V3next",
+   "kind": "predict",
+   "what": "Brad's next 💾 Save from where the route ended [\"questions asked\",\"screen before\",\"file before\",\"file after\",\"status says\",\"recorded clean after\",\"record names the file\"]",
+   "expected": [
+    1,
+    "F1",
+    "BRAD-1",
+    "F1",
+    "saved-file",
+    true,
+    true
+   ],
+   "observed": [
+    1,
+    "F1",
+    "BRAD-1",
+    "F1",
+    "saved-file",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBTC.U17.V3",
+   "kind": "contract",
+   "what": "U17 (file analogue, V3next): from a record that says saved while the screen differs from the file version it names, 💾 Save writes the screen copy over a file holding different content and asks nothing ([record falsely clean before, wrote over without asking])",
+   "expected": {
+    "not": [
+     true,
+     true
+    ]
+   },
+   "observed": [
+    false,
+    false
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBTC.reachY",
+   "kind": "predict",
+   "what": "BRAD-2 (typed, never saved) was discarded by the person's own confirm at \"open the file's version\" (This browser's own work is NOT kept): in no copy after the next Save",
+   "expected": false,
+   "observed": false,
+   "pass": true
+  }
+ ]
+}

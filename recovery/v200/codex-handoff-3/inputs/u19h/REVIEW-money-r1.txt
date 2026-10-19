@@ -1,0 +1,47 @@
+U19H, round-1 data-loss and money review (verify-money-r1), verdict "unsound": every finding, verbatim from the
+reviewer's returned verdict (our state file verify_u19h_r1_money.json). Paths in it are on our machine and relative
+to our track folder rec/L6/u19h/; the probe and the tested fix it names are in reviewer/ here (see SNAPSHOT.txt).
+C2b closes the two MUST-FIX items only. The should-fix and minor items are context: do not work on them in C2b.
+Nothing below the first rule was edited.
+====================================================================================================
+MUST-FIX (C2b closes these two)
+====================================================================================================
+[mustFix 1 of 2]
+M1 (principle 4: false words introduced by U19H). With a board file holding two appropriations where the other one was saved later, putting back K and then putting back N makes the top bar say 'Unsaved restored work — not written to the board file'. N is exactly the board file's own om save. The tooltip says 'Work put back from what this browser kept aside, not written to the board file since it was put back.' The file holds N; the parent says 'Unsaved changes' here, which is true. REPRO: probe V1 (rec/L6/u19h/verify-money-r1/probe/vprobe-block.mjs.txt, harness h/run-c1/vprobe.mjs). Steps: board file F. K is typed and left unsaved. N is saved into the file by another browser. The file also carries ff at a later time T_B, with om still N. The opening keeps K aside. Then ↶ Put back K, then ↶ Put back N. Result on c1: head 'Unsaved restored work — not written to the board file · ↶ work kept aside'; record {file:T_B, dirty:true}; MS.ts equals the file's om ts (run P1-vprobe-on-c1, 22:19:27 ET, exit 1; the parent's run P1-vprobe-on-parent shows 'Unsaved changes'). The one-appropriation control V1c gives 'Unsaved changes' on c1. CAUSE: putBackUnsaved compares MS.ts with baseGet().file. That value is fileTsOf, the NEWEST appropriation's time in the file, not this appropriation's. So the builder's scenario (h) and the NEXT-VERSION claim ('The board file's own save put back in its turn ... says Unsaved changes') hold only for one-appropriation files. MINIMAL FIX (tested in cfix/: V1 passes, U19H block 29/29), in U19H's own lines: add 'let _fileOwnTs=+((PUB&&PUB.ts)||0);' after 'let _fileSaveTs=PUB_FILE_TS;'. At the landing, after '_fileSaveTs=wrote;', add 'try{ _fileOwnTs=+((PUBS[_AP.slug]||{}).ts||0); }catch(e){}'. In putBackUnsaved, use 'return !(t && (t===(+b.file||0) || t===f || ((+b.file||0)===_fileSaveTs && t===_fileOwnTs)));'. Then add a two-appropriation scenario to the U19H block and a mutation entry that drops the new disjunct.
+
+[mustFix 2 of 2]
+M2 (principle 4; data-loss-adjacent false instruction introduced by U19H). In the shared folder, when browser storage refuses a list that the folder's copy does not carry (for example the reprogramming log), the new tooltip says 'Browser storage refused a change: until 💾 Save writes it, it is on this page only.' It says this before and after a 💾 Save that landed. A folder Save writes the board alone (livePayload) and never writes that list. After the Save, _lsRefused is still {'prio27reprog':1} and the folder holds only spmt-2027-om.json and its lock. The board's own refusal message says the opposite ('The shared folder’s copy of the board does not carry it: ⬇ Save a copy keeps it in a file'). Save's '✅ Saved …' message then replaces that message, so U19H's wrong instruction is the only guidance left. Someone who trusts it and closes the page loses the list. REPRO: probe V2. Folder connected, F0 saved there. Storage refuses 'prio27reprog'; call persistRp(); make an edit; 💾 Save lands with the record clean. On c1 the tooltip still promises that 💾 Save writes it (run P1-vprobe-on-c1). The same sentence appears in the hold+U19+U19H composition, where the builder's README §10 calls it 'true'; that is wrong for the same reason. MINIMAL FIX (tested in cfix/: V2 passes, U19H block 29/29): in unsavedSay, add 'let fold=false; try{ fold=!_persistFail && refused && driveStoreOn(); }catch(e){}'. When fold is true, do not promise 💾 Save; say for example 'Browser storage refused a change the shared folder’s copy does not carry: it is on this page only until ⬇ Save a copy keeps it in a file.' The wording is the lead's choice. Add a folder side-list-refusal check and a mutation entry.
+
+====================================================================================================
+SHOULD-FIX (context only, not C2b)
+====================================================================================================
+[shouldFix 1 of 4]
+V3 (pre-existing on the parent, but U19H's own brief is unmet on this route). After a ⬇ download (Save a copy, which held S1) followed by ↶ Put back of K, the main status on both boards says 'downloaded — not on the shared file yet · ↶ work kept aside'. K was never downloaded (__dl=1, the S1 download). keptPutBack marks the put-back as a change (U2: 'counted as an edit is') but does not reset _dlOnly the way save() does. U19H's D3 deliberately keeps the download words first, so after a put-back the header does not say the restored work is unsaved. Fix: '_putBackOn={ms:MS, rec:putBackRec()}; _dlOnly=false;' in U19H's own keptPutBack line (tested in cfix/; V3 passes, U19H block 29/29). Repro: probe V3 (P1-vprobe-on-parent and P1-vprobe-on-c1 both fail it).
+
+[shouldFix 2 of 4]
+V4 (pre-existing data loss, identical on the parent and c1; not U19H's to fix, but U19H's tooltip hides it). When browser storage refuses only this browser's record (<key>.base) at ↶ Put back, K reaches the board's own key but the record stays {file:T_S1, dirty:false}. c1's tooltip says 'The unsaved work is kept in this browser.' On a reopen before any Save, ownUnsaved reads dirty:false and the file's S1 opens WITHOUT keeping K aside. After the next change K is in no copy: the screen, the board key, the kept slot and the file all hold S1 (probe V4, both boards). Add this as a second route to the builder's proposed new data-loss ledger row (a refused baseSet in keptPutBack is silent). The brief's 'if browser storage refused the write, say that instead' is not met for the record write.
+
+[shouldFix 3 of 4]
+Drafts state things that M1 and M2 make untrue. NEXT-VERSION-U19H.md says 'The board file’s own save put back in its turn, unchanged, is that save: the top bar says Unsaved changes, as before', which is false for several-appropriation files. It also quotes the 'until 💾 Save writes it' sentence without its folder exception. README §10 calls the hold-composed tooltip 'both true'. LEDGER-U19H.md repeats the same tooltip sentence. Correct them together with the fixes.
+
+[shouldFix 4 of 4]
+The ⬅ Import gap the builder disclosed (put-back, then import of an older board, then a reopen calls the imported board 'restored work') is still a false word under principle 4. It was read in the code and not run, by the builder or by me. Either guard the opening inference or keep it listed as open.
+
+====================================================================================================
+MINOR (context only, not C2b)
+====================================================================================================
+[minor 1 of 5]
+The new line in keptPutBack, '_putBackOn={ms:MS, rec:putBackRec()};', sits before U2's 'persist(); _saveGen++; DIRTY=true;' without a try. putBackRec cannot throw today (baseGet catches, and JSON.stringify of parsed data is safe), but wrapping it in try{}catch(e){} would guarantee that U2's change marking always runs.
+
+[minor 2 of 5]
+In folder mode the tooltip's 'Last file save' is the board file's time while 💾 Save writes the folder. It is true but can read as the last save of the work; consider naming the folder copy's time there.
+
+[minor 3 of 5]
+Not run by me: Chromium/verify:grid fit of the longer top-bar words (the builder did not run them either), the hold and adopt compositions, the PMO-copy block (unchanged by construction), the remaining 9 builder mutants, and the multi-tab case (read in the code: a tab opened while the record was dirty keeps saying unsaved after another tab saves).
+
+[minor 4 of 5]
+Deviation: one 'node --check' syntax check of my probe harness ran without setsid/timeout or the lock check. The lock was absent before and after it. It is disclosed in README.md.
+
+[minor 5 of 5]
+The DRAIN file appeared at 10:26 PM ET, after all my runs had finished. No run was started after that; only README.md and this verdict were written.
+

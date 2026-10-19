@@ -1,0 +1,16 @@
+# cmd: X=1 node r2-contract.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/runs/fb-9b27e80/copy
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/xcheck
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-11T20:29:54Z / 16:29:54 EDT
+# cap: 600s  grace: 10s
+FAIL ß×10 (upper-cases to 20): got {"eeic":"SSSSSSSSSSSSSSSSSSSS","marked":false,"said":false} want {"eeic":"AAAAA","marked":true,"said":true}
+FAIL ﬃ×4 (upper-cases to 12): got {"eeic":"FFIFFIFFIFFI","marked":false,"said":false} want {"eeic":"AAAAA","marked":true,"said":true}
+ok   control " ab12c ": got {"eeic":"AB12C","marked":false,"said":false} want {"eeic":"AB12C","marked":false,"said":false}
+ok   control ABCDEFGHIJ (10): got {"eeic":"ABCDEFGHIJ","marked":false,"said":false} want {"eeic":"ABCDEFGHIJ","marked":false,"said":false}
+ok   control SSSSSSSSSS (10 when upper-cased): got {"eeic":"SSSSSSSSSS","marked":false,"said":false} want {"eeic":"SSSSSSSSSS","marked":false,"said":false}
+script errors []
+2 FAILING
+
+# end: 2026-10-11T20:29:58Z / 16:29:58 EDT
+# exit: 1  duration_s: 3.6

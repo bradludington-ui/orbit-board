@@ -1,0 +1,13 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/R3msg/patched.html node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/R3msg/focused-R3msg.mjs
+# cwd: /home/user/orbit-board
+# git: 27a5ebffb64f571eab70429d74a97bb17b25bdd5
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:01:46Z / 18:01:46 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+scenarios heard: ["v2.00 (R3) — a save that lands under a locked view says it saved the working plan"]
+ALL CHECKS PASSED
+
+# end: 2026-10-11T22:01:53Z / 18:01:53 EDT
+# exit: 0  duration_s: 6.4

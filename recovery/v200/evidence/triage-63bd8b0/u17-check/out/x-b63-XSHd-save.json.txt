@@ -1,0 +1,483 @@
+{
+ "scenario": "XSHd",
+ "next": "save",
+ "board": "u13",
+ "ids": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "c47a43b62bf00e391aafa040de32f37109e10699",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/b63/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 15:09:40 ET",
+ "steps": [
+  {
+   "step": "held",
+   "reached": true,
+   "brad": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832185855,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791832181982,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791832184954
+     }
+    },
+    "driveBaseOf": 1791832184954,
+    "_saveGen": 4,
+    "_saveBusy": 1,
+    "LASTKNOWN": 1791832181982,
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832185566,
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "buttons": [
+     "adoptShared()"
+    ],
+    "label": "save held at the close of its write",
+    "baseFolder": 1791832184954,
+    "status": "⚠ The shared state file (10/12/2026, 7:09:43 PM) arrived after you started working, so nothing was replaced. 💾 Save yours, or load the shared one (what you have is kept aside first).",
+    "header": "Unsaved changes",
+    "at": "10/12/2026, 15:09:45 ET"
+   },
+   "asked": []
+  },
+  {
+   "step": "adoption",
+   "how": "DOM click: clicked",
+   "brad": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832183395,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791832181982,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791832184954
+     }
+    },
+    "driveBaseOf": 1791832184954,
+    "_saveGen": 4,
+    "_saveBusy": 1,
+    "LASTKNOWN": 1791832181982,
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832183395,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791832183395,
+      "base": {
+       "file": 1791832181982,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791832184954
+       }
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "buttons": [],
+    "label": "after the load",
+    "baseFolder": 1791832184954,
+    "status": "Shared state loaded (published 10/12/2026, 7:09:43 PM).",
+    "header": "Unsaved changes · ↶ work kept aside",
+    "at": "10/12/2026, 15:09:45 ET"
+   }
+  },
+  {
+   "step": "settled",
+   "brad": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832183395,
+     "by": "Carol",
+     "cur": 2027,
+     "whose": "SHARED"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832181982,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832185855
+     }
+    },
+    "driveBaseOf": 1791832185855,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832181982,
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832183395,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791832183395,
+      "base": {
+       "file": 1791832181982,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791832184954
+       }
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "buttons": [],
+    "label": "settled",
+    "baseFolder": 1791832185855,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 7:09 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:09:46 ET"
+   },
+   "folder": {
+    "label": "settled",
+    "head": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791832185855,
+     "payloadTs": 1791832185855,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 15:09:45 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-190945.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791832184954,
+      "payloadTs": 1791832184954,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 15:09:44 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-190945.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "at": "10/12/2026, 15:09:46 ET"
+   }
+  },
+  {
+   "step": "V3next",
+   "asked": [],
+   "after": {
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832186276,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "SHARED"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832181982,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832186276
+     }
+    },
+    "driveBaseOf": 1791832186276,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "LASTKNOWN": 1791832181982,
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832186276,
+     "whose": "SHARED"
+    },
+    "kept": {
+     "meta": {
+      "why": "sidecar",
+      "by": "Carol",
+      "ts": 1791832183395,
+      "base": {
+       "file": 1791832181982,
+       "dirty": true,
+       "folder": {
+        "om|2027": 1791832184954
+       }
+      }
+     },
+     "note": "BRAD-2",
+     "alloc": 720,
+     "whose": "BRAD-2"
+    },
+    "buttons": [],
+    "label": "after the next Save",
+    "baseFolder": 1791832186276,
+    "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 7:09 PM · ↶ work kept aside",
+    "at": "10/12/2026, 15:09:46 ET"
+   },
+   "folder": {
+    "label": "after next save",
+    "head": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791832186276,
+     "payloadTs": 1791832186276,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "SHARED",
+     "tsET": "10/12/2026, 15:09:46 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-190945.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791832184954,
+      "payloadTs": 1791832184954,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 15:09:44 ET"
+     },
+     {
+      "name": "spmt-2027-om-20261012-190946-recent.json",
+      "note": "BRAD-2",
+      "alloc": 720,
+      "ts": 1791832185855,
+      "payloadTs": 1791832185855,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-2",
+      "tsET": "10/12/2026, 15:09:45 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-190945.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-190946-recent.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "at": "10/12/2026, 15:09:46 ET"
+   }
+  }
+ ],
+ "expected": {
+  "linkHeld": true,
+  "adopt": [
+   "SHARED",
+   1,
+   true,
+   "BRAD-2",
+   true
+  ],
+  "K1": [
+   "SHARED",
+   true,
+   "BRAD-2"
+  ],
+  "v3": [
+   0,
+   "SHARED",
+   "BRAD-2",
+   "SHARED",
+   "saved",
+   true,
+   true
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "SHARED",
+   true,
+   "BRAD-2"
+  ],
+  "falselyClean": true
+ },
+ "v3where": {
+  "overwritten": "BRAD-2",
+  "inHistory": [
+   "spmt-2027-om-20261012-190946-recent.json"
+  ],
+  "keptSlot": true
+ },
+ "endedET": "10/12/2026, 15:09:46 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "the folder copy is BRAD-1, Brad clean against it ([head, DIRTY, record dirty, base = head ts, shared file older than MS.ts])",
+   "expected": [
+    "BRAD-1",
+    false,
+    false,
+    true,
+    true
+   ],
+   "observed": [
+    "BRAD-1",
+    false,
+    false,
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.arrived",
+   "kind": "fixture",
+   "what": "BRAD-2 typed; the shared file arrived: nothing replaced, the link offered ([screen, DIRTY, button])",
+   "expected": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.held",
+   "kind": "fixture",
+   "what": "the 💾 Save is held at the close of its main write ([reached, _saveBusy, head still BRAD-1, questions])",
+   "expected": [
+    true,
+    1,
+    "BRAD-1",
+    0
+   ],
+   "observed": [
+    true,
+    1,
+    "BRAD-1",
+    0
+   ],
+   "pass": true
+  },
+  {
+   "id": "XSHd.linkHeld",
+   "kind": "predict",
+   "what": "while the save is writing, the status line still shows the \"load the shared one\" button ([button adoptShared() present])",
+   "expected": true,
+   "observed": true,
+   "pass": true
+  },
+  {
+   "id": "XSHd.adopt",
+   "kind": "predict",
+   "what": "the shared state file is put on screen (DOM click: clicked) ([screen, _saveBusy, _saveGen unchanged, kept slot, said])",
+   "expected": [
+    "SHARED",
+    1,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "observed": [
+    "SHARED",
+    1,
+    true,
+    "BRAD-2",
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "XSHd.K1",
+   "kind": "predict",
+   "what": "once settled [screen, recorded clean, base copy]",
+   "expected": [
+    "SHARED",
+    true,
+    "BRAD-2"
+   ],
+   "observed": [
+    "SHARED",
+    true,
+    "BRAD-2"
+   ],
+   "pass": true
+  },
+  {
+   "id": "XSHd.contractK1",
+   "kind": "contract",
+   "what": "recorded clean only against a copy holding what is on screen",
+   "expected": "not falsely clean",
+   "observed": [
+    "SHARED",
+    true,
+    "BRAD-2"
+   ],
+   "pass": false
+  },
+  {
+   "id": "XSHd.V3next",
+   "kind": "predict",
+   "what": "the next 💾 Save [\"questions\",\"screen before\",\"head before\",\"head after\",\"status\",\"clean after\",\"record names head\"]",
+   "expected": [
+    0,
+    "SHARED",
+    "BRAD-2",
+    "SHARED",
+    "saved",
+    true,
+    true
+   ],
+   "observed": [
+    0,
+    "SHARED",
+    "BRAD-2",
+    "SHARED",
+    "saved",
+    true,
+    true
+   ],
+   "pass": true
+  }
+ ]
+}

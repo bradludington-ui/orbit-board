@@ -1,0 +1,6 @@
+draft piece (1) lines 47 ; commit added 47 ; removed 0
+--- draft(1)
++++ commit+
+@@ -24 +24 @@
+-    export taken from it, use the working plan's (ledger U<n+2>). To export a locked cycle under other funds-flow settings
++    export taken from it, use the working plan's (ledger U53). To export a locked cycle under other funds-flow settings

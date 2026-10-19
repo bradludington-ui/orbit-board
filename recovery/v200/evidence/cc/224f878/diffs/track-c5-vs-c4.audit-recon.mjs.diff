@@ -1,0 +1,109 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c4/tools/export-audit/audit-recon.mjs	2026-10-13 18:31:50.968774834 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c5/tools/export-audit/audit-recon.mjs	2026-10-14 01:01:33.026705609 +0000
+@@ -5908,6 +5908,106 @@
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U10, the files, packages, ladder and shared copies) ====
++// ==== v2.00 (U10, the funds flow's money): partner money, FMS money or a year refused in a locked view is in no total and no export ====
++// Ledger U49 (the YEARSEL money review, round 3, SF1, probe P4; the lead put it in U10's track on 13 Oct): the funds flow's
++// partner and FMS money and its year selection are kept beside the years (MS.flow), so only a refusal that makes the whole copy
++// again puts them back. The blocks above read the funds flow's axis and its destinations, never its money. On P4's board -- one
++// O&M requirement, F1 (PSM, $1,000,000,000 asked), $500,000,000 discretionary in FY27, an imported FY25 row of $40,000,000 -- with
++// the funds flow's saved selection FY27, PB27 is locked and viewed. International Partners and Foreign Military Sales are typed in
++// the fields the funds-flow panel draws for FY27, and FY25 is clicked in its year buttons; each is refused. After each, in the view:
++// the status line, the calculation, the panel's total funding, the field on screen, and the Funds Flow export (its name, TOTAL
++// FUNDING, US SERVICE FUNDING, International Partners, Foreign Military Sales). FAILS ON 7ee498a (board fce8a391): the status line
++// says the change was not kept, yet the calculation and the export labelled "[PB27 LOCKED]" carry International Partners
++// $3,000,000 and TOTAL FUNDING $503,000,000 (with FY25 clicked, $543,000,000) -- money neither the lock nor the plan holds.
++// CONTROLS: PB27 viewed, nothing typed; the view left (the working plan holds no partner money, before this version too); on the
++// working plan the same figure and the same click are allowed, and the export carries them. Every figure is typed here.
++await (async () => {
++  const name = 'v2.00 (U10) — partner money, FMS money or a year refused in a locked view is in no total and no export';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify, M = 1000000;
++    const row = (fy, title, budget, amt, office) => { const r = Array(32).fill(''); r[0] = fy; r[1] = fy + '-03'; r[2] = 'U49' + fy; r[3] = title;
++      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = office; return r; };
++    const WB = { om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [row(2025, 'Ordinary Support', 'USAF O&M Discretionary', 40 * M, 'Program (TSS)')] } } };
++    const X = boot();
++    seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * M])], disc: [500 * M], mand: [0], order: ['F1'] });
++    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
++      S.bm={disc:[${500 * M}], mand:[0], adds:[]}; MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S};
++      applyState(S); MS.years[2027]=S; EXDB.all=${J(WB)}; EXDB.ts=1;
++      var C=flowCfg(); delete C.pseudo; C.other={}; C.fys=[2027]; C.aps=null; save(); 'ok'`);
++    const key = ev(`window.confirm=function(){ return true; }; blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    const notKept = () => /the change was not kept|Not kept/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`));
++    // the calculation: [total, executed, planned, partners, FMS, grand], the years counted, and what is stored
++    const calc = () => JSON.parse(ev(`(function(){ var F=flowCalc(); return JSON.stringify([[F.tot, F.execV, F.planV, F.ip, F.fms, F.grand], flowSelYears(),
++      JSON.stringify(flowCfg().other), JSON.stringify(flowCfg().fys)]); })()`));
++    // the panel as drawn on screen: its total funding, and the FY27 partner and FMS fields
++    const panel = () => JSON.parse(ev(`(function(){ flowOpen=true; flowSel=''; flowBody(); var b=document.getElementById('flowBody');
++      var t=/total funding \\$([\\d,]+\\.\\d\\d)M/.exec(b.textContent), f=function(k){ var i=[].slice.call(b.querySelectorAll('input')).filter(function(e){
++        return (e.getAttribute('onchange')||'')==='flowSetOther(2027,"'+k+'",this.value)'; })[0]; return i? i.value : 'no field'; };
++      return JSON.stringify([t? t[1] : '', f('ip'), f('fms')]); })()`));
++    // a field the panel draws (a figure typed, change fired), or a year button (clicked)
++    const type = (k, v) => ev(`(function(){ flowOpen=true; flowBody(); var i=[].slice.call(document.querySelectorAll('#flowBody input')).filter(function(e){
++      return (e.getAttribute('onchange')||'')==='flowSetOther(2027,"${k}",this.value)'; })[0]; if(!i) return 'no control';
++      i.value=${J(v)}; i.dispatchEvent(new Event('change', {bubbles:true})); return 'fired'; })()`);
++    const click = on => ev(`(function(){ flowOpen=true; flowBody(); var b=[].slice.call(document.querySelectorAll('#flowBody button')).filter(function(e){
++      return (e.getAttribute('onclick')||'')===${J(on)}; })[0]; if(!b) return 'no control'; b.click(); return 'fired'; })()`);
++    // the Funds Flow export, read from its bytes: its name (the date taken out), and the money lines on the Funds Flow sheet
++    const book = async () => { const r = JSON.parse(await X.w.eval(`(async function(){ var cap=null, _B=window.Blob, dl='';
++        var _ck=HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click=function(){ dl=this.download; };
++        window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
++        try{ exportFlow(); }catch(e){ window.Blob=_B; HTMLAnchorElement.prototype.click=_ck; return JSON.stringify({__err:'threw '+String((e&&e.message)||e)}); }
++        window.Blob=_B; HTMLAnchorElement.prototype.click=_ck; if(!cap) return JSON.stringify({__err:'no file'});
++        return JSON.stringify({dl:dl, wb:await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength))}); })()`));
++      if (r.__err) return [r.__err];
++      const ff = (r.wb['Funds Flow'] || []).map(x => (x || []).map(c => (c && typeof c === 'object' && 'v' in c) ? c.v : c));
++      const all = lab => ff.filter(x => w6Lbl(x) === lab).map(x => num(x[1])).filter(v => v !== null);
++      return ['ok', String(r.dl).replace(/ 20\d\d-\d\d-\d\d/, ''), String((ff[1] || [])[0] ?? ''), all('TOTAL FUNDING'), all('US SERVICE FUNDING'),
++        all('International Partners'), all('Foreign Military Sales')]; };
++    const cyc0 = ev('JSON.stringify(CYCDB)'), ls0 = ev('localStorage.getItem(_AP.key)');
++    // BY HAND. FY27 counts F1's planned $500,000,000 and nothing else; FY25's imported $40,000,000 only when FY25 is counted.
++    const NAME = 'ORBIT Funds Flow - FY27 all appropriations PLANNED board allocation O M';
++    const SCOPE = 'Scope: FY27 · all appropriations · PLANNED (board allocation, O&M)';
++    const CALC = [[500000000, 0, 500000000, 0, 0, 500000000], [2027], '{}', '[2027]'];
++    const BOOK = ['ok', NAME + ' [PB27 LOCKED].xlsx', SCOPE, [500000000, 500000000], [500000000], [0, 0], [0, 0]];
++    const PANEL = ['500.00', '', ''];
++    // ---- CONTROL: PB27 viewed, nothing typed
++    ev(`cycView(${J(key)}); 'ok'`);
++    w5Chk(name, 'PB27 viewed, nothing typed', 'CONTROL — the calculation, the panel and the export count FY27’s $500,000,000 and no partner or FMS money',
++      J([ev('CYCVIEW'), calc(), panel(), await book()]), J([key, CALC, PANEL, BOOK]));
++    // ---- EACH CHANGE, with PB27 on screen; the status line is read at once ('Not kept' is put in front of a message for 1.5 s only)
++    const CHANGES = [['International Partners for FY27 typed as 3 ($M) in its field', () => type('ip', '3')],
++      ['Foreign Military Sales for FY27 typed as 2 ($M) in its field', () => type('fms', '2')],
++      ['FY25 clicked in the funds flow’s year buttons', () => click('flowToggleYear(2025)')]];
++    for (const [what, act] of CHANGES) {
++      const fired = act(), nk = notKept();
++      w5Chk(name, 'PB27 viewed · ' + what, 'refused and said so; the calculation, the panel and the export labelled [PB27 LOCKED] count FY27’s $500,000,000 and nothing else',
++        J([fired, nk, calc(), panel(), await book()]), J(['fired', true, CALC, PANEL, BOOK]));
++    }
++    // ---- CONTROL: the view left -- the working plan holds no partner money (it held none on 7ee498a either), and nothing durable moved
++    ev(`cycLeave(); 'ok'`);
++    w5Chk(name, 'each change refused · the view left', 'CONTROL — the working plan counts FY27’s $500,000,000 and stores no partner money; the cycle store and browser storage are byte for byte as they were',
++      J([ev('CYCVIEW'), calc(), await book(), ev('JSON.stringify(CYCDB)') === cyc0, ev('localStorage.getItem(_AP.key)') === ls0]),
++      J(['', CALC, ['ok', NAME + '.xlsx', SCOPE, [500000000, 500000000], [500000000], [0, 0], [0, 0]], true, true]));
++    // ---- CONTROL: on the working plan the same figure and the same click are allowed, and the export carries them
++    const wi = type('ip', '3'), ci = calc(), bi = await book();
++    const wy = click('flowToggleYear(2025)'), cy = calc(), by = await book();
++    w5Chk(name, 'the working plan · International Partners 3, then FY25 clicked (allowed)', 'CONTROL — $503,000,000 with $3,000,000 of partners; then FY25 and FY27, $543,000,000, and the export carries each',
++      J([wi, ci, bi, wy, cy, by]),
++      J(['fired', [[500000000, 0, 500000000, 3000000, 0, 503000000], [2027], '{"2027":{"ip":3000000}}', '[2027]'],
++        ['ok', NAME + '.xlsx', SCOPE, [503000000, 503000000], [500000000], [3000000, 3000000], [0, 0]],
++        'fired', [[540000000, 40000000, 500000000, 3000000, 0, 543000000], [2025, 2027], '{"2027":{"ip":3000000}}', '[2025,2027]'],
++        ['ok', 'ORBIT Funds Flow - FY25 FY27 all appropriations FY27 planned the rest executed.xlsx', 'Scope: FY25, FY27 · all appropriations · FY27 planned, the rest executed',
++          [543000000, 543000000], [540000000], [3000000, 3000000], [0, 0]]]));
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(X.errors.length), J(0));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10, the funds flow's money) ====
+ 
+ {
+   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

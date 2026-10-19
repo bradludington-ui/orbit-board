@@ -1,0 +1,37 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/R1bint/mut-v200-r1-mixed-disclosure-b.html node tools/export-audit/audit-recon.mjs
+# cwd: /home/user/orbit-board
+# git: 2b5b02b66dc66f2ebecf0df114d1582d62696f26
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:41:48Z / 18:41:48 EDT
+# cap: 600s  grace: 10s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+5 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the panel
+    says planned and executed money in one total, year by year, with each amount
+        got [false,false]   want [true,true]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the export
+    and a NOTE: planned and executed money in one total, FY25 planned, FY26 executed
+        got []   want [true]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | E · ALL YEARS · the export
+    kept: US SERVICE FUNDING 540000000 and the NOTE, a line per year in scope
+        got ["ok",[540000000],[]]   want ["ok",[540000000],["NOTE: planned and executed money in one total — FY25: O&M executed; FY26: O&M planned; FY27: O&M planned; FY28: O&M planned; FY29: O&M planned; FY30: O&M planned. Executed is the imported CCaR QPE; planned is O&M’s own allocation."]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | E · ALL YEARS · the panel
+    kept: the box says planned and executed money in one total, a line per year, $40.00M executed and $500.00M planned
+        got    want Planned and executed money in one total. FY25: O&M executed; FY26: O&M planned; FY27: O&M planned; FY28: O&M planned; FY29: O&M planned; FY30: O&M planned. Executed money is the imported CCaR QPE; planned money is O&M’s own allocation. $40.00M executed, $500.00M planned.
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 + FY26
+    CONTROL — still said as both on the panel and in the export (the R1 block holds their words)
+        got [false,[400000000],0]   want [true,[400000000],1]
+
+# end: 2026-10-11T22:42:40Z / 18:42:40 EDT
+# exit: 1  duration_s: 51.7

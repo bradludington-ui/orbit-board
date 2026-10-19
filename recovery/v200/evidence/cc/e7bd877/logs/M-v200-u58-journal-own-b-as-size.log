@@ -1,0 +1,18 @@
+# label: M-v200-u58-journal-own-b-as-size
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/out/M-v200-u58-journal-own-b-as-size.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/after/tools/export-audit/focused.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/mut/v200-u58-journal-own-b-as-size.html
+# start: 2026-10-18 18:03:32 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/mut/v200-u58-journal-own-b-as-size.html","BOARD_set":true,"board":"4186fbd32097fe886655a7e12160bbb7165e76e2","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e7bd877/h/after/tools/export-audit/focused.mjs","harnessBlob":"9d607f5a9328188587c96ac2598b3dc33a75893c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 6:03:33 PM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U58/U59) — the change journal and the PMO submittal review show a saved SI value that is not text as saved, by its JSON | object with its own _b key
+    AT chosen in the field: the journal opens and reads Was “{"_b":{"toString":null}}”, Became AT, and a redraw with it open draws
+        got ["threw: Cannot convert object to primitive value","threw: Cannot convert object to primitive value"]   want ["[[\"sustainment indicator — Ev A\",\"“{\\\"_b\\\":{\\\"toString\\\":null}}”\",\"AT\"],[\"sustainment indicator — Ev A\",\"not set\",\"“{\\\"_b\\\":{\\\"toString\\\":null}}”\"]]","drawn"]
+    a saved {"_b":5}: the journal reads Was “{"_b":5}”, never 5 characters
+        got [["sustainment indicator — Ev A","5 characters","AT"],["sustainment indicator — Ev A","not set","5 characters"]]   want [["sustainment indicator — Ev A","“{\"_b\":5}”","AT"],["sustainment indicator — Ev A","not set","“{\"_b\":5}”"]]
+# exit 1 at 10/18/2026, 6:04:08 PM ET
+
+# end: 2026-10-18 18:04:08 EDT  exit: 1  wall_s: 36.4

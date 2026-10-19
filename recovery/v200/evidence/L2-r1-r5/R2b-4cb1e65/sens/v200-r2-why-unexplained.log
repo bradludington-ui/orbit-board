@@ -1,0 +1,22 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R2b-4cb1e65/sens/mut-v200-r2-why-unexplained.html node tools/export-audit/audit-board.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R2b-4cb1e65/run/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:29:19Z / 17:29:19 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v2.00 (R2) — an EEIC refusal says the limit is on the EEIC trimmed and upper-cased | EEIC typed as ß×10
+    the refusal says the EEIC is measured trimmed and upper-cased, and that the ten ß typed become twenty S
+        got ["⚠ EEIC not changed. The EEIC “SSSSSSSSSSSSSSSSSSSS” is 20 characters; it can be at most 10. Nothing was changed.","The EEIC “SSSSSSSSSSSSSSSSSSSS” is 20 characters; it can be at most 10. Nothing was changed"]   want ["⚠ EEIC not changed. The EEIC is measured as it is kept, trimmed and upper-cased: “ßßßßßßßßßß” becomes “SSSSSSSSSSSSSSSSSSSS”, 20 characters; it can be at most 10. Nothing was changed.","The EEIC is measured as it is kept, trimmed and upper-cased: “ßßßßßßßßßß” becomes “SSSSSSSSSSSSSSSSSSSS”, 20 characters; it can be at most 10. Nothing was changed"]
+--- v2.00 (R2) — an EEIC refusal says the limit is on the EEIC trimmed and upper-cased | EEIC typed as " abcdefghijk "
+    trimmed and upper-cased it is ABCDEFGHIJK, 11 characters, and the refusal says so
+        got ["⚠ EEIC not changed. The EEIC “ABCDEFGHIJK” is 11 characters; it can be at most 10. Nothing was changed.","The EEIC “ABCDEFGHIJK” is 11 characters; it can be at most 10. Nothing was changed"]   want ["⚠ EEIC not changed. The EEIC is measured as it is kept, trimmed and upper-cased: “abcdefghijk” becomes “ABCDEFGHIJK”, 11 characters; it can be at most 10. Nothing was changed.","The EEIC is measured as it is kept, trimmed and upper-cased: “abcdefghijk” becomes “ABCDEFGHIJK”, 11 characters; it can be at most 10. Nothing was changed"]
+--- v2.00 (R2) — an EEIC refusal says the limit is on the EEIC trimmed and upper-cased | EEIC typed as ABCDEFGHIJK
+    unchanged by upper-casing: the refusal names it once, 11 characters
+        got ["⚠ EEIC not changed. The EEIC “ABCDEFGHIJK” is 11 characters; it can be at most 10. Nothing was changed.","The EEIC “ABCDEFGHIJK” is 11 characters; it can be at most 10. Nothing was changed"]   want ["⚠ EEIC not changed. The EEIC is measured as it is kept, trimmed and upper-cased: “ABCDEFGHIJK” is 11 characters; it can be at most 10. Nothing was changed.","The EEIC is measured as it is kept, trimmed and upper-cased: “ABCDEFGHIJK” is 11 characters; it can be at most 10. Nothing was changed"]
+
+# end: 2026-10-11T21:32:02Z / 17:32:02 EDT
+# exit: 1  duration_s: 162.8

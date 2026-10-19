@@ -1,0 +1,54 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] fixture.bobBase: bob loaded brad's copy: [returned, screen, his base = v1 ts]
+     expected [true,"BRAD-1",true]
+     observed [true,"BRAD-1",true]
+PASS [fixture] W2pull.held: brad's 💾 Save with nothing unsaved reached its write and is held: [reached, DIRTY, record dirty, _saveBusy, head ts = v1 ts]
+     expected [true,false,false,1,true]
+     observed [true,false,false,1,true]
+PASS [fixture] W2pull.bobCopy: bob's copy is the folder's current copy: [content, by, writer, bob DIRTY, bob record dirty]
+     expected ["BOB-2","Bob","Bob",false,false]
+     observed ["BOB-2","Bob","Bob",false,false]
+PASS [fixture] W2pull.bobNewer: bob's copy is newer than the MS.ts brad's held save built
+     expected [true]
+     observed [true]
+PASS [predict] W2pull.refresh: the refresh during the held save ([returned, _saveBusy, screen, record dirty, _saveGen unchanged, kept slot, the folder copy was read, folder writes other than the lock, U13 refusal words said])
+     expected [false,1,"BRAD-1",false,true,null,true,0,false]
+     observed [false,1,"BRAD-1",false,true,null,true,0,false]
+PASS [fixture] W2pull.head: the folder head after brad's save lands: the bytes it built ([content, by, writer])
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [contract] W2pull.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-1",false,"BRAD-1"]]
+     observed ["BRAD-1",true,"BRAD-1"]
+PASS [predict] W2pull.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["BRAD-1",true,"BRAD-1"]
+     expected false
+     observed false
+PASS [contract] W2pull.K2: CONTRACT after a later refresh (or the board says the copies differ) [screen, recorded clean, base copy]
+     expected [["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-1",false,"BRAD-1"]]
+     observed ["BRAD-1",true,"BRAD-1"]
+PASS [contract] W2pull.K3: CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen, recorded clean, base copy]
+     expected [["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-1",false,"BRAD-1"]]
+     observed ["BRAD-1",true,"BRAD-1"]
+PASS [contract] W2pull.reach: CONTRACT: BOB-2/$650 and BRAD-1/$700 each remain in some reachable copy (BOB-2 counting bob's own board) ([BOB-2 reachable, BRAD-1 reachable])
+     expected [true,true]
+     observed [true,true]
+PASS [related (U18, not U17)] W2pull.U18: bob's copy BOB-2/$650 is in the shared folder (head or history)
+     expected "(observed only)"
+     observed false
+PASS [predict] W2pull.V3next: Brad's next 💾 Save from where the route ended ["questions asked","screen before","head before","head after","status says","recorded clean after","record names the head"]
+     expected [0,"BRAD-1","BRAD-1","BRAD-1","saved",true,true]
+     observed [0,"BRAD-1","BRAD-1","BRAD-1","saved",true,true]
+PASS [contract] W2pull.U17.V3: U17 (V3next): from a record that says saved while the screen differs from the copy it names, 💾 Save writes the screen copy over a folder head holding different content and asks nothing ([record falsely clean before, wrote over a different head without asking])
+     expected {"not":[true,true]}
+     observed [false,false]
+whereNow {"BOB-2":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false,"bobScreen":true,"bobStorage":true},"BRAD-1":{"folderHead":true,"folderHistory":["spmt-2027-om-20261012-142249.json"],"screen":true,"storage":true,"keptSlot":false,"bobScreen":false,"bobStorage":false}}
+u17state {"tuple":["BRAD-1",true,"BRAD-1"],"falselyClean":false}
+nextFrom {"K":["BRAD-1",true,"BRAD-1"],"falselyClean":false,"head":"BRAD-1","history":["spmt-2027-om-20261012-142249.json BRAD-1"]}
+v3parts {"falselyClean":false,"wroteOver":false,"overwritten":"BRAD-1","overwrittenNowIn":{"folderHead":true,"folderHistory":["spmt-2027-om-20261012-142249.json","spmt-2027-om-20261012-142252-recent.json"],"screen":true,"storage":true,"keptSlot":false}}
+ids {"board":"98eed7e801af20270f755eadffb2fa72355c30e5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"92f62853ce26153304fff5c5560a9fefdfcb4f31","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/b63/prioritization-board-grid.html"}
+SUMMARY W2pull save board=u13: 16 pass, 0 fail | fixture 7/7 | predict 3/3 | contract 5/5 | harness 0/0

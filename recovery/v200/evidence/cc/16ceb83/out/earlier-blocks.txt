@@ -1,0 +1,37 @@
+=== liteall
+commit records 163 failing 0 failing outside U4 0
+parent records 163 failing 24 failing outside U4 0
+  v1.95 — after an import that cannot be put back, nothing writes over the board file until asked commit 11/11 pass, parent 11/11 pass
+  v1.95 — an import that lands whole lifts the hold a stopped one set                             commit 4/4 pass, parent 4/4 pass
+  v1.99 — a batch that cannot be put back says so, and holds the board (item 86)                  commit 23/23 pass, parent 23/23 pass
+  v2.00 (R4) — a save already waiting does not write past a mixed-import hold                     commit 7/7 pass, parent 7/7 pass
+  v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touch commit 13/13 pass, parent 13/13 pass
+  v2.00 (U3) — a Save asked for during the mixed-import hold is refused at once, never queued     commit 62/62 pass, parent 62/62 pass
+  v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write   commit 43/43 pass, parent 19/43 pass
+outside U4, commit vs parent: n=120/120, identical checks/verdicts/values: True (differing 0)
+commit vs builder record fl-FR-liteall-f2.checks.jsonl, all records: n=163/163, identical: True (differing 0)
+=== v200a
+commit records 144 failing 0 failing outside U4 0
+parent records 144 failing 24 failing outside U4 0
+  v2.00 (R3) — a locked view is never written to the working folder                               commit 8/8 pass, parent 8/8 pass
+  v2.00 (R3) — a save that lands under a locked view says it saved the working plan               commit 4/4 pass, parent 4/4 pass
+  v2.00 (R4) — a save already waiting does not write past a mixed-import hold                     commit 7/7 pass, parent 7/7 pass
+  v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touch commit 13/13 pass, parent 13/13 pass
+  v2.00 (U3) — a Save asked for during the mixed-import hold is refused at once, never queued     commit 62/62 pass, parent 62/62 pass
+  v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write   commit 43/43 pass, parent 19/43 pass
+  v2.00 (R5) — a restore during a save stays unsaved                                              commit 7/7 pass, parent 7/7 pass
+outside U4, commit vs parent: n=101/101, identical checks/verdicts/values: True (differing 0)
+=== v200b
+commit records 128 failing 0 failing outside U4 0
+parent records 128 failing 0 failing outside U4 0
+  v2.00 (U2) — work put back during a save stays unsaved                                          commit 16/16 pass, parent 16/16 pass
+  v2.00 (U2) — put back waits for a save to finish                                                commit 41/41 pass, parent 41/41 pass
+  v2.00 (U13) — a refresh during a save loads nothing                                             commit 71/71 pass, parent 71/71 pass
+outside U4, commit vs parent: n=128/128, identical checks/verdicts/values: True (differing 0)
+=== v200c
+commit records 173 failing 0 failing outside U4 0
+parent records 173 failing 0 failing outside U4 0
+  v2.00 (U20) — the Web Locks stand-in behaves as the API does                                    commit 19/19 pass, parent 19/19 pass
+  v2.00 (U20) — a save waiting for another tab’s save is under way                                commit 65/65 pass, parent 65/65 pass
+  v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen           commit 89/89 pass, parent 89/89 pass
+outside U4, commit vs parent: n=173/173, identical checks/verdicts/values: True (differing 0)

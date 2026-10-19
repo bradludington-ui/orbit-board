@@ -1,0 +1,10 @@
+import { readFileSync } from 'node:fs';
+const [a, b] = process.argv.slice(2).map(p => JSON.parse(readFileSync(p, 'utf8')));
+const strip = o => JSON.parse(JSON.stringify(o, (k, v) => (k === 'totalMs' || k === 'boardPath' || k === 'bootBOARD') ? undefined : v));
+const A = strip(a), B = strip(b);
+console.log('blobs', a.boardBlob, b.boardBlob, a.probeBlob, b.probeBlob, a.bootBlob, b.bootBlob, a.shimBlob, b.shimBlob);
+console.log('results equal:', JSON.stringify(A.results) === JSON.stringify(B.results), A.results.length, B.results.length);
+console.log('scenarios equal:', JSON.stringify(A.scenarios) === JSON.stringify(B.scenarios));
+console.log('expected equal:', JSON.stringify(A.expected) === JSON.stringify(B.expected));
+let d = 0; A.results.forEach((r, i) => { if (JSON.stringify(r) !== JSON.stringify(B.results[i])) { if (d++ < 5) console.log('DIFF', JSON.stringify(r).slice(0, 300), '\n vs', JSON.stringify(B.results[i]).slice(0, 300)); } });
+console.log('result diffs', d);

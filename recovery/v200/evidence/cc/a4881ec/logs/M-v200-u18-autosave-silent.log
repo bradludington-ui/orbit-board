@@ -1,0 +1,18 @@
+# label: M-v200-u18-autosave-silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/M-v200-u18-autosave-silent.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-autosave-silent.html
+# start: 2026-10-18 16:01:07 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-autosave-silent.html","BOARD_set":true,"board":"78bdf29cf641f80eb825df2dd793c8f526fa1c73","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 4:01:09 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (9) Bob takes the pen while Brad’s Live autosave is held
+    the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick
+        first differs at char 7 of 121/375
+          got  …[true,"✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You …
+          want …[true,"⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. T…
+# exit 1 at 10/18/2026, 4:03:31 PM ET
+
+# end: 2026-10-18 16:03:32 EDT  exit: 1  wall_s: 145.1

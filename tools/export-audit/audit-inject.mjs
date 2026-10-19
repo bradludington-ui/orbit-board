@@ -320,6 +320,8 @@ const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor',
     name: inboundCheck(JSON.stringify({ pmos:['hasOwnProperty'] })),
     pmo: inboundCheck(JSON.stringify({ spmtPkg:1, dir:'submit', pmo:'__proto__', items:{} })),
     ok: inboundCheck(JSON.stringify({ services:['USAF'], items:[{ id:'R1', grp:'AV', ask:[1] }], pmos:['AV','O&M Ops'], note:'constructor' })),
+    order: inboundCheck(JSON.stringify({ order:['valueOf'], discSvc:[1] })),
+    pmoChars: inboundCheck(JSON.stringify({ spmtPkg:1, dir:'submit', pmo:'A<b>V', items:{} })),
     every: Object.getOwnPropertyNames(Object.prototype).every(function(n){ return IN_KEY_BAD.has(n); }) })`);
   if (out) {
     const F = 'K1 built-in names at the import check (inboundCheck)';
@@ -327,6 +329,14 @@ const XROWS = '[' + [XROW('2027-01', '__proto__', 1000), XROW('', 'constructor',
     chk(F, 'a requirement id valueOf is refused', !!out.id, true);
     chk(F, 'an office name hasOwnProperty is refused', !!out.name, true);
     chk(F, 'a submittal from office __proto__ is refused', !!out.pmo, true);
+    // v2.00 correction (11 Oct): the id and pmo above sit in fields IN_VAL_KEYS also refuses, so each is refused even with
+    // the rule it is named for removed (v200-id-builtin-open and v200-spmt-pmo-open were not caught). These two reach only
+    // that rule: a plan's priority order holds bare ids, which only inIdWhy reads; a submittal's office carrying markup is
+    // a name IN_VAL_KEYS lets through, which only inNameWhy at the submittal refuses.
+    chk(F, 'a requirement id valueOf in a plan\'s priority order is refused as an id',
+      /\.order\[0\] “valueOf” is a name every object already answers to, so no board uses it as an id$/.test(out.order), true);
+    chk(F, 'a submittal from an office whose name carries markup is refused as a name',
+      /the office at .*\.pmo “A<b>V” contains a character a name may not carry/.test(out.pmoChars), true);
     chk(F, 'an ordinary file (and a note that merely reads "constructor") still imports', out.ok, '');
     chk(F, 'the rule covers every name this browser\'s Object.prototype carries', out.every, true);
   }

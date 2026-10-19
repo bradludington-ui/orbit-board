@@ -1,0 +1,13 @@
+# cmd: X=1 node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3msg-af892cb/focused-R3msg-at-commit.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3msg-af892cb/run/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:03:10Z / 18:03:10 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+scenarios heard: ["v2.00 (R3) — a save that lands under a locked view says it saved the working plan"]
+ALL CHECKS PASSED
+
+# end: 2026-10-11T22:03:18Z / 18:03:18 EDT
+# exit: 0  duration_s: 7.8

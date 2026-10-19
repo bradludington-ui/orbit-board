@@ -1,0 +1,4 @@
+rediff-proposal start="2026-10-12 11:49:00 EDT" exit=1 wall_s=.112381155 log=logs/rediff-proposal.log 
+applycheck-O4 start="2026-10-12 11:54:45 EDT" exit=128 wall_s=8.161691850 log=logs/applycheck-O4.log 
+applycheck-both start="2026-10-12 11:54:54 EDT" exit=128 wall_s=.107073447 log=logs/applycheck-both.log 
+grep-waits start="2026-10-12 11:56:01 EDT" exit=1 wall_s=4.104874715 log=logs/grep-waits.log 

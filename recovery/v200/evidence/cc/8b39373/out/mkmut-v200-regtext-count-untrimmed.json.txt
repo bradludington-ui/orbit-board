@@ -1,0 +1,1 @@
+{"id": "v200-regtext-count-untrimmed", "matches": 1, "find": "const t=String(val||'').trim(), n=Array.from(t).length;", "repl": "const t=String(val||'').trim(), n=Array.from(String(val||'')).length;"}

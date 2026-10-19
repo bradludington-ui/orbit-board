@@ -1,0 +1,7 @@
+check | ACCEPT check.log
+legacy-fsrc | ACCEPT legacy-fsrc.log
+boot-same | ACCEPT boot-same.log
+standards | ACCEPT standards.log
+audit-recon | ACCEPT audit-recon.log
+audit-other | ACCEPT audit-other.log
+verify:grid | REFUSE verify-grid.log: recorded exit 1

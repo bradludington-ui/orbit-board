@@ -1,0 +1,15 @@
+# label: boot-same@822918e
+# cmd: node tools/export-audit/boot-same.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/ui-c1-wt
+# HEAD: 822918e board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26 worktree-board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26
+# BOARD=<unset>
+# start: 2026-10-12 07:27:37 EDT
+# cap: 600s
+same  prioritization-board-grid.html as shipped parse 2726 ms · fast 627 ms
+same  prioritization-board-grid.html seeded, rendered parse 1134 ms · fast 494 ms
+same  prioritization-board-grid.html reopened from its save parse 894 ms · fast 579 ms
+same  prioritization-board-grid.html a published PMO copy parse 854 ms · fast 296 ms
+every page, source, save and error list is identical either way
+
+# end: 2026-10-12 07:27:47 EDT
+# exit: 0  wall_s: 10.0

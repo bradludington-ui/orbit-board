@@ -1,0 +1,23 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-import-af892cb/mut-v200-r3-cycblock-falls-through.html node tools/export-audit/audit-import.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/wt-af892cb
+# git: af892cb12713dd22afd9a84c0ec604b30614f6ea
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:21:16Z / 18:21:16 EDT
+# cap: 900s  grace: 20s
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v2.00 (R3) — a locked view is never written to the working folder | (a) PB27 put on screen during the read
+    nothing is written to the folder (no copy, no history, no lock), and it is byte-identical
+        got [["hist:spmt-2027-om-20261011-222942.json","main:spmt-2027-om.json","lock:spmt-2027-om.lock.json"],false]   want [[],true]
+    the save does not tell its caller it saved
+        got true   want false
+    the board does not say saved, and says writing to the folder is off
+        got [true,false]   want [false,true]
+--- v2.00 (R3) — a locked view is never written to the working folder | (b) ⬆ Publish now, PB27 put on screen during the read
+    nothing is written, it reports failure, and no publish is recorded
+        got [true,["hist:spmt-2027-om-20261011-222944.json","main:spmt-2027-om.json","lock:spmt-2027-om.lock.json"],false,true,1791757784486]   want [true,[],true,false,1]
+
+# end: 2026-10-11T22:30:00Z / 18:30:00 EDT
+# exit: 1  duration_s: 524.1

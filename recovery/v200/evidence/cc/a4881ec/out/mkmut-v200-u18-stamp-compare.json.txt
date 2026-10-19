@@ -1,0 +1,1 @@
+{"id": "v200-u18-stamp-compare", "matches": 1, "find": "nowRaw.txt!==curRaw.txt", "repl": "+((now.store&&now.store.ts)||now.ts||0)!==theirs"}

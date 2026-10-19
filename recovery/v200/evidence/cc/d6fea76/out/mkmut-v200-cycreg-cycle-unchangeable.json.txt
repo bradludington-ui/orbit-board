@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-cycle-unchangeable", "matches": 1, "find": "  cycle:'A locked cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several '\n", "repl": "  cycle:'A locked cycle’s list stays as it was locked, and no board changes it, so ⬅ Import one appropriation and ⇊ Import several '\n"}

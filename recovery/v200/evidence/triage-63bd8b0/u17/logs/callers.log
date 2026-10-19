@@ -1,0 +1,27 @@
+5225: in defaultOrder (from L5220): // applyStore() runs at TOP LEVEL — so a declaration further down the file leaves this const in
+5835: in setGrp (from L5812): // setStat() and applyStore(), and applyStore() runs at top level before that block -- so these
+5981: in applyStore (from L5981): function applyStore(raw){
+6426: in setBaseYear (from L6409): applyStore({base:BASE_FY_DEFAULT, cur:BASE_FY_DEFAULT, ts:0, years:{[BASE_FY_DEFAULT]:firstYearState()}});
+6430: in setBaseYear (from L6409):   if(st){ applyStore(st); _bootOwn=true; }
+6467: in setBaseYear (from L6409):       applyStore(PUB);
+6970: in keptPutBack (from L6945):   if(applyStore(st)===false){
+7029: in bootTakeFile (from L7025):   if(applyStore(PUB)===false) return;
+8458: in adoptShared (from L8453):   if(applyStore(SHARED)===false) return;
+8510: in importBoards (from L8465):     // Each against its own appropriation's services: the one on screen against the list applyStore() checks below; any
+8542: in importBoards (from L8465):     if(here){ try{ applied=applyStore(here.st)!==false; }catch(e){ applied=false; threw=true; } }
+8543: in importBoards (from L8465):     // v1.97 (item 77): EVERY REFUSAL applyStore() HAS IS SETTLED ABOVE, so the board on screen takes what was written.
+9084: in pkgApply (from L9051):   // applyStore() is where the service-alignment guard lives, and on a consolidated board it only
+9195: in pkgApply (from L9051):     applyStore(next);
+9964: in impRescueBtns (from L9956): // v1.99 (item 86): THE BOARD ON SCREEN, BEFORE A BATCH ASKS applyStore() TO TAKE ITS APPROPRIATION. applyStore replaces MS
+10227: in importState (from L10093):       if(applyStore(st)===false){ inp.value=''; return; }
+17484: in bandSave (from L17481): // A function DECLARATION, not a const arrow: bandsAdoptPending() runs from applyStore() during
+20075: in cycChgBody (from L20012): // setStat() and applyStore() read them and applyStore() runs at top level before this line.
+26763: in driveStorePull (from L26674):     applyStore(j.store);
+26770: in driveStorePull (from L26674):   applyStore(j.store);
+26947: in _driveResolveRun (from L26914):   if(applyStore(j.store)===false) return false;
+27087: in driveRestore (from L27021):     if(applyStore(j.store)===false) return;
+31602: in sharedArrived (from L31580):     if(applyStore(st)===false) return;
+== driveRead / driveWrite
+12844:async function driveWriteTest(h){
+26564:async function driveWrite(dir, name, text){
+26570:async function driveRead(dir, name){

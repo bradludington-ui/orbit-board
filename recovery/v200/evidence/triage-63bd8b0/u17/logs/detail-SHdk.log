@@ -1,0 +1,69 @@
+SHdk save u13 10/12/2026, 10:29:19 ET -> 10/12/2026, 10:29:22 ET
+* sharedFile
+* arrived
+   brad: screen=BRAD-2 DIRTY=true _baseDirty=true rec.dirty=true base=1791815360960 kept=null stored=BRAD-2 busy=0 gen=4
+      header: Unsaved changes
+      status: ⚠ The shared state file (10/12/2026, 3:29:21 PM) arrived after you started working, so nothing was replaced. 💾 Save yours, or load the shared one (what you have is kept aside first).
+* held
+   brad: screen=BRAD-2 DIRTY=true _baseDirty=true rec.dirty=true base=1791815360960 kept=null stored=BRAD-2 busy=1 gen=4
+      header: Unsaved changes
+      status: ⚠ The shared state file (10/12/2026, 3:29:21 PM) arrived after you started working, so nothing was replaced. 💾 Save yours, or load the shared one (what you have is kept aside first).
+   folder: head=BRAD-1@1791815360960 hist=[20261012-142922.json:BRAD-1]
+* adoption ("adoptShared()")
+   brad: screen=SHARED DIRTY=true _baseDirty=true rec.dirty=true base=1791815360960 kept=BRAD-2(sidecar) stored=SHARED busy=1 gen=4
+      header: Unsaved changes · ↶ work kept aside
+      status: Shared state loaded (published 10/12/2026, 3:29:21 PM).
+   folder: head=BRAD-1@1791815360960 hist=[20261012-142922.json:BRAD-1]
+* landed
+   brad: screen=SHARED DIRTY=false _baseDirty=false rec.dirty=false base=1791815362029 kept=BRAD-2(sidecar) stored=SHARED busy=0 gen=4
+      header: Saved 3:29 PM · ↶ work kept aside
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   folder: head=BRAD-2@1791815362029 hist=[20261012-142922.json:BRAD-1]
+* V3next
+   before: screen=SHARED DIRTY=false _baseDirty=false rec.dirty=false base=1791815362029 kept=BRAD-2(sidecar) stored=SHARED busy=0 gen=4
+      header: Saved 3:29 PM · ↶ work kept aside
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   after: screen=SHARED DIRTY=false _baseDirty=false rec.dirty=false base=1791815362383 kept=BRAD-2(sidecar) stored=SHARED busy=0 gen=4
+      header: Saved 2:29 PM · ↶ work kept aside
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   folder: head=SHARED@1791815362383 hist=[20261012-142922.json:BRAD-1, 20261012-142923-recent.json:BRAD-2]
+   where: {"X":{"folderHead":true,"folderHistory":[],"screen":true,"storage":true,"keptSlot":false},"Y":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-142923-recent.json"],"screen":false,"storage":false,"keptSlot":true}}
+u17state {"tuple":["SHARED",true,"BRAD-2"],"falselyClean":true}
+nextFrom {"K":["SHARED",true,"BRAD-2"],"falselyClean":true,"head":"BRAD-2","history":["spmt-2027-om-20261012-142922.json BRAD-1"]}
+v3parts {"falselyClean":true,"wroteOver":true,"overwritten":"BRAD-2","overwrittenNowIn":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-142923-recent.json"],"screen":false,"storage":false,"keptSlot":true}}
+SHdk none u13 10/12/2026, 10:29:15 ET -> 10/12/2026, 10:29:18 ET
+* sharedFile
+* arrived
+   brad: screen=BRAD-2 DIRTY=true _baseDirty=true rec.dirty=true base=1791815356730 kept=null stored=BRAD-2 busy=0 gen=4
+      header: Unsaved changes
+      status: ⚠ The shared state file (10/12/2026, 3:29:17 PM) arrived after you started working, so nothing was replaced. 💾 Save yours, or load the shared one (what you have is kept aside first).
+* held
+   brad: screen=BRAD-2 DIRTY=true _baseDirty=true rec.dirty=true base=1791815356730 kept=null stored=BRAD-2 busy=1 gen=4
+      header: Unsaved changes
+      status: ⚠ The shared state file (10/12/2026, 3:29:17 PM) arrived after you started working, so nothing was replaced. 💾 Save yours, or load the shared one (what you have is kept aside first).
+   folder: head=BRAD-1@1791815356730 hist=[20261012-142917.json:BRAD-1]
+* adoption ("adoptShared()")
+   brad: screen=SHARED DIRTY=true _baseDirty=true rec.dirty=true base=1791815356730 kept=BRAD-2(sidecar) stored=SHARED busy=1 gen=4
+      header: Unsaved changes · ↶ work kept aside
+      status: Shared state loaded (published 10/12/2026, 3:29:17 PM).
+   folder: head=BRAD-1@1791815356730 hist=[20261012-142917.json:BRAD-1]
+* landed
+   brad: screen=SHARED DIRTY=false _baseDirty=false rec.dirty=false base=1791815357914 kept=BRAD-2(sidecar) stored=SHARED busy=0 gen=4
+      header: Saved 3:29 PM · ↶ work kept aside
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   folder: head=BRAD-2@1791815357914 hist=[20261012-142917.json:BRAD-1]
+* laterRefresh returned=false
+   brad: screen=SHARED DIRTY=false _baseDirty=false rec.dirty=false base=1791815357914 kept=BRAD-2(sidecar) stored=SHARED busy=0 gen=4
+      header: Saved 3:29 PM · ↶ work kept aside
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   folder: head=BRAD-2@1791815357914 hist=[20261012-142917.json:BRAD-1]
+* reopen
+   afterConnect: screen=SHARED DIRTY=false _baseDirty=false rec.dirty=false base=1791815357914 kept=BRAD-2(sidecar) stored=SHARED busy=0 gen=0
+      header: Saved 3:29 PM · ↶ work kept aside
+      status: Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 2:29:15 PM by unknown). 💾 Save writes them into the file.
+   afterRefresh: screen=SHARED DIRTY=false _baseDirty=false rec.dirty=false base=1791815357914 kept=BRAD-2(sidecar) stored=SHARED busy=0 gen=0
+      header: Saved 3:29 PM · ↶ work kept aside
+      status: Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 2:29:15 PM by unknown). 💾 Save writes them into the file.
+   folder: head=BRAD-2@1791815357914 hist=[20261012-142917.json:BRAD-1]
+u17state {"tuple":["SHARED",true,"BRAD-2"],"falselyClean":true}
+whereNow {"SHARED":{"folderHead":false,"folderHistory":[],"screen":true,"storage":true,"keptSlot":false},"BRAD-2":{"folderHead":true,"folderHistory":[],"screen":false,"storage":false,"keptSlot":true},"note":"SHARED also stays in the shared state file itself (outside this mock)"}

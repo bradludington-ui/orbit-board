@@ -1,0 +1,11 @@
+name:PMO copy
+name:v1.89 — saving never silently overwrites somebody’s work
+name:v1.95 — Save acknowledges exactly what it wrote (the file)
+name:v1.95 — Save acknowledges exactly what it wrote (the shared folder)
+name:v1.95 — work kept aside is never replaced without asking
+name:v1.95 — one writer per board file
+name:v1.95 — after an import that cannot be put back, nothing writes over the board file until asked
+name:v1.95 — ⬆ Publish now in the shared folder is the folder save, with its checks
+name:v1.95 — ↶ Put this back keeps unsaved work aside first
+name:v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01)
+name:v1.97 — every list the file carries marks the board unsaved, at each wait of the file save

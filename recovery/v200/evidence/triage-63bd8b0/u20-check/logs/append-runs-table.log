@@ -1,0 +1,4 @@
+| ids-final | 2026-10-12 15:27:30 EDT | 0 | 0.13 |
+| count-runs2 | 2026-10-12 15:28:55 EDT | 0 | 9.39 |
+
+This table was generated at 3:29:04 PM ET (mk-runs-table) and ends with count-runs2. The runs after it are only in logs/runs.txt: mk-runs-table, count-pids2, count-gone2, count-pidlines2, waits2 (exit 1 = no wait/skip/timeout line, as expected), clock4 (3:29:35 PM ET), append-runs-table and labels-check. All exit 0 except waits2.

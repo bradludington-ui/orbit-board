@@ -1,0 +1,7 @@
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/after  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/before  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/clones  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/harness/after  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/harness/before  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/harness/node_modules  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/7e30379/mut  (folder of board copies or clones (not walked), 0 bytes)

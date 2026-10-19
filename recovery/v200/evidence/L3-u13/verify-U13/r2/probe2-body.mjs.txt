@@ -1,0 +1,71 @@
+// ==== verify-U13 round-2 probe: OBSERVATIONS ONLY (no checks, no expected values). Synthetic data at run time; nothing written. ====
+{
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, pause, lsOf } = W1H;
+  const out = (k, v) => console.log('OBS ' + J([k, v]));
+  const F1 = baseFile('Brad', KEY.brad);
+  const NM = 'spmt-2027-om.json', HOUR = 3600000;
+  const inCopy = txt => { try { const j = JSON.parse(txt), st = j.store || j, y = (st.years || {})[st.cur] || {}, a = (y.alloc || {}).A;
+    return [String((y.notes || {}).A || ''), (a && typeof a === 'object') ? a.v : (a == null ? null : a)]; } catch (e) { return ['(unreadable)', null]; } };
+  const scr = ev => JSON.parse(ev(`JSON.stringify([String(S.notes.A||''), (S.alloc.A&&typeof S.alloc.A==='object')? S.alloc.A.v : null])`));
+  const head = fold => fold.raw(2027) == null ? null : inCopy(fold.raw(2027));
+  const withCopy = txt => { const fold = folder(); fold.root.files[NM] = txt; return fold; };
+  const flags = ev => JSON.parse(ev(`JSON.stringify({DIRTY:DIRTY, bd:_baseDirty, rec:!!baseGet().dirty, base:driveBaseOf(mySlug()), gen:_saveGen, busy:_saveBusy, kept:localStorage.getItem(_AP.key+'.kept')!=null})`));
+  const extra = ev => JSON.parse(ev(`JSON.stringify([Object.keys(EXDB.all||{}), rpAll().map(function(r){ return r.id; })])`));
+  // REMOTE, an hour ahead, written through the product.
+  const R = boot({ html: F1 }); await pause(80); const f0 = folder(); wire(R.ev, 'Brad', KEY.brad); connect(R.ev, R.w, f0);
+  R.ev(`(function(){ var real=Date.now; Date.now=function(){ return real.call(Date)+${HOUR}; }; return 'ok'; })()`);
+  R.ev(`setNote('A','REMOTE'); setAlloc('A','650'); 'ok'`); await R.ev('saveInPlace()'); await pause(5);
+  const REMOTE = f0.raw(2027);
+  const fA = withCopy(REMOTE), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fA);
+  await A.ev('driveAutoConnect()'); A.ev(`setNote('A','WORKING'); setAlloc('A','700'); 'ok'`); await pause(5);
+  const LS = lsOf(A.ev);
+  const reopen = async (fold) => { const B = boot({ html: F1, ls: { ...LS } }); await pause(80); wire(B.ev, 'Brad', KEY.brad);
+    connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`); await pause(5); return B; };
+  const holdRead = fold => { const gh = fold.dir.getFileHandle, g = gate(); let hit = 0;
+    fold.dir.getFileHandle = async (n, o) => { if (!hit && n === NM && !(o && o.create)) { hit = 1; await g.p; } return gh(n, o); };
+    return { g, hit: () => hit }; };
+  const share = async fold => { const X = boot({ html: F1 }); await pause(80); wire(X.ev, 'Alice', KEY.alice); connect(X.ev, X.w, fold);
+    X.ev(`(function(){ const t=Date.now();
+      EXDB={ts:t, all:{om:{fy:2027, rows:[['EXEC-1', 5000]]}}}; persistExdb();
+      RPDB={ts:t, entries:[{id:'rp-1', ts:t, ap:'om', amt:25000, what:'a reprogramming'}]}; persistRp(); return 'ok'; })()`);
+    return [await X.ev('driveExecPush(true)'), await X.ev('driveRpPush(true)')]; };
+  // Q2: "load theirs without keeping yours here" (driveResolve('theirs!')) waits at its read; a Connect meanwhile; then the
+  // person answers Cancel to its question. What stays on the status line, and what is on screen.
+  { const fold = withCopy(REMOTE); const B = await reopen(fold);
+    const hr = holdRead(fold); B.ev(`globalThis.__yes=false; 'ok'`); const pr = B.ev(`driveResolve('theirs!')`); await until(() => hr.hit());
+    const r = await B.ev('driveConnectNow()'); await pause(5);
+    out('Q2 Connect while Load theirs (without keeping) waits: returned; busy; status', [r, B.ev('_saveBusy'), status(B.ev)]);
+    hr.g.open(); const rr = await pr; await pause(5);
+    out('Q2 Load theirs answered Cancel: returned; questions; status; screen; head; flags', [rr, JSON.parse(B.ev('JSON.stringify(globalThis.__q)')).length, status(B.ev), scr(B.ev), head(fold), flags(B.ev)]);
+    const r2 = await B.ev('driveStorePull(false)'); await pause(5);
+    out('Q2 then a refresh: returned; status; screen', [r2, status(B.ev), scr(B.ev)]);
+  }
+  // Q3: "Save yours over theirs" (driveResolve('mine')) waits at its read; a Connect meanwhile; then it is confirmed and saves.
+  { const fold = withCopy(REMOTE); const B = await reopen(fold);
+    const hr = holdRead(fold); B.ev(`globalThis.__yes=true; 'ok'`); const pr = B.ev(`driveResolve('mine')`); await until(() => hr.hit());
+    const r = await B.ev('driveConnectNow()'); await pause(5);
+    out('Q3 Connect while Save yours over theirs waits: returned; busy; status', [r, B.ev('_saveBusy'), status(B.ev)]);
+    hr.g.open(); const rr = await pr; await pause(5);
+    out('Q3 Save yours over theirs finished: returned; status; screen; head; flags', [rr, status(B.ev), scr(B.ev), head(fold), flags(B.ev)]);
+  }
+  // Q5 (N5, pre-existing shape): work typed in this session (DIRTY), a held save, newer execution data and a log in the folder;
+  // a Connect. What it says, and what the same Connect loaded.
+  { const fold = withCopy(REMOTE); const sh = await share(fold); const B = await reopen(fold);
+    B.ev(`setNote('A','TYPED'); setAlloc('A','710'); 'ok'`); await pause(5);
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main; const p = B.ev('saveInPlace()'); await until(() => (fold.hits.main || 0) > n0);
+    B.ev(`setNote('A','TYPED2'); 'ok'`); await pause(5);
+    const x0 = extra(B.ev); const r = await B.ev('driveConnectNow()'); await pause(5);
+    out('Q5 Connect during a save with work typed meanwhile (DIRTY): shared; returned; DIRTY; status; extra before -> after', [sh, r, B.ev('DIRTY'), status(B.ev), x0, extra(B.ev)]);
+    g.open(); await p; await pause(5);
+    out('Q5 the save landed: status; screen; head', [status(B.ev), scr(B.ev), head(fold)]);
+  }
+  // Q6: a Connect during a held save, then the save FAILS (the folder refuses its write). What stays on the status line.
+  { const fold = withCopy(REMOTE); const B = await reopen(fold);
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main; const p = B.ev('saveInPlace()'); await until(() => (fold.hits.main || 0) > n0);
+    const r = await B.ev('driveConnectNow()'); await pause(5);
+    out('Q6 Connect during a held save: returned; status', [r, status(B.ev)]);
+    fold.failNext.main = new Error('The shared folder is read-only'); g.open(); await p; await pause(5);
+    out('Q6 the save failed: status; screen; head; flags', [status(B.ev), scr(B.ev), head(fold), flags(B.ev)]);
+  }
+  process.exit(0);
+}

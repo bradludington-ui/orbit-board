@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-tail-entry-ways-unsaid", "matches": 1, "find": "  if(ent && !cy && html && !nul) return head+' '+T.opens+' '+T.full;\n", "repl": ""}

@@ -1,0 +1,14 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -6974,7 +6974,10 @@
+   _baseDirty=true; baseSet({file:LASTKNOWN, folder:b.folder||{}, dirty:true});
+   if(!swapped){ try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){} }
+   _keptMeta=swapped;
+-  persist(); DIRTY=true; render();
++  // v2.00 (U2): THE WORK PUT BACK IS A CHANGE, counted as an edit is. A save still writing when it was put back found the
++  // count unmoved and marked the board saved, while the folder or file holds what that save wrote. Now that save finds the
++  // count moved, leaves the work put back unsaved and says so, and the next Save writes it.
++  persist(); _saveGen++; DIRTY=true; render();
+   setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. 💾 Save will ask before it writes over '
+     +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+' saved after it.'
+     +(swapped? ' What was on screen is <b>kept aside</b> in its place: <button type="button" class="nb lnk" onclick="keptPutBack()">put that back</button>.' : ''));

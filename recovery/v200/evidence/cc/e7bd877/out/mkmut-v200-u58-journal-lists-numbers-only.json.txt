@@ -1,0 +1,1 @@
+{"id": "v200-u58-journal-lists-numbers-only", "matches": 1, "find": "p.length>1 && typeof v!=='string' && !(v &&", "repl": "p.length>1 && (Array.isArray(v)||typeof v==='number') && !(v &&"}

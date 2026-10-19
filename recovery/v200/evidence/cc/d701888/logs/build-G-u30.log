@@ -1,0 +1,8 @@
+# label: build-G-u30
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888
+# cmd: python3 -I /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/bin/mkfocused-multi.py /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after/tools/export-audit/audit-import.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/harness/G-u30.mjs marker:// ==== v2.00 (U30): a refresh takes the folder's copy as the one the work came from only when it is what is on screen ====|// ==== end v2.00 (U30) ====
+# start: 2026-10-13 19:24:29 EDT
+# cap: 600 s, kill grace 10 s
+written /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/harness/G-u30.mjs 577 lines; ranges [(8331, 8700)] ; helpers: MINE W1H base it webLocks
+
+# end: 2026-10-13 19:24:29 EDT  exit: 0  wall_s: 0.5

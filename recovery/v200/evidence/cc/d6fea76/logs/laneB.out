@@ -1,0 +1,13 @@
+M-cycle-unchangeable-P1 exit=1 | 8 FAILING CHECK(S) | wall_s: 130.1
+M-cycle-unchangeable-P2 exit=1 | 19 FAILING CHECK(S) | wall_s: 164.0
+M-lock-nt-unsaid-P2 exit=1 | 1 FAILING CHECK(S) | wall_s: 109.3
+M-lock-reserved-unsaid-P2 exit=1 | 1 FAILING CHECK(S) | wall_s: 111.4
+P8V-U-commit start_et="2026-10-18 18:41:22 EDT" exit=0 wall_s=19.3 log=logs/P8V-U-commit.log 
+P8-U-commit start_et="2026-10-18 18:41:41 EDT" exit=1 wall_s=22.1 log=logs/P8-U-commit.log 
+P8V-U-parent start_et="2026-10-18 18:42:03 EDT" exit=1 wall_s=25.0 log=logs/P8V-U-parent.log 
+P8-U-parent start_et="2026-10-18 18:42:28 EDT" exit=1 wall_s=22.4 log=logs/P8-U-parent.log 
+P8-U-mut-cycle-unchangeable start_et="2026-10-18 18:42:51 EDT" exit=0 wall_s=16.9 log=logs/P8-U-mut-cycle-unchangeable.log 
+P8V-U-mut-cycle-unchangeable start_et="2026-10-18 18:43:07 EDT" exit=1 wall_s=18.3 log=logs/P8V-U-mut-cycle-unchangeable.log 
+S-hr-minus-v200-commit start_et="2026-10-18 18:43:26 EDT" exit=0 wall_s=96.5 log=logs/S-hr-minus-v200-commit.log 
+S-hr-v200-other-commit start_et="2026-10-18 18:45:02 EDT" exit=1 wall_s=136.9 log=logs/S-hr-v200-other-commit.log 
+S-npm-check start_et="2026-10-18 18:47:19 EDT" exit=0 wall_s=4.4 log=logs/S-npm-check.log 

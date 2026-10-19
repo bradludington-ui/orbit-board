@@ -1,0 +1,111 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-import-af892cb/mut-unsaved-flag-never-set.html node tools/export-audit/audit-import.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/wt-af892cb
+# git: af892cb12713dd22afd9a84c0ec604b30614f6ea
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T00:31:54Z / 20:31:54 EDT
+# cap: 900s  grace: 20s
+
+================================================================================================
+36 FAILING CHECK(S)
+
+--- v1.89 — saving never silently overwrites somebody’s work | the file is newer
+    Brad’s work is kept aside, not lost
+        got false   want true
+    and the board says so
+        got false   want true
+    the header says so for as long as it is kept
+        got false   want true
+    and 📁 File offers to put it back
+        got false   want true
+    one click puts it back
+        got |COLLEAGUE NOTE|true   want BRAD NOTE||true
+    and Save, put back, asks before writing over the colleague’s file
+        got false   want true
+--- v1.89 — saving never silently overwrites somebody’s work | no room to keep it
+    the file is not opened: this browser’s work stays on screen
+        got |COLLEAGUE NOTE   want BRAD NOTE|
+    and the board says why
+        got false   want true
+--- v1.95 — Save acknowledges exactly what it wrote (the file) | edit during the write
+    and the later edit is still marked unsaved, here and in this browser’s record
+        got true|false   want true|true
+--- v1.95 — Save acknowledges exactly what it wrote (the file) | a failed write
+    nothing is marked saved
+        got 0|true|false   want 0|true|true
+--- v1.95 — Save acknowledges exactly what it wrote (the shared folder) | edit during the hist write
+    the folder copy holds what was built; the later edit stays unsaved
+        got BEFORE|true|false   want BEFORE|true|true
+--- v1.95 — Save acknowledges exactly what it wrote (the shared folder) | edit during the main write
+    the folder copy holds what was built; the later edit stays unsaved
+        got BEFORE|true|false   want BEFORE|true|true
+--- v1.95 — Save acknowledges exactly what it wrote (the shared folder) | edit during the lock write
+    the folder copy holds what was built; the later edit stays unsaved
+        got BEFORE|true|false   want BEFORE|true|true
+--- v1.95 — Save acknowledges exactly what it wrote (the shared folder) | a failed write
+    nothing is marked saved, and the record is unchanged
+        got true|false|true|FIRST   want true|true|true|FIRST
+--- v1.95 — work kept aside is never replaced without asking | boot, twice
+    the first newer file keeps BRAD ONE aside
+        got false   want true
+    the second newer file is not opened: BRAD TWO stays on screen, BRAD ONE stays kept
+        got |COLLEAGUE TWO|false   want BRAD TWO|COLLEAGUE ONE|true
+    both works are in this browser
+        got false|true   want true|true
+    and the board says why, offering what to do with the kept work
+        got false   want true
+--- v1.95 — work kept aside is never replaced without asking | save it as a file
+    a file is downloaded and the work stays kept
+        got 0|false   want 1|true
+--- v1.95 — work kept aside is never replaced without asking | put back
+    BRAD ONE is back on screen, and BRAD TWO is kept aside in its place
+        got |false   want BRAD ONE|true
+--- v1.95 — work kept aside is never replaced without asking | folder pull
+    the newer copy is not loaded; the new work stays on screen and the earlier work stays kept
+        got FOLDER BASE|true   want NEW WORK|true
+    and the board says the kept work is never replaced
+        got false   want true
+--- v1.95 — ↶ Put this back keeps unsaved work aside first | put back
+    the earlier copy is on screen, and the unsaved work is kept aside, with a way to put it back
+        got ["FIRST",false,false]   want ["FIRST",true,true]
+--- v1.95 — ↶ Put this back keeps unsaved work aside first | work already kept
+    with other work already kept aside, nothing is put back: the screen and the kept work both survive
+        got ["SECOND",false]   want ["MORE WORK",true]
+--- v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01) | clean start, late edit
+    the earlier copy is put back and the note typed meanwhile is kept aside, with the board saying so
+        got ["HISTORY",false,false]   want ["HISTORY",true,true]
+--- v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01) | already unsaved, late edit
+    what is kept aside is the work as it stood when the copy was put back, the later edit included
+        got ["HISTORY",false]   want ["HISTORY",true]
+--- v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01) | other work already kept
+    nothing is put back: the note typed meanwhile stays on screen, and the earlier kept work is untouched
+        got ["HISTORY",true]   want ["LATE TWO",true]
+--- v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01) | storage refuses to keep it
+    nothing is put back, and the note typed meanwhile stays on screen and in this browser
+        got ["HISTORY",false,false]   want ["LATE THREE",true,true]
+--- v1.96 — a shared state file that answers late never replaces work (NR05) | and then loaded by choice
+    loading it then keeps the typed work aside first
+        got ["SIDECAR",false]   want ["SIDECAR",true]
+--- v1.96 — a shared state file that answers late never replaces work (NR05) | a reopened draft
+    the shared copy is loaded only once the earlier session’s work is kept aside
+        got ["SIDECAR",false]   want ["SIDECAR",true]
+--- v1.96 — a shared state file that answers late never replaces work (NR05) | other work already kept
+    nothing is loaded: the earlier session’s work stays on screen, and what was kept stays kept
+        got ["SIDECAR",true]   want ["EARLIER TWO",true]
+--- v1.97 — a folder save keeps the copy it replaces, or writes nothing (item 79) | the history fails at histOpen (the history cannot be opened (a refusal, not absence))
+    nothing is written, the history is as it was, the work stays unsaved, and it says so
+        got [false,true,true,"THIRD",true,false,true]   want [false,true,true,"THIRD",true,true,true]
+--- v1.97 — a folder save keeps the copy it replaces, or writes nothing (item 79) | the history fails at histList (listing)
+    nothing is written, the history is as it was, the work stays unsaved, and it says so
+        got [false,true,true,"THIRD",true,false,true]   want [false,true,true,"THIRD",true,true,true]
+--- v1.97 — a folder save keeps the copy it replaces, or writes nothing (item 79) | the history fails at histCreate (creating the copy)
+    nothing is written, the history is as it was, the work stays unsaved, and it says so
+        got [false,true,true,"THIRD",true,false,true]   want [false,true,true,"THIRD",true,true,true]
+--- v1.97 — a folder save keeps the copy it replaces, or writes nothing (item 79) | the history fails at histWrite (writing it)
+    nothing is written, the history is as it was, the work stays unsaved, and it says so
+        got [false,true,true,"THIRD",true,false,true]   want [false,true,true,"THIRD",true,true,true]
+--- v1.97 — a folder save keeps the copy it replaces, or writes nothing (item 79) | the history fails at histClose (closing it)
+    nothing is written, the history is as it was, the work stays unsaved, and it says so
+        got [false,true,true,"THIRD",true,false,true]   want [false,true,true,"THIRD",true,true,true]
+
+# end: 2026-10-12T00:39:58Z / 20:39:58 EDT
+# exit: 1  duration_s: 483.9

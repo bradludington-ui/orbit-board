@@ -1,0 +1,12 @@
+* landed
+   brad: screen=IMPORT DIRTY=true _baseDirty=true rec.dirty=true base=1791816799112 kept=null stored=IMPORT busy=0 gen=5
+      header: Unsaved changes
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. A change made while it was saving is not in the folder yet — it is saved next time.
+   folder: head=BRAD-2@1791816799112 hist=[20261012-145319.json:BRAD-1]
+* laterRefresh returned=false
+v4parts {"falselyClean":false,"claim":"in-folder","falseClaim":false,"notKept":true,"screenCopyIn":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-144543.json"],"screen":false,"storage":false,"keptSlot":false},"saveAfterPutBackAsked":0,"saveAfterPutBackSays":"saved"}
+      status: ↶ Put back the work kept aside on 10/12/2026, 2:47:27 PM. 💾 Save will ask before it writes over the shared folder, which Brad saved after it.
+      status: ⛔ Brad saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the folder’s history).
+   question: Put back the work this browser kept aside on 10/12/2026, 2:47:27 PM? / What is on screen now is replaced by it. What is on screen now is still in the shared folder it came from, and 💾 Save will ask before writing over that.
+whereNow {"BOB-2":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false,"bobScreen":true,"bobStorage":true},"BRAD-1":{"folderHead":true,"folderHistory":["spmt-2027-om-20261012-144115.json"],"screen":true,"storage":true,"keptSlot":false,"bobScreen":false,"bobStorage":false}}
+whereNow {"BOB-2":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false,"bobScreen":true,"bobStorage":true},"BRAD-1":{"folderHead":true,"folderHistory":["spmt-2027-om-20261012-144119.json"],"screen":true,"storage":true,"keptSlot":false,"bobScreen":false,"bobStorage":false}}

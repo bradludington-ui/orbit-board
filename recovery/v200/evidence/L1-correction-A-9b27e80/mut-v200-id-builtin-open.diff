@@ -1,0 +1,2 @@
+9494d9493
+<   if(IN_KEY_BAD.has(v)) return what+' '+inShow(v)+' is a name every object already answers to, so no board uses it as an id';

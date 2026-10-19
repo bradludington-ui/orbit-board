@@ -1,0 +1,167 @@
+# label: rv-smoke@822918e
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/uichunk3/c1/rv-smoke-c1.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/ui-c1-wt
+# HEAD: 822918e board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26 worktree-board 21b2b9dd6823fc5f8ce6fd392c945f9d55cbfc26
+# BOARD=<unset>
+# start: 2026-10-12 07:30:24 EDT
+# cap: 600s
+{
+ "fails": [],
+ "out": {
+  "openErrorsBase": [],
+  "openErrorsNew": [],
+  "lsKeysBase": [
+   "prio27destdb"
+  ],
+  "lsKeysNew": [
+   "prio27destdb"
+  ],
+  "uiOn": true,
+  "src0": {
+   "htmlClassUiOn": false,
+   "uiCycBtn": false,
+   "uiEdChip": false,
+   "uiColsCss": false,
+   "uiDTabs": false,
+   "rowcolsInline": false,
+   "qInHdr": true,
+   "mviewInHdr": true,
+   "fchipsInHdr": true,
+   "toolsMovedEmpty": true,
+   "impOpen": false,
+   "flyOpen": false,
+   "kpisEmpty": true
+  },
+  "src0SameApartFromStaticBlocks": true,
+  "savedPayloadSame": true,
+  "kpi": [
+   {
+    "cls": "k ask",
+    "v": "$383,000,000",
+    "dv": 383000000,
+    "x": "14 requirements"
+   },
+   {
+    "cls": "k disc",
+    "v": "$242,000,000",
+    "dv": 242000000,
+    "x": "of $242,000,000 BA"
+   },
+   {
+    "cls": "k mand",
+    "v": "$34,000,000",
+    "dv": 34000000,
+    "x": "of $34,000,000 BA"
+   },
+   {
+    "cls": "k ufr short",
+    "v": "$107,000,000",
+    "dv": 107000000,
+    "x": "5 requirements short"
+   }
+  ],
+  "totals": {
+   "ask": 383000000,
+   "dUsed": 242000000,
+   "mUsed": 34000000,
+   "u2Amt": 107000000,
+   "dBA": 242000000,
+   "mBA": 34000000
+  },
+  "postureWhole": "Whole budget · $383,000,000 asked",
+  "kpiCents": [
+   "$372,234,569",
+   "$242,000,000",
+   "$34,000,000",
+   "$96,234,569"
+  ],
+  "postureCents": [
+   "Whole budget · $372,234,569 asked",
+   "Whole budget · $372,234,569 asked"
+  ],
+  "kpiStates": {
+   "pmo AV": {
+    "k": [
+     "$372,234,569",
+     "$242,000,000",
+     "$34,000,000",
+     "$96,234,569"
+    ],
+    "p": "Whole budget · $372,234,569 asked",
+    "u": "96234569"
+   },
+   "svc 0": {
+    "k": [
+     "$372,234,569",
+     "$242,000,000",
+     "$34,000,000",
+     "$96,234,569"
+    ],
+    "p": "Whole budget · $372,234,569 asked",
+    "u": "96234569"
+   },
+   "disc only": {
+    "k": [
+     "$372,234,569",
+     "$242,000,000",
+     "$34,000,000",
+     "$96,234,569"
+    ],
+    "p": "Whole budget · $372,234,569 asked",
+    "u": "96234569"
+   }
+  },
+  "drawerTabs": true,
+  "savedUnchangedByUi": true,
+  "savedState": {
+   "htmlClassUiOn": false,
+   "uiCycBtn": false,
+   "uiEdChip": false,
+   "uiColsCss": false,
+   "uiDTabs": false,
+   "rowcolsInline": false,
+   "qInHdr": true,
+   "mviewInHdr": true,
+   "fchipsInHdr": true,
+   "toolsMovedEmpty": true,
+   "impOpen": false,
+   "flyOpen": false,
+   "kpisEmpty": true
+  },
+  "lsAfterClicks": [
+   "prio27destdb",
+   "prio27om",
+   "prio27om.base",
+   "prio27uiCols",
+   "prio27uiRail",
+   "spmtMode"
+  ],
+  "uiPrefValues": {
+   "rail": "1",
+   "cols": "{\"band\":true,\"lane\":true}"
+  },
+  "colsCss": "",
+  "rowcolsInline": "",
+  "errorsAfterDrive": [],
+  "lsSameCallsKeys": [
+   [
+    "prio27destdb",
+    "spmtMode"
+   ],
+   [
+    "prio27destdb",
+    "spmtMode"
+   ]
+  ],
+  "lsSameCallsValuesEqual": [],
+  "importRoutes": {
+   "full": "fullFile|sub=false",
+   "one": "stateFile|sub=false",
+   "pmoOne": "stateFile|sub=true",
+   "pmoAll": "uiSubMulti|sub=true"
+  }
+ }
+}
+
+# end: 2026-10-12 07:30:36 EDT
+# exit: 0  wall_s: 12.1

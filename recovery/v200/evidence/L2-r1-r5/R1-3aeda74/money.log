@@ -1,0 +1,23 @@
+# cmd: X=1 node money-runtime-probe.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R1-3aeda74/run/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:04:41Z / 17:04:41 EDT
+# cap: 600s  grace: 10s
+{"name":"R1 carried FY25 execution replaces O&M FY26 plan","kind":"defect","expected":[100000000,100000000,0],"actual":[100000000,100000000,0],"status":"passed"}
+{"name":"R1 selected appropriation excludes Full Fund","kind":"control","expected":0,"actual":0,"status":"passed"}
+{"name":"R1 execution retains service appropriation effective FY and office","kind":"control","expected":[["om",2026,"USAF","PSM","Synthetic carryover requirement",100000000]],"actual":[["om",2026,"USAF","PSM","Synthetic carryover requirement",100000000]],"status":"passed"}
+{"name":"coherent FY26 budget components were seeded explicitly","kind":"control","expected":[[350000000,150000000],[350000000,150000000]],"actual":[[350000000,150000000],[350000000,150000000]],"status":"passed"}
+{"name":"R1 exported TOTAL FUNDING agrees with independent carryover expectation","kind":"defect","expected":[100000000,100000000],"actual":[100000000,100000000],"status":"passed"}
+{"name":"R1 exported O&M agrees with independent carryover expectation","kind":"defect","expected":[100000000],"actual":[100000000],"status":"passed"}
+{"name":"carryover off FY26 O&M is its own $500M plan","kind":"control","expected":[500000000,0,500000000],"actual":[500000000,0,500000000],"status":"passed"}
+{"name":"planned funded dollars retain service office and requirement ownership","kind":"control","expected":[["om",2026,"USAF","PSM","Synthetic planned requirement",350000000,true],["om",2026,"ANG","PSM","Synthetic planned requirement",150000000,true]],"actual":[["om",2026,"USAF","PSM","Synthetic planned requirement",350000000,true],["om",2026,"ANG","PSM","Synthetic planned requirement",150000000,true]],"status":"passed"}
+{"name":"raw FY26 O&M execution suppresses the whole FY26 O&M plan","kind":"control","expected":[140000000,140000000,0],"actual":[140000000,140000000,0],"status":"passed"}
+{"name":"executed service split is $100M USAF plus $40M ANG","kind":"control","expected":[["USAF","PSM",100000000],["ANG","TSS",40000000]],"actual":[["USAF","PSM",100000000],["ANG","TSS",40000000]],"status":"passed"}
+{"name":"Full Fund selection retains its own service and office","kind":"control","expected":[7000000,7000000,0,[["ff",2026,"USAF","ATL",7000000]]],"actual":[7000000,7000000,0,[["ff",2026,"USAF","ATL",7000000]]],"status":"passed"}
+{"name":"flow source inspection and export preserve raw execution rows","kind":"control","expected":{"om":{"asOf":"2026-09","hdr":[],"read":1,"noFy":0,"rows":{"2025":[[2025,"2025-03","SYN-EXEC","Synthetic carryover requirement","USAF O&M Mandatory","","","Synthetic execution event","",100000000,"Allocated","","","","","","","","Program (PSM)","","","","","","","","","","","","",""]]}},"ff":{"asOf":"2026-09","hdr":[],"read":1,"noFy":0,"rows":{"2026":[[2026,"2026-03","SYN-EXEC","Synthetic FF requirement","USAF Full Fund","","","Synthetic execution event","",7000000,"Allocated","","","","","","","","Program (ATL)","","","","","","","","","","","","",""]]}}},"actual":{"om":{"asOf":"2026-09","hdr":[],"read":1,"noFy":0,"rows":{"2025":[[2025,"2025-03","SYN-EXEC","Synthetic carryover requirement","USAF O&M Mandatory","","","Synthetic execution event","",100000000,"Allocated","","","","","","","","Program (PSM)","","","","","","","","","","","","",""]]}},"ff":{"asOf":"2026-09","hdr":[],"read":1,"noFy":0,"rows":{"2026":[[2026,"2026-03","SYN-EXEC","Synthetic FF requirement","USAF Full Fund","","","Synthetic execution event","",7000000,"Allocated","","","","","","","","Program (ATL)","","","","","","","","","","","","",""]]}}},"status":"passed"}
+{"name":"whole-board boot has no jsdom script errors","kind":"control","expected":[],"actual":[],"status":"passed"}
+{"passed":13,"failed":0,"sourceBlob":"5d811eea8ccabca5f2deaa623c8583552ed0c777","mainSHA":"f9b441365551cd691a20a8f0b08a374a92a12f0e"}
+
+# end: 2026-10-11T21:04:44Z / 17:04:44 EDT
+# exit: 0  duration_s: 2.9

@@ -1,0 +1,65 @@
+### A2-after-W  board a88a1e5b932b94225a29cdcfec0678f828847ddd  10/12/2026, 7:24:06 AM ET -> 10/12/2026, 7:26:14 AM ET  cells 110  notClean 0
+#### WR
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B02b-read-refused | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B02c-not-a-board | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B03-nothing | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B04-toonew | F · ok LS | F · ok LS | T · ok DLS | T · ok DLS | u · ok LS | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok D | T · ok D | u · ok L | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok D | T · ok D | u · ok L | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok LS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok LS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok LSV | — |
+| B10-lateguard | F · ok V | F · ok SV | T · ok DSV | T · ok DSV | u · ok LV | — |
+
+#### WR (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok K |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B10-lateguard | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+
+#### WA
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02b-read-refused | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02c-not-a-board | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B03-nothing | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLSV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DV | T · ok DV | u · ok KLV | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok D | T · ok D | u · ok KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok KLS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok KLS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok KLSV | — |
+| B10-lateguard | F · ok V | F · ok SV | T · ok DSV | T · ok DSV | u · ok KLV | — |
+
+#### WA (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok . |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B10-lateguard | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+

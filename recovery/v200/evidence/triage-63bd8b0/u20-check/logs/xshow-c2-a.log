@@ -1,0 +1,82 @@
+==== BR-Wcount  BR-Wcount.c2.json  errors=0  T={"F1":1791820348010,"F0":1791820348907}  counted=counted
+  tabA {"slug":"ff","key":"prio27ff","bootChangedKeys":["prio27appn","prio27destdb"],"share":["from A",null],"lockInstall":{"had":false,"client":"A"}}
+  setup      {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":0,"LK":1791820348010,"busy":0,"kept":null,"head":"F0-BASE@1791820348907 by Alice","hist":[],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"]},"putBack":false}
+             status: 📦 Opened with the saved board state — last saved by unknown 10/12/2026, 11:52:28 AM. Make changes and 💾 Save to pass it on. | prompts: [] | header: Unsaved changes
+             {"theirsNotNewer":true}
+  Aheld      {"reached":true,"heldBy":["A"],"Abusy":1}
+  waiting    true
+  premise    {"Bbusy":1,"Abusy":1,"heldBy":["A"],"pendingOf":["B"],"BfolderOpsSinceSave":[],"Bstatus":"📦 Opened with the saved board state — last saved by unknown 10/12/2026, 11:52:28 AM. Make changes and 💾 Save to pass it on.","Bheader":"Unsaved changes"}
+  refreshRet {"ok":true,"v":false}
+  during     {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":0,"LK":1791820348010,"busy":1,"kept":null,"head":"F0-BASE@1791820348907 by Alice","hist":[],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"]},"putBack":false}
+             status: 📦 Opened with the saved board state — last saved by unknown 10/12/2026, 11:52:28 AM. Make changes and 💾 Save to pass it on. | prompts: [] | header: Unsaved changes
+  Aret       {"ok":true,"v":"(undefined)"}
+  saveRet    {"ok":true,"v":"(undefined)"}
+  save       {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":0,"LK":1791820348010,"busy":0,"kept":null,"head":"F0-BASE@1791820348907 by Alice","hist":[],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"]},"putBack":false}
+             status: ⛔ Alice saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the fold… | prompts: [] | header: Unsaved changes
+             rec: {"wrote":0,"before":"F0-BASE","after":"F0-BASE","headBefore":{"note":"F0-BASE","ts":1791820348907,"by":"Alice","writer":"Alice"},"headAfter":{"note":"F0-BASE","ts":1791820348907,"by":"Alice","writer":"Alice"},"asked":[],"replacedInHistory":false}
+  grantOrder ["A","B"]
+  nextRet    {"ok":true,"v":"(undefined)"}
+  next       {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":0,"LK":1791820348010,"busy":0,"kept":null,"head":"F0-BASE@1791820348907 by Alice","hist":[],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"]},"putBack":false}
+             status: ⛔ Alice saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the fold… | prompts: [] | header: Unsaved changes
+             rec: {"wrote":0,"before":"F0-BASE","after":"F0-BASE","headBefore":{"note":"F0-BASE","ts":1791820348907,"by":"Alice","writer":"Alice"},"headAfter":{"note":"F0-BASE","ts":1791820348907,"by":"Alice","writer":"Alice"},"asked":[],"replacedInHistory":false}
+  lastAppnChoice "FULL FUND"
+  reopenPull {"ok":true,"v":false}
+  reopen     {"screen":"B-EDIT","saved":false,"DIRTY":false,"bd":true,"rd":true,"dB":1791820348907,"LK":1791820348010,"busy":0,"kept":null,"head":"F0-BASE@1791820348907 by Alice","hist":[],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"]},"putBack":false}
+             status: Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 11:52:28 AM by unknown). 💾 Save writes them into the file. | prompts: [] | header: Unsaved changes
+  lock {"stats":{"requests":3,"grants":3,"invokes":3,"releases":3,"dropped":0,"violations":[],"maxHeld":{"orbit-save":1},"unmodeled":[]},"other":1}
+  writes ["X:spmt-2027-om.json","X:spmt-2027-om.lock.json","A:spmt-2027-ff.json","A:spmt-2027-ff.lock.json"]
+==== BR-Wrealtickcount  BR-Wrealtickcount.c2.json  errors=0  T={"F1":1791820392928,"F0":1791820394175}  counted=counted
+  tabA {"slug":"ff","key":"prio27ff","bootChangedKeys":["prio27appn","prio27destdb"],"share":["from A",null],"lockInstall":{"had":false,"client":"A"}}
+  opening {"ret":{"ok":true,"v":true},"need":"","live":true,"driveBase":0,"status":"The shared folder holds nothing for O&M FY27 yet. Save to put it there.","folderOps":["B:perm:/","B:perm:/","B:miss:spmt-2027-om.json","B:perm:/","B:miss:spmt-exec.json","B:perm:/","B:perm:/","B:miss:spmt-reprog.json"]}
+  setup      {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":0,"LK":1791820392928,"busy":0,"kept":null,"head":"F0-BASE@1791820394175 by Alice","hist":[],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"]},"putBack":false}
+             status: The shared folder holds nothing for O&M FY27 yet. Save to put it there. | prompts: [] | header: Unsaved changes
+             {"theirsNotNewer":true}
+  Aheld      {"reached":true,"heldBy":["A"],"Abusy":1}
+  waiting    true
+  premise    {"Bbusy":1,"Abusy":1,"heldBy":["A"],"pendingOf":["B"],"BfolderOpsSinceSave":[],"Bstatus":"The shared folder holds nothing for O&M FY27 yet. Save to put it there.","Bheader":"Unsaved changes"}
+  tick1Pending ["B"]
+  refreshRet {"ok":true,"v":"(undefined)"}
+  during     {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":0,"LK":1791820392928,"busy":1,"kept":null,"head":"F0-BASE@1791820394175 by Alice","hist":[],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"]},"putBack":false}
+             status: ⏳ A save is already under way — this one runs as soon as it finishes. | prompts: [] | header: Unsaved changes
+  Aret       {"ok":true,"v":"(undefined)"}
+  saveRet    {"ok":true,"v":"(undefined)"}
+  tick1Ret   {"ok":true,"v":"(undefined)"}
+  save       {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":1791820394175,"LK":1791820392928,"busy":0,"kept":null,"head":"F0-BASE@1791820394175 by Alice","hist":[],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"]},"putBack":false}
+             status: ⛔ Alice saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the fold… | prompts: [] | header: Unsaved changes
+             rec: {"wrote":0,"before":"F0-BASE","after":"F0-BASE","headBefore":{"note":"F0-BASE","ts":1791820394175,"by":"Alice","writer":"Alice"},"headAfter":{"note":"F0-BASE","ts":1791820394175,"by":"Alice","writer":"Alice"},"asked":[],"replacedInHistory":false}
+  grantOrder ["A","B","B"]
+  nextRet    {"ok":true,"v":"(undefined)"}
+  next       {"screen":"B-EDIT","saved":true,"DIRTY":false,"bd":false,"rd":false,"dB":1791820395655,"LK":1791820392928,"busy":0,"kept":null,"head":"B-EDIT@1791820395655 by Alice","hist":["F0-BASE"],"fc":false,"reach":{"B-EDIT":["screen","storage","folder"],"F0-BASE":["history"]},"putBack":false}
+             status: ✅ Saved O&M FY27 to the shared folder — 4 KB. Everyone sees it on their next refresh. | prompts: [] | header: Saved 11:53 AM
+             rec: {"wrote":1,"before":"F0-BASE","after":"B-EDIT","headBefore":{"note":"F0-BASE","ts":1791820394175,"by":"Alice","writer":"Alice"},"headAfter":{"note":"B-EDIT","ts":1791820395655,"by":"Alice","writer":"Alice"},"asked":[],"replacedInHistory":true}
+  lastAppnChoice "FULL FUND"
+  reopenPull {"ok":true,"v":false}
+  reopen     {"screen":"B-EDIT","saved":true,"DIRTY":false,"bd":false,"rd":false,"dB":1791820395655,"LK":1791820392928,"busy":0,"kept":null,"head":"B-EDIT@1791820395655 by Alice","hist":["F0-BASE"],"fc":false,"reach":{"B-EDIT":["screen","storage","folder"],"F0-BASE":["history"]},"putBack":false}
+             status: Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 11:53:12 AM by unknown). 💾 Save writes them into the file. | prompts: [] | header: Unsaved changes
+  lock {"stats":{"requests":4,"grants":4,"invokes":4,"releases":4,"dropped":0,"violations":[],"maxHeld":{"orbit-save":1},"unmodeled":[]},"other":1}
+  writes ["X:spmt-2027-om.json","X:spmt-2027-om.lock.json","B:spmt-2027-om.lock.json","A:spmt-2027-ff.json","A:spmt-2027-ff.lock.json","B:spmt-2027-om.lock.json","B:history/spmt-2027-om-20261012-115315.json","B:spmt-2027-om.json","B:spmt-2027-om.lock.json"]
+==== O4-tickh  O4-tickh.c2.json  errors=0  T={"F1":1791820387640,"F00":1791820389127,"F0":1791820389430}  counted=-
+  tabA {"none":true}
+  opening {"ret":{"ok":true,"v":true},"need":"","live":true,"driveBase":0,"status":"The shared folder holds nothing for O&M FY27 yet. Save to put it there.","folderOps":["B:perm:/","B:perm:/","B:miss:spmt-2027-om.json","B:perm:/","B:miss:spmt-exec.json","B:perm:/","B:perm:/","B:miss:spmt-reprog.json"]}
+  setup      {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":0,"LK":1791820387640,"busy":0,"kept":null,"head":"F0-BASE@1791820389430 by Alice","hist":["F00-FIRST"],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"],"F00-FIRST":["history"]},"putBack":false}
+             status: The shared folder holds nothing for O&M FY27 yet. Save to put it there. | prompts: [] | header: Unsaved changes
+             {"theirsNotNewer":true}
+  tick1Ret   {"ok":true,"v":"(undefined)"}
+  tick1      {"screen":"B-EDIT","saved":false,"DIRTY":true,"bd":true,"rd":true,"dB":1791820389430,"LK":1791820387640,"busy":0,"kept":null,"head":"F0-BASE@1791820389430 by Alice","hist":["F00-FIRST"],"fc":false,"reach":{"B-EDIT":["screen","storage"],"F0-BASE":["folder"],"F00-FIRST":["history"]},"putBack":false}
+             status: ⛔ Alice saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the fold… | prompts: [] | header: Unsaved changes
+             rec: {"wrote":0,"before":"F0-BASE","after":"F0-BASE","headBefore":{"note":"F0-BASE","ts":1791820389430,"by":"Alice","writer":"Alice"},"headAfter":{"note":"F0-BASE","ts":1791820389430,"by":"Alice","writer":"Alice"},"asked":[],"replacedInHistory":false}
+  tick2Ret   {"ok":true,"v":"(undefined)"}
+  tick2      {"screen":"B-EDIT","saved":true,"DIRTY":false,"bd":false,"rd":false,"dB":1791820390055,"LK":1791820387640,"busy":0,"kept":null,"head":"B-EDIT@1791820390055 by Alice","hist":["F00-FIRST","F0-BASE(r)"],"fc":false,"reach":{"B-EDIT":["screen","storage","folder"],"F0-BASE":["history"],"F00-FIRST":["history"]},"putBack":false}
+             status: ✓ Saved to the shared folder automatically — 11:53 AM. | prompts: [] | header: Saved 11:53 AM
+             rec: {"wrote":1,"before":"F0-BASE","after":"B-EDIT","headBefore":{"note":"F0-BASE","ts":1791820389430,"by":"Alice","writer":"Alice"},"headAfter":{"note":"B-EDIT","ts":1791820390055,"by":"Alice","writer":"Alice"},"asked":[],"replacedInHistory":true}
+  grantOrder ["B","B"]
+  nextRet    {"ok":true,"v":"(undefined)"}
+  next       {"screen":"B-EDIT","saved":true,"DIRTY":false,"bd":false,"rd":false,"dB":1791820390345,"LK":1791820387640,"busy":0,"kept":null,"head":"B-EDIT@1791820390345 by Alice","hist":["F00-FIRST","B-EDIT(r)"],"fc":false,"reach":{"B-EDIT":["screen","storage","folder","history"],"F0-BASE":[],"F00-FIRST":["history"]},"putBack":false}
+             status: ✅ Saved O&M FY27 to the shared folder — 4 KB. Everyone sees it on their next refresh. | prompts: [] | header: Saved 11:53 AM
+             rec: {"wrote":1,"before":"B-EDIT","after":"B-EDIT","headBefore":{"note":"B-EDIT","ts":1791820390055,"by":"Alice","writer":"Alice"},"headAfter":{"note":"B-EDIT","ts":1791820390345,"by":"Alice","writer":"Alice"},"asked":[],"replacedInHistory":true}
+  lastAppnChoice null
+  reopenPull {"ok":true,"v":false}
+  reopen     {"screen":"B-EDIT","saved":true,"DIRTY":false,"bd":false,"rd":false,"dB":1791820390345,"LK":1791820387640,"busy":0,"kept":null,"head":"B-EDIT@1791820390345 by Alice","hist":["F00-FIRST","B-EDIT(r)"],"fc":false,"reach":{"B-EDIT":["screen","storage","folder","history"],"F0-BASE":[],"F00-FIRST":["history"]},"putBack":false}
+             status: Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 11:53:07 AM by unknown). 💾 Save writes them into the file. | prompts: [] | header: Saved 11:53 AM
+  lock {"stats":{"requests":3,"grants":3,"invokes":3,"releases":3,"dropped":0,"violations":[],"maxHeld":{"orbit-save":1},"unmodeled":[]},"other":2}
+  writes ["X:spmt-2027-om.json","X:spmt-2027-om.lock.json","X:history/spmt-2027-om-20261012-115309.json","X:spmt-2027-om.json","X:spmt-2027-om.lock.json","B:spmt-2027-om.lock.json","B:history/spmt-2027-om-20261012-115310-recent.json","B:spmt-2027-om.json","B:spmt-2027-om.lock.json","B:spmt-2027-om.lock.json","B:history/spmt-2027-om-20261012-115311-recent.json","B:spmt-2027-om.json","B:spmt-2027-om.lock.json"]

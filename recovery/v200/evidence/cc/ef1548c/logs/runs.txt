@@ -1,0 +1,24 @@
+# batch 1 launched 2026-10-13 19:25:49 EDT
+c1-H-u20-after start_et="2026-10-13 19:25:49 EDT" exit=0 wall_s=29.8 log=logs/c1-H-u20-after.log 
+c1-H-u20-before start_et="2026-10-13 19:25:49 EDT" exit=1 wall_s=30.0 log=logs/c1-H-u20-before.log 
+c1m-failed-stays-counted-H-u20 start_et="2026-10-13 19:26:19 EDT" exit=1 wall_s=30.2 log=logs/c1m-failed-stays-counted-H-u20.log 
+lane l1B done 2026-10-13 19:26:49 EDT
+c1m-wait-uncounted-H-u20 start_et="2026-10-13 19:26:19 EDT" exit=1 wall_s=30.3 log=logs/c1m-wait-uncounted-H-u20.log 
+lane l1A done 2026-10-13 19:26:50 EDT
+# batch 2 lane C launched 2026-10-13 19:27:44 EDT
+# batch 2 lane D launched 2026-10-13 19:27:44 EDT
+c2-npm-check start_et="2026-10-13 19:27:44 EDT" exit=0 wall_s=3.0 log=logs/c2-npm-check.log 
+c2-H-prevB-after start_et="2026-10-13 19:27:47 EDT" exit=0 wall_s=78.0 log=logs/c2-H-prevB-after.log 
+c2-S-boot-same start_et="2026-10-13 19:29:05 EDT" exit=0 wall_s=13.3 log=logs/c2-S-boot-same.log 
+c2-F-folderA-after start_et="2026-10-13 19:27:45 EDT" exit=0 wall_s=100.0 log=logs/c2-F-folderA-after.log 
+c2-S-audit start_et="2026-10-13 19:29:19 EDT" exit=0 wall_s=11.8 log=logs/c2-S-audit.log 
+c2-S-audit-ppt start_et="2026-10-13 19:29:31 EDT" exit=0 wall_s=6.9 log=logs/c2-S-audit-ppt.log 
+c2-S-audit-other start_et="2026-10-13 19:29:37 EDT" exit=0 wall_s=45.1 log=logs/c2-S-audit-other.log 
+c2-S-legacy-fsrc start_et="2026-10-13 19:30:23 EDT" exit=0 wall_s=4.9 log=logs/c2-S-legacy-fsrc.log 
+c2-S-audit-inject start_et="2026-10-13 19:30:27 EDT" exit=0 wall_s=15.7 log=logs/c2-S-audit-inject.log 
+lane l2C done 2026-10-13 19:30:43 EDT
+c2-F-folderB-after start_et="2026-10-13 19:29:25 EDT" exit=0 wall_s=233.0 log=logs/c2-F-folderB-after.log 
+c2-S-audit-recon start_et="2026-10-13 19:33:18 EDT" exit=0 wall_s=107.0 log=logs/c2-S-audit-recon.log 
+c2-S-audit-hostile start_et="2026-10-13 19:35:05 EDT" exit=0 wall_s=106.7 log=logs/c2-S-audit-hostile.log 
+lane l2D done 2026-10-13 19:36:51 EDT
+# notes 2026-10-13 19:37:17 EDT: unwrapped, read-only or setup commands: git ls-tree/diff/show/log/hash-object/status (read only, orbit-board never written), git archive | tar into before/ after/, mkdir, ln -s, cp, short python3 -I readers (identity, block compare, NEXT-VERSION compare, per-case counts). Waiting: one background until-grep loop (bounded only by the tool's 900 s timeout, ended 19:29 ET), a Monitor tail on runs.txt (stopped at 19:37 ET), and two until-grep waits under setsid -w timeout -k 10 600. Nothing killed. orbit-board HEAD 7b8aae2, status clean throughout.

@@ -1,0 +1,8 @@
+# label: build-G-u2u13
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888
+# cmd: python3 -I /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/bin/mkfocused-multi.py /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after/tools/export-audit/audit-import.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/harness/G-u2u13.mjs marker:// ==== v2.00 (U2): work put back during a save stays unsaved ====|// ==== end v2.00 (U2) put back waits ==== marker:// ==== v2.00 (U13): a refresh during a save loads nothing ====|// ==== end v2.00 (U13) ====
+# start: 2026-10-13 19:26:42 EDT
+# cap: 600 s, kill grace 10 s
+written /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/harness/G-u2u13.mjs 811 lines; ranges [(7128, 7459), (7460, 7798)] ; helpers: MINE W1H base d it
+
+# end: 2026-10-13 19:26:43 EDT  exit: 0  wall_s: 1.1

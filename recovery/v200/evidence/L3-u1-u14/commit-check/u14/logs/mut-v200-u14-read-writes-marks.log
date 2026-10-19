@@ -1,0 +1,31 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/mut/v200-u14-read-writes-marks.html","BOARD_set":true,"board":"04f6f62cdc0f9e78d6f40d4ed78a4a7ed415d7c3","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/u1u14-commit/u14/h/focused-u1-u14.mjs","harnessBlob":"9f45b969dea146568a7d57eb782bb1d16718c30a","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/12/2026, 3:53:50 PM ET"}
+
+================================================================================================
+8 FAILING CHECK(S)
+
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule off · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | no plan, rule off · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule off · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, rule on · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | the plan held, a carried row, rule on · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | no plan, a carried row, rule off · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | CONTROL — the window from FY26, the plan held · nothing made
+    MS.years is byte-identical across the reads (the calculation, each year alone, the panel, the export); window.confirm never asked; the workbook as imported
+        got [false,0,true,0]   want [true,0,true,0]
+--- v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said | S5d · nothing made
+    MS.years byte-identical from the start through both base-year moves, the clicks and the reads, holding FY27 only; nothing asked; no error
+        got [false,[2027],0,0]   want [true,[2027],0,0]
+# exit 1 at 10/12/2026, 3:54:15 PM ET
+exit 1

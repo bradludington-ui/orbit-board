@@ -1,0 +1,667 @@
+{
+ "IDS": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "6d3a0eb2ad20d0d262d472dca4834cac172cdd62",
+  "jsdom": "27.4.0",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u24/b63/prioritization-board-grid.html",
+  "started": "10/12/2026, 11:39:35 AM ET",
+  "scenario": "SHa-fold-C1clean"
+ },
+ "scenario": "SHa-fold-C1clean",
+ "path": "SHa",
+ "mode": "fold",
+ "kind": "C1clean",
+ "steps": {
+  "F0": {
+   "fileTs": 1791819576334,
+   "writer": "Brad",
+   "content": "F0"
+  },
+  "save1": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "session1": {
+   "label": "session 1 closing: clean at BRAD-1",
+   "at": "10/12/2026, 11:39:37 ET",
+   "screen": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "stored": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791819576334,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791819577571
+    }
+   },
+   "LASTKNOWN": 1791819576334,
+   "driveBase": 1791819577571,
+   "gen": 2,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791819576334,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791819576334,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": false,
+   "status": "✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You are now its writer.",
+   "header": "Saved 11:39 AM",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791819577571
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "screen",
+     "storage",
+     "folder"
+    ],
+    "SHARED": []
+   }
+  },
+  "opening": {
+   "ok": true,
+   "v": true
+  },
+  "bootX": {
+   "split": true,
+   "fetchCalls": [
+    {
+     "url": "prio-state-om.json",
+     "cache": "no-store"
+    }
+   ]
+  },
+  "setup": {
+   "label": "reopened with BRAD-2 unsaved; the state file not answered yet",
+   "at": "10/12/2026, 11:39:39 ET",
+   "screen": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "stored": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791819576334,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791819577571
+    }
+   },
+   "LASTKNOWN": 1791819576334,
+   "driveBase": 1791819577571,
+   "gen": 0,
+   "busy": 0,
+   "shared": null,
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791819576334,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791819576334,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "",
+   "header": "Saved 11:39 AM",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791819577571
+   },
+   "falselyClean": false,
+   "reach": {
+    "BRAD-1": [
+     "screen",
+     "storage",
+     "folder"
+    ],
+    "SHARED": [
+     "sidecar"
+    ]
+   },
+   "sharedTsMinusNow": 3598887
+  },
+  "act": {
+   "how": {
+    "arrived": true
+   },
+   "asked": [],
+   "genMoved": false
+  },
+  "afterAct": {
+   "label": "after the action",
+   "at": "10/12/2026, 11:39:40 ET",
+   "screen": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "stored": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791819576334,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791819577571
+    }
+   },
+   "LASTKNOWN": 1791819576334,
+   "driveBase": 1791819577571,
+   "gen": 0,
+   "busy": 0,
+   "shared": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791819576334,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791819576334,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published 10/12/2026, 12:39:38 PM.",
+   "header": "Saved 12:39 PM",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791819577571
+   },
+   "falselyClean": true,
+   "reach": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   }
+  },
+  "end": {
+   "label": "the end state",
+   "at": "10/12/2026, 11:39:40 ET",
+   "screen": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "stored": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791819576334,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791819577571
+    }
+   },
+   "LASTKNOWN": 1791819576334,
+   "driveBase": 1791819577571,
+   "gen": 0,
+   "busy": 0,
+   "shared": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791819576334,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791819576334,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published 10/12/2026, 12:39:38 PM.",
+   "header": "Saved 12:39 PM",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791819577571
+   },
+   "falselyClean": true,
+   "reach": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   }
+  },
+  "reopen": {
+   "connect": {
+    "ok": true,
+    "v": true
+   },
+   "opened": {
+    "label": "reopened from the end state",
+    "at": "10/12/2026, 11:39:41 ET",
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791823178592,
+     "by": "Carol",
+     "whose": "SHARED"
+    },
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791823178592,
+     "by": "Carol",
+     "whose": "SHARED"
+    },
+    "kept": null,
+    "DIRTY": false,
+    "_baseDirty": false,
+    "base": {
+     "file": 1791819576334,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791819577571
+     }
+    },
+    "LASTKNOWN": 1791819576334,
+    "driveBase": 1791819577571,
+    "gen": 0,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "",
+     "alloc": null,
+     "ts": 1791819576334,
+     "by": "unknown",
+     "whose": "F0"
+    },
+    "pubFileTs": 1791819576334,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": false,
+    "driveNeed": "",
+    "driveLive": true,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 11:39:36 AM by unknown). 💾 Save writes them into the file.",
+    "header": "Saved 12:39 PM",
+    "recordedClean": true,
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791819577571,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "writer": "Brad"
+    },
+    "hist": [],
+    "baseCopy": {
+     "whose": "BRAD-1",
+     "where": "folder head",
+     "ts": 1791819577571
+    },
+    "falselyClean": true,
+    "reach": {
+     "BRAD-1": [
+      "folder"
+     ],
+     "SHARED": [
+      "screen",
+      "storage",
+      "sidecar"
+     ]
+    }
+   },
+   "afterEdit": {
+    "label": "reopened from the end state, then one ordinary edit",
+    "at": "10/12/2026, 11:39:41 ET",
+    "screen": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791819581284,
+     "by": "Brad",
+     "whose": "SHARED"
+    },
+    "stored": {
+     "note": "SHARED",
+     "alloc": 600,
+     "ts": 1791819581284,
+     "by": "Brad",
+     "whose": "SHARED"
+    },
+    "kept": null,
+    "DIRTY": true,
+    "_baseDirty": true,
+    "base": {
+     "file": 1791819576334,
+     "dirty": true,
+     "folder": {
+      "om|2027": 1791819577571
+     }
+    },
+    "LASTKNOWN": 1791819576334,
+    "driveBase": 1791819577571,
+    "gen": 1,
+    "busy": 0,
+    "shared": null,
+    "pub": {
+     "note": "",
+     "alloc": null,
+     "ts": 1791819576334,
+     "by": "unknown",
+     "whose": "F0"
+    },
+    "pubFileTs": 1791819576334,
+    "bootHeld": null,
+    "bootKept": null,
+    "isShell": false,
+    "writer": "Brad",
+    "statusBtns": [],
+    "slug": "om",
+    "cur": 2027,
+    "unsavedNow": true,
+    "driveNeed": "",
+    "driveLive": true,
+    "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 11:39:36 AM by unknown). 💾 Save writes them into the file.",
+    "header": "Unsaved changes",
+    "recordedClean": false,
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791819577571,
+     "by": "Brad",
+     "whose": "BRAD-1",
+     "writer": "Brad"
+    },
+    "hist": [],
+    "baseCopy": {
+     "whose": "BRAD-1",
+     "where": "folder head",
+     "ts": 1791819577571
+    },
+    "falselyClean": false,
+    "reach": {
+     "BRAD-1": [
+      "folder"
+     ],
+     "SHARED": [
+      "screen",
+      "storage",
+      "sidecar"
+     ]
+    }
+   }
+  },
+  "refresh": {
+   "ok": true,
+   "v": false
+  },
+  "afterRefresh": {
+   "label": "a quiet refresh from the end state",
+   "at": "10/12/2026, 11:39:41 ET",
+   "screen": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "stored": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "kept": null,
+   "DIRTY": false,
+   "_baseDirty": false,
+   "base": {
+    "file": 1791819576334,
+    "dirty": false,
+    "folder": {
+     "om|2027": 1791819577571
+    }
+   },
+   "LASTKNOWN": 1791819576334,
+   "driveBase": 1791819577571,
+   "gen": 0,
+   "busy": 0,
+   "shared": {
+    "note": "SHARED",
+    "alloc": 600,
+    "ts": 1791823178592,
+    "by": "Carol",
+    "whose": "SHARED"
+   },
+   "pub": {
+    "note": "",
+    "alloc": null,
+    "ts": 1791819576334,
+    "by": "unknown",
+    "whose": "F0"
+   },
+   "pubFileTs": 1791819576334,
+   "bootHeld": null,
+   "bootKept": null,
+   "isShell": false,
+   "writer": "Brad",
+   "statusBtns": [],
+   "slug": "om",
+   "cur": 2027,
+   "unsavedNow": false,
+   "driveNeed": "",
+   "driveLive": true,
+   "status": "🔗 Shared state loaded automatically — priorities, PMO ranks, BA, MC flags, allocations, and notes as published 10/12/2026, 12:39:38 PM.",
+   "header": "Saved 12:39 PM",
+   "recordedClean": true,
+   "head": {
+    "note": "BRAD-1",
+    "alloc": 700,
+    "ts": 1791819577571,
+    "by": "Brad",
+    "whose": "BRAD-1",
+    "writer": "Brad"
+   },
+   "hist": [],
+   "baseCopy": {
+    "whose": "BRAD-1",
+    "where": "folder head",
+    "ts": 1791819577571
+   },
+   "falselyClean": true,
+   "reach": {
+    "BRAD-1": [
+     "folder"
+    ],
+    "SHARED": [
+     "screen",
+     "storage",
+     "sidecar"
+    ]
+   }
+  },
+  "fetchCalls": [
+   {
+    "url": "prio-state-om.json",
+    "cache": "no-store"
+   }
+  ]
+ },
+ "notes": [],
+ "errors": [],
+ "wall_s": "5.1",
+ "folderLog": [
+  "A1:perm:/",
+  "A1:miss:spmt-2027-om.json",
+  "A1:close:spmt-2027-om.json",
+  "A1:close:spmt-2027-om.lock.json",
+  "A:perm:/",
+  "A:perm:/",
+  "A:read:spmt-2027-om.json",
+  "A:perm:/",
+  "A:miss:spmt-exec.json",
+  "A:perm:/",
+  "A:perm:/",
+  "A:miss:spmt-reprog.json",
+  "Z:perm:/",
+  "Z:perm:/",
+  "Z:read:spmt-2027-om.json",
+  "Z:perm:/",
+  "Z:miss:spmt-exec.json",
+  "Z:perm:/",
+  "Z:perm:/",
+  "Z:miss:spmt-reprog.json",
+  "A:perm:/",
+  "A:read:spmt-2027-om.json"
+ ],
+ "folderWrites": [
+  "A1:spmt-2027-om.json",
+  "A1:spmt-2027-om.lock.json"
+ ],
+ "fileWrites": null,
+ "fileHits": null,
+ "finished": "10/12/2026, 11:39:41 AM ET"
+}

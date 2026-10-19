@@ -1,0 +1,14 @@
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched | hold on, read not held
+    Save is refused at once: the request is over, and the board says so
+        got [false,true]   want [true,true]
+--- v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched | hold on, read held and the hold cleared during it
+    Save is refused at once: the request is over, and the board says so
+        got [false,true]   want [true,true]
+    clearing the hold does not bring the refused Save back: nothing is written
+        got [1,1]   want [0,0]
+    the board file keeps its bytes
+        got false   want true

@@ -1,0 +1,23 @@
+# cmd: X=1 BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/mut-4a6f7c7/v200-r5-restore-gen.html node tools/export-audit/focused-r3r5.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T01:05:53Z / 21:05:53 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v2.00 (R5) — a restore during a save stays unsaved | (a) WORKING saved, HISTORY put back during its write
+    HISTORY on screen, WORKING in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+        got ["HISTORY","WORKING",false,false,false]   want ["HISTORY","WORKING",true,true,true]
+    the board says the change is not in the folder yet
+        got false   want true
+--- v2.00 (R5) — a restore during a save stays unsaved | (b) a clean board saved, HISTORY put back during its write
+    HISTORY on screen, CURRENT in the folder, and unsaved: DIRTY, _baseDirty, the stored record
+        got [true,true,"HISTORY","CURRENT",false,false,false]   want [true,true,"HISTORY","CURRENT",true,true,true]
+    the board says the change is not in the folder yet
+        got false   want true
+
+# end: 2026-10-12T01:06:14Z / 21:06:14 EDT
+# exit: 1  duration_s: 21.6

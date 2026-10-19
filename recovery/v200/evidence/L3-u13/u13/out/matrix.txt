@@ -1,0 +1,59 @@
+check (place | claim) | before | after | M pull-while-saving | M base-while-saving | M pull-unchecked | var entry-only
+the fixture | REMOTE is the folder’s copy: REMOTE, $650, saved by Brad, stamped more | P | P | P | P | P | P
+the fixture | Brad’s opening loads REMOTE: on screen, saved, recorded against the fo | P | P | P | P | P | P
+(1) no second writer; reopened by the harness | WORKING on screen, unsaved by this browser’s record (not this session) | P | P | P | P | P | P
+(1) no second writer; reopened by the harness | the save is held at its write; REMOTE is still the folder’s copy, stam | P | P | P | P | P | P
+(1) no second writer; reopened by the harness | while the save is held, driveStorePull(true): loads nothing -- [return | F | P | F | P | F | P
+(1) no second writer; reopened by the harness | while the save is held, driveConnectNow(): loads nothing -- [returned, | F | P | F | P | F | F
+(1) no second writer; reopened by the harness | while the save is held, driveAutoConnect(): loads nothing -- [returned | F | P | F | P | F | F
+(1) no second writer; reopened by the harness | while the save is held, liveTick(): loads nothing -- [returned, a save | F | P | F | P | F | P
+(1) no second writer; reopened by the harness | once the save lands: WORKING on screen, in browser storage and the fol | F | P | F | P | F | P
+(1) no second writer; reopened by the harness | then a refresh (driveStorePull, the Live tick): nothing loaded, nothin | P | P | P | P | P | P
+(1) no second writer; reopened by the harness | then reopened (the opening’s connect, then a refresh): on screen, in t | F | P | F | P | F | P
+(1) no second writer; reopened with the folder’s edit permission not kept | WORKING on screen, unsaved by this browser’s record (not this session) | P | P | P | P | P | P
+(1) no second writer; reopened with the folder’s edit permission not kept | the save is held at its write; REMOTE is still the folder’s copy, stam | P | P | P | P | P | P
+(1) no second writer; reopened with the folder’s edit permission not kept | while the save is held, driveStorePull(true): loads nothing -- [return | F | P | F | P | F | P
+(1) no second writer; reopened with the folder’s edit permission not kept | while the save is held, driveConnectNow(): loads nothing -- [returned, | F | P | F | P | F | F
+(1) no second writer; reopened with the folder’s edit permission not kept | while the save is held, driveAutoConnect(): loads nothing -- [returned | F | P | F | P | F | F
+(1) no second writer; reopened with the folder’s edit permission not kept | while the save is held, liveTick(): loads nothing -- [returned, a save | F | P | F | P | F | P
+(1) no second writer; reopened with the folder’s edit permission not kept | once the save lands: WORKING on screen, in browser storage and the fol | F | P | F | P | F | P
+(1) no second writer; reopened with the folder’s edit permission not kept | then a refresh (driveStorePull, the Live tick): nothing loaded, nothin | P | P | P | P | P | P
+(1) no second writer; reopened with the folder’s edit permission not kept | then reopened (the opening’s connect, then a refresh): on screen, in t | F | P | F | P | F | P
+(2) a second writer saves during the save | Brad: BRAD-1 saved, the folder’s copy; Bob loaded it and typed BOB-2 ( | P | P | P | P | P | P
+(2) a second writer saves during the save | while Brad’s save is held, Bob takes the pen: BOB-2 is the folder’s co | P | P | P | P | P | P
+(2) a second writer saves during the save | while the save is held, driveStorePull(true): loads nothing -- [return | F | P | F | P | F | P
+(2) a second writer saves during the save | while the save is held, driveConnectNow(): loads nothing -- [returned, | F | P | F | P | F | F
+(2) a second writer saves during the save | while the save is held, liveTick(): loads nothing -- [returned, a save | F | P | F | P | F | P
+(2) a second writer saves during the save | once Brad’s save lands: BRAD-1 on screen, in browser storage and the f | F | P | F | P | F | P
+(2) a second writer saves during the save | then a refresh (driveStorePull, the Live tick): nothing loaded, nothin | P | P | P | P | P | P
+(2) a second writer saves during the save | then reopened (the opening’s connect, then a refresh): on screen, in t | F | P | F | P | F | P
+(2) a second writer saves during the save | Bob’s own board still holds BOB-2, on screen and in its browser storag | P | P | P | P | P | P
+(3a) the refresh held at its read of the folder’s copy; a save starts meanwhile | no save under way when the refresh started; it waited; the save starte | P | P | P | P | P | P
+(3a) the refresh held at its read of the folder’s copy; a save starts meanwhile | the refresh, let go, loads nothing -- [returned, nothing changed byte  | F | P | F | P | F | F
+(3a) the refresh held at its read of the folder’s copy; a save starts meanwhile | once the save lands: WORKING on screen and the folder’s copy, saved, r | F | P | F | P | F | F
+(3b) the refresh held at its first wait (the folder’s permission); a save starts meanwhile | no save under way when the refresh started; it waited; the save starte | P | P | P | P | P | P
+(3b) the refresh held at its first wait (the folder’s permission); a save starts meanwhile | the refresh, let go, loads nothing -- [returned, nothing changed byte  | F | P | F | P | F | F
+(3b) the refresh held at its first wait (the folder’s permission); a save starts meanwhile | once the save lands: WORKING on screen and the folder’s copy, saved, r | F | P | F | P | F | F
+(3c) nothing recorded for the folder; the opening’s connect while a save waits at its read | nothing recorded for the folder; MINE on screen, unsaved; X the folder | P | P | P | P | P | P
+(3c) nothing recorded for the folder; the opening’s connect while a save waits at its read | the opening’s connect while the save waits at its read -- [the save wa | F | P | P | F | F | P
+(3c) nothing recorded for the folder; the opening’s connect while a save waits at its read | then the save, finding nothing recorded, asks: nothing written, X stil | F | P | P | F | F | P
+(4a) the save lands; a newer copy is saved after it | while the save is held, liveTick(): loads nothing -- [returned, a save | F | P | F | P | F | P
+(4a) the save lands; a newer copy is saved after it | the save landed (WORKING, saved); then Brad’s other browser loaded WOR | F | P | F | P | F | P
+(4a) the save lands; a newer copy is saved after it | the next refresh loads NEWER: on screen and in browser storage, saved, | F | P | F | P | F | P
+(4b) the save fails: the folder refuses its write | while the save is held, driveStorePull(true): loads nothing -- [return | F | P | F | P | F | P
+(4b) the save fails: the folder refuses its write | the save failed and says so: REMOTE still the folder’s copy; WORKING o | F | P | F | P | F | P
+(4b) the save fails: the folder refuses its write | the next refresh is an ordinary one: REMOTE, later than what is on scr | F | P | F | P | F | P
+(4c) the save is refused: a newer copy was saved before it read the folder | Brad’s other browser loaded REMOTE and saved NEWER over it; REMOTE in  | P | P | P | P | P | P
+(4c) the save is refused: a newer copy was saved before it read the folder | while the save waits at its read, liveTick(): loads nothing -- [return | F | P | F | P | F | P
+(4c) the save is refused: a newer copy was saved before it read the folder | the save is refused and says so: nothing written, NEWER still the fold | F | P | F | P | F | P
+(4c) the save is refused: a newer copy was saved before it read the folder | the next refresh (the Live tick) is an ordinary one: NEWER is loaded,  | P | P | P | P | P | P
+(4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel | while the save waits at its read, driveConnectNow(): loads nothing --  | F | P | F | P | F | F
+(4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel | the save asked once and was canceled: nothing written, REMOTE still th | F | P | F | P | F | P
+(4d) the save is canceled: the folder’s copy has no writer recorded, and Brad answers Cancel | the next refresh is an ordinary one: REMOTE, later than what is on scr | F | P | F | P | F | P
+(5) Cc: no save under way | the refresh loads REMOTE as before: on screen and in browser storage,  | P | P | P | P | P | P
+(5) Cb: work typed in this session; a refresh during the save | WORKING typed in this session, unsaved (DIRTY) (a CONTROL) | P | P | P | P | P | P
+(5) Cb: work typed in this session; a refresh during the save | while the save is held, the refresh gives the unsaved-changes message  | P | P | P | P | P | F
+(5) Cb: work typed in this session; a refresh during the save | once the save lands: WORKING on screen and the folder’s copy, saved, r | P | P | P | P | P | P
+(5) Ca: REMOTE not stamped ahead | Brad’s opening loaded REMOTE (saved, recorded against it); reopened wi | P | P | P | P | P | P
+(5) Ca: REMOTE not stamped ahead | while the save is held, REMOTE is not later than the save’s own copy,  | P | P | P | P | P | P
+(5) Ca: REMOTE not stamped ahead | once the save lands: WORKING on screen and the folder’s copy, saved, r | P | P | P | P | P | P

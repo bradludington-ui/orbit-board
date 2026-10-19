@@ -3955,8 +3955,12 @@ The suite is clean on v2.00. On v1.99 (`BOARD=<a v1.99 board> node tools/export-
 checks fail, and so do T3 and T4, which pin helpers v2.00 introduced: 159 failing assertions. The banner counts
 assertions, not checks.
 
-135 mutations (`v200-*`) each undo one fix or re-add one over-escape, and each is caught by `audit-inject` alone. Seven
-existing mutations were retargeted to lines v2.00 rewrote. That makes 1,274 targets, each matching exactly once.
+135 mutations (`v200-*`) each undo one fix or re-add one over-escape. Seven existing mutations were retargeted to lines
+v2.00 rewrote. That makes 1,274 targets, each matching exactly once -- applicable, which is not the same as caught. At
+`1c94537`, `audit-inject` alone did not catch `v200-id-builtin-open` or `v200-spmt-pmo-open`: the K1 inputs for those rules
+sat in fields `IN_VAL_KEYS` refuses too. **A K-check input must reach only the rule it is for.** K1's `order` (a valueOf id
+in a plan's priority order) and `pmoChars` (a submittal office carrying markup) do. A mutation's catch is claimed only
+from a run that saw it fail.
 With no catcher on record, `mutate.mjs` tries `audit-inject` first for a `v200-*` id (`FIRST_BY_PREFIX`); a recorded
 catcher still goes first. Order only, never the verdict. Add a prefix there when a new family has one suite built to
 see it.

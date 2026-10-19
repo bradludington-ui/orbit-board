@@ -1,0 +1,79 @@
+// ==== verify-U13 probe: OBSERVATIONS ONLY (no checks, no expected values). Synthetic data at run time; nothing written. ====
+{
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, pause, lsOf } = W1H;
+  const out = (k, v) => console.log('OBS ' + J([k, v]));
+  const F1 = baseFile('Brad', KEY.brad);
+  const NM = 'spmt-2027-om.json', HOUR = 3600000;
+  const inCopy = txt => { try { const j = JSON.parse(txt), st = j.store || j, y = (st.years || {})[st.cur] || {}, a = (y.alloc || {}).A;
+    return [String((y.notes || {}).A || ''), (a && typeof a === 'object') ? a.v : (a == null ? null : a)]; } catch (e) { return ['(unreadable)', null]; } };
+  const scr = ev => JSON.parse(ev(`JSON.stringify([String(S.notes.A||''), (S.alloc.A&&typeof S.alloc.A==='object')? S.alloc.A.v : null])`));
+  const head = fold => fold.raw(2027) == null ? null : inCopy(fold.raw(2027));
+  const withCopy = txt => { const fold = folder(); fold.root.files[NM] = txt; return fold; };
+  const flags = ev => JSON.parse(ev(`JSON.stringify({DIRTY:DIRTY, bd:_baseDirty, rec:!!baseGet().dirty, base:driveBaseOf(mySlug()), gen:_saveGen, busy:_saveBusy, kept:localStorage.getItem(_AP.key+'.kept')!=null})`));
+  // REMOTE, an hour ahead, written through the product.
+  const R = boot({ html: F1 }); await pause(80); const f0 = folder(); wire(R.ev, 'Brad', KEY.brad); connect(R.ev, R.w, f0);
+  R.ev(`(function(){ var real=Date.now; Date.now=function(){ return real.call(Date)+${HOUR}; }; return 'ok'; })()`);
+  R.ev(`setNote('A','REMOTE'); setAlloc('A','650'); 'ok'`); await R.ev('saveInPlace()'); await pause(5);
+  const REMOTE = f0.raw(2027);
+  const fA = withCopy(REMOTE), A = boot({ html: F1 }); await pause(80); wire(A.ev, 'Brad', KEY.brad); connect(A.ev, A.w, fA);
+  await A.ev('driveAutoConnect()'); A.ev(`setNote('A','WORKING'); setAlloc('A','700'); 'ok'`); await pause(5);
+  const LS = lsOf(A.ev);
+  const reopen = async (fold, perm) => { const B = boot({ html: F1, ls: { ...LS } }); await pause(80); wire(B.ev, 'Brad', KEY.brad);
+    if (perm) { fold.perm = 'prompt'; fold.dir.queryPermission = async () => fold.perm; fold.dir.requestPermission = async () => (fold.perm = 'granted'); }
+    connect(B.ev, B.w, fold); B.ev(`_liveCfg.folder='shared'; 'ok'`); if (perm) await B.ev('driveAutoConnect()'); await pause(5); return B; };
+  const held = async (B, fold) => { const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+    const p = B.ev('saveInPlace()'); await until(() => (fold.hits.main || 0) > n0); return { g, p }; };
+  const holdRead = fold => { const gh = fold.dir.getFileHandle, g = gate(); let hit = 0;
+    fold.dir.getFileHandle = async (n, o) => { if (!hit && n === NM && !(o && o.create)) { hit = 1; await g.p; } return gh(n, o); };
+    return { g, hit: () => hit }; };
+  // P1: the folder holds NEWER EXECUTION DATA (shared through the product by Alice's board) and Brad presses the bar's Connect
+  // during a held save (permission not kept: the bar is showing). What the words say, and what the same Connect loaded.
+  for (const how of ['driveConnectNow()', 'driveAutoConnect()']) {
+    const fold = withCopy(REMOTE);
+    const X = boot({ html: F1 }); await pause(80); wire(X.ev, 'Alice', KEY.alice); connect(X.ev, X.w, fold);
+    X.ev(`EXDB={ts:Date.now(), all:{om:{rows:{2026:{}}, by:'Alice'}}}; 'ok'`); await X.ev('driveExecPush(true)'); await pause(5);
+    const B = await reopen(fold, how === 'driveConnectNow()');
+    const ex0 = B.ev('JSON.stringify([+(EXDB.ts||0), Object.keys(EXDB.all||{}), localStorage.getItem("prio27execdb")])');
+    const h = await held(B, fold); const f1 = flags(B.ev);
+    const r = await B.ev(how); await pause(5);
+    const ex1 = B.ev('JSON.stringify([+(EXDB.ts||0), Object.keys(EXDB.all||{}), localStorage.getItem("prio27execdb")])');
+    out('P1 ' + how + ' during a held save: returned; status', [r, status(B.ev)]);
+    out('P1 ' + how + ': execution data before -> after the same Connect (EXDB.ts, keys, stored)', [JSON.parse(ex0).slice(0, 2), JSON.parse(ex1).slice(0, 2), JSON.parse(ex0)[2] !== JSON.parse(ex1)[2]]);
+    out('P1 ' + how + ': board flags before -> after; screen', [f1, flags(B.ev), scr(B.ev), B.ev('_driveLive'), B.ev('_driveNeed')]);
+    h.g.open(); await h.p; await pause(5);
+    out('P1 ' + how + ': once the save landed: status; screen; head; flags', [status(B.ev), scr(B.ev), head(fold), flags(B.ev)]);
+  }
+  // P2: A REFRESH WHOSE READ SPANS A WHOLE SAVE. The refresh (driveStorePull(false), a Connect's) is held at its read with no
+  // save under way; 💾 Save then runs from start to landing; the refresh is let go after. No save is under way at its check.
+  { const fold = withCopy(REMOTE); const B = await reopen(fold, false);
+    const hr = holdRead(fold); const pr = B.ev('driveStorePull(false)'); await until(() => hr.hit());
+    await B.ev('saveInPlace()'); await pause(5);
+    out('P2 the save ran to the end while the refresh waited at its read: status; screen; head; flags', [status(B.ev), scr(B.ev), head(fold), flags(B.ev)]);
+    hr.g.open(); const r = await pr; await pause(5);
+    out('P2 the refresh let go after the save landed: returned; status; screen; head; flags', [r, status(B.ev), scr(B.ev), head(fold), flags(B.ev)]);
+    const r2 = await B.ev('driveStorePull(false)'); await pause(5);
+    out('P2 the next refresh: returned; status; screen; head; flags', [r2, status(B.ev), scr(B.ev), head(fold), flags(B.ev)]);
+    const C = boot({ html: F1, ls: lsOf(B.ev) }); await pause(80); wire(C.ev, 'Brad', KEY.brad); connect(C.ev, C.w, fold);
+    await C.ev('driveAutoConnect()'); await pause(5);
+    out('P2 reopened (the opening connect): status; screen; head; flags', [status(C.ev), scr(C.ev), head(fold), flags(C.ev)]);
+  }
+  // P3: "LOAD THEIRS" (driveResolve('theirs'), run in saveSerial and so counted in _saveBusy) held at its read; a Connect
+  // meanwhile. What the Connect says (it names "a save"), and the end state.
+  { const fold = withCopy(REMOTE); const B = await reopen(fold, false);
+    const hr = holdRead(fold); const pr = B.ev(`driveResolve('theirs')`); await until(() => hr.hit());
+    const r = await B.ev('driveConnectNow()'); await pause(5);
+    out('P3 Connect while Load theirs waits at its read: returned; _saveBusy; status; screen', [r, B.ev('_saveBusy'), status(B.ev), scr(B.ev)]);
+    hr.g.open(); await pr; await pause(5);
+    out('P3 Load theirs finished: status; screen; flags', [status(B.ev), scr(B.ev), flags(B.ev)]);
+  }
+  // P4: the autosave path (work typed this session) held at its write while the Live tick refreshes: which guard answers.
+  { const fold = withCopy(REMOTE), D = boot({ html: F1 }); await pause(80); wire(D.ev, 'Brad', KEY.brad); connect(D.ev, D.w, fold);
+    await D.ev('driveAutoConnect()'); D.ev(`_liveCfg.folder='shared'; _liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; setNote('A','WORKING'); setAlloc('A','700'); 'ok'`); await pause(5);
+    const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main; const p = D.ev('liveTick()'); await until(() => (fold.hits.main || 0) > n0);
+    const st0 = status(D.ev); const r = await D.ev('driveStorePull(true)'); await pause(5);
+    out('P4 quiet refresh during an autosave: returned; status changed; flags', [r, status(D.ev) !== st0, flags(D.ev)]);
+    g.open(); await p; await pause(5);
+    out('P4 the autosave landed: status; screen; head; flags', [status(D.ev), scr(D.ev), head(fold), flags(D.ev)]);
+  }
+  process.exit(0);
+}

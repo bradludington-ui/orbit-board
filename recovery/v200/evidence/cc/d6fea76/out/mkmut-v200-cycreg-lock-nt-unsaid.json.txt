@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-lock-nt-unsaid", "matches": 1, "find": "  const odd=rcnListOdd(MS.rcn)[0];\n", "repl": "  const odd=rcnListOdd(MS.rcn).filter(function(x){ return !x.nt; })[0];\n"}

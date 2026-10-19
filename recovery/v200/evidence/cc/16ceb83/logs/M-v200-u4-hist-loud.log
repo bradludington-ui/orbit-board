@@ -1,0 +1,16 @@
+# label: M-v200-u4-hist-loud
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/out/M-v200-u4-hist-loud.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-hist-loud.html
+# start: 2026-10-18 03:59:47 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-hist-loud.html","BOARD_set":true,"board":"a97ae24f38515661957c9a03c134d5cbfa3cc92f","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs","harnessBlob":"3968755334eb8be9df9ec3f13ebf53282be3a0d8","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 3:59:48 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | the autosave held at the close of its history copy, the import stops part-way there
+    nothing is written, it reports no save, and the message line is the import’s own, unchanged
+        got [0,true,false,false]   want [0,true,false,true]
+# exit 1 at 10/18/2026, 4:00:15 AM ET
+
+# end: 2026-10-18 04:00:16 EDT  exit: 1  wall_s: 28.7

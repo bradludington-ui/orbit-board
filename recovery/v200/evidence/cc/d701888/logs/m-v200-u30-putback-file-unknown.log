@@ -1,0 +1,16 @@
+# label: m-v200-u30-putback-file-unknown
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/out/m-v200-u30-putback-file-unknown.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit/G-u30.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/mut/v200-u30-putback-file-unknown.html
+# start: 2026-10-13 19:28:53 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/mut/v200-u30-putback-file-unknown.html","BOARD_set":true,"board":"160242dca50be767146622ac0e4712bb93a257fb","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit/G-u30.mjs","harnessBlob":"3b9784d9ff542ab737a90fce5630818f7fe581e3","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/13/2026, 7:28:54 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U30) — a refresh takes the folder’s copy as the base only when it is on screen | (8d) CONTROL: work kept aside from a board file, nothing recorded for the folder: ↶ Put back
+    ↶ Put back: OLDER-KEPT on screen, B-EDIT kept in its place; it says Bob saved the board file after it, as it always did -- [on screen, kept, the words]
+        got ["OLDER-KEPT","B-EDIT",false]   want ["OLDER-KEPT","B-EDIT",true]
+# exit 1 at 10/13/2026, 7:29:54 PM ET
+
+# end: 2026-10-13 19:29:54 EDT  exit: 1  wall_s: 61.8

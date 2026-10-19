@@ -1,0 +1,185 @@
+# label: F-u18-before
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/before/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/F-u18-before.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/before /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/before/tools/export-audit/h-u18.mjs
+# start: 2026-10-18 14:51:33 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/before/prioritization-board-grid.html","BOARD_set":false,"board":"3f4607b9ee8bd5b872ac918aa367d81b60dcef2a","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/before/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 2:51:35 PM ET"}
+
+================================================================================================
+63 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (1) Bob takes the pen and saves while Brad’s save is held
+    Brad’s save, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy, with its own time; one write of the folder’s copy since the hold, Bob’s
+        got ["BRAD-2",720,"Brad","Brad",false,2,0]   want ["BOB-2",650,"Bob","Bob",true,1,0]
+    Brad’s work stays on screen, in browser storage and unsaved, recorded against v1 as before; what is kept aside is as it was
+        got ["BRAD-2",720,"BRAD-2",720,false,false,null]   want ["BRAD-2",720,"BRAD-2",720,true,true,null]
+    the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+        got [false,"Saved 6:51 PM"]   want [true,"Unsaved changes"]
+    Brad is told, word for word, with both choices offered
+        first differs at char 2 of 92/370
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",[]]…
+          want …["⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. T…
+    Bob’s board: BOB-2 on screen and in its browser storage, saved, recorded against the folder’s copy
+        got ["BOB-2",650,"BOB-2",650,true,false]   want ["BOB-2",650,"BOB-2",650,true,true]
+    then Brad’s refresh loads nothing over his unsaved work, and the folder’s copy is still Bob’s
+        got [false,"BRAD-2",720,false,"BRAD-2",720]   want [false,"BRAD-2",720,true,"BOB-2",650]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (2) the retry: Save yours over theirs, then Take the pen
+    Save yours over theirs asks first; Bob holds the pen, so nothing is written over BOB-2, and Bob’s copy is kept in the history
+        got [true,false,"BRAD-2",720,"Brad","Brad",false,3]   want [false,true,"BOB-2",650,"Bob","Bob",true,1]
+    and says Bob holds the pen; Brad’s work stays on screen, unsaved
+        got [false,"BRAD-2",720,false]   want [true,"BRAD-2",720,true]
+    Take the pen asks first, naming Bob; then BRAD-2, $720, saved by Brad, its writer, is the folder’s copy
+        got [false,"BRAD-2",720,"Brad","Brad"]   want [true,"BRAD-2",720,"Brad","Brad"]
+    Brad is saved, recorded against the folder’s copy, and told so; v1 and Bob’s copy are both in the history
+        got [true,true,false,[["BRAD-1",700],["BRAD-2",720]]]   want [true,true,true,[["BOB-2",650],["BRAD-1",700]]]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (1b) nothing unsaved; Bob takes the pen and saves while Brad’s save is held
+    Brad’s save writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; v1 is in the history, and nothing else is
+        got [2,"BRAD-1",700,"Brad","Brad",[["BRAD-1",700]]]   want [1,"BOB-2",650,"Bob","Bob",[["BRAD-1",700]]]
+    Brad’s board is as it was: BRAD-1, $700, on screen and in browser storage, saved, recorded against v1, stamped with v1’s time and his name, and its header unchanged
+        got ["BRAD-1",700,"BRAD-1",700,true,false,false,"Brad",true]   want ["BRAD-1",700,"BRAD-1",700,true,true,true,"Brad",true]
+    Brad is told, word for word, with both choices offered
+        first differs at char 2 of 92/370
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",[]]…
+          want …["⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. T…
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (3) Bob saves during the held save; Brad chooses Load theirs
+    Brad’s work stays on screen, in browser storage and unsaved, recorded against v1 as before; what is kept aside is as it was
+        got ["BRAD-2",720,"BRAD-2",720,false,false,null]   want ["BRAD-2",720,"BRAD-2",720,true,true,null]
+    the board’s stamp (when and by whom its header says it was saved) and its header are as they were before the save; the header says Unsaved changes
+        got [false,"Saved 6:52 PM"]   want [true,"Unsaved changes"]
+    Brad is told, word for word, with both choices offered
+        first differs at char 2 of 92/370
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",[]]…
+          want …["⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. T…
+    Load theirs: BOB-2 on screen, saved, recorded against the folder’s copy, which is still Bob’s; BRAD-2 is kept aside, and the board says so
+        got ["BRAD-2",720,true,true,"BRAD-2",720,"Brad","Brad",["BRAD-2",720],false]   want ["BOB-2",650,true,true,"BOB-2",650,"Bob","Bob",["BRAD-2",720],true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6a) the folder’s copy removed while Brad’s save is held
+    nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+        got [true,1,"BRAD-2",720,true]   want [true,0,"(no copy)",null,true]
+    Brad is told, word for word, with no choice offered
+        first differs at char 2 of 92/226
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",[]]…
+          want …["⛔ Not saved. The shared folder’s copy of O&M FY27 is no longer there. Nothing was written …
+    Brad’s FY27 work stays in the board, unsaved, recorded against v1
+        got ["BRAD-2",720,false,false]   want ["BRAD-2",720,true,true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6b) the folder’s copy unreadable while Brad’s save is held
+    nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+        got [true,1,"BRAD-2",720,true]   want [true,0,"BRAD-1",700,true]
+    Brad is told, word for word, with no choice offered
+        first differs at char 2 of 92/292
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",[]]…
+          want …["⛔ Not saved. The shared folder’s copy of O&M FY27 could not be read again just before it w…
+    Brad’s FY27 work stays in the board, unsaved, recorded against v1
+        got ["BRAD-2",720,false,false]   want ["BRAD-2",720,true,true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6c) the folder’s copy saved by Bob, and Brad’s board moved to FY28, while Brad’s save is held
+    nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+        got [true,1,"BRAD-2",720,true]   want [true,0,"BOB-2",650,true]
+    Brad is told, word for word, with no choice offered
+        first differs at char 2 of 176/288
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. A ch…
+          want …["⛔ Not saved. The shared folder’s copy of O&M FY27 changed while this save was under way — …
+    Brad’s FY27 work stays in the board, unsaved, recorded against v1
+        got ["BRAD-2",720,true,false]   want ["BRAD-2",720,true,true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy removed while that save is held
+    nothing is written in its place; Brad is told, word for word, with no choice offered
+        first differs at char 6 of 128/233
+          got  …[true,1,"✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. Y…
+          want …[true,0,"⛔ Not saved. The shared folder’s copy of O&M FY27 is no longer there. Nothing was writt…
+    Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+        got [["Bob","Brad"],false,"Brad"]   want [["Bob"],true,"Bob"]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6e) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy unreadable while that save is held
+    nothing is written in its place; Brad is told, word for word, with no choice offered
+        first differs at char 6 of 128/299
+          got  …[true,1,"✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. Y…
+          want …[true,0,"⛔ Not saved. The shared folder’s copy of O&M FY27 could not be read again just before i…
+    Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+        got [["Bob","Brad"],false,"Brad"]   want [["Bob"],true,"Bob"]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (7a) the folder’s first copy: Bob’s lands while Brad’s save is held
+    Brad’s save is held at its read just before its write; meanwhile Bob’s first copy lands: BOB-1, $650, saved by Bob, its writer (a CONTROL)
+        got [false,0,"BRAD-1",700,"Brad","Brad"]   want [true,1,"BOB-1",650,"Bob","Bob"]
+    nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+        got [0,"BRAD-1",700,"Brad","Brad",0]   want [0,"BOB-1",650,"Bob","Bob",0]
+    Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+        got ["BRAD-1",700,false,1792349572108]   want ["BRAD-1",700,true,0]
+    Brad is told -- Bob saved it while his save was under way, with both choices
+        got [false,false,[]]   want [true,true,["driveResolve('theirs')","driveResolve('mine')"]]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot be read
+    Brad’s save is held at its read just before its write; meanwhile Bob’s first copy lands: BOB-1, $650, saved by Bob, its writer (a CONTROL)
+        got [false,0,"BRAD-1",700,"Brad","Brad"]   want [true,1,"BOB-1",650,"Bob","Bob"]
+    nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+        got [0,"BRAD-1",700,"Brad","Brad",0]   want [0,"BOB-1",650,"Bob","Bob",0]
+    Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+        got ["BRAD-1",700,false,1792349576543]   want ["BRAD-1",700,true,0]
+    Brad is told -- it could not be read, with no choice
+        first differs at char 2 of 116/286
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You …
+          want …["⛔ Not saved. The shared folder’s copy of O&M FY27 could not be read just before it was to …
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (8) Brad takes the pen; Bob saves while that save is held
+    Brad’s save writes nothing over it: BOB-3, $640, saved by Bob, still its writer, is the folder’s copy; Bob’s copy BOB-2 in the history
+        got ["BRAD-3",730,"Brad","Brad",true]   want ["BOB-3",640,"Bob","Bob",true]
+    Brad’s journal holds no line saying he took the pen -- its one pen line is still Bob’s; BRAD-3 on screen, unsaved; BRAD-2 still kept aside; the board’s stamp as it was
+        got [["Bob","Brad"],"BRAD-3",730,false,["BRAD-2",720],false]   want [["Bob"],"BRAD-3",730,true,["BRAD-2",720],true]
+    Brad is told, word for word, with both choices offered
+        first differs at char 2 of 121/370
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You …
+          want …["⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. T…
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (8b) Brad takes the pen and types BRAD-4 while that save is held; Bob saves; Brad reopens
+    Brad’s save writes nothing over BOB-3; browser storage holds BRAD-4 and no line saying Brad took the pen
+        got ["BRAD-3",730,"Brad","Brad","BRAD-4",730,["Bob","Brad"]]   want ["BOB-3",640,"Bob","Bob","BRAD-4",730,["Bob"]]
+    the board reopened from that storage shows BRAD-4, and its journal holds no line saying Brad took the pen
+        got ["BRAD-4",730,["Bob","Brad"]]   want ["BRAD-4",730,["Bob"]]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (8c) Brad types BRAD-3 while his save is held; Bob takes the pen
+    Brad’s save writes nothing over BOB-2; BRAD-3 stays on screen and in browser storage, unsaved; the board keeps the stamp the change typed meanwhile gave it, by Brad
+        got ["BRAD-2",720,"Brad","Brad","BRAD-3",720,"BRAD-3",720,true,true,"Brad"]   want ["BOB-2",650,"Bob","Bob","BRAD-3",720,"BRAD-3",720,true,true,"Brad"]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (9) Bob takes the pen while Brad’s Live autosave is held
+    the autosave, let go, stops before its write and says so, word for word, with both choices -- before the refresh after it in the same tick
+        first differs at char 1 of 66/375
+          got  …[false,"✓ Saved to the shared folder automatically — 6:53 PM.",[]]…
+          want …[true,"⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working f…
+    the autosave, let go, writes nothing over it: BOB-2, $650, saved by Bob, its writer, is still the folder’s copy; one write of it since the hold, Bob’s; v1 in the history and nothing else
+        got ["BRAD-2",720,"Brad","Brad",2,[["BRAD-1",700]]]   want ["BOB-2",650,"Bob","Bob",1,[["BRAD-1",700]]]
+    Brad’s work stays on screen, in browser storage and unsaved, recorded against v1; the board’s stamp as it was; the refresh after it says Bob saved, and nothing says it saved
+        got ["BRAD-2",720,"BRAD-2",720,false,false,false,false,true]   want ["BRAD-2",720,"BRAD-2",720,true,true,true,true,false]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (10) nothing typed: Brad takes the pen over Bob’s copy; Bob saves while that save is held
+    nothing is written over BOB-3; Brad’s board is still stamped with Bob’s copy’s time and Bob’s name, its header unchanged, its tooltip still by Bob
+        got ["BOB-2",650,"Brad","Brad",false,"Brad",true,false,true]   want ["BOB-3",640,"Bob","Bob",true,"Bob",true,true,false]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (11a) nothing unsaved; PB27 put on screen while Brad’s save is held; Bob takes the pen
+    Brad’s save, let go, writes nothing over BOB-2, $650, saved by Bob, its writer; one write of the folder’s copy since the hold, Bob’s; PB27 is on screen
+        got [true,2,"BRAD-1",700,"Brad","Brad","PB|2027"]   want [true,1,"BOB-2",650,"Bob","Bob","PB|2027"]
+    while PB27 is still on screen, its header and its tooltip say what they said before the save, too
+        got [false,false]   want [true,true]
+    while PB27 is still on screen, Brad is told that Bob saved and that his save stopped before writing over it, with both choices
+        got [false,false,[]]   want [true,true,["driveResolve('theirs')","driveResolve('mine')"]]
+    once the view is left, the working plan is still saved, stamped with v1’s time and Brad’s name; its header and its tooltip say what they said before the save
+        got [true,false,"Brad",false,false,true]   want [true,true,"Brad",true,true,true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (11b) Brad takes the pen; PB27 put on screen while that save is held; Bob saves
+    Brad’s save, let go, writes nothing over BOB-3, $640, saved by Bob, still its writer
+        got [true,"BRAD-3",730,"Brad","Brad"]   want [true,"BOB-3",640,"Bob","Bob"]
+    while PB27 is still on screen, the journal it shows holds no line saying Brad took the pen, and its stamp is as it was
+        got [["Bob","Brad"],false]   want [["Bob"],true]
+    while PB27 is still on screen, Brad is told, word for word, with both choices offered
+        first differs at char 2 of 239/370
+          got  …["✅ Saved the working plan of O&M FY27 to the shared folder — 5 KB, built before PB27 was pu…
+          want …["⛔ Bob saved O&M FY27 to the shared folder just now, after the copy you are working from. T…
+    once the view is left, the working plan’s journal holds no line saying Brad took the pen; its stamp is as it was; BRAD-3, $730 is on it, unsaved
+        got [["Bob","Brad"],false,"BRAD-3",730,false]   want [["Bob"],true,"BRAD-3",730,true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (11c) nothing typed: Brad takes the pen over Bob’s copy; PB27 put on screen while that save is held; Bob saves
+    nothing is written over BOB-3; while PB27 is still on screen, it is stamped with Bob’s copy’s time and Bob’s name, and its tooltip says by Bob, not by Brad
+        got ["BOB-2",650,"PB|2027",false,"Brad",false,true]   want ["BOB-3",640,"PB|2027",true,"Bob",true,false]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (12) the folder’s copy rewritten with v1’s stamp while Brad’s save is held
+    nothing is written over it: EDITED, $700 is still the folder’s copy; v1 is in the history
+        got [1,"BRAD-2",720,true]   want [0,"EDITED",700,true]
+    Brad’s work stays on screen and unsaved, recorded against v1; the board’s stamp as it was; both choices offered
+        got ["BRAD-2",720,false,false,false,[]]   want ["BRAD-2",720,true,true,true,["driveResolve('theirs')","driveResolve('mine')"]]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (13) 💾 Save held at its second read of the folder’s copy, just before its write, the import stops part-way there
+    nothing is written over the folder’s copy: it keeps its bytes
+        got [false,1,false]   want [true,0,true]
+    the board says writing to the shared folder is refused, and does not say Saved
+        got [false,false]   want [true,false]
+    the note typed stays unsaved, and the board’s stamp is what it was before the save
+        got ["true",false]   want ["true",true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (13) 💾 Save held at its second read of the folder’s copy, just before its write (a CONTROL: nothing happens there)
+    the save writes the folder’s copy once, with the note, and says Saved
+        got [false,1,"EDIT-1",true]   want [true,1,"EDIT-1",true]
+# exit 1 at 10/18/2026, 2:54:45 PM ET
+
+# end: 2026-10-18 14:54:46 EDT  exit: 1  wall_s: 192.8

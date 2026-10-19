@@ -1,0 +1,21 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/after/prioritization-board-grid.html	2026-10-12 10:58:03.347544169 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/r2/after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
+@@ -26737,11 +26737,14 @@
+   // screen recorded as saved, with the save's copy in the folder, and the next refresh and a reopen said nothing. Now
+   // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
+   // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
+-  // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
++  // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this
++  // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
++  // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+   if(_saveBusy){
+-    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
+-      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
+-      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
++    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
++      +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
++      +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;
+   }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it

@@ -1,0 +1,190 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -6474,6 +6474,16 @@
+     LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+   } else if(LASTKNOWN && PUB_FILE_TS!==LASTKNOWN) _bootMoved=PUB_FILE_TS;   // saved by someone since
+ }
++// v2.00 (U19H, Brad 13 Oct): WORK PUT BACK AND NOT WRITTEN SINCE, as the header reads it (putBackUnsaved). ↶ Put back counts the
++// work it puts back as a change (U2), and this browser's record says it is unsaved; reopened before any Save, the header read
++// "Saved <time>" -- the time that work was last changed, which no file had. {ms: the board on screen, rec: the saves this
++// browser's record named then}: set by ↶ Put back, and here, on opening this browser's own copy unsaved by its record and last
++// changed before the put-back that kept aside what was on screen then (the kept copy's time). Words only: nothing is written.
++let _putBackOn=null;
++try{ if(_bootOwn && _baseDirty && _keptMeta && _keptMeta.why==='swap' && +MS.ts && +MS.ts<+_keptMeta.t) _putBackOn={ms:MS, rec:putBackRec()}; }catch(e){}
++// v2.00 (U19H): the last save the board file is known to hold -- as it was opened, or a save of it that landed here. The header
++// shows it apart while the work on screen is unsaved.
++let _fileSaveTs=PUB_FILE_TS;
+ 
+ let DIRTY=false;
+ // ---- ONE SAVE AT A TIME, ACKNOWLEDGING WHAT IT WROTE (v1.95, item 47) ----------------------------
+@@ -6944,6 +6954,9 @@
+     const i=s.indexOf('\n'); return {meta:JSON.parse(s.slice(0,i)), raw:s.slice(i+1)}; }catch(e){ return null; }
+ }
+ function keptWhere(m){ return (m&&m.why)==='folder'? 'the shared folder' : 'the saved file'; }
++// v2.00 (U19): the count of changes (_saveGen) just after a copy kept at a put-back, saved when it was kept, was put back in its
++// turn; -1 when the last put-back was of anything else. While the count stays there, what is on screen is that copy, unchanged.
++let _putSavedGen=-1;
+ function keptPutBack(){
+   const k=keptCopy();
+   if(!k){ _keptMeta=null; setStat('Nothing is kept aside in this browser.'); render(); return; }
+@@ -6952,17 +6965,40 @@
+   // Nothing is changed: the kept work stays kept and what is on screen stays as it is, to be put back once the save is done.
+   // Said in the past tense: a quiet autosave says nothing when it lands, so this line can still be on screen after it.
+   if(_saveBusy){ setStat('⏳ <b>Not put back</b>: a save was under way. Nothing was changed: the kept work is still kept, and what is on screen is unchanged. Put it back once the save has finished (\u21b6 work kept aside, in the top bar).'); render(); return; }
++  // v2.00 (U19): NOT WHILE A LOCKED CYCLE IS ON SCREEN. A load is refused there, and what is on screen is the locked view, not
++  // the work: the question spoke of the view, and the view was kept aside in the kept work's place until the refusal put the
++  // kept work back. Refused at once, as Save is: nothing is asked and the kept work is not touched.
++  if(cycBlock('Loading a board')) return;
+   // WORK ON SCREEN THAT NO SAVED COPY HAS IS KEPT IN ITS PLACE (v1.95, item 50): putting work back
+   // never throws away the work it replaces. The slot it frees takes what is on screen.
+   const nowUnsaved=!!(DIRTY || baseGet().dirty);
++  // v2.00 (U19): A BOARD FILE KEEPS NO EARLIER COPY THIS BOARD CAN REACH. Work on screen saved only in the board file was not
++  // kept, since the file had it; but the next 💾 Save writes the work put back over that file once its HOLD ON is answered OK,
++  // and then the work that was on screen was in no copy this board could reach. The shared folder keeps the copy a save
++  // replaces in its history; a board file does not. So what is on screen is kept aside in its place whether or not it is
++  // saved, as unsaved work always was -- unless Save writes to the shared folder now and what is on screen IS the folder's
++  // copy (the one it was last loaded from or written to there), which a Save there first keeps in the folder's history. Decided
++  // here, at the put-back, not by where Save goes now alone: 📡 Live view's switch can move Save to the board file before the
++  // Save, and work saved only in that file was then written over with none kept. No room to keep it: nothing is changed (saved
++  // work on screen used to be put back without being kept, so without needing room).
++  const keepScreen=nowUnsaved || !driveStoreOn() || driveBaseOf(mySlug())!==(+MS.ts||0);
++  // v2.00 (U19): a copy kept at a put-back can be saved work. Put back in its turn it counts as a change (U2), though it may
++  // have none that no saved copy has: until the next change the question says what is true either way.
++  const asPut=nowUnsaved && _putSavedGen===_saveGen;
++  // v2.00 (U19): where what is on screen came from. The kind of the kept copy says so for work kept by an opening or by Load
++  // theirs; a copy kept at a put-back says nothing about it, and what is on screen may then be the shared folder's own copy,
++  // which was never written to the board file.
++  const scrWhere=(k.meta.why==='swap' && +MS.ts && driveBaseOf(mySlug())===(+MS.ts||0))? 'the shared folder' : keptWhere(k.meta);
+   if(!confirm('Put back the work this browser kept aside on '+fmtTs(k.meta.t)+'?\n\n'
+     +'What is on screen now is replaced by it. '
+-    +(nowUnsaved? 'What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.'
+-                : 'What is on screen now is still in '+keptWhere(k.meta)+' it came from, and 💾 Save will ask before writing over that.'))) return;
++    +(nowUnsaved? (asPut? 'What is on screen now was put back and has not been saved since, so it is kept aside in its place — nothing is lost.'
++                       : 'What is on screen now has changes no saved copy has, so it is kept aside in its place — nothing is lost.')
++                : 'What is on screen now is still in '+scrWhere+' it came from, and 💾 Save will ask before writing over that.'
++                  +(keepScreen? ' It is also kept aside in its place, so it is not lost if Save does.' : '')))) return;
+   let st; try{ st=JSON.parse(k.raw); }catch(e){ setStat('⚠ The work kept aside could not be read ('+esc(e.message)+'). It is still kept; nothing was changed.'); return; }
+   let swapped=null;
+-  if(nowUnsaved){
+-    const m2={t:Date.now(), why:'swap', by:whoIs()||'', ts:+MS.ts||0, base:baseGet()};
++  if(keepScreen){
++    const m2={t:Date.now(), why:'swap', by:whoIs()||'', ts:+MS.ts||0, base:baseGet(), saved:!nowUnsaved || asPut};   // saved: v2.00 (U19)
+     const str=JSON.stringify(m2)+'\n'+JSON.stringify(MS);
+     try{ localStorage.setItem(_AP.key+'.kept', str); swapped=m2; }
+     catch(e){ setStat('⚠ There is no room to keep what is on screen while the kept work is put back, so <b>nothing was changed</b>. '
+@@ -6981,12 +7017,17 @@
+   _baseDirty=true; baseSet({file:LASTKNOWN, folder:b.folder||{}, dirty:true});
+   if(!swapped){ try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){} }
+   _keptMeta=swapped;
++  _putBackOn={ms:MS, rec:putBackRec()};   // v2.00 (U19H): the work put back, for the header (putBackUnsaved)
+   // v2.00 (U2): THE WORK PUT BACK IS A CHANGE, counted as an edit is. A save still writing when it was put back found the
+   // count unmoved and marked the board saved, while the folder or file holds what that save wrote. Now that save finds the
+   // count moved, leaves the work put back unsaved and says so, and the next Save writes it.
+   persist(); _saveGen++; DIRTY=true; render();
+-  setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. 💾 Save will ask before it writes over '
+-    +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+' saved after it.'
++  _putSavedGen=(k.meta.why==='swap' && k.meta.saved===true)? _saveGen : -1;   // v2.00 (U19)
++  // v2.00 (U19): work kept aside at a put-back ('swap') was not replaced by a newer save, and nobody need have saved since: the
++  // rule Save follows is said instead, which holds either way.
++  setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. '
++    +(k.meta.why==='swap'? '💾 Save will ask before it writes over a copy saved after the one this work came from.'
++      : '💾 Save will ask before it writes over '+esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+' saved after it.')
+     +(swapped? ' What was on screen is <b>kept aside</b> in its place: <button type="button" class="nb lnk" onclick="keptPutBack()">put that back</button>.' : ''));
+ }
+ // SAVE THE KEPT WORK AS A FILE (v1.95, item 50): a board file holding it, to open or hand on. Saving it
+@@ -8373,8 +8414,11 @@
+         const q = LASTKNOWN
+           ? '⚠ HOLD ON — '+by+' saved this file at '+fmtTs(fts)+'. That is not the save the copy you are working from came from, so their changes are not on your screen.'
+           : '⚠ HOLD ON — this file was last saved by '+by+' at '+fmtTs(fts)+', and this browser cannot tell whether that was before or after the copy you are working from.';
+-        if(!confirm(q+'\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\nCancel — don’t save (then use ⬅ Import on the current file, or reopen it, to pick up their changes first).')){
+-          setStat('Save canceled — '+esc(by)+'’s changes are untouched. Reopen or ⬅ Import this file to load their version, then redo your edits.');
++        // v2.00 (U19): while work is kept aside, a reopen does not load a newer copy over unsaved work on screen (kept work is
++        // never replaced), so then Cancel's advice names ⬅ Import only, not a reopen.
++        const reo=!_keptMeta;
++        if(!confirm(q+'\n\nSaving now will OVERWRITE their changes with yours.\n\nOK — overwrite anyway (their version stays in Teams version history).\nCancel — don’t save (then use ⬅ Import on the current file'+(reo? ', or reopen it,' : '')+' to pick up their changes first).')){
++          setStat('Save canceled — '+esc(by)+'’s changes are untouched. '+(reo? 'Reopen or ⬅ Import' : '⬅ Import')+' this file to load their version, then redo your edits.');
+           return;
+         }
+       }
+@@ -8394,6 +8438,7 @@
+     await w.close();
+     _takePen=null;
+     LASTKNOWN=wrote;
++    _fileSaveTs=wrote;              // v2.00 (U19H): the board file holds this save now (the header's "Last file save")
+     const clean=(_saveGen===gen);   // nothing changed while it was writing
+     if(clean){ _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false}); _dlOnly=false; DIRTY=false; }
+     else baseSet({file:LASTKNOWN});
+@@ -25889,7 +25934,37 @@
+     return 'This browser holds changes to '+names.join(', ')+' that the file does not have: \ud83d\udcbe Save writes them into the file. ';
+   }catch(e){ return ''; }
+ }
+-function unsavedNow(){ return !!DIRTY || sideUnsaved(); }
++// v2.00 (U19H, Brad 13 Oct): THE HEADER READS THIS BROWSER'S RECORD TOO. DIRTY is this session's alone: reopened before any
++// Save -- after ↶ Put back, or after any change -- the header read "Saved <time>" while this browser's record (_baseDirty) said
++// the work on screen was unsaved, as the next opening and the next Save treat it. The record counts now. It is read, never
++// written: it is not made clean to match, and nothing is saved. A PMO copy's words are as they were.
++function unsavedNow(){ return !!DIRTY || sideUnsaved() || (!!_baseDirty && !(typeof SANDBOX!=='undefined' && SANDBOX)); }
++// v2.00 (U19H): the saves this browser's record names as the ones the work on screen came from -- the board file's, and each
++// shared-folder copy's. A save that lands names the copy it wrote, so the record moves.
++function putBackRec(){ const b=baseGet(); return JSON.stringify([+b.file||0, b.folder||{}]); }
++// v2.00 (U19H): the work put back is on screen and not written since: the same board (a load puts another one on screen) and the
++// record naming the saves it named then. A saved copy put back and not changed is that save (its time is its identity): it is
++// not called "not written".
++function putBackUnsaved(){
++  try{
++    if(!_putBackOn || _putBackOn.ms!==MS || _putBackOn.rec!==putBackRec()) return false;
++    const b=baseGet(), t=+MS.ts||0, f=+((b.folder||{})[driveBaseKey(mySlug())])||0;
++    return !(t && (t===(+b.file||0) || t===f));
++  }catch(e){ return false; }
++}
++// v2.00 (U19H): where 💾 Save writes now
++function putBackDest(){ try{ if(driveStoreOn()) return 'the shared folder'; }catch(e){} return 'the board file'; }
++// v2.00 (U19H): THE TOOLTIP WHILE UNSAVED. It began "Saved <time>", the board's own time, which every change sets: the work put
++// back read "Saved" at the time it was last changed, though no file had it. Now it says what is unsaved; that it is kept in
++// this browser only while browser storage takes it, and that storage refused a change when it did; and, labelled apart, the
++// last save the board file is known to hold (_fileSaveTs).
++function unsavedSay(pb, dest){
++  const refused=!!_persistFail || Object.keys(_lsRefused).length>0;
++  return (pb? 'Work put back from what this browser kept aside, not written to '+dest+' since it was put back. ' : '')
++    +(refused? 'Browser storage refused a change: until \ud83d\udcbe Save writes it, it is on this page only. '
++             : 'The unsaved work is kept in this browser. ')
++    +'Last file save: '+(_fileSaveTs? shortTs(_fileSaveTs) : 'none yet')+'. ';
++}
+ function saveStateShow(){
+   const ss=document.getElementById('saveState'), sb=document.getElementById('saveBtn');
+   const un=unsavedNow();
+@@ -25898,17 +25973,21 @@
+   // press a button that could only say no. On a copy the work is already kept in this browser;
+   // the button beside it sends it back.
+   const _sb=(typeof SANDBOX!=='undefined' && SANDBOX);
++  // v2.00 (U19H): work put back and not written since is named, with the place 💾 Save writes to now
++  const _pb=!_sb && un && !_dlOnly && putBackUnsaved(), _dest=putBackDest();
+   if(ss) ss.innerHTML = _sb ? (un ? '<b>kept in this browser</b>' : 'PMO copy · your work is kept in this browser')
+-        : un ? (_dlOnly? '<b>downloaded — not on the shared file yet</b>' : '<b>Unsaved changes</b>')
++        : un ? (_dlOnly? '<b>downloaded — not on the shared file yet</b>' : _pb? '<b>Unsaved restored work — not written to '+_dest+'</b>' : '<b>Unsaved changes</b>')
+         : (MS.ts ? '<b>Saved</b> '+esc(shortTime(MS.ts)) : 'not saved to a file yet');
+   // v1.90: the time is on the bar; the day, who saved it and the latest message are in the tooltip
+   if(ss){ ss.classList.toggle('dirty', un);
+     const _st=document.getElementById('shareStat');
+-    ss.title=(MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : '')+sideBootSay()+(_st? _st.textContent : ''); }
++    // v2.00 (U19H): unsaved, it does not call the board's own time a save (unsavedSay)
++    ss.title=((un && !_sb)? unsavedSay(_pb, _dest) : (MS.ts? 'Saved '+shortTs(MS.ts)+(MS.by? ' by '+MS.by : '')+'. ' : ''))+sideBootSay()+(_st? _st.textContent : ''); }
+   // v1.89: while work is kept aside, the header says so -- an opening message can be replaced by the next.
+   // v1.91 (item 29): a button -- it was a link with no address, which a keyboard never reaches.
+   if(ss && _keptMeta) ss.innerHTML += ' \u00b7 <button type="button" class="keptbtn" onclick="keptPutBack()" '
+-    +'title="Work this browser held that no saved copy had, kept aside '+esc(shortTs(_keptMeta.t))+'. Put it back.">\u21b6 work kept aside</button>';
++    +'title="'+(_keptMeta.why==='swap'? 'What was on screen when other work was put back' : 'Work this browser held that no saved copy had')   // v2.00 (U19)
++    +', kept aside '+esc(shortTs(_keptMeta.t))+'. Put it back.">\u21b6 work kept aside</button>';
+   if(sb && _sb){
+     sb.className='btn pri'; sb.textContent='\u2709 Submit input'; sb.setAttribute('onclick','pmoSubmit()');
+     sb.title='Send your office\u2019s changes to the portfolio team as a small submittal file. Your work is already kept in this browser.';
+@@ -26237,7 +26316,8 @@
+     mi('💾 Save',"mRun(saveInPlace)",false,_SB? 'turned off in a PMO copy \u2014 use \u2709 Submit input' : 'writes back to this file, in place')+
+     mi('⬇ Save a copy…',"mRun(publishState)",false,_SB? 'turned off in a PMO copy' : 'downloads a duplicate')+
+     // v1.89: work this browser kept aside when a newer saved copy replaced it. Here, unfolded, as long as it is kept.
+-    (_keptMeta? mi('\u21b6 Put back work kept aside\u2026',"mRun(keptPutBack)",false,'kept '+shortTs(_keptMeta.t)+' \u00b7 from before '+keptWhere(_keptMeta)+' replaced it')
++    (_keptMeta? mi('\u21b6 Put back work kept aside\u2026',"mRun(keptPutBack)",false,'kept '+shortTs(_keptMeta.t)+' \u00b7 '
++        +(_keptMeta.why==='swap'? 'what was on screen when other work was put back' : 'from before '+keptWhere(_keptMeta)+' replaced it'))   // v2.00 (U19)
+       +mi('⬇ Save work kept aside as a file…',"mRun(keptSaveFile)",false,'it stays kept aside')
+       +mi('✕ Discard work kept aside…',"mRun(keptDiscard)",false,'cannot be undone') : '')+
+     // in a PMO copy, the one way out is unfolded on top

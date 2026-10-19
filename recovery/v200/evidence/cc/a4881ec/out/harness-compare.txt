@@ -1,0 +1,11 @@
+# harness body comparisons, 2026-10-18 14:48:07 EDT
+SAME from line 2: h-u18.mjs vs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u18/harness/fr4e/F4-u18.mjs
+SAME from line 2: h-hold.mjs vs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u18/harness/fr4e/F4-hold.mjs
+SAME from line 3: h-u2u13.mjs vs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u18/harness/fr4/F4-u2u13.mjs
+SAME from line 2: h-hold.mjs vs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/harness/before/h-hold.mjs
+SAME from line 2: h-u2u13.mjs vs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/harness/before/h-u2u13.mjs
+SAME from line 3: h-u18.mjs vs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u18/verify-tests-r5/harness/G-u18.mjs
+44cead0e41b24de1dfd5ee4bc6499e6f3c7beffb
+5e204d02db24cf8df642f825cfb63e2ffecb7ca1
+f320991cac0b2deae2ee8b3e62ac3ea63abf173e
+SAME from line 3 as builder's F4-u20u30.mjs

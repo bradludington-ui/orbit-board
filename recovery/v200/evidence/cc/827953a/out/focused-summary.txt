@@ -1,0 +1,12 @@
+F-commit exit=0 | ALL CHECKS PASSED | wall_s: 162.3
+F-pre-u10-16ceb83 exit=1 | 89 FAILING CHECK(S) | wall_s: 158.1
+F-parent exit=0 | ALL CHECKS PASSED | wall_s: 143.1
+F-parentown-parent exit=0 | ALL CHECKS PASSED | wall_s: 95.5
+F-base-7ee498a exit=1 | 89 FAILING CHECK(S) | wall_s: 102.0
+M-v200-u10-journal-gate-after-question exit=1 | 1 FAILING CHECK(S) | wall_s: 85.9
+M-v200-u10-journal-putback-sync-only exit=1 | 1 FAILING CHECK(S) | wall_s: 86.4
+M9-v200-u10-journal-gate-after-question exit=0 | ALL CHECKS PASSED | wall_s: 95.2
+M-v200-u10-reapply-keeps-upl-place exit=1 | 1 FAILING CHECK(S) | wall_s: 96.3
+M9-v200-u10-reapply-keeps-upl-place exit=0 | ALL CHECKS PASSED | wall_s: 103.3
+M9-v200-u10-journal-putback-sync-only exit=0 | ALL CHECKS PASSED | wall_s: 106.7
+F-u10-6-c82ea62 exit=1 | 4 FAILING CHECK(S) | wall_s: 169.1

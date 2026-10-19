@@ -1,0 +1,25 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-d4a241a/mut-v200-r1-help-claim.html node tools/export-audit/audit-recon.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3-d4a241a/run/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:18:21Z / 17:18:21 EDT
+# cap: 600s  grace: 10s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · wording
+    the matching rules no longer say the total is unchanged: each row once, in its effective year, execution never also from the plan
+        got [true,false,false]   want [false,true,true]
+
+# end: 2026-10-11T21:19:16Z / 17:19:16 EDT
+# exit: 1  duration_s: 55.0

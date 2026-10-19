@@ -1,0 +1,2759 @@
+{
+ "pass": "c3",
+ "byKind": {
+  "RUN": {
+   "pass": 11,
+   "fail": 0
+  },
+  "LCK": {
+   "pass": 11,
+   "fail": 0
+  },
+  "FIX": {
+   "pass": 37,
+   "fail": 0
+  },
+  "PRE": {
+   "pass": 25,
+   "fail": 0
+  },
+  "CNT": {
+   "pass": 45,
+   "fail": 0
+  },
+  "INFO": {
+   "pass": 4,
+   "fail": 0
+  },
+  "U20": {
+   "pass": 19,
+   "fail": 5
+  },
+  "CTL": {
+   "pass": 10,
+   "fail": 0
+  },
+  "O4": {
+   "pass": 22,
+   "fail": 5
+  }
+ },
+ "rows": [
+  {
+   "sc": "PB-Wcount",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "FIX",
+   "what": "the harness counted B’s lock requests (wrapper installed)",
+   "got": "counted",
+   "want": "counted",
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "FIX",
+   "what": "start (as PB): S1 unsaved, K kept (folder), N the folder’s copy",
+   "got": [
+    "S1-ONSCREEN",
+    true,
+    "K-KEPTWORK",
+    "folder",
+    "N-NEWER"
+   ],
+   "want": [
+    "S1-ONSCREEN",
+    true,
+    "K-KEPTWORK",
+    "folder",
+    "N-NEWER"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "PRE",
+   "what": "A’s save held, holding the lock",
+   "got": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "want": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "PRE",
+   "what": "at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]",
+   "got": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "want": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "PRE",
+   "what": "grants: A, then B",
+   "got": [
+    "A",
+    "B"
+   ],
+   "want": [
+    "A",
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "put back REFUSED while the counted save waits: [screen, kept, MS same, kept same, said, asked]",
+   "got": [
+    "S1-ONSCREEN",
+    "K-KEPTWORK",
+    true,
+    true,
+    true,
+    0
+   ],
+   "want": [
+    "S1-ONSCREEN",
+    "K-KEPTWORK",
+    true,
+    true,
+    true,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "then S1’s save lands: [folder, screen, saved, kept]",
+   "got": [
+    "S1-ONSCREEN",
+    "S1-ONSCREEN",
+    true,
+    "K-KEPTWORK"
+   ],
+   "want": [
+    "S1-ONSCREEN",
+    "S1-ONSCREEN",
+    true,
+    "K-KEPTWORK"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "PB-Wcount",
+   "kind": "CNT",
+   "what": "the reopen: every leaf copy in a place this board reaches [K-KEPTWORK, S1-ONSCREEN]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "FIX",
+   "what": "the harness counted B’s lock requests (wrapper installed)",
+   "got": "counted",
+   "want": "counted",
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "FIX",
+   "what": "start (as AD): WORKING, DIRTY false, record unsaved, nothing kept, F0 in the folder",
+   "got": [
+    "WORKING",
+    false,
+    true,
+    null,
+    "F0-BASE"
+   ],
+   "want": [
+    "WORKING",
+    false,
+    true,
+    null,
+    "F0-BASE"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "PRE",
+   "what": "A’s save held, holding the lock",
+   "got": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "want": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "PRE",
+   "what": "at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]",
+   "got": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "want": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "PRE",
+   "what": "grants: A, then B",
+   "got": [
+    "A",
+    "B"
+   ],
+   "want": [
+    "A",
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "refresh REFUSED while the counted save waits: [screen, unchanged, said \"not loaded\"]",
+   "got": [
+    "WORKING",
+    true,
+    true
+   ],
+   "want": [
+    "WORKING",
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "then the save refuses with the choice: [folder, screen, saved, said, wrote]",
+   "got": [
+    "N2-NEWER",
+    "WORKING",
+    false,
+    true,
+    0
+   ],
+   "want": [
+    "N2-NEWER",
+    "WORKING",
+    false,
+    true,
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: every leaf copy in a place this board reaches [WORKING, N2-NEWER]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "AD-Wcount",
+   "kind": "CNT",
+   "what": "the reopen: every leaf copy in a place this board reaches [WORKING, N2-NEWER]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "FIX",
+   "what": "the harness counted B’s lock requests (wrapper installed)",
+   "got": "counted",
+   "want": "counted",
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "PRE",
+   "what": "A’s save held, holding the lock",
+   "got": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "want": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "PRE",
+   "what": "at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]",
+   "got": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "want": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "PRE",
+   "what": "grants: A, then B",
+   "got": [
+    "A",
+    "B"
+   ],
+   "want": [
+    "A",
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "the refresh records NOTHING (driveBaseOf stays 0)",
+   "got": 0,
+   "want": 0,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "then the save refuses with the choice: [wrote, folder, said]",
+   "got": [
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wcount",
+   "kind": "CNT",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "FIX",
+   "what": "the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]",
+   "got": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "want": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "PRE",
+   "what": "A’s save held, holding the lock",
+   "got": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "want": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "PRE",
+   "what": "at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]",
+   "got": [
+    0,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "want": [
+    0,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "PRE",
+   "what": "grants: A, then B",
+   "got": [
+    "A",
+    "B"
+   ],
+   "want": [
+    "A",
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "INFO",
+   "what": "the refresh during the wait recorded the folder’s copy (driveBaseOf = F0’s stamp) [observed mechanism]",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "U20",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "U20",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "U20",
+   "what": "B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "U20",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "U20",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "U20",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "U20",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wreal",
+   "kind": "U20",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "FIX",
+   "what": "the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]",
+   "got": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "want": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "PRE",
+   "what": "A’s save held, holding the lock",
+   "got": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "want": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "PRE",
+   "what": "at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]",
+   "got": [
+    0,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "want": [
+    0,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "PRE",
+   "what": "grants: A, then B",
+   "got": [
+    "A",
+    "B"
+   ],
+   "want": [
+    "A",
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "INFO",
+   "what": "the refresh during the wait recorded the folder’s copy (driveBaseOf = F0’s stamp) [observed mechanism]",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "U20",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "U20",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "U20",
+   "what": "B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "U20",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "U20",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "U20",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "U20",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtick",
+   "kind": "U20",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "FIX",
+   "what": "the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]",
+   "got": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "want": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "PRE",
+   "what": "counted control: [B _saveBusy, held by, pending, B’s save at its read]",
+   "got": [
+    1,
+    [
+     "B"
+    ],
+    [],
+    "B:read:spmt-2027-om.json"
+   ],
+   "want": [
+    1,
+    [
+     "B"
+    ],
+    [],
+    "B:read:spmt-2027-om.json"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "the refresh records NOTHING (driveBaseOf stays 0)",
+   "got": 0,
+   "want": 0,
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "then the save refuses with the choice: [wrote, folder, said]",
+   "got": [
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-C1real",
+   "kind": "CTL",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "FIX",
+   "what": "the harness counted B’s lock requests (wrapper installed)",
+   "got": "counted",
+   "want": "counted",
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "FIX",
+   "what": "the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]",
+   "got": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "want": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "PRE",
+   "what": "A’s save held, holding the lock",
+   "got": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "want": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "PRE",
+   "what": "at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]",
+   "got": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "want": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "PRE",
+   "what": "grants: A, then B",
+   "got": [
+    "A",
+    "B"
+   ],
+   "want": [
+    "A",
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "the refresh records NOTHING (driveBaseOf stays 0)",
+   "got": 0,
+   "want": 0,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "then the save refuses with the choice: [wrote, folder, said]",
+   "got": [
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealcount",
+   "kind": "CNT",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "FIX",
+   "what": "the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]",
+   "got": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "want": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "FIX",
+   "what": "the folder’s history holds F00-FIRST (spaced)",
+   "got": [
+    "F00-FIRST"
+   ],
+   "want": [
+    "F00-FIRST"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "PRE",
+   "what": "A’s save held, holding the lock",
+   "got": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "want": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "PRE",
+   "what": "at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]",
+   "got": [
+    0,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "want": [
+    0,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "PRE",
+   "what": "grants: A, then B",
+   "got": [
+    "A",
+    "B"
+   ],
+   "want": [
+    "A",
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "INFO",
+   "what": "the refresh during the wait recorded the folder’s copy (driveBaseOf = F0’s stamp) [observed mechanism]",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "U20",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "U20",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "U20",
+   "what": "B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "U20",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "U20",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "U20",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    false
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": false
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "U20",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealh",
+   "kind": "U20",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    false
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": false
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "FIX",
+   "what": "one tab: no tab A",
+   "got": {
+    "none": true
+   },
+   "want": {
+    "none": true
+   },
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "FIX",
+   "what": "the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]",
+   "got": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "want": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "tick 1: the autosave is refused, nothing written: [wrote, folder]",
+   "got": [
+    0,
+    "F0-BASE"
+   ],
+   "want": [
+    0,
+    "F0-BASE"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "tick 1: its refresh then records the folder’s copy as the base [observed mechanism]",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "grants: B only (no contention)",
+   "got": [
+    "B"
+   ],
+   "want": [
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "tick 2’s autosave: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "tick 2’s autosave: did not write over a copy without asking (by lineage)",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "tick 2’s autosave: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "O4-tick",
+   "kind": "O4",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "FIX",
+   "what": "one tab: no tab A",
+   "got": {
+    "none": true
+   },
+   "want": {
+    "none": true
+   },
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "FIX",
+   "what": "the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]",
+   "got": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "want": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "FIX",
+   "what": "the folder’s history holds F00-FIRST (spaced)",
+   "got": [
+    "F00-FIRST"
+   ],
+   "want": [
+    "F00-FIRST"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "tick 1: the autosave is refused, nothing written: [wrote, folder]",
+   "got": [
+    0,
+    "F0-BASE"
+   ],
+   "want": [
+    0,
+    "F0-BASE"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "tick 1: its refresh then records the folder’s copy as the base [observed mechanism]",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "grants: B only (no contention)",
+   "got": [
+    "B"
+   ],
+   "want": [
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "tick 2’s autosave: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "tick 2’s autosave: did not write over a copy without asking (by lineage)",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "tick 2’s autosave: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    false
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": false
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "O4-tickh",
+   "kind": "O4",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    false
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": false
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "LCK",
+   "what": "never two holders of orbit-save; most held at once; nothing unmodeled; every grant released",
+   "got": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "want": [
+    0,
+    1,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "FIX",
+   "what": "the harness counted B’s lock requests (wrapper installed)",
+   "got": "counted",
+   "want": "counted",
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "FIX",
+   "what": "tab A: FULL FUND, one storage area both ways, jsdom had no navigator.locks",
+   "got": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "want": [
+    "ff",
+    "prio27ff",
+    [
+     "from A",
+     null
+    ],
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "FIX",
+   "what": "start: B-EDIT on screen, nothing recorded (0), F0 the folder’s copy, not newer than the screen",
+   "got": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    "B-EDIT",
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "FIX",
+   "what": "the opening connected through driveAutoConnect: [need, live, recorded, its read missed the O&M copy]",
+   "got": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "want": [
+    "",
+    true,
+    0,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "PRE",
+   "what": "A’s save held, holding the lock",
+   "got": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "want": [
+    true,
+    [
+     "A"
+    ],
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "PRE",
+   "what": "at the action: [B _saveBusy, A _saveBusy, held by, pending, B’s folder ops since its save]",
+   "got": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "want": [
+    1,
+    1,
+    [
+     "A"
+    ],
+    [
+     "B"
+    ],
+    0
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "PRE",
+   "what": "grants: A, then B",
+   "got": [
+    "A",
+    "B"
+   ],
+   "want": [
+    "A",
+    "B"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "INFO",
+   "what": "after the refused save, tick 1’s own refresh recorded the folder’s copy (driveBaseOf = F0’s stamp) [observed mechanism]",
+   "got": true,
+   "want": true,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "CNT",
+   "what": "the refresh records NOTHING (driveBaseOf stays 0)",
+   "got": 0,
+   "want": 0,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "CNT",
+   "what": "then the save refuses with the choice: [wrote, folder, said]",
+   "got": [
+    0,
+    "F0-BASE",
+    true
+   ],
+   "want": [
+    0,
+    "F0-BASE",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "CNT",
+   "what": "B’s save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "CNT",
+   "what": "B’s save: did not write over a copy without asking (by lineage)",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "CNT",
+   "what": "B’s save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "O4",
+   "what": "the next Save: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "O4",
+   "what": "the next Save: did not write over a copy without asking (by lineage)",
+   "got": true,
+   "want": false,
+   "ok": false
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "O4",
+   "what": "the next Save: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "O4",
+   "what": "the reopen: not falsely clean",
+   "got": false,
+   "want": false,
+   "ok": true
+  },
+  {
+   "sc": "BR-Wrealtickcount",
+   "kind": "O4",
+   "what": "the reopen: every leaf copy in a place this board reaches [B-EDIT, F0-BASE]",
+   "got": [
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true
+   ],
+   "ok": true
+  }
+ ]
+}

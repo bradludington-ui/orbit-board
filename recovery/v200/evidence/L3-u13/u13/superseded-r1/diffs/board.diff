@@ -1,0 +1,33 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -26704,7 +26704,9 @@
+     // saved after it, and what is on screen does not have their changes (v1.89). Said now, and Save
+     // will not write over it without a choice. With nothing recorded (a board last opened before
+     // v1.89) there is no telling, and the folder's copy is taken as the base, as it always was.
+-    if(!base) driveBaseSet(mySlug(), theirs);
++    // v2.00 (U13): BUT NOT WHILE A SAVE IS UNDER WAY. A save still to read the folder would find this copy recorded as the one
++    // the work came from, and write over it without asking; a save past its read records the copy it writes, once it lands.
++    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }
+     else if(theirs!==base){ driveClashSay(j, false); render(); }
+     return false;
+   }
+@@ -26729,6 +26731,19 @@
+       +' It needs to be saved once from a board that holds the requirements.');
+     render(); return false;
+   }
++  // v2.00 (U13, Brad 12 Oct): NOT WHILE A SAVE IS UNDER WAY -- checked here, after the last wait and before anything is
++  // changed, so a save that started while the folder was being read is seen too. A save that lands records the copy IT
++  // wrote as the one the work on screen came from, and marks the board saved: a copy loaded while it was writing stayed on
++  // screen recorded as saved, with the save's copy in the folder, and the next refresh and a reopen said nothing. Now
++  // nothing is changed -- what is on screen, the work kept aside and this browser's record stay exactly as they were -- and
++  // the next refresh once the save has finished decides afresh. A quiet refresh (the Live timer) says nothing, as it does
++  // when there is nothing newer; a Connect says so, in words that stay true once the save has landed.
++  if(_saveBusy){
++    if(!quiet) setStat('⏳ <b>Nothing was loaded</b> from the shared folder: a save was under way. Nothing was changed: what is on '
++      +'screen is as it was. The folder’s copy is checked again on the next refresh once the save has finished '
++      +'(📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());

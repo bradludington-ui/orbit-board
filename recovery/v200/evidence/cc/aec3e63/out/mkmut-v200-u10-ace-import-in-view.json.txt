@@ -1,0 +1,1 @@
+{"id": "v200-u10-ace-import-in-view", "matches": 1, "find": "  if(cycBlock('Importing a cost estimate')){ inp.value=''; return; }\n", "repl": ""}

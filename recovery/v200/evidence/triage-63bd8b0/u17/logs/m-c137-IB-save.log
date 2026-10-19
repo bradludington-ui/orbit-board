@@ -1,0 +1,35 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] fixture.typed: brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])
+     expected ["BRAD-2",true,true]
+     observed ["BRAD-2",true,true]
+PASS [fixture] IB.held: brad presses 💾 Save; it is held at the close of its write ([reached, DIRTY, record dirty, _saveBusy, head still BRAD-1])
+     expected [true,true,true,1,"BRAD-1"]
+     observed [true,true,true,1,"BRAD-1"]
+PASS [predict] IB.adopt: the other copy is put on screen during the held save ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])
+     expected ["IMPORT",1,false,null,true]
+     observed ["IMPORT",1,false,null,true]
+PASS [fixture] IB.head: the folder head after the save landed: the bytes it built ([content, by])
+     expected ["BRAD-2","Brad"]
+     observed ["BRAD-2","Brad"]
+PASS [contract] IB.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["IMPORT",true,"IMPORT"],["BRAD-2",true,"BRAD-2"],["IMPORT",false,"BRAD-2"]]
+     observed ["IMPORT",false,"BRAD-2"]
+PASS [predict] IB.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["IMPORT",false,"BRAD-2"]
+     expected false
+     observed false
+PASS [predict] IB.V3next: Brad's next 💾 Save from where the route ended ["questions asked","screen before","head before","head after","status says","recorded clean after","record names the head"]
+     expected [0,"IMPORT","BRAD-2","IMPORT","saved",true,true]
+     observed [0,"IMPORT","BRAD-2","IMPORT","saved",true,true]
+PASS [contract] IB.U17.V3: U17 (V3next): from a record that says saved while the screen differs from the copy it names, 💾 Save writes the screen copy over a folder head holding different content and asks nothing ([record falsely clean before, wrote over a different head without asking])
+     expected {"not":[true,true]}
+     observed [false,true]
+u17state {"tuple":["IMPORT",false,"BRAD-2"],"falselyClean":false}
+nextFrom {"K":["IMPORT",false,"BRAD-2"],"falselyClean":false,"head":"BRAD-2","history":["spmt-2027-om-20261012-143210.json BRAD-1"]}
+v3parts {"falselyClean":false,"wroteOver":true,"overwritten":"BRAD-2","overwrittenNowIn":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-143211-recent.json"],"screen":false,"storage":false,"keptSlot":false}}
+ids {"board":"1375b72b6707faa57c50d528e01ce9611f194998","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"92f62853ce26153304fff5c5560a9fefdfcb4f31","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/c137/prioritization-board-grid.html"}
+SUMMARY IB save board=pre: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0

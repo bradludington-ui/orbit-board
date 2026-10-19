@@ -1,0 +1,22 @@
+# label: M-v200-u41-field-shows-none
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/out/M-v200-u41-field-shows-none.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-field-shows-none.html
+# start: 2026-10-13 22:51:15 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-field-shows-none.html","BOARD_set":true,"board":"b06a5620d7f0dded7c68fc5a84a33212fdaa8089","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs","harnessBlob":"327bb8313d37b19f96ab6b676d2167095e7d03cf","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 10:51:16 PM ET"}
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | opened
+    Go to it opens the RECORD panel at the Navy SI code, which shows "at" selected and has the keyboard
+        got ["R1",["","— none —",["","LA","EN","OT","FL","AT"],true]]   want ["R1",["at","“at” — not one of the five, kept as saved",["","at","LA","EN","OT","FL","AT"],true]]
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | saved and reopened
+    Go to it opens the RECORD panel at the Navy SI code, which shows "at" selected and has the keyboard
+        got ["R1",["","— none —",["","LA","EN","OT","FL","AT"],true]]   want ["R1",["at","“at” — not one of the five, kept as saved",["","at","LA","EN","OT","FL","AT"],true]]
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | no Navy or Marine money
+    R1 (USAF/ANG only) has the Navy SI code field, showing "at"; CONTROL — blank R2 gains none
+        got ["",false]   want ["at",false]
+# exit 1 at 10/13/2026, 10:51:34 PM ET
+
+# end: 2026-10-13 22:51:34 EDT  exit: 1  wall_s: 19.5

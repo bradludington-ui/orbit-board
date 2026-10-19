@@ -1,0 +1,46 @@
+* adoption ("bootTakeFile(): asked [\"Open the saved file’s version and replace what is on screen?\\n\\nThis browser’s own work is NOT kept — only in a copy you s\"]")
+   brad: screen=F1 DIRTY=false _baseDirty=false rec.dirty=false base=1791815403505 kept=null stored=F1 busy=1 gen=4
+      header: Saved 2:30 PM
+      status: 📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 2:30:02 PM.
+   folder: head=BRAD-1@1791815403505 hist=[20261012-143003.json:BRAD-1]
+* landed
+   brad: screen=F1 DIRTY=false _baseDirty=false rec.dirty=false base=1791815403803 kept=null stored=F1 busy=0 gen=4
+      header: Saved 2:30 PM
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   folder: head=BRAD-2@1791815403803 hist=[20261012-143003.json:BRAD-1]
+* V3next
+   before: screen=F1 DIRTY=false _baseDirty=false rec.dirty=false base=1791815403803 kept=null stored=F1 busy=0 gen=4
+      header: Saved 2:30 PM
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   after: screen=F1 DIRTY=false _baseDirty=false rec.dirty=false base=1791815404181 kept=null stored=F1 busy=0 gen=4
+      header: Saved 2:30 PM
+      status: ✅ Saved O&M FY27 to the shared folder — 4 KB. Everyone sees it on their next refresh.
+   folder: head=F1@1791815404181 hist=[20261012-143003.json:BRAD-1, 20261012-143004-recent.json:BRAD-2]
+   where: {"X":{"folderHead":true,"folderHistory":[],"screen":true,"storage":true,"keptSlot":false},"Y":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-143004-recent.json"],"screen":false,"storage":false,"keptSlot":false}}
+u17state {"tuple":["F1",true,"BRAD-2"],"falselyClean":true}
+nextFrom {"K":["F1",true,"BRAD-2"],"falselyClean":true,"head":"BRAD-2","history":["spmt-2027-om-20261012-143003.json BRAD-1"]}
+v3parts {"falselyClean":true,"wroteOver":true,"overwritten":"BRAD-2","overwrittenNowIn":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-143004-recent.json"],"screen":false,"storage":false,"keptSlot":false}}
+* landed
+   brad: screen=SHARED DIRTY=false _baseDirty=false rec.dirty=false base=1791815336081 kept=BRAD-2(sidecar) stored=SHARED busy=0 gen=4
+      header: Saved 2:28 PM · ↶ work kept aside
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   folder: head=BRAD-2@1791815336081 hist=[20261012-142856.json:BRAD-1]
+* laterRefresh returned=true
+   brad: screen=BRAD-2 DIRTY=false _baseDirty=false rec.dirty=false base=1791815336081 kept=BRAD-2(sidecar) stored=BRAD-2 busy=0 gen=4
+      header: Saved 2:28 PM · ↶ work kept aside
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+   folder: head=BRAD-2@1791815336081 hist=[20261012-142856.json:BRAD-1]
+* reopen
+* V4putback
+   afterPutBack: screen=BRAD-2 DIRTY=true _baseDirty=true rec.dirty=true base=1791815343146 kept=null stored=BRAD-2 busy=0 gen=5
+      header: Unsaved changes
+      status: ↶ Put back the work kept aside on 10/12/2026, 2:29:04 PM. 💾 Save will ask before it writes over the saved file, which Carol saved after it.
+   afterSave: screen=BRAD-2 DIRTY=true _baseDirty=true rec.dirty=true base=1791815343146 kept=null stored=BRAD-2 busy=0 gen=5
+      header: Unsaved changes
+      status: ⛔ Brad saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the folder’s history).
+   folder: head=BRAD-2@1791815344052 hist=[20261012-142904.json:BRAD-1]
+   question: Put back the work this browser kept aside on 10/12/2026, 2:29:04 PM? / What is on screen now is replaced by it. What is on screen now is still in the saved file it came from, and 💾 Save will ask before writing over that.
+   where: {"X":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false},"Y":{"folderHead":true,"folderHistory":[],"screen":true,"storage":true,"keptSlot":false}}
+u17state {"tuple":["SHARED",true,"BRAD-2"],"falselyClean":true}
+nextFrom {"K":["SHARED",true,"BRAD-2"],"falselyClean":true,"head":"BRAD-2","history":["spmt-2027-om-20261012-142904.json BRAD-1"]}
+v4parts {"falselyClean":true,"claim":"in-file","falseClaim":false,"notKept":true,"screenCopyIn":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false},"saveAfterPutBackAsked":0,"saveAfterPutBackSays":"clash"}

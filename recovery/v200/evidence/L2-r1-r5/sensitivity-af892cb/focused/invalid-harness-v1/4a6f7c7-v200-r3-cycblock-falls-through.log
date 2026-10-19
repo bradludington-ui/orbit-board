@@ -1,0 +1,34 @@
+# cmd: X=1 BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/mut-4a6f7c7/v200-r3-cycblock-falls-through.html node tools/export-audit/focused-r3r5.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T00:58:28Z / 20:58:28 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+6 FAILING CHECK(S)
+
+--- v2.00 (R3) — a locked view is never written to the working folder | harness
+    the block threw: ReferenceError: w3Hook is not defined
+    at fresh (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/copy/tools/export-audit/focused-r3r5.mjs:145:26)
+    at async file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500
+        got threw   want ran
+    this scenario never ran — is its block after process.exit()?
+        got never ran   want ran
+--- v2.00 (R4) — a save already waiting does not write past a mixed-import hold | harness
+    the block threw: ReferenceError: W2FX is not defined
+    at w2Fx (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/copy/tools/export-audit/focused-r3r5.mjs:99:3)
+    at file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scrat
+        got threw   want ran
+    this scenario never ran — is its block after process.exit()?
+        got never ran   want ran
+--- v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched | harness
+    the block threw: ReferenceError: W2FX is not defined
+    at w2Fx (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/copy/tools/export-audit/focused-r3r5.mjs:99:3)
+    at file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scrat
+        got threw   want ran
+    this scenario never ran — is its block after process.exit()?
+        got never ran   want ran
+
+# end: 2026-10-12T00:58:42Z / 20:58:42 EDT
+# exit: 1  duration_s: 14.4

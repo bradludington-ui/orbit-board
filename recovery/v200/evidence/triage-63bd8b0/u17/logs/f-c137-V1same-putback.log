@@ -1,0 +1,51 @@
+PASS [fixture] fixture.remote: the folder's pre-existing copy is REMOTE/$650, by Brad, writer Brad, no history
+     expected ["REMOTE","Brad","Brad",0]
+     observed ["REMOTE","Brad","Brad",0]
+PASS [fixture] fixture.remoteClock: PREREQUISITE: REMOTE store.ts and payload ts are ONE HOUR AHEAD of real time (each minus real time after its write, within 59:55 to 60:00 min)
+     expected [true,true]
+     observed [true,true]
+PASS [fixture] fixture.adopt: Brad's board adopted REMOTE: [connect returned, screen, DIRTY, _baseDirty, record dirty, record base = REMOTE ts, driveBaseOf = REMOTE ts, MS.ts = REMOTE ts, kept slot]
+     expected [true,"REMOTE",false,false,false,true,true,true,null]
+     observed [true,"REMOTE",false,false,false,true,true,true,null]
+PASS [fixture] fixture.edit: WORKING on screen and unsaved: [screen, DIRTY, record dirty, base still REMOTE ts, the edit's MS.ts is earlier than REMOTE ts]
+     expected ["WORKING",true,true,true,true]
+     observed ["WORKING",true,true,true,true]
+PASS [fixture] V1same.reopened: reopened with WORKING unsaved in browser storage: [screen, DIRTY (session), record dirty, base = REMOTE ts, kept slot]
+     expected ["WORKING",false,true,true,null]
+     observed ["WORKING",false,true,true,null]
+PASS [fixture] V1same.held: the save reached the close of its write and is held; the folder head is still the pre-existing REMOTE; [reached, DIRTY, record dirty, _saveBusy, head ts = REMOTE ts, head, the save's built MS.ts earlier than REMOTE ts]
+     expected [true,false,true,1,true,"REMOTE",true]
+     observed [true,false,true,1,true,"REMOTE",true]
+PASS [predict] V1same.refresh: the refresh during the held save ([returned, _saveBusy, screen, record dirty, _saveGen unchanged, kept slot, the folder copy was read, folder writes other than the lock, U13 refusal words said])
+     expected [true,1,"REMOTE",false,true,"WORKING",true,0,false]
+     observed [true,1,"REMOTE",false,true,"WORKING",true,0,false]
+PASS [fixture] V1same.head: the folder head after the save landed: the bytes the save built ([content, by, writer, head ts != REMOTE ts])
+     expected ["WORKING","Brad","Brad",true]
+     observed ["WORKING","Brad","Brad",true]
+FAIL [contract] V1same.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["REMOTE",false,"WORKING"]]
+     observed ["REMOTE",true,"WORKING"]
+PASS [predict] V1same.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["REMOTE",true,"WORKING"]
+     expected true
+     observed true
+FAIL [contract] V1same.K2: CONTRACT after a later refresh (or the board says the copies differ) [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["REMOTE",false,"WORKING"]]
+     observed ["REMOTE",true,"WORKING"]
+FAIL [contract] V1same.K3: CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["REMOTE",false,"WORKING"]]
+     observed ["REMOTE",true,"WORKING"]
+PASS [contract] V1same.reach: CONTRACT: REMOTE/$650 and WORKING/$700 each remain in some reachable copy ([REMOTE reachable, WORKING reachable])
+     expected [true,true]
+     observed [true,true]
+PASS [predict] V1same.V4putback: ↶ put it back, then 💾 Save ["kept before","the question's claim","screen before","head before","put back says","kept after","screen after put back","head after Save","Save says"]
+     expected ["WORKING","in-folder","REMOTE","WORKING","put back",null,"WORKING","WORKING","clash"]
+     observed ["WORKING","in-folder","REMOTE","WORKING","put back",null,"WORKING","WORKING","clash"]
+FAIL [contract] V1same.U17.V4: U17 (V4putback): from a record that says saved while the screen differs from the copy it names, ↶ Put back's question says the screen copy is still in the shared folder (the folder head holds other content) and the screen copy is then kept nowhere but history ([record falsely clean before, the claim false, the screen copy kept nowhere but history])
+     expected {"not":[true,true,true]}
+     observed [true,true,true]
+whereNow {"REMOTE":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-144259.json"],"screen":true,"storage":true,"keptSlot":false},"WORKING":{"folderHead":true,"folderHistory":[],"screen":false,"storage":false,"keptSlot":true}}
+u17state {"tuple":["REMOTE",true,"WORKING"],"falselyClean":true}
+nextFrom {"K":["REMOTE",true,"WORKING"],"falselyClean":true,"head":"WORKING","history":["spmt-2027-om-20261012-144259.json REMOTE"]}
+v4parts {"falselyClean":true,"claim":"in-folder","falseClaim":true,"notKept":true,"screenCopyIn":{"folderHead":false,"folderHistory":["spmt-2027-om-20261012-144259.json"],"screen":false,"storage":false,"keptSlot":false},"saveAfterPutBackAsked":0,"saveAfterPutBackSays":"clash"}
+ids {"board":"1375b72b6707faa57c50d528e01ce9611f194998","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"6b65ff659b6f2f374b29b2707cf1ce049a5eecf2","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/c137/prioritization-board-grid.html"}
+SUMMARY V1same putback board=pre: 11 pass, 4 fail | fixture 7/7 | predict 3/3 | contract 1/5 | harness 0/0

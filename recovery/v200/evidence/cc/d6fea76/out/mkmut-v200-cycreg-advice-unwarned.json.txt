@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-advice-unwarned", "matches": 1, "find": "📁 File → ⬅ Import a full board, which says first what they hold. That replaces this board’s whole BAE list and execution '\n    +'data with the file’s, when it carries them, so it is not the way to take one appropriation.',", "repl": "📁 File → ⬅ Import a full board, which says first what they hold.',"}

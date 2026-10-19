@@ -1,0 +1,13 @@
+# label: MF-at-text-only
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/out/MF-at-text-only.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/bin/runner-ff.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit/p1-c23.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-at-text-only.html
+# start: 2026-10-18 19:01:25 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-at-text-only.html","BOARD_set":true,"board":"9622bdd835e4a3a93180f9a67d5c5ad27c8b03fe","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit/p1-c23.mjs","harnessBlob":"5d3409669a83cdaf48b4052ce58c7a66a5a8e77b","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"af7a9978dd711c918d780037fce248dd3a851fb7","started":"10/18/2026, 7:01:26 PM ET"}
+
+1 FAILING CHECK(S) -- stopped at the first (MUT_FIRST_FAIL)
+
+--- {"scenario":"v2.00 (U32, U33) — an RCN / EEIC list that repeats a key, or holds “__none__” or a key that is not text, never counts money twice: a file handed over with one is refused, and the user’s own board comes across saying what it holds","where":"the working plan lists 1 and “1”, R1 on the number 1 · imported, the same browser reopened","what":"the RCN-EEIC sheet, read from the workbook’s by
+# exit 1 at 10/18/2026, 7:01:30 PM ET
+
+# end: 2026-10-18 19:01:30 EDT  exit: 1  wall_s: 5.4

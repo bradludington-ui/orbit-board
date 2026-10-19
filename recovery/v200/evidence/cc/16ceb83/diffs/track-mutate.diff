@@ -1,0 +1,50 @@
+diff --git a/tools/export-audit/mutate.mjs b/tools/export-audit/mutate.mjs
+index 48a5643..a62c7d5 100644
+--- a/tools/export-audit/mutate.mjs
++++ b/tools/export-audit/mutate.mjs
+@@ -4317,6 +4317,45 @@ const MUTATIONS = [
+   { id: "v200-u3-theirs-queued", area: "driveResolve", what: "Load theirs asked for under the hold behind a save under way is queued, not refused: once saving is allowed again it reads the folder's copy and loads it",
+     find: "  if(impMixedBlock('Choosing between the copies')) return false;     // v2.00 (U3): and under the mixed-import hold\n",
+     repl: "  if(which==='mine' && impMixedBlock('Choosing between the copies')) return false;     // v2.00 (U3): and under the mixed-import hold\n" },
++  // v2.00 (U4): the folder save checks the mixed-import hold after its read and before its write.
++  { id: "v200-u4-read-unchecked", area: "_driveStorePushRun", what: "the folder save no longer checks the hold after its read: an import that stopped part-way during the read is found only after the history copy is kept",
++    find: "  if(impMixedBlock('Writing to the shared folder', quiet)) return false;   // v2.00 (U4): after the read\n",
++    repl: "" },
++  { id: "v200-u4-hist-unchecked", area: "_driveStorePushRun", what: "the folder save no longer checks the hold after its history copy: an import that stopped part-way while the copy was kept does not stop the write, which says Saved",
++    find: "    if(impMixedOn()){\n      if(penLine) writerJournalUndo(penLine);\n",
++    repl: "    if(false){\n      if(penLine) writerJournalUndo(penLine);\n" },
++  { id: "v200-u4-stamp-moved", area: "_driveStorePushRun", what: "a folder save the hold stops after its history copy leaves the board stamped with the time and name of a save that did not happen",
++    find: "      if(MS.ts===wroteTs){ MS.ts=ts0; MS.by=by0; }\n",
++    repl: "" },
++  { id: "v200-u4-pen-line-kept", area: "_driveStorePushRun", what: "a Take the pen stopped by the hold after its history copy leaves the journal saying the pen was taken, though Alice still holds it",
++    find: "    if(impMixedOn()){\n      if(penLine) writerJournalUndo(penLine);\n",
++    repl: "    if(impMixedOn()){\n" },
++  { id: "v200-u4-hist-says-nothing", area: "_driveStorePushRun", what: "a folder save the hold stops after its history copy says nothing: the import's message stays, and nothing says the save was refused",
++    find: "      impMixedBlock('Writing to the shared folder', quiet); render(); return false;\n",
++    repl: "      render(); return false;\n" },
++  // v2.00 (U4), fix round: the quiet autosave stays quiet, an edit keeps its stamp, the header is drawn again, and Save
++  // yours over theirs / Load theirs check the hold after their read and after keeping theirs.
++  { id: "v200-u4-read-loud", area: "_driveStorePushRun", what: "the quiet autosave stopped by the hold after its read puts the hold's refusal over the import's own message",
++    find: "  if(impMixedBlock('Writing to the shared folder', quiet)) return false;   // v2.00 (U4): after the read\n",
++    repl: "  if(impMixedBlock('Writing to the shared folder')) return false;   // v2.00 (U4): after the read\n" },
++  { id: "v200-u4-hist-loud", area: "_driveStorePushRun", what: "the quiet autosave stopped by the hold after its history copy puts the hold's refusal over the import's own message",
++    find: "      impMixedBlock('Writing to the shared folder', quiet); render(); return false;\n",
++    repl: "      impMixedBlock('Writing to the shared folder'); render(); return false;\n" },
++  { id: "v200-u4-hist-says-saved", area: "_driveStorePushRun", what: "a folder save the hold stops after its history copy reports that it saved: the autosave then says “Saved to the shared folder automatically”",
++    find: "      impMixedBlock('Writing to the shared folder', quiet); render(); return false;\n",
++    repl: "      impMixedBlock('Writing to the shared folder', quiet); render(); return true;\n" },
++  { id: "v200-u4-stamp-over-edit", area: "_driveStorePushRun", what: "a folder save the hold stops after its history copy puts back the stamp from before it even over an edit typed meanwhile: the edit loses its time and name",
++    find: "      if(MS.ts===wroteTs){ MS.ts=ts0; MS.by=by0; }\n",
++    repl: "      MS.ts=ts0; MS.by=by0;\n" },
++  { id: "v200-u4-header-stale", area: "_driveStorePushRun", what: "a folder save the hold stops after its history copy puts the stamp back but does not draw the board again: the header still says it was saved now, by Brad",
++    find: "      impMixedBlock('Writing to the shared folder', quiet); render(); return false;\n",
++    repl: "      impMixedBlock('Writing to the shared folder', quiet); return false;\n" },
++  { id: "v200-u4-resolve-read-unchecked", area: "_driveResolveRun", what: "Save yours over theirs and Load theirs no longer check the hold after their read: an import that stopped part-way during it lets Save yours over theirs ask and keep their copy, and Load theirs load it",
++    find: "  if(impMixedBlock('Choosing between the copies')) return false;   // v2.00 (U4): after the read\n",
++    repl: "" },
++  { id: "v200-u4-resolve-kept-unchecked", area: "_driveResolveRun", what: "Save yours over theirs no longer checks the hold after keeping their copy: an import that stopped part-way while it was kept leaves their copy recorded as the one being replaced, and once saving is allowed again the autosave writes over it without asking",
++    find: "    if(impMixedBlock('Choosing between the copies')) return false;   // v2.00 (U4): and after keeping theirs, before it is decided\n",
++    repl: "" },
+   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",

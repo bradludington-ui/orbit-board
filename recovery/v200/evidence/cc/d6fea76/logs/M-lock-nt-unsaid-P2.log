@@ -1,0 +1,16 @@
+# label: M-lock-nt-unsaid-P2
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/out/M-lock-nt-unsaid-P2.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit/h-p2.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-lock-nt-unsaid.html
+# start: 2026-10-18 18:37:41 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-lock-nt-unsaid.html","BOARD_set":true,"board":"dc8f3637dc0fcdd7dc6de52c41a029497070bc55","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit/h-p2.mjs","harnessBlob":"59b3de773ec39102c70324684400b3a275922cb4","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 6:37:41 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U32, U33) — an RCN / EEIC list that repeats a key, or holds “__none__” or a key that is not text, never counts money twice: a file handed over with one is refused, and the user’s own board comes across saying what it holds | a board whose working plan holds the number 1 as a key, then K1, opened from its file · Lock POM27, answered Cancel
+    the question says what the list it keeps holds, as the door says it; nothing is locked, and browser storage is byte-identical
+        got [["Lock the FYDP window as POM27?\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the budget authority of each year — are copied whole and LOCKED.\n\nFY28, FY29, FY30, FY31 hold no plan yet and will be recorded as such.\n\nThe working board is not changed."],false,[]]   want [["Lock the FYDP window as POM27?\n\nFY27 — every requirement, its value, allocation and funding by service, the PMO roll-up and the budget authority of each year — are copied whole and LOCKED.\n\nFY28, FY29, FY30, FY31 hold no plan yet and will be recorded as such.\n\nThe RCN / EEIC list it keeps holds a key that is not text (rcn[0].k is the number 1); a key is text. A locked cycle’s list stays as it was locked, so ⬅ Import one appropriation and ⇊ Import several boards will refuse every file that carries this cycle, on every board of this version.\n\nThe working board is not changed."],false,[]]
+# exit 1 at 10/18/2026, 6:39:29 PM ET
+
+# end: 2026-10-18 18:39:30 EDT  exit: 1  wall_s: 109.3

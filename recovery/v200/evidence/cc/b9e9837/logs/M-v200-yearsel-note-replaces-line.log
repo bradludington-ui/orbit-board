@@ -1,0 +1,16 @@
+# label: M-v200-yearsel-note-replaces-line
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/out/M-v200-yearsel-note-replaces-line.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/h/after/tools/export-audit/focused-u34.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/mut/v200-yearsel-note-replaces-line.html
+# start: 2026-10-13 20:14:11 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/mut/v200-yearsel-note-replaces-line.html","BOARD_set":true,"board":"4de5dadbc486a29b6d4190a1a9c7914107197a0c","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/b9e9837/h/after/tools/export-audit/focused-u34.mjs","harnessBlob":"8a02a9fca424d6f55b0b0861f7dc0f1665d22d62","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 8:14:13 PM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U34) — a saved year selection this board did not write is never read as ALL YEARS; it is kept and said | the export beside the NOTE
+    [2027, "x"] exports every row [2027] exports, in the same order, but its Scope line; the NOTE and a blank row are added at index 3, under the Source line
+        got [true,1,3,"[]",false]   want [true,2,3,"[]",true]
+# exit 1 at 10/13/2026, 8:15:45 PM ET
+
+# end: 2026-10-13 20:15:46 EDT  exit: 1  wall_s: 94.2

@@ -1,0 +1,141 @@
+// ==== VERIFY-MONEY-R1 PROBE (U19H, not a suite block) ====
+// A verifier's probe of the U19H header after put-backs and reopens. It prints observations (OBS) and records checks whose
+// expected values are literal truths about the copies (which copy is on screen, which copy the board file holds). Run on the
+// parent (U19 fr2 c1) and on U19H's c1 alike.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'U19H verify-money r1 probe';
+  try {
+  const { J, wire, KEY, status, qs, baseFile, disk, folder, connect, gate, until, flags, pause, lsOf, fileNote, fileTs, pubOf } = W1H;
+  const T_F = 1893499200000, T_F0 = 1893542400000, T_K = 1893585600000, T_N = 1893672000000, T_S1 = 1893758400000,
+    T_PB = 1893844800000, T_PB2 = 1893848400000, T_B = 1893700000000, T_SV = 1893931200000, T_E = 1894017600000, T_DL = 1893800000000;
+  const K = 'VMR1-RESTORED-K', N = 'VMR1-REPLACEMENT-N', S1 = 'VMR1-OLDFILE-S1';
+  const setPub = (html, fn) => { const p = pubOf(html); fn(p);
+    return html.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J(p).replace(/</g, '\\u003c') + b); };
+  const atTime = (html, t) => setPub(html, p => Object.values(p.appns).forEach(s => { if (s) s.ts = t; }));
+  const F = atTime(baseFile('Alice', KEY.alice), T_F);
+  const clock = (ev, t) => ev(`Date.now=function(){ return ${t}; }; 'ok'`);
+  const scr = ev => ev('String(S.notes.A)');
+  const head = ev => ev(`(document.getElementById('saveState')||{}).textContent||''`);
+  const tip = ev => ev(`(document.getElementById('saveState')||{}).title||''`);
+  const show = ev => ev('syncBtns(); 0');
+  const rec = ev => !!flags(ev).base.dirty;
+  const keptOf = ev => { const s = ev(`localStorage.getItem(_AP.key+'.kept')`); if (s == null) return null;
+    try { const m = JSON.parse(s.slice(0, s.indexOf('\n'))), st = JSON.parse(s.slice(s.indexOf('\n') + 1));
+      return [String(((st.years || {})[st.cur] || { notes: {} }).notes.A || ''), m.why]; } catch (e) { return ['(unreadable)', null]; } };
+  const boardKeyNote = ev => ev(`(function(){ try{ var st=JSON.parse(localStorage.getItem(_AP.key)||'null'); if(!st) return '(none)'; return String(((st.years||{})[st.cur]||{notes:{}}).notes.A||''); }catch(e){ return '(unreadable)'; } })()`);
+  const clickSave = ev => ev(`(function(){ var b=document.getElementById('saveBtn'); if(!b) return null; b.click(); return _saveChain; })()`);
+  const clickPutBack = ev => ev(`(function(){ var b=document.querySelector('#saveState .keptbtn'); if(!b) return 'no button'; b.click(); return 'clicked'; })()`);
+  const putBack = (A, t) => { clock(A.ev, t); return clickPutBack(A.ev); };
+  const obs = (tag, ev, f) => { console.log('OBS ' + tag + ' ' + J({ head: head(ev), tip: tip(ev).slice(0, 260), DIRTY: ev('String(DIRTY)'), rec: rec(ev),
+    scr: scr(ev), file: f ? fileNote(f.content, 'A') : null, kept: keptOf(ev), boardKey: boardKeyNote(ev), MSts: ev('+MS.ts'), PUBts: ev('PUB_FILE_TS'),
+    base: flags(ev).base })); };
+  const reopen = async (A, html) => { const B = boot({ html, ls: lsOf(A.ev) }); await pause(80); wire(B.ev, 'Alice', KEY.alice);
+    return { B, fB: disk(B.w, html) }; };
+
+  // V1. A FILE HOLDING TWO APPROPRIATIONS, the other one (ff) saved after this one's (om) last save. K typed and unsaved; N saved
+  // into the file by Alice's other browser; Bob then saves ff into the same file (om stays N). Alice opens: K is kept aside, N
+  // opens. ↶ Put back K; then ↶ Put back N in its turn -- N is the board file's own om save, unchanged.
+  { const sc = 'V1 two appropriations: K put back, then N (the file’s own om save) put back in its turn';
+    const A0 = boot({ html: F }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    clock(A0.ev, T_K); A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F);
+    clock(A2.ev, T_N); A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const fx = setPub(f2.content, p => { const ff = JSON.parse(J(p.appns.om)); ff.ts = T_B; ff.by = 'Bob'; p.appns.ff = ff; });
+    console.log('OBS V1-file appns=' + J(Object.keys(pubOf(fx).appns)) + ' fileTs=' + fileTs(fx) + ' om.ts=' + pubOf(fx).appns.om.ts + ' om note=' + fileNote(fx, 'A'));
+    const A = boot({ html: fx, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, fx);
+    obs('V1-opened', A.ev, f);
+    putBack(A, T_PB); show(A.ev); obs('V1-putback-K', A.ev, f);
+    putBack(A, T_PB2); show(A.ev); obs('V1-putback-N', A.ev, f);
+    chk(name, sc, 'N on screen is exactly the board file’s om copy (same note, same time)', J([scr(A.ev), fileNote(f.content, 'A'), A.ev('+MS.ts') === pubOf(f.content).appns.om.ts]), J([N, N, true]));
+    chk(name, sc, 'TRUTH: the header does not say the work on screen is not written to the board file (the file holds it)',
+      / not written to the board file/.test(head(A.ev)), false);
+    chk(name, sc, 'TRUTH: the tooltip does not say it was not written to the board file', /not written to the board file/.test(tip(A.ev)), false);
+    const { B } = await reopen(A, f.content); obs('V1-reopened', B.ev, null); }
+
+  // V1c. CONTROL: the same with one appropriation in the file (the builder's scenario (h)).
+  { const sc = 'V1c CONTROL one appropriation: K put back, then N put back in its turn';
+    const A0 = boot({ html: F }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    clock(A0.ev, T_K); A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F);
+    clock(A2.ev, T_N); A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    console.log('OBS V1c-file appns=' + J(Object.keys(pubOf(f2.content).appns)) + ' fileTs=' + fileTs(f2.content));
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    putBack(A, T_PB); show(A.ev); putBack(A, T_PB2); show(A.ev); obs('V1c-putback-N', A.ev, f);
+    chk(name, sc, 'TRUTH (a CONTROL): the header does not say N is not written to the board file', / not written to the board file/.test(head(A.ev)), false); }
+
+  // V2. WORKING OUT OF THE SHARED FOLDER, browser storage refuses a list the folder's copy does not carry (the reprogramming
+  // log). 💾 Save writes the folder's copy of the board; it never writes that list.
+  { const sc = 'V2 the shared folder: storage refuses the reprogramming log; 💾 Save lands';
+    const fold = folder(); const A = boot({ html: F }); await pause(80); wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    clock(A.ev, T_F0); A.ev(`setNote('A','VMR1-F0'); 'ok'`); await pause(5); await A.ev('driveStorePush(false)'); await pause(5);
+    show(A.ev); obs('V2-folder-saved', A.ev, null);
+    A.ev(`(function(){ var o=Storage.prototype.setItem; globalThis.__setItem=o; Storage.prototype.setItem=function(k,v){ if(String(k)==='prio27reprog') throw new DOMException('full', 'QuotaExceededError'); return o.apply(this, arguments); }; return 'ok'; })()`);
+    clock(A.ev, T_E); console.log('OBS V2 persistRp ' + A.ev(`String(persistRp())`) + ' status: ' + status(A.ev).slice(0, 240));
+    show(A.ev); obs('V2-refused', A.ev, null);
+    clock(A.ev, T_SV); A.ev(`setNote('B','VMR1-V2-EDIT'); 'ok'`); await pause(5); await clickSave(A.ev); await pause(20); show(A.ev);
+    obs('V2-after-save', A.ev, null);
+    const raw = fold.raw(2027) || '';
+    console.log('OBS V2 folder copy names the reprogramming log: ' + /prio27reprog|"entries"/.test(raw) + '; folder files: ' + J(Object.keys(fold.root.files)) + '; lsRefused: ' + A.ev('JSON.stringify(_lsRefused)'));
+    chk(name, sc, 'the Save landed: the folder holds the edit, the record clean', J([fold.note(2027, 'B'), rec(A.ev)]), J(['VMR1-V2-EDIT', false]));
+    chk(name, sc, 'TRUTH: after 💾 Save landed in the folder, the tooltip does not promise that 💾 Save writes the refused list (it never does here)',
+      /until 💾 Save writes it/.test(tip(A.ev)), false);
+    A.ev(`Storage.prototype.setItem=globalThis.__setItem; 'ok'`); }
+
+  // V3. A DOWNLOAD, THEN ↶ PUT BACK: the work put back was never downloaded.
+  { const sc = 'V3 the board file: ⬇ a copy downloaded, then ↶ Put back of K';
+    const A0 = boot({ html: F }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    clock(A0.ev, T_K); A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F);
+    clock(A2.ev, T_N); A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    clock(A.ev, T_S1); A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5);
+    clock(A.ev, T_DL); A.ev('publishState(); 0'); await pause(5); show(A.ev); obs('V3-downloaded', A.ev, f);
+    putBack(A, T_PB); show(A.ev); obs('V3-putback-K', A.ev, f);
+    chk(name, sc, 'K on screen, and K was never downloaded (the download held S1)', J([scr(A.ev), A.ev('globalThis.__dl')]), J([K, 1]));
+    chk(name, sc, 'TRUTH: the header does not say the work on screen was downloaded', /downloaded/.test(head(A.ev)), false); }
+
+  // V4. BROWSER STORAGE REFUSES ONLY THIS BROWSER'S RECORD (.base) at ↶ Put back: the work put back reaches the board's own key,
+  // the record still says clean. Reopened before any Save: where is K?
+  { const sc = 'V4 the board file: storage refuses the record (.base) at ↶ Put back; reopened';
+    const A0 = boot({ html: F }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    clock(A0.ev, T_K); A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F);
+    clock(A2.ev, T_N); A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    clock(A.ev, T_S1); A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5); await clickSave(A.ev); await pause(20);
+    A.ev(`(function(){ var o=Storage.prototype.setItem; globalThis.__setItem=o; Storage.prototype.setItem=function(k,v){ if(String(k)===_AP.key+'.base') throw new DOMException('full', 'QuotaExceededError'); return o.apply(this, arguments); }; return 'ok'; })()`);
+    putBack(A, T_PB); show(A.ev); obs('V4-putback-K', A.ev, f);
+    A.ev(`Storage.prototype.setItem=globalThis.__setItem; 'ok'`);
+    const { B, fB } = await reopen(A, f.content); show(B.ev); obs('V4-reopened', B.ev, fB);
+    clock(B.ev, T_E); B.ev(`setNote('B','VMR1-V4-NEXT'); 'ok'`); await pause(5);
+    const everywhere = J({ screen: scr(B.ev), boardKey: boardKeyNote(B.ev), kept: keptOf(B.ev), file: fileNote(fB.content, 'A') });
+    console.log('OBS V4 after the next change, K in: ' + everywhere);
+    chk(name, sc, 'OBSERVED (not U19H’s): after the reopen and the next change, K is in some copy', /VMR1-RESTORED-K/.test(everywhere), true); }
+
+  // V5. NO WRITE FROM THE HEADER: the builder's scenario (a) up to the reopen; what the reopen and three redraws leave in
+  // browser storage, key by key, against what was there before it.
+  { const sc = 'V5 storage before and after a reopen (the builder’s scenario (a))';
+    const A0 = boot({ html: F }); await pause(80); wire(A0.ev, 'Alice', KEY.alice);
+    clock(A0.ev, T_K); A0.ev(`setNote('A',${J(K)}); 'ok'`); await pause(5);
+    const A2 = boot({ html: F }); await pause(80); wire(A2.ev, 'Alice', KEY.alice); const f2 = disk(A2.w, F);
+    clock(A2.ev, T_N); A2.ev(`setNote('A',${J(N)}); 'ok'`); await pause(5); await A2.ev('saveInPlaceFile()'); await pause(5);
+    const A = boot({ html: f2.content, ls: lsOf(A0.ev) }); await pause(80); wire(A.ev, 'Alice', KEY.alice); const f = disk(A.w, f2.content);
+    clock(A.ev, T_S1); A.ev(`setNote('A',${J(S1)}); 'ok'`); await pause(5); await clickSave(A.ev); await pause(20);
+    putBack(A, T_PB); show(A.ev);
+    const before = lsOf(A.ev);
+    const { B, fB } = await reopen(A, f.content); show(B.ev); show(B.ev); show(B.ev);
+    const after = lsOf(B.ev);
+    const keys = Array.from(new Set(Object.keys(before).concat(Object.keys(after)))).sort();
+    const changed = keys.filter(k => before[k] !== after[k]);
+    const akey = B.ev('_AP.key');
+    console.log('OBS V5 keys changed by the reopen and redraws: ' + J(changed.map(k => k.replace(akey, '<board>'))) + ' file writes: ' + fB.writes);
+    chk(name, sc, 'the reopen and the header leave this browser’s record, the kept copy and the board’s own key exactly as they were; nothing written to the file',
+      J([before[akey + '.base'] === after[akey + '.base'], before[akey + '.kept'] === after[akey + '.kept'], before[akey] === after[akey], fB.writes]), J([true, true, true, 0])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end VERIFY-MONEY-R1 PROBE ====

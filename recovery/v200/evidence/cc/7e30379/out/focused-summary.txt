@@ -1,0 +1,11 @@
+F-commit exit=0 | ALL CHECKS PASSED | wall_s: 34.6
+F-parent exit=1 | 22 FAILING CHECK(S) | wall_s: 34.9
+M-v200-u10-reapply-year-only exit=1 | 22 FAILING CHECK(S) | wall_s: 45.1
+M-v200-u10-reapply-keeps-list exit=1 | 17 FAILING CHECK(S) | wall_s: 50.7
+M-v200-u10-reapply-keeps-years exit=1 | 5 FAILING CHECK(S) | wall_s: 53.9
+M-v200-u10-reapply-keeps-pmos exit=1 | 2 FAILING CHECK(S) | wall_s: 52.4
+M-v200-u10-reapply-first-year exit=1 | 2 FAILING CHECK(S) | wall_s: 53.9
+M-v200-u10-reapply-older-keeps-list exit=1 | 1 FAILING CHECK(S) | wall_s: 46.8
+M-v200-u10-reapply-wrong-year exit=1 | 1 FAILING CHECK(S) | wall_s: 37.9
+M-v200-u10-reapply-keeps-plan-settings exit=1 | 2 FAILING CHECK(S) | wall_s: 51.7
+M-v200-u10-reapply-working-base exit=1 | 1 FAILING CHECK(S) | wall_s: 51.2

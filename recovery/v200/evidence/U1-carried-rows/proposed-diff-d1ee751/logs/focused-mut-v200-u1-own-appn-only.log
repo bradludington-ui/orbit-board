@@ -1,0 +1,7 @@
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS | A3 · ALL YEARS
+    only another appropriation carries: FY26 offered, marked plan for O&M; 40 + 20 + 350 + 150 = $560M, $60M executed; Initial Spares 20
+        got ["FY27 · plan",[540000000,40000000,500000000],0]   want ["FY26 · plan",[560000000,60000000,500000000],20000000]

@@ -1,0 +1,3 @@
+  19 pass    0 fail  v2.00 (R1) — execution precedence by appropriation and effective year
+  19 pass    0 fail  v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year
+  31 pass   47 fail  v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS

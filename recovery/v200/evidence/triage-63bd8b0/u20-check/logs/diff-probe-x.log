@@ -1,0 +1,8 @@
+< // u20probe.mjs -- U20 on the committed head 63bd8b0 (board 98eed7e8): a bounded lock-wait probe with healthy controls.
+< //   usage: node u20probe.mjs <boardRoot> <scenario> <outJson>
+<   'BR-W', 'BR-Wtick', 'BR-C1', 'BR-C2a', 'BR-C2b', 'BR-Wperm', 'BR-C1perm', 'BR-Wh', 'BR-C1h', 'BR-Wpermh', 'BR-C2ah', 'BR-C2bh', 'PF-W', 'PF-C1', 'PF-C2a'];
+< const closeTab = T => { if (T.lm) T.lm.closeClient(T.client); try { T.w.close(); } catch {} };
+< async function runPB(kind) {
+< async function runAD(kind) {
+<   const perm = /perm/.test(kind0), hist = /h$/.test(kind0), kind = kind0.replace(/perm/, '').replace(/h$/, '');
+<   const { A, B, ctx } = await setupBR(fold, perm, hist);

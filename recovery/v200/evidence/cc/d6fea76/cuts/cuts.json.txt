@@ -1,0 +1,394 @@
+{
+"p1-c00.mjs": {
+"part": "h-p1.mjs",
+"case": "Codex 1 · PB27 lists K1 twice",
+"lines": [
+221,
+222
+]
+},
+"p1-c01.mjs": {
+"part": "h-p1.mjs",
+"case": "Codex 2 · PB27 lists K1 and an entry named “__none__”, R1 on none",
+"lines": [
+223,
+225
+]
+},
+"p1-c02.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL · PB27 lists ordinary K1, K2, R1 on K1",
+"lines": [
+226,
+226
+]
+},
+"p1-c03.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL · PB27 lists ordinary K1, K2, R1 on none",
+"lines": [
+227,
+228
+]
+},
+"p1-c04.mjs": {
+"part": "h-p1.mjs",
+"case": "Codex 2 · R1 on the entry named “__none__”",
+"lines": [
+229,
+229
+]
+},
+"p1-c05.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL · PB27 lists ordinary K1, K2, R1 on K2",
+"lines": [
+230,
+230
+]
+},
+"p1-c06.mjs": {
+"part": "h-p1.mjs",
+"case": "PB27 lists K1 twice and an entry named “__none__”",
+"lines": [
+231,
+232
+]
+},
+"p1-c07.mjs": {
+"part": "h-p1.mjs",
+"case": "PB27 lists K1 twice, then the number 1, R1 on K1",
+"lines": [
+233,
+235
+]
+},
+"p1-c08.mjs": {
+"part": "h-p1.mjs",
+"case": "GUARD on the money (d66dd60 took this board and exported it right) · PB27’s list holds null, then K1, R1 on K1",
+"lines": [
+236,
+238
+]
+},
+"p1-c09.mjs": {
+"part": "h-p1.mjs",
+"case": "GUARD on the money (d66dd60 printed this right) · PB27’s list holds the number 1 alone, R1 on the number 1, which a locked cycle’s list leaves out",
+"lines": [
+239,
+240
+]
+},
+"p1-c10.mjs": {
+"part": "h-p1.mjs",
+"case": "GUARD on the money (d66dd60 took this board and exported it right) · the working plan’s list holds “K9”, then K1, R1 on K1",
+"lines": [
+241,
+244
+]
+},
+"p1-c11.mjs": {
+"part": "h-p1.mjs",
+"case": "GUARD on the money (d66dd60 took this board and exported it right) · the working plan’s list holds the number 0, then K1, R1 on K1",
+"lines": [
+245,
+248
+]
+},
+"p1-c12.mjs": {
+"part": "h-p1.mjs",
+"case": "GUARD on the money (d66dd60 took this board and exported it right) · the working plan’s list holds [], then K1, R1 on K1",
+"lines": [
+249,
+251
+]
+},
+"p1-c13.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan lists K1 twice",
+"lines": [
+252,
+253
+]
+},
+"p1-c14.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan lists K1 twice beside PB27’s ordinary [K1]",
+"lines": [
+254,
+255
+]
+},
+"p1-c15.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan and PB27 each list K1 twice",
+"lines": [
+256,
+257
+]
+},
+"p1-c16.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan holds “K9”, then K1, beside PB27 [K1, K1]",
+"lines": [
+258,
+260
+]
+},
+"p1-c17.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan lists K1 twice beside PB27 [null, K1]",
+"lines": [
+261,
+262
+]
+},
+"p1-c18.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL · the working plan lists ordinary K1, K2",
+"lines": [
+263,
+263
+]
+},
+"p1-c19.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL (as d66dd60) · the working plan lists K1 and an entry keyed “”, R1 on none",
+"lines": [
+264,
+265
+]
+},
+"p1-c20.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan lists K1 twice, on two codes, R1 on K1",
+"lines": [
+266,
+267
+]
+},
+"p1-c21.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan lists 1 and “1”, R1 on “1”",
+"lines": [
+268,
+269
+]
+},
+"p1-c22.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL · the working plan lists ordinary “1”, K1, R1 on “1”",
+"lines": [
+270,
+270
+]
+},
+"p1-c23.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan lists 1 and “1”, R1 on the number 1",
+"lines": [
+271,
+271
+]
+},
+"p1-c24.mjs": {
+"part": "h-p1.mjs",
+"case": "GUARD (d66dd60 printed this right) · the working plan lists the number 1 alone, R1 on the number 1",
+"lines": [
+272,
+272
+]
+},
+"p1-c25.mjs": {
+"part": "h-p1.mjs",
+"case": "the working plan lists the number 1 alone, R1 on “1”",
+"lines": [
+273,
+273
+]
+},
+"p1-c26.mjs": {
+"part": "h-p1.mjs",
+"case": "a hand-made file: the working plan lists K1 and an entry keyed “constructor”, R1 on K1",
+"lines": [
+274,
+275
+]
+},
+"p1-c27.mjs": {
+"part": "h-p1.mjs",
+"case": "PB27 locked before v1.99 reads today’s list, 1 and “1”",
+"lines": [
+276,
+277
+]
+},
+"p1-c28.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL · PB27 locked before v1.99 reads today’s ordinary “1”, K1",
+"lines": [
+278,
+278
+]
+},
+"p1-c29.mjs": {
+"part": "h-p1.mjs",
+"case": "NOT FUNDED · the working plan lists K1 twice, R1 on K1",
+"lines": [
+279,
+279
+]
+},
+"p1-c30.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL · NOT FUNDED, ordinary K1, K2, R1 on K1",
+"lines": [
+280,
+280
+]
+},
+"p1-c31.mjs": {
+"part": "h-p1.mjs",
+"case": "CONTROL · NOT FUNDED, R1 on no combination",
+"lines": [
+281,
+281
+]
+},
+"p2-s00.mjs": {
+"part": "h-p2.mjs",
+"first": "    // THE FULL IMPORT'S WORDS, TRUE FOR EACH REQUIREMENT (Codex B2, 13 Oct, P2), written out whole.",
+"lines": [
+220,
+277
+]
+},
+"p2-s01.mjs": {
+"part": "h-p2.mjs",
+"first": "    // THE USER'S OWN BOARD HOLDING SUCH A CYCLE, AND WHAT IT WRITES (the lead, 13 Oct, from U44's r",
+"lines": [
+278,
+328
+]
+},
+"p2-s02.mjs": {
+"part": "h-p2.mjs",
+"first": "    // THE USER'S OWN BOARD WHOSE WORKING PLAN'S LIST AND PB27'S BOTH LIST K1 TWICE -- a board that ",
+"lines": [
+329,
+382
+]
+},
+"p2-s03.mjs": {
+"part": "h-p2.mjs",
+"first": "    // THE USER'S OWN BOARD WHOSE WORKING PLAN LISTS K1 TWICE, NO LOCKED CYCLE AMISS, taken whole an",
+"lines": [
+383,
+413
+]
+},
+"p2-s04.mjs": {
+"part": "h-p2.mjs",
+"first": "    // A PACKAGE OR A PMO COPY REFUSED FOR AN ENTRY IN THE WORKING PLAN'S LIST THAT IS NOT ONE (veri",
+"lines": [
+414,
+457
+]
+},
+"p2-s05.mjs": {
+"part": "h-p2.mjs",
+"first": "    // THE ✕ WAY, FOR EVERY KIND OF ENTRY IT IS SAID OR NOT SAID FOR (verification round 7, tests S1",
+"lines": [
+458,
+523
+]
+},
+"p2-s06.mjs": {
+"part": "h-p2.mjs",
+"first": "    // A LOCK WHILE THE WORKING PLAN'S LIST BREAKS THE RULE (verification round 7, money MF1). A loc",
+"lines": [
+524,
+614
+]
+},
+"p2-s07.mjs": {
+"part": "h-p2.mjs",
+"first": "    // A LOCKED CYCLE UNLOCKED, THEN DELETED OR LOCKED OVER (verification round 8, money MF1). The r",
+"lines": [
+615,
+660
+]
+},
+"p2-s08.mjs": {
+"part": "h-p2.mjs",
+"first": "    // WHO SAVED THE FILE, AS THE FILE SAYS IT: Codex 1's file naming v1.99 is from an ORBIT before ",
+"lines": [
+661,
+678
+]
+},
+"p2-s09.mjs": {
+"part": "h-p2.mjs",
+"first": "    // THE WORKING PLAN'S LIST AS THE FILE HOLDS IT (verification round 5, tests S1). The full impor",
+"lines": [
+679,
+693
+]
+},
+"p2-s10.mjs": {
+"part": "h-p2.mjs",
+"first": "    // a null entry in the working plan's list: every reader of that list stops at it, so even the u",
+"lines": [
+694,
+723
+]
+},
+"p2-s11.mjs": {
+"part": "h-p2.mjs",
+"first": "    // the help for Import one appropriation: which files it refuses, whichever board saved them, an",
+"lines": [
+724,
+736
+]
+},
+"p2-s12.mjs": {
+"part": "h-p2.mjs",
+"first": "    // the door on the rest of the rule",
+"lines": [
+737,
+755
+]
+},
+"p2-s13.mjs": {
+"part": "h-p2.mjs",
+"first": "    // a full import that stops early -- the file is not a board, or the answer is no -- leaves noth",
+"lines": [
+756,
+767
+]
+},
+"p2-s14.mjs": {
+"part": "h-p2.mjs",
+"first": "    // the team's own copies: a copy in the shared folder and the sidecar were written by a board --",
+"lines": [
+768,
+791
+]
+},
+"p2-s15.mjs": {
+"part": "h-p2.mjs",
+"first": "    // ✕ on a row that repeats a key: the list [K1 11111 / AAAAA, K1 22222 / BBBBB], R1 on K1 -- whi",
+"lines": [
+792,
+814
+]
+},
+"p2-s16.mjs": {
+"part": "h-p2.mjs",
+"first": "    // Add RCN / EEIC twice in one millisecond, the first removed, then once more in the same millis",
+"lines": [
+815,
+829
+]
+}
+}

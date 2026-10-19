@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-del-unsaved", "matches": 1, "find": "    L.splice(i,1); save(); render(); return;\n", "repl": "    L.splice(i,1); render(); return;\n"}

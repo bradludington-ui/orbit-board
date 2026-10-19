@@ -1,0 +1,22 @@
+# label: M-v200-u4-hist-says-nothing
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/out/M-v200-u4-hist-says-nothing.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-hist-says-nothing.html
+# start: 2026-10-18 03:59:47 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-hist-says-nothing.html","BOARD_set":true,"board":"19785edaba3625a295dfb022867b97c4e7deea10","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs","harnessBlob":"3968755334eb8be9df9ec3f13ebf53282be3a0d8","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 3:59:48 AM ET"}
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at the close of its history copy, the import stops part-way there
+    the board says writing to the shared folder is refused, and does not say Saved
+        got [false,false]   want [true,false]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | Take the pen from Alice, held at the close of its history copy, the import stops part-way there
+    the board says writing to the shared folder is refused, and does not say Saved
+        got [false,false,[true]]   want [true,false,[true]]
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | 💾 Save held at the close of its history copy, a note typed there, then the import stops part-way
+    nothing is written over the folder’s copy, and the board says writing to the shared folder is refused
+        got [0,true,false]   want [0,true,true]
+# exit 1 at 10/18/2026, 4:00:16 AM ET
+
+# end: 2026-10-18 04:00:16 EDT  exit: 1  wall_s: 29.0

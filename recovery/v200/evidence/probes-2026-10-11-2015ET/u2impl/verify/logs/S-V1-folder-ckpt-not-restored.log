@@ -1,0 +1,14 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/verify/mut/V1-folder-ckpt-not-restored.html","BOARD_set":true,"board":"692b5621579947e7fc73d3dc778cc7212aecaf60","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/c2/tools/export-audit/focused-u2-both.mjs","harnessBlob":"7320033f5eb203c073e0554b915252f1247d76c5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f720ce184998cf31cad50d288f78c2f7bac19bd6","started":"10/11/2026, 10:01:24 PM ET"}
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v2.00 (U2) — put back waits for a save to finish | (a) the folder: put back while S1’s save writes; the save goes in
+    then the refresh: K stays on screen, unsaved, and the folder copy is not written over
+        got ["K","K",false,false,false]   want ["K","S1",true,true,true]
+    then reopened and refreshed: on screen and kept aside; K and S1 each still in a copy
+        got ["K",null,true,true]   want ["S1","K",true,true]
+--- v2.00 (U2) — put back waits for a save to finish | (b) the folder: put back while S1’s save writes; the save fails
+    then the refresh: K stays on screen, unsaved, and the folder copy is not written over
+        got ["K","K",false,false,false]   want ["K","N",true,true,true]
+# exit 1 at 10/11/2026, 10:02:05 PM ET

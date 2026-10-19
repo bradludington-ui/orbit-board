@@ -1,0 +1,16 @@
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the export
+    and a NOTE: planned and executed money in one total, FY25 planned, FY26 executed
+        got []   want [true]

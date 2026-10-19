@@ -1,0 +1,11 @@
+matrix-r1 start="2026-10-12 11:32:03 EDT" exit=0 wall_s=255.821519238 
+check-r1 start="2026-10-12 11:37:46 EDT" exit=0 wall_s=.331435978 
+matrix-r2 start="2026-10-12 11:37:56 EDT" exit=0 wall_s=401.261355869 
+matrix-r3 start="2026-10-12 11:37:56 EDT" exit=0 wall_s=415.956257764 
+check-r2 start="2026-10-12 11:45:00 EDT" exit=0 wall_s=.278605095 
+check-r3 start="2026-10-12 11:45:00 EDT" exit=0 wall_s=.173615301 
+check-r1 start="2026-10-12 11:45:10 EDT" exit=0 wall_s=.268631134 
+145
+dev-SHc-fold-W start="2026-10-12 11:19:40 EDT" exit=1 wall_s=.097376062 log=logs/dev-SHc-fold-W.log 
+DEVIATION 2026-10-12 11:12:11 EDT: one python3 -I one-liner (read 4 JSON files in rec/L4/u17/out, printed check tuples; exit 0, ~0.1 s) was run directly, NOT through q.sh: not bounded by timeout, PID not recorded; the AUDIT_IMPORT_RUNNING lock was not checked immediately before it. Ran at about 11:11-11:12 AM ET (just before this line was written).
+DEVIATION 2026-10-12 11:29:10 EDT: an empty 'python3 -' (heredoc with no lines; a no-op, exit 0) was invoked directly, NOT through q.sh -- unbounded, PID not recorded, lock not checked. It ran no code. About 11:29 AM ET (just before this line).

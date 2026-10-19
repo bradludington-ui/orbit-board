@@ -1,0 +1,407 @@
+### A1-after-NH  board a88a1e5b932b94225a29cdcfec0678f828847ddd  10/12/2026, 7:19:47 AM ET -> 10/12/2026, 7:24:05 AM ET  cells 198  notClean 11
+#### N
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B01-dirfail-perm | F · ok L | F · ok LS | T · ok DLPQS | F · ok DP | u · ok L | — |
+| B01b-dirfail-nohandle | F · ok IL | F · ok ILS | F · ok IS | F · ok DI | u · ok IL | — |
+| B02-read-throws | F · ok L | F · ok LS | T · ok DLPS | T · ok DLPS | u · ok KL | — |
+| B02b-read-refused | F · ok L | F · ok LS | T · ok DLPS | T · ok DLPS | u · ok KL | — |
+| B02c-not-a-board | F · ok L | F · ok LS | T · ok DLPS | T · ok DLPS | u · ok KL | — |
+| B03-nothing | F · ok . | F · ok S | T · ok DPS | T · ok DPS | u · ok KL | — |
+| B04-toonew | F · ok LS | F · ok LS | T · ok DLPS | T · ok DLPS | u · ok KLS | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DPS | T · ok DP | u · ok KL | — |
+| B06-notnewer-nobase | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DPS | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DP | u · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DPS | T · ok DPS | u · ok KLS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DPS | T · ok DPS | u · WRITE[chg:DIRTY,MS,_baseDirty,_driveBase,baseGet,folder:history/,folder:history/spmt-2027-om-20261012-112101.json,folder:spmt-2027-om.json,ls:prio27om,ls:prio27om.base calls:baseSet,driveBaseSet,driveWrite,persist,snapKeep,snapPrune ls:prio27om,prio27om.base folder:create:history/spmt-2027-om-20261012-112101.json,mkdir:history,write:history/spmt-2027-om-20261012-112101.json,write:spmt-2027-om.json] AKLPSV | u · ok KLS |
+| B09-nopack | F · ok S | F · ok S | T · ok DPS | T · ok DPS | u · ok KLS | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DPSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DPSV | u · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] KLSV | — |
+
+#### H1
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B01-dirfail-perm | F · ok LV | F · ok LSV | T · ok DLQSV | F · ok DP | u · ok LV | — |
+| B01b-dirfail-nohandle | F · ok ILV | F · ok ILSV | F · ok ISV | F · ok DI | u · ok ILV | — |
+| B02-read-throws | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLPSV | u · ok KLV | — |
+| B02b-read-refused | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLPSV | u · ok KLV | — |
+| B02c-not-a-board | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLPSV | u · ok KLV | — |
+| B03-nothing | F · ok . | F · ok S | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLPSV | u · ok KLSV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DSV | T · ok DPV | u · ok KLV | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok DSV | T · ok DPV | u · ok KLV | — |
+| B07-notnewer-clash | F · ok SV | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLSV | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DPS | pend · ok AS | u · ok KLS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLSV | — |
+| B10-lateguard | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+
+#### H2
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B01-dirfail-perm | F · ok L | F · ok LS | T · ok DLQS | F · ok DP | u · ok L | — |
+| B01b-dirfail-nohandle | F · ok IL | F · ok ILS | F · ok IS | F · ok DI | u · ok IL | — |
+| B02-read-throws | F · ok L | F · ok LS | T · ok DLS | T · ok DLPS | u · ok KL | — |
+| B02b-read-refused | F · ok L | F · ok LS | T · ok DLS | T · ok DLPS | u · ok KL | — |
+| B02c-not-a-board | F · ok L | F · ok LS | T · ok DLS | T · ok DLPS | u · ok KL | — |
+| B03-nothing | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B04-toonew | F · ok LS | F · ok LS | T · ok DLS | T · ok DLPS | u · ok KLS | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DS | T · ok DP | u · ok KL | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok DS | T · ok DP | u · ok KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DPS | u · ok KLS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DPS | pend · ok AS | u · ok KLS |
+| B09-nopack | F · ok S | F · ok S | T · ok DS | T · ok DPS | u · ok KLS | — |
+| B10-lateguard | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+
+### A2-after-W  board a88a1e5b932b94225a29cdcfec0678f828847ddd  10/12/2026, 7:24:06 AM ET -> 10/12/2026, 7:26:14 AM ET  cells 110  notClean 0
+#### WR
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B02b-read-refused | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B02c-not-a-board | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B03-nothing | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B04-toonew | F · ok LS | F · ok LS | T · ok DLS | T · ok DLS | u · ok LS | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok D | T · ok D | u · ok L | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok D | T · ok D | u · ok L | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok LS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok LS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok LSV | — |
+| B10-lateguard | F · ok V | F · ok SV | T · ok DSV | T · ok DSV | u · ok LV | — |
+
+#### WR (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok K |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B10-lateguard | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+
+#### WA
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02b-read-refused | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02c-not-a-board | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B03-nothing | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLSV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DV | T · ok DV | u · ok KLV | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok D | T · ok D | u · ok KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok KLS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok KLS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok KLSV | — |
+| B10-lateguard | F · ok V | F · ok SV | T · ok DSV | T · ok DSV | u · ok KLV | — |
+
+#### WA (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok . |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B10-lateguard | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+
+### B1-before-NH  board 1375b72b6707faa57c50d528e01ce9611f194998  10/12/2026, 7:26:15 AM ET -> 10/12/2026, 7:29:54 AM ET  cells 198  notClean 31
+#### N
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B01-dirfail-perm | F · ok L | F · ok LS | T · ok DLPQS | F · ok DP | u · ok L | — |
+| B01b-dirfail-nohandle | F · ok IL | F · ok ILS | F · ok IS | F · ok DI | u · ok IL | — |
+| B02-read-throws | F · ok L | F · ok LS | T · ok DLPS | T · ok DLPS | u · ok KL | — |
+| B02b-read-refused | F · ok L | F · ok LS | T · ok DLPS | T · ok DLPS | u · ok KL | — |
+| B02c-not-a-board | F · ok L | F · ok LS | T · ok DLPS | T · ok DLPS | u · ok KL | — |
+| B03-nothing | F · ok . | F · ok S | T · ok DPS | T · ok DPS | u · ok KL | — |
+| B04-toonew | F · ok LS | F · ok LS | T · ok DLPS | T · ok DLPS | u · ok KLS | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DPS | T · ok DP | u · ok KL | — |
+| B06-notnewer-nobase | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DPS | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DP | u · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DPS | T · ok DPS | u · ok KLS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DPS | T · ok DPS | u · WRITE[chg:DIRTY,MS,_baseDirty,_driveBase,baseGet,folder:history/,folder:history/spmt-2027-om-20261012-112712.json,folder:spmt-2027-om.json,ls:prio27om,ls:prio27om.base calls:baseSet,driveBaseSet,driveWrite,persist,snapKeep,snapPrune ls:prio27om,prio27om.base folder:create:history/spmt-2027-om-20261012-112712.json,mkdir:history,write:history/spmt-2027-om-20261012-112712.json,write:spmt-2027-om.json] AKLPSV | u · ok KLS |
+| B09-nopack | F · ok S | F · ok S | T · ok DPS | T · ok DPS | u · ok KLS | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DPSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DPSV | u · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] KLSV | — |
+
+#### H1
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B01-dirfail-perm | F · ok LV | F · ok LSV | T · ok DLQSV | F · ok DP | u · ok LV | — |
+| B01b-dirfail-nohandle | F · ok ILV | F · ok ILSV | F · ok ISV | F · ok DI | u · ok ILV | — |
+| B02-read-throws | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLPSV | u · ok KLV | — |
+| B02b-read-refused | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLPSV | u · ok KLV | — |
+| B02c-not-a-board | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLPSV | u · ok KLV | — |
+| B03-nothing | F · ok . | F · ok S | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLPSV | u · ok KLSV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DSV | T · ok DPV | u · ok KLV | — |
+| B06-notnewer-nobase | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DSV | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DPV | u · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] KLV | — |
+| B07-notnewer-clash | F · ok SV | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLSV | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DPS | pend · ok AS | u · ok KLS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLSV | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DPSV | u · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] KLSV | — |
+
+#### H2
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B01-dirfail-perm | F · ok L | F · ok LS | T · ok DLQS | F · ok DP | u · ok L | — |
+| B01b-dirfail-nohandle | F · ok IL | F · ok ILS | F · ok IS | F · ok DI | u · ok IL | — |
+| B02-read-throws | F · ok L | F · ok LS | T · ok DLS | T · ok DLPS | u · ok KL | — |
+| B02b-read-refused | F · ok L | F · ok LS | T · ok DLS | T · ok DLPS | u · ok KL | — |
+| B02c-not-a-board | F · ok L | F · ok LS | T · ok DLS | T · ok DLPS | u · ok KL | — |
+| B03-nothing | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B04-toonew | F · ok LS | F · ok LS | T · ok DLS | T · ok DLPS | u · ok KLS | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DS | T · ok DP | u · ok KL | — |
+| B06-notnewer-nobase | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DS | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] DP | u · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DPS | u · ok KLS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DPS | pend · ok AS | u · ok KLS |
+| B09-nopack | F · ok S | F · ok S | T · ok DS | T · ok DPS | u · ok KLS | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DPSV | u · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] KLSV | — |
+
+### B2-before-W  board 1375b72b6707faa57c50d528e01ce9611f194998  10/12/2026, 7:29:55 AM ET -> 10/12/2026, 7:31:32 AM ET  cells 110  notClean 20
+#### WR
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok LV | — |
+| B02b-read-refused | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok LV | — |
+| B02c-not-a-board | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok LV | — |
+| B03-nothing | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok LV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok LSV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DV | T · ok DV | u · ok LV | — |
+| B06-notnewer-nobase | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D | u · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] L | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok LS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok LS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok LSV | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | u · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] LSV | — |
+
+#### WR (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok K |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B10-lateguard | T · ok . | T · ok . | T · ok PS | T · ok P | u · ok K | — |
+
+#### WA
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02b-read-refused | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02c-not-a-board | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B03-nothing | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLSV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DV | T · ok DV | u · ok KLV | — |
+| B06-notnewer-nobase | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D | u · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok KLS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok KLS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok KLSV | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | u · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] KLSV | — |
+
+#### WA (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok . |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B10-lateguard | T · ok . | T · ok . | T · ok PS | T · ok P | u · ok . | — |
+
+### M1-top-H  board 00deacda3aae1681e58fc7d6324b4e0126a0c78f  10/12/2026, 7:31:33 AM ET -> 10/12/2026, 7:33:40 AM ET  cells 132  notClean 0
+#### H1
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B01-dirfail-perm | F · ok . | F · ok S | T · ok DQS | F · ok DP | u · ok L | — |
+| B01b-dirfail-nohandle | F · ok . | F · ok S | F · ok IS | F · ok DI | u · ok IL | — |
+| B02-read-throws | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B02b-read-refused | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KLV | — |
+| B02c-not-a-board | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B03-nothing | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B04-toonew | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B05-notnewer-base | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B06-notnewer-nobase | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B07-notnewer-clash | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B08-dirty | F · ok . | F · ok S | T · ok DS | T · ok DPS | pend · ok AS | u · ok KL |
+| B09-nopack | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+| B10-lateguard | F · ok V | F · ok SV | T · ok DSV | T · ok DPSV | u · ok KLV | — |
+
+#### H2
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B01-dirfail-perm | F · ok . | F · ok S | T · ok DQS | F · ok DP | u · ok L | — |
+| B01b-dirfail-nohandle | F · ok . | F · ok S | F · ok IS | F · ok DI | u · ok IL | — |
+| B02-read-throws | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B02b-read-refused | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B02c-not-a-board | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B03-nothing | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B04-toonew | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B05-notnewer-base | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B06-notnewer-nobase | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B07-notnewer-clash | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B08-dirty | F · ok . | F · ok S | T · ok DS | T · ok DPS | pend · ok AS | u · ok KL |
+| B09-nopack | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+| B10-lateguard | F · ok . | F · ok S | T · ok DS | T · ok DPS | u · ok KL | — |
+
+### M1-top-W  board 00deacda3aae1681e58fc7d6324b4e0126a0c78f  10/12/2026, 7:33:41 AM ET -> 10/12/2026, 7:35:25 AM ET  cells 110  notClean 9
+#### WR
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B02b-read-refused | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B02c-not-a-board | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B03-nothing | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok LV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok LSV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DV | T · ok DV | u · ok LV | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok D | T · ok D | u · ok L | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok LS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok LS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok LSV | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | u · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] LSV | — |
+
+#### WR (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok K |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B10-lateguard | T · ok . | T · ok . | T · ok PS | T · ok P | u · ok K | — |
+
+#### WA
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02b-read-refused | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02c-not-a-board | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B03-nothing | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DV | T · ok DV | u · ok KLV | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok D | T · ok D | u · ok KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok KL | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok KL |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok KLV | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | u · ok KLV | — |
+
+#### WA (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok . |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B10-lateguard | T · ok . | T · ok . | T · ok PS | T · ok P | u · ok . | — |
+
+### M2-entry-W  board 31ffb6ea8bcfc95961fee4e61cadbd807e52c361  10/12/2026, 7:35:26 AM ET -> 10/12/2026, 7:37:05 AM ET  cells 110  notClean 18
+#### WR
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B02b-read-refused | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B02c-not-a-board | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B03-nothing | F · ok L | F · ok LS | T · ok DLS | T · ok DLS | u · ok L | — |
+| B04-toonew | F · ok LS | F · ok LS | T · ok DLS | T · ok DLS | u · ok LS | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok D | T · ok D | u · ok LV | — |
+| B06-notnewer-nobase | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D | u · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] L | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok LS | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok LS |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok LSV | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | u · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] LSV | — |
+
+#### WR (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok K |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok K | — |
+| B10-lateguard | T · ok . | T · ok . | T · ok PS | T · ok P | u · ok K | — |
+
+#### WA
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02b-read-refused | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B02c-not-a-board | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B03-nothing | F · ok LV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B04-toonew | F · ok LSV | F · ok LSV | T · ok DLSV | T · ok DLSV | u · ok KLV | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok DV | T · ok DV | u · ok KLV | — |
+| B06-notnewer-nobase | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | F · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] . | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D | T · WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D | u · ok KL | — |
+| B07-notnewer-clash | F · ok S | F · ok S | T · ok DS | T · ok DS | u · ok KL | — |
+| B08-dirty | F · ok S | F · ok S | T · ok DS | T · ok DS | — | u · ok KL |
+| B09-nopack | F · ok SV | F · ok SV | T · ok DSV | T · ok DSV | u · ok KLV | — |
+| B10-lateguard | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | T · WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV | u · ok KLV | — |
+
+#### WA (the call before its wait, no save under way)
+
+| branch | p1 | p0 | cn | ac | tk | tkx |
+|---|---|---|---|---|---|---|
+| B02-read-throws | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02b-read-refused | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B02c-not-a-board | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B03-nothing | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B04-toonew | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B05-notnewer-base | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B06-notnewer-nobase | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B07-notnewer-clash | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B08-dirty | F · ok . | F · ok . | T · ok PS | T · ok P | — | u · ok . |
+| B09-nopack | F · ok . | F · ok . | T · ok PS | T · ok P | u · ok . | — |
+| B10-lateguard | T · ok . | T · ok . | T · ok PS | T · ok P | u · ok . | — |
+

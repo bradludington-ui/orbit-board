@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-first-row-alone", "matches": 1, "find": "  if(rep<i){\n    if(!confirm('Remove RCN '", "repl": "  if(rep<i || L.some(function(x,j){ return j>i && x && x.k===e.k; })){\n    if(!confirm('Remove RCN '"}

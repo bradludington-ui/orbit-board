@@ -1,0 +1,1 @@
+{"id": "v200-u18-storage-pen-line", "matches": 1, "find": "      if(MS===was.ms) persist();\n", "repl": ""}

@@ -1,0 +1,1 @@
+{"id": "v200-u10-reapply-keeps-plan-settings", "matches": 1, "find": "  MS=cycCopy(c); MS.cur=y;", "repl": "  const B0=MS.bands, F0=MS.flow; MS=cycCopy(c); MS.cur=y; MS.bands=B0; MS.flow=F0;"}

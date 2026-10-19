@@ -1,0 +1,12 @@
+# label: boot-same
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/clone
+# cmd: node tools/export-audit/boot-same.mjs
+# start: 2026-10-13 19:37:35 EDT
+# cap: 600 s, kill grace 10 s
+same  prioritization-board-grid.html as shipped parse 2355 ms · fast 716 ms
+same  prioritization-board-grid.html seeded, rendered parse 1898 ms · fast 706 ms
+same  prioritization-board-grid.html reopened from its save parse 3118 ms · fast 1205 ms
+same  prioritization-board-grid.html a published PMO copy parse 1728 ms · fast 747 ms
+every page, source, save and error list is identical either way
+
+# end: 2026-10-13 19:37:52 EDT  exit: 0  wall_s: 16.5

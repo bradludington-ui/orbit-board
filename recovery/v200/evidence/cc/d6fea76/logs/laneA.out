@@ -1,0 +1,4 @@
+F-P1-parent exit=1 | 102 FAILING CHECK(S) | wall_s: 217.3
+F-P2-parent exit=1 | 75 FAILING CHECK(S) | wall_s: 323.6
+F-P1-commit exit=0 | ALL CHECKS PASSED | wall_s: 163.3
+F-P2-commit exit=0 | ALL CHECKS PASSED | wall_s: 189.4

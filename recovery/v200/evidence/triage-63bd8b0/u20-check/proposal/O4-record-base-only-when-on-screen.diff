@@ -1,0 +1,14 @@
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -26706,7 +26706,10 @@
+     // v1.89) there is no telling, and the folder's copy is taken as the base, as it always was.
+     // v2.00 (U13): BUT NOT WHILE A SAVE IS UNDER WAY. A save still to read the folder would find this copy recorded as the one
+     // the work came from, and write over it without asking; a save past its read records the copy it writes, once it lands.
+-    if(!base){ if(!_saveBusy) driveBaseSet(mySlug(), theirs); }
++    // PROPOSED (U20 check, O4): AND ONLY WHEN THAT COPY IS WHAT IS ON SCREEN (the same stamp). Taken as the base while the
++    // screen held later work, it let the next Save -- or the Live timer's autosave, one tick after it had said "Nothing was
++    // written" and offered the choice -- write over it without asking. Otherwise there is no telling, and Save asks.
++    if(!base){ if(!_saveBusy && theirs===ours) driveBaseSet(mySlug(), theirs); }
+     else if(theirs!==base){ driveClashSay(j, false); render(); }
+     return false;
+   }

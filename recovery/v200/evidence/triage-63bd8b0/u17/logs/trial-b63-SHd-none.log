@@ -1,0 +1,37 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] fixture.typed: brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])
+     expected ["BRAD-2",true,true]
+     observed ["BRAD-2",true,true]
+PASS [fixture] fixture.arrived: the shared state file arrives after brad typed BRAD-2/$720: nothing is replaced and 'load the shared one' is offered ([screen, DIRTY, record dirty, SHARED held, said])
+     expected ["BRAD-2",true,true,true,true]
+     observed ["BRAD-2",true,true,true,true]
+PASS [fixture] SHd.held: brad presses 💾 Save; it is held at the close of its write ([reached, DIRTY, record dirty, _saveBusy, head still BRAD-1])
+     expected [true,true,true,1,"BRAD-1"]
+     observed [true,true,true,1,"BRAD-1"]
+PASS [predict] SHd.adopt: the other copy is put on screen during the held save ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])
+     expected ["SHARED",1,true,"BRAD-2",true]
+     observed ["SHARED",1,true,"BRAD-2",true]
+PASS [fixture] SHd.head: the folder head after the save landed: the bytes it built ([content, by])
+     expected ["BRAD-2","Brad"]
+     observed ["BRAD-2","Brad"]
+FAIL [contract] SHd.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["SHARED",true,"SHARED"],["BRAD-2",true,"BRAD-2"],["SHARED",false,"BRAD-2"]]
+     observed ["SHARED",true,"BRAD-2"]
+PASS [predict] SHd.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["SHARED",true,"BRAD-2"]
+     expected true
+     observed true
+PASS [contract] SHd.K2: CONTRACT after a later refresh (or the board says the copies differ) [screen, recorded clean, base copy]
+     expected [["SHARED",true,"SHARED"],["BRAD-2",true,"BRAD-2"],["BRAD-2",false,"BRAD-2"]]
+     observed ["BRAD-2",true,"BRAD-2"]
+PASS [contract] SHd.K3: CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen, recorded clean, base copy]
+     expected [["SHARED",true,"SHARED"],["BRAD-2",true,"BRAD-2"],["BRAD-2",false,"BRAD-2"]]
+     observed ["BRAD-2",true,"BRAD-2"]
+whereNow {"SHARED":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":false},"BRAD-2":{"folderHead":true,"folderHistory":[],"screen":true,"storage":true,"keptSlot":true},"note":"SHARED also stays in the shared state file itself (outside this mock)"}
+u17state {"tuple":["SHARED",true,"BRAD-2"],"falselyClean":true}
+ids {"board":"98eed7e801af20270f755eadffb2fa72355c30e5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"5f12fe62459af1514ecec269a84125d8dfd02e37","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/b63/prioritization-board-grid.html"}
+SUMMARY SHd none board=u13: 10 pass, 1 fail | fixture 6/6 | predict 2/2 | contract 2/3 | harness 0/0

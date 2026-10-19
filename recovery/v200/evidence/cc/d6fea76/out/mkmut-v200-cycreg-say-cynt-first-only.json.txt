@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-say-cynt-first-only", "matches": 1, "find": "if(cy && r.some(function(x){ return x.nt; })) rcnCyNT=true;", "repl": "if(cy && r[0].nt) rcnCyNT=true;"}

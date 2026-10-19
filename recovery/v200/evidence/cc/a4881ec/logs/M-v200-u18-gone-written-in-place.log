@@ -1,0 +1,29 @@
+# label: M-v200-u18-gone-written-in-place
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/M-v200-u18-gone-written-in-place.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-gone-written-in-place.html
+# start: 2026-10-18 15:16:52 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-gone-written-in-place.html","BOARD_set":true,"board":"3df83b569775c7c16e5423f53f84be4e2ae9b397","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 3:16:53 PM ET"}
+
+================================================================================================
+5 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6a) the folder’s copy removed while Brad’s save is held
+    nothing is written in its place: the folder holds what it held during the hold; v1 in the history
+        got [true,1,"BRAD-2",720,true]   want [true,0,"(no copy)",null,true]
+    Brad is told, word for word, with no choice offered
+        first differs at char 2 of 92/226
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.",[]]…
+          want …["⛔ Not saved. The shared folder’s copy of O&M FY27 is no longer there. Nothing was written …
+    Brad’s FY27 work stays in the board, unsaved, recorded against v1
+        got ["BRAD-2",720,false,false]   want ["BRAD-2",720,true,true]
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (6d) nothing typed: Brad takes the pen over Bob’s copy; the folder’s copy removed while that save is held
+    nothing is written in its place; Brad is told, word for word, with no choice offered
+        first differs at char 6 of 128/233
+          got  …[true,1,"✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. Y…
+          want …[true,0,"⛔ Not saved. The shared folder’s copy of O&M FY27 is no longer there. Nothing was writt…
+    Brad’s journal holds no line saying he took the pen; the board is still stamped with Bob’s copy’s time and Bob’s name
+        got [["Bob","Brad"],false,"Brad"]   want [["Bob"],true,"Bob"]
+# exit 1 at 10/18/2026, 3:20:23 PM ET
+
+# end: 2026-10-18 15:20:24 EDT  exit: 1  wall_s: 212.4

@@ -1,0 +1,563 @@
+{
+ "scenario": "FBT",
+ "next": "save",
+ "board": "u13",
+ "ids": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "facdaa5aad647ecf502997b348bb6cb29775922f",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/b63/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 10:35:46 ET",
+ "steps": [
+  {
+   "step": "start",
+   "v1": {
+    "ts": 1791815747534,
+    "whose": "BRAD-1",
+    "note": "BRAD-1",
+    "alloc": 700
+   },
+   "brad": {
+    "screen": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791815747534,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 10:35:47 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791815747534,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 3,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791815747534,
+     "whose": "BRAD-1"
+    },
+    "kept": null,
+    "label": "brad after his first 💾 Save into the file",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 2:35:47 PM",
+    "header": "Saved 2:35 PM",
+    "at": "10/12/2026, 10:35:47 ET"
+   },
+   "fileWrites": 1
+  },
+  {
+   "step": "held",
+   "reached": true,
+   "brad": {
+    "screen": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815747860,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "BRAD-2",
+     "tsET": "10/12/2026, 10:35:47 ET"
+    },
+    "DIRTY": true,
+    "_baseDirty": true,
+    "baseGet": {
+     "file": 1791815747534,
+     "dirty": true
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 1,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "BRAD-2",
+     "alloc": 720,
+     "ts": 1791815747860,
+     "whose": "BRAD-2"
+    },
+    "kept": null,
+    "label": "brad, file save held at its close",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 2:35:47 PM",
+    "header": "Unsaved changes",
+    "at": "10/12/2026, 10:35:47 ET"
+   },
+   "asked": [],
+   "fileWrites": 1
+  },
+  {
+   "step": "adoption",
+   "how": "bootTakeFile(): asked [\"Open the saved file’s version and replace what is on screen?\\n\\nThis browser’s own work is NOT kept — only in a copy you s\"]",
+   "brad": {
+    "screen": {
+     "note": "",
+     "ts": 1791815746879,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 10:35:46 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791815746879,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 1,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791815746879,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "after the adoption, file save still held",
+    "baseFolder": 0,
+    "status": "📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 2:35:46 PM.",
+    "header": "Saved 2:35 PM",
+    "at": "10/12/2026, 10:35:47 ET"
+   }
+  },
+  {
+   "step": "landed",
+   "brad": {
+    "screen": {
+     "note": "",
+     "ts": 1791815746879,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 10:35:46 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791815747860,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791815746879,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "brad after the file save landed",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by unknown — \"Board.html\" now carries this state. 10/12/2026, 2:35:47 PM",
+    "header": "Saved 2:35 PM",
+    "at": "10/12/2026, 10:35:48 ET"
+   },
+   "file": {
+    "ts": 1791815747860,
+    "whose": "BRAD-2",
+    "note": "BRAD-2",
+    "alloc": 720
+   },
+   "fileWrites": 2,
+   "versions": [
+    {
+     "ts": 1791815746879,
+     "whose": "F1",
+     "note": "",
+     "tsET": "10/12/2026, 10:35:46 ET"
+    },
+    {
+     "ts": 1791815747534,
+     "whose": "BRAD-1",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "tsET": "10/12/2026, 10:35:47 ET"
+    },
+    {
+     "ts": 1791815747860,
+     "whose": "BRAD-2",
+     "note": "BRAD-2",
+     "alloc": 720,
+     "tsET": "10/12/2026, 10:35:47 ET"
+    }
+   ]
+  },
+  {
+   "step": "V3next",
+   "asked": [],
+   "before": {
+    "screen": {
+     "note": "",
+     "ts": 1791815746879,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 10:35:46 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791815747860,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 6,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791815746879,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "brad after the file save landed",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by unknown — \"Board.html\" now carries this state. 10/12/2026, 2:35:47 PM",
+    "header": "Saved 2:35 PM",
+    "at": "10/12/2026, 10:35:48 ET"
+   },
+   "after": {
+    "screen": {
+     "note": "",
+     "ts": 1791815748094,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 10:35:48 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791815748094,
+     "dirty": false
+    },
+    "driveBaseOf": 0,
+    "_saveGen": 7,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791815748094,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "after Brad's next 💾 Save",
+    "baseFolder": 0,
+    "status": "💾 Saved in place by Brad — \"Board.html\" now carries this state. 10/12/2026, 2:35:48 PM",
+    "header": "Saved 2:35 PM",
+    "at": "10/12/2026, 10:35:48 ET"
+   },
+   "versions": [
+    {
+     "ts": 1791815746879,
+     "whose": "F1",
+     "note": "",
+     "tsET": "10/12/2026, 10:35:46 ET"
+    },
+    {
+     "ts": 1791815747534,
+     "whose": "BRAD-1",
+     "note": "BRAD-1",
+     "alloc": 700,
+     "tsET": "10/12/2026, 10:35:47 ET"
+    },
+    {
+     "ts": 1791815747860,
+     "whose": "BRAD-2",
+     "note": "BRAD-2",
+     "alloc": 720,
+     "tsET": "10/12/2026, 10:35:47 ET"
+    },
+    {
+     "ts": 1791815748094,
+     "whose": "F1",
+     "note": "",
+     "tsET": "10/12/2026, 10:35:48 ET"
+    }
+   ],
+   "where": {
+    "X": {
+     "file": true,
+     "screen": true,
+     "storage": true,
+     "keptSlot": false,
+     "earlierFileVersionsOnly": [
+      "10/12/2026, 10:35:46 ET"
+     ]
+    },
+    "Y": {
+     "file": false,
+     "screen": false,
+     "storage": false,
+     "keptSlot": false,
+     "earlierFileVersionsOnly": [
+      "10/12/2026, 10:35:47 ET"
+     ]
+    }
+   }
+  }
+ ],
+ "contract": "the board must never be recorded clean (saved) while what is on screen differs from the copy its record names as base; each content must remain in some reachable copy; and from such a record (U17) 💾 Save must not write the screen copy over a different head without asking, nor ↶ Put back claim the screen copy is still in the folder when it is not and then keep nothing aside",
+ "cfg": {
+  "fam": "file",
+  "mode": "take",
+  "held": true
+ },
+ "expected": {
+  "adopt": [
+   "F1",
+   1,
+   true,
+   null,
+   true
+  ],
+  "u17": true,
+  "v3": [
+   0,
+   "F1",
+   "BRAD-2",
+   "F1",
+   "saved-file",
+   true,
+   true
+  ],
+  "v4": [
+   null,
+   "none",
+   "F1",
+   "BRAD-2",
+   "nothing kept",
+   null,
+   "F1",
+   "F1",
+   "saved-file",
+   0
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "F1",
+   true,
+   "BRAD-2"
+  ],
+  "falselyClean": true
+ },
+ "nextFrom": {
+  "K": [
+   "F1",
+   true,
+   "BRAD-2"
+  ],
+  "falselyClean": true,
+  "file": "BRAD-2",
+  "versions": [
+   "F1@10/12/2026, 10:35:46 ET",
+   "BRAD-1@10/12/2026, 10:35:47 ET",
+   "BRAD-2@10/12/2026, 10:35:47 ET"
+  ]
+ },
+ "v3parts": {
+  "falselyClean": true,
+  "wroteOver": true,
+  "overwritten": "BRAD-2",
+  "overwrittenNowIn": {
+   "file": false,
+   "screen": false,
+   "storage": false,
+   "keptSlot": false,
+   "earlierFileVersionsOnly": [
+    "10/12/2026, 10:35:47 ET"
+   ]
+  }
+ },
+ "endedET": "10/12/2026, 10:35:48 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "brad's first 💾 Save wrote BRAD-1/$700 into the board file, recorded clean against it ([file, writes, DIRTY, record dirty, record file time = the file's])",
+   "expected": [
+    "BRAD-1",
+    1,
+    false,
+    false,
+    true
+   ],
+   "observed": [
+    "BRAD-1",
+    1,
+    false,
+    false,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.typed",
+   "kind": "fixture",
+   "what": "brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])",
+   "expected": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBT.held",
+   "kind": "fixture",
+   "what": "brad's 💾 Save into the file reached the close of its write and is held ([reached, questions, _saveBusy, the file still BRAD-1])",
+   "expected": [
+    true,
+    0,
+    1,
+    "BRAD-1"
+   ],
+   "observed": [
+    true,
+    0,
+    1,
+    "BRAD-1"
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBT.adopt",
+   "kind": "predict",
+   "what": "the other copy is put on screen during the held file save ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])",
+   "expected": [
+    "F1",
+    1,
+    true,
+    null,
+    true
+   ],
+   "observed": [
+    "F1",
+    1,
+    true,
+    null,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBT.file",
+   "kind": "fixture",
+   "what": "the file after the held save landed: the bytes it built ([file content, writes])",
+   "expected": [
+    "BRAD-2",
+    2
+   ],
+   "observed": [
+    "BRAD-2",
+    2
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBT.K1",
+   "kind": "contract",
+   "what": "CONTRACT once settled [screen, recorded clean, the file version the record names]",
+   "expected": [
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "F1",
+     false,
+     "BRAD-2"
+    ]
+   ],
+   "observed": [
+    "F1",
+    true,
+    "BRAD-2"
+   ],
+   "pass": false
+  },
+  {
+   "id": "FBT.U17state",
+   "kind": "predict",
+   "what": "U17 STATE (file analogue) once settled: recorded clean while the screen differs from the file version the record names [\"F1\",true,\"BRAD-2\"]",
+   "expected": true,
+   "observed": true,
+   "pass": true
+  },
+  {
+   "id": "FBT.V3next",
+   "kind": "predict",
+   "what": "Brad's next 💾 Save from where the route ended [\"questions asked\",\"screen before\",\"file before\",\"file after\",\"status says\",\"recorded clean after\",\"record names the file\"]",
+   "expected": [
+    0,
+    "F1",
+    "BRAD-2",
+    "F1",
+    "saved-file",
+    true,
+    true
+   ],
+   "observed": [
+    0,
+    "F1",
+    "BRAD-2",
+    "F1",
+    "saved-file",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "FBT.U17.V3",
+   "kind": "contract",
+   "what": "U17 (file analogue, V3next): from a record that says saved while the screen differs from the file version it names, 💾 Save writes the screen copy over a file holding different content and asks nothing ([record falsely clean before, wrote over without asking])",
+   "expected": {
+    "not": [
+     true,
+     true
+    ]
+   },
+   "observed": [
+    true,
+    true
+   ],
+   "pass": false
+  },
+  {
+   "id": "FBT.reachY",
+   "kind": "contract",
+   "what": "CONTRACT: BRAD-2 (the work the held save wrote, or that was typed) remains in some copy this board can reach (the file, the screen, browser storage, the kept slot) after the next Save",
+   "expected": true,
+   "observed": false,
+   "pass": false
+  }
+ ]
+}

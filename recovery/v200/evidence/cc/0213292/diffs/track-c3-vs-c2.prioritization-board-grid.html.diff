@@ -1,0 +1,26 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c2/prioritization-board-grid.html	2026-10-13 13:21:45.604803462 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/u10/c3/prioritization-board-grid.html	2026-10-13 16:08:39.245398702 +0000
+@@ -2545,13 +2545,17 @@
+     if(spAce!=='board' && !Object.prototype.hasOwnProperty.call(ACEDB.sets||{}, spAce)) spAce='board';
+   }catch(e){}
+ }
+-function setSpAce(v){ spAce=v; MS.spAce=v; save(); render(); }
+-function setSpBy(v){ spBy=v; MS.spBy=v; save(); render(); }
+-function setSpPmo(v){ spPmo=v; MS.spPmo=v; save(); render(); }
+-function setSpSvc(v){ spSvc=v; MS.spSvc=v; save(); render(); }
+-function setSpPrior(v){ spPrior=v; MS.spPrior=v; save(); render(); }
++function setSpAce(v){ if(spRefused()) return; spAce=v; MS.spAce=v; save(); render(); }
++function setSpBy(v){ if(spRefused()) return; spBy=v; MS.spBy=v; save(); render(); }
++function setSpPmo(v){ if(spRefused()) return; spPmo=v; MS.spPmo=v; save(); render(); }
++function setSpSvc(v){ if(spRefused()) return; spSvc=v; MS.spSvc=v; save(); render(); }
++function setSpPrior(v){ if(spRefused()) return; spPrior=v; MS.spPrior=v; save(); render(); }
+ // which service the PMO drill is scoped to: 'ALL' for the summary across every service
+-function setSpDrillSvc(v){ spDrillSvc=v; MS.spDrillSvc=v; save(); render(); }
++function setSpDrillSvc(v){ if(spRefused()) return; spDrillSvc=v; MS.spDrillSvc=v; save(); render(); }
++// v2.00 (U10): THE SPEND PLAN'S CHOICES ARE REFUSED UP FRONT while a locked cycle is on screen. Each was set on the page first and
++// then saved, which the view refused: the board said "the change was not kept" and kept the choice, so the ACE tie-out taken from
++// the view, and from the working plan after leaving it, tied out the estimate chosen in the view.
++function spRefused(){ if(!cycBlock('Changing the spend plan')) return false; render(); return true; }
+ function syncSvc(){
+   if(SVC_FROM_DATA) return;
+   const v = (typeof MS!=='undefined' && MS && Array.isArray(MS.svc)) ? MS.svc : [];

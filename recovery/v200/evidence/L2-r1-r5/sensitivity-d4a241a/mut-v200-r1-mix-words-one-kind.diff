@@ -1,0 +1,4 @@
+15461c15461
+<   return 'FY'+(y%100)+': '+[m.plan.length? L(m.plan)+' planned' : '', m.exec.length? L(m.exec)+' executed' : '', m.none.length? L(m.none)+' not in this total' : ''].filter(Boolean).join(', ');
+---
+>   return 'FY'+(y%100)+': '+L(m.plan)+' planned, '+L(m.exec)+' executed'+(m.none.length? ', '+L(m.none)+' not in this total' : '');

@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-own-board-refused", "matches": 1, "find": "  _inRcnNext='board';   // v2.00 (U32, U33)", "repl": "  _inRcnNext='';   // v2.00 (U32, U33)"}

@@ -1,0 +1,1 @@
+{"id": "v200-u10-reapply-keeps-partner-money", "matches": 1, "find": "  MS=cycCopy(c); MS.cur=y;", "repl": "  const O0=MS.flow&&MS.flow.other; MS=cycCopy(c); MS.cur=y; if(O0) flowCfg().other=O0;"}

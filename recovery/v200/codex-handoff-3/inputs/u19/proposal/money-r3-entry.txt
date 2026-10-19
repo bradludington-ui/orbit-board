@@ -1,0 +1,3 @@
+  { id: "v200-u19-putback-refused-no-restore", area: "keptPutBack", what: "a put-back the load itself refuses (the kept work built for another service list) leaves what was on screen in the kept slot and does not write the kept work back: with saved work on screen (U19 keeps it too), the kept work is then in no copy this board can reach",
+    find: "    if(swapped){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify(k.meta)+'\\n'+k.raw); }catch(e){} }\n",
+    repl: "" },

@@ -1,0 +1,1 @@
+{"id": "v200-u10-sp-by-in-view", "matches": 1, "find": "function setSpBy(v){ if(spRefused()) return; ", "repl": "function setSpBy(v){ "}

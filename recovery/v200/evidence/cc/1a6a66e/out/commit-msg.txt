@@ -1,0 +1,13 @@
+v2.00 (U42): a funds-flow sheet name never splits a character or keeps an edge apostrophe
+
+exportFlow's tabName cut a destination's name to 28 UTF-16 units (26 for a repeat); a cut through an emoji left its
+first half, written into xl/workbook.xml as U+FFFD, and a name beginning or ending with an apostrophe (or left
+ending with one by the cut) became a sheet name a spreadsheet may not have. The cuts keep their lengths but drop
+a first half left at the end, and apostrophes and spaces at either end go; an apostrophe inside a name stays.
+Every other name is unchanged, and the destination's own name is never cut.
+
+audit-recon "v2.00 (U42)": 18 checks, 8 fail on 7ee498a (the 10 controls pass on both). 5 mutations.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MqCBDiYHPZfnyapxhXKxBm
+

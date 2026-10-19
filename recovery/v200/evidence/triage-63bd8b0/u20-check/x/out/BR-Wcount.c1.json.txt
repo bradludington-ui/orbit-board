@@ -1,0 +1,584 @@
+{
+ "IDS": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "795f0928ab3b8d885fd06a1fee849fb102f86a31",
+  "mock": "cee3b4700fad43ddd1d2e01f062f7d4d89a0d011",
+  "jsdomUtils": "/home/user/orbit-board/node_modules/jsdom/lib/jsdom/living/generated/utils.js",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20-check/b63/prioritization-board-grid.html",
+  "started": "10/12/2026, 11:51:14 AM ET",
+  "scenario": "BR-Wcount"
+ },
+ "scenario": "BR-Wcount",
+ "steps": {
+  "F0push": {
+   "ok": true,
+   "v": true
+  },
+  "setup": {
+   "screen": "B-EDIT",
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791820275951,
+    "dirty": true
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791820275951,
+   "gen": 1,
+   "busy": 0,
+   "MSts": 1791820277809,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "B-EDIT",
+   "hasPutBack": false,
+   "saved": false,
+   "kept": null,
+   "status": "📦 Opened with the saved board state — last saved by unknown 10/12/2026, 11:51:15 AM. Make changes and 💾 Save to pass it on.",
+   "header": "Unsaved changes",
+   "prompts": [],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "theirsNotNewer": true,
+   "opening": null,
+   "perm": "granted",
+   "head": {
+    "note": "F0-BASE",
+    "ts": 1791820277116,
+    "by": "Alice",
+    "writer": "Alice"
+   },
+   "hist": [],
+   "falselyClean": false,
+   "reach": {
+    "B-EDIT": [
+     "screen",
+     "storage"
+    ],
+    "F0-BASE": [
+     "folder"
+    ]
+   }
+  },
+  "Aheld": {
+   "reached": true,
+   "heldBy": [
+    "A"
+   ],
+   "Abusy": 1
+  },
+  "waiting": true,
+  "premise": {
+   "Bbusy": 1,
+   "Abusy": 1,
+   "heldBy": [
+    "A"
+   ],
+   "pendingOf": [
+    "B"
+   ],
+   "BfolderOpsSinceSave": [],
+   "Bstatus": "📦 Opened with the saved board state — last saved by unknown 10/12/2026, 11:51:15 AM. Make changes and 💾 Save to pass it on.",
+   "Bheader": "Unsaved changes"
+  },
+  "refreshRet": {
+   "ok": true,
+   "v": false
+  },
+  "during": {
+   "screen": "B-EDIT",
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791820275951,
+    "dirty": true
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791820275951,
+   "gen": 1,
+   "busy": 1,
+   "MSts": 1791820277809,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "B-EDIT",
+   "hasPutBack": false,
+   "saved": false,
+   "kept": null,
+   "status": "📦 Opened with the saved board state — last saved by unknown 10/12/2026, 11:51:15 AM. Make changes and 💾 Save to pass it on.",
+   "header": "Unsaved changes",
+   "prompts": [],
+   "lock": {
+    "held": [
+     {
+      "name": "orbit-save",
+      "mode": "exclusive",
+      "clientId": "A"
+     }
+    ],
+    "pending": [
+     {
+      "name": "orbit-save",
+      "mode": "exclusive",
+      "clientId": "B"
+     }
+    ]
+   },
+   "need": "",
+   "perm": "granted",
+   "head": {
+    "note": "F0-BASE",
+    "ts": 1791820277116,
+    "by": "Alice",
+    "writer": "Alice"
+   },
+   "hist": [],
+   "falselyClean": false,
+   "reach": {
+    "B-EDIT": [
+     "screen",
+     "storage"
+    ],
+    "F0-BASE": [
+     "folder"
+    ]
+   }
+  },
+  "Aret": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "saveRet": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "save": {
+   "screen": "B-EDIT",
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791820275951,
+    "dirty": true
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791820275951,
+   "gen": 1,
+   "busy": 0,
+   "MSts": 1791820277809,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "B-EDIT",
+   "hasPutBack": false,
+   "saved": false,
+   "kept": null,
+   "status": "⛔ Alice saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the folder’s history).",
+   "header": "Unsaved changes",
+   "prompts": [],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "head": {
+    "note": "F0-BASE",
+    "ts": 1791820277116,
+    "by": "Alice",
+    "writer": "Alice"
+   },
+   "hist": [],
+   "falselyClean": false,
+   "reach": {
+    "B-EDIT": [
+     "screen",
+     "storage"
+    ],
+    "F0-BASE": [
+     "folder"
+    ]
+   },
+   "rec": {
+    "wrote": 0,
+    "before": "F0-BASE",
+    "after": "F0-BASE",
+    "headBefore": {
+     "note": "F0-BASE",
+     "ts": 1791820277116,
+     "by": "Alice",
+     "writer": "Alice"
+    },
+    "headAfter": {
+     "note": "F0-BASE",
+     "ts": 1791820277116,
+     "by": "Alice",
+     "writer": "Alice"
+    },
+    "asked": [],
+    "replacedInHistory": false
+   }
+  },
+  "grantOrder": [
+   "A",
+   "B"
+  ],
+  "nextRet": {
+   "ok": true,
+   "v": "(undefined)"
+  },
+  "next": {
+   "screen": "B-EDIT",
+   "DIRTY": true,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791820275951,
+    "dirty": true
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791820275951,
+   "gen": 1,
+   "busy": 0,
+   "MSts": 1791820277809,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "B-EDIT",
+   "hasPutBack": false,
+   "saved": false,
+   "kept": null,
+   "status": "⛔ Alice saved O&M FY27 to the shared folder just now, after the copy you are working from. Nothing was written. Load theirs (your work is kept aside, and one click puts it back) · Save yours over theirs (theirs is kept in the folder’s history).",
+   "header": "Unsaved changes",
+   "prompts": [],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "head": {
+    "note": "F0-BASE",
+    "ts": 1791820277116,
+    "by": "Alice",
+    "writer": "Alice"
+   },
+   "hist": [],
+   "falselyClean": false,
+   "reach": {
+    "B-EDIT": [
+     "screen",
+     "storage"
+    ],
+    "F0-BASE": [
+     "folder"
+    ]
+   },
+   "rec": {
+    "wrote": 0,
+    "before": "F0-BASE",
+    "after": "F0-BASE",
+    "headBefore": {
+     "note": "F0-BASE",
+     "ts": 1791820277116,
+     "by": "Alice",
+     "writer": "Alice"
+    },
+    "headAfter": {
+     "note": "F0-BASE",
+     "ts": 1791820277116,
+     "by": "Alice",
+     "writer": "Alice"
+    },
+    "asked": [],
+    "replacedInHistory": false
+   }
+  },
+  "lastAppnChoice": "FULL FUND",
+  "reopenOpened": {
+   "screen": "B-EDIT",
+   "DIRTY": false,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791820275951,
+    "dirty": true
+   },
+   "driveBase": 0,
+   "LASTKNOWN": 1791820275951,
+   "gen": 0,
+   "busy": 0,
+   "MSts": 1791820277809,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "B-EDIT",
+   "hasPutBack": false,
+   "saved": false,
+   "kept": null,
+   "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 11:51:15 AM by unknown). 💾 Save writes them into the file.",
+   "header": "Unsaved changes",
+   "prompts": [],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "head": {
+    "note": "F0-BASE",
+    "ts": 1791820277116,
+    "by": "Alice",
+    "writer": "Alice"
+   },
+   "hist": [],
+   "falselyClean": false,
+   "reach": {
+    "B-EDIT": [
+     "screen",
+     "storage"
+    ],
+    "F0-BASE": [
+     "folder"
+    ]
+   }
+  },
+  "reopenPull": {
+   "ok": true,
+   "v": false
+  },
+  "reopen": {
+   "screen": "B-EDIT",
+   "DIRTY": false,
+   "_baseDirty": true,
+   "base": {
+    "file": 1791820275951,
+    "dirty": true,
+    "folder": {
+     "om|2027": 1791820277116
+    }
+   },
+   "driveBase": 1791820277116,
+   "LASTKNOWN": 1791820275951,
+   "gen": 0,
+   "busy": 0,
+   "MSts": 1791820277809,
+   "cur": 2027,
+   "slug": "om",
+   "key": "prio27om",
+   "storageMain": "B-EDIT",
+   "hasPutBack": false,
+   "saved": false,
+   "kept": null,
+   "status": "Opened with this browser’s copy of the board — it has changes made after this file was last saved (10/12/2026, 11:51:15 AM by unknown). 💾 Save writes them into the file.",
+   "header": "Unsaved changes",
+   "prompts": [],
+   "lock": {
+    "held": [],
+    "pending": []
+   },
+   "head": {
+    "note": "F0-BASE",
+    "ts": 1791820277116,
+    "by": "Alice",
+    "writer": "Alice"
+   },
+   "hist": [],
+   "falselyClean": false,
+   "reach": {
+    "B-EDIT": [
+     "screen",
+     "storage"
+    ],
+    "F0-BASE": [
+     "folder"
+    ]
+   }
+  }
+ },
+ "notes": [],
+ "errors": [],
+ "tabA": {
+  "slug": "ff",
+  "key": "prio27ff",
+  "bootChangedKeys": [
+   "prio27appn",
+   "prio27destdb"
+  ],
+  "share": [
+   "from A",
+   null
+  ],
+  "lockInstall": {
+   "had": false,
+   "client": "A"
+  }
+ },
+ "counted": "counted",
+ "T": {
+  "F1": 1791820275951,
+  "F0": 1791820277116
+ },
+ "wall_s": "3.7",
+ "lock": {
+  "browser": {
+   "stats": {
+    "requests": 3,
+    "grants": 3,
+    "invokes": 3,
+    "releases": 3,
+    "dropped": 0,
+    "violations": [],
+    "maxHeld": {
+     "orbit-save": 1
+    },
+    "unmodeled": [],
+    "label": "browser (tabs A, B, C)"
+   },
+   "log": [
+    {
+     "n": 0,
+     "ev": "request",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "A",
+     "id": 1,
+     "queued": 0,
+     "heldNow": []
+    },
+    {
+     "n": 1,
+     "ev": "grant",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "A",
+     "id": 1,
+     "holdersNow": 1
+    },
+    {
+     "n": 2,
+     "ev": "invoke",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "A",
+     "id": 1
+    },
+    {
+     "n": 3,
+     "ev": "request",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 2,
+     "queued": 0,
+     "heldNow": [
+      "A"
+     ]
+    },
+    {
+     "n": 4,
+     "ev": "release",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "A",
+     "id": 1
+    },
+    {
+     "n": 5,
+     "ev": "grant",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 2,
+     "holdersNow": 1
+    },
+    {
+     "n": 6,
+     "ev": "invoke",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 2
+    },
+    {
+     "n": 7,
+     "ev": "release",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 2
+    },
+    {
+     "n": 8,
+     "ev": "request",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 3,
+     "queued": 0,
+     "heldNow": []
+    },
+    {
+     "n": 9,
+     "ev": "grant",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 3,
+     "holdersNow": 1
+    },
+    {
+     "n": 10,
+     "ev": "invoke",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 3
+    },
+    {
+     "n": 11,
+     "ev": "release",
+     "name": "orbit-save",
+     "mode": "exclusive",
+     "client": "B",
+     "id": 3
+    }
+   ]
+  },
+  "other": {
+   "stats": {
+    "requests": 1,
+    "grants": 1,
+    "invokes": 1,
+    "releases": 1,
+    "dropped": 0,
+    "violations": [],
+    "maxHeld": {
+     "orbit-save": 1
+    },
+    "unmodeled": [],
+    "label": "other machine (X)"
+   }
+  }
+ },
+ "folderLog": [
+  "X:perm:/",
+  "X:miss:spmt-2027-om.json",
+  "X:close:spmt-2027-om.json",
+  "X:close:spmt-2027-om.lock.json",
+  "A:perm:/",
+  "A:miss:spmt-2027-ff.json",
+  "A:close:spmt-2027-ff.json",
+  "B:perm:/",
+  "B:read:spmt-2027-om.json",
+  "A:close:spmt-2027-ff.lock.json",
+  "B:perm:/",
+  "B:read:spmt-2027-om.json",
+  "B:perm:/",
+  "B:read:spmt-2027-om.json",
+  "C:perm:/",
+  "C:read:spmt-2027-om.json"
+ ],
+ "folderWrites": [
+  "X:spmt-2027-om.json",
+  "X:spmt-2027-om.lock.json",
+  "A:spmt-2027-ff.json",
+  "A:spmt-2027-ff.lock.json"
+ ],
+ "finished": "10/12/2026, 11:51:19 AM ET"
+}

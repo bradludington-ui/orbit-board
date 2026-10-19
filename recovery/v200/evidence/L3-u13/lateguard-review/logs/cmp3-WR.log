@@ -1,0 +1,399 @@
+A2-after-W vs B2-before-W, mode WR (win): 17 cells identical, 38 differ
+--- ('WR', 'B02-read-throws', 'ac')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02-read-throws', 'cn')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02-read-throws', 'p0')
+   code:
+      A2-after-W: "ok LS"
+      B2-before-W: "ok LSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02-read-throws', 'p1')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B02-read-throws', 'tk')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B02b-read-refused', 'ac')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02b-read-refused', 'cn')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02b-read-refused', 'p0')
+   code:
+      A2-after-W: "ok LS"
+      B2-before-W: "ok LSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02b-read-refused', 'p1')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B02b-read-refused', 'tk')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B02c-not-a-board', 'ac')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02c-not-a-board', 'cn')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02c-not-a-board', 'p0')
+   code:
+      A2-after-W: "ok LS"
+      B2-before-W: "ok LSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B02c-not-a-board', 'p1')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B02c-not-a-board', 'tk')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B03-nothing', 'ac')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B03-nothing', 'cn')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B03-nothing', 'p0')
+   code:
+      A2-after-W: "ok LS"
+      B2-before-W: "ok LSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B03-nothing', 'p1')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B03-nothing', 'tk')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B04-toonew', 'ac')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B04-toonew', 'cn')
+   code:
+      A2-after-W: "ok DLS"
+      B2-before-W: "ok DLSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_driveLive", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B04-toonew', 'p0')
+   code:
+      A2-after-W: "ok LS"
+      B2-before-W: "ok LSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B04-toonew', 'p1')
+   code:
+      A2-after-W: "ok LS"
+      B2-before-W: "ok LSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B04-toonew', 'tk')
+   code:
+      A2-after-W: "ok LS"
+      B2-before-W: "ok LSV"
+   listed:
+      A2-after-W: ["LIVEDB", "_statN", "diagN", "status"]
+      B2-before-W: ["LIVEDB", "_statN", "diagN", "saveState", "status"]
+--- ('WR', 'B05-notnewer-base', 'ac')
+   code:
+      A2-after-W: "ok D"
+      B2-before-W: "ok DV"
+   listed:
+      A2-after-W: ["_driveLive"]
+      B2-before-W: ["_driveLive", "saveState"]
+--- ('WR', 'B05-notnewer-base', 'cn')
+   code:
+      A2-after-W: "ok D"
+      B2-before-W: "ok DV"
+   listed:
+      A2-after-W: ["_driveLive"]
+      B2-before-W: ["_driveLive", "saveState"]
+--- ('WR', 'B05-notnewer-base', 'tk')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "ok LV"
+   listed:
+      A2-after-W: ["LIVEDB"]
+      B2-before-W: ["LIVEDB", "saveState"]
+--- ('WR', 'B06-notnewer-nobase', 'ac')
+   code:
+      A2-after-W: "ok D"
+      B2-before-W: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D"
+   fn:
+      A2-after-W: []
+      B2-before-W: ["driveBaseSet", "baseSet"]
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder # min ago, after the copy you are working from. Nothing was written"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27om.base"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('WR', 'B06-notnewer-nobase', 'cn')
+   code:
+      A2-after-W: "ok D"
+      B2-before-W: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] D"
+   fn:
+      A2-after-W: []
+      B2-before-W: ["driveBaseSet", "baseSet"]
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder # min ago, after the copy you are working from. Nothing was written"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27om.base"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('WR', 'B06-notnewer-nobase', 'p0')
+   code:
+      A2-after-W: "ok ."
+      B2-before-W: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] ."
+   fn:
+      A2-after-W: []
+      B2-before-W: ["driveBaseSet", "baseSet"]
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder # min ago, after the copy you are working from. Nothing was written"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27om.base"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('WR', 'B06-notnewer-nobase', 'p1')
+   code:
+      A2-after-W: "ok ."
+      B2-before-W: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] ."
+   fn:
+      A2-after-W: []
+      B2-before-W: ["driveBaseSet", "baseSet"]
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder # min ago, after the copy you are working from. Nothing was written"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27om.base"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('WR', 'B06-notnewer-nobase', 'tk')
+   code:
+      A2-after-W: "ok L"
+      B2-before-W: "WRITE[chg:_driveBase,baseGet,ls:prio27om.base calls:baseSet,driveBaseSet ls:prio27om.base] L"
+   fn:
+      A2-after-W: []
+      B2-before-W: ["driveBaseSet", "baseSet"]
+   land:
+      A2-after-W: {"flags": [false, true, true, 0], "head": ["REMOTE", 650], "kept": false, "onHead": false, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+   landStatus:
+      A2-after-W: "⛔ Brad saved O&M FY## to the shared folder # min ago, after the copy you are working from. Nothing was written"
+      B2-before-W: "✅ Saved O&M FY## to the shared folder — # KB. Everyone sees it on their next refresh."
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27om.base"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["_driveBase", "baseGet", "localStorage:prio27om.base"]
+--- ('WR', 'B10-lateguard', 'ac')
+   code:
+      A2-after-W: "ok DSV"
+      B2-before-W: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV"
+   fn:
+      A2-after-W: []
+      B2-before-W: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   status:
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. The folder’s copy is checked again on th"
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside: put it back (or from 📁 File, any"
+--- ('WR', 'B10-lateguard', 'cn')
+   code:
+      A2-after-W: "ok DSV"
+      B2-before-W: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] DSV"
+   fn:
+      A2-after-W: []
+      B2-before-W: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   status:
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. The folder’s copy is checked again on th"
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside: put it back (or from 📁 File, any"
+--- ('WR', 'B10-lateguard', 'p0')
+   code:
+      A2-after-W: "ok SV"
+      B2-before-W: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV"
+   fn:
+      A2-after-W: []
+      B2-before-W: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   ret:
+      A2-after-W: false
+      B2-before-W: true
+   status:
+      A2-after-W: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. The folder’s copy is checked again on th"
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside: put it back (or from 📁 File, any"
+--- ('WR', 'B10-lateguard', 'p1')
+   code:
+      A2-after-W: "ok V"
+      B2-before-W: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] SV"
+   fn:
+      A2-after-W: []
+      B2-before-W: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   listed:
+      A2-after-W: ["saveState"]
+      B2-before-W: ["_statN", "saveState", "status"]
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   ret:
+      A2-after-W: false
+      B2-before-W: true
+   status:
+      A2-after-W: "Opened with this browser’s copy of the board — it has changes made after this file was last saved (##/##/####, ##:##:## AM by unknown). 💾 Save writes them into"
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside: put it back (or from 📁 File, any"
+--- ('WR', 'B10-lateguard', 'tk')
+   code:
+      A2-after-W: "ok LV"
+      B2-before-W: "WRITE[chg:MS,S,_baseDirty,_keptMeta,baseGet,ls:prio27om,ls:prio27om.base,ls:prio27om.kept calls:applyState,applyStore,baseSet,driveBaseSet,keepAside,persist ls:prio27bands_om,prio27om,prio27om.base,prio27om.kept] LSV"
+   fn:
+      A2-after-W: []
+      B2-before-W: ["keepAside", "applyStore", "applyState", "driveBaseSet", "baseSet", "persist"]
+   land:
+      A2-after-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": false, "onHead": true, "q": 0, "scr": ["WORKING", 700]}
+      B2-before-W: {"flags": [false, false, false, 0], "head": ["WORKING", 700], "kept": true, "onHead": true, "q": 0, "scr": ["REMOTE", 650]}
+   listed:
+      A2-after-W: ["LIVEDB", "saveState"]
+      B2-before-W: ["LIVEDB", "_statN", "saveState", "status"]
+   lsw:
+      A2-after-W: []
+      B2-before-W: ["prio27bands_om", "prio27om", "prio27om.base", "prio27om.kept"]
+   prot:
+      A2-after-W: []
+      B2-before-W: ["MS", "S", "_baseDirty", "_keptMeta", "baseGet", "localStorage:prio27om", "localStorage:prio27om.base", "localStorage:prio27om.kept"]
+   status:
+      A2-after-W: "Opened with this browser’s copy of the board — it has changes made after this file was last saved (##/##/####, ##:##:## AM by unknown). 💾 Save writes them into"
+      B2-before-W: "⬇ Loaded O&M FY## from the shared folder — saved by Brad AGE. This browser held work no saved copy had; it is kept aside: put it back (or from 📁 File, any"

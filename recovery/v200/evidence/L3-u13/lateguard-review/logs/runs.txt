@@ -1,0 +1,62 @@
+trial1-after start="2026-10-12 07:17:56 EDT" end="07:19:01 EDT" exit=0 wall_s=64.428509921 log=logs/trial1-after.log 
+mkmut start="2026-10-12 07:19:30 EDT" exit=1 wall_s=.220093368 log=logs/mkmut.log
+mkmut2 start="2026-10-12 07:19:34 EDT" exit=0 wall_s=.268524506 log=logs/mkmut2.log
+reach-render start="2026-10-12 07:20:28 EDT" exit=0 wall_s=1.155691079 log=logs/reach-render.log
+reach-misc start="2026-10-12 07:22:52 EDT" exit=0 wall_s=1.084086194 log=logs/reach-misc.log
+sum-partial start="2026-10-12 07:23:06 EDT" exit=0 wall_s=.114950110 log=logs/sum-partial.log
+A1-after-NH start="2026-10-12 07:19:46 EDT" end="07:24:05 EDT" exit=0 wall_s=258.692289198 log=logs/A1-after-NH.log 
+A2-after-W start="2026-10-12 07:24:05 EDT" end="07:26:14 EDT" exit=0 wall_s=129.288586345 log=logs/A2-after-W.log 
+sum-A2 start="2026-10-12 07:26:18 EDT" exit=0 wall_s=.102245106 log=logs/sum-A2.log
+check-x start="2026-10-12 07:26:38 EDT" exit=0 wall_s=.066413528 log=logs/check-x.log
+B1-before-NH start="2026-10-12 07:26:14 EDT" end="07:29:54 EDT" exit=0 wall_s=220.298457222 log=logs/B1-before-NH.log 
+B2-before-W start="2026-10-12 07:29:54 EDT" end="07:31:32 EDT" exit=0 wall_s=97.730101620 log=logs/B2-before-W.log 
+cmp-N start="2026-10-12 07:31:40 EDT" exit=0 wall_s=.153346451 log=logs/cmp-N.log
+cmp-H1 start="2026-10-12 07:31:40 EDT" exit=0 wall_s=.082808565 log=logs/cmp-H1.log
+cmp-H2 start="2026-10-12 07:31:40 EDT" exit=0 wall_s=3.640412052 log=logs/cmp-H2.log
+cmp2-N start="2026-10-12 07:31:52 EDT" exit=0 wall_s=.086479361 log=logs/cmp2-N.log
+cmp2-H1 start="2026-10-12 07:31:52 EDT" exit=0 wall_s=.083744875 log=logs/cmp2-H1.log
+cmp2-H2 start="2026-10-12 07:31:52 EDT" exit=0 wall_s=.086700096 log=logs/cmp2-H2.log
+cmp2-WR start="2026-10-12 07:31:52 EDT" exit=0 wall_s=.101119010 log=logs/cmp2-WR.log
+cmp2-WA start="2026-10-12 07:31:52 EDT" exit=0 wall_s=.069831879 log=logs/cmp2-WA.log
+cmp3-WR start="2026-10-12 07:31:57 EDT" exit=0 wall_s=.135629847 log=logs/cmp3-WR.log
+cmp3-WR5 start="2026-10-12 07:31:57 EDT" exit=0 wall_s=.083879513 log=logs/cmp3-WR5.log
+cmp4-N start="2026-10-12 07:32:07 EDT" exit=0 wall_s=.094256362 log=logs/cmp4-N.log
+cmp4-H1 start="2026-10-12 07:32:07 EDT" exit=0 wall_s=.083466275 log=logs/cmp4-H1.log
+cmp4-H2 start="2026-10-12 07:32:07 EDT" exit=0 wall_s=.066650319 log=logs/cmp4-H2.log
+cmp4-WR start="2026-10-12 07:32:07 EDT" exit=0 wall_s=.053511994 log=logs/cmp4-WR.log
+cmp4-WA start="2026-10-12 07:32:07 EDT" exit=0 wall_s=.060296105 log=logs/cmp4-WA.log
+M1-top-H start="2026-10-12 07:31:32 EDT" end="07:33:40 EDT" exit=0 wall_s=128.214407267 log=logs/M1-top-H.log 
+M1-top-W start="2026-10-12 07:33:40 EDT" end="07:35:25 EDT" exit=0 wall_s=104.834267844 log=logs/M1-top-W.log 
+M2-entry-W start="2026-10-12 07:35:25 EDT" end="07:37:05 EDT" exit=0 wall_s=99.751593794 log=logs/M2-entry-W.log 
+tables-main start="2026-10-12 07:37:28 EDT" exit=0 wall_s=.112156017 log=logs/tables-main.log
+X1-after-LP start="2026-10-12 07:37:05 EDT" end="07:39:10 EDT" exit=0 wall_s=124.441671603 log=logs/X1-after-LP.log 
+X1-before-LP start="2026-10-12 07:39:10 EDT" end="07:42:03 EDT" exit=0 wall_s=173.633291314 log=logs/X1-before-LP.log 
+cmpX1-N start="2026-10-12 07:42:17 EDT" exit=0 wall_s=.220155146 log=logs/cmpX1-N.log
+cmpX1-H1 start="2026-10-12 07:42:17 EDT" exit=0 wall_s=.077101384 log=logs/cmpX1-H1.log
+cmpX1-H2 start="2026-10-12 07:42:17 EDT" exit=0 wall_s=.144889899 log=logs/cmpX1-H2.log
+cmpX1b start="2026-10-12 07:42:21 EDT" exit=0 wall_s=.248543746 log=logs/cmpX1b.log
+cmpX1c start="2026-10-12 07:42:29 EDT" exit=0 wall_s=.188247505 log=logs/cmpX1c.log
+X2-after-ON start="2026-10-12 07:42:03 EDT" end="07:44:12 EDT" exit=0 wall_s=128.667808722 log=logs/X2-after-ON.log 
+X2-before-ON start="2026-10-12 07:44:12 EDT" end="07:45:51 EDT" exit=0 wall_s=99.375662145 log=logs/X2-before-ON.log 
+X3-after-PK start="2026-10-12 07:45:51 EDT" end="07:46:07 EDT" exit=0 wall_s=15.387865763 log=logs/X3-after-PK.log 
+X4-after-WF start="2026-10-12 07:46:07 EDT" end="07:46:24 EDT" exit=0 wall_s=17.452307726 log=logs/X4-after-WF.log 
+X4-before-WF start="2026-10-12 07:46:24 EDT" end="07:46:40 EDT" exit=0 wall_s=16.022155225 log=logs/X4-before-WF.log 
+check-x2 start="2026-10-12 07:47:30 EDT" exit=0 wall_s=.051261854 log=logs/check-x2.log
+X5-after-WS start="2026-10-12 07:47:30 EDT" end="07:47:39 EDT" exit=0 wall_s=9.055209064 log=logs/X5-after-WS.log 
+X5-before-WS start="2026-10-12 07:47:39 EDT" end="07:47:49 EDT" exit=0 wall_s=9.820141724 log=logs/X5-before-WS.log 
+lp-sanity start="2026-10-12 07:48:20 EDT" exit=0 wall_s=1.707167535 log=logs/lp-sanity.log
+tables-all start="2026-10-12 07:48:58 EDT" exit=0 wall_s=.165228797 log=logs/tables-all.log
+cmpX2-N start="2026-10-12 07:49:29 EDT" exit=0 wall_s=.080121473 log=logs/cmpX2-N.log
+cmpX2-H1 start="2026-10-12 07:49:29 EDT" exit=0 wall_s=.067642724 log=logs/cmpX2-H1.log
+heldcheck start="2026-10-12 07:51:31 EDT" exit=0 wall_s=.130578771 log=logs/heldcheck.log
+R1-rev2-NH start="2026-10-12 07:49:57 EDT" end="07:53:45 EDT" exit=0 wall_s=227.945796178 log=logs/R1-rev2-NH.log 
+R2-rev2-W start="2026-10-12 07:53:45 EDT" end="07:55:40 EDT" exit=0 wall_s=115.231577123 log=logs/R2-rev2-W.log 
+heldcheck2 start="2026-10-12 07:55:50 EDT" exit=0 wall_s=.069726367 log=logs/heldcheck2.log
+cmpR-N start="2026-10-12 07:55:50 EDT" exit=0 wall_s=.081698411 log=logs/cmpR-N.log
+cmpR-H1 start="2026-10-12 07:55:50 EDT" exit=0 wall_s=.088187440 log=logs/cmpR-H1.log
+cmpR-H2 start="2026-10-12 07:55:50 EDT" exit=0 wall_s=.093844112 log=logs/cmpR-H2.log
+cmpR-WR start="2026-10-12 07:55:50 EDT" exit=0 wall_s=.084861416 log=logs/cmpR-WR.log
+cmpR-WA start="2026-10-12 07:55:50 EDT" exit=0 wall_s=.076617539 log=logs/cmpR-WA.log
+cmpRB-N start="2026-10-12 07:55:50 EDT" exit=0 wall_s=.078577596 log=logs/cmpRB-N.log
+cmpRB-H1 start="2026-10-12 07:55:51 EDT" exit=0 wall_s=.083832261 log=logs/cmpRB-H1.log
+cmpRB-H2 start="2026-10-12 07:55:51 EDT" exit=0 wall_s=.072178463 log=logs/cmpRB-H2.log

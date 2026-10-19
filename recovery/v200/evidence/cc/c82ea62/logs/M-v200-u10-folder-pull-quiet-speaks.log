@@ -1,0 +1,16 @@
+# label: M-v200-u10-folder-pull-quiet-speaks
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/c82ea62
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/c82ea62/out/M-v200-u10-folder-pull-quiet-speaks.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/c82ea62/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/c82ea62/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/c82ea62/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/c82ea62/mut/v200-u10-folder-pull-quiet-speaks.html
+# start: 2026-10-18 05:34:25 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/c82ea62/mut/v200-u10-folder-pull-quiet-speaks.html","BOARD_set":true,"board":"25872454101bc0c8adf813bb4f60ff5e1a893287","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/c82ea62/harness/after/focused-u10.mjs","harnessBlob":"3b2245317679af5565a1799a8c9b4239e62e192d","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:34:27 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept | PB27 viewed · a Live refresh (quiet) finds Colleague C’s newer copy
+    the status line is as it was: nothing was changed, so nothing is said
+        got false   want true
+# exit 1 at 10/18/2026, 5:37:28 AM ET
+
+# end: 2026-10-18 05:37:28 EDT  exit: 1  wall_s: 182.7

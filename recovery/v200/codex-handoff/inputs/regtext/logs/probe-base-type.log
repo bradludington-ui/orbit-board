@@ -1,0 +1,21 @@
+# label: probe-base-type
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/regtext.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/../base type
+# start: 2026-10-12 20:17:06 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/base/prioritization-board-grid.html
+
+=== 1. typing into the RCN / EEIC list (rcnSet), one entry K1 11111 / AAAAA "base"
+typed t 80 x (control) (80 units)            {"len":80,"tail":"78 78 78","same":true,"stat":"","marked":""}
+typed t 81 A (81 units)                      {"len":80,"tail":"41 41 41","same":false,"stat":"","marked":""}
+typed t 79 a + U+1F600 (81 units) (81 units) {"len":80,"tail":"61 61 d83d","same":false,"stat":"","marked":""}
+typed t 200 B (200 units)                    {"len":80,"tail":"42 42 42","same":false,"stat":"","marked":""}
+typed t with U+000B (Word soft break) (11 units) {"len":11,"tail":"6e 65 32","same":true,"stat":"","marked":""}
+typed t =HYPERLINK (40 units)                {"len":40,"tail":"78 22 29","same":true,"stat":"","marked":""}
+typed rcn 10 digits (control) (10 units)     {"len":10,"tail":"38 39 30","same":true,"stat":"","marked":""}
+typed rcn 11 digits (11 units)               {"len":5,"tail":"31 31 31","same":false,"stat":"⚠ RCN not changed. The RCN “12345678901” is 11 characters; it can be at most 10. Nothing was changed.","marked":"true"}
+typed rcn with U+0001 (6 units)              {"len":6,"tail":"1 34 35","same":true,"stat":"","marked":""}
+typed eeic ß x10 (R2 control) (10 units)     {"len":5,"tail":"41 41 41","same":false,"stat":"⚠ EEIC not changed. The EEIC is measured as it is kept, trimmed and upper-cased: “ßßßßßßßßßß” becomes “SSSSSSSSSSSSSSSSSSSS”, 20 characters; it can be at most 10. Nothing was changed.","marked":"true"}
+typed eeic " abcde " (control) (7 units)     {"len":5,"tail":"43 44 45","same":false,"stat":"","marked":""}
+
+# end: 2026-10-12 20:17:29 EDT  exit: 0  wall_s: 22.1

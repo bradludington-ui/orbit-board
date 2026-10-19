@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-add-steps-once", "matches": 1, "find": "  while(rcnEntry(t+n)) n++;\n", "repl": "  if(rcnEntry(t+n)) n++;\n"}

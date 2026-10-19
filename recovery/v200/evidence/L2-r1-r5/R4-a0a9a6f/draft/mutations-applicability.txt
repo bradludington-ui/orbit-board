@@ -1,0 +1,37 @@
+MUTATION APPLICABILITY (counted by reading each board as text; matching once establishes applicability, not a catch)
+Patched board: wt/prioritization-board-grid.html  sha256 976b475b38a8bfb8b6d3b0fc3f02f98e79d4f75dcae8a6a44dca0581bedcaeb8
+Base board:    base-board.html (blob 42e8111, = 1c94537)  sha256 03ad86aab679df71de3ab418b323356e0f30a2187305e58632121a2e69fe8ff7
+
+NEW (proposed, out/mutations.json)      patched  base
+  v200-r4-no-recheck                       1       0
+  v200-r4-held-quietly                     1       0
+  v200-r4-said-not-held                    1       0
+  (all three share one find: "    if(impMixedBlock('Saving to the board file')) return;   // v2.00 (R4):")
+
+EXISTING mutate.mjs entries (parsed as text with bin/mcount.py, a copy of recovery/v200/bin/mcount.py; nothing imported or run)
+  base:    {"entries": 1274, "once": 1274, "missing": [], "multiple": [], "unparsed": []}   (logs/mcount-base.json)
+  patched: {"entries": 1274, "once": 1274, "missing": [], "multiple": [], "unparsed": []}   (logs/mcount-patched.json)
+  => no existing entry changes its count; no re-anchor is required.
+  Note: a first placement of the re-check (directly after the read's catch block) broke guard-fails-open (count 0),
+  whose find spans "...return;\n    }\n    let p;". The re-check was moved one line down, below "let p;", so that entry
+  still matches once. No other placement was tried.
+
+impmixed-file-unguarded (find "  if(impMixedBlock('Saving to the board file')) return;\n", repl "")
+  patched 1, base 1. The R4 re-check carries a trailing comment on its own line, so the original find still matches only
+  the first check. The lost work's anchor "\n  if(impMixedBlock('Saving to the board file')) return;\n" -> "\n" also
+  matches once on both boards; switch to it only if the comment is ever moved to a line of its own.
+  Loose form "if(impMixedBlock('Saving to the board file')) return;" (not a mutate.mjs find): patched 2, base 1.
+
+CATCHES (focused harness focused.mjs = the committed block text + verbatim helpers; full outputs in logs/)
+  id                         harness run (all failures)        first failure (MUT_FIRST_FAIL=1)
+  v200-r4-no-recheck         CAUGHT, 3 checks (mut-*.log)      R4 | the import stops part-way during the read | nothing is written: the file is never opened for writing | got [1,1] want [0,0]
+  v200-r4-held-quietly       CAUGHT, 1 check                   R4 | the import stops part-way during the read | the board says the save is refused, and that nothing writes over the board file | got false want true
+  v200-r4-said-not-held      CAUGHT, 3 checks                  R4 | the import stops part-way during the read | nothing is written: the file is never opened for writing | got [1,1] want [0,0]
+  impmixed-file-unguarded    CAUGHT, 5 checks (R4b only)       R4b | hold on, read not held | refused before the file is touched: no permission request, no read, no open | got perm 1 · read 1 · open 0 want perm 0 · read 0 · open 0
+  On the patched board + impmixed-file-unguarded, the existing v1.95 block "after an import that cannot be put back,
+  nothing writes over the board file until asked" PASSES (logs/v195-mut-patched-unguarded.log): R4's re-check refuses
+  after the read, so that block no longer sees the first check removed. On base + impmixed-file-unguarded the v1.95 block
+  catches it (4 checks, logs/v195-mut-base-unguarded.log). R4b is what keeps the mutation caught.
+  Not run: the full audit-import / mutate.mjs sweep (the lead's). In a full sweep with MUT_FIRST_FAIL=1 the first
+  failure is the first failing check in suite order; the v1.99 batch block (item 86) also looks only at writes and
+  status under the hold, so it is expected to pass this mutant as the v1.95 block does (not run here).

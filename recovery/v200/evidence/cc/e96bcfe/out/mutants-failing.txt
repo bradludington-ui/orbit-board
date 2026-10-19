@@ -1,0 +1,34 @@
+v200-u10-state-import-in-view: start 2026-10-18 05:02:17 EDT exit 1 wall 101.0s | 111 checks, 2 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · the manager’s return (K1 → 77777, MGR DESC R) taken through Import one appropriation | refused before the file is read or a question asked, and the status li
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · a state file carrying a 2028 estimate ($4,321,000 on 1.1) taken through Import one appropriation | refused before the file is read; the estimates in the board and in bro
+v200-u10-state-import-race: start 2026-10-18 05:02:17 EDT exit 1 wall 102.4s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | the return taken on the working plan, PB27 put on screen before the file is read | refused once it is read, nothing asked; browser storage still holds 11
+v200-u10-ace-import-race: start 2026-10-18 05:03:59 EDT exit 1 wall 102.8s | 111 checks, 4 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | an import of a cost estimate started on the working plan, PB27 put on screen while the file is read | refused once it is read, nothing asked; the lists as they were, and th
+    FAIL | v2.00 (U10) — a file, a package, the ban | an import of a bae budget list started on the working plan, PB27 put on screen while the file is read | refused once it is read, nothing asked; the lists as they were, and th
+    FAIL | v2.00 (U10) — a file, a package, the ban | an import of ccar records started on the working plan, PB27 put on screen while the file is read | refused once it is read, nothing asked; the lists as they were, and th
+    FAIL | v2.00 (U10) — a file, a package, the ban | the three races · the view left | the working plan’s lists as they were, and its ACE tie-out ties out $9
+v200-u10-bud-import-race: start 2026-10-18 05:04:00 EDT exit 1 wall 96.7s | 111 checks, 3 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | an import of a bae budget list started on the working plan, PB27 put on screen while the file is read | refused once it is read, nothing asked; the lists as they were, and th
+    FAIL | v2.00 (U10) — a file, a package, the ban | an import of ccar records started on the working plan, PB27 put on screen while the file is read | refused once it is read, nothing asked; the lists as they were, and th
+    FAIL | v2.00 (U10) — a file, a package, the ban | the three races · the view left | the working plan’s lists as they were, and its ACE tie-out ties out $9
+v200-u10-ccar-import-race: start 2026-10-18 05:05:53 EDT exit 1 wall 123.2s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | an import of ccar records started on the working plan, PB27 put on screen while the file is read | refused once it is read, nothing asked; the lists as they were, and th
+v200-u10-ladder-copy-in-view: start 2026-10-18 05:05:53 EDT exit 1 wall 118.6s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · ⇉ Copy to the other appropriations | refused before anything is asked; Full Fund keeps its own ladder, and 
+v200-u10-pkg-issue-in-view: start 2026-10-18 05:07:57 EDT exit 1 wall 151.9s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · pkgIssue(mySlug(), true) | refused before anything is asked or handed out; no file, and the packa
+v200-u10-pkg-push-in-view: start 2026-10-18 05:07:52 EDT exit 1 wall 148.6s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · pkgPushAll() | refused before anything is asked or handed out; no file, and the packa
+v200-u10-pkg-sendback-in-view: start 2026-10-18 05:10:29 EDT exit 1 wall 139.0s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · pkgSendBack(mySlug()) | refused before anything is asked or handed out; no file, and the packa
+v200-u10-pkg-return-in-view: start 2026-10-18 05:10:21 EDT exit 1 wall 138.9s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · pkgReturn() | refused before anything is asked or handed out; no file, and the packa
+v200-u10-shared-load-in-view: start 2026-10-18 05:12:58 EDT exit 1 wall 122.9s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · the shared state file loaded (adoptShared) | refused, and the status line says so; nothing is kept aside, and the w
+v200-u10-folder-pull-in-view: start 2026-10-18 05:12:58 EDT exit 1 wall 116.5s | 111 checks, 3 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · a Live refresh finds Colleague C’s newer copy in the shared folder | nothing loaded, nothing kept aside, and the work is still this browser
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · 📡 Connect (a refresh that speaks) | refused, and the status line says so
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · the view left · the next Live refresh | the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is
+v200-u10-folder-connect-quiet: start 2026-10-18 05:15:01 EDT exit 1 wall 90.1s | 111 checks, 1 fail -> CAUGHT
+    FAIL | v2.00 (U10) — a file, a package, the ban | PB27 viewed · 📡 Connect (a refresh that speaks) | refused, and the status line says so

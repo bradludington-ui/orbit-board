@@ -1,0 +1,6 @@
+F-parent exit=0 | ALL CHECKS PASSED | wall_s: 161.6
+F-commit exit=0 | ALL CHECKS PASSED | wall_s: 168.2
+F-base-7ee498a exit=1 | 87 FAILING CHECK(S) | wall_s: 150.8
+F-pre-u10-16ceb83 exit=1 | 87 FAILING CHECK(S) | wall_s: 159.3
+F-parentown-parent exit=0 | ALL CHECKS PASSED | wall_s: 157.6
+BATCH-F-DONE 2026-10-18 06:36:11 EDT

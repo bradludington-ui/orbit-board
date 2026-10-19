@@ -1,0 +1,22 @@
+# label: M-v200-u18-unreadable-written
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/out/M-v200-u18-unreadable-written.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-unreadable-written.html
+# start: 2026-10-18 15:20:24 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/mut/v200-u18-unreadable-written.html","BOARD_set":true,"board":"ba38d6a5e7ec2367a2fd45219534973604db0f4c","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/a4881ec/h/after/tools/export-audit/h-u18.mjs","harnessBlob":"195fae32ac20d856805ca75ec176486f23ad861c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/18/2026, 3:20:26 PM ET"}
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v2.00 (U18) — a copy saved while a folder save is under way is never written over | (7b) the folder’s first copy: Bob’s lands while Brad’s save is held, and cannot be read
+    nothing is written over it: BOB-1, $650, saved by Bob, its writer, is still the folder’s copy; no history
+        got [1,"BRAD-1",700,"Brad","Brad",0]   want [0,"BOB-1",650,"Bob","Bob",0]
+    Brad’s work stays on screen and unsaved, with nothing recorded for the folder
+        got ["BRAD-1",700,false,1792351306337]   want ["BRAD-1",700,true,0]
+    Brad is told -- it could not be read, with no choice
+        first differs at char 2 of 116/286
+          got  …["✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh. You …
+          want …["⛔ Not saved. The shared folder’s copy of O&M FY27 could not be read just before it was to …
+# exit 1 at 10/18/2026, 3:23:38 PM ET
+
+# end: 2026-10-18 15:23:39 EDT  exit: 1  wall_s: 195.1

@@ -1,0 +1,12 @@
+# cmd: X=1 node tools/export-audit/audit-import.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/wt-af892cb
+# git: af892cb12713dd22afd9a84c0ec604b30614f6ea
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:03:37Z / 18:03:37 EDT
+# cap: 900s  grace: 20s
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-11T22:12:31Z / 18:12:31 EDT
+# exit: 0  duration_s: 534.5

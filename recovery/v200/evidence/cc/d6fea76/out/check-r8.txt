@@ -1,0 +1,19 @@
+v200-cycreg ids: round 7 78 | commit 81 | new ['v200-cycreg-cycle-unchangeable', 'v200-cycreg-lock-nt-unsaid', 'v200-cycreg-lock-reserved-unsaid']
+HEADER inserted (comment):
+// The eighth round: the user's own board holding PB27 [K1, K1] unlocks it -- its saved file is refused in words that say only what
+// holds, never that no board changes the list -- then deletes it, or locks over it, and the file written again is taken; a lock while
+// the working plan's list holds the number 1 as a key, or “__none__”, says so first, as the door says it.
+TRUE  board: fr7 has the clause once
+TRUE  board: fr7 with the clause removed once == fr8, byte for byte
+TRUE  board: the committed board carries no "no board changes it"
+TRUE  board: the committed board carries the new cycle words once
+TRUE  board: the sketch board (verify-money-r8/copies/sk) == fr8 board
+TRUE  block: committed == fr8/c1 block, byte for byte
+TRUE  header: the inserted paragraph is comment lines only
+TRUE  block: round 7 block + header comments + 2 count comments + CYCLE/CYCLE_ONLY clause drop + tests section (verbatim) + unlock section == committed block, byte for byte
+TRUE  block: the tests reviewer section is in the committed block exactly once
+TRUE  block: the unlock section is in the committed block exactly once
+TRUE  block: no "no board changes it" left in any expected literal
+TRUE  mutate: the money entry + the tests entries sit together, right before the R3 line, byte for byte
+TRUE  mutate: exactly three v200-cycreg ids are new against round 7
+TRUE  mutate: every round-7 v200-cycreg id is in the commit

@@ -1,0 +1,25 @@
+# label: M-v200-regtext-title-halves
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/out/M-v200-regtext-title-halves.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/harness/h-u36.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/mut/v200-regtext-title-halves.html
+# start: 2026-10-13 19:44:15 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/mut/v200-regtext-title-halves.html","BOARD_set":true,"board":"e506dd2cc95a6d4f63c1080f5c3ae6a7343e6dd4","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/8b39373/harness/h-u36.mjs","harnessBlob":"727b63debe73ac14e7545926046771e93481078c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 7:44:16 PM ET"}
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | title typed as 80 letters and an emoji
+    81 characters (82 halves): refused, said as 81 characters
+        got ["base","true",true,"⚠ RCN / EEIC title not changed. The title “aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…” is 82 characters; it can be at most 80. Nothing was changed."]   want ["base","true",true,"⚠ RCN / EEIC title not changed. The title “aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…” is 81 characters; it can be at most 80. Nothing was changed."]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | title typed as 79 letters and an emoji
+    80 characters: kept whole, the emoji too (no half of one), the field not marked, nothing said
+        got ["base","true",true,"⚠ RCN / EEIC title not changed. The title “aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa…” is 81 characters; it can be at most 80. Nothing was changed."]   want ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀",null,true,""]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | the workbook with that title
+    RCN-EEIC by Month prints it whole, emoji and all: USAF 900, ANG 200
+        got [["11111 / AAAAA  base",900],["11111 / AAAAA  base",200]]   want [["11111 / AAAAA  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀",900],["11111 / AAAAA  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀",200]]
+--- v2.00 (U36) — an RCN / EEIC title over 80 characters is refused, never cut | saved and reopened
+    the file keeps the title whole, emoji and all
+        got [["K1","base"]]   want [["K1","aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀"]]
+# exit 1 at 10/13/2026, 7:44:32 PM ET
+
+# end: 2026-10-13 19:44:33 EDT  exit: 1  wall_s: 17.5

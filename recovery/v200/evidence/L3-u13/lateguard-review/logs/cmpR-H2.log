@@ -1,0 +1,22 @@
+R1-rev2-NH vs A1-after-NH, mode H2 (win): 63 cells identical, 3 differ
+--- ('H2', 'B10-lateguard', 'ac')
+   listed:
+      R1-rev2-NH: ["_driveLive", "_drivePermProbed", "_statN", "diagN", "status"]
+      A1-after-NH: ["_driveLive", "_drivePermProbed", "_statN", "status"]
+   status:
+      R1-rev2-NH: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      A1-after-NH: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "
+--- ('H2', 'B10-lateguard', 'cn')
+   listed:
+      R1-rev2-NH: ["_driveLive", "_statN", "diagN", "status"]
+      A1-after-NH: ["_driveLive", "_statN", "status"]
+   status:
+      R1-rev2-NH: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      A1-after-NH: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "
+--- ('H2', 'B10-lateguard', 'p0')
+   listed:
+      R1-rev2-NH: ["_statN", "diagN", "status"]
+      A1-after-NH: ["_statN", "status"]
+   status:
+      R1-rev2-NH: "⏳ The shared folder’s copy of O&M FY## was not loaded: a save or Load theirs was under way, so this board kept its own c"
+      A1-after-NH: "⏳ Nothing was loaded from the shared folder: a save was under way. Nothing was changed: what is on screen is as it was. "

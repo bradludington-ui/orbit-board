@@ -1,0 +1,234 @@
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/base:
+total 3684
+drwxr-xr-x  3 root root    4096 Oct 12 08:54 .
+drwxr-xr-x 11 root root    4096 Oct 12 11:38 ..
+lrwxrwxrwx  1 root root      35 Oct 12 08:54 node_modules -> /home/user/orbit-board/node_modules
+-rw-rw-r--  1 root root    3018 Oct 12 08:53 package.json
+-r--r--r--  1 root root 3751019 Oct 12 08:53 prioritization-board-grid.html
+-rw-r--r--  1 root root     477 Oct 12 08:54 runtime-encoding-shim.mjs
+dr-xr-xr-x  4 root root    4096 Oct 12 08:53 tools
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20:
+total 272
+drwxr-xr-x  7 root root  4096 Oct 12 11:02 .
+drwxr-xr-x 11 root root  4096 Oct 12 11:38 ..
+-rw-r--r--  1 root root  8149 Oct 12 10:59 PROPOSAL.md
+-rw-r--r--  1 root root 30473 Oct 12 11:02 README.md
+drwxr-xr-x  3 root root  4096 Oct 12 08:54 b63
+-rw-r--r--  1 root root 12641 Oct 12 10:48 check.mjs
+-rw-r--r--  1 root root 14793 Oct 12 10:56 chromium-locks.mjs
+-rw-r--r--  1 root root  8310 Oct 12 10:29 locks-mock.mjs
+-rw-r--r--  1 root root 11885 Oct 12 10:30 locktest.mjs
+drwxr-xr-x  2 root root  4096 Oct 12 10:59 logs
+drwxr-xr-x  2 root root  4096 Oct 12 10:56 out
+-rw-r--r--  1 root root 97103 Oct 12 10:59 pids.txt
+drwxr-xr-x  3 root root  4096 Oct 12 10:57 proposal
+-rwxr-xr-x  1 root root  1693 Oct 12 10:26 q.sh
+-rwxr-xr-x  1 root root  1733 Oct 12 10:26 run.sh
+drwxr-xr-x  2 root root  4096 Oct 12 10:52 src
+-rw-r--r--  1 root root 38498 Oct 12 10:41 u20probe.mjs
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20/b63:
+total 3684
+drwxr-xr-x 3 root root    4096 Oct 12 08:54 .
+drwxr-xr-x 7 root root    4096 Oct 12 11:02 ..
+lrwxrwxrwx 1 root root      35 Oct 12 08:54 node_modules -> /home/user/orbit-board/node_modules
+-rw-rw-r-- 1 root root    3018 Oct 12 08:53 package.json
+-r--r--r-- 1 root root 3751019 Oct 12 08:53 prioritization-board-grid.html
+-rw-r--r-- 1 root root     477 Oct 12 08:54 runtime-encoding-shim.mjs
+dr-xr-xr-x 4 root root    4096 Oct 12 08:53 tools
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20/logs:
+total 420
+drwxr-xr-x 2 root root  4096 Oct 12 10:59 .
+drwxr-xr-x 7 root root  4096 Oct 12 11:02 ..
+-rw-r--r-- 1 root root 34381 Oct 12 10:52 check-r1.log
+-rw-r--r-- 1 root root 34381 Oct 12 10:52 check-r2.log
+-rw-r--r-- 1 root root   700 Oct 12 10:36 dev-AD-C1.log
+-rw-r--r-- 1 root root   703 Oct 12 10:36 dev-AD-C2a.log
+-rw-r--r-- 1 root root   703 Oct 12 10:36 dev-AD-C2b.log
+-rw-r--r-- 1 root root   697 Oct 12 10:36 dev-AD-W.log
+-rw-r--r-- 1 root root   709 Oct 12 10:36 dev-AD-Wtick.log
+-rw-r--r-- 1 root root   700 Oct 12 10:37 dev-BR-C1.log
+-rw-r--r-- 1 root root   703 Oct 12 10:40 dev-BR-C1h.log
+-rw-r--r-- 1 root root   712 Oct 12 10:39 dev-BR-C1perm.log
+-rw-r--r-- 1 root root   703 Oct 12 10:37 dev-BR-C2a.log
+-rw-r--r-- 1 root root   660 Oct 12 10:40 dev-BR-C2ah.log
+-rw-r--r-- 1 root root   703 Oct 12 10:37 dev-BR-C2b.log
+-rw-r--r-- 1 root root   697 Oct 12 10:37 dev-BR-W.log
+-rw-r--r-- 1 root root   700 Oct 12 10:40 dev-BR-Wh.log
+-rw-r--r-- 1 root root   709 Oct 12 10:39 dev-BR-Wperm.log
+-rw-r--r-- 1 root root   712 Oct 12 10:40 dev-BR-Wpermh.log
+-rw-r--r-- 1 root root   709 Oct 12 10:37 dev-BR-Wtick.log
+-rw-r--r-- 1 root root   700 Oct 12 10:35 dev-PB-C1.log
+-rw-r--r-- 1 root root   703 Oct 12 10:35 dev-PB-C2a.log
+-rw-r--r-- 1 root root   703 Oct 12 10:35 dev-PB-C2b.log
+-rw-r--r-- 1 root root   700 Oct 12 10:35 dev-PB-NL.log
+-rw-r--r-- 1 root root   697 Oct 12 10:34 dev-PB-W.log
+-rw-r--r-- 1 root root   709 Oct 12 10:35 dev-PB-Wtick.log
+-rw-r--r-- 1 root root   700 Oct 12 10:38 dev-PF-C1.log
+-rw-r--r-- 1 root root   703 Oct 12 10:38 dev-PF-C2a.log
+-rw-r--r-- 1 root root   697 Oct 12 10:38 dev-PF-W.log
+-rw-r--r-- 1 root root   706 Oct 12 10:41 dev2-BR-C2ah.log
+-rw-r--r-- 1 root root   706 Oct 12 10:41 dev2-BR-C2bh.log
+-rw-r--r-- 1 root root   699 Oct 12 10:45 r1-AD-C1.log
+-rw-r--r-- 1 root root   702 Oct 12 10:45 r1-AD-C2a.log
+-rw-r--r-- 1 root root   702 Oct 12 10:45 r1-AD-C2b.log
+-rw-r--r-- 1 root root   696 Oct 12 10:44 r1-AD-W.log
+-rw-r--r-- 1 root root   708 Oct 12 10:45 r1-AD-Wtick.log
+-rw-r--r-- 1 root root   699 Oct 12 10:46 r1-BR-C1.log
+-rw-r--r-- 1 root root   702 Oct 12 10:46 r1-BR-C1h.log
+-rw-r--r-- 1 root root   711 Oct 12 10:46 r1-BR-C1perm.log
+-rw-r--r-- 1 root root   702 Oct 12 10:46 r1-BR-C2a.log
+-rw-r--r-- 1 root root   705 Oct 12 10:47 r1-BR-C2ah.log
+-rw-r--r-- 1 root root   702 Oct 12 10:46 r1-BR-C2b.log
+-rw-r--r-- 1 root root   705 Oct 12 10:47 r1-BR-C2bh.log
+-rw-r--r-- 1 root root   696 Oct 12 10:45 r1-BR-W.log
+-rw-r--r-- 1 root root   699 Oct 12 10:46 r1-BR-Wh.log
+-rw-r--r-- 1 root root   708 Oct 12 10:46 r1-BR-Wperm.log
+-rw-r--r-- 1 root root   711 Oct 12 10:47 r1-BR-Wpermh.log
+-rw-r--r-- 1 root root   708 Oct 12 10:45 r1-BR-Wtick.log
+-rw-r--r-- 1 root root   699 Oct 12 10:44 r1-PB-C1.log
+-rw-r--r-- 1 root root   702 Oct 12 10:44 r1-PB-C2a.log
+-rw-r--r-- 1 root root   702 Oct 12 10:44 r1-PB-C2b.log
+-rw-r--r-- 1 root root   699 Oct 12 10:44 r1-PB-NL.log
+-rw-r--r-- 1 root root   696 Oct 12 10:43 r1-PB-W.log
+-rw-r--r-- 1 root root   708 Oct 12 10:43 r1-PB-Wtick.log
+-rw-r--r-- 1 root root   699 Oct 12 10:47 r1-PF-C1.log
+-rw-r--r-- 1 root root   702 Oct 12 10:47 r1-PF-C2a.log
+-rw-r--r-- 1 root root   696 Oct 12 10:47 r1-PF-W.log
+-rw-r--r-- 1 root root   699 Oct 12 10:49 r2-AD-C1.log
+-rw-r--r-- 1 root root   702 Oct 12 10:49 r2-AD-C2a.log
+-rw-r--r-- 1 root root   702 Oct 12 10:49 r2-AD-C2b.log
+-rw-r--r-- 1 root root   696 Oct 12 10:49 r2-AD-W.log
+-rw-r--r-- 1 root root   708 Oct 12 10:49 r2-AD-Wtick.log
+-rw-r--r-- 1 root root   699 Oct 12 10:50 r2-BR-C1.log
+-rw-r--r-- 1 root root   702 Oct 12 10:51 r2-BR-C1h.log
+-rw-r--r-- 1 root root   711 Oct 12 10:50 r2-BR-C1perm.log
+-rw-r--r-- 1 root root   702 Oct 12 10:50 r2-BR-C2a.log
+-rw-r--r-- 1 root root   705 Oct 12 10:51 r2-BR-C2ah.log
+-rw-r--r-- 1 root root   702 Oct 12 10:50 r2-BR-C2b.log
+-rw-r--r-- 1 root root   705 Oct 12 10:51 r2-BR-C2bh.log
+-rw-r--r-- 1 root root   696 Oct 12 10:49 r2-BR-W.log
+-rw-r--r-- 1 root root   699 Oct 12 10:51 r2-BR-Wh.log
+-rw-r--r-- 1 root root   708 Oct 12 10:50 r2-BR-Wperm.log
+-rw-r--r-- 1 root root   711 Oct 12 10:51 r2-BR-Wpermh.log
+-rw-r--r-- 1 root root   708 Oct 12 10:50 r2-BR-Wtick.log
+-rw-r--r-- 1 root root   699 Oct 12 10:48 r2-PB-C1.log
+-rw-r--r-- 1 root root   702 Oct 12 10:48 r2-PB-C2a.log
+-rw-r--r-- 1 root root   702 Oct 12 10:48 r2-PB-C2b.log
+-rw-r--r-- 1 root root   699 Oct 12 10:48 r2-PB-NL.log
+-rw-r--r-- 1 root root   696 Oct 12 10:48 r2-PB-W.log
+-rw-r--r-- 1 root root   708 Oct 12 10:48 r2-PB-Wtick.log
+-rw-r--r-- 1 root root   699 Oct 12 10:52 r2-PF-C1.log
+-rw-r--r-- 1 root root   702 Oct 12 10:52 r2-PF-C2a.log
+-rw-r--r-- 1 root root   696 Oct 12 10:52 r2-PF-W.log
+-rw-r--r-- 1 root root  3243 Oct 12 10:59 runs-small.txt
+-rw-r--r-- 1 root root  7363 Oct 12 10:52 runs.txt
+-rw-r--r-- 1 root root  9216 Oct 12 10:52 table-r1.md
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20/out:
+total 1364
+drwxr-xr-x 2 root root  4096 Oct 12 10:56 .
+drwxr-xr-x 7 root root  4096 Oct 12 11:02 ..
+-rw-r--r-- 1 root root 13094 Oct 12 10:45 AD-C1.r1.json
+-rw-r--r-- 1 root root 13094 Oct 12 10:49 AD-C1.r2.json
+-rw-r--r-- 1 root root 13752 Oct 12 10:45 AD-C2a.r1.json
+-rw-r--r-- 1 root root 13752 Oct 12 10:49 AD-C2a.r2.json
+-rw-r--r-- 1 root root 12541 Oct 12 10:45 AD-C2b.r1.json
+-rw-r--r-- 1 root root 12541 Oct 12 10:49 AD-C2b.r2.json
+-rw-r--r-- 1 root root 15247 Oct 12 10:44 AD-W.r1.json
+-rw-r--r-- 1 root root 15247 Oct 12 10:49 AD-W.r2.json
+-rw-r--r-- 1 root root 15428 Oct 12 10:45 AD-Wtick.r1.json
+-rw-r--r-- 1 root root 15428 Oct 12 10:49 AD-Wtick.r2.json
+-rw-r--r-- 1 root root 10557 Oct 12 10:46 BR-C1.r1.json
+-rw-r--r-- 1 root root 10557 Oct 12 10:50 BR-C1.r2.json
+-rw-r--r-- 1 root root 11615 Oct 12 10:46 BR-C1h.r1.json
+-rw-r--r-- 1 root root 11615 Oct 12 10:51 BR-C1h.r2.json
+-rw-r--r-- 1 root root 10800 Oct 12 10:46 BR-C1perm.r1.json
+-rw-r--r-- 1 root root 10800 Oct 12 10:50 BR-C1perm.r2.json
+-rw-r--r-- 1 root root 11134 Oct 12 10:46 BR-C2a.r1.json
+-rw-r--r-- 1 root root 11134 Oct 12 10:50 BR-C2a.r2.json
+-rw-r--r-- 1 root root 11985 Oct 12 10:47 BR-C2ah.r1.json
+-rw-r--r-- 1 root root 11985 Oct 12 10:51 BR-C2ah.r2.json
+-rw-r--r-- 1 root root 10735 Oct 12 10:46 BR-C2b.r1.json
+-rw-r--r-- 1 root root 10735 Oct 12 10:50 BR-C2b.r2.json
+-rw-r--r-- 1 root root 11819 Oct 12 10:47 BR-C2bh.r1.json
+-rw-r--r-- 1 root root 11819 Oct 12 10:51 BR-C2bh.r2.json
+-rw-r--r-- 1 root root 12583 Oct 12 10:45 BR-W.r1.json
+-rw-r--r-- 1 root root 12583 Oct 12 10:49 BR-W.r2.json
+-rw-r--r-- 1 root root 13434 Oct 12 10:46 BR-Wh.r1.json
+-rw-r--r-- 1 root root 13434 Oct 12 10:51 BR-Wh.r2.json
+-rw-r--r-- 1 root root 12795 Oct 12 10:46 BR-Wperm.r1.json
+-rw-r--r-- 1 root root 12795 Oct 12 10:50 BR-Wperm.r2.json
+-rw-r--r-- 1 root root 13646 Oct 12 10:47 BR-Wpermh.r1.json
+-rw-r--r-- 1 root root 13646 Oct 12 10:51 BR-Wpermh.r2.json
+-rw-r--r-- 1 root root 14108 Oct 12 10:45 BR-Wtick.r1.json
+-rw-r--r-- 1 root root 14108 Oct 12 10:50 BR-Wtick.r2.json
+-rw-r--r-- 1 root root 16100 Oct 12 10:44 PB-C1.r1.json
+-rw-r--r-- 1 root root 16100 Oct 12 10:48 PB-C1.r2.json
+-rw-r--r-- 1 root root 15375 Oct 12 10:44 PB-C2a.r1.json
+-rw-r--r-- 1 root root 15375 Oct 12 10:48 PB-C2a.r2.json
+-rw-r--r-- 1 root root 15247 Oct 12 10:44 PB-C2b.r1.json
+-rw-r--r-- 1 root root 15247 Oct 12 10:48 PB-C2b.r2.json
+-rw-r--r-- 1 root root 12888 Oct 12 10:44 PB-NL.r1.json
+-rw-r--r-- 1 root root 12888 Oct 12 10:48 PB-NL.r2.json
+-rw-r--r-- 1 root root 16824 Oct 12 10:43 PB-W.r1.json
+-rw-r--r-- 1 root root 16824 Oct 12 10:48 PB-W.r2.json
+-rw-r--r-- 1 root root 16951 Oct 12 10:43 PB-Wtick.r1.json
+-rw-r--r-- 1 root root 16951 Oct 12 10:48 PB-Wtick.r2.json
+-rw-r--r-- 1 root root  7336 Oct 12 10:47 PF-C1.r1.json
+-rw-r--r-- 1 root root  7336 Oct 12 10:52 PF-C1.r2.json
+-rw-r--r-- 1 root root  8194 Oct 12 10:47 PF-C2a.r1.json
+-rw-r--r-- 1 root root  8194 Oct 12 10:52 PF-C2a.r2.json
+-rw-r--r-- 1 root root  9771 Oct 12 10:47 PF-W.r1.json
+-rw-r--r-- 1 root root  9771 Oct 12 10:52 PF-W.r2.json
+-rw-r--r-- 1 root root 83990 Oct 12 10:52 checks.r1.json
+-rw-r--r-- 1 root root 83990 Oct 12 10:52 checks.r2.json
+-rw-r--r-- 1 root root  5154 Oct 12 10:55 chromium.dev.json
+-rw-r--r-- 1 root root  5154 Oct 12 10:56 chromium.r1.json
+-rw-r--r-- 1 root root  5154 Oct 12 10:56 chromium.r2.json
+-rw-r--r-- 1 root root 13094 Oct 12 10:36 dev-AD-C1.json
+-rw-r--r-- 1 root root 13752 Oct 12 10:36 dev-AD-C2a.json
+-rw-r--r-- 1 root root 12541 Oct 12 10:36 dev-AD-C2b.json
+-rw-r--r-- 1 root root 15247 Oct 12 10:36 dev-AD-W.json
+-rw-r--r-- 1 root root 15428 Oct 12 10:36 dev-AD-Wtick.json
+-rw-r--r-- 1 root root 10478 Oct 12 10:37 dev-BR-C1.json
+-rw-r--r-- 1 root root 11615 Oct 12 10:40 dev-BR-C1h.json
+-rw-r--r-- 1 root root 10800 Oct 12 10:39 dev-BR-C1perm.json
+-rw-r--r-- 1 root root 11055 Oct 12 10:37 dev-BR-C2a.json
+-rw-r--r-- 1 root root 11985 Oct 12 10:41 dev-BR-C2ah.json
+-rw-r--r-- 1 root root 10656 Oct 12 10:37 dev-BR-C2b.json
+-rw-r--r-- 1 root root 11819 Oct 12 10:41 dev-BR-C2bh.json
+-rw-r--r-- 1 root root 12504 Oct 12 10:37 dev-BR-W.json
+-rw-r--r-- 1 root root 13434 Oct 12 10:40 dev-BR-Wh.json
+-rw-r--r-- 1 root root 12795 Oct 12 10:39 dev-BR-Wperm.json
+-rw-r--r-- 1 root root 13646 Oct 12 10:40 dev-BR-Wpermh.json
+-rw-r--r-- 1 root root 14029 Oct 12 10:37 dev-BR-Wtick.json
+-rw-r--r-- 1 root root 16071 Oct 12 10:35 dev-PB-C1.json
+-rw-r--r-- 1 root root 15359 Oct 12 10:35 dev-PB-C2a.json
+-rw-r--r-- 1 root root 15218 Oct 12 10:35 dev-PB-C2b.json
+-rw-r--r-- 1 root root 12856 Oct 12 10:35 dev-PB-NL.json
+-rw-r--r-- 1 root root 16808 Oct 12 10:34 dev-PB-W.json
+-rw-r--r-- 1 root root 16935 Oct 12 10:35 dev-PB-Wtick.json
+-rw-r--r-- 1 root root  7336 Oct 12 10:38 dev-PF-C1.json
+-rw-r--r-- 1 root root  8194 Oct 12 10:38 dev-PF-C2a.json
+-rw-r--r-- 1 root root  9771 Oct 12 10:38 dev-PF-W.json
+-rw-r--r-- 1 root root  4772 Oct 12 10:30 locktest.dev.json
+-rw-r--r-- 1 root root  4772 Oct 12 10:43 locktest.r1.json
+-rw-r--r-- 1 root root  4772 Oct 12 10:48 locktest.r2.json
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20/proposal:
+total 16
+drwxr-xr-x 3 root root 4096 Oct 12 10:57 .
+drwxr-xr-x 7 root root 4096 Oct 12 11:02 ..
+-rw-r--r-- 1 root root 1572 Oct 12 10:57 U20-count-waiting-save.diff
+drwxr-xr-x 2 root root 4096 Oct 12 10:57 patched-copy-NEVER-RUN
+
+/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u20/src:
+total 20
+drwxr-xr-x 2 root root 4096 Oct 12 10:52 .
+drwxr-xr-x 7 root root 4096 Oct 12 11:02 ..
+-rw-r--r-- 1 root root 2129 Oct 12 10:26 explore.mjs
+-rw-r--r-- 1 root root 2265 Oct 12 10:35 show.mjs
+-rw-r--r-- 1 root root 2716 Oct 12 10:52 table.mjs

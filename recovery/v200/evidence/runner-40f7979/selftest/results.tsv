@@ -1,0 +1,14 @@
+A1 queue, mkmanifest.py altered	exit 2; refused; outdir not created	exit 2; refused; outdir not created	PASS
+A2 alone-run, sens-import.sh altered	exit 2; names sens-import.sh; lock absent	exit 2; names sens-import.sh; lock absent	PASS
+A3 sens.sh, mkmut.py altered	exit 2; names mkmut.py; no mutant	exit 2; names mkmut.py; no mutant	PASS
+A4 a helper outside the snapshot	exit 2; not in the frozen snapshot	exit 2; not in the frozen snapshot	PASS
+A5 a short RUNNER_SHA	exit 2; full 40-hex	exit 2; full 40-hex	PASS
+A6 CONTROL: unaltered snapshot	exit 2; snapshot verified; stopped at the clone	exit 2; snapshot verified; stopped at the clone	PASS
+A7 an unfrozen snapshot	exit 2; not immutable	exit 2; not immutable	PASS
+G1 banner then exit 1	REFUSE	REFUSE	PASS
+G2 banner then timeout	REFUSE	REFUSE	PASS
+G3 banner then interrupted (no end line)	REFUSE	REFUSE	PASS
+G4 failing-check line with exit 0	REFUSE	REFUSE	PASS
+G5 exit 0 without the verdict	REFUSE	REFUSE	PASS
+G6 CONTROL: banner and exit 0	ACCEPT	ACCEPT	PASS
+selftest done 10:08:39 AM ET: 0 failing case(s)

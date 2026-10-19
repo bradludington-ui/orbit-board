@@ -1,0 +1,14 @@
+carry-before exit=0 wall_s=7.136703288 
+carry-after exit=0 wall_s=6.924314153 
+verify-before exit=0 wall_s=5.752675378 
+verify-after exit=0 wall_s=6.157216099 
+focused-before exit=1 wall_s=10.018044608 
+focused-before exit=1 wall_s=10.910522616 
+focused-after exit=0 wall_s=9.710775984 
+focused-mut-v200-u1-year-unoffered exit=1 wall_s=11.904506526 
+focused-mut-v200-u1-own-appn-only exit=1 wall_s=11.079325756 
+focused-mut-v200-r1-scan-stops-early exit=1 wall_s=10.185457840 
+focused-mut-v200-r1-saved-year-widens exit=1 wall_s=10.182034244 
+focused-mut-v200-r1-raw-year-exec exit=1 wall_s=9.877358163 
+edge-before exit=0 wall_s=2.831196524 
+edge-after exit=0 wall_s=2.463647607 

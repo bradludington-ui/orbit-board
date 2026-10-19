@@ -1,0 +1,28 @@
+PASS [fixture] fixture.v1: the folder copy is BRAD-1, Brad clean against it ([head, DIRTY, record dirty, base = head ts, shared file older than MS.ts])
+     expected ["BRAD-1",false,false,true,true]
+     observed ["BRAD-1",false,false,true,true]
+PASS [fixture] fixture.typed: BRAD-2 typed, unsaved ([screen, DIRTY, link offered])
+     expected ["BRAD-2",true,true]
+     observed ["BRAD-2",true,true]
+PASS [fixture] fixture.landed: the save landed BEFORE any load: head BRAD-2, clean against it, nothing asked ([head, clean, base = head ts, questions])
+     expected ["BRAD-2",true,true,0]
+     observed ["BRAD-2",true,true,0]
+PASS [predict] XSHdL.linkAfterLanding: after the save lands the status line no longer offers "load the shared one" ([button present])
+     expected false
+     observed false
+PASS [predict] XSHdL.adopt: the shared state file is put on screen (adoptShared() called directly (SHORTCUT: the link is gone once the save has landed)) ([screen, _saveBusy, _saveGen unchanged, kept slot, said])
+     expected ["SHARED",0,true,null,true]
+     observed ["SHARED",0,true,null,true]
+PASS [predict] XSHdL.K1: once settled [screen, recorded clean, base copy]
+     expected ["SHARED",true,"BRAD-2"]
+     observed ["SHARED",true,"BRAD-2"]
+FAIL [contract] XSHdL.contractK1: recorded clean only against a copy holding what is on screen
+     expected "not falsely clean"
+     observed ["SHARED",true,"BRAD-2"]
+PASS [predict] XSHdL.V3next: the next 💾 Save ["questions","screen before","head before","head after","status","clean after","record names head"]
+     expected [0,"SHARED","BRAD-2","SHARED","saved",true,true]
+     observed [0,"SHARED","BRAD-2","SHARED","saved",true,true]
+u17state {"tuple":["SHARED",true,"BRAD-2"],"falselyClean":true}
+v3where {"overwritten":"BRAD-2","inHistory":["spmt-2027-om-20261012-155727-recent.json"],"keptSlot":false}
+ids {"board":"98eed7e801af20270f755eadffb2fa72355c30e5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"2a3c60145c82a4e11541f2ae6a6d309f22ea2216","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/b63/prioritization-board-grid.html"}
+SUMMARY XSHdL save board=u13: 7 pass, 1 fail | fixture 3/3 | predict 4/4 | contract 0/1 | harness 0/0

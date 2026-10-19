@@ -1,0 +1,11 @@
+TOTAL {"n": 125, "p": 123, "f": 2}
+ 11 checks  11 pass   0 fail | controls 5 (0 fail) | non-controls 6 (0 fail) | v1.99 item 88 — a locked cycle’s view and every report from it read the RCN / EEIC list it
+ 27 checks  27 pass   0 fail | controls 9 (0 fail) | non-controls 18 (0 fail) | v2.00 (U10) — a refused edit in a locked cycle’s view changes no code any export carries
+  9 checks   9 pass   0 fail | controls 5 (0 fail) | non-controls 4 (0 fail) | v2.00 (U10) — a refusal in a locked view puts back the plan’s settings, the year on screen
+ 27 checks  27 pass   0 fail | controls 6 (0 fail) | non-controls 21 (0 fail) | v2.00 (U10) — a cost estimate, a BAE list, CCaR records or a destination change is refused
+  9 checks   9 pass   0 fail | controls 3 (0 fail) | non-controls 6 (0 fail) | v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a lo
+ 31 checks  31 pass   0 fail | controls 6 (0 fail) | non-controls 25 (0 fail) | v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked v
+  7 checks   7 pass   0 fail | controls 4 (0 fail) | non-controls 3 (0 fail) | v2.00 (U10) — partner money, FMS money or a year refused in a locked view is in no total a
+  4 checks   2 pass   2 fail | controls 2 (0 fail) | non-controls 2 (2 fail) | v2.00 (U10) — a view put on screen while Load theirs reads the shared folder keeps nothing
+  FAIL | v2.00 (U10) — a view put on  | Load theirs on the working plan · PB27 put on screen while the folder is read | refused, and the status line says so; nothing is kept aside, and the w
+  FAIL | v2.00 (U10) — a view put on  | Load theirs on the working plan · PB27 put on screen while the folder is read · the view left, Load  | the work (MY UNSAVED A) is kept aside first, and Colleague C’s copy is

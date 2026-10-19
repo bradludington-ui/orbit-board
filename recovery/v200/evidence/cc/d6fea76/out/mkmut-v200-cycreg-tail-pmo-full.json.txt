@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-tail-pmo-full", "matches": 1, "find": "  if(html && /<script type=\"application\\/json\" id=\"pubMode\">\\s*\\{/.test(t)) return head+", "repl": "  if(false) return head+"}

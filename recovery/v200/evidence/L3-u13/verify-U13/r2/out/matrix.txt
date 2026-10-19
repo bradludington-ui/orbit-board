@@ -1,0 +1,68 @@
+mkf-u13 | 07:56:52 ET | exit 0 | 0.5 s | logs/mkf-u13.log | 
+mkf-u2b1 | 07:56:53 ET | exit 0 | 0.3 s | logs/mkf-u2b1.log | 
+mkf-u2b2 | 07:56:53 ET | exit 0 | 0.4 s | logs/mkf-u2b2.log | 
+mcount-after-on-after | 07:57:07 ET | exit 0 | 2.4 s | logs/mcount-after-on-after.log | 
+mcount-base-on-before | 07:57:09 ET | exit 0 | 2.4 s | logs/mcount-base-on-before.log | 
+mcount-base-on-after | 07:57:12 ET | exit 0 | 2.3 s | logs/mcount-base-on-after.log | 
+mcount-new-on-before | 07:57:14 ET | exit 0 | 2.4 s | logs/mcount-new-on-before.log | 
+mcount-new-on-after | 07:57:16 ET | exit 0 | 2.1 s | logs/mcount-new-on-after.log | 
+mkmut-v200-u13-pull-while-saving | 07:57:25 ET | exit 0 | 0.2 s | logs/mkmut-v200-u13-pull-while-saving.log | 
+mkmut-v200-u13-base-while-saving | 07:57:25 ET | exit 0 | 0.2 s | logs/mkmut-v200-u13-base-while-saving.log | 
+mkmut-v200-u13-pull-unchecked | 07:57:25 ET | exit 0 | 0.2 s | logs/mkmut-v200-u13-pull-unchecked.log | 
+mkmut-v200-u13-said-nothing-loaded | 07:57:26 ET | exit 0 | 0.1 s | logs/mkmut-v200-u13-said-nothing-loaded.log | 
+mkmut-v200-u13-clash-while-saving | 07:57:26 ET | exit 0 | 0.2 s | logs/mkmut-v200-u13-clash-while-saving.log | 
+mkvar | 07:57:26 ET | exit 0 | 0.1 s | logs/mkvar.log | 
+r2-u13-on-before | 07:57:35 ET | exit 1 | 23.1 s | logs/r2-u13-on-before.log | 71 checks, 42 fail
+r2-u13-on-after | 07:57:58 ET | exit 0 | 27.0 s | logs/r2-u13-on-after.log | 71 checks, 0 fail
+r2-M-v200-u13-pull-while-saving | 07:58:25 ET | exit 1 | 24.1 s | logs/r2-M-v200-u13-pull-while-saving.log | 71 checks, 40 fail
+r2-M-v200-u13-base-while-saving | 07:58:49 ET | exit 1 | 25.3 s | logs/r2-M-v200-u13-base-while-saving.log | 71 checks, 2 fail
+r2-M-v200-u13-pull-unchecked | 07:59:14 ET | exit 1 | 24.2 s | logs/r2-M-v200-u13-pull-unchecked.log | 71 checks, 42 fail
+r2-M-v200-u13-said-nothing-loaded | 07:59:39 ET | exit 1 | 25.7 s | logs/r2-M-v200-u13-said-nothing-loaded.log | 71 checks, 10 fail
+r2-M-v200-u13-clash-while-saving | 08:00:04 ET | exit 1 | 26.3 s | logs/r2-M-v200-u13-clash-while-saving.log | 71 checks, 1 fail
+cmp-r2-u13-on-before | 08:00:46 ET | exit 0 | 0.1 s | logs/cmp-r2-u13-on-before.log | 
+cmp-r2-u13-on-after | 08:00:46 ET | exit 0 | 0.0 s | logs/cmp-r2-u13-on-after.log | 
+cmp-r2-M-v200-u13-pull-while-saving | 08:00:46 ET | exit 0 | 0.0 s | logs/cmp-r2-M-v200-u13-pull-while-saving.log | 
+cmp-r2-M-v200-u13-base-while-saving | 08:00:46 ET | exit 0 | 0.0 s | logs/cmp-r2-M-v200-u13-base-while-saving.log | 
+cmp-r2-M-v200-u13-pull-unchecked | 08:00:46 ET | exit 0 | 0.0 s | logs/cmp-r2-M-v200-u13-pull-unchecked.log | 
+cmp-r2-M-v200-u13-said-nothing-loaded | 08:00:46 ET | exit 0 | 0.0 s | logs/cmp-r2-M-v200-u13-said-nothing-loaded.log | 
+cmp-r2-M-v200-u13-clash-while-saving | 08:00:46 ET | exit 0 | 0.0 s | logs/cmp-r2-M-v200-u13-clash-while-saving.log | 
+r2-var-entry-only | 08:00:54 ET | exit 1 | 24.0 s | logs/r2-var-entry-only.log | 71 checks, 14 fail
+r2-u2-block1-on-after | 08:01:18 ET | exit 0 | 11.9 s | logs/r2-u2-block1-on-after.log | 16 checks, 0 fail
+r2-u2-block2-on-after | 08:01:30 ET | exit 0 | 27.0 s | logs/r2-u2-block2-on-after.log | 41 checks, 0 fail
+r2-u13-on-after-rep2 | 08:01:57 ET | exit 0 | 25.4 s | logs/r2-u13-on-after-rep2.log | 71 checks, 0 fail
+r2-u13-on-after-rep3 | 08:02:23 ET | exit 0 | 26.0 s | logs/r2-u13-on-after-rep3.log | 71 checks, 0 fail
+cmp-r2-var-entry-only | 08:02:49 ET | exit 0 | 0.0 s | logs/cmp-r2-var-entry-only.log | 
+cmp-r2-u2-block1-on-after | 08:02:49 ET | exit 0 | 0.0 s | logs/cmp-r2-u2-block1-on-after.log | 
+cmp-r2-u2-block2-on-after | 08:02:49 ET | exit 0 | 0.0 s | logs/cmp-r2-u2-block2-on-after.log | 
+cmp-r2-u13-on-after-rep2 | 08:02:49 ET | exit 0 | 0.0 s | logs/cmp-r2-u13-on-after-rep2.log | 
+cmp-r2-u13-on-after-rep3 | 08:02:49 ET | exit 0 | 0.0 s | logs/cmp-r2-u13-on-after-rep3.log | 
+r2-syntax-after-import | 08:03:03 ET | exit 0 | 0.1 s | logs/r2-syntax-after-import.log | 
+r2-check-before | 08:03:03 ET | exit 1 | 2.7 s | logs/r2-check-before.log | 
+r2-check-after | 08:03:06 ET | exit 1 | 2.8 s | logs/r2-check-after.log | 
+r2-bootsame-after | 08:03:09 ET | exit 0 | 7.5 s | logs/r2-bootsame-after.log | 
+r2-other-after | 08:03:16 ET | exit 0 | 24.2 s | logs/r2-other-after.log | 
+r2-audit-after | 08:03:40 ET | exit 0 | 6.0 s | logs/r2-audit-after.log | 
+r2-recon-after | 08:03:56 ET | exit 0 | 46.7 s | logs/r2-recon-after.log | 165 checks, 0 fail
+r2-vprobe-on-after | 08:04:43 ET | exit 0 | 9.6 s | logs/r2-vprobe-on-after.log | 
+r2-vprobe-on-before | 08:04:53 ET | exit 0 | 10.2 s | logs/r2-vprobe-on-before.log | 
+r2-obs2-on-after | 08:05:03 ET | exit 0 | 12.0 s | logs/r2-obs2-on-after.log | 
+mkmine2 | 08:06:32 ET | exit 0 | 0.9 s | logs/mkmine2.log | 
+my-m2-entry-only | 08:06:43 ET | exit 1 | 24.6 s | logs/my-m2-entry-only.log | 71 checks, 6 fail
+my-m2-between-waits | 08:07:07 ET | exit 1 | 23.5 s | logs/my-m2-between-waits.log | 71 checks, 4 fail
+my-m2-after-ownunsaved | 08:07:31 ET | exit 0 | 25.8 s | logs/my-m2-after-ownunsaved.log | 71 checks, 0 fail
+my-m2-words-save-only | 08:07:57 ET | exit 1 | 23.5 s | logs/my-m2-words-save-only.log | 71 checks, 10 fail
+my-m2-words-nothing-changed | 08:08:20 ET | exit 1 | 24.4 s | logs/my-m2-words-nothing-changed.log | 71 checks, 10 fail
+my-m2-words-full-year | 08:08:44 ET | exit 1 | 23.8 s | logs/my-m2-words-full-year.log | 71 checks, 10 fail
+my-m2-lbl-no-esc | 08:09:08 ET | exit 0 | 23.6 s | logs/my-m2-lbl-no-esc.log | 71 checks, 0 fail
+my-m2-quiet-says | 08:09:32 ET | exit 1 | 24.3 s | logs/my-m2-quiet-says.log | 71 checks, 7 fail
+my-m2-connect-silent | 08:10:01 ET | exit 1 | 22.7 s | logs/my-m2-connect-silent.log | 71 checks, 10 fail
+my-m2-connect-overwrites | 08:10:24 ET | exit 1 | 25.1 s | logs/my-m2-connect-overwrites.log | 71 checks, 10 fail
+my-m2-connect-stops | 08:10:49 ET | exit 1 | 24.5 s | logs/my-m2-connect-stops.log | 71 checks, 2 fail
+my-m2-resolve-unqueued | 08:11:14 ET | exit 1 | 24.3 s | logs/my-m2-resolve-unqueued.log | 71 checks, 2 fail
+my-m2-refuse-only-clean | 08:11:38 ET | exit 1 | 23.2 s | logs/my-m2-refuse-only-clean.log | 71 checks, 35 fail
+my-m2-refuse-only-others | 08:12:01 ET | exit 1 | 23.5 s | logs/my-m2-refuse-only-others.log | 71 checks, 35 fail
+my-m2-refuse-sets-base | 08:12:25 ET | exit 1 | 25.4 s | logs/my-m2-refuse-sets-base.log | 71 checks, 6 fail
+my-m2-refuse-touches-livedb | 08:12:50 ET | exit 0 | 23.9 s | logs/my-m2-refuse-touches-livedb.log | 71 checks, 0 fail
+summ-mine | 08:13:22 ET | exit 0 | 0.0 s | logs/summ-mine.log | 
+r2-probe2-on-after | 08:15:21 ET | exit 0 | 7.5 s | logs/r2-probe2-on-after.log | 
+r2-probe2-on-before | 08:15:36 ET | exit 0 | 6.0 s | logs/r2-probe2-on-before.log | 

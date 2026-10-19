@@ -1,0 +1,20 @@
+== F-hold-after vs z4e-hold-c1e
+checks 144 pass 144 fail 0
+vs z4e-hold-c1e.checks.jsonl : same checks in same order: True | verdicts differing: 0 | values differing (same verdict): 0
+== F-hold-before vs z4e-hold-c1e
+checks 144 pass 144 fail 0
+vs z4e-hold-c1e.checks.jsonl : same checks in same order: True | verdicts differing: 0 | values differing (same verdict): 0
+== F-hold-after vs F-hold-before
+checks 144 pass 144 fail 0
+vs F-hold-before.checks.jsonl : same checks in same order: True | verdicts differing: 0 | values differing (same verdict): 0
+== F-u2u13-after vs z4e-u2u13-c1e
+checks 128 pass 128 fail 0
+vs z4e-u2u13-c1e.checks.jsonl : same checks in same order: True | verdicts differing: 0 | values differing (same verdict): 0
+== F-u2u13-before vs z4e-u2u13-c1e
+checks 128 pass 128 fail 0
+vs z4e-u2u13-c1e.checks.jsonl : same checks in same order: True | verdicts differing: 0 | values differing (same verdict): 0
+== F-u2u13-after vs F-u2u13-before
+checks 128 pass 128 fail 0
+vs F-u2u13-before.checks.jsonl : same checks in same order: True | verdicts differing: 0 | values differing (same verdict): 0
+checks 173 pass 173 fail 0
+vs z4e-u20u30-c1e.checks.jsonl : same checks in same order: True | verdicts differing: 0 | values differing (same verdict): 0

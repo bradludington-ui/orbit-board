@@ -1,0 +1,1 @@
+{"id": "v200-u18-view-pen-line", "matches": 1, "find": "        if(penLine){ const j=MS.jrnl||[], k=JSON.stringify(penLine); for(let i=j.length-1;i>=0;i--) if(JSON.stringify(j[i])===k){ j.splice(i,1); break; } } }\n", "repl": "        }\n"}

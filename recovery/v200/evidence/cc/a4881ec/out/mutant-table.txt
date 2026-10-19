@@ -1,0 +1,29 @@
+v200-u18-recheck-gone                start 2026-10-18 15:10:28 EDT exit 1 wall 203.2 s | 57 of 112 fail | README 57 OK | (1) (2) (1b) (3) (6a) (6b) (6c) (6d) (6e) (7a) (7b) (8) (8b) (8c) (9) (10) (11a) (11b) (11c) (12) | x4= x4e= x5=
+v200-u18-first-copy-unchecked        start 2026-10-18 15:13:52 EDT exit 1 wall 171.6 s | 3 of 112 fail | README 3 OK | (7a) | x4= x5=
+v200-u18-gone-written-in-place       start 2026-10-18 15:16:52 EDT exit 1 wall 212.4 s | 5 of 112 fail | README 5 OK | (6a) (6d) | x4= x5=
+v200-u18-unreadable-written          start 2026-10-18 15:20:24 EDT exit 1 wall 195.1 s | 3 of 112 fail | README 3 OK | (7b) | x4= x5=
+v200-u18-said-nothing-written        start 2026-10-18 15:23:46 EDT exit 1 wall 189.0 s | 8 of 112 fail | README 8 OK | (1) (1b) (3) (7a) (8) (9) (11a) (11b) | x4= x5=
+v200-u18-pen-line-kept               start 2026-10-18 15:26:55 EDT exit 1 wall 178.2 s | 6 of 112 fail | README 6 OK | (6d) (6e) (8) (8b) (11b) | x4= x5=
+v200-u18-stamp-moved                 start 2026-10-18 15:30:18 EDT exit 1 wall 188.7 s | 13 of 112 fail | README 13 OK | (1) (1b) (3) (6d) (6e) (8) (9) (10) (11a) (11b) (12) (14) | x4= x5=
+v200-u18-other-year-choices          start 2026-10-18 15:33:27 EDT exit 1 wall 183.4 s | 1 of 112 fail | README 1 OK | (6c) | x4= x5=
+v200-u18-autosave-unchecked          start 2026-10-18 15:36:45 EDT exit 1 wall 187.2 s | 3 of 112 fail | README 3 OK | (9) | x4= x5=
+v200-u18-stamp-name-moved            start 2026-10-18 15:39:52 EDT exit 1 wall 197.7 s | 3 of 112 fail | README 3 OK | (6d) (6e) (10) | x4= x5=
+v200-u18-stamp-on-view               start 2026-10-18 15:43:17 EDT exit 1 wall 198.5 s | 2 of 112 fail | README 2 OK | (11a) (11b) | x4= x5=
+v200-u18-pen-line-on-view            start 2026-10-18 15:46:36 EDT exit 1 wall 190.0 s | 1 of 112 fail | README 1 OK | (11b) | x4= x5=
+v200-u18-other-year-unnamed          start 2026-10-18 15:49:55 EDT exit 1 wall 178.6 s | 1 of 112 fail | README 1 OK | (6c) | x4= x5=
+v200-u18-stamp-compare               start 2026-10-18 15:52:53 EDT exit 1 wall 154.5 s | 2 of 112 fail | README 2 OK | (12) | x4= x5=
+v200-u18-view-says-saved             start 2026-10-18 15:55:45 EDT exit 1 wall 143.3 s | 3 of 112 fail | README 3 OK | (11a) (11b) (11c) | x4= x5=
+v200-u18-view-pen-line               start 2026-10-18 15:58:09 EDT exit 1 wall 155.2 s | 1 of 112 fail | README 1 OK | (11b) | x4= x5=
+v200-u18-autosave-silent             start 2026-10-18 16:01:07 EDT exit 1 wall 145.1 s | 1 of 112 fail | README 1 OK | (9) | x4= x5=
+v200-u18-other-year-when-of-read     start 2026-10-18 16:03:32 EDT exit 1 wall 158.1 s | 1 of 112 fail | README 1 OK | (6c) | x4= x5=
+v200-u18-read-again-first-copy       start 2026-10-18 16:06:20 EDT exit 1 wall 150.3 s | 1 of 112 fail | README 1 OK | (7b) | x4= x5=
+v200-u18-other-year-advice           start 2026-10-18 16:08:51 EDT exit 1 wall 132.2 s | 1 of 112 fail | README 1 OK | (6c) | x4= x5=
+v200-u18-storage-pen-line            start 2026-10-18 16:11:11 EDT exit 1 wall 129.5 s | 2 of 112 fail | README 2 OK | (8b) | x4= x4e= x5=
+v200-u18-view-silent                 start 2026-10-18 16:13:20 EDT exit 1 wall 119.4 s | 2 of 112 fail | README 2 OK | (11a) (11b) | x4= x5=
+v200-u18-view-stamp-name             start 2026-10-18 16:15:27 EDT exit 1 wall 113.4 s | 1 of 112 fail | README 1 OK | (11c) | x4= x5=
+v200-u18-stamp-over-typed            start 2026-10-18 16:17:21 EDT exit 1 wall  91.4 s | 1 of 112 fail | README 1 OK | (8c) | x4= x5=
+v200-u18-hold-before-reread          start 2026-10-18 16:19:00 EDT exit 1 wall  98.1 s | 3 of 112 fail | README 3 OK | (13) | x4= x4e= x5=
+v200-u18-late-for-every-clash        start 2026-10-18 16:20:39 EDT exit 1 wall 113.0 s | 1 of 112 fail | README 1 OK | (5) | x4= x5=
+v200-u18-hold-unsaid                 start 2026-10-18 16:22:42 EDT exit 1 wall 105.5 s | 2 of 112 fail | README 2 OK | (14) | x4= x4e= x5=
+v200-u18-pen-line-only-on-clash      start 2026-10-18 16:24:27 EDT exit 1 wall 149.6 s | 2 of 112 fail | README 2 OK | (6d) (6e) | x4= x4e= x5=
+v200-u18-stamp-only-on-clash         start 2026-10-18 16:27:06 EDT exit 1 wall 149.8 s | 2 of 112 fail | README 2 OK | (6d) (6e) | x4= x4e= x5=

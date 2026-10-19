@@ -1,0 +1,15 @@
+ok   SHc-fold-Wauto      RUN    finished, no error, board 98eed7e8 
+ok   SHc-fold-Wauto      HOLD   held [reached, busy, target, DIRTY, asked] 
+ok   SHc-fold-Wauto      FIX    the person clicked 'load the shared one' (no question) 
+ok   SHc-fold-Wauto      FIX    the autosave was on and armed before the tick [auto, live, DIRTY] 
+ok   SHc-fold-Wauto      PRED   after the autosave landed, before its refresh [screen, busy, recorded  
+ok   SHc-fold-Wauto      PRED   what the status line says at the end 
+ok   SHc-fold-Wauto      PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   SHc-fold-Wauto      PRED   end 
+ok   SHc-fold-Wauto      PRED   reopen 
+ok   SHc-fold-Wauto      PRED   refresh 
+ok   SHc-fold-Wauto      K      K1/K2/K3 falsely clean 
+ok   SHc-fold-Wauto      REACH  end: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Wauto      REACH  reopened: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Wauto      REACH  edited: BRAD-2, SHARED in a board copy 
+TOTAL 23 checks, 9 fail

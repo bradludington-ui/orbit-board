@@ -1,0 +1,12 @@
+# label: F-folderA-after
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/out/F-folderA-after.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit/F-folderA.mjs
+# start: 2026-10-13 19:32:00 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/after/prioritization-board-grid.html","BOARD_set":false,"board":"84cf2bf4ef12f2e6dbef255503c4c2ecf23034e2","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d701888/h/after/tools/export-audit/F-folderA.mjs","harnessBlob":"61159d89cbc4417e9e646f11edbf91f59e862c79","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/13/2026, 7:32:01 PM ET"}
+
+================================================================================================
+ALL CHECKS PASSED
+# exit 0 at 10/13/2026, 7:34:01 PM ET
+
+# end: 2026-10-13 19:34:01 EDT  exit: 0  wall_s: 120.9

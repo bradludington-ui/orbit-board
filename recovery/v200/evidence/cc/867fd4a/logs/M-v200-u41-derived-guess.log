@@ -1,0 +1,48 @@
+# label: M-v200-u41-derived-guess
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/out/M-v200-u41-derived-guess.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-derived-guess.html
+# start: 2026-10-13 22:49:35 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/mut/v200-u41-derived-guess.html","BOARD_set":true,"board":"faf85408c4a9e48895f538f366652680a8a218e5","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/867fd4a/harness/h-u41.mjs","harnessBlob":"327bb8313d37b19f96ab6b676d2167095e7d03cf","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/13/2026, 10:49:36 PM ET"}
+
+================================================================================================
+16 FAILING CHECK(S)
+
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | opened
+    R1, whose derived code is LA, has no code: never LA, never AT
+        got ["LA",""]   want ["",""]
+    Go to it opens the RECORD panel at the Navy SI code, which shows "at" selected and has the keyboard
+        got ["R1",["LA","LA — Airframe (derived)",["","at","LA","EN","OT","FL","AT"],true]]   want ["R1",["at","“at” — not one of the five, kept as saved",["","at","LA","EN","OT","FL","AT"],true]]
+    the Special Interest overview: LA is R3’s $50,000 alone; R1’s and R9’s money is in the no recognized code row, 63.4%
+        got ["LA Airframe | — | $200,000 | $950,000 | $1,150,000 | 60.2%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no recognized code — | — | $90,000 | $20,000 | $110,000 | 5.8%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]   want ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no recognized code — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]
+    the overview’s note says how much of that row is under a code the board does not recognize, and how much has none
+        got [false,false]   want [true,true]
+    the workbook’s SI Codes by Month tab, from its bytes: LA only $50,000 on USN, the rest of R1’s and R9’s money in the no recognized SI code rows
+        got [["STOVL TOTAL",0],["LA  Airframe",200000],["EN  Engine",100000],["— no recognized SI code —",90000],["USMC CV TOTAL",390000],["LA  Airframe",950000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no recognized SI code —",20000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]   want [["STOVL TOTAL",0],["EN  Engine",100000],["— no recognized SI code —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no recognized SI code —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]
+    the CR cash return prints R1’s and R9’s SI code blank, never LA
+        got [["Ev R1","LA"],["Ev R2","EN"],["Ev R3","LA"],["Ev R4","OT"],["Ev R5","FL"],["Ev R6","AT"],["Ev R7",""],["Ev R8","EN"],["Ev R9",""]]   want [["Ev R1",""],["Ev R2","EN"],["Ev R3","LA"],["Ev R4","OT"],["Ev R5","FL"],["Ev R6","AT"],["Ev R7",""],["Ev R8","EN"],["Ev R9",""]]
+    its status line counts R7 as no SI code and R1, R9 apart, as codes that are not one of the five
+        got  2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank.   want  1 with no SI code — those cells are blank; set them from each row’s ⋯ menu. 2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank too.
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | saved and reopened
+    R1, whose derived code is LA, has no code: never LA, never AT
+        got ["LA",""]   want ["",""]
+    Go to it opens the RECORD panel at the Navy SI code, which shows "at" selected and has the keyboard
+        got ["R1",["LA","LA — Airframe (derived)",["","at","LA","EN","OT","FL","AT"],true]]   want ["R1",["at","“at” — not one of the five, kept as saved",["","at","LA","EN","OT","FL","AT"],true]]
+    the Special Interest overview: LA is R3’s $50,000 alone; R1’s and R9’s money is in the no recognized code row, 63.4%
+        got ["LA Airframe | — | $200,000 | $950,000 | $1,150,000 | 60.2%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no recognized code — | — | $90,000 | $20,000 | $110,000 | 5.8%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]   want ["LA Airframe | — | — | $50,000 | $50,000 | 2.6%","EN Engine | — | $100,000 | $340,000 | $440,000 | 23.0%","OT Other Government Costs | — | — | $60,000 | $60,000 | 3.1%","FL Fuel | — | — | $70,000 | $70,000 | 3.7%","AT Audit | — | — | $80,000 | $80,000 | 4.2%","— no recognized code — | — | $290,000 | $920,000 | $1,210,000 | 63.4%","TOTAL | $0 | $390,000 | $1,520,000 | $1,910,000 | "]
+    the overview’s note says how much of that row is under a code the board does not recognize, and how much has none
+        got [false,false]   want [true,true]
+    the workbook’s SI Codes by Month tab, from its bytes: LA only $50,000 on USN, the rest of R1’s and R9’s money in the no recognized SI code rows
+        got [["STOVL TOTAL",0],["LA  Airframe",200000],["EN  Engine",100000],["— no recognized SI code —",90000],["USMC CV TOTAL",390000],["LA  Airframe",950000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no recognized SI code —",20000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]   want [["STOVL TOTAL",0],["EN  Engine",100000],["— no recognized SI code —",290000],["USMC CV TOTAL",390000],["LA  Airframe",50000],["EN  Engine",340000],["OT  Other Government Costs",60000],["FL  Fuel",70000],["AT  Audit",80000],["— no recognized SI code —",920000],["USN TOTAL",1520000],["ALL SERVICES — TOTAL BY MONTH",1910000]]
+    the CR cash return prints R1’s and R9’s SI code blank, never LA
+        got [["Ev R1","LA"],["Ev R2","EN"],["Ev R3","LA"],["Ev R4","OT"],["Ev R5","FL"],["Ev R6","AT"],["Ev R7",""],["Ev R8","EN"],["Ev R9",""]]   want [["Ev R1",""],["Ev R2","EN"],["Ev R3","LA"],["Ev R4","OT"],["Ev R5","FL"],["Ev R6","AT"],["Ev R7",""],["Ev R8","EN"],["Ev R9",""]]
+    its status line counts R7 as no SI code and R1, R9 apart, as codes that are not one of the five
+        got  2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank.   want  1 with no SI code — those cells are blank; set them from each row’s ⋯ menu. 2 with an SI code from a file that is not one of LA, EN, OT, FL or AT (kept as saved, listed in Needs attention) — their cells are blank too.
+--- v2.00 (U41) — an SI code a file carried that is not one of the five is kept, listed, counted under no recognized code and chosen again in its field | locked cycle view
+    the view holds R1’s code as saved, reads it as no code (never LA) and lists it
+        got ["PB|2027",{"R1":"at","R2":"EN"},"LA",["R1"]]   want ["PB|2027",{"R1":"at","R2":"EN"},"",["R1"]]
+    AT chosen there is refused: the code stays as saved, and the status line says R1 keeps it
+        got [true,{"R1":"at","R2":"EN"},"🏷 Ev R1 → SI LA Airframe — set by hand."]   want [true,{"R1":"at","R2":"EN"},"🏷 Ev R1 keeps SI “at” as saved, not one of LA, EN, OT, FL or AT. The CR cash export leaves the cell blank."]
+# exit 1 at 10/13/2026, 10:49:51 PM ET
+
+# end: 2026-10-13 22:49:51 EDT  exit: 1  wall_s: 16.4

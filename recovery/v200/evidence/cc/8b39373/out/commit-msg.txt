@@ -1,0 +1,31 @@
+v2.00 (U36): an RCN / EEIC title over 80 characters is refused, never cut
+
+The registry-text investigation found that rcnSet cut a typed RCN / EEIC title to its first
+80 UTF-16 units and said nothing. 81 letters were kept as 80. 79 letters and an emoji were kept as
+79 letters and half the emoji, which RCN-EEIC by Month printed as a replacement mark and the saved
+file kept. Any edit of a title that arrived in a file longer than 80 cut the file's title the same
+way.
+
+The title now follows item 91's rule for codes. It is refused: the list keeps what it had, nothing
+is saved, the field keeps what was typed, marked (the panel's title field now passes itself to
+rcnSet), and the status says "RCN / EEIC title not changed". Once a value is then kept in the list,
+that refusal leaves the status line, so the line never says "not changed" of a title that has just
+changed; any other message stays. The limit counts Unicode code points: an emoji stored as two
+halves counts once; a joined emoji, a flag or a letter with a separate accent mark counts as
+several.
+
+Test: audit-recon "v2.00 (U36)", 24 checks. 14 fail on d66dd60; the 10 controls pass on both. The
+306 existing audit-recon checks keep their verdicts and observed values.
+Mutations: v200-regtext-title-no-limit, -title-cut, -title-halves, -refused-but-kept,
+-field-unmarked, -count-untrimmed, -preview-untrimmed, -refused-but-saved, -kept-unsaved,
+-kept-not-drawn, -field-maxlength, -count-glyphs, -count-normalized, -empty-refused,
+-spaces-collapsed, -file-title-shown-cut, -long-title-retyped, -refusal-left-standing,
+-clears-any-message, -formula-cells; the focused block catches each one.
+
+The other registry-text findings (U37-U42) stay open here, with their limits in NEXT-VERSION.md
+and the ledger. U37 (a workbook or slide part not well-formed) and U40 (two destinations merged on
+opening) are release blockers with fix tracks of their own.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01MqCBDiYHPZfnyapxhXKxBm
+

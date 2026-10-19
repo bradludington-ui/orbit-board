@@ -1,0 +1,1 @@
+{"id": "v200-u4-read-loud", "matches": 1, "find": "  if(impMixedBlock('Writing to the shared folder', quiet)) return false;   // v2.00 (U4): after the read\n", "repl": "  if(impMixedBlock('Writing to the shared folder')) return false;   // v2.00 (U4): after the read\n"}

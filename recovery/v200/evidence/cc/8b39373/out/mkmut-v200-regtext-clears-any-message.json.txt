@@ -1,0 +1,1 @@
+{"id": "v200-regtext-clears-any-message", "matches": 1, "find": "if(st && /^⚠ RCN \\/ EEIC title not changed\\./.test(st.textContent)) setStat('');", "repl": "if(st) setStat('');"}

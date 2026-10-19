@@ -1,0 +1,11 @@
+<anonymous_script>:1
+blLblTxt("PB|2027")
+^
+
+ReferenceError: blLblTxt is not defined
+    at eval (eval at ev (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u9u10/main/copy/tools/export-audit/boot.mjs:151:24), <anonymous>:1:1)
+    at eval (<anonymous>)
+    at Object.ev (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u9u10/main/copy/tools/export-audit/boot.mjs:151:24)
+    at file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u9u10/u10-probe.mjs:112:60
+
+Node.js v22.22.0

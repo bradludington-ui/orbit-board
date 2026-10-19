@@ -1,0 +1,4 @@
+  // v2.00 (U2, Brad 11 Oct): work put back during a save stays unsaved.
+  { id: "v200-u2-putback-gen", area: "keptPutBack", what: "↶ Put back of the work kept aside does not count as a change, so a save still writing when it was put back finds nothing changed and marks the board saved: the work put back on screen, the save's copy in the folder or file, and the next refresh or a reopen loses the work put back",
+    find: "  persist(); _saveGen++; DIRTY=true; render();\n",
+    repl: "  persist(); DIRTY=true; render();\n" },

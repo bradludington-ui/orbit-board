@@ -1,0 +1,1 @@
+{"id": "v200-regtext-count-normalized", "matches": 1, "find": "n=Array.from(t).length;", "repl": "n=Array.from(t.normalize('NFC')).length;"}

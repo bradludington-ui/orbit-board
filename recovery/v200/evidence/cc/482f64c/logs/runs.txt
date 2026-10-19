@@ -1,0 +1,15 @@
+F-commit start_et="2026-10-18 05:35:04 EDT" exit=0 wall_s=183.5 log=logs/F-commit.log 
+F-parent start_et="2026-10-18 05:35:04 EDT" exit=1 wall_s=187.3 log=logs/F-parent.log 
+M-v200-u10-journal-putback-in-view start_et="2026-10-18 05:39:10 EDT" exit=1 wall_s=178.0 log=logs/M-v200-u10-journal-putback-in-view.log 
+MC-commit start_et="2026-10-18 05:42:34 EDT" exit=0 wall_s=11.4 log=out/mcount-commit.txt (text only)
+MC-parent start_et="2026-10-18 05:42:46 EDT" exit=0 wall_s=10.7 log=out/mcount-parent.txt (text only)
+C-npm-check-commit start_et="2026-10-18 05:43:56 EDT" exit=0 wall_s=12.3 log=logs/C-npm-check-commit.log 
+S-audit-recon-commit start_et="2026-10-18 05:44:22 EDT" exit=137 wall_s=577.5 log=logs/S-audit-recon-commit.log TIMED OUT = incomplete
+# note: S-audit-recon-commit was SIGKILLed at 577.5 s by the kernel's memory-cgroup OOM killer (dmesg: "Memory cgroup out of memory: Killed process 11212 (node)", anon-rss 1.9 GB; the cgroup is shared with other agents' runs; free showed 1.9 GB free of 16 GB). Not a verdict; re-run below.
+S-audit-recon-commit-r2 start_et="2026-10-18 06:02:09 EDT" exit=0 wall_s=383.3 log=logs/S-audit-recon-commit-r2.log 
+O-import-journal-commit start_et="2026-10-18 06:09:39 EDT" exit=0 wall_s=13.8 log=logs/O-import-journal-commit.log 
+O-import-w4-commit start_et="2026-10-18 06:09:53 EDT" exit=0 wall_s=19.2 log=logs/O-import-w4-commit.log 
+O-board-ppbe-commit start_et="2026-10-18 06:10:12 EDT" exit=0 wall_s=33.8 log=logs/O-board-ppbe-commit.log 
+O-board-v197w4-commit start_et="2026-10-18 06:10:46 EDT" exit=0 wall_s=59.1 log=logs/O-board-v197w4-commit.log 
+F-pre-u10-16ceb83 start_et="2026-10-18 06:09:39 EDT" exit=1 wall_s=165.5 log=logs/F-pre-u10-16ceb83.log 
+M6-v200-u10-journal-putback-in-view start_et="2026-10-18 06:12:54 EDT" exit=0 wall_s=110.3 log=logs/M6-v200-u10-journal-putback-in-view.log 

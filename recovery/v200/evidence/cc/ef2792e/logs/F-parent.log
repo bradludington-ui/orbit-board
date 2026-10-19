@@ -1,0 +1,16 @@
+# label: F-parent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef2792e
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef2792e/out/F-parent.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef2792e/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef2792e/before /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef2792e/harness/before/focused-u10.mjs
+# start: 2026-10-18 06:19:49 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef2792e/before/prioritization-board-grid.html","BOARD_set":false,"board":"5ebf88ad936e7aba78eb15f35618b6d067a05c82","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/ef2792e/harness/before/focused-u10.mjs","harnessBlob":"5361bf1e285ec0b04101c4143579583293efec1a","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 6:19:51 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a view put on screen while Load theirs reads the shared folder keeps nothing aside | Save yours over theirs on the working plan · PB27 put on screen while the folder is read
+    refused as a save is, before its question; nothing is written to the folder or its history, and the work is still this browser’s unsaved work
+        got [false,"PB|2027","🔒 Loading a board is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.","[]",true,true,[["11111"],"MY SECOND A","COLLEAGUE DESC R"],true]   want [false,"PB|2027","🔒 Writing to the shared folder is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.","[]",true,true,[["11111"],"MY SECOND A","COLLEAGUE DESC R"],true]
+# exit 1 at 10/18/2026, 6:22:19 AM ET
+
+# end: 2026-10-18 06:22:19 EDT  exit: 1  wall_s: 150.5

@@ -1,0 +1,16 @@
+# cmd: X=1 node r2-contract.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3-d4a241a/run/copy
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/xcheck
+# git: 
+# node: v22.22.0  jsdom: 
+# start: 2026-10-11T21:13:53Z / 17:13:53 EDT
+# cap: 600s  grace: 10s
+ok   ß×10 (upper-cases to 20): got {"eeic":"AAAAA","marked":true,"said":true} want {"eeic":"AAAAA","marked":true,"said":true} | ⚠ EEIC not changed. The EEIC “SSSSSSSSSSSSSSSSSSSS” is 20 characters; it can be at most 10. Nothing was changed.
+ok   ﬃ×4 (upper-cases to 12): got {"eeic":"AAAAA","marked":true,"said":true} want {"eeic":"AAAAA","marked":true,"said":true} | ⚠ EEIC not changed. The EEIC “FFIFFIFFIFFI” is 12 characters; it can be at most 10. Nothing was changed.
+ok   control " ab12c ": got {"eeic":"AB12C","marked":false,"said":false} want {"eeic":"AB12C","marked":false,"said":false}
+ok   control ABCDEFGHIJ (10): got {"eeic":"ABCDEFGHIJ","marked":false,"said":false} want {"eeic":"ABCDEFGHIJ","marked":false,"said":false}
+ok   control SSSSSSSSSS (10 when upper-cased): got {"eeic":"SSSSSSSSSS","marked":false,"said":false} want {"eeic":"SSSSSSSSSS","marked":false,"said":false}
+script errors []
+ALL OK
+
+# end: 2026-10-11T21:13:55Z / 17:13:55 EDT
+# exit: 0  duration_s: 2.1

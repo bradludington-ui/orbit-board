@@ -1,0 +1,7 @@
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/after  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/before  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/clones  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/before  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut  (folder of board copies or clones (not walked), 0 bytes)
+-  /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/out/pause.fifo  (not a regular file (a pipe or socket), 0 bytes)

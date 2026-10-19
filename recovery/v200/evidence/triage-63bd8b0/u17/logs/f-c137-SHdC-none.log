@@ -1,0 +1,34 @@
+PASS [fixture] fixture.v1: the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)
+     expected ["BRAD-1","Brad","Brad"]
+     observed ["BRAD-1","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]
+     expected ["BRAD-1",false,false,false,true]
+     observed ["BRAD-1",false,false,false,true]
+PASS [fixture] fixture.sharedClock: the shared state file is stamped at or before real time
+     expected true
+     observed true
+PASS [fixture] fixture.typed: brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])
+     expected ["BRAD-2",true,true]
+     observed ["BRAD-2",true,true]
+PASS [fixture] fixture.arrived: the shared state file arrives after brad typed BRAD-2/$720: nothing is replaced and 'load the shared one' is offered ([screen, DIRTY, record dirty, SHARED held, said])
+     expected ["BRAD-2",true,true,true,true]
+     observed ["BRAD-2",true,true,true,true]
+PASS [predict] SHdC.adopt: the other copy is put on screen with no save under way ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])
+     expected ["SHARED",0,true,"BRAD-2",true]
+     observed ["SHARED",0,true,"BRAD-2",true]
+PASS [contract] SHdC.K1: CONTRACT once settled [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["SHARED",false,"BRAD-1"]]
+     observed ["SHARED",false,"BRAD-1"]
+PASS [predict] SHdC.U17state: U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base ["SHARED",false,"BRAD-1"]
+     expected false
+     observed false
+PASS [contract] SHdC.K2: CONTRACT after a later refresh (or the board says the copies differ) [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["SHARED",false,"BRAD-1"]]
+     observed ["SHARED",false,"BRAD-1"]
+PASS [contract] SHdC.K3: CONTRACT after a reopen (opening connect + refresh) (or it says the copies differ) [screen, recorded clean, base copy]
+     expected [["REMOTE",true,"REMOTE"],["WORKING",true,"WORKING"],["BOB-2",true,"BOB-2"],["BRAD-1",true,"BRAD-1"],["BRAD-2",true,"BRAD-2"],["SHARED",true,"SHARED"],["IMPORT",true,"IMPORT"],["F1",true,"F1"],["SHARED",false,"BRAD-1"]]
+     observed ["SHARED",false,"BRAD-1"]
+whereNow {"SHARED":{"folderHead":false,"folderHistory":[],"screen":true,"storage":true,"keptSlot":false},"BRAD-2":{"folderHead":false,"folderHistory":[],"screen":false,"storage":false,"keptSlot":true},"note":"SHARED also stays in the shared state file itself (outside this mock)"}
+u17state {"tuple":["SHARED",false,"BRAD-1"],"falselyClean":false}
+ids {"board":"1375b72b6707faa57c50d528e01ce9611f194998","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"6b65ff659b6f2f374b29b2707cf1ce049a5eecf2","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17/c137/prioritization-board-grid.html"}
+SUMMARY SHdC none board=pre: 10 pass, 0 fail | fixture 5/5 | predict 2/2 | contract 3/3 | harness 0/0

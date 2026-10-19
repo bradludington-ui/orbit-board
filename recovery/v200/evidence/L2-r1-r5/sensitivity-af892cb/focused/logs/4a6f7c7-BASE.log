@@ -1,0 +1,12 @@
+# cmd: X=1 node tools/export-audit/focused-r3r5.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T01:02:36Z / 21:02:36 EDT
+# cap: 600s  grace: 10s
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-12T01:02:59Z / 21:02:59 EDT
+# exit: 0  duration_s: 22.7

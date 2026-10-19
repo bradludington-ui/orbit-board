@@ -1,0 +1,5 @@
+9ef4f28 15:39 Claude v2.00 recovery: resumed workflows' state recorded (records only)
+f7cddb7 15:38 Claude v2.00 recovery: runner self-test 41/41 at cccb714 (records only)
+ff0c335 15:38 Claude recovery/v200: final tree STOPPED, run(s) backed up: records (no product change)
+3b8bc73 15:37 Claude recovery/v200: final tree STOPPED, run(s) backed up: records (no product change)
+cccb714 15:37 Claude v2.00 recovery: runner correction 2c -- the queue's records reach the backup; stops end lanes and runs (records only)

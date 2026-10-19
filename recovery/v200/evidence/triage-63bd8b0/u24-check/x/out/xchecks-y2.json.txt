@@ -1,0 +1,259 @@
+{
+ "pass": "y2",
+ "rows": [
+  {
+   "sc": "SHc-fold-Wedit",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-file-Wedit",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-Wread",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-file-Wread",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHc-fold-Whist",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "SHa-fold-Wlate",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-C3clean",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "IB-fold-C1oldclean",
+   "kind": "RUN",
+   "what": "output present",
+   "got": false,
+   "want": true,
+   "ok": false
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "RUN",
+   "what": "finished, no error, board 98eed7e8",
+   "got": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "want": [
+    0,
+    null,
+    "98eed7e8"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "HOLD",
+   "what": "held [reached, busy, target, DIRTY, asked]",
+   "got": [
+    true,
+    1,
+    "CAROL-F",
+    true,
+    1
+   ],
+   "want": [
+    true,
+    1,
+    "CAROL-F",
+    true,
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "FIX",
+   "what": "the person clicked 'open the file’s version' and answered its one question OK",
+   "got": [
+    "clicked",
+    1
+   ],
+   "want": [
+    "clicked",
+    1
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "CF",
+   "what": "COUNTERFACTUAL mark applied: [DIRTY, record dirty, screen]",
+   "got": [
+    true,
+    true,
+    "CAROL-F"
+   ],
+   "want": [
+    true,
+    true,
+    "CAROL-F"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "PRED",
+   "what": "the action [screen, busy, gen moved, DIRTY, record dirty, kept]",
+   "got": [
+    "CAROL-F",
+    1,
+    false,
+    false,
+    false,
+    "KEPT-0"
+   ],
+   "want": [
+    "CAROL-F",
+    1,
+    false,
+    false,
+    false,
+    "KEPT-0"
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "PRED",
+   "what": "end",
+   "got": [
+    "CAROL-F",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    true
+   ],
+   "want": [
+    "CAROL-F",
+    true,
+    "BRAD-2",
+    "BRAD-2",
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "PRED",
+   "what": "reopen",
+   "got": [
+    "CAROL-F",
+    false,
+    "BRAD-2",
+    false
+   ],
+   "want": [
+    "CAROL-F",
+    false,
+    "BRAD-2",
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "K",
+   "what": "K1/K2/K3 falsely clean",
+   "got": [
+    true,
+    null,
+    false
+   ],
+   "want": [
+    true,
+    null,
+    false
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "REACH",
+   "what": "end: BRAD-2, KEPT-0, CAROL-F in a board copy",
+   "got": [
+    true,
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "REACH",
+   "what": "reopened: BRAD-2, KEPT-0, CAROL-F in a board copy",
+   "got": [
+    true,
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  },
+  {
+   "sc": "BT-file-Wcf",
+   "kind": "REACH",
+   "what": "edited: BRAD-2, KEPT-0, CAROL-F in a board copy",
+   "got": [
+    true,
+    true,
+    true
+   ],
+   "want": [
+    true,
+    true,
+    true
+   ],
+   "ok": true
+  }
+ ]
+}

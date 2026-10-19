@@ -1,0 +1,25 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-import-af892cb/mut-impmixed-file-unguarded.html node tools/export-audit/audit-import.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/wt-af892cb
+# git: af892cb12713dd22afd9a84c0ec604b30614f6ea
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T00:39:58Z / 20:39:58 EDT
+# cap: 900s  grace: 20s
+
+================================================================================================
+5 FAILING CHECK(S)
+
+--- v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched | hold on, read not held
+    refused before the file is touched: no permission request, no read, no open
+        got perm 1 · read 1 · open 0   want perm 0 · read 0 · open 0
+--- v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched | hold on, read held and the hold cleared during it
+    refused before the file is touched: no permission request, no read, no open
+        got perm 1 · read 1 · open 0   want perm 0 · read 0 · open 0
+    Save is refused at once: the request is over, and the board says so
+        got [false,false]   want [true,true]
+    clearing the hold does not bring the refused Save back: nothing is written
+        got [1,1]   want [0,0]
+    the board file keeps its bytes
+        got false   want true
+
+# end: 2026-10-12T00:48:09Z / 20:48:09 EDT
+# exit: 1  duration_s: 491.0

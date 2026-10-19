@@ -1,0 +1,4 @@
+added lines 65 | removed 1 ["  - **U4:** the folder save's window for the hold."]
+draft U4 entry lines 62 | draft Unresolved U4 lines 3
+added == draft entry + draft Unresolved U4 line: True
+removed line == the draft ledger's old U4 line: True ["  - **U4:** the folder save's window for the hold."]

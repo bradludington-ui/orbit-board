@@ -1,0 +1,15 @@
+# cmd: X=1 node tools/export-audit/legacy-fsrc.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/clone
+# git: 592d62967bd9cd610ec29bc4a380a55b5671cb4d
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T14:51:01Z / 10:51:01 EDT
+# cap: 600s  grace: 10s
+  ok   legacy fsrc 'mand' still honoured — all mandatory (d 0 · m 60 · u 0)
+  ok   legacy fsrc 'disc' still honoured — all discretionary (d 60 · m 0 · u 0)
+  ok   legacy fsrc 'ufr' still honoured — all unfunded (d 0 · m 0 · u 60)
+
+  every legacy Force setting computes exactly as before
+
+
+# end: 2026-10-12T14:51:06Z / 10:51:06 EDT
+# exit: 0  duration_s: 5.1

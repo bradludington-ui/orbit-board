@@ -1,0 +1,103 @@
+diff --git a/tools/export-audit/audit-import.mjs b/tools/export-audit/audit-import.mjs
+index 6b522d9..4cda2d0 100644
+--- a/tools/export-audit/audit-import.mjs
++++ b/tools/export-audit/audit-import.mjs
+@@ -6854,6 +6854,98 @@ await (async () => {
+ })();
+ // ==== end v1.97 W6 ====
+ 
++// ==== v2.00 R4: Save and the mixed-import hold (R4, R4b) ====
++// v2.00 (R4): A SAVE ALREADY WAITING DOES NOT WRITE PAST A MIXED-IMPORT HOLD. _saveInPlaceFileRun checked the hold once,
++// before it waited for the board file's read. A full import that stopped part-way during that wait, and could not be put
++// back, set the hold; the Save then built its bytes from the mix and wrote them over the board file -- the one whole copy
++// of the board as it was. Here the read is held, the import fails while it waits (browser storage refuses the
++// reprogramming log and every write after it, putting back included), and then the read is let go.
++// FAILS ON 1c94537 (the file is opened and written, and the board says it saved).
++await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
++  const __bm = bootMark();
++  const name = 'v2.00 (R4) — a save already waiting does not write past a mixed-import hold';
++  try {
++    const { NEW, OLD } = w2Fx();
++    const { J, wire, KEY, status, disk, gate, until } = W1H;
++    for (const withImport of [false, true]) {
++      const at = withImport ? 'the import stops part-way during the read' : 'CONTROL — nothing happens during the read';
++      const T = boot({ html: OLD.html, ls: OLD.ls });
++      wire(T.ev, 'brad', KEY.brad);
++      const f = disk(T.w, OLD.html), g = gate(); f.hold.read = g;
++      const p = T.ev('saveInPlaceFile()');
++      const reached = await until(() => (f.hits.read || 0) >= 1);
++      chk(name, at, 'the save reached the file’s read and waits there (a control)', J([reached, f.hits.open || 0, f.writes]), J([true, 0, 0]));
++      if (withImport) {
++        const r = w2Import(T, NEW.html, 'stuck', 8);
++        chk(name, at, 'the import stopped part-way, could not be put back, and the hold is on (a control)',
++          J([r.ret, /could not be put back as it was/.test(r.stat), T.ev('String(impMixedOn())')]), J([false, true, 'true']));
++      }
++      g.open(); await p;
++      if (!withImport) {
++        chk(name, at, 'the save opens and writes the board file once', J([f.hits.open || 0, f.writes]), J([1, 1]));
++        continue;
++      }
++      chk(name, at, 'nothing is written: the file is never opened for writing', J([f.hits.open || 0, f.writes]), J([0, 0]));
++      chk(name, at, 'the board file keeps its bytes', f.content === OLD.html, true);
++      chk(name, at, 'the board says the save is refused, and that nothing writes over the board file',
++        /Saving to the board file is refused/.test(status(T.ev)) && /nothing writes over it/.test(status(T.ev)), true);
++    }
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, keepBoards());
++  await settleBoards();
++})();
++// v2.00 (R4b): A SAVE ASKED FOR WHILE THE HOLD IS ALREADY ON IS REFUSED BEFORE THE FILE IS TOUCHED. Brad's contract
++// (11 Oct): "a Save requested while the mixed-import hold is already active must refuse immediately, before file access.
++// Clearing the hold later must not resume that refused request." Since R4 checks the hold again after the read, a Save
++// that skipped the first check is still refused -- after asking for permission and reading the file -- so the v1.95
++// block above no longer sees that check go. The file here counts every permission request, read and open. A Save starts a
++// turn after it is asked for (saveSerial), so the hold is cleared only once the request has been decided: refused,
++// finished, or arrived at the file's read.
++await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
++  const __bm = bootMark();
++  const name = 'v2.00 (R4b) — a Save asked for during the mixed-import hold is refused before the file is touched';
++  try {
++    const { NEW, OLD } = w2Fx();
++    const { J, wire, KEY, status, disk, gate, until, tick } = W1H;
++    for (const [at, hold, delayRead] of [['CONTROL — no hold', false, false], ['hold on, read not held', true, false],
++                                         ['hold on, read held and the hold cleared during it', true, true]]) {
++      const T = boot({ html: OLD.html, ls: OLD.ls });
++      if (hold) w2Import(T, NEW.html, 'stuck', 8);
++      wire(T.ev, 'brad', KEY.brad);
++      chk(name, at, 'the hold is ' + (hold ? 'on' : 'off') + ' before the Save is asked for (a control)', T.ev('String(impMixedOn())'), String(hold));
++      const f = disk(T.w, OLD.html), g = gate(); if (delayRead) f.hold.read = g;
++      T.w.__disk.requestPermission = async () => { f.hits.perm = (f.hits.perm || 0) + 1; return 'granted'; };
++      const touched = () => `perm ${f.hits.perm || 0} · read ${f.hits.read || 0} · open ${f.hits.open || 0}`;
++      let decided = false;
++      Promise.resolve(T.ev('saveInPlaceFile()')).then(() => { decided = true; });
++      await until(() => decided || (f.hits.read || 0) >= 1);
++      if (!hold) {
++        await until(() => decided);
++        chk(name, at, 'the Save asks for permission, reads, opens and writes the board file once', touched() + ' · writes ' + f.writes, 'perm 1 · read 1 · open 1 · writes 1');
++        continue;
++      }
++      chk(name, at, 'refused before the file is touched: no permission request, no read, no open', touched(), 'perm 0 · read 0 · open 0');
++      chk(name, at, 'Save is refused at once: the request is over, and the board says so', J([decided, /Saving to the board file is refused/.test(status(T.ev))]), J([true, true]));
++      if (delayRead) {
++        T.ev(`globalThis.__yes=true; impMixedClear(); 'ok'`);    // allowed again (confirm answered yes), while a read would be held
++        chk(name, at, 'the hold is cleared (a control)', T.ev('String(impMixedOn())'), 'false');
++        for (let i = 0; i < 200; i++) await tick();
++        g.open();
++      }
++      await until(() => decided);
++      chk(name, at, (delayRead ? 'clearing the hold does not bring the refused Save back: ' : '') + 'nothing is written', J([f.hits.open || 0, f.writes]), J([0, 0]));
++      chk(name, at, 'the board file keeps its bytes', f.content === OLD.html, true);
++    }
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, keepBoards());
++  await settleBoards();
++})();
++// ==== end v2.00 R4 ====
++
+ await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+   const __bm = bootMark();
+   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

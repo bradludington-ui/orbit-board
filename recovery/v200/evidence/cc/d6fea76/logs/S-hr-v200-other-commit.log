@@ -1,0 +1,31 @@
+# label: S-hr-v200-other-commit
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/clones/gc
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/out/S-hr-v200-other-commit.checks.jsonl node tools/export-audit/hr-v200-other.mjs
+# start: 2026-10-18 18:45:02 EDT
+# cap: 600 s, kill grace 10 s
+
+================================================================================================
+8 FAILING CHECK(S)
+
+--- v2.00 (U34) — a saved year selection this board did not write is never read as ALL YEARS; it is kept and said | harness
+    the block threw: w7Ok is not defined
+        got threw   want ran
+    this scenario never ran — is its block after process.exit()?
+        got never ran   want ran
+--- v2.00 (U10) — a refused edit in a locked cycle’s view changes no code any export carries | harness
+    the block threw: v198Board is not defined
+        got threw   want ran
+    this scenario never ran — is its block after process.exit()?
+        got never ran   want ran
+--- v2.00 (U10) — a refusal in a locked view puts back the plan’s settings, the year on screen, the CCaR records and the cycle’s base year | harness
+    the block threw: v198Board is not defined
+        got threw   want ran
+    this scenario never ran — is its block after process.exit()?
+        got never ran   want ran
+--- v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept | harness
+    the block threw: v198NONE is not defined
+        got threw   want ran
+    this scenario never ran — is its block after process.exit()?
+        got never ran   want ran
+
+# end: 2026-10-18 18:47:19 EDT  exit: 1  wall_s: 136.9

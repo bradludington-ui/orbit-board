@@ -1,0 +1,20 @@
+# label: M-v200-u4-resolve-kept-unchecked
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/out/M-v200-u4-resolve-kept-unchecked.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-resolve-kept-unchecked.html
+# start: 2026-10-18 04:00:17 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/mut/v200-u4-resolve-kept-unchecked.html","BOARD_set":true,"board":"eee6f04df21e0125773ba98beaf979b045ecd460","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/16ceb83/harness/after/h-u4.mjs","harnessBlob":"3968755334eb8be9df9ec3f13ebf53282be3a0d8","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 4:00:18 AM ET"}
+
+================================================================================================
+3 FAILING CHECK(S)
+
+--- v2.00 (U4) — the folder save checks the mixed-import hold after its read and before its write | Save yours over theirs held at the close of the copy of theirs it keeps in the history, the import stops part-way there
+    asked before the hold came, and their copy stays kept in the history; nothing is written, and their copy is not recorded as the one being replaced
+        got [1,1,0,true,true]   want [1,1,0,true,false]
+    the board says choosing between the copies is refused, and does not say Saved or Loaded
+        got [false,false]   want [true,false]
+    once saving is allowed again, the autosave does not write over their copy: nothing asked or written, Bob’s note stays, and the choice is offered again
+        got ["true",0,1,"",false]   want ["false",0,0,"BOB-1",true]
+# exit 1 at 10/18/2026, 4:00:48 AM ET
+
+# end: 2026-10-18 04:00:48 EDT  exit: 1  wall_s: 30.5

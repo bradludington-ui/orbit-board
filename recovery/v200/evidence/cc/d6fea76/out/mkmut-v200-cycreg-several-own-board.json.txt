@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-several-own-board", "matches": 1, "find": "      rec.bad=inboundCheck(r.result);", "repl": "      rec.bad=inboundCheckOwn(r.result, 'board');"}

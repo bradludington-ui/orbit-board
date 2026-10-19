@@ -1,0 +1,243 @@
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-after-ownunsaved.html	2026-10-12 12:06:32.783480635 +0000
+@@ -26740,6 +26740,9 @@
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this
+   // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
++  // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
++  // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
++  const own=ownUnsaved(MS, j.store, baseGet());
+   if(_saveBusy){
+     const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+     if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+@@ -26747,9 +26750,6 @@
+       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;
+   }
+-  // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+-  // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+-  const own=ownUnsaved(MS, j.store, baseGet());
+   const ka=own? keepAside(MS, {why:'folder', by:j.by||'', ts:theirs}, baseGet()) : true;
+   if(ka==='occupied'){ setStat(keptOccupiedMsg(j.by, theirs, 'the shared folder')); render(); return false; }
+   if(ka!==true){
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-between-waits.html	2026-10-12 12:06:32.723480631 +0000
+@@ -26681,6 +26681,13 @@
+       +'</b>. Open 📡 Live view and press Reconnect.');
+     render(); return false;
+   }
++  if(_saveBusy){
++    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
++    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
++      +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
++      +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+   let j;
+   try{ j=await driveStoreRead(dir, mySlug()); }
+   catch(e){
+@@ -26740,13 +26747,6 @@
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this
+   // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+-  if(_saveBusy){
+-    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+-    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+-      +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+-      +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-connect-overwrites.html	2026-10-12 12:06:33.115480655 +0000
+@@ -12773,7 +12773,7 @@
+     _driveNeed='click'; _driveLive=false; driveBar(); return false;
+   }
+   _driveDir=h; _driveNeed='';
+-  await driveStorePull(false);
++  if(!(await driveStorePull(false)) && _saveBusy) setStat('✓ Connected to the shared folder.');
+   try{ await driveExecPull(true); }catch(e){}
+   // The cost estimate comes across on CONNECT only - see driveAcePull for why it is not on
+   // the refresh tick. Quiet, because a first connection should not open with a wall of text.
+@@ -12802,7 +12802,7 @@
+     setStat('✓ Connected for reading. To save there as well, press <b>✎ Allow editing</b> in \u{1F4E1} Live view.');
+   }
+   _driveNeed='';
+-  await driveStorePull(false);
++  if(!(await driveStorePull(false)) && _saveBusy) setStat('✓ Connected to the shared folder.');
+   try{ await driveExecPull(true); }catch(e){}
+   // The cost estimate comes across on CONNECT only - see driveAcePull for why it is not on
+   // the refresh tick. Quiet, because a first connection should not open with a wall of text.
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-connect-silent.html	2026-10-12 12:06:33.043480650 +0000
+@@ -26742,7 +26742,7 @@
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+   if(_saveBusy){
+     const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+-    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
++    if(false) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-connect-stops.html	2026-10-12 12:06:33.179480659 +0000
+@@ -12773,7 +12773,7 @@
+     _driveNeed='click'; _driveLive=false; driveBar(); return false;
+   }
+   _driveDir=h; _driveNeed='';
+-  await driveStorePull(false);
++  await driveStorePull(false); if(_saveBusy){ driveBar(); render(); return true; }
+   try{ await driveExecPull(true); }catch(e){}
+   // The cost estimate comes across on CONNECT only - see driveAcePull for why it is not on
+   // the refresh tick. Quiet, because a first connection should not open with a wall of text.
+@@ -12802,7 +12802,7 @@
+     setStat('✓ Connected for reading. To save there as well, press <b>✎ Allow editing</b> in \u{1F4E1} Live view.');
+   }
+   _driveNeed='';
+-  await driveStorePull(false);
++  await driveStorePull(false); if(_saveBusy){ driveBar(); render(); return true; }
+   try{ await driveExecPull(true); }catch(e){}
+   // The cost estimate comes across on CONNECT only - see driveAcePull for why it is not on
+   // the refresh tick. Quiet, because a first connection should not open with a wall of text.
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-entry-only.html	2026-10-12 12:06:32.659480628 +0000
+@@ -26673,6 +26673,13 @@
+ // ADOPT THE FOLDER'S COPY, but never over unsaved work and never a copy that is older than ours.
+ async function driveStorePull(quiet){
+   if(!driveStoreOn()) return false;
++  if(_saveBusy){
++    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
++    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
++      +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
++      +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++    render(); return false;
++  }
+   let dir;
+   try{ dir=await driveDir(false,'read'); }
+   catch(e){
+@@ -26740,13 +26747,6 @@
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this
+   // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+-  if(_saveBusy){
+-    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+-    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+-      +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+-      +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
+-  }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+   const own=ownUnsaved(MS, j.store, baseGet());
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-lbl-no-esc.html	2026-10-12 12:06:32.955480645 +0000
+@@ -26741,7 +26741,7 @@
+   // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+   if(_saveBusy){
+-    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
++    const lbl=(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+     if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-quiet-says.html	2026-10-12 12:06:33.003480648 +0000
+@@ -26742,7 +26742,7 @@
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+   if(_saveBusy){
+     const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+-    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
++    setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-refuse-only-clean.html	2026-10-12 12:06:33.271480664 +0000
+@@ -26740,7 +26740,7 @@
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this
+   // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+-  if(_saveBusy){
++  if(_saveBusy && !ownUnsaved(MS, j.store, baseGet())){
+     const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+     if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-refuse-only-others.html	2026-10-12 12:06:33.315480667 +0000
+@@ -26740,7 +26740,7 @@
+   // when there is nothing newer; a Connect says so, in words that stay true once the save has landed. The words name this
+   // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+-  if(_saveBusy){
++  if(_saveBusy && j.by!==whoAmI()){
+     const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+     if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-refuse-sets-base.html	2026-10-12 12:06:33.359480669 +0000
+@@ -26745,7 +26745,7 @@
+     if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
++    driveBaseSet(mySlug(), theirs); render(); return false;
+   }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-refuse-touches-livedb.html	2026-10-12 12:06:33.403480672 +0000
+@@ -26745,7 +26745,7 @@
+     if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+-    render(); return false;
++    LIVEDB.last=Date.now(); render(); return false;
+   }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+   // (v1.89). DIRTY knows only this session: after a reopen it was false, and the work went unasked.
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-resolve-unqueued.html	2026-10-12 12:06:33.223480661 +0000
+@@ -26909,7 +26909,7 @@
+ // 'mine': keep their copy in the folder's history -- forced, whatever the spacing -- then save over it.
+ function driveResolve(which){   // queued (v1.95); refused at once in a PMO copy or a locked view
+   if(sandboxBlock('Writing to the shared folder')||cycBlock('Loading a board')) return false;
+-  return saveSerial(function(){ return _driveResolveRun(which); });
++  return _driveResolveRun(which);
+ }
+ async function _driveResolveRun(which){
+   if(sandboxBlock('Writing to the shared folder')||cycBlock('Loading a board')) return false;
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-words-full-year.html	2026-10-12 12:06:32.907480642 +0000
+@@ -26741,7 +26741,7 @@
+   // board's copy and nothing wider: the same Connect goes on to load the execution data, the reprogramming log and cost
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+   if(_saveBusy){
+-    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
++    const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur);
+     if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-words-nothing-changed.html	2026-10-12 12:06:32.871480640 +0000
+@@ -26744,7 +26744,7 @@
+     const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+     if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+-      +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
++      +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on). Nothing was changed.');
+     render(); return false;
+   }
+   // WORK THIS BROWSER HOLDS THAT NO SAVED COPY HAS is kept aside before the newer copy replaces it
+--- after/prioritization-board-grid.html	2026-10-12 11:54:29.563437645 +0000
++++ mut/m2-words-save-only.html	2026-10-12 12:06:32.827480638 +0000
+@@ -26742,7 +26742,7 @@
+   // estimates from the folder. They name Load theirs as well, which runs in the same queue and counts here as a save does.
+   if(_saveBusy){
+     const lbl=esc(APPN_LBL[mySlug()]||mySlug())+' FY'+(MS.cur%100);
+-    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save or Load theirs was under way, so '
++    if(!quiet) setStat('⏳ The shared folder’s copy of '+lbl+' was <b>not loaded</b>: a save was under way, so '
+       +'this board kept its own copy of '+lbl+'. The folder’s copy is checked again on the next refresh once that has '
+       +'finished (📡 Live view → ↻ Refresh now, or on its own while Live view is on).');
+     render(); return false;

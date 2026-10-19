@@ -1,0 +1,16 @@
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v1.99 — a code longer than its limit is refused when typed and flagged when imported, never cut (item 91) | RCN and EEIC, typed
+    11 characters each: refused, the list keeps 11111 / AAAAA, and the field is marked
+        got ["1234567890","ABCDEFGHIJ",null]   want ["11111","AAAAA","true"]
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as ß×10
+    upper-cased it is 20 characters: refused, the list keeps AAAAA, the field keeps what was typed, marked, the status says EEIC not changed
+        got ["SSSSSSSSSSSSSSSSSSSS",null,"ßßßßßßßßßß",false]   want ["AAAAA","true","ßßßßßßßßßß",true]
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as ﬃ×4
+    upper-cased it is 12 characters: refused, the list keeps AAAAA, the field keeps what was typed, marked, the status says EEIC not changed
+        got ["FFIFFIFFIFFI",null,"ﬃﬃﬃﬃ",false]   want ["AAAAA","true","ﬃﬃﬃﬃ",true]
+--- v2.00 (R2) — an EEIC is checked in the form it is stored | EEIC typed as ABCDEFGHIJK
+    CONTROL — 11 characters as typed: refused, the list keeps AAAAA, the field is marked
+        got ["ABCDEFGHIJ",null,"ABCDEFGHIJK",false]   want ["AAAAA","true","ABCDEFGHIJK",true]

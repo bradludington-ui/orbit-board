@@ -1,0 +1,89 @@
+diff --git a/tools/export-audit/audit-recon.mjs b/tools/export-audit/audit-recon.mjs
+index 6df89f2..4190348 100644
+--- a/tools/export-audit/audit-recon.mjs
++++ b/tools/export-audit/audit-recon.mjs
+@@ -6831,6 +6831,84 @@ await (async () => {
+   await settleBoards();
+ })();
+ // ==== end v2.00 (U10, Load theirs) ====
++// ==== v2.00 (U10, the change journal): ↶ Put back in a locked view is refused before the journal is touched ====
++// The U10 money review, round 4 (probe P11): the change journal's ↶ Put back is a write a locked view refuses -- its save() is --
++// but before that save it re-takes the journal's shadow (jrnlSync) from the copy on screen, the locked cycle's years. The refusal
++// puts the copy back and not the shadow, so the first save on the working plan after leaving the view wrote every difference
++// between the cycle and the working plan into the journal as a change made then, by whoever saved. The journal travels in every
++// saved board and shared-folder copy, and the PPBE cycle's changes table names its newest entry as who changed a requirement.
++// On an O&M board of two requirements (F1 PSM, $1,000,000,000 asked; F2 PSM, $200,000,000) PB27 is locked; then, on the working
++// plan, Colleague C asks $1,200,000,000 for F1 and writes a note on F1. Me M views PB27 and presses ↶ Put back on Colleague C's
++// note (answered OK): refused. Back on the working plan Me M writes a note on F2, and it is saved. FAILS ON 7ee498a (board
++// fce8a391) and on U10 1-6 of 6: that save records three entries by Me M -- F1's note, F1's $1,200,000,000 and F2's note --
++// the board file carries them, the cycle's table credits Me M with F1, and ↶ Put back is offered on an entry saying Me M asked
++// $1,200,000,000 for F1. CONTROLS: the fixture; on the working plan (no view) ↶ Put back on the same note is allowed and
++// recorded once; F1's requirement is the working plan's $1,200,000,000 throughout. Every expected entry and figure is typed here.
++await (async () => {
++  const name = 'v2.00 (U10) — ↶ Put back in a locked view is refused and leaves the change journal as it was';
++  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
++  const __bm = bootMark();
++  try {
++    const J = JSON.stringify, M = 1000000;
++    const X = boot();
++    seed(X.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * M]), it('F2', 'PSM', [200 * M])], disc: [500 * M], mand: [0], order: ['F1', 'F2'] });
++    const ev = c => { try { return X.ev(c); } catch (e) { return 'threw: ' + String((e && e.message) || e).slice(0, 100); } };
++    ev(`window.confirm=function(){ return true; };
++      BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
++      MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S}; applyState(S); MS.years[2027]=S;
++      localStorage.setItem('prio27who','Colleague C'); jrnlSync(); save(); 'ok'`);
++    const key = ev(`blCyc='PB'; blYr=MS.cur; cycLock(); blKey('PB', MS.cur)`);
++    // after the lock, on the working plan: Colleague C's two changes, each saved
++    ev(`setAsk('F1', 0, '1200000000'); S.notes.F1='after the lock'; save(); 'ok'`);
++    // the journal: [who, field, was, became] for each entry
++    const jr = () => JSON.parse(ev(`JSON.stringify((MS.jrnl||[]).map(function(e){ return [e.by, (e.p||[]).join('.'), e.a, e.b]; }))`));
++    const notKept = () => /the change was not kept|Not kept/.test(ev(`(document.getElementById('shareStat')||{}).textContent||''`));
++    const ask = () => ev(`String(itemById('F1').ask[0])`);
++    // the ↶ Put back the journal panel draws for the newest entry by `who` on `field`
++    const putBack = (who, field) => ev(`(function(){ if(!jrnlOpen) toggleJrnl(); var L=MS.jrnl||[], i=-1;
++      for(var k=L.length-1; k>=0; k--) if(L[k].by===${J(who)} && (L[k].p||[]).join('.')===${J(field)}){ i=k; break; }
++      var b=[].slice.call(document.querySelectorAll('#jrnlBody button')).filter(function(e){ return (e.getAttribute('onclick')||'')==='jrnlUndo('+i+')'; })[0];
++      if(!b) return 'no control'; b.click(); return 'fired'; })()`);
++    const shut = () => ev(`if(jrnlOpen) toggleJrnl(); 'ok'`);
++    const C2 = [['Colleague C', 'asks.F1', null, [1200000000]], ['Colleague C', 'notes.F1', null, 'after the lock']];
++    w5Chk(name, 'fixture', 'CONTROL — PB27 is locked; Colleague C’s two changes are the journal, and F1 asks $1,200,000,000',
++      J([key, jr(), ask()]), J(['PB|2027', C2, '1200000000']));
++    // ---- PB27 viewed; Me M presses ↶ Put back on Colleague C's note (answered OK) -- refused
++    ev(`localStorage.setItem('prio27who','Me M'); cycView(${J(key)}); 'ok'`);
++    const pf = putBack('Colleague C', 'notes.F1'), pk = notKept();
++    w5Chk(name, 'PB27 viewed · ↶ Put back on Colleague C’s note on F1, answered OK', 'refused and said so; the view holds the cycle’s F1 ($1,000,000,000, no note) and the journal is as it was',
++      J([pf, pk, ev('CYCVIEW'), ev(`String(itemById('F1').ask[0])`), ev(`String((S.notes||{}).F1||'')`), jr()]), J(['fired', true, 'PB|2027', '1000000000', '', C2]));
++    shut(); ev(`cycLeave(); 'ok'`);
++    // ---- back on the working plan, Me M writes a note on F2: the save records that one change, and nothing of the cycle's
++    const n0 = jr().length;
++    ev(`S.notes.F2='mine'; save(); 'ok'`);
++    w5Chk(name, 'the view left · Me M’s note on F2 saved', 'the journal records one change, Me M’s note on F2 -- nothing credited to Me M on F1',
++      J([jr().slice(n0), ask()]), J([[['Me M', 'notes.F2', null, 'mine']], '1200000000']));
++    // the board file the working plan saves, read from its bytes: every journal entry it carries by Me M
++    const file = ev(`(function(){ var h=buildSavedHtml(), m=/<script type="application\\/json" id="pubState">([\\s\\S]*?)<\\/script>/.exec(h);
++      if(!m) return '"no state"'; var st=(JSON.parse(m[1]).appns||{})[mySlug()]||{};
++      return JSON.stringify((st.jrnl||[]).filter(function(e){ return e.by==='Me M'; }).map(function(e){ return [(e.p||[]).join('.'), e.a, e.b]; })); })()`);
++    // the PPBE cycle's changes table: who changed F1 since PB27; and whether ↶ Put back is offered on any entry by Me M naming F1
++    const who = ev(`cycWho('F1', (blGet(${J(key)})||{}).ts||0, 2027)`).split(' · ')[0];
++    const offered = ev(`(function(){ if(!jrnlOpen) toggleJrnl(); var L=MS.jrnl||[];
++      return [].slice.call(document.querySelectorAll('#jrnlBody button')).filter(function(b){ var m=/^jrnlUndo\\((\\d+)\\)$/.exec(b.getAttribute('onclick')||'');
++        var e=m? L[+m[1]] : null; return e && e.by==='Me M' && (e.p||[]).indexOf('F1')>=0; }).length; })()`);
++    shut();
++    w5Chk(name, 'the view left · Me M’s note on F2 saved', 'the board file carries only Me M’s note on F2; the cycle’s table credits Colleague C with F1; no ↶ Put back is offered on an entry by Me M about F1',
++      J([JSON.parse(file), who, offered]), J([[['notes.F2', null, 'mine']], 'Colleague C', 0]));
++    // ---- CONTROL: on the working plan, the same ↶ Put back is allowed, and the journal records it once
++    const n1 = jr().length, wf = putBack('Colleague C', 'notes.F1'), wk = notKept();
++    shut();
++    w5Chk(name, 'the working plan · ↶ Put back on Colleague C’s note on F1 (allowed)', 'CONTROL — the note is gone, the journal records Me M putting it back, and F1 still asks $1,200,000,000',
++      J([wf, wk, ev(`String((S.notes||{}).F1||'')`), jr().slice(n1), ask()]), J(['fired', false, '', [['Me M', 'notes.F1', 'after the lock', null]], '1200000000']));
++    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J(X.errors.length), J(0));
++  } catch (e) {
++    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
++  }
++  bootRelease(__bm, []);
++  await settleBoards();
++})();
++// ==== end v2.00 (U10, the change journal) ====
+ 
+ {
+   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

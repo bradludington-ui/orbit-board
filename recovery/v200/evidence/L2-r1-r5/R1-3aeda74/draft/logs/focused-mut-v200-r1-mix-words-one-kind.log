@@ -1,0 +1,10 @@
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the panel
+    says planned and executed money in one total, year by year, with each amount
+        got [false,true]   want [true,true]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the export
+    and a NOTE: planned and executed money in one total, FY25 planned, FY26 executed
+        got [false]   want [true]

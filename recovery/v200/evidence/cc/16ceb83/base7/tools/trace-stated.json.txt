@@ -1,0 +1,118 @@
+{
+  "ask": [
+    "engine (tiers)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "drill · 1-N by Band",
+    "ppt · Funding by Stream",
+    "locked cycle (projection)",
+    "locked view (drill)",
+    "cycle deltas (panel, now)",
+    "xl · FYDP Spend Plan",
+    "xl · Cycle Comparison",
+    "Spruills (screen)",
+    "Spruills · PMO drill"
+  ],
+  "discBA": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "ppt · KPI slide",
+    "ppt · Funding by Stream",
+    "locked cycle (projection)",
+    "locked view (drill)",
+    "cycle deltas (panel, now)",
+    "xl · FYDP Spend Plan"
+  ],
+  "mandBA": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "ppt · KPI slide",
+    "ppt · Funding by Stream",
+    "locked cycle (projection)",
+    "locked view (drill)",
+    "cycle deltas (panel, now)",
+    "xl · FYDP Spend Plan"
+  ],
+  "disc": [
+    "engine (tiers)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "drill · 1-N by Band",
+    "ppt · Funding by Stream",
+    "locked cycle (projection)",
+    "locked view (drill)"
+  ],
+  "mand": [
+    "engine (tiers)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "drill · 1-N by Band",
+    "ppt · Funding by Stream",
+    "locked cycle (projection)",
+    "locked view (drill)"
+  ],
+  "funded": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "drill · 1-N by Band",
+    "locked cycle (projection)",
+    "locked view (drill)",
+    "cycle deltas (panel, now)",
+    "xl · FYDP Spend Plan",
+    "xl · Cycle Comparison",
+    "xl · Spend Plan Source"
+  ],
+  "ufr1": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "xl · PMO Matrix",
+    "xl · Unfunded Requirements",
+    "drill · 1-N by Band",
+    "ppt · KPI slide",
+    "ppt · Funding by Stream",
+    "locked view (drill)"
+  ],
+  "ufr2": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "xl · Decision Bands",
+    "xl · PMO Matrix",
+    "xl · Unfunded Requirements",
+    "drill · 1-N by Band",
+    "ppt · KPI slide",
+    "ppt · Funding by Stream",
+    "locked view (drill)",
+    "xl · FYDP Spend Plan",
+    "xl · Cycle Comparison"
+  ],
+  "trim": [
+    "engine (tiers)",
+    "xl · Funding Streams",
+    "xl · PMO Matrix",
+    "locked view (drill)"
+  ],
+  "beyond": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "xl · Funding Streams",
+    "xl · PMO Matrix",
+    "locked view (drill)"
+  ],
+  "mcTotal": [
+    "engine (tiers)",
+    "dashboard (screen)",
+    "ppt · KPI slide",
+    "locked view (drill)"
+  ],
+  "mcShort": [
+    "engine (tiers)",
+    "locked view (drill)"
+  ]
+}

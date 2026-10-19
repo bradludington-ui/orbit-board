@@ -1,0 +1,21 @@
+# cmd: X=1 node tools/export-audit/audit-recon.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/smoke-v5/clone
+# git: 592d62967bd9cd610ec29bc4a380a55b5671cb4d
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T14:52:15Z / 10:52:15 EDT
+# cap: 600s  grace: 10s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-12T14:53:53Z / 10:53:53 EDT
+# exit: 0  duration_s: 98.4

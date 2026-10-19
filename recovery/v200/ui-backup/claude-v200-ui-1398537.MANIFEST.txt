@@ -1,0 +1,51 @@
+# claude/v200-ui backup, made 09:25:04 PM ET (18 Oct 2026)
+tip: 139853710a61c6ca27f7b59793a7e65c4c725f03
+tree: bda4998ba5c0680f4d8c12095eeb2549a48b2c2f
+prerequisite (in claude/v200-fixes-wip's history): 4a6f7c73ebf9018f6b1b14087cb5ec560a9bbb20
+board blob at tip: fb3ccbbd85c3c1c4f255df4b97327d5b92426cc7
+bundle: claude-v200-ui-1398537.bundle  sha256 d07f0154a08e5dbbf5838b71544af10e92a932eb556220b4fbfb28ccf1a53c91  bytes 21066492
+restore check: clone of claude/v200-fixes-wip from https://github.com/bradludington-ui/orbit-board, git bundle verify OK, fetched tip = 139853710a61c6ca27f7b59793a7e65c4c725f03, tree = bda4998ba5c0680f4d8c12095eeb2549a48b2c2f, commit list identical (41 commits)
+restore with: git clone -b claude/v200-fixes-wip <repo> r && cd r && git fetch recovery/v200/ui-backup/claude-v200-ui-1398537.bundle claude/v200-ui:claude/v200-ui
+
+commits (4a6f7c7..claude/v200-ui):
+1398537 v2.00 UI: row-controls records chunk 1's five RECORD panel controls (Brad, 18 Oct: record them; no board change)
+7df816c v2.00 UI-C1: the five chunk 1 handler arguments go through jsa(), so npm run check passes again
+dd15956 v2.00 UI chunk 3 (fix round): CHUNK3.md records the S1-S5 review's fix round and corrects three statements of part 2 (no board change)
+8783a2d v2.00 UI chunk 3 (S4, fix round): dialogs-keyboard checks every box again with the RECORD panel docked (no board change)
+9519595 v2.00 UI chunk 3 (S4, fix round): layout-fits checks D and F docked as well, each pass saying where the panel was (no board change)
+f2fa0ff v2.00 UI chunk 3 (S2, fix round): audit-ui holds the same-year half of the rules S2 rewrote; two mutations (no board change)
+147ef2a v2.00 UI chunk 3 (S4, fix round): toolbar-fits checks each control whole, not only at its centre, and names each cause (no board change)
+7950a4f v2.00 UI chunk 3 (S4, fix round): keyboard-reach A starts its Tab from the context bar's first control, named (no board change)
+fe8ffa0 v2.00 UI chunk 3 (S4, fix round): keyboard-reach D2 and L check where the RECORD panel is in each pass (no board change)
+e7b7cbb v2.00 UI chunk 3 (S4, fix round): dropdowns-visible checks every menu again with the RECORD panel docked (no board change)
+e950efe v2.00 UI chunk 3 (S4, fix round): layout-fits checks C, E and I with the RECORD panel docked as well as sliding over (no board change)
+7a71245 v2.00 UI chunk 3 (S1-S5): CHUNK3.md part 2 records the five review items, the tools, verify:grid and every run (no board change)
+83c589f v2.00 UI chunk 3 (S1-S5): screenshots of the actual board at 2ce11b6 (board 5e9e5a5e), and the script that took them (no board change)
+2ce11b6 v2.00 UI chunk 3 (S4): toolbar-fits checks every control at the top is on screen, whole and clickable; 1152 still fails its one-line rule
+df05821 v2.00 UI chunk 3 (S4): keyboard-reach finds the search box, the mode switch and the posture strip where they now live
+0af09b6 v2.00 UI chunk 3 (S4): the browser tools check the RECORD panel sliding over (the default) and docked, each
+8325909 v2.00 UI chunk 3 (S4): the Import box hands the keyboard back to the control that opened it; the browser tools know its opener
+8f331a8 v2.00 UI chunk 3 (S5): a toolbar menu stays clear of the sidebar, so every Reports item is on screen and clickable
+cb86178 v2.00 UI chunk 3 (S3): a refused batch from a board that reads Saved changes nothing and writes nothing; the note at pmoTake
+088acf8 v2.00 UI chunk 3 (S2): a board-wide journal line recorded under another year suppresses "Last recorded edit"
+2916f0a v2.00 UI chunk 3 (S1): the funding posture strip wraps in Funding and Brief at every width, so every control in it is on screen
+670c467 v2.00 UI chunk 3 (M1): screenshots retaken at the final board 2d1d855e (no board change)
+90ccabf v2.00 UI chunk 3 (M1, fix round 2): CHUNK3.md records fix round 2 and corrects the "edge, by design" line (no board change)
+5a298b7 v2.00 UI chunk 3 (M1, fix round 2): the new cases read the stored list without throwing (no board change)
+775903f v2.00 UI chunk 3 (M1, fix round 2): audit-ui checks the saved file and reopening after a put-back that cannot finish (no board change)
+b418340 v2.00 UI chunk 3 (M1, fix round 2): audit-ui checks the storage comparison for keys other than the destination list's (no board change)
+e439683 v2.00 UI chunk 3 (M1, fix round 2): audit-ui checks the save state taken after the files are read (no board change)
+58803c9 v2.00 UI chunk 3 (M1, fix round 2): a batch refused before it takes anything says only what is true of it
+4c1890c v2.00 UI chunk 3 (M1, fix round): CHUNK3.md records the fix round and corrects two overstatements (no board change)
+fc01792 v2.00 UI chunk 3 (M1, fix round): audit-ui reaches what the M1 verifier found it could not see (no board change)
+c41a7c2 v2.00 UI chunk 3 (M1): screenshots of the M1 messages in the actual board at aac8574, the script that took them, and CHUNK3.md part 1 (no board change)
+aac8574 v2.00 UI chunk 3 (M1): "All submissions at once" is all or nothing when a file would ask, and is put back whole if the load fails
+eba613f v2.00 UI chunk 2: adversarial review (CHUNK2-REVIEW.md)
+e70636b v2.00 UI chunk 2: screenshots of the actual board at f95fee2, the check scripts with their outputs, and CHUNK2.md (no board change)
+f95fee2 v2.00 UI chunk 2: on a phone the context bar's group wraps rather than push the page sideways
+5ea7d15 v2.00 UI chunk 2: slide-over record by default (docking optional), rows sized to their room, guarded KPI cards, Brief posture strip, permissions, all-or-nothing PMO batch, genuine metadata, Cycle control
+acc8489 v2.00 UI chunk 1: adversarial review (CHUNK1-REVIEW.md)
+6bfa965 v2.00 UI chunk 1: screenshots of the actual board (synthetic data at runtime) and CHUNK1.md
+c85d0e3 v2.00 UI chunk 1: RECORD panel Overview / Funding / History tabs; control sizing fixes
+89384e6 v2.00 UI chunk 1: navy sidebar, context bar, KPI cards, toolbar (Columns, Density), Import box
+ba0def2 UI concept: mockups only, in the style of Brad's concept images (no product change)

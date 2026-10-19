@@ -1,0 +1,15 @@
+27
+12:## Verdict: the builder's verdict STANDS on every path
+29:## Identities (`git hash-object`)
+45:## Passes
+59:## The added scenarios (my variant; the builder's code otherwise unchanged; every addition marked `CHECKER:` in the file)
+71:## Every run (from `logs/runs.txt`; each through q.sh; output in `logs/<label>.log`)
+221:## Expected (literal) vs observed
+223:### x1: the builder's 38 scenarios with the builder's literals (`probe-copy/check.mjs`)
+258:### Leaf positions behind problem 1 (`reach.mjs`, read from the runs)
+269:### Added scenarios: expected (hand-written in `x/xcheck.mjs` before each was first run) vs observed, pass y4
+376:## PIDs (from `pids.txt`: the `setsid -w timeout` PID, then its child; "gone" = the child had already exited when it was looked up)
+521:## What was NOT done
+545:## Deviations (full list in `logs/deviations.txt`)
+
+README assembled at 3:47 PM ET on Mon 12 Oct 2026 (by `TZ=America/New_York date`).

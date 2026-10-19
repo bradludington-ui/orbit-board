@@ -1,0 +1,1 @@
+{"id": "v200-regtext-spaces-collapsed", "matches": 1, "find": "const t=String(val||'').trim(), n=", "repl": "const t=String(val||'').trim().replace(/\\s+/g,' '), n="}

@@ -1,0 +1,15 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/verify/mut/V7-busy-leaks-on-throw.html","BOARD_set":true,"board":"9df6242e99ae6cf8e8733bfabf5571eec2f4c142","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u2impl/verify/c2v/tools/export-audit/probe-u2-g.mjs","harnessBlob":"821bb06064ca772a5fd7a850c32e713f73be57f2","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f720ce184998cf31cad50d288f78c2f7bac19bd6","started":"10/11/2026, 10:07:04 PM ET"}
+
+================================================================================================
+4 FAILING CHECK(S)
+
+--- v2.00 (U2) — put back waits for a save to finish | (g) PROBE the folder: put back while the autosave writes; the write throws
+    once it throws: S1 on screen and unsaved, N still in the folder, the board says the automatic save failed, no save running (read from _saveBusy); the kept work byte for byte as it was
+        got ["S1","N",true,true,true,true,1,true]   want ["S1","N",true,true,true,true,0,true]
+    put back again: one question; K on screen, unsaved; S1 kept aside in its place
+        got [0,"S1",true,true,true,"K"]   want [1,"K",true,true,true,"S1"]
+    then the refresh: K stays on screen, unsaved, and the folder copy is not written over
+        got ["S1","S1",false,false,false]   want ["K","N",true,true,true]
+    then reopened and refreshed: on screen and kept aside; K and S1 each still in a copy
+        got ["S1","K",true,true]   want ["K","S1",true,true]
+# exit 1 at 10/11/2026, 10:07:29 PM ET

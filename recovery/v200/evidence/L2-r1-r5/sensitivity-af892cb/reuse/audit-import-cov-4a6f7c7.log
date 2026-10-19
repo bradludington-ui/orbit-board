@@ -1,0 +1,12 @@
+# cmd: X=1 COV_OUT=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/audit-import-cov-hits.json BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/reuse/board-4a6f7c7-cov.html node --import ./cov-hook.mjs tools/export-audit/audit-import.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/wt-final
+# git: d1ee751660348cd04b121808b7a17dd90bbf3658
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T00:49:04Z / 20:49:04 EDT
+# cap: 900s  grace: 20s
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-12T00:57:37Z / 20:57:37 EDT
+# exit: 0  duration_s: 512.7

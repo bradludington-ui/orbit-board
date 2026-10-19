@@ -1,0 +1,32 @@
+PASS [fixture] fixture.v1: the folder's first copy is brad's content, written by Brad (writer Brad)
+     expected ["brad","Brad","Brad"]
+     observed ["brad","Brad","Brad"]
+PASS [fixture] fixture.bradClean: brad is clean and recorded against that copy: screen brad, DIRTY false, _baseDirty false, record dirty false, base = v1 ts
+     expected ["brad",false,false,false,true,true]
+     observed ["brad",false,false,false,true,true]
+PASS [fixture] fixture.bobBase: bob loaded brad's copy: screen brad, his base = v1 ts
+     expected [true,"brad",true]
+     observed [true,"brad",true]
+PASS [fixture] V2.reopened: reopened: screen BRAD-R/$700, DIRTY false (this session), record dirty true, base = v1 ts
+     expected [true,"BRAD-R",700,false,true,true]
+     observed [true,"BRAD-R",700,false,true,true]
+PASS [fixture] V2reopen.held: the save reached its write and is held; DIRTY during the save
+     expected [true,false,1]
+     observed [true,false,1]
+PASS [fixture] V2reopen.bob.bobCopy: bob's newer copy is the folder's current copy: bob's content, by Bob, writer Bob, bob clean
+     expected ["bob","Bob","Bob",false,false]
+     observed ["bob","Bob","Bob",false,false]
+PASS [refute] V2reopen.adopt: the refresh (driveStorePull(true)) adopts bob during the held save ([adopted, _saveBusy, note, $])
+     expected [true,1,"BOB-2",650]
+     observed [true,1,"BOB-2",650]
+FAIL [contract] V2reopen.K1-literal: CONTRACT (literal): [screen note, $, recorded clean, base-copy note, $] -- recorded clean only against a copy holding what is on screen
+     expected [["BOB-2",650,true,"BOB-2",650],["BRAD-R",700,true,"BRAD-R",700],["BOB-2",650,false,"BRAD-R",700],["BRAD-R",700,false,"BRAD-R",700]]
+     observed ["BOB-2",650,true,"BRAD-R",700]
+PASS [record] V2reopen.head: the folder head after the save lands: brad's built bytes ([note, $, by, writer])
+     expected ["BRAD-R",700,"Brad","Brad"]
+     observed ["BRAD-R",700,"Brad","Brad"]
+PASS [record] V2.kept: brad's own work BRAD-R/$700 was kept aside when bob's copy was adopted ([kept note, $])
+     expected ["BRAD-R",700]
+     observed ["BRAD-R",700]
+ids {"board":"4d273c0680132caafc4cbc8ca09c1533735c86de","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","probe":"1a54cc12a812ceb92a1e95406c263592fd21c045","BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/u13probe/verify/board/prioritization-board-grid.html"}
+V2reopen: 9 pass, 1 fail

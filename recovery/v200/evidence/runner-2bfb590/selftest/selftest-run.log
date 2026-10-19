@@ -1,0 +1,45 @@
+A1 queue, mkmanifest.py altered	exit 2; snapshot refused; nothing run	exit 2; snapshot refused; nothing run	PASS
+A2 alone-run, sens-import.sh altered	exit 2; names sens-import.sh; scratch lock never set; live lock absent; refusal recorded	exit 2; names sens-import.sh; scratch lock never set; live lock absent; refusal recorded	PASS
+A3 sens.sh, mkmut.py altered	exit 2; names mkmut.py; no mutant	exit 2; names mkmut.py; no mutant	PASS
+A4 a helper outside the snapshot (an exact copy)	exit 2; not in the frozen snapshot	exit 2; not in the frozen snapshot	PASS
+A5 a short RUNNER_SHA	exit 2; full 40-hex	exit 2; full 40-hex	PASS
+A6 CONTROL: unaltered snapshot	exit 2; backup and snapshot verified; stopped at the clone	exit 2; backup and snapshot verified; stopped at the clone	PASS
+A7 an unfrozen snapshot	exit 2; not immutable	exit 2; not immutable	PASS
+A8 one unfrozen file (gate.sh)	exit 2; gate.sh not immutable	exit 2; gate.sh not immutable	PASS
+A9 an extra file named ..x	exit 2; snapshot refused	exit 2; snapshot refused	PASS
+chattr: Operation not supported while reading flags on /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-2bfb590/cases/A10/runner/recovery/v200/bin/link.sh
+A10 a symbolic link in the snapshot	exit 2; snapshot refused	exit 2; snapshot refused	PASS
+A11 the snapshot root unfrozen	exit 2; root not immutable	exit 2; root not immutable	PASS
+A12 origin unreachable (a failed read)	exit 2; could not read origin	exit 2; could not read origin	PASS
+A13 an outdir that already holds results	exit 2; already holds results	exit 2; already holds results	PASS
+A14 clean filter via GIT_CONFIG_* (R3)	trick live; exit 2; snapshot refused	trick live; exit 2; snapshot refused	PASS
+A15 replace ref via GIT_DIR (R4)	trick live; exit 2; snapshot refused	trick live; exit 2; snapshot refused	PASS
+A16 BASH_ENV that answers ACCEPT (E13)	exit 1; REFUSE recorded exit 1	exit 1; REFUSE recorded exit 1	PASS
+A17 exported git and python3 functions faking the blob (E14)	exit 2; names mkmut.py; altered mkmut never ran	exit 2; names mkmut.py; altered mkmut never ran	PASS
+A18 the preamble is byte-identical in all 9 runner scripts, each #!/bin/bash -p	identical	identical	PASS
+A19 a runner script run through another shell	exit 2; must run as its own program	exit 2; must run as its own program	PASS
+A20 a preset RUNNER_ENV_CLEAN marker with a dirty environment (review 2 S1)	exit 2; did not clean; names GIT_ALTERNATE_OBJECT_DIRECTORIES	exit 2; did not clean; names GIT_ALTERNATE_OBJECT_DIRECTORIES	PASS
+A21 FIRSTFAIL and RUNNER_LOCK from the launch shell (review 2 S3)	exit 2; cleared and said; stopped at the clone	exit 2; cleared and said; stopped at the clone	PASS
+G1 banner then exit 1	REFUSE	REFUSE	PASS
+G2 banner then timeout	REFUSE	REFUSE	PASS
+G3 banner then run.sh interrupted (no exit record)	REFUSE no exit record	REFUSE no exit record	PASS
+G4 failing-check line with exit 0	REFUSE	REFUSE	PASS
+G5 exit 0 without the verdict	REFUSE	REFUSE	PASS
+G6 CONTROL: banner and exit 0	ACCEPT	ACCEPT	PASS
+G7 suite prints its own end and exit lines, run.sh interrupted (E1b)	REFUSE no exit record	REFUSE no exit record	PASS
+G8 a leftover of the suite's group is ended with the run (E11)	late banner never landed; REFUSE no verdict	late banner never landed; REFUSE no verdict	PASS
+G8b a line written to the log after run.sh's record	REFUSE written after the exit	REFUSE written after the exit	PASS
+G9 NOT ALL CHECKS PASSED with exit 0 (E10)	REFUSE	REFUSE	PASS
+G10 SHELLOPTS monitor, banner then exit 1 (E12)	run.sh recorded exit 1 after the suite; REFUSE recorded exit 1	run.sh recorded exit 1 after the suite; REFUSE recorded exit 1	PASS
+G11 a NUL byte in a passing log (E8)	ACCEPT	ACCEPT	PASS
+G12 TIMED OUT in a passing log's text (E9)	ACCEPT	ACCEPT	PASS
+G13 run.sh never overwrites a log	exit 2; already exists; log unchanged	exit 2; already exists; log unchanged	PASS
+G14 the header names another commit	REFUSE header	REFUSE header	PASS
+G15 the standards verdict (two lines), and in the wrong order	ACCEPT REFUSE	ACCEPT REFUSE	PASS
+G16 --exit-only at exit 0, and at exit 1	ACCEPT-EXIT-ONLY REFUSE	ACCEPT-EXIT-ONLY REFUSE	PASS
+G17 a banner followed by more output	REFUSE	REFUSE	PASS
+G18 every queue suite's real passing output, on verdicts.tsv	13 ACCEPT	13 ACCEPT	PASS
+G18b audit-inject's real output on the old one-line verdict (review 2 M1)	REFUSE	REFUSE	PASS
+A22 no commit or push by the self-test (review of cccb714, MF1; e42cfb6 SF-C)	0 queue commits; 0 under evidence/x; origin read; evidence status same	0 queue commits; 0 under evidence/x; origin read; evidence status same	PASS
+selftest done 05:06:08 PM ET: 0 failing case(s) of 42
+selftest exit 0

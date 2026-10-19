@@ -1,0 +1,43 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-d4a241a/mut-v200-r1-saved-year-widens.html node tools/export-audit/audit-recon.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/commits/R3-d4a241a/run/copy
+# git: 
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:15:42Z / 17:15:42 EDT
+# cap: 600s  grace: 10s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+8 FAILING CHECK(S)
+
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25
+    FY25 reads its $300M plan: $300M, $0 executed, $300M planned, labelled planned
+        got {"sel":[2026,2027,2028,2029,2030],"t":[100000000,100000000,0],"label":"FY26–FY30 · all years · O&M · FY27, FY28, FY29, FY30 planned, the rest executed · + OBBBA FY25"}   want {"sel":[2025],"t":[300000000,0,300000000],"label":"FY25 · O&M · PLANNED (board allocation, O&M)"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26
+    FY25 + FY26 = $400M: $100M executed, $300M planned, labelled planned + executed
+        got {"sel":[2026],"t":[100000000,100000000,0],"label":"FY26 · O&M · + OBBBA FY25"}   want {"sel":[2025,2026],"t":[400000000,100000000,300000000],"label":"FY25, FY26 · O&M · FY25 planned, the rest executed"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the panel
+    says planned and executed money in one total, year by year, with each amount
+        got [false,false]   want [true,true]
+    the year chips and the planned note agree: FY25 marked plan, FY26 not, and only FY25 called PLANNED
+        got [["FY26 [on]"],""]   want [["FY25 · plan [on]","FY26 [on]"],"FY25"]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25 + FY26 · the export
+    US SERVICE FUNDING 400000000, O&M 400000000, TOTAL FUNDING 400000000 twice, the scope as the panel
+        got ["ok","Scope: FY26 · O&M · + OBBBA FY25",[100000000],[100000000],[100000000,100000000]]   want ["ok","Scope: FY25, FY26 · O&M · FY25 planned, the rest executed",[400000000],[400000000],[400000000,400000000]]
+    and a NOTE: planned and executed money in one total, FY25 planned, FY26 executed
+        got []   want [true]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · saved FY25 only, reopened
+    the selection stays FY25 (never silently all years), $300M planned, labelled planned
+        got {"saved":[2025],"sel":[2026,2027,2028,2029,2030],"t":[100000000,100000000,0],"label":"FY26–FY30 · all years · O&M · FY27, FY28, FY29, FY30 planned, the rest executed · + OBBBA FY25"}   want {"saved":[2025],"sel":[2025],"t":[300000000,0,300000000],"label":"FY25 · O&M · PLANNED (board allocation, O&M)"}
+    the FY25 chip is there, on, marked plan; the export writes the same scope and $300M
+        got [[],"Scope: FY26–FY30 · all years · O&M · FY27, FY28, FY29, FY30 planned, the rest executed · + OBBBA FY25",[100000000]]   want [["FY25 · plan [on]"],"Scope: FY25 · O&M · PLANNED (board allocation, O&M)",[300000000]]
+
+# end: 2026-10-11T21:16:33Z / 17:16:33 EDT
+# exit: 1  duration_s: 50.9

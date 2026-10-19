@@ -1,0 +1,68 @@
+=== v200-u10-sp-choice-in-view
+TOTAL {"n": 83, "p": 79, "f": 4}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · Cost data set to 2026ACE in its select | refused and said so; the Spend Plan still shows 2027ACE, and the ACE t
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · By Service, then ◀ prior 2 FY, pressed | each refused and said so; the Spend Plan is still by PMO, without the 
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · the PMO filter, the service filter and the PMO drill’s service set (the handlers their | each refused and said so; each is still all
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · each choice refused · the view left | the working plan’s Spend Plan shows 2027ACE by PMO, browser storage ke
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+4 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 4:58:52 AM ET
+=== v200-u10-sp-ace-in-view
+TOTAL {"n": 83, "p": 80, "f": 3}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · Cost data set to 2026ACE in its select | refused and said so; the Spend Plan still shows 2027ACE, and the ACE t
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · By Service, then ◀ prior 2 FY, pressed | each refused and said so; the Spend Plan is still by PMO, without the 
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · each choice refused · the view left | the working plan’s Spend Plan shows 2027ACE by PMO, browser storage ke
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+3 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 4:58:52 AM ET
+=== v200-u10-sp-by-in-view
+TOTAL {"n": 83, "p": 81, "f": 2}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · By Service, then ◀ prior 2 FY, pressed | each refused and said so; the Spend Plan is still by PMO, without the 
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · each choice refused · the view left | the working plan’s Spend Plan shows 2027ACE by PMO, browser storage ke
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+2 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 4:59:57 AM ET
+=== v200-u10-sp-pmo-in-view
+TOTAL {"n": 83, "p": 82, "f": 1}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · the PMO filter, the service filter and the PMO drill’s service set (the handlers their | each refused and said so; each is still all
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+1 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 4:59:54 AM ET
+=== v200-u10-sp-svc-in-view
+TOTAL {"n": 83, "p": 82, "f": 1}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · the PMO filter, the service filter and the PMO drill’s service set (the handlers their | each refused and said so; each is still all
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+1 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 5:01:18 AM ET
+=== v200-u10-sp-prior-in-view
+TOTAL {"n": 83, "p": 81, "f": 2}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · By Service, then ◀ prior 2 FY, pressed | each refused and said so; the Spend Plan is still by PMO, without the 
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · each choice refused · the view left | the working plan’s Spend Plan shows 2027ACE by PMO, browser storage ke
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+2 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 5:01:18 AM ET
+=== v200-u10-sp-drill-in-view
+TOTAL {"n": 83, "p": 82, "f": 1}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · the PMO filter, the service filter and the PMO drill’s service set (the handlers their | each refused and said so; each is still all
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+1 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 5:02:26 AM ET
+=== v200-u10-sp-no-redraw
+TOTAL {"n": 83, "p": 81, "f": 2}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · Cost data set to 2026ACE in its select | refused and said so; the Spend Plan still shows 2027ACE, and the ACE t
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · By Service, then ◀ prior 2 FY, pressed | each refused and said so; the Spend Plan is still by PMO, without the 
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+2 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 5:02:27 AM ET
+=== v200-u10-reapply-keeps-ppbe
+TOTAL {"n": 83, "p": 82, "f": 1}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · USAF’s FY27 PPBE position typed as $5,000 | refused and said so; the FYDP Spend Plan taken from the view prints th
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+1 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 5:03:37 AM ET
+=== v200-u10-dest-kind-in-view
+TOTAL {"n": 83, "p": 82, "f": 1}
+  FAIL | v2.00 (U10) — a spend-plan c | PB27 viewed · Lockheed Martin’s kind set to government in Setup › Destinations | refused and said so; it is still a prime contractor, in the board and 
+REF compare: only-here 0 only-in-ref 0 verdict-differs 0 value-differs 0 order-equal True
+1 FAILING CHECK(S)
+# exit 1 at 10/18/2026, 5:03:40 AM ET

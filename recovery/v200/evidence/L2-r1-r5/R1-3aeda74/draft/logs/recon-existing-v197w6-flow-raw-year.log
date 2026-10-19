@@ -1,0 +1,65 @@
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+20 FAILING CHECK(S)
+
+--- v1.97 W6 — the funds flow: every appropriation and every fiscal year, executed, carried over and planned | FY25 · appropriation
+    each appropriation’s line is its own rows for the year, the others nothing
+        got [1802469,188890,0,433337]   want [1580246,111119,0,433337]
+    US SERVICE FUNDING is every appropriation together
+        got 2424696   want 2124702
+--- v1.97 W6 — the funds flow: every appropriation and every fiscal year, executed, carried over and planned | FY25 · fiscal year
+    US service appropriations, wherever it is stated
+        got [2424696,2424696]   want [2124702,2124702]
+    TOTAL FUNDING, wherever it is stated, is US funding plus this year’s other sources
+        got [3774706,3774706]   want [3474712,3474712]
+    the primes and the other government costs are this year’s rows
+        got [1234567,1190129]   want [1234567,890135]
+--- v1.97 W6 — the funds flow: every appropriation and every fiscal year, executed, carried over and planned | FY25 · appropriation · fiscal year
+    every detail line: its appropriation, service and dollars, on Prime Detail or OGC Detail, once
+        got ["Depot Repair Pods|O&M|ANG|345679","Initial Spares Kit|O&M|USN|222223","LM Air Vehicle Support|O&M|USAF|1234567","Mandatory Spares|FULL FUND|USN|77771","Support Equipment|OPN|USN|433337","Workforce Travel|FULL FUND|USAF|111119"]   want ["Depot Repair Pods|O&M|ANG|345679","LM Air Vehicle Support|O&M|USAF|1234567","Support Equipment|OPN|USN|433337","Workforce Travel|FULL FUND|USAF|111119"]
+--- v1.97 W6 — the funds flow: every appropriation and every fiscal year, executed, carried over and planned | FY26 · appropriation
+    each appropriation’s line is its own rows for the year, the others nothing
+        got [1444434,654329,350014,0]   want [1666657,732100,350014,0]
+    US SERVICE FUNDING is every appropriation together
+        got 2448777   want 2748771
+--- v1.97 W6 — the funds flow: every appropriation and every fiscal year, executed, carried over and planned | FY26 · fiscal year
+    US service appropriations, wherever it is stated
+        got [2448777,2448777]   want [2748771,2748771]
+    TOTAL FUNDING, wherever it is stated, is US funding plus this year’s other sources
+        got [3758797,3758797]   want [4058791,4058791]
+    the primes and the other government costs are this year’s rows
+        got [1692003,756774]   want [1692003,1056768]
+    the carry-over is stated where it lands, with its dollars and rows, and nowhere else
+        got []   want ["NOTE: includes 299994 of OBBBA appropriated in FY2025 and counted here as FY2026 (2 plan events). Each row is counted in one fiscal year only."]
+--- v1.97 W6 — the funds flow: every appropriation and every fiscal year, executed, carried over and planned | FY26 · appropriation · fiscal year
+    every detail line: its appropriation, service and dollars, on Prime Detail or OGC Detail, once
+        got ["LM Modifications|FULL FUND|ANG|654329","PW Engine Support|O&M|USAF|987653","Software Sustainment|O&M|AFRC|456781","Spares Kit|INITIAL SPARES|USAF|299993","Unfunded Pods|INITIAL SPARES|AFRC|50021"]   want ["Initial Spares Kit|O&M|USN|222223","LM Modifications|FULL FUND|ANG|654329","Mandatory Spares|FULL FUND|USN|77771","PW Engine Support|O&M|USAF|987653","Software Sustainment|O&M|AFRC|456781","Spares Kit|INITIAL SPARES|USAF|299993","Unfunded Pods|INITIAL SPARES|AFRC|50021"]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY25
+    FY25 reads its $300M plan: $300M, $0 executed, $300M planned, labelled planned
+        got {"sel":[2025],"t":[400000000,100000000,300000000],"label":"FY25 · O&M · PLANNED (board allocation, O&M)"}   want {"sel":[2025],"t":[300000000,0,300000000],"label":"FY25 · O&M · PLANNED (board allocation, O&M)"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY26
+    FY26 = $100M executed, $0 planned, $100M total, the carried OBBBA named
+        got {"sel":[2026],"t":[0,0,0],"label":"FY26 · O&M"}   want {"sel":[2026],"t":[100000000,100000000,0],"label":"FY26 · O&M · + OBBBA FY25"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · FY26 · the export
+    US SERVICE FUNDING 100000000, O&M 100000000, TOTAL FUNDING 100000000 twice, no planned-and-executed NOTE
+        got ["ok","Scope: FY26 · O&M",[0],[0],[0,0],[]]   want ["ok","Scope: FY26 · O&M · + OBBBA FY25",[100000000],[100000000],[100000000,100000000],[]]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant B · saved FY25 only, reopened
+    the selection stays FY25 (never silently all years), $300M planned, labelled planned
+        got {"saved":[2025],"sel":[2025],"t":[400000000,100000000,300000000],"label":"FY25 · O&M · PLANNED (board allocation, O&M)"}   want {"saved":[2025],"sel":[2025],"t":[300000000,0,300000000],"label":"FY25 · O&M · PLANNED (board allocation, O&M)"}
+    the FY25 chip is there, on, marked plan; the export writes the same scope and $300M
+        got [["FY25 · plan [on]"],"Scope: FY25 · O&M · PLANNED (board allocation, O&M)",[400000000]]   want [["FY25 · plan [on]"],"Scope: FY25 · O&M · PLANNED (board allocation, O&M)",[300000000]]
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY25
+    CONTROL — FY25 = $40M executed, $0 planned
+        got {"sel":[2025],"t":[140000000,140000000,0],"label":"FY25 · O&M"}   want {"sel":[2025],"t":[40000000,40000000,0],"label":"FY25 · O&M"}
+--- v2.00 (R1) — execution precedence by appropriation and effective year | variant A · FY26
+    FY26 = $100M executed, $0 planned
+        got {"sel":[2026],"t":[0,0,0],"label":"FY26 · O&M"}   want {"sel":[2026],"t":[100000000,100000000,0],"label":"FY26 · O&M · + OBBBA FY25"}

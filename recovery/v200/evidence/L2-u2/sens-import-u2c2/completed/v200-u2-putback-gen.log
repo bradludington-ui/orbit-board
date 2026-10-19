@@ -1,0 +1,16 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/sens-import-u2c2/mut-v200-u2-putback-gen.html node tools/export-audit/audit-import.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/wt-u2c2
+# git: a8891e16f8b58edb02ad7c6a1fb918a8af6fc58a
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-12T04:17:30Z / 00:17:30 EDT
+# cap: 900s  grace: 20s
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U2) — work put back during a save stays unsaved | (d) K put back with no save running
+    no save was running, and the put-back moved the change count by exactly one (read from _saveGen)
+        got [0,0]   want [0,1]
+
+# end: 2026-10-12T04:26:39Z / 00:26:39 EDT
+# exit: 1  duration_s: 549.0

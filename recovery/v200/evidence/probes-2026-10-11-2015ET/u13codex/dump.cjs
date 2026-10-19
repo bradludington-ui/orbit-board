@@ -1,0 +1,6 @@
+const f=process.argv[2]; const r=require(f);
+const v=b=>b&&({screen:`${b.screen.note}/$${b.screen.alloc} ts=${b.screen.ts} (${b.screen.tsET}) by=${b.screen.by}`, DIRTY:b.DIRTY, _baseDirty:b._baseDirty, rec:JSON.stringify(b.baseGet), driveBaseOf:b.driveBaseOf, gen:b._saveGen, busy:b._saveBusy, live:b._driveLive, need:b._driveNeed, stored:`${b.stored.note}/$${b.stored.alloc} ts=${b.stored.ts}`, kept:b.kept?`${b.kept.note}/$${b.kept.alloc} why=${b.kept.meta.why} ts=${b.kept.meta.ts} base=${JSON.stringify(b.kept.meta.base)}`:null, status:b.status, header:b.header, at:b.at});
+const fv=x=>x&&({head:x.head&&`${x.head.note}/$${x.head.alloc} ts=${x.head.ts} (${x.head.tsET}) payloadTs=${x.head.payloadTs} by=${x.head.by} writer=${x.head.writer}`, history:x.history.map(h=>`${h.name}: ${h.note}/$${h.alloc} ts=${h.ts}`), log:x.log});
+console.log('cfg',JSON.stringify(r.cfg),'started',r.startedET,'ended',r.endedET);
+for(const s of r.steps){ const o={step:s.step}; for(const k of Object.keys(s)){ if(k==='step')continue; const x=s[k]; if(x&&x.screen) o[k]=v(x); else if(x&&x.label&&('head' in x)) o[k]=fv(x); else if(k==='remote'||k==='head') o[k]=x; else o[k]=x; } console.log(JSON.stringify(o,null,1)); }
+console.log('whereNow',JSON.stringify(r.whereNow));

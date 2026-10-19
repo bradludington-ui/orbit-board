@@ -1,0 +1,37 @@
+@@ -7026,6 +7026,12 @@
+   if(!(PUB && (PUB.years||Array.isArray(PUB.order)))) return;
+   if(!confirm('Open the saved file\u2019s version and replace what is on screen?\n\n'
+     +'This browser\u2019s own work is NOT kept \u2014 only in a copy you saved yourself.')) return;
++  // PROPOSAL (U17 via U24, rec/L4/u17): NOT WHILE A SAVE IS UNDER WAY, as U13 refuses the folder's copy and U2 refuses
++  // ↶ Put back. A save that lands records the copy IT wrote as the one the work on screen came from and marks the board
++  // saved, while the screen shows the copy loaded here; the next 💾 Save then writes that over the save's copy unasked.
++  // Checked after the question, immediately before anything is changed.
++  if(_saveBusy){ setStat('\u23f3 The saved file\u2019s version was <b>not opened</b>: a save was under way. Nothing was changed. '
++    +'Open it once the save has finished.'); render(); return; }
+   if(applyStore(PUB)===false) return;
+   LASTKNOWN=PUB_FILE_TS; _baseDirty=false; baseSet({file:LASTKNOWN, dirty:false});
+   persist(); DIRTY=false; render();
+@@ -8452,6 +8458,11 @@
+ }
+ function adoptShared(){
+   if(!SHARED) return;
++  // PROPOSAL (U17 via U24, rec/L4/u17): NOT WHILE A SAVE IS UNDER WAY, as U13 refuses the folder's copy and U2 refuses
++  // ↶ Put back. A save that lands records the copy IT wrote as the one the work on screen came from and marks the board
++  // saved, while the screen shows the copy loaded here; the next 💾 Save then writes that over the save's copy unasked.
++  if(_saveBusy){ setStat('\u23f3 The shared state file was <b>not loaded</b>: a save was under way. Nothing was changed. '
++    +'<button type="button" class="nb lnk" onclick="adoptShared()">Load the shared one</button> once it has finished.'); render(); return; }
+   if(!sharedKeepMine(SHARED)) return;
+   // A refused load leaves the board untouched, so there is nothing to persist and nothing to
+   // report as loaded. Saying so beats a status line claiming a load that did not happen.
+@@ -31598,6 +31609,11 @@
+     return;
+   }
+   if((st.ts||0)>=(MS.ts||0)){
++    // PROPOSAL (U17 via U24, rec/L4/u17): NOT WHILE A SAVE IS UNDER WAY, as U13 refuses the folder's copy and U2 refuses
++    // ↶ Put back. A save that lands records the copy IT wrote as the one the work on screen came from and marks the board
++    // saved, while the screen shows the copy loaded here; the next 💾 Save then writes that over the save's copy unasked.
++    if(_saveBusy){ setStat('\u23f3 The shared state file ('+esc(fmtTs(st.ts))+') was <b>not loaded</b>: a save was under way. '
++      +'Nothing was changed. <button type="button" class="nb lnk" onclick="adoptShared()">Load the shared one</button> once it has finished.'); return; }
+     if(!sharedKeepMine(st)) return;
+     if(applyStore(st)===false) return;
+     persist(); render();

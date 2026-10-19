@@ -1,0 +1,41 @@
+== copies
+b63/prioritization-board-grid.html 98eed7e801af20270f755eadffb2fa72355c30e5
+b63/tools/export-audit/boot.mjs 9c4f49ad8cec537097bdf485458cfd2a09b06594
+b63/tools/export-audit/audit-import.mjs 4aba2506a7ea3bd367fb74436172b188bb4fc887
+b63/runtime-encoding-shim.mjs 6e2ce2e6beda9e7526527530500f254d877d0320
+b63/package.json 7cf8186faa9b2dc26fbc3a95fd2b6296e867b384
+b63/node_modules -> /home/user/orbit-board/node_modules
+c137/prioritization-board-grid.html 1375b72b6707faa57c50d528e01ce9611f194998
+c137/tools/export-audit/boot.mjs 9c4f49ad8cec537097bdf485458cfd2a09b06594
+c137/tools/export-audit/audit-import.mjs ed9a3437745b35690424cc2610b5bf2e5155f632
+c137/runtime-encoding-shim.mjs 6e2ce2e6beda9e7526527530500f254d877d0320
+c137/package.json 7cf8186faa9b2dc26fbc3a95fd2b6296e867b384
+c137/node_modules -> /home/user/orbit-board/node_modules
+== repo blobs (rev-parse, read-only)
+63bd8b0:prioritization-board-grid.html 98eed7e801af20270f755eadffb2fa72355c30e5
+63bd8b0:tools/export-audit/boot.mjs 9c4f49ad8cec537097bdf485458cfd2a09b06594
+63bd8b0:tools/export-audit/audit-import.mjs 4aba2506a7ea3bd367fb74436172b188bb4fc887
+63bd8b0:package.json 7cf8186faa9b2dc26fbc3a95fd2b6296e867b384
+a8891e1:prioritization-board-grid.html 1375b72b6707faa57c50d528e01ce9611f194998
+a8891e1:tools/export-audit/boot.mjs 9c4f49ad8cec537097bdf485458cfd2a09b06594
+a8891e1:tools/export-audit/audit-import.mjs ed9a3437745b35690424cc2610b5bf2e5155f632
+a8891e1:package.json 7cf8186faa9b2dc26fbc3a95fd2b6296e867b384
+== base board 98eed7e801af20270f755eadffb2fa72355c30e5; base tools vs b63: identical
+== probe's copies vs mine: b63 same; c137 same; tools b63 same; tools c137 same
+== probe harness
+u17-probe.mjs 6b65ff659b6f2f374b29b2707cf1ce049a5eecf2
+src/head.mjs 403725b1d966196d1c6bea95c1f6b599df9a691e
+src/w1h.mjs e771578d5d28c538c8e8ba05ca712718c1e8333b
+src/body.mjs 08d74d0c628d923467daa737c71a11938d980150
+src/runfile.mjs 67bb52439ada0334e6206d9e776f4bccb8a444c4
+build.sh 5e5bbbbfea7c65c8cedae2fcb077748eed370163
+q.sh 48c98d716f12f279bca8eb11e70715a8b70bc4fe
+r.sh 3826b0845b9233fe8374405e22f6b6a564061592
+matrix.sh 2d55e0f361ffd95f364b473d7f80c5966982f801
+u17-probe.mjs == head+w1h+body
+w1h == b63 audit-import L3745-3813
+w1h == c137 audit-import L3745-3813
+w1h == u13codex w1h-block.txt
+== orbit-board working board vs HEAD blob (no git status; hash-object only)
+HEAD 239fc7e; HEAD:board 98eed7e801af20270f755eadffb2fa72355c30e5; worktree board 98eed7e801af20270f755eadffb2fa72355c30e5
+ui HEAD 5a298b7

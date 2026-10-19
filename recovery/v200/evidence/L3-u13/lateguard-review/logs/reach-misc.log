@@ -1,0 +1,6 @@
+== driveStoreOn: 2 functions reachable; 0 with a write-shaped statement
+== mySlug: 1 functions reachable; 0 with a write-shaped statement
+== liveTooNew: 1 functions reachable; 0 with a write-shaped statement
+== _hasData: 1 functions reachable; 0 with a write-shaped statement
+== driveParse: 21 functions reachable; 0 with a write-shaped statement
+== driveRead: 1 functions reachable; 0 with a write-shaped statement

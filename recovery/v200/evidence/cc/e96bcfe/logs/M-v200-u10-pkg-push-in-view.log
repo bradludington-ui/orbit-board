@@ -1,0 +1,16 @@
+# label: M-v200-u10-pkg-push-in-view
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/out/M-v200-u10-pkg-push-in-view.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-pkg-push-in-view.html
+# start: 2026-10-18 05:07:52 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/mut/v200-u10-pkg-push-in-view.html","BOARD_set":true,"board":"2e19446eabd54837ea40bc9e367dcd59d34aff83","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/e96bcfe/harness/after/focused-u10.mjs","harnessBlob":"16230c603de02f3c9c9a5856760005d5bdb69c6c","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:07:54 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — a file, a package, the band ladder or a shared copy is refused in a locked view before anything is kept | PB27 viewed · pkgPushAll()
+    refused before anything is asked or handed out; no file, and the package record as it was
+        got ["🔒 Not kept — PB27 is a locked view. ⬆ Pushed 0 of 1 baseline — . If fewer files were saved than that, your browser blocked the extra downloads: allow them and push again, or issue the missing ones one at a time. Use 💾 Save now so the record of these issues is in the file.",["PUSH BASELINES TO THE MANAGERS"],0,0]   want ["🔒 Pushing baselines to the managers is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.",[],0,0]
+# exit 1 at 10/18/2026, 5:10:20 AM ET
+
+# end: 2026-10-18 05:10:20 EDT  exit: 1  wall_s: 148.6

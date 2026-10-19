@@ -1,0 +1,57 @@
+IDS /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13-lateguard/after/prioritization-board-grid.html a88a1e5b932b94225a29cdcfec0678f828847ddd 10/12/2026, 7:17:57 AM ET
+N B06-notnewer-nobase p1 ret=false held=undefined clean=false
+N B06-notnewer-nobase p0 ret=false held=undefined clean=false
+N B06-notnewer-nobase cn ret=true held=undefined clean=false
+N B06-notnewer-nobase ac ret=true held=undefined clean=false
+N B06-notnewer-nobase tk ret="(undefined)" held=undefined clean=false
+N B10-lateguard p1 ret=true held=undefined clean=null ERR TypeError: Cannot read properties of undefined (reading 'length')
+    at short (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13-lategua
+N B10-lateguard p0 ret=true held=undefined clean=null ERR TypeError: Cannot read properties of undefined (reading 'length')
+    at short (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13-lategua
+N B10-lateguard cn ret=true held=undefined clean=null ERR TypeError: Cannot read properties of undefined (reading 'length')
+    at short (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13-lategua
+N B10-lateguard ac ret=true held=undefined clean=null ERR TypeError: Cannot read properties of undefined (reading 'length')
+    at short (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13-lategua
+N B10-lateguard tk ret="(undefined)" held=undefined clean=null ERR TypeError: Cannot read properties of undefined (reading 'length')
+    at short (file:///tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13-lategua
+H1 B06-notnewer-nobase p1 ret=false held=true clean=true
+H1 B06-notnewer-nobase p0 ret=false held=true clean=true
+H1 B06-notnewer-nobase cn ret=true held=true clean=true
+H1 B06-notnewer-nobase ac ret=true held=true clean=true
+H1 B06-notnewer-nobase tk ret="(undefined)" held=true clean=true
+H1 B10-lateguard p1 ret=false held=true clean=true
+H1 B10-lateguard p0 ret=false held=true clean=true
+H1 B10-lateguard cn ret=true held=true clean=true
+H1 B10-lateguard ac ret=true held=true clean=true
+H1 B10-lateguard tk ret="(undefined)" held=true clean=true
+H2 B06-notnewer-nobase p1 ret=false held=true clean=true
+H2 B06-notnewer-nobase p0 ret=false held=true clean=true
+H2 B06-notnewer-nobase cn ret=true held=true clean=true
+H2 B06-notnewer-nobase ac ret=true held=true clean=true
+H2 B06-notnewer-nobase tk ret="(undefined)" held=true clean=true
+H2 B10-lateguard p1 ret=false held=true clean=true
+H2 B10-lateguard p0 ret=false held=true clean=true
+H2 B10-lateguard cn ret=true held=true clean=true
+H2 B10-lateguard ac ret=true held=true clean=true
+H2 B10-lateguard tk ret="(undefined)" held=true clean=true
+WR B06-notnewer-nobase p1 ret=false held=true clean=true
+WR B06-notnewer-nobase p0 ret=false held=true clean=true
+WR B06-notnewer-nobase cn ret=true held=true clean=true
+WR B06-notnewer-nobase ac ret=true held=true clean=true
+WR B06-notnewer-nobase tk ret="(undefined)" held=true clean=true
+WR B10-lateguard p1 ret=false held=true clean=true
+WR B10-lateguard p0 ret=false held=true clean=true
+WR B10-lateguard cn ret=true held=true clean=true
+WR B10-lateguard ac ret=true held=true clean=true
+WR B10-lateguard tk ret="(undefined)" held=true clean=true
+WA B06-notnewer-nobase p1 ret=false held=true clean=true
+WA B06-notnewer-nobase p0 ret=false held=true clean=true
+WA B06-notnewer-nobase cn ret=true held=true clean=true
+WA B06-notnewer-nobase ac ret=true held=true clean=true
+WA B06-notnewer-nobase tk ret="(undefined)" held=true clean=true
+WA B10-lateguard p1 ret=false held=true clean=true
+WA B10-lateguard p0 ret=false held=true clean=true
+WA B10-lateguard cn ret=true held=true clean=true
+WA B10-lateguard ac ret=true held=true clean=true
+WA B10-lateguard tk ret="(undefined)" held=true clean=true
+cells 50 notClean 10 secs 57.111 ended 10/12/2026, 7:19:01 AM ET

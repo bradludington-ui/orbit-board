@@ -1,0 +1,21 @@
+@@ const MUTATIONS = [
+   { id: "v200-u10-resolve-mine-words", area: "_driveResolveRun", what: "Save yours over theirs, raced by a view, is refused in Load theirs' words: \"🔒 Loading a board is off while PB27 is on screen\" for a save",
+     find: "  if(CYCVIEW){ cycRefuse(which==='mine'? 'Writing to the shared folder' : 'Loading a board'); render(); return false; }\n",
+     repl: "  if(CYCVIEW){ cycRefuse('Loading a board'); render(); return false; }\n" },
++  // v2.00 (U10, fix round 4 of 13 Oct; the test review of round 4): what a refusal puts back includes the funds flow's settings -- its
++  // appropriation buttons, its pseudo year, its prime rules and its categories -- kept beside the years (MS.flow) with its money.
++  { id: "v200-u10-reapply-keeps-appn-pick", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's funds-flow appropriation selection: O&M clicked out in PB27's view says the change was not kept, and the calculation and the Funds Flow export labelled [PB27 LOCKED] count no O&M money ($0 for $500,000,000)",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const A0=MS.flow? MS.flow.aps : null; MS=cycCopy(c); MS.cur=y; flowCfg().aps=A0;" },
++  { id: "v200-u10-reapply-keeps-pseudo", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's pseudo year: its button pressed in PB27's view says the change was not kept, and the Funds Flow export labelled [PB27 LOCKED] reads FY27 from $7,000,000 carried in from FY25 in place of its $500,000,000 plan",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const P0=MS.flow? MS.flow.pseudo : null; MS=cycCopy(c); MS.cur=y; if(P0) flowCfg().pseudo=P0;" },
++  { id: "v200-u10-reapply-keeps-rules", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's prime-matching rules: F1 typed as the Lockheed Martin token in PB27's view says the change was not kept, and the Funds Flow export labelled [PB27 LOCKED] carries F1's $500,000,000 as a Lockheed Martin line",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const R0=MS.flow? MS.flow.rules : null; MS=cycCopy(c); MS.cur=y; if(R0) flowCfg().rules=R0;" },
++  { id: "v200-u10-reapply-keeps-cats", area: "cycReapply", what: "the view's copy is made again but keeps the refused copy's OGC categories: F1 typed as Depot, Repair & Materiel's title words in PB27's view says the change was not kept, and the Funds Flow export labelled [PB27 LOCKED] moves F1's $500,000,000 from Program Operations & Support to Depot",
++    find: "  MS=cycCopy(c); MS.cur=y;",
++    repl: "  const K0=MS.flow? MS.flow.cats : null; MS=cycCopy(c); MS.cur=y; if(K0) flowCfg().cats=K0;" },
+   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
+   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
+     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",

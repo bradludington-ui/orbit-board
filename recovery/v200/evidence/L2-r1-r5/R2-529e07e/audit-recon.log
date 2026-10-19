@@ -1,0 +1,21 @@
+# cmd: X=1 node tools/export-audit/audit-recon.mjs
+# cwd: /home/user/orbit-board
+# git: 529e07e7e52c60aec6840152a5c8e98d37fcbdec
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T21:09:03Z / 17:09:03 EDT
+# cap: 600s  grace: 10s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+ALL CHECKS PASSED
+
+# end: 2026-10-11T21:10:07Z / 17:10:07 EDT
+# exit: 0  duration_s: 63.1

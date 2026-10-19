@@ -1,0 +1,86 @@
+diff --git a/prioritization-board-grid.html b/prioritization-board-grid.html
+index 42e8111..5d811ee 100644
+--- a/prioritization-board-grid.html
++++ b/prioritization-board-grid.html
+@@ -15416,10 +15416,17 @@ function flowEffFy(r, rawFy, PS){
+ // v1.99 (item 93): EXECUTION IS DECIDED PER APPROPRIATION AND YEAR. Given an appropriation, the years IT has rows for;
+ // given none, every year any appropriation has rows for (the year buttons). It was always the union, so Full Fund FY27
+ // execution made FY27 "executed" for O&M too, and O&M's planned FY27 printed $0 with no word.
+-function flowExecYears(sl){
+-  const EA=execAllOf(); const y={};
++// v2.00 (R1): BY EFFECTIVE YEAR (flowEffFy), the year flowCalc counts each row in. By the workbook's year, O&M's FY25 OBBBA
++// rows counted as FY26 left FY26 "planned", so its whole plan was read as well ($100M carried + $500M plan = $600M), and FY25
++// was "executed" with nothing left in it. `raw`: the workbook's own years -- what the year buttons offer, so a saved FY25
++// selection stays FY25 when every FY25 row is counted as FY26. A year's rows land in it or in PS.to, so once both are
++// marked the rest of that year is not read (the panel asks this per year and appropriation); newest year first, so PS.to's
++// own rows are marked before PS.from is read.
++function flowExecYears(sl, raw){
++  const EA=execAllOf(), PS=raw? null : flowPseudo(); const y={};
+   (typeof sl==='string'? [sl] : APPN_SLUGS).forEach(s=>{ const ex=EA[s];
+-    if(ex&&ex.rows) Object.keys(ex.rows).forEach(f=>{ if((ex.rows[f]||[]).length) y[+f]=1; }); });
++    if(ex&&ex.rows) Object.keys(ex.rows).reverse().forEach(f=>{ (ex.rows[f]||[]).some(r=>{ y[flowEffFy(r,+f,PS)]=1;
++      return !(PS&&PS.on&&+f===PS.from) || (y[+f] && y[PS.to]); }); }); });
+   return Object.keys(y).map(Number).sort();
+ }
+ // The FYDP WINDOW, never the years that happen to carry state. A selector driven by MS.years omits
+@@ -15432,7 +15439,7 @@ function flowPlanYears(){
+ }
+ function flowYears(){
+   const y={};
+-  flowExecYears().forEach(f=>y[f]=1);
++  flowExecYears(null, true).forEach(f=>y[f]=1);   // v2.00 (R1): the workbook's years, as before -- a saved year stays offered
+   flowPlanYears().forEach(f=>y[f]=1);
+   return Object.keys(y).map(Number).sort((a,b)=>a-b);
+ }
+@@ -15448,8 +15455,14 @@ function flowYearMix(y, aps){
+ }
+ function flowMixWords(y, m){
+   const L=function(a){ return a.map(function(x){ return APPN_LBL[x]||x; }).join(', '); };
+-  return 'FY'+(y%100)+': '+L(m.plan)+' planned, '+L(m.exec)+' executed'+(m.none.length? ', '+L(m.none)+' not in this total' : '');
+-}
++  // v2.00 (R1): a year of one kind names only that kind (flowMixLines names every year in scope); a mixed year reads as before
++  return 'FY'+(y%100)+': '+[m.plan.length? L(m.plan)+' planned' : '', m.exec.length? L(m.exec)+' executed' : '', m.none.length? L(m.none)+' not in this total' : ''].filter(Boolean).join(', ');
++}
++// v2.00 (R1): PLANNED AND EXECUTED MONEY IN ONE TOTAL is said whether one year holds both (v1.99, item 93) or the years in
++// scope differ -- FY25 read from its plan beside FY26 read from its carried execution. Only a same-year mix was said, so the
++// export of that $400M carried no NOTE. The panel and the export say it in the same words, a line per year in scope.
++function flowIsMixed(F){ return F.execYs.length>0 && F.planYs.length>0; }
++function flowMixLines(F){ return F.fys.map(y=>flowMixWords(y, flowYearMix(y, F.aps))).join('; '); }
+ // A PLANNED YEAR CAN ONLY BE ANSWERED FOR THE APPROPRIATION THIS BOARD IS ON. `itemById` and `DATA`
+ // are the current appropriation's, and the consolidated switches them by RELOADING - so another
+ // appropriation's requirements are not addressable from here at all. The chart says which
+@@ -16461,9 +16474,10 @@ function flowHtml(){
+     // WHAT A PLANNED YEAR IS, said in the panel rather than left to be worked out. A chart mixing
+     // actuals with intent reconciles perfectly and is read as all actuals unless it says otherwise.
+     // v1.99 (item 93): a MIXED year -- planned for this board's appropriation, executed for another -- is named as such
+-    +(F.mixYs.length? '<div class="flowmix" style="border:1px solid var(--gold);border-radius:8px;padding:8px 11px;margin-bottom:9px;font-size:10px;background:var(--panel2)">'
++    // v2.00 (R1): and a scope whose years differ in kind -- the same test and the same lines as the export's NOTE
++    +(flowIsMixed(F)? '<div class="flowmix" style="border:1px solid var(--gold);border-radius:8px;padding:8px 11px;margin-bottom:9px;font-size:10px;background:var(--panel2)">'
+        +'<b style="color:var(--gold)">Planned and executed money in one total.</b> '
+-       +F.mixYs.map(y=>esc(flowMixWords(y, flowYearMix(y, F.aps)))).join('; ')
++       +esc(flowMixLines(F))
+        +'. Executed money is the imported CCaR QPE; planned money is '+esc(APPN_LBL[F.planSlug]||'this board')
+        +'’s own allocation. '+fM2(F.execV)+' executed, '+fM2(F.planV)+' planned.</div>' : '')
+     +(F.planYs.filter(y=>F.mixYs.indexOf(y)<0).length? '<div style="border:1px solid var(--line);border-radius:8px;padding:8px 11px;margin-bottom:9px;font-size:10px;background:var(--panel2)">'
+@@ -16558,7 +16572,8 @@ function flowHtml(){
+       +'<div style="font-size:9.5px;color:var(--dim)"><b style="color:var(--ink)">Money appropriated in one year, spent as another.</b> '
+       +'Rows whose <b>Budget</b> cell carries <b>any</b> of these terms are counted under the later year instead of the year they sit in. '
+       +'A list, because the money is not labelled the same way everywhere \u2014 O&amp;M says <i>OBBBA</i>, Initial Spares only says <i>Mandatory</i>. '
+-      +'Each row belongs to exactly one year either way, so it can never appear twice \u2014 select both years and the total is unchanged.</div>'
++      // v2.00 (R1): the total CAN change with both years selected -- FY26's plan gives way to the carried execution, and FY25 left with none is read from its plan
++      +'Each row is counted once, in its effective year \u2014 never twice. A year with execution counted in it is read from that execution, never also from the plan; a year left with none is a planned year, read from this board\u2019s allocation. So switching this on can change a total even with both years selected.</div>'
+       +'<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:10px;margin-top:6px">'
+       +'<label>Called <input class="btn" style="font-size:10px;padding:4px 8px;width:84px" value="'+esc(flowPseudo().label)+'" '
+       +'onchange="flowSetPseudo(&quot;label&quot;,this.value)"></label>'
+@@ -16637,8 +16652,9 @@ function exportFlow(){
+   if(F.uplIn>0.005) sum.splice(3,0,['NOTE: the total below includes '+Math.round(F.uplIn)
+     +' of UNFUNDED requirements (Unfunded Priority List, 0% allocated), counted under Lockheed Martin.'],[]);
+   // v1.99 (item 93): planned and executed money in one total is said, year by year
+-  if(F.mixYs && F.mixYs.length) sum.splice(3,0,['NOTE: planned and executed money in one total \u2014 '
+-    +F.mixYs.map(y=>flowMixWords(y, flowYearMix(y, F.aps))).join('; ')
++  // v2.00 (R1): across years as well as within one -- FY25 planned beside FY26 executed is one total of both kinds
++  if(flowIsMixed(F)) sum.splice(3,0,['NOTE: planned and executed money in one total \u2014 '
++    +flowMixLines(F)
+     +'. Executed is the imported CCaR QPE; planned is '+(APPN_LBL[F.planSlug]||'this board')+'\u2019s own allocation.'],[]);
+   if(F.multi) sum.splice(3,0,['NOTE: separate appropriation years added together \u2014 a portfolio total, '
+     +'not one year of funding. Fiscal years included: '+F.fys.map(y=>'FY'+y).join(', ')+'.'],[]);

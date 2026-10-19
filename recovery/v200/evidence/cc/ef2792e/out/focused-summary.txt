@@ -1,0 +1,7 @@
+F-parent exit=1 | 1 FAILING CHECK(S) | wall_s: 150.5
+F-commit exit=0 | ALL CHECKS PASSED | wall_s: 150.4
+M-v200-u10-resolve-gate-theirs-only exit=1 | 1 FAILING CHECK(S) | wall_s: 139.9
+M-v200-u10-resolve-mine-words exit=1 | 1 FAILING CHECK(S) | wall_s: 138.4
+M-v200-u10-resolve-race exit=1 | 3 FAILING CHECK(S) | wall_s: 141.1
+F-u10-6-c82ea62 exit=1 | 3 FAILING CHECK(S) | wall_s: 155.2
+F-pre-u10-16ceb83 exit=1 | 83 FAILING CHECK(S) | wall_s: 165.6

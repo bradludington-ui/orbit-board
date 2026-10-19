@@ -1,0 +1,17 @@
+SHc-fold-W probe 6d3a0eb2 board 98eed7e8
+  end       screen SHARED | recordedClean true | base BRAD-2 | falselyClean true | kept BRAD-2 | stored SHARED
+      BRAD-2   ["kept","folder"]
+      SHARED   ["screen","storage","sidecar"]
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.
+  reopened  screen BRAD-2 | recordedClean true | base BRAD-2 | falselyClean false | kept BRAD-2 | stored BRAD-2
+      BRAD-2   ["screen","storage","kept","folder"]
+      SHARED   ["sidecar"]
+      status: ⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.
+  edited    screen BRAD-2 | recordedClean false | base BRAD-2 | falselyClean false | kept BRAD-2 | stored BRAD-2
+      BRAD-2   ["screen","storage","kept","folder"]
+      SHARED   ["sidecar"]
+      status: ⬇ Loaded O&M FY27 from the shared folder — saved by Brad just now.
+  refresh   screen BRAD-2 | recordedClean true | base BRAD-2 | falselyClean false | kept BRAD-2 | stored BRAD-2
+      BRAD-2   ["screen","storage","kept","folder"]
+      SHARED   ["sidecar"]
+      status: ✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh.

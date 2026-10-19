@@ -1,0 +1,57 @@
+
+// ====================================================================================== VERIFIER EXTENSION
+// live tick as a board working out of the folder runs it: turning store mode on turns live on (c.on=true) with autosave on
+// (liveCfg default auto=true) every 30 s. Set here at state level (the harness's connect() leaves on:false).
+const liveOn = ev => ev(`_liveCfg.on=true; _liveCfg.auto=true; _driveLive=true; 'ok'`);
+// E1: the race exactly as folderRace, then ONE live tick in the same session (no reopen).
+async function E1() {
+  const mark = bootMark(); const R = {};
+  const { A, fold, fy, setup } = await folderSetup('E1');
+  R.beforeRace = setup.beforeRace;
+  const n0 = fold.hits.main || 0; fold.hold.main = gate(); const g = fold.hold.main;
+  const p = A.ev('driveStorePush(false)');
+  R.reached = await until(() => (fold.hits.main || 0) > n0);
+  R.busyAtCall = A.ev('_saveBusy');
+  const qa = qs(A.ev).length; A.ev('keptPutBack()'); R.putBackPrompts = qs(A.ev).slice(qa).length;
+  g.open(); R.ret = await p; await pause(20);
+  T.t2 = (fold.copy(fy).store || {}).ts;
+  R.afterLanding = { where: where(A, fold, fy), flags: flags(A.ev), status: status(A.ev) };
+  liveOn(A.ev);
+  const qb = qs(A.ev).length; const nMain = fold.hits.main || 0;
+  await A.ev('liveTick()'); await pause(20);
+  R.afterTick = { where: where(A, fold, fy), flags: flags(A.ev), status: status(A.ev), header: header(A.ev), prompts: qs(A.ev).slice(qb),
+    folderWrites: (fold.hits.main || 0) - nMain, kept: keptSlot(A.ev) };
+  R.T = { ...T }; close(A); bootRelease(mark); await settleBoards(); return R;
+}
+// E2: no save running; put back; ONE live tick (its autosave runs because the put-back made the board unsaved).
+async function E2() {
+  const mark = bootMark(); const R = {};
+  const { A, fold, fy } = await folderSetup('E2');
+  const qa = qs(A.ev).length; R.busyAtCall = A.ev('_saveBusy'); A.ev('keptPutBack()'); R.putBackPrompts = qs(A.ev).slice(qa).length;
+  R.afterPutBack = { where: where(A, fold, fy), flags: flags(A.ev) };
+  liveOn(A.ev);
+  const qb = qs(A.ev).length; const nMain = fold.hits.main || 0;
+  await A.ev('liveTick()'); await pause(20);
+  R.afterTick = { where: where(A, fold, fy), flags: flags(A.ev), status: status(A.ev), prompts: qs(A.ev).slice(qb), folderWrites: (fold.hits.main || 0) - nMain };
+  R.T = { ...T }; close(A); bootRelease(mark); await settleBoards(); return R;
+}
+// E3: no save running; put back; press 💾 Save once.
+async function E3() {
+  const mark = bootMark(); const R = {};
+  const { A, fold, fy } = await folderSetup('E3');
+  const qa = qs(A.ev).length; A.ev('keptPutBack()'); R.putBackPrompts = qs(A.ev).slice(qa).length;
+  const qb = qs(A.ev).length; const nMain = fold.hits.main || 0;
+  await A.ev('saveInPlace()');
+  R.afterSave = { where: where(A, fold, fy), status: status(A.ev), prompts: qs(A.ev).slice(qb), folderWrites: (fold.hits.main || 0) - nMain };
+  R.T = { ...T }; close(A); bootRelease(mark); await settleBoards(); return R;
+}
+const EXT = { IDS, errors: [] };
+for (const [k, fn] of [['E1', E1], ['E2', E2], ['E3', E3]]) {
+  const t0 = Date.now();
+  try { EXT[k] = await fn(); console.log(k, 'done', ((Date.now() - t0) / 1000).toFixed(1) + 's'); }
+  catch (e) { EXT.errors.push({ k, err: String((e && e.stack) || e).slice(0, 800) }); console.log(k, 'THREW', String((e && e.stack) || e).slice(0, 800)); }
+}
+EXT.finished = new Date().toLocaleString('en-US', { timeZone: 'America/New_York' }) + ' ET';
+writeFileSync(outPath, JSON.stringify(EXT, null, 1));
+console.log('wrote', outPath);
+process.exit(EXT.errors.length ? 2 : 0);

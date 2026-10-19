@@ -1,0 +1,12 @@
+# label: M8-v200-u10-reapply-keeps-pseudo
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d01b3ba
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d01b3ba/out/M8-v200-u10-reapply-keeps-pseudo.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d01b3ba/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d01b3ba/before /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d01b3ba/harness/parentown/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d01b3ba/mut/v200-u10-reapply-keeps-pseudo.html
+# start: 2026-10-18 06:39:13 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d01b3ba/mut/v200-u10-reapply-keeps-pseudo.html","BOARD_set":true,"board":"a9615ee30d9489bdcaafc0cca309e8b2dd69845e","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d01b3ba/harness/parentown/focused-u10.mjs","harnessBlob":"3685210ec583b30f0be3933afa8ebb6ce79858c8","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 6:39:14 AM ET"}
+
+================================================================================================
+ALL CHECKS PASSED
+# exit 0 at 10/18/2026, 6:41:19 AM ET
+
+# end: 2026-10-18 06:41:19 EDT  exit: 0  wall_s: 125.8

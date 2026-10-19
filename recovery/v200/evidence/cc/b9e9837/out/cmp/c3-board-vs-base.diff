@@ -1,0 +1,68 @@
+--- /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/yearsel/../base/prioritization-board-grid.html	2026-10-12 21:17:00.000000000 +0000
++++ /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/yearsel/c3/prioritization-board-grid.html	2026-10-13 08:50:04.332953204 +0000
+@@ -15351,0 +15352,5 @@
++// v2.00 (U34): A SAVED SELECTION THIS BOARD DID NOT WRITE IS NEVER READ AS ALL YEARS. None saved (null, or no key) is ALL YEARS,
++// and nothing else is. A year is a whole number, as the board writes it; anything else -- a string ("2026"), an object, a bare
++// number, 2026.5, null, an empty list -- is read as no year, kept as saved, and said (flowUnreadSaved). It read as ALL YEARS,
++// or as a year it is not ("2027" as FY27, true as FY1), with nothing said.
++function flowYearOk(y){ return typeof y==='number' && Number.isInteger(y); }
+@@ -15354,3 +15359,22 @@
+-  if(!Array.isArray(C.fys)) return null;
+-  const s=C.fys.map(Number).filter((y,i,a)=>Number.isInteger(y) && a.indexOf(y)===i);
+-  return s.length? s.sort() : null;
++  if(C.fys==null) return null;
++  const s=(Array.isArray(C.fys)? C.fys : []).filter((y,i,a)=>flowYearOk(y) && a.indexOf(y)===i);
++  return s.sort();
++}
++// v2.00 (U34): what of the saved year selection this board cannot read as years, or null when it reads all of it: the whole
++// value (not a list, or an empty one), or the entries that are not whole numbers. `what` quotes the file -- at most three
++// entries, each cut at 40 characters -- for the panel's notice (escaped there) and the export's NOTE. Each is cut between
++// characters, never inside one, and U+FFFE / U+FFFF are quoted as the file's own escape ("\uffff"): XML 1.0 forbids both, so
++// the export's sheet holding one would not be a well-formed workbook. Only the first 82 units are read, so the cost stays small.
++function flowUnreadSaved(){
++  const v=flowCfg().fys, q=x=>{ const t=Array.from(String(JSON.stringify(x)).slice(0,82).replace(/[\uFFFE\uFFFF]/g, c=>'\\u'+c.charCodeAt(0).toString(16)));
++    return t.length>40? t.slice(0,40).join('')+'\u2026' : t.join(''); };
++  if(v==null) return null;
++  if(!Array.isArray(v) || !v.length) return {whole:true, n:1, what:q(v)};
++  const bad=v.filter(y=>!flowYearOk(y));
++  return bad.length? {whole:false, n:bad.length, what:bad.slice(0,3).map(q).join(', ')+(bad.length>3? ' and '+(bad.length-3)+' more' : '')} : null;
++}
++function flowUnreadText(F, fy){
++  const U=F.unread, L=a=>a.map(fy).join(', '), one=U.n===1;
++  if(U.whole) return 'The saved year selection is '+U.what+', not a list of years this board can read. It is kept as saved, and nothing is counted.';
++  return 'The saved year selection holds '+U.what+', which this board cannot read as '+(one?'a year':'years')+'. '+(one?'It is':'They are')
++    +' kept as saved'+(F.fys.length? ' and not counted: this total counts '+L(F.fys)+' only.' : ', and nothing is counted.');
+@@ -15401 +15425,3 @@
+-function flowScopeLabel(ys, aps, un){
++// v2.00 (U34): nor is one holding what the board cannot read as years (`ur`: flowUnreadSaved), even when the years it can read
++// are every year offered; it read "· all years" beside "this total counts FY25, FY27, ... only".
++function flowScopeLabel(ys, aps, un, ur){
+@@ -15407 +15433 @@
+-    : ((ys.length===allY.length && !(un||[]).length)? runs(ys)+' \u00b7 all years'
++    : ((ys.length===allY.length && !(un||[]).length && !ur)? runs(ys)+' \u00b7 all years'
+@@ -15588,0 +15615 @@
++  const UR = (arg==null)? flowUnreadSaved() : null;     // v2.00 (U34): what of the saved selection cannot be read as years
+@@ -15590,2 +15617,2 @@
+-  const F={fy:YS[YS.length-1], fys:YS, aps:AS, multi:YS.length>1, unavail:UN,
+-           label:flowScopeLabel(YS,AS,UN), tot:0, appn:APPN_SLUGS.reduce(function(o,s){ o[s]=0; return o; },{}), dual:0, rows:0,
++  const F={fy:YS[YS.length-1], fys:YS, aps:AS, multi:YS.length>1, unavail:UN, unread:UR,
++           label:flowScopeLabel(YS,AS,UN,UR), tot:0, appn:APPN_SLUGS.reduce(function(o,s){ o[s]=0; return o; },{}), dual:0, rows:0,
+@@ -15676,0 +15704,2 @@
++  // v2.00 (U34): and a saved selection, or part of one, that cannot be read as years
++  if(UR) F.label+=' \u00b7 '+(UR.whole? 'saved year selection not a list of years' : UR.n+' saved '+(UR.n===1?'entry not a year':'entries not years'))+', not counted';
+@@ -16484 +16513,2 @@
+-    +chip(selY.length===yrs.length && !F.unavail.length,'ALL YEARS','flowAllYears()','Every year this board can answer for \u2014 executed and planned together')
++    // v2.00 (U34): nor is one holding what the board cannot read as years; the years it counts are lit instead
++    +chip(selY.length===yrs.length && !F.unavail.length && !F.unread,'ALL YEARS','flowAllYears()','Every year this board can answer for \u2014 executed and planned together')
+@@ -16489 +16519 @@
+-        return chip(selY.indexOf(f)>=0 && (selY.length<yrs.length || F.unavail.length>0),'FY'+(f%100)+(pl?' \u00b7 plan':''),
++        return chip(selY.indexOf(f)>=0 && ((selY.length<yrs.length || F.unavail.length>0) || !!F.unread),'FY'+(f%100)+(pl?' \u00b7 plan':''),
+@@ -16557,0 +16588,5 @@
++    // v2.00 (U34): A SAVED SELECTION THE BOARD CANNOT READ AS YEARS is said, quoted as saved, with what is counted instead. Any
++    // click on the year buttons chooses again and replaces what cannot be read (a toggle starts from the years it could read).
++    +(F.unread? '<div class="flowunread" style="border:1px solid var(--amber);border-radius:8px;padding:8px 11px;margin-bottom:9px;font-size:10px">'
++       +'<b style="color:var(--amber)">'+esc(flowUnreadText(F, y=>'FY'+(y%100)))+'</b> '
++       +'Click <b>ALL YEARS</b>, a year\u2019s <b>only</b>, or a year to switch it on or off, to choose again; any of these replaces what cannot be read.</div>' : '')
+@@ -16758,0 +16794,2 @@
++  // v2.00 (U34): a saved selection the board cannot read as years, in the panel's words, under U14's NOTE
++  if(F.unread) sum.splice(3,0,['NOTE: '+flowUnreadText(F, y=>'FY'+y)],[]);

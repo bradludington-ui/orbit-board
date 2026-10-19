@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-several-txt-dropped", "matches": 1, "find": "if(rec.bad){ rec.txt=r.result; results.push(rec); finish(); return; }", "repl": "if(rec.bad){ results.push(rec); finish(); return; }"}

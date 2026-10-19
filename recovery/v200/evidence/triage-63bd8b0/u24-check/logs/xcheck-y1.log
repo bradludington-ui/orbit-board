@@ -1,0 +1,89 @@
+ok   SHc-fold-Wedit      RUN    finished, no error, board 98eed7e8 
+ok   SHc-fold-Wedit      HOLD   held [reached, busy, target, DIRTY, asked] 
+ok   SHc-fold-Wedit      FIX    an ordinary edit was typed during the held save (no question) 
+ok   SHc-fold-Wedit      PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   SHc-fold-Wedit      PRED   end 
+ok   SHc-fold-Wedit      PRED   reopen 
+ok   SHc-fold-Wedit      PRED   refresh 
+ok   SHc-fold-Wedit      K      K1/K2/K3 falsely clean 
+ok   SHc-fold-Wedit      REACH  end: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Wedit      REACH  reopened: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Wedit      REACH  edited: BRAD-2, SHARED in a board copy 
+ok   SHc-file-Wedit      RUN    finished, no error, board 98eed7e8 
+ok   SHc-file-Wedit      HOLD   held [reached, busy, target, DIRTY, asked] 
+ok   SHc-file-Wedit      FIX    an ordinary edit was typed during the held save (no question) 
+ok   SHc-file-Wedit      PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   SHc-file-Wedit      PRED   end 
+ok   SHc-file-Wedit      PRED   reopen 
+ok   SHc-file-Wedit      K      K1/K2/K3 falsely clean 
+ok   SHc-file-Wedit      REACH  end: BRAD-2, SHARED in a board copy 
+ok   SHc-file-Wedit      REACH  reopened: BRAD-2, SHARED in a board copy 
+ok   SHc-file-Wedit      REACH  edited: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Wread      RUN    finished, no error, board 98eed7e8 
+ok   SHc-fold-Wread      HOLD   held [reached, busy, target, DIRTY, asked] 
+ok   SHc-fold-Wread      FIX    the person clicked 'load the shared one' (no question) 
+ok   SHc-fold-Wread      PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   SHc-fold-Wread      PRED   end 
+ok   SHc-fold-Wread      PRED   reopen 
+ok   SHc-fold-Wread      PRED   refresh 
+ok   SHc-fold-Wread      K      K1/K2/K3 falsely clean 
+ok   SHc-fold-Wread      REACH  end: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Wread      REACH  reopened: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Wread      REACH  edited: BRAD-2, SHARED in a board copy 
+ok   SHc-file-Wread      RUN    finished, no error, board 98eed7e8 
+ok   SHc-file-Wread      HOLD   held [reached, busy, target, DIRTY, asked] 
+ok   SHc-file-Wread      FIX    the person clicked 'load the shared one' (no question) 
+ok   SHc-file-Wread      PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   SHc-file-Wread      PRED   end 
+ok   SHc-file-Wread      PRED   reopen 
+ok   SHc-file-Wread      K      K1/K2/K3 falsely clean 
+ok   SHc-file-Wread      REACH  end: BRAD-2, SHARED in a board copy 
+ok   SHc-file-Wread      REACH  reopened: BRAD-2, SHARED in a board copy 
+ok   SHc-file-Wread      REACH  edited: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Whist      RUN    finished, no error, board 98eed7e8 
+ok   SHc-fold-Whist      HOLD   held [reached, busy, target, DIRTY, asked] 
+ok   SHc-fold-Whist      HOLD   the hold was hit at the history copy, not the head 
+ok   SHc-fold-Whist      FIX    the person clicked 'load the shared one' (no question) 
+ok   SHc-fold-Whist      PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   SHc-fold-Whist      PRED   end 
+ok   SHc-fold-Whist      PRED   reopen 
+ok   SHc-fold-Whist      PRED   refresh 
+ok   SHc-fold-Whist      K      K1/K2/K3 falsely clean 
+ok   SHc-fold-Whist      REACH  end: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Whist      REACH  reopened: BRAD-2, SHARED in a board copy 
+ok   SHc-fold-Whist      REACH  edited: BRAD-2, SHARED in a board copy 
+ok   SHa-fold-Wlate      RUN    finished, no error, board 98eed7e8 
+ok   SHa-fold-Wlate      HOLD   held [reached, busy, target, DIRTY, asked] 
+ok   SHa-fold-Wlate      FIX    the state file was stamped after the save restamped the board (no cloc 
+ok   SHa-fold-Wlate      FIX    the answer arrived 
+ok   SHa-fold-Wlate      PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   SHa-fold-Wlate      PRED   end 
+ok   SHa-fold-Wlate      PRED   reopen 
+ok   SHa-fold-Wlate      PRED   refresh 
+ok   SHa-fold-Wlate      K      K1/K2/K3 falsely clean 
+ok   SHa-fold-Wlate      REACH  end: BRAD-2, SHARED in a board copy 
+ok   SHa-fold-Wlate      REACH  reopened: BRAD-2, SHARED in a board copy 
+ok   SHa-fold-Wlate      REACH  edited: BRAD-2, SHARED in a board copy 
+ok   IB-fold-C3clean     RUN    finished, no error, board 98eed7e8 
+ok   IB-fold-C3clean     FIX    the save alone landed [questions asked] 
+ok   IB-fold-C3clean     FIX    the batch asked once, answered OK, and finished 
+ok   IB-fold-C3clean     PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   IB-fold-C3clean     PRED   end 
+ok   IB-fold-C3clean     PRED   reopen 
+ok   IB-fold-C3clean     PRED   refresh 
+ok   IB-fold-C3clean     K      K1/K2/K3 falsely clean 
+ok   IB-fold-C3clean     REACH  end: BRAD-1, IMPORT in a board copy 
+ok   IB-fold-C3clean     REACH  reopened: BRAD-1, IMPORT in a board copy 
+ok   IB-fold-C3clean     REACH  edited: BRAD-1, IMPORT in a board copy 
+ok   IB-fold-C1oldclean  RUN    finished, no error, board 98eed7e8 
+ok   IB-fold-C1oldclean  FIX    the imported board is older than the folder copy 
+ok   IB-fold-C1oldclean  FIX    the batch asked once, answered OK, and finished 
+ok   IB-fold-C1oldclean  PRED   the action [screen, busy, gen moved, DIRTY, record dirty, kept] 
+ok   IB-fold-C1oldclean  PRED   end 
+ok   IB-fold-C1oldclean  PRED   reopen 
+ok   IB-fold-C1oldclean  PRED   refresh 
+ok   IB-fold-C1oldclean  K      K1/K2/K3 falsely clean 
+ok   IB-fold-C1oldclean  REACH  end: BRAD-1, IMPORT in a board copy 
+ok   IB-fold-C1oldclean  REACH  reopened: BRAD-1, IMPORT in a board copy 
+ok   IB-fold-C1oldclean  REACH  edited: BRAD-1, IMPORT in a board copy 
+TOTAL 88 checks, 0 fail

@@ -1,0 +1,28 @@
+# cmd: BOARD=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/R1bint/mut-v200-r1-stored-note-unsaid.html node tools/export-audit/audit-recon.mjs
+# cwd: /home/user/orbit-board
+# git: 2b5b02b66dc66f2ebecf0df114d1582d62696f26
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-11T22:40:57Z / 18:40:57 EDT
+# cap: 600s  grace: 10s
+RECONCILIATION — do the totals add up, independently of how they were computed
+================================================================================================
+  [row closes] exportExcel: 47 row(s) across 21 block(s)
+  [exportCSV] 7 sheet(s), 10 breakout row(s) across 7 block(s)
+  [exportCoa] 3 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportFlow] 8 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportPlans] 3 sheet(s), 12 breakout row(s) across 2 block(s)
+  [exportReprog] 1 sheet(s), 0 breakout row(s) across 0 block(s)
+  [exportSrc] 4 sheet(s), 0 breakout row(s) across 0 block(s)
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 + FY26 · the panel
+    not "FY25 is PLANNED, not executed" beside $100M executed: $100.00M executed and $300.00M planned, the FY25 rows stored under FY25 and counted in FY26
+        got ["",["This total holds $100.00M executed and $300.00M planned. FY25 is a planned year. Nothing in scope has executed in that year yet, so the chart reads O&M’s own allocation for it — what the board intends to fund, one line per requirement per funded service, the same grain the Spend Plan Source export uses. A planned year covers O&M only — another appropriation’s requirements are not reachable from this board."]]   want ["",["This total holds $100.00M executed and $300.00M planned. FY25 is a planned year. The rows stored under FY25 are counted in FY26 (OBBBA), so the chart reads O&M’s own allocation for it — what the board intends to fund, one line per requirement per funded service, the same grain the Spend Plan Source export uses. A planned year covers O&M only — another appropriation’s requirements are not reachable from this board."]]
+--- v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year | B · FY25 alone · the planned note
+    says the rows stored under FY25 are counted in FY26, not that nothing has executed in it
+        got [[false],true]   want [[true],false]
+
+# end: 2026-10-11T22:41:48Z / 18:41:48 EDT
+# exit: 1  duration_s: 50.5

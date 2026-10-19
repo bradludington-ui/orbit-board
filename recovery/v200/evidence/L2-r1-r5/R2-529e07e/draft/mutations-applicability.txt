@@ -1,0 +1,32 @@
+APPLICABILITY (match counts only; a count of 1 says the mutation applies, not that it is caught -- catches are in evidence.md)
+patched board: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L2/draft/R2/wt/prioritization-board-grid.html, git blob 62276be5b97e730243dea4b693750e51338baf2b
+base board:    9b27e80 prioritization-board-grid.html, git blob 42e8111810b11c0500adb2fd029194c0ccbd9780
+
+Proposed entries (out/mutations.json), each find counted as text on the board:
+  v200-r2-eeic-checked-raw   patched 1 (line 10855)   base 0
+  v200-r2-eeic-not-upper     patched 1 (line 10855)   base 0
+  (the two finds overlap on board line 10855; mutate.mjs applies each alone, so the overlap does not matter)
+
+Hand-checked extra, NOT proposed (caught only by CONTROL-labelled checks): storage-side "kept not upper-cased"
+  find "  else if(field==='eeic') e.eeic=String(val||'').trim().toUpperCase();": patched 1   base 1
+
+Existing mutate.mjs entries (read AS TEXT by count_finds.py and a verbatim String.raw extraction; mutate.mjs was never imported or run):
+  1274 entries in MUTATIONS, 1274 finds. 1272 are string literals, concatenations or one of 4 top-level string
+  constants; the other 2 (scen-marker-sheet, save-no-lt-escape) are String.raw templates, read verbatim from the file
+  text. 0 unresolved. 0 duplicate ids.
+  Every one of the 1274 finds matches EXACTLY ONCE on the patched board, and once on the base board. No count changed.
+  The R2 patch changes one line (rcnSet's codeTake call, line 10853 -> 10855) and adds a two-line comment; no existing
+  find contains that line.
+  Entries whose count is no longer exactly 1: NONE. No re-anchor is needed.
+  Named entries near R2:
+    v199-rcn-cut           (rcnSet)    patched 1  base 1   -- unchanged find still applies; still caught (evidence.md)
+    v199-code-cut          (codeTake)  patched 1  base 1   -- codeTake is not touched
+    v199-mat-rcnnote-gone              patched 1  base 1
+  v199-rcn-cut: the lost work re-anchored it (its rcnSet presumably changed the refusal line). This rcnSet keeps that
+  line byte for byte (only the codeTake argument on the line above changed), so its find matches once and its purpose
+  -- an RCN or EEIC over 10 characters is cut and stored -- is unchanged: on the patched board the mutant stores RCN
+  1234567890 / EEIC ABCDEFGHIJ for the 11-character codes (item 91's check fails) and the R2 refusals fail too.
+  Proposed re-anchor: none needed. If the lead's integrated rcnSet does change the refusal line, re-anchor on that
+  line with the same repl shape (on refusal, cut the value to 10 and fall through to the store).
+Raw output: logs/mutate-find-counts.txt (a retyped String.raw count there reads 0; it was my typo, superseded by the
+verbatim-extraction lines after it).

@@ -1,0 +1,5 @@
+SCRATCH {"pre":[false,false],"afterPutBack":["UNSAVED",true,true],"after":["UNSAVED","HISTORY",false,false,false],"status":"✅ Saved O&M FY27 to the shared folder — 5 KB. Everyone sees it on their next refresh."}
+
+================================================================================================
+scenarios heard: ["scratch — kept work put back during a folder save"]
+ALL CHECKS PASSED

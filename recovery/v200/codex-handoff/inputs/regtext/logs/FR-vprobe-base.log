@@ -1,0 +1,23 @@
+# label: FR-vprobe-base
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext
+# cmd: node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/probe/verifier/vprobe.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/regtext/../base
+# start: 2026-10-13 05:37:32 EDT
+# cap: 600 s, kill grace 10 s
+BOARD /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L6/base/prioritization-board-grid.html
+1a file title kept on open (length)                  got 100   want "100"  OK
+1b append "!" to it in the panel: [shown, kept len, field on screen, marked] got [100,80,false,null]
+1c the status after                                  got 
+1d saved and reopened: the title length              got 80   want "100"  DIFFERS
+1e then the RCN typed 22222: [rcn, title len]        got ["22222",80]   want ["22222",100]  DIFFERS
+2 refused, then rcnAdd(): [status1, kept, old field on screen, field now, status now] got ["","ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",false,"ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",""]
+2 refused, then rcnToggleSvc(0,"AFRC"): [status1, kept, old field on screen, field now, status now] got ["","ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",false,"ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",""]
+2 refused, then row 2 RCN typed: [status1, kept, old field on screen, field now, status now] got ["","ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",false,"ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ",""]
+3 20 family emoji (20 glyphs)                        got ["CUT to 80",""]
+3 41 NFD é (41 glyphs)                               got ["CUT to 80",""]
+3 80 NFD é (80 glyphs)                               got ["CUT to 80",""]
+3 80 NFC é (80 glyphs)                               got ["kept",""]
+4 locked view, 81 typed: [view title, marked, status, working title after leaving] got ["WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW",null,"🔒 Saving is off while PB27 is on screen. It is a locked cycle, read only — the change was not kept. ↩ Leave the view to work the plan.","base"]
+5 RCN-EEIC by Month rows for K1 [label, col 14]      got [["11111 / AAAAA  QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ",900],["11111 / AAAAA  QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ",200],["11111 / AAAAA  QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ   (1 requirement)",900],["11111 / AAAAA  QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ   (1 requirement)",200]]   want [["11111 / AAAAA  Ok title",900],["11111 / AAAAA  Ok title",200]]  DIFFERS
+done
+
+# end: 2026-10-13 05:37:43 EDT  exit: 0  wall_s: 10.5

@@ -1,0 +1,4 @@
+
+================================================================================================
+scenarios heard: ["v1.89 — saving never silently overwrites somebody’s work","v1.95 — Save acknowledges exactly what it wrote (the shared folder)","v1.95 — ↶ Put this back keeps unsaved work aside first","v1.96 — ↶ Put this back never drops an edit typed while the folder is written (NR01)","v1.97 — ↶ Put this back pins its appropriation and year before its first wait (item 78)"]
+ALL CHECKS PASSED

@@ -1,0 +1,58 @@
+// ==== v2.00 (R3): a locked view is never written to the working folder ====
+// A folder save checked for a locked cycle on screen only before its first wait. Put on screen while the save read the
+// folder's copy, the locked plan was built into the bytes, written over the working plan's copy with that copy kept as
+// history, and the board said "Saved". The save now asks again once the copy is read.
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (R3) — a locked view is never written to the working folder';
+  try {
+  const { J, wire, KEY, status, baseFile, folder, connect, gate, until, pause } = W1H;
+  const F1 = baseFile('Alice', KEY.alice);
+  // PB27 is locked holding LOCKED; the folder's copy holds WORKING, saved; WORKING TWO is on screen, unsaved.
+  const fresh = async () => {
+    const fold = folder(); const A = boot({ html: F1 }); await pause(5);     // the opening's own bookkeeping runs once the page has loaded
+    wire(A.ev, 'Alice', KEY.alice); connect(A.ev, A.w, fold);
+    A.ev(`setNote('A','LOCKED'); blCyc='PB'; blYr=2027; cycLock(); setNote('A','WORKING'); 'ok'`); await A.ev('driveStorePush(false)');
+    A.ev(`setNote('A','WORKING TWO'); 'ok'`);
+    return { A, fold, K: w3Hook(fold) };
+  };
+  // The call is held at its read of the folder's copy; `during` runs there. What it wrote is every close the folder saw.
+  const held = async (A, fold, K, call, during) => {
+    const raw = fold.raw(2027), h0 = J(w3Hist(fold)), l0 = fold.log.length, n0 = K.hits.mainRead || 0;
+    K.hold.mainRead = gate(); const g = K.hold.mainRead;
+    const p = A.ev(call);
+    const reached = await until(() => (K.hits.mainRead || 0) > n0);
+    if (during) A.ev(during + `; 'ok'`);
+    g.open(); const ret = await p;
+    return { raw, reached, ret, same: fold.raw(2027) === raw && J(w3Hist(fold)) === h0, wrote: fold.log.slice(l0) };
+  };
+  // (a) SAVE, AND PB27 PUT ON SCREEN WHILE THE FOLDER'S COPY IS READ: nothing is written -- not the copy, not its
+  // history, not the lock -- the folder keeps its bytes, the save does not report success, and the board says why.
+  { const { A, fold, K } = await fresh();
+    const r = await held(A, fold, K, 'driveStorePush(false)', `cycView('PB|2027')`), st = status(A.ev);
+    chk(name, '(a) PB27 put on screen during the read', 'the save reached the read and waited there; PB27 is then on screen', J([r.reached, A.ev('CYCVIEW')]), J([true, 'PB|2027']));
+    chk(name, '(a) PB27 put on screen during the read', 'nothing is written to the folder (no copy, no history, no lock), and it is byte-identical', J([r.wrote, r.same]), J([[], true]));
+    chk(name, '(a) PB27 put on screen during the read', 'the save does not tell its caller it saved', !!r.ret, false);
+    chk(name, '(a) PB27 put on screen during the read', 'the board does not say saved, and says writing to the folder is off', J([/Saved/.test(st), /Writing to the shared folder is off while/.test(st)]), J([false, true]));
+    A.ev(`cycLeave(); 'ok'`);
+    chk(name, '(a) then the view left', 'the working plan is back, still unsaved', J([A.ev('String(S.notes.A)'), A.ev('String(DIRTY)')]), J(['WORKING TWO', 'true']));
+    await A.ev('driveStorePush(false)');
+    chk(name, '(a) then the view left', 'the next Save writes the working plan (a CONTROL)', J([fold.note(2027, 'A'), A.ev('String(DIRTY)')]), J(['WORKING TWO', 'false'])); }
+  // (b) ⬆ PUBLISH NOW IS THE FOLDER SAVE: the same, and no publish is recorded.
+  { const { A, fold, K } = await fresh(); A.ev(`LIVEDB.pub=1; 'ok'`);
+    const r = await held(A, fold, K, 'livePublish(false)', `cycView('PB|2027')`);
+    chk(name, '(b) ⬆ Publish now, PB27 put on screen during the read', 'nothing is written, it reports failure, and no publish is recorded',
+      J([r.reached, r.wrote, r.same, r.ret, A.ev('LIVEDB.pub')]), J([true, [], true, false, 1])); }
+  // (c) CONTROL: the same save held at the same read, the working plan left on screen, writes it and says so.
+  { const { A, fold, K } = await fresh();
+    const r = await held(A, fold, K, 'driveStorePush(false)', '');
+    chk(name, '(c) nothing put on screen during the read (a CONTROL)', 'the delayed save writes the working plan, keeps the copy it replaced, and says saved',
+      J([r.reached, r.ret, fold.note(2027, 'A'), Object.values(w3Hist(fold)).includes(r.raw), /✅ Saved/.test(status(A.ev)), A.ev('String(DIRTY)')]),
+      J([true, true, 'WORKING TWO', true, true, 'false'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (R3) ====

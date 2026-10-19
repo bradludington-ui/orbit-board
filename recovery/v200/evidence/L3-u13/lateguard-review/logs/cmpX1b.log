@@ -1,0 +1,8 @@
+X1-after-LP vs X1-before-LP, mode N (win): 38 cells identical, 1 differ
+--- ('N', 'B07-notnewer-clash', 'tk')
+   landStatus:
+      X1-after-LP: "⛔ Bob saved O&M FY## to the shared folder just now, after the copy you are working from. What is on screen doe"
+      X1-before-LP: "⛔ Bob saved O&M FY## to the shared folder # min ago, after the copy you are working from. What is on screen do"
+   status:
+      X1-after-LP: "⛔ Bob saved O&M FY## to the shared folder AGE, after the copy you are working from. What is on screen does not have their changes. Load theirs (your work i"
+      X1-before-LP: "⛔ Bob saved O&M FY## to the shared folder AGE, after the copy you are working from. What is on screen does not have their changes. Load theirs (your work "

@@ -1,0 +1,13 @@
+# label: MF-say-cycle-unsaid
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/out/MF-say-cycle-unsaid.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/bin/runner-ff.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit/p1-c07.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-say-cycle-unsaid.html
+# start: 2026-10-18 19:04:25 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/mut/v200-cycreg-say-cycle-unsaid.html","BOARD_set":true,"board":"c7ed32dcc7cc72b43bc5f20ac0528e09fa032397","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/d6fea76/h/after/tools/export-audit/p1-c07.mjs","harnessBlob":"fbde0a850994e9b34913ebceff8e366b36c7720d","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"af7a9978dd711c918d780037fce248dd3a851fb7","started":"10/18/2026, 7:04:26 PM ET"}
+
+1 FAILING CHECK(S) -- stopped at the first (MUT_FIRST_FAIL)
+
+--- {"scenario":"v2.00 (U32, U33) — an RCN / EEIC list that repeats a key, or holds “__none__” or a key that is not text, never counts money twice: a file handed over with one is refused, and the user’s own board comes across saying what it holds","where":"PB27 lists K1 twice, then the number 1, R1 on K1 · ⬅ Import a full board","what":"the user’s own board is taken, and the question asked before anyt
+# exit 1 at 10/18/2026, 7:04:30 PM ET
+
+# end: 2026-10-18 19:04:30 EDT  exit: 1  wall_s: 5.3

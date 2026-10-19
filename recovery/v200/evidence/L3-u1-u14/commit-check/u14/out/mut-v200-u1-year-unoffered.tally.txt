@@ -1,0 +1,4 @@
+  19 pass    0 fail  v2.00 (R1) — execution precedence by appropriation and effective year
+  19 pass    0 fail  v2.00 (R1) — mixed totals are said with their amounts, and stored rows apart from their effective year
+  55 pass   23 fail  v2.00 (U1) — a carried row is counted in an offered year and in ALL YEARS
+  58 pass    5 fail  v2.00 (U14) — ALL YEARS holds every plan the board holds; a saved year selection is kept and said

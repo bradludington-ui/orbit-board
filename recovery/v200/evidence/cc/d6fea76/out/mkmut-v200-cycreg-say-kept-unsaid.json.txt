@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-say-kept-unsaid", "matches": 1, "find": "    +(rcnCyNT? ' A locked cycle’s entry whose key is not text is kept but not read, as in every ORBIT since v1.99: a requirement on it '\n      +'shows no code there, and its money is on no combination.' : '')\n", "repl": ""}

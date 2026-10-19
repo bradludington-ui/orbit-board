@@ -1,0 +1,15 @@
+r-b63-SHaC-none start=2026-10-12T15:12:24EDT exit=0 wall_s=11.0  | SUMMARY SHaC none board=u13: 5 pass, 3 fail | fixture 3/3 | predict 2/2 | contract 0/3 | harness 0/0
+r-b63-SHaC-save start=2026-10-12T15:12:35EDT exit=0 wall_s=10.8  | SUMMARY SHaC save board=u13: 6 pass, 2 fail | fixture 3/3 | predict 3/3 | contract 0/2 | harness 0/0
+r-b63-SHaC-putback start=2026-10-12T15:12:46EDT exit=0 wall_s=11.9  | SUMMARY SHaC putback board=u13: 7 pass, 1 fail | fixture 3/3 | predict 3/3 | contract 1/2 | harness 0/0
+r-b63-BT-none start=2026-10-12T15:12:58EDT exit=0 wall_s=11.2  | SUMMARY BT none board=u13: 9 pass, 1 fail | fixture 5/5 | predict 2/2 | contract 2/3 | harness 0/0
+r-b63-BT-save start=2026-10-12T15:13:09EDT exit=0 wall_s=6.9  | SUMMARY BT save board=u13: 8 pass, 2 fail | fixture 5/5 | predict 3/3 | contract 0/2 | harness 0/0
+r-b63-BT-putback start=2026-10-12T15:13:16EDT exit=0 wall_s=9.4  | SUMMARY BT putback board=u13: 9 pass, 1 fail | fixture 5/5 | predict 3/3 | contract 1/2 | harness 0/0
+r-b63-BTC-none start=2026-10-12T15:13:26EDT exit=0 wall_s=11.9  | SUMMARY BTC none board=u13: 7 pass, 1 fail | fixture 3/3 | predict 2/2 | contract 2/3 | harness 0/0
+r-b63-BTC-save start=2026-10-12T15:13:37EDT exit=0 wall_s=10.9  | SUMMARY BTC save board=u13: 6 pass, 2 fail | fixture 3/3 | predict 3/3 | contract 0/2 | harness 0/0
+r-b63-BTC-putback start=2026-10-12T15:13:48EDT exit=0 wall_s=11.0  | SUMMARY BTC putback board=u13: 7 pass, 1 fail | fixture 3/3 | predict 3/3 | contract 1/2 | harness 0/0
+r-b63-IB-none start=2026-10-12T15:14:00EDT exit=0 wall_s=15.3  | SUMMARY IB none board=u13: 10 pass, 0 fail | fixture 5/5 | predict 2/2 | contract 3/3 | harness 0/0
+r-b63-IB-save start=2026-10-12T15:14:15EDT exit=0 wall_s=14.5  | SUMMARY IB save board=u13: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0
+r-b63-IB-putback start=2026-10-12T15:14:29EDT exit=0 wall_s=11.9  | SUMMARY IB putback board=u13: 10 pass, 0 fail | fixture 5/5 | predict 3/3 | contract 2/2 | harness 0/0
+r-b63-IBC-none start=2026-10-12T15:14:41EDT exit=0 wall_s=13.8  | SUMMARY IBC none board=u13: 8 pass, 0 fail | fixture 3/3 | predict 2/2 | contract 3/3 | harness 0/0
+r-b63-IBC-save start=2026-10-12T15:14:55EDT exit=0 wall_s=14.6  | SUMMARY IBC save board=u13: 8 pass, 0 fail | fixture 3/3 | predict 3/3 | contract 2/2 | harness 0/0
+r-b63-IBC-putback start=2026-10-12T15:15:10EDT exit=0 wall_s=10.2  | SUMMARY IBC putback board=u13: 8 pass, 0 fail | fixture 3/3 | predict 3/3 | contract 2/2 | harness 0/0

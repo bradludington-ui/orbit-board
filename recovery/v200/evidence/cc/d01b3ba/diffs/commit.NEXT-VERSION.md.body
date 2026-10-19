@@ -1,0 +1,34 @@
++- **U10 (9 of 12) — the funds flow's appropriation buttons, pseudo year, prime rules and categories refused in a locked view
++  move no money in any total or export** (the same release blocker; the round-4 test review's MF1 and SF1, 13 Oct). The funds
++  flow keeps these settings beside the years, with its partner money (ledger U49's class), and U10 1 of 12 puts them back after a
++  refusal -- but no check read them: a refusal that kept O&M clicked out of the appropriation buttons passed all 125 checks of
++  U10 1-6, while PB27's view said "the change was not kept" and the funds-flow export labelled "[PB27 LOCKED]" counted no O&M
++  money (TOTAL FUNDING 0 for $500,000,000). On `7ee498a` the refused click is kept. This commit reads all four, each with the
++  money it moves.
++  - **What users may see:** nothing beyond U10 1 of 12.
++  - **Test:** audit-recon "v2.00 (U10) — an appropriation button, the pseudo year, a prime rule or a category refused in a
++    locked view moves no money in any total or export" (11 checks), on P4's board with a second FY25 row (Carried Support, O&M
++    Mandatory, $7,000,000) and the pseudo year set to count Mandatory money appropriated in FY25 as FY27, switched off. In
++    PB27's view, through the panel's own controls: O&M clicked out; the pseudo year's button pressed; F1 typed as the Lockheed
++    Martin token; F1 typed as Depot, Repair & Materiel's title words; each refused. After each: the status line, the
++    calculation and the settings as stored, the panel (total funding, the two fields, the pseudo year's button, ALL
++    appropriations lit) and the funds-flow export read from its bytes (its name, Scope line, TOTAL FUNDING, Lockheed Martin,
++    Program Operations & Support, Depot Repair & Materiel, the prime token line, Depot's rule line, the pseudo year's NOTE):
++    $500,000,000 under Program Operations & Support, every setting as it was. Controls: PB27 viewed with nothing changed; the
++    view left; and on the working plan the same four changes allowed one after another, each moving money in the export -- F1's
++    $500,000,000 to Depot, then to Lockheed Martin; then FY27 read from the $7,000,000 carried in from FY25 in place of its plan
++    ("ORBIT Funds Flow - FY27 all appropriations OBBBA FY25.xlsx", with its NOTE); then O&M out and $0 under "… FY27 FULL FUND
++    INITIAL SPARES OPN PLANNED board allocation O M.xlsx". Every figure is typed in the block. On `7ee498a` the 4 non-control
++    checks fail (the first leaves TOTAL FUNDING 0 under "… FULL FUND INITIAL SPARES OPN … [PB27 LOCKED].xlsx") and the 7
++    controls pass; at U10 6 of 12 all 11 pass (the code is U10 1's). The commit also types 'PB|2027' as the expected cycle in
++    the three checks U10 5 and 6 added where the board's own `blKey` value stood (the round-4 test review's m1; no expected
++    value changes).
++  - **Mutations:** `v200-u10-reapply-keeps-appn-pick` (the round-4 test review's entry; 4 checks fail), `-reapply-keeps-pseudo`
++    (3), `-reapply-keeps-rules` (2) and `-reapply-keeps-cats` (1): each a refusal that makes the copy again but keeps that one
++    refused setting. None is caught by U10 1-6's blocks (0 of 125: the round-4 test review for the appropriations, the pseudo
++    year, and the rules with the categories together; measured here for the rules and the categories each alone).
++  - **Not covered:** the funds flow's presentation settings -- the sub-rung lists under a category and which of them are
++    shown, the plan-event counts and the layout -- are put back by the same whole copy and read by no check; by reading, none
++    of them reaches the funds-flow export or any total (the round-5 test review, m3). The categories' order and reset live in
++    the categories the Depot check reads and are not typed on their own. Where the unfunded priority list goes is read by U10
++    10 of 12.

@@ -1,0 +1,15 @@
+9365 2026-10-12T14:54:44Z runner-selftest itself
+11259 2026-10-12T14:55:04Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/banner-exit1.log
+11295 2026-10-12T14:55:04Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/failing-exit0.log
+11333 2026-10-12T14:55:04Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/noverdict-exit0.log
+11373 2026-10-12T14:55:04Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/pass.log
+11400 2026-10-12T14:55:05Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/notall-exit0.log
+11424 2026-10-12T14:55:05Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/nul-pass.log
+11449 2026-10-12T14:55:05Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/timedout-text-pass.log
+11491 2026-10-12T14:55:06Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/standards-pass.log
+11515 2026-10-12T14:55:06Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/banner-then-more.log
+11539 2026-10-12T14:55:06Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/orphan-banner.log
+11583 2026-10-12T14:55:07Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/banner-timeout.log
+11816 2026-10-12T14:55:09Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/banner-interrupted.log
+11926 2026-10-12T14:55:12Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/selftrailer.log
+11995 2026-10-12T14:55:15Z /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L5/selftest-0c189f0/cases/fake/banner-late-exit1.log

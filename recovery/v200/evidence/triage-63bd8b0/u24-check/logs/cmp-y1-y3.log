@@ -1,0 +1,12 @@
+ONLY IN B: BT-file-Wcf | RUN | finished, no error, board 98eed7e8
+ONLY IN B: BT-file-Wcf | HOLD | held [reached, busy, target, DIRTY, asked]
+ONLY IN B: BT-file-Wcf | FIX | the person clicked 'open the file’s version' and answered its one question OK
+ONLY IN B: BT-file-Wcf | CF | COUNTERFACTUAL mark applied: [DIRTY, record dirty, screen]
+ONLY IN B: BT-file-Wcf | PRED | the action [screen, busy, gen moved, DIRTY, record dirty, kept]
+ONLY IN B: BT-file-Wcf | PRED | end
+ONLY IN B: BT-file-Wcf | PRED | reopen
+ONLY IN B: BT-file-Wcf | K | K1/K2/K3 falsely clean
+ONLY IN B: BT-file-Wcf | REACH | end: BRAD-2, KEPT-0, CAROL-F in a board copy
+ONLY IN B: BT-file-Wcf | REACH | reopened: BRAD-2, KEPT-0, CAROL-F in a board copy
+ONLY IN B: BT-file-Wcf | REACH | edited: BRAD-2, KEPT-0, CAROL-F in a board copy
+rows A=89 B=99 identical=88 differ=0 onlyA=1 onlyB=11

@@ -1,0 +1,34 @@
+6945c6945
+< function keptPutBack(){
+---
+> function keptPutBack(){ try{console.log('__COVHIT__ keptPutBack');}catch(e){}
+15451c15451
+< function flowYears(){
+---
+> function flowYears(){ try{console.log('__COVHIT__ flowYears');}catch(e){}
+15477,15478c15477,15478
+< function flowHasMoney(v){ return Math.abs(+v||0)>=0.005; }
+< function flowIsMixed(F){ return flowHasMoney(F.execV) && flowHasMoney(F.planV); }
+---
+> function flowHasMoney(v){ try{console.log('__COVHIT__ flowHasMoney');}catch(e){} return Math.abs(+v||0)>=0.005; }
+> function flowIsMixed(F){ try{console.log('__COVHIT__ flowIsMixed');}catch(e){} return flowHasMoney(F.execV) && flowHasMoney(F.planV); }
+15483c15483
+< function flowStoredIn(fy, aps){ return (aps||[]).some(a=>flowExecYears(a, true).indexOf(+fy)>=0); }
+---
+> function flowStoredIn(fy, aps){ try{console.log('__COVHIT__ flowStoredIn');}catch(e){} return (aps||[]).some(a=>flowExecYears(a, true).indexOf(+fy)>=0); }
+15528c15528
+< function flowCalc(arg){
+---
+> function flowCalc(arg){ try{console.log('__COVHIT__ flowCalc');}catch(e){}
+16402c16402
+< function flowHtml(){
+---
+> function flowHtml(){ try{console.log('__COVHIT__ flowHtml');}catch(e){}
+16656c16656
+< function exportFlow(){
+---
+> function exportFlow(){ try{console.log('__COVHIT__ exportFlow');}catch(e){}
+26666c26666
+< async function driveStorePull(quiet){
+---
+> async function driveStorePull(quiet){ try{console.log('__COVHIT__ driveStorePull');}catch(e){}

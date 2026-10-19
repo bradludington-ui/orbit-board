@@ -1,0 +1,18 @@
+# label: F-parent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/482f64c
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/482f64c/out/F-parent.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/482f64c/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/482f64c/before /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/482f64c/harness/before/focused-u10.mjs
+# start: 2026-10-18 05:35:04 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/482f64c/before/prioritization-board-grid.html","BOARD_set":false,"board":"0b082fdf20315c9328556115e0a08ebe66e805d7","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/482f64c/harness/before/focused-u10.mjs","harnessBlob":"2d615f4997f7c319f6b7008ec7ab4cc09036d3e5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:35:06 AM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U10) — ↶ Put back in a locked view is refused and leaves the change journal as it was | the view left · Me M’s note on F2 saved
+    the journal records one change, Me M’s note on F2 -- nothing credited to Me M on F1
+        got [[["Me M","notes.F1",null,"after the lock"],["Me M","notes.F2",null,"mine"],["Me M","asks.F1",null,[1200000000]]],"1200000000"]   want [[["Me M","notes.F2",null,"mine"]],"1200000000"]
+    the board file carries only Me M’s note on F2; the cycle’s table credits Colleague C with F1; no ↶ Put back is offered on an entry by Me M about F1
+        got [[["notes.F1",null,"after the lock"],["notes.F2",null,"mine"],["asks.F1",null,[1200000000]]],"Me M",2]   want [[["notes.F2",null,"mine"]],"Colleague C",0]
+# exit 1 at 10/18/2026, 5:38:11 AM ET
+
+# end: 2026-10-18 05:38:11 EDT  exit: 1  wall_s: 187.3

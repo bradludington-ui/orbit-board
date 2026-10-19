@@ -1,0 +1,16 @@
+# label: M-v200-u10-reapply-keeps-year-pick
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/224f878
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/224f878/out/M-v200-u10-reapply-keeps-year-pick.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/224f878/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/224f878/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/224f878/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/224f878/mut/v200-u10-reapply-keeps-year-pick.html
+# start: 2026-10-18 05:21:06 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/224f878/mut/v200-u10-reapply-keeps-year-pick.html","BOARD_set":true,"board":"09b57880fcd8410ed4060531533e80dfafd90a97","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/224f878/harness/after/focused-u10.mjs","harnessBlob":"877407cdf5cec96897b15f7a13212bdfbe8a532b","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:21:07 AM ET"}
+
+================================================================================================
+1 FAILING CHECK(S)
+
+--- v2.00 (U10) — partner money, FMS money or a year refused in a locked view is in no total and no export | PB27 viewed · FY25 clicked in the funds flow’s year buttons
+    refused and said so; the calculation, the panel and the export labelled [PB27 LOCKED] count FY27’s $500,000,000 and nothing else
+        got ["fired",true,[[540000000,40000000,500000000,0,0,540000000],[2025,2027],"{}","[2025,2027]"],["540.00","",""],["ok","ORBIT Funds Flow - FY25 FY27 all appropriations FY27 planned the rest executed [PB27 LOCKED].xlsx","Scope: FY25, FY27 · all appropriations · FY27 planned, the rest executed",[540000000,540000000],[540000000],[0,0],[0,0]]]   want ["fired",true,[[500000000,0,500000000,0,0,500000000],[2027],"{}","[2027]"],["500.00","",""],["ok","ORBIT Funds Flow - FY27 all appropriations PLANNED board allocation O M [PB27 LOCKED].xlsx","Scope: FY27 · all appropriations · PLANNED (board allocation, O&M)",[500000000,500000000],[500000000],[0,0],[0,0]]]
+# exit 1 at 10/18/2026, 5:22:33 AM ET
+
+# end: 2026-10-18 05:22:34 EDT  exit: 1  wall_s: 87.9

@@ -1,0 +1,9 @@
+@@ -6974,7 +6974,7 @@
+   _baseDirty=true; baseSet({file:LASTKNOWN, folder:b.folder||{}, dirty:true});
+   if(!swapped){ try{ localStorage.removeItem(_AP.key+'.kept'); }catch(e){} }
+   _keptMeta=swapped;
+-  persist(); DIRTY=true; render();
++  persist(); _saveGen++; DIRTY=true; render();   // v2.00 (U2): a save still writing finds the count moved and leaves this unsaved
+   setStat('↶ <b>Put back</b> the work kept aside on '+esc(fmtTs(k.meta.t))+'. 💾 Save will ask before it writes over '
+     +esc(keptWhere(k.meta))+', which '+esc(k.meta.by||'someone')+' saved after it.'
+     +(swapped? ' What was on screen is <b>kept aside</b> in its place: <button type="button" class="nb lnk" onclick="keptPutBack()">put that back</button>.' : ''));

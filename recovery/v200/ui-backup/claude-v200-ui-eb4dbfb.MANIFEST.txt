@@ -1,0 +1,20 @@
+# claude/v200-ui backup, made 06:41:21 AM ET (12 Oct 2026)
+tip: eb4dbfb4d47342ca9093dd12511671ae336c5fa7
+tree: dfd0bb210e683df169dc7091aa81fa45e185cf4e
+prerequisite (in claude/v200-fixes-wip's history): 4a6f7c73ebf9018f6b1b14087cb5ec560a9bbb20
+board blob at tip: e14ada96dc1d6fceb6165ac2fddd2015e7a04f03
+bundle: claude-v200-ui-eb4dbfb.bundle  sha256 cdc6cbe2e94bf6afd9314d5f1b3663d2ab5b672fc5d2779f1ebf0bc19b757eb2  bytes 10959350
+restore check: clone of claude/v200-fixes-wip from https://github.com/bradludington-ui/orbit-board, git bundle verify OK, fetched tip = eb4dbfb4d47342ca9093dd12511671ae336c5fa7, tree = dfd0bb210e683df169dc7091aa81fa45e185cf4e, commit list identical (10 commits)
+restore with: git clone -b claude/v200-fixes-wip <repo> r && cd r && git fetch recovery/v200/ui-backup/claude-v200-ui-eb4dbfb.bundle claude/v200-ui:claude/v200-ui
+
+commits (4a6f7c7..claude/v200-ui):
+eb4dbfb v2.00 UI chunk 3 (M1): "All submissions at once" is all or nothing when a file would ask, and is put back whole if the load fails
+eba613f v2.00 UI chunk 2: adversarial review (CHUNK2-REVIEW.md)
+e70636b v2.00 UI chunk 2: screenshots of the actual board at f95fee2, the check scripts with their outputs, and CHUNK2.md (no board change)
+f95fee2 v2.00 UI chunk 2: on a phone the context bar's group wraps rather than push the page sideways
+5ea7d15 v2.00 UI chunk 2: slide-over record by default (docking optional), rows sized to their room, guarded KPI cards, Brief posture strip, permissions, all-or-nothing PMO batch, genuine metadata, Cycle control
+acc8489 v2.00 UI chunk 1: adversarial review (CHUNK1-REVIEW.md)
+6bfa965 v2.00 UI chunk 1: screenshots of the actual board (synthetic data at runtime) and CHUNK1.md
+c85d0e3 v2.00 UI chunk 1: RECORD panel Overview / Funding / History tabs; control sizing fixes
+89384e6 v2.00 UI chunk 1: navy sidebar, context bar, KPI cards, toolbar (Columns, Density), Import box
+ba0def2 UI concept: mockups only, in the style of Brad's concept images (no product change)

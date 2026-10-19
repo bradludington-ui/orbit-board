@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-cycle-reads-numbers", "matches": 1, "find": "c.rcn.filter(function(e){ return e && typeof e==='object' && typeof e.k==='string'; })", "repl": "c.rcn.filter(function(e){ return e && typeof e==='object' && (typeof e.k==='string' || typeof e.k==='number'); })"}

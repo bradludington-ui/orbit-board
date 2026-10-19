@@ -1,0 +1,157 @@
+{
+ "IDS": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "second": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "script": "1f0753b1c8cd9017e1a83626744971695ebacd4e",
+  "chrome": "/opt/pw-browsers/chromium",
+  "started": "10/12/2026, 11:54:43 AM ET"
+ },
+ "results": [
+  {
+   "id": "F1",
+   "what": "same file, two tabs: A holds; B waits uncounted: [A holds, A err, A busy, B busy, B ran, B err]",
+   "got": [
+    true,
+    null,
+    1,
+    0,
+    false,
+    null
+   ],
+   "want": [
+    true,
+    null,
+    1,
+    0,
+    false,
+    null
+   ],
+   "pass": true
+  },
+  {
+   "id": "F1",
+   "what": "same file: then B runs (counted inside) and ends: [ran, busy inside, busy after, err]",
+   "got": [
+    true,
+    1,
+    0,
+    null
+   ],
+   "want": [
+    true,
+    1,
+    0,
+    null
+   ],
+   "pass": true
+  }
+ ],
+ "info": [
+  {
+   "id": "F1",
+   "what": "env A, B: [protocol, origin, secure context, typeof navigator.locks, typeof request]",
+   "v": [
+    [
+     "file:",
+     "null",
+     true,
+     "object",
+     "function"
+    ],
+    [
+     "file:",
+     "null",
+     true,
+     "object",
+     "function"
+    ]
+   ]
+  },
+  {
+   "id": "F1",
+   "what": "while A holds (raw)",
+   "v": {
+    "aHolds": true,
+    "aErr": null,
+    "aBusy": 1,
+    "bBusy": 0,
+    "bRan": false,
+    "bErr": null,
+    "qA": {
+     "held": 1,
+     "pending": 1
+    },
+    "qB": {
+     "held": 1,
+     "pending": 1
+    }
+   }
+  },
+  {
+   "id": "F1",
+   "what": "after A released (raw)",
+   "v": {
+    "bDone": true,
+    "bRan": true,
+    "busyInside": 1,
+    "bBusy": 0,
+    "bErr": null
+   }
+  },
+  {
+   "id": "F2",
+   "what": "env A, B: [protocol, origin, secure context, typeof navigator.locks, typeof request]",
+   "v": [
+    [
+     "file:",
+     "null",
+     true,
+     "object",
+     "function"
+    ],
+    [
+     "file:",
+     "null",
+     true,
+     "object",
+     "function"
+    ]
+   ]
+  },
+  {
+   "id": "F2",
+   "what": "two different files: while A holds (raw)",
+   "v": {
+    "aHolds": true,
+    "aErr": null,
+    "aBusy": 1,
+    "bBusy": 0,
+    "bRan": false,
+    "bErr": null,
+    "qA": {
+     "held": 1,
+     "pending": 1
+    },
+    "qB": {
+     "held": 1,
+     "pending": 1
+    }
+   }
+  },
+  {
+   "id": "F2",
+   "what": "two different files: after A released (raw)",
+   "v": {
+    "bDone": true,
+    "bRan": true,
+    "busyInside": 1,
+    "bBusy": 0,
+    "bErr": null
+   }
+  }
+ ],
+ "pass": 2,
+ "fail": 0,
+ "incomplete": null,
+ "finished": "10/12/2026, 11:54:48 AM ET"
+}

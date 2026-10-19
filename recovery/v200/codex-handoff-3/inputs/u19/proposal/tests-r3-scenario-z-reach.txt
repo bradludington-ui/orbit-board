@@ -1,0 +1,12 @@
+  // (z, wider) THE MONEY VERIFIER'S (z) ROUTE, READ WIDER: a put-back the load refuses (the kept work built for another service list),
+  // S1 saved on screen. Afterwards and after a reopen, K is still somewhere this board can reach (kept aside), byte for byte.
+  { const sc = '(z, wider) the board file: S1 saved; the kept work built for another service list; ↶ Put back refused by the load; reopened';
+    const { A, f } = await inFile();
+    await savedS1(A, f, sc);
+    A.ev(`(function(){ var s=localStorage.getItem(_AP.key+'.kept'), i=s.indexOf('\\n'), st=JSON.parse(s.slice(i+1));
+      st.dataPack.services=st.dataPack.services.concat(['XTRA']); localStorage.setItem(_AP.key+'.kept', s.slice(0,i)+'\\n'+JSON.stringify(st)); return 'ok'; })()`);
+    const k0 = keptRaw(A.ev); const r = clickPutBack(A.ev);
+    chk(name, sc, 'refused by the load: K still kept aside byte for byte; K’s text in this browser’s storage; S1 on screen and in the file',
+      J([r, keptRaw(A.ev) === k0, kept(A.ev), anywhere(A.ev, f, K), scr(A.ev), fileNote(f.content, 'A')]), J(['clicked', true, [K, 'file'], true, S1, S1]));
+    const { B, fB } = await reopen(A, f);
+    chk(name, sc, 'reopened: K still kept aside; its text in this browser’s storage', J([kept(B.ev), anywhere(B.ev, fB, K)]), J([[K, 'file'], true])); }

@@ -1,0 +1,1 @@
+{"id": "v200-cycreg-plan-deduped", "matches": 1, "find": "const cur=pkgStoreOf(k), next=pkgStrip(inc[k]);", "repl": "const cur=pkgStoreOf(k), next=pkgStrip(inc[k]); if(Array.isArray(next.rcn)) next.rcn=next.rcn.filter(function(e,i,a){ return !(e && typeof e==='object' && typeof e.k==='string' && a.findIndex(function(x){ return x && typeof x==='object' && x.k===e.k; })<i); });"}

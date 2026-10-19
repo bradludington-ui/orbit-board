@@ -1,0 +1,19 @@
+# label: M-v200-u10-sp-no-redraw
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292
+# cmd: env SUITE_CHECKS=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/out/M-v200-u10-sp-no-redraw.checks.jsonl node /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/bin/runner.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/after /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/harness/after/focused-u10.mjs /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/mut/v200-u10-sp-no-redraw.html
+# start: 2026-10-18 05:01:36 EDT
+# cap: 600 s, kill grace 10 s
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/mut/v200-u10-sp-no-redraw.html","BOARD_set":true,"board":"ed66fe7d1e9fa69cc8a4881ee5720dfd1f7a4c58","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/cc/0213292/harness/after/focused-u10.mjs","harnessBlob":"558b09714a8bb2dcd629593c670dbbd79ddaa6c5","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"f851f1391102e59aa12f0ca301b40bb4ddd005f3","started":"10/18/2026, 5:01:37 AM ET"}
+
+================================================================================================
+2 FAILING CHECK(S)
+
+--- v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a locked view leaves no trace | PB27 viewed · Cost data set to 2026ACE in its select
+    refused and said so; the Spend Plan still shows 2027ACE, and the ACE tie-out taken from the view ties out 2027ACE ($900)
+        got ["fired",true,[["2026ACE"],["By PMO"]],["ok","ACE TIE-OUT - MAPPING BY REQUIREMENT  (2027ACE, FY27)",[["Req A",1100,900,200],["Req R",630,"",""]],[["FY27","AV",900,1730,830]]]]   want ["fired",true,[["2027ACE"],["By PMO"]],["ok","ACE TIE-OUT - MAPPING BY REQUIREMENT  (2027ACE, FY27)",[["Req A",1100,900,200],["Req R",630,"",""]],[["FY27","AV",900,1730,830]]]]
+--- v2.00 (U10) — a spend-plan choice, a PPBE position or a destination’s kind refused in a locked view leaves no trace | PB27 viewed · By Service, then ◀ prior 2 FY, pressed
+    each refused and said so; the Spend Plan is still by PMO, without the prior years
+        got ["fired",true,"fired",true,[["2026ACE"],["By PMO"]]]   want ["fired",true,"fired",true,[["2027ACE"],["By PMO"]]]
+# exit 1 at 10/18/2026, 5:02:27 AM ET
+
+# end: 2026-10-18 05:02:27 EDT  exit: 1  wall_s: 51.4

@@ -1,0 +1,505 @@
+{
+ "scenario": "BTC",
+ "next": "save",
+ "board": "u13",
+ "ids": {
+  "board": "98eed7e801af20270f755eadffb2fa72355c30e5",
+  "bootMjs": "9c4f49ad8cec537097bdf485458cfd2a09b06594",
+  "shim": "6e2ce2e6beda9e7526527530500f254d877d0320",
+  "probe": "6b65ff659b6f2f374b29b2707cf1ce049a5eecf2",
+  "BOARD": "/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L4/u17-check/b63/prioritization-board-grid.html"
+ },
+ "startedET": "10/12/2026, 15:13:39 ET",
+ "steps": [
+  {
+   "step": "adoption",
+   "how": "bootTakeFile(): asked [\"Open the saved file’s version and replace what is on screen?\\n\\nThis browser’s own work is NOT kept — only in a copy you s\"]",
+   "brad": {
+    "screen": {
+     "note": "",
+     "ts": 1791832422812,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:13:42 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832422812,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832426812
+     }
+    },
+    "driveBaseOf": 1791832426812,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791832422812,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "after the adoption",
+    "baseFolder": 1791832426812,
+    "status": "📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 7:13:42 PM.",
+    "header": "Saved 7:13 PM",
+    "at": "10/12/2026, 15:13:48 ET"
+   },
+   "folder": {
+    "label": "after the adoption",
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791832426812,
+     "payloadTs": 1791832426812,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 15:13:46 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 0,
+    "at": "10/12/2026, 15:13:48 ET"
+   }
+  },
+  {
+   "step": "landed",
+   "brad": {
+    "screen": {
+     "note": "",
+     "ts": 1791832422812,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:13:42 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832422812,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832426812
+     }
+    },
+    "driveBaseOf": 1791832426812,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791832422812,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "brad after the adoption",
+    "baseFolder": 1791832426812,
+    "status": "📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 7:13:42 PM.",
+    "header": "Saved 7:13 PM",
+    "at": "10/12/2026, 15:13:48 ET"
+   },
+   "folder": {
+    "label": "landed",
+    "head": {
+     "note": "BRAD-1",
+     "alloc": 700,
+     "ts": 1791832426812,
+     "payloadTs": 1791832426812,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "BRAD-1",
+     "tsET": "10/12/2026, 15:13:46 ET"
+    },
+    "history": [],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 0,
+    "at": "10/12/2026, 15:13:48 ET"
+   }
+  },
+  {
+   "step": "V3next",
+   "asked": [],
+   "before": {
+    "screen": {
+     "note": "",
+     "ts": 1791832422812,
+     "by": "unknown",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:13:42 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832422812,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832426812
+     }
+    },
+    "driveBaseOf": 1791832426812,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791832422812,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "the end of the route, before save",
+    "baseFolder": 1791832426812,
+    "status": "📦 Opened the saved file’s version — last saved by unknown 10/12/2026, 7:13:42 PM.",
+    "header": "Saved 7:13 PM",
+    "at": "10/12/2026, 15:13:48 ET"
+   },
+   "after": {
+    "screen": {
+     "note": "",
+     "ts": 1791832428418,
+     "by": "Brad",
+     "cur": 2027,
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:13:48 ET"
+    },
+    "DIRTY": false,
+    "_baseDirty": false,
+    "baseGet": {
+     "file": 1791832422812,
+     "dirty": false,
+     "folder": {
+      "om|2027": 1791832428418
+     }
+    },
+    "driveBaseOf": 1791832428418,
+    "_saveGen": 4,
+    "_saveBusy": 0,
+    "_driveLive": false,
+    "_driveNeed": "",
+    "stored": {
+     "note": "",
+     "ts": 1791832428418,
+     "whose": "F1"
+    },
+    "kept": null,
+    "label": "after Brad's next 💾 Save",
+    "baseFolder": 1791832428418,
+    "status": "✅ Saved O&M FY27 to the shared folder — 4 KB. Everyone sees it on their next refresh.",
+    "header": "Saved 7:13 PM",
+    "at": "10/12/2026, 15:13:48 ET"
+   },
+   "folder": {
+    "label": "after the next save",
+    "head": {
+     "note": "",
+     "ts": 1791832428418,
+     "payloadTs": 1791832428418,
+     "by": "Brad",
+     "writer": "Brad",
+     "whose": "F1",
+     "tsET": "10/12/2026, 15:13:48 ET"
+    },
+    "history": [
+     {
+      "name": "spmt-2027-om-20261012-191348.json",
+      "note": "BRAD-1",
+      "alloc": 700,
+      "ts": 1791832426812,
+      "payloadTs": 1791832426812,
+      "by": "Brad",
+      "writer": "Brad",
+      "whose": "BRAD-1",
+      "tsET": "10/12/2026, 15:13:46 ET"
+     }
+    ],
+    "log": [
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json",
+     "hist:spmt-2027-om-20261012-191348.json",
+     "main:spmt-2027-om.json",
+     "lock:spmt-2027-om.lock.json"
+    ],
+    "reads": 1,
+    "at": "10/12/2026, 15:13:48 ET"
+   },
+   "where": {
+    "X": {
+     "folderHead": true,
+     "folderHistory": [],
+     "screen": true,
+     "storage": true,
+     "keptSlot": false
+    },
+    "Y": {
+     "folderHead": false,
+     "folderHistory": [],
+     "screen": false,
+     "storage": false,
+     "keptSlot": false
+    }
+   }
+  }
+ ],
+ "contract": "the board must never be recorded clean (saved) while what is on screen differs from the copy its record names as base; each content must remain in some reachable copy; and from such a record (U17) 💾 Save must not write the screen copy over a different head without asking, nor ↶ Put back claim the screen copy is still in the folder when it is not and then keep nothing aside",
+ "cfg": {
+  "fam": "adopt",
+  "mode": "take",
+  "held": false
+ },
+ "expected": {
+  "adopt": [
+   "F1",
+   0,
+   true,
+   null,
+   true
+  ],
+  "u17": true,
+  "v3": [
+   0,
+   "F1",
+   "BRAD-1",
+   "F1",
+   "saved",
+   true,
+   true
+  ],
+  "v4": [
+   null,
+   "none",
+   "F1",
+   "BRAD-1",
+   "nothing kept",
+   null,
+   "F1",
+   "F1",
+   "saved"
+  ]
+ },
+ "u17state": {
+  "tuple": [
+   "F1",
+   true,
+   "BRAD-1"
+  ],
+  "falselyClean": true
+ },
+ "nextFrom": {
+  "K": [
+   "F1",
+   true,
+   "BRAD-1"
+  ],
+  "falselyClean": true,
+  "head": "BRAD-1",
+  "history": []
+ },
+ "v3parts": {
+  "falselyClean": true,
+  "wroteOver": true,
+  "overwritten": "BRAD-1",
+  "overwrittenNowIn": {
+   "folderHead": false,
+   "folderHistory": [
+    "spmt-2027-om-20261012-191348.json"
+   ],
+   "screen": false,
+   "storage": false,
+   "keptSlot": false
+  }
+ },
+ "endedET": "10/12/2026, 15:13:48 ET",
+ "checks": [
+  {
+   "id": "fixture.v1",
+   "kind": "fixture",
+   "what": "the folder's first copy is BRAD-1/$700, written by Brad (writer Brad)",
+   "expected": [
+    "BRAD-1",
+    "Brad",
+    "Brad"
+   ],
+   "observed": [
+    "BRAD-1",
+    "Brad",
+    "Brad"
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.bradClean",
+   "kind": "fixture",
+   "what": "brad is clean and recorded against that copy: [screen, DIRTY, _baseDirty, record dirty, base = v1 ts]",
+   "expected": [
+    "BRAD-1",
+    false,
+    false,
+    false,
+    true
+   ],
+   "observed": [
+    "BRAD-1",
+    false,
+    false,
+    false,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "fixture.typed",
+   "kind": "fixture",
+   "what": "brad typed BRAD-2/$720, unsaved ([screen, DIRTY, record dirty])",
+   "expected": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "observed": [
+    "BRAD-2",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "BTC.adopt",
+   "kind": "predict",
+   "what": "the other copy is put on screen with no save under way ([screen, _saveBusy, _saveGen unchanged, kept slot, its own words said])",
+   "expected": [
+    "F1",
+    0,
+    true,
+    null,
+    true
+   ],
+   "observed": [
+    "F1",
+    0,
+    true,
+    null,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "BTC.K1",
+   "kind": "contract",
+   "what": "CONTRACT once settled [screen, recorded clean, base copy]",
+   "expected": [
+    [
+     "REMOTE",
+     true,
+     "REMOTE"
+    ],
+    [
+     "WORKING",
+     true,
+     "WORKING"
+    ],
+    [
+     "BOB-2",
+     true,
+     "BOB-2"
+    ],
+    [
+     "BRAD-1",
+     true,
+     "BRAD-1"
+    ],
+    [
+     "BRAD-2",
+     true,
+     "BRAD-2"
+    ],
+    [
+     "SHARED",
+     true,
+     "SHARED"
+    ],
+    [
+     "IMPORT",
+     true,
+     "IMPORT"
+    ],
+    [
+     "F1",
+     true,
+     "F1"
+    ],
+    [
+     "F1",
+     false,
+     "BRAD-1"
+    ]
+   ],
+   "observed": [
+    "F1",
+    true,
+    "BRAD-1"
+   ],
+   "pass": false
+  },
+  {
+   "id": "BTC.U17state",
+   "kind": "predict",
+   "what": "U17 STATE once the route has settled: recorded clean while the screen differs from the copy the record names as base [\"F1\",true,\"BRAD-1\"]",
+   "expected": true,
+   "observed": true,
+   "pass": true
+  },
+  {
+   "id": "BTC.V3next",
+   "kind": "predict",
+   "what": "Brad's next 💾 Save from where the route ended [\"questions asked\",\"screen before\",\"head before\",\"head after\",\"status says\",\"recorded clean after\",\"record names the head\"]",
+   "expected": [
+    0,
+    "F1",
+    "BRAD-1",
+    "F1",
+    "saved",
+    true,
+    true
+   ],
+   "observed": [
+    0,
+    "F1",
+    "BRAD-1",
+    "F1",
+    "saved",
+    true,
+    true
+   ],
+   "pass": true
+  },
+  {
+   "id": "BTC.U17.V3",
+   "kind": "contract",
+   "what": "U17 (V3next): from a record that says saved while the screen differs from the copy it names, 💾 Save writes the screen copy over a folder head holding different content and asks nothing ([record falsely clean before, wrote over a different head without asking])",
+   "expected": {
+    "not": [
+     true,
+     true
+    ]
+   },
+   "observed": [
+    true,
+    true
+   ],
+   "pass": false
+  }
+ ]
+}

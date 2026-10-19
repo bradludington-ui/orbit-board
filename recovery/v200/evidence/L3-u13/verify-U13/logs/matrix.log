@@ -1,0 +1,33 @@
+my-mine-after-apply                      checks  58  failing  32  1 2 3a 3b 4a 4b 4c 4d
+my-mine-after-keepaside                  checks  58  failing  21  1 3a 3b 4a 4b 4c 4d
+my-mine-autobusy                         checks  58  failing  32  1 2 3a 3b 4a 4b 4c 4d
+my-mine-base-else-clash                  checks  58  failing   0  
+my-mine-before-dirty                     checks  58  failing   1  Cb
+my-mine-before-notnewer                  checks  58  failing   1  Cb
+my-mine-between-waits                    checks  58  failing   3  3a Cb
+my-mine-busy-gt1                         checks  58  failing  32  1 2 3a 3b 4a 4b 4c 4d
+my-mine-count-instead                    checks  58  failing  32  1 2 3a 3b 4a 4b 4c 4d
+my-mine-entry-only                       checks  58  failing   5  3a 3b Cb
+my-mine-entry-plus-base                  checks  58  failing   5  3a 3b Cb
+my-mine-loud-only                        checks  58  failing  27  1 2 3b 4a 4b 4c
+my-mine-no-base-guard                    checks  58  failing   2  3c
+my-mine-no-render                        checks  58  failing   0  
+my-mine-quiet-only                       checks  58  failing  19  1 2 3a 4d
+my-mine-refuse-persists                  checks  58  failing  15  1 2 3a 3b 4a 4b
+my-mine-refuse-records-base              checks  58  failing   6  2 4c
+my-mine-returns-true                     checks  58  failing   6  1 2 3a 3b 4b
+my-mine-said-quiet                       checks  58  failing   7  1 2 3b 4a 4b 4c
+my-mine-shell-only                       checks  58  failing  32  1 2 3a 3b 4a 4b 4c 4d
+my-mine-silent                           checks  58  failing   7  1 2 3a 4d
+my-mine-words-no-when                    checks  58  failing   7  1 2 3a 4d
+re-M-v200-u13-base-while-saving          checks  58  failing   2  3c
+re-M-v200-u13-pull-unchecked             checks  58  failing  34  1 2 3a 3b 3c 4a 4b 4c 4d
+re-M-v200-u13-pull-while-saving          checks  58  failing  32  1 2 3a 3b 4a 4b 4c 4d
+re-u13-on-after-rep2                     checks  58  failing   0  
+re-u13-on-after-rep3                     checks  58  failing   0  
+re-u13-on-after                          checks  58  failing   0  
+re-u13-on-before                         checks  58  failing  34  1 2 3a 3b 3c 4a 4b 4c 4d
+re-u2-block1-on-after                    checks  16  failing   0  (not the U13 block)
+re-u2-block2-on-after                    checks  41  failing   0  (not the U13 block)
+re-var-entry-only                        checks  58  failing  11  1 2 3a 3b 4d Cb
+recon-after                              checks 165  failing   0  (not the U13 block)

@@ -1,0 +1,27 @@
+IDS {"BOARD":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/mut/mine-said-quiet.html","BOARD_set":true,"board":"cc83a0c52b23fceb42c42cc4098b18585bfcad72","harness":"/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L3/verify-U13/after/tools/export-audit/focused-u13.mjs","harnessBlob":"bb7958ab8995bbcee65a55ad35d46d50d6de0c5f","bootMjs":"9c4f49ad8cec537097bdf485458cfd2a09b06594","shim":"6e2ce2e6beda9e7526527530500f254d877d0320","runner":"e835140ac90d3fc9303ebb4a55af13ac6fb5d6ae","started":"10/12/2026, 7:07:05 AM ET"}
+
+================================================================================================
+7 FAILING CHECK(S)
+
+--- v2.00 (U13) — a refresh during a save loads nothing | (1) no second writer; reopened by the harness
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [false,true,true,0,false]   want [false,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (1) no second writer; reopened with the folder’s edit permission not kept
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [false,true,true,0,false]   want [false,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (2) a second writer saves during the save
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [false,true,true,0,false]   want [false,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (3b) the refresh held at its first wait (the folder’s permission); a save starts meanwhile
+    the refresh, let go, loads nothing -- [returned, nothing changed byte for byte, nothing said]
+        got [false,true,false]   want [false,true,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4a) the save lands; a newer copy is saved after it
+    while the save is held, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,true,0,false]   want ["(nothing)",true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4b) the save fails: the folder refuses its write
+    while the save is held, driveStorePull(true): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got [false,true,true,0,false]   want [false,true,true,0,true]
+--- v2.00 (U13) — a refresh during a save loads nothing | (4c) the save is refused: a newer copy was saved before it read the folder
+    while the save waits at its read, liveTick(): loads nothing -- [returned, a save under way, nothing changed byte for byte, writes to the folder’s copy or history, said]
+        got ["(nothing)",true,true,0,false]   want ["(nothing)",true,true,0,true]
+# exit 1 at 10/12/2026, 7:07:28 AM ET
