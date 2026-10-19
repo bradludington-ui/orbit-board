@@ -2332,6 +2332,66 @@ result for it was run fresh against these commits.
     as well, so this can be undone." and its status "press 💾 Save to write it back to the folder for everyone", though
     💾 Save then writes the board file. The same on the board before U19; a new ledger row (U64). A second tab of the same browser
     driving these routes and a real browser (Chromium) were not run; U20's own block passes on this board.
+- **U61 — an RCN / EEIC pointer of "__proto__" never loses or doubles money in the alignment lines or the ACE tie-out**
+  (the round-8 money review of track cycreg, its SF2; ledger U61, written by the lead. It was there before this version: the
+  same on `d66dd60` and on the board in use today. Not a release blocker (Brad, 18 Oct, about 5:00 PM ET: "Fix now, don't
+  hold"): it joins v2.00 only if both reviews are clean before the final gate). The ACE alignment lines (the 🎯 alignment
+  rows, `rcnKeysOf`, and the ACE tie-out workbook's Alignment Breakout by funding line) group a funding line's Air Force
+  services by the RCN / EEIC combination each one points at. The grouping was a plain object, and in a plain object the
+  pointer "__proto__" sets the object's prototype instead of a key. So each service on that pointer began its group again:
+  R1, asking USAF $900 and ANG $200, with both on "__proto__" (by the requirement's own pointer or by each service's), was
+  two lines of $200. USAF's $900 was on no line and ANG's $200 was on two: $400 where the requirement is $1,100. A prime's
+  CLIN on "__proto__" was the same: $300 twice for a CLIN asking $400 / $300. So was a pointer that is not text but whose
+  key reads "__proto__" (the list ["__proto__"], which a file can hold). Such a pointer passes the import door (the door
+  does not check what the four pointer lists hold), a file opened directly passes no door, and no picker offers it.
+  Now the services are grouped in an object with no prototype, where "__proto__" is a key like any other: one line, with
+  all of the money. No combination in the list has that key, so the line's RCN and EEIC cells are blank. That means not
+  assigned, which is how any pointer to a combination the list does not hold is shown, and how the RCN-EEIC by Month sheet
+  already filed that money ("no RCN/EEIC assigned"). No other dollar moves: a line whose pointer does not read as
+  "__proto__" is as it was.
+  - **What users may see:** only with a file ORBIT did not write that holds the pointer "__proto__". The requirement's
+    alignment rows and the tie-out's Alignment Breakout show one line with all of the requirement's (or the CLIN's) money
+    and no codes. Before, they showed two lines of one service's money.
+  - **Test:** audit-recon "v2.00 (U61) — an RCN / EEIC pointer of "__proto__" never loses or doubles money in the
+    alignment lines or the ACE tie-out" (27 checks). The fixture: O&M, USAF / ANG / AFRC, everything funded. R1 asks
+    900 / 200 / 0. P1 is a prime with one CLIN asking 400 / 300 / 0. There is one combination, K1 = 11111 / AAAAA, and one
+    estimate line. The checks cover R1 on "__proto__" by `rcnAsg` and by `rcnSvc`, and P1's CLIN by `clinRcn` and by
+    `clinRcnSvc`. Each gives one alignment line ([900, 200, 0] or [400, 300, 0]), and the tie-out's Alignment Breakout,
+    read from its bytes, prints $1,100 and $700 once, with no codes. The board saved and opened again gives the same. On a
+    second board, R2 asks 900 / 200 / 50: with its USAF and ANG on "__proto__" and its AFRC on K1 it is two lines,
+    [900, 200, 0] and [0, 0, 50], each service's money once, and the same with USAF and ANG on the list ["__proto__"]; on
+    "__proto__" with two WBS logged it is one line per WBS with that WBS's money. P1's CLIN on "__proto__" with two WBS
+    logged that leave $100 / $100 on no WBS is one line per WBS and one for the remainder, each with its own money.
+    Controls: K1; "constructor" and "toString"; "GONE"; USAF alone on "__proto__" with ANG on K1 ($900 with no codes, $200
+    on 11111 / AAAAA); with R1 on "__proto__", the RCN-EEIC by Month summary (R1's USAF 900 and ANG 200 not assigned) and
+    the Mapping by Requirement (no codes for R1; `rcnKeysOf` one key); the import door passing such a file; no jsdom
+    errors on any of the three boards. 13 checks fail on `a4881ec`, where each case on "__proto__" gives two to five lines
+    of one service's money, and on `d6fea76` and `1582295` with the same values. The 14 controls pass on all of them.
+  - **Mutations:** `v200-uproto-plain-grp` puts the grouping back in a plain object. 13 checks fail, and the focused
+    block catches it. The wrong fixes the tests reviews tried are caught too (they are not entries): keeping the plain
+    object and only dropping the repeated line (the R2 checks fail: USAF's $900 is lost); leaving a line with WBS logged in
+    a plain object (the two WBS checks fail); escaping only the text "__proto__" (the list check fails); leaving only a
+    CLIN's WBS lines, or only the remainder line, in a plain object (the CLIN WBS check fails); and seven more.
+  - **Not covered:** the sweep (track README) found no other place that groups or looks up money in a plain object by a
+    pointer or code that a file can carry through the door. Some keys the door checks are still read in plain objects: a
+    destination's key, a funds-flow category's key, an office name. They are read that way in the funds flow, the
+    destination list's repair, the board workbook's PMO tabs, and the Spruills table's asks by office from another
+    appropriation's year (an office named "constructor", "toString" or "__proto__" there stops the Spruills table and its
+    PMO drill from drawing: read in code, not run). A file opened directly passes no door, so it can still carry such a
+    name there (item 99's limit, unchanged). A combination's own key is not among them in this version: since U32/U33 the
+    RCN-EEIC by Month sheet names a combination by its place in the list, never by its key, so with a combination keyed
+    "toString" or "__proto__" the Excel workbook is built and files that combination's money on its own codes (run: probe
+    `sweep-probe.mjs`, S1 and S2, at `d6fea76` and `1582295`, with and without this change). Outside money, a band
+    pointer, a CCaR number or a control number of "__proto__" or "constructor" miscounts the band panel's counts, or stops
+    the CCaR grouping's flags and the shared-control review (read in code, not run). The Alignment Breakout's note says "A
+    blank cell means that line holds no money that code governs", which is not true of a line whose Air Force money is not
+    assigned to a combination. That was so before this change for every such line (no pointer, or a removed combination),
+    and it is unchanged. In the same way, the tie-out's Mapping by Requirement counts a pointer that names no combination as
+    a combination: R1 with USAF on "GONE" (or "__proto__") and ANG on K1 prints "(2 combinations)" and "(see breakout)",
+    though the list holds only K1. And the record panel shows a pointer to a combination the list does not hold
+    ("__proto__", or "GONE") as "USAF (blank) · ANG (blank) · AFRC (blank)", in green, and counts its RCN / EEIC field as
+    set, while RCN-EEIC by Month and the Alignment Breakout call that money not assigned (the money review's probe). All
+    three are the same before and after this change. jsdom only; no browser or Excel was run.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -2353,6 +2413,11 @@ result for it was run fresh against these commits.
     pressing): a copy another writer saves while a folder save is under way is no longer written over -- the save reads
     the folder's copy again just before it writes and stops on any difference, and U4's hold is checked after that read
     (and said, when it and a landed copy come together) -- except one that lands during the write itself (above).
+  - **U61: built as its own commit** (the round-8 money review of track cycreg, its SF2; Brad, 18 Oct, about 5:00 PM ET: "Fix
+    now, don't hold"). An RCN / EEIC pointer of "__proto__" no longer loses or doubles money in the ACE alignment lines or the
+    tie-out's Alignment Breakout: the line carries all of its money once and reads as not assigned (above). Keys the import door
+    refuses can still arrive in a file opened directly (item 99's limit): an office so named in another appropriation's year
+    stops the Spruills table (read in code). The sweep's list is in the track's README.
   - **U5 and U6:** R3's stale on-screen flag, and its quiet-autosave wording.
   - **U7:** R2's checked and stored expressions are written twice.
   - **U8:** R1's Help and wording remainders.

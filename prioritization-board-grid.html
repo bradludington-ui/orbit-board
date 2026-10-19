@@ -14304,7 +14304,10 @@ function aceAlignRows(id){
   // a code is printed only beside money it governs. The lines add up to the line they replace, to the dollar. Before,
   // one code was printed for the whole line, so ANG money with its own combination read as the standard's.
   const push=function(kind, clin, key, w, v, rk){
-    const grp={}, ord=[];
+    // v2.00 (U61): THE SERVICES ARE GROUPED IN AN OBJECT WITH NO PROTOTYPE, so every pointer a file can carry is a key like
+    // any other. In a plain object the pointer "__proto__" set the object's prototype instead: USAF and ANG both on it
+    // were two lines of ANG's money, so USAF's $900 was on no line and ANG's $200 on two.
+    const grp=Object.create(null), ord=[];
     if(rcnApplies()) RCN_SVCS.forEach(function(sv){ const j=SVC.indexOf(sv);
       if(j<0 || Math.abs(+(v||[])[j]||0)<=0.5) return;
       const k=(key? rcnOfClinSvc(id, key, sv) : rcnAsgOf(id, sv))||'';

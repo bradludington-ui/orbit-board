@@ -8492,6 +8492,160 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U32, U33) ====
+// ==== v2.00 (U61): an RCN / EEIC pointer of "__proto__" never loses or doubles money in the alignment lines or the ACE tie-out ====
+// The round-8 money review of track cycreg (its SF2): aceAlignRows groups a funding line's Air Force services by the
+// combination each one points at, in a plain object (grp[k]=[]). With the pointer "__proto__" that assignment set the
+// object's prototype instead of a key, so each service on it started the group again: USAF and ANG both on "__proto__" were
+// two lines of ANG's money. USAF's $900 was on no line and ANG's $200 on two, in the alignment rows, in rcnKeysOf and in
+// the ACE tie-out workbook's ALIGNMENT BREAKOUT BY FUNDING LINE sheet. Such a pointer passes the import door (the values
+// of rcnAsg, rcnSvc, clinRcn and clinRcnSvc are not among the fields it checks), a file opened directly passes no door,
+// and no picker offers it. The services are now grouped in an object with no prototype, where "__proto__" is a key like
+// any other. No combination in the list has that key, so the line's money is shown as not assigned -- the RCN and EEIC
+// cells blank, the way any pointer to a combination the list does not hold ("GONE") is shown, and the way the RCN-EEIC
+// by Month sheet already filed it (under "no RCN/EEIC assigned").
+// THE BOARD: O&M, services USAF / ANG / AFRC, pots of 5,000 each, so everything is funded in full. R1 asks USAF 900,
+// ANG 200, AFRC 0. P1 is a prime with one CLIN, 0001, asking USAF 400, ANG 300, AFRC 0, its grid the same. The list holds
+// one combination, K1 = 11111 / AAAAA, for every service. One estimate, 2027ACE, one line (1.1, AV, 1,800 this year),
+// all active years. Each case clears the four pointer lists and sets its own. Expected values are literals.
+// R1 ON "__proto__", by its own pointer (rcnAsg) and by each service's (rcnSvc), with P1's CLIN on K1: R1 is one line,
+//   [900, 200, 0], and the tie-out's Alignment Breakout prints it once, $1,100, all of it USAF / ANG / AFRC, codes blank.
+// P1's CLIN 0001 ON "__proto__", by the CLIN's own pointer (clinRcn) and by each service's on it (clinRcnSvc), with R1 on
+//   K1: CLIN 0001 is one line, [400, 300, 0], printed once, $700, codes blank.
+// The board saved with R1 on "__proto__" and opened again (a file opened directly) gives R1 the same one line.
+// R2, ON A BOARD OF ITS OWN (the same services and pots), asks USAF 900, ANG 200, AFRC 50, so "__proto__" carries two
+//   services beside a line on another combination: its USAF and ANG on "__proto__" and its AFRC on K1 (rcnSvc) is two
+//   lines, [900, 200, 0] on "__proto__" and [0, 0, 50] on K1. And R2 on "__proto__" by its own pointer, with two WBS
+//   logged (1.1 500 / 100 / 50, 1.2 400 / 100 / 0), is one line per WBS, each with its own money. (A wrong fix that only
+//   drops the second line keeps one line's money right and loses USAF's $900 in the first case; one that leaves a line
+//   with WBS logged in a plain object fails the second.) A pointer that is not text but whose key reads "__proto__" (the
+//   list ["__proto__"], which a file can hold and the door passes) is the same key: R2's USAF and ANG on it and its AFRC
+//   on K1 is [900, 200, 0] on it and [0, 0, 50] on K1. (A wrong fix that escapes only the text "__proto__" fails it.)
+// P1's CLIN 0001 ON "__proto__" (clinRcn) WITH TWO WBS LOGGED (2.1 300 / 100 / 0, 2.2 0 / 100 / 0) that leave 100 / 100 / 0
+//   of it on no WBS: one line per WBS and one for the remainder, each with its own money. (A wrong fix that leaves a
+//   CLIN's WBS lines, or a remainder line, in a plain object fails it.)
+// CONTROLS: both on K1 (11111 / AAAAA printed); "constructor" and "toString" (names every object answers to, by the
+// requirement's or the CLIN's own pointer and by each service's), one line each, codes blank; "GONE", one line, codes
+// blank; USAF alone on "__proto__" and ANG on K1, two lines, $900 with codes blank and $200 on 11111 / AAAAA; with R1 on
+// "__proto__", the RCN-EEIC by Month summary puts R1's USAF 900 and ANG 200 under no RCN/EEIC assigned and P1's under K1,
+// and the tie-out's Mapping by Requirement prints R1 with no codes and P1 on K1 (rcnKeysOf: R1 one key, "__proto__"); the
+// import door passes a file holding the four pointers at "__proto__"; and no jsdom script errors on any of its three boards.
+// FAILS ON a4881ec (U18), 13 of its 27 checks: R1 and CLIN 0001 were each two lines of their ANG money ([0, 200, 0] twice,
+// [0, 300, 0] twice) in every case on "__proto__", the Alignment Breakout printed $200 and $200 for R1 ($1,100), $300
+// and $300 for CLIN 0001 ($700), and the reopened file the same; R2 was [0, 200, 0] twice beside its K1 line, on
+// "__proto__" and on ["__proto__"] alike, and with two WBS logged, WBS 1.1 was three lines of [0, 0, 50] and 1.2 two lines
+// of [0, 100, 0]; CLIN 0001 with its two WBS was five lines of [0, 100, 0]. The 14 CONTROLS pass there and here.
+await (async () => {
+  const name = 'v2.00 (U61) — an RCN / EEIC pointer of "__proto__" never loses or doubles money in the alignment lines or the ACE tie-out';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  const keepBoards = () => [];
+  try {
+    const J = JSON.stringify;
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0]), it('P1', 'AV', [400, 300, 0])],
+      disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1', 'P1'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.ptype={P1:'PRIME'}; S.clinNew={P1:[{key:'n1',clin:'0001',desc:'air vehicle',ccar:'',ask:[400,300,0]}]};
+      S.clinAlloc={P1:{n1:[400,300,0]}};
+      MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:'', svc:['USAF','ANG','AFRC']}];
+      ACEDB.sets={'2027ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}]}}; ACEDB.sets['2027ACE'].lines[0].v[MS.cur]=1800; aceYr='all';
+      applyState(S); save(); 'ok'`);
+    // the four pointer lists cleared and this case's set: [CLIN, the line's money by service, its pointer] for each line of R1, then of P1
+    const lines = W => JSON.parse(W.ev(`JSON.stringify(['R1','P1'].map(function(id){ return aceAlignRows(id).map(function(L){ return [L.clin, L.v, L.rcn]; }); }))`));
+    const put = st => { X.ev(`S.rcnAsg={}; S.rcnSvc={}; S.clinRcn={}; S.clinRcnSvc={}; ${st} applyState(S); save(); 'ok'`); return lines(X); };
+    // the ACE tie-out, from its bytes: the Alignment Breakout's lines [requirement, CLIN, WBS, Line total, of which USAF/ANG/AFRC,
+    // of which Navy/USMC, RCN, EEIC] and the Mapping by Requirement's codes [requirement, RCN, EEIC]
+    const tie = async () => {
+      const ab = JSON.parse(await w6Book(X.w, 'exportAceTieout')); if (ab.__err) return { lines: ab.__err, map: ab.__err };
+      const al = ab['Alignment Breakout'] || [], ah = headerRow(al, 'FY', 'PMO', 'Line total'), ac = k => colOf(al, ah, k);
+      const mp = ab['Mapping by Requirement'] || [], mh = headerRow(mp, 'FY', 'PMO', 'Board funded'), mc = k => colOf(mp, mh, k);
+      return { lines: al.slice(ah + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [String(r[2]), String(r[3] ?? ''), String(r[4] ?? ''),
+          num(r[5]), num(r[6]), num(r[7]), String(r[ac('RCN')] ?? ''), String(r[ac('EEIC')] ?? '')]),
+        map: mp.slice(mh + 1).filter(r => /^FY\d\d$/.test(w6Lbl(r))).map(r => [String(r[mc('Requirement (CCaR Record Name)')]), String(r[mc('RCN')] ?? ''), String(r[mc('EEIC')] ?? '')]) };
+    };
+    const R1K = ['Req R1', '', '(no WBS)', 1100, 1100, 0, '11111', 'AAAAA'], R1N = ['Req R1', '', '(no WBS)', 1100, 1100, 0, '', ''];
+    const P1K = ['Req P1', '0001', '(no WBS)', 700, 700, 0, '11111', 'AAAAA'], P1N = ['Req P1', '0001', '(no WBS)', 700, 700, 0, '', ''];
+    for (const [where, st, want, sheet] of [
+      ['R1 on "__proto__" by its own pointer (rcnAsg), P1’s CLIN on K1', `S.rcnAsg={R1:'__proto__'}; S.clinRcn={P1:{n1:'K1'}};`,
+        [[['', [900, 200, 0], '__proto__']], [['0001', [400, 300, 0], 'K1']]], [R1N, P1K]],
+      ['R1’s USAF and ANG each on "__proto__" (rcnSvc), P1’s CLIN on K1', `S.rcnSvc={R1:{USAF:'__proto__', ANG:'__proto__'}}; S.clinRcn={P1:{n1:'K1'}};`,
+        [[['', [900, 200, 0], '__proto__']], [['0001', [400, 300, 0], 'K1']]], [R1N, P1K]],
+      ['P1’s CLIN 0001 on "__proto__" by its own pointer (clinRcn), R1 on K1', `S.rcnAsg={R1:'K1'}; S.clinRcn={P1:{n1:'__proto__'}};`,
+        [[['', [900, 200, 0], 'K1']], [['0001', [400, 300, 0], '__proto__']]], [R1K, P1N]],
+      ['P1’s CLIN 0001, USAF and ANG each on "__proto__" (clinRcnSvc), R1 on K1', `S.rcnAsg={R1:'K1'}; S.clinRcnSvc={P1:{n1:{USAF:'__proto__', ANG:'__proto__'}}};`,
+        [[['', [900, 200, 0], 'K1']], [['0001', [400, 300, 0], '__proto__']]], [R1K, P1N]]]) {
+      w5Chk(name, where, 'one line on the pointer, carrying all of its money: R1 [900, 200, 0], CLIN 0001 [400, 300, 0]', J(put(st)), J(want));
+      w5Chk(name, where, 'the ACE tie-out’s Alignment Breakout, from its bytes: each line once, R1 $1,100 and CLIN 0001 $700, the line on "__proto__" with no codes',
+        J((await tie()).lines), J(sheet));
+    }
+    put(`S.rcnAsg={R1:'__proto__'}; S.clinRcn={P1:{n1:'K1'}};`);
+    const Z = boot({ html: X.ev('buildSavedHtml()') });
+    w5Chk(name, 'R1 on "__proto__", the board saved and opened again', 'the file opened directly gives R1 the same one line, [900, 200, 0]',
+      J(lines(Z)), J([[['', [900, 200, 0], '__proto__']], [['0001', [400, 300, 0], 'K1']]]));
+    // R2, on a board of its own: [WBS, the line's money by service, its pointer] for each of its lines
+    const Y = boot();
+    seed(Y.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R2', 'AV', [900, 200, 50])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R2'] });
+    const lines2 = st => JSON.parse(Y.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:'', svc:['USAF','ANG','AFRC']}]; S.rcnAsg={}; S.rcnSvc={}; S.wbs={}; ${st} applyState(S); save();
+      JSON.stringify(aceAlignRows('R2').map(function(L){ return [L.w, L.v, L.rcn]; }))`));
+    w5Chk(name, 'R2’s USAF and ANG on "__proto__", its AFRC on K1 (rcnSvc)', 'two lines, each service’s money once: [900, 200, 0] on "__proto__", [0, 0, 50] on K1',
+      J(lines2(`S.rcnSvc={R2:{USAF:'__proto__', ANG:'__proto__', AFRC:'K1'}};`)), J([['', [900, 200, 0], '__proto__'], ['', [0, 0, 50], 'K1']]));
+    w5Chk(name, 'R2 on "__proto__" (rcnAsg), two WBS logged', 'one line per WBS, each with its own money: 1.1 [500, 100, 50], 1.2 [400, 100, 0]',
+      J(lines2(`S.rcnAsg={R2:'__proto__'}; S.wbs={R2:[{w:'1.1', v:[500,100,50]},{w:'1.2', v:[400,100,0]}]};`)),
+      J([['1.1', [500, 100, 50], '__proto__'], ['1.2', [400, 100, 0], '__proto__']]));
+    // A pointer that is not text but whose key reads "__proto__" (a list, ["__proto__"], as a file can hold it) is the
+    // same key to the grouping. (A wrong fix that escapes only the text "__proto__" passes every check above and loses
+    // USAF's $900 here.)
+    w5Chk(name, 'R2’s USAF and ANG each on ["__proto__"], a list whose key reads "__proto__", its AFRC on K1 (rcnSvc)', 'two lines, each service’s money once: [900, 200, 0] on ["__proto__"], [0, 0, 50] on K1',
+      J(lines2(`S.rcnSvc={R2:{USAF:['__proto__'], ANG:['__proto__'], AFRC:'K1'}};`)), J([['', [900, 200, 0], ['__proto__']], ['', [0, 0, 50], 'K1']]));
+    // P1's CLIN on "__proto__" with two WBS logged that leave part of its money on no WBS: [kind, WBS, the line's money by
+    // service, its pointer] for each of P1's lines. (A wrong fix that leaves a CLIN's WBS lines, or the remainder line, in a
+    // plain object passes every check above.) Its WBS are cleared after, so the controls read P1 as before.
+    put(`S.rcnAsg={R1:'K1'}; S.clinRcn={P1:{n1:'__proto__'}}; S.clinWbs={P1:{n1:[{w:'2.1', v:[300,100,0]},{w:'2.2', v:[0,100,0]}]}};`);
+    w5Chk(name, 'P1’s CLIN 0001 on "__proto__" (clinRcn), two WBS logged and a remainder', 'one line per WBS and one for the remainder, each with its own money: 2.1 [300, 100, 0], 2.2 [0, 100, 0], the remainder [100, 100, 0]',
+      J(JSON.parse(X.ev(`JSON.stringify(aceAlignRows('P1').map(function(L){ return [L.kind, L.w, L.v, L.rcn]; }))`))),
+      J([['clin', '2.1', [300, 100, 0], '__proto__'], ['clin', '2.2', [0, 100, 0], '__proto__'], ['rem', '', [100, 100, 0], '__proto__']]));
+    X.ev(`S.clinWbs={}; applyState(S); save(); 'ok'`);
+    // CONTROLS
+    for (const [where, st, want, sheet] of [
+      ['both on K1', `S.rcnAsg={R1:'K1'}; S.clinRcn={P1:{n1:'K1'}};`,
+        [[['', [900, 200, 0], 'K1']], [['0001', [400, 300, 0], 'K1']]], [R1K, P1K]],
+      ['both on "constructor" by their own pointers', `S.rcnAsg={R1:'constructor'}; S.clinRcn={P1:{n1:'constructor'}};`,
+        [[['', [900, 200, 0], 'constructor']], [['0001', [400, 300, 0], 'constructor']]], [R1N, P1N]],
+      ['every service on "toString" (rcnSvc, clinRcnSvc)', `S.rcnSvc={R1:{USAF:'toString', ANG:'toString'}}; S.clinRcnSvc={P1:{n1:{USAF:'toString', ANG:'toString'}}};`,
+        [[['', [900, 200, 0], 'toString']], [['0001', [400, 300, 0], 'toString']]], [R1N, P1N]],
+      ['R1 on "GONE", a combination the list does not hold', `S.rcnAsg={R1:'GONE'}; S.clinRcn={P1:{n1:'K1'}};`,
+        [[['', [900, 200, 0], 'GONE']], [['0001', [400, 300, 0], 'K1']]], [R1N, P1K]],
+      ['R1’s USAF alone on "__proto__", its ANG on K1', `S.rcnAsg={R1:'__proto__'}; S.rcnSvc={R1:{ANG:'K1'}}; S.clinRcn={P1:{n1:'K1'}};`,
+        [[['', [900, 0, 0], '__proto__'], ['', [0, 200, 0], 'K1']], [['0001', [400, 300, 0], 'K1']]],
+        [['Req R1', '', '(no WBS)', 900, 900, 0, '', ''], ['Req R1', '', '(no WBS)', 200, 200, 0, '11111', 'AAAAA'], P1K]]]) {
+      w5Chk(name, where, 'CONTROL — the alignment lines, each service’s money on its own pointer’s line, once', J(put(st)), J(want));
+      w5Chk(name, where, 'CONTROL — the ACE tie-out’s Alignment Breakout, from its bytes', J((await tie()).lines), J(sheet));
+    }
+    // R1 on "__proto__": the other sheets that read the same pointer, as the RCN-EEIC by Month sheet already read it
+    put(`S.rcnAsg={R1:'__proto__'}; S.clinRcn={P1:{n1:'K1'}};`);
+    const bk = JSON.parse(await w6Book(X.w, 'exportExcel')), rc = bk['RCN-EEIC by Month'] || [];
+    const iReq = rc.findIndex(r => w6Lbl(r) === 'WHICH REQUIREMENTS SIT UNDER EACH COMBINATION');
+    w5Chk(name, 'R1 on "__proto__", RCN-EEIC by Month', 'CONTROL — the summary, from the workbook’s bytes: R1’s USAF 900 and ANG 200 under no RCN/EEIC assigned, P1’s 400 and 300 under K1',
+      J(bk.__err || v198Sec(rc, 0, iReq).map(r => r.slice(0, 3))),
+      J([['USAF', '11111 / AAAAA', 400], ['USAF', v198NONE, 900], ['USAF', 'USAF TOTAL', 1300],
+        ['ANG', '11111 / AAAAA', 300], ['ANG', v198NONE, 200], ['ANG', 'ANG TOTAL', 500], ['AFRC', 'AFRC TOTAL', 0]]));
+    w5Chk(name, 'R1 on "__proto__", Mapping by Requirement', 'CONTROL — R1 on one combination, "__proto__", which the list does not hold, so no codes; P1 on K1',
+      J([JSON.parse(X.ev(`JSON.stringify([rcnKeysOf('R1'), rcnKeysOf('P1')])`)), (await tie()).map]),
+      J([[['__proto__'], ['K1']], [['Req R1', '', ''], ['Req P1', '11111', 'AAAAA']]]));
+    // This one shows only that such a pointer can reach the board today. If the door ever checks what the pointer lists
+    // hold, it is expected to refuse this file, and this expectation changes with that fix, said as a changed one.
+    w5Chk(name, 'a file holding the four pointers at "__proto__"', 'CONTROL — the import door passes it: such a pointer reaches the board',
+      X.ev(`inboundCheck(JSON.stringify({cur:MS.cur, rcn:MS.rcn, years:{2027:{order:['R1','P1'], rcnAsg:{R1:'__proto__'}, rcnSvc:{R1:{USAF:'__proto__'}},
+        clinRcn:{P1:{n1:'__proto__'}}, clinRcnSvc:{P1:{n1:{ANG:'__proto__'}}}}}}))`), '');
+    w5Chk(name, 'harness', 'CONTROL — no jsdom script errors', J([X.errors.length, Y.errors.length, Z.errors.length]), J([0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U61) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

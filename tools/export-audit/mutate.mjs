@@ -5350,6 +5350,10 @@ const MUTATIONS = [
   { id: "v200-u19-keep-saved-before-question", area: "keptPutBack", what: "↶ Put back writes saved work on screen into the kept slot before its question: answered Cancel, the work kept aside, never saved, is replaced by a copy the file already holds and is in no copy this board can reach",
     find: "  if(!confirm('Put back the work this browser kept aside on '",
     repl: "  if(keepScreen && !nowUnsaved){ try{ localStorage.setItem(_AP.key+'.kept', JSON.stringify({t:Date.now(), why:'swap', by:whoIs()||'', ts:+MS.ts||0, base:baseGet(), saved:true})+'\\n'+JSON.stringify(MS)); }catch(e){} }\n  if(!confirm('Put back the work this browser kept aside on '" },
+  // v2.00 (U61): an RCN / EEIC pointer of "__proto__" is a key like any other where a funding line's services are grouped.
+  { id: "v200-uproto-plain-grp", area: "aceAlignRows", what: "a funding line's Air Force services are grouped by their RCN / EEIC pointer in a plain object again: with USAF and ANG both on \"__proto__\" the pointer sets the object's prototype, and R1 asking 900 / 200 / 0 is two lines of [0, 200, 0] in the alignment lines and $200 twice in the ACE tie-out's Alignment Breakout -- USAF's $900 on no line, ANG's $200 on two (a prime's CLIN asking 400 / 300 / 0 the same: $300 twice)",
+    find: "    const grp=Object.create(null), ord=[];\n",
+    repl: "    const grp={}, ord=[];\n" },
   // v2.00 (R3, Brad 11 Oct): a save that lands under a locked view says it saved the working plan.
   { id: "v200-r3-landed-view-unsaid", area: "_driveStorePushRun", what: "a folder save that lands while a locked view is on screen says “🔒 Not kept — PB27 is a locked view. ✅ Saved …” again, naming no plan (or, quiet, leaves persist's refusal on screen)",
     find: "  if(CYCVIEW){ _cycRefusedAt=0; setStat('✅ <b>Saved the working plan</b> of '+esc(APPN_LBL[ap]||ap)+' FY'+(fy%100)+' to the shared folder — '\n    +Math.round(body.length/1024)+' KB, built before '+blLbl(CYCVIEW)+' was put on screen. '+blLbl(CYCVIEW)+' is a locked view: nothing in it '\n    +'is saved. Everyone sees the working plan on their next refresh.'+penNote+lateNote); render(); return true; }\n",
