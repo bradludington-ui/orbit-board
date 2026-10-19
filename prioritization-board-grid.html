@@ -2382,9 +2382,9 @@ const SRC0 = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 // (the same failure the legacy band migration had for its entire life). The first module cannot be
 // below anything.
 //
-// ADDING AN APPROPRIATION: add the slug here, add its label to APPN_LBL, add its source tab to
-// SRC_TABS, and add its row to CONFIGS in build_prio_board.py. Those four are held together by a
-// check in the suite, so forgetting one fails loudly instead of silently covering less.
+// ADDING AN APPROPRIATION: add the slug here, add its label to APPN_LBL, and add its source tab to
+// SRC_TABS. Those three are held together by `npm run check` (tools/check.mjs), so forgetting one
+// fails loudly instead of silently covering less.
 const APPN_SLUGS = ['om', 'ff', 'sp', 'opn'];
 // AND THE TWO WAYS AN APPROPRIATION IS NAMED. There were FIVE copies of these between them -
 // APPN_LBL, PKG_NAMES, PKG_APPNS_KEY, NAME_OF and a local NAMES inside flowView - and a fifth slug
