@@ -1,0 +1,113 @@
+# cmd: X=1 bash /home/user/orbit-board/recovery/v200/evidence/L6-u28/fc-gate.sh /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6 -- npm run layout --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:03:08Z / 07:03:08 EDT
+# cap: 900s  grace: 10s
+FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf
+ok   400 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   400 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   500 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   500 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   600 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   600 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   650 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   650 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   700 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   700 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   750 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   750 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   800 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   800 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   900 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   900 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+OK: the board is drawn in Arial's widths here, at every weight it uses
+fc-gate: font-env OK; running with FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf: npm run layout --silent
+
+prioritization-board-grid.html
+  ok   A · as it opens: discretionary BA and left are the card's   19920000,19920000 · 0,0
+  ok   A · as it opens: mandatory BA and left are the card's   3670000,3670000 · 0,0
+  ok   A · as it opens: mission critical unfunded is the card's   25072500,25072500
+  ok   A · as it opens: whole-budget unfunded is the card's TOTAL   240051789,240051789
+  ok   A · as it opens: unfunded by service adds up to that TOTAL   240051789 vs 240051789
+  ok   A · as it opens: and each service is the Funding by service table's UNFUNDED   [177356789,8350000,4702500,25852500,9470000,14320000] vs [177356789,8350000,4702500,25852500,9470000,14320000]
+  ok   A · with the discretionary-only what-if: discretionary BA and left are the card's   19920000,19920000 · 0,0
+  ok   A · with the discretionary-only what-if: mandatory BA and left are the card's   3670000,3670000 · 0,0
+  ok   A · with the discretionary-only what-if: mission critical unfunded is the card's   25072500,25072500
+  ok   A · with the discretionary-only what-if: whole-budget unfunded is the card's TOTAL   243721789,243721789
+  ok   A · with the discretionary-only what-if: unfunded by service adds up to that TOTAL   243721789 vs 243721789
+  ok   A · with the discretionary-only what-if: and each service is the Funding by service table's UNFUNDED   [179056789,8620000,4862500,26612500,9790000,14780000] vs [179056789,8620000,4862500,26612500,9790000,14780000]
+  ok   A · with a must-pay trimmed to nothing: discretionary BA and left are the card's   19920000,19920000 · 0,0
+  ok   A · with a must-pay trimmed to nothing: mandatory BA and left are the card's   3670000,3670000 · 0,0
+  ok   A · with a must-pay trimmed to nothing: mission critical unfunded is the card's   25072500,25072500
+  ok   A · with a must-pay trimmed to nothing: whole-budget unfunded is the card's TOTAL   243721789,243721789
+  ok   A · with a must-pay trimmed to nothing: unfunded by service adds up to that TOTAL   243721789 vs 243721789
+  ok   A · with a must-pay trimmed to nothing: and each service is the Funding by service table's UNFUNDED   [179056789,8620000,4862500,26612500,9790000,14780000] vs [179056789,8620000,4862500,26612500,9790000,14780000]
+  ok   A · nothing threw
+  ok   B · everything Active year held is still on a menu or a mode's tools   5 items
+  ok   B · everything Budget year held is still on a menu or a mode's tools   15 items
+  ok   B · everything FYDP held is still on a menu or a mode's tools   6 items
+  ok   B · everything Tools held is still on a menu or a mode's tools   18 items
+  ok   B · everything Export held is still on a menu or a mode's tools   15 items
+  ok   C · review: every row control inside the grid at 1024-1920px (sliding over)   the grid 248-1385px at 1401, its narrowest above 1400
+  ok   C · review: the RECORD panel was a drawer at every width (sliding over)
+  ok   C · rank: every row control inside the grid at 1024-1920px (sliding over)   the grid 248-1385px at 1401, its narrowest above 1400
+  ok   C · rank: the RECORD panel was a drawer at every width (sliding over)
+  ok   C · fund: every row control inside the grid at 1024-1920px (sliding over)   the grid 248-1385px at 1401, its narrowest above 1400
+  ok   C · fund: the RECORD panel was a drawer at every width (sliding over)
+  ok   C · review: every row control inside the grid at 1024-1920px (docked)   the grid 248-955px at 1401, its narrowest above 1400
+  ok   C · review: the RECORD panel was docked beside the grid above 1400px, a drawer at 1400 and below (docked)
+  ok   C · rank: every row control inside the grid at 1024-1920px (docked)   the grid 248-955px at 1401, its narrowest above 1400
+  ok   C · rank: the RECORD panel was docked beside the grid above 1400px, a drawer at 1400 and below (docked)
+  ok   C · fund: every row control inside the grid at 1024-1920px (docked)   the grid 248-955px at 1401, its narrowest above 1400
+  ok   C · fund: the RECORD panel was docked beside the grid above 1400px, a drawer at 1400 and below (docked)
+  ok   D · 1920×1080: the first requirement is on screen as it opens (sliding over)   top 316px · 15 rows in view
+  ok   D · 1440×1000: the first requirement is on screen as it opens (sliding over)   top 316px · 14 rows in view
+  ok   D · 1366×768: the first requirement is on screen as it opens (sliding over)   top 316px · 8 rows in view
+  FAIL D · 1024×768: the first requirement is on screen as it opens (sliding over)   top 442px · 5 rows in view
+  ok   D · the RECORD panel was a drawer at every size (sliding over)
+  ok   D · 1920×1080: the first requirement is on screen as it opens (docked)   top 316px · 15 rows in view
+  FAIL D · 1440×1000: the first requirement is on screen as it opens (docked)   top 409px · 11 rows in view
+  ok   D · 1366×768: the first requirement is on screen as it opens (docked)   top 316px · 8 rows in view
+  FAIL D · 1024×768: the first requirement is on screen as it opens (docked)   top 442px · 5 rows in view
+  ok   D · the RECORD panel was docked beside the grid at 1920 and 1440, a drawer at 1366 and 1024 (docked)
+  ok   E · Brief draws no control on any row (sliding over)   0 control(s), 0 draggable row(s)
+  ok   E · and no RECORD panel (sliding over)   none
+  ok   E · the docked setting was off (sliding over)   ui-dock false
+  ok   E · Brief draws no control on any row (docked)   0 control(s), 0 draggable row(s)
+  ok   E · and no RECORD panel (docked)   none
+  ok   E · the docked setting was on (docked)   ui-dock true
+  ok   F · every row's Discretionary, Mandatory and Unfunded are the RECORD panel's (19 rows) (sliding over)
+  ok   F · the RECORD panel was a drawer at 1440 (sliding over)
+  ok   F · every row's Discretionary, Mandatory and Unfunded are the RECORD panel's (19 rows) (docked)
+  ok   F · the RECORD panel was docked beside the grid at 1440 (docked)
+  ok   G · every mode, density and Funding detail leaves the board’s data exactly as it was
+  ok   G · they are this browser’s settings, kept under their own keys   spmtDensity,spmtDetail,spmtMode
+  ok   G · and nothing of them is written into the saved file   17835 characters of saved data read
+  ok   H · the selected row carries a bar and a tint, and no ring   {"selBar":"rgb(37, 57, 77)","selTint":"rgb(201, 208, 218)","selRing":"none","focRing":"solid","focW":"2px","plain":"rgb(217, 223, 231)"}
+  ok   H · the row holding keyboard focus carries a ring   solid 2px
+  ok   I · every "lane short" figure fits its cell, whole, at 1920, 1440 and 1024 in every density (sliding over)   837 notes read
+  ok   I · and the nine-digit one is printed whole (sliding over)   $123,456,789 seen 18 time(s)
+  ok   I · the figures were read in the RECORD panel as a drawer at every width (sliding over)
+  ok   I · every "lane short" figure fits its cell, whole, at 1920, 1440 and 1024 in every density (docked)   837 notes read
+  ok   I · and the nine-digit one is printed whole (docked)   $123,456,789 seen 18 time(s)
+  ok   I · the figures were read in the RECORD panel docked beside the grid at 1920 and 1440, a drawer at 1024 (docked)
+  ok   J · harbor review: every width 761-1023 fits   263 widths
+  ok   J · harbor rank: every width 761-1023 fits   263 widths
+  ok   J · harbor fund: every width 761-1023 fits   263 widths
+  ok   J · harbor compare: every width 761-1023 fits   263 widths
+  ok   J · harbor brief: every width 761-1023 fits   263 widths
+  ok   J · parchment review: every width 761-1023 fits   263 widths
+  ok   J · parchment rank: every width 761-1023 fits   263 widths
+  ok   J · parchment fund: every width 761-1023 fits   263 widths
+  ok   J · parchment compare: every width 761-1023 fits   263 widths
+  ok   J · parchment brief: every width 761-1023 fits   263 widths
+  ok   J · 900×900: the drawer opens with its three editors on screen   3/3
+  ok   J · 768×1024: the drawer opens with its three editors on screen   3/3
+  ok   J · a phone (390×844) opens: no sideways scroll, the rows, and the drawer on screen   page 390px · 19 rows · drawer on screen
+
+3 layout check(s) failed
+
+
+# end: 2026-10-19T11:06:36Z / 07:06:36 EDT
+# exit: 1  duration_s: 208.3

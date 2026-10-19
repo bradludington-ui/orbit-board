@@ -1,0 +1,128 @@
+# cmd: X=1 bash /home/user/orbit-board/recovery/v200/evidence/L6-u28/fc-gate.sh /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6 -- npm run keys --silent
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T11:06:56Z / 07:06:56 EDT
+# cap: 900s  grace: 10s
+FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf
+ok   400 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   400 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   500 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 76.47px; Arial draws in Liberation Sans (LiberationSans), 76.47px; Arial's width 76.47px
+ok   500 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans), 236.23px; Arial draws in Liberation Sans (LiberationSans), 236.23px; Arial's width 236.23px
+ok   600 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   600 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   650 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   650 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   700 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   700 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   750 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   750 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   800 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   800 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+ok   900 money: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial draws in Liberation Sans (LiberationSans-Bold), 76.47px; Arial's width 76.47px
+ok   900 words: 'Segoe UI', Arial, sans-serif draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial draws in Liberation Sans (LiberationSans-Bold), 251.45px; Arial's width 251.45px
+OK: the board is drawn in Arial's widths here, at every weight it uses
+fc-gate: font-env OK; running with FONTCONFIG_FILE=/tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/fc-e2d0bc6/fonts.conf: npm run keys --silent
+
+prioritization-board-grid.html
+  ok   A · a long warning is cut off on its one line
+  ok   A · the Message button is reached with Tab from the context bar’s first control   4 Tab(s) from #uiCycBtn
+  ok   A · Enter opens it whole, and the button says it is open   {"big":true,"line":true,"exp":"true","label":"Less","whole":true,"focus":"statBtn"}
+  ok   A · Esc puts it back on one line and leaves focus on the button   {"big":false,"line":true,"exp":"false","label":"More","whole":false,"focus":"statBtn"}
+  ok   A · Space opens it too (a real button)
+  ok   A · Esc pressed elsewhere leaves focus where it is   {"big":true,"line":true,"exp":"true","label":"Less","whole":true,"focus":"q"}
+  ok   B · ✕ is reached and hides it, handing focus to the button   {"big":false,"line":false,"exp":"false","label":"Message","whole":false,"focus":"statBtn"}
+  ok   B · hidden, the message is still in the accessibility tree
+  ok   B · and the button brings it back, whole   {"big":true,"line":true,"exp":"true","label":"Less","whole":true,"focus":"statBtn"}
+  ok   C · the quiet start-up line waits behind the button   {"big":false,"line":false,"exp":"false","label":"Message","whole":false,"focus":"statBtn"}
+  ok   C · and is in the accessibility tree
+  ok   A-C · nothing threw
+  ok   D · CCaR record is a button, reached with Tab and changed from the keyboard (sliding over)   BUTTON · 10 Tab(s) · now "JSF9911"
+  ok   D · PID is a button, reached with Tab and changed from the keyboard (sliding over)   BUTTON · 11 Tab(s) · now "PID7733"
+  ok   D · rename is a button, reached with Tab and changed from the keyboard (sliding over)   BUTTON · 2 Tab(s) · now "Renamed from the keyboard"
+  ok   D · the panel was a drawer over the table (sliding over)   position: fixed
+  ok   D · nothing threw (sliding over)
+  ok   D · CCaR record is a button, reached with Tab and changed from the keyboard (docked)   BUTTON · 9 Tab(s) · now "JSF9911"
+  ok   D · PID is a button, reached with Tab and changed from the keyboard (docked)   BUTTON · 10 Tab(s) · now "PID7733"
+  ok   D · rename is a button, reached with Tab and changed from the keyboard (docked)   BUTTON · 1 Tab(s) · now "Renamed from the keyboard"
+  ok   D · the panel was docked beside the table (docked)   position: sticky
+  ok   D · nothing threw (docked)
+  ok   D2 · the panel was a drawer over the table (sliding over)   position: fixed
+  ok   D2 · the lane-walk pin chip is a button, reached with Tab and used with Enter (sliding over)   BUTTON · 9 Tab(s) · {"fsrc":"split","chip":false}
+  ok   D2 · nothing threw (sliding over)
+  ok   D2 · the panel was docked beside the table (docked)   position: sticky
+  ok   D2 · the lane-walk pin chip is a button, reached with Tab and used with Enter (docked)   BUTTON · 8 Tab(s) · {"fsrc":"split","chip":false}
+  ok   D2 · nothing threw (docked)
+  ok   E · the kept-aside put-back is a button the keyboard reaches   {"tag":"BUTTON","focused":true}
+  ok   E · and the save state itself is plain text, not a click target
+  ok   F · no ARIA tabs are claimed   0 tab role(s)
+  ok   F · five mode buttons in a group labelled Workspace, exactly one pressed   {"tablists":0,"group":"group","label":"Workspace","pressed":["tab_review"],"buttons":5}
+  ok   F · Tab and Enter change the mode, and the pressed button follows   the sidebar: {"mode":"fund","pressed":["tab_fund"],"current":["uiNav_fund"]}
+  ok   F · in Requirements, Tab and Enter move from Review to Rank on the task bar, and the sidebar stays on Requirements   {"mode":"rank","pressed":["tab_rank"],"current":["uiNav_req"]}
+  ok   F · nothing threw
+  ok   F · a stored mode of "fund" opens fund   {"mode":"fund","pressed":"tab_fund"}
+  ok   F · a stored mode of "bogus" opens review   {"mode":"review","pressed":"tab_review"}
+  ok   F · a stored mode of "" opens review   {"mode":"review","pressed":"tab_review"}
+  ok   G · the toolbar has menus to check   fy, pmo, share, reports, data, setup
+  ok   G · fy: Enter opens it and says so, Tab reaches all 9 item(s), and leaving it closes it   {"open":true,"exp":"true","items":9,"reached":9,"left":true}
+  ok   G · fy: Esc closes it and leaves focus on its button   {"open":null,"focus":"b_fy","exp":"false"}
+  ok   G · pmo: Enter opens it and says so, Tab reaches all 11 item(s), and leaving it closes it   {"open":true,"exp":"true","items":11,"reached":11,"left":true}
+  ok   G · pmo: Esc closes it and leaves focus on its button   {"open":null,"focus":"b_pmo","exp":"false"}
+  ok   G · share: Enter opens it and says so, Tab reaches all 6 item(s), and leaving it closes it   {"open":true,"exp":"true","items":6,"reached":6,"left":true}
+  ok   G · share: Esc closes it and leaves focus on its button   {"open":null,"focus":"b_share","exp":"false"}
+  ok   G · reports: Enter opens it and says so, Tab reaches all 8 item(s), and leaving it closes it   {"open":true,"exp":"true","items":8,"reached":8,"left":true}
+  ok   G · reports: Esc closes it and leaves focus on its button   {"open":null,"focus":"b_reports","exp":"false"}
+  ok   G · data: Enter opens it and says so, Tab reaches all 9 item(s), and leaving it closes it   {"open":true,"exp":"true","items":9,"reached":9,"left":true}
+  ok   G · data: Esc closes it and leaves focus on its button   {"open":null,"focus":"b_data","exp":"false"}
+  ok   G · setup: Enter opens it and says so, Tab reaches all 3 item(s), and leaving it closes it   {"open":true,"exp":"true","items":3,"reached":3,"left":true}
+  ok   G · setup: Esc closes it and leaves focus on its button   {"open":null,"focus":"b_setup","exp":"false"}
+  ok   G · Enter on a menu item runs it, closes the menu and leaves focus on the menu button   1 Tab(s) · {"svcAll":true,"open":null,"focus":"b_view"}
+  ok   G · a mouse click on the page closes a menu without moving focus to its button   {"open":null,"focus":""}
+  ok   G · nothing threw
+  ok   G2 · the long menus have folded groups: File, Filter, Reports & exports, Setup   share:3 reports:6 setup:3 view:2
+  ok   G2 · Tab reaches every heading, Enter opens it in place and says so (one group open at a time), and Tab reaches every item in it   14 group(s), 63 item(s)
+  ok   G2 · Find is the first stop in Reports & exports; typing "excel" shows the seven workbooks, and Tab goes to the first   {"first":"mFind","n":7,"next":"📊 Excel Workbook — full break"}
+  ok   G2 · Esc closes it, and Find is empty when the menu opens again   ""
+  ok   G2 · nothing threw
+  ok   L · the board opens with two awards it repaired, and Needs attention offers the 🔧 entry (sliding over)   {"list":2,"entry":true}
+  ok   L · the 🔧 entry is reached with Tab and Enter opens its list, with the keyboard inside it (sliding over)   12 Tab(s) · {"open":"awfix","title":"🔧 AWARDS REPAIRED WHEN THE BOARD OPENED","inBox":true}
+  ok   L · Go to it is reached and, with Enter, closes the list and selects the requirement whose award was repaired (sliding over)   1 Tab(s) · {"open":null,"cur":"R002","fix":true}
+  ok   L · the panel was a drawer over the table (sliding over)   position: fixed
+  ok   L · ✓ Checked is a button in the award block, reached with Tab, and Enter takes the award off the 🔧 list (sliding over)   39 Tab(s) · 2 → {"n":1,"checked":true}
+  ok   L · nothing threw (sliding over)
+  ok   L · the board opens with two awards it repaired, and Needs attention offers the 🔧 entry (docked)   {"list":2,"entry":true}
+  ok   L · the 🔧 entry is reached with Tab and Enter opens its list, with the keyboard inside it (docked)   12 Tab(s) · {"open":"awfix","title":"🔧 AWARDS REPAIRED WHEN THE BOARD OPENED","inBox":true}
+  ok   L · Go to it is reached and, with Enter, closes the list and selects the requirement whose award was repaired (docked)   1 Tab(s) · {"open":null,"cur":"R002","fix":true}
+  ok   L · the panel was docked beside the table (docked)   position: sticky
+  ok   L · ✓ Checked is a button in the award block, reached with Tab, and Enter takes the award off the 🔧 list (docked)   5 Tab(s) · 2 → {"n":1,"checked":true}
+  ok   L · nothing threw (docked)
+  ok   H · Enter on Funding detail opens it, says so, and focus stays on the button   {"open":true,"exp":"true","focus":true}
+  ok   H · every Funding detail header is a button   4 header(s)
+  ok   H · sc: Enter opens or closes it and aria-expanded follows   {"before":"true","exp":"false","arrow":"▸","focus":true}
+  ok   H · gs: Enter opens or closes it and aria-expanded follows   {"before":"true","exp":"false","arrow":"▸","focus":true}
+  ok   H · ta: Enter opens or closes it and aria-expanded follows   {"before":"false","exp":"true","arrow":"▾","focus":true}
+  ok   H · pm: Enter opens or closes it and aria-expanded follows   {"before":"true","exp":"false","arrow":"▸","focus":true}
+  ok   H · a fit chip is reached with Tab, filters with Enter, says it is pressed and keeps focus   7 Tab(s) · {"filter":0,"pressed":1,"focusOnChip":true,"focusPressed":true}
+  ok   H · Space on it clears the filter again   {"filter":-1}
+  ok   H · nothing threw
+  ok   I · Enter opens the row menu, focus stays on ⋯, and Tab goes into its items   {"open":true,"focus":true,"items":3,"tag":"BUTTON","inMenu":true}
+  ok   I · Esc closes it with focus back on ⋯   {"open":null,"focus":true}
+  ok   I · nothing threw
+  ok   J · allocation: typed and Tabbed out of, focus goes on to the control after it   {"want":{"row":"row-R001","h":"S.mc[\"R001\"]=!S.mc[\"R001\"];save"},"got":{"row":"row-R001","h":"S.mc[\"R001\"]=!S.mc[\"R001\"];save","body":false}}
+  ok   J · allocation: and Shift+Tab comes back to it   {"row":"row-R001","h":"setAlloc","body":false}
+  ok   J · rank: typed and Tabbed out of, focus goes on to the control after it   {"want":{"row":"row-R003","h":"setAlloc"},"got":{"row":"row-R003","h":"setAlloc","body":false}}
+  ok   J · rank: and Shift+Tab comes back to it   {"row":"row-R003","h":"setRank","body":false}
+  ok   J · Shift+Tab out of an edited field goes to the control before it   {"want":{"row":"row-R001","h":"setRank"},"got":{"row":"row-R001","h":"setRank","body":false}}
+  ok   J · Enter applies an allocation and stays on its field   {"after":{"row":"row-R001","h":"setAlloc","body":false},"applied":"{\"m\":\"t\",\"v\":3456789}"}
+  ok   J · a click elsewhere after typing is left where it went   "q"
+  ok   J · nothing threw
+  ok   K · 📁 File › 🩺 Save diagnostics is reached by keyboard and opens with Save focused   6 Tab(s) · {"open":true,"focus":"diagSave"}
+  ok   K · the real script error is in it, without the title or the figure   11:07:45  ERROR    … Error: cannot total … at $#  [line 1:37]
+  ok   K · Esc closes it, writes nothing, and hands focus back to 📁 File   {"open":false,"focus":"b_share","downloads":0}
+  ok   K · Enter on Save downloads one file, named for the day, exactly what the box showed   ORBIT diagnostics - 2026-10-19.txt · identical
+
+The keyboard reaches the message, the record fields, the kept-aside put-back, the modes, every menu item and every folded group, Find, the Funding detail headers, the fit chips, the row menu and a row field typed into and left, Save diagnostics, and the repaired-award controls, and each one works
+
+
+# end: 2026-10-19T11:07:46Z / 07:07:46 EDT
+# exit: 0  duration_s: 49.7
