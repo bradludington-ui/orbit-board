@@ -36,9 +36,12 @@ const LONG = '⚠ The shared folder holds a newer save by K Jones (10:42). Your 
   + 'File › Put back work kept aside restores it. Nothing was written over.';
 
 const b = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
-const open = async (mode, w = 1440) => {
+// v2.00 (UI S4): docked -- the RECORD panel docked beside the table, set as View › Record panel › Docked beside the table
+// sets it (prio27uiDock = '1' in this browser). Without it the panel slides over the table, the board's default.
+const open = async (mode, w = 1440, docked = false) => {
   const ctx = await b.newContext({ viewport: { width: w, height: 1000 } });
   await ctx.addInitScript(m => { try { localStorage.setItem('spmtTheme', 'harbor'); if (m !== null) localStorage.setItem('spmtMode', m); } catch (e) {} }, mode === undefined ? null : mode);
+  if (docked) await ctx.addInitScript(() => { try { localStorage.setItem('prio27uiDock', '1'); } catch (e) {} });
   const p = await ctx.newPage();
   const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto('file://' + LIVE);
@@ -69,8 +72,14 @@ console.log('\n' + FILE.split('/').pop());
     await p.waitForTimeout(100);
     const cut = await p.evaluate(() => { const s = document.getElementById('shareStat'); return s.scrollWidth > s.clientWidth + 1; });
     chk('A · a long warning is cut off on its one line', cut);
-    const steps = await tabTo(p, '#q', '#statBtn');
-    chk('A · the Message button is reached with Tab from the search box', steps > 0, steps > 0 ? `${steps} Tab(s)` : 'never reached');
+    // v2.00 (UI S4): the search box moved to the page's toolbar, below the context bar and after the message in the order
+    // Tab takes. v2.00 (UI S4, fix round): the Tab starts from the context bar's first control, the cycle button, named
+    // here -- not found on the page as the control just before the message, which made the check pass by construction
+    // (one Tab) -- so it crosses the appropriation, the fiscal year and the PMO menu on its way, as it crossed Filter from
+    // the search box before.
+    const from = '#uiCycBtn';
+    const steps = await tabTo(p, from, '#statBtn');
+    chk('A · the Message button is reached with Tab from the context bar’s first control', steps > 0, (steps > 0 ? `${steps} Tab(s)` : 'never reached') + ' from ' + from);
     const st = () => p.evaluate(() => { const w = document.getElementById('statWrap'), s = document.getElementById('shareStat'), bt = document.getElementById('statBtn');
       return { big: w.classList.contains('big'), line: w.classList.contains('fresh'), exp: bt.getAttribute('aria-expanded'), label: bt.textContent,
         whole: s.scrollWidth <= s.clientWidth + 1 && s.getBoundingClientRect().height > 20, focus: document.activeElement && document.activeElement.id }; });
@@ -111,9 +120,11 @@ console.log('\n' + FILE.split('/').pop());
 }
 
 // ── D. THE RECORD PANEL'S CCaR RECORD, PID AND RENAME, FROM THE KEYBOARD ────────────────────────────────
-{
+// v2.00 (UI S4): twice, the panel sliding over the table (the default) and docked beside it. Sliding over, the panel is
+// closed with Esc before its row is picked again: open, its scrim takes the click meant for the row.
+for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   try {
-    const { p, ctx, errs } = await open('review');
+    const { p, ctx, errs } = await open('review', 1440, docked);
     const answers = [];
     p.on('dialog', d => d.type() === 'prompt' ? d.accept(answers.shift() || '') : d.accept());
     const id = await p.evaluate(() => gridRows()[1].id.replace(/^row-/, ''));
@@ -129,36 +140,43 @@ console.log('\n' + FILE.split('/').pop());
       answers.push(value);
       if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
       const got = await p.evaluate(({ id, src }) => (new Function('id', 'return (' + src + ')(id)'))(id), { id, src: read.toString() });
-      chk(`D · ${what} is a button, reached with Tab and changed from the keyboard`, !!shape && shape.tag === 'BUTTON' && steps >= 0 && got === value,
+      chk(`D · ${what} is a button, reached with Tab and changed from the keyboard (${pass})`, !!shape && shape.tag === 'BUTTON' && steps >= 0 && got === value,
         `${shape ? shape.tag : 'missing'} · ${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · now ${JSON.stringify(got)}`);
       // the next field is reached from the panel's top again; put the panel back on screen after the prompt
+      if (!docked) { await p.keyboard.press('Escape'); await p.waitForTimeout(250); }
       await p.click('#row-' + id + ' .t1'); await p.waitForTimeout(200);
     }
-    chk('D · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    const pos = await p.evaluate(() => getComputedStyle(document.getElementById('inspector')).position);
+    chk(`D · the panel was ${docked ? 'docked beside the table' : 'a drawer over the table'} (${pass})`, docked ? pos !== 'fixed' : pos === 'fixed', 'position: ' + pos);
+    chk(`D · nothing threw (${pass})`, errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
-  } catch (e) { chk(`D · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+  } catch (e) { chk(`D · the section ran on this board (${pass})`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
 // ── D2. THE LANE-WALK PIN CHIP, FROM THE KEYBOARD ──────────────────────────────────────────────────────
-{
+// v2.00 (UI S4): twice, sliding over and docked, as D
+for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   try {
-    const { p, ctx, errs } = await open('review');
+    const { p, ctx, errs } = await open('review', 1440, docked);
     // every fixture requirement is pinned, so one is put back on the automatic lane walk first
     const id = await p.evaluate(() => { const i = gridRows()[2].id.replace(/^row-/, ''); delete S.fsrc[i]; render(); return i; });
     {
       await p.click('#row-' + id + ' .t1'); await p.waitForTimeout(250);
+      // v2.00 (UI S4, fix round): where the panel is, as D checks it -- the docked pass stands on its own
+      const pos = await p.evaluate(() => getComputedStyle(document.getElementById('inspector')).position);
+      chk(`D2 · the panel was ${docked ? 'docked beside the table' : 'a drawer over the table'} (${pass})`, docked ? pos !== 'fixed' : pos === 'fixed', 'position: ' + pos);
       const sel = '#inspector [onclick^="setFsrc("]';
       const tag = await p.evaluate(s => { const e = document.querySelector(s); return e ? e.tagName : 'missing'; }, sel);
       await p.evaluate(() => document.getElementById('inspector').setAttribute('tabindex', '-1'));
       const steps = await tabTo(p, '#inspector', sel, 60);
       if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
       const r = await p.evaluate(({ id, s }) => ({ fsrc: ((S.fsrc || {})[id] || {}).m || '', chip: !!document.querySelector(s) }), { id, s: sel });
-      chk('D2 · the lane-walk pin chip is a button, reached with Tab and used with Enter', tag === 'BUTTON' && steps >= 0 && r.fsrc === 'split' && !r.chip,
+      chk(`D2 · the lane-walk pin chip is a button, reached with Tab and used with Enter (${pass})`, tag === 'BUTTON' && steps >= 0 && r.fsrc === 'split' && !r.chip,
         `${tag} · ${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify(r)}`);
     }
-    chk('D2 · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    chk(`D2 · nothing threw (${pass})`, errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
-  } catch (e) { chk(`D2 · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+  } catch (e) { chk(`D2 · the section ran on this board (${pass})`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
 // ── E. THE "WORK KEPT ASIDE" PUT-BACK ─────────────────────────────────────────────────────────────────
@@ -186,10 +204,25 @@ console.log('\n' + FILE.split('/').pop());
     chk('F · no ARIA tabs are claimed', shape.tablists === 0, shape.tablists + ' tab role(s)');
     chk('F · five mode buttons in a group labelled Workspace, exactly one pressed', shape.group === 'group' && shape.label === 'Workspace'
       && shape.buttons === 5 && shape.pressed.length === 1 && shape.pressed[0] === 'tab_review', JSON.stringify(shape));
-    const steps = await tabTo(p, '#tab_review', '#tab_fund', 8);
+    // v2.00 (UI S4): the mode switch is the sidebar's now -- Requirements, Funding, Cycles & compare, Brief -- and the task bar
+    // keeps Requirements' own Review / Rank pair. Tab and Enter there change the mode; the board's pressed button follows,
+    // and so does the sidebar's current section. A board without the sidebar is checked on its task bar, as before.
+    const side = await p.evaluate(() => { const e = document.getElementById('uiNav_fund'); return !!(e && e.getClientRects().length); });
+    const steps = side ? await tabTo(p, '#uiNav_req', '#uiNav_fund', 8) : await tabTo(p, '#tab_review', '#tab_fund', 8);
     await p.keyboard.press('Enter'); await p.waitForTimeout(250);
-    const r = await p.evaluate(() => ({ mode: uiMode, pressed: [...document.querySelectorAll('.tbar .tabs button[aria-pressed="true"]')].map(b => b.id) }));
-    chk('F · Tab and Enter change the mode, and the pressed button follows', steps > 0 && r.mode === 'fund' && r.pressed.join() === 'tab_fund', JSON.stringify(r));
+    const cur = () => p.evaluate(() => ({ mode: uiMode, pressed: [...document.querySelectorAll('.tbar .tabs button[aria-pressed="true"]')].map(b => b.id),
+      current: [...document.querySelectorAll('#uiSide [aria-current="page"]')].map(b => b.id) }));
+    const r = await cur();
+    chk('F · Tab and Enter change the mode, and the pressed button follows', steps > 0 && r.mode === 'fund' && r.pressed.join() === 'tab_fund'
+      && (!side || r.current.join() === 'uiNav_fund'), (side ? 'the sidebar: ' : 'the task bar: ') + JSON.stringify(r));
+    if (side) {
+      await p.focus('#uiNav_req'); await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+      const steps2 = await tabTo(p, '#tab_review', '#tab_rank', 4);
+      await p.keyboard.press('Enter'); await p.waitForTimeout(250);
+      const r2 = await cur();
+      chk('F · in Requirements, Tab and Enter move from Review to Rank on the task bar, and the sidebar stays on Requirements',
+        steps2 > 0 && r2.mode === 'rank' && r2.pressed.join() === 'tab_rank' && r2.current.join() === 'uiNav_req', JSON.stringify(r2));
+    }
     chk('F · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
     for (const [stored, want] of [['fund', 'fund'], ['bogus', 'review'], ['', 'review']]) {
@@ -304,33 +337,39 @@ console.log('\n' + FILE.split('/').pop());
 }
 
 // ── L. THE REPAIRED-AWARD CONTROLS, FROM THE KEYBOARD (v1.96, item 64) ─────────────────────────────────
+// v2.00 (UI S4): the funding posture strip, and with it Needs attention, shows in Funding and Brief only, so this runs in
+// Funding, and the Tab starts from the context bar's last control, 📁 File, before the task bar and the strip in the order
+// Tab takes (the search box, where it started, moved below the strip). Twice, the RECORD panel sliding over and docked.
 // v1.95 drew them only when an award had been repaired on opening, and the board every browser check loads held none:
 // nothing checked that a keyboard could reach them. That board now carries two.
-{
+for (const [pass, docked] of [['sliding over', false], ['docked', true]]) {
   try {
-    const { p, ctx, errs } = await open('review');
+    const { p, ctx, errs } = await open('fund', 1440, docked);
     const have = await p.evaluate(() => ({ list: attLists().awfix.length, entry: !!document.querySelector('button.e[onclick=\'attShow("awfix")\']') }));
-    chk('L · the board opens with two awards it repaired, and Needs attention offers the 🔧 entry', have.list === 2 && have.entry, JSON.stringify(have));
-    const steps = await tabTo(p, '#q', 'button.e[onclick=\'attShow("awfix")\']', 60);
+    chk(`L · the board opens with two awards it repaired, and Needs attention offers the 🔧 entry (${pass})`, have.list === 2 && have.entry, JSON.stringify(have));
+    const steps = await tabTo(p, '#b_share', 'button.e[onclick=\'attShow("awfix")\']', 60);
     if (steps >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     const box = await p.evaluate(() => ({ open: attOpen, title: (document.getElementById('attTitle') || {}).textContent || '',
       inBox: !!document.getElementById('attPanel').contains(document.activeElement) }));
-    chk('L · the 🔧 entry is reached with Tab and Enter opens its list, with the keyboard inside it',
+    chk(`L · the 🔧 entry is reached with Tab and Enter opens its list, with the keyboard inside it (${pass})`,
       steps >= 0 && box.open === 'awfix' && /REPAIRED/.test(box.title) && box.inBox, `${steps >= 0 ? steps + ' Tab(s)' : 'never reached'} · ${JSON.stringify(box)}`);
     const go = await tabTo(p, '#attPanel button', '#attPanel button.attgo', 20);
     if (go >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(300); }
     const at = await p.evaluate(() => ({ open: attOpen, cur: curRow, fix: !!((S.awards || {})[curRow] || {}).fix }));
-    chk('L · Go to it is reached and, with Enter, closes the list and selects the requirement whose award was repaired',
+    chk(`L · Go to it is reached and, with Enter, closes the list and selects the requirement whose award was repaired (${pass})`,
       go >= 0 && at.open === null && at.fix, `${go >= 0 ? go + ' Tab(s)' : 'never reached'} · ${JSON.stringify(at)}`);
+    // v2.00 (UI S4, fix round): where the panel holding the award block is, as D checks it -- the docked pass stands on its own
+    const pos = await p.evaluate(() => getComputedStyle(document.getElementById('inspector')).position);
+    chk(`L · the panel was ${docked ? 'docked beside the table' : 'a drawer over the table'} (${pass})`, docked ? pos !== 'fixed' : pos === 'fixed', 'position: ' + pos);
     const before = await p.evaluate(() => attLists().awfix.length);
     const ok = await tabTo(p, '#inspector button, #inspector input', 'button[onclick^="awdFixOk"]', 80);
     if (ok >= 0) { await p.keyboard.press('Enter'); await p.waitForTimeout(250); }
     const after = await p.evaluate(id => ({ n: attLists().awfix.length, checked: !!(((S.awards || {})[id] || {}).fix || {}).ok }), at.cur);
-    chk('L · ✓ Checked is a button in the award block, reached with Tab, and Enter takes the award off the 🔧 list',
+    chk(`L · ✓ Checked is a button in the award block, reached with Tab, and Enter takes the award off the 🔧 list (${pass})`,
       ok >= 0 && after.checked && after.n === before - 1, `${ok >= 0 ? ok + ' Tab(s)' : 'never reached'} · ${before} → ${JSON.stringify(after)}`);
-    chk('L · nothing threw', errs.length === 0, errs.slice(0, 2).join(' | '));
+    chk(`L · nothing threw (${pass})`, errs.length === 0, errs.slice(0, 2).join(' | '));
     await ctx.close();
-  } catch (e) { chk(`L · the section ran on this board`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
+  } catch (e) { chk(`L · the section ran on this board (${pass})`, false, String(e.message || e).split('\n')[0].slice(0, 140)); }
 }
 
 // ── H. THE FUNDING DETAIL HEADERS AND A FIT CHIP (v1.92, item 36) ─────────────────────────────────────

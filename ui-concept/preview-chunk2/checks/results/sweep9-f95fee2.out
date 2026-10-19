@@ -1,0 +1,21 @@
+base review    -
+base rank      763-940 cut:num | 1301-1301 page
+base fund      763-940 cut:num
+base compare   -
+base brief     763-940 cut:num | 943-1099 cut:amt | 1102-1321 past
+open review    -
+open rank      1291-1291 page
+open fund      -
+open compare   -
+open brief     -
+rail review    1291-1291 page
+rail rank      1123-1123 page | 1291-1291 page
+rail fund      1291-1291 page
+rail compare   1291-1291 page
+rail brief     -
+dock review    -
+dock rank      1291-1291 page
+dock fund      -
+dock compare   -
+dock brief     -
+exit 0

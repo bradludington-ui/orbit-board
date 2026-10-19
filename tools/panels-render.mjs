@@ -49,6 +49,8 @@ const SPECIAL = {
   helpPanel: `openHelp('');`,
   // v1.93 (item 42): a Needs attention list -- the missing obligation dates, which the fixture has
   attPanel:  `attShow('oblig');`,
+  // v2.00 (UI S4): the Import box -- its backdrop runs uiImpClose(); it is opened by uiImpOpen(), as Import and Imports do
+  uiImpPanel: `uiImpOpen();`,
   // uiPrompt only falls through to this panel where window.prompt throws (Electron). A browser
   // answers the native prompt, so drive the fallback path itself.
   uipPanel:  `_uipCb=function(){}; document.getElementById('uipMsg').textContent='Name this scenario';

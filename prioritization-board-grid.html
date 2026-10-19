@@ -1277,6 +1277,220 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 .kb{border:1px solid var(--line2);border-radius:4px;padding:0 5px;font-size:11px;font-family:ui-monospace,Consolas,monospace}
 @media (max-width:720px){.hx-toc{grid-template-columns:1fr}}
 </style>
+<style id="uiV2css">
+/* ── v2.00 UI (chunk 1): THE NAVY SIDEBAR, THE CONTEXT BAR, THE KPI CARDS, THE TOOLBAR AND THE IMPORT BOX ──────
+   PRESENTATION ONLY. Every control here calls a function the board already had (uiSetMode, toggleMenu, the menus'
+   own handlers, the file inputs' own .click()); nothing here computes, saves or reads a figure of its own. All of
+   it is switched on by the class ui-on, which the UI script sets on <html> AFTER the page source (SRC0) is taken,
+   so a saved board carries none of it. */
+:root{--uiNav:#0f2236;--uiNav2:#152c44;--uiNavAct:#1c4e63;--uiNavInk:#dbe6f0;--uiNavMut:#8fa6bb;--uiNavAcc:#6fd3c7;--uiSideW:232px}
+html.ui-rail{--uiSideW:64px}
+#uiSide,#uiPage,#uiFly,.uiPop{display:none}
+html.ui-on body{padding-left:var(--uiSideW)}
+html.ui-on #uiSide{display:flex;flex-direction:column;gap:2px;position:fixed;left:0;top:0;bottom:0;width:var(--uiSideW);z-index:55;
+  padding:14px 10px;background:var(--uiNav);color:var(--uiNavInk);overflow-y:auto;overflow-x:hidden;box-sizing:border-box}
+#uiSide .uiBrand{display:flex;align-items:flex-start;gap:10px;padding:2px 6px 14px;position:relative}
+#uiSide .uiLogo{width:30px;height:30px;flex:none;color:#fff;--orbit-accent:var(--uiNavAcc)}
+#uiSide .uiBt{display:flex;flex-direction:column;min-width:0}
+#uiSide .uiBt b{font-size:20px;font-weight:800;letter-spacing:.5px;color:#fff;line-height:1.05}
+#uiSide .uiBt small{font-size:11px;color:var(--uiNavMut);margin-top:4px;white-space:nowrap}
+#uiSide #uiCollapse{margin-left:auto;background:transparent;border:0;color:var(--uiNavMut);font-size:16px;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}
+#uiSide #uiCollapse:hover,#uiSide #uiCollapse:focus-visible{background:var(--uiNav2);color:#fff}
+#uiSide .uiNi{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;
+  color:var(--uiNavInk);font-family:inherit;font-weight:600;font-size:13px;line-height:1.2;text-align:left;cursor:pointer;position:relative;white-space:nowrap}
+#uiSide .uiNi:hover,#uiSide .uiNi:focus-visible{background:var(--uiNav2);color:#fff;outline:none}
+#uiSide .uiNi.on{background:var(--uiNavAct);color:#fff}
+#uiSide .uiNi.on::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--uiNavAcc)}
+#uiSide .uiNi .ic{width:18px;height:18px;flex:none;display:grid;place-items:center}
+#uiSide .uiNi .ic svg{width:16px;height:16px}
+#uiSide .uiNi .car{margin-left:auto;color:var(--uiNavMut);font-size:11px}
+#uiSide .uiGrp{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--uiNavMut);padding:12px 12px 4px}
+#uiSide .uiFoot{margin-top:auto;font-size:11px;color:var(--uiNavMut);padding:10px 12px 2px;border-top:1px solid #213a54;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.ui-rail #uiSide{padding:14px 8px;overflow:visible}
+html.ui-rail #uiSide .uiBt,html.ui-rail #uiSide .uiNi .t,html.ui-rail #uiSide .uiNi .car,html.ui-rail #uiSide .uiGrp,html.ui-rail #uiSide .uiFoot .t{display:none}
+html.ui-rail #uiSide .uiBrand{flex-direction:column;align-items:center;padding:2px 0 12px;gap:8px}
+html.ui-rail #uiSide #uiCollapse{margin:0}
+html.ui-rail #uiSide .uiNi{justify-content:center;padding:10px}
+html.ui-rail #uiSide .uiNi.on::before{left:-8px}
+html.ui-rail #uiSide .uiNi:hover::after,html.ui-rail #uiSide .uiNi:focus-visible::after{content:attr(data-tip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:#0b1826;color:#fff;font-size:12px;font-weight:600;padding:5px 9px;border-radius:6px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.3);z-index:2;pointer-events:none}
+/* the section flyout: the section's own items, each the same call as its menu item */
+html.ui-on #uiFly.open{display:block;position:fixed;z-index:56;left:calc(var(--uiSideW) + 6px);min-width:280px;max-width:380px;max-height:80vh;overflow:auto;
+  background:var(--panel);color:var(--ink);border:1px solid var(--line2);border-radius:10px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.28)}
+#uiFly .uiFh{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);padding:6px 10px 4px}
+#uiFly button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font-family:inherit;font-weight:600;font-size:12.5px;line-height:1.3;padding:8px 10px;border-radius:7px;cursor:pointer}
+#uiFly button small{display:block;font-weight:400;color:var(--dim);font-size:11px;margin-top:2px}
+#uiFly button:hover,#uiFly button:focus-visible{background:var(--panel2);outline:none}
+#uiFly button:disabled{opacity:.55;cursor:default}
+#uiFly .uiFsep{height:1px;background:var(--line);margin:4px 6px}
+/* the context bar: the logo moved to the sidebar; Cycle and the Editable chip join Appropriation, year and PMO */
+html.ui-on .hdr .brand{display:none}
+html.ui-on .hdr{background:var(--panel)}
+.uiCyc,.uiChip{display:none}
+html.ui-on .uiCyc{display:inline-flex;align-items:center;gap:6px}
+html.ui-on .uiChip{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:4px 10px;font-weight:700;font-size:11.5px;white-space:nowrap}
+html.ui-on .uiChip.ed{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
+html.ui-on .uiChip.ro{background:color-mix(in srgb,var(--mut) 16%,transparent);color:var(--mut)}
+html.ui-on .uiChip.pen{background:color-mix(in srgb,var(--amber) 16%,transparent);color:var(--ink)}
+html.ui-on #saveState{border-radius:7px;padding:4px 10px;background:color-mix(in srgb,var(--amber) 14%,transparent);font-weight:700}
+html.ui-on #saveState:empty{display:none}
+/* the task bar: the five tabs are the sidebar's now; Requirements keeps its Review / Rank switch */
+html.ui-on .tbar .tabs .tab{display:none}
+html.ui-on[data-mode="review"] .tbar #tab_review,html.ui-on[data-mode="review"] .tbar #tab_rank,
+html.ui-on[data-mode="rank"] .tbar #tab_review,html.ui-on[data-mode="rank"] .tbar #tab_rank{display:inline-flex}
+html.ui-on:not([data-mode="review"]):not([data-mode="rank"]) .tbar .tabs,
+html.ui-on:not([data-mode="review"]):not([data-mode="rank"]) .tbar .tabs + .csep{display:none}
+/* the funding posture strip shows in Funding and, enlarged as the board has always shown it, in Brief; the KPI cards
+   carry its four headline figures in the other sections */
+html.ui-on:not([data-mode="fund"]):not([data-mode="brief"]) #posture{display:none}
+/* the page heading, the KPI cards and the toolbar */
+html.ui-on #uiPage{display:block;padding:10px 18px 2px}
+#uiPage .uiHd{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:2px 0 10px}
+#uiPage .uiHd h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.3px;color:var(--ink)}
+#uiPage .uiHd .uiSub{color:var(--mut);font-size:12.5px}
+#uiKpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
+#uiKpis:empty{display:none}
+#uiKpis .k{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;min-width:0;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+#uiKpis .k .l{color:var(--mut);font-size:12px;font-weight:700}
+#uiKpis .k .v{font-size:21px;font-weight:800;letter-spacing:-.3px;margin-top:3px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+#uiKpis .k .x{color:var(--dim);font-size:11.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#uiKpis .k .i{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:none}
+#uiKpis .k .i svg{width:16px;height:16px}
+#uiKpis .k.ask .i{background:color-mix(in srgb,var(--blue,#2f63c9) 14%,transparent);color:var(--blue,#2f63c9)}
+#uiKpis .k.disc .i{background:color-mix(in srgb,var(--green) 14%,transparent);color:var(--green)}
+#uiKpis .k.mand .i{background:color-mix(in srgb,var(--purp) 14%,transparent);color:var(--purp)}
+#uiKpis .k.ufr .i{background:color-mix(in srgb,var(--mut) 14%,transparent);color:var(--mut)}
+#uiKpis .k.ufr.short .v{color:var(--red)}
+.uiTools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+html.ui-on .uiTools .srch{flex:1 1 220px;max-width:360px}
+html.ui-on .uiTools .srch input{width:100%}
+.uiTools .sp{margin-left:auto}
+.uiTools > .btn,.uiTools .uiMenu > .btn{display:inline-flex;align-items:center;gap:6px}
+.uiPop input[type=checkbox],.uiImpSub .uiOpt input[type=radio]{width:15px;height:15px;min-width:0;margin:0;flex:none;accent-color:var(--green)}
+.uiTools .uiMenu{position:relative;display:inline-block}
+html.ui-on .uiPop.open{display:block;position:absolute;top:calc(100% + 4px);left:0;z-index:70;min-width:230px;background:var(--panel);color:var(--ink);
+  border:1px solid var(--line2);border-radius:9px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.25)}
+.uiPop .uiFh{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);padding:5px 8px 3px}
+.uiPop label,.uiPop button.o{display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border:0;background:transparent;color:var(--ink);font-family:inherit;font-weight:600;font-size:12.5px;line-height:1.3;border-radius:6px;cursor:pointer;text-align:left}
+.uiPop label:hover,.uiPop button.o:hover{background:var(--panel2)}
+.uiPop button.o[aria-pressed="true"]::before{content:"✓";color:var(--green);font-weight:800}
+.uiPop button.o[aria-pressed="false"]::before{content:"";width:9px}
+.uiPop .note{font-size:11px;color:var(--dim);padding:5px 8px 3px;line-height:1.4}
+/* chunk 2 -- THE RECORD PANEL SLIDES OVER BY DEFAULT, AT EVERY WIDTH. It is the board's own drawer: the same element,
+   drawerOpen / drawerClose / drawerSync, the scrim, Esc and Close -- the rules below are the board's own drawer rules
+   (max-width:1400px), applied at every width. "Docked beside the table" (html.ui-dock, a per-browser choice made in
+   View) is the board's own layout: docked above 1400px at the board's own width, clamp(420px,30vw,600px), a drawer below. */
+html.ui-on:not(.ui-dock) .gridsplit{grid-template-columns:minmax(0,1fr)}
+html.ui-on:not(.ui-dock) .inspector{position:fixed;top:0;right:0;bottom:0;left:auto;width:min(460px,92vw);max-height:none;height:100%;z-index:60;
+  border-radius:0;border-width:0 0 0 1px;box-shadow:-14px 0 34px rgba(0,0,0,.34);transform:translateX(102%);transition:transform .18s ease-out;will-change:transform}
+html.ui-on:not(.ui-dock) .inspector.open{transform:translateX(0)}
+html.ui-on:not(.ui-dock) .inspector .drawerbar{display:flex}
+html.ui-on:not(.ui-dock) .drawerscrim.on{display:block}
+@media (prefers-reduced-motion:reduce){ html.ui-on .inspector{transition:none} }
+/* THE ROW IS SIZED FOR THE ROOM IT HAS. The board's own column lists are chosen by the window's width, which assumed
+   the row had the whole window (or the window less the docked panel). The sidebar takes 232px (64 as the rail), so
+   uiRailApply() works out the room the row really has -- the window, less the sidebar, less the docked panel -- and
+   sets html.ui-e1400 / ui-e1100 / ui-e940 / ui-e760 / ui-e640 for it. Each class applies the board's OWN list for a
+   window of that width (copied from its media rules above), so the row gets the columns the board already gives a
+   window that size. WHERE THE BOARD'S OWN LIST CUTS A NINE-DIGIT FIGURE it is replaced, not copied: a nine-digit figure
+   needs 88px at the row's money size and 102px at Brief's (measured), and the board's 761-940px lists give Rank 80px,
+   Fund 80px and Brief 92px, and its 1100px Brief list 100px (layout-fits J fails on exactly those, in the board itself).
+   Those lists below hold the figure whole; in Fund and Brief at that room the money is set a size smaller so that every
+   cell still fits the row. Brief at 1101-1400 is new too: the board's nine-track Brief list is 1,282px wide and
+   overflowed there in the board itself; this one draws the same nine cells in less. */
+html.ui-on.ui-e1400[data-mode="review"],html.ui-on.ui-e1400[data-mode="compare"]{--rowcols:58px 50px minmax(180px,1fr) 164px 104px 100px 112px 26px 26px}
+html.ui-on.ui-e1400[data-mode="brief"]{--rowcols:40px 56px minmax(150px,1fr) 130px 108px 106px 106px 106px 124px}
+html.ui-on.ui-e1100[data-mode="review"],html.ui-on.ui-e1100[data-mode="compare"]{--rowcols:44px 50px minmax(150px,1fr) 132px 100px 104px 26px 26px}
+html.ui-on.ui-e1100[data-mode="rank"]{--rowcols:110px 76px minmax(140px,1fr) 132px 100px 96px 26px 26px}
+html.ui-on.ui-e1100[data-mode="fund"]{--rowcols:54px 50px minmax(140px,1fr) 100px 90px 90px 90px 104px 26px 26px}
+html.ui-on.ui-e1100[data-mode="brief"]{--rowcols:40px 56px minmax(150px,1fr) 130px 108px 106px 106px 106px}
+html.ui-on.ui-e1100 .row .cum,html.ui-on.ui-e1100 .gridhead .cum{display:none}
+html.ui-on.ui-e940 .gridhead,html.ui-on.ui-e940 .row{gap:6px}
+html.ui-on.ui-e940[data-mode="rank"]{--rowcols:104px 56px minmax(100px,1fr) 104px 92px 88px 26px 26px}
+html.ui-on.ui-e940[data-mode="fund"]{--rowcols:46px 40px minmax(84px,1fr) 84px 84px 84px 84px 88px 26px 26px}
+html.ui-on.ui-e940[data-mode="brief"]{--rowcols:36px 40px minmax(110px,1fr) 90px 94px 94px 94px 94px}
+html.ui-on.ui-e940[data-mode="fund"] #list .row .num,html.ui-on.ui-e940[data-mode="fund"] #list .row .amt{font-size:11.5px}
+html.ui-on.ui-e940[data-mode="brief"] #list .row .num,html.ui-on.ui-e940[data-mode="brief"] #list .row .amt{font-size:13px}
+html.ui-on.ui-e760[data-mode]{--rowcols:40px minmax(0,1fr) 96px 26px 26px}
+html.ui-on.ui-e760[data-mode="brief"]{--rowcols:40px minmax(0,1fr) 110px}
+html.ui-on.ui-e760 .pmoc,html.ui-on.ui-e760 .bandc,html.ui-on.ui-e760 .lanec,html.ui-on.ui-e760 .row .amt,html.ui-on.ui-e760 .row .acts.alloc,html.ui-on.ui-e760 .gridhead .hide760{display:none!important}
+html.ui-on.ui-e640[data-mode]:not([data-mode="brief"]){--rowcols:40px minmax(0,1fr) 26px 26px}
+html.ui-on.ui-e640 .row{gap:6px;padding:6px 10px}
+html.ui-on.ui-e640 .row .num{grid-column:2;grid-row:2;text-align:left}
+html.ui-on.ui-e640 .row .mcc{grid-column:3;grid-row:1}
+html.ui-on.ui-e640 .row .morec{grid-column:4;grid-row:1}
+html.ui-on.ui-e640 .gridhead{display:none}
+/* the context bar carries Cycle as well now: on a phone its group wraps rather than push the page sideways */
+html.ui-on.ui-e640 .hdr .ctx{flex:1 1 auto;min-width:0;max-width:100%;flex-wrap:wrap;row-gap:6px}
+@media (max-width:1100px){ #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
+html.ui-on.ui-e940 #uiKpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* 900px AND NARROWER: the sidebar sits as the 64px rail whatever was chosen for wide windows (html.ui-narrow, set by
+   uiRailApply; nothing is written for it). Opening it lays it OVER the page (html.ui-peek), the way the record drawer
+   does, so the table keeps its room; a click outside it, Esc or a choice closes it. */
+html.ui-on.ui-narrow body{padding-left:64px}
+html.ui-on.ui-narrow.ui-peek #uiSide{box-shadow:14px 0 40px rgba(0,0,0,.35)}
+/* Add requirement is Review's, as the board's own task bar and its folded Review tools menu offer it (#toolAdd sits in
+   #t_review); a PMO copy's File menu leaves out the programme offices, and so does the Import box */
+html.ui-on:not([data-mode="review"]) #uiAddBtn{display:none}
+html.ui-on.ui-sandbox #uiImpC_pmo{display:none}
+html.ui-on.ui-sandbox .uiImpCh{grid-template-columns:repeat(2,minmax(0,1fr))}
+/* the KPI cards when they could not be drawn: no figure is shown rather than an old one */
+#uiKpis .k.na .v{color:var(--dim);font-size:15px}
+/* the Cycle control: the working plan or a locked cycle to view, read only */
+html.ui-on .uiCyc.uiMenu{position:relative}
+html.ui-on .uiCyc .uiPop.open{min-width:300px}
+.uiPop .uiPopHint{font-size:11px;color:var(--dim);padding:2px 8px 6px;line-height:1.4}
+.uiPop button.o small{display:block;font-weight:400;color:var(--dim);font-size:11px}
+html.ui-on #uiCycPop button.o{flex-wrap:wrap;row-gap:1px}
+html.ui-on #uiCycPop button.o small{flex:1 0 100%;padding-left:17px}
+/* the posture strip wraps rather than scrolls where the room is a narrow window's (the board's own rule at 1100px and
+   narrower), and in Brief -- the presentation view -- wherever the sidebar leaves it less than a wide window */
+html.ui-on.ui-e1100 .posture,html.ui-on.ui-e1400[data-mode="brief"] .posture{flex-wrap:wrap;overflow:visible}
+/* v2.00 (UI S1): AND IN FUNDING AND BRIEF AT EVERY WIDTH. The room classes above left Funding at a room of 1101-1400
+   scrolling (1440 among the windows, the sidebar open), and Brief's enlarged strip wider than a room of 1400: Needs
+   attention's last entries and Funding detail sat past the right edge, hidden inside the strip's scroller. The strip
+   now wraps wherever its items do not fit on one line, so every one of them is on screen; where they fit, it is one
+   line as before. */
+html.ui-on .posture{flex-wrap:wrap;overflow:visible}
+.uiPop button.o:disabled{opacity:.55;cursor:default}
+/* Density: compact (the board's own density setting, set from the toolbar) tightens the new chrome too */
+html.ui-on[data-density="compact"] #uiKpis .k{padding:8px 12px}
+html.ui-on[data-density="compact"] #uiKpis .k .v{font-size:18px}
+html.ui-on[data-density="compact"] #uiPage .uiHd h2{font-size:20px}
+/* the RECORD panel's Overview / Funding / History tabs. They take the reader to that part of the record and never
+   hide any of it: a field another control sends the keyboard to (a row chip, Go to it) is always there to reach. */
+.uiDTabs,.uiDHist,.uiDOv{display:none}
+html.ui-on #inspector .uiDTabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:8px 0 10px;position:sticky;top:0;z-index:2;background:var(--panelA,var(--panel))}
+html.ui-on #inspector .uiDTabs button{border:0;border-bottom:2px solid transparent;margin-bottom:-1px;background:transparent;padding:7px 12px;font-family:inherit;font-weight:700;font-size:12.5px;color:var(--mut);cursor:pointer}
+html.ui-on #inspector .uiDTabs button[aria-pressed="true"]{color:var(--green);border-bottom-color:var(--green)}
+html.ui-on #inspector .uiDOv{display:block;font-size:11.5px;color:var(--ink);margin:-4px 0 10px;line-height:1.5}
+html.ui-on #inspector .uiDOv .d{color:var(--mut)}
+html.ui-on #inspector .uiDHist{display:block;margin-top:14px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--mut)}
+html.ui-on #inspector .uiDHist .h{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:800;color:var(--mut);margin-bottom:6px}
+html.ui-on #inspector .uiDHist p{margin:0 0 8px;line-height:1.5}
+/* the Import box: three choices, the chosen one's details, Cancel / Continue to review */
+#uiImpPanel .modal.uiImp{width:880px;max-width:94vw;border-color:var(--line2);border-radius:14px;padding:18px 22px}
+#uiImpPanel h3{display:flex;align-items:center;gap:10px;margin:0 0 4px;font-size:17px}
+#uiImpPanel h3 .x{margin-left:auto}
+#uiImpPanel .lead{margin:0 0 14px;color:var(--mut);font-size:12.5px;line-height:1.5}
+.uiImpCh{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.uiImpCh .uiCard{display:flex;flex-direction:column;align-items:flex-start;gap:7px;padding:14px;border:1.5px solid var(--line2);border-radius:11px;background:var(--panel2);color:var(--ink);text-align:left;cursor:pointer;font:inherit;min-width:0}
+.uiImpCh .uiCard:hover{border-color:var(--mut)}
+.uiImpCh .uiCard[aria-pressed="true"]{border-color:var(--green);box-shadow:0 0 0 3px color-mix(in srgb,var(--green) 22%,transparent);background:var(--panel)}
+.uiImpCh .uiCard .ico{width:36px;height:36px;border-radius:9px;display:grid;place-items:center;background:color-mix(in srgb,var(--green) 13%,transparent);color:var(--green)}
+.uiImpCh .uiCard .ico svg{width:18px;height:18px}
+.uiImpCh .uiCard b{font-size:14px}
+.uiImpCh .uiCard .d{font-size:12px;line-height:1.5;color:var(--mut)}
+.uiImpCh .uiCard .w{font-size:11px;color:var(--dim);border-top:1px solid var(--line);padding-top:7px;margin-top:auto;width:100%}
+.uiImpSub{margin-top:14px;border:1px solid var(--line);border-radius:11px;padding:12px 14px;background:var(--panel2);font-size:12.5px;line-height:1.5}
+.uiImpSub .uiOpt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);margin-top:8px;cursor:pointer}
+.uiImpSub .uiOpt input{margin-top:3px}
+.uiImpSub .uiOpt small{display:block;color:var(--mut);font-size:11.5px}
+.uiImpFoot{display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap}
+.uiImpFoot .more{font-size:11.5px;color:var(--mut);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.uiImpFoot .sp{margin-left:auto}
+@media (max-width:760px){ .uiImpCh{grid-template-columns:1fr} }
+</style>
 <script>
 /* The theme is applied HERE, before the body exists. Set from the main script it would paint the
    default palette and then swap, which is a visible flash on every open. The key carries no
@@ -1306,6 +1520,28 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
 </script>
 </head>
 <body>
+<!-- v2.00 UI (chunk 1): THE NAVY SIDEBAR. Hidden until the UI script sets html.ui-on (after the page source is
+     taken). Each section runs what the board already had: a workspace mode (uiSetMode), a menu (toggleMenu), or a
+     short list of that section's own menu items, each the same call as the item. -->
+<nav id="uiSide" aria-label="Sections">
+  <div class="uiBrand">
+    <svg class="uiLogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" aria-hidden="true"><mask id="uiLogoO" maskUnits="userSpaceOnUse" x="0" y="0.51" width="106.91" height="106.91"><rect x="0" y="0.51" width="106.91" height="106.91" fill="#fff"/><circle cx="86.17" cy="28.41" r="18.7" fill="#000"/></mask><circle cx="53.45" cy="53.96" r="41.51" fill="none" stroke="currentColor" stroke-width="15" mask="url(#uiLogoO)"/><circle cx="53.45" cy="53.96" r="9.55" fill="currentColor"/><circle cx="86.17" cy="28.41" r="12.33" fill="var(--orbit-accent, currentColor)"/></svg>
+    <span class="uiBt"><b>ORBIT</b><small>Portfolio Funding Board</small></span>
+    <button type="button" id="uiCollapse" onclick="uiRailToggle()" aria-label="Collapse the sidebar" title="Collapse the sidebar to icons">&#8249;</button>
+  </div>
+  <button type="button" class="uiNi" id="uiNav_req" data-tip="Requirements" onclick="uiGo('req',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12M2 8h12M2 12h8"/></svg></span><span class="t">Requirements</span></button>
+  <button type="button" class="uiNi" id="uiNav_fund" data-tip="Funding" onclick="uiGo('fund',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1.5" y="4" width="13" height="8.5" rx="1"/><circle cx="8" cy="8.2" r="1.8"/></svg></span><span class="t">Funding</span></button>
+  <button type="button" class="uiNi" id="uiNav_fydp" data-tip="FYDP" aria-haspopup="true" onclick="uiGo('fydp',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 11V8M8 11V5M11 11V7"/></svg></span><span class="t">FYDP</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_exec" data-tip="Execution" aria-haspopup="true" onclick="uiGo('exec',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 12l4-4 3 3 5-6"/><path d="M10 5h4v4"/></svg></span><span class="t">Execution</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_cyc" data-tip="Cycles &amp; compare" onclick="uiGo('cyc',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 5h10l-2.5-2.5M14 11H4l2.5 2.5"/></svg></span><span class="t">Cycles &amp; compare</span></button>
+  <button type="button" class="uiNi" id="uiNav_brief" data-tip="Brief" onclick="uiGo('brief',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1"/><path d="M8 11v2.5M5 14h6"/></svg></span><span class="t">Brief</span></button>
+  <div class="uiGrp">Board</div>
+  <button type="button" class="uiNi" id="uiNav_imp" data-tip="Imports" onclick="uiGo('imp',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg></span><span class="t">Imports</span></button>
+  <button type="button" class="uiNi" id="uiNav_hist" data-tip="History &amp; recovery" aria-haspopup="true" onclick="uiGo('hist',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2 2.5v3h3"/><path d="M8 5v3.2l2 1.3"/></svg></span><span class="t">History &amp; recovery</span><span class="car">&#9656;</span></button>
+  <button type="button" class="uiNi" id="uiNav_setup" data-tip="Setup" aria-haspopup="true" onclick="uiGo('setup',this)"><span class="ic"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></svg></span><span class="t">Setup</span><span class="car">&#9656;</span></button>
+  <div class="uiFoot"><span class="t" id="uiFootT">ORBIT</span></div>
+</nav>
+<div id="uiFly" role="group" aria-label="Section items"></div>
 <div id="subBanner"></div>
 <div id="topStack">
 <!-- v1.90 (item 27): ONE STICKY TOP -- the context bar, the task bar and the funding posture. The
@@ -1389,6 +1625,21 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
   <input type="file" id="ccarFile" accept=".xlsx" style="display:none" onchange="importCcarRecs(this)">
 </div>
 <div class="posture" id="posture" role="region" aria-label="Funding posture"></div>
+</div>
+<!-- v2.00 UI (chunk 1): the page heading, the four KPI cards (whole dollars, the figures scoreboard() already
+     worked out for the posture strip) and the toolbar. The search box and the Filter menu are moved in here by the
+     UI script, by the same ids. -->
+<div id="uiPage">
+  <div class="uiHd"><h2 id="uiTitle">Requirements</h2><span class="uiSub" id="uiSubT"></span></div>
+  <div id="uiKpis" aria-label="Headline figures"></div>
+  <div class="uiTools" id="uiTools" role="group" aria-label="Table tools">
+    <span id="uiToolsMoved" style="display:contents"></span>
+    <div class="uiMenu"><button type="button" class="btn" id="uiColsBtn" aria-expanded="false" onclick="uiPop('uiColsPop',this)" title="Show or hide table columns"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M6 2.5v11M10 2.5v11"/></svg>Columns</button><div class="uiPop" id="uiColsPop"></div></div>
+    <div class="uiMenu"><button type="button" class="btn" id="uiDensBtn" aria-expanded="false" onclick="uiPop('uiDensPop',this)" title="Row density, and how the RECORD panel opens: sliding over the table or docked beside it"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3.5h12M2 8h12M2 12.5h12"/></svg>View</button><div class="uiPop" id="uiDensPop"></div></div>
+    <span class="sp"></span>
+    <button type="button" class="btn" id="uiImpBtn" onclick="uiImpOpen(this)" title="Bring a board, an appropriation or PMO submittals in"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M8 1.5v7M5 5.5l3 3 3-3"/><path d="M1.5 9.5h3.5l1 2h4l1-2h3.5v4.5h-13z"/></svg>Import</button>
+    <button type="button" class="btn pri" id="uiAddBtn" onclick="uiAddReq()" title="Add a requirement to the year on screen — the same as Add requirement in Review"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M8 3v10M3 8h10"/></svg>Add requirement</button>
+  </div>
 </div>
 <div id="driveBar"></div>
 <!-- The scorecards, the fit strip and the funding panels, unchanged, under "Funding detail". -->
@@ -1960,6 +2211,28 @@ html[data-mode="brief"] .inspector,html[data-mode="brief"] .drawerscrim{display:
      it rendered underneath the rows while the 570px column beside them stayed empty. The board
      looked like the panel had simply stopped appearing. It is a fixed-position overlay and belongs
      in neither column. -->
+<!-- v2.00 UI (chunk 1): THE IMPORT BOX. Three choices; each runs exactly what its menu item or the submittal
+     review runs today. "Import several boards at once" stays in File ▾ and is linked from the foot of this box. -->
+<div class="modal-bg" id="uiImpPanel" onclick="if(event.target===this)uiImpClose()">
+  <div class="modal uiImp">
+    <h3>Import <button type="button" class="x" onclick="uiImpClose()">✕ Close</button></h3>
+    <p class="lead">What does the file you are bringing in hold? Nothing is read until you pick the file, and every import checks and previews before it changes anything.</p>
+    <div class="uiImpCh">
+      <button type="button" class="uiCard" id="uiImpC_full" aria-pressed="true" onclick="uiImpPick('full')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="1.2"/><path d="M2 6h12M6 6v7.5"/></svg></span><b>Full board</b><span class="d">Everything in a previous board file — all four appropriations, every locked cycle and the lists. Use it when a new version of ORBIT comes out.</span><span class="w">Replaces this board · one file</span></button>
+      <button type="button" class="uiCard" id="uiImpC_one" aria-pressed="false" onclick="uiImpPick('one')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M3.5 1.5h6l3 3v10h-9z"/><path d="M9.5 1.5v3h3M5.5 8.5h5M5.5 11h5"/></svg></span><b>One appropriation</b><span class="d">Takes only the appropriations you name from any board file. Each is checked and previewed first; nothing else changes.</span><span class="w">Adds or replaces what you name · one file</span></button>
+      <button type="button" class="uiCard" id="uiImpC_pmo" aria-pressed="false" onclick="uiImpPick('pmo')"><span class="ico"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M1.5 4.5h13v9h-13z"/><path d="M1.5 4.5 8 9l6.5-4.5"/></svg></span><b>PMO Import</b><span class="d">Programme offices’ submittals. Each opens in the submittal review: every proposed field arrives unticked, beside what the board says today. Nothing is applied until you apply it.</span><span class="w">One submission, or all of them at once</span></button>
+    </div>
+    <div class="uiImpSub" id="uiImpSub"></div>
+    <div class="uiImpFoot">
+      <span class="more">Also: <button type="button" class="qb" onclick="uiImpClose();document.getElementById('multiFile').click()" title="pick every board .html together — the same as File ▾ › Boards and appropriations">⇊ Import several boards at once…</button><button type="button" class="qb" onclick="uiImpClose();setTimeout(function(){ toggleMenu('data'); },0)" title="execution, cost estimates, the budget extract, CCaR records">Data imports ▾</button></span>
+      <span class="sp"></span>
+      <button type="button" class="btn" onclick="uiImpClose()">Cancel</button>
+      <button type="button" class="btn pri" id="uiImpGo" onclick="uiImpGo()">Continue to review</button>
+    </div>
+  </div>
+</div>
+<!-- several submittals picked together: each is handed, one at a time, to the same loader as ⬅ Load a submittal file -->
+<input type="file" id="uiSubMulti" accept=".json" multiple style="display:none" onchange="uiSubMany(this)">
 <button class="drawerscrim" id="drawerScrim" type="button" tabindex="-1"
         aria-label="Close the record panel" onclick="drawerClose()"></button>
 
@@ -7925,6 +8198,7 @@ function pmoNoListRefuse(pkg){
 }
 // Take delivery of a submittal: hold it for review, record what this board said at the moment the
 // PMO copy was published so a conflict can be spotted, and open the review. NOTHING IS APPLIED.
+// v2.00 (UI S3): uiTakeDry dry-runs this on a copy, holding back only alert, confirm, setStat, subOpenReview, destPkgIn, PMOSUBS and PMOPICK -- anything else this comes to change must be held back there too.
 function pmoTake(pkg, fname){
   pkg.items=(pkg.items && typeof pkg.items==='object')? pkg.items : {};
   pkg.added=(Array.isArray(pkg.added)? pkg.added : []).filter(function(a){ return a && typeof a==='object'; });
@@ -23163,6 +23437,10 @@ function scoreboard(){
         +'<div class="pp ppatt"><div class="k">Needs attention</div>'+(att? '<div class="pplist">'+att+'</div>' : '<div class="e" style="color:var(--dim)">nothing flagged</div>')+'</div>'
         +'<div class="ppdet"><button type="button" class="btn" onclick="fundDetailToggle()" aria-controls="fundDetail" aria-expanded="'+(fundDetailOpen?'true':'false')+'"'
           +' title="The scorecards, the discretionary fit and the funding panels">Funding detail <span class="car" aria-hidden="true">'+(fundDetailOpen?'▴':'▾')+'</span></button></div>';
+      // v2.00 UI (chunk 1): the KPI cards print these same figures -- handed over, never worked out again
+      window.UI_KPI={ask:ask, dUsed:dUsed, mUsed:mUsed, u2Amt:u2Amt, dBA:dBA, mBA:mBA, uN:uN, n:S.order.length};
+      // chunk 2: GUARDED -- the cards can never stop render(); if they fail they say so rather than keep old figures
+      try{ if(typeof uiKpis==='function') uiKpis(); }catch(e){ try{ uiKpisNa(e); }catch(x){} }
     } }
 }
 // One line saying what the nominated requirement is eating, and what nobody is eating.
@@ -31857,6 +32135,8 @@ function setCur(id){
 // One editor, two presentations. Everything below only decides whether the panel is sliding over
 // the grid or sitting beside it; nothing here knows anything about a requirement.
 function drawerNarrow(){
+  // v2.00 UI (chunk 2): the RECORD panel slides over at every width unless the person chose "Docked beside the table"
+  try{ if(typeof uiSlides==='function' && uiSlides()) return true; }catch(e){}
   try{ return window.matchMedia('(max-width:1400px)').matches; }catch(e){ return false; }
 }
 function drawerOpen(){
@@ -32815,6 +33095,782 @@ function sharedArrived(st){
 // v2.00 (U44): the answer about the state file beside the board, on opening -- then the destination list's warning kept after it
 function sharedOpened(st){ sharedArrived(st); destOwnKeep(); }
 loadShared(sharedOpened);
+// ==============================================================================================================
+// v2.00 UI (chunk 1): THE NAVY SIDEBAR, THE CONTEXT BAR, THE KPI CARDS, THE TOOLBAR AND THE IMPORT BOX
+//   PRESENTATION ONLY. The last thing the program does, long after the page source (SRC0) is taken:
+//   nothing it moves or adds is ever written into a saved board. Every control calls a function the board already
+//   had -- uiSetMode, toggleMenu, mRun with a menu item's own function, the file inputs' own .click(),
+//   subOpenReview, importState, uiSetDensity. It computes no money: the KPI cards print the figures scoreboard()
+//   worked out for the posture strip, through the board's own whole-dollar fM().
+//   Its own preferences (the sidebar as a rail, the hidden columns) are READ at opening and WRITTEN only when the
+//   person changes them, under keys prefixed prio27ui. Opening the board writes nothing.
+// ==============================================================================================================
+var UI2={on:false, rail:false, dock:false, peek:false, cols:{}, imp:'full', pmoHow:'one', fly:'', t:0, kpiErr:''};
+var UI_SEC={review:'req', rank:'req', fund:'fund', compare:'cyc', brief:'brief'};
+var UI_TTL={req:'Requirements', fund:'Funding', cyc:'Cycles & compare', brief:'Brief'};
+var UI_NAV=['req','fund','fydp','exec','cyc','brief','imp','hist','setup'];
+// the columns a person may hide, and where each sits in each mode's row (the order render() draws the cells in)
+var UI_COLS=[['pmo','PMO'],['band','Decision band'],['cum','Cumulative'],['lane','Lane']];
+var UI_COLIX={ review:{pmo:1,band:3,cum:5,lane:6,n:9}, rank:{pmo:1,band:3,cum:5,lane:6,n:9}, compare:{pmo:1,band:3,cum:5,lane:6,n:9},
+               fund:{pmo:1,n:10}, brief:{pmo:1,band:3,cum:8,n:9} };
+var UI_BATCH=null;   // what the last "All submissions at once" did: {files, ok, why} -- read by nothing in the board
+function uiPrefRead(){
+  try{ UI2.rail = localStorage.getItem('prio27uiRail')==='1'; }catch(e){}
+  try{ UI2.dock = localStorage.getItem('prio27uiDock')==='1'; }catch(e){}
+  try{ const c=JSON.parse(localStorage.getItem('prio27uiCols')||'{}'); UI2.cols=(c && typeof c==='object' && !Array.isArray(c))? c : {}; }catch(e){ UI2.cols={}; }
+}
+// Written only from a person's own click. A browser-only preference: never the board file, never lsSet (whose refusal
+// message speaks of the file), so a browser that refuses it simply does not remember it.
+function uiPrefWrite(k, v){
+  try{ localStorage.setItem(k, v); }catch(e){}
+}
+function uiSandbox(){ try{ return (typeof SANDBOX!=='undefined' && !!SANDBOX); }catch(e){ return false; } }
+// ── the RECORD panel: sliding over the table (the default) or docked beside it (a choice kept in this browser) ───
+function uiSlides(){ return !!(UI2 && UI2.on && !UI2.dock); }
+function uiDockSet(dock){
+  dock=!!dock; if(UI2.dock===dock) return;
+  UI2.dock=dock;
+  uiPrefWrite('prio27uiDock', dock? '1' : '0');
+  try{ drawerClose(); }catch(e){}
+  uiRailApply(); uiCols();
+  try{ fitTop(); syncSticky(); }catch(e){}
+}
+// ── the room the row has, and the sidebar at 900px and narrower ──────────────────────────────────────────────
+function uiNarrow(){ const w=window.innerWidth||0; return w>0 && w<=900; }
+function uiRoom(){
+  const w=window.innerWidth||(document.documentElement && document.documentElement.clientWidth)||0;
+  if(!w) return 0;
+  const side=(uiNarrow() || UI2.rail)? 64 : 232;
+  // docked above 1400px the board's own panel takes clamp(420px,30vw,600px) and the 10px gap (Brief draws no panel)
+  const dockW=(UI2.dock && w>1400 && uiMode!=='brief')? Math.min(600, Math.max(420, w*0.30))+10 : 0;
+  return w-side-dockW;
+}
+function uiRailApply(){
+  if(!UI2 || !UI2.on) return;
+  const h=document.documentElement, n=uiNarrow();
+  if(!n) UI2.peek=false;
+  h.classList.toggle('ui-narrow', n);
+  h.classList.toggle('ui-peek', n && UI2.peek);
+  h.classList.toggle('ui-rail', n? !UI2.peek : !!UI2.rail);
+  h.classList.toggle('ui-dock', !!UI2.dock);
+  h.classList.toggle('ui-sandbox', uiSandbox());
+  const r=uiRoom();
+  [1400,1100,940,760,640].forEach(function(b){ h.classList.toggle('ui-e'+b, r>0 && r<=b); });
+}
+function uiPeekClose(){ if(UI2.peek){ UI2.peek=false; uiRailApply(); uiSync(); } }
+function uiBoot(){
+  if(UI2.on) return;
+  const h=document.documentElement, side=document.getElementById('uiSide'), pg=document.getElementById('uiPage');
+  if(!side || !pg) return;
+  uiPrefRead();
+  // the search box, the Filter menu and its chips move into the toolbar, by the same ids
+  const mv=document.getElementById('uiToolsMoved');
+  [document.querySelector('.hdr .srch'), document.getElementById('m_view'), document.getElementById('fchips')].forEach(function(el){
+    if(el && mv) mv.appendChild(el); });
+  // the context bar: Cycle beside Appropriation, the Editable chip beside the file's save state
+  const ctx=document.querySelector('.hdr .ctx');
+  if(ctx && !document.getElementById('uiCycBtn')){
+    const c=document.createElement('span'); c.className='uiCyc uiMenu';
+    c.innerHTML='<span class="tlbl">Cycle</span><button type="button" class="btn" id="uiCycBtn" aria-expanded="false" aria-haspopup="true" onclick="uiPop(\'uiCycPop\',this)" '
+      +'title="The plan on screen: the working plan, or a locked PPBE cycle viewed read only">Working plan</button><div class="uiPop" id="uiCycPop"></div>';
+    ctx.insertBefore(c, ctx.firstChild);
+  }
+  const ss=document.getElementById('saveState');
+  if(ss && ss.parentNode && !document.getElementById('uiEdChip')){
+    const e=document.createElement('span'); e.className='uiChip ed'; e.id='uiEdChip'; ss.parentNode.insertBefore(e, ss); }
+  if(!document.getElementById('uiColsCss')){ const st=document.createElement('style'); st.id='uiColsCss'; document.head.appendChild(st); }
+  h.classList.add('ui-on');
+  UI2.on=true;
+  uiRailApply();
+  try{ const b=document.getElementById('uiFootT'); if(b) b.textContent='ORBIT '+(typeof BUILD!=='undefined'? BUILD : ''); }catch(e){}
+  try{ uiKpis(); }catch(e){ try{ uiKpisNa(e); }catch(x){} }
+  try{ const ins=document.getElementById('inspector'); if(ins && typeof MutationObserver!=='undefined') new MutationObserver(uiDrawerTabs).observe(ins, {childList:true}); }catch(e){}
+  try{ uiDrawerTabs(); }catch(e){}
+  document.addEventListener('click', uiDocClick);
+  document.addEventListener('keydown', uiKey);
+  window.addEventListener('resize', function(){
+    uiRailApply(); uiCols();
+    clearTimeout(UI2.t); UI2.t=setTimeout(function(){ uiCols(); try{ fitTop(); syncSticky(); }catch(e){} }, 120); });
+  try{ fitTop(); syncSticky(); }catch(e){}
+}
+// who holds the pen for this file when it is not this browser ('' when it is, or when no writer is recorded). Read
+// only: the browser's writer key is read here and never made -- writerKey() would write one, so writerIsMe() is asked
+// only when the key is already there.
+function uiPenOther(){
+  try{
+    if(typeof WRITER==='undefined' || !WRITER || !WRITER.fp) return '';
+    let k=''; try{ k=localStorage.getItem('prio27writerKey')||''; }catch(e){}
+    if(/^[0-9a-f]{32}$/.test(k) && writerIsMe(WRITER)) return '';
+    return String(WRITER.by||'someone else');
+  }catch(e){ return ''; }
+}
+function uiPmoLabel(){ const b=document.getElementById('b_pmo'); return b? b.textContent.replace(/\s*▾\s*$/,'').trim() : ''; }
+function uiCycLabel(){
+  try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) return blLblTxt(CYCVIEW)+' (locked, read only)'; }catch(e){}
+  return 'Working plan';
+}
+// the active section, the heading, the cycle and the Editable chip -- read from the board's own state
+function uiSync(){
+  if(!UI2 || !UI2.on) return;
+  uiRailApply();
+  const sec=UI_SEC[uiMode]||'req';
+  UI_NAV.forEach(function(k){ const b=document.getElementById('uiNav_'+k); if(!b) return;
+    b.classList.toggle('on', k===sec); if(k===sec) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
+  const t=document.getElementById('uiTitle'); if(t) t.textContent=UI_TTL[sec]||'Requirements';
+  const st=document.getElementById('uiSubT');
+  if(st){ let ap=''; try{ ap=apLabel(); }catch(e){}
+    st.textContent=['FY'+((typeof MS!=='undefined' && MS && MS.cur)||''), ap, uiPmoLabel(), uiCycLabel().toLowerCase()].filter(Boolean).join(' · '); }
+  const cb=document.getElementById('uiCycBtn'); if(cb) cb.textContent=uiCycLabel()+' ▾';
+  const ec=document.getElementById('uiEdChip');
+  if(ec){ let ro='';
+    try{ if(typeof CYCVIEW!=='undefined' && CYCVIEW) ro='🔒 Read only — locked cycle'; }catch(e){}
+    if(!ro && uiMode==='brief') ro='Presentation view';
+    const sb=uiSandbox(), pen=(ro || sb)? '' : uiPenOther();
+    ec.className='uiChip '+(ro? 'ro' : (pen? 'pen' : 'ed'));
+    ec.textContent= ro || (sb? '✎ Editable · PMO copy — no Save' : (pen? '✎ Editable · '+pen+' holds the pen' : '✎ Editable'));
+    ec.title= ro? '' : (sb? 'Changes here are yours to send back with ✉ Submit input; a PMO copy is never saved over the board.'
+      : (pen? 'You can change the board here, but only '+pen+', who holds the pen for this file, saves it in place. Save says what you can do.' : '')); }
+  const cl=document.getElementById('uiCollapse');
+  if(cl){ const n=uiNarrow(), r=n? !UI2.peek : UI2.rail;
+    cl.innerHTML=r? '&#8250;' : '&#8249;';
+    const l=n? (UI2.peek? 'Close the sidebar' : 'Open the sidebar over the page') : (UI2.rail? 'Expand the sidebar' : 'Collapse the sidebar to icons');
+    cl.setAttribute('aria-label', l); cl.title=l; }
+}
+// THE FOUR KPI CARDS. scoreboard() hands over the figures it has just printed in the posture strip (UI_KPI);
+// nothing here adds, rounds or re-derives a figure beyond fM()'s own whole dollars. A card that cannot be drawn
+// makes all four say "unavailable" (uiKpisNa) -- never the figures from an earlier render.
+var UI_KIC={
+  ask:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2" width="11" height="12" rx="1.2"/><path d="M5 5.5h6M5 8h6M5 10.5h4"/></svg>',
+  disc:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 2.5V8l4 3.5"/></svg>',
+  mand:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M2 6.5 8 3l6 3.5M3 6.5v6M6.3 6.5v6M9.7 6.5v6M13 6.5v6M2 13.5h12"/></svg>',
+  ufr:'<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4.5h10M3 8h10M3 11.5h10"/></svg>' };
+function uiKpiCard(cls, lbl, v, x, i){
+  if(typeof v!=='number' || !isFinite(v)) throw new Error('the '+lbl+' figure is not a number');
+  return '<div class="k '+cls+'"><div style="min-width:0"><div class="l">'+lbl+'</div>'
+    +'<div class="v" data-v="'+Math.round(v)+'" title="'+fM(v)+'">'+fM(v)+'</div><div class="x">'+x+'</div></div>'
+    +'<span class="i" aria-hidden="true">'+i+'</span></div>';
+}
+function uiKpisNa(e){
+  UI2.kpiErr=String((e && e.message) || e || 'error');
+  const el=document.getElementById('uiKpis'); if(!el) return;
+  el.innerHTML=[['ask','Total Ask'],['disc','Discretionary'],['mand','Mandatory'],['ufr','Total UFR']].map(function(c){
+    return '<div class="k na '+c[0]+'" data-na="1"><div style="min-width:0"><div class="l">'+c[1]+'</div><div class="v">unavailable</div>'
+      +'<div class="x">the card could not be drawn — '+(c[0]==='ask'? 'the table' : 'Funding')+' has the figure</div></div></div>'; }).join('');
+}
+function uiKpis(){
+  if(!UI2 || !UI2.on) return;
+  try{ uiSync(); }catch(e){}
+  const el=document.getElementById('uiKpis');
+  if(el){
+    try{
+      const K=window.UI_KPI;
+      if(!K || typeof SVC==='undefined' || !SVC.length){ el.innerHTML=''; }
+      else {
+        const html=
+            uiKpiCard('ask', 'Total Ask', K.ask, K.n+' requirement'+(K.n===1?'':'s'), UI_KIC.ask)
+          + uiKpiCard('disc', 'Discretionary', K.dUsed, 'of '+fM(K.dBA)+' BA', UI_KIC.disc)
+          + uiKpiCard('mand', 'Mandatory', K.mUsed, 'of '+fM(K.mBA)+' BA', UI_KIC.mand)
+          + uiKpiCard('ufr'+(K.u2Amt>0.5? ' short' : ''), 'Total UFR', K.u2Amt,
+                 K.u2Amt>0.5? (K.uN+' requirement'+(K.uN===1?'':'s')+' short') : 'nothing unfunded', UI_KIC.ufr);
+        el.innerHTML=html;
+      }
+      UI2.kpiErr='';
+    }catch(e){ uiKpisNa(e); }
+  }
+  try{ uiCols(); }catch(e){}
+}
+// ── Columns: hide a column by taking its track out of the row template and its cell out of every row ──────────
+function uiTracks(s){
+  const out=[]; let d=0, cur='';
+  for(let i=0;i<s.length;i++){ const ch=s[i];
+    if(ch==='(') d++; else if(ch===')') d--;
+    if(/\s/.test(ch) && d===0){ if(cur){ out.push(cur); cur=''; } } else cur+=ch; }
+  if(cur) out.push(cur);
+  return out;
+}
+function uiCols(){
+  const h=document.documentElement, st=document.getElementById('uiColsCss');
+  if(!UI2 || !UI2.on || !st) return;
+  h.style.removeProperty('--rowcols');
+  let css='';
+  const map=UI_COLIX[uiMode];
+  const hide=map? UI_COLS.map(function(c){ return c[0]; }).filter(function(k){ return UI2.cols[k] && map[k]!==undefined; }) : [];
+  if(hide.length){
+    let tr=[]; try{ tr=uiTracks(getComputedStyle(h).getPropertyValue('--rowcols').trim()); }catch(e){}
+    // only where the row is the full set of cells: a narrower row draws fewer, and is left as it is
+    if(tr.length===map.n){
+      const ix=hide.map(function(k){ return map[k]; });
+      h.style.setProperty('--rowcols', tr.filter(function(t,i){ return ix.indexOf(i)<0; }).join(' '));
+      css=ix.map(function(i){ return '.gridhead>:nth-child('+(i+1)+'),#list .row>:nth-child('+(i+1)+')'; }).join(',')+'{display:none!important}';
+    }
+  }
+  if(st.textContent!==css) st.textContent=css;
+}
+function uiColSet(k, hide){
+  if(hide) UI2.cols[k]=true; else delete UI2.cols[k];
+  uiPrefWrite('prio27uiCols', JSON.stringify(UI2.cols));
+  uiCols();
+}
+// ── the toolbar's small menus, and the Cycle menu in the context bar ───────────────────────────────────────────
+function uiPopsClose(){
+  ['uiColsPop','uiDensPop','uiCycPop'].forEach(function(id){ const p=document.getElementById(id); if(p) p.classList.remove('open'); });
+  ['uiColsBtn','uiDensBtn','uiCycBtn'].forEach(function(id){ const b=document.getElementById(id); if(b) b.setAttribute('aria-expanded','false'); });
+}
+// THE CYCLE CONTROL offers exactly what the board supports: the working plan, and each locked PPBE cycle that holds a
+// plan, to VIEW read only -- cycView() / cycLeave(), the same calls as 👁 View and ↩ Leave the locked view in Compare.
+// A locked cycle is a read-only record of the plan; there is no separate plan per cycle to switch to or edit.
+function uiCycKeys(){ try{ return blList().filter(function(k){ return cycHeld(k).length; }); }catch(e){ return []; } }
+function uiCycGo(k){
+  uiPopsClose();
+  const cur=(typeof CYCVIEW!=='undefined' && CYCVIEW) || '';
+  if(!k){ if(cur) cycLeave(); return; }
+  if(cur===k) return;
+  if(uiCycKeys().indexOf(k)<0) return;     // only a locked cycle the board can show
+  cycView(k);
+}
+function uiPopFill(id){
+  const p=document.getElementById(id); if(!p) return;
+  if(id==='uiColsPop'){
+    const map=UI_COLIX[uiMode]||{};
+    const cs=UI_COLS.filter(function(c){ return map[c[0]]!==undefined; });
+    p.innerHTML='<div class="uiFh">Columns</div>'
+      + cs.map(function(c){ return '<label><input type="checkbox" '+(UI2.cols[c[0]]? '' : 'checked')
+        +' onchange="uiColSet('+jsa(c[0])+', !this.checked)"> '+c[1]+'</label>'; }).join('')
+      + '<div class="note">#, Requirement, the money, ★ and ⋯ always show. Applies where the row has room for every column. '
+      + 'Kept in this browser; the board file does not change.</div>';
+  } else if(id==='uiCycPop'){
+    const cur=(typeof CYCVIEW!=='undefined' && CYCVIEW) || '', keys=uiCycKeys();
+    p.innerHTML='<div class="uiFh">Plan on screen</div>'
+      + '<button type="button" class="o" aria-pressed="'+(cur? 'false' : 'true')+'" onclick="uiCycGo(\'\')">Working plan<small>the plan you change and save</small></button>'
+      + '<div class="uiFh" style="margin-top:6px">View a locked cycle (read only)</div>'
+      + (keys.length? keys.map(function(k){
+          return '<button type="button" class="o" aria-pressed="'+(cur===k? 'true' : 'false')+'" onclick="uiCycGo('+jsa(k)+')">'+blLbl(k)+' — locked'
+            +'<small>the plan as it stood when locked · read only: nothing changed while viewing it is kept</small></button>'; }).join('')
+        : '<div class="uiPopHint">No locked cycle holds a plan to view yet. Cycles are locked in Cycles &amp; compare.</div>')
+      + '<div class="uiPopHint">The board has one working plan. A locked cycle is a read-only record of it, not a separate plan to edit.</div>'
+      + '<button type="button" class="o" aria-pressed="false" onclick="uiPopsClose();uiSetMode(\'compare\')">Cycles &amp; compare…<small>lock a cycle, compare cycles</small></button>';
+  } else {
+    p.innerHTML='<div class="uiFh">Density</div>'
+      + [['comfortable','Comfortable'],['compact','Compact']].map(function(d){
+          return '<button type="button" class="o" aria-pressed="'+(uiDensity===d[0]?'true':'false')+'" onclick="uiPopsClose();uiSetDensity('+jsa(d[0])+')">'+d[1]+'</button>'; }).join('')
+      + (uiMode==='brief'? '<div class="note">Brief always reads at the presentation size.</div>' : '')
+      + '<div class="uiFh" style="margin-top:6px">Record panel</div>'
+      + [[false,'Slides over the table (default)'],[true,'Docked beside the table']].map(function(d){
+          return '<button type="button" class="o" aria-pressed="'+(UI2.dock===d[0]?'true':'false')+'" onclick="uiPopsClose();uiDockSet('+d[0]+')">'+d[1]+'</button>'; }).join('')
+      + '<div class="note">Slides over: picking a row opens its record over the table, which keeps its full width. Docked: the record '
+      + 'sits beside the table on windows wider than 1400px. Kept in this browser; the board file does not change.</div>';
+  }
+}
+function uiPop(id, btn){
+  const p=document.getElementById(id); if(!p) return;
+  const open=!p.classList.contains('open');
+  uiPopsClose(); uiFlyClose();
+  if(open){ uiPopFill(id); p.classList.add('open'); if(btn) btn.setAttribute('aria-expanded','true'); }
+}
+// ── the sidebar ──────────────────────────────────────────────────────────────────────────────────────────────
+function uiRailToggle(){
+  if(uiNarrow()){ UI2.peek=!UI2.peek; uiRailApply(); uiFlyClose(); uiSync(); return; }   // over the page; nothing written
+  UI2.rail=!UI2.rail;
+  uiPrefWrite('prio27uiRail', UI2.rail? '1' : '0');
+  uiRailApply();
+  uiFlyClose(); uiSync(); uiCols();
+  try{ fitTop(); syncSticky(); }catch(e){}
+}
+function uiMenuSoon(m){ setTimeout(function(){ if(openMenu!==m) toggleMenu(m); }, 0); }
+// v2.00 (UI S5): A TOOLBAR MENU STAYS CLEAR OF THE SIDEBAR. The board's own fitMenus() keeps an open menu inside the
+// window, 8px from its left edge -- the edge the sidebar now covers. Reports & exports hangs from its button's right edge
+// and, with Five years & PPBE or CCaR & accounting files unfolded, is wider than the room to that button's left: at 760
+// and 1000 it was moved to 8px and 191px, and its items there (✈ Pre-flight check among them) lay under the sidebar
+// (chunk 2 review, S5). After fitMenus() has placed a toolbar menu, this moves it right to the sidebar's edge and 8px
+// more; one wider than the room right of the sidebar is held to that room and scrolls, as fitMenus() holds one to the
+// window. fitMenus() itself is unchanged: it is wrapped here, as the board wraps render(), so every call -- a menu opened,
+// a group unfolded, Find typed in, a resize, a scroll -- is followed by this. A menu in the rows or a box (fitMenus'
+// fixed-position branch) is left as it places it.
+function uiMenuFit(){
+  if(!UI2 || !UI2.on) return;
+  const side=document.getElementById('uiSide'); if(!side) return;
+  const sr=side.getBoundingClientRect(); if(!(sr.width>0)) return;
+  const pad=8, CW=(document.documentElement && document.documentElement.clientWidth) || window.innerWidth || 0, L=Math.ceil(sr.right)+pad;
+  [].slice.call(document.querySelectorAll('.menu.open > .mdd')).forEach(function(dd){ try{
+    if(dd.parentElement.closest('.gridwrap, #list, #inspector, .modal-bg, .posture')) return;
+    let q=dd.getBoundingClientRect(); if(!(q.width>0) || q.left>=L-0.5) return;
+    if(q.width>CW-L-pad){ dd.style.maxWidth=(CW-L-pad)+'px'; dd.style.overflowX='auto'; q=dd.getBoundingClientRect(); }
+    const was=/translateX\((-?[\d.]+)px\)/.exec(dd.style.transform||''), dx=(was? +was[1] : 0)+(L-q.left);
+    dd.style.transform='translateX('+Math.ceil(dx)+'px)';
+  }catch(e){} });
+}
+try{ fitMenus=(function(own){ return function(){ own.apply(this, arguments); try{ uiMenuFit(); }catch(e){} }; })(fitMenus); }catch(e){}
+function uiGo(k, btn){
+  uiPopsClose();
+  if(k==='fydp' || k==='exec' || k==='hist'){ if(UI2.fly===k) uiFlyClose(); else uiFlyOpen(k, btn); return; }
+  uiFlyClose(); uiPeekClose();
+  if(k==='req'){ if(uiMode!=='review' && uiMode!=='rank') uiSetMode('review'); return; }
+  if(k==='fund'){ if(uiMode!=='fund') uiSetMode('fund'); return; }
+  if(k==='cyc'){ if(uiMode!=='compare') uiSetMode('compare'); return; }
+  if(k==='brief'){ if(uiMode!=='brief') uiSetMode('brief'); return; }
+  if(k==='imp'){ uiImpOpen(btn); return; }
+  if(k==='setup'){ uiMenuSoon('setup'); return; }
+}
+// a section's own items: each is the menu item's own call, run the way the menu runs it (mRun)
+function uiFlyItems(k){
+  const has=function(fn){ return typeof window[fn]==='function'; };
+  const it=function(lbl, sub, fn){ return has(fn)? '<button type="button" onclick="uiFlyClose();mRun('+fn+')">'+lbl+(sub? '<small>'+sub+'</small>' : '')+'</button>' : ''; };
+  const file=function(lbl, sub, id){ return '<button type="button" onclick="uiFlyClose();mRun(function(){ document.getElementById('+jsa(id)+').click(); })">'+lbl+'<small>'+sub+'</small></button>'; };
+  const menu=function(lbl, sub, m){ return '<button type="button" onclick="uiFlyClose();uiMenuSoon('+jsa(m)+')">'+lbl+'<small>'+sub+'</small></button>'; };
+  const sep='<div class="uiFsep"></div>';
+  if(k==='fydp') return '<div class="uiFh">FYDP</div>'
+    + it('📊 Five-year spend plan…', 'by requirement · PMO · service — a locked cycle or the working plan', 'toggleFydp')
+    + it('📐 Spruills — Reqs vs Funding…', 'ACE × PPBE cycle · all appns', 'toggleSp')
+    + it('🏛 PPBE Budget Positions…', 'POM · BES · PB · DoN', 'toggleP2')
+    + it('🚰 Funds Flow (Sewer Chart)…', 'any year or combination — active years through the FYDP', 'toggleFlow')
+    + it('📊 FYDP Spend Plan (Excel)', 'by requirement, PMO, service, a tab per PMO', 'exportFydpPlan')
+    + sep + menu('Reports & exports ▾', 'every view and every export', 'reports');
+  if(k==='exec') return '<div class="uiFh">Execution</div>'
+    + it('📈 Active Year Execution…', 'obligations vs OSD goals', 'toggleEx')
+    + it('⚖ Reprogramming Actions…', 'ATR / BTR across the active years', 'toggleRp')
+    + it('📅 Spend Plan Forecast…', 'the budget year, month by month', 'toggleFc')
+    + it('⚖ CR Cash Needs…', 'half/full month · Service/PMO', 'toggleCr')
+    + sep
+    + file('📥 Import CCaR QPE…', 'monthly CCaR pull (.xlsx)', 'srcFile')
+    + it('📈 QPE coverage…', 'which columns come back filled in', 'toggleQpe')
+    + it('⚖ ORBIT vs CCaR…', 'where the board and the last pull disagree', 'toggleDiv')
+    + sep + menu('Data ▾', 'everything that brings data in', 'data');
+  if(k==='hist'){
+    let kept=false; try{ kept=(typeof _keptMeta!=='undefined' && !!_keptMeta); }catch(e){}
+    return '<div class="uiFh">History &amp; recovery</div>'
+      + it('🕓 Change journal…', 'what changed, from what, by whom', 'toggleJrnl')
+      + it('🕘 Save history', 'who saved, when', 'showLog')
+      + it('↶ Earlier copies…', 'kept in the shared folder — in 📡 Live view', 'toggleLive')
+      + sep
+      + (kept? it('↶ Put back work kept aside…', 'from before a newer saved copy replaced it', 'keptPutBack')
+             + it('⬇ Save work kept aside as a file…', 'it stays kept aside', 'keptSaveFile')
+             + it('✕ Discard work kept aside…', 'cannot be undone', 'keptDiscard')
+           : '<button type="button" disabled>↶ Work kept aside<small>nothing is kept aside in this browser</small></button>');
+  }
+  return '';
+}
+function uiFlyOpen(k, btn){
+  const f=document.getElementById('uiFly'); if(!f) return;
+  f.innerHTML=uiFlyItems(k);
+  UI2.fly=k; f.classList.add('open');
+  try{ const r=btn.getBoundingClientRect(); let top=r.top;
+    const hgt=f.offsetHeight; if(top+hgt>window.innerHeight-8) top=Math.max(8, window.innerHeight-8-hgt);
+    f.style.top=top+'px'; }catch(e){}
+  UI_NAV.forEach(function(n){ const b=document.getElementById('uiNav_'+n); if(b) b.setAttribute('aria-expanded', n===k? 'true' : 'false'); });
+  try{ const b=f.querySelector('button:not([disabled])'); if(b) b.focus({preventScroll:true}); }catch(e){}
+}
+function uiFlyClose(){
+  const f=document.getElementById('uiFly'); if(f){ f.classList.remove('open'); }
+  if(UI2.fly){ const b=document.getElementById('uiNav_'+UI2.fly); if(b) b.setAttribute('aria-expanded','false'); }
+  UI2.fly='';
+}
+function uiDocClick(e){
+  const t=e.target; if(!t || !t.closest) return;
+  if(!t.closest('.uiMenu')) uiPopsClose();
+  if(UI2.fly && !t.closest('#uiFly') && !t.closest('#uiSide')) uiFlyClose();
+  if(UI2.peek && !t.closest('#uiSide') && !t.closest('#uiFly')) uiPeekClose();
+}
+function uiKey(e){
+  if(e.key!=='Escape') return;
+  if(UI2.fly){ const k=UI2.fly; uiFlyClose(); const b=document.getElementById('uiNav_'+k); try{ if(b) b.focus(); }catch(x){} }
+  else if(UI2.peek) uiPeekClose();
+  uiPopsClose();
+}
+// ── THE RECORD PANEL'S TABS: drawn onto each RECORD panel the board draws (inspectorBody is not changed) ─────────
+var UI_DTAB='overview';
+// GENUINE METADATA ONLY. The newest change-journal line for THIS requirement in the year on screen, or null when the
+// journal cannot say: nothing recorded for it, a requirement added on this board (its fields are journalled by place
+// in the list, not by its id), a locked cycle on screen, or a board-wide line after it (a load, the service list, a
+// whole year, removed requirements, changes past the per-save limit or not recorded) that may have changed it
+// without naming it. Read only: MS.jrnl is the board's own journal. Ranking moves are not journalled at all.
+// v2.00 (UI S2): A BOARD-WIDE LINE IS READ BEFORE THE YEAR FILTER. A board-wide line is recorded under the year on screen
+// when it happened, but it can change this requirement in every year: the year filter came first, so a service-list change
+// made while FY28 was on screen left FY27's record saying "Last recorded edit … note" over figures the change had moved
+// (chunk 2 review, S2). The board-wide kinds the journal writes, all in brackets: '(load)' (a copy put back from the
+// folder's history), '(services)' (the service list: every year's figures move with their service), '(more)' and
+// '(unrecorded)' (a save's changes past the per-save limit, or a save that could not be recorded -- in any year). Any other
+// kind in brackets is taken as board-wide too, except '(writer)': the pen changing hands changes no field and no figure.
+// A whole year (an empty path) and removed requirements are that year's own, and are read after the filter, as before.
+function uiLastEdit(id){
+  try{
+    if(!id || (typeof CYCVIEW!=='undefined' && CYCVIEW)) return null;
+    const it=itemById(id); if(!it || it.custom) return null;
+    const J=(typeof MS!=='undefined' && MS && Array.isArray(MS.jrnl))? MS.jrnl : [];
+    const wide=function(k){ return /^\(/.test(k) && k!=='(writer)'; };
+    for(let i=J.length-1;i>=0;i--){
+      const e=J[i]; if(!e || !Array.isArray(e.p)) return null;
+      const k=e.p.length? String(e.p[0]) : '';
+      if(wide(k)) return null;
+      if(+e.fy!==+MS.cur) continue;
+      if(!e.p.length || k==='removed') return null;
+      if(e.p.length>1 && String(e.p[1])===String(id)) return e;
+    }
+    return null;
+  }catch(e){ return null; }
+}
+function uiLastEditHtml(id){
+  const e=uiLastEdit(id); if(!e) return '';
+  let what=''; try{ what=JRNL_NAMES[e.p[0]]||String(e.p[0]); }catch(x){ what=String(e.p[0]); }
+  return '<b>Last recorded edit</b> '+esc(fmtTs(e.t))+' · '+esc(String(e.by||'unknown'))+' · '+esc(what)
+    +' <span class="d">(change journal; ranking moves are not journalled)</span>';
+}
+function uiDrawerTabs(){
+  if(!UI2 || !UI2.on) return;
+  const ins=document.getElementById('inspector'); if(!ins) return;
+  const bd=ins.querySelector('.insp-bd'); if(!bd || bd.querySelector('.uiDTabs')) return;
+  const strip=document.createElement('div'); strip.className='uiDTabs'; strip.setAttribute('role','group'); strip.setAttribute('aria-label','Record sections');
+  strip.innerHTML=[['overview','Overview'],['funding','Funding'],['history','History']].map(function(t){
+    return '<button type="button" data-k="'+t[0]+'" aria-pressed="'+(UI_DTAB===t[0]? 'true' : 'false')+'" onclick="uiDTab('+jsa(t[0])+')">'+t[1]+'</button>'; }).join('');
+  const meta=bd.querySelector('.insp-meta');
+  if(meta && meta.parentNode===bd) bd.insertBefore(strip, meta.nextSibling); else bd.insertBefore(strip, bd.firstChild);
+  const id=(typeof curRow!=='undefined' && curRow)? String(curRow) : '';
+  const last=uiLastEditHtml(id);
+  const ov=document.createElement('div'); ov.className='uiDOv';
+  ov.innerHTML='<div><b>Lifecycle</b> <span class="d">pending — the board has no lifecycle field for a requirement yet</span></div>'
+    +(last? '<div>'+last+'</div>' : '');
+  strip.parentNode.insertBefore(ov, strip.nextSibling);
+  const hist=document.createElement('div'); hist.className='uiDHist';
+  hist.innerHTML='<div class="h">History</div>'+(last? '<p>'+last+'</p>' : '')
+    +'<p>What changed on this board — from what, to what, by whom — is kept in the change journal; '
+    +'every save is in the save history.</p><button type="button" class="qb" onclick="mRun(toggleJrnl)">🕓 Change journal…</button> '
+    +'<button type="button" class="qb" onclick="mRun(showLog)">🕘 Save history</button>';
+  bd.appendChild(hist);
+}
+function uiDTab(k){
+  UI_DTAB=k;
+  const ins=document.getElementById('inspector'); if(!ins) return;
+  [].slice.call(ins.querySelectorAll('.uiDTabs button')).forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-k')===k? 'true' : 'false'); });
+  const bd=ins.querySelector('.insp-bd'); if(!bd) return;
+  let to=null;
+  if(k==='overview') to=bd.querySelector('.uiDTabs');
+  else if(k==='funding') to=bd.querySelector('.insp-lbl') || bd.querySelector('.insp-split');
+  else to=bd.querySelector('.uiDHist');
+  try{ if(to) to.scrollIntoView({block:'start', behavior:'auto'}); }catch(e){}
+}
+// ── ADD REQUIREMENT: offered where the board offers it -- Review (#toolAdd in the Review tools, and the folded
+// Review tools menu). The button is hidden elsewhere, and this handler refuses outside Review as well.
+function uiAddReq(){
+  if(uiMode!=='review'){
+    try{ setStat('ℹ Add requirement is in <b>Requirements › Review</b>, as in the Review tools.'); }catch(e){}
+    return false;
+  }
+  toggleAdd();
+  return true;
+}
+// ── THE IMPORT BOX ───────────────────────────────────────────────────────────────────────────────────────────
+// v2.00 (UI S4): THE KEYBOARD GOES BACK TO THE CONTROL THAT OPENED THE BOX. The board's own box controller hands the
+// keyboard, on Esc, ✕ Close, Cancel or a click outside, to the last control it was on before the box opened. A browser
+// whose buttons take no focus on a click (Safari; Firefox on a Mac) left that the search box, or wherever the keyboard last
+// was, rather than Import. So the control that opened it -- the toolbar's Import, or the sidebar's Imports -- takes the
+// keyboard first, and the controller hands it back there.
+function uiImpOpen(from){
+  uiFlyClose(); uiPopsClose(); uiPeekClose();
+  if(from && typeof from.focus==='function'){ try{ from.focus({preventScroll:true}); }catch(e){} }
+  if(UI2.imp==='pmo' && uiSandbox()) UI2.imp='full';
+  uiImpDraw();
+  const p=document.getElementById('uiImpPanel'); if(p) p.classList.add('open');
+}
+function uiImpClose(){ const p=document.getElementById('uiImpPanel'); if(p) p.classList.remove('open'); }
+// PMO Import is not offered in a PMO copy -- File ▾ leaves the Program offices group out there -- so neither the card
+// nor the choice is taken in one
+function uiImpPick(k){ if(k==='pmo' && uiSandbox()) return; UI2.imp=k; uiImpDraw(); }
+function uiImpDraw(){
+  ['full','one','pmo'].forEach(function(k){ const b=document.getElementById('uiImpC_'+k); if(b) b.setAttribute('aria-pressed', UI2.imp===k? 'true' : 'false'); });
+  const s=document.getElementById('uiImpSub'); if(!s) return;
+  let held=0; try{ held=PMOSUBS.length; }catch(e){}
+  if(UI2.imp==='full') s.innerHTML='<b>Full board — a new version of ORBIT.</b> Pick the previous board’s <i>.html</i>. '
+    +'It is read and checked whole, and you see what it holds before anything is replaced. The same as 📁 File ▾ › Boards and appropriations › ⬅ Import a full board (new version)…';
+  else if(UI2.imp==='one') s.innerHTML='<b>One appropriation.</b> Pick any board file. You name the appropriations to take; each is checked '
+    +'and previewed first, and nothing else on this board changes. The same as ⬅ Import one appropriation…';
+  else s.innerHTML='<b>PMO Import.</b> Programme offices’ <i>ORBIT SUBMITTAL … .json</i> files open in the submittal review'
+    +(held? ' — <b>'+held+'</b> held there now' : '')+'.'
+    +'<label class="uiOpt"><input type="radio" name="uiPmoHow" value="one" '+(UI2.pmoHow!=='all'? 'checked' : '')+' onchange="UI2.pmoHow=\'one\'">'
+    +'<span><b>One submission</b><small>one office’s file — the same as ⬅ Load a submittal file… in the review</small></span></label>'
+    +'<label class="uiOpt"><input type="radio" name="uiPmoHow" value="all" '+(UI2.pmoHow==='all'? 'checked' : '')+' onchange="UI2.pmoHow=\'all\'">'
+    +'<span><b>All submissions at once</b><small>one file per office, picked together. Every file is read and checked first; if any one '
+    +'cannot be taken, or would ask a question first (no fiscal year, another year, no office), none of them is, and the review stays as '
+    +'it was: load that one on its own. Then each is loaded in the order picked, exactly as if you had '
+    +'loaded them one by one — nothing is merged, and nothing is applied until you apply it.</small></span></label>';
+}
+function uiImpGo(){
+  const k=UI2.imp;
+  if(k==='pmo' && uiSandbox()){ try{ setStat('ℹ PMO Import is not offered in a PMO copy.'); }catch(e){} return; }
+  uiImpClose();
+  if(k==='full'){ document.getElementById('fullFile').click(); return; }
+  if(k==='one'){ document.getElementById('stateFile').click(); return; }
+  // PMO Import: the submittal review, then its own loader
+  subOpenReview();
+  if(UI2.pmoHow==='all') document.getElementById('uiSubMulti').click();
+  else document.getElementById('stateFile').click();
+}
+// ALL SUBMISSIONS AT ONCE -- ALL OR NOTHING, IN THE ORDER PICKED. Nothing new reads, merges or applies anything:
+//  1. every file is read and put through the board's own door (inTooBig, inboundCheck) and recognised the way
+//     importState recognises a submittal ({spmtPkg, dir:'submit'});
+//  2. one submittal per office: two from the same office in one batch are refused -- which one is meant is the
+//     person's to say (one by one, the later would silently replace the earlier);
+//  3. a dry run of the board's own loader, pmoTake, on a copy of each, against the review as it stands, with its
+//     messages and its destination-list fold held back: a file it would not take stops the batch, and so does a file
+//     it would ask a question about (v2.00, UI M1, below);
+//  4. only then is each handed to pmoTake in the order picked -- exactly what ⬅ Load a submittal file does with one
+//     file. If anything fails part-way, everything the batch changed is put back (UI M1, below).
+// Refused at any step, nothing has been loaded, and the message says what is true when it is said (UI M1).
+// v2.00 (UI M1): ALL OR NOTHING WHEN A FILE WOULD ASK, AND WHEN THE LOAD ITSELF FAILS. The dry run answered OK to every
+// question pmoTake asks and the real run then asked the person, so Cancel on a later file left the earlier files'
+// destination lists folded into the board (DESTDB, prio27destdb, the saved file's destDb) under a message saying nothing
+// had changed (chunk 2 review, M1). Now:
+//  - a file that would ask anything -- no fiscal year, a different year, no programme office -- is not loaded in a batch.
+//    The batch is refused before anything loads, naming each such file and its question, to be loaded on its own (One
+//    submission). The year a submittal is held for is the only year pmoApply writes into, so it is answered for one file
+//    with that file in hand, never as a run of answers before anything is on screen; and no answer is replayed into
+//    pmoTake, whose questions are its own to change.
+//  - should the real run still fail -- a file not taken, a question answered Cancel, an error -- everything pmoTake can
+//    change is put back exactly: the review (PMOSUBS, PMOPICK, subOpen), the destination list (the same objects holding
+//    the same things: MS.flow.ents and CYCDB.ents are DESTDB.ents), every key of browser storage, and the save state.
+//  - what the message says is checked when it is said. The review, the plan, the destination list, the save state and
+//    every key in browser storage are compared with what they held before the batch; "nothing on the board was
+//    changed" is said only when all of them match, and otherwise each one that does not is named.
+// Save diagnostics' list (DIAG) is not put back: it records what happened, lives in memory only and is never saved.
+function uiGraphSnap(o){
+  // every object and array reachable from o, each with a copy of its own entries in order
+  const m=new Map(), todo=[o];
+  while(todo.length){
+    const x=todo.pop();
+    if(!x || typeof x!=='object' || m.has(x)) continue;
+    const own=Array.isArray(x)? x.slice() : Object.keys(x).map(function(k){ return [k, x[k]]; });
+    m.set(x, own);
+    (Array.isArray(x)? own : own.map(function(p){ return p[1]; })).forEach(function(v){ todo.push(v); });
+  }
+  return m;
+}
+function uiGraphPut(m){
+  // the same objects hold exactly what they held, in the same order; anything added since is let go
+  m.forEach(function(own, x){
+    if(Array.isArray(x)){ x.length=0; own.forEach(function(v){ x.push(v); }); return; }
+    Object.keys(x).forEach(function(k){ delete x[k]; });
+    own.forEach(function(p){ x[p[0]]=p[1]; });
+  });
+}
+function uiGraphSame(m){
+  let ok=true;
+  m.forEach(function(own, x){
+    if(!ok) return;
+    if(Array.isArray(x)){ ok= x.length===own.length && own.every(function(v, i){ return Object.is(x[i], v); }); return; }
+    const ks=Object.keys(x);
+    ok= ks.length===own.length && own.every(function(p, i){ return ks[i]===p[0] && Object.is(x[p[0]], p[1]); });
+  });
+  return ok;
+}
+// everything browser storage holds, key by key; null when it cannot be read
+function uiLsAll(){
+  try{ const o={}; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); o[k]=localStorage.getItem(k); } return o; }
+  catch(e){ return null; }
+}
+function uiLsName(k){ return k===DEST_KEY? 'the destination list kept in this browser' : 'browser storage “'+k+'”'; }
+function uiSaveState(){ return JSON.stringify([_sideGen, _sideSaved, _dlOnly, DIRTY, _saveGen, _lsRefused]); }
+function uiJson(v){ try{ return JSON.stringify(v); }catch(e){ return null; } }
+// what the batch could change, as it is before the batch
+function uiBatchSnap(){
+  return {subs:PMOSUBS, subsAt:PMOSUBS.slice(), subsTxt:uiJson(PMOSUBS), pick:PMOPICK, pickAt:Object.assign({}, PMOPICK),
+          pickTxt:uiJson(PMOPICK), open:subOpen, destdb:DESTDB, dest:uiGraphSnap(DESTDB), destTxt:uiJson(DESTDB),
+          plan:uiJson(MS), save:uiSaveState(), ls:uiLsAll()};
+}
+// Put it all back. Returns what could not be, {part: the browser's reason}. Storage last, and only the keys that differ:
+// a key the batch wrote gets back what it held, a key it added is removed, and a key it did not change is not written.
+function uiBatchPut(was){
+  const bad={};
+  const step=function(k, fn){ try{ fn(); }catch(e){ bad[k]=String((e && (e.name || e.message)) || e); } };
+  step('review', function(){
+    was.subs.length=0; was.subsAt.forEach(function(p){ was.subs.push(p); }); PMOSUBS=was.subs;
+    Object.keys(was.pick).forEach(function(k){ delete was.pick[k]; }); Object.assign(was.pick, was.pickAt); PMOPICK=was.pick;
+    subOpen=was.open; });
+  step('dest', function(){ DESTDB=was.destdb; uiGraphPut(was.dest); });
+  step('save', function(){ const s=JSON.parse(was.save); _sideGen=s[0]; _sideSaved=s[1]; _dlOnly=s[2]; DIRTY=s[3]; _saveGen=s[4];
+    Object.keys(_lsRefused).forEach(function(k){ delete _lsRefused[k]; }); Object.assign(_lsRefused, s[5]); });
+  if(was.ls){
+    const now=uiLsAll();
+    if(!now) bad.ls='it could not be read';
+    else {
+      Object.keys(now).forEach(function(k){ if(!Object.prototype.hasOwnProperty.call(was.ls, k)) step('ls:'+k, function(){ localStorage.removeItem(k); }); });
+      Object.keys(was.ls).forEach(function(k){ if(now[k]!==was.ls[k]) step('ls:'+k, function(){ localStorage.setItem(k, was.ls[k]); }); });
+    }
+  }
+  try{ saveStateShow(); }catch(e){}
+  return bad;
+}
+// What is not as it was before the batch, checked now: [] when everything is. Each {k, what}.
+function uiBatchDiff(was){
+  const L=[];
+  let r=false;
+  try{ r= PMOSUBS===was.subs && PMOSUBS.length===was.subsAt.length && PMOSUBS.every(function(p, i){ return p===was.subsAt[i]; })
+      && uiJson(PMOSUBS)===was.subsTxt && PMOPICK===was.pick && uiJson(PMOPICK)===was.pickTxt && subOpen===was.open; }catch(e){ r=false; }
+  if(!r) L.push({k:'review', what:'the submittal review (the submittals it holds, its ticks, whether it is open)'});
+  let d=false; try{ d= DESTDB===was.destdb && uiGraphSame(was.dest) && was.destTxt!==null && uiJson(DESTDB)===was.destTxt; }catch(e){ d=false; }
+  if(!d) L.push({k:'dest', what:'the destination list on this board'});
+  if(was.plan===null || uiJson(MS)!==was.plan) L.push({k:'plan', what:'the plan on screen'});
+  let s=''; try{ s=uiSaveState(); }catch(e){ s=''; }
+  if(s!==was.save) L.push({k:'save', what:'whether the board reads as saved'});
+  // storage that cannot be read at all, before or now, is storage this page has no access to: nothing was written there
+  const now=uiLsAll();
+  if(!was.ls || !now){ if(!!was.ls!==!!now) L.push({k:'ls', what:'browser storage — it could not be read '+(now? 'before the batch' : 'just now')
+    +', so it could not be checked'+(now? '' : ' or put back')}); }
+  else {
+    const ks=Object.keys(was.ls).concat(Object.keys(now).filter(function(k){ return !Object.prototype.hasOwnProperty.call(was.ls, k); }));
+    ks.forEach(function(k){ if(now[k]!==was.ls[k]) L.push({k:'ls:'+k, what:uiLsName(k)}); });
+  }
+  return L;
+}
+// a question as one line: its first, without the sign it starts with
+function uiAskLine(q){ return String(q||'').split('\n')[0].replace(/^[^A-Za-z0-9“"]+/, '').trim(); }
+function uiFileText(f){
+  return new Promise(function(res, rej){
+    try{ const r=new FileReader(); r.onload=function(){ res(String(r.result)); };
+      r.onerror=function(){ rej(r.error || new Error('it could not be read')); }; r.readAsText(f); }
+    catch(e){ rej(e); } });
+}
+function uiTakeDry(pkg, name){
+  const keep={subs:PMOSUBS, pick:PMOPICK, alert:window.alert, confirm:window.confirm, setStat:window.setStat,
+              sor:window.subOpenReview, dest:window.destPkgIn};
+  // v2.00 (UI M1): what it says and what it asks are kept apart -- a question is a reason to load the file on its own,
+  // and a refusal after a question is named by the refusal
+  const msgs=[], asks=[]; let ok=false;
+  try{
+    PMOSUBS=PMOSUBS.slice(); PMOPICK=Object.assign({}, PMOPICK);
+    window.alert=function(m){ msgs.push(String(m)); };
+    window.confirm=function(m){ asks.push(String(m)); return true; };
+    window.setStat=function(){}; window.subOpenReview=function(){}; window.destPkgIn=function(){};
+    const mark=PMOSUBS.slice();
+    pmoTake(pkg, name);
+    ok=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; });
+  }catch(e){ msgs.push(String((e && e.message) || e)); ok=false; }
+  finally{
+    window.alert=keep.alert; window.confirm=keep.confirm; window.setStat=keep.setStat;
+    window.subOpenReview=keep.sor; window.destPkgIn=keep.dest;
+    PMOSUBS=keep.subs; PMOPICK=keep.pick;
+  }
+  return {ok:ok, msg:msgs[0]||asks[0]||'', asks:asks};
+}
+async function uiSubMany(inp){
+  const fs=[].slice.call((inp && inp.files) || []);
+  try{ inp.value=''; }catch(e){}
+  // v2.00 (UI M1): asks -- the files that would ask a question, each {file, q}; back -- after a failure part-way, whether
+  // everything was put back (null when nothing had loaded); same -- whether everything read as before when it was said;
+  // left -- what did not
+  const out={files:fs.map(function(f){ return f.name; }), ok:false, why:'', taken:0, asks:[], back:null, same:null, left:[]};
+  UI_BATCH=out;
+  if(!fs.length) return out;
+  let was=uiBatchSnap();
+  // v2.00 (UI M1): said only as checked at that moment (uiBatchDiff). `bad` is what the put-back could not put back,
+  // with the browser's reason; `took` is how many files the real run had taken before it stopped.
+  // v2.00 (UI M1, fix round 2): `wrote` is what the real run left in the stored destination list, when it wrote there.
+  // Only a real run that stopped part-way has put anything back, so only then is the batch said to have stopped part-way.
+  const refuse=function(why, opt){
+    opt=opt||{};
+    out.why=why;
+    try{ subBody(); }catch(e){}
+    const diff=uiBatchDiff(was), bad=opt.bad||{}, ran=opt.took!==undefined;
+    out.same=!diff.length; out.left=diff.map(function(x){ return x.what; });
+    const off=function(k){ return diff.some(function(x){ return x.k===k; }); };
+    const partway=ran && off('review');
+    let head=(partway? '⚠ The batch stopped part-way, and the submittal review could not be put back as it was: '
+                     : '⚠ None of the '+fs.length+' submittal files was loaded: ')+why;
+    if(opt.took && !off('review')) head+=', so the '+opt.took+' taken before it '+(opt.took===1? 'was' : 'were')+' taken back out of the review';
+    let tail;
+    if(!diff.length) tail='The submittal review is exactly as it was before'+(was.subsAt.length? ' ('+was.subsAt.length+' held)' : '')
+      +', and nothing on the board was changed.';
+    else {
+      const why1=function(x){
+        let s=x.what;
+        if(x.k!=='ls' && Object.prototype.hasOwnProperty.call(bad, x.k)) s+=' — it could not be put back ('+bad[x.k]+')';
+        // v2.00 (UI M1, fix round 2): what the stored list means, each half said only when it is checked true: that it holds
+        // what the batch wrote there (the real run wrote there, and storage still holds exactly that -- not someone else's
+        // write), and that opening the board again in this browser would read it, not the different list on screen
+        if(x.k==='ls:'+DEST_KEY){
+          let t=null, held=null; try{ held=localStorage.getItem(DEST_KEY); t=+(JSON.parse(held)||{}).ts; }catch(e){ t=null; }
+          const mine=!!opt.wrote && held===opt.wrote;
+          const reads=t!==null && isFinite(t) && t>=(+DESTDB.ts||0) && held!==uiJson(DESTDB);
+          if(mine) s+='. It holds what the batch wrote there'+(reads? ', and opening the board again in this '
+            +'browser would read it instead of the destination list on screen' : '');
+          else if(reads) s+='. Opening the board again in this browser would read it instead of the destination list on screen';
+        }
+        return s;
+      };
+      const all=[['review', 'the submittal review'], ['dest', 'the destination list on this board'], ['plan', 'the plan on screen'],
+                 ['save', 'whether the board reads as saved']];
+      const fine=all.filter(function(p){ return !off(p[0]); }).map(function(p){ return p[1]; });
+      if(!diff.some(function(x){ return /^ls/.test(x.k); })) fine.push('browser storage');
+      tail='⚠ NOT EVERYTHING IS AS IT WAS. Checked just now, '+(diff.length===1? 'this is' : 'these are')+' not as before the batch:\n  • '
+        +diff.map(why1).join('\n  • ')+'.'
+        +(fine.length? '\n\nChecked just now and exactly as before: '+fine.join(', ')+'.' : '');
+    }
+    // what the board holds comes straight after the headline: a browser shows a long message's first lines and scrolls the rest
+    alert(head+'\n\n'+tail+(opt.more? '\n\n'+opt.more : ''));
+    try{ setStat((partway? '⚠ The batch stopped part-way — ' : '⚠ Nothing loaded — ')+esc(opt.stat || why)
+      +(diff.length? '. <b>Not as before the batch: '+esc(out.left.join('; '))+'.</b>' : '')); }catch(e){}
+    return out;
+  };
+  if(uiSandbox()) return refuse('PMO Import is not offered in a PMO copy');
+  // v2.00 (UI M1, fix round 2): a refusal while the files are read, or for two from one office, comes before the batch has
+  // taken anything -- but after it has waited, and the board may have changed meanwhile (a single load landing, a tick
+  // taken off). That change is not the batch's, so such a refusal is measured against the board as it is when it is said.
+  const early=function(why){ was=uiBatchSnap(); return refuse(why); };
+  const P=[];
+  for(let i=0;i<fs.length;i++){
+    const f=fs[i];
+    const big=inTooBig(f); if(big) return early('“'+f.name+'” was refused: '+big);
+    let txt; try{ txt=await uiFileText(f); }catch(e){ return early('“'+f.name+'” could not be read'); }
+    const bad=inboundCheck(txt); if(bad) return early('“'+f.name+'” was refused: '+bad);
+    let J=null; if(!/^\s*</.test(txt)){ try{ J=JSON.parse(txt); }catch(e){ J=null; } }
+    if(!(J && J.spmtPkg && J.dir==='submit')) return early('“'+f.name+'” is not a programme office’s submittal');
+    P.push({name:f.name, txt:txt, pkg:J});
+  }
+  const seen={};
+  for(let i=0;i<P.length;i++){ const o=subFrom(P[i].pkg);
+    if(Object.prototype.hasOwnProperty.call(seen, o))
+      return early('“'+P[seen[o]].name+'” and “'+P[i].name+'” are both from '+o+'. A batch takes one submittal per office — load the one you mean');
+    seen[o]=i; }
+  // the review may have changed while the files were read; the batch is measured against it as it is now -- and from
+  // here to the end nothing waits, so nothing else can change the board while the batch runs
+  was=uiBatchSnap();
+  for(let i=0;i<P.length;i++){
+    const r=uiTakeDry(JSON.parse(P[i].txt), P[i].name);
+    if(!r.ok) return refuse('“'+P[i].name+'” would not be taken'+(r.msg? ' — '+r.msg.split('\n')[0] : ''));
+    if(r.asks.length) out.asks.push({file:P[i].name, q:r.asks.map(uiAskLine).join(' ')});
+  }
+  // v2.00 (UI M1): a file that would ask is loaded on its own, where its question is about that file alone
+  if(out.asks.length){
+    const n=out.asks.length;
+    return refuse((n===1? '“'+out.asks[0].file+'” would ask a question before it could be loaded'
+                        : n+' of them would ask a question before they could be loaded')+', and a batch loads only files that need no answer', {
+      more:'  • '+out.asks.map(function(a){ return '“'+a.file+'” — '+a.q; }).join('\n  • ')
+        +'\n\nLoad '+(n===1? 'it' : 'each of those')+' on its own (PMO Import › One submission), where its question is asked about that file '
+        +'alone; then load the rest.',
+      stat:out.asks.map(function(a){ return '“'+a.file+'”'; }).join(', ')+' would ask a question first — load '+(n===1? 'it' : 'each')
+        +' on its own (One submission)'});
+  }
+  for(let i=0;i<P.length;i++){
+    const mark=PMOSUBS.slice(); let landed=false, err='';
+    try{ pmoTake(JSON.parse(P[i].txt), P[i].name); landed=PMOSUBS.some(function(x){ return mark.indexOf(x)<0; }); }
+    catch(e){ landed=false; err=String((e && e.message) || e); }
+    if(!landed){
+      // v2.00 (UI M1): everything the batch changed goes back -- this file's own part-way changes included
+      // v2.00 (UI M1, fix round 2): but first, what the stored destination list holds, when that is the batch's own write:
+      // not what it held once the files were read, and exactly the list the batch left on the board (persistDest's text)
+      let wrote=null; try{ wrote=localStorage.getItem(DEST_KEY); }catch(e){ wrote=null; }
+      if(!was.ls || wrote===null || wrote===was.ls[DEST_KEY] || wrote!==uiJson(DESTDB)) wrote=null;
+      const bad=uiBatchPut(was);
+      out.back=!Object.keys(bad).length;
+      return refuse('“'+P[i].name+'” was not taken'+(err? ' (an error: '+err+')' : ''), {bad:bad, took:i, wrote:wrote});
+    }
+    out.taken++;
+  }
+  out.ok=true;
+  try{ setStat('✉ '+P.length+' submittal'+(P.length===1?'':'s')+' loaded together, in the order picked: <b>'
+    +esc(P.map(function(p){ return subFrom(p.pkg); }).join(', '))+'</b>. <b>Nothing has been applied.</b> '
+    +PMOSUBS.length+' held for review.'); }catch(e){}
+  try{ subOpenReview(); }catch(e){}
+  return out;
+}
+uiBoot();
 </script>
 </body>
 </html>
