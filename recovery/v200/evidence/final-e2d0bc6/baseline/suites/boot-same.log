@@ -1,0 +1,14 @@
+# cmd: X=1 node tools/export-audit/boot-same.mjs
+# cwd: /tmp/claude-0/-home-user-Word-Matching-/0eabf6ef-e470-5d8a-8224-885f500b9576/scratchpad/rec/L8/finalgate/pin-e2d0bc6/clone
+# git: e2d0bc64640adfa02fccbd1c930f95bb67427864
+# node: v22.22.0  jsdom: 27.4.0
+# start: 2026-10-19T10:50:59Z / 06:50:59 EDT
+# cap: 900s  grace: 10s
+same  prioritization-board-grid.html as shipped parse 1612 ms · fast 318 ms
+same  prioritization-board-grid.html seeded, rendered parse 985 ms · fast 246 ms
+same  prioritization-board-grid.html reopened from its save parse 1083 ms · fast 260 ms
+same  prioritization-board-grid.html a published PMO copy parse 882 ms · fast 244 ms
+every page, source, save and error list is identical either way
+
+# end: 2026-10-19T10:51:06Z / 06:51:06 EDT
+# exit: 0  duration_s: 7.3

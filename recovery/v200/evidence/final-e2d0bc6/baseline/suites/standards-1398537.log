@@ -1,0 +1,85 @@
+
+SECTION 508 / WCAG 2.2 CONFORMANCE — measured on a populated board, every theme, both builds
+========================================================================================================
+baseline recorded 2026-09-30 · 0 known finding(s)
+a finding names its criterion so it can be cited, not argued about
+
+  ok    1.4.3 Contrast (Minimum) — AA              no findings
+  debt  1.4.11 Non-text Contrast — AA              5 distinct, 140 instance(s)
+          NEW  #2b313d border on #141822
+               1.36:1, needs 3:1 — e.g. button, no discernible edge   [28x · grid:midnight]
+          NEW  #35435c border on #182234
+               1.60:1, needs 3:1 — e.g. button, no discernible edge   [28x · grid:navy]
+          NEW  #aeb7c3 border on #ced5de
+               1.37:1, needs 3:1 — e.g. button, no discernible edge   [28x · grid:harbor]
+          NEW  #c3cfda border on #f7fafc
+               1.51:1, needs 3:1 — e.g. button, no discernible edge   [28x · grid:blueprint]
+          NEW  #ddd5c4 border on #fbf8f1
+               1.38:1, needs 3:1 — e.g. button, no discernible edge   [28x · grid:parchment]
+  debt  2.5.8 Target Size (Minimum) — AA           2 distinct, 280 instance(s)
+          NEW  button | drawerClose()
+               59x20px, needs 24x24   [140x · grid:blueprint grid:harbor grid:midnight grid:navy grid:parchment]
+          NEW  button | uiRailToggle()
+               17x24px, needs 24x24   [140x · grid:blueprint grid:harbor grid:midnight grid:navy grid:parchment]
+  ok    4.1.2 Name, Role, Value — A                no findings
+  ok    2.1.1 Keyboard — A                         no findings
+  debt  2.4.7 Focus Visible — AA                   1 distinct, 1 instance(s)
+          NEW  BUTTON|uiNi on|button
+               focusing it changes no outline, shadow, border or background   [1x · grid:harbor]
+  debt  1.4.10 Reflow — AA                         1 distinct, 1 instance(s)
+          NEW  grid @320px
+               18px of horizontal scroll at 320px wide   [1x · grid:harbor]
+  ok    1.3.1 Info and Relationships — A           no findings
+  ok    3.1.1 Language of Page — A                 no findings
+  ok    2.4.2 Page Titled — A                      no findings
+  ok    the run measured what it must (v1.96)      no findings
+
+========================================================================================================
+9 NEW FINDING(S) — not in the baseline:
+
+  2.4.7 Focus Visible — AA
+      BUTTON|uiNi on|button
+      focusing it changes no outline, shadow, border or background
+      seen 1x on grid:harbor
+
+  1.4.10 Reflow — AA
+      grid @320px
+      18px of horizontal scroll at 320px wide
+      seen 1x on grid:harbor
+
+  2.5.8 Target Size (Minimum) — AA
+      button | drawerClose()
+      59x20px, needs 24x24
+      seen 140x on grid:blueprint, grid:harbor, grid:midnight, grid:navy, grid:parchment
+
+  2.5.8 Target Size (Minimum) — AA
+      button | uiRailToggle()
+      17x24px, needs 24x24
+      seen 140x on grid:blueprint, grid:harbor, grid:midnight, grid:navy, grid:parchment
+
+  1.4.11 Non-text Contrast — AA
+      #2b313d border on #141822
+      1.36:1, needs 3:1 — e.g. button, no discernible edge
+      seen 28x on grid:midnight
+
+  1.4.11 Non-text Contrast — AA
+      #35435c border on #182234
+      1.60:1, needs 3:1 — e.g. button, no discernible edge
+      seen 28x on grid:navy
+
+  1.4.11 Non-text Contrast — AA
+      #aeb7c3 border on #ced5de
+      1.37:1, needs 3:1 — e.g. button, no discernible edge
+      seen 28x on grid:harbor
+
+  1.4.11 Non-text Contrast — AA
+      #c3cfda border on #f7fafc
+      1.51:1, needs 3:1 — e.g. button, no discernible edge
+      seen 28x on grid:blueprint
+
+  1.4.11 Non-text Contrast — AA
+      #ddd5c4 border on #fbf8f1
+      1.38:1, needs 3:1 — e.g. button, no discernible edge
+      seen 28x on grid:parchment
+
+exit 1

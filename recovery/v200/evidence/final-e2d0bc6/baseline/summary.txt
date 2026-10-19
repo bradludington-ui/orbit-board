@@ -1,0 +1,13 @@
+ACCEPT check.log
+ACCEPT audit-import.log
+ACCEPT audit-board.log
+ACCEPT audit-recon.log
+ACCEPT audit-hostile.log
+ACCEPT audit-ppt.log
+ACCEPT legacy-fsrc.log
+ACCEPT boot-same.log
+ACCEPT audit-inject.log
+ACCEPT audit-other.log
+ACCEPT audit.log
+ACCEPT audit-ui.log
+REFUSE standards.log: recorded exit 1
