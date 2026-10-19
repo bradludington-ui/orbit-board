@@ -969,9 +969,9 @@ result for it was run fresh against these commits.
       depth that opens. A browser's limit differs from jsdom's.
     - The saved appropriation selection shaped the same ways ("om", [], ["xx"]) still reads as all appropriations, with
       nothing said, and counts money from appropriations the file does not name (ledger U45).
-    - Saved prime-match text or a category name holding U+FFFF still makes the funds-flow export a workbook that is not
-      well-formed, as before the change: the XLSX writer passes the character (ledger U46; the same writer gap as
-      U37, which names U+0000–U+001F). This fix covers only the quote of the saved year selection.
+    - Saved prime-match text or a category name holding U+FFFF: the funds-flow export is now refused, naming the
+      cell, by U37's commit (below; ledger U46, closed there). This fix covers only the quote of the saved year
+      selection.
     - A click on the year buttons replaces what could not be read, as the notice says. The earlier text survives only in
       the file's own history.
     - The suite opens each shape from the saved file. A probe also reopened each from this browser's storage alone, where
@@ -1033,17 +1033,7 @@ result for it was run fresh against these commits.
     `-long-title-retyped`, `-refusal-left-standing`, `-clears-any-message` and `-formula-cells`. The focused block catches
     each one. Full-suite sensitivity runs in the final-tree queue.
   - **Not covered** (the registry-text limits, each with its row in `recovery/v200/UNRESOLVED-LEDGER.md`):
-    - **U37 (P1, a release blocker; fix track u37 under way on 13 Oct; this paragraph stands only if that fix does not
-      land).** A workbook or a slide deck can hold a character that XML 1.0 forbids (U+0000–U+0008, U+000B, U+000C,
-      U+000E–U+001F). The one writer both exports use (`_xesc`) escapes only `& < > "`, so such a character goes into the
-      part raw, and that part is not well-formed XML. This is any text, not only registry text. Measured: an RCN / EEIC
-      title (in RCN-EEIC by Month), a requirement title (in four workbook sheets), a destination name, which puts it into
-      `xl/workbook.xml` itself as a funds-flow sheet name, and a Plan Event typed through the board's own prompt, which
-      the slide deck writes raw into a slide part (`ppt/slides/slide5.xml`). A real browser (Chromium 141) keeps U+000B,
-      U+0001, U+0007 and U+001F when they are pasted into a text field, and rcnSet stores them in a title (U+000B) and in
-      an RCN (U+0001). The board's own reader reads such a workbook back. Whether Excel or PowerPoint refuses or repairs
-      such a file was not checked. A fix has to cover both writers: escaping in `_xesc` covers both; refusing the export
-      and naming the cell, as the IDS export does (`IDS_BADCH`), has to be added to the slide deck as well.
+    - **U37:** fixed by its own commit (below).
     - **U38 (P3 for the board; P2 proposed for the Spend Plan Source).** A file can carry RCN / EEIC text that typing would
       refuse or change, and the board keeps it as it arrived:
       - an EEIC in lower case, or padded with spaces;
@@ -2497,6 +2487,198 @@ result for it was run fresh against these commits.
     alert box scrolls after about nine lines; and the `v200-ui3-*` entries have no `FIRST_BY_PREFIX` route (they go to
     audit-inject first; the verdict is the same). verify:grid in a lane without the container's Segoe UI → Inter
     substitution, and on Windows itself, is U28's (ledger).
+- **U37 — no export writes a character XML 1.0 forbids; it is refused before a byte, and says where** (a release blocker,
+  the lead, 13 Oct, 12:02 PM ET; built from Codex's independent proposal, batch A2, after review, and extended to the slide
+  deck; corrected after eight rounds of independent review). The one text writer both exports use, `_xesc`, escaped
+  `& < > "` and nothing else, so U+0000–U+0008, U+000B, U+000C, U+000E–U+001F, U+FFFE and U+FFFF went into a workbook part,
+  or a slide of the deck, as they were, and that part was not well-formed XML. An ordinary paste puts them there: Chromium
+  141 keeps U+000B, U+0001, U+0007 and U+001F pasted into a text field, and the board stores them. A board file can carry
+  them too (ledger U46: U+FFFF in a saved prime-match token or OGC category name; and a band's colour, which the workbook
+  writer put into `xl/styles.xml` with no escape at all). Measured on the base (`7ee498a`): a Plan Event typed with U+000B
+  went raw into four sheets of the Excel export (Decision Bands, CR Cash Needs, Funded - Discretionary, PMO AV), two of the
+  Priority drill, the Spend Plan Source, the IDS workbook and slide 5 of the deck; an RCN / EEIC title with U+0001 and
+  U+000B into RCN-EEIC by Month; a funds-flow destination named with it, into three sheets of the Funds Flow workbook; a
+  saved prime-match token or category name with U+FFFF into the Funds Flow workbook, the category name into
+  `xl/workbook.xml` as a sheet name; a band colour carried in a board file with U+000B, U+FFFF or a double quote into the
+  Priority drill's `xl/styles.xml` as that band's banner fill, while the drill said "Priority drill exported". LibreOffice
+  24.2 opened such a workbook with the sheet cut off at that cell, and the deck with the rest of the Mission Critical table
+  gone, its TOTAL and its MC SHORT row with it, and said nothing. Every workbook and the deck are now checked before a byte
+  is made: each sheet name as it is written (its first 31 characters), each text cell, a styled one included, each style's
+  fill colour (it must be six hex digits, `#RRGGBB`) and number format, and each slide. Such a character, or a fill colour
+  in any other form, refuses the export, and the alert and the status line name the place (the sheet and the cell; the band
+  whose colour it is; or the slide, its title and the text) and show the text around it with the character spelled out where
+  it sits. A band's colour has no field on the board, so its refusal says that, in place of "change that text where it was
+  entered", and names what can be done, with what each way costs. A workbook also refuses a literal `_xHHHH_` (upper- or
+  lower-case hex), because a spreadsheet reads it as the one character it spells (LibreOffice shows `_x0041_` as "A" and
+  `_x000B_` as U+000B); the refusal names that character, which is what the person sees in a file the text came from. The
+  deck carries such text as typed. Each of the 16 routes that write a workbook, and the deck, stops there: before a Blob, a
+  download, its own "exported" line, or anything it keeps (the IDS export's ORG). The IDS box, if open, no longer gives an
+  earlier prompt problem as the reason. The funds-flow chart's "Save as image" reads the drawn chart back as an XML image:
+  with such a character in a drawn name a browser could not render it and said only "Could not render the chart to an image"
+  (Chromium, measured); it is now refused before its Blob, naming the text. The words stay true once the person acts on
+  them: the refusal stays on the status line only until a workbook is made after it (the Excel export and the ATR/BTR log
+  say nothing of their own, so it used to stand over a file just made), and the alert says that a locked cycle keeps the
+  text it was locked with, so a file taken from one that holds it stays refused (the cycle's view cannot change it, and
+  changing the working plan does not). Nothing is cleaned or cut: the text and the colours on the board stay as they were,
+  and an export without such text is byte for byte what it was (all 17 routes, frozen clock, base and fix; the chart image
+  still downloads in Chromium). Codex proposed the refusal, not the OOXML `_xHHHH_` escape: the board's own workbook reader
+  keeps `_xHHHH_` as written, so escaping would change how the board reads back its own workbooks.
+  - **What users may see:** an export refused with, for example, "Excel workbook not exported: sheet “Decision Bands”, cell
+    H18 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”.
+    No file was made, and the text on the board is unchanged. Change that text where it was entered — on the board, or in
+    the file it was imported from — and export again. A locked cycle keeps the text it was locked with: a file taken from
+    one that holds it stays refused." The Priority drill, for a band colour a board file carried: "Excel workbook not
+    exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) holds character U+000B, which
+    ORBIT cannot write into a workbook without damaging it. It reads “1B2A4A[U+000B]”." -- or, for a colour in another form,
+    "… is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “FF6B81"”." Its alert
+    goes on: "No file was made, and nothing on the board is changed. A band’s colour has no field on the board: it came in
+    as written, with a board file or a ladder from another appropriation." -- for a standard band (one whose id is the
+    standard's), "This is a standard band: ⚖ Bands › ⚙ Install standard 0–4 puts the organization’s standard bands back as
+    issued — colour, name, description, rule, whether each counts toward the stoppage gap and needs a consequence, a removed
+    one included — at the top of the ladder in the standard order, and files none of them under another band (a standard
+    sub-band becomes a band of its own, its money no longer in its header’s total, and the bands below it are renumbered).
+    It asks first." (the range as the panel's button reads it: 0–3 when a standard band is filed as a sub-band) -- and for
+    every band, "⬆ Import ladder takes a ladder file with the colour corrected to #RRGGBB (⬇ Export ladder makes one), but
+    drops every sub-band filing — each sub-band becomes a band of its own, its money no longer in its header’s total, and
+    the bands below it are renumbered — and cuts a band’s name to 60 characters and its description to 120." When another band's colour is refused too (a sub-band
+    takes its header's colour, so a sub-band of the office's own under band 0 holds band 0's), the alert names it -- "The
+    colour of band 0a “Readiness degradation” is refused too, and each has to be put right." -- offers ⚙ Install standard
+    only when it puts back every band whose colour is refused, and its import sentence reads "a ladder file with each of
+    these colours corrected to #RRGGBB". In a locked cycle's view, where nothing done is kept, the band words end "In a
+    locked cycle’s view nothing done is kept: ↩ Leave the view and do it on the working plan, whose bands the view reads."
+    The deck says
+    "PowerPoint deck not exported: slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+000B, which ORBIT
+    cannot write into a deck without damaging it, in the text “Plan[U+000B]event”." The chart image says "Chart image not
+    exported: the chart holds character U+000B, which ORBIT cannot draw into an image, in the text “Ctl[U+000B]”." A
+    workbook holding the text `_x000b_` or `_x000B_` is refused the same way, "which a spreadsheet would read as the single
+    character U+000B". The status line says the same in short ("⚠ Excel workbook not exported — … No file was made; the text
+    on the board is unchanged.") and is cleared when a workbook is next made; a line said after it stays. Text imported from
+    a workbook another program wrote can hold such a spelling: LibreOffice saves a U+000B as `_x000b_`, the board's reader
+    keeps it as written ("Engine_x000b_spares"), and a workbook that carries it is now refused, naming the cell; the person
+    corrects the file it came from and imports it again. A cycle locked while its text held such a character keeps it: the
+    FYDP spend plan taken from that cycle, and every export in its view, are refused while it holds it.
+  - **Test:** audit-recon "v2.00 (U37) — no export writes a character XML 1.0 forbids; it is refused before a byte, and says
+    where" (118 checks): each of the 31 characters in a cell; a styled cell; text that reads as a number holding U+000B
+    or U+000C (`2027` with U+000B after it, U+000C before `12`, a lone U+000B -- JavaScript reads both as white space); the words, whole; a sheet name, and U+000B as
+    its 31st character; a literal `_xHHHH_` in a cell and a sheet name, in lower- and in upper-case hex; a style's fill
+    colour holding U+000B or a quote, after its six digits or before them, or of three or of eight hex digits, or with a `#` inside its
+    digits (`#1B#2A#4A`), and a number
+    format holding U+0001 (CONTROL: a colour with its `#` and one in lower case, a source format with quotes, a format-only
+    style and the default fill are written as before); the status line showing markup in the refused text as text; a long
+    text quoted around the character; the deck, and the deck quoting `R&D` as typed; where a person meets it (exportExcel,
+    exportCSV, exportSrc, exportFlow -- a destination named `Ctl` and one named `2027`, each with U+000B, kept as typed --
+    and the IDS export, each naming the cell the base wrote the character into, the IDS ORG
+    not kept, and the open IDS box no longer giving a missing reason as the reason; exportExcel for an RCN / EEIC title,
+    which it writes only in styled cells; the funds-flow chart's Save as image, the chart drawing a destination named with
+    U+000B); once the person acts (refused, retyped through the board's own field, made: the refusal is gone; the chart
+    image's refusal goes when a workbook is made; a line said after a refusal stays; the deck says its own word); a cycle
+    locked while the Plan Event held U+000B (the working plan retyped and made; the FYDP spend plan from the cycle refused
+    at By Requirement B7 with the locked-cycle words; the cycle's view still holding the text and refusing); a board file
+    carrying U+FFFF in a saved prime-match token and in a saved category name (ledger U46: refused at Funds Flow A52 and
+    A34, where the base wrote it; the file as saved makes the workbook); a board file carrying a band colour with U+000B,
+    U+FFFF or a double quote (the Priority drill refused, the band and the colour named; the file as saved makes the drill),
+    and a sub-band's colour, the refusal naming the sub-band by its label (0a); the words for a refused band colour, and
+    each way they name, done (a standard band's colour put back by ⚙ Install standard, the drill then made; a band of the
+    office's own with a sub-band and a long name: ⬇ Export ladder, the colour corrected, ⬆ Import ladder -- the drill made,
+    the sub-band a band of its own, the name cut to 60 and the description to 120, as the words say); ⚙ Install standard's
+    costs, done (a standard sub-band, 0a, is told Install standard files no standard band under another, and done, 0a reads
+    1 and the drill is made; a ladder with a standard band removed, a band of the office's own above a standard band and a
+    tick cleared: done, the standard bands are back on top in the standard order, the removed one among them, the tick as
+    issued); a band is called standard only when its id is the standard's (a band of the office's own filed under band 0,
+    one named PDM-Directed Funding and one a file marked standard are refused with the import's words only, and ⚙ Install
+    standard, done, leaves each refused; band 0 whose file dropped its standard mark is told, and Install standard makes the
+    drill; the words name the button as the panel shows it, 0–3 when a standard band is a sub-band); a sub-band un-filed by
+    either way takes its money out of its header's total, as the words say (band 0 with 0a and band 4 with 4a: the drill's
+    Summary and 1-N by Band carry both totals, CONTROL; after ⚙ Install standard band 0's total is gone and band 4's stays,
+    as band 5's; after ⬆ Import ladder no total is left); two bands holding a refused colour (band 0 and its sub-band 0a,
+    a band of the office's own that took its colour: both named, ⚙ Install standard not offered, the ladder file with each
+    colour corrected imported and the drill made; CONTROL: two standard bands so refused are both named, Install standard
+    is offered and, done, the drill is made); a refused band colour in a locked cycle's view (the words say nothing done
+    there is kept and where to do it, and on the working plan they do not; ⚙ Install standard done on the working plan, the
+    view's drill is made); three bands holding a refused colour (bands 0 and 1, both standard, and band 6, the office's
+    own: the other two named, in the plural, and ⚙ Install standard not offered, since it leaves band 6 refused); the band
+    named first the office's own and the other standard (Readiness degradation moved above Safety-Critical & Must Fix, both
+    refused: Install standard not offered); two bands so refused in a locked cycle's view (both named, and the view's
+    sentence after them); the deck and the chart image refusing U+FFFF as the workbook does (a Mission Critical Plan Event
+    holding U+FFFF, typed through the pen: no deck, slide 5 and its title named; a destination named `Ctl` with U+FFFF, the
+    chart drawn: no image); a cell past column Z named by its two letters (an RCN code holding U+000B, kept as typed: the
+    Spend Plan Source refused at O&M Raw Data AB2, the RCN column); and every caller --
+    the 16 workbook routes and the deck, each made on ordinary data and then stopped by a stand-in refusal with no Blob, no
+    download, no word after it and nothing changed. 92 checks fail on the board before the change (at 7ee498a and at
+    e85dfb7, measured again at integration); the 26 that pass on both
+    are the controls (escape-like text a spreadsheet reads as written; ordinary text with a TAB, a line break, an emoji and
+    half of one, read back by the board; a sheet name whose character lies past the 31 written; a carriage return; the deck
+    with `_x0041_`; each route making its file on ordinary data, and the chart image's drawing on ordinary data; U+0085,
+    U+007F and U+009F, which XML 1.0 allows, in a cell, written and read back, and a Plan Event holding U+0085 making the
+    Excel export and the deck) and the two no-page-error checks.
+  - **Mutations:** `v200-u37-xlsx-unchecked`, `-pptx-unchecked`, `-name-unchecked`, `-cell-unchecked`, `-literal-unchecked`,
+    `-nonchars-allowed`, `-vt-allowed`, `-wrong-cell`, `-show-raw`, `-stat-silent`, `-wrong-slide`, `-ids-org-kept`,
+    `-ids-stale-note`, `-name-past-31`, `-cr-refused`, `-advice-board-only`, `-png-unchecked`, `-png-markup`,
+    `-guard-<route>` for each of the 17 callers (`exportrlgplan`, `pmoreport`, `crexport`, `exportidsreq`, `exportflow`,
+    `exportexview`, `exportsrc`, `exportplans`, `exportfydpplan`, `exportcyccompare`, `exportreprog`, `exportfcview`,
+    `exportcsv`, `exportacetieout`, `exportexcel`, `exportcoa`, `exportppt`), and from the reviews `-styled-unchecked`,
+    `-stat-unescaped`, `-name-30`, `-show-start`, `-show-literal-start`, `-deck-markup-shown`, `-made-missing`,
+    `-made-always`, `-stood-unset`, `-locked-unsaid`, `-literal-char-unnamed`, `-literal-lowerhex`, `-style-unchecked`,
+    `-fill-badch-only`, `-fill-hash-kept`, `-fmt-unchecked`, `-band-unnamed`, `-band-wrong`, `-fill-noanchor`, `-fill-3to8`,
+    `-band-index`, `-band-how-unsaid`, `-how-ignored`, `-band-how-none`, `-band-std-unsaid`, `-band-std-every`,
+    `-band-std-unfile-unsaid`, `-band-std-ticks-unsaid`, `-band-std-money-unsaid`, `-band-imp-money-unsaid`, `-std-by-name`,
+    `-std-by-mark`, `-std-by-place`, `-std-mark-needed`, `-how-of-header`, `-std-shape`, `-band-also-unsaid`, `-band-also-std`, `-band-also-file`,
+    `-cell-numeric-text`, `-fill-strip-all-hash`, `-band-view-unsaid`, `-band-view-always`, `-band-view-overwritten`, `-band-also-first-only`,
+    `-band-also-skips-self`, `-band-also-singular`, `-band-also-first-named`, `-deck-c0-only`, `-png-c0-only`,
+    `-col-a-to-z` and `-c1-refused` (87); each
+    caught by the focused block (full-suite sensitivity runs in the final-tree queue).
+  - **Not covered:** Excel and PowerPoint themselves (LibreOffice 24.2 was run; Office was not), so whether Excel writes a
+    cell's carriage return as `_x000D_` -- which would make an Excel-written source with such a line break refuse the
+    workbooks that carry its text -- is not measured (LibreOffice writes it back as a line feed). Half of a two-part
+    character is not refused: the browser's encoder writes U+FFFD in its place, which XML allows, and the board's own cuts
+    make one out of a whole emoji (a title at 44 characters on CR Cash Needs and 56 on the deck, a PMO sheet name at 31, a
+    funds-flow sheet name at 28 -- U42); refusing it would refuse the Excel export for an emoji in a title and the Priority
+    drill for one in a PMO's name. A carriage return in a cell is written as it is, and a standards XML reader gives it back
+    as a line feed; a TAB or a line break in a sheet name is read as a space (both allowed by XML; not changed here). The
+    limit, by Brad's decision of 19 Oct: a literal `_xHHHH_` in imported text is REFUSED in a workbook, as a named limit.
+    The export is refused and names the cell; the user corrects the source and imports again. Decoding such codes at
+    import goes to the post-merge list (the board's reader keeps a workbook's `_xHHHH_` as written, so imported text can
+    hold one, above). The refusal names a
+    place in a file that was not made (the sheet and cell it would have been); the quoted text is what finds it on the
+    board; the requirement or field is not named, and neither is the appropriation when a sheet carries another
+    appropriation's text (the FYDP spend plan's PMO tabs read the other appropriations' plans). A band colour has no field
+    on the board, and none of the ways round a refused one is free (measured on this commit's board, `FR3-P-remedy-*`; the
+    import's losses are the same before this change): a board file corrected by hand (the band's `c`, as `#RRGGBB`) opens
+    with the corrected colour only if nothing was changed in that browser since the file was opened -- after any change, the
+    browser's own newer copy opens, the old colour with it, and a file whose saved time is moved past it opens with that
+    browser's work kept aside -- so the refusal does not offer it; ⚙ Install standard puts a standard band's colour back
+    with the whole standard set as issued -- name, description, rule and both ticks, so the stoppage gap can change, a
+    removed standard band included -- at the top of the ladder in the standard order and filed under nothing: a standard
+    sub-band becomes a band of its own, the bands below it are renumbered, and its money leaves its header's total (the
+    drill's and its Summary's total row for that header goes); the refusal says so, but Install standard's own question
+    says only that the office's bands stay below in order and that no requirement loses its band (measured, verify-money r4
+    `P-std-*` and `FR4-P-roll-*`; the same before this change; a candidate ledger row); ⬆ Import ladder takes a ladder file
+    with the colour corrected, but drops every sub-band filing (a sub-band becomes a band of its own, its money leaves its
+    header's total, and the bands below it are renumbered), cuts a name to 60 characters and a description to 120, and its
+    question still says "Every banded requirement keeps its band" (a candidate ledger row; an uncorrected colour it turns
+    grey). Install standard is named only for a band whose id is the standard's: a band of the office's own renamed after
+    a standard one, or marked standard by a file, is given the import's words only; and it is named only when it puts back
+    every band whose colour is refused (a sub-band of the office's own that took a standard band's colour it does not put
+    back). ⬇ Export ladder writes each band's colour as it stands, so its file can carry a colour the import door refuses
+    (`#` and 3 to 8 hex digits), and the door then says the file "is damaged or was not written by ORBIT" -- untrue of
+    ORBIT's own ladder file (measured, verify-money r5 `V5-P-hdr-*`; the same before this change; a candidate ledger row);
+    the refusal asks for each refused colour to be corrected in that file, so a person following it does not meet those
+    words. A colour of three or eight
+    hex digits, which the import door's rule accepts (`#` and 3 to 8 hex digits, by reading), now refuses the Priority
+    drill, where the base wrote it as given (`FFABC` for `#abc`, not the eight hex digits a workbook's colour is); a `#abc`
+    could instead be written as `FFAABBCC`, the colour the board draws -- the lead's choice, not taken here. A band colour
+    that is not text at all stops the drill with an error, as before (not a character XML forbids). Number formats are all
+    the board's own constants; they are checked anyway. A refusal's line stays after a CSV, a board file or another file
+    that is not a workbook is made with no line of its own (the Exec Funding Synopsis CSV, the state file); it speaks only
+    of the file it names. The Spend Plan Source asks about blank Budgets before this check runs, so a person can answer that
+    question and then be refused for the character. The quoted text can cut a two-part character at its 30- and 60-character
+    edges (the alert and the status line only). The chart image still fails without naming the place when a drawn text holds
+    a no-break space (the drawing is read back as XML and `&nbsp;` is not an XML name; measured in Chromium; not a character
+    XML forbids, and the same before this change). After a refusal from the open IDS box, the box itself shows no trace of
+    it (the alert and the status line say it); a literal `_xHHHH_` typed into the box's own Reason passes the box's check
+    and is then refused at the writer, naming the cell, with the answers typed kept and the ORG not saved (measured,
+    verify-money r5 `V5-P-near-c1`; a literal `_xHHHH_` refused, the named limit above). CSV, JSON, HTML and text exports are not XML and are unchanged. A
+    workbook or deck exported before this change is not repaired.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -2608,16 +2790,24 @@ result for it was run fresh against these commits.
     opening (U47); a saved year a century off an offered year printed as that year (U48); a selection nested
     too deep for the board to open; and two findings recorded on their own: the saved appropriation selection, which still
     reads a malformed value as all appropriations with nothing said and counts money from appropriations the file does
-    not name (U45), and saved prime-match text or category names holding U+FFFF, which still make the funds-flow
-    export a workbook that is not well-formed (U46, the same writer gap as U37).
+    not name (U45), and saved prime-match text or category names holding U+FFFF, which now refuse the funds-flow export,
+    naming the cell (U46, closed by U37's commit).
   - **The registry-text review** (first filed as U35 while Codex's text had not reached the lead). Checked on `d66dd60`:
     typed, in a file opened, saved and reopened, and through Import a full board; and on the screen, in the workbooks and
     the slide deck read from their bytes, and in the saved file. Not followed: a cycle file, a PMO copy or submittal, a
     package, a service file, a PDF, and Excel or PowerPoint themselves. **U36 is fixed above:** a typed RCN / EEIC title over
     80 characters is refused, not cut. The rest stay open, with their limits stated above under U36's "Not covered":
-    - **U37 (P1, a release blocker; its own fix track).** A character that XML 1.0 forbids makes a workbook part or a slide
-      part malformed, for any text (registry text, a requirement title, a Plan Event on a slide, a destination name, which
-      reaches `xl/workbook.xml`). A real browser's paste lets such a character in.
+    - **U37: fixed by its own commit** (above): a character XML 1.0 forbids, in any text, refuses the workbook, the deck or
+      the chart image before a byte, naming the sheet and cell, the slide and its text, or the chart's text; a band colour a
+      board file carried that is not six hex digits refuses the Priority drill, naming the band, and every other band whose
+      colour is refused, and saying that a band's colour has no field on the board and what can be done, with what each way
+      costs (in a locked cycle's view, which keeps nothing done in it, where to do it); a workbook also refuses a literal
+      `_xHHHH_`, naming the character a spreadsheet reads it as. The refusal leaves the status line when a workbook is next
+      made, and says that a locked cycle keeps the text it was locked with. Left as they were, and said above: half of an
+      emoji (the board's own cuts make one; the encoder writes U+FFFD, which XML allows); a carriage return in a cell, and a
+      TAB or line break in a sheet name, which XML allows; a literal `_xHHHH_` in imported text, refused in
+      a workbook as a named limit (Brad, 19 Oct: the export names the cell, the user corrects the source and imports again;
+      decoding such codes at import goes to the post-merge list); Excel and PowerPoint themselves were not run.
     - **U40 (P1, a release blocker, data loss; its own fix track).** Two destinations typed with names that differ only in
       case or spaces merge into one when the file is opened in a browser whose destination list is newer: a requirement
       changes its destination, its money moves in the funds flow, and nothing is said.

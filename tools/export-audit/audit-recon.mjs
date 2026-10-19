@@ -8646,6 +8646,785 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U61) ====
+// ==== v2.00 (U37): no export writes a character XML 1.0 forbids; it is refused before a byte, and says where ====
+// _xesc escaped & < > " only, so U+0000-U+0008, U+000B, U+000C, U+000E-U+001F, U+FFFE and U+FFFF went into a workbook's or the
+// deck's part raw, and the part was not well-formed. An ordinary paste puts them there (Chromium 141 keeps U+000B, U+0001,
+// U+0007 and U+001F pasted into a text field). Measured on the base 7ee498a with LibreOffice 24.2: such a workbook opens with
+// its sheet cut off at that cell, the deck with the rest of the Mission Critical table gone, its totals with it, and nothing is
+// said. A literal _x0041_ in a workbook cell LibreOffice reads as "A" (_X0041_, _x41_ and _x0041 it reads as written); the
+// deck it shows as typed.
+// A  THE WRITER: each of the 31 characters in a cell is refused before a byte (_zipStore is never reached), naming the sheet,
+//    the cell and the character; the words once, whole; a sheet name; a literal _xHHHH_ in a cell and in a sheet name.
+//    The words say ORBIT cannot write the character without damaging the file (a workbook can hold U+000B, as _x000B_; this
+//    writer cannot), and send the person to where the text was entered: the board, or the file it was imported from.
+//    CONTROLS: escape-like text a spreadsheet reads as written; a workbook of ordinary text, a TAB, a line break, an emoji and
+//    half of one is made, every part parses, and the board's own reader gives the text back (the half as U+FFFD, which is
+//    what the encoder writes: refusing it would refuse the board's own cuts of a whole emoji, at 44, 56 and 31 characters);
+//    a sheet name whose character lies past the 31 letters written; a carriage return, which XML allows.
+// B  THE DECK: a Mission Critical Plan Event typed through the pen as Plan<U+000B>event -- no deck; slide 5, its title and the
+//    text named; nothing on the board changed, the Plan Event as typed. CONTROL: a Plan Event "_x0041_ deck" makes the deck,
+//    every part parses, and slide 5 carries it as typed.
+// C  WHERE A PERSON MEETS IT: that Plan Event and an RCN title holding U+0001 -- exportExcel, exportCSV, exportSrc; a funds-flow
+//    destination named Ctl<U+000B> -- exportFlow; the IDS export with that Plan Event on a contribution it does not upload, a new
+//    ORG typed. Each is refused: nothing built, no Blob, no download, the place named, nothing on the board changed, the ORG
+//    not kept. Each place named is where the base wrote the character, read off the base's own file (H18 of Decision Bands, E5
+//    of 1-N by Band, D2 of O&M Raw Data, A40 of Funds Flow, C24 of Missing data and anomalies). And from the open IDS box, as
+//    a person uses it: a first try with no reason is refused by the prompt and the box says so; the reason given, the second
+//    try is refused here, and the box no longer gives the missing reason as the reason. The funds-flow chart, its panel open,
+//    draws that destination; Save as image reads the drawing back as an XML image, and is refused before its Blob, naming
+//    the text (on the base the drawing went into a Blob, and a browser could not render it: "Could not render", nothing named).
+// D  EVERY CALLER: the 16 routes that write a workbook, and the deck, each run on ordinary data (CONTROL: the file is made), then
+//    with the writer's check standing in as a refusal: the route stops there -- no Blob, no download, no word after the
+//    refusal, nothing on the board changed (the IDS: the ORG typed is not kept). The chart image: a CONTROL only, its
+//    drawing's Blob made on ordinary data.
+// REVIEW ROUND 1 (13 Oct): A8 a styled cell ({v, s}) is checked as a plain one; A3c U+000B as the 31st character of a sheet
+//    name, the last one written; A9 the status line shows markup in the refused text as text; A10 a long text is quoted
+//    around the character; a literal _xHHHH_ is named by the character a spreadsheet reads it as (A4, A10). B3 the deck quotes
+//    the text, not its markup. C: an RCN / EEIC title holding U+0001, which exportExcel writes only in styled cells; a refusal
+//    is taken down when a workbook is made after it (the Excel export says nothing of its own), the chart image's too, while
+//    a line said after it stays and the deck says its own word; a cycle locked while the Plan Event held U+000B keeps it, so
+//    the FYDP spend plan taken from it is refused after the working plan is retyped, and the words say a locked cycle keeps
+//    its text; U+FFFF in a saved prime-match token and in a saved OGC category name, carried in a board file (ledger U46).
+//    E2: no page error on the boards the review added.
+// REVIEW ROUND 2 (14 Oct): A4c a literal _xHHHH_ spelled with upper-case hex; A11 a style's fill colour and number format,
+//    which go into xl/styles.xml outside every cell and sheet name (a colour that is not six hex digits, U+000B in it or a
+//    quote, and a format holding U+0001, each refused; CONTROL: a colour with its # and in lower case, a source format with
+//    quotes, no fill, the default fill); C: a band colour holding U+000B, U+FFFF or a quote, carried in a board file, reaches
+//    the Priority drill's xl/styles.xml as its banner fill -- refused, the band and the colour named (CONTROL: the file as saved).
+// REVIEW ROUND 3 (14 Oct): A11b a fill colour is six hex digits from its first character to its last -- a character before
+//    the six (U+000B, a quote) and a colour of three or of eight hex digits are refused too, as the drafts say; C: a
+//    sub-band's colour is named by the sub-band's label (0a), not by its place in the ladder.
+//    C (the builder, money review S2): a band's colour has no field on the board, so its refusal says so and names what can
+//    be done, with what each way costs -- and each way, done, makes the drill: for a standard band, ⚙ Install standard puts
+//    its colour back; for any band, ⬆ Import ladder takes a corrected ladder file, drops the sub-band filing and cuts a long
+//    name and description, as the words say.
+// REVIEW ROUND 4 (14 Oct, money review): ⚙ Install standard puts every standard band back at the top of the ladder in the
+//    standard order, filed under nothing, a removed one included, with both its ticks as issued -- the words say so, and a
+//    standard sub-band (0a) and a reordered ladder are each put back as they say.
+// REVIEW ROUND 4 (18 Oct, tests review): C: "This is a standard band" is said of a band ⚙ Install standard puts back -- its
+//    id is the standard's -- and of no other, whatever its place, its header, its name or a file's mark; and the words name
+//    the button as the panel shows it (0–3 when a standard band is a sub-band).
+// FIX ROUND 4 (18 Oct, the builder, money review r4 S2): a sub-band that loses its filing -- ⚙ Install standard's or ⬆ Import
+//    ladder's -- takes its money out of its header's total, and both sentences say so; done, each way leaves no total row for
+//    a header whose sub-band it un-filed, in the drill or its Summary.
+// REVIEW ROUND 5 (18 Oct, money review): two bands holding a refused colour -- a sub-band of the office's own that took band
+//    0's colour -- are both named, ⚙ Install standard is not offered (it would leave the sub-band refused), and the import's
+//    file with each colour corrected makes the drill; two standard bands so refused are both named and Install standard clears them.
+// REVIEW ROUND 5 (18 Oct, tests review): A12 text that reads as a number is checked as text -- "2027" with U+000B after it,
+//    U+000C before "12", a lone U+000B (JavaScript reads both as white space, so a test for a number lets them through); C: a
+//    funds-flow destination named 2027<U+000B>, which the destinations list keeps as typed -- exportFlow refused, the place named.
+// FIX ROUND 5 (18 Oct, the builder, tests review r5 minor 2): A11c a fill colour with a # inside its digits (#1B#2A#4A) is
+//    refused -- the check strips the first # only, as the writer does, so what it passes is what the writer writes.
+// FIX ROUND 5 (18 Oct, the builder): C: in a locked cycle's view a refused band colour's words say nothing done there is kept
+//    and where to do it (⚙ Install standard or ⬆ Import ladder done in the view leaves the colour refused); on the working plan
+//    they do not; done there, the view's drill is made.
+// REVIEW ROUND 6 (18 Oct, tests review): C: three bands holding a refused colour -- band 0 and band 1 (standard) and band 6
+//    (the office's own) -- both others named, in the plural, and ⚙ Install standard not offered; the band named first the
+//    office's own and the other standard -- Install standard not offered; two bands so refused in a locked cycle's view -- both
+//    named, and the view's sentence after them.
+// REVIEW ROUND 7 (18 Oct, tests review): B4 the deck refuses U+FFFF, and C the chart image does, as the workbook does (A1 runs
+//    every character through the workbook only); C a cell past column Z is named by its two letters (an RCN code holding U+000B,
+//    O&M Raw Data AB2); A13 CONTROL the C1 controls U+007F-U+009F, which XML 1.0 allows, are written and read back.
+// FAILS ON 7ee498a (product d66dd60): every A, B and C check but the CONTROLs, and every D refusal (each route writes its file).
+await (async () => {
+  const name = 'v2.00 (U37) — no export writes a character XML 1.0 forbids; it is refused before a byte, and says where';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify, VT = String.fromCharCode(11), SOH = String.fromCharCode(1);
+    // In the board: run one call, counting the writer's zip, the Blobs and the downloads, keeping what was alerted, the status
+    // line, the first Blob's bytes, and whether MS, S, DIRTY or browser storage changed.
+    const HELP = `window.__u37=function(call){
+      var zips=0, blobs=0, dl=0, msg='', cap=null, oz=_zipStore, ob=window.Blob, oa=window.alert, oc=HTMLAnchorElement.prototype.click, ret, err='';
+      var snap=function(){ return JSON.stringify([MS, S, DIRTY, Object.keys(localStorage).sort().map(function(k){ return [k, localStorage.getItem(k)]; })]); };
+      _zipStore=function(f){ zips++; return oz(f); };
+      window.Blob=function(p,o){ blobs++; if(!cap && p && p[0] && p[0].byteLength) cap=p[0]; return new ob(p,o); };
+      window.alert=function(m){ msg+=String(m); }; HTMLAnchorElement.prototype.click=function(){ dl++; };
+      var st0=snap();
+      try{ ret=(0,eval)(call); }catch(e){ err='threw '+String((e&&e.message)||e); }
+      finally{ _zipStore=oz; window.Blob=ob; window.alert=oa; HTMLAnchorElement.prototype.click=oc; }
+      return {zips:zips, blobs:blobs, dl:dl, msg:msg, err:err, ret:ret, cap:cap, same:snap()===st0, stat:(document.getElementById('shareStat')||{}).textContent||''}; };
+    window.__u37parts=function(b){
+      var u=new Uint8Array(b.buffer? b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength) : b), dv=new DataView(u.buffer), at=0, td=new TextDecoder(), P={}, bad=[];
+      while(at+30<=u.length && dv.getUint32(at,true)===0x04034b50){
+        var sz=dv.getUint32(at+18,true), nl=dv.getUint16(at+26,true), xl=dv.getUint16(at+28,true);
+        var k=td.decode(u.subarray(at+30,at+30+nl)), t=td.decode(u.subarray(at+30+nl+xl,at+30+nl+xl+sz)); P[k]=t;
+        if(/\\.(xml|rels)$/.test(k) && new DOMParser().parseFromString(t,'application/xml').getElementsByTagName('parsererror').length) bad.push(k);
+        at+=30+nl+xl+sz; }
+      return {n:Object.keys(P).length, bad:bad, P:P}; }; 'ok'`;
+    const typed = (Y, id, v) => JSON.parse(Y.ev(`(function(){ var _p=uiPrompt; uiPrompt=function(q,d,cb){ if(/^Plan Event/.test(q)) cb(${J(v)}); };
+      try{ editTitle(${J(id)}); } finally { uiPrompt=_p; } save(); return JSON.stringify((S.titles||{})[${J(id)}]); })()`));
+    const X = boot();
+    seed(X.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
+    X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); S.mc={R1:true}; save(); 'ok'`);
+    X.ev(HELP);
+    // the writer called directly: was a workbook made, did it reach the zip, what was said, did anything change
+    // (round 2) the writer called with a style list too: the same, and xl/styles.xml as written
+    // (round 3) fills: the fgColors after the first three, which are the writer's own (_STYLES_HEAD's) -- the styles' own fills
+    const writeS = (sheets, extra) => JSON.parse(X.ev(`(function(){ window.__in=${J(sheets)}; window.__ex=${J(extra)};
+      var r=__u37('buildXlsx(window.__in, window.__ex)'), q=r.ret? __u37parts(r.ret) : null;
+      return JSON.stringify({made:!!r.ret, zips:r.zips, msg:r.msg, err:r.err, same:r.same, bad:q? q.bad : null, n:q? q.n : 0,
+        fills:q? (q.P['xl/styles.xml'].match(/<fgColor rgb="[^"]*"/g)||[]).slice(3) : null}); })()`));
+    const write = sheets => JSON.parse(X.ev(`(function(){ window.__in=${J(sheets)}; var r=__u37('buildXlsx(window.__in)'), q=r.ret? __u37parts(r.ret) : null;
+      return JSON.stringify({made:!!r.ret, zips:r.zips, msg:r.msg, stat:r.stat, err:r.err, same:r.same, bad:q? q.bad : null, n:q? q.n : 0}); })()`));
+
+    // ---- A. THE WRITER ----
+    const UNITS = ['0000', '0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '000B', '000C', '000E', '000F', '0010', '0011',
+      '0012', '0013', '0014', '0015', '0016', '0017', '0018', '0019', '001A', '001B', '001C', '001D', '001E', '001F', 'FFFE', 'FFFF'];
+    for (const h of UNITS) {
+      const r = write([{ name: 'U37', rows: [[900, 'a' + String.fromCharCode(parseInt(h, 16)) + 'b']] }]);
+      w5Chk(name, 'A1 · U+' + h + ' in a cell', 'no workbook, nothing built (the zip never reached); the sheet, the cell and the character named; nothing changed',
+        J([r.made, r.zips, r.msg.indexOf('Excel workbook not exported: sheet “U37”, cell B1 holds character U+' + h + ', which ORBIT cannot write into a workbook without damaging it. It reads “a[U+' + h + ']b”.') === 0, r.same, r.err]),
+        J([false, 0, true, true, '']));
+    }
+    const A2 = write([{ name: 'U37', rows: [[900, 'Plan' + VT + 'event']] }]);
+    w5Chk(name, 'A2 · the words', 'the alert and the status line say what was refused, where, the text, and that nothing was made or changed',
+      J([A2.msg, A2.stat]),
+      J(['Excel workbook not exported: sheet “U37”, cell B1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”. No file was made, and the text on the board is unchanged. Change that text where it was entered — on the board, or in the file it was imported from — and export again. A locked cycle keeps the text it was locked with: a file taken from one that holds it stays refused.',
+        '⚠ Excel workbook not exported — sheet “U37”, cell B1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”. No file was made; the text on the board is unchanged.']));
+    const A3 = write([{ name: 'Fine', rows: [['x']] }, { name: 'Dest' + VT, rows: [['y']] }]);
+    w5Chk(name, 'A3 · a sheet name', 'the second sheet named Dest<U+000B>: no workbook, nothing built; the name of sheet 2 and the character named',
+      J([A3.made, A3.zips, A3.msg.split('. No file was made')[0]]),
+      J([false, 0, 'Excel workbook not exported: the name of sheet 2 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Dest[U+000B]”']));
+    const A3b = write([{ name: 'N'.repeat(31) + VT, rows: [['x']] }]);
+    w5Chk(name, 'A3b · CONTROL a sheet name whose character lies past the 31 written', 'the name is written cut to its first 31 letters, without it: made, one zip, nothing said, every part parses',
+      J([A3b.made, A3b.zips, A3b.msg, A3b.bad, A3b.n]), J([true, 1, '', [], 6]));
+    const A4 = write([{ name: 'U37', rows: [['_x0041_ is A']] }]), A4b = write([{ name: 'T _x00e9_', rows: [['x']] }]);
+    w5Chk(name, 'A4 · a literal _xHHHH_', 'in a cell and in a sheet name (lower-case hex too): no workbook, nothing built; the text named, and why',
+      J([A4.made, A4.zips, A4.msg.split('. No file was made')[0], A4b.made, A4b.zips, A4b.msg.split('. No file was made')[0]]),
+      J([false, 0, 'Excel workbook not exported: sheet “U37”, cell A1 holds the text _x0041_, which a spreadsheet would read as the single character U+0041. It reads “_x0041_ is A”',
+        false, 0, 'Excel workbook not exported: the name of sheet 1 holds the text _x00e9_, which a spreadsheet would read as the single character U+00E9. It reads “T _x00e9_”']));
+    // A4c (verify-tests r2): a literal _xHHHH_ spelled with upper-case hex letters is read by a spreadsheet as the character
+    // too (LibreOffice shows _x000B_ as U+000B and _x00E9_ as é), so it is refused as the lower-case one is
+    const A4c = write([{ name: 'U37', rows: [['_x000B_ and _x00E9_']] }]);
+    w5Chk(name, 'A4c · a literal _xHHHH_ with upper-case hex', 'no workbook, nothing built; the text named, and the character a spreadsheet reads it as',
+      J([A4c.made, A4c.zips, A4c.msg.split('. No file was made')[0]]),
+      J([false, 0, 'Excel workbook not exported: sheet “U37”, cell A1 holds the text _x000B_, which a spreadsheet would read as the single character U+000B. It reads “_x000B_ and _x00E9_”']));
+    const A5 = write([{ name: 'U37', rows: [['_X0041_', '_x41_', '_x0041', 'x0041_', '_x005F']] }]);
+    w5Chk(name, 'A5 · CONTROL escape-like text read as written', 'made, one zip, nothing said, every part parses',
+      J([A5.made, A5.zips, A5.msg, A5.bad, A5.n]), J([true, 1, '', [], 6]));
+    const HALF = String.fromCharCode(0xD83D), REP = String.fromCharCode(0xFFFD), ROCKET = String.fromCodePoint(0x1F680);
+    const A6 = write([{ name: 'U37', rows: [[900, 'O&M <b> "q" é — ' + ROCKET, 'tab\there', 'line\ntwo', 'half ' + HALF + ' end'], [200, 1100]] }]);
+    const A6r = JSON.parse(await X.w.eval(`(async function(){ var b=buildXlsx(window.__in); if(!b) return JSON.stringify('no workbook'); return JSON.stringify((await xlsxRead(b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength))).U37); })()`));
+    w5Chk(name, 'A6 · CONTROL ordinary text', 'made, one zip, nothing said, every part parses; the board reads back the text and $900 / $200 / $1,100 (half an emoji as U+FFFD)',
+      J([A6.made, A6.zips, A6.msg, A6.bad, A6.n, A6r]),
+      J([true, 1, '', [], 6, [[900, 'O&M <b> "q" é — ' + ROCKET, 'tab\there', 'line\ntwo', 'half ' + REP + ' end'], [200, 1100]]]));
+    const A7 = write([{ name: 'U37', rows: [['carriage\rreturn']] }]);
+    w5Chk(name, 'A7 · CONTROL a carriage return', 'XML allows it, so it is not refused: made, one zip, nothing said, every part parses',
+      J([A7.made, A7.zips, A7.msg, A7.bad, A7.n]), J([true, 1, '', [], 6]));
+    // A12 (verify-tests r5): text that reads as a number is still text. "2027" with U+000B after it, U+000C before "12" and a lone
+    // U+000B each read as a number to JavaScript, which takes U+000B and U+000C for white space -- the cell is checked as the text it is
+    const FF = String.fromCharCode(12);
+    const A12a = write([{ name: 'U37', rows: [['2027' + VT]] }]), A12b = write([{ name: 'U37', rows: [[900, FF + '12']] }]), A12c = write([{ name: 'U37', rows: [[VT]] }]);
+    w5Chk(name, 'A12 · text that reads as a number, holding U+000B or U+000C', 'each refused: no workbook, nothing built, the cell and the character named, nothing changed',
+      J([A12a.made, A12a.zips, A12a.msg.split('. No file was made')[0], A12a.same, A12b.made, A12b.zips, A12b.msg.split('. No file was made')[0], A12b.same,
+        A12c.made, A12c.zips, A12c.msg.split('. No file was made')[0], A12c.same, [A12a.err, A12b.err, A12c.err]]),
+      J([false, 0, 'Excel workbook not exported: sheet “U37”, cell A1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “2027[U+000B]”', true,
+        false, 0, 'Excel workbook not exported: sheet “U37”, cell B1 holds character U+000C, which ORBIT cannot write into a workbook without damaging it. It reads “[U+000C]12”', true,
+        false, 0, 'Excel workbook not exported: sheet “U37”, cell A1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “[U+000B]”', true,
+        ['', '', '']]));
+
+    // A8-A10 (review): a STYLED cell ({v, s}) is checked as a plain one is -- the workbook writes a person's text that way too
+    // (exportExcel's RCN-EEIC by Month titles); the 31st character of a sheet name, the last one written; the status line
+    // shows the refused text as text, never as markup; a long text is quoted around the character, not from its start.
+    const A8 = write([{ name: 'U37', rows: [[{ v: 'a' + VT + 'b', s: 1 }]] }]);
+    w5Chk(name, 'A8 · a styled cell', 'a cell written with its style is checked as a plain one is: no workbook, nothing built; the cell named',
+      J([A8.made, A8.zips, A8.msg.split('. No file was made')[0]]),
+      J([false, 0, 'Excel workbook not exported: sheet “U37”, cell A1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “a[U+000B]b”']));
+    const A3c = write([{ name: 'NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN' + VT + 'tail', rows: [['x']] }]);
+    w5Chk(name, 'A3c · a sheet name whose 31st character, the last one written, is U+000B', 'no workbook, nothing built; the name of sheet 1 named',
+      J([A3c.made, A3c.zips, A3c.msg.split('. No file was made')[0]]),
+      J([false, 0, 'Excel workbook not exported: the name of sheet 1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “NNNNNNNNNNNNNNNNNNNNNNNNNNNNNN[U+000B]”']));
+    const A9 = write([{ name: 'U37', rows: [['<i id="u37inj">x</i>' + VT]] }]);
+    w5Chk(name, 'A9 · the status line shows markup in the refused text as text', 'the text is quoted as typed, angle brackets and all; nothing in it becomes part of the page',
+      J([A9.stat]),
+      J(['⚠ Excel workbook not exported — sheet “U37”, cell A1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “<i id="u37inj">x</i>[U+000B]”. No file was made; the text on the board is unchanged.']));
+    const A10 = write([{ name: 'U37', rows: [['AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' + VT + 'tail']] }]),
+      A10b = write([{ name: 'U37', rows: [['AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_x0041_ tail']] }]);
+    w5Chk(name, 'A10 · a long text is quoted around the character', '120 letters before it: the quote starts 30 letters before the character (or the _xHHHH_) and shows it',
+      J([A10.msg.split('. No file was made')[0], A10b.msg.split('. No file was made')[0]]),
+      J(['Excel workbook not exported: sheet “U37”, cell A1 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “…AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA[U+000B]tail”',
+        'Excel workbook not exported: sheet “U37”, cell A1 holds the text _x0041_, which a spreadsheet would read as the single character U+0041. It reads “…AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA_x0041_ tail”']));
+
+    // A11 (round 2): a style's fill colour and number format go into xl/styles.xml, outside every cell and sheet name, the
+    // colour unescaped. A colour that is not six hex digits -- U+000B in it, or a quote -- and a format holding U+0001 are
+    // refused, nothing built, the colour or the format named. CONTROL: a colour with its # and one in lower case, a source
+    // format with quotes, a format-only style, the default fill: made, every part parses, the fills written as RRGGBB.
+    const A11rows = [{ name: 'U37', rows: [['x']] }];
+    const A11a = writeS(A11rows, [{ fill: '1B2A4A' + VT, white: true, bold: true }]), A11b = writeS(A11rows, [{ fill: '1B2A4A"' }]),
+      A11c = writeS(A11rows, [{ fill: false, fmt: '#,##0' + SOH }]),
+      A11d = writeS(A11rows, [{ fill: '#1B2A4A', white: true, bold: true }, { fill: '8892a4' }, { fill: false, fmt: '"$"#,##0.00_);\\("$"#,##0.00\\)' }, { fill: false }, {}]);
+    w5Chk(name, 'A11 · a style\'s fill colour and number format', 'a colour holding U+000B, a colour holding a quote, a format holding U+0001: no workbook, nothing built, the colour or the format named, nothing changed; CONTROL a colour with its # and in lower case, a source format, no fill, the default fill: made, every part parses, the fills written as RRGGBB',
+      J([A11a.made, A11a.zips, A11a.msg.split('. No file was made')[0], A11a.same, A11b.made, A11b.zips, A11b.msg.split('. No file was made')[0], A11b.same,
+        A11c.made, A11c.zips, A11c.msg.split('. No file was made')[0], A11c.same, A11d.made, A11d.zips, A11d.msg, A11d.bad, A11d.fills, [A11a.err, A11b.err, A11c.err, A11d.err]]),
+      J([false, 0, 'Excel workbook not exported: a cell fill colour holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “1B2A4A[U+000B]”', true,
+        false, 0, 'Excel workbook not exported: a cell fill colour is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “1B2A4A"”', true,
+        false, 0, 'Excel workbook not exported: a number format holds character U+0001, which ORBIT cannot write into a workbook without damaging it. It reads “#,##0[U+0001]”', true,
+        true, 1, '', [], ['<fgColor rgb="FF1B2A4A"', '<fgColor rgb="FF8892A4"', '<fgColor rgb="FFD9DDE5"'], ['', '', '', '']]));
+
+    // A11b (verify-tests r3): the six hex digits run from the colour's first character to its last. A character before them
+    // (U+000B, a quote) is refused as one after them is, and so is a colour of three or of eight hex digits -- forms the
+    // board's import door accepts (#RGB to #RRGGBBAA) and the base wrote as given (FFABC), which a workbook cannot read
+    const A11e = writeS(A11rows, [{ fill: VT + '1B2A4A' }]), A11f = writeS(A11rows, [{ fill: '"1B2A4A' }]),
+      A11g = writeS(A11rows, [{ fill: '#abc' }]), A11h = writeS(A11rows, [{ fill: 'FF1B2A4A' }]);
+    w5Chk(name, 'A11b · a fill colour with the character before its six digits, and one of three or eight hex digits', 'each refused: no workbook, nothing built, the colour named, nothing changed',
+      J([A11e.made, A11e.zips, A11e.msg.split('. No file was made')[0], A11e.same, A11f.made, A11f.zips, A11f.msg.split('. No file was made')[0], A11f.same,
+        A11g.made, A11g.zips, A11g.msg.split('. No file was made')[0], A11g.same, A11h.made, A11h.zips, A11h.msg.split('. No file was made')[0], A11h.same,
+        [A11e.err, A11f.err, A11g.err, A11h.err]]),
+      J([false, 0, 'Excel workbook not exported: a cell fill colour holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “[U+000B]1B2A4A”', true,
+        false, 0, 'Excel workbook not exported: a cell fill colour is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “"1B2A4A”', true,
+        false, 0, 'Excel workbook not exported: a cell fill colour is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “#abc”', true,
+        false, 0, 'Excel workbook not exported: a cell fill colour is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “FF1B2A4A”', true,
+        ['', '', '', '']]));
+    // A11c (fix round 5): the check strips the colour's first # only, as the writer does (it writes FF and the rest). A colour
+    // with a # inside its digits -- a band's colour from a board file can be one -- is refused as not six hex digits, not passed
+    // by a check that strips every # and then written as FF1B#2A#4A, which is not #RRGGBB either
+    const A11i = writeS(A11rows, [{ fill: '#1B#2A#4A' }]);
+    w5Chk(name, 'A11c · a fill colour with a # inside its digits', 'refused: no workbook, nothing built, the colour named as it reads, nothing changed',
+      J([A11i.made, A11i.zips, A11i.msg.split('. No file was made')[0], A11i.same, A11i.fills, A11i.err]),
+      J([false, 0, 'Excel workbook not exported: a cell fill colour is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “#1B#2A#4A”', true, null, '']));
+
+    // ---- B. THE DECK ----
+    const deck = () => JSON.parse(X.ev(`(function(){ var r=__u37('exportPPT()'), q=r.cap? __u37parts(r.cap) : null;
+      return JSON.stringify({zips:r.zips, blobs:r.blobs, dl:r.dl, msg:r.msg, stat:r.stat, same:r.same, err:r.err, title:(S.titles||{}).R1,
+        bad:q? q.bad : null, s5:q? q.P['ppt/slides/slide5.xml'] : ''}); })()`));
+    const t1 = typed(X, 'R1', 'Plan' + VT + 'event'), B1 = deck();
+    w5Chk(name, 'B1 · the deck, a Mission Critical Plan Event holding U+000B', 'typed through the pen as is; no deck (nothing built, no Blob, no download); slide 5, its title and the text named; nothing changed, the Plan Event as typed',
+      J([t1, B1.zips, B1.blobs, B1.dl, B1.msg, B1.stat, B1.same, B1.title, B1.err]),
+      J(['Plan' + VT + 'event', 0, 0, 0,
+        'PowerPoint deck not exported: slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+000B, which ORBIT cannot write into a deck without damaging it, in the text “Plan[U+000B]event”. No file was made, and the text on the board is unchanged. Change that text where it was entered — on the board, or in the file it was imported from — and export again. A locked cycle keeps the text it was locked with: a file taken from one that holds it stays refused.',
+        '⚠ PowerPoint deck not exported — slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+000B, which ORBIT cannot write into a deck without damaging it, in the text “Plan[U+000B]event”. No file was made; the text on the board is unchanged.',
+        true, 'Plan' + VT + 'event', '']));
+
+    // ---- C. WHERE A PERSON MEETS IT ----
+    X.ev(`MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:${J('bad' + SOH + 'char')}, svc:['USAF','ANG','AFRC']}]; S.rcnAsg={R1:'K1'}; save(); 'ok'`);
+    const route = (Y, call) => JSON.parse(Y.ev(`(function(){ var r=__u37(${J(call)});
+      return JSON.stringify({zips:r.zips, blobs:r.blobs, dl:r.dl, msg:r.msg.split('. No file was made')[0], same:r.same, err:r.err, ret:r.ret===undefined? 'none' : r.ret}); })()`));
+    for (const [fn, place] of [['exportExcel()', 'sheet “Decision Bands”, cell H18'], ['exportCSV()', 'sheet “1-N by Band”, cell E5'], ['exportSrc()', 'sheet “O&M Raw Data”, cell D2']]) {
+      const r = route(X, fn);
+      w5Chk(name, 'C · ' + fn + ', the Plan Event Plan<U+000B>event', 'nothing built, no Blob, no download; the place the base wrote it named, with the text; nothing changed',
+        J([r.zips, r.blobs, r.dl, r.msg, r.same, r.err]),
+        J([0, 0, 0, 'Excel workbook not exported: ' + place + ' holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”', true, '']));
+    }
+    X.ev(`flowAddEnt(); var ix=flowEnts().length-1; flowSetEnt(ix,'n',${J('Ctl' + VT)}); flowSetAxis('dest'); flowHtml(); 'ok'`);
+    const C4 = route(X, 'exportFlow()');
+    w5Chk(name, 'C · exportFlow(), a destination named Ctl<U+000B>', 'nothing built, no Blob, no download; the place the base wrote it named, with the text; nothing changed',
+      J([C4.zips, C4.blobs, C4.dl, C4.msg, C4.same, C4.err]),
+      J([0, 0, 0, 'Excel workbook not exported: sheet “Funds Flow”, cell A40 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Ctl[U+000B]”', true, '']));
+    // the funds-flow chart, its panel open, draws that destination; Save as image reads the drawing back as an XML image
+    X.ev(`if(!flowOpen) toggleFlow(); 'ok'`);
+    const C7 = route(X, 'flowPng()'), drawn = X.ev(`String(((document.getElementById('flowSvg')||{}).outerHTML||'').indexOf(${J('Ctl' + VT)})>=0)`);
+    X.ev(`if(flowOpen) toggleFlow(); 'ok'`);
+    w5Chk(name, 'C · flowPng(), the funds-flow chart drawing Ctl<U+000B>', 'the chart draws the name as typed; Save as image refused before the drawing\'s Blob, the text named; nothing changed',
+      J([drawn, C7.blobs, C7.dl, C7.msg, C7.same, C7.err]),
+      J(['true', 0, 0, 'Chart image not exported: the chart holds character U+000B, which ORBIT cannot draw into an image, in the text “Ctl[U+000B]”', true, '']));
+    // the IDS export, set up as audit-other's v1.92 block sets it up; H has no CCaR record, so it is listed as not uploaded
+    const XI = boot();
+    const mkI = (id, ask, ccar) => ({ id, grp: 'AV', team: 'AV', sect: '', custom: false, title: id + ' title', event: id + ' event', ccar, fy26: ask.map(() => 0), ask, alloc: null });
+    seed(XI.ev, { services: ['USAF', 'ANG', 'STOVL'], items: [mkI('A', [100, 50, 0], 'JSF1'), mkI('H', [10, 0, 0], '')], disc: [120, 30, 10], mand: [60, 40, 0], order: ['A', 'H'] });
+    XI.ev(`MS.ccarIdx={rows:{JSF1:{t:'Record 1', o:'OPR', p:'AV', d:1, k:'1001'}}};
+      BUDDB={ts:1700000000031, files:[], rows:${J(['USAF O&M- CAM Discretionary AV', 'USAF O&M - CAM OBBBA Mandatory AV', 'USAF O&M - ANG CAM Discretionary AV', 'USAF O&M - ANG CAM OBBBA Mandatory AV'])}.map(budParseName).filter(Boolean)};
+      _budRegCache=null; S.budgetAsg={}; S.ccar={}; MS.ids={org:21}; save(); render(); 'ok'`);
+    XI.ev(HELP);
+    const FORM = org => J({ reason: 'FY27 baseline from the SFCB', action: 'Add', fid: '20260921-1346', fidOk: true, org, orgOk: true });
+    typed(XI, 'H', 'Plan' + VT + 'event');
+    const C5 = route(XI, `exportIdsReq(${FORM('44')})`);
+    w5Chk(name, 'C · exportIdsReq(), a Plan Event not uploaded, a new ORG 44 typed', 'refused (false); nothing built, no Blob, no download; the place the base wrote it named; nothing changed -- ORG 21 kept',
+      J([C5.ret, C5.zips, C5.blobs, C5.dl, C5.msg, C5.same, C5.err, XI.ev('JSON.stringify(MS.ids)')]),
+      J([false, 0, 0, 0, 'Excel workbook not exported: sheet “Missing data and anomalies”, cell C24 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”', true, '', J({ org: 21 })]));
+    // the IDS box open, as a person uses it: the first try, with no reason, is refused by the prompt and the box says so; the
+    // reason given, the second try is refused here -- and the box no longer gives the missing reason as the reason
+    XI.ev(`toggleIds(); idsForm.reason=''; idsForm.action='Add'; idsForm.fid='20260921-1346'; idsForm.fidOk=true; idsForm.org='21'; idsForm.orgOk=true; 'ok'`);
+    const idsBox = () => XI.ev(`(document.getElementById('idsBody')||{}).textContent||''`);
+    const C6a = route(XI, 'exportIdsReq()'), b6a = idsBox();
+    XI.ev(`idsForm.reason='FY27 baseline from the SFCB'; 'ok'`);
+    const C6b = route(XI, 'exportIdsReq()'), b6b = idsBox();
+    XI.ev(`toggleIds(); 'ok'`);
+    w5Chk(name, 'C · exportIdsReq() from the open IDS box, the reason given on the second try', 'the first try refused by the prompt, and the box says so; the second refused here -- nothing built, no Blob, no download, the place named -- and the box no longer gives the missing reason as the reason; nothing changed, ORG 21 kept',
+      J([C6a.ret, C6a.zips, /Not made yet\..*give the reason for this export/.test(b6a), C6b.ret, C6b.zips, C6b.blobs, C6b.dl, C6b.msg, /Not made yet|give the reason/.test(b6b), C6b.same, C6b.err, XI.ev('JSON.stringify(MS.ids)')]),
+      J([false, 0, true, false, 0, 0, 0, 'Excel workbook not exported: sheet “Missing data and anomalies”, cell C24 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”', false, true, '', J({ org: 21 })]));
+
+    // ---- B2. CONTROL: the deck carries escape-like text as typed ----
+    typed(X, 'R1', '_x0041_ deck');
+    const B2 = deck();
+    w5Chk(name, 'B2 · CONTROL the deck, a Plan Event _x0041_ deck', 'made (one zip, one Blob, one download), nothing said, every part parses, slide 5 carries it as typed',
+      J([B2.zips, B2.blobs, B2.dl, B2.msg, B2.bad, B2.s5.indexOf('<a:t>_x0041_ deck</a:t>') >= 0]), J([1, 1, 1, '', [], true]));
+
+    // B3 (review): the deck quotes the text, not its markup (R&D, never R&amp;D)
+    typed(X, 'R1', 'R&D' + VT + 'event');
+    const B3 = deck();
+    w5Chk(name, 'B3 · the deck, a Plan Event R&D<U+000B>event', 'no deck; the text quoted as typed, not as the slide\'s markup',
+      J([B3.zips, B3.blobs, B3.msg.split('. No file was made')[0]]),
+      J([0, 0, 'PowerPoint deck not exported: slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+000B, which ORBIT cannot write into a deck without damaging it, in the text “R&D[U+000B]event”']));
+    // C8 (review): an RCN / EEIC title holding U+0001 with the Plan Event ordinary -- exportExcel writes that title only in
+    // styled cells of RCN-EEIC by Month; the base wrote it at A5 (read off its own file)
+    typed(X, 'R1', 'Plan event');
+    const C8 = route(X, 'exportExcel()');
+    w5Chk(name, 'C · exportExcel(), an RCN / EEIC title holding U+0001 (a styled cell)', 'nothing built, no Blob, no download; the place the base wrote it named, with the text; nothing changed',
+      J([C8.zips, C8.blobs, C8.dl, C8.msg, C8.same, C8.err]),
+      J([0, 0, 0, 'Excel workbook not exported: sheet “RCN-EEIC by Month”, cell A5 holds character U+0001, which ORBIT cannot write into a workbook without damaging it. It reads “11111 / AAAAA  bad[U+0001]char”', true, '']));
+
+    // ---- C (review round 1). THE WORDS ONCE THE PERSON ACTS ON THEM ----
+    // A refusal stood on the status line after the next workbook was made, still saying no file was made: the Excel export
+    // and the ATR/BTR log say nothing of their own. Refused, the title retyped through the board's own field, exported again:
+    // the workbook is made and the refusal is gone. The chart image's refusal goes when a workbook is made; a line said after
+    // a refusal stays; the deck says its own word when it is made.
+    const shown = Y => Y.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+    const C9a = route(X, 'exportExcel()'), s9a = shown(X);
+    X.ev(`rcnSet(0, 't', 'good char'); 'ok'`);
+    const C9b = route(X, 'exportExcel()'), s9b = shown(X);
+    w5Chk(name, 'C · exportExcel() refused, the RCN / EEIC title retyped, exported again', 'the refusal said on the status line; retyped through the board\'s own field, the workbook is made and the status line no longer says it was not',
+      J([C9a.zips, s9a, C9b.zips, C9b.blobs, C9b.dl, C9b.msg, s9b, C9b.err]),
+      J([0, '⚠ Excel workbook not exported — sheet “RCN-EEIC by Month”, cell A5 holds character U+0001, which ORBIT cannot write into a workbook without damaging it. It reads “11111 / AAAAA  bad[U+0001]char”. No file was made; the text on the board is unchanged.', 1, 1, 1, '', '', '']));
+    X.ev(`if(!flowOpen) toggleFlow(); 'ok'`);
+    const C10a = route(X, 'flowPng()'), s10a = shown(X);
+    X.ev(`if(flowOpen) toggleFlow(); 'ok'`);
+    const C10b = route(X, 'exportExcel()'), s10b = shown(X);
+    w5Chk(name, 'C · the chart image refused, then the Excel export made', 'the chart image\'s refusal stands until a workbook is made, and then it is gone',
+      J([C10a.blobs, s10a, C10b.zips, C10b.dl, s10b]),
+      J([0, '⚠ Chart image not exported — the chart holds character U+000B, which ORBIT cannot draw into an image, in the text “Ctl[U+000B]”. No file was made; the text on the board is unchanged.', 1, 1, '']));
+    const C11a = route(X, 'exportFlow()');
+    X.ev(`setStat('U37-LATER'); 'ok'`);
+    const C11b = route(X, 'exportExcel()'), s11b = shown(X);
+    w5Chk(name, 'C · a refusal, a line said after it, then the Excel export made', 'only the refusal is taken down: the line said after it stays',
+      J([C11a.zips, C11a.msg, C11b.zips, C11b.dl, s11b]),
+      J([0, 'Excel workbook not exported: sheet “Funds Flow”, cell A40 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Ctl[U+000B]”', 1, 1, 'U37-LATER']));
+    typed(X, 'R1', 'Plan' + VT + 'event');
+    const C12a = deck();
+    typed(X, 'R1', 'Plan event');
+    const C12b = deck();
+    w5Chk(name, 'C · the deck refused, the Plan Event retyped, the deck made', 'the deck says its own word when it is made, so the refusal does not stand after it',
+      J([C12a.zips, C12b.zips, C12b.dl, C12b.stat]),
+      J([0, 1, 1, '📽 PowerPoint deck downloaded — built inside the SFWG/SFCB Membership template (its actual master, layouts, and markings).']));
+    // (verify-tests r5) a funds-flow destination named 2027<U+000B> -- a code with the character an ordinary paste keeps -- through
+    // the destinations list's own setter, which keeps the name as typed. exportFlow is refused, the place named (Funds Flow A40,
+    // where the base wrote it, read off its own file), nothing built, no Blob, no download, nothing changed.
+    const XN = boot();
+    seed(XN.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
+    XN.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); S.mc={R1:true}; save(); 'ok'`);
+    XN.ev(HELP);
+    XN.ev(`flowAddEnt(); var ix=flowEnts().length-1; flowSetEnt(ix,'n',${J('2027' + VT)}); flowSetAxis('dest'); flowHtml(); 'ok'`);
+    const C13n = JSON.parse(XN.ev('JSON.stringify(flowEnts()[flowEnts().length-1].n)')), C13 = route(XN, 'exportFlow()');
+    w5Chk(name, 'C · exportFlow(), a destination named 2027<U+000B>', 'the name kept as typed; nothing built, no Blob, no download; the place the base wrote it named, with the text; nothing changed',
+      J([C13n, C13.zips, C13.blobs, C13.dl, C13.msg, C13.same, C13.err, XN.errors.length]),
+      J(['2027' + VT, 0, 0, 0, 'Excel workbook not exported: sheet “Funds Flow”, cell A40 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “2027[U+000B]”', true, '', 0]));
+    // A cycle locked while the Plan Event held U+000B keeps it. The working plan retyped, its own workbook is made; the FYDP
+    // spend plan taken from the cycle is still refused (By Requirement B7, where the base wrote it), and so is the Excel
+    // export in the cycle's view, where the text cannot be changed -- and the words say that a locked cycle keeps its text.
+    const XL = boot();
+    seed(XL.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0]), it('R2', 'PSM', [300, 0, 50])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1', 'R2'] });
+    XL.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); S.mc={R1:true}; save(); 'ok'`);
+    XL.ev(HELP);
+    typed(XL, 'R1', 'Plan' + VT + 'event');
+    const cyc = XL.ev(`MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); Object.keys(blStore()).join(',')`);
+    const retyped = typed(XL, 'R1', 'Plan event');
+    const L1 = route(XL, 'exportExcel()');
+    XL.ev(`fydpSrc=${J(cyc)}; 'ok'`);
+    const L2 = JSON.parse(XL.ev(`(function(){ var r=__u37('exportFydpPlan()'); return JSON.stringify({zips:r.zips, blobs:r.blobs, dl:r.dl, msg:r.msg, same:r.same, err:r.err}); })()`));
+    XL.ev(`fydpSrc='working'; cycView(${J(cyc)}); 'ok'`);
+    const L3 = route(XL, 'exportExcel()'), inView = JSON.parse(XL.ev(`JSON.stringify((S.titles||{}).R1)`));
+    XL.ev(`cycLeave(); 'ok'`);
+    w5Chk(name, 'C · a cycle locked while the Plan Event held U+000B, the working plan retyped', 'the working plan\'s workbook is made; the FYDP spend plan taken from the cycle is refused, the place named, and the words say a locked cycle keeps its text; nothing changed; in the cycle\'s view the text is as locked and the Excel export is refused',
+      J([cyc, retyped, L1.zips, L1.dl, L2.zips, L2.blobs, L2.dl, L2.msg, L2.same, inView, L3.zips, L3.msg, L1.err, L2.err, L3.err]),
+      J(['PB|2027', 'Plan event', 1, 1, 0, 0, 0, 'Excel workbook not exported: sheet “By Requirement”, cell B7 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”. No file was made, and the text on the board is unchanged. Change that text where it was entered — on the board, or in the file it was imported from — and export again. A locked cycle keeps the text it was locked with: a file taken from one that holds it stays refused.',
+        true, 'Plan' + VT + 'event', 0, 'Excel workbook not exported: sheet “Decision Bands”, cell H18 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “Plan[U+000B]event”', '', '', '']));
+    // Ledger U46 (the lead, 13 Oct, 5:17 PM ET: U37's commit confirms it by test): other saved text reaches the funds-flow
+    // workbook -- a prime-match token and an OGC category name, U+FFFF in each, carried in a board file (set up as the
+    // review's probe sets it up). The base wrote the token at Funds Flow A52, and the category name into xl/workbook.xml as
+    // a sheet name and at Funds Flow A34 and B57 (read off its own files). Each is refused, the first place named, and the
+    // board holds the text as the file carried it. CONTROL: the file as saved makes the workbook.
+    const uM = 1000000, uFF = String.fromCharCode(0xFFFF);
+    const uRow = (fy, title, budget, amt, office) => { const r = Array(32).fill(''); r[0] = fy; r[1] = fy + '-03'; r[2] = 'U14' + fy; r[3] = title;
+      r[4] = budget; r[7] = 'Event ' + title; r[9] = amt; r[10] = 'Allocated'; r[18] = office; return r; };
+    const XU = boot();
+    seed(XU.ev, { services: ['USAF'], items: [it('F1', 'PSM', [1000 * uM])], disc: [500 * uM], mand: [0], order: ['F1'] });
+    XU.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.bm={disc:[${500 * uM}], mand:[0], adds:[]}; MS.base=2027; MS.cur=2027; FYMON=fyMonths(2027); MS.years={2027:S};
+      applyState(S); MS.years[2027]=S; EXDB.all=${J({ om: { asOf: '2026-09', hdr: [], read: 1, noFy: 0, rows: { 2025: [uRow(2025, 'Ordinary Support', 'USAF O&M Discretionary', 40 * uM, 'Program (TSS)')] } } })}; EXDB.ts=1;
+      var C=flowCfg(); delete C.pseudo; C.other={}; C.fys=null; C.aps=null; save(); 'ok'`);
+    const uSlug = JSON.parse(XU.ev('JSON.stringify(_AP.slug)')), uHtml = XU.ev('buildSavedHtml()');
+    const uRE = /(<script type="application\/json" id="pubState">)([\s\S]*?)(<\/script>)/;
+    const uFile = fn => uHtml.replace(uRE, (m, a, b, c) => { const P = JSON.parse(b); fn(P.appns[uSlug].flow); return a + J(P).replace(/</g, '\\u003c') + c; });
+    const uOpen = html => { const R = boot({ html }); R.w.confirm = () => true; R.ev(HELP);
+      const held = JSON.parse(R.ev(`JSON.stringify([flowCfg().rules.lm, (flowCfg().cats[0]||{}).n])`));
+      R.ev(`flowOpen=true; flowSel=''; flowBody(); 'ok'`);
+      return Object.assign(route(R, 'exportFlow()'), { held, errs: R.errors.length }); };
+    const U0 = uOpen(uHtml), U1 = uOpen(uFile(F => { F.rules = Object.assign({}, F.rules || {}, { lm: 'LOCKHEED' + uFF }); })),
+      U2 = uOpen(uFile(F => { if (F.cats && F.cats[0]) F.cats[0].n = F.cats[0].n + uFF; }));
+    w5Chk(name, 'C · exportFlow(), U+FFFF in a saved prime-match token and in a saved OGC category name (ledger U46)', 'the file as saved makes the workbook (CONTROL); each file carrying U+FFFF opens holding it as carried, and is refused: nothing built, no Blob, no download, the first place the base wrote it named; nothing changed',
+      J([U0.zips, U0.dl, U0.msg, U1.held, U1.zips, U1.blobs, U1.dl, U1.msg, U1.same, U2.held, U2.zips, U2.blobs, U2.dl, U2.msg, U2.same, [U0.err, U1.err, U2.err]]),
+      J([1, 1, '', ['LOCKHEED' + uFF, 'Workforce & Travel'], 0, 0, 0,
+        'Excel workbook not exported: sheet “Funds Flow”, cell A52 holds character U+FFFF, which ORBIT cannot write into a workbook without damaging it. It reads “…ns — Lockheed Martin: LOCKHEED[U+FFFF] · Pratt & Whitney: PW, P&W, PRATT · looked for in: require…”', true,
+        ['LM', 'Workforce & Travel' + uFF], 0, 0, 0,
+        'Excel workbook not exported: sheet “Funds Flow”, cell A34 holds character U+FFFF, which ORBIT cannot write into a workbook without damaging it. It reads “Workforce & Travel[U+FFFF]”', true, ['', '', '']]));
+
+    // REVIEW ROUND 2 (both reviews, M1): a band's colour reaches xl/styles.xml as the Priority drill's banner fill, outside every
+    // cell and sheet name, unescaped. The ladder import holds it to #RRGGBB; a board file carries it as written (the board has
+    // no colour field). The base wrote U+000B, U+FFFF or a quote there raw, xl/styles.xml not well-formed, and said "Priority
+    // drill exported". Each is refused before a byte, the band and its colour named, and the board holds the colour as the
+    // file carried it. CONTROL: the file as saved. (From the money review's demonstrated check, round 2; the quote case from
+    // the tests review's probe.)
+    const bLadder = JSON.parse(XU.ev('JSON.stringify(BANDS_LIST())'));
+    const bFile = (at, c) => uHtml.replace(uRE, (m, a, b, z) => { const P = JSON.parse(b);
+      P.appns[uSlug].bands = bLadder.map((x, i) => i === at ? Object.assign({}, x, { c }) : x); return a + J(P).replace(/</g, '\\u003c') + z; });
+    const bOpen = (html, at) => { const R = boot({ html }); R.w.confirm = () => true; R.ev(HELP);
+      return Object.assign(route(R, 'exportCSV()'), { held: JSON.parse(R.ev(`JSON.stringify(BANDS_LIST()[${at}].c)`)), errs: R.errors.length }); };
+    const BC0 = bOpen(uHtml, 0), BC1 = bOpen(bFile(0, '#1B2A4A' + VT), 0), BC2 = bOpen(bFile(0, '#1B2A4A' + uFF), 0), BC3 = bOpen(bFile(1, '#FF6B81"'), 1);
+    w5Chk(name, 'C · exportCSV(), a band colour holding U+000B, U+FFFF or a quote, carried in a board file', 'the file as saved makes the Priority drill (CONTROL); each file whose band colour carries the character opens holding it, and is refused: nothing built, no Blob, no download, the band and its colour named; nothing changed',
+      J([BC0.zips, BC0.dl, BC0.msg, BC1.held, BC1.zips, BC1.blobs, BC1.dl, BC1.msg, BC1.same, BC2.held, BC2.zips, BC2.blobs, BC2.dl, BC2.msg, BC2.same,
+        BC3.held, BC3.zips, BC3.blobs, BC3.dl, BC3.msg, BC3.same, [BC0.err, BC1.err, BC2.err, BC3.err], [BC0.errs, BC1.errs, BC2.errs, BC3.errs]]),
+      J([1, 1, '', '#1B2A4A' + VT, 0, 0, 0, 'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “1B2A4A[U+000B]”', true,
+        '#1B2A4A' + uFF, 0, 0, 0, 'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) holds character U+FFFF, which ORBIT cannot write into a workbook without damaging it. It reads “1B2A4A[U+FFFF]”', true,
+        '#FF6B81"', 0, 0, 0, 'Excel workbook not exported: the colour of band 1 “PDM-Directed Funding” (its banner on the Priority drill) is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “FF6B81"”', true,
+        ['', '', '', ''], [0, 0, 0, 0]]));
+
+    // (verify-tests r3) a sub-band is named by its label: PDM-Directed Funding filed under band 0 is band 0a, the second in the
+    // ladder; its colour holding U+000B is refused naming 0a, not "band 1"
+    const bSub = uHtml.replace(uRE, (m, a, b, z) => { const P = JSON.parse(b);
+      P.appns[uSlug].bands = bLadder.map((x, i) => i === 1 ? Object.assign({}, x, { of: bLadder[0].id, c: '#FF6B81' + VT }) : x); return a + J(P).replace(/</g, '\\u003c') + z; });
+    const BS = bOpen(bSub, 1), BSl = (() => { const R = boot({ html: bSub }); R.w.confirm = () => true; return JSON.parse(R.ev('JSON.stringify(bandLabels().slice(0, 3))')); })();
+    w5Chk(name, 'C · exportCSV(), a sub-band\'s colour holding U+000B, carried in a board file', 'the sub-band labelled 0a; refused, nothing built, no Blob, no download, the sub-band named by its label; nothing changed',
+      J([BSl, BS.held, BS.zips, BS.blobs, BS.dl, BS.msg, BS.same, BS.err, BS.errs]),
+      J([['0', '0a', '1'], '#FF6B81' + VT, 0, 0, 0, 'Excel workbook not exported: the colour of band 0a “PDM-Directed Funding” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “FF6B81[U+000B]”', true, '', 0]));
+
+    // (round 3, money review S2) a band's colour has no field on the board: the refusal says so, in place of "change that text
+    // where it was entered", and names what can be done with what each way costs -- and each way, done, makes the drill, and
+    // costs what the words say. A standard band (band 0, Net Funding Available, #abc): ⚙ Install standard puts the standard
+    // colour back. A band of this office's own (band 5, a quote after its colour, a name of 81 letters, a description of 130,
+    // Program health filed under it as 5a): ⬇ Export ladder, the colour corrected in that file, ⬆ Import ladder -- 5a becomes
+    // band 6 and the bands below it are renumbered, the name is cut to 60 letters and the description to 120.
+    const wName = 'Readiness degradation, measured against the unit readiness floors set in the plan';
+    const wFile = fn => uHtml.replace(uRE, (m, a, b, z) => { const P = JSON.parse(b); P.appns[uSlug].bands = fn(JSON.parse(J(bLadder))); return a + J(P).replace(/</g, '\\u003c') + z; });
+    const wOpen = html => { const R = boot({ html }); R.w.confirm = () => true; R.ev(HELP); return R; };
+    const wDrill = R => JSON.parse(R.ev(`(function(){ var r=__u37('exportCSV()'); return JSON.stringify({zips:r.zips, blobs:r.blobs, dl:r.dl, msg:r.msg, stat:r.stat, same:r.same, err:r.err}); })()`));
+    const WS = wOpen(wFile(L0 => { L0[0].c = '#abc'; return L0; }));
+    const WS0 = wDrill(WS), WSstd = JSON.parse(WS.ev(`(function(){ var r=__u37('bandStd()'); return JSON.stringify([r.err, r.msg]); })()`));
+    const WSb = JSON.parse(WS.ev('JSON.stringify([BANDS_LIST()[0].c, BANDS_LIST()[0].n, bandLabels()])')), WS1 = wDrill(WS);
+    const WL = wOpen(wFile(L0 => { L0[5].c = '#4f8fd6"'; L0[5].n = wName; L0[5].d = 'D'.repeat(130); L0[6].of = L0[5].id; return L0; }));
+    const WLa = JSON.parse(WL.ev('JSON.stringify(bandLabels())')), WL0 = wDrill(WL);
+    const WLpack = JSON.parse(await WL.w.eval(`(async function(){ var got=null, ob=window.Blob, oc=HTMLAnchorElement.prototype.click;
+      window.Blob=function(p,o){ got=p; return new ob(p,o); }; HTMLAnchorElement.prototype.click=function(){};
+      try{ bandExport(); } finally { window.Blob=ob; HTMLAnchorElement.prototype.click=oc; } return got[0]; })()`));
+    WLpack.bands[5].c = '#4f8fd6';
+    WL.w.__u37pack = J(WLpack);
+    const WLin = await WL.w.eval(`(async function(){ var inp={files:[new File([window.__u37pack], 'ladder.json', {type:'application/json'})], value:'x'};
+      bandImport(inp); for(var i=0;i<100 && inp.value;i++) await new Promise(function(r){ setTimeout(r, 20); }); return inp.value; })()`);
+    const WLb = JSON.parse(WL.ev('JSON.stringify([bandLabels(), BANDS_LIST()[5].c, BANDS_LIST()[5].n, BANDS_LIST()[5].d.length, BANDS_LIST()[6].of||""])')), WL1 = wDrill(WL);
+    const wTail = 'A band’s colour has no field on the board: it came in as written, with a board file or a ladder from another appropriation. ';
+    const wStd = 'This is a standard band: ⚖ Bands › ⚙ Install standard ';
+    const wStdTail = ' puts the organization’s standard bands back as issued — colour, name, description, rule, whether each counts toward the stoppage gap and needs a consequence, a removed one included — at the top of the ladder in the standard order, and files none of them under another band (a standard sub-band becomes a band of its own, its money no longer in its header’s total, and the bands below it are renumbered). It asks first. ';
+    const wImp = '⬆ Import ladder takes a ladder file with the colour corrected to #RRGGBB (⬇ Export ladder makes one), but drops every sub-band filing — each sub-band becomes a band of its own, its money no longer in its header’s total, and the bands below it are renumbered — and cuts a band’s name to 60 characters and its description to 120.';
+    w5Chk(name, 'C · exportCSV(), a refused band colour: the words say what can be done, and each way works as they say', 'a standard band (#abc) and a band of this office\'s own (a quote, a sub-band, a long name): the alert says the colour has no field on the board, names ⚙ Install standard for the standard band and ⬆ Import ladder with what it costs for both, and nothing is built or changed; ⚙ Install standard puts the colour back and the drill is made; ⬇ Export ladder, corrected, ⬆ Import ladder: the drill is made, 5a reads 6, the name is cut to 60 letters and the description to 120',
+      J([WS0.zips, WS0.blobs, WS0.dl, WS0.msg, WS0.stat, WS0.same, WSstd, WSb, WS1.zips, WS1.dl, WS1.msg,
+        WLa, WL0.zips, WL0.blobs, WL0.dl, WL0.msg, WL0.same, WLin, WLb, WL1.zips, WL1.dl, WL1.msg, [WS0.err, WS1.err, WL0.err, WL1.err], [WS.errors.length, WL.errors.length]]),
+      J([0, 0, 0, 'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “abc”. No file was made, and nothing on the board is changed. '
+          + wTail + wStd + '0–4' + wStdTail + wImp,
+        '⚠ Excel workbook not exported — the colour of band 0 “Net Funding Available” (its banner on the Priority drill) is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “abc”. No file was made; the text on the board is unchanged.',
+        true, ['', ''], ['#5aa87a', 'Net Funding Available', ['0', '1', '2', '3', '4', '5', '6', '7']], 1, 1, '',
+        ['0', '1', '2', '3', '4', '5', '5a', '6'], 0, 0, 0,
+        'Excel workbook not exported: the colour of band 5 “' + wName + '” (its banner on the Priority drill) is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “4f8fd6"”. No file was made, and nothing on the board is changed. ' + wTail + wImp,
+        true, '', [['0', '1', '2', '3', '4', '5', '6', '7'], '#4f8fd6', 'Readiness degradation, measured against the unit readiness f', 120, ''], 1, 1, '',
+        ['', '', '', ''], [0, 0]]));
+
+    // (verify-money r4) ⚙ Install standard costs what the words say. A standard sub-band -- PDM-Directed Funding filed under band
+    // 0, so 0a, its colour holding U+000B -- is told that Install standard files no standard band under another; done, 0a reads
+    // 1 and the drill is made. A ladder with Incurred Financial Liabilities removed, Readiness degradation moved above
+    // Safety-Critical and PDM-Directed Funding no longer counting toward the stoppage gap (band 0's colour #abc): done, the
+    // standard bands are back on top in the standard order, Liabilities among them, and PDM-Directed Funding counts again.
+    const SU = wOpen(wFile(L0 => { L0[1].of = L0[0].id; L0[1].c = '#FF6B81' + VT; return L0; }));
+    const SUa = JSON.parse(SU.ev('JSON.stringify(bandLabels())')), SU0 = wDrill(SU);
+    const SUstd = JSON.parse(SU.ev(`(function(){ var r=__u37('bandStd()'); return JSON.stringify([r.err, r.msg]); })()`));
+    const SUb = JSON.parse(SU.ev('JSON.stringify([bandLabels(), BANDS_LIST()[1].id, BANDS_LIST()[1].of||"", BANDS_LIST()[1].c])')), SU1 = wDrill(SU);
+    const SO = wOpen(wFile(L0 => { const L = L0.filter(b => b.id !== 'liab'), r = L.splice(L.findIndex(b => b.id === 'rdns'), 1)[0];
+      L.splice(L.findIndex(b => b.id === 'safety'), 0, r); L.find(b => b.id === 'pdm').crit = false; L[0].c = '#abc'; return L; }));
+    const wIds = 'JSON.stringify(BANDS_LIST().map(function(b){ return b.id+(b.crit? "*" : ""); }))';
+    const SOa = JSON.parse(SO.ev(wIds)), SO0 = wDrill(SO);
+    const SOstd = JSON.parse(SO.ev(`(function(){ var r=__u37('bandStd()'); return JSON.stringify([r.err, r.msg]); })()`));
+    const SOb = JSON.parse(SO.ev(wIds)), SO1 = wDrill(SO);
+    w5Chk(name, 'C · exportCSV(), a refused standard band: ⚙ Install standard costs what the words say', 'a standard sub-band (0a) and a reordered ladder missing a standard band, one tick cleared: the alert says Install standard puts the standard bands back on top in the standard order, a removed one included, both ticks as issued, none filed under another band; nothing built or changed; done, 0a reads 1, the order and the tick are the standard\'s, and the drill is made',
+      J([SUa, SU0.zips, SU0.blobs, SU0.dl, SU0.msg, SU0.same, SUstd, SUb, SU1.zips, SU1.dl, SU1.msg,
+        SOa, SO0.zips, SO0.blobs, SO0.dl, SO0.msg, SO0.same, SOstd, SOb, SO1.zips, SO1.dl, SO1.msg, [SU0.err, SU1.err, SO0.err, SO1.err], [SU.errors.length, SO.errors.length]]),
+      J([['0', '0a', '1', '2', '3', '4', '5', '6'], 0, 0, 0,
+        'Excel workbook not exported: the colour of band 0a “PDM-Directed Funding” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “FF6B81[U+000B]”. No file was made, and nothing on the board is changed. '
+          + wTail + wStd + '0–3' + wStdTail + wImp,
+        true, ['', ''], [['0', '1', '2', '3', '4', '5', '6', '7'], 'pdm', '', '#ff6b81'], 1, 1, '',
+        ['netavail*', 'pdm', 'ktlo*', 'rdns', 'safety*', 'health', 'defer'], 0, 0, 0,
+        'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “abc”. No file was made, and nothing on the board is changed. '
+          + wTail + wStd + '0–4' + wStdTail + wImp,
+        true, ['', ''], ['netavail*', 'pdm*', 'ktlo*', 'liab*', 'safety*', 'rdns', 'health', 'defer'], 1, 1, '',
+        ['', '', '', ''], [0, 0]]));
+
+    // (verify-money r5) TWO BANDS HOLDING A REFUSED COLOUR. A sub-band takes its header's colour (＋ab), so band 0's colour as a
+    // board file carried it (U+000B) is Readiness degradation's too, filed under band 0 as 0a. The refusal names both; ⚙ Install
+    // standard, which puts back only band 0, is not offered; ⬇ Export ladder, each named colour corrected, ⬆ Import ladder: the
+    // drill is made (0a a band of its own, as the words say). CONTROL: band 0 and band 1 (both standard) so refused are both named,
+    // ⚙ Install standard is offered, and done, the drill is made.
+    const wImpEach = '⬆ Import ladder takes a ladder file with each of these colours corrected to #RRGGBB (⬇ Export ladder makes one), but drops every sub-band filing — each sub-band becomes a band of its own, its money no longer in its header’s total, and the bands below it are renumbered — and cuts a band’s name to 60 characters and its description to 120.';
+    const TW = wOpen(wFile(L0 => { const r = L0.splice(L0.findIndex(b => b.id === 'rdns'), 1)[0]; L0[0].c = '#5aa87a' + VT; r.of = L0[0].id; r.c = L0[0].c;
+      L0.splice(1, 0, r); return L0; }));
+    const TWa = JSON.parse(TW.ev('JSON.stringify(bandLabels())')), TW0 = wDrill(TW);
+    const TWpack = JSON.parse(await TW.w.eval(`(async function(){ var got=null, ob=window.Blob, oc=HTMLAnchorElement.prototype.click;
+      window.Blob=function(p,o){ got=p; return new ob(p,o); }; HTMLAnchorElement.prototype.click=function(){};
+      try{ bandExport(); } finally { window.Blob=ob; HTMLAnchorElement.prototype.click=oc; } return got[0]; })()`));
+    TWpack.bands[0].c = '#5aa87a'; TWpack.bands[1].c = '#5aa87a';
+    TW.w.__u37pack = J(TWpack);
+    const TWin = await TW.w.eval(`(async function(){ var inp={files:[new File([window.__u37pack], 'ladder.json', {type:'application/json'})], value:'x'};
+      bandImport(inp); for(var i=0;i<100 && inp.value;i++) await new Promise(function(r){ setTimeout(r, 20); }); return inp.value; })()`);
+    const TWb = JSON.parse(TW.ev('JSON.stringify(bandLabels())')), TW1 = wDrill(TW);
+    const TS = wOpen(wFile(L0 => { L0[0].c = '#5aa87a' + VT; L0[1].c = '#ff6b81' + VT; return L0; }));
+    const TS0 = wDrill(TS), TSstd = JSON.parse(TS.ev(`(function(){ var r=__u37('bandStd()'); return JSON.stringify([r.err, r.msg]); })()`)), TS1 = wDrill(TS);
+    w5Chk(name, 'C · exportCSV(), two bands holding a refused colour: both named, and the way offered clears both', 'band 0 and its sub-band 0a (a band of the office\'s own that took its colour): both named, Install standard not offered, the import of the file with each colour corrected makes the drill; band 0 and band 1, both standard: both named, Install standard offered, and done, the drill is made',
+      J([TWa, TW0.zips, TW0.blobs, TW0.dl, TW0.msg, TW0.same, TWin, TWb, TW1.zips, TW1.dl, TW1.msg, TS0.zips, TS0.msg, TS0.same, TSstd, TS1.zips, TS1.dl, TS1.msg,
+        [TW0.err, TW1.err, TS0.err, TS1.err], [TW.errors.length, TS.errors.length]]),
+      J([['0', '0a', '1', '2', '3', '4', '5', '6'], 0, 0, 0,
+        'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “5aa87a[U+000B]”. No file was made, and nothing on the board is changed. The colour of band 0a “Readiness degradation” is refused too, and each has to be put right. A band’s colour has no field on the board: it came in as written, with a board file or a ladder from another appropriation. ' + wImpEach,
+        true, '', ['0', '1', '2', '3', '4', '5', '6', '7'], 1, 1, '',
+        0, 'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “5aa87a[U+000B]”. No file was made, and nothing on the board is changed. The colour of band 1 “PDM-Directed Funding” is refused too, and each has to be put right. A band’s colour has no field on the board: it came in as written, with a board file or a ladder from another appropriation. This is a standard band: ⚖ Bands › ⚙ Install standard 0–4 puts the organization’s standard bands back as issued — colour, name, description, rule, whether each counts toward the stoppage gap and needs a consequence, a removed one included — at the top of the ladder in the standard order, and files none of them under another band (a standard sub-band becomes a band of its own, its money no longer in its header’s total, and the bands below it are renumbered). It asks first. ' + wImpEach,
+        true, ['', ''], 1, 1, '',
+        ['', '', '', ''], [0, 0]]));
+
+    // (fix round 5, the builder) IN A LOCKED CYCLE'S VIEW. The view reads the bands from the working plan and keeps nothing done
+    // in it: ⚙ Install standard or ⬆ Import ladder done there leaves the working plan's colour refused (measured, probe8/view8.mjs:
+    // with U10 the view is put back at once; before it, the view's copy changed and was dropped on leaving). So in a view the
+    // words say so and where to do it, and on the working plan they do not; ⚙ Install standard done on the working plan, the
+    // view put on screen again makes the drill. Band 0 #abc, a standard band.
+    const wView = ' In a locked cycle’s view nothing done is kept: ↩ Leave the view and do it on the working plan, whose bands the view reads.';
+    const wAbc = 'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “abc”. No file was made, and nothing on the board is changed. ';
+    const VW = wOpen(wFile(L0 => { L0[0].c = '#abc'; return L0; }));
+    const VWk = VW.ev(`(function(){ MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); var k=Object.keys(blStore())[0]; cycView(k); return k; })()`);
+    const VWv = VW.ev('String(CYCVIEW)'), VW0 = wDrill(VW);
+    VW.ev(`cycLeave(); 'ok'`);
+    const VWp = wDrill(VW), VWstd = JSON.parse(VW.ev(`(function(){ var r=__u37('bandStd()'); return JSON.stringify([r.err, r.msg, BANDS_LIST()[0].c, CYCVIEW]); })()`));
+    VW.ev(`cycView(${J(VWk)}); 'ok'`);
+    const VWv1 = VW.ev('String(CYCVIEW)'), VW1 = wDrill(VW);
+    w5Chk(name, 'C · exportCSV() in a locked cycle\'s view, a refused band colour: the words say nothing done there is kept, and where to do it', 'in the view: refused, nothing built, no Blob, no download, nothing changed, the words with the view\'s sentence; on the working plan the words without it; ⚙ Install standard done there, the view again makes the drill',
+      J([VWv, VW0.zips, VW0.blobs, VW0.dl, VW0.msg, VW0.same, VWp.zips, VWp.msg, VWstd, VWv1, VW1.zips, VW1.dl, VW1.msg, [VW0.err, VWp.err, VW1.err], VW.errors.length]),
+      J(['PB|2027', 0, 0, 0, wAbc + wTail + wStd + '0–4' + wStdTail + wImp + wView, true, 0, wAbc + wTail + wStd + '0–4' + wStdTail + wImp,
+        ['', '', '#5aa87a', ''], 'PB|2027', 1, 1, '', ['', '', ''], 0]));
+    // (verify-tests r6) THE "REFUSED TOO" WORDS, PAST TWO BANDS AND IN A VIEW. Two other bands are named in the plural, each by its
+    // label, and ⚙ Install standard is offered only when every band refused is standard -- the one named first as well as the
+    // others; in a locked cycle's view the view's sentence follows the "refused too" words. Band 0 and band 1 (standard) and band
+    // 6, Program health (the office's own), each holding U+000B: both others named, and Install standard not offered (it leaves
+    // band 6 refused). Readiness degradation (the office's own) moved above Safety-Critical & Must Fix (standard), both refused:
+    // the band named first is the office's own, so Install standard is not offered. Band 0 and its sub-band 0a (as above) in
+    // PB's view: both named, and the view's sentence at the end.
+    const wB0 = 'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “5aa87a[U+000B]”. No file was made, and nothing on the board is changed. ';
+    const T3 = wOpen(wFile(L0 => { L0[0].c = '#5aa87a' + VT; L0[1].c = '#ff6b81' + VT; L0[6].c = '#7a6fd0' + VT; return L0; }));
+    const T3a = JSON.parse(T3.ev('JSON.stringify(bandLabels())')), T30 = wDrill(T3);
+    w5Chk(name, 'C · exportCSV(), three bands holding a refused colour, one of them the office\'s own: both others named, and Install standard not offered', 'band 0, band 1 (standard) and band 6 (the office\'s own): refused, nothing built, no Blob, no download, nothing changed; band 1 and band 6 named in the plural, and only ⬆ Import ladder offered',
+      J([T3a, T30.zips, T30.blobs, T30.dl, T30.msg, T30.same, T30.err, T3.errors.length]),
+      J([['0', '1', '2', '3', '4', '5', '6', '7'], 0, 0, 0,
+        wB0 + 'The colours of band 1 “PDM-Directed Funding” and band 6 “Program health” are refused too, and each has to be put right. ' + wTail + wImpEach,
+        true, '', 0]));
+    const TR = wOpen(wFile(L0 => { const r = L0.splice(L0.findIndex(b => b.id === 'rdns'), 1)[0]; r.c = '#4f8fd6' + VT;
+      L0.splice(L0.findIndex(b => b.id === 'safety'), 0, r); L0.find(b => b.id === 'safety').c = '#e0703a' + VT; return L0; }));
+    const TRa = JSON.parse(TR.ev(wIds)), TR0 = wDrill(TR);
+    w5Chk(name, 'C · exportCSV(), the band named first the office\'s own and the other standard: Install standard not offered', 'Readiness degradation above Safety-Critical & Must Fix, both refused: nothing built, no Blob, no download, nothing changed; the standard band named too, and only ⬆ Import ladder offered',
+      J([TRa, TR0.zips, TR0.blobs, TR0.dl, TR0.msg, TR0.same, TR0.err, TR.errors.length]),
+      J([['netavail*', 'pdm*', 'ktlo*', 'liab*', 'rdns', 'safety*', 'health', 'defer'], 0, 0, 0,
+        'Excel workbook not exported: the colour of band 4 “Readiness degradation” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “4f8fd6[U+000B]”. No file was made, and nothing on the board is changed. The colour of band 5 “Safety-Critical & Must Fix” is refused too, and each has to be put right. ' + wTail + wImpEach,
+        true, '', 0]));
+    const TV = wOpen(wFile(L0 => { const r = L0.splice(L0.findIndex(b => b.id === 'rdns'), 1)[0]; L0[0].c = '#5aa87a' + VT; r.of = L0[0].id; r.c = L0[0].c;
+      L0.splice(1, 0, r); return L0; }));
+    const TVk = TV.ev(`(function(){ MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); var k=Object.keys(blStore())[0]; cycView(k); return k; })()`);
+    const TVv = TV.ev('String(CYCVIEW)'), TV0 = wDrill(TV);
+    TV.ev(`cycLeave(); 'ok'`);
+    w5Chk(name, 'C · exportCSV() in a locked cycle\'s view, two bands holding a refused colour: both named, and the view\'s sentence after them', 'band 0 and its sub-band 0a in PB\'s view: refused, nothing built, no Blob, no download, nothing changed; 0a named, and the words end with the view\'s sentence',
+      J([TVk, TVv, TV0.zips, TV0.blobs, TV0.dl, TV0.msg, TV0.same, TV0.err, TV.errors.length]),
+      J(['PB|2027', 'PB|2027', 0, 0, 0,
+        wB0 + 'The colour of band 0a “Readiness degradation” is refused too, and each has to be put right. ' + wTail + wImpEach + wView,
+        true, '', 0]));
+    // (verify-tests r7) THE DECK AND THE CHART IMAGE REFUSE U+FFFF AS THE WORKBOOK DOES; A CELL PAST COLUMN Z IS NAMED BY ITS TWO
+    // LETTERS; THE C1 CONTROLS, WHICH XML 1.0 ALLOWS, ARE WRITTEN. A1 runs the 31 characters through the workbook only, and the deck
+    // and the chart image were checked with U+000B only, every named cell in column A to H: a deck or a chart image checked for the
+    // C0 controls alone, a column spelled A to Z only, and a pattern that also refuses U+007F-U+009F (XML 1.1's restricted set)
+    // passed every check. On a board of its own: a Mission Critical Plan Event holding U+FFFF, typed through the pen -- no deck,
+    // slide 5 named (the base wrote slide5.xml not well-formed); a funds-flow destination named Ctl<U+FFFF>, the chart drawn -- no
+    // image (the base made its Blob); an RCN code holding U+000B, typed through the registry's own setter -- the Spend Plan Source
+    // refused at O&M Raw Data AB2, the RCN column. CONTROL: a cell holding U+0085, U+007F and U+009F is written, every part parses
+    // and the board reads the text back; a Plan Event holding U+0085 makes the Excel export and the deck.
+    const X7 = boot();
+    seed(X7.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
+    X7.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); S.mc={R1:true}; save(); 'ok'`);
+    X7.ev(HELP);
+    const NCH = String.fromCharCode(0xFFFF);
+    const deck7 = () => JSON.parse(X7.ev(`(function(){ var r=__u37('exportPPT()'), q=r.cap? __u37parts(r.cap) : null;
+      return JSON.stringify({zips:r.zips, blobs:r.blobs, dl:r.dl, msg:r.msg.split('. No file was made')[0], same:r.same, err:r.err, title:(S.titles||{}).R1, bad:q? q.bad : null}); })()`));
+    const R7a = typed(X7, 'R1', 'Plan' + NCH + 'event'), R7b = deck7();
+    typed(X7, 'R1', 'Plan event');
+    w5Chk(name, 'B4 · the deck, a Mission Critical Plan Event holding U+FFFF', 'typed through the pen as is; no deck (nothing built, no Blob, no download); slide 5, its title and the character named; nothing changed, the Plan Event as typed',
+      J([R7a, R7b.zips, R7b.blobs, R7b.dl, R7b.msg, R7b.same, R7b.title, R7b.err]),
+      J(['Plan\uFFFFevent', 0, 0, 0, 'PowerPoint deck not exported: slide 5 (“Mission Critical — Must-Pay Requirements”) holds character U+FFFF, which ORBIT cannot write into a deck without damaging it, in the text “Plan[U+FFFF]event”', true, 'Plan\uFFFFevent', '']));
+    X7.ev(`flowAddEnt(); var ix=flowEnts().length-1; flowSetEnt(ix,'n',${J('Ctl' + NCH)}); flowSetAxis('dest'); flowHtml(); if(!flowOpen) toggleFlow(); 'ok'`);
+    const R7c = route(X7, 'flowPng()'), R7d = X7.ev(`String(((document.getElementById('flowSvg')||{}).outerHTML||'').indexOf(${J('Ctl' + NCH)})>=0)`);
+    X7.ev(`if(flowOpen) toggleFlow(); flowSetEnt(flowEnts().length-1,'n','Ctl'); flowHtml(); 'ok'`);
+    w5Chk(name, 'C · flowPng(), the funds-flow chart drawing Ctl<U+FFFF>', 'the chart draws the name as typed; Save as image refused before the drawing\'s Blob, the character and the text named; nothing changed',
+      J([R7d, R7c.blobs, R7c.dl, R7c.msg, R7c.same, R7c.err]),
+      J(['true', 0, 0, 'Chart image not exported: the chart holds character U+FFFF, which ORBIT cannot draw into an image, in the text “Ctl[U+FFFF]”', true, '']));
+    X7.ev(`MS.rcn=[{k:'K1', rcn:'11111', eeic:'AAAAA', t:'good title', svc:['USAF','ANG','AFRC']}]; S.rcnAsg={R1:'K1'}; save(); rcnSet(0, 'rcn', ${J('111' + VT + '11')}); 'ok'`);
+    const R7e = JSON.parse(X7.ev('JSON.stringify(MS.rcn[0].rcn)')), R7f = route(X7, 'exportSrc()');
+    X7.ev(`rcnSet(0, 'rcn', '11111'); 'ok'`);
+    w5Chk(name, 'C · exportSrc(), an RCN code holding U+000B, in a column past Z', 'the code kept as typed; nothing built, no Blob, no download; the cell named by its two letters, AB2 (the RCN column), with the text; nothing changed',
+      J([R7e, R7f.zips, R7f.blobs, R7f.dl, R7f.msg, R7f.same, R7f.err]),
+      J(['111\u000B11', 0, 0, 0, 'Excel workbook not exported: sheet “O&M Raw Data”, cell AB2 holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “111[U+000B]11”', true, '']));
+    const R7g = JSON.parse(X7.ev(`(function(){ window.__in=${J([{ name: 'U37', rows: [['a\u0085b', 'c\u007Fd', 'e\u009Ff']] }])}; var r=__u37('buildXlsx(window.__in)'), q=r.ret? __u37parts(r.ret) : null;
+      return JSON.stringify({made:!!r.ret, zips:r.zips, msg:r.msg, err:r.err, same:r.same, bad:q? q.bad : null, n:q? q.n : 0}); })()`));
+    const R7h = JSON.parse(await X7.w.eval(`(async function(){ var b=buildXlsx(window.__in); if(!b) return JSON.stringify('no workbook'); return JSON.stringify((await xlsxRead(b.buffer.slice(b.byteOffset, b.byteOffset+b.byteLength))).U37); })()`));
+    const R7i = typed(X7, 'R1', 'Plan\u0085event'), R7j = route(X7, 'exportExcel()'), R7k = deck7();
+    typed(X7, 'R1', 'Plan event');
+    w5Chk(name, 'A13 · CONTROL the C1 controls, which XML 1.0 allows', 'a cell holding U+0085, U+007F and U+009F: made, one zip, nothing said, every part parses, the board reads the text back; a Plan Event holding U+0085: the Excel export and the deck are made, every part of the deck parses',
+      J([R7g.made, R7g.zips, R7g.msg, R7g.bad, R7g.n, R7h, R7i, R7j.zips, R7j.blobs, R7j.dl, R7j.msg, R7k.zips, R7k.dl, R7k.msg, R7k.bad, [R7g.err, R7j.err, R7k.err], X7.errors.length]),
+      J([true, 1, '', [], 6, [['a\u0085b', 'c\u007Fd', 'e\u009Ff']], 'Plan\u0085event', 1, 1, 1, '', 1, 1, '', [], ['', '', ''], 0]));
+
+    // (verify-tests r4) "This is a standard band" is said of the bands ⚙ Install standard puts back -- a band whose id is the
+    // standard's -- and of no other. Not of a band of this office's own filed under band 0 (0a, second in the ladder), nor of
+    // one named PDM-Directed Funding, nor of one a file marked standard: for each, ⚙ Install standard, done, leaves its colour
+    // and the drill still refused. Of band 0 whose file dropped its standard mark it is said, and done, the drill is made. The
+    // words name the button as the panel shows it: ⚙ Install standard 0–3 when PDM-Directed Funding is filed under band 0.
+    const kStd = R => JSON.parse(R.ev(`(function(){ var r=__u37('bandStd()'); return JSON.stringify([r.err, r.msg]); })()`));
+    const kSay = m => (m.split('This is a standard band: ')[1] || '').split(' puts')[0], kCut = m => m.split('. No file was made')[0];
+    const kBtn = R => R.ev(`(function(){ bandPanelOpen=true; bandPanelBody(); var b=[].slice.call(document.querySelectorAll('#bandList button'))
+      .filter(function(x){ return /Install standard/.test(x.textContent); }), t=b.length? b[0].textContent : ''; bandPanelOpen=false; bandPanelBody(); return t; })()`);
+    const KA = wOpen(wFile(L0 => { const r = L0.splice(5, 1)[0]; r.of = L0[0].id; r.c = '#4f8fd6' + VT; L0.splice(1, 0, r); return L0; }));
+    const KAa = JSON.parse(KA.ev('JSON.stringify(bandLabels())')), KA0 = wDrill(KA), KAs = kStd(KA), KA1 = wDrill(KA);
+    const KB = wOpen(wFile(L0 => { L0[6].n = 'PDM-Directed Funding'; L0[6].c = '#7a6fd0' + VT; return L0; }));
+    const KB0 = wDrill(KB), KBs = kStd(KB), KB1 = wDrill(KB);
+    const KC = wOpen(wFile(L0 => { L0[7].std = true; L0[7].c = '#8892a4' + VT; return L0; }));
+    const KC0 = wDrill(KC), KCs = kStd(KC), KC1 = wDrill(KC);
+    const KD = wOpen(wFile(L0 => { L0[1].of = L0[0].id; L0[1].c = '#FF6B81' + VT; return L0; }));
+    const KD0 = wDrill(KD), KDb = kBtn(KD);
+    const KE = wOpen(wFile(L0 => { L0[0].std = false; L0[0].c = '#5aa87a' + VT; return L0; }));
+    const KE0 = wDrill(KE), KEs = kStd(KE), KE1 = wDrill(KE);
+    w5Chk(name, 'C · exportCSV(), a refused band colour: "a standard band" is said of a band ⚙ Install standard puts back, and of no other', 'a band of this office\'s own filed under band 0, one named PDM-Directed Funding and one a file marked standard: refused with the import\'s words only, and ⚙ Install standard, done, leaves each refused; band 0 with its standard mark dropped: told it is a standard band, and Install standard, done, makes the drill; the button named as the panel shows it, 0–3 when a standard band is a sub-band; nothing built or changed',
+      J([KAa, KA0.zips, KA0.blobs, KA0.dl, KA0.msg, KA0.same, KAs, KA1.zips, kCut(KA1.msg),
+        KB0.zips, KB0.msg, KB0.same, KBs, KB1.zips, kCut(KB1.msg),
+        KC0.zips, KC0.msg, KC0.same, KCs, KC1.zips, kCut(KC1.msg),
+        KD0.zips, kSay(KD0.msg), KD0.same, KDb,
+        KE0.zips, kCut(KE0.msg), kSay(KE0.msg), KE0.same, KEs, KE1.zips, KE1.dl, KE1.msg,
+        [KA0.err, KA1.err, KB0.err, KB1.err, KC0.err, KC1.err, KD0.err, KE0.err, KE1.err], [KA.errors.length, KB.errors.length, KC.errors.length, KD.errors.length, KE.errors.length]]),
+      J([['0', '0a', '1', '2', '3', '4', '5', '6'], 0, 0, 0,
+        'Excel workbook not exported: the colour of band 0a “Readiness degradation” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “4f8fd6[U+000B]”. No file was made, and nothing on the board is changed. ' + wTail + wImp,
+        true, ['', ''], 0, 'Excel workbook not exported: the colour of band 0a “Readiness degradation” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “4f8fd6[U+000B]”',
+        0, 'Excel workbook not exported: the colour of band 6 “PDM-Directed Funding” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “7a6fd0[U+000B]”. No file was made, and nothing on the board is changed. ' + wTail + wImp,
+        true, ['', ''], 0, 'Excel workbook not exported: the colour of band 6 “PDM-Directed Funding” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “7a6fd0[U+000B]”',
+        0, 'Excel workbook not exported: the colour of band 7 “Deferrable” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “8892a4[U+000B]”. No file was made, and nothing on the board is changed. ' + wTail + wImp,
+        true, ['', ''], 0, 'Excel workbook not exported: the colour of band 7 “Deferrable” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “8892a4[U+000B]”',
+        0, '⚖ Bands › ⚙ Install standard 0–3', true, '⚙ Install standard 0–3',
+        0, 'Excel workbook not exported: the colour of band 0 “Net Funding Available” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “5aa87a[U+000B]”',
+        '⚖ Bands › ⚙ Install standard 0–4', true, ['', ''], 1, 1, '',
+        ['', '', '', '', '', '', '', '', ''], [0, 0, 0, 0, 0]]));
+
+    // (fix round 4, money review r4 S2) a sub-band that loses its filing takes its money out of its header's total -- the row
+    // the board calls the figure people brief from -- and the words say so of both ways. Requirements of 400,000 in band 0,
+    // 300,000 in PDM-Directed Funding filed under it (0a), 200,000 in Readiness degradation and 100,000 in Program health filed
+    // under it (4a). CONTROL: colours as saved, the drill's Summary and 1-N by Band carry band 0's total (700,000) and band 4's
+    // (300,000). PDM's colour holding U+000B: refused, the words say a standard sub-band's money leaves its header's total; ⚙
+    // Install standard done, the drill is made with no band-0 total, Readiness's (now band 5, still with 5a) kept. Readiness's
+    // colour with a quote: refused, the import's words say each sub-band's money leaves its header's total; ⬇ Export ladder,
+    // corrected, ⬆ Import ladder: the drill is made with no total row at all.
+    const XR = boot();
+    seed(XR.ev, { services: ['USAF'], items: [it('Q1', 'AV', [400000]), it('Q2', 'PSM', [300000]), it('Q3', 'AV', [200000]), it('Q4', 'PSM', [100000])],
+      disc: [600000], mand: [0], order: ['Q1', 'Q2', 'Q3', 'Q4'] });
+    XR.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); applyState(S); MS.years[MS.cur]=S;
+      BANDS_LIST(); S.band={Q1:'netavail', Q2:'pdm', Q3:'rdns', Q4:'health'}; S.order=['Q1','Q2','Q3','Q4']; save(); 'ok'`);
+    const rSlug = JSON.parse(XR.ev('JSON.stringify(_AP.slug)')), rHtml = XR.ev('buildSavedHtml()');
+    const rFile = fn => rHtml.replace(uRE, (m, a, b, z) => { const P = JSON.parse(b), L = P.appns[rSlug].bands, at = id => L.find(x => x.id === id);
+      at('pdm').of = 'netavail'; at('health').of = 'rdns'; fn(at); return a + J(P).replace(/</g, '\\u003c') + z; });
+    // the drill's total rows, read from the sheets the writer was given -- only when it made the file
+    const rRoll = R => JSON.parse(R.ev(`(function(){ var sh=null, ox=buildXlsx, oc=HTMLAnchorElement.prototype.click, oa=window.alert, m='';
+      buildXlsx=function(s,e){ var b=ox(s,e); if(b) sh=s; return b; }; HTMLAnchorElement.prototype.click=function(){}; window.alert=function(x){ m+=String(x); };
+      try{ exportCSV(); } finally { buildXlsx=ox; HTMLAnchorElement.prototype.click=oc; window.alert=oa; }
+      var out=[]; (sh||[]).forEach(function(s){ (s.rows||[]).forEach(function(r){ var c=r&&r[0], t=(c&&typeof c==='object')? String(c.v) : String(c==null? '' : c),
+        v=function(k){ var x=r[k]; return (x&&typeof x==='object')? x.v : x; };
+        if(/^BAND \\S+ TOTAL/.test(t)) out.push([s.name, t, v(11)]); else if(/^\\S+ total$/.test(t)) out.push([s.name, t, v(1), v(4)]); }); });
+      return JSON.stringify([!!sh, out, m]); })()`));
+    const RC = wOpen(rFile(at => {})), RCr = rRoll(RC);
+    const RS = wOpen(rFile(at => { at('pdm').c = '#FF6B81' + VT; })), RS0 = wDrill(RS), RSs = kStd(RS), RS1 = rRoll(RS);
+    const RI = wOpen(rFile(at => { at('rdns').c = '#4f8fd6"'; })), RI0 = wDrill(RI);
+    const RIpack = JSON.parse(await RI.w.eval(`(async function(){ var got=null, ob=window.Blob, oc=HTMLAnchorElement.prototype.click;
+      window.Blob=function(p,o){ got=p; return new ob(p,o); }; HTMLAnchorElement.prototype.click=function(){};
+      try{ bandExport(); } finally { window.Blob=ob; HTMLAnchorElement.prototype.click=oc; } return got[0]; })()`));
+    RIpack.bands.find(b => b.id === 'rdns').c = '#4f8fd6';
+    RI.w.__u37pack = J(RIpack);
+    const RIin = await RI.w.eval(`(async function(){ var inp={files:[new File([window.__u37pack], 'ladder.json', {type:'application/json'})], value:'x'};
+      bandImport(inp); for(var i=0;i<100 && inp.value;i++) await new Promise(function(r){ setTimeout(r, 20); }); return inp.value; })()`);
+    const RI1 = rRoll(RI);
+    w5Chk(name, 'C · exportCSV(), a sub-band un-filed by either way the words name: its money leaves its header\'s total, as they say', 'band 0 with PDM-Directed Funding as 0a and band 4 with Program health as 4a: the drill carries both totals (CONTROL); a refused colour of 0a and one of band 4 each say a sub-band\'s money leaves its header\'s total, nothing built or changed; ⚙ Install standard done, no band-0 total, band 4\'s kept as band 5\'s; ⬇ Export ladder, corrected, ⬆ Import ladder done, no total at all',
+      J([RCr, RS0.zips, RS0.blobs, RS0.dl, RS0.msg, RS0.same, RSs, RS1, RI0.zips, RI0.blobs, RI0.dl, RI0.msg, RI0.same, RIin, RI1,
+        [RS0.err, RI0.err], [RC.errors.length, RS.errors.length, RI.errors.length]]),
+      J([[true, [['Summary', '0 total', 'NET FUNDING AVAILABLE — with its 1 sub-band', 700000], ['Summary', '4 total', 'READINESS DEGRADATION — with its 1 sub-band', 300000],
+          ['1-N by Band', 'BAND 0 TOTAL  —  NET FUNDING AVAILABLE  (with its 1 sub-band)', 700000], ['1-N by Band', 'BAND 4 TOTAL  —  READINESS DEGRADATION  (with its 1 sub-band)', 300000]], ''],
+        0, 0, 0,
+        'Excel workbook not exported: the colour of band 0a “PDM-Directed Funding” (its banner on the Priority drill) holds character U+000B, which ORBIT cannot write into a workbook without damaging it. It reads “FF6B81[U+000B]”. No file was made, and nothing on the board is changed. '
+          + wTail + wStd + '0–3' + wStdTail + wImp,
+        true, ['', ''],
+        [true, [['Summary', '5 total', 'READINESS DEGRADATION — with its 1 sub-band', 300000], ['1-N by Band', 'BAND 5 TOTAL  —  READINESS DEGRADATION  (with its 1 sub-band)', 300000]], ''],
+        0, 0, 0,
+        'Excel workbook not exported: the colour of band 4 “Readiness degradation” (its banner on the Priority drill) is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook. It reads “4f8fd6"”. No file was made, and nothing on the board is changed. '
+          + wTail + wImp,
+        true, '', [true, [], ''],
+        ['', ''], [0, 0, 0]]));
+
+    // ---- D. EVERY CALLER ----
+    const XD = boot();
+    seed(XD.ev, { services: ['USAF', 'ANG', 'AFRC'], items: [it('R1', 'AV', [900, 200, 0]), it('R2', 'PSM', [300, 0, 50])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1', 'R2'] });
+    XD.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); save();
+      MS.years[MS.cur]=S; blCyc='PB'; blYr=MS.cur; cycLock(); cycCmpA='PB|'+MS.cur; cycCmpB='working';
+      var xr=function(ym, t, a){ var r=[]; for(var i=0;i<26;i++) r.push(''); r[1]=ym; r[2]='J1'; r[3]=t; r[4]='USAF X'; r[7]='EV '+t; r[9]=a; r[10]='Not Allocated'; r[18]='Office (AV)'; return r; };
+      EXDB.all={}; EXDB.all[mySlug()]={rows:{}}; EXDB.all[mySlug()].rows[MS.cur]=[xr(MS.cur+'-05', 'Exec line one', 400000), xr(MS.cur+'-08', 'Exec line two', 300000)];
+      rlgSrc='exec'; rlgTarget=0.2;
+      ACEDB.sets={'2026ACE':{lines:[{ap:mySlug(), pmo:'AV', wbs:'1.1', v:{}}]}}; ACEDB.sets['2026ACE'].lines[0].v[MS.cur]=111;
+      pmoTake({spmtPkg:1,dir:'submit',ap:'',fy:MS.cur,ts:Date.now(),by:'PMO Lead',fromTs:1, svc:SVC.slice(), items:{R1:{cons:'Their wording.'}}, base:{R1:{cons:null}}},'s.json');
+      fcView='p:AV'; exView='summary'; 'ok'`);
+    XD.ev(HELP);
+    const XO = boot({ appn: 'O&M' });
+    seed(XO.ev, { services: ['STOVL', 'USMC CV', 'USN'], items: [it('R1', 'AV', [900, 200, 100])], disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1'] });
+    XO.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); });
+      S.awards={R1:{mode:'single', d:FYMON[2][0], day:3}}; applyState(S); save(); 'ok'`);
+    XO.ev(HELP);
+    typed(XI, 'H', 'Plan event');
+    const ROUTES = [[XD, 'exportRlgPlan()'], [XD, 'pmoReport()'], [XO, 'crExport()'], [XI, 'exportIdsReq'], [XD, 'exportFlow()'], [XD, 'exportExView()'],
+      [XD, 'exportSrc()'], [XD, 'exportPlans()'], [XD, 'exportFydpPlan()'], [XD, 'exportCycCompare()'], [XD, 'exportReprog()'], [XD, 'exportFcView()'],
+      [XD, 'exportCSV()'], [XD, 'exportAceTieout()'], [XD, 'exportExcel()'], [XD, 'exportCoa()'], [XD, 'exportPPT()']];
+    const callOf = (c, org) => c === 'exportIdsReq' ? `exportIdsReq(${FORM(org)})` : c;
+    for (const [Y, c] of ROUTES) {
+      const r = route(Y, callOf(c, '21'));
+      w5Chk(name, 'D · ' + c + ' CONTROL', 'on ordinary data the file is made: one zip, one Blob, one download, nothing alerted',
+        J([r.zips, r.blobs, r.dl, r.msg, r.err]), J([1, 1, 1, '', '']));
+    }
+    XD.ev(`if(!flowOpen) toggleFlow(); 'ok'`);
+    const D7 = route(XD, 'flowPng()');
+    XD.ev(`if(flowOpen) toggleFlow(); 'ok'`);
+    w5Chk(name, 'D · flowPng() CONTROL', 'on ordinary data the chart\'s drawing goes into its Blob to be read back as an image, nothing alerted',
+      J([D7.blobs, D7.msg, D7.err]), J([1, '', '']));
+    const stand = (Y, on) => Y.ev(on
+      ? `window.__u37n=0; window.__u37x=window._xlsxRefused; window.__u37p=window._pptxRefused;
+         _xlsxRefused=function(){ __u37n++; return true; }; _pptxRefused=function(){ __u37n++; return true; }; 'ok'`
+      : `_xlsxRefused=window.__u37x; _pptxRefused=window.__u37p; 'ok'`);
+    [XD, XO, XI].forEach(Y => stand(Y, true));
+    for (const [Y, c] of ROUTES) {
+      Y.ev(`__u37n=0; setStat('U37-MARK'); 'ok'`);
+      const r = route(Y, callOf(c, '44'));
+      w5Chk(name, 'D · ' + c + ' refused', 'the writer refuses once and the route stops there: no Blob, no download, no word after the refusal, nothing on the board changed',
+        J([Y.ev('String(__u37n)'), r.zips, r.blobs, r.dl, Y.ev(`(document.getElementById('shareStat')||{}).textContent`), r.same, r.err]),
+        J(['1', 0, 0, 0, 'U37-MARK', true, '']));
+    }
+    [XD, XO, XI].forEach(Y => stand(Y, false));
+    w5Chk(name, 'D · the IDS ORG', 'the ORG 44 typed into the refused export is not kept', XI.ev('JSON.stringify(MS.ids)'), J({ org: 21 }));
+    w5Chk(name, 'E · no page error', 'none of the four boards reported an error', J([X.errors.length, XI.errors.length, XD.errors.length, XO.errors.length]), J([0, 0, 0, 0]));
+    w5Chk(name, 'E2 · no page error on the review\'s boards', 'none of the five boards the review round added reported an error', J([XL.errors.length, XU.errors.length, U0.errs, U1.errs, U2.errs]), J([0, 0, 0, 0, 0]));
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.00 (U37) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

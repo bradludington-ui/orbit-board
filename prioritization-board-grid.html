@@ -4192,6 +4192,7 @@ function exportRlgPlan(){
   out.push([{v:'TOTAL', s:4},'','','','','',{v:tot, s:NB},'','','','']);
   const wb=buildXlsx([{name:'Funding plan',
                        cols:[10,16,11,8,46,40,15,11,34,10,30], rows:out}]);
+  if(!wb) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([wb],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('ORBIT Funding Plan \u2014 '+(rlgLabel||'new requirement').replace(/[^A-Za-z0-9 ]+/g,' ').trim()
@@ -7769,6 +7770,7 @@ function pmoReport(){
     +'review, not the result. DECISION / NOTES is left blank on purpose: it is yours to fill in and '
     +'keep as the record of what was accepted and why.'}]);
   const blob=buildXlsx([sheet]);
+  if(!blob) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('ORBIT SUBMITTAL REVIEW - '
@@ -11922,6 +11924,7 @@ function crExport(){
   note[7]='Report here when you need to have cash-in-hand';
   out.push(note);
   const bytes=buildXlsx([{name:'O&M,N', cols:CR_COLW.slice(), freeze:6, rows:out}], SRC_XTRA);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('FY'+fy+' CRA APN OMN Oct-Mar - '+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -13717,6 +13720,9 @@ function exportIdsReq(opts){
   // 4. THE FILE
   const when=new Date(), org=+String(f.org).trim();
   const bytes=buildXlsx(idsSheets(P, f, when), IDS_XTRA);
+  // v2.00 (U37): refused and said why -- before the ORG below is kept, and with no earlier prompt problem left in the
+  // box as the reason
+  if(!bytes){ idsLast=null; if(idsOpen) idsBody(); return false; }
   // 5. THE ONE SETTING KEPT -- the ORG -- and only now, once the file exists
   if(!MS.ids) MS.ids={};
   if(MS.ids.org!==org){ MS.ids.org=org; save(); }
@@ -16706,6 +16712,17 @@ function flowPng(){
   const w=Math.round(+vb[2]||1280), h=Math.round(+vb[3]||620), SCALE=2;
   let src=el.outerHTML;
   if(src.indexOf('xmlns=')<0) src=src.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg"');
+  // v2.00 (U37): the image is drawn from this SVG read back as XML, so a character XML 1.0 forbids (a destination named
+  // with U+000B) left it unreadable, and only "Could not render" was said. Refused here, before a Blob, naming the text.
+  const bad=XML_BADCH.exec(src);
+  if(bad){
+    // named by the drawn text that holds it (a leaf's text first, then a label read aloud), never the markup around it
+    const all=[el].concat([].slice.call(el.querySelectorAll('*')));
+    let t=(all.find(e=>!e.childElementCount && XML_BADCH.test(e.textContent))||{}).textContent||'';
+    all.forEach(e=>{ [].forEach.call(e.attributes, a=>{ if(!t && XML_BADCH.test(a.value)) t=a.value; }); });
+    _xmlRefuse('Chart image', 'the chart holds character U+'+bad[0].charCodeAt(0).toString(16).toUpperCase().padStart(4,'0')
+      +', which ORBIT cannot draw into an image, in the text '+_xmlShow(t));
+    return; }
   const url=URL.createObjectURL(new Blob([src],{type:'image/svg+xml;charset=utf-8'}));
   const img=new Image();
   img.onload=function(){
@@ -17158,6 +17175,7 @@ function exportFlow(){
     rows:detail((F.ext.by[c.k]||{rows:[]}).rows)}));
   if(F.upl.rows.length) sheets.push({name:tabName('Unfunded (UPL)','UPL'), cols:CD, rows:detail(F.upl.rows)});
   const bytes=buildXlsx(sheets);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('ORBIT Funds Flow - '+F.label.replace(/[^A-Za-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim()
@@ -17483,6 +17501,7 @@ function exportExView(){
     label=APPN_LBL[exA]+' FY'+(exFy%100)+(exSvc!=='ALL'?' '+exSvc:'');
   }
   const bytes=buildXlsx(sheets);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('ORBIT Active Year Execution - '+label+' '+dstr+'.xlsx');
@@ -17667,6 +17686,7 @@ function exportSrc(){
       +(blank.length===1?'':'s')+' without a Budget.'); return; }
   }
   const bytes=buildXlsx(sheets, SRC_XTRA);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('Spend Plan Source - '+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -18938,6 +18958,7 @@ function exportPlans(){
     sheet('PLAN A \u2014 Discretionary only','a',R.aBud,R.aT,R.A.__cut,'DISCRETIONARY ONLY'),
     sheet('PLAN B \u2014 Disc + Mandatory','b',R.bBud,R.bT,R.B.__cut,'DISCRETIONARY + MANDATORY'),
     cmp]);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 Two Spend Plans '+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -19723,6 +19744,7 @@ function exportFydpPlan(){
     const P=fydpPmoSheets(D, A, sheets.map(function(s){ return s.name; }));
     P.sheets.forEach(function(s){ sheets.push(s); });
     const bytes=buildXlsx(sheets);
+    if(!bytes) return;
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
     a.download=expName('ORBIT FYDP Spend Plan — '+(D.src==='working'? 'working plan' : blLblTxt(D.src))+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -20244,6 +20266,7 @@ function exportCycCompare(){
     sheets.push({name:'By PMO', cols:[14,12].concat(D.years.map(()=>[14,14,14,14,14,14,14,14,14,14,14,14]).flat()), freeze:4, rows:rows});
   }
   const bytes=buildXlsx(sheets);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('ORBIT Cycle Comparison — '+la+' vs '+lb+' — '+span+' '+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -21995,6 +22018,7 @@ function exportReprog(){
     sheet.rows.push([{v:'⚠ '+toChk.length+' entr'+(toChk.length===1?'y':'ies')+' to check (the Check column says why): '+part.join('; ')+'.',s:B}]);
   }
   const bytes=buildXlsx([sheet]);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName(FYL()+' ATR-BTR Log '+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -22159,6 +22183,7 @@ function exportFcView(){
   D.by.rows.forEach(r=>sheet.rows.push(line(r.label,r.b)));
   sheet.rows.push(line('TOTAL',totOf(D.by.rows.map(r=>r.b)),true));
   const blob=buildXlsx([sheet]);
+  if(!blob) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([blob],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName(FYL()+' Spend Plan Forecast - '+String(vl).replace(/[^A-Za-z0-9 _-]/g,'')+'.xlsx');
@@ -25154,7 +25179,91 @@ function _stylesXml(extra){
 // THE BUILT-IN STYLES WITH NO NUMBER FORMAT OF THEIR OWN (General), as _stylesXml entries -- what a two-decimal
 // twin of each is built from (buildXlsx, v1.95)
 const XF_GENERAL={0:{fill:false, font:0}, 1:{fill:false, font:1}, 2:{fill:'1B2A4A', font:2}, 6:{fill:'D9DDE5', font:1}, 7:{fill:false, font:4}};
+// v2.00 (U37): A CHARACTER XML 1.0 FORBIDS IS REFUSED, NEVER WRITTEN. _xesc escapes & < > " and nothing else, so
+// U+0000-U+0008, U+000B, U+000C, U+000E-U+001F, U+FFFE and U+FFFF went into the part as they were -- an ordinary
+// paste keeps several of them -- and the part was not well-formed XML. Measured: LibreOffice opened such a workbook
+// with the sheet cut off at that cell, and such a deck with the rest of that slide's table gone, its totals with it,
+// and said nothing. A workbook refuses a literal _xHHHH_ as well: a spreadsheet reads it as the one character it
+// spells (LibreOffice shows _x0041_ as A), so the cell would not say what the board says; a deck shows it as typed.
+// Nothing is cleaned or cut: the export stops before a byte exists, says where, and nothing on the board changes.
+// Half of a two-part character is not refused: the encoder writes U+FFFD, which XML allows, and the board's own
+// cuts (a title at 44 or 56 characters, a sheet name at 31) make one out of a whole emoji.
+// Such text can also come in from a workbook another program wrote (LibreOffice writes a U+000B as _x000b_, and
+// xlsxRead keeps that as written), so the words name the file it came from as well as the board.
+const XML_BADCH=/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/;
+// what in this text the file cannot carry as written, or '' (xl: a workbook, which also reads _xHHHH_)
+function _xmlBad(t, xl){
+  const s=String(t), m=XML_BADCH.exec(s);
+  if(m) return 'character U+'+m[0].charCodeAt(0).toString(16).toUpperCase().padStart(4,'0')
+    +', which ORBIT cannot write into a '+(xl? 'workbook' : 'deck')+' without damaging it';
+  const x=xl? /_x[0-9A-Fa-f]{4}_/.exec(s) : null;
+  return x? 'the text '+x[0]+', which a spreadsheet would read as the single character U+'+x[0].slice(2,6).toUpperCase() : '';
+}
+// the text around the first problem, each forbidden character spelled out where it sits
+function _xmlShow(t){
+  const s=String(t), m=XML_BADCH.exec(s) || /_x[0-9A-Fa-f]{4}_/.exec(s), i=m? m.index : 0;
+  const a=Math.max(0, i-30), b=Math.min(s.length, i+60);
+  return '“'+(a? '…' : '')+s.slice(a, b).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g,
+    function(c){ return '[U+'+c.charCodeAt(0).toString(16).toUpperCase().padStart(4,'0')+']'; })+(b<s.length? '…' : '')+'”';
+}
+// The words stay true once the person acts on them: a locked cycle cannot be changed, so a file taken from one that holds
+// the text stays refused, and that is said; the line stands on the status line until a workbook is made (_xmlMade).
+let _xmlStood=-1;
+// v2.00 (U37, review round 3): a place with words of its own for what can be done (how) gives them in place of the general
+// advice -- a band's colour has no field on the board, and a locked cycle does not keep it (bandColourHow)
+function _xmlRefuse(what, said, how){
+  if(how){ try{ alert(what+' not exported: '+said+'. No file was made, and nothing on the board is changed. '+how); }catch(e){} }
+  else
+  try{ alert(what+' not exported: '+said+'. No file was made, and the text on the board is unchanged. '
+    +'Change that text where it was entered — on the board, or in the file it was imported from — and export '
+    +'again. A locked cycle keeps the text it was locked with: a file taken from one that holds it stays refused.'); }catch(e){}
+  setStat('⚠ <b>'+what+' not exported</b> — '+esc(said)+'. No file was made; the text on the board is unchanged.');
+  _xmlStood=_statN;
+}
+// a workbook is being made: a refusal still on the status line would say no file was made, so it is taken down (the
+// Excel export and the ATR/BTR log say nothing of their own when they make one); any line said after it stays
+function _xmlMade(){ if(_xmlStood===_statN) setStat(''); _xmlStood=-1; }
+// every sheet name as it would be written (31 at most) and every text cell, before a byte is made: true when refused
+function _xlsxRefused(sheets){
+  for(let i=0;i<sheets.length;i++){
+    const nm=String(sheets[i].name).slice(0,31), rows=sheets[i].rows||[];
+    let why=_xmlBad(nm, true);
+    if(why){ _xmlRefuse('Excel workbook', 'the name of sheet '+(i+1)+' holds '+why+'. It reads '+_xmlShow(nm)); return true; }
+    for(let r=0;r<rows.length;r++) for(let c=0;c<(rows[r]||[]).length;c++){
+      const x=rows[r][c], v=(x!==null && typeof x==='object')? x.v : x;
+      if(v===null || v===undefined || typeof v==='number' || !(why=_xmlBad(v, true))) continue;
+      _xmlRefuse('Excel workbook', 'sheet “'+nm+'”, cell '+_colL(c)+(r+1)+' holds '+why+'. It reads '+_xmlShow(v));
+      return true;
+    }
+  }
+  return false;
+}
+// v2.00 (U37): A STYLE'S FILL COLOUR AND NUMBER FORMAT GO INTO xl/styles.xml TOO, the colour unescaped. Each is the board's
+// own constant but a band's colour, the Priority drill's banner for that band: the ladder import holds it to #RRGGBB, but a
+// board file carries it as written, and a U+000B, a U+FFFF or a quote in it made xl/styles.xml not well-formed while the drill
+// said it exported. A fill colour that is not six hex digits, or a number format holding a character XML 1.0 forbids (the
+// format is escaped), is refused the same way before a byte, naming the band (the caller says which, as 'of'). Nothing is
+// cleaned: the ladder import's grey for a malformed colour would be a guess here.
+function _xlsxStyleRefused(extra){
+  for(let i=0;i<(extra||[]).length;i++){
+    const e=extra[i]||{}, f=e.fill? String(e.fill).replace('#','') : '';
+    if(f && !/^[0-9A-Fa-f]{6}$/.test(f)){
+      _xmlRefuse('Excel workbook', (e.of||'a cell fill colour')+(XML_BADCH.test(f)? ' holds '+_xmlBad(f, true)
+        : ' is not six hex digits (#RRGGBB), the only form of colour ORBIT writes into a workbook')+'. It reads '+_xmlShow(e.fill), e.how);
+      return true;
+    }
+    if(e.fmt && XML_BADCH.test(String(e.fmt))){
+      _xmlRefuse('Excel workbook', 'a number format holds '+_xmlBad(e.fmt, true)+'. It reads '+_xmlShow(e.fmt));
+      return true;
+    }
+  }
+  return false;
+}
 function buildXlsx(sheets, extra){
+  // v2.00 (U37): refused, and said where, before anything is built; every caller returns on null
+  if(_xlsxRefused(sheets)) return null;
+  if(_xlsxStyleRefused(extra)) return null;
+  _xmlMade();
   const files=[];
   // A NUMBER GOES IN AS IT IS (v1.95, item 60, F1). Every non-integer was written rounded to two decimals, so a
   // sheet in $M or $K held the rounding, not the figure: the Two-Plan Forecast wrote $85,069 as 0.09 ($M), the
@@ -25308,7 +25417,22 @@ function _b64bytes(b64){
   for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i);
   return u;
 }
+// v2.00 (U37): the deck's slides, before a byte is made -- the rule and the words are the workbook's (_xlsxRefused).
+// A slide is built whole from the board's text, so the character is found in it, and the slide and its text are named.
+function _pptxRefused(slideXmls){
+  for(let i=0;i<slideXmls.length;i++){
+    const x=slideXmls[i], m=XML_BADCH.exec(x);
+    if(!m) continue;
+    const a=x.lastIndexOf('>', m.index)+1, b=x.indexOf('<', m.index), t=/<a:t>([^<]*)<\/a:t>/.exec(x);
+    _xmlRefuse('PowerPoint deck', 'slide '+(i+1)+(t? ' ('+_xmlShow(_xunesc(t[1]))+')' : '')+' holds '+_xmlBad(x, false)
+      +', in the text '+_xmlShow(_xunesc(x.slice(a, b<0? x.length : b))));
+    return true;
+  }
+  return false;
+}
 function buildPptx(slideXmls){
+  // v2.00 (U37): refused, and said where, before anything is built; exportPPT returns on null
+  if(_pptxRefused(slideXmls)) return null;
   const td=new TextDecoder();
   const files=[];
   Object.keys(TPL_PARTS).forEach(p=>{
@@ -25538,6 +25662,7 @@ function exportPPT(){
     slides.push(_pSlide(hdr('Cost Element Rollup','Feeds the procurement documents — per-service detail on the Cost Element Matrix tab of the Excel export')+_pTbl(4,MX,1500000,CW,[4.4,1.2,2,2,2.4],rows)));
   }
   const bytes=buildPptx(slides);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.presentationml.presentation'}));
   a.download=expName(document.title.replace(/FY\d\d/,FYL())+' — Slides '+new Date().toISOString().slice(0,10)+'.pptx');
@@ -29439,6 +29564,29 @@ function restoreAll(){ S.removed=[]; applyState(S); save(); render(); }
 // against the header row. A short list does not move data, so nothing else would notice — but every
 // column past the gap takes the next one's width and the name columns clip.
 function drillCols(){ return [7,9,8,44,44,13,15,20,5,15,18,15,15,15,15,15,15,17,7,14].concat(SVC.map(function(){ return 14; })); }
+// v2.00 (U37, review round 3): WHAT CAN BE DONE ABOUT A BAND'S COLOUR THE PRIORITY DRILL REFUSES. The board has no colour
+// field: a colour comes in as written with a board file or a ladder from another appropriation. Measured: a board file
+// corrected by hand opens again only if nothing was changed in this browser since it was opened -- otherwise this
+// browser's newer copy opens, the old colour with it -- so it is not offered. ⚙ Install standard puts a standard band's
+// colour back with the rest of the standard set; ⬆ Import ladder takes a corrected ladder file but drops every sub-band
+// filing and cuts a name to 60 characters and a description to 120. Each is said with what it costs.
+// v2.00 (U37, review round 4): ⚙ Install standard also puts every standard band back at the top of the ladder in the standard
+// order, filed under nothing, a removed one included, with both its ticks as issued (measured) -- so a standard sub-band loses
+// its filing and the stoppage gap can change; that is said too.
+// v2.00 (U37, fix round 4): a sub-band that loses its filing, either way, takes its money out of its header's total -- the
+// "BAND n TOTAL ... (with its k sub-bands)" row of the drill and of its Summary, the figure people brief from, is gone after it
+// (measured) -- so both sentences say so.
+function bandColourHow(bd){
+  return 'A band\u2019s colour has no field on the board: it came in as written, with a board file or a ladder from another '
+    +'appropriation. '+(BANDS_STD.some(x=>x.id===bd.id)? 'This is a standard band: \u2696 Bands \u203a \u2699 Install standard '
+    +STD_RANGE()+' puts the organization\u2019s standard bands back as issued \u2014 colour, name, description, rule, whether each '
+    +'counts toward the stoppage gap and needs a consequence, a removed one included \u2014 at the top of the ladder in the '
+    +'standard order, and files none of them under another band (a standard sub-band becomes a band of its own, its money no '
+    +'longer in its header\u2019s total, and the bands below it are renumbered). It asks first. ' : '')
+    +'\u2b06 Import ladder takes a ladder file with the colour corrected to #RRGGBB (\u2b07 Export ladder makes one), but drops '
+    +'every sub-band filing \u2014 each sub-band becomes a band of its own, its money no longer in its header\u2019s total, and '
+    +'the bands below it are renumbered \u2014 and cuts a band\u2019s name to 60 characters and its description to 120.';
+}
 function exportCSV(){
   // Everything is read from the board as it stands; nothing here changes it.
   const T=tiers(), MR=masterRanks();
@@ -29451,8 +29599,27 @@ function exportCSV(){
     return a2.mode==='inc'? ('incremental ×'+((a2.inc||[]).length)) : (a2.d? ymLbl(a2.d) : ''); };
 
   // one colour per band for the banner rows, plus a grey one for the unbanded section
-  const extra=L.map(bd=>({fill:(bd.c||'#8892A4').replace('#',''), white:true, bold:true}))
+  // v2.00 (U37): each banner style says which band it is, so a colour a workbook cannot carry is refused naming the band
+  const extra=L.map((bd,i)=>({fill:(bd.c||'#8892A4').replace('#',''), white:true, bold:true,
+    of:'the colour of band '+BAND_LBL_AT(i)+' “'+bd.n+'” (its banner on the Priority drill)'}))
     .concat([{fill:'8892A4', white:true, bold:true}]);
+  L.forEach((bd,i)=>{ extra[i].how=bandColourHow(bd); });   // v2.00 (U37, review round 3): and what can be done about it
+  // v2.00 (U37, review round 5): the refusal names the first colour it meets, and a sub-band takes its header's colour
+  // (bandAdd), so two bands can hold one refused colour. Each other band refused is named too, ⚙ Install standard is offered
+  // only when it puts back every one of them, and the import's file has each corrected -- either way, followed for the first
+  // band alone, left the drill refused, and the import door refused that file as one ORBIT never writes (measured).
+  const refused=L.map((bd,i)=>i).filter(i=>{ const f=String(extra[i].fill).replace('#',''); return !!f && !/^[0-9A-Fa-f]{6}$/.test(f); });
+  refused.forEach(i=>{ const also=refused.filter(j=>j!==i); if(!also.length) return;
+    const lone=also.find(j=>!BANDS_STD.some(x=>x.id===L[j].id));
+    extra[i].how='The colour'+(also.length===1? '' : 's')+' of '+also.map(j=>'band '+BAND_LBL_AT(j)+' \u201c'+L[j].n+'\u201d').join(' and ')
+      +(also.length===1? ' is' : ' are')+' refused too, and each has to be put right. '
+      +bandColourHow(lone===undefined? L[i] : L[lone]).replace('with the colour corrected', 'with each of these colours corrected'); });
+  // v2.00 (U37, fix round 5): a locked cycle's view reads its bands from the working plan and keeps nothing done in it --
+  // ⚙ Install standard or ⬆ Import ladder done in the view is not kept (with U10 the view is put back at once), and the colour
+  // stays refused once the view is left (measured). The general refusal says a locked cycle keeps its text; in a view the band
+  // words say where to do it.
+  if(CYCVIEW) refused.forEach(i=>{ extra[i].how+=' In a locked cycle\u2019s view nothing done is kept: \u21a9 Leave the view and do it on '
+    +'the working plan, whose bands the view reads.'; });
   const bandXf=i=>XF_EXTRA0+i;                       // banner style id for band index i
   const UNB=XF_EXTRA0+L.length;                      // the "not yet banded" banner
 
@@ -29642,6 +29809,7 @@ function exportCSV(){
   });
 
   const bytes=buildXlsx(sheets, extra);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName((_AP.exp+' ')+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -30041,6 +30209,7 @@ function exportAceTieout(){
   }
 
   const bytes=buildXlsx(sheets);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName(document.title.replace(/FY\d\d/,FYL())+' \u2014 ACE Tie-Out '+k+' '+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -31137,6 +31306,7 @@ function exportExcel(){
     }
   });
   const bytes=buildXlsx(sheets, XTRA);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName(scenFile(document.title.replace(/FY\d\d/,FYL())+' — Breakouts')+' '+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -31989,6 +32159,7 @@ function exportCoa(){
   });
 
   const bytes=buildXlsx([s1,s2,s3]);
+  if(!bytes) return;
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
   a.download=expName('ORBIT Chart of Accounts '+FY+' '+new Date().toISOString().slice(0,10)+'.xlsx');
