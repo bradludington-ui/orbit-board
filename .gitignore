@@ -25,10 +25,12 @@
 # The register of math defects this board has shipped. Source, not run output: the nightly gate
 # reads it as its first stage, so a copy that never reaches main takes the guard with it.
 !math-defects.json
+# The test tools' exact versions (playwright-core, jsdom and what they pull in), so a fresh clone installs what the
+# recorded results used: npm ci. The board itself still has no dependencies (OCIO POA&M P-05, 19 Oct 2026).
+!package-lock.json
 
 # tooling only — the board itself has no dependencies
 node_modules/
-package-lock.json
 
 # Nightly math-validation reports. Run output, not source -- and a failing report embeds suite
 # output that can quote fixture figures, so it stays out of the repo.
