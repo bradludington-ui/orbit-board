@@ -3237,6 +3237,72 @@ result for it was run fresh against these commits.
     `flowEntUseMap`'s `same`: on O&M, Used by on Depot U2 is blank for a Full Fund file put right on another board, ✕ removes
     Depot U2 asking only "Remove Depot U2?", and Full Fund's R1 comes back on a re-made "Depot U" (no money is lost; the same
     without U40; not fixed here, ledger U72); and Chromium, and two real machines.
+- **UI menu — every top-right menu moves into the left menu, each action in one place; and the nine Section 508 / WCAG
+  2.2 AA findings from the UI branch closed** (Brad, 19 Oct 2026: "Move every top-right menu into the left menu, and
+  remove every duplicate, so each action has exactly one home." Built on branch `menu` from `b71b18e`, the head of PR #13:
+  `439716b` the menu (board `ffe86c20`), then the 508 fixes (board `e120dde0`), the commit after it.)
+  - **What changes:** the left menu holds what 💾 Save, Reports & exports ▾, Data ▾, Setup ▾ and 📁 File ▾ held, each item
+    by the call its menu item made (`mRun(...)`): **Reports & exports** is a box with its six groups side by side and Find
+    on top; under Board, **Imports & exports** (the Import box renamed: a whole board or one appropriation, in or out),
+    **Data** (a box, a card for each source saying what it is and when it was last loaded), **Program offices** (Publish
+    PMO copy, Review submittals, and the submittal loading the Import box's PMO Import card did; not shown in a PMO copy,
+    as File left its group out), **Audit** (the change journal, the save history, the pen and your name), **History &
+    recovery** (earlier copies and work kept aside only) and **Setup** (its own flyout, folded as before, with Live view
+    and Save diagnostics). **💾 Save is pinned at the foot**, where the ORBIT line was, with the save state, who holds the
+    pen and a ▾ for Save a copy; folded to icons it is an icon with a dot for unsaved work; **Ctrl+S saves** (the
+    button's call; b71b18e had no Ctrl+S); in a PMO copy the spot is ✉ Submit input, and Save and Save a copy stay under
+    ▾, off, as File said. FYDP ▸ and Execution ▸ keep only their views (FYDP Spend Plan (Excel) to Reports & exports,
+    Import CCaR QPE to Data, the links to the top menus gone). The top keeps Appropriation, Fiscal year, PMO, search,
+    Filter, the message line and Help; the toolbar's Import, a second way to the box, is gone. Every help text and
+    message that named an old menu path names the new one ("Put your name in first — Audit › ✎ My editor name…"); no
+    "File ▾" is left in the board. The inventory, old place → new place for all 99 items, is
+    `$SP/rec/L8/menu/INVENTORY.md`.
+  - **One home each, and the three reached two ways on purpose:** a view lives in its section's flyout (FYDP ▸,
+    Execution ▸) and nowhere else, so Reports & exports no longer lists the forecast, CR Cash Needs, the five-year plan,
+    PPBE Budget Positions, Spruills, Active Year Execution, Reprogramming Actions or the Funds Flow, and Data no longer
+    lists QPE coverage or ORBIT vs CCaR: the section or card each sat in says where it is, and Find finds that line.
+    Save is the button and Ctrl+S; Live view is Setup › 📡 Live view and History & recovery › ↶ Earlier copies (the lead's
+    target names both); work kept aside is History & recovery's and the save state's own "↶ work kept aside", as before.
+    The mode tools in the task bar (Brief's PowerPoint deck and Exec synopsis, Fund's Executive decision and Bands) are
+    left as they were: Brad's call.
+  - **Found and fixed on the way:** an item in FYDP ▸ or Execution ▸ closed its flyout and left the keyboard on
+    nothing, so the box it opened gave the keyboard back to the top of the page; every left-menu item now closes its
+    flyout or box first and gives the keyboard to its entry (dialogs-keyboard caught it once those boxes were opened from
+    there). A flyout closes when the keyboard leaves it, as a toolbar menu does. The status line, hidden, is laid out at
+    the bar's left edge: with only Help beside it, its out-of-sight words reached past a 761-1023 px window (layout-fits J).
+  - **508 (the commit after `439716b`, board `e120dde0`):** `npm run standards` found nine at `b71b18e` and finds none now; `tools/a11y-baseline.json` is
+    unchanged (0). 1.4.11 ×5: the RECORD panel's ✕ Close had a `--line` edge (1.36–1.60:1), and takes `--edge`, as every
+    box's ✕ Close has since v1.96. 2.5.8 ×2: that ✕ Close (59×20 px) and the fold control (17×24 px) are 24 px at the
+    least. 2.4.7: the left-menu entry for the section on screen showed no focus; every entry takes an accent ring. 1.4.10:
+    the 18 px of sideways scroll at 320 px went with the menu change (Save and File left the top bar). The left menu's
+    boxes, flyouts, folded state and unsaved Save are measured too, and added no finding (the pinned Save's edge against
+    the navy was the one, fixed in `439716b`).
+  - **What users may see:** the left menu as above, and nothing at the top right but the message line and Help. The
+    figures, exports and saved files are those of the board before.
+  - **Test:** `tools/left-menu.mjs` (new; `npm run leftmenu`, last in `verify:grid`; Chromium, the empty template, and a
+    PMO copy published from synthetic requirements; every expected value a hand-written literal): (A) each of the 69
+    calls the old menus made is reached from the left menu as often as the inventory says, and nothing else is; (B)
+    Ctrl+S; (C) the five controls are gone and the kept ones stay; (D) a PMO copy; (E) folded and from the keyboard
+    alone. 23 checks pass on both boards (`ffe86c20`, `e120dde0`); 13 fail on `b71b18e`.
+  - **Existing checks changed, each to test the same property at the new place:** menus (`menu-paths.mjs`: a path names
+    the left-menu entry and is read from its list; sections are groups), keys (`keyboard-reach.mjs`: G names the menus
+    that stay; G2's Find in the box; new G3, the seven flyouts held to G and G2; L and K from Help and Setup), dropdowns
+    (the ten flyouts and boxes, Setup's groups each open), dialogs (boxes opened from the left menu by keyboard: 37 of 46
+    against 15 of 44 at `b71b18e`; the three left-menu boxes give the keyboard back 20 of 20), panels (the two new boxes,
+    and the seven flyouts held to a menu's checks), toolbar-fits (the controls that moved are counted where they went;
+    every left-menu control is held to on screen, whole and clickable), layout-fits (B finds the left menu a home),
+    standards (the left menu measured open, as the toolbar menus were), ia:census (the left menu's lists read as menus),
+    audit-board (v1.96 item 65's scenario), audit-import (v1.84 and v1.86's File scenarios, the put-back scenarios'
+    `fileMenu()` and `menuText()`), audit-recon (three messages and one help paragraph), audit-ui (two messages) and
+    `tools/export-audit/hostile.mjs` (the hostile-text sweep shared by audit-hostile and `npm run hostile`: the left menu's
+    three boxes and seven flyouts, Setup's groups each open, are drawn and read as the menus were).
+    `tools/row-controls.json` did not need a change. Nothing was deleted or loosened.
+  - **Mutations:** seven entries re-pointed, each against the same behaviour (`menu-wbs-not-in-data`, `menu-find-kept`,
+    `menu-copy-offices`, `restore-keep-refusal-ignored`, `v200-u10-shared-gate-in-adopt`, `v200-cycreg-advice-unwarned`,
+    `v200-cycreg-help-refusal-unsaid`); mcount: 2,015 entries, each once.
+  - **The two carried limits:** toolbar-fits at 1152 px now PASSES in review and fund (the context bar is one line, 44 px:
+    Save and File left it). layout-fits D still fails the same eight checks; at 1024×768 the first row is at 420 px, not
+    453 px.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

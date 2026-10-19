@@ -440,6 +440,10 @@ table.clingrid tr.cdiff td{background:var(--panel2)}
   padding:7px 10px; margin:-1px -1px 8px; font-weight:800; letter-spacing:.04em; font-size:10px}
 .inspector .drawerbar button{font:inherit; cursor:pointer; background:transparent; color:inherit;
   border:1px solid var(--line); border-radius:5px; padding:3px 9px}
+/* v2.00 (508): the RECORD panel's ✕ Close had an edge at 1.36-1.60:1 in every theme and stood 20px tall (1.4.11, 2.5.8), as
+   every box's ✕ Close did before v1.96: the edge token every other control's edge uses (3:1 or more on every theme), and
+   24px, 2.5.8's minimum */
+.inspector .drawerbar button{border-color:var(--edge); min-height:24px; min-width:24px}
 .inspector .drawerbar button:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
 .gridhead .nums>div{text-align:right}
 .row .nums .l{display:none}
@@ -1300,10 +1304,15 @@ html.ui-on #uiSide{display:flex;flex-direction:column;gap:2px;position:fixed;lef
 #uiSide .uiBt small{font-size:11px;color:var(--uiNavMut);margin-top:4px;white-space:nowrap}
 #uiSide #uiCollapse{margin-left:auto;background:transparent;border:0;color:var(--uiNavMut);font-size:16px;line-height:1;padding:4px 6px;border-radius:6px;cursor:pointer}
 #uiSide #uiCollapse:hover,#uiSide #uiCollapse:focus-visible{background:var(--uiNav2);color:#fff}
+/* v2.00 (508): the fold control was 17x24px (2.5.8 needs 24x24) */
+#uiSide #uiCollapse{min-width:24px;min-height:24px}
 #uiSide .uiNi{display:flex;align-items:center;gap:12px;width:100%;padding:9px 12px;border:0;border-radius:8px;background:transparent;
   color:var(--uiNavInk);font-family:inherit;font-weight:600;font-size:13px;line-height:1.2;text-align:left;cursor:pointer;position:relative;white-space:nowrap}
 #uiSide .uiNi:hover,#uiSide .uiNi:focus-visible{background:var(--uiNav2);color:#fff;outline:none}
 #uiSide .uiNi.on{background:var(--uiNavAct);color:#fff}
+/* v2.00 (508): the entry for the section on screen showed no change when the keyboard reached it -- its own background
+   outranked the focus one (2.4.7). Every entry now takes a ring in the accent when focused from the keyboard. */
+#uiSide .uiNi:focus-visible{outline:2px solid var(--uiNavAcc);outline-offset:-2px}
 #uiSide .uiNi.on::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--uiNavAcc)}
 #uiSide .uiNi .ic{width:18px;height:18px;flex:none;display:grid;place-items:center}
 #uiSide .uiNi .ic svg{width:16px;height:16px}
