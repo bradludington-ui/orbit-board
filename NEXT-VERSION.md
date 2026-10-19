@@ -2275,7 +2275,7 @@ result for it was run fresh against these commits.
     and the top bar and 📁 File still describe it), the HOLD ON answered Cancel with nothing kept aside (its Cancel line
     and the status after it still name a reopen, and a reopen then loads the file's copy and keeps the work on screen
     aside), and ordinary editing. 75 checks fail on the board before the change (`a4881ec`'s, `058df67e`), none of them a
-    control; all 82 control checks pass on both.
+    control; all 86 control checks pass on both.
   - **Existing expectations changed (3 checks and 1 comment, in tools/export-audit/audit-import.mjs; line numbers before →
     after):**
     - L3512 → L3512–3514, v1.89 "the file is newer", "one click puts it back": the kept slot was empty after the put-back
@@ -2392,6 +2392,111 @@ result for it was run fresh against these commits.
     ("__proto__", or "GONE") as "USAF (blank) · ANG (blank) · AFRC (blank)", in green, and counts its RCN / EEIC field as
     set, while RCN-EEIC by Month and the Alignment Breakout call that money not assigned (the money review's probe). All
     three are the same before and after this change. jsdom only; no browser or Excel was run.
+- **UI chunks 1–3 and UI-C1 — the board's new layout: a navy sidebar, a context bar, KPI cards, a toolbar, an Import box
+  and a RECORD panel that slides over the table; presentation only** (the concept follows Brad's two concept images,
+  11 Oct; Brad, 12 Oct, 6:00 AM ET: "Fix UI M1 in chunk 3, with cancellation and failed-rollback tests" and "Update
+  layout tests for the slide-over default while retaining checks for optional docking"; 6:11 AM ET: S1–S5 approved
+  within his scopes; 7:12 AM ET: UI-C1 as a separate UI commit; 18 Oct, between 7:15 and 7:25 AM ET: the UI work is in
+  v2.00, with his three verify:grid calls below). Built on its own branch, `claude/v200-ui`, from `4a6f7c7` (40 commits,
+  `ba0def2` to `7df816c`), each part reviewed independently; v2.00 takes it by a merge that keeps every commit. All of
+  it is switched on by `html.ui-on`, which `uiBoot()` sets as the last thing the program runs, after the page source a
+  save writes (`SRC0`) is taken, so a saved board carries none of it. Measured against `4a6f7c7` at every board of chunk
+  3 and UI-C1: the saved data is byte-identical on the same seed and clock, and opening the board writes the same
+  storage keys in the same order and no UI key. The board's diff against `4a6f7c7` is insertions only (1,056 lines).
+  Four existing functions are touched, and none changes what it computes or writes: `scoreboard()` hands the four
+  figures it has just printed for the posture strip to the cards, in a try/catch (nothing is computed twice; the cards
+  print them through the board's own `fM()`, in whole dollars); `drawerNarrow()` answers true while the panel slides
+  over; `pmoTake` gains one comment line above it (S3); and `fitMenus()` is wrapped, its body unchanged (S5).
+  - **Chunk 1 (11 Oct):** the sidebar (Requirements with a Review / Rank switch, Funding, Cycles & compare, Brief; FYDP,
+    Execution and History & recovery flyouts, each item running the menu item's own function; Imports; Setup), which
+    collapses to a 64 px icon rail; the context bar (the header restyled, with a Cycle control and an Editable chip);
+    the page heading and four KPI cards (Total Ask, Discretionary, Mandatory, Total UFR); the toolbar (search, Filter,
+    Columns, View, Import, Add requirement); the Import box (Full board, One appropriation, PMO Import: One submission
+    or All submissions at once); and Overview / Funding / History tabs in the RECORD panel, which scroll to their part
+    and hide nothing.
+  - **Chunk 2 (11 Oct):** the RECORD panel slides over the table at every width, the board's own drawer; docked beside
+    the table is a choice under View › Record panel, kept in this browser (`prio27uiDock`), and docked is the board's
+    own layout. Each row is sized to the room it has beside the sidebar and the docked panel, and a nine-digit figure is
+    not cut at any width from 700 to 1900 px (measured). The cards are guarded: a card that cannot be drawn makes all
+    four read "unavailable", never stale figures. Brief shows the posture strip again. Add requirement shows in Review
+    only, and PMO Import is hidden in a PMO copy, as the board's own menus do. The Cycle control offers the working plan
+    and each locked cycle, read only, through the board's own `cycLeave` and `cycView`. "Last recorded edit" is shown
+    only where the change journal answers for that requirement; Lifecycle reads "pending" (the board has no lifecycle
+    field for a requirement).
+  - **Chunk 3, M1 (12 Oct):** "All submissions at once" is all or nothing. A batch with a file that would ask a question
+    is refused before anything loads, naming each such file, in the order picked, with its question, to be loaded on its
+    own; the board's own `pmoTake` takes each file in the real run. If the run still fails part-way (a file not taken,
+    Cancel, an error), the submittal review, the destination list (in place), every browser storage key that differs
+    (and no other) and the save state are put back as they were once the files were read. "Nothing on the board was
+    changed" is said only when a check of all of them finds each as before; otherwise the message says "⚠ NOT EVERYTHING
+    IS AS IT WAS" and names each part that is not, with the browser's reason. A batch refused before it takes anything
+    is measured against the board as it is when that is said (fix round 2).
+  - **Chunk 3, S1–S5 (12–13 Oct):** S1, the posture strip wraps, so every control in it is on screen and clickable at
+    every width; S2, a board-wide journal line (a load, the service list, changes past a save's limit, changes not
+    recorded) recorded under another year suppresses "Last recorded edit"; S3, a refused batch from a board that reads
+    Saved changes nothing and writes nothing, and the note at `pmoTake`; S5, a toolbar menu stays clear of the sidebar,
+    so every Reports item is on screen and clickable at 760 and 1000 px; S4, the Import box gives the keyboard back to
+    the control that opened it, and the browser tools are updated for the moved controls and the slide-over default,
+    with a docked pass kept.
+  - **UI-C1 (12–13 Oct):** `npm run check` failed from chunk 1 ("10 value(s) reach inline handler code without jsa()"):
+    five handler arguments in chunk 1's code were hand-quoted. Each now goes through the existing `jsa()`; each handler
+    makes the same call with the same value; `tools/check.mjs` is unchanged, and the check passes again.
+  - **What users may see:** the new layout. The RECORD panel slides over the table by default; View › Record panel ›
+    Docked brings back the panel beside the table. The figures, exports and saved files are those of the board before.
+    Beside the open sidebar at a 1152 px window the context bar wraps to two lines (every control on screen, whole and
+    clickable), and the first requirement row starts lower than before (below, under "Not covered"). A PMO batch with a
+    file that would ask a question is refused, naming that file; after a failure part-way the batch says what it put
+    back. In a browser whose buttons take no focus from a click (Safari; Firefox on a Mac), closing the Import box gives
+    the keyboard back to the control that opened it.
+  - **Test:** audit-ui (new; jsdom, the real board, synthetic data made at run time; `npm run audit:ui`, last in
+    `audit:suites` and in the mutation sweep's `SUITES`): 616 checks at `7df816c` (M1 510, S2 56, S3 50), every expected
+    value a hand-written literal; 278 fail on chunk 2's board (`f95fee2`) and 8 on the M1 board (`670c467`, S2's).
+    Browser checks outside the gate: `ui-concept/preview-chunk3/checks/sweep3.mjs` (the posture strip: 0 widths with a
+    control cut off or covered, against 111 on chunk 2's board; Reports: 0 problems, against 612). boot-same, audit,
+    audit-other and audit-recon pass at every board of chunk 3 and UI-C1. UI-C1 was checked on `7df816c` against
+    `dd15956` by an independent checker (13 Oct, 12:18–1:11 PM ET): `npm run check` fails before on the same 10 values
+    and passes after; 24 clicks on the board and on its reopened saved file act the same; the saved payload is
+    byte-identical (8,707 bytes); audit-ui counts per scenario and all 14 verify:grid tools' output are the same at
+    both.
+  - **Existing checks changed (S4, and Brad's row-controls call):** in `tools/dialogs-keyboard.mjs`,
+    `tools/panels-render.mjs`, `tools/inspector-agrees.mjs`, `tools/editors-reachable.mjs`, `tools/keyboard-reach.mjs`
+    (A, D, D2, F, L), `tools/toolbar-fits.mjs`, `tools/layout-fits.mjs` (C, D, E, F, I) and
+    `tools/dropdowns-visible.mjs`; each change is listed with its old line, old rule, new rule and why in
+    `ui-concept/CHUNK3.md` (part 2's S4 table and its fix round's "Old → new" table). No assertion was deleted or
+    loosened: each check that depended on the panel being docked now runs twice, sliding over and docked, and says where
+    the panel was. `tools/row-controls.json` is re-recorded (`node tools/row-controls.mjs --record`, Brad, 18 Oct): it
+    was recorded from v1.91 (56 controls); the board now has 61, the five added being chunk 1's RECORD panel History
+    links and tabs (`mRun(showLog)`, `mRun(toggleJrnl)`, `uiDTab('…')` three times), and none lost.
+  - **Mutations (37, `v200-ui3-*`, one group at the end of `MUTATIONS`):** M1 26 (`-asks-loaded`, `-dry-asks-unheard`,
+    `-no-putback`, `-putback-no-dest`, `-putback-dest-copy`, `-putback-no-storage`, `-putback-no-save-state`,
+    `-putback-writes-all`, `-pick-lost`, `-claim-unchecked`, `-check-blind-storage`, `-putback-shallow-dest`,
+    `-snapshot-before-reads`, `-check-blind-dest`, `-check-blind-plan`, `-check-blind-save`, `-check-blind-review`,
+    `-check-blind-added-keys`, `-putback-dest-key-only`, `-early-measured-before-reads`, `-partway-before-run`,
+    `-wrote-anyones`, `-reads-same-list`, `-snapshot-keeps-old-save`, `-check-ls-dest-only`, `-check-added-dest-only`),
+    S2 7 (`-lastedit-year-first`, `-lastedit-services-only`, `-lastedit-writer-wide`, `-lastedit-removed-wide`,
+    `-lastedit-no-year-filter`, `-lastedit-removed-ignored`, `-lastedit-whole-year-ignored`) and S3 4
+    (`-dry-marks-unsaved`, `-dry-writes-journal`, `-dry-writes-storage`, `-dry-folds-dest`); each caught by audit-ui,
+    run whole, at `dd15956` (UI-C1 then changed five other lines of the board, and every entry still matches it once;
+    the mutation lanes at the merged tree run after the PR is merged, Brad, 18 Oct). S1, S5 and S4's focus fix are
+    layout and focus, which jsdom cannot see; they have no entry and are held by `sweep3.mjs`, dropdowns-visible and
+    dialogs-keyboard.
+  - **verify:grid (Brad, 18 Oct, between 7:15 and 7:25 AM ET):** row-controls: the five new controls are RECORDED
+    (above), so the check holds them. toolbar-fits at 1152 px and layout-fits D ×8: CARRIED as named limits (below). So
+    `npm run verify:grid`, a chain that stops at the first tool that fails, still stops, at toolbar-fits, and each of
+    its 14 tools is run on its own as well.
+  - **Not covered:** two named limits, carried by Brad's decision: toolbar-fits' one-line rule, kept as it was, fails at
+    1152 px in review and fund (the context bar has 920 px beside the open sidebar, under the board's own 1100 px wrap
+    point, and takes two lines, 77 px); and layout-fits D fails at four sizes, sliding over and docked (×8): the first
+    requirement row starts at 323 px against a 320 px limit at 1920, 1440 and 1366 px, at 453 px at 1024×768, and at
+    420 px docked at 1440 (chunk 1's heading and cards; the chunk-2 review's m7, Brad's call on the look). The chunk-2
+    review's other minors (m1–m5, and m7's lower-cased cycle label in the page subtitle; CHUNK2-REVIEW.md §7) are open,
+    not selected: among them, Brief at a 390 px phone scrolls sideways by 21 px (m1), and after a batch that replaces an
+    office's submittal the status line does not say so (m2). Still open from M1: "nothing on the board was changed" is
+    measured from once the files were read, so a change made by something else while they are read is kept and not
+    named; a failed put-back step gives its reason as "(Error)"; the storage-refused message names no remedy; Chromium's
+    alert box scrolls after about nine lines; and the `v200-ui3-*` entries have no `FIRST_BY_PREFIX` route (they go to
+    audit-inject first; the verdict is the same). verify:grid in a lane without the container's Segoe UI → Inter
+    substitution, and on Windows itself, is U28's (ledger).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -2532,6 +2637,11 @@ result for it was run fresh against these commits.
     - **U39 (P3).** Two entries with the same text print identical rows.
     - **U35 (P2, deferred by the lead; Codex's A1).** During a Live refresh, typing not yet committed in the RCN / EEIC
       dialog is replaced by the stored value without a question.
+  - **UI chunks 1–3 and UI-C1: in this version** (Brad, 18 Oct): the new layout, presentation only (above). Carried as
+    named limits by Brad's decision (18 Oct): toolbar-fits' one-line rule fails at a 1152 px window beside the open
+    sidebar (every control on screen, whole and clickable), and layout-fits D fails at four sizes, sliding over and
+    docked (the first requirement row starts at 323 px against 320 px; 453 px at 1024×768). The chunk-2 review's minors
+    stay open (ledger UI-m1…m7).
 
 ### v1.99 — 6 Oct 2026: items 85–98, built on Brad's "go" and his scope of 6 Oct -- the 6 October review of v1.98
 
