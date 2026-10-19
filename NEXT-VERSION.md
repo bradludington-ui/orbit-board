@@ -2679,6 +2679,262 @@ result for it was run fresh against these commits.
     and is then refused at the writer, naming the cell, with the answers typed kept and the ORG not saved (measured,
     verify-money r5 `V5-P-near-c1`; a literal `_xHHHH_` refused, the named limit above). CSV, JSON, HTML and text exports are not XML and are unchanged. A
     workbook or deck exported before this change is not repaired.
+- **U44 — a destination list that repeats a key, or holds a key the funds flow keeps for its own rows, never prints money
+  twice; a file handed over with one is refused, and the user's own board is put right as it comes across** (found by the
+  lead's integration dry run, 13 Oct; a release blocker by the lead's decision of 13 Oct, the same class as U32/U33). The
+  funds flow made one row for every entry of the destination list. A list holding the key dA twice ("Alpha Depot") printed
+  dA's row twice in the Funds Flow workbook, with its money twice in every row and sheet but the OGC total: on the synthetic
+  fixture (R1 asks USAF $900 and ANG $200 and goes to dA, R2 asks USAF $300 with no destination) Alpha Depot $1,100, Alpha
+  Depot $1,100, Not yet assigned $300 beside an OGC total of $1,400, and OGC Detail summing $2,500. An entry keyed
+  "unassigned", the key of the flow's own "Not yet assigned" row, printed that row twice at $1,400 and lost the entry's name,
+  "Depot U"; "destsplit" did the same to the split row. A key that is a number (1) put R1's money under Not yet assigned
+  beside "Depot One", where the board showed R1; the number 1 beside the text "1" printed "Depot Text" twice; an entry keyed
+  "work" was broken out by Workforce's rungs on the panel. Every such file passed the import door, ⬅ Import a full board
+  kept the keys as they were, and the double print came back on every reopening, view and saved copy. Now:
+  - The import door refuses a file handed over (every file the door checks but the user's own board taken whole and the
+    team's own copies) whose destination list -- the board's, a plan's or a locked cycle store's copy, a package's or a
+    submittal's -- repeats a key, holds "unassigned" or "destsplit", holds a key that is not text, or holds an entry that is
+    not a destination or has no key. It says which list, what it holds and why, and what is true for each kind of file;
+    nothing is taken and browser storage is unchanged.
+  - The user's own board taken whole by ⬅ Import a full board is PUT RIGHT AS IT COMES ACROSS, in every list the file holds
+    (the board's, each plan's copy, each locked-cycle store's): an entry keyed "unassigned", "destsplit" or by something
+    that is not text takes a key of its own, and every requirement on it -- its Goes to and its ultimate recipient, in every
+    plan and every locked cycle -- goes with it, exactly (the number 1 is not the text "1"); a later entry that repeats a key
+    takes a key of its own with nothing on it, its kind and match terms kept, and every requirement on the key stays on the
+    first entry with it; a repeat that says nothing its first entry does not (the same name, kind and match terms) is left
+    out; an entry that is not a destination, or has no key, is left out, as every board leaves it out on opening. The map an
+    older list was read through, and a kind another appropriation named, follow the new key. That key is THE SAME ON
+    EVERY BOARD that puts the list right ("unassigned" takes "dunassigned", "destsplit" "ddestsplit", the number 1
+    "dnumber1", true "dbooleantrue", and a repeat the key its place among the entries with its key gives -- the first
+    repeat of dA "ddar1", the second "ddar2" -- a place that counts each repeat ✕ removed here, which ✕ (and a list reset, for each repeat it removes) keeps as
+    removed under that key, and each place a reading already gave its key; where the list already uses that key, or removed it, or the key
+    a repeat repeats was marked removed by an older ORBIT's ✕, one is made at random), and a board not yet put right reads
+    that key as its own entry, from its list as it stood before the reading -- a reserved or non-text key through it, a
+    repeat taking it -- so two boards that hold one list, whether both or only one has been put right and whether or not
+    either removed a repeat in this version, name each destination by one key, and a package or a return between them puts
+    each requirement on the destination the board that sent it showed it on, renamed on either board or not (with a key
+    made at random on each board, or a destination joined by its name, a manager's return came across with R1 and its
+    money on a second "Depot U", or R2's on a second "Bravo Yard", after a rename; with a place counted on the list as it
+    stood, R2, put on Charlie Yard on a board that had removed Bravo Yard, came across on Bravo Yard on the other board, and
+    after a rename on a second "Charlie Yard"; Not covered says where a key is still made at random).
+    The key each reserved or non-text key moved to is kept with the list, so a copy of the list the file does not carry -- the
+    plan and locked cycles of an appropriation it keeps as this browser had them -- follows it: opened, that appropriation's
+    requirements are on the destination the board showed them on (before, they were read by the old name, and a renamed
+    destination came back as a second one with their money on it); its requirements count for ✕ on that destination; a destination removed here stays removed, under its old key,
+    the key it moved to, or the key of its own every other board gives it (removed under the new key, it came back when
+    the kept appropriation opened; removed as "unassigned", it came back with a manager's return, put right); Put it
+    right, and a later full import of an older file of the user's own, move the key the same way; and where one list of the
+    file holds both the old key and the key the record names, that list's own entry is read. The question asked before
+    anything is replaced, and the reopened board's report, say what was put right. An appropriation the file does not carry
+    stays as this browser had it -- with its copy of the list as it was (next bullet).
+  - A board that carries such a list in any copy -- its own list, or the copy another appropriation's plan or store of
+    locked cycles keeps (only a board an ORBIT before this one left in this browser, a file no ORBIT wrote, or an
+    appropriation a full import did not carry) -- says so ON EVERY OPENING, from the moment it opens and after the line the
+    opening ends with (its saved file; the board file with this browser holding the board; this browser's newer copy; the
+    state file beside the board answering, however late; the shared folder answering), once, and at the top of 📍
+    Destinations, naming whose copy holds what. Until it is put right it publishes no PMO copy and issues, pushes or sends
+    back no package (⬆ Send my work back, ⬆ Send back), saying why (a board of this version would refuse each, and a PMO
+    copy cannot put its list right). **Put it
+    right** takes the board as it stands -- built from what is on screen and in this browser, without saving it first --
+    through ⬅ Import a full board, which asks first, writes everything or nothing and reopens; answered No, nothing is
+    written. It is refused while a full import that stopped part-way holds saving over the board file, and while a locked
+    cycle is on screen. A PMO copy that an ORBIT before this one published from such a board runs that ORBIT's code and
+    says nothing of it; its office learns only when this board refuses its submittal, and makes its changes again in a new
+    copy (Not covered).
+  - The team's own copies (the shared folder's, the sidecar, through fetch or XMLHttpRequest) are read as before -- except a
+    copy whose list holds a key that is not text, which is refused like a file handed over (read, the number 1 and the text
+    "1" were one destination: a requirement on one came across on the other, and the other's entry was dropped). Reading a
+    copy -- or a package's list -- into the board's reads the FIRST entry with each key in that list (a later one with
+    that key is its repeat, not read); an entry the board finds by none of its keys is joined by name only to an entry that
+    is the first with its key here, never to a repeat (joined to a manager's board's repeat of dA, R2, on Bravo Yard on the
+    board that sent it, was read as Alpha Depot); and an entry keyed "unassigned" or "destsplit" comes in under a key of its
+    own, its requirements re-pointed with it. The questions a merge or a load asks compare each requirement's destination by
+    the entry this board reads its key as, so they never name "destinations (n)" the take does not change (a board not yet
+    put right, merging a return put right, said it discarded "destinations (1)" while R1 stayed where the board showed it).
+  - The funds flow, its panel, drill-down and the Funds Flow workbook count each key once, under the first entry with that
+    key (the one every requirement on it reads), and never under their own "Not yet assigned" or split rows; requirements
+    on 1 and on "1" are two destinations.
+  - Where a destination is picked (Goes to, Which awards to, the bulk setter) each key is offered once, as that entry; the
+    destinations panel still lists every entry, marks one that repeats an earlier entry's key ("⚠ repeats Alpha Depot"),
+    and ✕ on it removes that entry alone -- no requirement changes -- and keeps it as removed under the key of its own it
+    would take, so every later repeat keeps its place; ✕ on the entry a repeat repeats is refused until the
+    repeat is gone, naming the repeat by its mark when both have one name. The menu counts each destination once.
+    Resetting the destination list keeps each repeat it removes as removed under the key of its own its place gives, as
+    ✕ does (kept by its key only, a return from a board put right brought the reset destinations back, unasked and
+    unsaid; verify-money r7).
+  - **What users may see:** a file carrying such a list is refused, the board unchanged: "⚠ Nothing imported —
+    “own-board.html” was refused: the destination list at the saved state.appns.om.flow.ents holds the key “dA” twice
+    (ents[8] and ents[9]); a key names one destination.", and the alert adds: "A destination list names each destination
+    once, by a text key of its own that the funds flow does not keep for one of its own rows. An ORBIT before this one took
+    such a list without a word and could save it and send it on; a board of this version that holds one says so each time
+    it opens, and publishes no PMO copy and issues or sends back no package until it is put right. A whole board of your own comes across
+    by 📁 File → ⬅ Import a full board, which puts its list right and says first what it changes; that replaces what this
+    board holds with everything the file carries, so it is not the way to take one appropriation. A package, a PMO copy or
+    one appropriation is taken once the board that wrote it has put its list right and written the file again. A submittal
+    comes from a PMO copy, which cannot put its list right: the board that published the copy puts its list right and
+    publishes a new one, and the office makes its changes again in the new copy. Nothing on this board was changed." (An
+    entry that is not a destination, or has no key, is refused in the door's usual words.) ⬅ Import a full board's question
+    gains a line such as "The destination list, put right as it comes across (a file handed over with such a list is
+    refused): it holds the key “unassigned” (ents[8]). An entry keyed “unassigned” or “destsplit” — keys the funds flow keeps
+    for its own rows — or by something that is not text takes a key of its own, and every requirement on it, in each plan
+    and each locked cycle, goes with it", said again by the reopened board. A board that carries such a list says, after the
+    opening's own line: "⚠ The destination list holds what a file handed over is refused for: it holds the key “unassigned”
+    (ents[8]). The funds flow and every export read it right — each key once, under its first entry, never under the flow’s
+    own rows — but a board of this version refuses a file handed over that carries such a list, and the file this board
+    saves carries every copy of it. Until it is put right, this board publishes no PMO copy and issues or sends back no
+    package. Put it right — each such entry takes a key of its own, its requirements with it, the way ⬅ Import a full board
+    puts a board right. It asks first." (for another appropriation's copy: "… for: Full Fund’s plan carries a copy of it that
+    holds the key “unassigned” (ents[8]) …"). 📤 Publish PMO copy, ⬆ Issue, the baselines' push, ⬆ Send my work back and ⬆
+    Send back are refused on such a board (“Sending the O&M return package is refused: …”):
+    "Publishing a PMO copy is refused: the destination list holds what a file handed over is refused for — it holds the key
+    “unassigned” (ents[8]). A board of this version refuses a file that carries such a list, and a PMO copy cannot put its
+    list right. Put it right first: the button in the message line, or in 📍 Destinations. Nothing was written." A team's
+    copy holding a key that is not text is not read: "a copy in the shared folder was refused: the destination list at the
+    file.store.flow.ents holds a key that is not text (ents[8].k is the number 1); a key is text". A board that already held
+    such a list prints each destination once: its OGC rows and sheets fall by the doubled amount and add up to the OGC total.
+  - **Test:** audit-recon "v2.00 (U44) — a destination list that repeats a key, or holds a key the funds flow keeps for its
+    own rows, never prints money twice: a file handed over with one is refused, and the user’s own board is put right as it
+    comes across" (269 checks; 196 fail on 7ee498a). Ten lists (dA twice with one name and with two, "unassigned" with PB27
+    locked, "unassigned" twice, "destsplit", "destsplit" twice, the number 1, the number 1 beside "1", "work", dA twice on
+    the ultimate-recipient axis) and the control dA / dB, each through the routes that apply, the money read from the
+    workbook's bytes against literals worked by hand: the user's own board; the door, ⬅ Import one appropriation and ⇊
+    Import several boards (refused in literal words, storage byte-identical); ⬅ Import a full board (the question's line),
+    the same browser reopened (the list put right, R1 on the same entry, every key distinct, PB27's R1 with it), saved and
+    reopened, and every file the reopened board writes at its own door with the office's submittal taken; the file opened as
+    a board; PB27 viewed; the shared folder's copy read and adopted (the first entry with each key) and a file handed over
+    just after still refused; the sidecar through fetch and through the file:// branch; a package's list. A board opening
+    with such a list: what it says; its package, the baselines' push and a PMO copy refused in literal words, nothing
+    written and the ledger unmoved; a PMO copy built from it by this version's pmoCopyHtml (what 📤 Publish PMO copy would
+    have written before it refused) and its office's submittal, refused in the words above; a PMO copy 7ee498a published from
+    such a board (read by git show): it says nothing of the list, and its office's submittal is refused before and after Put
+    it right (CONTROL: with dA only, held for review); Put it right (asked, then the list, R1, PB27 and every file it
+    writes). It says so on all six openings (each line's own words first, the warning once; with the state
+    file's answer held back, on the line from the start and once after the answer). Put it right is refused while a stopped
+    full import holds saving (storage byte-identical, the hold on) and, answered No, writes nothing. A full import of a file
+    carrying O&M only, into a browser holding Full Fund with "unassigned" in its plan and its locked cycles: the reopened
+    board names both copies, publishes no PMO copy, and Put it right puts Full Fund right. The words around a repeated key
+    (Goes to, the choices, the panel, ✕ on the repeat named apart or alike and kept on reopening, ✕ on the entry repeated,
+    the menu's count); every OGC row and tab; one title on 1 and "1"; Depot Text offered beside the number 1; a repeated key
+    adopted where the key was removed; the door on the rest of the rule; a board of the user's own holding an entry that is
+    not one, one whose repeat of Alpha Depot's name has a kind and match terms of its own, one with R1's ultimate recipient
+    on "unassigned", one whose older map and kind conflict name "unassigned", and one whose second appropriation (Full Fund)
+    holds the same plan with PB27 locked on it too; the team's copy of 1 and "1" refused, "1" alone read. The record of a
+    moved key: a full import of a file carrying O&M only while Full Fund, kept, still calls "unassigned" by its old name --
+    Full Fund opened after it, and after Put it right, has R1 and PB27's R1 on the destination the board showed (Depot U2,
+    one of that name, its workbook from the bytes), and ✕ on that destination is refused naming Full Fund; Put it right, then
+    an older file of O&M imported; a file whose list holds both the old key and the record's; the number 1; a requirement
+    on a key no list names, left on none, also while the import moves another key. A manager's board holding such a list: ⬆ Send my work back refused (nothing
+    written, the package not marked sent, storage byte-identical), then, put right, written and taken by the consolidated
+    board; ⬆ Send back refused (CONTROL: written from a clean board). The tests review's nine: a repeat of Alpha Depot with
+    terms of its own, and with a kind of its own, each kept; Which awards to and the bulk setter's offer each key once; Put
+    it right's question naming the plans' copies; Put it right refused while PB27 is on screen, the working plan's later
+    note kept; a team's copy holding true beside "true" refused; this browser's Full Fund, as a package carries it, named and
+    its package not written; and a GUARD, two requirements of one title on one destination printed there, never on the split
+    row. The tests review's fourth round: the board's own saved file, carrying the record, imported whole into an empty browser and into
+    one whose own record names another key (the file's record is read first); true and "destsplit", renamed on O&M, followed
+    by a kept Full Fund; a kept copy's entry nothing points at, followed; a destination removed under the key it moved to
+    staying removed (a GUARD); ⬆ Send my work back refused with no package loaded. Two boards 7ee498a left holding
+    "unassigned" (read by git show), O&M package #1 out with R1 on it, each put right, and the manager's return taken by
+    the consolidated board -- after it renamed Depot U "Depot U2" and without: R1 on Depot U2 (then Depot U), one Depot U*
+    destination, nothing the merge asks saying it discards a destination, and the workbook from its bytes Depot U2 1,100,
+    Not yet assigned 300, OGC 1,400; a destination removed on 7ee498a while a kept copy still listed it, staying removed
+    after Put it right; a list that already uses "dunassigned" (Depot DU): Depot U takes another key, two destinations,
+    the workbook Depot U 1,100, Depot DU 300; and K4 again with that list, so that only this browser's record names the key
+    "unassigned" moved to: Full Fund's R1 on the older file's Depot U, one destination, Depot U 1,100, Depot DU 300. The fifth round:
+    the same two boards with "destsplit", the number 1 and true, renamed after Put it right and not, and with "unassigned"
+    renamed on 7ee498a before either was put right; a destination removed as "unassigned" -- on 7ee498a, or here before Put
+    it right -- staying removed when the manager's return, put right, arrives (two GUARDs); a consolidated board put right
+    (dA twice, R2 on Bravo Yard) issuing to a manager's board 7ee498a left with the same list, which loads it before Put it
+    right, then is put right and sends its work back: R2 on Bravo Yard on both boards, the workbook Alpha Depot 1,100, Bravo
+    Yard 300 (CONTROL: put right first), and the same with Bravo Yard removed and made again; two boards 7ee498a left holding
+    dA twice, both put right or only the manager's, R2 put on Bravo Yard there and the consolidated board renaming it "Bravo
+    Yard 2" (CONTROLs: no rename): R2 on Bravo Yard 2, one Bravo Yard* destination; "unassigned" with only the manager's put
+    right and Depot U renamed "Depot U2" on the consolidated board (CONTROL: no rename): R1 on Depot U2, one Depot U*, nothing
+    the merge asks naming a destination; and a consolidated board put right, Depot U renamed "Depot U2", issuing to a
+    manager's board that loads before Put it right and then puts R2 on its Depot U: R1 and R2 on Depot U2, Depot U2 1,400
+    (CONTROL: R2 left as it was); and the list also holding the text key "dunassigned", so that Full Fund's "unassigned"
+    takes a key made at random when put right: Depot U, removed on 7ee498a, stays removed when Full Fund opens. The sixth
+    round: two boards 7ee498a left holding dA three times (Alpha Depot, Bravo Yard, Charlie Yard), O&M package #1 out with R1
+    on it: only the manager's put right, the third entry renamed "Charlie Dock 2" on the consolidated board or not -- R2 on
+    the renamed entry, one of its name; the manager removing Bravo Yard in this version before each is put right, and the
+    same the other way, the manager loading after and before its own Put it right -- R2 stays on Charlie Yard, the workbook
+    Alpha Depot 1,100, Charlie Yard 300 (CONTROLs: no removal); Bravo Yard removed on 7ee498a by the manager -- R2 on Charlie
+    Yard -- and by the consolidated user, only the manager's put right -- R2, on Bravo Yard there, comes back on Bravo Yard,
+    never on Charlie Yard; the manager removing Charlie Yard, the second repeat, and the consolidated board, which took the
+    manager's key for Bravo Yard, put right and issuing O&M #2 -- Charlie Yard stays removed on the manager's board (CONTROL:
+    no removal); a repeat whose key of its own the list already uses (Depot C, "ddar1"), and the same where only Full Fund's
+    copy of the list uses it, imported whole -- Full Fund's R2 on Depot C; a destination removed as "unassigned" coming back
+    while the manager's return points R2 at it (a GUARD); R1's ultimate recipient on "unassigned" too; Full Fund holding the
+    same plan, opened after the return; a package naming Alpha Depot by another key into a board still holding dA twice; and
+    the list this browser keeps after the return. The seventh round: two boards 7ee498a left holding dA four times, the
+    manager removing Bravo Yard, then Charlie Yard, each put right, R2 put on Delta Yard -- R2 on Delta Yard, the workbook
+    Alpha Depot 1,100, Delta Yard 300 (CONTROL: no removal); ✕ on Bravo Yard answered No, Put it right in the same session,
+    R2 on Bravo Yard -- nothing kept as removed, Bravo Yard 300; the manager removing Bravo Yard and not put right, loading
+    O&M #2 from the consolidated board put right with R2 on Charlie Yard, then sending its work back -- R2 on Charlie Yard
+    on both boards, Charlie Yard 300; and the consolidated user resetting the list while it holds dA three times, the
+    manager put right sending its work back -- Bravo Yard and Charlie Yard stay removed, R1 on Alpha Depot, the workbook
+    Alpha Depot 1,100, Not yet assigned 300. A GUARD checks
+    that U40's destinations notice, where the board has it, never pairs two entries that share one key. The checks that pass
+    on 7ee498a are each labelled: the fixtures, the CONTROLs (among them the files the put-right board writes, which the
+    base door, having no list rule, also took), and the GUARDs.
+  - **Mutations:** 125 `v200-u44-*` (`-cats-every-entry` … `-del-first-clears`, the first two rounds' 51, three of them on
+    lines this round changed; and `-keep-shared-none`, `-keep-folder-none`, `-keep-twice`, `-keep-replaces`,
+    `-fix-mix-lifts`, `-fix-saves-first`, `-say-own-only`, `-say-no-cycles`, `-block-pmo-open`, `-block-pkg-open`,
+    `-block-push-open`, `-tail-submittal-false`, `-same-name-words`, and the tests review's `-own-same-by-name`,
+    `-picks-by-text`, `-del-first-by-name`, `-own-end-stays`, `-opening-replaces`, `-del-repeat-unkept`,
+    `-copy-not-text-read`; the tests review's third round `-same-ignores-terms`, `-same-ignores-kind`, `-end-picker-every`,
+    `-awards-bulk-every`, `-own-plans-unsaid`, `-fix-in-view`, `-say-no-packages`, `-copy-number-only`,
+    `-resolve-no-dedupe`; and `-moved-unrecorded`, `-moved-not-reused`, `-moved-file-only`, `-moved-both-read`,
+    `-moved-seed-any`, `-moved-not-followed`, `-moved-use-unsaid`, `-block-return-open`, `-block-sendback-open`,
+    `-own-say-no-return`; the tests review's fourth round `-moved-browser-only`, `-moved-browser-first`, `-movable-no-bool`,
+    `-movable-no-split`, `-follow-used-only`, `-return-issued-only`, `-gone-moved-unread`; and `-own-key-random`, `-own-key-used`,
+    `-gone-not-moved`; the tests review's fifth round `-own-key-none-only`, `-own-key-text-only`, `-own-key-by-name`,
+    `-gone-shared-unread`; and `-name-repeat`, `-own-key-rep-random`, `-own-key-follow`, `-diff-raw-keys`; and
+    `-rep-removed-unkept`, `-own-key-live-count`, `-rep-gone-key-placed`, `-rep-place-unheld`, `-rep-place-ungone`,
+    `-own-gone-placed`; the tests review's sixth round `-rep-used-taken`, `-gone-shared-used`, `-diff-end-raw`,
+    `-name-unique-only`, `-follow-keys-reserved`, `-follow-untouched`; the tests review's seventh round `-del-place-naive`,
+    `-del-no-kept-on-no`, `-snap-place-naive`, `-snap-place-ungone`; and `-reset-rep-unkept`); each caught by the focused block
+    (`-own-key-random` and `-own-key-used` take their find from the line that gives a key of its own as it now reads, and
+    `-own-key-follow` from part (c)'s line as it now reads; each makes the same wrong change it made before).
+  - **Not covered:** a board that already carries such a list is put right only when the user presses Put it right; until
+    then it says so on every opening and hands out no PMO copy or package, but its saved file and one appropriation are
+    still written, and a board of this version refuses either but through ⬅ Import a full board, which takes a whole board
+    and puts its list right as it comes across. A PMO copy an ORBIT before this one published while its board held such a
+    list runs that ORBIT's code: it says nothing of the list, and its office's submittal is refused, before and after Put it
+    right -- the office learns only then, its changes stay in that copy, and are made again in a copy published after Put it
+    right (reading that submittal's list as a package's is read would keep them, but departs from the rule that a file
+    handed over with such a list is refused -- the lead's to decide). The record of a moved key travels with the list: a
+    list that replaces this browser's whole (the shared state file's ⤓ load, a newer board file opened) carries it only if
+    the board that wrote it made or took the move, and otherwise a kept copy naming the old key is read by its name, as a key
+    that list does not hold is. Two boards whose lists each hold "unassigned" for a different destination (Depot U on one, Depot Z on
+    another) give it one key, as they shared the key "unassigned" before: a full import or a package between them
+    joins the two by it, as any key shared by two boards joins (the same on 7ee498a). An entry whose key of its own the
+    list already uses, or removed, takes one made at random, which two boards do not share (and a reset of the list counts
+    "dunassigned" among the keys removed, so an older copy put right after it takes one made at random): two such boards join
+    that destination by its name only, and a rename on one of them then makes it again on the other. A repeat is named by
+    its place among the entries with its key. A repeat removed on an older ORBIT left no record of its place (that ✕ marked
+    the key itself removed): every repeat of that key then takes a key made at random when put right, and a board not yet
+    put right reads no key of its own for one, so another board's entry for it is found by its name only -- and a board still
+    holding it as a repeat adds that entry beside it as a destination of its own, two entries of one name, the money on the
+    new one (nothing reads a repeat). A key removed for another reason that a repeat's place would take counts as a repeat
+    removed (a list reset keeps each repeat it removes under its place, as ✕ does). Another appropriation's plan or locked cycles that kept a copy of the list from before a
+    repeat was removed are put right with their places counted as the board's list counts them: that copy's later repeats
+    can take keys that name other entries of the board's list, or none; no requirement can be on a repeat, so none moves,
+    but the removed repeat can come back, with nothing on it, when that appropriation opens. Keys that differ only in case
+    or in characters other than letters and digits (dA and da) share their key of its own, and the second to take it takes
+    one made at random; two boards whose lists repeat one key with different entries, not one list, give them keys by
+    place, as they gave all of them the one key before. A team's copy (the shared folder,
+    the sidecar) whose "unassigned" entry this board holds by none of its keys or names takes a key made at random, not the
+    one every board gives it. The funds-flow chart's
+    picked destination (on screen only) is kept by its place in the list and can name another destination after ✕
+    removes one; its title and rows read one bucket, so nothing it prints is false. On the destination axis the
+    workbook still heads its section "BY WHAT THE MONEY BUYS" and lists each destination as "— the remainder —"
+    under "HOW EACH OGC CATEGORY WAS DECIDED" (as on 7ee498a). A repeated entry's own match terms are not read while
+    it repeats. The change journal is not re-pointed when an entry takes a key of its own: putting back an older value of
+    "unassigned" afterwards puts back a key that no longer names Depot U (as no board re-points the journal when a key
+    moves). Put it right asks in ⬅ Import a full board's own words ("Import everything from “this board as it stands” …").
+    Locked-view refusals of destination edits are U10's; how U40's notice words two entries that share one key is U40's
+    (the GUARD).
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14

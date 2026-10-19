@@ -9425,6 +9425,2052 @@ await (async () => {
   await settleBoards();
 })();
 // ==== end v2.00 (U37) ====
+// ==== v2.00 (U44): a destination list that repeats a key, or holds a key the funds flow keeps for its own rows, never prints money twice; a file handed over with one is refused, and the user’s own board is put right as it comes across ====
+// Found by the lead's integration dry run, 13 Oct (UNRESOLVED-LEDGER row U44): a list holding dA twice ("Alpha Depot"), R1 on dA,
+// R2 on none; the Funds Flow workbook gave Alpha Depot 1,100 twice beside an OGC total of 1,400. An entry keyed "unassigned" -- the
+// key of the flow's own "Not yet assigned" row -- gave "Not yet assigned" 1,400 twice and lost the entry's name. Both files passed
+// the door, ⬅ Import a full board kept the keys as they were, and the double prints came back on every reopening.
+// THE MONEY, BY HAND: O&M, services USAF / ANG / AFRC. R1 asks USAF 900, ANG 200; R2 asks USAF 300. Pots of 5,000 on each service
+// fund all of it. The funds flow groups by first recipient, FY27 planned: neither title names a prime, so all 1,400 is other
+// government cost, in three plan lines (R1 USAF 900, R1 ANG 200, R2 USAF 300). R1 goes to the destination its pointer names --
+// the FIRST entry with that key, which is where the board shows R1 (Goes to) -- and R2 has none. So the OGC section of the Funds
+// Flow sheet holds R1's destination 1,100 ONCE and "Not yet assigned" 300 once (every other row 0), the OGC total is 1,400 and
+// the rows add up to it; OGC Detail lists the three lines, 1,400; R1's destination has one tab. A list entry is a NAME for a
+// destination: naming dA twice adds no money, and an entry is never the flow's own "Not yet assigned" or split row.
+// THE CASES, each list added to the seeded eight (so the case's entries are ents[8], ents[9]): dA twice, "Alpha Depot" both times
+// (the dry run's); dA twice, "Alpha Depot" then "Bravo Yard" -- the board shows R1 on Alpha Depot; an entry keyed "unassigned",
+// Depot U, R1 on it (the dry run's), PB27 locked with it; "unassigned" twice, Depot U then Depot V, R1 on it -- shown on Depot U;
+// an entry keyed "destsplit", Depot S; "destsplit" twice, Depot S then Depot T; an entry keyed by the number 1, Depot One, R1 on
+// the number 1 -- shown on Depot One; the number 1 and the text "1", R1 on "1" -- shown on Depot Text, the entry whose key is "1"
+// exactly; an entry keyed "work", the key of a funds-flow category with a breakout of its own; dA twice on the ultimate-recipient
+// axis. CONTROLS: ordinary dA / dB, R1 on dA; the same list, R1 on none; two requirements sharing R1's title pointing different
+// ways (the split row, as before); a destination with no name, whose tab is named by its key.
+// THE ROUTES: (m) the user's own board as it holds the list: the Funds Flow workbook from its bytes, the panel's chart boxes and
+// drill-down, its "titles logged" line; (a) the door a file handed over passes (inboundCheck): refused, saying which list, what
+// it holds and why; (a2) ⬅ Import one appropriation and (a3) ⇊ Import several boards with that file: refused whole, in true
+// words for every kind of file, browser storage byte-identical; (b) ⬅ Import a full board, the user's own board: taken, and the
+// question asked before anything is replaced says what is put right; (b2) the same browser reopened says it again, and holds the
+// list PUT RIGHT -- each reserved or non-text key, and each later entry repeating a key, under a key of its own, R1 on the same
+// entry -- and exports right; (b3) saved and reopened, the same; (b4) every file that reopened board writes -- its saved file, one
+// appropriation, a PMO copy, a package, and the office's submittal from that copy -- passes its own door, and the submittal is
+// taken; with PB27 locked, the cycle's R1 goes with its destination too; (c) the file opened as a board, as it holds the list:
+// the money, and the GUARD for U40; (v) PB27 locked with the list, viewed; (f) the team's own copy in the shared folder: read --
+// and a file handed over to the same board just after is refused again -- and adopted, the FIRST entry with each key read, a
+// reserved key under a key of its own, R1 re-pointed with it; (s) the sidecar beside the board, through fetch and through the
+// file:// branch (XHR): read; (p) a package's list read into the board's (destPkgIn): the same. (o) A board that opens holding
+// such a list says so -- on opening and in the destinations panel -- its own package is refused by its own door in the door's
+// words, and "Put it right" puts it right the way the full import does: asked, then every list and every requirement, PB27's too;
+// a PMO copy built from it by this version's pmoCopyHtml says it cannot. (w) The words around a repeated key on the user's own board: R1's Goes to, the
+// choices, the destinations panel, ✕ on the repeat (named apart or alike), ✕ on the entry the repeat repeats, the menu's count.
+// Then the door on the rest of the rule, the money in every row and tab, one title on 1 and "1", and the user's own board whose
+// list holds an entry that is not one.
+// FIX ROUND 2 (verify-money r2, verify-tests r2, 14 Oct): (k) the board says so on EVERY opening -- its saved file, the board
+// template with this browser holding it, its saved file with newer work in this browser, the state file beside the board
+// answering, the shared folder's answer -- after each line's own words, once; (o) a board holding such a list issues no package,
+// pushes no baseline and publishes no PMO copy, in true words, and a PMO copy built by this version's pmoCopyHtml from such a
+// board (what 📤 Publish PMO copy would have written before it refused) says it cannot put it right while its office's submittal
+// is refused in words that say what is true; (h) Put it right is
+// refused while a stopped full import holds saving, and (n) answered No it writes nothing; (q) a board whose full import kept Full
+// Fund as this browser had it -- Full Fund's copy holding "unassigned" -- says so, naming Full Fund's plan, publishes no PMO copy,
+// and Put it right puts Full Fund right too; then a repeat of the first entry's name with a kind and terms of its own, the
+// ultimate recipient, ✕ on the first of two "Alpha Depot", ✕ on a repeat kept on reopening, Depot Text offered beside the number
+// 1, and the team's copy in the shared folder holding a key that is not text, refused (F1; the text "1" alone read, F2). And (k)
+// once more: the state file's answer held, as a browser's can be -- the warning on the line from the start, before any answer.
+// FIX ROUND 3 (verify-money r3, verify-tests r3, 18 Oct): T1-T9, the tests review's nine checks of wrong fixes the block let
+// through (a repeat's own terms, its own kind, Which awards to and the bulk setter's each key once, Put it right's question for the
+// plans' copies, Put it right while a locked cycle is on screen, a team's copy holding true, this browser's Full Fund as a package
+// carries it, and a GUARD for one title on one destination); K0-K7, a key the full import moves while an appropriation the file
+// does not carry -- Full Fund, its plan and its locked cycles -- still names it: followed where it went when Full Fund opens, by
+// Put it right, by ✕ and by a later import of an older file, the list's own entry read where a file's list holds both, a
+// requirement no list names left on none, also while the import moves another key (K8); S1-S4, a manager's board holding such a list sends no return package back, and does
+// once put right; P0-P4, a PMO copy 7ee498a published from such a board (git show): it says nothing, and its office's
+// submittal is refused before and after Put it right.
+// FIX ROUND 4 (verify-money r4, verify-tests r4, 18 Oct): W1-W7, the tests review's seven checks of wrong fixes the block let
+// through (the record a file carries read first, true / false and "destsplit" followed, a kept copy's entry nothing points at
+// followed, a destination removed under the key it moved to staying removed -- a GUARD -- and ⬆ Send my work back refused with no
+// package loaded); QX3 and QX3b, two boards 7ee498a left holding "unassigned", each put right, and a manager's return taken: R1
+// stays on the destination the consolidated board shows, renamed or not, since "unassigned" takes the same key of its own on
+// every board; QX2b, a destination removed on 7ee498a stays removed after Put it right; Y1, the key of its own is one the list
+// does not already use; K4b, K4 with the list also using "dunassigned", so the key it moved to was made at random and only this
+// browser's record names it. On 7ee498a every one fails but W5, the GUARD: the workbook's old double rows, and there is no Put it
+// right.
+// FIX ROUND 5 (verify-money r5, verify-tests r5, 18 Oct): X1 and X2, the tests review's checks that the same key of its own is
+// taken on every board for "destsplit", the number 1 and true too, renamed after Put it right or not, and for "unassigned" renamed
+// on 7ee498a before either board was put right; Z1 and Z1b, GUARDs, a destination removed as "unassigned" -- on 7ee498a, or here
+// before Put it right -- staying removed when the manager's return, put right, names it "dunassigned"; QN1 and QN4, a board
+// still holding dA twice loads a package whose Bravo Yard is a destination of its own: R2 stays on Bravo Yard, never joined by
+// name onto the repeat (CONTROL: put right first); QR1, QR2, QN3 and QN2, one destination under one key on both boards whichever
+// was put right -- a repeat takes the same key of its own on every board, and a board not yet put right reads the key another
+// board's Put it right gave its entry -- so a rename never re-makes a destination with a requirement's money on it, and the
+// merge never says it discards "destinations (n)" it does not change; QX2c, QX2b with the list also holding "dunassigned", so the
+// removed key moves to one made at random and only the removal recorded under it keeps it removed. On 7ee498a every one fails
+// but Z1 and Z1b, the GUARDs: there is no Put it right, and the workbook's old double rows.
+// FIX ROUND 6 (verify-money r6, verify-tests r6, 19 Oct): a key three times, and a repeat removed. QR3, the tests review's (the
+// money review's QT4): only the manager's board put right, the third entry renamed on the consolidated board and not -- one
+// Charlie Dock*, R2 on it; QT1, QT2 and QT2b, the money review's: a repeat removed on one board keeps every later repeat's place
+// on both, so R2 stays on Charlie Yard (CONTROLs: no removal); QT1o, the money review's, with the manager's ✕ made on 7ee498a,
+// and QT1p, this round's, with the consolidated user's: Charlie Yard is never read as Bravo Yard; QT5, this round's: a repeat
+// removed on the manager's board stays removed after the consolidated board -- which took the manager's key for an earlier
+// repeat -- is put right and issues again (CONTROL: no removal); the tests review's Y2, Z2 (a GUARD), QN3e, QN3c, N1 and W9, fix
+// round 5's parts at the edges their checks did not reach; Y2b, this round's, Y2 where only another list of the file uses the
+// key. On 7ee498a every one fails but Z2, the GUARD: there is no Put it right, and the workbook's old double rows.
+// FAILS ON 7ee498a (U14, board fce8a391): the door passes every list; Import one appropriation and Import several boards take the
+// file; the full import takes it without a word and keeps the keys; the workbook prints dA's row twice, "Not yet assigned" 1,400
+// twice with Depot U's name lost, the split row twice, R1's 1,100 under "Not yet assigned" beside Depot One, "Depot Text" twice;
+// the panel the same; a folder copy's or package's "unassigned" kept as a key of the board's own -- and, held twice, R1 on its
+// last entry; the opening says nothing, and there is no "Put it right"; ✕ on Bravo Yard cleared R1; the package, the baselines
+// and the PMO copy are written and the office's submittal taken; the team's copy of 1 and "1" is read, R1 on the wrong entry; a
+// manager's return and a send-back are written; a kept Full Fund's R1 prints under the old double row; there is no Put it right.
+// Passing there and here: every fixture, CONTROL and GUARD (each labelled), and the money of every case whose list the base
+// already read once.
+await (async () => {
+  const name = 'v2.00 (U44) — a destination list that repeats a key, or holds a key the funds flow keeps for its own rows, never prints money twice: a file handed over with one is refused, and the user’s own board is put right as it comes across';
+  const { bootMark, bootRelease, settleBoards } = await import('./boot.mjs');
+  const __bm = bootMark();
+  try {
+    const J = JSON.stringify;
+    const SV = ['USAF', 'ANG', 'AFRC'];
+    const D = (k, n) => ({ k, n, kind: 'other', t: '' });
+    const dA = D('dA', 'Alpha Depot'), dA2 = D('dA', 'Bravo Yard'), dB = D('dB', 'Bravo Yard'), dU = D('unassigned', 'Depot U'),
+      dV = D('unassigned', 'Depot V'), dS = D('destsplit', 'Depot S'), dT = D('destsplit', 'Depot T'), d1 = D(1, 'Depot One'), dW = D('work', 'Depot W');
+    // the user's own board: R1, R2 (and R3, titled as R1, when `r3` names its destination), the list `ents` added to the seeded
+    // eight, R1 on `to`, the funds flow on `axis` (first recipient unless given); PB27 locked with it when `cyc`
+    const make = o => {
+      const X = o.html ? boot({ html: o.html }) : boot();   // fix round 3: `html`, another board's template (7ee498a's, P1-P4)
+      const items = [it('R1', 'AV', [900, 200, 0]), it('R2', 'AV', [300, 0, 0])].concat(o.r3 !== undefined ? [Object.assign(it('R3', 'AV', [400, 0, 0]), { title: 'Req R1' })] : []);
+      seed(X.ev, { services: SV, items, disc: [5000, 5000, 5000], mand: [0, 0, 0], order: items.map(i => i.id) });
+      const dest = Object.assign(o.to === undefined ? {} : { R1: { to: o.to } }, o.r3 !== undefined ? { R3: { to: o.r3 } } : {});
+      X.ev(`BASE_ITEMS.length=0; DATA.items.forEach(function(i){ BASE_ITEMS.push(i); BASE_ASK[i.id]=i.ask.slice(); }); flowEnts();
+        ${J(o.ents)}.forEach(function(e){ DESTDB.ents.push(e); }); persistDest(); S.dest=${J(dest)}; applyState(S); save();
+        flowSetAxis(${J(o.axis || 'dest')}); window.confirm=function(){ return true; };
+        ${o.cyc ? "MS.base=MS.cur; MS.years[MS.cur]=S; save(); blCyc='PB'; blYr=MS.cur; cycLock();" : ''} 'ok'`);
+      return { X, file: X.ev('buildSavedHtml()') };
+    };
+    const lsOf = ev => JSON.parse(ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+    const moved = (a, b) => Object.keys(Object.assign({}, a, b)).filter(k => a[k] !== b[k]).sort();
+    // the Funds Flow workbook from its bytes: the OGC section's rows that hold money [name, amount], its OGC total, the sum of
+    // every row of that section, OGC Detail's lines and their sum, and how many tabs carry the name `tab`; with `all`, every row's
+    // name (zero rows too) and every tab naming one of `all`
+    const book = async (X, tab, view, all) => {
+      if (view) X.ev(`cycView('${view}'); 'ok'`);
+      const bk = JSON.parse(await w6Book(X.w, 'exportFlow')); if (view) X.ev(`cycLeave(); 'ok'`);
+      if (bk.__err) return J({ err: bk.__err });
+      const ff = bk['Funds Flow'] || [], a = ff.findIndex(r => / — BY WHAT THE MONEY BUYS$/.test(w6Lbl(r))), z = ff.findIndex((r, i) => i > a && w6Lbl(r) === 'OGC total');
+      const cats = ff.slice(a + 2, z).map(r => [w6Lbl(r), num(r[1])]), od = (bk['OGC Detail'] || []).slice(1).filter(r => w6Lbl(r));
+      if (all) return J([cats.map(r => r[0]), Object.keys(bk).filter(k => all.some(n => k === n || k.startsWith(n + ' ')))]);
+      return J({ rows: cats.filter(r => r[1] !== 0), ogc: num((ff[z] || [])[1]), sum: cats.reduce((s, r) => s + (r[1] || 0), 0),
+        detail: [od.length, od.reduce((s, r) => s + (num(r[5]) || 0), 0)], tabs: Object.keys(bk).filter(k => k === tab || k.startsWith(tab + ' ')).length });
+    };
+    const BOOK = (rows, ogc, lines, tab) => J({ rows, ogc, sum: ogc, detail: [lines, ogc], tabs: tab });
+    const WANT = dest => BOOK([[dest, 1100], ['Not yet assigned', 300]], 1400, 3, 1);
+    // the panel: the chart's boxes that hold money [name, amount], the OGC drill-down's total, the flow's OGC figure, any box
+    // broken out into rungs; and its "titles logged" line [logged, titles, not yet assigned, pointing different ways]
+    const panel = X => X.ev(`(function(){ var F=flowCalc(), V=flowView(F); flowOpen=true; flowSel=''; var h=flowHtml();
+      var n=function(re){ var m=re.exec(h); return m? +m[1] : 0; }, t=/— (\\d+) of (\\d+) titles logged/.exec(h)||[0,0,0];
+      return JSON.stringify([V.EXT.filter(function(e){ return e.v; }).map(function(e){ return [e.n, e.v]; }),
+        flowRows(F,'hub|ogc').rows.reduce(function(s,r){ return s+r.v; },0), F.ext.v,
+        F.ext.keys.filter(function(k){ return F.ext.by[k].sub; }).map(function(k){ return F.ext.by[k].name; }),
+        [+t[1], +t[2], n(/(\\d+) not yet assigned<\\/b>/), n(/(\\d+) where requirements sharing a title/)]]); })()`);
+    const PANEL = (dest, titles) => J([[[dest, 1100], ['Not yet assigned', 300]], 1400, 1400, [], titles || [1, 2, 1, 0]]);
+    // ⬅ Import a full board, every question answered yes and kept; ⬅ Import one appropriation and ⇊ Import several boards with the
+    // file, every alert kept
+    const full = (ev, file) => JSON.parse(ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return true; };
+      window.alert=function(m){ al.push(String(m)); };
+      var ret, threw=''; try{ ret=fullImportText(${J(file)}, 'own-board.html'); }catch(e){ threw=String((e&&e.message)||e); }
+      return JSON.stringify({ret:ret, threw:threw, qs:qs, al:al}); })()`));
+    const one = (ev, file, fname) => ev(`new Promise(function(res){ var al=[]; window.alert=function(m){ al.push(String(m)); };
+      window.confirm=function(){ return true; }; window.prompt=function(){ return '1'; };
+      var inp={files:[new File([${J(file)}], ${J(fname || 'own-board.html')})], value:'x'};
+      try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify(al)); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+    const several = (ev, file) => ev(`new Promise(function(res){ var al=[]; window.alert=function(m){ al.push(String(m)); };
+      window.confirm=function(){ return true; };
+      var inp={files:[new File([${J(file)}], 'own-board.html')], value:'x'};
+      try{ importBoards(inp); }catch(e){ al.push('THREW '+e.message); }
+      (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify(al)); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+    // the list beyond the seeded eight, [key, name]: a key the case names is shown as itself; one the board made, which is text of
+    // its own (d + letters and digits) and none of the case's keys, as "(a key of its own)"; anything else as it is
+    const keys = (X, keep) => JSON.parse(X.ev(`JSON.stringify(flowEnts().slice(8).map(function(e){ return [e.k, e.n]; }))`))
+      .map(([k, n]) => [(keep || []).includes(k) ? k : (typeof k === 'string' && /^d[0-9a-z]+$/.test(k) ? '(a key of its own)' : k), n]);
+    // R1's destination: its name, and the place on the list of the entry its key names; whether every key on the list is distinct
+    const r1At = X => X.ev(`(function(){ var k=destOf(itemById('R1')).to, L=flowEnts(); return JSON.stringify([flowEntName(k), L.indexOf(flowEnt(k)),
+      L.every(function(e,i){ return L.findIndex(function(x){ return x.k===e.k; })===i; })]); })()`);
+    // a file the board writes: the PMO copy and the package are caught as the board hands them to the browser
+    const capFile = (ev, code, type) => ev(`(function(){ var cap=null, _B=window.Blob;
+      window.Blob=function(pt,o){ if(!cap && o && o.type===${J(type)}) cap=String(pt[0]); return new _B(pt,o); };
+      window.confirm=function(){ return true; }; window.alert=function(){};
+      try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+      try{ ${code} }catch(e){ cap='THREW '+e.message; } window.Blob=_B; return cap||''; })()`);
+    // (b4) every file the board writes, at its own door, and the office's submittal from its PMO copy (R2 renamed there) taken
+    const writes = async R => {
+      const pmo = capFile(R.ev, 'publishPmoCopy();', 'text/html'), PC = boot({ html: pmo });
+      const sub = PC.ev(`(function(){ var cap=null, _B=window.Blob;
+        try{ localStorage.setItem('prio27who','J. Smith'); localStorage.setItem('prio27pmo','AV'); }catch(e){}
+        window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+        window.alert=function(){}; window.confirm=function(){ return true; };
+        try{ if(!S.titles) S.titles={}; S.titles.R2='Renamed by the office'; save(); pmoSubmit(); }catch(e){ cap='THREW '+e.message; } window.Blob=_B; return cap||''; })()`);
+      const files = [R.ev('buildSavedHtml()'), R.ev(`oneAppnHtml(mySlug())||''`), pmo, capFile(R.ev, 'pkgIssue(mySlug(), true);', 'application/json'), sub];
+      const door = files.map(t => R.ev(`inboundCheck(${J(t)})`));
+      const al = JSON.parse(await one(R.ev, sub, 'ORBIT SUBMITTAL - AV - J Smith.json'));
+      return J([door, al.filter(a => /was not imported/.test(a)).length, R.ev(`flowEntName(destOf(itemById('R1')).to)`)]);
+    };
+    const WRITES = dest => J([['', '', '', '', ''], 0, dest]);
+    // the board's one locked cycle: its key ('' when it holds none), and the name of the destination its R1 is on, and whether that
+    // is the working plan's R1's key
+    const cycK = X => X.ev(`(function(){ try{ return Object.keys((CYCDB&&CYCDB.cycles)||{})[0]||''; }catch(e){ return ''; } })()`);
+    const cycR1 = X => JSON.parse(X.ev(`(function(){ try{ var c=CYCDB.cycles[Object.keys(CYCDB.cycles)[0]], y=Object.keys(c.years)[0], d=(c.years[y].dest||{}).R1;
+      return JSON.stringify(d? [flowEntName(d.to), d.to===destOf(itemById('R1')).to] : 'none'); }catch(e){ return JSON.stringify('no locked cycle'); } })()`));
+    const cycBook = async (X, dest) => { const k = cycK(X); return k ? JSON.parse(await book(X, dest, k)) : 'no locked cycle'; };
+    const QLINE = q => (String(q || '').split('\n').find(l => l.startsWith('  • The destination list')  && !/ — \d+$/.test(l)) || '');
+    const SAID = s => ((String(s).match(/The destination list, put right[^]*$/) || [''])[0]);
+    // what the full import says it puts right
+    const R_KEY = 'An entry keyed “unassigned” or “destsplit” — keys the funds flow keeps for its own rows — or by something that is not '
+      + 'text takes a key of its own, and every requirement on it, in each plan and each locked cycle, goes with it';
+    const R_REP = 'An entry that repeats a key earlier in its list takes a key of its own, with nothing on it: every requirement on the '
+      + 'key stays on the first entry with it';
+    const R_SAME = 'An entry that repeats an earlier one in full — its key, name, kind and match terms — is left out: it holds nothing '
+      + 'the first does not';
+    const R_OUT = 'An entry that is not a destination, or has no key, is left out, as every board leaves it out on opening';
+    const SAYS = (what, ...rules) => ['The destination list, put right as it comes across (a file handed over with such a list is refused): it '
+      + what].concat(rules).join('. ');
+    // what a board holding such a list says on opening and in the panel
+    const OWNS = (said, pmo) => '⚠ The destination list holds what a file handed over is refused for: ' + said + '. The funds flow and '
+      + 'every export read it right — each key once, under its first entry, never under the flow’s own rows — but a board of this '
+      + 'version refuses a file handed over that carries such a list, and the file this board saves carries every copy of it. '
+      + (pmo ? 'This PMO copy cannot put it right, and a board of this version refuses a submittal from it: the board that published '
+        + 'it puts its list right and publishes a new copy, and the office makes its changes again in that copy.'
+        : 'Until it is put right, this board publishes no PMO copy and issues or sends back no package. Put it right — each such entry takes a key '
+        + 'of its own, its requirements with it, the way ⬅ Import a full board puts a board right. It asks first.');
+    const OWN = (what, pmo) => OWNS('it ' + what, pmo);
+    // what a board holding such a list says when it is asked to hand a file out
+    const BLOCKED = (what, said) => what + ' is refused: the destination list holds what a file handed over is refused for — ' + said
+      + '.\n\nA board of this version refuses a file that carries such a list, and a PMO copy cannot put its list right. Put it right '
+      + 'first: the button in the message line, or in 📍 Destinations. Nothing was written.';
+    const OWNSAID = s => ((String(s).match(/⚠ The destination list holds what[^]*$/) || [''])[0]);
+    const TAIL = 'A destination list names each destination once, by a text key of its own that the funds flow does not keep for one of '
+      + 'its own rows. An ORBIT before this one took such a list without a word and could save it and send it on; a board of this '
+      + 'version that holds one says so each time it opens, and publishes no PMO copy and issues or sends back no package until it is put right. '
+      + 'A whole board of your own comes across by 📁 File → ⬅ Import a full board, which puts its list right and says first what it '
+      + 'changes; that replaces what this board holds with everything the file carries, so it is not the way to take one '
+      + 'appropriation. A package, a PMO copy or one appropriation is taken once the board that wrote it has put its list right and '
+      + 'written the file again. A submittal comes from a PMO copy, which cannot put its list right: the board that published the '
+      + 'copy puts its list right and publishes a new one, and the office makes its changes again in the new copy.';
+    const AT = 'the destination list at the saved state.appns.om.flow.ents ';
+    const TWICE = 'holds the key “dA” twice (ents[8] and ents[9])', KEEP = 'the funds flow keeps that key for its own ';
+    const HU = 'holds the key “unassigned” (ents[8])', HS = 'holds the key “destsplit” (ents[8])', H1 = 'holds a key that is not text (ents[8].k is the number 1)';
+    const OWNK = '(a key of its own)';
+    const CASES = [
+      { c: 'dA twice, “Alpha Depot” both times, R1 on dA (the dry run’s)', o: { ents: [dA, dA], to: 'dA' }, dest: 'Alpha Depot',
+        why: AT + TWICE + '; a key names one destination', says: SAYS(TWICE, R_SAME), keep: ['dA'], keys: [['dA', 'Alpha Depot']],
+        fl: [['dA', 'Alpha Depot'], ['dA', 'Alpha Depot']], adopted: [['Alpha Depot'], true], control: { f: 'as 7ee498a: one entry per key was read there' },
+        routes: ['door', 'one', 'full', 'reopened', 'saved', 'writes', 'opened', 'folder'] },
+      { c: 'dA twice, “Alpha Depot” then “Bravo Yard”, R1 on dA (shown on Alpha Depot)', o: { ents: [dA, dA2], to: 'dA' }, dest: 'Alpha Depot',
+        why: AT + TWICE + '; a key names one destination', says: SAYS(TWICE, R_REP), keep: ['dA'], keys: [['dA', 'Alpha Depot'], [OWNK, 'Bravo Yard']],
+        all: true, routes: ['door', 'full', 'reopened', 'opened'] },
+      { c: 'an entry keyed “unassigned”, Depot U, R1 on it, PB27 locked with it (the dry run’s)', o: { ents: [dU], to: 'unassigned' }, dest: 'Depot U',
+        why: AT + HU + '; ' + KEEP + '“Not yet assigned” row', says: SAYS(HU, R_KEY), keys: [[OWNK, 'Depot U']], fl: [['unassigned', 'Depot U']],
+        adopted: [['Depot U'], false], routes: ['door', 'one', 'several', 'full', 'reopened', 'saved', 'writes', 'opened', 'view', 'folder', 'sidecar'] },
+      { c: '“unassigned” twice, Depot U then Depot V, R1 on it (shown on Depot U)', o: { ents: [dU, dV], to: 'unassigned' }, dest: 'Depot U',
+        why: AT + HU + '; ' + KEEP + '“Not yet assigned” row',
+        says: SAYS('holds the key “unassigned” (ents[8]), holds the key “unassigned” (ents[9]), holds the key “unassigned” twice (ents[8] and ents[9])', R_KEY, R_REP),
+        keys: [[OWNK, 'Depot U'], [OWNK, 'Depot V']], fl: [['unassigned', 'Depot U'], ['unassigned', 'Depot V']], adopted: [['Depot U'], false],
+        routes: ['door', 'full', 'reopened', 'opened', 'folder'] },
+      { c: 'an entry keyed “destsplit”, Depot S, R1 on it', o: { ents: [dS], to: 'destsplit' }, dest: 'Depot S',
+        why: AT + HS + '; ' + KEEP + '“Split between destinations” row', says: SAYS(HS, R_KEY), keys: [[OWNK, 'Depot S']], fl: [['destsplit', 'Depot S']],
+        adopted: [['Depot S'], false], routes: ['door', 'full', 'reopened', 'opened', 'folder'] },
+      { c: '“destsplit” twice, Depot S then Depot T, R1 on it (shown on Depot S)', o: { ents: [dS, dT], to: 'destsplit' }, dest: 'Depot S',
+        why: AT + HS + '; ' + KEEP + '“Split between destinations” row', fl: [['destsplit', 'Depot S'], ['destsplit', 'Depot T']], adopted: [['Depot S'], false],
+        routes: ['door', 'opened', 'folder'] },
+      { c: 'an entry keyed by the number 1, Depot One, R1 on the number 1 (shown on Depot One)', o: { ents: [d1], to: 1 }, dest: 'Depot One',
+        why: AT + H1 + '; a key is text', says: SAYS(H1, R_KEY), keys: [[OWNK, 'Depot One']], routes: ['door', 'full', 'reopened', 'writes', 'opened'] },
+      { c: 'the number 1 and the text “1”, R1 on “1” (shown on Depot Text)', o: { ents: [d1, D('1', 'Depot Text')], to: '1' }, dest: 'Depot Text',
+        says: SAYS(H1, R_KEY), keep: ['1'], keys: [[OWNK, 'Depot One'], ['1', 'Depot Text']], at: 9, routes: ['full', 'reopened', 'opened'] },
+      { c: 'an entry keyed “work” (a funds-flow category’s key, with a breakout of its own), Depot W, R1 on it', o: { ents: [dW], to: 'work' }, dest: 'Depot W',
+        why: '', keep: ['work'], keys: [['work', 'Depot W']], control: { m: 'as 7ee498a: its money was right there, but for the panel’s rungs' },
+        routes: ['door', 'full', 'reopened'] },
+      { c: 'dA twice, on the ultimate-recipient axis', o: { ents: [dA, dA2], to: 'dA', axis: 'end' }, dest: 'Alpha Depot', routes: [] },
+      { c: 'CONTROL · ordinary dA, dB, R1 on dA', o: { ents: [dA, dB], to: 'dA' }, dest: 'Alpha Depot', why: '', keep: ['dA', 'dB'],
+        keys: [['dA', 'Alpha Depot'], ['dB', 'Bravo Yard']], fl: [['dA', 'Alpha Depot'], ['dB', 'Bravo Yard']], adopted: [['Alpha Depot', 'Bravo Yard'], true],
+        routes: ['door', 'one', 'several', 'full', 'reopened', 'opened', 'view', 'folder'] },
+    ];
+    const SEED8 = ['Lockheed Martin', 'Pratt & Whitney', 'NAWCAD Patuxent River', 'NAWCWD China Lake', 'FRC East, Cherry Point', 'NAWCAD Lakehurst', 'Defense Logistics Agency', 'OC-ALC Oklahoma City'];
+    for (const C of CASES) {
+      const mk = bootMark(), has = r => C.routes.includes(r), ctl = C.control || {}, isC = /^CONTROL/.test(C.c);
+      const { X, file } = make(Object.assign({ cyc: has('view') }, C.o));
+      const fx = (C.o.axis === 'end' ? 'the ultimate-recipient axis' : 'the first-recipient axis') + '; R1’s Goes to: ' + C.dest;
+      w5Chk(name, C.c + ' · fixture', 'CONTROL — R1 funded in full, discretionary, and the board shows R1 on ' + C.dest,
+        X.ev(`JSON.stringify([tiers().R1.d, flowEntName(destOf(itemById('R1')).to), flowAxis()])`), J([[900, 200, 0], C.dest, C.o.axis || 'dest']));
+      w5Chk(name, C.c + ' · (m) the Funds Flow workbook, read from its bytes', (ctl.m ? 'CONTROL (' + ctl.m + ') — ' : '') + 'by hand, ' + fx + ': ' + C.dest + ' 1,100 once, Not yet assigned 300, every other row 0; OGC total 1,400 and the rows add up to it; OGC Detail 3 lines, 1,400; one ' + C.dest + ' tab',
+        await book(X, C.dest), WANT(C.dest));
+      w5Chk(name, C.c + ' · (m) the panel', 'the chart’s boxes: ' + C.dest + ' 1,100 and Not yet assigned 300, once each; the OGC drill-down and the flow 1,400; no box broken into rungs; 1 of 2 titles logged, 1 not yet assigned, none pointing different ways',
+        panel(X), PANEL(C.dest));
+      if (C.all) w5Chk(name, C.c + ' · (m) every OGC row of the workbook (zero rows too), and every tab naming either entry', 'the seeded eight, Alpha Depot, the split row and Not yet assigned; one Alpha Depot tab; no Bravo Yard row or tab',
+        await book(X, '', '', ['Alpha Depot', 'Bravo Yard']), J([SEED8.concat(['Alpha Depot', 'Split between destinations — resolve', 'Not yet assigned']), ['Alpha Depot']]));
+      if (has('door')) w5Chk(name, C.c + ' · (a) the door', C.why ? 'a file handed over is refused, saying which list, what it holds and why' : 'CONTROL — the file passes',
+        X.ev(`inboundCheck(${J(file)})`), C.why);
+      if (has('one')) {
+        const T = boot(), held = lsOf(T.ev), al = JSON.parse(await one(T.ev, file)), mv = moved(held, lsOf(T.ev));
+        if (C.why) w5Chk(name, C.c + ' · (a2) ⬅ Import one appropriation', 'refused whole, in true words for every kind of file -- an ORBIT before this one could send such a list on, and a board of this version that holds one says so -- and browser storage is byte-identical',
+          J([al, mv]), J([['“own-board.html” was not imported: ' + C.why + '.\n\n' + TAIL + ' Nothing on this board was changed.'], []]));
+        else w5Chk(name, C.c + ' · (a2) ⬅ Import one appropriation', 'CONTROL — taken: nothing refused, and the plan is written', J([al, mv.includes('prio27om')]), J([[], true]));
+      }
+      if (has('several')) {
+        const T = boot(), held = lsOf(T.ev), al = JSON.parse(await several(T.ev, file)), mv = moved(held, lsOf(T.ev));
+        if (C.why) w5Chk(name, C.c + ' · (a3) ⇊ Import several boards', 'the batch is refused whole, in true words, and browser storage is byte-identical',
+          J([al, mv]), J([['“own-board.html” was not imported: ' + C.why + '.\n\n' + TAIL + ' Nothing on this board was changed.'], []]));
+        else w5Chk(name, C.c + ' · (a3) ⇊ Import several boards', 'CONTROL — taken: nothing refused, and the plan is written', J([al, mv.includes('prio27om')]), J([[], true]));
+      }
+      if (has('full')) {
+        const T = boot(), held = lsOf(T.ev), r = full(T.ev, file), after = lsOf(T.ev), mv = moved(held, after);
+        w5Chk(name, C.c + ' · (b) ⬅ Import a full board', C.says ? 'the user’s own board is taken, and the question asked before anything is replaced says what is put right'
+          : 'CONTROL — taken, and the question says nothing more about the list',
+          J([r.ret, r.threw, r.al, r.qs.length, QLINE(r.qs[r.qs.length - 1]), mv.includes('prio27om'), mv.includes('prio27destdb')]),
+          J([true, '', [], 1, C.says ? '  • ' + C.says : '', true, true]));
+        const R = boot({ ls: after });
+        R.ev(`flowSetAxis('dest'); 'ok'`);
+        if (has('reopened')) {
+          w5Chk(name, C.c + ' · (b2) imported, the same browser reopened', (C.says ? 'it says what was put right, and holds the list put right: each reserved or non-text key, and each later entry repeating a key, under a key of its own; R1 on the same entry, ents[' + (C.at || 8) + ']; every key distinct'
+            : 'CONTROL — it says nothing more about the list, which is as the file held it'),
+            J([SAID(R.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), keys(R, C.keep), JSON.parse(r1At(R))]),
+            J([C.says ? C.says + '.' : '', C.keys, [C.dest, C.at || 8, true]]));
+          w5Chk(name, C.c + ' · (b2) imported, the same browser reopened · the Funds Flow workbook', (ctl.m ? 'CONTROL (' + ctl.m + ') — ' : '') + 'the same money, once', await book(R, C.dest), WANT(C.dest));
+          w5Chk(name, C.c + ' · (b2) imported, the same browser reopened · the panel', 'the same', panel(R), PANEL(C.dest));
+          if (has('view')) {
+            w5Chk(name, C.c + ' · (b2) imported, reopened · PB27, the locked cycle', (isC ? 'CONTROL — ' : '') + 'its R1 is on ' + C.dest + ', under the same key as the working plan’s R1'
+              + (isC ? '' : ' -- the entry’s own new key') + '; PB27 viewed, the Funds Flow workbook the same',
+              J([cycR1(R), await cycBook(R, C.dest)]), J([[C.dest, true], JSON.parse(WANT(C.dest))]));
+          }
+        }
+        if (has('saved')) { const R2 = boot({ html: R.ev('buildSavedHtml()') }); R2.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, C.c + ' · (b3) imported, saved and reopened · the Funds Flow workbook', 'the same, from the saved file', await book(R2, C.dest), WANT(C.dest)); }
+        if (has('writes')) w5Chk(name, C.c + ' · (b4) imported, reopened · every file it writes, at its own door', 'CONTROL as 7ee498a, whose door has no list rule (this track’s first build, 75ee7959, refused them all) — its saved file, one appropriation, a PMO copy, a package and the office’s submittal from that copy all pass; File → Import of the submittal is taken, and R1 stays on ' + C.dest,
+          await writes(R), WRITES(C.dest));
+      }
+      if (has('opened')) { const O = boot({ html: file }); O.ev(`flowSetAxis('dest'); 'ok'`);
+        w5Chk(name, C.c + ' · (c) the file opened as a board · the Funds Flow workbook', 'the same', await book(O, C.dest), WANT(C.dest));
+        w5Chk(name, C.c + ' · (c) GUARD for U40 (its destinations notice, where the board has one)', 'two entries that share ONE key are one destination: the notice never says "kept apart … Each keeps its own requirements and money" of them',
+          O.ev(`typeof destNotice==='function'? destNotice().replace(/<[^>]+>/g,'') : ''`), ''); }
+      if (has('view')) w5Chk(name, C.c + ' · (v) PB27 locked with the list, viewed · the Funds Flow workbook', 'the same, from the view', await book(X, C.dest, 'PB|2027'), WANT(C.dest));
+      if (has('folder') || has('sidecar')) {
+        // the team's own copy: the O&M store this board saved, as the shared folder (and the sidecar) hold it -- read as a board
+        // saved it, and adopted into a board of the same requirements whose list is the seeded eight
+        const st = JSON.parse(file.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]), om = st.appns ? st.appns.om : st;
+        const T = boot({ html: make({ ents: [] }).file }), copy = J({ store: om, by: 'Teammate', ts: 1 });
+        if (has('folder')) {
+          w5Chk(name, C.c + ' · (f) the shared folder’s copy', 'CONTROL (7ee498a has no list rule) — read, its list as a board saved it',
+            T.ev(`(function(){ try{ return JSON.stringify(driveParse(${J(copy)}).store.flow.ents.slice(8).map(function(e){ return [e.k, e.n]; })); }catch(e){ return 'threw: '+e.message; } })()`),
+            J(C.fl));
+          if (C.why) w5Chk(name, C.c + ' · (f) the same board, the file handed over just after', 'refused again: the copy’s leave was for its own check only',
+            T.ev(`inboundCheck(${J(file)})`), C.why);
+          const took = T.ev(`(function(){ try{ applyStore(driveParse(${J(copy)}).store); flowSetAxis('dest'); return 'adopted'; }catch(e){ return 'threw: '+e.message; } })()`);
+          const L = keys(T), r1 = T.ev(`JSON.stringify([flowEntName(destOf(itemById('R1')).to), destOf(itemById('R1')).to===${J(C.o.to)}])`);
+          w5Chk(name, C.c + ' · (f) the shared folder’s copy, adopted', (isC || ctl.f ? 'CONTROL' + (ctl.f ? ' (' + ctl.f + ')' : '') + ' — ' : '')
+            + 'the board’s list takes the first entry with each key -- ' + C.adopted[0].join(', ') + ' -- '
+            + (C.adopted[1] ? 'under its own key, R1 on it' : 'under a key of its own, never “' + C.o.to + '”, R1 re-pointed with it') + '; the Funds Flow the same money, once',
+            J([took, L.map(x => x[1]), L.filter(x => x[0] === 'unassigned' || x[0] === 'destsplit').length, JSON.parse(r1), JSON.parse(await book(T, C.dest))]),
+            J(['adopted', C.adopted[0], 0, [C.dest, C.adopted[1]], JSON.parse(WANT(C.dest))]));
+        }
+        if (has('sidecar')) {
+          w5Chk(name, C.c + ' · (s) the sidecar beside the board', 'CONTROL (7ee498a has no list rule) — read, its list as a board saved it',
+            await T.ev(`new Promise(function(res){ var f0=window.fetch; window.fetch=function(){ return Promise.resolve({ok:true, text:function(){ return Promise.resolve(${J(J(om))}); }}); };
+              loadShared(function(s){ window.fetch=f0; res(s && s.flow? JSON.stringify(s.flow.ents.slice(8).map(function(e){ return [e.k, e.n]; })) : String(s)); }); })`),
+            J(C.fl));
+          // the board opened from a folder by the old launcher reads the sidecar through XMLHttpRequest (the file:// branch): the
+          // board's own loadShared, with that page's address and request in its hands
+          w5Chk(name, C.c + ' · (s) the sidecar beside the board, through the file:// branch (XMLHttpRequest)', 'CONTROL (7ee498a has no list rule) — read the same way',
+            await T.ev(`new Promise(function(res){ try{ localStorage.setItem('spmtSidecar','1'); }catch(e){}
+              var X0=function(){}; X0.prototype.open=function(){}; X0.prototype.send=function(){ var x=this; x.responseText=${J(J(om))}; x.onload(); };
+              var ls=(new Function('location','XMLHttpRequest','return ('+loadShared.toString()+');'))({protocol:'file:'}, X0);
+              ls(function(s){ try{ localStorage.removeItem('spmtSidecar'); }catch(e){} res(s && s.flow? JSON.stringify(s.flow.ents.slice(8).map(function(e){ return [e.k, e.n]; })) : String(s)); }); })`),
+            J(C.fl));
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (f) a repeated key, adopted by a board where that key was removed (marked gone): the first entry is read, as the sending board
+    // shows R1
+    {
+      const mk = bootMark();
+      const st = JSON.parse(make({ ents: [dA, dA2], to: 'dA' }).file.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]);
+      const T = boot({ html: make({ ents: [] }).file }); T.ev(`DESTDB.gone.push('dA'); persistDest(); 'ok'`);
+      const took = T.ev(`(function(){ try{ applyStore(driveParse(${J(J({ store: st.appns.om, by: 'Teammate', ts: 1 }))}).store); flowSetAxis('dest'); return 'adopted'; }catch(e){ return 'threw: '+e.message; } })()`);
+      w5Chk(name, '(f) dA twice, Alpha Depot then Bravo Yard, adopted by a board where dA was removed', 'R1 on Alpha Depot, the first entry, as the sending board shows it; its 1,100 printed there once',
+        J([took, T.ev(`flowEntName(destOf(itemById('R1')).to)`), JSON.parse(await book(T, 'Alpha Depot'))]), J(['adopted', 'Alpha Depot', JSON.parse(WANT('Alpha Depot'))]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (o) A BOARD THAT OPENS HOLDING SUCH A LIST: its own saved file opened ("unassigned" Depot U, R1 on it, PB27 locked) -- what it
+    // says; it issues no package, pushes no baseline and publishes no PMO copy, saying why (a board of this version refuses each,
+    // and a PMO copy cannot put its list right: its office's work could never come back); a PMO copy built from it by this
+    // version's pmoCopyHtml -- what publishPmoCopy would have written before it refused; no board of this version publishes one,
+    // and a copy an ORBIT before this one published runs that ORBIT's code (P0-P4) -- says it cannot put it right, and its
+    // office's submittal is refused in words that say what is true; "Put it right";
+    // CONTROL: dA / dB says nothing
+    {
+      const mk = bootMark();
+      const say = O => J([OWNSAID(O.ev(`(document.getElementById('shareStat')||{}).textContent||''`)),
+        O.ev(`(function(){ try{ var d=document.createElement('div'); d.innerHTML=flowEntEditor(); var w=Array.prototype.filter.call(d.querySelectorAll('div'), function(x){ return /^⚠ The destination list holds what/.test(x.textContent) && !x.querySelector('div'); })[0]; return w? w.textContent : ''; }catch(e){ return 'threw: '+e.message; } })()`)]);
+      const fix = O => JSON.parse(O.ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(m){ al.push(String(m)); };
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs, al:al, threw:threw}); })()`));
+      const { file } = make({ ents: [dU], to: 'unassigned', cyc: true }), O = boot({ html: file }); O.ev(`flowSetAxis('dest'); 'ok'`);
+      w5Chk(name, '(o) a board that opens holding “unassigned” · what it says', 'on opening, after the opening’s own line, and in the destinations panel: what the list holds, that the money reads right, that a file it writes is refused, and Put it right',
+        say(O), J([OWN(HU), OWN(HU)]));
+      // what it hands out: [the types of file handed to the browser, questions asked, alerts, the ledger as it was, threw]
+      const out = code => JSON.parse(O.ev(`(function(){ var cap=[], qs=[], al=[], _B=window.Blob, threw='';
+        window.Blob=function(pt,o){ cap.push(String((o&&o.type)||'')); return new _B(pt,o); }; window.confirm=function(q){ qs.push(String(q)); return true; };
+        window.alert=function(m){ al.push(String(m)); }; var led=JSON.stringify(MS.sync||null);
+        try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+        try{ ${code} }catch(e){ threw=String((e&&e.message)||e); } window.Blob=_B;
+        return JSON.stringify([cap, qs.length, al, JSON.stringify(MS.sync||null)===led, threw]); })()`));
+      w5Chk(name, '(o) a board that opens holding “unassigned” · ⬆ Issue its package', 'not issued: refused in true words before anything is asked or written; the ledger not moved',
+        J(out('pkgIssue(mySlug(), true);')), J([[], 0, [BLOCKED('Issuing the O&M package', 'it ' + HU)], true, '']));
+      w5Chk(name, '(o) a board that opens holding “unassigned” · push the baselines to the managers', 'not pushed: refused in true words before its question; nothing written',
+        J(out('pkgPushAll();')), J([[], 0, [BLOCKED('Pushing the baselines', 'it ' + HU)], true, '']));
+      const pp = out('publishPmoCopy();');
+      w5Chk(name, '(o) a board that opens holding “unassigned” · 📤 Publish PMO copy', 'not published: refused in true words before its question; nothing written; the line says so, then what the list holds and Put it right',
+        J([pp, O.ev(`(document.getElementById('shareStat')||{}).textContent||''`)]),
+        J([[[], 0, [BLOCKED('Publishing a PMO copy', 'it ' + HU)], true, ''], '⚠ Publishing a PMO copy is refused — nothing was written. ' + OWN(HU)]));
+      const pmo = O.ev(`(function(){ try{ return pmoCopyHtml({sandbox:true, by:'BLL', ts:Date.now(), fy:MS.cur, ap:APPN, base:pmoBaseline(), pv:PMO_PV,
+        ord:JSON.parse(JSON.stringify(S.pmoOrder||{}))}); }catch(e){ return ''; } })()`), PC = boot({ html: pmo });
+      const pf = fix(PC);
+      w5Chk(name, '(o) a PMO copy built from it by this version’s pmoCopyHtml (what 📤 Publish PMO copy would have written before it refused) · what it says, and Put it right there', 'the copy says it cannot put it right and that its submittal is refused, and the one step is turned off in a PMO copy: nothing asked, nothing changed',
+        J([OWNSAID(PC.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), pf.qs.length, /^⚠ This is a PMO copy of the board/.test(pf.al[0] || ''), pf.threw]),
+        J([OWN(HU, true), 0, true, '']));
+      const sub = PC.ev(`(function(){ var cap=null, _B=window.Blob;
+        try{ localStorage.setItem('prio27who','J. Smith'); localStorage.setItem('prio27pmo','AV'); }catch(e){}
+        window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+        window.alert=function(){}; window.confirm=function(){ return true; };
+        try{ if(!S.titles) S.titles={}; S.titles.R2='Renamed by the office'; save(); pmoSubmit(); }catch(e){ cap='THREW '+e.message; } window.Blob=_B; return cap||''; })()`);
+      const held0 = lsOf(O.ev), sal = JSON.parse(await one(O.ev, sub, 'ORBIT SUBMITTAL - AV - J Smith.json'));
+      w5Chk(name, '(o) a PMO copy built from it by this version’s pmoCopyHtml · its office’s submittal, 📁 File → Import', 'refused, in words that say what is true for a submittal: the copy cannot put its list right, so the office makes its changes again in a new copy; browser storage byte-identical',
+        J([sal, moved(held0, lsOf(O.ev))]), J([['“ORBIT SUBMITTAL - AV - J Smith.json” was not imported: the destination list at the file.dest holds the key “unassigned” (dest[8]); '
+          + KEEP + '“Not yet assigned” row.\n\n' + TAIL + ' Nothing on this board was changed.'], []]));
+      const r = fix(O), held = lsOf(O.ev), R = boot({ ls: held }); R.ev(`flowSetAxis('dest'); 'ok'`);
+      w5Chk(name, '(o) Put it right · asked first', 'the full import of this board as it stands: one question, saying what is put right; nothing alerted',
+        J([r.threw, r.al, r.qs.length, QLINE(r.qs[0])]), J(['', [], 1, '  • ' + SAYS(HU, R_KEY)]));
+      w5Chk(name, '(o) Put it right · reopened', 'the list put right, R1 on Depot U under its new key, PB27’s R1 with it; the opening no longer warns; the money the same, PB27 viewed too',
+        J([keys(R), JSON.parse(r1At(R)), cycR1(R), OWNSAID(R.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), JSON.parse(await book(R, 'Depot U')), await cycBook(R, 'Depot U')]),
+        J([[[OWNK, 'Depot U']], ['Depot U', 8, true], ['Depot U', true], '', JSON.parse(WANT('Depot U')), JSON.parse(WANT('Depot U'))]));
+      w5Chk(name, '(o) Put it right · reopened · every file it writes, at its own door', 'CONTROL as 7ee498a, whose door has no list rule — all pass; the office’s submittal is taken, R1 stays on Depot U', await writes(R), WRITES('Depot U'));
+      const { file: f2 } = make({ ents: [dA, dB], to: 'dA', cyc: true }), O2 = boot({ html: f2 });
+      w5Chk(name, '(o) CONTROL · a board that opens holding dA / dB', 'it says nothing of its list, and its package passes its own door',
+        J([say(O2), O2.ev(`inboundCheck(${J(capFile(O2.ev, 'pkgIssue(mySlug(), true);', 'application/json'))})`)]), J([J(['', '']), '']));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (w) THE WORDS AROUND A REPEATED KEY, on the user's own board (dA "Alpha Depot", then dA "Bravo Yard", R1 on dA): R1's Goes to
+    // names the entry the board reads R1 on, Alpha Depot, and each key is offered once wherever a destination is picked; the
+    // destinations panel lists both entries and says the second repeats the first; ✕ on the repeat removes it alone -- R1 stays on
+    // Alpha Depot, the key is not marked gone, the money where it was; ✕ on Alpha Depot, the entry the repeat repeats, is refused
+    // while the repeat is there; the menu counts 9 places, not 10. The same with the dry run's list, both entries "Alpha Depot".
+    // CONTROLS: distinct keys dA / dB read as before, and ✕ on the entry R1 reads there is asked as before.
+    {
+      const mk = bootMark();
+      const words = X => JSON.parse(X.ev(`(function(){
+        var f=recFields('R1', itemById('R1')).filter(function(x){ return x.l==='Goes to'; })[0], d=document.createElement('div'); d.innerHTML=f? f.c : '';
+        var s=d.querySelector('select'), p=document.createElement('div'); p.innerHTML=flowEntEditor();
+        var used=Array.prototype.map.call(p.querySelectorAll('tr'), function(tr){ var i=tr.querySelector('input'), td=tr.querySelectorAll('td');
+          return (i && td.length>3 && /^(Alpha Depot|Bravo Yard)$/.test(i.value))? [i.value, td[3].textContent] : null; }).filter(Boolean);
+        render(); var m=/(\\d+) places? money can go/.exec(document.body.textContent||'');
+        return JSON.stringify([s? s.options[s.selectedIndex].text : '', s? Array.prototype.filter.call(s.options, function(o){ return o.value==='dA'; }).map(function(o){ return o.text; }) : [],
+          matBulk()['Goes to'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }), used, m? +m[1] : 0]); })()`));
+      const del = (X, i, ans) => JSON.parse(X.ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return ${ans}; };
+        window.alert=function(m){ al.push(String(m)); }; flowDelEnt(${i});
+        return JSON.stringify([qs, al, flowEnts().slice(8).map(function(e){ return [e.k, e.n]; }), destOf(itemById('R1')).to, DESTDB.gone.indexOf('dA')>=0]); })()`));
+      const { X } = make({ ents: [dA, dA2], to: 'dA' });
+      w5Chk(name, '(w) a repeated key on the user’s own board · what it says', 'R1’s Goes to shows Alpha Depot, the entry the board reads R1 on, and offers dA once, as Alpha Depot; the bulk setter the same; the panel lists both entries, Alpha Depot used by 1 and Bravo Yard “⚠ repeats Alpha Depot”; the menu: 9 places money can go',
+        J(words(X)), J(['Alpha Depot', ['Alpha Depot'], ['Alpha Depot'], [['Alpha Depot', '1'], ['Bravo Yard', '⚠ repeats Alpha Depot']], 9]));
+      w5Chk(name, '(w) a repeated key on the user’s own board · ✕ on Alpha Depot, the entry the repeat repeats', 'not removed while Bravo Yard is there, in true words; nothing asked, nothing changed: R1 on dA, dA not marked gone',
+        J(del(X, 8, true)), J([[], ['Alpha Depot is not removed.\n\nBravo Yard has the same key, and is marked ⚠ repeats Alpha Depot. Remove Bravo Yard first — no requirement changes — and then Alpha Depot, if it is still to go.'],
+          [['dA', 'Alpha Depot'], ['dA', 'Bravo Yard']], 'dA', false]));
+      w5Chk(name, '(w) a repeated key on the user’s own board · ✕ on Bravo Yard, the repeat', 'asked in true words and removed alone: the list holds dA once, as Alpha Depot, R1 still on dA, dA not marked gone; nothing alerted',
+        J(del(X, 9, true)), J([['Remove Bravo Yard?\n\nIt has the same key as Alpha Depot, and every requirement on that key reads Alpha Depot, which stays. No requirement is changed.'], [],
+          [['dA', 'Alpha Depot']], 'dA', false]));
+      w5Chk(name, '(w) a repeated key on the user’s own board · ✕ on Bravo Yard · the Funds Flow workbook after', 'the same money, once', await book(X, 'Alpha Depot'), WANT('Alpha Depot'));
+      const X4 = make({ ents: [dA, dA], to: 'dA' }).X;
+      w5Chk(name, '(w) the dry run’s list, dA twice as “Alpha Depot” both times · the panel, and ✕ on the second', 'the first used by 1, the second “⚠ repeats Alpha Depot”; ✕ on the second asks in true words and removes it alone: R1 stays on dA, dA not marked gone',
+        J([JSON.parse(X4.ev(`(function(){ var p=document.createElement('div'); p.innerHTML=flowEntEditor();
+          return JSON.stringify(Array.prototype.map.call(p.querySelectorAll('tr'), function(tr){ var i=tr.querySelector('input'), td=tr.querySelectorAll('td');
+            return (i && td.length>3 && i.value==='Alpha Depot')? td[3].textContent : null; }).filter(function(x){ return x!==null; })); })()`)), del(X4, 9, true)]),
+        J([['1', '⚠ repeats Alpha Depot'], [['Remove Alpha Depot?\n\nIt has the same key as Alpha Depot, and every requirement on that key reads Alpha Depot, which stays. No requirement is changed.'], [], [['dA', 'Alpha Depot']], 'dA', false]]));
+      const X3 = make({ ents: [dA, dB], to: 'dA' }).X;
+      w5Chk(name, '(w) CONTROL · distinct keys dA, dB · what it says', 'as before: Goes to Alpha Depot, dA offered once; Alpha Depot used by 1, Bravo Yard by none; 10 places',
+        J(words(X3)), J(['Alpha Depot', ['Alpha Depot'], ['Alpha Depot'], [['Alpha Depot', '1'], ['Bravo Yard', '—']], 10]));
+      const c = del(X3, 8, false);
+      w5Chk(name, '(w) CONTROL · distinct keys dA, dB · ✕ on Alpha Depot, the entry R1 reads, answered Cancel', 'asked as before (1 requirement points at it); nothing changed',
+        J([c[0].length, /^Remove Alpha Depot\?\n\n1 requirement points at it\. Removing it clears them/.test(c[0][0] || ''), c[1], c[2], c[3]]), J([1, true, [], [['dA', 'Alpha Depot'], ['dB', 'Bravo Yard']], 'dA']));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // the money: R1 on no destination (CONTROL); two requirements sharing R1's title, pointing different ways (CONTROL, the split
+    // row); the same with the two on the number 1 and the text "1" -- two destinations, so the split row too
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dA, dB] });
+      w5Chk(name, 'CONTROL · R1 on no destination', 'the workbook: Not yet assigned 1,400, every other row 0; the panel the same, 0 of 2 titles logged, 2 not yet assigned',
+        J([JSON.parse(await book(X, 'Not yet assigned')), JSON.parse(panel(X))]),
+        J([JSON.parse(BOOK([['Not yet assigned', 1400]], 1400, 3, 1)), [[['Not yet assigned', 1400]], 1400, 1400, [], [0, 2, 2, 0]]]));
+      const S2 = make({ ents: [dA, dB], to: 'dA', r3: 'dB' }).X;
+      w5Chk(name, 'CONTROL · R1 on Alpha Depot, R3 (titled as R1, asking USAF 400) on Bravo Yard', 'their title’s money sits on the split row: 900 + 200 + 400 = 1,500, its tab “Split between destinations —” (a tab name is 28 characters at most); Not yet assigned 300; OGC total 1,800 in 4 lines; the panel says 1 title where requirements point different ways',
+        J([JSON.parse(await book(S2, 'Split between destinations —')), JSON.parse(panel(S2))]),
+        J([JSON.parse(BOOK([['Split between destinations — resolve', 1500], ['Not yet assigned', 300]], 1800, 4, 1)),
+          [[['Split between destinations — resolve', 1500], ['Not yet assigned', 300]], 1800, 1800, [], [0, 2, 1, 1]]]));
+      const S3 = make({ ents: [d1, D('1', 'Depot Text')], to: 1, r3: '1' }).X;
+      w5Chk(name, 'R1 on the number 1 (Depot One), R3 (titled as R1, USAF 400) on the text “1” (Depot Text)', 'two destinations, so their title’s money sits on the split row: 1,500; Not yet assigned 300; OGC total 1,800 in 4 lines',
+        await book(S3, 'Split between destinations —'), BOOK([['Split between destinations — resolve', 1500], ['Not yet assigned', 300]], 1800, 4, 1));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // CONTROL (as 7ee498a): a destination with no name, its key dZ, R1 on it -- its row has no name, and its tab is named by its key
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [D('dZ', '')], to: 'dZ' });
+      w5Chk(name, 'CONTROL · a destination with no name (key dZ), R1 on it', 'its row: no name, 1,100; Not yet assigned 300; OGC total 1,400; its tab named by its key, dZ',
+        await book(X, 'dZ'), BOOK([['', 1100], ['Not yet assigned', 300]], 1400, 3, 1));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (p) a package's list read into the board's (destPkgIn): an entry keyed "unassigned" or "destsplit" takes a key of its own, and
+    // the requirement on it is re-pointed with it; held twice, the first entry is the one read
+    {
+      const X = boot();
+      const r = JSON.parse(X.ev(`(function(){ flowEnts(); var pkg={ap:'om', dest:[{k:'unassigned', n:'Depot U', kind:'other', t:''}, {k:'destsplit', n:'Depot S', kind:'other', t:''}],
+        items:{R1:{dest:{to:'unassigned', end:'destsplit'}}}};
+        destPkgIn(pkg); var d=pkg.items.R1.dest;
+        return JSON.stringify([flowEnts().slice(8).map(function(e){ return e.n; }), flowEnts().filter(function(e){ return e.k==='unassigned' || e.k==='destsplit'; }).length,
+          flowEntName(d.to), flowEntName(d.end)]); })()`));
+      w5Chk(name, '(p) a package’s list, read into the board’s', 'Depot U and Depot S are added, neither under the key of a row the funds flow keeps for itself, and R1 points at them still',
+        J(r), J([['Depot U', 'Depot S'], 0, 'Depot U', 'Depot S']));
+      const X2 = boot();
+      const r2 = X2.ev(`(function(){ flowEnts(); var pkg={ap:'om', dest:[{k:'unassigned', n:'Depot U', kind:'other', t:''}, {k:'unassigned', n:'Depot V', kind:'other', t:''}],
+        items:{R1:{dest:{to:'unassigned', end:''}}}}; destPkgIn(pkg);
+        return JSON.stringify([flowEntName(pkg.items.R1.dest.to), flowEnts().slice(8).map(function(e){ return e.n; }),
+          flowEnts().filter(function(e){ return e.k==='unassigned'; }).length]); })()`);
+      w5Chk(name, '(p) a package’s list holding “unassigned” twice, Depot U then Depot V', 'R1 points at Depot U, the first entry with its key, under a key of its own; the repeat is not read', r2, J(['Depot U', ['Depot U'], 0]));
+    }
+    // the door on the rest of the rule
+    {
+      const X = boot();
+      const door = (bag, L) => X.ev(`inboundCheck(${J(J({ [bag]: L }))})`);
+      const at = 'the destination list at the file.ents ';
+      [[[dA, dB, dA], 'holds the key “dA” twice (ents[0] and ents[2]); a key names one destination', 'dA repeated apart'],
+       [[dA, dA, dA], 'holds the key “dA” 3 times (ents[0], ents[1] and ents[2]); a key names one destination', 'dA three times'],
+       [[dB, dU, dU], 'holds the key “unassigned” (ents[1]); the funds flow keeps that key for its own “Not yet assigned” row', '“unassigned” twice: the first thing said'],
+       [[D(true, 'Depot T')], 'holds a key that is not text (ents[0].k is the value true); a key is text', 'a key that is not text']]
+        .forEach(([L, w, c]) => w5Chk(name, 'the door · ' + c, 'refused, saying what the list holds and why', door('ents', L), at + w));
+      w5Chk(name, 'the door · a package’s list', 'refused, saying where', door('dest', [dS]),
+        'the destination list at the file.dest holds the key “destsplit” (dest[0]); the funds flow keeps that key for its own “Split between destinations” row');
+      w5Chk(name, 'the door · an entry that is not one, an entry with no key', 'refused, saying which entry and why',
+        J([door('ents', [dA, null]), door('ents', [{ n: 'Depot X', kind: 'other', t: '' }]), door('ents', [D(null, 'Depot Y')])]),
+        J(['the destination entry at the file.ents[1] is not a destination (“null”); a list holds destinations and nothing else',
+          'the destination entry at the file.ents[0] has no key; a destination is found by its key',
+          'the destination entry at the file.ents[0] has no key (ents[0].k is null); a destination is found by its key']));
+      w5Chk(name, 'the door · an entry that is not one, handed over', 'refused in the door’s own words: no ORBIT writes one (every board leaves it out on opening)',
+        X.ev(`(function(){ var al=[]; window.alert=function(m){ al.push(String(m)); }; inRefuse('x.json', inboundCheck(${J(J({ ents: [null] }))})); return al[0]; })()`),
+        '“x.json” was not imported: the destination entry at the file.ents[0] is not a destination (“null”); a list holds destinations and nothing else.\n\n'
+        + 'A board, a PMO copy, a package or a submittal written by ORBIT never carries that, so the file is damaged or was not written by ORBIT. Nothing on this board was changed.');
+      w5Chk(name, 'the door · CONTROL', 'an ordinary list, and requirements pointing at keys the list does not hold, pass', J([door('ents', [dA, dB]), door('dest', [dA]),
+        X.ev(`inboundCheck(${J(J({ dest: { R1: { to: 'unassigned' } }, ents: [dA] }))})`)]), J(['', '', '']));
+    }
+    // a board of the user's own whose list holds an entry that is not one (written by hand: no ORBIT writes one): taken, said, left out
+    {
+      const mk = bootMark();
+      const { file } = make({ ents: [dA], to: 'dA' });
+      const J2 = JSON.parse(file.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]); J2.destDb.ents.push(null);
+      const own = file.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J(J2).replace(/</g, '\\u003c') + b);
+      const T = boot(), r = full(T.ev, own), R = boot({ ls: lsOf(T.ev) }); R.ev(`flowSetAxis('dest'); 'ok'`);
+      const SN = SAYS('holds ents[9], which is not a destination (“null”)', R_OUT);
+      w5Chk(name, 'a board of the user’s own, its list holding an entry that is not one · ⬅ Import a full board', 'taken; the question and the reopened board say it is left out, and the list is read without it',
+        J([r.ret, QLINE(r.qs[r.qs.length - 1]), SAID(R.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), keys(R, ['dA']), JSON.parse(await book(R, 'Alpha Depot'))]),
+        J([true, '  • ' + SN, SN + '.', [['dA', 'Alpha Depot']], JSON.parse(WANT('Alpha Depot'))]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // a board of the user's own whose list holds "unassigned" (Depot U), with what an older reading kept against that key -- the map
+    // an older list of Full Fund's was read through (x3 → "unassigned") and a kind Full Fund named differently -- taken whole: both
+    // follow Depot U to its new key
+    {
+      const mk = bootMark();
+      const { file } = make({ ents: [dU], to: 'unassigned' });
+      const J3 = JSON.parse(file.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]);
+      J3.destDb.lmap = { 'abc.1': { x3: 'unassigned' } }; J3.destDb.conflicts = [{ k: 'unassigned', from: 'ff', kind: 'gov' }];
+      const own = file.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J(J3).replace(/</g, '\\u003c') + b);
+      const T = boot(), r = full(T.ev, own), R = boot({ ls: lsOf(T.ev) });
+      w5Chk(name, 'a board of the user’s own holding “unassigned”, a map entry and a kind named elsewhere against it · ⬅ Import a full board', 'taken; Depot U under a key of its own, and the map entry and the kind named on Full Fund name that key',
+        J([r.ret, JSON.parse(R.ev(`(function(){ var e=flowEnts()[8]; return JSON.stringify([e.n, e.k!=='unassigned', (DESTDB.lmap['abc.1']||{}).x3===e.k,
+          (DESTDB.conflicts||[]).filter(function(c){ return c.from==='ff'; }).map(function(c){ return c.k===e.k; })]); })()`))]),
+        J([true, ['Depot U', true, true, [true]]]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // a board of the user's own holding a SECOND appropriation, Full Fund, with the same plan and PB27 locked on it too (its stores
+    // as this browser keeps them while O&M is open), the list holding "unassigned" (Depot U, R1 on it), taken whole: Full Fund's
+    // locked cycle is put right with the rest. (The appropriation open when the board reopens re-points its own locked cycles by
+    // name as it opens; another appropriation's stay as the import wrote them until it opens -- and every file the board writes
+    // carries them.) The reopened O&M board's saved file passes its own door; Full Fund, opened from the same browser, holds the
+    // list put right, R1 on Depot U, and PB27's R1 on the same key.
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU], to: 'unassigned', cyc: true });
+      X.ev(`localStorage.setItem('prio27ff', localStorage.getItem('prio27om')); localStorage.setItem('prio27ff-cyc', localStorage.getItem('prio27om-cyc')); 'ok'`);
+      const own = X.ev('buildSavedHtml()');
+      const T = boot(), r = full(T.ev, own), after = lsOf(T.ev), R = boot({ ls: after, appn: 'O&M' }), F = boot({ ls: after, appn: 'FULL FUND' });
+      w5Chk(name, 'a board of the user’s own holding “unassigned” in O&M and in Full Fund, PB27 locked on both · ⬅ Import a full board', 'taken; O&M reopened: its saved file passes its own door; Full Fund opened from the same browser: the list put right, R1 on Depot U under its new key, PB27’s R1 on the same key',
+        J([r.ret, R.ev(`inboundCheck(buildSavedHtml())`), F.ev('mySlug()'), keys(F), JSON.parse(r1At(F)), cycR1(F)]),
+        J([true, '', 'ff', [[OWNK, 'Depot U']], ['Depot U', 8, true], ['Depot U', true]]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (k) IT SAYS SO ON EVERY OPENING (verify-money r2, M1). A board holding "unassigned" (Depot U, R1 on it) opened (1) from its
+    // saved file -- the opening's own line first, then the warning (verify-tests r2, Q11); (2) as the board template, this browser
+    // holding the board (a board an ORBIT before this one left in this browser, opened with the new file); (3) from its saved file,
+    // this browser holding newer work; (4) the state file beside the board answering with a newer copy and with an older one; (5)
+    // the shared folder answering at opening (the folder's pull stood in for, the line it sets this check's own); (6) as (2), the
+    // state file beside the board answering late -- the browser's fetch held until the check answers it, "not found": the warning
+    // is on the line from the start, before any answer, and after the answer's own line once. Each line keeps its own words, then
+    // the warning, once. On 7ee498a nothing says it; this track's first fix round said it on (1) only.
+    {
+      const mk = bootMark();
+      const { X: K, file: kf } = make({ ents: [dU], to: 'unassigned' });
+      const ls1 = lsOf(K.ev); K.ev(`if(!S.notes) S.notes={}; S.notes.R2='typed after the save'; save(); 'ok'`); const ls2 = lsOf(K.ev);
+      const line = B => B.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+      const once = s => s.split('The destination list holds what a file handed over is refused for').length - 1;
+      const W1 = OWN(HU), nap = ms => new Promise(r => setTimeout(r, ms));
+      const t1 = line(boot({ html: kf }));
+      w5Chk(name, '(k) a board holding “unassigned” opens · (1) from its saved file', 'the opening’s own line first (“📦 Opened with the saved board state — …”), then the warning, once',
+        J([t1.startsWith('📦 Opened with the saved board state — last saved'), t1.endsWith('Make changes and 💾 Save to pass it on. ' + W1), once(t1)]), J([true, true, 1]));
+      w5Chk(name, '(k) a board holding “unassigned” opens · (2) as the board template, this browser holding the board', 'the template’s own line, then the warning, once',
+        line(boot({ ls: ls1 })), 'No saved state in this copy — make sure you opened the latest board file from the shared drive (💾 Save bakes the state into the file). ⬅ Import also works with a .json state file. ' + W1);
+      const t3 = line(boot({ html: kf, ls: ls2 }));
+      w5Chk(name, '(k) a board holding “unassigned” opens · (3) from its saved file, this browser holding newer work', 'the line that says this browser’s copy was opened, then the warning, once',
+        J([t3.startsWith('Opened with this browser’s copy of the board — it has changes made after this file was last saved ('), t3.endsWith('. 💾 Save writes them into the file. ' + W1), once(t3)]), J([true, true, 1]));
+      const B4 = boot({ ls: ls1 }), B4b = boot({ ls: ls1 }); await nap(150);
+      const arrive = (B, newer) => B.ev(`(function(){ try{ var st=JSON.parse(localStorage.getItem('prio27om')); st.ts=${newer ? '(MS.ts||0)+60000' : '1'}; sharedOpened(st);
+        return (document.getElementById('shareStat')||{}).textContent||''; }catch(e){ return 'threw: '+e.message; } })()`);
+      const t4 = arrive(B4, true), t4b = arrive(B4b, false);
+      w5Chk(name, '(k) a board holding “unassigned” opens · (4) the state file beside the board answers with a newer copy', 'loaded, and the line says so, then the warning, once',
+        J([t4.startsWith('🔗 Shared state loaded automatically — '), t4.endsWith(' ' + W1), once(t4)]), J([true, true, 1]));
+      w5Chk(name, '(k) a board holding “unassigned” opens · (4) the state file beside the board answers with an older copy', 'the line that says this browser’s changes are newer, then the warning, once',
+        J([t4b.startsWith('⚠ Your local changes are newer than the shared state ('), t4b.endsWith(', or 💾 Save yours. ' + W1), once(t4b)]), J([true, true, 1]));
+      const B5 = boot({ ls: ls1 });
+      B5.ev(`driveStoreOn=function(){ return true; }; _driveDir={queryPermission:function(){ return Promise.resolve('granted'); }, name:'Data'};
+        driveStorePull=function(){ setStat('⬇ Loaded O&M from the shared folder (stood in for by this check).'); return Promise.resolve(true); };
+        driveExecPull=function(){ return Promise.resolve(); }; driveAcePull=driveExecPull; driveRpPull=driveExecPull; 'ok'`);
+      await nap(400);
+      w5Chk(name, '(k) a board holding “unassigned” opens · (5) the shared folder answers at opening', 'the folder’s line, then the warning, once',
+        line(B5), '⬇ Loaded O&M from the shared folder (stood in for by this check). ' + W1);
+      // (6): the board template, its page given a fetch that answers when this check says (a browser's fetch of the state file
+      // beside the board can take its time, or never come back)
+      const { BOARD } = await import('./boot.mjs'), { readFileSync } = await import('node:fs');
+      const tpl = readFileSync(BOARD, 'utf8');
+      const B6 = boot({ ls: ls1, html: tpl.replace('<head>', '<head><script>window.fetch=function(){ return new Promise(function(r){ window.__u44held=r; }); };</script>') });
+      const t6 = line(B6), held = B6.ev(`typeof window.__u44held`);
+      B6.ev(`window.__u44held({ ok: false }); 'ok'`); await nap(150);
+      w5Chk(name, '(k) a board holding “unassigned” opens · (6) as the board template, this browser holding the board, the state file beside it answering late', 'the warning on the line from the start, before any answer, once; then the answer’s own line (no state file found), then the warning, once',
+        J([held, tpl.split('<head>').length - 1, t6.endsWith(W1), once(t6), line(B6)]),
+        J(['function', 1, true, 1, 'No shared state file found next to the board — use 💾 Save to create one. ' + W1]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (h) PUT IT RIGHT WHILE A STOPPED FULL IMPORT HOLDS SAVING (verify-money r2, M2): refused in the held save's own words -- the
+    // import of this board as it stands would lift the hold, and the next 💾 Save would write the mix over the board file, the one
+    // whole copy of the board as it was. Nothing asked, browser storage byte-identical, the hold still on.
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU], to: 'unassigned' });
+      const ls = lsOf(X.ev); ls.prio27impMixed = J({ t: 1, file: 'colleague-board.html', keys: ['prio27om', 'prio27destdb'] });
+      const H = boot({ ls }), before = lsOf(H.ev);
+      const f = JSON.parse(H.ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(m){ al.push(String(m)); };
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs, al:al, threw:threw}); })()`));
+      const t = H.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+      w5Chk(name, '(h) Put it right while a stopped full import holds saving', 'refused in the held save’s words; nothing asked; browser storage byte-identical; the hold still on',
+        J([f.threw, f.qs.length, f.al, t.startsWith('⛔ Putting the destination list right is refused. A full import stopped part-way in this browser and could not be put back'),
+          moved(before, lsOf(H.ev)), H.ev('impMixedOn()')]), J(['', 0, [], true, [], true]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (n) PUT IT RIGHT, ANSWERED NO (verify-money r2, S2): nothing written -- browser storage byte-identical, and the board not marked
+    // changed (it saved first, then asked: the next opening of its file said this browser held changes nobody made)
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU], to: 'unassigned' });
+      const N = boot({ ls: lsOf(X.ev) }); await new Promise(r => setTimeout(r, 150));
+      const before = lsOf(N.ev);
+      const f = JSON.parse(N.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return false; }; window.alert=function(){};
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw, dirty:DIRTY}); })()`));
+      w5Chk(name, '(n) Put it right, answered No', 'one question; nothing written: browser storage byte-identical, and the board not marked changed',
+        J([f.threw, f.qs, moved(before, lsOf(N.ev)), f.dirty]), J(['', 1, [], false]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (q) AN APPROPRIATION A FULL IMPORT KEPT AS THIS BROWSER HAD IT (verify-money r2, S1). This browser holds O&M and Full Fund, PB27
+    // locked on both, the list holding "unassigned" (Depot U, R1 on it); ⬅ Import a full board of a file carrying O&M only puts O&M
+    // right and keeps Full Fund as it was -- so Full Fund's plan and its store of locked cycles still hold "unassigned", and the
+    // board's saved file carries both. The reopened O&M board says so, naming each, on opening and in the panel; it publishes no PMO
+    // copy; Put it right puts Full Fund right too: the saved file then passes its own door, and Full Fund opens on the list put
+    // right, R1 and PB27's R1 on Depot U.
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU], to: 'unassigned', cyc: true });
+      const omOnly = X.ev('buildSavedHtml()');
+      X.ev(`localStorage.setItem('prio27ff', localStorage.getItem('prio27om')); localStorage.setItem('prio27ff-cyc', localStorage.getItem('prio27om-cyc')); 'ok'`);
+      const T = boot({ ls: lsOf(X.ev) }), r = full(T.ev, omOnly), R = boot({ ls: lsOf(T.ev) }); R.ev(`flowSetAxis('dest'); 'ok'`);
+      const FFS = 'Full Fund’s plan carries a copy of it that ' + HU + '; Full Fund’s store of locked cycles carries a copy of it that ' + HU;
+      const panelSays = B => B.ev(`(function(){ try{ var d=document.createElement('div'); d.innerHTML=flowEntEditor(); var w=Array.prototype.filter.call(d.querySelectorAll('div'), function(x){ return /^⚠ The destination list holds what/.test(x.textContent) && !x.querySelector('div'); })[0]; return w? w.textContent : ''; }catch(e){ return 'threw: '+e.message; } })()`);
+      w5Chk(name, '(q) a full import that kept Full Fund holding “unassigned” · O&M reopened', 'it says so, naming Full Fund’s plan: on opening, after the import’s report, and in the destinations panel',
+        J([r.ret, OWNSAID(R.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), panelSays(R)]), J([true, OWNS(FFS), OWNS(FFS)]));
+      const pp = JSON.parse(R.ev(`(function(){ var cap=[], al=[], qs=[], _B=window.Blob, threw=''; window.Blob=function(pt,o){ cap.push(String((o&&o.type)||'')); return new _B(pt,o); };
+        window.alert=function(m){ al.push(String(m)); }; window.confirm=function(q){ qs.push(String(q)); return true; };
+        try{ publishPmoCopy(); }catch(e){ threw=String((e&&e.message)||e); } window.Blob=_B; return JSON.stringify([cap, qs.length, al, threw]); })()`));
+      w5Chk(name, '(q) a full import that kept Full Fund holding “unassigned” · 📤 Publish PMO copy', 'not published: refused in true words, naming Full Fund’s plan; nothing written',
+        J(pp), J([[], 0, [BLOCKED('Publishing a PMO copy', FFS)], '']));
+      const fx = JSON.parse(R.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+      const after = lsOf(R.ev), R2 = boot({ ls: after }), F = boot({ ls: after, appn: 'FULL FUND' }); F.ev(`flowSetAxis('dest'); 'ok'`);
+      w5Chk(name, '(q) a full import that kept Full Fund holding “unassigned” · Put it right, then reopened', 'one question; O&M’s saved file passes its own door and the warning is gone; Full Fund opens on the list put right, R1 on Depot U, its Funds Flow workbook Depot U 1,100 once',
+        J([fx.threw, fx.qs, R2.ev(`inboundCheck(buildSavedHtml())`), OWNSAID(R2.ev(`(document.getElementById('shareStat')||{}).textContent||''`)), F.ev('mySlug()'), keys(F), JSON.parse(r1At(F)), cycR1(F), JSON.parse(await book(F, 'Depot U'))]),
+        J(['', 1, '', '', 'ff', [[OWNK, 'Depot U']], ['Depot U', 8, true], ['Depot U', true], JSON.parse(WANT('Depot U'))]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-tests r2, S1) Six plausible wrong fixes the 162-check block let through, each held by a check of its own; expected
+    // values are the review's hand-written literals (Q8's words are this round's, which tell two entries of one name apart).
+    const del2 = (X, i, ans) => JSON.parse(X.ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return ${ans}; };
+        window.alert=function(m){ al.push(String(m)); }; flowDelEnt(${i});
+        return JSON.stringify([qs, al, flowEnts().slice(8).map(function(e){ return [e.k, e.n]; }), destOf(itemById('R1')).to, DESTDB.gone.indexOf('dA')>=0]); })()`));
+    const dT1 = D('1', 'Depot Text');
+    // Q6: a board of the user's own whose dA repeats Alpha Depot's NAME but carries a kind and match terms of its own, taken whole:
+    // the repeat is kept under a key of its own with its kind and terms, R1 stays on the first
+    {
+      const mk = bootMark();
+      const { file } = make({ ents: [dA, { k: 'dA', n: 'Alpha Depot', kind: 'gov', t: 'ALPHA' }], to: 'dA' });
+      const T = boot(), r = full(T.ev, file), R = boot({ ls: lsOf(T.ev) });
+      w5Chk(name, 'Q6 own board, dA twice “Alpha Depot”, the second a government activity with match terms ALPHA · ⬅ Import a full board', 'taken; the second kept under a key of its own with its kind and terms; R1 on the first',
+        J([r.ret, keys(R, ['dA']), JSON.parse(R.ev(`JSON.stringify(flowEnts().slice(8).map(function(e){ return [e.kind, e.t]; }))`)), JSON.parse(r1At(R))]),
+        J([true, [['dA', 'Alpha Depot'], ['(a key of its own)', 'Alpha Depot']], [['other', ''], ['gov', 'ALPHA']], ['Alpha Depot', 8, true]]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // Q7: R1's ultimate recipient on "unassigned" (Depot U) too, taken whole, the flow on the ultimate-recipient axis
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU], to: 'unassigned', axis: 'end' });
+      X.ev(`S.dest.R1.end='unassigned'; save(); 'ok'`);
+      const own = X.ev('buildSavedHtml()'), T = boot(), r = full(T.ev, own), R = boot({ ls: lsOf(T.ev) }); R.ev(`flowSetAxis('end'); 'ok'`);
+      w5Chk(name, 'Q7 own board, R1’s Goes to and ultimate recipient both on “unassigned” (Depot U) · ⬅ Import a full board, reopened, ultimate-recipient axis', 'R1’s ultimate recipient is Depot U; the workbook: Depot U 1,100 once, Not yet assigned 300, OGC 1,400',
+        J([r.ret, R.ev(`flowEntName(destEndOf(itemById('R1')))`), JSON.parse(await book(R, 'Depot U'))]), J([true, 'Depot U', JSON.parse(WANT('Depot U'))]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // Q8: the dry run's list, dA twice "Alpha Depot": ✕ on the FIRST is refused while the second is there, in words that say which
+    // row to press
+    {
+      const mk = bootMark();
+      const X = make({ ents: [dA, dA], to: 'dA' }).X;
+      w5Chk(name, 'Q8 the dry run’s list, dA twice “Alpha Depot” · ✕ on the first', 'refused, naming the other by its mark; nothing asked, nothing changed: R1 on dA, dA not marked gone',
+        J(del2(X, 8, true)), J([[], ['Alpha Depot is not removed.\n\nThe other Alpha Depot, marked ⚠ repeats Alpha Depot, has the same key. Remove that one first — no requirement changes — and then this one, if it is still to go.'],
+          [['dA', 'Alpha Depot'], ['dA', 'Alpha Depot']], 'dA', false]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // Q9: ✕ on the repeat Bravo Yard, then the same browser reopened: the list holds dA once
+    {
+      const mk = bootMark();
+      const X = make({ ents: [dA, dA2], to: 'dA' }).X; const d = del2(X, 9, true);
+      const R = boot({ ls: lsOf(X.ev) });
+      w5Chk(name, 'Q9 dA Alpha Depot then Bravo Yard · ✕ on Bravo Yard, the same browser reopened', 'removed and kept: the reopened list holds dA once, as Alpha Depot; R1 on dA',
+        J([d[2], keys(R, ['dA']), R.ev(`destOf(itemById('R1')).to`)]), J([[['dA', 'Alpha Depot']], [['dA', 'Alpha Depot']], 'dA']));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // Q10 GUARD (7ee498a offers every entry): the number 1 (Depot One) and the text "1" (Depot Text), R1 on "1": R1's Goes to shows
+    // Depot Text and offers both
+    {
+      const mk = bootMark();
+      const X = make({ ents: [d1, dT1], to: '1' }).X;
+      w5Chk(name, 'Q10 GUARD · the number 1 and the text “1”, R1 on “1” · R1’s Goes to', 'shows Depot Text, and offers Depot One and Depot Text',
+        X.ev(`(function(){ var f=recFields('R1', itemById('R1')).filter(function(x){ return x.l==='Goes to'; })[0], d=document.createElement('div'); d.innerHTML=f? f.c : '';
+          var s=d.querySelector('select'); return JSON.stringify([s? s.options[s.selectedIndex].text : '', s? Array.prototype.filter.call(s.options, function(o){ return /^Depot (One|Text)$/.test(o.text); }).map(function(o){ return o.text; }) : []]); })()`),
+        J(['Depot Text', ['Depot One', 'Depot Text']]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // F1, F2 (verify-tests r2, M1): the team's own copy in the shared folder holding a key that is not text is refused like a file
+    // handed over -- read, the number 1 and the text "1" became one destination and R1 came across on the other, the other's entry
+    // dropped; a copy of text keys only is read as before
+    {
+      const fold = async (list, to) => {
+        const mk = bootMark();
+        const { file } = make({ ents: list, to });
+        const st = JSON.parse(file.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]), om = st.appns ? st.appns.om : st;
+        const T = boot({ html: make({ ents: [] }).file });
+        const took = T.ev(`(function(){ try{ applyStore(driveParse(${J(J({ store: om, by: 'Teammate', ts: 1 }))}).store); flowSetAxis('dest'); return 'adopted'; }catch(e){ return 'threw: '+e.message; } })()`);
+        const res = J([took, T.ev(`flowEntName(destOf(itemById('R1')).to)`), keys(T, ['1']).map(x => x[1])]);
+        bootRelease(mk, []); await settleBoards(); return res;
+      };
+      w5Chk(name, 'F1 the shared folder’s copy · the number 1 (Depot One) then the text “1” (Depot Text), R1 on “1”', 'refused, saying what the list holds; the teammate’s board unchanged',
+        await fold([d1, dT1], '1'), J(['threw: a copy in the shared folder was refused: the destination list at the file.store.flow.ents holds a key that is not text (ents[8].k is the number 1); a key is text', '', []]));
+      w5Chk(name, 'F2 CONTROL · the shared folder’s copy · the text “1” alone (Depot Text), R1 on it', 'read and adopted, R1 on Depot Text',
+        await fold([dT1], '1'), J(['adopted', 'Depot Text', ['Depot Text']]));
+    }
+    // (verify-tests r3) Nine plausible wrong fixes the 184-check block let through, each held by a check of its own; expected
+    // values are hand-written literals. T7 is a GUARD: 7ee498a read one destination once, and a wrong fix of flowDestResolve did not.
+    // T1: a board of the user's own whose dA repeats Alpha Depot's name and kind but has match terms of its own, taken whole
+    {
+      const mk = bootMark();
+      const { file } = make({ ents: [dA, { k: 'dA', n: 'Alpha Depot', kind: 'other', t: 'ALPHA' }], to: 'dA' });
+      const T = boot(), r = full(T.ev, file), R = boot({ ls: lsOf(T.ev) });
+      w5Chk(name, 'T1 own board, dA twice “Alpha Depot”, both other, the second with match terms ALPHA · ⬅ Import a full board', 'taken; the second kept under a key of its own with its terms; R1 on the first',
+        J([r.ret, keys(R, ['dA']), JSON.parse(R.ev(`JSON.stringify(flowEnts().slice(8).map(function(e){ return [e.kind, e.t]; }))`)), JSON.parse(r1At(R))]),
+        J([true, [['dA', 'Alpha Depot'], ['(a key of its own)', 'Alpha Depot']], [['other', ''], ['other', 'ALPHA']], ['Alpha Depot', 8, true]]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // T2: the same, the second a government activity with no match terms
+    {
+      const mk = bootMark();
+      const { file } = make({ ents: [dA, { k: 'dA', n: 'Alpha Depot', kind: 'gov', t: '' }], to: 'dA' });
+      const T = boot(), r = full(T.ev, file), R = boot({ ls: lsOf(T.ev) });
+      w5Chk(name, 'T2 own board, dA twice “Alpha Depot”, the second a government activity · ⬅ Import a full board', 'taken; the second kept under a key of its own with its kind; R1 on the first',
+        J([r.ret, keys(R, ['dA']), JSON.parse(R.ev(`JSON.stringify(flowEnts().slice(8).map(function(e){ return [e.kind, e.t]; }))`)), JSON.parse(r1At(R))]),
+        J([true, [['dA', 'Alpha Depot'], ['(a key of its own)', 'Alpha Depot']], [['other', ''], ['gov', '']], ['Alpha Depot', 8, true]]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // T3, V4: dA Alpha Depot then dA Bravo Yard, R1 on dA and its ultimate recipient dA: the record's Which awards to, the bulk setter's
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dA, dA2], to: 'dA' });
+      X.ev(`S.dest.R1.end='dA'; save(); 'ok'`);
+      w5Chk(name, 'T3 dA Alpha Depot then dA Bravo Yard, R1’s ultimate recipient dA · R1’s Which awards to', 'shows Alpha Depot, the entry the board reads, and offers dA once, as Alpha Depot',
+        X.ev(`(function(){ var f=recFields('R1', itemById('R1')).filter(function(x){ return x.l==='Which awards to'; })[0], d=document.createElement('div'); d.innerHTML=f? f.c : '';
+          var s=d.querySelector('select'); return JSON.stringify([s? s.options[s.selectedIndex].text : '', s? Array.prototype.filter.call(s.options, function(o){ return o.value==='dA'; }).map(function(o){ return o.text; }) : []]); })()`),
+        J(['Alpha Depot', ['Alpha Depot']]));
+      w5Chk(name, 'T4 dA Alpha Depot then dA Bravo Yard · the bulk setter’s Which awards to', 'offers dA once, as Alpha Depot',
+        X.ev(`JSON.stringify(matBulk()['Which awards to'].opts.filter(function(o){ return o[0]==='dA'; }).map(function(o){ return o[1]; }))`), J(['Alpha Depot']));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // T5: a full import that kept Full Fund holding "unassigned"; Put it right's question says what it puts right
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU], to: 'unassigned', cyc: true });
+      const omOnly = X.ev('buildSavedHtml()');
+      X.ev(`localStorage.setItem('prio27ff', localStorage.getItem('prio27om')); localStorage.setItem('prio27ff-cyc', localStorage.getItem('prio27om-cyc')); 'ok'`);
+      const T = boot({ ls: lsOf(X.ev) }), r = full(T.ev, omOnly), R = boot({ ls: lsOf(T.ev) });
+      const fx = JSON.parse(R.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs, threw:threw}); })()`));
+      w5Chk(name, 'T5 a full import that kept Full Fund holding “unassigned” · Put it right · its question', 'one question, which says the plans’ copies are put right, and how',
+        J([r.ret, fx.threw, fx.qs.length, QLINE(fx.qs[0])]),
+        J([true, '', 1, '  • The destination lists the plans carry, put right as they come across (a file handed over with such a list is refused). ' + R_KEY]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // T6: Put it right while PB27, a locked cycle, is on screen; the working plan has a note typed after the lock
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU], to: 'unassigned', cyc: true });
+      X.ev(`if(!S.notes) S.notes={}; S.notes.R2='typed after the lock'; save(); 'ok'`);
+      const H = boot({ ls: lsOf(X.ev) }); await new Promise(r => setTimeout(r, 150));
+      H.ev(`cycView('PB|2027'); 'ok'`);
+      const before = lsOf(H.ev);
+      const f = JSON.parse(H.ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(m){ al.push(String(m)); };
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); }
+        return JSON.stringify({qs:qs.length, al:al, threw:threw, line:(document.getElementById('shareStat')||{}).textContent||''}); })()`));
+      const after = lsOf(H.ev), R = boot({ ls: after });
+      w5Chk(name, 'T6 Put it right while PB27, a locked cycle, is on screen', 'refused in the view’s own words; nothing asked; browser storage byte-identical; reopened, the working plan keeps the note typed after the lock',
+        J([f.threw, f.qs, f.al, f.line.startsWith('🔒 Putting the destination list right is off while'), moved(before, after), R.ev(`(S.notes||{}).R2||''`)]),
+        J(['', 0, [], true, [], 'typed after the lock']));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // T7: R1 and R3 (titled as R1, USAF 400) both on Alpha Depot: one destination, never the split row
+    {
+      const mk = bootMark();
+      const X = make({ ents: [dA, dB], to: 'dA', r3: 'dA' }).X;
+      w5Chk(name, 'T7 GUARD (7ee498a read one destination once) · R1 and R3 (titled as R1, USAF 400) both on Alpha Depot', 'one destination: 900 + 200 + 400 = 1,500 on Alpha Depot, its own tab; Not yet assigned 300; OGC total 1,800 in 4 lines; the panel the same, 1 of 2 titles logged, 1 not yet assigned, none pointing different ways',
+        J([JSON.parse(await book(X, 'Alpha Depot')), JSON.parse(panel(X))]),
+        J([JSON.parse(BOOK([['Alpha Depot', 1500], ['Not yet assigned', 300]], 1800, 4, 1)), [[['Alpha Depot', 1500], ['Not yet assigned', 300]], 1800, 1800, [], [1, 2, 1, 0]]]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // T8: the team's copy in the shared folder holding the value true (Depot T) beside the text "true" (Depot Text), R1 on "true"
+    {
+      const mk = bootMark();
+      const { file } = make({ ents: [D(true, 'Depot T'), D('true', 'Depot Text')], to: 'true' });
+      const st = JSON.parse(file.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]), om = st.appns ? st.appns.om : st;
+      const T = boot({ html: make({ ents: [] }).file });
+      const took = T.ev(`(function(){ try{ applyStore(driveParse(${J(J({ store: om, by: 'Teammate', ts: 1 }))}).store); flowSetAxis('dest'); return 'adopted'; }catch(e){ return 'threw: '+e.message; } })()`);
+      w5Chk(name, 'T8 the shared folder’s copy · the value true (Depot T) then the text “true” (Depot Text), R1 on “true”', 'refused, saying what the list holds; the teammate’s board unchanged',
+        J([took, T.ev(`flowEntName(destOf(itemById('R1')).to)`), keys(T, ['true']).map(x => x[1])]),
+        J(['threw: a copy in the shared folder was refused: the destination list at the file.store.flow.ents holds a key that is not text (ents[8].k is the value true); a key is text', '', []]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // T9: this browser's Full Fund (as a package carries it: pkgStoreOf) holds "unassigned", older than the Full Fund the board file
+    // carries (as the saved file carries it: pubsFor), which is clean
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU], to: 'unassigned' });
+      const oldFF = JSON.parse(X.ev(`localStorage.getItem('prio27om')`)); oldFF.ts = 1;
+      const { X: Y, file } = make({ ents: [dA], to: 'dA' });
+      const J4 = JSON.parse(file.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]);
+      J4.appns.ff = JSON.parse(J(J4.appns.om)); J4.appns.ff.ts = Date.now() + 60000;
+      const f4 = file.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J(J4).replace(/</g, '\\u003c') + b);
+      const ls = lsOf(Y.ev); ls.prio27ff = J(oldFF);
+      const B = boot({ html: f4, ls });
+      const cap = JSON.parse(B.ev(`(function(){ var cap=[], _B=window.Blob; window.Blob=function(pt,o){ cap.push(String((o&&o.type)||'')); return new _B(pt,o); };
+        window.alert=function(){}; window.confirm=function(){ return true; }; try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+        try{ pkgIssue('ff', true); }catch(e){} window.Blob=_B; return JSON.stringify(cap); })()`));
+      w5Chk(name, 'T9 this browser’s Full Fund holds “unassigned”, the board file’s newer Full Fund does not · what the board says, and ⬆ Issue the Full Fund package', 'it names Full Fund’s plan as a package carries it; the package is not written',
+        J([JSON.parse(B.ev(`(function(){ try{ return JSON.stringify(destOwnLists().map(function(l){ return [l.at, l.odd.map(function(x){ return x.what; })]; })); }catch(e){ return JSON.stringify('threw: '+e.message); } })()`)), cap]),
+        J([[['Full Fund’s plan', ['holds the key “unassigned” (ents[8])']]], []]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-money r3, M1) A KEY THE FULL IMPORT MOVES, AND A COPY OF THE LIST THE FILE DOES NOT CARRY. This browser holds O&M and
+    // Full Fund, PB27 locked on both, one list holding "unassigned" (Depot U, R1 on it). Depot U was renamed "Depot U2" on O&M after
+    // Full Fund last saved, so Full Fund's plan and its store of locked cycles still call the key "Depot U" -- every plan keeps the
+    // list as it was when it last saved. ⬅ Import a full board of a file carrying O&M only moves the key, and keeps where it went with
+    // the list (destDb.moved). BY HAND: Full Fund's R1, and PB27's R1, stay on the destination the board showed them on, "Depot U2",
+    // one destination of that name, Full Fund's workbook Depot U2 1,100, Not yet assigned 300, OGC 1,400 -- opened after the import
+    // (K1), and after Put it right (K3); on O&M, ✕ on Depot U2 is refused while Full Fund points at it (K2, a GUARD: 7ee498a's key
+    // never moved). K4: Put it right first, Full Fund opened and the destination renamed there, then a file of O&M saved before
+    // (still holding "unassigned" as "Depot U") imported: Full Fund's R1 on the file's Depot U, one destination. K5: a file whose own
+    // list holds both "unassigned" and the key its record says "unassigned" moved to: the list's own entry is read. K6: the number 1
+    // (Depot One, renamed "Depot One2"), as K1. K7 GUARD: a requirement on "unassigned" that no list of the file names stays on none;
+    // K8 GUARD, the same while the import does move another key of the file ("destsplit"), so that it re-points requirements.
+    // On 7ee498a the key never moves, and Full Fund's workbook prints the old double row.
+    {
+      const mk = bootMark();
+      const look = async (B, tab, pre) => { B.ev(`flowSetAxis('dest'); 'ok'`);
+        return [B.ev('mySlug()'), B.ev(`flowEntName(destOf(itemById('R1')).to)`), cycR1(B),
+          JSON.parse(B.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre || 'Depot U')})===0; }).map(function(e){ return e.n; }))`)),
+          JSON.parse(await book(B, tab))]; };
+      const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+      const rename = (B, k, n) => B.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.k===${J(k)}; }), 'n', ${J(n)}); 'ok'`);
+      const DU2 = JSON.parse(BOOK([['Depot U2', 1100], ['Not yet assigned', 300]], 1400, 3, 1));
+      const { X } = make({ ents: [dU], to: 'unassigned', cyc: true });
+      const ffPlan = X.ev(`localStorage.getItem('prio27om')`), ffCyc = X.ev(`localStorage.getItem('prio27om-cyc')`);
+      rename(X, 'unassigned', 'Depot U2');
+      const omOnly = X.ev('buildSavedHtml()'), ls = lsOf(X.ev); ls.prio27ff = ffPlan; ls['prio27ff-cyc'] = ffCyc;
+      const k0 = await look(boot({ ls, appn: 'FULL FUND' }), 'Depot U2');
+      w5Chk(name, 'K0 fixture · O&M calls the key Depot U2, Full Fund’s plan and locked cycles call it Depot U · Full Fund opened, before any import', 'R1 and PB27’s R1 on Depot U2, the board’s name for the key; one Depot U* destination',
+        J(k0.slice(0, 4)), J(['ff', 'Depot U2', ['Depot U2', true], ['Depot U2']]));
+      const T = boot({ ls }), r = full(T.ev, omOnly), after = lsOf(T.ev);
+      w5Chk(name, 'K1 ⬅ Import a full board of a file carrying O&M only, Full Fund kept as this browser had it · Full Fund opened after it', 'R1 and PB27’s R1 on Depot U2, the destination the board showed them on; one Depot U* destination; Full Fund’s Funds Flow workbook Depot U2 1,100 once, Not yet assigned 300, OGC 1,400',
+        J([r.ret, await look(boot({ ls: after, appn: 'FULL FUND' }), 'Depot U2')]), J([true, ['ff', 'Depot U2', ['Depot U2', true], ['Depot U2'], DU2]]));
+      const O = boot({ ls: after });
+      const dl = JSON.parse(O.ev(`(function(){ var qs=[], al=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(m){ al.push(String(m)); };
+        flowDelEnt(flowEnts().findIndex(function(e){ return e.n==='Depot U2'; }));
+        return JSON.stringify([qs.length, al, flowEnts().filter(function(e){ return e.n==='Depot U2'; }).length]); })()`));
+      w5Chk(name, 'K2 GUARD (7ee498a’s key never moved) · the same import · O&M opened, ✕ on Depot U2', 'not removed: Full Fund’s plan and locked cycles point at it, and are named; nothing asked',
+        J(dl), J([0, ['Depot U2 is not removed.\n\nThe list is shared by every appropriation, and requirements point at it on O&M locked PB27 (1), Full Fund (1), Full Fund locked PB27 (1).\n\n'
+          + 'Point a working plan’s requirements elsewhere first. A locked cycle is a fixed point, so a destination one of them names stays on the list.'], 1]));
+      const fx = fixIt(O), after2 = lsOf(O.ev), O2 = boot({ ls: after2 });
+      w5Chk(name, 'K3 the same import · Put it right on O&M, then Full Fund opened', 'one question; O&M’s saved file passes its own door; R1 and PB27’s R1 on Depot U2, one Depot U* destination, the workbook Depot U2 1,100 once',
+        J([fx.threw, fx.qs, O2.ev(`inboundCheck(buildSavedHtml())`), await look(boot({ ls: after2, appn: 'FULL FUND' }), 'Depot U2')]),
+        J(['', 1, '', ['ff', 'Depot U2', ['Depot U2', true], ['Depot U2'], DU2]]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    {
+      const mk = bootMark();
+      const look = async (B, tab, pre) => { B.ev(`flowSetAxis('dest'); 'ok'`);
+        return [B.ev('mySlug()'), B.ev(`flowEntName(destOf(itemById('R1')).to)`),
+          JSON.parse(B.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`)),
+          JSON.parse(await book(B, tab))]; };
+      const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+      const rename = (B, k, n) => B.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.k===${J(k)}; }), 'n', ${J(n)}); 'ok'`);
+      // K4: Put it right first; Full Fund opened and the destination renamed there; then the older file of O&M
+      const { X, file: older } = make({ ents: [dU], to: 'unassigned' });
+      const ls = lsOf(X.ev); ls.prio27ff = ls.prio27om;
+      const P = boot({ ls }), fx = fixIt(P), F = boot({ ls: lsOf(P.ev), appn: 'FULL FUND' });
+      F.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n==='Depot U'; }), 'n', 'Depot U2'); 'ok'`);
+      const Q = boot({ ls: lsOf(F.ev) }), r = full(Q.ev, older);
+      w5Chk(name, 'K4 Put it right, Full Fund opened and Depot U renamed Depot U2 there, then ⬅ Import a full board of a file of O&M saved before (holding “unassigned”, Depot U) · Full Fund opened', 'R1 on the file’s Depot U, one Depot U* destination; the workbook Depot U 1,100 once',
+        J([fx.threw, fx.qs, r.ret, await look(boot({ ls: lsOf(Q.ev), appn: 'FULL FUND' }), 'Depot U', 'Depot U')]),
+        J(['', 1, true, ['ff', 'Depot U', ['Depot U'], JSON.parse(WANT('Depot U'))]]));
+      // K5: the file's own list holds dk5 (Depot U2) and "unassigned" (Depot X), and its record says "unassigned" moved to dk5
+      const { X: X5 } = make({ ents: [D('dk5', 'Depot U2'), D('unassigned', 'Depot X')], to: 'unassigned' });
+      X5.ev(`DESTDB.moved=[{k:'unassigned', to:'dk5'}]; persistDest(); 'ok'`);
+      const T5 = boot(), r5 = full(T5.ev, X5.ev('buildSavedHtml()')), R5 = boot({ ls: lsOf(T5.ev) });
+      w5Chk(name, 'K5 own board whose list holds dk5 (Depot U2) and “unassigned” (Depot X), its record saying “unassigned” moved to dk5, R1 on “unassigned” · ⬅ Import a full board', 'taken; Depot X under a key of its own, R1 on it -- the list’s own entry for the key; every key distinct',
+        J([r5.ret, keys(R5, ['dk5']), JSON.parse(r1At(R5))]), J([true, [['dk5', 'Depot U2'], [OWNK, 'Depot X']], ['Depot X', 9, true]]));
+      // K6: the number 1 (Depot One), renamed Depot One2 on O&M after Full Fund last saved; a file of O&M only
+      const { X: X6 } = make({ ents: [d1], to: 1 });
+      const ff6 = X6.ev(`localStorage.getItem('prio27om')`); rename(X6, 1, 'Depot One2');
+      const om6 = X6.ev('buildSavedHtml()'), ls6 = lsOf(X6.ev); ls6.prio27ff = ff6;
+      const T6 = boot({ ls: ls6 }), r6 = full(T6.ev, om6);
+      w5Chk(name, 'K6 the number 1 (Depot One, renamed Depot One2 on O&M after Full Fund last saved), R1 on it · ⬅ Import a full board of O&M only · Full Fund opened', 'R1 on Depot One2, one Depot One* destination; the workbook Depot One2 1,100 once',
+        J([r6.ret, await look(boot({ ls: lsOf(T6.ev), appn: 'FULL FUND' }), 'Depot One2', 'Depot One')]),
+        J([true, ['ff', 'Depot One2', ['Depot One2'], JSON.parse(BOOK([['Depot One2', 1100], ['Not yet assigned', 300]], 1400, 3, 1))]]));
+      // K7: R1 on "unassigned", which no list of the file names; the file's record says "unassigned" moved to dk7 (Depot U2)
+      const { X: X7 } = make({ ents: [D('dk7', 'Depot U2')], to: 'unassigned' });
+      X7.ev(`DESTDB.moved=[{k:'unassigned', to:'dk7'}]; persistDest(); 'ok'`);
+      const T7 = boot(), r7 = full(T7.ev, X7.ev('buildSavedHtml()')), R7 = boot({ ls: lsOf(T7.ev) }); R7.ev(`flowSetAxis('dest'); 'ok'`);
+      w5Chk(name, 'K7 GUARD (7ee498a moved no key) · R1 on “unassigned”, which no list of the file names, its record saying “unassigned” moved to dk7 (Depot U2) · ⬅ Import a full board', 'taken; R1 left as it was, on no destination: the workbook Not yet assigned 1,400, Depot U2 0',
+        J([r7.ret, R7.ev(`destOf(itemById('R1')).to`), JSON.parse(await book(R7, 'Depot U2'))]), J([true, 'unassigned', JSON.parse(BOOK([['Not yet assigned', 1400]], 1400, 3, 1))]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // K8 GUARD (7ee498a moved no key): as K7, and the file's list also holds "destsplit" (Depot S), which the import does move -- so
+    // the import re-points requirements; R1, on "unassigned" that no list of the file names, is still left on none
+    {
+      const mk = bootMark();
+      const { X: X8 } = make({ ents: [D('dk8', 'Depot U2'), dS], to: 'unassigned' });
+      X8.ev(`DESTDB.moved=[{k:'unassigned', to:'dk8'}]; persistDest(); 'ok'`);
+      const T8 = boot(), r8 = full(T8.ev, X8.ev('buildSavedHtml()')), R8 = boot({ ls: lsOf(T8.ev) }); R8.ev(`flowSetAxis('dest'); 'ok'`);
+      w5Chk(name, 'K8 GUARD (7ee498a moved no key) · as K7, the list also holding “destsplit” (Depot S), which the import moves · ⬅ Import a full board', 'taken; R1 left as it was, on no destination: the workbook Not yet assigned 1,400, Depot U2 0',
+        J([r8.ret, R8.ev(`destOf(itemById('R1')).to`), JSON.parse(await book(R8, 'Depot U2'))]), J([true, 'unassigned', JSON.parse(BOOK([['Not yet assigned', 1400]], 1400, 3, 1))]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-money r3, S1) A MANAGER'S BOARD HOLDING SUCH A LIST SENDS NO RETURN BACK: the consolidated board refused it, after the
+    // manager's board had recorded it as sent. A consolidated board (dA only) issues O&M package #1; the manager's board, holding
+    // "unassigned" (Depot U), loads it, sends R1 to Depot U, renames R2, and presses ⬆ Send my work back: refused in true words,
+    // nothing written, the package not marked sent, browser storage byte-identical (S1). Put it right, then ⬆ Send my work back:
+    // package #1 written, its list passing the consolidated board's door, and taken there -- R2 renamed, R1 on Depot U (S2). ⬆ Send
+    // back (one appropriation out of a copy of the consolidated file) is refused the same way (S3). CONTROL: a board holding dA only
+    // sends it back (S4).
+    {
+      const mk = bootMark();
+      const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+      const send = (B, code) => JSON.parse(B.ev(`(function(){ var cap=[], al=[], _B=window.Blob; window.Blob=function(pt,o){ cap.push(String((o&&o.type)||'')); return new _B(pt,o); };
+        window.alert=function(m){ al.push(String(m)); }; window.confirm=function(){ return true; }; var threw='';
+        try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+        try{ ${code} }catch(e){ threw=String((e&&e.message)||e); } window.Blob=_B; return JSON.stringify([cap, al, threw]); })()`));
+      const { X: C } = make({ ents: [dA], to: 'dA' });
+      const iss = capFile(C.ev, `pkgIssue('om');`, 'application/json');
+      const M = boot({ ls: lsOf(make({ ents: [dU] }).X.ev) });
+      const al0 = JSON.parse(await one(M.ev, iss, 'ORBIT PACKAGE - O&M - issue 1.json'));
+      M.ev(`setDest('R1','to','unassigned'); if(!S.titles) S.titles={}; S.titles.R2='Renamed by the manager'; save(); 'ok'`);
+      M.ev(`localStorage.setItem('prio27who','BLL'); 'ok'`);   // the name a file is written under, set before storage is read
+      const before = lsOf(M.ev), s1 = send(M, 'pkgReturn();');
+      w5Chk(name, 'S1 a manager’s board holding “unassigned” works O&M package #1 · ⬆ Send my work back', 'refused in true words before anything is written; the package not marked sent; browser storage byte-identical',
+        J([al0.filter(a => /was not imported/.test(a)).length, M.ev(`JSON.stringify([((MS.pkg||{}).seq)||0, ((MS.pkg||{}).sentSeq)||0])`), s1, moved(before, lsOf(M.ev))]),
+        J([0, '[1,0]', [[], [BLOCKED('Sending the O&M return package', 'it ' + HU)], ''], []]));
+      const fx = fixIt(M), M2 = boot({ ls: lsOf(M.ev) });
+      const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+      const seq = (() => { try { return JSON.parse(ret).seq; } catch (e) { return 'not a package: ' + String(ret).slice(0, 60); } })();
+      const door = C.ev(`inboundCheck(${J(ret)})`), al2 = JSON.parse(await one(C.ev, ret, 'ORBIT PACKAGE - O&M - return 1.json'));
+      w5Chk(name, 'S2 the same manager’s board · Put it right, then ⬆ Send my work back', 'one question; return package #1 written, passing the consolidated board’s door, and taken there: R2 renamed by the manager, R1 on Depot U',
+        J([fx.threw, fx.qs, seq, door, al2.filter(a => /was not imported/.test(a)).length, C.ev(`(S.titles||{}).R2||''`), C.ev(`flowEntName(destOf(itemById('R1')).to)`)]),
+        J(['', 1, 1, '', 0, 'Renamed by the manager', 'Depot U']));
+      w5Chk(name, 'S3 a board holding “unassigned” · ⬆ Send back (O&M, out of a copy of the consolidated file)', 'refused in true words; nothing written',
+        J(send(make({ ents: [dU], to: 'unassigned' }).X, `pkgSendBack('om');`)), J([[], [BLOCKED('Sending O&M back', 'it ' + HU)], '']));
+      w5Chk(name, 'S4 CONTROL · a board holding dA only · ⬆ Send back', 'written; nothing alerted',
+        J(send(make({ ents: [dA], to: 'dA' }).X, `pkgSendBack('om');`)), J([['application/json'], [], '']));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-money r3, M2) A PMO COPY AN ORBIT BEFORE THIS ONE PUBLISHED. 7ee498a's board, read from the repository (git show), holds
+    // "unassigned" (Depot U, R1 on it) and publishes a PMO copy. The copy runs 7ee498a's code: it opens saying nothing of the list (P1,
+    // a fixture: what an ORBIT before this one does -- no change here reaches it). Its office renames R2 and submits; this board,
+    // opened in the same browser (the board 7ee498a left there), refuses the submittal in the door's words for a submittal, nothing
+    // held for review, browser storage byte-identical (P2) -- and after Put it right refuses it again, since the submittal itself
+    // carries the list: the office makes its changes again in a new copy (P3). CONTROL: the same with dA only, held for review (P4).
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      w5Chk(name, 'P0 fixture · 7ee498a’s board, read from the repository', 'read: the empty template, without this version’s destOwnSay',
+        J([old.length > 1000000, /id="pubState">null</.test(old), old.includes('function destOwnSay(')]), J([true, true, false]));
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const copy = (ents, to) => { const { X: B } = make({ ents, to, html: old }), PC = boot({ html: capFile(B.ev, 'publishPmoCopy();', 'text/html') });
+          const sub = PC.ev(`(function(){ var cap=null, _B=window.Blob;
+            try{ localStorage.setItem('prio27who','J. Smith'); localStorage.setItem('prio27pmo','AV'); }catch(e){}
+            window.Blob=function(pt,o){ if(!cap && o && o.type==='application/json') cap=String(pt[0]); return new _B(pt,o); };
+            window.alert=function(){}; window.confirm=function(){ return true; };
+            try{ if(!S.titles) S.titles={}; S.titles.R2='Renamed by the office'; save(); pmoSubmit(); }catch(e){ cap='THREW '+e.message; } window.Blob=_B; return cap||''; })()`);
+          return { B, PC, sub }; };
+        const SUBREF = ['“ORBIT SUBMITTAL - AV - J Smith.json” was not imported: the destination list at the file.dest holds the key “unassigned” (dest[8]); '
+          + KEEP + '“Not yet assigned” row.\n\n' + TAIL + ' Nothing on this board was changed.'];
+        const Q = copy([dU], 'unassigned');
+        w5Chk(name, 'P1 fixture · the PMO copy 7ee498a published from a board holding “unassigned”', 'what an ORBIT before this one does: the copy runs its own code, and opens saying nothing of the list',
+          J([Q.PC.ev(`typeof SANDBOX!=='undefined' && SANDBOX`), Q.PC.ev(`typeof destOwnSay`), /The destination list holds what/.test(Q.PC.ev(`(document.getElementById('shareStat')||{}).textContent||''`))]),
+          J([true, 'undefined', false]));
+        const O = boot({ ls: lsOf(Q.B.ev) }), held0 = lsOf(O.ev), a1 = JSON.parse(await one(O.ev, Q.sub, 'ORBIT SUBMITTAL - AV - J Smith.json'));
+        w5Chk(name, 'P2 that copy’s office’s submittal (R2 renamed) · 📁 File → Import on this board, opened in the browser 7ee498a left', 'refused in the door’s words for a submittal; nothing held for review; browser storage byte-identical',
+          J([a1, O.ev(`PMOSUBS.length`), moved(held0, lsOf(O.ev))]), J([SUBREF, 0, []]));
+        const fx = fixIt(O), R = boot({ ls: lsOf(O.ev) }), held1 = lsOf(R.ev), a2 = JSON.parse(await one(R.ev, Q.sub, 'ORBIT SUBMITTAL - AV - J Smith.json'));
+        w5Chk(name, 'P3 the same submittal · after Put it right on this board', 'refused again in the same words: the submittal carries the list, so its office makes its changes again in a new copy; nothing held; storage byte-identical',
+          J([fx.threw, fx.qs, a2, R.ev(`PMOSUBS.length`), moved(held1, lsOf(R.ev))]), J(['', 1, SUBREF, 0, []]));
+        const Q2 = copy([dA], 'dA'), O4 = boot({ ls: lsOf(Q2.B.ev) }), a4 = JSON.parse(await one(O4.ev, Q2.sub, 'ORBIT SUBMITTAL - AV - J Smith.json'));
+        w5Chk(name, 'P4 CONTROL · the same, 7ee498a’s copy published with dA only', 'held for review; nothing alerted', J([a4, O4.ev(`PMOSUBS.length`)]), J([[], 1]));
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-tests r4) A KEY A FULL IMPORT MOVED, ON THE ROUTES K0-K8 DO NOT TAKE. Each case is K1's: this browser holds O&M and
+    // Full Fund, one list, an entry R1 is on; the entry is renamed on O&M after Full Fund last saved, so Full Fund's plan still
+    // calls it by its old name; ⬅ Import a full board of a file carrying O&M only. BY HAND: Full Fund's R1 stays on the destination
+    // the board showed it on (the new name), one destination of that name, Full Fund's workbook that destination 1,100 once, Not yet
+    // assigned 300, OGC 1,400. W1: that board's own saved file -- which carries the record and Full Fund's copy as this browser kept
+    // it -- imported whole into a browser holding nothing: the record the FILE carries is read. W6: the same file into a browser
+    // whose own record says "unassigned" moved somewhere else: the file's record first. W2: the value true (Depot T). W3: "destsplit"
+    // (Depot S). W4: Full Fund's R1 on dA, its copy holding "unassigned" (Depot U) that nothing of Full Fund points at: one Depot U*
+    // destination, not the old name made again. W5: as W4, then ✕ on Depot U on O&M (nothing points at it): Full Fund opened, the
+    // removed destination does not come back (a GUARD: 7ee498a's key never moved, and it stayed removed). W7: a board holding
+    // "unassigned" with no package loaded, ⬆ Send my work back: refused in true words, nothing written.
+    {
+      const mk = bootMark();
+      const look = async (B, tab, pre) => { B.ev(`flowSetAxis('dest'); 'ok'`);
+        return [B.ev('mySlug()'), B.ev(`flowEntName(destOf(itemById('R1')).to)`),
+          JSON.parse(B.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`)),
+          JSON.parse(await book(B, tab))]; };
+      const rename = (B, k, n) => B.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.k===${J(k)}; }), 'n', ${J(n)}); 'ok'`);
+      const stale = (ents, to, k, nn) => { const { X } = make({ ents, to });
+        const ff = X.ev(`localStorage.getItem('prio27om')`); if (nn) rename(X, k, nn);
+        const om = X.ev('buildSavedHtml()'), ls = lsOf(X.ev); ls.prio27ff = ff;
+        const T = boot({ ls }), r = full(T.ev, om); return { T, r }; };
+      const ON = (dest, pre) => ['ff', dest, [pre], JSON.parse(BOOK([[dest, 1100], ['Not yet assigned', 300]], 1400, 3, 1))];
+      const s1 = stale([dU], 'unassigned', 'unassigned', 'Depot U2'), F1 = boot({ ls: lsOf(s1.T.ev) }).ev('buildSavedHtml()');
+      const N1 = boot(), r1 = full(N1.ev, F1);
+      w5Chk(name, 'W1 K1’s board, its own saved file (the record, and Full Fund’s copy calling the key Depot U) · ⬅ Import a full board into a browser holding nothing · Full Fund opened', 'R1 on Depot U2, one Depot U* destination; the workbook Depot U2 1,100 once',
+        J([s1.r.ret, r1.ret, await look(boot({ ls: lsOf(N1.ev), appn: 'FULL FUND' }), 'Depot U2', 'Depot U')]), J([true, true, ON('Depot U2', 'Depot U2')]));
+      const N6 = boot(); N6.ev(`DESTDB.moved=[{k:'unassigned', to:'dzz9'}]; persistDest(); 'ok'`);
+      const r6 = full(N6.ev, F1);
+      w5Chk(name, 'W6 the same file · ⬅ Import a full board into a browser whose own record says “unassigned” moved to dzz9 · Full Fund opened', 'the file’s record first: R1 on Depot U2, one Depot U* destination; the workbook Depot U2 1,100 once',
+        J([r6.ret, await look(boot({ ls: lsOf(N6.ev), appn: 'FULL FUND' }), 'Depot U2', 'Depot U')]), J([true, ON('Depot U2', 'Depot U2')]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    {
+      const mk = bootMark();
+      const look = async (B, tab, pre) => { B.ev(`flowSetAxis('dest'); 'ok'`);
+        return [B.ev('mySlug()'), B.ev(`flowEntName(destOf(itemById('R1')).to)`),
+          JSON.parse(B.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`)),
+          JSON.parse(await book(B, tab))]; };
+      const rename = (B, k, n) => B.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.k===${J(k)}; }), 'n', ${J(n)}); 'ok'`);
+      const stale = (ents, to, k, nn) => { const { X } = make({ ents, to });
+        const ff = X.ev(`localStorage.getItem('prio27om')`); if (nn) rename(X, k, nn);
+        const om = X.ev('buildSavedHtml()'), ls = lsOf(X.ev); ls.prio27ff = ff;
+        const T = boot({ ls }), r = full(T.ev, om); return { T, r }; };
+      const ON = (dest, pre) => ['ff', dest, [pre], JSON.parse(BOOK([[dest, 1100], ['Not yet assigned', 300]], 1400, 3, 1))];
+      const s2 = stale([D(true, 'Depot T')], true, true, 'Depot T2');
+      w5Chk(name, 'W2 the value true (Depot T, renamed Depot T2 on O&M after Full Fund last saved), R1 on it · ⬅ Import a full board of O&M only · Full Fund opened', 'R1 on Depot T2, one Depot T* destination; the workbook Depot T2 1,100 once',
+        J([s2.r.ret, await look(boot({ ls: lsOf(s2.T.ev), appn: 'FULL FUND' }), 'Depot T2', 'Depot T')]), J([true, ON('Depot T2', 'Depot T2')]));
+      const s3 = stale([dS], 'destsplit', 'destsplit', 'Depot S2');
+      w5Chk(name, 'W3 “destsplit” (Depot S, renamed Depot S2 on O&M after Full Fund last saved), R1 on it · ⬅ Import a full board of O&M only · Full Fund opened', 'R1 on Depot S2, one Depot S* destination; the workbook Depot S2 1,100 once',
+        J([s3.r.ret, await look(boot({ ls: lsOf(s3.T.ev), appn: 'FULL FUND' }), 'Depot S2', 'Depot S')]), J([true, ON('Depot S2', 'Depot S2')]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    {
+      const mk = bootMark();
+      const look = async (B, tab, pre) => { B.ev(`flowSetAxis('dest'); 'ok'`);
+        return [B.ev('mySlug()'), B.ev(`flowEntName(destOf(itemById('R1')).to)`),
+          JSON.parse(B.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`)),
+          JSON.parse(await book(B, tab))]; };
+      const rename = (B, k, n) => B.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.k===${J(k)}; }), 'n', ${J(n)}); 'ok'`);
+      const stale = (ents, to, k, nn) => { const { X } = make({ ents, to });
+        const ff = X.ev(`localStorage.getItem('prio27om')`); if (nn) rename(X, k, nn);
+        const om = X.ev('buildSavedHtml()'), ls = lsOf(X.ev); ls.prio27ff = ff;
+        const T = boot({ ls }), r = full(T.ev, om); return { T, r }; };
+      const s4 = stale([dU, dA], 'dA', 'unassigned', 'Depot U2');
+      w5Chk(name, 'W4 R1 on dA, Full Fund’s copy holding “unassigned” (Depot U, renamed Depot U2 on O&M after Full Fund last saved) that nothing of Full Fund points at · ⬅ Import a full board of O&M only · Full Fund opened', 'one Depot U* destination, Depot U2 -- the old name not made again; R1 on Alpha Depot, the workbook Alpha Depot 1,100 once',
+        J([s4.r.ret, await look(boot({ ls: lsOf(s4.T.ev), appn: 'FULL FUND' }), 'Alpha Depot', 'Depot U')]),
+        J([true, ['ff', 'Alpha Depot', ['Depot U2'], JSON.parse(BOOK([['Alpha Depot', 1100], ['Not yet assigned', 300]], 1400, 3, 1))]]));
+      const s5 = stale([dU, dA], 'dA', 'unassigned', ''), O5 = boot({ ls: lsOf(s5.T.ev) });
+      const d5 = JSON.parse(O5.ev(`(function(){ var al=[]; window.confirm=function(){ return true; }; window.alert=function(m){ al.push(String(m)); };
+        flowDelEnt(flowEnts().findIndex(function(e){ return e.n==='Depot U'; }));
+        return JSON.stringify([al, flowEnts().filter(function(e){ return e.n==='Depot U'; }).length]); })()`));
+      const F5 = boot({ ls: lsOf(O5.ev), appn: 'FULL FUND' }); F5.ev(`flowSetAxis('dest'); 'ok'`);
+      w5Chk(name, 'W5 GUARD (7ee498a’s key never moved) · as W4, the name kept · O&M opened, ✕ on Depot U (nothing points at it) · Full Fund opened', 'removed on O&M, and it stays removed: no Depot U on the list when Full Fund opens; R1 on Alpha Depot',
+        J([s5.r.ret, d5, JSON.parse(F5.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf('Depot U')===0; }).map(function(e){ return e.n; }))`)),
+          F5.ev(`flowEntName(destOf(itemById('R1')).to)`)]),
+        J([true, [[], 0], [], 'Alpha Depot']));
+      bootRelease(mk, []); await settleBoards();
+    }
+    {
+      const mk = bootMark();
+      const send = (B, code) => JSON.parse(B.ev(`(function(){ var cap=[], al=[], _B=window.Blob; window.Blob=function(pt,o){ cap.push(String((o&&o.type)||'')); return new _B(pt,o); };
+        window.alert=function(m){ al.push(String(m)); }; window.confirm=function(){ return true; }; var threw='';
+        try{ localStorage.setItem('prio27who','BLL'); }catch(e){}
+        try{ ${code} }catch(e){ threw=String((e&&e.message)||e); } window.Blob=_B; return JSON.stringify([cap, al, threw]); })()`));
+      const { X: M7 } = make({ ents: [dU], to: 'unassigned' });
+      M7.ev(`localStorage.setItem('prio27who','BLL'); 'ok'`);
+      const b7 = lsOf(M7.ev), s7 = send(M7, 'pkgReturn();');
+      w5Chk(name, 'W7 a board holding “unassigned”, no package loaded · ⬆ Send my work back', 'refused in true words before anything is written; browser storage byte-identical',
+        J([s7, moved(b7, lsOf(M7.ev))]), J([[[], [BLOCKED('Sending the O&M return package', 'it ' + HU)], ''], []]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-money r4, M1) TWO BOARDS, EACH PUT RIGHT, AND A MANAGER'S RETURN. A consolidated board and a manager's board, both left
+    // by 7ee498a (read from the repository, as P0-P4) holding "unassigned" (Depot U); O&M package #1 issued there with R1 on it and
+    // loaded on the manager's board. Both open in this version, and each is put right. The consolidated board renames Depot U "Depot
+    // U2" (an ordinary edit while a package is out); the manager renames R2 and presses ⬆ Send my work back; the consolidated board
+    // takes the return. BY HAND: the manager never touched R1's destination, so R1 stays where the consolidated board shows it, on
+    // Depot U2 -- the one destination both boards called "unassigned" -- and its workbook gives Depot U2 1,100, Not yet assigned 300,
+    // OGC 1,400, one Depot U* destination; nothing the merge asks says it discards a destination (QX3). With a key made at random on
+    // each board, R1 and its 1,100 came across on a second "Depot U", and the merge said it discarded "destinations (1)". QX3b: the
+    // same with no rename, Depot U. QX2b (verify-money r4, S1): Depot U removed on 7ee498a while Full Fund's stale copy still lists
+    // it, nothing on it; this version, Put it right, Full Fund opened: it stays removed (7ee498a has no Put it right).
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const depots = X => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf('Depot U')===0; }).map(function(e){ return e.n; }))`));
+        for (const rename of [true, false]) {
+          const want = rename ? 'Depot U2' : 'Depot U';
+          const { X: C0 } = make({ ents: [dU], to: 'unassigned', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: [dU], html: old });
+          const l0 = JSON.parse(await one(M0.ev, iss, 'ORBIT PACKAGE - O&M - issue 1.json'));
+          const C = boot({ ls: lsOf(C0.ev) }), M = boot({ ls: lsOf(M0.ev) }), fc = fixIt(C), fm = fixIt(M);
+          const C2 = boot({ ls: lsOf(C.ev) }), M2 = boot({ ls: lsOf(M.ev) });
+          if (rename) C2.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n==='Depot U'; }), 'n', 'Depot U2'); 'ok'`);
+          M2.ev(`if(!S.titles) S.titles={}; S.titles.R2='Renamed by the manager'; save(); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al, qs] = JSON.parse(await take(C2.ev, ret, 'ORBIT PACKAGE - O&M - return 1.json'));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, (rename ? 'QX3' : 'QX3b') + ' two boards 7ee498a left holding “unassigned” (Depot U), O&M package #1 out with R1 on it · each put right'
+            + (rename ? ' · the consolidated board renames Depot U “Depot U2”' : ', no rename') + ' · the manager’s ⬆ Send my work back (R2 renamed), taken by the consolidated board, reopened',
+            'R2 renamed by the manager; R1 on ' + want + ', one Depot U* destination; nothing asked says a destination is discarded; the workbook ' + want + ' 1,100 once, Not yet assigned 300, OGC 1,400',
+            J([l0.filter(a => /was not imported/.test(a)).length, [fc.threw, fc.qs], [fm.threw, fm.qs], al.filter(a => /was not imported/.test(a)).length,
+              qs.length > 0, qs.some(q => /destinations \(/.test(q)), C3.ev(`(S.titles||{}).R2||''`), C3.ev(`flowEntName(destOf(itemById('R1')).to)`), depots(C3), JSON.parse(await book(C3, want))]),
+            J([0, ['', 1], ['', 1], 0, true, false, 'Renamed by the manager', want, [want], JSON.parse(WANT(want))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        const { X: A } = make({ ents: [dU], to: 'unassigned', html: old });
+        const ff = JSON.parse(A.ev(`localStorage.getItem('prio27om')`)); Object.keys(ff.years || {}).forEach(y => { ff.years[y].dest = {}; });
+        const del = JSON.parse(A.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+          setDest('R1','to',''); var i=flowEnts().findIndex(function(e){ return e.n==='Depot U'; }); if(i>=0) flowDelEnt(i);
+          return JSON.stringify([flowEnts().filter(function(e){ return /^Depot U/.test(e.n); }).length, DESTDB.gone.indexOf('unassigned')>=0]); })()`));
+        const ls0 = lsOf(A.ev); ls0.prio27ff = J(ff);
+        const O = boot({ ls: ls0 }), fx = fixIt(O), F = boot({ ls: lsOf(O.ev), appn: 'FULL FUND' });
+        w5Chk(name, 'QX2b Depot U (“unassigned”) removed on 7ee498a while Full Fund’s stale copy still lists it, nothing on it · this version, Put it right · Full Fund opened',
+          'removed there, put right here, and it stays removed: no Depot U on the list when Full Fund opens',
+          J([del, [fx.threw, fx.qs], F.ev('mySlug()'), depots(F)]), J([[0, true], ['', 1], 'ff', []]));
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (fix round 4) THE KEY OF ITS OWN IS ONE THE LIST DOES NOT ALREADY USE. A board whose list holds "unassigned" (Depot U, R1 on
+    // it) and also the text key "dunassigned" -- the key "unassigned" takes on every board -- as Depot DU (R2 on it): ⬅ Import a
+    // full board of its saved file into a browser holding nothing. BY HAND: Depot U takes a key the list does not use, so the two
+    // stay two destinations: R1 on Depot U, R2 on Depot DU, the workbook Depot U 1,100, Depot DU 300, OGC 1,400. Given
+    // "dunassigned" too, one key named both, and R1 and R2 read one of them.
+    {
+      const mk = bootMark();
+      const { X } = make({ ents: [dU, D('dunassigned', 'Depot DU')], to: 'unassigned' });
+      X.ev(`setDest('R2','to','dunassigned'); save(); 'ok'`);
+      const T = boot(), r = full(T.ev, X.ev('buildSavedHtml()')), Y = boot({ ls: lsOf(T.ev) }); Y.ev(`flowSetAxis('dest'); 'ok'`);
+      w5Chk(name, 'Y1 a list holding “unassigned” (Depot U, R1 on it) and the text key “dunassigned” (Depot DU, R2 on it) · ⬅ Import a full board into a browser holding nothing, reopened',
+        'Depot U takes a key the list does not use: two destinations, R1 on Depot U, R2 on Depot DU; the workbook Depot U 1,100, Depot DU 300, OGC 1,400',
+        J([r.ret, keys(Y, ['dunassigned']), Y.ev(`flowEntName(destOf(itemById('R1')).to)`), Y.ev(`flowEntName(destOf(itemById('R2')).to)`), JSON.parse(await book(Y, 'Depot U'))]),
+        J([true, [[OWNK, 'Depot U'], ['dunassigned', 'Depot DU']], 'Depot U', 'Depot DU', JSON.parse(BOOK([['Depot U', 1100], ['Depot DU', 300]], 1400, 3, 1))]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (fix round 4) K4b: K4 WHEN THE SHARED KEY IS TAKEN, so the key "unassigned" moved to was made at random and only this browser's
+    // record names it. O&M's list holds "unassigned" (Depot U, R1 on it) and the text key "dunassigned" (Depot DU, R2 on it); Full
+    // Fund holds the same plan. Put it right; Full Fund opened and Depot U renamed "Depot U2" there; then ⬅ Import a full board of a
+    // file of O&M saved before (still holding "unassigned" as Depot U, and Depot DU), which carries no record. BY HAND: this browser's
+    // record moves the file's "unassigned" to the key Full Fund's R1 is on, so Full Fund opened has R1 on the file's Depot U, one
+    // Depot U* destination, the workbook Depot U 1,100, Depot DU 300, OGC 1,400. Read without this browser's record, the file's
+    // "unassigned" took one more key at random, and Full Fund's R1 came across on a second destination, "Depot U2".
+    {
+      const mk = bootMark();
+      const look = async (B, tab, pre) => { B.ev(`flowSetAxis('dest'); 'ok'`);
+        return [B.ev('mySlug()'), B.ev(`flowEntName(destOf(itemById('R1')).to)`),
+          JSON.parse(B.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`)),
+          JSON.parse(await book(B, tab))]; };
+      const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+      const { X } = make({ ents: [dU, D('dunassigned', 'Depot DU')], to: 'unassigned' });
+      X.ev(`setDest('R2','to','dunassigned'); save(); 'ok'`);
+      const older = X.ev('buildSavedHtml()'), ls = lsOf(X.ev); ls.prio27ff = ls.prio27om;
+      const P = boot({ ls }), fx = fixIt(P), F = boot({ ls: lsOf(P.ev), appn: 'FULL FUND' });
+      F.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n==='Depot U'; }), 'n', 'Depot U2'); 'ok'`);
+      const Q = boot({ ls: lsOf(F.ev) }), r = full(Q.ev, older);
+      w5Chk(name, 'K4b as K4, the list also holding the text key “dunassigned” (Depot DU, R2 on it), so “unassigned” moved to a key made at random that only this browser’s record names · Full Fund opened',
+        'R1 on the file’s Depot U, one Depot U* destination; the workbook Depot U 1,100, Depot DU 300, OGC 1,400',
+        J([fx.threw, fx.qs, r.ret, await look(boot({ ls: lsOf(Q.ev), appn: 'FULL FUND' }), 'Depot U', 'Depot U')]),
+        J(['', 1, true, ['ff', 'Depot U', ['Depot U'], JSON.parse(BOOK([['Depot U', 1100], ['Depot DU', 300]], 1400, 3, 1))]]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-tests r5) THE SAME KEY ON EVERY BOARD, FOR EVERY KEY PUT RIGHT, AND FOR A NAME CHANGED BEFORE IT WAS PUT RIGHT. QX3's
+    // two boards left by 7ee498a, O&M package #1 out with R1 on the entry, each board put right in this version, the manager's
+    // return taken by the consolidated board, reopened. X1: the entry keyed "destsplit" (Depot S), the number 1 (Depot One) and true
+    // (Depot T), each renamed on the consolidated board after it was put right ("…2") and not renamed. X2: "unassigned" (Depot U)
+    // renamed "Depot U2" on the consolidated board while the package was out, on 7ee498a, BEFORE either board was put right. BY
+    // HAND, every case: the manager never touched R1's destination, so R1 stays on the one destination both boards keyed that way,
+    // by the name the consolidated board gives it; one destination of that name; nothing the merge asks says it discards a
+    // destination; the workbook that destination 1,100, Not yet assigned 300, OGC 1,400.
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const depots = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+        const RUNS = [[D('destsplit', 'Depot S'), 'destsplit', 'Depot S', 'after'], [D('destsplit', 'Depot S'), 'destsplit', 'Depot S', ''],
+          [D(1, 'Depot One'), 1, 'Depot One', 'after'], [D(1, 'Depot One'), 1, 'Depot One', ''],
+          [D(true, 'Depot T'), true, 'Depot T', 'after'], [D(true, 'Depot T'), true, 'Depot T', ''], [D('unassigned', 'Depot U'), 'unassigned', 'Depot U', 'before']];
+        for (const [ent, key, nm, when] of RUNS) {
+          const want = when ? nm + '2' : nm;
+          const ren = X => X.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n===${J(nm)}; }), 'n', ${J(nm + '2')}); 'ok'`);
+          const { X: C0 } = make({ ents: [ent], to: key, html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          if (when === 'before') ren(C0);
+          const { X: M0 } = make({ ents: [ent], html: old });
+          const l0 = JSON.parse(await one(M0.ev, iss, 'ORBIT PACKAGE - O&M - issue 1.json'));
+          const C = boot({ ls: lsOf(C0.ev) }), M = boot({ ls: lsOf(M0.ev) }), fc = fixIt(C), fm = fixIt(M);
+          const C2 = boot({ ls: lsOf(C.ev) }), M2 = boot({ ls: lsOf(M.ev) });
+          if (when === 'after') ren(C2);
+          M2.ev(`if(!S.titles) S.titles={}; S.titles.R2='Renamed by the manager'; save(); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al, qs] = JSON.parse(await take(C2.ev, ret, 'ORBIT PACKAGE - O&M - return 1.json'));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, (when === 'before' ? 'X2' : 'X1') + ' two boards 7ee498a left holding the key ' + J(key) + ' (' + nm + '), O&M package #1 out with R1 on it'
+            + (when === 'before' ? ' · the consolidated board renames it “' + nm + '2” on 7ee498a, before either is put right · each put right'
+              : ' · each put right' + (when ? ' · the consolidated board renames it “' + nm + '2”' : ', no rename'))
+            + ' · the manager’s ⬆ Send my work back (R2 renamed), taken by the consolidated board, reopened',
+            'R2 renamed by the manager; R1 on ' + want + ', one ' + nm + '* destination; nothing asked says a destination is discarded; the workbook ' + want + ' 1,100 once, Not yet assigned 300, OGC 1,400',
+            J([l0.filter(a => /was not imported/.test(a)).length, [fc.threw, fc.qs], [fm.threw, fm.qs], al.filter(a => /was not imported/.test(a)).length,
+              qs.length > 0, qs.some(q => /destinations \(/.test(q)), C3.ev(`(S.titles||{}).R2||''`), C3.ev(`flowEntName(destOf(itemById('R1')).to)`), depots(C3, nm), JSON.parse(await book(C3, want))]),
+            J([0, ['', 1], ['', 1], 0, true, false, 'Renamed by the manager', want, [want], JSON.parse(WANT(want))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-tests r5, Z1) A DESTINATION REMOVED UNDER "unassigned" ON ONE BOARD, AND ANOTHER BOARD'S COPY PUT RIGHT. Two boards left
+    // by 7ee498a: the consolidated board's list holds dA (Alpha Depot, R1 on it) and "unassigned" (Depot U, nothing on it); O&M
+    // package #1 issued and loaded on the manager's board. On 7ee498a the consolidated board removes Depot U (nothing points at it).
+    // Both open in this version; the manager's board is put right (its "unassigned" takes "dunassigned"), renames R2 and presses ⬆
+    // Send my work back; the consolidated board takes the return and reopens. BY HAND: nothing of the manager's points at Depot U,
+    // so it stays removed, as on 7ee498a (a GUARD): no Depot U on the list, no Depot U row or tab in the Funds Flow workbook;
+    // R1 on Alpha Depot. Z1b: the same with the consolidated board's removal made in this version, before anything is put right.
+    // (Put it right's own result is not part of the reading: 7ee498a has none, and the manager's return landing -- R2 renamed -- is
+    // what shows it was put right here.)
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const del = X => JSON.parse(X.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+          var i=flowEnts().findIndex(function(e){ return e.n==='Depot U'; }); if(i>=0) flowDelEnt(i);
+          return JSON.stringify([flowEnts().filter(function(e){ return /^Depot U/.test(e.n); }).length, DESTDB.gone.indexOf('unassigned')>=0]); })()`));
+        for (const where of ['old', 'new']) {
+          const { X: C0 } = make({ ents: [dA, dU], to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: [dA, dU], html: old });
+          const l0 = JSON.parse(await one(M0.ev, iss, 'ORBIT PACKAGE - O&M - issue 1.json'));
+          const d0 = where === 'old' ? del(C0) : null;
+          const C = boot({ ls: lsOf(C0.ev) }), d1 = where === 'new' ? del(C) : d0;
+          const M = boot({ ls: lsOf(M0.ev) }), fm = fixIt(M);
+          const C2 = boot({ ls: lsOf(C.ev) }), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`if(!S.titles) S.titles={}; S.titles.R2='Renamed by the manager'; save(); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al, qs] = JSON.parse(await take(C2.ev, ret, 'ORBIT PACKAGE - O&M - return 1.json'));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          const bk = JSON.parse(await book(C3, 'Depot U', undefined, ['Depot U']));
+          w5Chk(name, (where === 'old' ? 'Z1' : 'Z1b') + ' GUARD (7ee498a moved no key) · the consolidated board removes Depot U (“unassigned”, nothing on it)' + (where === 'old' ? ' on 7ee498a' : ' in this version, before anything is put right')
+            + ' · the manager’s board, put right, ⬆ Send my work back (R2 renamed), taken by the consolidated board, reopened',
+            'Depot U stays removed: not on the list, no Depot U row or tab in the Funds Flow workbook; R2 renamed; R1 on Alpha Depot',
+            J([l0.filter(a => /was not imported/.test(a)).length, d1, al.filter(a => /was not imported/.test(a)).length,
+              C3.ev(`(S.titles||{}).R2||''`), C3.ev(`flowEntName(destOf(itemById('R1')).to)`),
+              JSON.parse(C3.ev(`JSON.stringify(flowEnts().filter(function(e){ return /^Depot U/.test(e.n); }).map(function(e){ return e.n; }))`)), [bk[0].includes('Depot U'), bk[1]]]),
+            J([0, [0, true], 0, 'Renamed by the manager', 'Alpha Depot', [], [false, []]]));
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-money r5, M1) A LIST JOINED BY NAME NEVER LANDS A DESTINATION ON A REPEAT. QN1: the consolidated board (this version)
+    // holds dA twice, Alpha Depot then Bravo Yard, R1 on dA; it is put right, as this version asks before it issues, so Bravo Yard
+    // takes a key of its own; the consolidated user puts R2 on Bravo Yard and issues O&M package #1. The manager's board, left by
+    // 7ee498a with the same list (read from the repository, as QX3), opens in this version and loads the package before pressing
+    // Put it right (loading is not refused); then it is put right, R1 renamed, and ⬆ Send my work back; the consolidated board
+    // takes the return, reopened. BY HAND: nobody moved R2 off Bravo Yard, so on both boards R1 is on Alpha Depot and R2 on Bravo
+    // Yard, and the workbook gives Alpha Depot 1,100, Bravo Yard 300, OGC 1,400. Joined by name onto the manager's repeat of dA, R2
+    // read as Alpha Depot, and both workbooks gave Alpha Depot 1,400. CONTROL: the manager's board is put right before it loads.
+    // QN4: as QN1, but after Put it right the consolidated user removes Bravo Yard (nothing on it), adds a destination, names it
+    // "Bravo Yard" and puts R2 on that one: the manager's board after the load as in QN1.
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const on = (X, id) => X.ev(`flowEntName(destOf(itemById(${J(id)})).to)`);
+        const keyOf = (X, nm) => X.ev(`(function(){ var L=flowEnts(), i; for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)} && flowEnt(L[i].k)===L[i]) return String(L[i].k); }
+          for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)}) return String(L[i].k); } return ''; })()`);
+        const notIn = al => al.filter(a => /was not imported/.test(a)).length;
+        const AB = JSON.parse(BOOK([['Alpha Depot', 1100], ['Bravo Yard', 300]], 1400, 3, 1));
+        for (const sec of ['QN1', 'CONTROL QN1', 'QN4']) {
+          const { X: A0 } = make({ ents: [dA, dA2], to: 'dA' });
+          const fa = fixIt(A0), A = boot({ ls: lsOf(A0.ev) });
+          if (sec === 'QN4') A.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+            flowDelEnt(flowEnts().findIndex(function(e){ return e.n==='Bravo Yard'; })); flowAddEnt();
+            flowSetEnt(flowEnts().findIndex(function(e){ return e.n==='New destination'; }), 'n', 'Bravo Yard'); })(); 'ok'`);
+          A.ev(`setDest('R2','to',${J(keyOf(A, 'Bravo Yard'))}); 'ok'`);
+          const iss = capFile(A.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: [dA, dA2], to: 'dA', html: old });
+          let M = boot({ ls: lsOf(M0.ev) }), fm = null;
+          if (sec === 'CONTROL QN1') { fm = fixIt(M); M = boot({ ls: lsOf(M.ev) }); }
+          const [la] = JSON.parse(await take(M.ev, iss, 'ORBIT PACKAGE - O&M - issue 1.json'));
+          const M2 = boot({ ls: lsOf(M.ev) }); M2.ev(`flowSetAxis('dest'); 'ok'`);
+          const at = sec + ' the consolidated board (this version) holds dA twice (Alpha Depot, Bravo Yard), R1 on dA · put right'
+            + (sec === 'QN4' ? ' · Bravo Yard removed, a new destination named “Bravo Yard”' : '') + ' · R2 put on Bravo Yard · O&M package #1 issued · the manager’s board (7ee498a’s, the same list), opened in this version, loads it'
+            + (sec === 'CONTROL QN1' ? ' after Put it right' : ' before Put it right');
+          w5Chk(name, at + ' · the manager’s board reopened', 'R1 on Alpha Depot, R2 on Bravo Yard; the workbook Alpha Depot 1,100, Bravo Yard 300, OGC 1,400',
+            J([[fa.threw, fa.qs], notIn(la), on(M2, 'R1'), on(M2, 'R2'), JSON.parse(await book(M2, 'Bravo Yard'))]),
+            J([['', 1], 0, 'Alpha Depot', 'Bravo Yard', AB]));
+          if (sec !== 'QN4') {
+            let M3 = M2; if (!fm) { fm = fixIt(M2); M3 = boot({ ls: lsOf(M2.ev) }); }
+            M3.ev(`if(!S.titles) S.titles={}; S.titles.R1='Renamed by the manager'; save(); 'ok'`);
+            const ret = capFile(M3.ev, 'pkgReturn();', 'application/json');
+            const [ra] = JSON.parse(await take(A.ev, ret, 'ORBIT PACKAGE - O&M - return 1.json'));
+            const A2 = boot({ ls: lsOf(A.ev) }); A2.ev(`flowSetAxis('dest'); 'ok'`);
+            w5Chk(name, at + ' · the manager’s board put right, R1 renamed, ⬆ Send my work back, taken by the consolidated board, reopened',
+              'R1 renamed by the manager; R1 on Alpha Depot, R2 on Bravo Yard; the workbook Alpha Depot 1,100, Bravo Yard 300, OGC 1,400',
+              J([[fm.threw, fm.qs], notIn(ra), A2.ev(`(S.titles||{}).R1||''`), on(A2, 'R1'), on(A2, 'R2'), JSON.parse(await book(A2, 'Bravo Yard'))]),
+              J([['', 1], 0, 'Renamed by the manager', 'Alpha Depot', 'Bravo Yard', AB]));
+          }
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-money r5, M2) ONE DESTINATION UNDER ONE KEY ON BOTH BOARDS, WHICHEVER WAS PUT RIGHT. Two boards left by 7ee498a
+    // holding the same list, O&M package #1 issued with R1 on its first entry and loaded on the manager's board; both open in this
+    // version. QR1: dA twice (Alpha Depot, Bravo Yard); each board is put right; the manager puts R2 on Bravo Yard; the consolidated
+    // board renames Bravo Yard "Bravo Yard 2"; the manager's return taken, reopened. BY HAND: both boards' Bravo Yard is the one
+    // entry the list held (ents[9]) and the consolidated user renamed it, so R2 is on Bravo Yard 2, one Bravo Yard* destination, the
+    // workbook Alpha Depot 1,100, Bravo Yard 2 300, OGC 1,400. With a key made at random for the repeat on each board, R2 and its
+    // 300 came across on a second "Bravo Yard". QR2: as QR1, but only the manager's board is put right (merging a return is not
+    // refused). QN3: "unassigned" (Depot U); only the manager's board is put right; the consolidated board renames Depot U "Depot
+    // U2"; the manager renames R2 and sends the work back. BY HAND: R1 on Depot U2, one Depot U* destination, the workbook Depot U2
+    // 1,100, Not yet assigned 300, OGC 1,400, and nothing the merge asks says it discards a destination: R1's stays where the board
+    // shows it. A board not yet put right did not know the key "dunassigned" the other board's Put it right gave Depot U, joined it
+    // by name, and put R1 and its 1,100 on a re-made "Depot U"; and the merge named "destinations (1)". CONTROLs: no rename.
+    // QN2: the consolidated board (this version) holds "unassigned" (Depot U), R1 on it; it is put right, renames Depot U "Depot
+    // U2" and issues; the manager's board (7ee498a's) loads it in this version, is then put right, puts R2 on its Depot U and sends
+    // the work back. BY HAND: one destination, Depot U2 (the manager's Depot U is that place), R1 and R2 on it, the workbook Depot U2
+    // 1,400. CONTROL: R2 left as it was: Depot U2 1,100, Not yet assigned 300.
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const on = (X, id) => X.ev(`flowEntName(destOf(itemById(${J(id)})).to)`);
+        const keyOf = (X, nm) => X.ev(`(function(){ var L=flowEnts(), i; for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)} && flowEnt(L[i].k)===L[i]) return String(L[i].k); }
+          for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)}) return String(L[i].k); } return ''; })()`);
+        const named = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+        const notIn = al => al.filter(a => /was not imported/.test(a)).length;
+        const ISSF = 'ORBIT PACKAGE - O&M - issue 1.json', RETF = 'ORBIT PACKAGE - O&M - return 1.json';
+        const RUNS = [['QR1', [dA, dA2], 'dA', 'Bravo Yard', 'Bravo Yard 2', true], ['QR1', [dA, dA2], 'dA', 'Bravo Yard', 'Bravo Yard 2', false],
+          ['QR2', [dA, dA2], 'dA', 'Bravo Yard', 'Bravo Yard 2', true], ['QR2', [dA, dA2], 'dA', 'Bravo Yard', 'Bravo Yard 2', false],
+          ['QN3', [dU], 'unassigned', 'Depot U', 'Depot U2', true], ['QN3', [dU], 'unassigned', 'Depot U', 'Depot U2', false]];
+        for (const [sec, ents, r1to, nm0, nm1, rename] of RUNS) {
+          const want = rename ? nm1 : nm0;
+          const { X: C0 } = make({ ents, to: r1to, html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents, html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          let C = boot({ ls: lsOf(C0.ev) });
+          const M = boot({ ls: lsOf(M0.ev) }), fm = fixIt(M), fc = sec === 'QR1' ? fixIt(C) : null;
+          if (fc) C = boot({ ls: lsOf(C.ev) });
+          const M2 = boot({ ls: lsOf(M.ev) });
+          if (sec === 'QN3') M2.ev(`if(!S.titles) S.titles={}; S.titles.R2='Renamed by the manager'; save(); 'ok'`);
+          else M2.ev(`setDest('R2','to',${J(keyOf(M2, 'Bravo Yard'))}); 'ok'`);
+          if (rename) C.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n===${J(nm0)}; }), 'n', ${J(nm1)}); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al, qs] = JSON.parse(await take(C.ev, ret, RETF));
+          const C3 = boot({ ls: lsOf(C.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          const at = (rename ? '' : 'CONTROL ') + sec + ' two boards 7ee498a left holding ' + (sec === 'QN3' ? '“unassigned” (Depot U)' : 'dA twice (Alpha Depot, Bravo Yard)')
+            + ', O&M package #1 out with R1 on ' + nm0.replace(/Bravo Yard/, 'Alpha Depot') + ' · ' + (sec === 'QR1' ? 'each' : 'only the manager’s') + ' put right in this version'
+            + (sec === 'QN3' ? '' : ' · the manager puts R2 on Bravo Yard') + (rename ? ' · the consolidated board renames ' + nm0 + ' “' + nm1 + '”' : ', no rename')
+            + ' · the manager’s ⬆ Send my work back' + (sec === 'QN3' ? ' (R2 renamed)' : '') + ', taken by the consolidated board, reopened';
+          if (sec === 'QN3') w5Chk(name, at, 'R2 renamed by the manager; R1 on ' + want + ', one Depot U* destination; nothing asked says a destination is discarded; the workbook ' + want + ' 1,100, Not yet assigned 300, OGC 1,400',
+            J([l0, [fm.threw, fm.qs], notIn(al), qs.length > 0, qs.some(q => /destinations \(/.test(q)), C3.ev(`(S.titles||{}).R2||''`), on(C3, 'R1'), named(C3, 'Depot U'), JSON.parse(await book(C3, want))]),
+            J([0, ['', 1], 0, true, false, 'Renamed by the manager', want, [want], JSON.parse(WANT(want))]));
+          else w5Chk(name, at, 'R1 on Alpha Depot, R2 on ' + want + ', one Bravo Yard* destination; the workbook Alpha Depot 1,100, ' + want + ' 300, OGC 1,400',
+            J([l0, [fm.threw, fm.qs], fc && [fc.threw, fc.qs], notIn(al), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Bravo Yard'), JSON.parse(await book(C3, want))]),
+            J([0, ['', 1], sec === 'QR1' ? ['', 1] : null, 0, 'Alpha Depot', want, [want], JSON.parse(BOOK([['Alpha Depot', 1100], [want, 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        for (const r2 of [true, false]) {
+          const { X: A0 } = make({ ents: [dU], to: 'unassigned' });
+          const fa = fixIt(A0), A = boot({ ls: lsOf(A0.ev) });
+          A.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n==='Depot U'; }), 'n', 'Depot U2'); 'ok'`);
+          const iss = capFile(A.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: [dU], html: old });
+          const M = boot({ ls: lsOf(M0.ev) });
+          const [la] = JSON.parse(await take(M.ev, iss, ISSF));
+          const M2 = boot({ ls: lsOf(M.ev) }), fm = fixIt(M2), M3 = boot({ ls: lsOf(M2.ev) });
+          if (r2) M3.ev(`setDest('R2','to',${J(keyOf(M3, 'Depot U'))}); 'ok'`);
+          const ret = capFile(M3.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(A.ev, ret, RETF));
+          const A2 = boot({ ls: lsOf(A.ev) }); A2.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, (r2 ? '' : 'CONTROL ') + 'QN2 the consolidated board (this version) holds “unassigned” (Depot U), R1 on it · put right · Depot U renamed “Depot U2” · O&M package #1 issued · '
+            + 'the manager’s board (7ee498a’s, “unassigned” Depot U) loads it in this version, is put right' + (r2 ? ', puts R2 on its Depot U' : '') + ' and sends the work back · taken by the consolidated board, reopened',
+            'R1 on Depot U2, R2 ' + (r2 ? 'on Depot U2' : 'on none') + ', one Depot U* destination; the workbook ' + (r2 ? 'Depot U2 1,400' : 'Depot U2 1,100, Not yet assigned 300') + ', OGC 1,400',
+            J([[fa.threw, fa.qs], notIn(la), [fm.threw, fm.qs], notIn(al), on(A2, 'R1'), on(A2, 'R2'), named(A2, 'Depot U'), JSON.parse(await book(A2, 'Depot U2'))]),
+            J([['', 1], 0, ['', 1], 0, 'Depot U2', r2 ? 'Depot U2' : '', ['Depot U2'], JSON.parse(r2 ? BOOK([['Depot U2', 1400]], 1400, 3, 1) : WANT('Depot U2'))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (fix round 5) QX2c: QX2b WHEN THE SHARED KEY IS TAKEN. A board 7ee498a left holding "unassigned" (Depot U, R1 on it) and the
+    // text key "dunassigned" (Depot DU, nothing on it); Full Fund's stale copy of the same plan lists both, nothing on either. Depot U
+    // is removed on 7ee498a. This version, Put it right: Full Fund's "unassigned" cannot take "dunassigned", which its list uses, so
+    // it moves to a key made at random. Full Fund opened. BY HAND: removed there, it stays removed under the key it moved to -- no
+    // Depot U on the list -- and Depot DU stays. (With the shared key, (Z) in destFold keeps it removed too; here only the removal
+    // recorded under the key it moved to does.)
+    // On 7ee498a it fails only because there is no Put it right; the removal itself stays there (verify-tests r6, m1).
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const named = (X, re) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return ${re}.test(e.n); }).map(function(e){ return e.n; }))`));
+        const { X: A } = make({ ents: [dU, D('dunassigned', 'Depot DU')], to: 'unassigned', html: old });
+        const ff = JSON.parse(A.ev(`localStorage.getItem('prio27om')`)); Object.keys(ff.years || {}).forEach(y => { ff.years[y].dest = {}; });
+        const del = JSON.parse(A.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+          setDest('R1','to',''); var i=flowEnts().findIndex(function(e){ return e.n==='Depot U'; }); if(i>=0) flowDelEnt(i);
+          return JSON.stringify([flowEnts().filter(function(e){ return /^Depot U/.test(e.n); }).length, DESTDB.gone.indexOf('unassigned')>=0]); })()`));
+        const ls0 = lsOf(A.ev); ls0.prio27ff = J(ff);
+        const O = boot({ ls: ls0 }), fx = fixIt(O), F = boot({ ls: lsOf(O.ev), appn: 'FULL FUND' });
+        w5Chk(name, 'QX2c Depot U (“unassigned”) removed on 7ee498a while Full Fund’s stale copy still lists it, nothing on it, and the list also holds the text key “dunassigned” (Depot DU) · this version, Put it right · Full Fund opened',
+          'removed there, put right here under a key made at random, and it stays removed: no Depot U on the list when Full Fund opens; Depot DU stays',
+          J([del, [fx.threw, fx.qs], F.ev('mySlug()'), named(F, '/^Depot U/'), named(F, '/^Depot D/')]), J([[0, true], ['', 1], 'ff', [], ['Depot DU']]));
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-tests r6, QR3) A KEY THREE TIMES. QR2's two boards left by 7ee498a, their list holding dA three times (Alpha Depot,
+    // Bravo Yard, Charlie Dock), O&M package #1 out with R1 on dA; only the manager's board put right in this version (Bravo Yard
+    // takes "ddar1", Charlie Dock "ddar2"); the manager puts R2 on Charlie Dock; the consolidated board renames Charlie Dock
+    // "Charlie Dock 2" (CONTROL: no rename); the manager's return taken, reopened. BY HAND: both boards' Charlie Dock is the one
+    // entry the list held third, so R2 is on Charlie Dock 2 (Charlie Dock), one Charlie Dock* destination, one Bravo Yard, the
+    // workbook Alpha Depot 1,100, Charlie Dock 2 300, OGC 1,400.
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const on = (X, id) => X.ev(`flowEntName(destOf(itemById(${J(id)})).to)`);
+        const keyOf = (X, nm) => X.ev(`(function(){ var L=flowEnts(), i; for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)} && flowEnt(L[i].k)===L[i]) return String(L[i].k); }
+          for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)}) return String(L[i].k); } return ''; })()`);
+        const named = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+        const notIn = al => al.filter(a => /was not imported/.test(a)).length;
+        const ISSF = 'ORBIT PACKAGE - O&M - issue 1.json', RETF = 'ORBIT PACKAGE - O&M - return 1.json';
+        for (const rename of [true, false]) {
+          const ents = [dA, dA2, D('dA', 'Charlie Dock')], want = rename ? 'Charlie Dock 2' : 'Charlie Dock';
+          const { X: C0 } = make({ ents, to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents, html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          const C = boot({ ls: lsOf(C0.ev) }), M = boot({ ls: lsOf(M0.ev) }), fm = fixIt(M), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`setDest('R2','to',${J(keyOf(M2, 'Charlie Dock'))}); 'ok'`);
+          if (rename) C.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n==='Charlie Dock'; }), 'n', 'Charlie Dock 2'); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(C.ev, ret, RETF));
+          const C3 = boot({ ls: lsOf(C.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, (rename ? '' : 'CONTROL ') + 'QR3 two boards 7ee498a left holding dA three times (Alpha Depot, Bravo Yard, Charlie Dock), O&M package #1 out with R1 on Alpha Depot · only the manager’s put right in this version'
+            + ' · the manager puts R2 on Charlie Dock' + (rename ? ' · the consolidated board renames Charlie Dock “Charlie Dock 2”' : ', no rename') + ' · the manager’s ⬆ Send my work back, taken by the consolidated board, reopened',
+            'R1 on Alpha Depot, R2 on ' + want + ', one Charlie Dock* destination, one Bravo Yard; the workbook Alpha Depot 1,100, ' + want + ' 300, OGC 1,400',
+            J([l0, [fm.threw, fm.qs], notIn(al), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Charlie Dock'), named(C3, 'Bravo Yard'), JSON.parse(await book(C3, want))]),
+            J([0, ['', 1], 0, 'Alpha Depot', want, [want], ['Bravo Yard'], JSON.parse(BOOK([['Alpha Depot', 1100], [want, 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-tests r6) FIX ROUND 5's PARTS AT THE EDGES THEIR CHECKS DO NOT REACH. Y2: a board of the user's own (this version)
+    // holds dA twice (Alpha Depot, then Bravo Yard) and the text key "ddar1" (Depot C) -- the key a first repeat of dA takes on
+    // every board -- R1 on dA, R2 on "ddar1"; Put it right, reopened. BY HAND: Bravo Yard cannot take "ddar1", which Depot C
+    // holds, so it takes another key; every key distinct; R1 on Alpha Depot, R2 on Depot C; the workbook Alpha Depot 1,100,
+    // Depot C 300, OGC 1,400. Z2 (a GUARD): Z1b with the manager's R2 put on its Depot U before ⬆ Send my work back. BY HAND:
+    // a destination removed here comes back while something points at it (as on 7ee498a): Depot U on the list once, R2 on it,
+    // the workbook Alpha Depot 1,100, Depot U 300. QN3e: QN3 with R1's ultimate recipient on "unassigned" too. BY HAND: R1's
+    // Goes to and ultimate recipient both on Depot U2, and nothing the merge asks names "destinations (". QN3c: QN3 with Full
+    // Fund holding the same plan on the consolidated board (R1 on "unassigned" there too), Depot U renamed "Depot U2" there before
+    // the return is taken, then Full Fund opened. BY HAND: Full Fund's R1 on Depot U2 too, one Depot U* destination; the workbook
+    // Depot U2 1,100, Not yet assigned 300. N1: a manager's board 7ee498a left holding dA twice loads a package whose
+    // list names "Alpha Depot" by another key (dZ), R1 and R2 on it. BY HAND: joined by name to the board's Alpha Depot, the
+    // first entry with dA: R1 and R2 on Alpha Depot, one Alpha Depot, the workbook Alpha Depot 1,400.
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+        var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+      const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+        window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+        var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+        try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+        (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+      const on = (X, id, f) => X.ev(`flowEntName(destOf(itemById(${J(id)}))[${J(f || 'to')}])`);
+      const keyOf = (X, nm) => X.ev(`(function(){ var L=flowEnts(), i; for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)} && flowEnt(L[i].k)===L[i]) return String(L[i].k); }
+        for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)}) return String(L[i].k); } return ''; })()`);
+      const named = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+      const notIn = al => al.filter(a => /was not imported/.test(a)).length;
+      const distinct = X => X.ev(`(function(){ var L=flowEnts(); return L.every(function(e,i){ return L.findIndex(function(x){ return x.k===e.k; })===i; }); })()`);
+      const ISSF = 'ORBIT PACKAGE - O&M - issue 1.json', RETF = 'ORBIT PACKAGE - O&M - return 1.json';
+      {
+        const { X: A0 } = make({ ents: [dA, dA2, D('ddar1', 'Depot C')], to: 'dA' });
+        A0.ev(`S.dest.R2={to:'ddar1'}; save(); 'ok'`);
+        const A = boot({ ls: lsOf(A0.ev) }), fa = fixIt(A), A2 = boot({ ls: lsOf(A.ev) }); A2.ev(`flowSetAxis('dest'); 'ok'`);
+        w5Chk(name, 'Y2 own board, dA twice (Alpha Depot, Bravo Yard) and the text key “ddar1” (Depot C), R1 on dA, R2 on “ddar1” · Put it right · reopened',
+          'Bravo Yard takes a key the list does not use: every key distinct; R1 on Alpha Depot, R2 on Depot C; the workbook Alpha Depot 1,100, Depot C 300, OGC 1,400',
+          J([[fa.threw, fa.qs], distinct(A2), on(A2, 'R1'), on(A2, 'R2'), named(A2, 'Bravo Yard'), JSON.parse(await book(A2, 'Depot C'))]),
+          J([['', 1], true, 'Alpha Depot', 'Depot C', ['Bravo Yard'], JSON.parse(BOOK([['Alpha Depot', 1100], ['Depot C', 300]], 1400, 3, 1))]));
+        bootRelease(mk, []); await settleBoards();
+      }
+      if (old) {
+        {
+          const del = X => JSON.parse(X.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+            var i=flowEnts().findIndex(function(e){ return e.n==='Depot U'; }); if(i>=0) flowDelEnt(i);
+            return JSON.stringify([flowEnts().filter(function(e){ return /^Depot U/.test(e.n); }).length, DESTDB.gone.indexOf('unassigned')>=0]); })()`));
+          const { X: C0 } = make({ ents: [dA, dU], to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: [dA, dU], html: old });
+          const l0 = JSON.parse(await one(M0.ev, iss, ISSF));
+          const C = boot({ ls: lsOf(C0.ev) }), d1 = del(C);
+          const M = boot({ ls: lsOf(M0.ev) }); fixIt(M);
+          const C2 = boot({ ls: lsOf(C.ev) }), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`setDest('R2','to',${J(keyOf(M2, 'Depot U'))}); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(C2.ev, ret, RETF));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, 'Z2 GUARD (as on 7ee498a, a destination removed here comes back while something points at it) · the consolidated board removes Depot U (“unassigned”, nothing on it) before anything is put right'
+            + ' · the manager’s board, put right, puts R2 on its Depot U and ⬆ Send my work back, taken by the consolidated board, reopened',
+            'Depot U back on the list once, R2 on it, R1 on Alpha Depot; the workbook Alpha Depot 1,100, Depot U 300, OGC 1,400',
+            J([notIn(l0), d1, notIn(al), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Depot U'), JSON.parse(await book(C3, 'Depot U'))]),
+            J([0, [0, true], 0, 'Alpha Depot', 'Depot U', ['Depot U'], JSON.parse(BOOK([['Alpha Depot', 1100], ['Depot U', 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        for (const sec of ['QN3e', 'QN3c']) {
+          const { X: C0 } = make({ ents: [dU], to: 'unassigned', html: old });
+          if (sec === 'QN3e') C0.ev(`S.dest.R1.end='unassigned'; save(); 'ok'`);
+          else C0.ev(`localStorage.setItem('prio27ff', localStorage.getItem('prio27om')); 'ok'`);
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: [dU], html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          const C = boot({ ls: lsOf(C0.ev) }), M = boot({ ls: lsOf(M0.ev) }), fm = fixIt(M), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`if(!S.titles) S.titles={}; S.titles.R2='Renamed by the manager'; save(); 'ok'`);
+          C.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n==='Depot U'; }), 'n', 'Depot U2'); 'ok'`);
+          const want = 'Depot U2';
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al, qs] = JSON.parse(await take(C.ev, ret, RETF));
+          const C3 = boot({ ls: lsOf(C.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          const F = sec === 'QN3c' ? boot({ ls: lsOf(C3.ev), appn: 'FULL FUND' }) : null;
+          w5Chk(name, sec + ' as QN3 (two boards 7ee498a left holding “unassigned” (Depot U), O&M package #1 out with R1 on it, only the manager’s put right, R2 renamed there)'
+            + (sec === 'QN3e' ? ', R1’s ultimate recipient on “unassigned” too' : ', Full Fund holding the same plan on the consolidated board') + ' · the consolidated board renames Depot U “Depot U2”'
+            + ' · the manager’s ⬆ Send my work back, taken by the consolidated board, reopened' + (sec === 'QN3e' ? '' : ' · Full Fund opened'),
+            'R2 renamed by the manager; R1 on ' + want + (sec === 'QN3e' ? ', its ultimate recipient too; nothing asked names “destinations (”' : '; Full Fund’s R1 on Depot U2 too, one Depot U*') + '; the workbook ' + want + ' 1,100, Not yet assigned 300, OGC 1,400',
+            J([l0, [fm.threw, fm.qs], notIn(al), C3.ev(`(S.titles||{}).R2||''`), on(C3, 'R1'), sec === 'QN3e' ? [on(C3, 'R1', 'end'), qs.some(q => /destinations \(/.test(q))] : [F.ev('mySlug()'), on(F, 'R1'), named(F, 'Depot U')],
+              named(C3, 'Depot U'), JSON.parse(await book(C3, want))]),
+            J([0, ['', 1], 0, 'Renamed by the manager', want, sec === 'QN3e' ? ['Depot U2', false] : ['ff', 'Depot U2', ['Depot U2']], [want], JSON.parse(WANT(want))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        {
+          const { X: A0 } = make({ ents: [D('dZ', 'Alpha Depot')], to: 'dZ' });
+          A0.ev(`S.dest.R2={to:'dZ'}; save(); 'ok'`);
+          const A = boot({ ls: lsOf(A0.ev) });
+          const iss = capFile(A.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: [dA, dA2], html: old });
+          const M = boot({ ls: lsOf(M0.ev) });
+          const [la] = JSON.parse(await take(M.ev, iss, ISSF));
+          const M2 = boot({ ls: lsOf(M.ev) }); M2.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, 'N1 a manager’s board 7ee498a left holding dA twice (Alpha Depot, Bravo Yard), opened in this version, loads a package whose list names “Alpha Depot” by the key dZ, R1 and R2 on it · reopened',
+            'joined by name to the board’s Alpha Depot (the first entry with dA): R1 and R2 on Alpha Depot, one Alpha Depot; the workbook Alpha Depot 1,400, OGC 1,400',
+            J([notIn(la), on(M2, 'R1'), on(M2, 'R2'), named(M2, 'Alpha Depot'), JSON.parse(await book(M2, 'Alpha Depot'))]),
+            J([0, 'Alpha Depot', 'Alpha Depot', ['Alpha Depot'], JSON.parse(BOOK([['Alpha Depot', 1400]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-tests r6, W9) WHAT A READING RE-KEYS IS KEPT. QR2 with the rename: two boards 7ee498a left holding dA twice (Alpha
+    // Depot, Bravo Yard), only the manager's put right, R2 put on Bravo Yard there, Bravo Yard renamed "Bravo Yard 2" on the
+    // consolidated board, the manager's return taken. BY HAND: the consolidated board's repeat takes the manager's key for it, and
+    // the list this browser keeps (prio27destdb) holds it so, as the board shows it: each key once, Bravo Yard 2 under "ddar1".
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const keyOf = (X, nm) => X.ev(`(function(){ var L=flowEnts(), i; for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)} && flowEnt(L[i].k)===L[i]) return String(L[i].k); }
+          for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)}) return String(L[i].k); } return ''; })()`);
+        const { X: C0 } = make({ ents: [dA, dA2], to: 'dA', html: old });
+        const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+        const { X: M0 } = make({ ents: [dA, dA2], html: old });
+        await one(M0.ev, iss, 'ORBIT PACKAGE - O&M - issue 1.json');
+        const C = boot({ ls: lsOf(C0.ev) }), M = boot({ ls: lsOf(M0.ev) }), fm = fixIt(M), M2 = boot({ ls: lsOf(M.ev) });
+        M2.ev(`setDest('R2','to',${J(keyOf(M2, 'Bravo Yard'))}); 'ok'`);
+        C.ev(`flowSetEnt(flowEnts().findIndex(function(e){ return e.n==='Bravo Yard'; }), 'n', 'Bravo Yard 2'); 'ok'`);
+        const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+        await take(C.ev, ret, 'ORBIT PACKAGE - O&M - return 1.json');
+        const kept = JSON.parse(lsOf(C.ev).prio27destdb || '{}').ents || [];
+        w5Chk(name, 'W9 QR2 with the rename (only the manager’s put right, R2 on Bravo Yard there, Bravo Yard renamed “Bravo Yard 2” on the consolidated board), the manager’s return taken · the list this browser keeps',
+          'each key once, Bravo Yard 2 under the manager’s key for it, “ddar1”',
+          J([[fm.threw, fm.qs], kept.every((e, i) => kept.findIndex(x => x.k === e.k) === i), (kept.find(e => e.n === 'Bravo Yard 2') || {}).k || '']),
+          J([['', 1], true, 'ddar1']));
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-money r6, M1) A REPEAT REMOVED KEEPS EVERY LATER REPEAT'S PLACE. Two boards 7ee498a left holding dA three times
+    // (Alpha Depot, Bravo Yard, Charlie Yard), R1 on dA, O&M package #1 issued and loaded on the manager's board; both open in this
+    // version. QT1: the manager removes Bravo Yard, the repeat ("No requirement is changed"); each board is put right; the manager
+    // puts R2 on Charlie Yard and sends the work back; the consolidated board takes it, reopened. BY HAND: nobody moved R2 off
+    // Charlie Yard and the consolidated board still holds Charlie Yard, so R1 is on Alpha Depot, R2 on Charlie Yard, one Charlie
+    // Yard, the workbook Alpha Depot 1,100, Charlie Yard 300, OGC 1,400. Counted on the list as it stood, the manager's Charlie
+    // Yard took Bravo Yard's key, and R2 and its 300 came across on Bravo Yard. CONTROL: no removal. QT2: the same the other way --
+    // the consolidated board (this version, the three entries, R1 on dA) removes Bravo Yard, is put right, puts R2 on Charlie Yard
+    // and issues O&M #1; the manager's board (7ee498a's, the three entries) loads it in this version after its own Put it right
+    // (QT2b: before). BY HAND: the manager's board R1 on Alpha Depot, R2 on Charlie Yard, one Charlie Yard, the workbook Alpha Depot
+    // 1,100, Charlie Yard 300. CONTROL: no removal. QT1o: as QT1, but the manager removed Bravo Yard on 7ee498a, whose ✕ cleared
+    // R1 there and marked dA removed (that loss is 7ee498a's); each put right; the manager puts R2 on Charlie Yard and sends the work
+    // back. BY HAND: Charlie Yard's place is not known after that ✕, so it takes a key made at random and is found by its name:
+    // R1 on none (as the return carries it), R2 on Charlie Yard, the workbook Charlie Yard 300, Not yet assigned 1,100. QT1p
+    // (fix round 6): the CONSOLIDATED user removed Bravo Yard on 7ee498a; only the manager's board is put right; the manager puts R2
+    // on Bravo Yard and sends the work back. BY HAND: the consolidated board holds no Bravo Yard, and its Charlie Yard is not Bravo
+    // Yard: R2 comes back on Bravo Yard, R1 on Alpha Depot (as the return carries it), the workbook Alpha Depot 1,100, Bravo Yard
+    // 300. Read as the first repeat, its Charlie Yard took Bravo Yard's key and R2's 300. QT5 (fix round 6): the manager removes
+    // Charlie Yard, the SECOND repeat, is put right (Bravo Yard takes "ddar1"), puts R2 on Bravo Yard and sends the work back; the
+    // consolidated board takes it (its Bravo Yard takes "ddar1" with it), is then put right, and issues O&M #2; the manager loads
+    // it. BY HAND: Charlie Yard, removed on the manager's board with nothing on it, stays removed there; R1 on Alpha Depot, R2 on
+    // Bravo Yard; the manager's workbook Alpha Depot 1,100, Bravo Yard 300. Counted past "ddar1" only when it is removed, the
+    // consolidated board's Charlie Yard took a key made at random, and came back on the manager's list. CONTROL: no removal.
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const on = (X, id) => X.ev(`flowEntName(destOf(itemById(${J(id)})).to)`);
+        const keyOf = (X, nm) => X.ev(`(function(){ var L=flowEnts(), i; for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)} && flowEnt(L[i].k)===L[i]) return String(L[i].k); }
+          for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)}) return String(L[i].k); } return ''; })()`);
+        const named = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+        const notIn = al => al.filter(a => /was not imported/.test(a)).length;
+        // ✕ on the entry named `nm`, every question answered yes: [removed, the question said no requirement changes, the three names left]
+        const del = (X, nm) => JSON.parse(X.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var i=flowEnts().findIndex(function(e){ return e.n===${J(nm)}; }); if(i>=0) flowDelEnt(i);
+          return JSON.stringify([i>=0, qs.some(function(q){ return /No requirement is changed/.test(q); }),
+            flowEnts().filter(function(e){ return /^(Alpha Depot|Bravo Yard|Charlie Yard)$/.test(e.n); }).map(function(e){ return e.n; })]); })()`));
+        const dA3 = D('dA', 'Charlie Yard'), three = [dA, dA2, dA3];
+        const ISSF = 'ORBIT PACKAGE - O&M - issue 1.json', RETF = 'ORBIT PACKAGE - O&M - return 1.json';
+        for (const rm of [true, false]) {
+          const { X: C0 } = make({ ents: three, to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: three, html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          const C = boot({ ls: lsOf(C0.ev) }); let M = boot({ ls: lsOf(M0.ev) });
+          const d1 = rm ? del(M, 'Bravo Yard') : null; if (rm) M = boot({ ls: lsOf(M.ev) });
+          const fc = fixIt(C), fm = fixIt(M), C2 = boot({ ls: lsOf(C.ev) }), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`setDest('R2','to',${J(keyOf(M2, 'Charlie Yard'))}); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(C2.ev, ret, RETF));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, (rm ? '' : 'CONTROL ') + 'QT1 two boards 7ee498a left holding dA three times (Alpha Depot, Bravo Yard, Charlie Yard), O&M package #1 out with R1 on Alpha Depot'
+            + (rm ? ' · the manager removes Bravo Yard (a repeat) in this version' : ', no removal') + ' · each put right · the manager puts R2 on Charlie Yard · ⬆ Send my work back, taken by the consolidated board, reopened',
+            'R1 on Alpha Depot, R2 on Charlie Yard, one Charlie Yard, one Bravo Yard; the workbook Alpha Depot 1,100, Charlie Yard 300, OGC 1,400',
+            J([l0, d1, [fc.threw, fc.qs], [fm.threw, fm.qs], notIn(al), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Charlie Yard'), named(C3, 'Bravo Yard'), JSON.parse(await book(C3, 'Charlie Yard'))]),
+            J([0, rm ? [true, true, ['Alpha Depot', 'Charlie Yard']] : null, ['', 1], ['', 1], 0, 'Alpha Depot', 'Charlie Yard', ['Charlie Yard'], ['Bravo Yard'],
+              JSON.parse(BOOK([['Alpha Depot', 1100], ['Charlie Yard', 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        for (const [rm, first] of [[true, true], [true, false], [false, true]]) {
+          let { X: A } = make({ ents: three, to: 'dA' });
+          const d1 = rm ? del(A, 'Bravo Yard') : null; if (rm) A = boot({ ls: lsOf(A.ev) });
+          const fa = fixIt(A), A2 = boot({ ls: lsOf(A.ev) });
+          A2.ev(`setDest('R2','to',${J(keyOf(A2, 'Charlie Yard'))}); 'ok'`);
+          const iss = capFile(A2.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: three, to: 'dA', html: old });
+          let M = boot({ ls: lsOf(M0.ev) }); const fm = first ? fixIt(M) : null; if (first) M = boot({ ls: lsOf(M.ev) });
+          const [la] = JSON.parse(await take(M.ev, iss, ISSF));
+          const M2 = boot({ ls: lsOf(M.ev) }); M2.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, (rm ? '' : 'CONTROL ') + 'QT2' + (first ? '' : 'b') + ' the consolidated board (this version) holds dA three times (Alpha Depot, Bravo Yard, Charlie Yard), R1 on dA'
+            + (rm ? ' · removes Bravo Yard (a repeat)' : '') + ' · put right · R2 put on Charlie Yard · O&M package #1 issued · the manager’s board (7ee498a’s, the three entries) loads it in this version '
+            + (first ? 'after' : 'before') + ' its own Put it right, reopened',
+            'the manager’s board: R1 on Alpha Depot, R2 on Charlie Yard, one Charlie Yard; the workbook Alpha Depot 1,100, Charlie Yard 300, OGC 1,400',
+            J([d1, [fa.threw, fa.qs], fm && [fm.threw, fm.qs], notIn(la), on(M2, 'R1'), on(M2, 'R2'), named(M2, 'Charlie Yard'), JSON.parse(await book(M2, 'Charlie Yard'))]),
+            J([rm ? [true, true, ['Alpha Depot', 'Charlie Yard']] : null, ['', 1], first ? ['', 1] : null, 0, 'Alpha Depot', 'Charlie Yard', ['Charlie Yard'],
+              JSON.parse(BOOK([['Alpha Depot', 1100], ['Charlie Yard', 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        for (const sec of ['QT1o', 'QT1p']) {
+          const { X: C0 } = make({ ents: three, to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: three, html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          // the board the ✕ is made on, 7ee498a's, reopened as the load left it
+          const O = boot({ html: old, ls: lsOf((sec === 'QT1o' ? M0 : C0).ev) }), d1 = del(O, 'Bravo Yard');
+          const C = boot({ ls: lsOf((sec === 'QT1o' ? C0 : O).ev) }), M = boot({ ls: lsOf((sec === 'QT1o' ? O : M0).ev) });
+          const fc = sec === 'QT1o' ? fixIt(C) : null, fm = fixIt(M);
+          const C2 = boot({ ls: lsOf(C.ev) }), M2 = boot({ ls: lsOf(M.ev) });
+          const to = sec === 'QT1o' ? 'Charlie Yard' : 'Bravo Yard';
+          M2.ev(`setDest('R2','to',${J(keyOf(M2, to))}); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(C2.ev, ret, RETF));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, sec + ' two boards 7ee498a left holding dA three times (Alpha Depot, Bravo Yard, Charlie Yard), O&M package #1 out with R1 on Alpha Depot · the '
+            + (sec === 'QT1o' ? 'manager' : 'consolidated user') + ' removes Bravo Yard on 7ee498a (its ✕ clears R1 there) · ' + (sec === 'QT1o' ? 'each' : 'only the manager’s') + ' put right in this version'
+            + ' · the manager puts R2 on ' + to + ' · ⬆ Send my work back, taken by the consolidated board, reopened',
+            sec === 'QT1o' ? 'R1 on none, R2 on Charlie Yard; the workbook Charlie Yard 300, Not yet assigned 1,100, OGC 1,400'
+              : 'R1 on Alpha Depot, R2 on Bravo Yard, one Bravo Yard; the workbook Alpha Depot 1,100, Bravo Yard 300, OGC 1,400',
+            J([l0, d1, fc && [fc.threw, fc.qs], [fm.threw, fm.qs], notIn(al), on(C3, 'R1'), on(C3, 'R2'), sec === 'QT1o' ? null : named(C3, 'Bravo Yard'), JSON.parse(await book(C3, to))]),
+            J([0, [true, false, ['Alpha Depot', 'Charlie Yard']], sec === 'QT1o' ? ['', 1] : null, ['', 1], 0, sec === 'QT1o' ? '' : 'Alpha Depot', to, sec === 'QT1o' ? null : ['Bravo Yard'],
+              JSON.parse(sec === 'QT1o' ? BOOK([['Charlie Yard', 300], ['Not yet assigned', 1100]], 1400, 3, 1) : BOOK([['Alpha Depot', 1100], ['Bravo Yard', 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        for (const rm of [true, false]) {
+          const { X: C0 } = make({ ents: three, to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: three, html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          const C = boot({ ls: lsOf(C0.ev) }); let M = boot({ ls: lsOf(M0.ev) });
+          const d1 = rm ? del(M, 'Charlie Yard') : null; if (rm) M = boot({ ls: lsOf(M.ev) });
+          const fm = fixIt(M), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`setDest('R2','to',${J(keyOf(M2, 'Bravo Yard'))}); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(C.ev, ret, RETF));
+          const C2 = boot({ ls: lsOf(C.ev) }), fc = fixIt(C2), C3 = boot({ ls: lsOf(C2.ev) });
+          const iss2 = capFile(C3.ev, `pkgIssue('om');`, 'application/json');
+          const [la] = JSON.parse(await take(M2.ev, iss2, 'ORBIT PACKAGE - O&M - issue 2.json'));
+          const M3 = boot({ ls: lsOf(M2.ev) }); M3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, (rm ? '' : 'CONTROL ') + 'QT5 two boards 7ee498a left holding dA three times (Alpha Depot, Bravo Yard, Charlie Yard), O&M package #1 out with R1 on Alpha Depot'
+            + (rm ? ' · the manager removes Charlie Yard (the second repeat) in this version' : ', no removal') + ' · the manager put right, R2 on Bravo Yard, ⬆ Send my work back'
+            + ' · taken by the consolidated board, which is then put right and issues O&M #2 · the manager loads it, reopened',
+            'the manager’s board: ' + (rm ? 'no Charlie Yard (removed there, nothing on it)' : 'one Charlie Yard') + ', one Bravo Yard, R1 on Alpha Depot, R2 on Bravo Yard; the workbook Alpha Depot 1,100, Bravo Yard 300, OGC 1,400',
+            J([l0, d1, [fm.threw, fm.qs], notIn(al), [fc.threw, fc.qs], iss2.length > 0, notIn(la), named(M3, 'Charlie Yard'), named(M3, 'Bravo Yard'), on(M3, 'R1'), on(M3, 'R2'),
+              JSON.parse(await book(M3, 'Bravo Yard'))]),
+            J([0, rm ? [true, true, ['Alpha Depot', 'Bravo Yard']] : null, ['', 1], 0, ['', 1], true, 0, rm ? [] : ['Charlie Yard'], ['Bravo Yard'], 'Alpha Depot', 'Bravo Yard',
+              JSON.parse(BOOK([['Alpha Depot', 1100], ['Bravo Yard', 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (fix round 6) Y2b: Y2 WHERE ANOTHER LIST OF THE FILE USES THE KEY. A board file of the user's own: its list holds dA twice (Alpha
+    // Depot, Bravo Yard), R1 on dA; its Full Fund's plan carries a copy of the list that also holds the text key "ddar1" (Depot C),
+    // with Full Fund's R1 on dA and R2 on "ddar1". ⬅ Import a full board of it, then Full Fund opened. BY HAND: Bravo Yard cannot take
+    // "ddar1", which Full Fund's copy uses for Depot C, so it takes another key; Full Fund's R1 on Alpha Depot, R2 on Depot C, one
+    // Depot C, one Bravo Yard; Full Fund's workbook Alpha Depot 1,100, Depot C 300, OGC 1,400. Taken by Bravo Yard, "ddar1" named
+    // two destinations, and Full Fund's R2 and its 300 came across on Bravo Yard.
+    {
+      const mk = bootMark();
+      const named = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+      const { file } = make({ ents: [dA, dA2], to: 'dA' });
+      const J4 = JSON.parse(file.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/)[1]);
+      const ff = JSON.parse(J(J4.appns.om)); ff.flow.ents.push(D('ddar1', 'Depot C'));
+      Object.keys(ff.years || {}).forEach(y => { ff.years[y].dest = { R1: { to: 'dA' }, R2: { to: 'ddar1' } }; });
+      J4.appns.ff = ff;
+      const f4 = file.replace(/(<script type="application\/json" id="pubState">)[\s\S]*?(<\/script>)/, (m, a, b) => a + J(J4).replace(/</g, '\\u003c') + b);
+      const T = boot(), r = full(T.ev, f4), F = boot({ ls: lsOf(T.ev), appn: 'FULL FUND' }); F.ev(`flowSetAxis('dest'); 'ok'`);
+      w5Chk(name, 'Y2b a board file of the user’s own, its list holding dA twice (Alpha Depot, Bravo Yard), its Full Fund’s copy also the text key “ddar1” (Depot C) with Full Fund’s R2 on it · ⬅ Import a full board · Full Fund opened',
+        'Bravo Yard takes a key no list of the file uses: Full Fund’s R1 on Alpha Depot, R2 on Depot C, one Depot C, one Bravo Yard, every key distinct; Full Fund’s workbook Alpha Depot 1,100, Depot C 300, OGC 1,400',
+        J([r.threw, F.ev('mySlug()'), F.ev(`flowEntName(destOf(itemById('R1')).to)`), F.ev(`flowEntName(destOf(itemById('R2')).to)`), named(F, 'Depot C'), named(F, 'Bravo Yard'),
+          F.ev(`(function(){ var L=flowEnts(); return L.every(function(e,i){ return L.findIndex(function(x){ return x.k===e.k; })===i; }); })()`), JSON.parse(await book(F, 'Depot C'))]),
+        J(['', 'ff', 'Alpha Depot', 'Depot C', ['Depot C'], ['Bravo Yard'], true, JSON.parse(BOOK([['Alpha Depot', 1100], ['Depot C', 300]], 1400, 3, 1))]));
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-tests r7) A REPEAT'S PLACE, AT THE EDGES FIX ROUND 6'S CHECKS DID NOT REACH. Two boards 7ee498a left holding dA three
+    // or four times, R1 on dA, O&M package #1 issued and loaded on the manager's board; both open in this version. QT6: dA four times
+    // (Alpha Depot, Bravo Yard, Charlie Yard, Delta Yard); the manager removes Bravo Yard, then Charlie Yard (each a repeat, "No
+    // requirement is changed"); each board is put right; the manager puts R2 on Delta Yard and sends the work back; the consolidated
+    // board takes it, reopened. BY HAND: the consolidated board still holds all four, and nobody moved R2 off Delta Yard: R1 on Alpha
+    // Depot, R2 on Delta Yard, one Delta Yard, one Charlie Yard, the workbook Alpha Depot 1,100, Delta Yard 300, OGC 1,400. Kept
+    // under its place on the list as it stood, the second removal was Bravo Yard's place again, the manager's Delta Yard took
+    // Charlie Yard's key, and R2 and its 300 came across on Charlie Yard. CONTROL: no removal. QT7: dA three times; ✕ on Bravo Yard
+    // answered No; each put right; the manager puts R2 on Bravo Yard and sends the work back. BY HAND: nothing was removed or marked
+    // removed, so R2 is on Bravo Yard, the workbook Alpha Depot 1,100, Bravo Yard 300 (Put it right pressed in the same session
+    // as the answer: a removal kept in memory only would be stored by it). QT2c: dA three times; the manager removes
+    // Bravo Yard and is NOT put right; the consolidated board is put right, puts R2 on Charlie Yard and issues O&M #2; the manager's
+    // board loads it as it is, then sends its work back, taken by the consolidated board. BY HAND: R2 stays on Charlie Yard on both
+    // boards: the consolidated board's R1 on Alpha Depot, R2 on Charlie Yard, one Charlie Yard, one Bravo Yard, the workbook Alpha
+    // Depot 1,100, Charlie Yard 300. Read by its place on the list as it stood, the manager's Charlie Yard took Bravo Yard's key in
+    // the load, and the work sent back put R2 and its 300 on Bravo Yard.
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const take = (ev, file, fname) => ev(`new Promise(function(res){ var al=[], qs=[]; window.alert=function(m){ al.push(String(m)); };
+          window.confirm=function(q){ qs.push(String(q)); return true; }; window.prompt=function(){ return '1'; };
+          var inp={files:[new File([${J(file)}], ${J(fname)})], value:'x'};
+          try{ importState(inp); }catch(e){ al.push('THREW '+e.message); }
+          (function wait(n){ if(inp.value==='' || n>600) return res(JSON.stringify([al, qs])); setTimeout(function(){ wait(n+1); }, 5); })(0); })`);
+        const on = (X, id) => X.ev(`flowEntName(destOf(itemById(${J(id)})).to)`);
+        const keyOf = (X, nm) => X.ev(`(function(){ var L=flowEnts(), i; for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)} && flowEnt(L[i].k)===L[i]) return String(L[i].k); }
+          for(i=0;i<L.length;i++){ if(L[i].n===${J(nm)}) return String(L[i].k); } return ''; })()`);
+        const named = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+        const notIn = al => al.filter(a => /was not imported/.test(a)).length;
+        // ✕ on the entry named `nm`, the question answered `yes`: [found, the question said no requirement changes, the names left,
+        // how many keys the list keeps as removed]
+        const del = (X, nm, yes) => JSON.parse(X.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return ${yes ? 'true' : 'false'}; }; window.alert=function(){};
+          var i=flowEnts().findIndex(function(e){ return e.n===${J(nm)}; }); if(i>=0) flowDelEnt(i);
+          return JSON.stringify([i>=0, qs.some(function(q){ return /No requirement is changed/.test(q); }),
+            flowEnts().filter(function(e){ return /^(Alpha Depot|Bravo Yard|Charlie Yard|Delta Yard)$/.test(e.n); }).map(function(e){ return e.n; }), DESTDB.gone.length]); })()`));
+        const dA3 = D('dA', 'Charlie Yard'), three = [dA, dA2, dA3], four = [dA, dA2, dA3, D('dA', 'Delta Yard')];
+        const ISSF = 'ORBIT PACKAGE - O&M - issue 1.json', RETF = 'ORBIT PACKAGE - O&M - return 1.json';
+        for (const rm of [true, false]) {
+          const { X: C0 } = make({ ents: four, to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: four, html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          const C = boot({ ls: lsOf(C0.ev) }); let M = boot({ ls: lsOf(M0.ev) });
+          const d1 = rm ? del(M, 'Bravo Yard', true) : null; if (rm) M = boot({ ls: lsOf(M.ev) });
+          const d2 = rm ? del(M, 'Charlie Yard', true) : null; if (rm) M = boot({ ls: lsOf(M.ev) });
+          const fc = fixIt(C), fm = fixIt(M), C2 = boot({ ls: lsOf(C.ev) }), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`setDest('R2','to',${J(keyOf(M2, 'Delta Yard'))}); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(C2.ev, ret, RETF));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, (rm ? '' : 'CONTROL ') + 'QT6 two boards 7ee498a left holding dA four times (Alpha Depot, Bravo Yard, Charlie Yard, Delta Yard), O&M package #1 out with R1 on Alpha Depot'
+            + (rm ? ' · the manager removes Bravo Yard, then Charlie Yard (each a repeat) in this version' : ', no removal') + ' · each put right · the manager puts R2 on Delta Yard · ⬆ Send my work back, taken by the consolidated board, reopened',
+            'R1 on Alpha Depot, R2 on Delta Yard, one Delta Yard, one Charlie Yard; the workbook Alpha Depot 1,100, Delta Yard 300, OGC 1,400',
+            J([l0, d1, d2, [fc.threw, fc.qs], [fm.threw, fm.qs], notIn(al), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Delta Yard'), named(C3, 'Charlie Yard'), JSON.parse(await book(C3, 'Delta Yard'))]),
+            J([0, rm ? [true, true, ['Alpha Depot', 'Charlie Yard', 'Delta Yard'], 1] : null, rm ? [true, true, ['Alpha Depot', 'Delta Yard'], 2] : null, ['', 1], ['', 1], 0,
+              'Alpha Depot', 'Delta Yard', ['Delta Yard'], ['Charlie Yard'], JSON.parse(BOOK([['Alpha Depot', 1100], ['Delta Yard', 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        {
+          const { X: C0 } = make({ ents: three, to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: three, html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          const C = boot({ ls: lsOf(C0.ev) }); let M = boot({ ls: lsOf(M0.ev) });
+          // Put it right in the same session as the answer, as a user would press it next
+          const d1 = del(M, 'Bravo Yard', false);
+          const fc = fixIt(C), fm = fixIt(M), C2 = boot({ ls: lsOf(C.ev) }), M2 = boot({ ls: lsOf(M.ev) });
+          M2.ev(`setDest('R2','to',${J(keyOf(M2, 'Bravo Yard'))}); 'ok'`);
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(C2.ev, ret, RETF));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, 'QT7 two boards 7ee498a left holding dA three times (Alpha Depot, Bravo Yard, Charlie Yard), O&M package #1 out with R1 on Alpha Depot · the manager’s ✕ on Bravo Yard (a repeat) answered No'
+            + ' · each put right (the manager’s in the same session) · the manager puts R2 on Bravo Yard · ⬆ Send my work back, taken by the consolidated board, reopened',
+            'nothing removed or kept as removed; R1 on Alpha Depot, R2 on Bravo Yard, one Bravo Yard, one Charlie Yard; the workbook Alpha Depot 1,100, Bravo Yard 300, OGC 1,400',
+            J([l0, d1, [fc.threw, fc.qs], [fm.threw, fm.qs], notIn(al), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Bravo Yard'), named(C3, 'Charlie Yard'), JSON.parse(await book(C3, 'Bravo Yard'))]),
+            J([0, [true, true, ['Alpha Depot', 'Bravo Yard', 'Charlie Yard'], 0], ['', 1], ['', 1], 0, 'Alpha Depot', 'Bravo Yard', ['Bravo Yard'], ['Charlie Yard'],
+              JSON.parse(BOOK([['Alpha Depot', 1100], ['Bravo Yard', 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+        {
+          const { X: C0 } = make({ ents: three, to: 'dA', html: old });
+          const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+          const { X: M0 } = make({ ents: three, html: old });
+          const l0 = notIn(JSON.parse(await one(M0.ev, iss, ISSF)));
+          const C = boot({ ls: lsOf(C0.ev) }); let M = boot({ ls: lsOf(M0.ev) });
+          const d1 = del(M, 'Bravo Yard', true); M = boot({ ls: lsOf(M.ev) });
+          const fc = fixIt(C), C2 = boot({ ls: lsOf(C.ev) });
+          C2.ev(`setDest('R2','to',${J(keyOf(C2, 'Charlie Yard'))}); 'ok'`);
+          const iss2 = capFile(C2.ev, `pkgIssue('om');`, 'application/json');
+          const [la] = JSON.parse(await take(M.ev, iss2, 'ORBIT PACKAGE - O&M - issue 2.json'));
+          const M2 = boot({ ls: lsOf(M.ev) });
+          const m2 = [on(M2, 'R2'), named(M2, 'Charlie Yard'), named(M2, 'Bravo Yard')];
+          const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+          const [al] = JSON.parse(await take(C2.ev, ret, 'ORBIT PACKAGE - O&M - return 2.json'));
+          const C3 = boot({ ls: lsOf(C2.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+          w5Chk(name, 'QT2c two boards 7ee498a left holding dA three times (Alpha Depot, Bravo Yard, Charlie Yard), O&M package #1 out with R1 on Alpha Depot · the manager removes Bravo Yard (a repeat) in this version and is not put right'
+            + ' · the consolidated board put right, R2 put on Charlie Yard, O&M #2 issued · the manager’s board loads it as it is, then ⬆ Send my work back, taken by the consolidated board, reopened',
+            'the manager’s board: R2 on Charlie Yard, one Charlie Yard, no Bravo Yard; the consolidated board: R1 on Alpha Depot, R2 on Charlie Yard, one Charlie Yard, one Bravo Yard; the workbook Alpha Depot 1,100, Charlie Yard 300, OGC 1,400',
+            J([l0, d1, [fc.threw, fc.qs], notIn(la), m2, ret.length > 0, notIn(al), on(C3, 'R1'), on(C3, 'R2'), named(C3, 'Charlie Yard'), named(C3, 'Bravo Yard'), JSON.parse(await book(C3, 'Charlie Yard'))]),
+            J([0, [true, true, ['Alpha Depot', 'Charlie Yard'], 1], ['', 1], 0, ['Charlie Yard', ['Charlie Yard'], []], true, 0, 'Alpha Depot', 'Charlie Yard', ['Charlie Yard'], ['Bravo Yard'],
+              JSON.parse(BOOK([['Alpha Depot', 1100], ['Charlie Yard', 300]], 1400, 3, 1))]));
+          bootRelease(mk, []); await settleBoards();
+        }
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+    // (verify-money r7, S2; written into the block's helpers at integration) A LIST RESET KEEPS A REPEAT'S PLACE. Two boards 7ee498a
+    // left holding dA three times (Alpha Depot, Bravo Yard, Charlie Yard), R1 on dA, O&M package #1 issued and loaded on the
+    // manager's board; both open in this version. The consolidated user resets the destination list (it asks first: "Destinations
+    // you added are removed and any requirement on this appropriation pointing at one is cleared"); the manager presses Put it right
+    // and sends the work back, changing nothing else; the consolidated board takes it, reopened. BY HAND: R1 still points at Alpha
+    // Depot in the manager's work, so Alpha Depot comes back with it; Bravo Yard and Charlie Yard have nothing on them on either
+    // board and were removed by the reset, so they stay removed: R1 on Alpha Depot, one Alpha Depot, no Bravo Yard, no Charlie
+    // Yard, the workbook Alpha Depot 1,100, Not yet assigned 300, OGC 1,400. Kept by its key only (dA), the reset forgot each
+    // repeat's place, and the return, put right, brought Bravo Yard ("ddar1") and Charlie Yard ("ddar2") back, unasked and unsaid.
+    {
+      const mk = bootMark();
+      let old = '';
+      try { const { execFileSync } = await import('node:child_process');
+        old = execFileSync('git', ['show', '7ee498a:prioritization-board-grid.html'], { cwd: new URL('../..', import.meta.url).pathname, maxBuffer: 1 << 28 }).toString(); } catch (e) { old = ''; }
+      if (old) {
+        const fixIt = B => JSON.parse(B.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          var threw=''; try{ destOwnFix(); }catch(e){ threw=String((e&&e.message)||e); } return JSON.stringify({qs:qs.length, threw:threw}); })()`));
+        const on = (X, id) => X.ev(`flowEntName(destOf(itemById(${J(id)})).to)`);
+        const named = (X, pre) => JSON.parse(X.ev(`JSON.stringify(flowEnts().filter(function(e){ return String(e.n).indexOf(${J(pre)})===0; }).map(function(e){ return e.n; }))`));
+        const notIn = al => al.filter(a => /was not imported/.test(a)).length;
+        const three = [dA, dA2, D('dA', 'Charlie Yard')];
+        const { X: C0 } = make({ ents: three, to: 'dA', html: old });
+        const iss = capFile(C0.ev, `pkgIssue('om');`, 'application/json');
+        const { X: M0 } = make({ ents: three, html: old });
+        const l0 = notIn(JSON.parse(await one(M0.ev, iss, 'ORBIT PACKAGE - O&M - issue 1.json')));
+        let C = boot({ ls: lsOf(C0.ev) }); const M = boot({ ls: lsOf(M0.ev) });
+        // ↺ Reset the list on the consolidated board, its question answered yes: [it asked with the reset's words, the three left]
+        const rs = JSON.parse(C.ev(`(function(){ var qs=[]; window.confirm=function(q){ qs.push(String(q)); return true; }; window.alert=function(){};
+          flowResetEnts(); return JSON.stringify([qs.some(function(q){ return /Destinations you added are removed/.test(q); }),
+            flowEnts().filter(function(e){ return /^(Alpha Depot|Bravo Yard|Charlie Yard)$/.test(e.n); }).length]); })()`));
+        C = boot({ ls: lsOf(C.ev) });
+        const fm = fixIt(M), M2 = boot({ ls: lsOf(M.ev) });
+        const ret = capFile(M2.ev, 'pkgReturn();', 'application/json');
+        const al = JSON.parse(await one(C.ev, ret, 'ORBIT PACKAGE - O&M - return 1.json'));
+        const C3 = boot({ ls: lsOf(C.ev) }); C3.ev(`flowSetAxis('dest'); 'ok'`);
+        w5Chk(name, 'RST two boards 7ee498a left holding dA three times (Alpha Depot, Bravo Yard, Charlie Yard), O&M package #1 out with R1 on Alpha Depot · the consolidated user resets the destination list'
+          + ' · the manager put right · ⬆ Send my work back, taken by the consolidated board, reopened',
+          'Bravo Yard and Charlie Yard stay removed; R1 on Alpha Depot, one Alpha Depot; the workbook Alpha Depot 1,100, Not yet assigned 300, OGC 1,400',
+          J([l0, rs, [fm.threw, fm.qs], ret.length > 0, notIn(al), on(C3, 'R1'), named(C3, 'Alpha Depot'), named(C3, 'Bravo Yard'), named(C3, 'Charlie Yard'), JSON.parse(await book(C3, 'Alpha Depot'))]),
+          J([0, [true, 0], ['', 1], true, 0, 'Alpha Depot', ['Alpha Depot'], [], [], JSON.parse(WANT('Alpha Depot'))]));
+        bootRelease(mk, []); await settleBoards();
+      }
+      bootRelease(mk, []); await settleBoards();
+    }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.message) || e).slice(0, 160), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, []);
+  await settleBoards();
+})();
+// ==== end v2.00 (U44) ====
 
 {
   const src = _selfRead(_selfPath(import.meta.url), 'utf8');

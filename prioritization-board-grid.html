@@ -7286,6 +7286,7 @@ function pmoBaseline(){
 function publishPmoCopy(){
   if(cycBlock('Publishing a PMO copy')) return;
   if(SANDBOX){ sandboxBlock('Publishing a PMO copy'); return; }
+  if(destOwnBlock('Publishing a PMO copy')) return;   // v2.00 (U44)
   const who=whoAmI()||'';
   if(!confirm('Publish a PMO copy of this board?\n\n'
     + 'It carries the WHOLE portfolio as it stands now, so anyone who opens it sees every '
@@ -8801,6 +8802,7 @@ function pkgPut(ap, st){
 function pkgIssue(ap, quiet){
   // v2.00 (U10): NOT FROM A LOCKED VIEW. It handed out the cycle on screen as the board's package, and recorded nothing.
   if(cycBlock('Issuing a package')) return;
+  if(destOwnBlock('Issuing the '+(PKG_NAMES[ap]||ap)+' package')) return;   // v2.00 (U44): before the ledger moves
   const pack=pkgPackOf(ap);
   let st=pkgStoreOf(ap), fresh=false;
   if(!st && pack){
@@ -8869,6 +8871,7 @@ function pkgPushAll(){
       +'there is no baseline to hand over. Import the appropriation boards first.');
     return;
   }
+  if(destOwnBlock('Pushing the baselines')) return;   // v2.00 (U44): asked before the question, not once per package
   const outs=have.filter(function(ap){ const l=((pkgStoreOf(ap)||{}).sync)||{}; return l.state==='out' && (l.seq||0)>0; });
   const line=function(ap){
     const l=((pkgStoreOf(ap)||{}).sync)||{};
@@ -8918,6 +8921,7 @@ function pkgSendBack(ap){
   const nm=PKG_NAMES[ap]||ap;
   const st=pkgStoreOf(ap);
   if(!st){ setStat('\u26a0 No '+nm+' on this board to send back.'); return; }
+  if(destOwnBlock('Sending '+nm+' back')) return;   // v2.00 (U44): the board it goes back to refuses it
   const body=pkgStrip(st);
   if(!_hasPack(body)){ const pack=pkgPackOf(ap); if(pack) body.dataPack=pack; }
   const pkg={spmtPkg:PKG_VER, dir:'return', ap:ap, apName:nm, seq:((st.sync||{}).seq)||0,
@@ -8936,6 +8940,7 @@ function pkgReturnable(){
 }
 function pkgReturn(){
   if(cycBlock('Saving a return package')) return;   // v2.00 (U10): as pkgIssue -- it returned the cycle on screen as the work
+  if(destOwnBlock('Sending the '+(PKG_NAMES[mySlug()]||mySlug())+' return package')) return;   // v2.00 (U44): its consolidated board refuses it
   const src=pkgReturnable();
   const body=pkgStrip(MS);
   const ap=mySlug();
@@ -8984,7 +8989,8 @@ function pkgDiff(cur, inc){
     // compared here, with a count of the requirements it touches.
     Object.keys(Object.assign({}, a, b)).sort().forEach(function(k){
       if(PKG_DIFF_KNOWN[k] || /Seeded$/.test(k)) return;
-      const av=pkgDiffVal(a[k]), bv=pkgDiffVal(b[k]);
+      // v2.00 (U44): requirements' destinations by the entry this board reads each key as (pkgDiffDest)
+      const av=pkgDiffVal(k==='dest'? pkgDiffDest(a[k]) : a[k]), bv=pkgDiffVal(k==='dest'? pkgDiffDest(b[k]) : b[k]);
       if(pkgCanon(av)===pkgCanon(bv)) return;
       let n=0;
       if(av && bv && typeof av==='object' && typeof bv==='object' && !Array.isArray(av) && !Array.isArray(bv))
@@ -9019,6 +9025,15 @@ const PKG_DIFF_NAMES={asks:'requirement values', desc:'descriptions', cons:'impa
   absorb:'shortfall absorbers', absorbFloor:'absorber floors', discSvc:'discretionary budget authority',
   mandSvc:'mandatory budget authority', reprog:'reprogramming', rcn:'RCN / EEIC list',
   pmos:'programme offices', coaDef:'chart of accounts', snaps:'snapshots'};
+// v2.00 (U44): A REQUIREMENT'S DESTINATION IS COMPARED BY THE ENTRY THIS BOARD READS ITS KEY AS (destReadAs), as the take reads
+// it: a board put right names "unassigned" "dunassigned", and a merge into a board not yet put right said it discarded
+// "destinations (1)" while R1 stayed on the destination the board showed
+function pkgDiffDest(D){
+  if(!D || typeof D!=='object' || Array.isArray(D)) return D;
+  const o={}; Object.keys(D).forEach(function(id){ const v=D[id];
+    o[id]=(v && typeof v==='object' && !Array.isArray(v))? Object.assign({}, v, v.to? {to:destReadAs(v.to)} : {}, v.end? {end:destReadAs(v.end)} : {}) : v; });
+  return o;
+}
 // absent and empty are the same answer
 function pkgDiffVal(v){ return (v===undefined || v===null || v===false
   || (typeof v==='object' && Object.keys(v).length===0))? null : v; }
@@ -9645,7 +9660,7 @@ function rcnListOdd(L){
 // before this one took these lists without a word and saved them: refused, a team's folder froze -- every later Save refused --
 // and a whole board was kept out of the new version. This board reads them right (monSheet, rcnBody, rcnDel).
 var _inRcnNext='', _inRcnOwn='', _inRcnTxt='';
-function inboundCheckOwn(txt, own){ _inRcnNext=own; return inboundCheck(txt); }
+function inboundCheckOwn(txt, own){ _inRcnNext=own; _inDestNext=own; return inboundCheck(txt); }   // v2.00 (U44): the destination lists' leave too
 // The shapes that carry ids, names and amounts, recognised wherever they sit in the file: a requirement
 // list (a data pack), a year's plan (in a board, a cycle, a snapshot, a package), a band ladder, an office
 // or service list, a submittal.
@@ -9720,6 +9735,15 @@ function inShapeWhy(o, path, asPlan){
   // requirement's destination -- so a key may not be a name every object already answers to
   for(const bag of ['dest','ents']) if(Array.isArray(o[bag])) for(let i=0;i<o[bag].length;i++){ const e=o[bag][i];
     if(e && typeof e==='object' && IN_KEY_BAD.has(String(e.k))) return 'the destination key at '+path+'.'+bag+'['+i+'] '+inShow(e.k)+' is a name every object already answers to'; }
+  // v2.00 (U44): A DESTINATION LIST THAT BREAKS THE RULE (destListOdd) is refused whole, wherever it sits -- the board's list, a
+  // plan's or a locked cycle store's copy of it, a package's -- saying the first thing in it that does; in a file handed over only
+  // (_inDestOwn)
+  if(!_inDestOwn) for(const bag of ['dest','ents']){ const r=destListOdd(o[bag], bag)[0];
+    if(r) return (r.entry? IN_DEST_ENTRY+path+'.'+bag+'['+r.i+'] ' : IN_DEST_LIST+path+'.'+bag+' ')+r.what+'; '+r.why; }
+  // v2.00 (U44): in the team's own copy, a key that is not text is refused too -- read, the number 1 and the text "1" were one
+  // destination, and a requirement on one of them came across on the other, the other's entry dropped
+  if(_inDestOwn==='copy') for(const bag of ['dest','ents']){ const r=destListOdd(o[bag], bag).filter(function(x){ return !x.entry && typeof o[bag][x.i].k!=='string'; })[0];
+    if(r) return IN_DEST_LIST+path+'.'+bag+' '+r.what+'; '+r.why; }
   if(o.dest && typeof o.dest==='object' && !Array.isArray(o.dest) && (w=eachKey(o.dest, function(id, d){
     if(!d || typeof d!=='object') return '';
     for(const f of ['to','end']) if(IN_KEY_BAD.has(String(d[f]))) return 'the destination at '+path+'.dest.'+id+'.'+f+' '+inShow(d[f])+' is a name every object already answers to';
@@ -9753,6 +9777,128 @@ function inShapeWhy(o, path, asPlan){
   }
   return '';
 }
+// v2.00 (U44): A DESTINATION LIST NAMES EACH DESTINATION ONCE, by an entry with a text key of its own that the funds flow does
+// not keep for one of its own rows. A list holding dA twice printed dA's row twice in the Funds Flow workbook, and its money in
+// every row and sheet but the OGC total: 1,100 + 1,100 + 300 beside an OGC total of 1,400. One holding an entry keyed
+// "unassigned" -- the key of the flow's own "Not yet assigned" row -- printed that row twice, with both rows' money, and lost the
+// entry's name; "destsplit" did the same to the split row. What a list holds that breaks this, each as {i, what, why} in the
+// list's order, `entry` set on an entry no board can read (not a destination at all, or no key); [] when nothing does. `bag` is
+// the list's own name in the file (ents, or a package's dest).
+const IN_DEST_LIST='the destination list at ', IN_DEST_ENTRY='the destination entry at ';
+function destListOdd(L, bag){
+  const odd=[], seen=Object.create(null), twice=[];
+  if(!Array.isArray(L)) return odd;
+  const kd=function(k){ return (typeof k==='number')? 'the number '+k : (typeof k==='boolean')? 'the value '+k : (k===null)? 'null'
+    : Array.isArray(k)? 'a list' : (typeof k==='string')? inShow(k) : 'an object'; };
+  L.forEach(function(e, i){ const b=bag+'['+i+']';
+    if(!e || typeof e!=='object' || Array.isArray(e)){
+      odd.push({entry:true, i:i, what:'is not a destination ('+inShow(JSON.stringify(e))+')', why:'a list holds destinations and nothing else'}); return; }
+    const k=e.k;
+    if(!k){ odd.push({entry:true, i:i, what:'has no key'+(k===undefined? '' : ' ('+b+'.k is '+kd(k)+')'), why:'a destination is found by its key'}); return; }
+    if(typeof k!=='string'){ odd.push({i:i, what:'holds a key that is not text ('+b+'.k is '+kd(k)+')', why:'a key is text'}); return; }
+    if(k===DEST_NONE || k===DEST_SPLIT) odd.push({i:i, what:'holds the key '+inShow(k)+' ('+b+')',
+      why:'the funds flow keeps that key for its own '+(k===DEST_NONE? '“Not yet assigned”' : '“Split between destinations”')+' row'});
+    if(!seen[k]) seen[k]=[]; else if(seen[k].length===1) twice.push(k);
+    seen[k].push(i);
+  });
+  twice.forEach(function(k){ const I=seen[k], n=I.length, ps=I.map(function(j){ return bag+'['+j+']'; });
+    odd.push({i:I[1], what:'holds the key '+inShow(k)+' '+(n===2? 'twice' : n+' times')+' ('+ps.slice(0,-1).join(', ')+' and '+ps[n-1]+')', why:'a key names one destination'}); });
+  return odd.sort(function(x, y){ return x.i-y.i; });
+}
+// v2.00 (U44): WHOSE FILE IT IS decides whether the door applies that rule, for the one check asked for (inboundCheckDest): ''
+// a file handed over -- refused; 'board' the user's own board, brought across by a full import -- taken, its lists put right as
+// they come across (destOwnRight), and the import says what it changes; 'copy' the team's own copy in the shared folder or beside
+// the board -- read as before, but for a key that is not text, which no ORBIT writes and which a reading cannot tell from the
+// text it spells (inShapeWhy). An ORBIT before this one took such a list without a word and could save it with its board:
+// refused, a whole board was kept out of the new version and a team's folder copy could not be read. This board reads them right
+// (flowAxisCats, destFold).
+var _inDestNext='', _inDestOwn='';
+function inboundCheckDest(txt, own){ _inDestNext=own; return inboundCheck(txt); }
+// v2.00 (U44): THE USER'S OWN BOARD, TAKEN WHOLE, IS PUT RIGHT AS IT COMES ACROSS, so it never holds a destination list a file
+// handed over is refused for. Every file a board writes carries its list -- its saved file, one appropriation, a PMO copy, a
+// package, the office's submittal back -- so a board that kept one could hand nothing to a board of this version, itself
+// included, and a locked cycle naming the entry kept it so for good. In every destination list the file holds (the board's, each
+// plan's copy, each locked-cycle store's): an entry keyed "unassigned", "destsplit" or by something that is not text takes a key
+// of its own, and every requirement on it, in every plan and every locked cycle, goes with it, exactly (1 is not "1"); an entry
+// repeating a key earlier in its list takes a key of its own, and nothing on the key moves, because every requirement on it reads
+// the earlier entry -- or, when it repeats that entry in full, is left out; an entry that is not a destination, or has no key, is
+// left out, as every board leaves it out on opening.
+// One new key for each (key, nth time in its list), the same in every list, so each plan's copy still reads as the board's
+// list. `J` is the file's state, changed in place. Returns what was put right, in words, or ''.
+function destOwnRight(J){
+  const odd=function(k){ return typeof k!=='string' || k===DEST_NONE || k===DEST_SPLIT; };
+  const DB=(J && J.destDb && typeof J.destDb==='object' && !Array.isArray(J.destDb))? J.destDb : null;
+  const said=(DB && Array.isArray(DB.ents))? destListOdd(DB.ents, 'ents') : [];
+  const L=[], P=[], st=[J], used=Object.create(null), map=[];
+  while(st.length){ const o=st.pop(), arr=Array.isArray(o);
+    Object.keys(o).forEach(function(f){ const v=o[f]; if(!v || typeof v!=='object') return;
+      if(!arr && (f==='ents' || f==='dest') && Array.isArray(v)) L.push(v); else if(!arr && f==='dest') P.push(v);
+      st.push(v); }); }
+  L.forEach(function(l){ l.forEach(function(e){ if(e && typeof e==='object' && typeof e.k==='string') used[e.k]=1; }); });
+  if(DB && Array.isArray(DB.gone)) DB.gone.forEach(function(k){ used[String(k)]=1; });
+  const fresh=function(){ let k; do{ k='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); } while(used[k]); used[k]=1; return k; };
+  const to=function(k, n){ const m=map.filter(function(x){ return x[0]===k && x[1]===n; })[0]; return m? m[2] : null; };
+  // v2.00 (U44): A KEY AN EARLIER FULL IMPORT MOVED MOVES THE SAME WAY AGAIN -- the record the file's list carries first, then this
+  // browser's (destDb.moved) -- so every copy names one destination by it: Put it right gave a kept appropriation's copy a second
+  // new key, and its R1 came across on a second "Depot U". Not in a file whose list holds both the key and the key it moved to:
+  // that list says itself what each one names.
+  [DB, DESTDB].forEach(function(R){ (R && Array.isArray(R.moved)? R.moved : []).forEach(function(x){
+    if(!x || typeof x!=='object' || !destMovable(x.k) || typeof x.to!=='string' || !x.to || odd(x.to)) return;
+    used[x.to]=1;
+    if(to(x.k, 0)===null && L.some(function(l){ return l.some(function(e){ return e && e.k===x.k; }); })
+       && !L.some(function(l){ return l.some(function(e){ return e && e.k===x.k; }) && l.some(function(e){ return e && e.k===x.to; }); }))
+      map.push([x.k, 0, x.to]); }); });
+  const saw={key:false, rep:false, same:false, out:false};
+  L.forEach(function(l){ const seen=[], held=l.map(function(e){ return e && typeof e==='object'? e.k : undefined; });
+    for(let i=0;i<l.length;i++){ const e=l[i];
+      if(!e || typeof e!=='object' || Array.isArray(e) || !e.k){ l.splice(i--, 1); saw.out=true; continue; }
+      // v2.00 (U44): n, which time the key comes in this list, as every board counts it (destRepAt): 0 for its first entry
+      const k=e.k, one=seen.filter(function(x){ return x.k===k; }), n=destRepAt(k, one.length, DB && DB.gone, held); seen.push({k:k, n:e.n, kind:e.kind, t:e.t});
+      // a repeat that says nothing its first entry does not -- the same name, kind and match terms -- is left out: kept, it would
+      // be a second destination of that name with nothing on it
+      if(n && String(one[0].n)===String(e.n) && one[0].kind===e.kind && String(one[0].t||'')===String(e.t||'')){ l.splice(i--, 1); saw.same=true; continue; }
+      if(!n && !odd(k)) continue;
+      // v2.00 (U44): "unassigned", "destsplit", a number or true / false, and a repeat, takes THE SAME KEY OF ITS OWN ON EVERY
+      // BOARD (destOwnKey; a repeat's says which time its key comes in the list), so two boards that each put the list right still
+      // name one destination by it: with a key made at random on each, a manager's return came across with R1 and its money on a
+      // second "Depot U", and after a rename R2's on a second "Bravo Yard". One the list already uses or has removed is made at
+      // random.
+      // v2.00 (U44): but a repeat whose key is marked removed here -- an older ORBIT's ✕ on one of its entries, which kept no place
+      // -- has no place another board shares: it takes a key made at random, and another board finds it by its name
+      if(n && DB && Array.isArray(DB.gone) && DB.gone.indexOf(k)>=0 && to(k, n)===null) map.push([k, n, fresh()]);
+      let r=to(k, n); if(r===null){ const ok=destOwnKey(k, n); r=((n || destMovable(k)) && !used[ok])? (used[ok]=1, ok) : fresh(); map.push([k, n, r]); }
+      e.k=r; if(n) saw.rep=true; else saw.key=true;
+    } });
+  // v2.00 (U44): EACH KEY MOVED IS KEPT WITH THE LIST, with the key it moved to (destDb.moved), for every copy of the list this
+  // file does not carry: Full Fund, kept as this browser had it, still named "unassigned", and opened it was read by its old name
+  if(DB) map.forEach(function(m){ if(m[1] || !destMovable(m[0])) return;
+    if(!Array.isArray(DB.moved)) DB.moved=[];
+    const i=DB.moved.findIndex(function(x){ return x && typeof x==='object' && x.k===m[0]; });
+    if(i<0) DB.moved.push({k:m[0], to:m[2]}); else DB.moved[i]={k:m[0], to:m[2]}; });
+  // v2.00 (U44): A KEY REMOVED HERE STAYS REMOVED under the key it moved to: a copy of the list that still named it, put right,
+  // brought the destination back when its appropriation opened
+  if(DB && Array.isArray(DB.gone)) map.forEach(function(m){ if(!m[1] && DB.gone.indexOf(m[0])>=0 && DB.gone.indexOf(m[2])<0) DB.gone.push(m[2]); });
+  if(!saw.key && !saw.rep && !saw.same && !saw.out) return '';
+  // every requirement on such a key -- the plans' years and every locked cycle's -- and what the board kept against it
+  const moved=function(k){ return (k===undefined || k===null || k==='')? null : to(k, 0); };
+  P.forEach(function(D){ Object.keys(D).forEach(function(id){ const v=D[id]; if(!v || typeof v!=='object') return;
+    ['to','end'].forEach(function(f){ const r=moved(v[f]); if(r!==null) v[f]=r; }); }); });
+  if(DB && DB.lmap && typeof DB.lmap==='object') Object.keys(DB.lmap).forEach(function(g){ const m=DB.lmap[g];
+    if(m && typeof m==='object') Object.keys(m).forEach(function(x){ const r=moved(m[x]); if(r!==null) m[x]=r; }); });
+  if(DB && Array.isArray(DB.conflicts)) DB.conflicts.forEach(function(c){ const r=c && typeof c==='object'? moved(c.k) : null; if(r!==null) c.k=r; });
+  return [said.length? 'The destination list, put right as it comes across (a file handed over with such a list is refused): it '
+      +said.slice(0,5).map(function(x){ return x.entry? 'holds ents['+x.i+'], which '+x.what : x.what; }).join(', ')
+      +(said.length>5? ' and '+(said.length-5)+' more' : '')
+    : 'The destination lists the plans carry, put right as they come across (a file handed over with such a list is refused)']
+    .concat(saw.key? ['An entry keyed “unassigned” or “destsplit” — keys the funds flow keeps for its own rows — or by something that '
+      +'is not text takes a key of its own, and every requirement on it, in each plan and each locked cycle, goes with it'] : [],
+      saw.rep? ['An entry that repeats a key earlier in its list takes a key of its own, with nothing on it: every requirement on '
+      +'the key stays on the first entry with it'] : [],
+      saw.same? ['An entry that repeats an earlier one in full — its key, name, kind and match terms — is left out: it holds nothing '
+      +'the first does not'] : [],
+      saw.out? ['An entry that is not a destination, or has no key, is left out, as every board leaves it out on opening'] : [])
+    .join('. ');
+}
 // Walk the whole of one parsed payload. Iterative, so a file nested thousands deep is refused rather
 // than ending the page with a stack overflow.
 function inWalk(root, label){
@@ -9779,6 +9925,7 @@ function inWalk(root, label){
 function inboundCheck(txt){
   _inRcnOwn=_inRcnNext; _inRcnNext=''; _inRcnTxt=txt;   // v2.00 (U32, U33): asked for by inboundCheckOwn, for this check only;
   // and the text checked, which a refusal of it reads to say who saved the file (inRcnTail)
+  _inDestOwn=_inDestNext; _inDestNext='';   // v2.00 (U44): asked for by inboundCheckDest, for this check only
   const t=(txt===null || txt===undefined)? '' : String(txt);
   if(t.length>IN_MAX_BYTES) return 'it is '+(t.length/1048576).toFixed(1)+' MB, and the board takes files up to '+(IN_MAX_BYTES/1048576)+' MB';
   const parts=[];
@@ -9861,9 +10008,22 @@ function inRcnTail(w, txt){
   return head
     +(cy? ' '+T.cycle+(html? ' '+T.opens+' '+T.full : '') : ent? '' : ' '+T.plan+(html? ' '+T.full : ''));
 }
+// v2.00 (U44): but a destination list an ORBIT before this one took without a word, and could save and send on, is not one
+// "ORBIT never writes", and is not said to be: what is true is said, and the way each kind of file comes across. A board of this
+// version puts its own list right when it is taken whole (destOwnRight), and while it holds one says so each time it opens
+// (destOwnSay) and hands no PMO copy or package out (destOwnBlock). A PMO copy cannot put a list right, so a submittal from a copy
+// an ORBIT before this one published with such a list comes back only through a new copy -- said so, not "put it right".
+const IN_DEST_TAIL='A destination list names each destination once, by a text key of its own that the funds flow does not keep '
+  +'for one of its own rows. An ORBIT before this one took such a list without a word and could save it and send it on; a board of '
+  +'this version that holds one says so each time it opens, and publishes no PMO copy and issues or sends back no package until it is put right. '
+  +'A whole board of your own comes across by 📁 File → ⬅ Import a full board, which puts its list right and says first what it '
+  +'changes; that replaces what this board holds with everything the file carries, so it is not the way to take one appropriation. '
+  +'A package, a PMO copy or one appropriation is taken once the board that wrote it has put its list right and written the file '
+  +'again. A submittal comes from a PMO copy, which cannot put its list right: the board that published the copy puts its list '
+  +'right and publishes a new one, and the office makes its changes again in the new copy.';
 function inRefuse(fname, why, txt){
   const w=String(why), rt=inRcnTail(w, txt===undefined? _inRcnTxt : txt);
-  alert('“'+fname+'” was not imported: '+why+'.\n\n'+(rt? rt+' '
+  alert('“'+fname+'” was not imported: '+why+'.\n\n'+(rt? rt+' ' : w.indexOf(IN_DEST_LIST)===0? IN_DEST_TAIL+' '
     : 'A board, a PMO copy, a package or a submittal written by ORBIT never carries that, so the file is damaged or was not written by ORBIT. ')
     +'Nothing on this board was changed.');
   setStat('⚠ Nothing imported — “'+esc(fname)+'” was refused: '+esc(why)+'.');
@@ -9904,6 +10064,7 @@ function importFullBoard(inp){
 }
 function fullImportText(txt, fname){
   _inRcnNext='board';   // v2.00 (U32, U33): the user's own board (inboundCheckOwn) -- its RCN / EEIC lists as it saved them, said below
+  _inDestNext='board';   // v2.00 (U44): the user's own board (inboundCheckDest) -- its destination lists put right below (destOwnRight)
   const bad=inboundCheck(txt); if(bad) return inRefuse(fname, bad);
   const m=txt.match(/<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/);
   if(!m){ alert('“'+fname+'” is not a board file.\n\nA full import takes a board .html saved from ORBIT. Nothing was imported.'); return false; }
@@ -9918,6 +10079,8 @@ function fullImportText(txt, fname){
   const pks=extractPacks(txt)||{};
   // a board saved for one appropriation carries its plan at the top level: it goes to its own slot
   if(!J.appns && (J.years || Array.isArray(J.order))){ const one={}; one[_slugOfTitle(txt)||mySlug()]=J; J={appns:one}; }
+  // v2.00 (U44): its destination lists put right as they come across, before anything below reads them -- said in the question
+  const destSaid=destOwnRight(J);
   const inc={};
   APPN_SLUGS.forEach(function(k){
     const s2=(J.appns||{})[k];
@@ -9950,6 +10113,9 @@ function fullImportText(txt, fname){
   if(has.ace) lines.push('  • Cost estimates — '+Object.keys(J.aceDb.sets).length);
   if(has.rp) lines.push('  • The reprogramming log — '+J.rpDb.entries.length+' entr'+(J.rpDb.entries.length===1?'y':'ies'));
   if(has.dest) lines.push('  • The destination list — '+J.destDb.ents.length);
+  // v2.00 (U44): WHAT PUTTING ITS DESTINATION LISTS RIGHT CHANGED (destOwnRight) is said -- in the question before anything is
+  // replaced, and in the report the reopened board gives
+  if(destSaid) lines.push('  • '+destSaid);
   // v2.00 (U32, U33): A LIST A FILE HANDED OVER IS REFUSED FOR (rcnListOdd) comes across as the board saved it, and is said -- in
   // the question before anything is replaced, and in the report the reopened board gives. A locked cycle's list is read through
   // cycRcnOf, which leaves out an entry whose key is not text: when one holds such an entry, that is said as well -- kept, not
@@ -15140,8 +15306,12 @@ function flowEnts(){
   destMigrate();
   return DESTDB.ents;
 }
-function flowEntsAZ(){
-  return flowEnts().slice().sort(function(a,b){
+// v2.00 (U44): EACH DESTINATION ONCE where one is picked -- the entry every requirement on its key reads (flowEnt). A list
+// holding dA twice offered dA under both names, and R1's Goes to showed the second, "Bravo Yard", where the funds flow, the MIPR
+// rule and every message read R1 as on "Alpha Depot". `all`: every entry, as the destinations panel lists them.
+function flowEntsAZ(all){
+  return flowEnts().filter(function(e,i,L){ return all || L.findIndex(function(x){ return x.k===e.k; })===i; })
+    .sort(function(a,b){
     return String(a.n||'').trim().localeCompare(String(b.n||'').trim(), undefined, {sensitivity:'base', numeric:true}); });
 }
 // Two destinations are the same destination when their NAMES match, ignoring case and extra
@@ -15165,9 +15335,40 @@ function destNewKey(){
   return k;
 }
 function destHas(k){ return DESTDB.ents.filter(function(e){ return e.k===k; })[0]||null; }
+// v2.00 (U44): WHERE A KEY A FULL IMPORT MOVED WENT (destOwnRight). "unassigned", "destsplit", a number or true / false takes a
+// key of its own there, and the key it moved to is kept with the list (destDb.moved), because a copy of the list the import did
+// not carry -- the plan and locked cycles of an appropriation it kept as this browser had them -- still names the old key.
+// Read by its old name, Full Fund's R1 came across on a second "Depot U" while the board showed it on "Depot U2". destMovedTo(k):
+// the key k moved to, or k.
+function destMovable(k){ return k===DEST_NONE || k===DEST_SPLIT || typeof k==='number' || typeof k==='boolean'; }
+function destMovedTo(k){
+  if(!destMovable(k)) return k;
+  const m=(Array.isArray(DESTDB.moved)? DESTDB.moved : []).filter(function(x){ return x && typeof x==='object' && x.k===k && typeof x.to==='string' && x.to; })[0];
+  return m? m.to : k;
+}
+// v2.00 (U44): the key of its own such a key takes, the same on every board (destOwnRight): "unassigned" is "dunassigned",
+// "destsplit" "ddestsplit", the number 1 "dnumber1", true "dbooleantrue"; the nth repeat of a key in its list (n > 0) adds
+// "r" and n, so the first repeat of "dA" is "ddar1"
+function destOwnKey(k, n){ return 'd'+(typeof k==='string'? '' : typeof k)+String(k).toLowerCase().replace(/[^0-9a-z]/g, 'x')+(n? 'r'+n : ''); }
+// v2.00 (U44): WHICH TIME A REPEAT'S KEY COMES IN ITS LIST, AS EVERY BOARD COUNTS IT: the mth repeat of k (m > 0) is the mth
+// place n whose key of its own, destOwnKey(k, n), is neither removed here (`gone`: ✕ on a repeat keeps it there) nor held by an
+// entry of the list (`held`, the list's keys as it came: a repeat a reading already gave its key of its own). Counted on the list
+// as it stood, a board that had removed Bravo Yard, the first of two repeats, gave Charlie Yard Bravo Yard's key, and R2, put on
+// Charlie Yard there, came across on Bravo Yard on the board that kept it. 0 for the first entry with k.
+function destRepAt(k, m, gone, held){ let j=0; while(m>0){ j++; const o=destOwnKey(k, j); if([gone, held].every(function(L){ return !Array.isArray(L) || L.indexOf(o)<0; })) m--; } return j; }
+// v2.00 (U44): THE ENTRY THIS BOARD READS ANOTHER BOARD'S KEY AS, as destFold does: the key itself, or the entry this board still
+// holds as it was ("unassigned", "destsplit", a number or true / false) whose key of its own (destOwnKey) another board's Put
+// it right gave it; the key itself when there is none
+function destReadAs(k){
+  if(destHas(k)) return k;
+  const x=DESTDB.ents.filter(function(e){ return destMovable(e.k) && destOwnKey(e.k)===k; })[0];
+  return x? x.k : k;
+}
 function destByName(n){
   if(!destNamed(n)) return null;
-  const x=destName(n); return DESTDB.ents.filter(function(e){ return destName(e.n)===x; })[0]||null;
+  // v2.00 (U44): never an entry that repeats an earlier entry's key: every requirement on the key reads the earlier entry, so a
+  // list joined to it by name put R2, on Bravo Yard there, on Alpha Depot here
+  const x=destName(n); return DESTDB.ents.filter(function(e){ return destName(e.n)===x && destHas(e.k)===e; })[0]||null;
 }
 function destSig(list){
   const s=JSON.stringify((list||[]).map(function(e){ return [String((e&&e.k)||''), destName(e&&e.n)]; }));
@@ -15211,13 +15412,34 @@ function destFold(list, from, v186, refs){
   const n0=DESTDB.ents.length, sig0=from? DESTDB.lsig[from] : undefined;
   const sg=v186? '' : destSig(list);
   const lm=v186? null : (DESTDB.lmap[sg]||(DESTDB.lmap[sg]={}));
+  // v2.00 (U44): THE FIRST ENTRY WITH A KEY is the destination every requirement on it reads; a later entry with that key is its
+  // repeat, and is not read. Read as a destination of its own, a repeated "unassigned" took a second new key and re-pointed
+  // every requirement on it to the LAST entry's name -- R1, shown on Depot U, came across on Depot V.
+  const once=Object.create(null);
+  // v2.00 (U44): EACH ENTRY'S KEY OF ITS OWN AS THE LIST STANDS BEFORE THIS READING re-keys a repeat (part (c), below): counted
+  // as it went, re-keying Bravo Yard made Charlie Yard the first repeat, and a manager's return made "Charlie Yard" again with
+  // R2's money on it, beside the one renamed "Charlie Yard 2". None for a repeat whose key is marked removed here (destOwnRight).
+  const held=DESTDB.ents.map(function(x){ return x.k; });
+  const own=DESTDB.ents.map(function(x, i, L){ const n=L.slice(0, i).filter(function(y){ return y.k===x.k; }).length;
+    return [x, n, ((n && DESTDB.gone.indexOf(x.k)<0) || (!n && destMovable(x.k)))? destOwnKey(x.k, destRepAt(x.k, n, DESTDB.gone, held)) : null]; });
   (list||[]).forEach(function(e){
     if(!e || typeof e!=='object' || !e.k) return;
+    if(once[typeof e.k+' '+e.k]) return; once[typeof e.k+' '+e.k]=1;
     const used=!!(refs&&refs[e.k]);
     let hit=null, first=true;
     if(v186){
       hit=destHas(e.k);
-      if(!hit && DESTDB.gone.indexOf(e.k)>=0 && !used) return;
+      // v2.00 (U44): a key a full import moved is followed to the key it moved to (destMovedTo), never joined by its old name
+      if(!hit && destMovedTo(e.k)!==e.k) hit=destHas(destMovedTo(e.k));
+      // v2.00 (U44): the key another board's Put it right gave an entry this board still holds as it was (destOwnKey) names that
+      // entry: a repeat takes it (nothing reads a repeat), a reserved or non-text key is read through it. Joined by name instead, a
+      // rename on either board re-made the destination with the requirement's money on it
+      if(!hit) own.some(function(o){ if(o[2]!==e.k) return false; if(o[1]){ o[0].k=e.k; touched=true; } hit=o[0]; return true; });
+      // v2.00 (U44): and one removed here under the key it moved to stays removed, as one removed under its own key does
+      if(!hit && (DESTDB.gone.indexOf(e.k)>=0 || DESTDB.gone.indexOf(destMovedTo(e.k))>=0) && !used) return;
+      // v2.00 (U44): and one removed here as "unassigned", "destsplit", a number or true / false stays removed when another
+      // board's list, put right, names it by the key of its own it takes on every board (destOwnKey)
+      if(!hit && !used && DESTDB.gone.some(function(g){ return destMovable(g) && destOwnKey(g)===e.k; })) return;
     } else if(Object.prototype.hasOwnProperty.call(lm, e.k)){
       first=false;
       hit=destHas(lm[e.k]);
@@ -15230,7 +15452,9 @@ function destFold(list, from, v186, refs){
       else {
         if(!used && !destNamed(e.n)) return;       // an unnamed placeholder nobody uses is not carried
         let k=String(e.k);
-        const free=!destHas(k) && DESTDB.gone.indexOf(k)<0;
+        // v2.00 (U44): never under a key the funds flow keeps for its own rows: an entry keyed "unassigned" or "destsplit" takes a new
+        // key, as one whose key is taken here does, and every requirement on it is re-pointed with it (destRemap, destPkgIn)
+        const free=!destHas(k) && DESTDB.gone.indexOf(k)<0 && k!==DEST_NONE && k!==DEST_SPLIT;
         if(!(free && (v186 || DEST_SEED[k]===destName(e.n)))){ k=destNewKey(); fresh=true; }
         hit={k:k, n:String(e.n==null?'':e.n).replace(/\s+/g,' ').trim(), kind:(e.kind==='prime'||e.kind==='gov')? e.kind : 'other', t:String(e.t||'')};
         DESTDB.ents.push(hit);
@@ -15379,7 +15603,9 @@ function flowEntUseMap(){
       [d.to, d.end].forEach(function(x){ const k=x? tr(x) : ''; if(!k || seen[k]) return; seen[k]=1;
         const o=out[k]||(out[k]={}); o[where]=(o[where]||0)+1; }); }); });
   };
-  const same=function(x){ return x; };
+  // v2.00 (U44): a requirement on a key a full import moved counts where the key went (destMovedTo) -- ✕ on that destination
+  // removed it while a kept plan still pointed at it, and the plan, opened, made it again from its old name
+  const same=function(x){ return destMovedTo(x); };
   const viaOld=function(m){ return function(x){ return Object.prototype.hasOwnProperty.call(m, x)? m[x] : ''; }; };
   Object.keys((CYCDB&&CYCDB.cycles)||{}).sort().forEach(function(c){
     add(appnName(mySlug())+' locked '+blLblTxt(c), destStoreStates(CYCDB.cycles[c]), same);
@@ -15425,6 +15651,33 @@ function flowAddEnt(){
 function flowDelEnt(i){
   if(cycBlock('Removing a destination')){ render(); return; }   // v2.00 (U10): as flowSetEnt
   const L=flowEnts(), e=L[i]; if(!e) return;
+  // v2.00 (U44): AN ENTRY THAT REPEATS AN EARLIER ENTRY'S KEY is removed alone. Every requirement on the key reads the earlier
+  // entry, which stays: clearing them, as removing a destination does, took a requirement off the destination the board showed
+  // it on, and marked the key gone while the earlier entry still held it.
+  const rep=flowEnt(e.k);
+  if(rep && rep!==e){
+    if(!confirm('Remove '+e.n+'?\n\nIt has the same key as '+rep.n+', and every requirement on that key reads '+rep.n
+      +', which stays. No requirement is changed.')) return;
+    // v2.00 (U44): it is kept as removed under the key of its own it would take (destRepAt), so each later repeat keeps the place
+    // every board gives it: forgotten, the next repeat took its key, and R2, put on Charlie Yard on this board, came across on
+    // Bravo Yard on a board that still held it
+    { const m=L.slice(0, i).filter(function(y){ return y.k===e.k; }).length, g=destOwnKey(e.k, destRepAt(e.k, m, DESTDB.gone, L.map(function(y){ return y.k; })));
+      if(DESTDB.gone.indexOf(g)<0) DESTDB.gone.push(g); }
+    L.splice(i,1); persistDest(); save(); render();
+    setStat('📍 Removed <b>'+esc(e.n)+'</b>, which had the same key as <b>'+esc(rep.n)+'</b>. No requirement was changed.');
+    return;
+  }
+  // v2.00 (U44): NOR IS THE ENTRY A LATER ONE REPEATS removed while that one is on the list: it cleared every requirement on the
+  // key and marked the key gone while the later entry still held it. Removing the repeat first changes nothing.
+  const later=L.filter(function(x){ return x!==e && x.k===e.k; })[0];
+  if(later){
+    // v2.00 (U44): two entries of one name are told apart by the repeat's mark, not by their name
+    alert(String(later.n)===String(e.n)? e.n+' is not removed.\n\nThe other '+later.n+', marked ⚠ repeats '+e.n+', has the same key. Remove '
+      +'that one first — no requirement changes — and then this one, if it is still to go.'
+      : e.n+' is not removed.\n\n'+later.n+' has the same key, and is marked ⚠ repeats '+e.n+'. Remove '+later.n
+      +' first — no requirement changes — and then '+e.n+', if it is still to go.');
+    return;
+  }
   const used=flowEntUse(e.k), elsewhere=flowEntUseElse(e.k);
   if(Object.keys(elsewhere).length){
     alert(e.n+' is not removed.\n\nThe list is shared by every appropriation, and requirements point at it on '
@@ -15475,6 +15728,11 @@ function flowResetEnts(){
     +'It is shared by every appropriation. Destinations you added are removed and any requirement on '
     +'this appropriation pointing at one is cleared.')) return;
   DESTDB.ents.forEach(function(e){ if(!keep[e.k] && DESTDB.gone.indexOf(e.k)<0) DESTDB.gone.push(e.k); });
+  // v2.00 (U44): and each repeat under the key of its own its place gives (destRepAt), as ✕ on a repeat keeps it: kept by its key
+  // only, a manager's board put right sent Bravo Yard back as "ddar1", and the reset destination came back
+  { const L=DESTDB.ents, held=L.map(function(y){ return y.k; }), g0=DESTDB.gone.slice();
+    L.forEach(function(e, i){ const m=L.slice(0, i).filter(function(y){ return y.k===e.k; }).length, g=m? destOwnKey(e.k, destRepAt(e.k, m, g0, held)) : '';
+      if(g && DESTDB.gone.indexOf(g)<0) DESTDB.gone.push(g); }); }
   DESTDB.ents=flowDefEnts(); DESTDB.conflicts=[];
   flowCfg().ents=DESTDB.ents; flowCfg().dv=1;
   const valid={}; flowEnts().forEach(function(e){ valid[e.k]=1; });
@@ -15491,6 +15749,75 @@ function flowResetEnts(){
   persistDest(); save(); render();
 }
 function flowEntName(k){ const e=flowEnt(k); return e? e.n : ''; }
+// v2.00 (U44): A BOARD THAT CARRIES A COPY OF THE LIST HOLDING WHAT A FILE HANDED OVER IS REFUSED FOR says so -- on opening and
+// in the destinations panel -- and offers the one step that puts it right (destOwnFix). A full import puts a board's lists right
+// as they come across (destOwnRight), so only a board an ORBIT before this one left in this browser, a file no ORBIT wrote, or an
+// appropriation a full import kept as this browser had it, carries one here. The funds flow reads it right, but the file the
+// board saves carries every copy, and a board of this version refuses such a file handed over.
+const DEST_OWN_HEAD='The destination list holds what a file handed over is refused for';
+function destOwnSay(){
+  const L=destOwnLists(); if(!L.length) return '';
+  const said=function(odd){ return odd.slice(0,5).map(function(x){ return x.entry? 'holds ents['+x.i+'], which '+x.what : x.what; }).join(', ')
+      +(odd.length>5? ' and '+(odd.length-5)+' more' : ''); };
+  return '⚠ <b>'+DEST_OWN_HEAD+'</b>: '
+    +esc(L.map(function(l){ return (l.at? l.at+' carries a copy of it that ' : 'it ')+said(l.odd); }).join('; '))
+    +'. The funds flow and every export read it right — each key once, under its first entry, never under the flow’s own rows — '
+    +'but a board of this version refuses a file handed over that carries such a list, and the file this board saves carries every '
+    +'copy of it. '
+    +(SANDBOX? 'This PMO copy cannot put it right, and a board of this version refuses a submittal from it: the board that published '
+      +'it puts its list right and publishes a new copy, and the office makes its changes again in that copy.'
+      : 'Until it is put right, this board publishes no PMO copy and issues or sends back no package. '
+        +'<button type="button" class="nb lnk" onclick="destOwnFix()">Put it right</button> — each such entry takes a key of its '
+        +'own, its requirements with it, the way ⬅ Import a full board puts a board right. It asks first.');
+}
+// v2.00 (U44): EVERY COPY OF THE LIST THE BOARD CARRIES, where one breaks the rule: the board's own (`at` ''), then the copy each
+// other appropriation's plan and locked cycles keep -- as the board's saved file carries them (pubsFor, cycByAp) and as a package
+// carries them (pkgStoreOf), each named once. Another appropriation keeps its copy as it was until it opens: a full import of a
+// file that did not carry Full Fund kept Full Fund's copy holding "unassigned", and the board's own saved file was refused by its
+// own door with nothing said. [{at, odd}].
+function destOwnLists(){
+  const out=[];
+  const one=function(L, at){ if(!Array.isArray(L) || L===DESTDB.ents || out.some(function(x){ return x.at===at; })) return;
+    const o=destListOdd(L, 'ents'); if(o.length) out.push({at:at, odd:o}); };
+  const own=destListOdd(DESTDB.ents, 'ents'); if(own.length) out.push({at:'', odd:own});
+  let P={}, C={}; try{ P=pubsFor(MS); }catch(e){} try{ C=cycByAp(); }catch(e){}
+  APPN_SLUGS.forEach(function(k){ const nm=((typeof APPN_NAME!=='undefined' && APPN_NAME[k]) || k);
+    let st=null; try{ st=pkgStoreOf(k); }catch(e){}
+    [P[k], st].forEach(function(s){ if(s && s.flow) one(s.flow.ents, nm+'’s plan'); });
+    if(C[k]) one(C[k].ents, nm+'’s store of locked cycles'); });
+  return out;
+}
+// v2.00 (U44): A FILE THIS BOARD HANDS OUT IS ONE A BOARD OF THIS VERSION TAKES. A PMO copy published while the list held
+// "unassigned" carried it into the office's submittal, which the board then refused -- and a PMO copy cannot put a list right, so
+// the office's work could never come back; a package was refused by its manager after its issue had moved the ledger on, and a
+// manager's return by the consolidated board. So while any copy of the list breaks the rule (destOwnLists), none is written: the
+// board says why, and offers the one step.
+function destOwnBlock(what){
+  const L=destOwnLists(); if(!L.length) return false;
+  alert(what+' is refused: '+DEST_OWN_HEAD.charAt(0).toLowerCase()+DEST_OWN_HEAD.slice(1)+' — '
+    +L.map(function(l){ return (l.at? l.at+' carries a copy of it that ' : 'it ')+l.odd[0].what+(l.odd.length>1? ' and more' : ''); }).join('; ')
+    +'.\n\nA board of this version refuses a file that carries such a list, and a PMO copy cannot put its list right. Put it right '
+    +'first: the button in the message line, or in 📍 Destinations. Nothing was written.');
+  setStat('⚠ <b>'+esc(what)+' is refused</b> — nothing was written. '+destOwnSay());
+  return true;
+}
+// v2.00 (U44): KEPT ON THE OPENING LINE. A line the opening sets after the end of the script -- no copy found beside the board,
+// this browser's copy newer than the file, the shared state file's answer, the shared folder's -- replaced the one that said so,
+// and a board an ORBIT before this one left in this browser opened saying nothing of it. Each keeps it after its own words, once.
+function destOwnKeep(){ try{ const ow=destOwnSay(), de=document.getElementById('shareStat');
+  if(ow && de && de.textContent.indexOf(DEST_OWN_HEAD)<0){ _statQuiet=false; setStat(de.innerHTML? de.innerHTML+' '+ow : ow); } }catch(e){} }
+// The one step: this board, as it stands, through ⬅ Import a full board -- which puts the lists right, asks before anything is
+// replaced, writes everything or nothing, and reopens.
+// v2.00 (U44): built as it stands WITHOUT saving it first (fullImportPreHtml): answered No, saving had already written browser
+// storage and marked the board changed, and its file's next opening said this browser held changes nobody made. And not while a
+// stopped full import holds saving: the import of this board as it stands would lift that hold, and the next 💾 Save would write
+// the mix over the board file -- the one whole copy of the board as it was.
+function destOwnFix(){
+  if(sandboxBlock('Putting the destination list right')) return;
+  if(CYCVIEW){ cycRefuse('Putting the destination list right'); return; }
+  if(impMixedBlock('Putting the destination list right')) return;
+  fullImportText(fullImportPreHtml({}), 'this board as it stands');
+}
 const DEST_NONE='unassigned';
 let flowEntOpen=false;
 const DEST_SPLIT='destsplit';   // same title, requirements pointing different ways
@@ -15559,17 +15886,19 @@ function flowReqIndex(){
   });
   return ix;
 }
-// What the requirements behind one title agree on. '' = none logged; DEST_SPLIT = they disagree.
+// What the requirements behind one title agree on.
+// v2.00 (U44): the destinations they point at, each once, as they are stored: none logged, one, or more (they disagree). It was
+// the one key or DEST_SPLIT -- and "destsplit" is a key a destination can have, so one requirement on it read as a split -- and
+// the number 1 came back as the text "1", which is not the destination the board shows the requirement on.
 function flowDestResolve(ids, axis){
   const seen=Object.create(null);
+  const ks=[];
   (ids||[]).forEach(function(id){
     const it=itemById(id); if(!it) return;
     const k=(axis==='end')? destEndOf(it) : destOf(it).to;
-    if(k) seen[k]=1;
+    if(k && !seen[typeof k+' '+k]){ seen[typeof k+' '+k]=1; ks.push(k); }
   });
-  const ks=Object.keys(seen);
-  if(!ks.length) return '';
-  return ks.length===1? ks[0] : DEST_SPLIT;
+  return ks;
 }
 // ---- which axis the chart groups by
 function flowAxis(){ const a=flowCfg().axis; return (a==='dest'||a==='end')? a : 'buys'; }
@@ -15577,9 +15906,16 @@ function flowSetAxis(a){ flowCfg().axis=(a==='dest'||a==='end')? a : 'buys'; flo
 // The category list for the axis in force. On a destination axis the "categories" are entities,
 // plus a NAMED remainder — money whose requirement has no destination logged, or whose plan event
 // did not match a requirement at all. It is never folded into something else.
+// v2.00 (U44): EACH DESTINATION ONCE, AND NEVER AS A ROW THE FLOW KEEPS FOR ITSELF. A category is the FIRST entry with its key --
+// the one every requirement on that key is shown on (flowEnt) -- named by its place on the list ('e' and its index; `to` is its
+// own key), never by the key's text. A list holding dA twice printed dA's row twice, under its LAST entry's name, and its money
+// twice in every row and sheet but the OGC total; an entry keyed "unassigned" or "destsplit" WAS the flow's own row, printed twice
+// with both rows' money and its own name lost; one keyed "work" took Workforce's breakout. A repeated entry is not a row.
 function flowAxisCats(){
   if(flowAxis()==='buys') return flowCfg().cats || flowDefCats();
-  return flowEnts().map(function(e){ return {k:e.k, n:e.n, kind:e.kind, cat:'', ttl:''}; })
+  const L=flowEnts();
+  return L.map(function(e,i){ return {k:'e'+i, to:e.k, n:e.n, kind:e.kind, cat:'', ttl:''}; })
+    .filter(function(c,i){ return L.findIndex(function(x){ return x.k===c.to; })===i; })
     .concat([{k:DEST_SPLIT, n:'Split between destinations — resolve', cat:'', ttl:''},
              {k:DEST_NONE,  n:'Not yet assigned', cat:'', ttl:''}]);
 }
@@ -15590,9 +15926,10 @@ function flowDestCat(rec, CATS, RIX){
   const last=CATS[CATS.length-1];                       // Not yet assigned
   const ids=RIX? RIX[flowTitleKey(rec.ttl)] : null;
   if(!ids || !ids.length) return last;
-  const k=flowDestResolve(ids, flowAxis());
-  if(!k) return last;
-  const c=CATS.filter(function(x){ return x.k===k; })[0];
+  // v2.00 (U44): requirements that disagree are the split row; one destination is the category whose entry has that key exactly
+  const ks=flowDestResolve(ids, flowAxis());
+  if(ks.length>1) return CATS[CATS.length-2];           // Split between destinations
+  const c=ks.length? CATS.filter(function(x){ return x.to===ks[0]; })[0] : null;
   return c || last;
 }
 function flowCatOf(rec, CATS){
@@ -16034,11 +16371,13 @@ function flowResetCats(){ flowCfg().cats=flowDefCats(); save(); render(); }
 function flowEntEditor(){
   const L=flowEnts();
   const cf=(DESTDB.conflicts||[]).filter(function(c){ return flowEnt(c.k); });
+  const ow=destOwnSay();   // v2.00 (U44)
   let h='<div style="border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin:8px 0;background:var(--panel2)">'
     +'<div style="font-size:9.5px;color:var(--dim);margin-bottom:7px">One list for every appropriation, A to Z. Where money can go. '
     +'<b>Kind</b> decides which requirements can route <i>through</i> it: only a <b>government '
     +'activity</b> offers the second hop, because only a MIPR passes through one on its way to a '
     +'contractor.</div>'
+    +(ow? '<div style="font-size:9.5px;color:var(--amber);margin-bottom:7px">'+ow+'</div>' : '')
     // .fctab is table-layout:fixed, so the columns share the width evenly unless they are told
     // otherwise -- and min-width is ignored outright. Left to itself it gave the two free-text
     // columns about 100px each and cut six of the eight standard destinations off mid-word in
@@ -16050,9 +16389,12 @@ function flowEntEditor(){
   const UM=flowEntUseMap();
   // A to Z, but a destination nobody has named yet reads first, ready to be named -- among thirty it
   // would otherwise land somewhere under N
-  const AZ=flowEntsAZ();
+  const AZ=flowEntsAZ(true);
   AZ.filter(function(e){ return !destNamed(e.n); }).concat(AZ.filter(function(e){ return destNamed(e.n); })).forEach(function(e){
     const i=L.indexOf(e), used=flowEntUse(e.k), U=flowEntUseElse(e.k, UM), uT=flowEntUseElseTxt(U);
+    // v2.00 (U44): AN ENTRY THAT REPEATS AN EARLIER ENTRY'S KEY says so. Every requirement on the key reads the earlier entry and
+    // the funds flow counts the key once, under it, so "Used by" on this one counted the earlier entry's requirements.
+    const rep=(flowEnt(e.k)!==e)? flowEnt(e.k) : null;
     h+='<tr><td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%'
       +(destNamed(e.n)? '"' : ';outline:2px solid var(--amber)" data-destnew="1"')+' '
       +'value="'+esc(e.n)+'" onchange="flowSetEnt('+i+',&quot;n&quot;,this.value)"></td>'
@@ -16063,8 +16405,11 @@ function flowEntEditor(){
       +'</select></td>'
       +'<td style="text-align:left"><input class="btn" style="font-size:9.5px;padding:3px 6px;width:98%" '
       +'value="'+esc(e.t||'')+'" onchange="flowSetEnt('+i+',&quot;t&quot;,this.value)"></td>'
-      +'<td style="font-size:9.5px;color:'+((used||uT)?'var(--ink)':'var(--dim)')+'" title="requirements pointing at it: here, and on the other appropriations">'
-      +(used||(uT?'':'—'))+(uT? (used?' · ':'')+esc(uT) : '')+'</td>'
+      +(rep? '<td style="font-size:9.5px;color:var(--amber)" title="'+esc('This entry has the same key as '+rep.n+'. Every requirement on '
+        +'that key reads '+rep.n+', and the funds flow counts the key once, under it, so nothing is on this entry. Removing it changes '
+        +'no requirement.')+'">\u26a0 repeats '+esc(rep.n)+'</td>'
+      : '<td style="font-size:9.5px;color:'+((used||uT)?'var(--ink)':'var(--dim)')+'" title="requirements pointing at it: here, and on the other appropriations">'
+      +(used||(uT?'':'—'))+(uT? (used?' · ':'')+esc(uT) : '')+'</td>')
       +'<td><button class="qb" style="color:var(--red)" onclick="flowDelEnt('+i+')" title="remove">✕</button></td></tr>';
   });
   h+='</table>'
@@ -16944,8 +17289,8 @@ function flowHtml(){
         let split=0, none=0, tot=0;
         Object.keys(IX).forEach(function(k){
           tot++;
-          const r=flowDestResolve(IX[k], ax);
-          if(r===DEST_SPLIT) split++; else if(!r) none++;
+          const r=flowDestResolve(IX[k], ax);   // v2.00 (U44): the destinations they point at
+          if(r.length>1) split++; else if(!r.length) none++;
         });
         return ' · grouping by <b style="color:var(--ink)">'
           +(ax==='end'? 'ultimate recipient':'first recipient')+'</b> — '
@@ -17171,7 +17516,7 @@ function exportFlow(){
     {name:tabName('Prime Detail','Prime'), cols:CD, rows:detail(F.prime.LM.rows.concat(F.prime.PW.rows))},
     {name:tabName('OGC Detail','OGC'), cols:CD, rows:detail(extAll)}
   ];
-  F.cats.forEach(c=>sheets.push({name:tabName(c.n,c.k), cols:CD,
+  F.cats.forEach(c=>sheets.push({name:tabName(c.n,c.to||c.k), cols:CD,   // v2.00 (U44): an unnamed destination's tab, by its key
     rows:detail((F.ext.by[c.k]||{rows:[]}).rows)}));
   if(F.upl.rows.length) sheets.push({name:tabName('Unfunded (UPL)','UPL'), cols:CD, rows:detail(F.upl.rows)});
   const bytes=buildXlsx(sheets);
@@ -26613,7 +26958,7 @@ function syncBtns(){
         coaDef().groups.length? coaDef().groups.length+' grouping'
           +(coaDef().groups.length===1?'':'s')+' — the structure you agree'
           : 'set up how CCaR records are built'),
-    ent: mi('📍 Destinations…',"mRun(toggleEnt)",entOpen,flowEnts().length+' place'+(flowEnts().length===1?'':'s')+' money can go'),
+    ent: mi('📍 Destinations…',"mRun(toggleEnt)",entOpen,flowEntsAZ().length+' place'+(flowEntsAZ().length===1?'':'s')+' money can go'),
     rcn: (rcnApplies()? mi('🗂 RCN / EEIC…',"mRun(toggleRcn)",rcnOpen,
         rcnReg().length+' combo'+(rcnReg().length===1?'':'s')+' · USAF / ANG / AFRC') : ''),
     si: (siApplies()? mi('🎯 Special Interest codes…',"mRun(toggleSi)",siShown,
@@ -32258,6 +32603,9 @@ function loadShared(cb){
     }catch(e){ cb(undefined); }
   }
 }
+// v2.00 (U44): opening says what destOwnSay says, after the line the opening chose (an import's report, a warning about this
+// browser's copy) -- never in its place. The destinations panel keeps saying it after later messages.
+try{ const ow=destOwnSay(); if(ow){ const de=document.getElementById('shareStat'); _statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+ow); } }catch(e){}
 // THE JOURNAL COMPARES AGAINST WHAT THE BOARD HELD WHEN IT OPENED. Taken lazily on the first save,
 // the first change of every session was never recorded. Taken here rather than on a timer because
 // this is the end of the script: every binding is live, and nothing can edit in between.
@@ -32281,7 +32629,7 @@ try{ setTimeout(function(){
       setStat('⚠ The shared folder could not be read on opening — <b>'
         +esc((e&&e.message)||String(e))+'</b>. This board is showing its own last copy — '
         +'press <b>Connect to the shared folder</b> above.');
-    });
+    }).then(function(){ destOwnKeep(); });   // v2.00 (U44): the folder's answer keeps the destination list's warning
   }catch(e){}
 }, 60); }catch(e){}
 // v1.96 (item 69): the answer, named, so what it does with an answer that arrives after somebody has typed can be tested
@@ -32314,7 +32662,9 @@ function sharedArrived(st){
     setStat('⚠ Your local changes are newer than the shared state ('+fmtTs(st.ts)+') — <button type="button" class="nb lnk" onclick="adoptShared()">load the shared one (yours is kept aside first)</button>, or 💾 Save yours.');
   }
 }
-loadShared(sharedArrived);
+// v2.00 (U44): the answer about the state file beside the board, on opening -- then the destination list's warning kept after it
+function sharedOpened(st){ sharedArrived(st); destOwnKeep(); }
+loadShared(sharedOpened);
 </script>
 </body>
 </html>
