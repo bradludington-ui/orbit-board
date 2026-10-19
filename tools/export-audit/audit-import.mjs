@@ -8200,6 +8200,1096 @@ await (async () => {   // a function, not a bare block: see settleBoards() in bo
   await settleBoards();
 })();
 // ==== end v2.00 (U13) ====
+// ==== v2.00 (U40): two destinations of one list whose names match stay two, and each merge a reading makes by name is said ====
+// Two destinations are one when their names match, ignoring case and spaces (destName) -- yet "ALPHA DEPOT" could be typed
+// beside "Alpha Depot", each with its own requirements. Opened in a browser whose own destination list was newer (a second
+// person's), the file's list was read into that one BY NAME: its second entry matched the first, which the same reading had
+// just added, and the two became one. R2's $300 moved to Alpha Depot -- the year on screen, the next year, both hops, the
+// locked cycle, the funds flow and its workbook -- the opening line said only that the file had opened, and a save kept the
+// merge. The same reading runs for a list saved before v1.86 (in any browser), a plan taken from another file, a load from
+// the shared folder and a PMO submittal, and an older board's map could send both to one key without reading a name. Now a
+// typed name another destination has is refused and nothing changes; one reading never puts two entries of its list into
+// one destination; a name is not trusted where the list or the board holds it twice, or where it names another entry of
+// the same list; and the destinations panel and the opening line name the destinations kept apart and each merge a reading
+// makes by name. Expected dollars are typed: R1 $900, R2 $300, $1,200 in all. CONTROLS (they held before): a fresh browser kept both;
+// a full import replaces the board's list with the file's; an unambiguous name on another list still merges (v1.86), the
+// same way twice; a different name, a kind, match terms and an unnamed placeholder still save.
+// The fix round, (7): one key the list holds twice is one destination -- never named as kept apart from itself, its re-casing
+// not refused as another -- and a key deleted here but still used comes back ONCE, the plan and its locked cycle on one
+// destination; what the notice must not say (two placeholders, terms, a key read into itself) and must say (each list's merge, once).
+// Fix round 2: where that key came back is kept with the list, so a later opening -- the same browser before a save, another
+// appropriation's plan, saved and opened again -- brings it back to the same one, and a record that is not a map is not followed
+// (7, 9); what the notice writes is text, the opening line keeps its own, and the notice is said after a full import (8).
+// Fix round 3: a key brought back for another appropriation's plan is counted where it came back -- Used by names that plan and
+// a delete is refused (9); a record that is an array, two keys brought back, spaces, keys that read like markup, v1.85 lists (10).
+// Fix round 4: a key brought back, read before the key it came back under, is kept apart from it, which keeps its own
+// requirements; the destinations panel's own Used by cell and the list reset count a key brought back too, and a locked cycle
+// still on the deleted key is counted where it will be read (9).
+// Lens A, round 6: a key merged by name is read the same way again after a second list made it a destination of its own, or
+// brought it back on a new key -- the plan, the next year and the locked cycle on one key (9).
+// Lens A, round 6: a key merged by name for another appropriation's plan is counted where it was merged (9).
+// Lens A, round 6: and still where it lands, after a third list brought it back elsewhere (9).
+// Lens A, round 6: a list that holds one key twice is not read through the list's memory (9).
+// Lens A, round 6: a key merged by name is read the same way again from its owner's newer file, whose list has changed (9).
+// Lens A, round 6: where its name is refused, a key merged by name is not read into a destination its list carries apart (9).
+// Lens A, round 6: a key read where it was merged into a destination renamed since is not listed as merged by name, but as read
+// where an earlier reading put it (9, as changed in fix round 6).
+// Fix round 6: a key merged by name and then renamed by its owner stays with its locked cycle, and that is said; a key read where
+// an earlier reading put it -- the record or what is kept by name -- under another name is said once each, not under the same name (9).
+// Fix round 5: a key merged by name is read the same way again once the board holds that name twice -- the plan, the next
+// year and the locked cycle on one key (9); and a key brought back, read before the key it came back under, at an opening where
+// the record is read from storage, whether or not this plan uses the held key, and with two keys brought back in one list (9).
+// Verifier round 7 (lens A): a key merged by name, or brought back, then renamed by its owner to a name the board holds, stays with
+// its locked cycle, and that is said (9).
+// Verifier round 6 (lens B): a merge by name leaves the record of a come-back alone, so the renamed come-back keeps it; and a key of
+// another appropriation's plan merged by name is kept the same way, counted where that plan's next opening puts it; and a record
+// that names a destination since deleted is replaced by the merge (9).
+// Verifier round 7 (lens B): a key read where an earlier reading put it is said once for each appropriation and each name, every name
+// and key as text, beside a merge by name (9).
+// Fix round 7: what is kept by name is held for its key before the list is read, so another entry of the list, read first, never
+// takes that destination by name -- not for a key the reading does not carry (9).
+// Fix round 7: a key that lands where the record says it came back is kept the same way, so a key brought back where its name was
+// refused, then renamed by its owner to a name the board holds, stays with its locked cycle, said (9).
+// Fix round 7: a record that is an array is not followed for another appropriation's list either, at a later opening (10).
+// Fix round 7: what each entry of a list holding one key twice says, read twice; a key merged by name while its record names another
+// destination stays merged (9); two keys brought back for another appropriation's list both come back at a later opening (10).
+// Verifier round 8 (lens A): a key merged by name, read from its owner's newer file whose list carries apart the destination it was
+// merged into, leaves its locked cycle there, and that is said (9).
+// Verifier round 8 (lens B): what is kept by name is held for a key the board has come to hold since, and for a key brought back (9).
+// Beside U44 (L8 trial 3, F1; U71): a key read by the key a full import moved it to, or by the key of its own another board gave it,
+// is read by key -- no merge by name -- and is not listed as merged by name, in the panel or on the opening line (12).
+await (async () => {   // a function, not a bare block: see settleBoards() in boot.mjs
+  const __bm = bootMark();
+  const name = 'v2.00 (U40) — two destinations of one list whose names match stay two, and each merge a reading makes by name is said';
+  try {
+  const J = JSON.stringify;
+  const SC = { services: ['USAF', 'ANG', 'AFRC'], items: [v10It('R1', 'AV', [900, 0, 0]), v10It('R2', 'AV', [300, 0, 0])],
+    disc: [5000, 5000, 5000], mand: [0, 0, 0], order: ['R1', 'R2'] };
+  const make = () => { const B = boot(); seed(B.ev, SC); asBooted(B.ev, SC); B.ev(`applyState(S); save(); 'ok'`); return B; };
+  const PAIR = [{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'ALPHA DEPOT', kind: 'gov', t: '' }];
+  // the board's list made exactly these, IN PLACE: the plan and the cycle store hold the same list, so nothing is read in again
+  const LIST = l => `DESTDB.ents.splice(0, DESTDB.ents.length); ${J(l)}.forEach(function(e){ DESTDB.ents.push(e); });`;
+  const lsOf = B => JSON.parse(B.ev(`(function(){ var o={}; for(var i=0;i<localStorage.length;i++){ var k=localStorage.key(i); o[k]=localStorage.getItem(k); } return JSON.stringify(o); })()`));
+  const stat = B => B.ev(`(document.getElementById('shareStat')||{}).textContent||''`);
+  const nm = `function(k){ var e=flowEnts().filter(function(x){ return x.k===k; })[0]; return e? e.n : '(none: '+k+')'; }`;
+  // R1 and R2 by destination NAME, both hops, in the year on screen, the next saved year and the locked cycle; and two keys
+  const where = B => JSON.parse(B.ev(`(function(){ var n=${nm};
+    var one=function(st){ var D=(st&&st.dest)||{}; return ['R1','R2'].map(function(id){ var d=D[id]||{}; return id+': '+n(d.to)+' > '+n(d.end); }).join(' | '); };
+    var c=CYCDB.cycles['PB|'+MS.cur];
+    return JSON.stringify([one(S), one(MS.years[MS.cur+1]), c? one(c.years[MS.cur]) : '(no locked cycle)', S.dest.R1.to!==S.dest.R2.to]); })()`));
+  const ROW = 'R1: Alpha Depot > ALPHA DEPOT | R2: ALPHA DEPOT > Alpha Depot';
+  const WHERE = [ROW, ROW, ROW, true];
+  // the year on screen alone, first hop: [R1's destination, R2's, two keys]
+  const here = B => B.ev(`(function(){ var n=${nm}; return JSON.stringify([n(S.dest.R1.to), n(S.dest.R2.to), S.dest.R1.to!==S.dest.R2.to]); })()`);
+  const HERE = J(['Alpha Depot', 'ALPHA DEPOT', true]);
+  // the funds flow by destination: {key: [name, dollars]} for every destination holding money, and the total
+  const money = B => B.ev(`(function(){ var f=flowCalc(), n=${nm}, o={};
+    var t={}; f.cats.forEach(function(c){ t[c.to===undefined? c.k : c.to]=c.k; });
+    Object.keys(t).sort().forEach(function(k){ var b=f.ext.by[t[k]]; if(b.v) o[k]=[n(k), b.v]; }); return JSON.stringify([o, f.tot]); })()`);
+  const FLOW = J([{ 'U40-A': ['Alpha Depot', 900], 'U40-B': ['ALPHA DEPOT', 300] }, 1200]);
+  // the Funds Flow workbook as exported, read back: each Alpha sheet's requirement rows, '<requirement> <amount>'
+  const sheets = async B => { const b = JSON.parse(await B.w.eval(`(async function(){ var cap=null, _B=window.Blob;
+      window.Blob=function(p,o){ if(p&&p[0]&&p[0].byteLength) cap=p[0]; return new _B(p,o); };
+      try{ exportFlow(); } finally{ window.Blob=_B; } if(!cap) throw Error('no workbook was made');
+      return JSON.stringify(await xlsxRead(cap.buffer.slice(cap.byteOffset, cap.byteOffset+cap.byteLength))); })()`));
+    const o = {}; Object.keys(b).forEach(n => { const r = b[n].filter(x => /^Req R\d$/.test(String(x[0]))).map(x => x[0] + ' ' + x[5]);
+      if (r.length && /alpha/i.test(n)) o[n] = r; }); return J(o); };
+  // what the destinations panel says of matching names, and of merges by name ('(nothing)' when it says nothing)
+  const said = (B, re) => { const m = B.ev('flowEntEditor()').match(re); return m ? m[1] : '(nothing)'; };
+  const APART = /⚠ <b>Destinations with matching names are kept apart:<\/b> ([^<]*)/;
+  const MERGED = /<b>Merged by name<\/b> \(the same name, ignoring case and spaces\): ([^<]*)/;
+  const PAIRSAID = 'Alpha Depot [U40-A] · ALPHA DEPOT [U40-B]. Each keeps its own requirements and money; rename one so they can be told apart.';
+
+  // ---- (1) TYPING. "ALPHA DEPOT" and "  alpha   depot  " beside "Alpha Depot": refused, nothing changing anywhere ----
+  const T = make();
+  T.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-B', n: 'Bravo Yard', kind: 'other', t: '' }])}
+    var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; persistDest(); save(); return 'ok'; })()`);
+  const tState = () => T.ev(`JSON.stringify([DESTDB.ents, S.dest, _saveGen, _sideGen, DIRTY, _baseDirty])`);
+  for (const [raw, shown] of [['ALPHA DEPOT', '“ALPHA DEPOT”'], ['  alpha   depot  ', '“  alpha   depot  ”']]) {
+    const sc = '(1) typed ' + shown;
+    const s0 = tState(), l0 = J(lsOf(T));
+    T.ev(`flowSetEnt(1, 'n', ${J(raw)}); 'ok'`);
+    chk(name, sc, 'refused: the destination keeps the name Bravo Yard', T.ev('DESTDB.ents[1].n'), 'Bravo Yard');
+    chk(name, sc, 'nothing else changed: the list, the requirements, the change counts, the unsaved marks', tState(), s0);
+    chk(name, sc, 'and nothing was written to browser storage', J(lsOf(T)), l0);
+    chk(name, sc, 'and the board says so, word for word', stat(T), '⚠ Destination name not changed. ' + shown + ' matches “Alpha Depot”, another destination on the list '
+      + '(names are compared ignoring case and spaces). This one keeps the name “Bravo Yard”; give it a name of its own. Nothing was changed.');
+  }
+  // the panel's own field, through its change handler (Bravo Yard put back first, on a board that took a typed name)
+  T.ev(`(function(){ flowSetEnt(1, 'n', 'Bravo Yard'); entOpen=true; render();
+    var el=[].slice.call(document.querySelectorAll('#entBody input')).filter(function(x){ return /^flowSetEnt\\(\\d+,"n",/.test(x.getAttribute('onchange')||'') && x.value==='Bravo Yard'; })[0];
+    if(!el) throw Error('the name field of Bravo Yard is not in the panel');
+    el.focus(); el.value='ALPHA DEPOT'; el.dispatchEvent(new Event('change', {bubbles:true})); globalThis.__u40el=el; return 'ok'; })()`);
+  chk(name, '(1) the panel field', 'refused: Bravo Yard kept; the field keeps what was typed, marked invalid, its tooltip says why, focus stays',
+    T.ev(`JSON.stringify([DESTDB.ents[1].n, __u40el.value, __u40el.getAttribute('aria-invalid'), __u40el.title, document.activeElement===__u40el])`),
+    J(['Bravo Yard', 'ALPHA DEPOT', 'true', '“ALPHA DEPOT” matches “Alpha Depot”, another destination on the list (names are compared ignoring case and spaces). '
+      + 'This one keeps the name “Bravo Yard”; give it a name of its own. Nothing was changed', true]));
+  T.ev(`(function(){ __u40el.value='Charlie Yard'; __u40el.dispatchEvent(new Event('change', {bubbles:true}));
+    globalThis.__u40ok=[].slice.call(document.querySelectorAll('#entBody input')).filter(function(x){ return x.value==='Charlie Yard'; })[0]; return 'ok'; })()`);
+  chk(name, '(1) the panel field', 'CONTROL: a name of its own is stored, and the field redrawn without the mark or the tooltip',
+    T.ev(`JSON.stringify([DESTDB.ents[1].n, !!__u40ok && __u40ok.getAttribute('aria-invalid'), !!__u40ok && __u40ok.title])`), J(['Charlie Yard', null, '']));
+  T.ev(`flowSetEnt(0, 'n', 'ALPHA DEPOT'); flowSetEnt(1, 'kind', 'gov'); flowSetEnt(1, 't', 'CHARLIE'); flowAddEnt(); flowAddEnt(); 'ok'`);
+  chk(name, '(1) controls', 'CONTROL: a destination re-spelled in its own name, a kind, match terms and two unnamed placeholders all save',
+    T.ev(`JSON.stringify([DESTDB.ents[0].n, DESTDB.ents[1].kind, DESTDB.ents[1].t, DESTDB.ents.filter(function(e){ return e.n==='New destination'; }).length])`),
+    J(['ALPHA DEPOT', 'gov', 'CHARLIE', 2]));
+
+  // ---- (2) THE FILE: the pair as an earlier board saved it -- both hops, two years, a locked cycle, the flow by destination ----
+  const X = make();
+  X.ev(`(function(){ ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; C.axis='dest'; C.fys=[MS.cur]; C.aps=['om'];
+    S.dest={R1:{to:'U40-A',end:'U40-B'}, R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+    persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+  const html = X.ev('buildSavedHtml()');
+  const PUBRE = /<script type="application\/json" id="pubState">([\s\S]*?)<\/script>/;
+  const SHEETS = J({ 'Alpha Depot': ['Req R1 900'], 'ALPHA DEPOT 2': ['Req R2 300'] });
+  // everything a reading must leave as the file had it, and say; `c` marks a reading that kept it before as well (a control)
+  const all = async (B, at, sheetsWant, apart, c = '') => {
+    chk(name, at, c + 'R1 and R2 keep their own destinations, both hops, in the year on screen, the next year and the locked cycle, on two keys', J(where(B)), J(WHERE));
+    chk(name, at, c + 'the funds flow: R1’s $900 on Alpha Depot, R2’s $300 on ALPHA DEPOT, $1,200 in all', money(B), FLOW);
+    chk(name, at, c + 'the Funds Flow workbook: R1’s $900 and R2’s $300 on two sheets, one each', await sheets(B), sheetsWant);
+    chk(name, at, 'the destinations panel names the destinations kept apart', said(B, APART), apart);
+  };
+  chk(name, '(2) the file', 'CONTROL: the fixture holds the pair, on the keys it was given', J(JSON.parse(html.match(PUBRE)[1]).destDb.ents.map(e => e.k + ':' + e.n)), J(['U40-A:Alpha Depot', 'U40-B:ALPHA DEPOT']));
+  { const F = boot({ html });
+    chk(name, '(2) a fresh browser', 'the opening line is kept, and names the two kept apart', [stat(F).startsWith('📦 Opened with the saved board state'), stat(F).endsWith(' ⚠ Destinations with matching names are kept apart: ' + PAIRSAID)].join(','), 'true,true');
+    await all(F, '(2) a fresh browser', SHEETS, PAIRSAID, 'CONTROL: '); }
+  // ---- (3) A SECOND PERSON'S NEWER LIST, holding neither key: Bravo Yard alone, or an Alpha Depot of its own ----
+  for (const [own, sheetsWant, apart] of [
+    ['Bravo Yard', SHEETS, PAIRSAID],
+    ['Alpha Depot', J({ 'Alpha Depot 2': ['Req R1 900'], 'ALPHA DEPOT 3': ['Req R2 300'] }), 'Alpha Depot [U40-C] · ' + PAIRSAID]]) {
+    const at = '(3) opened where a newer list holds ' + own;
+    const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: own, kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const B = boot({ html, ls: { prio27destdb: J(db) } });
+    chk(name, at, 'CONTROL: the opening line is still the board’s own', stat(B).startsWith('📦 Opened with the saved board state'), true);
+    chk(name, at, 'and it goes on to name the destinations kept apart', stat(B).endsWith(' ⚠ Destinations with matching names are kept apart: ' + apart), true);
+    chk(name, at, 'CONTROL: the newer list’s own destination is kept, on its own key', B.ev(`JSON.stringify(flowEnts().filter(function(e){ return e.k==='U40-C'; }).map(function(e){ return e.n; }))`), J([own]));
+    await all(B, at, sheetsWant, apart);
+    const B2 = boot({ html: B.ev('buildSavedHtml()') });
+    await all(B2, at + ', saved there and reopened', sheetsWant, apart);
+  }
+
+  // ---- (4) A LIST SAVED BEFORE v1.86 holding the pair (no board list; the plan's own, unmarked), in a browser that never held it ----
+  { const Lg = make();
+    Lg.ev(`(function(){ _destReady=false; MS.flow={ents:[{k:'x1',n:'Alpha Depot',kind:'other',t:''},{k:'x2',n:'ALPHA DEPOT',kind:'other',t:''}]};
+      S.dest={R1:{to:'x1',end:''},R2:{to:'x2',end:''}}; MS.years[MS.cur]=S; save(); return 'ok'; })()`);
+    const lh = v186AsV185(Lg.ev('buildSavedHtml()'));
+    const LJ = JSON.parse(lh.match(PUBRE)[1]);
+    chk(name, '(4) before v1.86', 'CONTROL: the fixture is what v1.85 wrote (no board list, an unmarked plan list of two)', J([!!LJ.destDb, !!LJ.appns.om.flow.dv, LJ.appns.om.flow.ents.length]), J([false, false, 2]));
+    const C = boot({ html: lh });
+    chk(name, '(4) before v1.86', 'R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys', here(C), HERE);
+    chk(name, '(4) before v1.86', 'the opening line names the two kept apart', /⚠ Destinations with matching names are kept apart: Alpha Depot \[d[0-9a-z]+\] · ALPHA DEPOT \[d[0-9a-z]+\]\. Each keeps/.test(stat(C)), true);
+    const C2 = boot({ html: lh, ls: lsOf(C) });
+    chk(name, '(4) before v1.86', 'CONTROL: reopened before it is saved, the same keys again', C2.ev(`JSON.stringify([S.dest.R1.to, S.dest.R2.to])`), C.ev(`JSON.stringify([S.dest.R1.to, S.dest.R2.to])`));
+    chk(name, '(4) before v1.86', 'saved and reopened: R1 on Alpha Depot, R2 on ALPHA DEPOT', here(boot({ html: C.ev('buildSavedHtml()') })), HERE); }
+
+  // ---- (5) THE OTHER WAYS A LIST IS READ IN: a plan taken from the file, a shared-folder load, a PMO submittal; a full import ----
+  const takeIn = () => { const Y = make(); Y.ev(`flowAddEnt(); flowSetEnt(flowEnts().length-1, 'n', 'Bravo Yard'); 'ok'`); return Y; };
+  { const Y = takeIn();
+    Y.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; var txt=${J(html)};
+      consTakeApply(JSON.parse(txt.match(/<script type="application\\/json" id="pubState">([\\s\\S]*?)<\\/script>/)[1]), txt, 'x.html', ['om'], false); return 'ok'; })()`);
+    const Y2 = boot({ ls: lsOf(Y) });
+    chk(name, '(5) O&M taken from the file', 'R1 and R2 keep their destinations, both hops, every year and the locked cycle that came with it', J(where(Y2)), J(WHERE));
+    chk(name, '(5) O&M taken from the file', 'the funds flow', money(Y2), FLOW); }
+  { const Y = takeIn();
+    chk(name, '(5) a shared-folder load', 'it loads; R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys',
+      J([Y.ev(`applyStore(${J(JSON.parse(html.match(PUBRE)[1]).appns.om)})!==false`), here(Y)]), J([true, HERE])); }
+  { const Y = takeIn();
+    chk(name, '(5) a PMO submittal', 'R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys', Y.ev(`(function(){ var n=${nm};
+      var p={ap:'om', dest:${J(PAIR)}, items:{R1:{dest:{to:'U40-A',end:''}}, R2:{dest:{to:'U40-B',end:''}}}, base:{}, added:[]}; destPkgIn(p);
+      return JSON.stringify([n(p.items.R1.dest.to), n(p.items.R2.dest.to), p.items.R1.dest.to!==p.items.R2.dest.to]); })()`), HERE); }
+  { const Y = takeIn();
+    const ok = Y.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return fullImportText(${J(html)}, 'x.html'); })()`);
+    const Y2 = boot({ ls: lsOf(Y) });
+    chk(name, '(5) a full import', 'CONTROL: it runs, and the file’s list replaces the board’s: nothing moved', J([ok, where(Y2)]), J([true, WHERE])); }
+
+  // ---- (6) ONE READING, ITS LIST AND THE BOARD'S: what a name may and may not decide (destFold read directly) ----
+  { const K = make();
+    chk(name, '(6) a key of the same list', 'a name never claims the destination another entry of the same list IS (U40-B, renamed here): both kept, nothing re-pointed',
+      K.ev(`(function(){ ${LIST([{ k: 'U40-B', n: 'Alpha Depot', kind: 'other', t: '' }])}
+        var al=destFold([{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'Bravo Yard',kind:'other',t:''}], 'om', true, {'U40-A':1,'U40-B':1});
+        return JSON.stringify([al, DESTDB.ents.map(function(e){ return e.k; }).sort()]); })()`), J([{}, ['U40-A', 'U40-B']])); }
+  { const A = make();
+    chk(name, '(6) a name the board holds twice', 'no first one is picked: the incoming destination is kept on its own key',
+      A.ev(`(function(){ ${LIST(PAIR)} var al=destFold([{k:'U40-C',n:'alpha depot',kind:'other',t:''}], 'ff', true, {'U40-C':1});
+        return JSON.stringify([al, DESTDB.ents.map(function(e){ return e.k; })]); })()`), J([{}, ['U40-A', 'U40-B', 'U40-C']])); }
+  { const M = make();
+    chk(name, '(6) an older board’s map', 'a map that sends both entries of a list to one destination is not followed for the second: R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys',
+      M.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'other', t: '' }])} var q=${J(PAIR)}; DESTDB.lmap[destSig(q)]={'U40-A':'U40-C','U40-B':'U40-C'};
+        S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; destRemap([S], destFold(q, 'om', false, {'U40-A':1,'U40-B':1}));
+        var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; C.axis='dest'; C.fys=[MS.cur]; C.aps=['om']; persistDest(); save(); return 'ok'; })()`) === 'ok' ? here(M) : '(threw)', HERE);
+    chk(name, '(6) an older board’s map', 'the funds flow: $900 and $300 on two destinations, $1,200 in all',
+      M.ev(`(function(){ var f=flowCalc(), ck=function(to){ var c=f.cats.filter(function(c){ return c.to===to; })[0]; return c? c.k : to; };
+        return JSON.stringify([f.ext.by[ck(S.dest.R1.to)].v, f.ext.by[ck(S.dest.R2.to)].v, f.tot]); })()`), J([900, 300, 1200]));
+    chk(name, '(6) an older board’s map', 'saved and reopened: R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys', here(boot({ html: M.ev('buildSavedHtml()') })), HERE); }
+  { const G = make();
+    chk(name, '(6) a name a destination took on since', 'x1 was read into a destination since renamed Bravo Yard; x2 (Bravo Yard, its destination gone here, still used) is not put into it',
+      G.ev(`(function(){ ${LIST([{ k: 'U40-D', n: 'Bravo Yard', kind: 'other', t: '' }])} var q=[{k:'x1',n:'Alpha Depot',kind:'other',t:''},{k:'x2',n:'Bravo Yard',kind:'other',t:''}];
+        DESTDB.lmap[destSig(q)]={x1:'U40-D', x2:'U40-GONE'}; var al=destFold(q, 'om', false, {x1:1, x2:1});
+        return JSON.stringify([al.x1, al.x2!=='U40-D', DESTDB.ents.length]); })()`), J(['U40-D', true, 2])); }
+  { const L = make();
+    L.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: 'OLD' }])} var q=[{k:'x1',n:'ALPHA  DEPOT',kind:'other',t:'NEW'}];
+      globalThis.__u40maps=JSON.stringify([destFold(q, 'ff', false, {x1:1}), destFold(q, 'ff', false, {x1:1})]); return 'ok'; })()`);
+    chk(name, '(6) one name on another list', 'CONTROL: still merged by name (v1.86), the same way twice: one destination, both lists’ match terms',
+      L.ev(`JSON.stringify([JSON.parse(__u40maps), DESTDB.ents.length, DESTDB.ents[0].t])`), J([[{ x1: 'U40-A' }, { x1: 'U40-A' }], 1, 'OLD, NEW']));
+    chk(name, '(6) one name on another list', 'and the merge is listed in the destinations panel, with the list it came from', said(L, MERGED), 'ALPHA  DEPOT [x1, Full Fund] → Alpha Depot [U40-A].');
+    chk(name, '(6) one name on another list', 'CONTROL: no destination is named as kept apart', said(L, APART), '(nothing)'); }
+
+  // ---- (7) ONE KEY HELD TWICE, A KEY BROUGHT BACK, AND WHAT THE NOTICE MUST AND MUST NOT SAY (the fix round) ----
+  // v1.85 files with a plan list in O&M and in Full Fund, built as the v1.86 block builds its fixture
+  const legacy = (h, appn, list, dest) => { const B = boot({ html: h, appn }); seed(B.ev, SC); asBooted(B.ev, SC);
+    B.ev(`(function(){ _destReady=false; applyState(S); MS.years[MS.cur]=S; MS.flow={ents:${J(list)}}; S.dest=${J(dest)}; save(); return 'ok'; })()`);
+    return B; };
+  const NEWER = l => ({ prio27destdb: J({ ts: Date.now() + 60000, ents: l, lmap: {}, lsig: {}, conflicts: [], gone: [] }) });
+  // two unnamed placeholders (added in (1)'s controls) are not destinations with matching names
+  chk(name, '(7) two unnamed placeholders', 'CONTROL: the panel names nothing kept apart', said(T, APART), '(nothing)');
+  // match terms that read like another destination's name are an ordinary edit, not a name
+  T.ev(`flowSetEnt(1, 't', 'ALPHA DEPOT'); 'ok'`);
+  chk(name, '(7) match terms', 'CONTROL: terms “ALPHA DEPOT” on Charlie Yard are stored, beside a destination named ALPHA DEPOT', T.ev('DESTDB.ents[1].t'), 'ALPHA DEPOT');
+  // a key read into the destination of its OWN key is not a merge: both lists carry the seeded Lockheed Martin [lm]
+  { const LM = { k: 'lm', n: 'Lockheed Martin', kind: 'prime', t: 'LM, LOCKHEED' };
+    const F = legacy(null, 'FULL FUND', [LM, { k: 'x1', n: 'Charlie Yard', kind: 'other', t: '' }], { R1: { to: 'x1', end: '' }, R2: { to: 'lm', end: '' } });
+    const O = legacy(F.ev('buildSavedHtml()'), null, [LM, { k: 'x1', n: 'Alpha Depot', kind: 'other', t: '' }], { R1: { to: 'x1', end: '' }, R2: { to: 'lm', end: '' } });
+    const C = boot({ html: v186AsV185(O.ev('buildSavedHtml()')) });
+    chk(name, '(7) the seeded lm on two lists', 'CONTROL: no merge by name is said, on the opening line or in the panel', J([/Merged by name/.test(stat(C)), said(C, MERGED)]), J([false, '(nothing)'])); }
+  // the same key on two lists, read into one destination by name: each merge is listed, with its own list
+  { const F = legacy(null, 'FULL FUND', [{ k: 'x1', n: 'alpha depot', kind: 'other', t: '' }, { k: 'x2', n: 'Delta Base', kind: 'other', t: '' }], { R1: { to: 'x1', end: '' } });
+    const O = legacy(F.ev('buildSavedHtml()'), null, [{ k: 'x1', n: 'ALPHA DEPOT', kind: 'other', t: '' }], { R1: { to: 'x1', end: '' } });
+    const C = boot({ html: v186AsV185(O.ev('buildSavedHtml()')), ls: NEWER([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }]) });
+    chk(name, '(7) x1 on O&M and on Full Fund', 'both read into U40-A by name, and both merges listed, each with its list', said(C, MERGED),
+      'ALPHA DEPOT [x1, O&amp;M] → Alpha Depot [U40-A] · alpha depot [x1, Full Fund] → Alpha Depot [U40-A].'); }
+  // one PMO copy's list read twice in a session (two submittals): its merge is listed once
+  { const P = make();
+    P.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} persistDest(); save();
+      var pk=function(){ return {ap:'ff', dest:[{k:'x9',n:'ALPHA DEPOT',kind:'other',t:''}], items:{R1:{dest:{to:'x9',end:''}}}, base:{}, added:[]}; };
+      destPkgIn(pk()); destPkgIn(pk()); return 'ok'; })()`);
+    chk(name, '(7) two submittals of one list', 'the merge is listed once', said(P, MERGED), 'ALPHA DEPOT [x9, Full Fund] → Alpha Depot [U40-A].'); }
+  // a kept map whose second entry's destination another entry took: the entry falls to its own name, and that merge is listed
+  { const Q = make();
+    const got = Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-E', n: 'Charlie Yard', kind: 'other', t: '' }])}
+      var q=[{k:'x1',n:'Alpha Depot',kind:'other',t:''},{k:'x2',n:'Charlie Yard',kind:'other',t:''}]; DESTDB.lmap[destSig(q)]={x1:'U40-C', x2:'U40-C'};
+      var al=destFold(q, 'om', false, {x1:1, x2:1}); return JSON.stringify([al.x1, al.x2]); })()`);
+    chk(name, '(7) a kept map, its second entry taken', 'x2 falls to its own name (U40-E), and that merge is listed', got + ' ' + said(Q, MERGED),
+      '["U40-C","U40-E"] Charlie Yard [x2, O&amp;M] → Charlie Yard [U40-E].'); }
+  // ONE KEY HELD TWICE is one destination (U44's fixture shape): read against a newer list it keeps its key, nothing is named as
+  // kept apart, fresh or against the newer list, and re-casing its second entry is not refused as "another destination"
+  { const K2 = make();
+    K2.ev(`(function(){ ${LIST([{ k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dB', n: 'Bravo Yard', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'dA',end:''},R2:{to:'dB',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const h2 = K2.ev('buildSavedHtml()');
+    const B = boot({ html: h2, ls: NEWER([{ k: 'U40-C', n: 'Charlie Yard', kind: 'other', t: '' }]) });
+    chk(name, '(7) one key held twice, a newer list', 'CONTROL: R1 keeps dA, and dA is the only key named Alpha Depot',
+      B.ev(`JSON.stringify([S.dest.R1.to, flowEnts().filter(function(e){ return e.n==='Alpha Depot'; }).map(function(e){ return e.k; }).filter(function(k,i,a){ return a.indexOf(k)===i; })])`), J(['dA', ['dA']]));
+    const F = boot({ html: h2 });
+    chk(name, '(7) one key held twice', 'CONTROL: nothing is named as kept apart, fresh or against the newer list', J([said(F, APART), said(B, APART)]), J(['(nothing)', '(nothing)']));
+    chk(name, '(7) one key held twice', 'CONTROL: re-casing its second entry is not refused as another destination (it is dA itself)',
+      F.ev(`(function(){ var L=flowEnts(), i=-1; L.forEach(function(e,j){ if(e.k==='dA' && L.findIndex(function(x){ return x.k==='dA'; })<j) i=j; });
+        if(i>=0) flowSetEnt(i, 'n', 'ALPHA DEPOT'); return /another destination on the list/.test((document.getElementById('shareStat')||{}).textContent||''); })()`), false); }
+  // ... and beside a real pair (dC "ALPHA DEPOT", a key of its own): dA and dC are named, dA once
+  { const K3 = make();
+    K3.ev(`(function(){ ${LIST([{ k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dC', n: 'ALPHA DEPOT', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'dA',end:''},R2:{to:'dC',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    chk(name, '(7) one key held twice, beside a real pair', 'the panel names dA and dC as kept apart, dA once', said(boot({ html: K3.ev('buildSavedHtml()') }), APART),
+      'Alpha Depot [dA] · ALPHA DEPOT [dC]. Each keeps its own requirements and money; rename one so they can be told apart.'); }
+  // A KEY BROUGHT BACK: the file's pair, opened where the newer list deleted ALPHA DEPOT (U40-B, in its `gone`) while R1's second
+  // hop and R2 still use it. It comes back under a new key -- ONCE: the plan, the next year and the locked cycle are read one after
+  // another, and each reading used to make its own, so R2 sat on one ALPHA DEPOT in the plan and another in the locked cycle
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    // [destinations named ALPHA DEPOT, the keys R1's second hop and R2 use in the year on screen, the next year and the locked cycle]
+    const once = Bx => Bx.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.end, st.dest.R2.to); });
+      return JSON.stringify([flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`);
+    // the funds flow by destination NAME (the new key is not known before), sorted, and the total
+    const byName = Bx => { const m = JSON.parse(money(Bx)), o = {}; Object.values(m[0]).forEach(([n, v]) => { o[n] = (o[n] || 0) + v; });
+      return J([Object.entries(o).sort(), m[1]]); };
+    const at = '(7) opened where the newer list deleted ALPHA DEPOT';
+    const B = boot({ html, ls: { prio27destdb: J(db) } });
+    chk(name, at, 'R1 and R2 keep their destinations by name, both hops, in the year on screen, the next year and the locked cycle', J(where(B)), J(WHERE));
+    chk(name, at, 'one ALPHA DEPOT comes back, and every year and the locked cycle use it: [destinations, keys]', once(B), J([1, 1]));
+    chk(name, at, 'the funds flow by name: $300 on ALPHA DEPOT, $900 on Alpha Depot, $1,200 in all', byName(B), J([[['ALPHA DEPOT', 300], ['Alpha Depot', 900]], 1200]));
+    chk(name, at, 'the destinations panel names two kept apart: Alpha Depot [U40-A] and the one ALPHA DEPOT',
+      /^Alpha Depot \[U40-A\] · ALPHA DEPOT \[d[0-9a-z]+\]\. Each keeps/.test(said(B, APART)), true);
+    chk(name, at + ', saved there and reopened', 'still one ALPHA DEPOT, used in every year and the locked cycle: [destinations, keys]', once(boot({ html: B.ev('buildSavedHtml()') })), J([1, 1])); }
+  // ... read directly: the same list read again comes back to the same destination; read beside the key it came back under, it is
+  // kept apart from that one (one reading never puts two of its entries into one destination)
+  { const Q = make();
+    chk(name, '(7) a key brought back under a new one', 'the same list again: the same destination; beside the key it came back under: kept apart from it',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B');
+        var q=[{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}];
+        var nk=destFold(q, 'om', true, {'U40-B':1})['U40-B'], again=destFold(q, 'om', true, {'U40-B':1})['U40-B'];
+        var beside=destFold([{k:nk,n:'ALPHA DEPOT',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1})['U40-B'];
+        return JSON.stringify([!!nk && nk!=='U40-A' && nk!=='U40-B', again===nk, !!beside && beside!==nk && beside!=='U40-A']); })()`), J([true, true, true])); }
+  // ... and AT THE NEXT OPENING (verifier, lens A, round 2): where the key came back is kept with the list, so the same browser
+  // reopening the file before a save, and a board opened from a save, bring it back to that one destination -- not to one more
+  // ALPHA DEPOT at each opening, the plan on the newest and the locked cycle on the first
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const once = Bx => Bx.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.end, st.dest.R2.to); });
+      return JSON.stringify([flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`);
+    const B1 = boot({ html, ls: { prio27destdb: J(db) } }), B2 = boot({ html, ls: lsOf(B1) }), B3 = boot({ html, ls: lsOf(B2) });
+    chk(name, '(7) reopened in the same browser before a save, twice', 'still one ALPHA DEPOT, used in every year and the locked cycle: [destinations, keys]', once(B3), J([1, 1]));
+    // Full Fund's plan holds the pair; the board opens on O&M, which reads Full Fund's list for its names only
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const O2 = boot({ html: O1.ev('save(); buildSavedHtml()'), appn: 'O&M' });
+    chk(name, '(7) Full Fund’s pair read on O&M, saved, opened again', 'one ALPHA DEPOT on the list, not one more at each opening',
+      O2.ev(`JSON.stringify([mySlug(), flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length])`), J(['om', 1])); }
+
+  // ---- (8) WHAT THE NOTICE WRITES IS TEXT; THE OPENING LINE KEEPS ITS OWN; A KEY BROUGHT BACK TO A DESTINATION DELETED SINCE;
+  // THE OPENING AFTER A FULL IMPORT; ONE KEY INTO A SECOND DESTINATION (verifier, lens B, round 2) ----
+  // names a file holds that read like markup are written as text (esc: every "<" as &lt;): in the panel, on the opening line, and in a merge
+  { const X = make();
+    X.ev(`(function(){ ${LIST([{ k: 'U40-H', n: '<i>Depot</i>', kind: 'other', t: '' }, { k: 'U40-I', n: '<I>DEPOT</I>', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-H',end:''},R2:{to:'U40-I',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const F = boot({ html: X.ev('buildSavedHtml()') });
+    chk(name, '(8) names that read like markup', 'the panel writes both as text', said(F, APART),
+      '&lt;i>Depot&lt;/i> [U40-H] · &lt;I>DEPOT&lt;/I> [U40-I]. Each keeps its own requirements and money; rename one so they can be told apart.');
+    chk(name, '(8) names that read like markup', 'CONTROL: and the opening line holds no element made from a name', F.ev(`document.querySelectorAll('#shareStat i').length`), 0);
+    const M = make();
+    M.ev(`(function(){ ${LIST([{ k: 'U40-A', n: '<i>Alpha</i> Depot', kind: 'other', t: '' }])} destFold([{k:'x1',n:'<I>ALPHA</I> DEPOT',kind:'other',t:''}], 'ff', false, {x1:1}); return 'ok'; })()`);
+    chk(name, '(8) names that read like markup', 'a merge by name lists both names as text', said(M, MERGED), '&lt;I>ALPHA&lt;/I> DEPOT [x1, Full Fund] → &lt;i>Alpha&lt;/i> Depot [U40-A].'); }
+  // the opening line keeps its own markup when the notice is added: the saver "<i>Bob</i>" stays in bold, as text
+  { const X = make();
+    X.ev(`(function(){ localStorage.setItem('prio27who', '<i>Bob</i>'); ${LIST(PAIR)}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const F = boot({ html: X.ev('buildSavedHtml()') });
+    chk(name, '(8) the opening line beside the notice', 'CONTROL: it keeps the saver in bold, as text, and gains no element from it: [first bold, italics]',
+      F.ev(`(function(){ var s=document.getElementById('shareStat'), b=s.querySelector('b'); return JSON.stringify([b? b.textContent : null, s.querySelectorAll('i').length]); })()`), J(['<i>Bob</i>', 0])); }
+  // a key brought back, its destination then deleted (asked and confirmed), then the same list read again: a PMO submittal
+  { const X = make();
+    X.ev(`(function(){ ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const B2 = boot({ html: X.ev('buildSavedHtml()'), ls: { prio27destdb: J({ ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] }) } });
+    chk(name, '(8) a key brought back, its destination deleted since', 'R2 came back on an ALPHA DEPOT of a new key',
+      B2.ev(`(function(){ var n=${nm}; return JSON.stringify([n(S.dest.R2.to), S.dest.R2.to!=='U40-B']); })()`), J(['ALPHA DEPOT', true]));
+    chk(name, '(8) a key brought back, its destination deleted since', 'CONTROL: then a PMO submittal naming U40-B is read without throwing, its R2 on an ALPHA DEPOT the list holds',
+      B2.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){};
+        flowDelEnt(flowEnts().findIndex(function(x){ return x.k===S.dest.R2.to; }));
+        var p={ap:'om', dest:${J(PAIR)}, items:{R2:{dest:{to:'U40-B',end:''}}}, base:{}, added:[]};
+        try{ destPkgIn(p); }catch(x){ return 'threw: '+x.message; } return ${nm}(p.items.R2.dest.to); })()`), 'ALPHA DEPOT'); }
+  // after a full import's reload, the opening gives the import's report and then names the two kept apart
+  { const Y = make();
+    const ok = Y.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return fullImportText(${J(html)}, 'x.html'); })()`);
+    const Y2 = boot({ ls: lsOf(Y) });
+    chk(name, '(8) a full import, after its reload', 'the import’s report opens the line, and it goes on to name the two kept apart',
+      J([ok, stat(Y2).startsWith('⬅ Full board imported from “x.html”'), stat(Y2).endsWith(' ⚠ Destinations with matching names are kept apart: ' + PAIRSAID)]), J([true, true, true])); }
+  // one key of one list, read by name into a SECOND destination (the copy renamed it between two submittals): both are listed
+  { const P = make();
+    P.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-B', n: 'Bravo Yard', kind: 'other', t: '' }])} persistDest(); save();
+      var pk=function(n){ return {ap:'ff', dest:[{k:'x9',n:n,kind:'other',t:''}], items:{R1:{dest:{to:'x9',end:''}}}, base:{}, added:[]}; };
+      destPkgIn(pk('ALPHA DEPOT')); destPkgIn(pk('BRAVO YARD')); return 'ok'; })()`);
+    chk(name, '(8) one key into a second destination', 'both merges are listed', said(P, MERGED),
+      'ALPHA DEPOT [x9, Full Fund] → Alpha Depot [U40-A] · BRAVO YARD [x9, Full Fund] → Bravo Yard [U40-B].'); }
+  // a placeholder's name is not a name: a destination may be renamed "New destination" beside a placeholder
+  { const Q = make();
+    Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} flowAddEnt(); flowSetEnt(0, 'n', 'New destination'); return 'ok'; })()`);
+    chk(name, '(8) a placeholder’s name', 'CONTROL: “New destination” is stored beside a placeholder', Q.ev('DESTDB.ents[0].n'), 'New destination'); }
+  // ---- (9) A RECORD THAT IS NOT A MAP (fix round 2): where keys came back, as the list keeps it, is followed only when it is a
+  // map. One that is not -- a file edited by hand, or written by another tool -- is not followed, and the key still comes back
+  // ONCE: one ALPHA DEPOT, which the plan, the next year and the locked cycle all use ----
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: { 'v186 back': 'U40-A' }, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const B = boot({ html, ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a record of where keys came back that is not a map', 'not followed: one ALPHA DEPOT, used in every year and the locked cycle: [destinations, keys]',
+      B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.end, st.dest.R2.to); });
+        return JSON.stringify([flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`), J([1, 1])); }
+  // ... AND WHAT THE RECORD BINDS IS COUNTED (verifier, lens A, round 3): Full Fund's plan still on U40-B "Bravo Depot", read on O&M
+  // where a newer list deleted it, brings it back under a new key, and the next Full Fund opening puts R1's second hop and R2 there
+  // (the record). So on O&M the panel's "Used by" names Full Fund and ✕ is refused -- it said "—" and "Nothing points at it", and a
+  // name O&M then gave it for its own use took Full Fund's $300 with it, with nothing said
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key brought back for another appropriation’s plan', 'on O&M its “Used by” names Full Fund, and ✕ is refused: [appropriation, destinations named Bravo Depot, Used by, still on the list, the first line said]',
+      O.ev(`(function(){ var k=flowEnts().filter(function(e){ return e.n==='Bravo Depot'; }).map(function(e){ return e.k; }), m=[];
+        window.alert=function(x){ m.push(String(x)); }; window.confirm=function(x){ m.push(String(x)); return true; };
+        var u=flowEntUseElseTxt(flowEntUseElse(k[0])); flowDelEnt(flowEnts().findIndex(function(e){ return e.k===k[0]; }));
+        return JSON.stringify([mySlug(), k.length, u, flowEnts().some(function(e){ return e.k===k[0]; }), (m[0]||'').split('\\n')[0]]); })()`),
+      J(['om', 1, 'Full Fund (2)', true, 'Bravo Depot is not removed.'])); }
+  // ... AND NEVER TO ANOTHER ENTRY'S OWN KEY (verifier, lens A, round 4): a list that holds a deleted key and, after it, the key it
+  // came back under (a board that never deleted it took that one in from a file, and adds at the end) is two destinations. The key
+  // this board holds keeps its own requirements, and the deleted one comes back on a key of its own -- the record did not hand it
+  // that key and move the other's requirements onto one more destination of the same name
+  { const Q = make();
+    chk(name, '(9) a key brought back, read before the key it came back under', 'it comes back apart from that key, which keeps its own requirements: [came back on a key of its own, the held key kept, the deleted key apart from it]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B');
+        var nk=destFold([{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1})['U40-B'];
+        var refs={'U40-B':1}; refs[nk]=1;
+        var al=destFold([{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''},{k:nk,n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, refs);
+        return JSON.stringify([!!nk && nk!=='U40-A' && nk!=='U40-B', !Object.prototype.hasOwnProperty.call(al, nk), !!al['U40-B'] && al['U40-B']!==nk && al['U40-B']!=='U40-A']); })()`),
+      J([true, true, true])); }
+  // ... AND EVERY PLACE THAT COUNTS IT, AND EVERY STORE IT IS COUNTED FROM (verifier, lens B, round 4): the destinations panel's own
+  // Used by cell and the list reset read the count too, not only ✕ -- the panel is where a person looks before renaming one -- and
+  // Full Fund's locked cycle, still on U40-B, is counted on the destination it will be read onto, beside its plan in two years
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const ffFile = cyc => { const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+      Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; ${cyc ? 'MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));' : ''}
+        persistDest(); save(); ${cyc ? "blCyc='PB'; blYr=MS.cur; cycLock(); save();" : ''} return 'ok'; })()`);
+      return Fx.ev('buildSavedHtml()'); };
+    const O = boot({ html: ffFile(false), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key brought back for another appropriation’s plan', 'the destinations panel’s own Used by cell names Full Fund, and the list reset is refused naming it: [Used by cell, the reset’s first line, it names Bravo Depot — Full Fund (2), still on the list]',
+      O.ev(`(function(){ var k=flowEnts().filter(function(e){ return e.n==='Bravo Depot'; })[0].k, m=[], b=null;
+        entOpen=true; render(); var i=flowEnts().map(function(e){ return e.k; }).indexOf(k);
+        document.querySelectorAll('button').forEach(function(x){ if(x.getAttribute('onclick')==='flowDelEnt('+i+')') b=x; });
+        var cell=b? b.closest('td').previousElementSibling.textContent : '(no ✕ for it on screen)';
+        window.alert=function(x){ m.push(String(x)); }; window.confirm=function(x){ m.push(String(x)); return true; };
+        flowResetEnts();
+        return JSON.stringify([cell, (m[0]||'').split('\\n')[0], (m[0]||'').indexOf('Bravo Depot \\u2014 Full Fund (2)')>=0, flowEnts().some(function(e){ return e.k===k; })]); })()`),
+      J(['Full Fund (2)', 'The list is not reset.', true, true]));
+    const Y = boot({ html: ffFile(true), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key brought back for another appropriation’s plan, two years and a locked cycle', 'Used by names Full Fund’s plan and its locked cycle, every requirement of each',
+      Y.ev(`(function(){ var k=flowEnts().filter(function(e){ return e.n==='Bravo Depot'; })[0].k; return flowEntUseElseTxt(flowEntUseElse(k)); })()`),
+      'Full Fund (4), Full Fund locked PB27 (4)'); }
+  // ... AND A KEY MERGED BY NAME IS READ THE SAME WAY AGAIN (verifier, lens A, round 5): O&M's U40-G "Alpha Depot", deleted in a
+  // newer list that holds an Alpha Depot of its own (U40-C), is merged into it by name when the file is opened. Looked at, not saved;
+  // a second file, Full Fund's pair, opened on Full Fund; then the first file opened again. The board now holds the name three times,
+  // and the name alone chose none: R2 went to one more Alpha Depot in the plan and the next year while the locked cycle, kept at the
+  // first opening, stayed on U40-C
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-G'] };
+    const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+    Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-G', n: 'Alpha Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R2:{to:'U40-G',end:'U40-G'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+      persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+    const hom = Fo.ev('buildSavedHtml()');
+    const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
+    Ff.ev(`(function(){ applyState(S); ${LIST(PAIR)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: hom, appn: 'O&M', ls: { prio27destdb: J(db) } }), F2 = boot({ html: Ff.ev('buildSavedHtml()'), appn: 'FULL FUND', ls: lsOf(O1) });
+    const O3 = boot({ html: hom, appn: 'O&M', ls: lsOf(F2) });
+    chk(name, '(9) a key merged by name, read again after the board came to hold that name twice', 'R2 stays where it was merged: one key in the plan, the next year and the locked cycle, both hops, and it is U40-C; three Alpha Depots, not four',
+      O3.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+        return JSON.stringify([mySlug(), ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`),
+      J(['om', 1, 'U40-C', 3])); }
+  // ... AND AFTER A SECOND LIST MADE THAT KEY A DESTINATION OF ITS OWN (verifier, lens A, round 6): O&M's U40-K "Alpha Depot", which
+  // the newer list never held (or deleted), is merged by name into its U40-C when the file is opened. Looked at, not saved; Full
+  // Fund's plan opened next carries U40-C and U40-K "ALPHA DEPOT", kept apart, so U40-K became a destination of its own (or came
+  // back on a new key). O&M's file opened again then read U40-K there, in the plan and the next year, while the locked cycle,
+  // kept at the first opening, stayed on U40-C: $300 on two destinations between the working plan and PB
+  for (const gone of [[], ['U40-K']]) {
+    const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone };
+    const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+    Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+      persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+    const hom = Fo.ev('buildSavedHtml()');
+    const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
+    Ff.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-C',end:''},R2:{to:'U40-K',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: hom, appn: 'O&M', ls: { prio27destdb: J(db) } }), F2 = boot({ html: Ff.ev('buildSavedHtml()'), appn: 'FULL FUND', ls: lsOf(O1) });
+    const O3 = boot({ html: hom, appn: 'O&M', ls: lsOf(F2) });
+    chk(name, '(9) a key merged by name, read again after a second list made it a destination of its own' + (gone.length ? ' (deleted in the newer list)' : ''),
+      'R2 stays where it was merged: one key in the plan, the next year and the locked cycle, both hops, and it is U40-C; two Alpha Depots, kept apart',
+      O3.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+        return JSON.stringify([mySlug(), ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`),
+      J(['om', 1, 'U40-C', 2])); }
+  // ... AND A KEY MERGED BY NAME FOR ANOTHER APPROPRIATION'S PLAN IS COUNTED WHERE IT WAS MERGED (verifier, lens A, round 6; the
+  // fifth round's probe frprobe5, M): Full Fund's plan still on U40-B "Bravo Depot", read on O&M where a newer list deleted it and
+  // holds a Bravo Depot of its own, is merged into that one by name; Full Fund's next opening puts R1's second hop and R2 there, so on
+  // O&M its "Used by" names Full Fund and ✕ is refused. This is the record's own route: the list's memory of its own readings is
+  // not read for another appropriation's count
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-C', n: 'Bravo Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key merged by name for another appropriation’s plan', 'on O&M the Bravo Depot it was merged into names Full Fund under “Used by”, and ✕ is refused: [appropriation, destinations named Bravo Depot, that one’s key, Used by, still on the list, the first line said]',
+      O.ev(`(function(){ var k=flowEnts().filter(function(e){ return e.n==='Bravo Depot'; }).map(function(e){ return e.k; }), m=[];
+        window.alert=function(x){ m.push(String(x)); }; window.confirm=function(x){ m.push(String(x)); return true; };
+        var u=flowEntUseElseTxt(flowEntUseElse(k[0])); flowDelEnt(flowEnts().findIndex(function(e){ return e.k===k[0]; }));
+        return JSON.stringify([mySlug(), k.length, k[0], u, flowEnts().some(function(e){ return e.k===k[0]; }), (m[0]||'').split('\\n')[0]]); })()`),
+      J(['om', 1, 'U40-C', 'Full Fund (2)', true, 'Bravo Depot is not removed.'])); }
+  // ... AND STILL WHERE THAT PLAN LANDS, AFTER A LIST BROUGHT ITS KEY BACK ELSEWHERE (verifier, lens A, round 6): O&M's own file, whose
+  // list carries U40-C "Bravo Depot" and U40-B "BRAVO DEPOT" apart, opened next, brings U40-B back on a new key for O&M's R2 and the
+  // record names that one; Used by then names Full Fund there. A list's own memory of where its keys were read by name is kept only
+  // for the appropriation open (its plan and locked cycles are re-pointed and kept), so Full Fund's plan, read on O&M for the names
+  // only, lands at its next opening where Used by counted it, not on the Bravo Depot it was first merged into with nothing counted
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-C', n: 'Bravo Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'Bravo Depot', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const hff = Fx.ev('buildSavedHtml()');
+    const Fo = boot({ html: hff, appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+    Fo.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-C', n: 'Bravo Depot', kind: 'gov', t: '' }, { k: 'U40-B', n: 'BRAVO DEPOT', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: hff, appn: 'O&M', ls: { prio27destdb: J(db) } }), O2 = boot({ html: Fo.ev('buildSavedHtml()'), appn: 'O&M', ls: lsOf(O1) });
+    const F3 = boot({ html: hff, appn: 'FULL FUND', ls: lsOf(O2) });
+    const land = JSON.parse(F3.ev(`JSON.stringify([S.dest.R1.end, S.dest.R2.to])`));
+    chk(name, '(9) a key merged by name for another appropriation’s plan, then brought back elsewhere by a third list', 'Full Fund’s next opening puts R1’s second hop and R2 on the destination O&M’s Used by named Full Fund on: [Used by there, both on one]',
+      J([O2.ev(`flowEntUseElseTxt(flowEntUseElse(${J(land[0])}))`), land[0] === land[1]]), J(['Full Fund (2)', true])); }
+  // ... AND A LIST THAT HOLDS ONE KEY TWICE IS NOT READ THROUGH THE LIST'S MEMORY (verifier, lens A, round 6; a generated state of
+  // vr5fuzz3, seed 11, case 364): U40-A "Echo Yard" and U40-A "Delta Pier", deleted here and brought back as U40-F (the record). The
+  // first entry is merged by name into Echo Yard; the second follows the record. A memory of the first, handed to the second at the
+  // reopen, moved the plan's U40-A from U40-F to Echo Yard -- the plan and its locked cycle on two destinations
+  { const Q = make();
+    chk(name, '(9) a list that holds one key twice, read twice', 'read the same way both times, and nothing more made: [the open appropriation, first reading, second reading, destinations]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Echo Yard', kind: 'other', t: '' }, { k: 'U40-F', n: 'alpha  depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-A'); DESTDB.lmap['v186 back']={'U40-A':'U40-F'};
+        var L=[{k:'U40-A',n:'Echo Yard',kind:'other',t:''},{k:'U40-B',n:'Bravo Depot',kind:'other',t:''},{k:'U40-A',n:'Delta Pier',kind:'other',t:''}], R={'U40-A':1,'U40-B':1};
+        var a=JSON.stringify(destFold(L, mySlug(), true, R)), b=JSON.stringify(destFold(L, mySlug(), true, R));
+        return JSON.stringify([mySlug(), a, b, DESTDB.ents.length]); })()`),
+      J(['om', J({ 'U40-A': 'U40-C' }), J({ 'U40-A': 'U40-C' }), 3])); }     // beside U44: its first entry (U44)
+  // ... AND WHAT EACH ENTRY OF IT SAYS (fix round 7): the same list read twice; the board keeps U40-A where the record put it, as the
+  // last of its entries came back, so a memory of that key handed to its first entry would read "Echo Yard" there, and say so, though
+  // that entry merged by name. Each entry is read the same way both times: [the notice]
+  { const Q = make();
+    chk(name, '(9) a list that holds one key twice, read twice: what it says', 'each entry said as read the first time, and nothing more: [the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Echo Yard', kind: 'other', t: '' }, { k: 'U40-F', n: 'alpha  depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-A'); DESTDB.lmap['v186 back']={'U40-A':'U40-F'}; _destMerges=[]; _destKept=[];
+        var L=[{k:'U40-A',n:'Echo Yard',kind:'other',t:''},{k:'U40-B',n:'Bravo Depot',kind:'other',t:''},{k:'U40-A',n:'Delta Pier',kind:'other',t:''}], R={'U40-A':1,'U40-B':1};
+        destFold(L, mySlug(), true, R); destFold(L, mySlug(), true, R);
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return d.textContent; })()`),
+      'Merged by name (the same name, ignoring case and spaces): Echo Yard [U40-A, O&M] → Echo Yard [U40-C].'); }     // beside U44: its repeat is not read (U44), so only its first entry is said
+  // ... AND WHERE ITS RECORD NAMES ANOTHER DESTINATION (fix round 7; destFold read directly): O&M's U40-K came back as dX for another
+  // list (the record names dX, which the board holds); O&M's own list names it "Alpha Depot", merged by name into U40-C. The record
+  // stays dX, so only what is kept by name keeps U40-C. After the board comes to hold U40-K itself (another list carried it apart),
+  // O&M's list read again still lands on U40-C
+  { const Q = make();
+    chk(name, '(9) a key merged by name while its record names another destination, read again after the board came to hold it', 'kept by name: [the first reading, the reading after the board holds U40-K, the record]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'dX', n: 'Kilo Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-K'); DESTDB.lmap['v186 back']={'U40-K':'dX'}; _destMerges=[]; _destKept=[];
+        var L=[{k:'U40-K',n:'Alpha Depot',kind:'other',t:''}];
+        var a=JSON.stringify(destFold(JSON.parse(JSON.stringify(L)), mySlug(), true, {'U40-K':1}));
+        DESTDB.gone.splice(DESTDB.gone.indexOf('U40-K'), 1); DESTDB.ents.push({k:'U40-K',n:'ALPHA DEPOT',kind:'other',t:''});
+        var b=JSON.stringify(destFold(JSON.parse(JSON.stringify(L)), mySlug(), true, {'U40-K':1}));
+        return JSON.stringify([a, b, JSON.stringify(DESTDB.lmap['v186 back'])]); })()`),
+      J([J({ 'U40-K': 'U40-C' }), J({ 'U40-K': 'U40-C' }), J({ 'U40-K': 'dX' })])); }
+  // ... AND FROM ITS OWNER'S NEWER FILE (verifier, lens A, round 6): as above, but O&M's file opened after Full Fund's is its owner's
+  // newer one, whose list has changed since (a destination added; U40-K still "Alpha Depot", R2 still on it). Kept against the
+  // exact list, the merge was not read there: the plan and the next year moved to U40-K, or to its come-back, while the locked
+  // cycle, kept at the first opening, stayed on U40-C. Opened twice, so a reading of another of O&M's lists in between (its locked
+  // cycles, read through the board's own list) is seen to leave what is kept for U40-K
+  for (const gone of [[], ['U40-K']]) {
+    const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone };
+    const om = function(list){ const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(list)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`);
+      return Fo.ev('buildSavedHtml()'); };
+    const hom = om([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }]), hom2 = om([{ k: 'U40-K', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-E', n: 'Echo Yard', kind: 'gov', t: '' }]);
+    const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
+    Ff.ev(`(function(){ applyState(S); ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-C',end:''},R2:{to:'U40-K',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const O1 = boot({ html: hom, appn: 'O&M', ls: { prio27destdb: J(db) } }), F2 = boot({ html: Ff.ev('buildSavedHtml()'), appn: 'FULL FUND', ls: lsOf(O1) });
+    const O3 = boot({ html: hom2, appn: 'O&M', ls: lsOf(F2) }), O4 = boot({ html: hom2, appn: 'O&M', ls: lsOf(O3) });
+    const keys = W => JSON.parse(W.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+        return JSON.stringify([mySlug(), ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`));
+    chk(name, '(9) a key merged by name, read again from its owner’s newer file after a second list made it a destination of its own' + (gone.length ? ' (deleted in the newer list)' : ''),
+      'R2 stays where it was merged, at both openings: one key in the plan, the next year and the locked cycle, both hops, and it is U40-C; two Alpha Depots, kept apart',
+      J([keys(O3), keys(O4)]), J([['om', 1, 'U40-C', 2], ['om', 1, 'U40-C', 2]])); }
+  // ... AND NEVER INTO A DESTINATION ITS LIST CARRIES APART (verifier, lens A, round 6): what is kept for a key read by name is read
+  // where its name is refused, before the record; a list that carries that destination apart from the key -- its owner has since
+  // learned of it -- does not hand the key to it. U40-K, deleted here, was merged by name into U40-C, and the record names the
+  // destination it came back as for Full Fund (U40-N "ALPHA DEPOT"); O&M's list now carries U40-K "Alpha Depot" and U40-C "Alpha Depot"
+  { const Q = make();
+    chk(name, '(9) a key merged by name, read where its list carries apart the destination it was merged into', 'U40-K is not read into U40-C, and U40-C keeps its own entry: [the open appropriation, the reading, destinations]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-N', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} DESTDB.gone.push('U40-K');
+        DESTDB.lmap['v186 back']={'U40-K':'U40-N'}; DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-K':'U40-C'};
+        var L=[{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''},{k:'U40-C',n:'Alpha Depot',kind:'gov',t:''}], R={'U40-K':1,'U40-C':1};
+        return JSON.stringify([mySlug(), JSON.stringify(destFold(L, mySlug(), true, R)), DESTDB.ents.length]); })()`),
+      J(['om', J({ 'U40-K': 'U40-N' }), 2])); }
+  // ... AND WHERE ITS OWNER'S NEWER FILE CARRIES THAT DESTINATION APART, THAT IS SAID (verifier, lens A, round 8): U40-Z "Alpha Depot"
+  // was merged by name into the reader's U40-C, the plan, the next year and the locked cycle with it. Its owner then renamed it "Zulu
+  // Yard" and took U40-C in from a file, so the newer file's list carries the two apart, and U40-Z is not read into U40-C (round 6). The
+  // plan and the next year follow that list onto U40-Z, while the locked cycle, kept at the first opening, stays on U40-C: $300 on two
+  // destinations between the working plan and PB, with nothing said. It is said; where the new name is one the board holds (Bravo
+  // Depot), the same, beside the merge by name
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const read = B => JSON.parse(B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.join(','), flowEnts().map(function(e){ return e.k; }).join(','), d.textContent]); })()`));
+    const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const h1 = file([E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Z', 'Zulu Yard'), E('U40-C', 'Alpha Depot')]), h3 = file([E('U40-Z', 'Bravo Depot'), E('U40-C', 'Alpha Depot')]);
+    const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const A2 = boot({ html: h2, appn: 'O&M', ls: lsOf(A1) }), A3 = boot({ html: h3, appn: 'O&M', ls: lsOf(A1) });
+    const av = read(A2);
+    chk(name, '(9) a key merged by name, read from its owner’s newer file whose list carries apart the destination it was merged into', 'the plan follows the list, the locked cycle keeps where it was merged, and that is said: [the plan, the next year and the locked cycle, both hops; the board’s keys; the panel; the opening line ends with it]',
+      J(av.concat([stat(A2).endsWith(' ' + av[2])])),
+      J(['U40-Z,U40-Z,U40-Z,U40-Z,U40-C,U40-C', 'U40-C,U40-B,U40-Z', 'Read apart from where an earlier reading put it: Zulu Yard [U40-Z, O&M] → Zulu Yard [U40-Z], not Alpha Depot [U40-C]. Where a locked cycle was read then, it keeps the earlier one; where the two are one destination, move the requirements by hand.', true]));
+    chk(name, '(9) a key merged by name, read from its owner’s newer file whose list carries apart the destination it was merged into, under a name the board holds', 'the same, beside the merge by name: [the plan, the next year and the locked cycle, both hops; the board’s keys; the panel]',
+      J(read(A3)),
+      J(['U40-B,U40-B,U40-B,U40-B,U40-C,U40-C', 'U40-C,U40-B', 'Merged by name (the same name, ignoring case and spaces): Bravo Depot [U40-Z, O&M] → Bravo Depot [U40-B]. Read apart from where an earlier reading put it: Bravo Depot [U40-Z, O&M] → Bravo Depot [U40-B], not Alpha Depot [U40-C]. Where a locked cycle was read then, it keeps the earlier one; where the two are one destination, move the requirements by hand.'])); }
+  // ... AND NOT LISTED AS MERGED BY NAME WHERE THAT DESTINATION HAS BEEN RENAMED SINCE (verifier, lens A, round 6): U40-K "Alpha Depot"
+  // was merged by name into U40-C, which this board has since renamed "Alpha Depot North"; a second list made U40-K a destination of
+  // its own ("ALPHA DEPOT"). O&M's list [U40-K "Alpha Depot"] is read onto U40-C, as kept -- and was listed under "Merged by name (the
+  // same name, ignoring case and spaces): Alpha Depot [U40-K, O&M] → Alpha Depot North [U40-C]", which is not the same name
+  { const Q = make();
+    chk(name, '(9) a key read where it was merged by name, into a destination renamed since', 'read onto U40-C; it is not listed as merged by name, but as read where an earlier reading put it, under another name: [the open appropriation, the reading, the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot North', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])}
+        DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-K':'U40-C'}; _destMerges=[];
+        var al=destFold([{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''}], mySlug(), true, {'U40-K':1});
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([mySlug(), JSON.stringify(al), d.textContent]); })()`),
+      J(['om', J({ 'U40-K': 'U40-C' }), 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Alpha Depot North [U40-C]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND SAID WHERE ITS LIST HAS RENAMED IT SINCE (fix round 6: the tests lens's MF1, on the money lens's S4 route with a locked
+  // cycle): O&M's U40-Z "Alpha Depot", a key the newer list never held, is merged by name into its U40-C when the file is opened, its
+  // locked cycle with it. Its owner then renames U40-Z "Zulu Yard". That file, opened in the same browser, is read where the first
+  // reading put it -- the plan, the next year and the locked cycle on one key -- and the panel and the opening line now say so: it
+  // was read onto Alpha Depot with nothing said (following the rename instead moved the plan off its locked cycle)
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = n => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST([E('U40-Z', n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    // both files made first: the reader's list, kept at the first opening, stays the newer (it changed after the owner's rename)
+    const h1 = file('Alpha Depot'), h2 = file('Zulu Yard');
+    const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const A2 = boot({ html: h2, appn: 'O&M', ls: lsOf(A1) });
+    const kept = 'Read where an earlier reading put it, under another name: Zulu Yard [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.';
+    chk(name, '(9) a key merged by name, then renamed by its owner, read again', 'R2 stays where it was merged, with its locked cycle, and that is said: [keys in the plan, the next year and the locked cycle, both hops; that key; the board’s keys; the panel; the opening line ends with it]',
+      J(JSON.parse(A2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().map(function(e){ return e.k; }).join(','), d.textContent]); })()`)).concat([stat(A2).endsWith(' ' + kept)])),
+      J([1, 'U40-C', 'U40-C', 'Read where an earlier reading put it, under another name: Zulu Yard [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.', true])); }
+  // ... AND WHERE ITS OWNER RENAMED IT TO A NAME THE BOARD HOLDS (verifier, lens A, round 7): the same, but U40-Z is renamed "Bravo
+  // Depot", which the reader's list holds once (U40-B), or a key brought back (the reader's list deleted U40-K; it came back as "Kilo
+  // Depot") is renamed "Alpha Depot", which the reader's list holds once (U40-A). That name found U40-B, or U40-A, for the plan and the
+  // next year, while the locked cycle, kept at the first opening, stayed where the first reading put it: $300 on two destinations
+  // between the working plan and PB, said only as a merge by name. Each is read where the first reading put it, as for a name the
+  // board does not hold, and said
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = (k, n) => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST([E(k, n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:${J(k)},end:${J(k)}}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const read = B => JSON.parse(B.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var e=flowEnts().filter(function(x){ return x.k===ks[0]; })[0];
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], e? e.n : '(none)', d.textContent.split(ks[0]).join('<its key>')]); })()`));
+    const dbR = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const r1 = file('U40-Z', 'Alpha Depot'), r2 = file('U40-Z', 'Bravo Depot');
+    const R1 = boot({ html: r1, appn: 'O&M', ls: { prio27destdb: J(dbR) } });
+    const R2 = boot({ html: r2, appn: 'O&M', ls: lsOf(R1) });
+    const rv = read(R2);
+    chk(name, '(9) a key merged by name, then renamed by its owner to a name the board holds, read again', 'R2 stays where it was merged, with its locked cycle, and that is said: [keys in the plan, the next year and the locked cycle, both hops; that key; its name; the panel; the opening line ends with it]',
+      J(rv.concat([stat(R2).endsWith(' ' + rv[3].split('<its key>').join(rv[1]))])),
+      J([1, 'U40-C', 'Alpha Depot', 'Read where an earlier reading put it, under another name: Bravo Depot [U40-Z, O&M] → Alpha Depot [<its key>]. Where the two are not one destination, move the requirements by hand.', true]));
+    const dbB = { ts: Date.now() + 60000, ents: [E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
+    const b1 = file('U40-K', 'Kilo Depot'), b2 = file('U40-K', 'Alpha Depot');
+    const B1 = boot({ html: b1, appn: 'O&M', ls: { prio27destdb: J(dbB) } });
+    const B2 = boot({ html: b2, appn: 'O&M', ls: lsOf(B1) });
+    const bv = read(B2);
+    chk(name, '(9) a key brought back, then renamed by its owner to a name the board holds, read again', 'R2 stays where it came back, with its locked cycle, and that is said: [keys in the plan, the next year and the locked cycle, both hops; that key is neither U40-A nor U40-K; its name; the panel]',
+      J([bv[0], bv[1] !== 'U40-A' && bv[1] !== 'U40-K', bv[2], bv[3]]),
+      J([1, true, 'Kilo Depot', 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Kilo Depot [<its key>]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND WHERE ANOTHER ENTRY OF ITS LIST, READ FIRST, NOW HAS THE NAME IT WAS MERGED UNDER (fix round 7): the same, but the owner
+  // also gives an earlier placeholder of the list, U40-Y, the name "Alpha Depot". Read first, it took Alpha Depot by name, and U40-Z
+  // then followed its new name: the plan and the next year on Bravo Depot, the locked cycle on Alpha Depot, said only as merges by
+  // name. What is kept by name is now held for its key before the list is read: R2 stays with its locked cycle, said, and the
+  // placeholder is kept apart on its own key, said
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const h1 = file([E('U40-Y', 'New destination'), E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Y', 'Alpha Depot'), E('U40-Z', 'Bravo Depot')]);
+    const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const A2 = boot({ html: h2, appn: 'O&M', ls: lsOf(A1) });
+    const ov = JSON.parse(A2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().map(function(e){ return e.k; }).join(','), d.textContent]); })()`));
+    chk(name, '(9) a key merged by name, renamed by its owner, read after another entry of its list that now has the name it was merged under', 'R2 stays where it was merged, with its locked cycle, and that is said; the other entry is kept apart: [keys in the plan, the next year and the locked cycle, both hops; that key; the board’s keys; the panel; the opening line ends with it]',
+      J(ov.concat([stat(A2).endsWith(' ' + ov[3])])),
+      J([1, 'U40-C', 'U40-C,U40-B,U40-Y', '⚠ Destinations with matching names are kept apart: Alpha Depot [U40-C] · Alpha Depot [U40-Y]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Bravo Depot [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.', true])); }
+  // ... AND HELD FOR ITS KEY IN ANY ORDER, NOT FOR A KEY THE READING DOES NOT CARRY (fix round 7; destFold read directly): O&M's U40-Z
+  // was kept by name for U40-C. A list that names it "Zulu Yard" and, before it, gives U40-Y the name "Alpha Depot" reads U40-Z onto
+  // U40-C and keeps U40-Y apart on its own key (U40-Z was made a destination of its own). Where U40-Z is deleted here and nothing uses
+  // it, it is not carried, and U40-Y merges by name into U40-C, as before
+  { const Q = make();
+    chk(name, '(9) a key kept by name, read after another entry of its list that now has the name it was kept under', 'held for its key, and not where the reading does not carry it: [the reading, the board’s keys, the notice; deleted here and unused: the reading, the board’s keys]',
+      Q.ev(`(function(){ var l=[{k:'U40-Y',n:'Alpha Depot',kind:'gov',t:''},{k:'U40-Z',n:'Zulu Yard',kind:'gov',t:''}];
+        ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }])} DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-Z':'U40-C'}; _destMerges=[]; _destKept=[];
+        var a=JSON.stringify(destFold(l, mySlug(), true, {'U40-Z':1})), ka=flowEnts().map(function(e){ return e.k; }).join(',');
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        var na=d.textContent;
+        ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }])} DESTDB.gone.push('U40-Z'); DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-Z':'U40-C'}; _destMerges=[]; _destKept=[];
+        var b=JSON.stringify(destFold(l, mySlug(), true, {'U40-Y':1}));
+        return JSON.stringify([a, ka, na, b, flowEnts().map(function(e){ return e.k; }).join(',')]); })()`),
+      J([J({ 'U40-Z': 'U40-C' }), 'U40-C,U40-Y', '⚠ Destinations with matching names are kept apart: Alpha Depot [U40-C] · Alpha Depot [U40-Y]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Zulu Yard [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.',
+        J({ 'U40-Y': 'U40-C' }), 'U40-C'])); }
+  // ... AND WHERE THE BOARD HAS SINCE COME TO HOLD THAT KEY (verifier, lens B, round 8): the same, but before the owner's newer file
+  // is opened, Full Fund's plan, opened in the same browser, carries U40-Z apart ("Zulu Yard"), so the board holds U40-Z itself. What
+  // is kept by name is held for that key too: R2 stays where it was merged, with its locked cycle, and the placeholder is kept apart on
+  // its own key (held only for a key the board does not hold, the placeholder took Alpha Depot by name and R2 stayed on U40-Z in the
+  // plan and the next year, the locked cycle on U40-C)
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-Z',end:'U40-Z'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-C', 'Alpha Depot'), E('U40-B', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: [] };
+    const h1 = file([E('U40-Y', 'New destination'), E('U40-Z', 'Alpha Depot')]), h2 = file([E('U40-Y', 'Alpha Depot'), E('U40-Z', 'Bravo Depot')]);
+    const Ff = boot({ appn: 'FULL FUND' }); seed(Ff.ev, SC); asBooted(Ff.ev, SC);
+    Ff.ev(`(function(){ applyState(S); ${LIST([E('U40-C', 'Alpha Depot'), E('U40-Z', 'Zulu Yard')])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-Z',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const A1 = boot({ html: h1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const F2 = boot({ html: Ff.ev('buildSavedHtml()'), appn: 'FULL FUND', ls: lsOf(A1) });
+    const A3 = boot({ html: h2, appn: 'O&M', ls: lsOf(F2) });
+    const ov = JSON.parse(A3.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], flowEnts().map(function(e){ return e.k; }).join(','), d.textContent]); })()`));
+    chk(name, '(9) a key merged by name, held by the board since, renamed by its owner, read after another entry of its list that now has the name it was merged under', 'R2 stays where it was merged, with its locked cycle, and that is said; the other entry is kept apart: [keys in the plan, the next year and the locked cycle, both hops; that key; the board’s keys; the panel; the opening line ends with it]',
+      J(ov.concat([stat(A3).endsWith(' ' + ov[3])])),
+      J([1, 'U40-C', 'U40-C,U40-B,U40-Z,U40-Y', '⚠ Destinations with matching names are kept apart: Alpha Depot [U40-C] · Alpha Depot [U40-Y]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Bravo Depot [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.', true])); }
+  // ... AND FOR A KEY THE NEWER LIST DELETED, BROUGHT BACK (verifier, lens B, round 8): the reader's list has deleted U40-K, which O&M's
+  // plan still uses, so it comes back on a new key, "Kilo Depot", with its locked cycle. Its owner then renames it "Alpha Depot" (the
+  // board holds that name once) and gives a placeholder read before it the name "Kilo Depot". What is kept is held for a key brought
+  // back too: R2 stays where it came back, said, and the placeholder is kept apart (held for nothing deleted here, the placeholder took
+  // the come-back by name and R2 followed its new name to U40-A in the plan and the next year, the locked cycle on the come-back)
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = l => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST(l)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:'U40-K',end:'U40-K'}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
+    const g1 = file([E('U40-Y', 'New destination'), E('U40-K', 'Kilo Depot')]), g2 = file([E('U40-Y', 'Kilo Depot'), E('U40-K', 'Alpha Depot')]);
+    const G1 = boot({ html: g1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const g0 = G1.ev('S.dest.R2.to');
+    const G2 = boot({ html: g2, appn: 'O&M', ls: lsOf(G1) });
+    const gv = JSON.parse(G2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var e=flowEnts().filter(function(x){ return x.k===ks[0]; })[0];
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], e? e.n : '(none)', d.textContent.split(ks[0]).join('<its key>')]); })()`));
+    chk(name, '(9) a key brought back, renamed by its owner to a name the board holds, read after another entry of its list that now has the name it came back under', 'R2 stays where it came back, with its locked cycle, and that is said; the other entry is kept apart: [keys in the plan, the next year and the locked cycle, both hops; that key is the one it came back on, neither U40-A nor U40-K; its name; the panel]',
+      J([gv[0], gv[1] === g0 && ['U40-A', 'U40-K'].indexOf(gv[1]) < 0, gv[2], gv[3]]),
+      J([1, true, 'Kilo Depot', '⚠ Destinations with matching names are kept apart: Kilo Depot [<its key>] · Kilo Depot [U40-Y]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Kilo Depot [<its key>]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND WHERE IT CAME BACK BECAUSE ITS NAME WAS REFUSED (fix round 7; the money lens's round-7 S1, measured): the reader's list holds
+  // "Kilo Depot" twice (a pair kept apart) and "Alpha Depot" once, and has deleted U40-K. O&M's U40-K "Kilo Depot" comes back on a new
+  // key; its name is refused there, so only the record named where it came back. Its owner then renames it "Alpha Depot": that name
+  // found U40-A for the plan and the next year, while the locked cycle stayed where it came back. A key that lands where the record says
+  // it came back is now kept as a key read by name is, and read there again, said
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const file = (k, n) => { const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+      Fo.ev(`(function(){ applyState(S); ${LIST([E(k, n)])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        S.dest={R2:{to:${J(k)},end:${J(k)}}}; MS.years[MS.cur]=S; MS.years[MS.cur+1]=JSON.parse(JSON.stringify(S));
+        persistDest(); save(); blCyc='PB'; blYr=MS.cur; cycLock(); save(); return 'ok'; })()`); return Fo.ev('buildSavedHtml()'); };
+    const db = { ts: Date.now() + 60000, ents: [E('U40-P', 'Kilo Depot'), E('U40-Q', 'KILO DEPOT'), E('U40-A', 'Alpha Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-K'] };
+    const q1 = file('U40-K', 'Kilo Depot'), q2 = file('U40-K', 'Alpha Depot');
+    const Q1 = boot({ html: q1, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const Q2 = boot({ html: q2, appn: 'O&M', ls: lsOf(Q1) });
+    const qv = JSON.parse(Q2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+      [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R2.to, st.dest.R2.end); });
+      var e=flowEnts().filter(function(x){ return x.k===ks[0]; })[0];
+      var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+      return JSON.stringify([ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length, ks[0], e? e.n : '(none)', d.textContent.split(ks[0]).join('<its key>')]); })()`));
+    chk(name, '(9) a key brought back where its name was refused, then renamed by its owner to a name the board holds, read again', 'R2 stays where it came back, with its locked cycle, and that is said: [keys in the plan, the next year and the locked cycle, both hops; that key is none of U40-A, U40-K, U40-P, U40-Q; its name; the panel]',
+      J([qv[0], ['U40-A', 'U40-K', 'U40-P', 'U40-Q'].indexOf(qv[1]) < 0, qv[2], qv[3]]),
+      J([1, true, 'Kilo Depot', '⚠ Destinations with matching names are kept apart: Kilo Depot [U40-P] · KILO DEPOT [U40-Q] · Kilo Depot [<its key>]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Kilo Depot [<its key>]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND THROUGH THE RECORD AT A LATER READING (fix round 7; destFold read directly): U40-K came back as dN before (the record names
+  // it); read for the appropriation open where its name is refused (the board holds it twice), it lands on dN by the record and is kept
+  // as a key read by name is -- so read again under a name the board holds once, it lands on dN again, said
+  { const Q = make();
+    chk(name, '(9) a key read where the record says it came back, then renamed by its owner to a name the board holds', 'kept for the appropriation open, and read there again: [the reading, what is kept, the reading under the new name, the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'dN', n: 'Kilo Depot', kind: 'gov', t: '' }, { k: 'U40-P', n: 'KILO DEPOT', kind: 'gov', t: '' }, { k: 'U40-A', n: 'Alpha Depot', kind: 'gov', t: '' }])}
+        DESTDB.gone.push('U40-K'); DESTDB.lmap['v186 back']={'U40-K':'dN'}; _destMerges=[]; _destKept=[];
+        var a=JSON.stringify(destFold([{k:'U40-K',n:'Kilo Depot',kind:'gov',t:''}], mySlug(), true, {'U40-K':1}));
+        var m=JSON.stringify(DESTDB.lmap['v186 '+mySlug()+' by name']||null);
+        var b=JSON.stringify(destFold([{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''}], mySlug(), true, {'U40-K':1}));
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([a, m, b, d.textContent]); })()`),
+      J([J({ 'U40-K': 'dN' }), J({ 'U40-K': 'dN' }), J({ 'U40-K': 'dN' }), '⚠ Destinations with matching names are kept apart: Kilo Depot [dN] · KILO DEPOT [U40-P]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Alpha Depot [U40-K, O&M] → Kilo Depot [dN]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND THROUGH THE RECORD, ONCE EACH, AND NOT WHERE THE NAMES MATCH (fix round 6; the tests lens's S2): a key read where an earlier
+  // reading put it -- the record of where it came back or was merged, for any appropriation's list, or what the appropriation open
+  // keeps by name -- under another name is said once; one read there under the same name (a pair of it kept apart) is not
+  { const Q = make();
+    chk(name, '(9) a key read where an earlier reading put it, under another name', 'said once each, as text, through the record and through what is kept by name, and not where the names match: [the record, kept by name, the same name, read again, the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-N', n: 'ALPHA DEPOT', kind: 'gov', t: '' }])} DESTDB.gone.push('U40-K', 'U40-B');
+        DESTDB.lmap['v186 back']={'U40-K':'U40-N','U40-B':'U40-C'}; DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-K':'U40-C'}; _destMerges=[];
+        var r=function(l, ap){ return JSON.stringify(destFold(l, ap, true, {'U40-K':1,'U40-B':1})); };
+        var a=r([{k:'U40-B',n:'Bravo Yard',kind:'gov',t:''}], 'ff'), b=r([{k:'U40-K',n:'Kilo <b>Yard</b>',kind:'gov',t:''}], mySlug()),
+          c=r([{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''}], 'ff'), e=r([{k:'U40-K',n:'Kilo <b>Yard</b>',kind:'gov',t:''}], mySlug());
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([a, b, c, e, d.textContent]); })()`),
+      J([J({ 'U40-B': 'U40-C' }), J({ 'U40-K': 'U40-C' }), J({ 'U40-K': 'U40-N' }), J({ 'U40-K': 'U40-C' }),
+        '⚠ Destinations with matching names are kept apart: Alpha Depot [U40-C] · ALPHA DEPOT [U40-N]. Each keeps its own requirements and money; rename one so they can be told apart. '
+        + 'Read where an earlier reading put it, under another name: Bravo Yard [U40-B, Full Fund] → Alpha Depot [U40-C] · Kilo <b>Yard</b> [U40-K, O&M] → Alpha Depot [U40-C]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND SAID IN FULL (verifier, lens B, round 7): each reading is its own line -- the same key read for a second appropriation,
+  // or under a second name -- and every name and key, the board's as well as the file's, is written as text; a merge by name said in
+  // the same session does not take the line's place, nor does drawing the panel
+  { const Q = make();
+    chk(name, '(9) a key read where an earlier reading put it, said in full', 'each reading said once, as text, beside a merge by name: [four readings, the merge, the notice]',
+      Q.ev(`(function(){ ${LIST([{ k: 'c<i>1</i>', n: 'Alpha <i>Depot</i>', kind: 'gov', t: '' }, { k: 'U40-A', n: 'Able Yard', kind: 'gov', t: '' }])}
+        DESTDB.gone.push('U40-K', 'x<b>9</b>'); DESTDB.lmap['v186 back']={'U40-K':'c<i>1</i>','x<b>9</b>':'c<i>1</i>'}; _destMerges=[];
+        var r=function(l, ap){ return JSON.stringify(destFold(l, ap, true, {'U40-K':1,'x<b>9</b>':1,'U40-M':1})); };
+        var a=r([{k:'U40-K',n:'Kilo Yard',kind:'gov',t:''}], 'ff'), b=r([{k:'U40-K',n:'Kilo Yard',kind:'gov',t:''}], mySlug()),
+          c=r([{k:'U40-K',n:'Kilo Pier',kind:'gov',t:''}], 'ff'), e=r([{k:'x<b>9</b>',n:'Nine Yard',kind:'gov',t:''}], 'ff'),
+          m=r([{k:'U40-M',n:'ABLE YARD',kind:'gov',t:''}], 'ff');
+        flowEntEditor();     // the panel drawn once: what it says stays said
+        var d=document.createElement('div'); d.innerHTML=(typeof destNotice==='function')? destNotice() : '(no notice on this board)';
+        return JSON.stringify([a, b, c, e, m, d.textContent]); })()`),
+      J([J({ 'U40-K': 'c<i>1</i>' }), J({ 'U40-K': 'c<i>1</i>' }), J({ 'U40-K': 'c<i>1</i>' }), J({ 'x<b>9</b>': 'c<i>1</i>' }), J({ 'U40-M': 'U40-A' }),
+        'Merged by name (the same name, ignoring case and spaces): ABLE YARD [U40-M, Full Fund] → Able Yard [U40-A]. '
+        + 'Read where an earlier reading put it, under another name: Kilo Yard [U40-K, Full Fund] → Alpha <i>Depot</i> [c<i>1</i>] · Kilo Yard [U40-K, O&M] → Alpha <i>Depot</i> [c<i>1</i>] · '
+        + 'Kilo Pier [U40-K, Full Fund] → Alpha <i>Depot</i> [c<i>1</i>] · Nine Yard [x<b>9</b>, Full Fund] → Alpha <i>Depot</i> [c<i>1</i>]. Where the two are not one destination, move the requirements by hand.'])); }
+  // ... AND TWO KEYS KEPT BY NAME FOR ONE DESTINATION, READ TOGETHER (verifier, lens B, round 7): O&M's U40-K and U40-J were each read
+  // by name into Alpha Depot [U40-C] at earlier readings, and the board has since come to hold both. A list that carries the two
+  // reads the first into U40-C, as kept; the second keeps its own key -- not one more Alpha Depot on a new key
+  { const Q = make();
+    chk(name, '(9) two keys kept by name for one destination, read together', 'the first lands where it was kept, the second keeps its own key, nothing new is made: [the first, the second, the board’s Alpha Depots]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Alpha Depot', kind: 'gov', t: '' }, { k: 'U40-K', n: 'ALPHA DEPOT', kind: 'gov', t: '' }, { k: 'U40-J', n: 'alpha depot', kind: 'gov', t: '' }])}
+        DESTDB.lmap['v186 '+mySlug()+' by name']={'U40-K':'U40-C','U40-J':'U40-C'}; _destMerges=[];
+        var al=destFold([{k:'U40-K',n:'Alpha Depot',kind:'gov',t:''},{k:'U40-J',n:'ALPHA DEPOT',kind:'gov',t:''}], mySlug(), true, {'U40-K':1,'U40-J':1});
+        return JSON.stringify([al['U40-K']||'', al['U40-J']||'', DESTDB.ents.filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`),
+      J(['U40-C', '', 3])); }
+  // ... AND AT AN OPENING, NOT ONLY WITHIN ONE SESSION (verifier, lens B, round 5): a browser whose list holds U40-N, the key U40-B
+  // came back under, and the record of it, opens a file whose list holds U40-B and, after it, U40-N. At an opening the record is
+  // read from storage by the first reading of the session; the claim must read it too, so U40-B comes back on a key of its own,
+  // R2 keeps U40-N, and the record then names R1's key
+  { const P = make();
+    P.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-B', n: 'ALPHA DEPOT', kind: 'other', t: '' }, { k: 'U40-N', n: 'ALPHA DEPOT', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-B',end:''},R2:{to:'U40-N',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-N', n: 'ALPHA DEPOT', kind: 'other', t: '' }],
+      lmap: { 'v186 back': { 'U40-B': 'U40-N' } }, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const B = boot({ html: P.ev('buildSavedHtml()'), ls: { prio27destdb: J(db) } });
+    chk(name, '(9) a key brought back, read at an opening before the key it came back under', 'R2 keeps U40-N, R1 comes back on a key of its own, and the record names that key: [R2’s key, R1’s key among U40-A, U40-B, U40-N, the record]',
+      B.ev(`JSON.stringify([S.dest.R2.to, ['U40-A','U40-B','U40-N'].indexOf(S.dest.R1.to), ((DESTDB.lmap||{})['v186 back']||{})['U40-B']===S.dest.R1.to])`), J(['U40-N', -1, true])); }
+  // ... WHETHER OR NOT THIS PLAN USES THE HELD KEY (verifier, lens B, round 5): the list carries the key U40-B came back under, but no
+  // requirement of this plan is on it (another plan's may be): it is still that entry's, and U40-B comes back apart from it
+  { const Q = make();
+    chk(name, '(9) a key brought back, read before the key it came back under, which this plan does not use', 'the held key stays its own entry’s: [came back on a key of its own, the held key kept, the deleted key apart from it]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B');
+        var nk=destFold([{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1})['U40-B'];
+        var al=destFold([{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''},{k:nk,n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1});
+        return JSON.stringify([!!nk && nk!=='U40-A' && nk!=='U40-B', !Object.prototype.hasOwnProperty.call(al, nk), !!al['U40-B'] && al['U40-B']!==nk && al['U40-B']!=='U40-A']); })()`),
+      J([true, true, true])); }
+  // ... AND FOR EVERY KEY BROUGHT BACK (verifier, lens B, round 5): two keys brought back, each read before the key it came back
+  // under, in one list: each comes back apart from its own, and neither held key is moved
+  { const Q = make();
+    chk(name, '(9) two keys brought back, each read before the key it came back under', 'neither held key is moved: [both came back on keys of their own, the held keys kept, each deleted key apart from both]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B', 'U40-D');
+        var n1=destFold([{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-B':1})['U40-B'];
+        var n2=destFold([{k:'U40-D',n:'Delta Depot',kind:'other',t:''}], 'om', true, {'U40-D':1})['U40-D'];
+        var refs={'U40-B':1,'U40-D':1}; refs[n1]=1; refs[n2]=1; var mine=[n1,n2,'U40-A'];
+        var al=destFold([{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''},{k:'U40-D',n:'Delta Depot',kind:'other',t:''},{k:n1,n:'ALPHA DEPOT',kind:'other',t:''},{k:n2,n:'Delta Depot',kind:'other',t:''}], 'om', true, refs);
+        return JSON.stringify([!!n1 && !!n2 && n1!==n2 && n1!=='U40-A' && n2!=='U40-A', !Object.prototype.hasOwnProperty.call(al, n1) && !Object.prototype.hasOwnProperty.call(al, n2),
+          !!al['U40-B'] && !!al['U40-D'] && mine.indexOf(al['U40-B'])<0 && mine.indexOf(al['U40-D'])<0]); })()`),
+      J([true, true, true])); }
+  // ... AND A MERGE BY NAME LEAVES A COME-BACK'S RECORD ALONE (verifier, lens B, round 6): U40-B, deleted here, came back on a key of
+  // its own, which the person then renamed "Delta Pier". Another appropriation's list carries U40-B under the name "Alpha Depot",
+  // which the board holds once, and is merged into it by name. Its first list read again puts U40-B's requirements back on Delta
+  // Pier: the merge did not re-point the record, so they go neither to Alpha Depot nor to one more Bravo Depot
+  { const Q = make();
+    chk(name, '(9) a key brought back and renamed, then merged by name from another list, read again', 'the merge leaves the record of the come-back alone: [came back on a key of its own, the other list merged into Alpha Depot, read again onto the renamed come-back]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; DESTDB.gone.push('U40-B');
+        var L1=[{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'Bravo Depot',kind:'other',t:''}];
+        var nk=destFold(JSON.parse(JSON.stringify(L1)), 'om', true, {'U40-B':1})['U40-B'];
+        flowSetEnt(flowEnts().findIndex(function(e){ return e.k===nk; }), 'n', 'Delta Pier');
+        var a2=destFold([{k:'U40-B',n:'Alpha Depot',kind:'other',t:''}], 'ff', true, {'U40-B':1});
+        var a3=destFold(JSON.parse(JSON.stringify(L1)), 'om', true, {'U40-B':1});
+        return JSON.stringify([!!nk && nk!=='U40-A' && nk!=='U40-B', a2['U40-B']||'', a3['U40-B']===nk && (destHas(nk)||{}).n]); })()`),
+      J([true, 'U40-A', 'Delta Pier'])); }
+  // ... AND FOR ANOTHER APPROPRIATION'S PLAN READ HERE (verifier, lens B, round 6): Full Fund's file is opened on O&M, whose newer
+  // list holds its own U40-C "Bravo Depot" and deleted U40-B. Full Fund's plan keeps its keys until it opens, but its U40-B is merged
+  // by name into U40-C: Used by on U40-C names it, and after a second file brings a pair of that name (the board then holds it
+  // three times) Full Fund's next opening still puts R1's second hop and R2 on U40-C, not on one more Bravo Depot
+  { const E = (k, n) => ({ k, n, kind: 'gov', t: '' });
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST([E('U40-A', 'Alpha Depot'), E('U40-B', 'Bravo Depot')])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-A',end:'U40-B'},R2:{to:'U40-B',end:'U40-A'}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const hff = Fx.ev('buildSavedHtml()');
+    const Fo = boot({ appn: 'O&M' }); seed(Fo.ev, SC); asBooted(Fo.ev, SC);
+    Fo.ev(`(function(){ applyState(S); ${LIST([E('U40-P', 'Bravo Depot'), E('U40-Q', 'BRAVO DEPOT')])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'U40-P',end:''},R2:{to:'U40-Q',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const db = { ts: Date.now() + 60000, ents: [E('U40-A', 'Alpha Depot'), E('U40-C', 'Bravo Depot')], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const O1 = boot({ html: hff, appn: 'O&M', ls: { prio27destdb: J(db) } });
+    const u = O1.ev(`flowEntUseElseTxt(flowEntUseElse('U40-C'))`);
+    const O2 = boot({ html: Fo.ev('buildSavedHtml()'), appn: 'O&M', ls: lsOf(O1) });
+    const F3 = boot({ html: hff, appn: 'FULL FUND', ls: lsOf(O2) });
+    chk(name, '(9) another appropriation’s key merged by name, read when that plan opens after the board came to hold the name three times', 'Used by on U40-C names Full Fund’s plan, and that plan’s next opening lands there: [Used by, R1’s second hop, R2]',
+      J([u].concat(JSON.parse(F3.ev(`JSON.stringify([S.dest.R1.end, S.dest.R2.to])`)))), J(['Full Fund (2)', 'U40-C', 'U40-C'])); }
+  // ... AND A RECORD THAT NAMES A DESTINATION SINCE DELETED IS REPLACED BY THE MERGE (verifier, lens B, round 6): U40-B came back as
+  // U40-X, which was then deleted here. Another appropriation's U40-B "Alpha Depot" is merged by name into U40-A; after a pair of that
+  // name is read (the board then holds it three times), the same list read again still lands on U40-A, not on one more Alpha Depot
+  { const Q = make();
+    chk(name, '(9) a key whose record names a destination since deleted, merged by name, read again after the board came to hold that name three times', 'the merge replaces the record that leads nowhere: [the merge, read again, the board’s Alpha Depots]',
+      Q.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+        DESTDB.gone.push('U40-B', 'U40-X'); DESTDB.lmap['v186 back']={'U40-B':'U40-X'};
+        var L2=[{k:'U40-B',n:'Alpha Depot',kind:'other',t:''}];
+        var a1=destFold(JSON.parse(JSON.stringify(L2)), 'ff', true, {'U40-B':1});
+        destFold([{k:'U40-P',n:'Alpha Depot',kind:'other',t:''},{k:'U40-Q',n:'ALPHA DEPOT',kind:'other',t:''}], 'om', true, {'U40-P':1,'U40-Q':1});
+        var a2=destFold(JSON.parse(JSON.stringify(L2)), 'ff', true, {'U40-B':1});
+        return JSON.stringify([a1['U40-B']||'', a2['U40-B']||'', DESTDB.ents.filter(function(e){ return destName(e.n)==='alpha depot'; }).length]); })()`),
+      J(['U40-A', 'U40-A', 3])); }
+  // ---- (10) WHAT THE RECORD MAY HOLD, EVERY KEY BROUGHT BACK, AND THE SAME RULES FOR A LIST FROM BEFORE v1.86 (verifier, lens B,
+  // round 3): a record that is an array is not followed either; two keys brought back are both kept; the notice matches names as the
+  // reading does (case and spaces) and writes keys as text; a list from before v1.86 is held to the same guards as a v1.86 one ----
+  // [destinations whose name is Alpha Depot ignoring case and spaces, keys R1 and R2 use, both hops, in the year on screen, the next
+  // year and the locked cycle]
+  const twoOf = Bx => Bx.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+    [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.to, st.dest.R1.end, st.dest.R2.to, st.dest.R2.end); });
+    return JSON.stringify([flowEnts().filter(function(e){ return destName(e.n)==='alpha depot'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`);
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: { 'v186 back': [] }, lsig: {}, conflicts: [], gone: ['U40-B'] };
+    const B1 = boot({ html, ls: { prio27destdb: J(db) } }), B2 = boot({ html, ls: lsOf(B1) });
+    chk(name, '(10) a record that is an array', 'not followed: reopened before a save, still one ALPHA DEPOT, used in every year and the locked cycle: [destinations, keys]',
+      B2.ev(`(function(){ var c=CYCDB.cycles['PB|'+MS.cur], ks=[];
+        [S, MS.years[MS.cur+1], c.years[MS.cur]].forEach(function(st){ ks.push(st.dest.R1.end, st.dest.R2.to); });
+        return JSON.stringify([flowEnts().filter(function(e){ return e.n==='ALPHA DEPOT'; }).length, ks.filter(function(k,i){ return ks.indexOf(k)===i; }).length]); })()`), J([1, 1])); }
+  // ... AND FOR ANOTHER APPROPRIATION'S LIST, AT A LATER OPENING (fix round 7): for the appropriation open, a key brought back is now
+  // also kept as a key read by name is, so an array record no longer shows there; another appropriation's list keeps nothing that way.
+  // Its U40-B, deleted here and still used, comes back on a new key, renamed here since; at the next opening (what storage keeps, read
+  // back) the record still brings it to that destination -- an array record, saved as [], would bring it back once more
+  { const X = make();
+    chk(name, '(10) a record that is an array, for another appropriation’s list at a later opening', 'not followed: the key brought back and renamed here comes back to the same destination, and no other is made: [the same key, destinations]',
+      X.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }])} DESTDB.gone.push('U40-B'); DESTDB.lmap['v186 back']=[]; _destMerges=[]; _destKept=[];
+        var L=[{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}];
+        var a=destFold(JSON.parse(JSON.stringify(L)), 'ff', true, {'U40-B':1}), k=a['U40-B']||'';
+        DESTDB.ents.forEach(function(e){ if(e.k===k) e.n='Alpha Depot West'; });
+        DESTDB.lmap=JSON.parse(JSON.stringify(DESTDB.lmap)); _destBack=Object.create(null);     // what storage keeps, read back at the next opening
+        var b=destFold(JSON.parse(JSON.stringify(L)), 'ff', true, {'U40-B':1});
+        return JSON.stringify([!!k && b['U40-B']===k, DESTDB.ents.length]); })()`), J([true, 2])); }
+  // ... AND TWO KEYS BROUGHT BACK FOR ANOTHER APPROPRIATION'S LIST, AT A LATER OPENING (fix round 7): both are kept in the record, so
+  // each comes back to its own destination again, renamed here since -- not the first on one more new key
+  { const X = make();
+    chk(name, '(10) two keys brought back for another appropriation’s list, read at a later opening', 'each comes back to the same destination, and no other is made: [both the same, destinations]',
+      X.ev(`(function(){ ${LIST([{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }])} DESTDB.gone.push('U40-A', 'U40-B'); DESTDB.lmap['v186 back']={}; _destMerges=[]; _destKept=[];
+        var L=[{k:'U40-A',n:'Alpha Depot',kind:'other',t:''},{k:'U40-B',n:'ALPHA DEPOT',kind:'other',t:''}];
+        var a=destFold(JSON.parse(JSON.stringify(L)), 'ff', true, {'U40-A':1,'U40-B':1});
+        DESTDB.ents.forEach(function(e){ if(e.k===a['U40-A']) e.n='Alpha Depot West'; if(e.k===a['U40-B']) e.n='Alpha Depot East'; });
+        DESTDB.lmap=JSON.parse(JSON.stringify(DESTDB.lmap)); _destBack=Object.create(null);     // what storage keeps, read back at the next opening
+        var b=destFold(JSON.parse(JSON.stringify(L)), 'ff', true, {'U40-A':1,'U40-B':1});
+        return JSON.stringify([!!a['U40-A'] && !!a['U40-B'] && b['U40-A']===a['U40-A'] && b['U40-B']===a['U40-B'], DESTDB.ents.length]); })()`), J([true, 3])); }
+  { const db = { ts: Date.now() + 60000, ents: [{ k: 'U40-C', n: 'Bravo Yard', kind: 'other', t: '' }], lmap: {}, lsig: {}, conflicts: [], gone: ['U40-A', 'U40-B'] };
+    const B1 = boot({ html, ls: { prio27destdb: J(db) } }), B2 = boot({ html, ls: lsOf(B1) });
+    chk(name, '(10) both destinations deleted by the newer list', 'both come back, once each: two of that name, and the plan, the next year and the locked cycle use two keys',
+      J([twoOf(B1), twoOf(B2)]), J([J([2, 2]), J([2, 2])]));
+    const byName = Bx => { const m = JSON.parse(money(Bx)), o = {}; Object.values(m[0]).forEach(([n, v]) => { o[n] = (o[n] || 0) + v; });
+      return J([Object.entries(o).sort(), m[1]]); };
+    chk(name, '(10) both destinations deleted by the newer list', 'reopened before a save, the funds flow by name: $300 on ALPHA DEPOT, $900 on Alpha Depot, $1,200 in all',
+      byName(B2), J([[['ALPHA DEPOT', 300], ['Alpha Depot', 900]], 1200])); }
+  { const X = make();
+    X.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }, { k: 'U40-B', n: 'ALPHA  DEPOT', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'U40-A',end:''},R2:{to:'U40-B',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    chk(name, '(10) names that differ only in spaces', 'the panel names both as kept apart, as the reading keeps them', said(boot({ html: X.ev('buildSavedHtml()') }), APART),
+      'Alpha Depot [U40-A] · ALPHA  DEPOT [U40-B]. Each keeps its own requirements and money; rename one so they can be told apart.'); }
+  { const X = make();
+    X.ev(`(function(){ ${LIST([{ k: '<b>a</b>', n: 'Alpha Depot', kind: 'other', t: '' }, { k: '<b>b</b>', n: 'ALPHA DEPOT', kind: 'other', t: '' }])}
+      var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1; S.dest={R1:{to:'<b>a</b>',end:''},R2:{to:'<b>b</b>',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const F = boot({ html: X.ev('buildSavedHtml()') });
+    chk(name, '(10) keys that read like markup', 'the panel writes both keys as text', said(F, APART),
+      'Alpha Depot [&lt;b>a&lt;/b>] · ALPHA DEPOT [&lt;b>b&lt;/b>]. Each keeps its own requirements and money; rename one so they can be told apart.');
+    const M = make();
+    M.ev(`(function(){ ${LIST([{ k: 'U40-A', n: 'Alpha Depot', kind: 'other', t: '' }])} destFold([{k:'<i>x1</i>',n:'ALPHA DEPOT',kind:'other',t:''}], 'ff', false, {'<i>x1</i>':1}); return 'ok'; })()`);
+    chk(name, '(10) keys that read like markup', 'a merge by name writes its key as text', said(M, MERGED), 'ALPHA DEPOT [&lt;i>x1&lt;/i>, Full Fund] → Alpha Depot [U40-A].'); }
+  // a list from before v1.86 holding the pair, opened where a newer list holds an Alpha Depot of its own (U40-C)
+  { const Lg = make();
+    Lg.ev(`(function(){ _destReady=false; MS.flow={ents:[{k:'x1',n:'Alpha Depot',kind:'other',t:''},{k:'x2',n:'ALPHA DEPOT',kind:'other',t:''}]};
+      S.dest={R1:{to:'x1',end:''},R2:{to:'x2',end:''}}; MS.years[MS.cur]=S; save(); return 'ok'; })()`);
+    const C = boot({ html: v186AsV185(Lg.ev('buildSavedHtml()')), ls: NEWER([{ k: 'U40-C', n: 'Alpha Depot', kind: 'other', t: '' }]) });
+    chk(name, '(10) before v1.86, where a newer list holds Alpha Depot', 'R1 on Alpha Depot, R2 on ALPHA DEPOT, two keys, neither the newer list’s own; no merge by name',
+      J([here(C), C.ev(`JSON.stringify([S.dest.R1.to==='U40-C', S.dest.R2.to==='U40-C'])`), said(C, MERGED)]), J([HERE, J([false, false]), '(nothing)'])); }
+  // ... and one name of such a list read where the board holds that name twice: no first one is picked
+  { const A = make();
+    chk(name, '(10) before v1.86, a name the board holds twice', 'no first one is picked: the incoming destination is kept on a key of its own',
+      A.ev(`(function(){ ${LIST(PAIR)} var al=destFold([{k:'x1',n:'alpha depot',kind:'other',t:''}], 'ff', false, {x1:1});
+        return JSON.stringify([al.x1!=='U40-A' && al.x1!=='U40-B', DESTDB.ents.length]); })()`), J([true, 3])); }
+  // ---- (11) BESIDE U44: a key the funds flow keeps for its own rows ("unassigned", "destsplit") names no destination here. U44 gives
+  // such an entry a key of its own; it is never remembered as "brought back", so two lists' entries under it stay two destinations ----
+  { const Q = make();
+    chk(name, '(11) two lists, each with its own “unassigned” entry', 'read in one session: Depot U and Depot V, on two keys',
+      Q.ev(`(function(){ var n=function(k){ var e=DESTDB.ents.filter(function(x){ return x.k===k; })[0]; return e? e.n : '(none)'; };
+        var a=destFold([{k:'unassigned',n:'Depot U',kind:'other',t:''}], 'om', true, {unassigned:1})['unassigned']||'unassigned';
+        var b=destFold([{k:'unassigned',n:'Depot V',kind:'other',t:''}], 'ff', true, {unassigned:1})['unassigned']||'unassigned';
+        return JSON.stringify([n(a), n(b), a!==b]); })()`), J(['Depot U', 'Depot V', true])); }
+  // ... nor remembered as merged by name (verifier, lens A, round 5): the first list's "unassigned" Depot U is merged by name into the
+  // board's own Depot U; the second list's "unassigned" Depot V is still a destination of its own
+  { const Q = make();
+    chk(name, '(11) an “unassigned” entry merged by name, then another list’s own', 'Depot V on a key of its own, not on the Depot U the first was merged into: [the first’s key, its name, the second’s name, two keys]',
+      Q.ev(`(function(){ ${LIST([{ k: 'dU', n: 'Depot U', kind: 'other', t: '' }])} var n=function(k){ var e=DESTDB.ents.filter(function(x){ return x.k===k; })[0]; return e? e.n : '(none)'; };
+        var a=destFold([{k:'unassigned',n:'Depot U',kind:'other',t:''}], 'om', true, {unassigned:1})['unassigned']||'unassigned';
+        var b=destFold([{k:'unassigned',n:'Depot V',kind:'other',t:''}], 'ff', true, {unassigned:1})['unassigned']||'unassigned';
+        return JSON.stringify([a, n(a), n(b), a!==b]); })()`), J(['dU', 'Depot U', 'Depot V', true])); }
+  // ... nor kept by name for the appropriation open (verifier, lens A, round 6, S3): both lists read as this appropriation's own, so
+  // what it keeps of a key read by name is written and read; the second list's Depot V is still a destination of its own
+  { const Q = make();
+    chk(name, '(11) an “unassigned” entry merged by name, then another of this appropriation’s lists’ own', 'Depot V on a key of its own, not on the Depot U the first was merged into: [the first’s key, its name, the second’s name, two keys]',
+      Q.ev(`(function(){ ${LIST([{ k: 'dU', n: 'Depot U', kind: 'other', t: '' }])} var n=function(k){ var e=DESTDB.ents.filter(function(x){ return x.k===k; })[0]; return e? e.n : '(none)'; };
+        var a=destFold([{k:'unassigned',n:'Depot U',kind:'other',t:''}], mySlug(), true, {unassigned:1})['unassigned']||'unassigned';
+        var b=destFold([{k:'unassigned',n:'Depot V',kind:'other',t:''}], mySlug(), true, {unassigned:1})['unassigned']||'unassigned';
+        return JSON.stringify([a, n(a), n(b), a!==b]); })()`), J(['dU', 'Depot U', 'Depot V', true])); }
+  // ---- (12) BESIDE U44, A KEY READ BY KEY (L8 trial 3, F1): a key read by the key a full import moved it to (destMovedTo), or by the
+  // key of its own another board's Put it right gave it ("unassigned" is "dunassigned" on every board), is the destination that key
+  // names, as a key the board holds is, renamed or not: no merge by name was made. Listed as one, another appropriation's list said
+  // "Merged by name (the same name, ignoring case and spaces): Depot U [dunassigned, Full Fund] → Depot U2 [unassigned]" -- two names,
+  // and no merge by name. The money was right ({dunassigned: unassigned}) and stays so; a real merge by name is still listed ----
+  { const dA = { k: 'dA', n: 'Alpha Depot', kind: 'other', t: '' };
+    const OLD = [dA, { k: 'unassigned', n: 'Depot U2', kind: 'other', t: '' }], PUT = [dA, { k: 'dunassigned', n: 'Depot U', kind: 'other', t: '' }];
+    // one reading of a v1.86 list, on a board whose list is made `board` first: [the map, the board's list]
+    const fold = (B, board, list, from, refs, pre = '') => JSON.parse(B.ev(`(function(){ ${LIST(board)} ${pre}
+      var al=destFold(${J(list)}, ${from}, true, ${J(refs)}); return JSON.stringify([al, DESTDB.ents.map(function(e){ return e.k+':'+e.n; })]); })()`));
+    const sc = '(12) Full Fund’s list, put right on another board, read where this board still holds “unassigned”';
+    const C1 = make();
+    chk(name, sc, 'CONTROL: its “dunassigned” Depot U is read onto the board’s “unassigned” Depot U2, by key, nothing added: [the map, the list]',
+      J(fold(C1, OLD, PUT, "'ff'", { dunassigned: 1 })), J([{ dunassigned: 'unassigned' }, ['dA:Alpha Depot', 'unassigned:Depot U2']]));
+    chk(name, sc, 'the destinations panel lists no merge by name: none was made', said(C1, MERGED), '(nothing)');
+    const C2 = make();
+    chk(name, sc + ', under the same name', 'nor where the two names are the same: read by key, not merged by name: [the map, what the panel lists]',
+      J([fold(C2, [dA, { k: 'unassigned', n: 'Depot U', kind: 'other', t: '' }], PUT, "'ff'", { dunassigned: 1 })[0], said(C2, MERGED)]), J([{ dunassigned: 'unassigned' }, '(nothing)']));
+    const C3 = make();
+    chk(name, sc + ', read as the appropriation open', 'CONTROL: the open appropriation’s reading lists nothing, as before: [the map, what the panel lists]',
+      J([fold(C3, OLD, PUT, 'mySlug()', { dunassigned: 1 })[0], said(C3, MERGED)]), J([{ dunassigned: 'unassigned' }, '(nothing)']));
+    const sm = '(12) Full Fund’s list naming a key a full import moved here (“unassigned”, now “dunassigned”)';
+    const M1 = make();
+    chk(name, sm, 'CONTROL: its “unassigned” Depot U is read onto the “dunassigned” Depot U2 it moved to, nothing added: [the map, the list]',
+      J(fold(M1, [dA, { k: 'dunassigned', n: 'Depot U2', kind: 'other', t: '' }], [dA, { k: 'unassigned', n: 'Depot U', kind: 'other', t: '' }], "'ff'", { unassigned: 1 },
+        "DESTDB.moved=[{k:'unassigned', to:'dunassigned'}];")), J([{ unassigned: 'dunassigned' }, ['dA:Alpha Depot', 'dunassigned:Depot U2']]));
+    chk(name, sm, 'the destinations panel lists no merge by name: none was made', said(M1, MERGED), '(nothing)');
+    const N1 = make();
+    chk(name, '(12) a real merge by name', 'CONTROL: Full Fund’s v1.86 list naming Alpha Depot on a key the board does not hold is merged by name, and listed word for word as before: [the map, what the panel lists]',
+      J([fold(N1, [dA], [{ k: 'x7', n: 'ALPHA  DEPOT', kind: 'other', t: '' }], "'ff'", { x7: 1 })[0], said(N1, MERGED)]), J([{ x7: 'dA' }, 'ALPHA  DEPOT [x7, Full Fund] → Alpha Depot [dA].']));
+    const N2 = make();
+    chk(name, '(12) a merge by name and a key read by key, in one list', 'the panel lists the merge by name, and only it: [the map, what the panel lists]',
+      J([fold(N2, OLD, [{ k: 'x7', n: 'ALPHA  DEPOT', kind: 'other', t: '' }, PUT[1]], "'ff'", { x7: 1, dunassigned: 1 })[0], said(N2, MERGED)]),
+      J([{ x7: 'dA', dunassigned: 'unassigned' }, 'ALPHA  DEPOT [x7, Full Fund] → Alpha Depot [dA].']));
+    // AT OPENING. Full Fund's file, put right on another board (R1 on "dunassigned" Depot U), opened on O&M in a browser whose newer
+    // list an ORBIT before this one left holding "unassigned" Depot U2
+    const Fx = boot({ appn: 'FULL FUND' }); seed(Fx.ev, SC); asBooted(Fx.ev, SC);
+    Fx.ev(`(function(){ applyState(S); ${LIST(PUT)} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'dunassigned',end:''}, R2:{to:'dA',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const Oc = boot({ html: Fx.ev('buildSavedHtml()'), appn: 'O&M', ls: { prio27destdb: J({ ts: Date.now() + 60000, ents: OLD, lmap: {}, lsig: {}, conflicts: [], gone: [] }) } });
+    chk(name, sc + ', at opening', 'the opening line says no merge by name -- it still names the list U44 refuses for -- nor does the panel: [the line says “Merged by name”, it names that list, what the panel lists]',
+      J([stat(Oc).indexOf('Merged by name') >= 0, stat(Oc).indexOf('⚠ The destination list holds what a file handed over is refused for: it holds the key “unassigned” (ents[1]).') >= 0, said(Oc, MERGED)]), J([false, true, '(nothing)']));
+    // AT OPENING. O&M's "unassigned" Depot U, renamed Depot U2 after Full Fund last saved; ⬅ Import a full board of a file carrying O&M
+    // only moves the key ("dunassigned", destDb.moved), Full Fund kept as this browser had it, still naming "unassigned" Depot U
+    const X1 = make();
+    X1.ev(`(function(){ ${LIST([{ k: 'unassigned', n: 'Depot U', kind: 'other', t: '' }])} var C=flowCfg(); C.ents=DESTDB.ents; C.dv=1;
+      S.dest={R1:{to:'unassigned',end:''}}; MS.years[MS.cur]=S; persistDest(); save(); return 'ok'; })()`);
+    const ffPlan = X1.ev(`localStorage.getItem('prio27om')`);
+    X1.ev(`flowSetEnt(0, 'n', 'Depot U2'); 'ok'`);
+    const omOnly = X1.ev('buildSavedHtml()'), lsI = lsOf(X1); lsI.prio27ff = ffPlan;
+    const Ti = boot({ ls: lsI });
+    const ok = Ti.ev(`(function(){ window.confirm=function(){ return true; }; window.alert=function(){}; return fullImportText(${J(omOnly)}, 'x.html'); })()`);
+    const Om = boot({ ls: lsOf(Ti) });
+    chk(name, sm + ', at opening after the import', 'CONTROL: the import ran and moved the key: [it ran, where “unassigned” went]',
+      J([ok, JSON.parse(Om.ev(`JSON.stringify(DESTDB.moved)`))]), J([true, [{ k: 'unassigned', to: 'dunassigned' }]]));
+    chk(name, sm + ', at opening after the import', 'the opening line is the import’s report and says no merge by name, nor does the panel: [opens with it, the line says “Merged by name”, what the panel lists]',
+      J([stat(Om).startsWith('⬅ Full board imported from “x.html”'), stat(Om).indexOf('Merged by name') >= 0, said(Om, MERGED)]), J([true, false, '(nothing)'])); }
+  } catch (e) {
+    failures.push({ scenario: name, where: 'harness', what: 'the block threw: ' + String((e && e.stack) || e).slice(0, 300), got: 'threw', want: 'ran' });
+  }
+  bootRelease(__bm, keepBoards());
+  await settleBoards();
+})();
+// ==== end v2.00 (U40) ====
 // ==== v2.00 (U18): a copy saved while a folder save is under way is never written over ====
 // The folder save read the folder's copy once, at the top, and wrote its own over whatever was there by the time it wrote.
 // Bob took the pen and saved BOB-2 while Brad's save was keeping the copy it had read in the history; Brad's save then wrote

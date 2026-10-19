@@ -2372,7 +2372,9 @@ let DESTDB = (function(){
   return d;
 })();
 // var, not let: flowEnts() can be asked for before the lines that would declare these have run
-var _destReady=false, _destOthers=false, _destBusy=false, _destOpening=false;
+var _destReady=false, _destOthers=false, _destBusy=false, _destOpening=false, _destMerges=[], _destBack=Object.create(null);
+var _destKept=[];     // v2.00 (U40): keys read where an earlier reading put it, under another name (destKeep)
+var _destLeft=[];     // v2.00 (U40): keys read apart from where an earlier reading put them (destLeft)
 // WHAT A FULL IMPORT BROUGHT (v1.86). The import reloads the board to open what it wrote, so the
 // report it owes is kept across the reload and said on the first render after it.
 var _impRep=(function(){ try{ const r=localStorage.getItem('prio27impRep'); if(r) localStorage.removeItem('prio27impRep'); return r; }catch(e){ return null; } })(), _impSaid=false;
@@ -15335,6 +15337,11 @@ function destNewKey(){
   return k;
 }
 function destHas(k){ return DESTDB.ents.filter(function(e){ return e.k===k; })[0]||null; }
+// v2.00 (U40): WHERE A DELETED KEY CAME BACK is kept with the list once a key comes back (DESTDB.lmap, under 'v186 back', a
+// name no list's signature can take; lmap is saved with the list and read only by signature everywhere else), so a later
+// reading -- the file reopened before a save, another browser, another appropriation's plan -- brings it back to that one
+// destination, not to one more of the same name at each opening. A record that is not a map is not followed.
+function destBackMap(){ const b=(DESTDB.lmap||{})['v186 back']; return (b && typeof b==='object' && !Array.isArray(b))? b : null; }
 // v2.00 (U44): WHERE A KEY A FULL IMPORT MOVED WENT (destOwnRight). "unassigned", "destsplit", a number or true / false takes a
 // key of its own there, and the key it moved to is kept with the list (destDb.moved), because a copy of the list the import did
 // not carry -- the plan and locked cycles of an appropriation it kept as this browser had them -- still names the old key.
@@ -15383,13 +15390,33 @@ function destListOf(st){
   return {list:(F && Array.isArray(F.ents) && F.ents.length)? F.ents : flowDefEnts(), v186:false};
 }
 // Match terms are combined; a different KIND is kept as the board has it and named for the owner.
-function destJoin(hit, e, from){
+function destJoin(hit, e, from, byKey){
+  // v2.00 (U40): a key read into another destination by its NAME is a merge, and each one is listed (destNotice)
+  // v2.00 (U71): but not one read BY KEY (byKey: the key a full import moved it to, or the key of its own another board gave it, U44)
+  if(hit.k!==String(e.k) && !_destMerges.some(function(m){ return m.k===String(e.k) && m.to===hit.k && m.from===from; }))
+    if(!byKey) _destMerges.push({k:String(e.k), n:String(e.n||''), to:hit.k, name:String(hit.n||''), from:from});
   const toks=flowToks(hit.t);
   flowToks(e.t).forEach(function(t){ if(!toks.some(function(x){ return x.toUpperCase()===t.toUpperCase(); })) toks.push(t); });
   hit.t=toks.join(', ');
   const kd=(e.kind==='prime'||e.kind==='gov')? e.kind : 'other';
   if(kd!==(hit.kind||'other') && !DESTDB.conflicts.some(function(c){ return c.k===hit.k && c.from===from && c.kind===kd; }))
     DESTDB.conflicts.push({k:hit.k, from:from, kind:kd});
+}
+// v2.00 (U40): A KEY READ WHERE AN EARLIER READING PUT IT -- what the appropriation open keeps of its keys read by name (destFold,
+// vs), or the record of where a key came back or was merged (destBackMap) -- under a name that differs from the one its list
+// gives it now (its owner renamed it, or this board renamed that destination) keeps its requirements and money there, with the
+// plan's locked cycles. That is listed too (destNotice), once each: nothing else would say that the file's name is not the board's
+function destKeep(hit, e, from){
+  if(!_destKept.some(function(m){ return m.k===String(e.k) && m.n===String(e.n||'') && m.to===hit.k && m.from===from; }))
+    _destKept.push({k:String(e.k), n:String(e.n||''), to:hit.k, name:String(hit.n||''), from:from});
+}
+// v2.00 (U40): A KEY READ APART FROM WHERE AN EARLIER READING PUT IT -- what the appropriation open keeps of its keys (destFold, vk)
+// names a destination this reading does not give it: its list now carries that destination apart, or another entry of the list holds
+// it. The plan follows the list, while what the earlier reading re-pointed -- the locked cycles, kept at once -- stays there: two
+// destinations for one requirement. That is listed too (destNotice), once each
+function destLeft(hit, e, from, was){
+  if(!_destLeft.some(function(m){ return m.k===String(e.k) && m.n===String(e.n||'') && m.to===hit.k && m.was===was.k && m.from===from; }))
+    _destLeft.push({k:String(e.k), n:String(e.n||''), to:hit.k, name:String(hit.n||''), was:was.k, wname:String(was.n||''), from:from});
 }
 // The keys a plan's requirements point at, in every state given.
 function destRefs(states){
@@ -15404,6 +15431,11 @@ function destRefs(states){
 // only while something still points at it.
 function destFold(list, from, v186, refs){
   const al=Object.create(null);
+  const claimed=Object.create(null);   // v2.00 (U40): the board key each entry of this list was read into
+  _destBack=destBackMap()||_destBack;
+  // v2.00 (U40): a key this board holds that the record names as where a deleted key came back, carried by this list, is the
+  // destination of the entry that carries it -- claimed before the list is read, so the record never hands it to another entry
+  if(v186) (list||[]).forEach(function(x){ if(x && typeof x==='object' && x.k && destHas(String(x.k)) && Object.keys(_destBack).some(function(g){ return _destBack[g]===String(x.k); })) claimed[String(x.k)]=String(x.k); });
   let fresh=false;
   // v1.99 (item 95): `fresh` says a key had to change; `touched` says anything the destination list holds changed -- a
   // destination added under its own key, a joined name, a map entry or the list's signature -- so it is stored and
@@ -15412,6 +15444,22 @@ function destFold(list, from, v186, refs){
   const n0=DESTDB.ents.length, sig0=from? DESTDB.lsig[from] : undefined;
   const sg=v186? '' : destSig(list);
   const lm=v186? null : (DESTDB.lmap[sg]||(DESTDB.lmap[sg]={}));
+  // v2.00 (U40): A KEY READ BY NAME IS READ THE SAME WAY AGAIN (v1.86: "until then a reopen reads the same list the same way").
+  // For the appropriation open -- whose plan and locked cycles a reading re-points, the cycles kept at once -- each key of its v1.86
+  // lists read BY NAME into another destination is kept (lmap, under 'v186 ', the appropriation and 'by name', a name no older
+  // list's signature takes) and lands there again at a later reading of any of its lists -- the same file reopened, or its owner's
+  // newer one -- though the board has since come to hold that key itself (a second list carried it apart from the one it was
+  // merged into) or brought it back for another list: the plan and the next year stay with the locked cycle. A list that does not
+  // carry a key leaves what is kept for it. Another appropriation's list, read for the names only, keeps nothing here
+  const vs=(v186 && from && from===mySlug())? 'v186 '+from+' by name' : '', vm=(vs && DESTDB.lmap[vs] && typeof DESTDB.lmap[vs]==='object' && !Array.isArray(DESTDB.lmap[vs]))? DESTDB.lmap[vs] : {}, vmW=Object.assign(Object.create(null), vm);
+  // v2.00 (U40): what is kept by name (vs) is held, before the list is read, for the entry it was kept for: another entry of the
+  // list, read first, never takes that destination by name -- a placeholder its owner has since given the name it was kept under --
+  // so the key lands there with the plan's locked cycles in any order of its list. Not for a key this reading does not carry (deleted
+  // here, and nothing uses it)
+  const kept=Object.create(null);
+  if(vs) (list||[]).forEach(function(x){ const k=(x && typeof x==='object' && x.k && Object.prototype.hasOwnProperty.call(vm, x.k) && typeof vm[x.k]==='string' && list.filter(function(y){ return y && y.k===x.k; }).length===1)? vm[x.k] : '';
+    if(k && destHas(k) && !Object.prototype.hasOwnProperty.call(claimed, k) && !Object.prototype.hasOwnProperty.call(kept, k) && !list.some(function(y){ return y && y.k===k; })
+      && !(!destHas(x.k) && DESTDB.gone.indexOf(x.k)>=0 && !(refs&&refs[x.k]))) kept[k]=String(x.k); });
   // v2.00 (U44): THE FIRST ENTRY WITH A KEY is the destination every requirement on it reads; a later entry with that key is its
   // repeat, and is not read. Read as a destination of its own, a repeated "unassigned" took a second new key and re-pointed
   // every requirement on it to the LAST entry's name -- R1, shown on Depot U, came across on Depot V.
@@ -15427,8 +15475,12 @@ function destFold(list, from, v186, refs){
     if(once[typeof e.k+' '+e.k]) return; once[typeof e.k+' '+e.k]=1;
     const used=!!(refs&&refs[e.k]);
     let hit=null, first=true;
+    // v2.00 (U40): where a reading of these lists put it by name -- not for a key the list holds twice (U44): one memory per key would hand
+    // one of its entries the other's
+    const vk=(Object.prototype.hasOwnProperty.call(vm, e.k) && typeof vm[e.k]==='string' && list.filter(function(x){ return x && x.k===e.k; }).length===1)? vm[e.k] : '';
     if(v186){
       hit=destHas(e.k);
+      if(hit && vk && vk!==hit.k && destHas(vk) && !Object.prototype.hasOwnProperty.call(claimed, vk) && !list.some(function(x){ return x && x.k===vk; })){ hit=destHas(vk); vmW[String(e.k)]=vk; }
       // v2.00 (U44): a key a full import moved is followed to the key it moved to (destMovedTo), never joined by its old name
       if(!hit && destMovedTo(e.k)!==e.k) hit=destHas(destMovedTo(e.k));
       // v2.00 (U44): the key another board's Put it right gave an entry this board still holds as it was (destOwnKey) names that
@@ -15445,10 +15497,42 @@ function destFold(list, from, v186, refs){
       hit=destHas(lm[e.k]);
       if(!hit && !used) return;          // read before, and deleted here since
     }
-    if(hit){ if(v186 && hit.k!==e.k){ destJoin(hit, e, from); touched=true; } }
+    // v2.00 (U40): TWO ENTRIES OF ONE LIST ARE TWO DESTINATIONS, whatever their names. "Alpha Depot" and "ALPHA DEPOT",
+    // typed side by side, each with its own requirements, were read into ONE when the list met a newer one: the second
+    // matched, by name, the first that the same reading had just added, and its requirements and money moved with nothing
+    // said. One reading never puts two of its entries into one board key -- not through a map an older board kept, not by
+    // name -- and a name is not trusted to choose where the list itself, or the board's, holds that name twice, or where
+    // the destination it names is another entry's key in this same list. The entry is kept under its own key instead,
+    // and destNotice names both.
+    // v2.00 (U40): or held for another entry's key (kept, above)
+    const taken=function(k){ return (Object.prototype.hasOwnProperty.call(kept, k) && kept[k]!==String(e.k)) || Object.prototype.hasOwnProperty.call(claimed, k) && claimed[k]!==String(e.k); };
+    if(hit && taken(hit.k)){ hit=null; first=true; }
+    // v2.00 (U71): a key the board does not hold, found above, was found BY KEY -- U44's key a full import moved it to, or the key of
+    // its own another board gave an entry -- and names that destination, as a key the board holds does: no merge by name is listed
+    if(hit){ if(v186 && hit.k!==e.k){ destJoin(hit, e, from, !destHas(e.k)); touched=true; } }
     else {
       hit=destByName(e.n);
-      if(hit){ if(first){ destJoin(hit, e, from); touched=true; } }
+      if(hit && (taken(hit.k)
+        || list.some(function(x){ return x && x.k!==e.k && destNamed(x.n) && destName(x.n)===destName(e.n); })
+        || DESTDB.ents.filter(function(x){ return destName(x.n)===destName(e.n); }).length>1
+        || (v186 && list.some(function(x){ return x && x.k===hit.k && x.k!==e.k; })))) hit=null;
+      // v2.00 (U40): a key kept by name (vs) whose name now finds ANOTHER destination (its owner renamed it to a name the board holds)
+      // is read where it was kept, with the plan's locked cycles, and said (destKeep), as for a name the board does not hold
+      if(hit && v186 && vk && hit.k!==vk && destHas(vk) && !taken(vk) && !list.some(function(x){ return x && x.k===vk; })) hit=null;
+      if(hit){ if(first){ destJoin(hit, e, from); touched=true; }
+        if(v186 && hit.k!==String(e.k) && String(e.k)!==DEST_NONE && String(e.k)!==DEST_SPLIT) vmW[String(e.k)]=hit.k;     // v2.00 (U40): read by name, kept for the next reading (vs)
+        // v2.00 (U40): a key the board does not hold, read BY NAME into one it does, is kept in the same record (destBackMap): a
+        // later reading -- the file reopened before a save -- comes to the same destination, though the board may since hold that
+        // name twice (a pair kept apart, read in from another list) and the name alone would then choose none of them. A
+        // key already brought back to a destination the board holds keeps that one
+        if(v186 && hit.k!==String(e.k) && !destHas(String(e.k)) && !destHas(_destBack[String(e.k)]||'') && String(e.k)!==DEST_NONE && String(e.k)!==DEST_SPLIT){ _destBack[String(e.k)]=hit.k; DESTDB.lmap['v186 back']=_destBack; } }
+      // v2.00 (U40): where a reading put a key by name (vs, above) comes before the record, which names the last destination a key
+      // came back as for any list -- another list can have brought it back elsewhere since. Not a destination this list carries apart
+      else if(v186 && vk && destHas(vk) && !taken(vk) && !list.some(function(x){ return x && x.k===vk; })){ hit=destHas(vk); vmW[String(e.k)]=vk; }
+      // v2.00 (U40): A KEY ALREADY BROUGHT BACK under a new one (deleted here, still used, and its name not enough to find it)
+      // comes back there again -- in this session, and at a later opening through the record kept with the list (destBackMap).
+      // The plan, its locked cycle and another appropriation's plan are read from one list: one destination, not one each.
+      else if(v186 && destHas(_destBack[String(e.k)]||'') && !taken(_destBack[String(e.k)])) hit=destHas(_destBack[String(e.k)]);
       else {
         if(!used && !destNamed(e.n)) return;       // an unnamed placeholder nobody uses is not carried
         let k=String(e.k);
@@ -15458,12 +15542,28 @@ function destFold(list, from, v186, refs){
         if(!(free && (v186 || DEST_SEED[k]===destName(e.n)))){ k=destNewKey(); fresh=true; }
         hit={k:k, n:String(e.n==null?'':e.n).replace(/\s+/g,' ').trim(), kind:(e.kind==='prime'||e.kind==='gov')? e.kind : 'other', t:String(e.t||'')};
         DESTDB.ents.push(hit);
+        if(v186 && k!==String(e.k)) _destBack[String(e.k)]=k;     // v2.00 (U40): where it came back, for the next reading
+        if(v186 && k!==String(e.k)) (DESTDB.lmap||(DESTDB.lmap={}))['v186 back']=_destBack;
+        // v2.00 (U40 beside U44): never for a key the funds flow keeps for its own rows -- it names no destination here, and two
+        // lists' entries under it are two destinations
+        if(String(e.k)===DEST_NONE || String(e.k)===DEST_SPLIT) delete _destBack[String(e.k)];
       }
     }
+    // v2.00 (U40): a key that lands where the record says it came back is kept as a key read by name is (vs), for the appropriation
+    // open -- where its name was refused, nothing else keeps it -- so renamed by its owner to a name the board holds, it is read there
+    // again with the plan's locked cycles, and said (destKeep)
+    if(vs && hit.k!==String(e.k) && hit.k===_destBack[String(e.k)]) vmW[String(e.k)]=hit.k;
+    if(v186 && hit.k!==String(e.k) && (hit.k===vk || hit.k===_destBack[String(e.k)]) && destName(hit.n)!==destName(e.n)) destKeep(hit, e, from);     // v2.00 (U40): said (destKeep)
+    if(used && vk && hit.k!==vk && destHas(vk)) destLeft(hit, e, from, destHas(vk));     // v2.00 (U40): read apart from where it was kept: said (destLeft)
+    claimed[hit.k]=String(e.k);
     if(lm && lm[e.k]!==hit.k){ lm[e.k]=hit.k; touched=true; if(hit.k!==e.k) fresh=true; }
     if(hit.k!==e.k) al[e.k]=hit.k;
   });
   if(!v186 && from) DESTDB.lsig[from]=sg;
+  if(vs && JSON.stringify(vmW)!==JSON.stringify(DESTDB.lmap[vs]||{})){     // v2.00 (U40): kept for its next reading (vs)
+    if(Object.keys(vmW).length) DESTDB.lmap[vs]=Object.assign({}, vmW); else delete DESTDB.lmap[vs]; touched=true; }
+  // v2.00 (U40): a merge is listed as one BY NAME (destNotice); a key read where it was merged (vs) into a destination renamed since is not
+  if(vs) _destMerges=_destMerges.filter(function(m){ return destName(m.n)===destName(m.name); });
   if(DESTDB.ents.length!==n0 || (from && DESTDB.lsig[from]!==sig0)) touched=true;
   Object.defineProperty(al, 'fresh', {value:fresh, enumerable:false});
   Object.defineProperty(al, 'touched', {value:touched, enumerable:false});
@@ -15603,9 +15703,11 @@ function flowEntUseMap(){
       [d.to, d.end].forEach(function(x){ const k=x? tr(x) : ''; if(!k || seen[k]) return; seen[k]=1;
         const o=out[k]||(out[k]={}); o[where]=(o[where]||0)+1; }); }); });
   };
+  // v2.00 (U40): a key this board deleted that came back under a new one (destBackMap) is counted on the one it came back as:
+  // the next reading of that plan puts its requirements there, so "Used by", a delete and a reset say so, not "Nothing points at it"
   // v2.00 (U44): a requirement on a key a full import moved counts where the key went (destMovedTo) -- ✕ on that destination
   // removed it while a kept plan still pointed at it, and the plan, opened, made it again from its old name
-  const same=function(x){ return destMovedTo(x); };
+  const bk=destBackMap()||{}, same=function(x){ x=destMovedTo(x); return (!destHas(x) && typeof bk[x]==='string' && destHas(bk[x]))? bk[x] : x; };
   const viaOld=function(m){ return function(x){ return Object.prototype.hasOwnProperty.call(m, x)? m[x] : ''; }; };
   Object.keys((CYCDB&&CYCDB.cycles)||{}).sort().forEach(function(c){
     add(appnName(mySlug())+' locked '+blLblTxt(c), destStoreStates(CYCDB.cycles[c]), same);
@@ -15634,6 +15736,17 @@ function flowSetEnt(i, field, v){
   // working plan's requirements pointing at nothing.
   if(cycBlock('Changing a destination')){ render(); return; }
   const L=flowEnts(), e=L[i]; if(!e) return;
+  // v2.00 (U40): A NAME ANOTHER DESTINATION HAS IS REFUSED, before anything changes. Two destinations are one when their
+  // names match, ignoring case and spaces (destName), yet "ALPHA DEPOT" could be typed beside "Alpha Depot" -- and a
+  // board that read the two by name put both destinations' requirements on one. The panel's field keeps what was typed, marked.
+  // An entry with this one's key is this destination, not another (a list can hold a key twice: U44).
+  const o=(field==='n' && destNamed(v))? L.filter(function(x){ return x!==e && x.k!==e.k && destName(x.n)===destName(v); })[0] : null;
+  if(o){
+    const el=document.querySelector('#entBody input[onchange=\'flowSetEnt('+i+',"n",this.value)\']');
+    codeRefusedIn(el, 'Destination name not changed', inShow(v)+' matches '+inShow(o.n)+', another destination on the list '
+      +'(names are compared ignoring case and spaces). This one keeps the name '+inShow(e.n)+'; give it a name of its own. Nothing was changed');
+    return;
+  }
   if(field==='kind'){ e.kind=(v==='prime'?'prime':(v==='gov'?'gov':'other'));
     DESTDB.conflicts=DESTDB.conflicts.filter(function(c){ return c.k!==e.k; }); }
   else e[field]=String(v==null?'':v);
@@ -16373,6 +16486,29 @@ function flowResetCats(){ flowCfg().cats=flowDefCats(); save(); render(); }
 // The registry, editable. Match terms are optional: they let the chart recognise a destination in
 // the source file's own text, which is how a plan event with no requirement behind it can still be
 // placed. A destination with no terms is only ever reached by logging it on a requirement.
+// v2.00 (U40): WHAT THE LIST HOLDS UNDER ONE NAME, AND WHAT WAS MERGED BY NAME. Destinations whose names match (ignoring
+// case and spaces) but whose keys differ are kept apart -- each keeps its requirements -- and are named here so they can be
+// renamed apart. Each merge a reading in this session makes by name is listed (v1.86: "each merge is listed"); a list
+// identical to one already read follows that one's map, and is not listed again. Said in this panel and on opening. A key
+// the list holds twice is ONE destination: named once, and never as kept apart from itself (U44).
+function destNotice(){
+  const L=DESTDB.ents||[], D=L.filter(function(e,i){ return destNamed(e.n) && !L.slice(0,i).some(function(x){ return x.k===e.k; })
+    && L.some(function(x){ return x.k!==e.k && destName(x.n)===destName(e.n); }); });
+  let h=D.length? '⚠ <b>Destinations with matching names are kept apart:</b> '
+    +D.map(function(e){ return esc(e.n)+' ['+esc(e.k)+']'; }).join(' · ')
+    +'. Each keeps its own requirements and money; rename one so they can be told apart.' : '';
+  if(_destMerges.length) h+=(h? ' ' : '')+'<b>Merged by name</b> (the same name, ignoring case and spaces): '+_destMerges.map(function(m){
+    return esc(m.n)+' ['+esc(m.k)+', '+esc(appnName(m.from))+'] → '+esc(m.name)+' ['+esc(m.to)+']'; }).join(' · ')+'.';
+  // v2.00 (U40): and each key read where an earlier reading put it, under another name (destKeep)
+  if(_destKept.length) h+=(h? ' ' : '')+'<b>Read where an earlier reading put it</b>, under another name: '+_destKept.map(function(x){
+    return esc(x.n)+' ['+esc(x.k)+', '+esc(appnName(x.from))+'] → '+esc(x.name)+' ['+esc(x.to)+']'; }).join(' · ')
+    +'. Where the two are not one destination, move the requirements by hand.';
+  // v2.00 (U40): and each key read apart from where an earlier reading put it (destLeft)
+  if(_destLeft.length) h+=(h? ' ' : '')+'<b>Read apart from where an earlier reading put it</b>: '+_destLeft.map(function(y){
+    return esc(y.n)+' ['+esc(y.k)+', '+esc(appnName(y.from))+'] → '+esc(y.name)+' ['+esc(y.to)+'], not '+esc(y.wname)+' ['+esc(y.was)+']'; }).join(' · ')
+    +'. Where a locked cycle was read then, it keeps the earlier one; where the two are one destination, move the requirements by hand.';
+  return h;
+}
 function flowEntEditor(){
   const L=flowEnts();
   const cf=(DESTDB.conflicts||[]).filter(function(c){ return flowEnt(c.k); });
@@ -16417,7 +16553,9 @@ function flowEntEditor(){
       +(used||(uT?'':'—'))+(uT? (used?' · ':'')+esc(uT) : '')+'</td>')
       +'<td><button class="qb" style="color:var(--red)" onclick="flowDelEnt('+i+')" title="remove">✕</button></td></tr>';
   });
+  const dn=destNotice();     // v2.00 (U40)
   h+='</table>'
+    +(dn? '<div style="font-size:9.5px;color:var(--amber);margin-top:6px">'+dn+'</div>' : '')
     +(cf.length? '<div style="font-size:9.5px;color:var(--amber);margin-top:6px">\u26a0 Named with a different kind on another appropriation: '
       +cf.map(function(c){ const e=flowEnt(c.k); return esc(e.n)+' ('+esc(c.from==='import'? 'an imported file' : appnName(c.from))+' had '
         +esc({prime:'Contractor', gov:'Government activity', other:'Other'}[c.kind]||c.kind)+')'; }).join(' \u00b7 ')
@@ -32582,6 +32720,12 @@ if(_bootRestoreErr){
       +(PMODE&&PMODE.ts? ' on '+esc(new Date(PMODE.ts).toLocaleDateString()):'')
       +'. Your work is kept in this browser, against this copy. <b>\u2709 Submit input</b> sends your office\u2019s changes to the portfolio team.'
     : '📦 Opened with the saved board state — last saved'+(PUB.by? ' by <b>'+esc(PUB.by)+'</b>':'')+' '+fmtTs(PUB.ts)+'. Make changes and 💾 Save to pass it on.'); _statQuiet=false; }
+// v2.00 (U40): opening says what destNotice says -- after the line above, never in place of it (an import's report or a
+// warning about this browser's copy stays). The destinations panel keeps saying it after later messages.
+if(destNotice()){
+  const de=document.getElementById('shareStat');
+  _statQuiet=false; setStat((de && de.innerHTML? de.innerHTML+' ' : '')+destNotice());
+}
 function loadShared(cb){
   // file:// (shared drive / synced folder): fetch is blocked, but XHR works when
   // the board is opened via the provided launcher (--allow-file-access-from-files)

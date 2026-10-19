@@ -1050,14 +1050,9 @@ result for it was run fresh against these commits.
       limit".
     - **U39 (P3).** Two RCN / EEIC entries with the same text print identical rows in RCN-EEIC by Month. The money is
       right, but a reader cannot tell the rows apart.
-    - **U40 (P1, a release blocker; fix track u40 under way on 13 Oct; this paragraph stands only if that fix does not
-      land).** Typing lets two destinations take names the board's own rule calls the same ("Alpha Depot" and "ALPHA
-      DEPOT": case and spaces are ignored). A requirement can then lose its destination: when that file is opened in a
-      browser whose own destination list is newer (the ordinary case of a second person opening it), the two merge into
-      the first. "ALPHA DEPOT" is gone, the requirement that pointed at it now points at "Alpha Depot", and its money counts
-      there in the funds flow. Nothing is said, and a save there keeps the merge. Opened in a fresh browser, the same file
-      keeps both. This breaks v1.86's can't-fails ("no requirement … loses or changes its destination"; "each merge is
-      listed"). Typed destination names are also not trimmed and have no length limit.
+    - **U40: fixed in its own commit (above).** Two destinations of one list, typed with names the board's rule calls the
+      same, stay two wherever that list is read in, and a typed name another destination has is refused. Typed destination names are
+      still not trimmed and have no length limit.
     - **U42 (fixed in its own commit, above):** the funds-flow sheet names. Still open: the slide deck cuts requirement
       titles the same way (not registry text): its Mission Critical and Unfunded tables keep the first 56 UTF-16 units, so a
       Plan Event of 55 letters and an emoji prints as 55 letters and a replacement mark. By code, the workbook writer also
@@ -2952,6 +2947,296 @@ result for it was run fresh against these commits.
     panel's share column shows such a category's share on each of its rungs (on screen only, as on 7ee498a; the workbook
     prints the row once). The workbook's "HOW EACH OGC CATEGORY WAS DECIDED" lists a repeated rung by its own name
     ("Software again"), though no row has that name: its money is in the first rung's row (Software).
+- **U40 — two destinations of one list whose names match stay two; a requirement never loses its destination** (the lead,
+  13 Oct, 12:02 PM ET: a release blocker, data loss; built on Brad's "Don't wait for me. Let's keep pressing throughout to get
+  this next version published." of 12 Oct). Two destinations are one when their names match, ignoring case and spaces, yet
+  typing kept "ALPHA DEPOT" beside "Alpha Depot", each with its own requirements. Opened in a browser whose own destination
+  list was newer (a second person's), the file's list was read into that one by name: its second entry matched the first,
+  which the same reading had just added, and the two became one. R2's $300 moved to Alpha Depot in the year on screen, the
+  next year, on both hops and in the locked cycle; the funds flow and its workbook put R1's $900 and R2's $300 on one sheet;
+  the opening line said only that the file had opened; and a save kept the merge. The same reading ran for a list saved
+  before v1.86 (in any browser), an appropriation taken from another file, a shared-folder load and a PMO submittal, and a
+  map an older board kept could send both entries to one destination without reading a name at all. Now a typed name another
+  destination has is refused and nothing changes. One reading never puts two entries of its list into one destination,
+  through a kept map or by name, and a name is not trusted to choose where the list itself, or the board's, holds it twice,
+  or where it names another entry of the same list: the entry keeps its own key. Where the newer list had deleted one of the
+  two and the file's requirements still use it, it comes back once, under a new key, and where it came back is kept with the
+  destination list (in its saved map of old keys, under a name no list can take), so every later reading -- the locked cycle
+  and the next year, the file reopened before a save, the saved file opened in a fresh browser, another appropriation's plan --
+  comes back to that same destination, renamed or not (the cases where it cannot are named below); and while another
+  appropriation's plan still waits to be read onto it, Used by on that destination names the plan, so it is not removed, nor the
+  list reset, from under it. A key the list holds twice is one destination, and is never named as two. The destinations
+  panel and the opening line name the destinations kept apart, and list each merge a reading makes by name (v1.86 promised
+  "each merge is listed"); what they write is text. Starting point: Codex's batch A3 proposal, adopted after review, with one
+  more guard (a name may not choose a destination the same reading already gave another entry) and its wording changed. Eight
+  rounds of independent review followed. After the first two, the notice and the refusal compare keys; a destination brought
+  back comes back once, at every opening, not once per session (the second review found one more "ALPHA DEPOT", with an empty Funds Flow sheet
+  and a $0 row, at each opening that could not see the first session); and twelve more checks pin the come-back at every opening,
+  what the notice writes, and where it is said. The third found that a destination brought back for another
+  appropriation's plan showed there as used by nobody ("—", and ✕ said "Nothing points at it"), so a person who took it for
+  their own requirement, and named it, took that plan's $300 with it at the plan's next opening, with nothing said; it is now
+  counted where it came back. Eight more checks pin the record (an array, two keys brought back), the notice's name rule and
+  keys, and a list saved before v1.86. The fourth found that the record could hand a deleted key the key another entry of the
+  same list carries -- a list holding it and, after it, the destination it came back as, which a board that never deleted it
+  had taken in from a file: that destination's requirements moved onto one more of the same name and the deleted key's took
+  their place, with nothing said, and the funds flow put R1's $900 under the other name. A destination the board holds that the record
+  names, carried by the list being read, is now claimed for the entry that carries it before the list is read (a name could
+  already never take it). Two more checks pin the count where the destinations panel's own Used
+  by cell and the list reset read it, and for another appropriation's locked cycle. The fifth found that a key merged by name
+  was not remembered: one the newer list had deleted, or had never held, merged into its own destination of that name. Once the
+  board came to hold that name twice -- a pair kept apart, from a second file opened in the same browser -- the next opening of
+  the same file, still unsaved, put that requirement on one more destination of the name in the plan and the next year, while
+  the locked cycle, kept at the first opening, stayed on the first: $300 on two destinations between the working plan and PB27,
+  with nothing said but one more destination named as kept apart, and a save kept it (the board before this change did not do
+  it). Where such a key was read by name is now kept in the same record, unless the record already names a destination the
+  board holds. Three more checks pin the fourth round's claim where a person meets it: at an opening, where the record is read
+  from storage; whether or not the plan uses the key it came back under; and with two keys brought back.
+  The sixth found the same split by another route. A key merged by name could later be carried by a second file's list apart
+  from the destination it was merged into: a pair kept apart, as this change keeps it. That list made the key a destination of its
+  own or, where the newer list had deleted it, brought it back on a new key. The next opening of the first file, still unsaved --
+  or of its owner's newer one, whose list had changed -- then read the key there in the plan and the next year, while the locked
+  cycle, kept at the first opening, stayed where the key was merged: $300 on two destinations between the working plan and PB27
+  (in the funds flow, and in the working plan's Funds Flow workbook under "ALPHA DEPOT 2"), with nothing said but that the two
+  are kept apart, "each keeps its own requirements and money"; a save kept it. The board before this change did not do it,
+  because it merged the pair. Now, for the appropriation open (whose plan and locked cycles a reading re-points, the cycles kept
+  at once), each key of its lists read by name into another destination is kept, and lands there again at a later reading of any
+  of its lists -- not where that list carries the destination it was merged into, and not for a key a list holds twice (and it
+  is listed as a merge by name only under the same name). Another appropriation's list, read for the names only, keeps nothing
+  this way, so Used by, which reads the record, still names where that plan lands. The sixth round's tests review found that such a
+  key, merged by name and then renamed by its owner ("Zulu Yard"), was read onto the destination it was merged into with nothing said -- the
+  file's own name appeared nowhere, and the Funds Flow workbook put its $300 on "Alpha Depot". Following the rename instead would
+  move the plan off its locked cycle again (the board before this change did that: plan on "Zulu Yard", PB27 on Alpha Depot). So
+  the key stays with its locked cycle, and that reading is now said: a key read where an earlier reading put it -- what is kept
+  by name, or the record of where it came back or was merged, for any appropriation's list -- under a name that differs from the
+  one its list gives it now is listed in the panel and on opening, once each; the same for a key brought back whose file renamed
+  it since. Three more checks pin the fifth round's record where a person meets it: beside a key brought back and renamed, for
+  another appropriation's plan read here, and beside a record that names a destination since deleted.
+  The seventh found the same split where the owner's new name is one the reader's board already holds ("Bravo Depot"), for a key
+  merged by name or brought back: that name found the destination for the plan and the next year, while the locked cycle stayed
+  where the first reading put it -- $300 on two destinations between the working plan and PB27, said only as a merge by name (the
+  board before this change did the same and said nothing). The round's own probes found two more routes to it, each the same on the
+  board before this change: another entry of the list, read first -- a placeholder its owner had since given the old name -- took
+  that destination by name, whatever the key's new name; and a key brought back where its name was refused (the board held that
+  name twice) was kept only by the record, which a name comes before. For the appropriation open, a key kept by name is now read
+  where it was kept also where its name finds another destination; what is kept is held for its key before the list is read, so no
+  other entry of the list takes that destination by name (that entry is kept apart on a key of its own, and said); and a key that
+  lands where the record says it came back is kept the same way. Each such reading is said as above. Seven more checks pin it
+  (one of them because that keeping hid an array record for the appropriation open: another appropriation's list still has only
+  the record); two more pin what that line says (once for each appropriation and each name, every name and key as text, beside a merge by name,
+  after the panel is drawn) and two keys kept for one destination, read together; and three more read the record, and the name
+  branch's own keeping, where the new keeping does not stand in for them: two keys brought back for another appropriation's list, a key
+  merged by name while its record names another destination, and what each entry of a list holding one key twice says.
+  The eighth round's money review found the same split where the owner's newer file carries apart the destination the key was
+  read onto (its owner took that destination in from a file of the reader's list): the list says the two are two destinations,
+  so the key is not read onto it, and the plan and the next year follow the list while the locked cycle, kept at the first
+  opening, stays where the first reading put it -- $300 on two destinations between the working plan and PB27, with nothing
+  said, or said only as a merge by name, or as two destinations kept apart that "each keep their own requirements and money"
+  (the board before this change did the same silently, or merged the two). Brad, 19 Oct, 5:26 AM ET: that split stays, as a
+  named limit ("Not covered"), and the board now says it, in the panel and on opening: "Read apart from where an earlier
+  reading put it: Zulu Yard [U40-Z, O&M] → Zulu Yard [U40-Z], not Alpha Depot [U40-C]. Where a locked cycle was read then, it
+  keeps the earlier one; where the two are one destination, move the requirements by hand." (words only: nothing is placed
+  differently). Two more checks pin it. The eighth round's tests review found that the seventh round's hold on what is kept by
+  name was pinned only for a key the board never held (six of nine wrong versions passed, two of them splitting the $300); two
+  more checks pin it where the board has since come to hold that key, and for a key the newer list deleted, brought back.
+  U40 lands after U44 ("a destination list that repeats a key …", above), so this commit carries what the second of the two
+  must. The board's four meetings with U44 are resolved by their text: U40's `destBackMap` beside U44's helpers, and U40's lines
+  at the start of `destFold`'s loop beside U44's `once` and its snapshot of the list (both kept, U40's first); U40's held-key
+  line before U44's lines in the v1.86 branch (U40's acts only where the board holds the key, U44's only where it does not); and
+  `flowEntUseMap`'s `same`, which follows the key a full import moved first and then the record of where a deleted key came
+  back (U44's own recipe line). U40's recipe for U44 keeps the keys the funds flow keeps for its own rows ("unassigned",
+  "destsplit") out of the record of a key brought back, of a key merged by name and of what is kept by name, with U44's own
+  adaptation of the block's two funds-flow bucket readings. And F1, found only with both in (L8 trial 3): a key U44 reads BY KEY
+  -- the key a full import moved it to, or the key of its own another board's Put it right gave it -- was listed by U40 as
+  "Merged by name (the same name, ignoring case and spaces): Depot U [dunassigned, Full Fund] → Depot U2 [unassigned]": two
+  names, and no merge by name. Such a key names that destination, as a key the board holds does, so it is no longer listed
+  (`destJoin`'s `byKey`; ledger U71). Nothing moves: every requirement lands where it did, and a real merge by name is listed
+  word for word as before.
+  Predates v2.00 (v1.86).
+  - **What users may see:** a name another destination already has, typed into the destinations panel, is refused. The
+    field keeps what was typed, marked in red, with a tooltip; the line reads "⚠ Destination name not changed. “ALPHA
+    DEPOT” matches “Alpha Depot”, another destination on the list (names are compared ignoring case and spaces). This one
+    keeps the name “Bravo Yard”; give it a name of its own. Nothing was changed." A board whose list holds two such names
+    says so on opening, after its usual line, and in the destinations panel until one is renamed: "⚠ Destinations with
+    matching names are kept apart: Alpha Depot [U40-A] · ALPHA DEPOT [U40-B]. Each keeps its own requirements and money;
+    rename one so they can be told apart." (in brackets, each destination's key; a key the list holds twice is named once,
+    and never as kept apart from itself). A merge by name, the v1.86 rule for one name on two lists, is listed in the panel
+    and on opening: "Merged by name (the same name, ignoring case and spaces): RAYTHEON [x1, Full Fund] → Raytheon [d…]."
+    Where a second person's list already has a destination of that name, the file's two are kept beside it and all three
+    are named. A destination the newer list had deleted, still used by the file, comes back once, under a new key, and stays
+    that destination at every later opening, renamed or not (except where a whole list that never saw it come back replaces
+    this one, or a destination of its old name is added again: "Not covered"; and a list that carries it beside the one it came
+    back as, below). A destination brought back for another appropriation's plan (deleted here, still used there)
+    shows that appropriation under Used by ("Full Fund (2)"); ✕ answers "Bravo Depot is not removed. The list is shared by every
+    appropriation, and requirements point at it on Full Fund (2). …" and the list reset names it among the destinations in use
+    elsewhere -- v1.86's own words. Renaming it renames it for that plan too, as for any destination in use elsewhere.
+    A list holding a deleted destination beside the one it came back as (another person's board, which never deleted it,
+    took that one in from a file) keeps both as its file has them: that destination keeps its requirements, and the deleted
+    one comes back on a key of its own, under its own name. That new one is then where the deleted destination came back: a
+    plan of another appropriation still on it is counted there under Used by, and at that plan's next opening is read onto it
+    by name, said as a merge by name ("Merged by name (the same name, ignoring case and spaces): Bravo Depot [U40-B, Full
+    Fund] → Bravo Depot […]."); a rename made earlier for that plan no longer reaches it.
+    A destination a file's key was merged into by name stays that key's destination at later openings of that appropriation's
+    files -- the same file, or its owner's newer one -- even after the board has come to hold that name twice, or that key
+    itself (a second file carrying it apart from the destination it was merged into: then the merge is listed again at that
+    opening, and the two are named as kept apart); a file whose list carries both keeps them apart, and where a
+    requirement of the plan then leaves the destination an earlier reading, with a locked cycle, put it on, that is listed in the
+    panel and on opening, once each ("Read apart from where an earlier reading put it: … not Alpha Depot [U40-C]. Where a locked
+    cycle was read then, it keeps the earlier one; where the two are one destination, move the requirements by hand."); while another
+    appropriation's plan still waits to be read onto it, Used by on it names that plan, as for a destination brought back, and
+    renaming it renames it for that plan too. A key read where an earlier reading put it -- merged by name, or brought back --
+    under a name its file no longer gives that destination (its owner renamed it -- also to a name another destination has -- or this board renamed the destination) stays
+    there, with its locked cycle, and is listed in the panel and on opening, once each, not as a merge by name: "Read where an
+    earlier reading put it, under another name: Zulu Yard [U40-Z, O&M] → Alpha Depot [U40-C]. Where the two are not one
+    destination, move the requirements by hand." Another entry of
+    that file's list that now has the name the key was read under is kept apart on a key of its own, and the two are named as kept
+    apart. The Funds Flow workbook gives each destination its own
+    sheet ("Alpha Depot", "ALPHA DEPOT 2"), as it always did for two destinations. A key U44 reads by key (moved by a full import,
+    or put right on another board) is not listed as merged by name.
+  - **Test:** audit-import "v2.00 (U40) — two destinations of one list whose names match stay two, and each merge a reading
+    makes by name is said" (146 checks: U40's 132, the three "(11)" beside U44 and F1's eleven "(12)"). Typing: two spellings, the panel's own field, and the correction. The file, with both
+    hops, two years and a locked cycle: opened fresh, where a newer list holds Bravo Yard or an Alpha Depot of its own, and
+    each saved there and reopened (destinations by name, the funds flow, the Funds Flow workbook read back, the panel, the
+    opening line). A list saved before v1.86. An appropriation taken from the file, a shared-folder load, a PMO submittal and
+    a full import. destFold read directly: a key of the same list, a name the board holds twice, an older board's map, a name
+    a destination took on since, and one name on another list (merged, the same way twice, and listed). What the notice must
+    not say (two unnamed placeholders, match terms, a seeded key read into itself) and must say (each list's merge, once per
+    list, through a kept map too, and a key merged into a second destination); one key held twice (fresh, against a newer
+    list, beside a real pair, re-spelled); a destination the newer list deleted, coming back once (both hops, every year and
+    the locked cycle, the funds flow by name, the panel, saved and reopened, reopened in the same browser before a save twice,
+    another appropriation's plan read, saved and opened again, a record that is not a map or is an array, both destinations of
+    the pair deleted by the newer list, and destFold read directly); a key brought back for another appropriation's plan (Used
+    by, and ✕ refused; the panel's own Used by cell and the list reset, and with two years and a locked cycle, each counted);
+    a key brought back, read before the key it came back under (that key keeps its own requirements) -- read directly, and at an
+    opening where the record is read from storage, whether or not the plan uses that key, and with two keys brought back; a key
+    merged by name, read again after a second file brought a pair of that name (the plan, the next year and the locked cycle on
+    one key), and after a second file made it a destination of its own, or brought it back on a new key -- reopened, and from
+    its owner's newer file, whose list has changed, opened twice (the same); where its list carries apart the destination it was
+    merged into (not read into it; read directly); into a destination renamed since (listed as read where an earlier reading put
+    it, not as merged by name; read directly); renamed by its owner, with a locked cycle (one key, said in the panel and on
+    opening); renamed by its owner to a name the board holds -- merged by name, brought back, and brought back where its name was
+    refused -- and read after another entry of its list that now has the name it was merged under (the same; that entry kept
+    apart) -- also where the board has since come to hold that key, and for a key the newer list deleted, brought back; held for its key, and not for a key the reading does not carry, and kept where the record says it came back (read
+    directly); two keys kept for one destination, read together (read directly); a key merged by name, read from its owner's newer file
+    whose list carries apart the destination it was merged into, under a new name and under a name the board holds (the plan
+    follows the list, the locked cycle stays, and that is said); a record that is an array, and two keys brought
+    back, for another appropriation's list at a later opening (read directly); a key merged by name while its record names
+    another destination, read again after the board came to hold it (read directly); what each entry of a list holding one key
+    twice says, read twice (read directly); through the record and through what is kept by name, under another name (said once each -- for each appropriation and each name -- every name and key as text, beside a merge by
+    name and after the panel is drawn) and under the
+    same name (not said; read directly); a key merged by name for another appropriation's plan, counted under Used by where it was
+    merged, and still where that plan lands after a third list brought its key back elsewhere, and read when that plan opens
+    after the board came to hold the name three times (Used by and both hops); a merge by name beside a key brought back and
+    renamed (the renamed one keeps it), and beside a record naming a destination since deleted (replaced; read directly); a
+    list that holds one key twice, read twice (read directly); a
+    key brought back whose destination is then deleted, then read again from a PMO submittal; names that read like markup
+    (the panel, the opening line, a merge), and keys that do (the panel, a merge); names that differ only in spaces; the
+    opening line's own markup kept; the opening after a full import; "New destination" beside a placeholder; a list saved
+    before v1.86 holding the pair, opened where a newer list has an Alpha Depot of its own, and one of its names read where the
+    board holds that name twice. Dollars are typed: R1 $900, R2 $300, $1,200. 107 of U40's 132 fail on the board before the change
+    and the 25 controls pass on both. The three v1.86 destination scenarios (48 checks) pass unchanged. Beside U44: three "(11)"
+    checks (an "unassigned" entry never recorded as brought back, merged by name or kept by name) and F1's eleven "(12)" (a key
+    read by key not listed, at a reading and at opening, after Put it right on another board and after a full import; a real
+    merge by name still listed; five controls) -- F1's six that are not controls, and the round-8 money review's two, fail on
+    this commit's board without their lines (int40's fin-u40-pre, 19 Oct: exactly those eight fail, the other 186 pass). On this commit's board the focused block passes 194/194 (U40's 146 and the 48 of the three v1.86 destination scenarios).
+    Expected values changed (principle 6), both in U40's own block and both because beside U44 a list's repeat of a key is not
+    read (`destFold`'s `once`): `tools/export-audit/audit-import.mjs:8733`, "(9) a list that holds one key twice, read twice":
+    `{U40-A: U40-F}` both times → `{U40-A: U40-C}` both times (its first entry, Echo Yard, merged by name; the claim -- read the
+    same way both times, nothing more made -- unchanged; U40's recipe for U44); `tools/export-audit/audit-import.mjs:8744`, "(9) a
+    list that holds one key twice, read twice: what it says": "Merged by name (…): Echo Yard [U40-A, O&M] → Echo Yard [U40-C].
+    Read where an earlier reading put it, under another name: Delta Pier [U40-A, O&M] → alpha  depot [U40-F]. Where the two
+    are not one destination, move the requirements by hand." → "Merged by name (…): Echo Yard [U40-A, O&M] → Echo Yard
+    [U40-C]." (U44's fix round 6: the repeat, Delta Pier, is not read, so nothing is said of it). No orbit-board check,
+    fixture or expected value changes.
+  - **Mutations:** `v200-u40-typed-duplicate-kept`, `-refusal-field-unmarked`, `-refusal-names-itself`,
+    `-incoming-pair-merged`, `-ambiguous-local-first`, `-same-list-key-consumed`, `-map-collapse-followed`,
+    `-name-into-taken`, `-claim-unrecorded`, `-merge-unlisted`, `-merge-from-slug`, `-apart-unsaid`,
+    `-editor-notice-gone`, `-opening-unsaid`, `-opening-replaces`, `-terms-refused-as-name`, `-own-key-listed`,
+    `-merge-listed-twice`, `-merge-other-list-dropped`, `-map-fallthrough-silent`, `-placeholders-apart`, `-own-key-taken`,
+    `-apart-pairs-one-key`, `-apart-key-twice`, `-refusal-own-key`, `-comeback-per-reading`, `-comeback-unrecorded`,
+    `-comeback-into-taken`, `-comeback-session-only`, `-comeback-not-kept`, `-apart-name-unescaped`,
+    `-merged-name-unescaped`, `-opening-markup-lost`, `-comeback-deleted-followed`, `-claims-session-wide`,
+    `-refusal-unnamed`, `-opening-after-import-unsaid`, `-join-before-guard`, `-merge-second-destination-unlisted`,
+    `-comeback-record-unchecked`, `-backuse-uncounted`, `-comeback-record-array`, `-comeback-record-last-only`,
+    `-apart-spaces-unmatched`, `-refusal-case-only`, `-apart-key-unescaped`, `-merged-key-unescaped`,
+    `-incoming-pair-legacy-merged`, `-ambiguous-local-legacy-first`, `-comeback-takes-listed-key`,
+    `-backuse-cycles-uncounted`, `-backuse-panel-reset-uncounted`, `-name-merge-unrecorded`,
+    `-claim-before-load`, `-claim-used-only`, `-claim-first-only`, `-claim-every`, `-record-kept-first`, `-reread-held-key`,
+    `-reread-record-first`, `-reread-unkept`, `-reread-every-appropriation`, `-reread-twice-held-key`, `-reread-per-list`,
+    `-reread-forgets-others`, `-reread-into-listed`, `-merge-renamed-listed`, `-name-merge-replaces-comeback`,
+    `-name-merge-own-only`, `-name-merge-stale-kept`, `-kept-unsaid`, `-kept-any-name`, `-kept-memory-only`,
+    `-kept-record-only`, `-kept-twice`, `-kept-notice-unsaid`, `-kept-name-unescaped`, `-kept-name-first`,
+    `-kept-once-for-all-appropriations`, `-kept-once-for-all-names`, `-kept-board-name-unescaped`, `-kept-key-unescaped`,
+    `-kept-to-unescaped`, `-kept-only-without-merges`, `-reread-held-key-claimed`, `-kept-said-once`, `-kept-held-unclaimed`,
+    `-kept-held-ignored`, `-kept-held-uncarried`, `-kept-held-last`, `-backkept-unkept`, `-backkept-new-only`, `-left-unsaid`, `-left-notice-unsaid`, `-kept-held-unheld-only` and `-kept-held-deleted-unheld`
+    (96), each caught by the focused block on its fixer's or reviewer's own board (four of them only by checks the seventh
+    round added for them); beside U44, `-back-reserved-key`, `-merge-reserved-key` and `-memory-reserved-key` (99), with the finds of
+    `-name-merge-unrecorded` and `-reread-unkept` on the guarded lines and those of `-backuse-uncounted`, `-backuse-panel-reset-uncounted`
+    and U44's `v200-u44-moved-use-unsaid` on the composed `same` line; F1's `v200-u71-bykey-listed`, `-bykey-ignored`,
+    `-moved-key-listed`, `-own-key-listed` and `-name-merge-unlisted` (5). On this commit's board the 17 new or re-pointed entries were each run and each caught -- `-left-unsaid` 2 failing checks, `-left-notice-unsaid` 2, `-kept-held-unheld-only` 1, `-kept-held-deleted-unheld` 1, `-back-reserved-key` 1, `-merge-reserved-key` 2, `-memory-reserved-key` 1, F1's five 6, 6, 2, 4 and 12, `-backuse-uncounted` 6, `-backuse-panel-reset-uncounted` 1, `-name-merge-unrecorded` 3, `-reread-unkept` 1, and U44's `-moved-use-unsaid` 1 of U44's 274 (K2 GUARD); mcount 1,978 entries,
+    each matching once (full-suite
+    sensitivity runs in the final-tree queue).
+  - **Not covered:** a later message replaces the opening line (the panel keeps the notice), and the opening line is not
+    withdrawn when the pair is then renamed apart -- it stays until the next message, while the panel clears at once; on a
+    board whose open appropriation has no plan of its own, the notice follows that board's "SHELL TEMPLATE … no data inside"
+    line; a merge is listed for the session it was made in, not saved in the file, so after a save and reopen it is no longer
+    said; two appropriations whose lists are identical (the same keys, and names equal ignoring case and spaces) share one
+    remembered map, so the second one's merge follows the first's and is not listed again; a file already saved with the
+    merge cannot be split again (its two entries are gone); boards before this one (v1.86 to v2.00 as it stood) still merge
+    such a pair when they read it (they keep the record of where a key came back untouched, and do not read it); where such a
+    board already merged a pair and stored its map, the readers that use the stored map without reading the list again (a PMO
+    submittal from a copy published before v1.86, which carries no list; a locked-cycle store from before v1.86; the "in use
+    elsewhere" count) still follow it -- the board's own requirement was already moved by that board; the record of where a
+    key came back travels with its destination list, so where a whole list that never saw the come-back replaces this one (a
+    second browser whose own list is newer, or a full import of such a file), the next reading of a plan still on the deleted
+    key brings it back once more (names and money right; one more destination of that name, named as kept apart, with its own
+    empty sheet and a $0 row in the Funds Flow workbook), and the same where one key was brought back twice apart -- in a PMO
+    copy and on the board -- and the two meet at a submittal (by reading; not run); this holds for every destination brought
+    back, not only one of a pair; a destination added again under
+    the deleted key's own name after the one it came back as was renamed is where that plan's next reading goes, by name (the
+    merge is said), while Used by still counts the renamed one and says nothing of that plan on the one re-added: a requirement
+    put on it shares it with that plan's from the plan's next opening, said there as a merge by name (as on the board before
+    this change);
+    with three destinations
+    of one name (a second person's own beside the file's pair) the Funds Flow summary sheet has two rows with the same label
+    (the figures are right; the sheets are numbered); a list that holds one key twice is U44's (this change only makes sure
+    such a key is never named as two destinations); a typed name of any length, untrimmed (the ledger's 5,000 characters); a
+    locked cycle taken from a file (`cycTake`, or with an appropriation taken) keeps its keys as they were and is not read
+    through a list: where this board deleted a destination the file's locked cycle still uses, that cycle names a key the
+    board no longer holds, and in its view the requirement's money shows under "Not yet assigned" -- the same on the board
+    before this change, with or without matching names (a ledger row of its own is proposed); the batch import of several
+    boards (`importBoards`) is measured only outside the suite (a review's probe: the pair kept apart, both hops, both years,
+    the funds flow and the workbook, and the come-back once with its record), by no check of its own; one deleted key carried under two names by two lists, where another entry
+    of the second takes, by name, the destination the first brought it back as -- that key then comes back once more, and the
+    record follows the last come-back (measured by a generated probe, by no check); a PMO submittal refused after its list is
+    read ("Nothing was loaded.") has still added or merged destinations, and the panel lists those merges (v1.86's order: the
+    list is read before the submittal is checked); the Funds Flow workbook numbers a second sheet of one name ("ALPHA DEPOT 2"),
+    and that can match, ignoring case as Excel does, a destination named "Alpha Depot 2", whose own sheet is then "Alpha Depot
+    2 2" -- the detail sheets do not name their destination (as on the board before this change; proposed as its own row); and
+    a key merged by name for the appropriation open stays merged at its later readings even where its owner's newer file, with
+    its own newer locked cycle, puts it on that key, which the board has since come to hold (the merge is listed again; the
+    board before this change read it so too, having merged the pair) -- a person moves it by hand, and the next such file is
+    read the same way again; a key merged by name, or brought back, and then renamed by its owner is not followed to its new
+    name: it stays on the destination it was read onto, with its locked cycle, and that is said at each opening that reads it so
+    -- a person moves it by hand (the board before this change put the plan on a destination of the new name, made for it or
+    already there, and left the locked cycle on the first) -- except where this board has since deleted the destination it was read
+    onto, or the list holds the key twice (U44), and then its name is read as v1.86 reads it; at a reopening, a key read again where its name is refused is not listed again as a merge (it
+    was at the opening that made it); a key listed as read under another name stays listed for the session, as a merge does, after
+    a person moves its requirements by hand or renames a destination, and names the destination as it was named at that reading
+    (the key in brackets stays right); a key its list leaves unnamed is listed with an empty name; what is kept of a merge by name travels with the destination list, as the record does, so
+    where a whole list that never saw the merge replaces this one (a second browser whose own list is newer, a full import of
+    such a file), the next reading is made afresh (by reading; not run); NAMED LIMIT (Brad, 19 Oct, 5:26 AM ET; the eighth
+    round's money review, M1-CA): a key merged by name, or brought back, whose owner's newer file carries apart the destination
+    it was read onto (the owner renamed it and took that destination in from a file of the reader's list) is read where that
+    list puts it in the plan and the next year, while its locked cycle, re-pointed at the first opening, stays on the earlier
+    destination -- on that route the working plan and the locked PB27 can sit on two destinations, and the board says so ("Read
+    apart from where an earlier reading put it …"); a person moves the requirements by hand (the board before this change did
+    the same with nothing said, or merged the pair); that line is said in the session that reads it so, and where the key then
+    merged by name, a save removes it from the list and later openings do not say it again (as for a merge); beside U44, a key a
+    list holds twice is read at its first entry only, so its repeat is not said; F1 tells a reading by key apart by the board not
+    holding the key at the held-key join, which only U44's two routes reach (by reading); U44's part (c) is not followed by
+    `flowEntUseMap`'s `same`: on O&M, Used by on Depot U2 is blank for a Full Fund file put right on another board, ✕ removes
+    Depot U2 asking only "Remove Depot U2?", and Full Fund's R1 comes back on a re-made "Depot U" (no money is lost; the same
+    without U40; not fixed here, ledger U72); and Chromium, and two real machines.
 - **Unresolved after R1–R5 (11 Oct).** These are known and not fixed. Each waits for Brad's decision; the full list is in
   `recovery/v200/UNRESOLVED-LEDGER.md` on the backup branch.
   - **U1: built as its own commit** (Brad, 12 Oct, 6:11 AM ET: "Proceed with U1 as its own commit, followed by U14
@@ -3081,9 +3366,20 @@ result for it was run fresh against these commits.
       TAB or line break in a sheet name, which XML allows; a literal `_xHHHH_` in imported text, refused in
       a workbook as a named limit (Brad, 19 Oct: the export names the cell, the user corrects the source and imports again;
       decoding such codes at import goes to the post-merge list); Excel and PowerPoint themselves were not run.
-    - **U40 (P1, a release blocker, data loss; its own fix track).** Two destinations typed with names that differ only in
-      case or spaces merge into one when the file is opened in a browser whose destination list is newer: a requirement
-      changes its destination, its money moves in the funds flow, and nothing is said.
+    - **U40: built as its own commit** (the lead, 13 Oct, 12:02 PM ET: a release blocker, data loss): two destinations of
+      one list whose names match, typed side by side, stay two wherever the list is read in -- opened against a newer list,
+      before v1.86, an appropriation taken from a file, the shared folder, a PMO submittal -- and a typed name another
+      destination has is refused; the destinations kept apart, and each merge a reading makes by name, are said on the
+      panel and on opening; a destination the newer list deleted comes back once and stays that one at every later opening,
+      while another appropriation's plan still waits to be read onto it Used by names that plan and it is not removed, and a
+      list that carries it beside the one it came back as keeps both (above); a key merged by name stays merged at later
+      openings of that appropriation's files, with its locked cycle, even where a second file then carries it apart, and where
+      its owner has renamed it, to any name (that is said); so does a key brought back. A file already saved with the merge cannot be split again; boards before this one still merge such a
+      pair;
+      where a whole list that never saw the come-back replaces the one that did, the next reading brings it back once more
+      (names and money right). Named limit (Brad, 19 Oct): where its owner's newer file carries apart the destination a key
+      was read onto, the working plan follows the list while the locked cycle stays -- said on the board ("Read apart from where
+      an earlier reading put it").
     - **U41: fixed above** (its own commit): the code is kept as saved, listed in Needs attention and Pre-flight, its money
       counted under no recognized code, never the derived one, and chosen again in the Navy SI code field. **U56 and U57
       (Codex's C1b) are fixed above** in one commit (Codex's C5): a saved value that is not text, such as [] or
